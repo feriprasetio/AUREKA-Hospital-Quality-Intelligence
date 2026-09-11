@@ -1,8 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  async rewrites() {
-    return [{ source: '/', destination: '/aureka.html' }]
-  },
-}
+const nextConfig = {}
 
 export default nextConfig
