@@ -1,28 +1,26 @@
 # AUREKA — Hospital Quality Intelligence
 
-Fondasi aplikasi AUREKA yang menghubungkan tiga lapisan utama:
+AUREKA is being rebuilt from a clean baseline. No legacy module business logic is carried forward.
 
-- **GitHub** — source code dan version control
-- **Vercel** — hosting dan deployment
-- **Supabase** — PostgreSQL, Authentication, Storage, dan Realtime
+## Architecture
 
-## Supabase project
-
-`fwgdbddrsstzjlyfeqzl`
-
-## Environment variables
-
-Set di Vercel dan `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://fwgdbddrsstzjlyfeqzl.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
+```text
+GitHub → Vercel → Supabase
 ```
 
-Jangan pernah menaruh `service_role`/secret key di frontend atau repository.
+### Application modules
 
-## Development flow
+- 0. Overview
+- 1. Indikator Mutu
+- 2. Keselamatan Pasien
+- 3. Manajemen Risiko
+- 4. Metadata dan Statistik
+- 5. Pengaturan
 
-`GitHub → Vercel Preview → testing → Production`
+Each module is intentionally scaffolded first. Workflow, data model, RLS, UI, services, and analytics will be designed and implemented module-by-module.
 
-Database AUREKA akan dibangun setelah arsitektur data, RLS, dan modul inti disepakati sehingga tidak terjadi migrasi ulang yang tidak perlu.
+## Development principle
+
+`main` is the stable baseline. Module branches are used for isolated development and are merged only after review and verification.
+
+No production Supabase schema, credentials, or legacy integration is assumed by the clean baseline.
