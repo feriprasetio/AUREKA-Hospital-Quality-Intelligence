@@ -1,3 +1,8 @@
-# 1. Indikator Mutu
+# Module 1 — Indikator Mutu
 
-Module scaffold only. Business logic, indicator definitions, calculations, and data integration will be developed later.
+Empty scaffold. Planned submodules:
+
+- Audit Indikator Mutu
+- Audit Clinical Pathway
+- Audit Klinis dan Kematian
+- Audit Ongoing Professional Practice Evaluation (OPPE)
