@@ -1,3 +1,5 @@
 # Module 0 — Overview
 
-Empty scaffold. Overview will be designed later as public and authenticated dashboards.
+Empty scaffold. Overview will be designed later as:
+- Public Overview
+- Authenticated role/unit-based Overview
