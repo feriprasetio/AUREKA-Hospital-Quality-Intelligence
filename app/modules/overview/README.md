@@ -1,3 +1,3 @@
-# 0. Overview (Dashboard)
+# Module 0 — Overview
 
-Module scaffold only. Business logic and data integration will be developed later.
+Empty scaffold. Overview will be designed later as public and authenticated dashboards.
