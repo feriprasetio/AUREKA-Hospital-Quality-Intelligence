@@ -1,0 +1,26 @@
+project_id = "ktukmjscopggkzrkgnzp"
+
+[api]
+enabled = true
+schemas = ["public", "aureka_system", "aureka_quality", "aureka_patient_safety", "aureka_risk", "aureka_analytics", "storage", "graphql_public"]
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[storage.buckets.aureka-documents]
+public = false
+file_size_limit = "25MiB"
+allowed_mime_types = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel", "image/png", "image/jpeg", "text/csv"]
+
+[storage.buckets.aureka-exports]
+public = false
+file_size_limit = "50MiB"
+allowed_mime_types = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel", "text/csv", "application/pdf"]
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[realtime]
+enabled = true
