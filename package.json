@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@samasante/liquid-glass": "^1.0.0",
     "@supabase/supabase-js": "2.57.0",
     "next": "16.3.4",
     "react": "19.2.0",
