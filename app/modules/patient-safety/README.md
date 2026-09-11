@@ -1,3 +1,7 @@
-# 2. Keselamatan Pasien
+# Module 2 — Keselamatan Pasien
 
-Module scaffold only. Incident, safety, analysis, and monitoring logic will be developed later.
+Empty scaffold. Planned submodules:
+
+- Insiden Keselamatan Pasien
+- Investigasi / Root Cause Analysis (RCA)
+- Survey Budaya Keselamatan Pasien
