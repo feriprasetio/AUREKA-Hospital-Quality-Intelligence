@@ -1,0 +1,2 @@
+-- Storage bucket definitions are declared in supabase/config.toml.
+-- File-level RLS policies will be added with module authorization.
