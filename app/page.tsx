@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import HomeClient from '@/components/HomeClient'
 
 export default function HomePage() {
-  redirect('/index.html')
+  return <HomeClient />
 }
