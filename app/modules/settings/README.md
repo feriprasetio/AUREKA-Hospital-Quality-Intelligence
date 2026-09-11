@@ -1,3 +1,6 @@
-# 5. Pengaturan
+# Module 5 — Pengaturan
 
-Module scaffold only. System configuration, master data, access control, and preferences will be developed later.
+Empty scaffold. Planned areas:
+
+- Pengaturan Umum
+- Manajemen User / PIC Pelaporan
