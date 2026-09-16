@@ -1,13 +1,39 @@
-import type { ReactNode } from 'react'
+import type { MouseEventHandler, ReactNode } from 'react'
 
 type LiquidGlassProps = {
   children: ReactNode
   className?: string
+  onClick?: MouseEventHandler<HTMLDivElement>
+  role?: 'button' | 'article' | 'region'
+  tabIndex?: number
 }
 
-export function LiquidGlass({ children, className = '' }: LiquidGlassProps) {
+export function LiquidGlass({
+  children,
+  className = '',
+  onClick,
+  role,
+  tabIndex,
+}: LiquidGlassProps) {
+  const clickable = Boolean(onClick)
+
   return (
-    <div className={`liquidGlass ${className}`.trim()}>
+    <div
+      className={`liquidGlass ${clickable ? 'liquidGlassClickable' : ''} ${className}`.trim()}
+      onClick={onClick}
+      role={role ?? (clickable ? 'button' : undefined)}
+      tabIndex={tabIndex ?? (clickable ? 0 : undefined)}
+      onKeyDown={
+        clickable
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                event.currentTarget.click()
+              }
+            }
+          : undefined
+      }
+    >
       <div className="liquidGlassEdge" aria-hidden="true" />
       <div className="liquidGlassSheen" aria-hidden="true" />
       <div className="liquidGlassContent">{children}</div>
