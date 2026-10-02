@@ -192,8 +192,26 @@ window.doSignup = async function(){
 };
 
 window.doLogout = async function(){
-  await supabase.auth.signOut();
-  S.user=null;S.profile=null;S.room=null;S.view="public";S.active="home";render();
+  if(S.busy) return;
+  S.busy=true;
+  S.message="";
+  try{
+    const {error}=await supabase.auth.signOut({scope:"local"});
+    if(error) throw error;
+  }catch(e){
+    console.error("AUREKA logout error:",e);
+  }finally{
+    S.user=null;
+    S.profile=null;
+    S.room=null;
+    S.role=null;
+    S.view="public";
+    S.active="home";
+    S.mobile=false;
+    S.overview=null;
+    S.busy=false;
+    render();
+  }
 };
 
 (async function(){
@@ -216,5 +234,5 @@ window.doLogout = async function(){
   }catch(e){}
   render();
 })();
-</script><!-- AUREKA GITHUB PAGES AUTH PUBLIC PROFILE FIX 2026-10-02 -->
+</script><!-- AUREKA GITHUB PAGES LOGOUT FIX 2026-10-02 -->
 </body></html>
