@@ -34,8 +34,8 @@ async function loadRooms(){
   S.rooms = (!r.error && r.data && r.data.length) ? r.data : ROOMS_FALLBACK.map(function(n,i){ return {id:i+1,name:n}; });
 }
 async function loadProfile(uid){
-  const r = await supabase.from("user_profiles").select("user_id,full_name,email,primary_room_id,role_id,is_active").eq("user_id",uid).maybeSingle();
-  if (r.error) throw r.error;
+  const r = await supabase.schema("aureka_system").from("user_profiles").select("user_id,full_name,email,primary_room_id,role_id,is_active").eq("user_id",uid).maybeSingle();
+  if (r.error) throw new Error("Profil AUREKA tidak dapat dibaca: " + r.error.message);
   return r.data;
 }
 
@@ -145,12 +145,14 @@ window.doLogin = async function(){
     S.email=document.getElementById("email").value.trim();
     S.password=document.getElementById("password").value;
     const r=await supabase.auth.signInWithPassword({email:S.email,password:S.password});
-    if(r.error) throw r.error;
-    if(!r.data.session) throw new Error("Sesi login tidak terbentuk.");
-    const p=await loadProfile(r.data.user.id);
+    if(r.error) throw new Error("Login Supabase gagal: " + r.error.message);
+    if(!r.data.session || !r.data.user) throw new Error("Sesi login tidak terbentuk.");
+    const verified=await supabase.auth.getUser();
+    if(verified.error || !verified.data.user) throw new Error("Sesi autentikasi tidak dapat diverifikasi.");
+    const p=await loadProfile(verified.data.user.id);
     if(!p) throw new Error("Profil AUREKA belum tersedia untuk akun ini.");
     if(!p.is_active) throw new Error("Akun belum aktif. Hubungi administrator.");
-    S.user=r.data.user;S.profile=p;
+    S.user=verified.data.user;S.profile=p;
     if(p.primary_room_id){
       const rr=await supabase.from("master_rooms").select("id,name").eq("id",p.primary_room_id).maybeSingle();
       S.room=rr.data || null;
@@ -187,9 +189,11 @@ window.doLogout = async function(){
     await loadRooms();
     const r=await supabase.auth.getSession();
     if(r.data.session){
-      const p=await loadProfile(r.data.session.user.id);
+      const verified=await supabase.auth.getUser();
+      if(verified.error) throw verified.error;
+      const p=await loadProfile(verified.data.user.id);
       if(p && p.is_active){
-        S.user=r.data.session.user;S.profile=p;
+        S.user=verified.data.user;S.profile=p;
         if(p.primary_room_id){
           const rr=await supabase.from("master_rooms").select("id,name").eq("id",p.primary_room_id).maybeSingle();
           S.room=rr.data || null;
@@ -200,5 +204,5 @@ window.doLogout = async function(){
   }catch(e){}
   render();
 })();
-</script><!-- AUREKA GITHUB PAGES DEPLOY REFRESH 2026-10-02 -->
+</script><!-- AUREKA GITHUB PAGES AUTH FIX 2026-10-02 -->
 </body></html>
