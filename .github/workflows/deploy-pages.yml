@@ -1,0 +1,53 @@
+name: Build AUREKA Pages from Source
+
+on:
+  push:
+    branches:
+      - pages-source
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aureka-pages-publish
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build static export
+        run: npm run build
+
+      - name: Publish static export to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          tmp_dir="$(mktemp -d)"
+          cp -R out/. "$tmp_dir/"
+          cd "$tmp_dir"
+          touch .nojekyll
+          git init
+          git checkout -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "deploy: AUREKA static export from ${GITHUB_SHA}"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
