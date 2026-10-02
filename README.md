@@ -32,3 +32,6 @@ Business logic, data models, RLS, services, analytics, and tests will be built m
 `GitHub module branch → Vercel Preview → testing → main → Production`
 
 Never commit a Supabase service-role/secret key. Frontend code uses the publishable key only.
+
+
+GitHub Pages workspace enabled for temporary AUREKA development.
