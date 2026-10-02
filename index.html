@@ -140,10 +140,14 @@ window.setActive = function(v){S.active=v;S.mobile=false;render();};
 window.setMobile = function(v){S.mobile=v;render();};
 
 window.doLogin = async function(){
-  S.busy=true;S.message="";render();
   try{
-    S.email=document.getElementById("email").value.trim();
-    S.password=document.getElementById("password").value;
+    const emailEl=document.getElementById("email");
+    const passwordEl=document.getElementById("password");
+    S.email=emailEl ? emailEl.value.trim() : "";
+    S.password=passwordEl ? passwordEl.value : "";
+    if(!S.email) throw new Error("Email wajib diisi.");
+    if(!S.password) throw new Error("Password wajib diisi.");
+    S.busy=true;S.message="";render();
     const r=await supabase.auth.signInWithPassword({email:S.email,password:S.password});
     if(r.error) throw new Error("Login Supabase gagal: " + r.error.message);
     if(!r.data.session || !r.data.user) throw new Error("Sesi login tidak terbentuk.");
@@ -163,12 +167,16 @@ window.doLogin = async function(){
 };
 
 window.doSignup = async function(){
-  S.busy=true;S.message="";render();
   try{
-    S.fullName=document.getElementById("fullName").value.trim();
-    S.roomId=document.getElementById("roomId").value;
-    S.email=document.getElementById("email").value.trim();
-    S.password=document.getElementById("password").value;
+    const fullNameEl=document.getElementById("fullName");
+    const roomIdEl=document.getElementById("roomId");
+    const emailEl=document.getElementById("email");
+    const passwordEl=document.getElementById("password");
+    S.fullName=fullNameEl ? fullNameEl.value.trim() : "";
+    S.roomId=roomIdEl ? roomIdEl.value : "";
+    S.email=emailEl ? emailEl.value.trim() : "";
+    S.password=passwordEl ? passwordEl.value : "";
+    S.busy=true;S.message="";render();
     if(!S.fullName) throw new Error("Nama lengkap wajib diisi.");
     if(!S.roomId) throw new Error("Silakan pilih ruangan/unit utama.");
     if(S.password.length<8) throw new Error("Password minimal 8 karakter.");
@@ -204,5 +212,5 @@ window.doLogout = async function(){
   }catch(e){}
   render();
 })();
-</script><!-- AUREKA GITHUB PAGES AUTH FIX 2026-10-02 -->
+</script><!-- AUREKA GITHUB PAGES AUTH BINDING FIX 2026-10-02 -->
 </body></html>
