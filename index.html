@@ -162,6 +162,7 @@ window.doLogin = async function(){
     if(!p) throw new Error("Profil AUREKA belum tersedia untuk akun ini.");
     if(!p.is_active) throw new Error("Akun belum aktif. Hubungi administrator.");
     S.user=verified.data.user;S.profile=p;
+    sessionStorage.setItem("aureka_session","1");
     if(p.primary_room_id){
       const rr=await supabase.from("master_rooms").select("id,name").eq("id",p.primary_room_id).maybeSingle();
       S.room=rr.data || null;
@@ -197,10 +198,9 @@ window.doLogout = async function(){
   S.message="";
   try{
     const {error}=await supabase.auth.signOut({scope:"local"});
-    if(error) throw error;
-  }catch(e){
-    console.error("AUREKA logout error:",e);
+    if(error) console.error("AUREKA logout error:",error);
   }finally{
+    try{ sessionStorage.removeItem("aureka_session"); }catch(e){}
     S.user=null;
     S.profile=null;
     S.room=null;
@@ -217,22 +217,32 @@ window.doLogout = async function(){
 (async function(){
   try{
     await loadRooms();
-    const r=await supabase.auth.getSession();
-    if(r.data.session){
-      const verified=await supabase.auth.getUser();
-      if(verified.error) throw verified.error;
-      const p=await loadProfile(verified.data.user.id);
-      if(p && p.is_active){
-        S.user=verified.data.user;S.profile=p;
-        if(p.primary_room_id){
-          const rr=await supabase.from("master_rooms").select("id,name").eq("id",p.primary_room_id).maybeSingle();
-          S.room=rr.data || null;
+    let restore=false;
+    try{ restore=sessionStorage.getItem("aureka_session")==="1"; }catch(e){}
+    if(restore){
+      const r=await supabase.auth.getSession();
+      if(r.data.session){
+        const verified=await supabase.auth.getUser();
+        if(verified.error) throw verified.error;
+        const p=await loadProfile(verified.data.user.id);
+        if(p && p.is_active){
+          S.user=verified.data.user;S.profile=p;
+          if(p.primary_room_id){
+            const rr=await supabase.from("master_rooms").select("id,name").eq("id",p.primary_room_id).maybeSingle();
+            S.room=rr.data || null;
+          }
+          S.view="workspace";
+        }else{
+          try{sessionStorage.removeItem("aureka_session");}catch(e){}
         }
-        S.view="workspace";
+      }else{
+        try{sessionStorage.removeItem("aureka_session");}catch(e){}
       }
     }
-  }catch(e){}
+  }catch(e){
+    try{sessionStorage.removeItem("aureka_session");}catch(e){}
+  }
   render();
 })();
-</script><!-- AUREKA GITHUB PAGES LOGOUT FIX 2026-10-02 -->
+</script><!-- AUREKA GITHUB PAGES SESSION SCOPE FIX 2026-10-02 -->
 </body></html>
