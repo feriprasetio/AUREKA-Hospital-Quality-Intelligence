@@ -84,13 +84,13 @@ function overviewModal(){
 function authView(login){
   let options = S.rooms.map(function(r){return '<option value="' + r.id + '">' + esc(r.name) + '</option>';}).join("");
   let extra = login ? "" :
-    '<div class="field"><label>Nama Lengkap</label><input id="fullName" name="full_name" autocomplete="name" value="' + esc(S.fullName) + '" oninput="setAuthField('fullName',this.value)"></div>' +
-    '<div class="field"><label>Ruangan / Unit Utama</label><select id="roomId" name="room_id" onchange="setAuthField('roomId',this.value)"><option value="">Pilih ruangan</option>' + options + '</select></div>';
+    '<div class="field"><label>Nama Lengkap</label><input id="fullName" name="full_name" autocomplete="name" value="' + esc(S.fullName) + '" oninput="setAuthField(3,this.value)"></div>' +
+    '<div class="field"><label>Ruangan / Unit Utama</label><select id="roomId" name="room_id" onchange="setAuthField(4,this.value)"><option value="">Pilih ruangan</option>' + options + '</select></div>';
   return '<main class="authPage">' + glass(
     '<div class="authLogo">' + logo() + '</div><div class="eyebrow">AUREKA WORKSPACE</div><h1>' + (login ? "Masuk" : "Daftar Akun") + '</h1><p>' +
     (login ? "Gunakan akun AUREKA sesuai role dan unit." : "Registrasi awal untuk calon PIC pelaporan.") + '</p>' + extra +
-    '<div class="field"><label>Email</label><input id="email" name="email" type="email" autocomplete="username" inputmode="email" value="' + esc(S.email) + '" oninput="setAuthField('email',this.value)"></div>' +
-    '<div class="field"><label>Password</label><input id="password" name="password" type="password" autocomplete="current-password" value="' + esc(S.password) + '" oninput="setAuthField('password',this.value)"></div>' +
+    '<div class="field"><label>Email</label><input id="email" name="email" type="email" autocomplete="username" inputmode="email" value="' + esc(S.email) + '" oninput="setAuthField(1,this.value)"></div>' +
+    '<div class="field"><label>Password</label><input id="password" name="password" type="password" autocomplete="current-password" value="' + esc(S.password) + '" oninput="setAuthField(2,this.value)"></div>' +
     btn(S.busy ? "Memproses…" : (login ? "Masuk" : "Buat Akun"), login ? "doLogin()" : "doSignup", "wide") +
     '<div class="' + (S.message ? "msg visible" : "msg") + '">' + esc(S.message) + '</div>' +
     '<button class="textButton" onclick="showAuth(\'' + (login ? "signup" : "login") + '\')">' + (login ? "Daftar akun baru" : "Kembali ke login") + '</button>' +
@@ -140,10 +140,10 @@ window.setActive = function(v){S.active=v;S.mobile=false;render();};
 window.setMobile = function(v){S.mobile=v;render();};
 
 window.setAuthField = function(field,value){
-  if(field === "email") S.email = String(value || "");
-  else if(field === "password") S.password = String(value || "");
-  else if(field === "fullName") S.fullName = String(value || "");
-  else if(field === "roomId") S.roomId = String(value || "");
+  if(field === 1) S.email = String(value || "");
+  else if(field === 2) S.password = String(value || "");
+  else if(field === 3) S.fullName = String(value || "");
+  else if(field === 4) S.roomId = String(value || "");
 };
 
 window.doLogin = async function(){
@@ -216,5 +216,5 @@ window.doLogout = async function(){
   }catch(e){}
   render();
 })();
-</script><!-- AUREKA GITHUB PAGES AUTH GLOBAL SETTER FIX 2026-10-02 -->
+</script><!-- AUREKA GITHUB PAGES AUTH NUMERIC SETTER FIX 2026-10-02 -->
 </body></html>
