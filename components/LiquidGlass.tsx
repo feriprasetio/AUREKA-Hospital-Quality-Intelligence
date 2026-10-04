@@ -1,4 +1,4 @@
-import type { MouseEventHandler, ReactNode } from 'react'
+import type { CSSProperties, MouseEventHandler, ReactNode } from 'react'
 
 type LiquidGlassProps = {
   children: ReactNode
@@ -6,6 +6,7 @@ type LiquidGlassProps = {
   onClick?: MouseEventHandler<HTMLDivElement>
   role?: 'button' | 'article' | 'region'
   tabIndex?: number
+  style?: CSSProperties
 }
 
 export function LiquidGlass({
@@ -14,6 +15,7 @@ export function LiquidGlass({
   onClick,
   role,
   tabIndex,
+  style,
 }: LiquidGlassProps) {
   const clickable = Boolean(onClick)
 
@@ -23,6 +25,7 @@ export function LiquidGlass({
       onClick={onClick}
       role={role ?? (clickable ? 'button' : undefined)}
       tabIndex={tabIndex ?? (clickable ? 0 : undefined)}
+      style={style}
       onKeyDown={
         clickable
           ? (event) => {
