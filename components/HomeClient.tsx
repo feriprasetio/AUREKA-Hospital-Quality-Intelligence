@@ -17,6 +17,11 @@ const QUICK_MODULES=[
 ] as const
 
 type QuickModule=typeof QUICK_MODULES[number]
+function ModuleIcon({id}:{id:QuickModule['id']}){
+ if(id==='quality')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7"/><path d="M3.5 19.5h17"/></svg>
+ if(id==='safety')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="m8.8 12.1 2.1 2.1 4.5-4.7"/></svg>
+ return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg>
+}
 const CHILD:any={quality:['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian','Audit OPPE'],safety:['Insiden Keselamatan Pasien','Investigasi / Root Cause Analysis (RCA)','Survey Budaya Keselamatan Pasien'],risk:['Risk Register','FMEA'],analytics:['Statistical Analysis','Data Extraction → XLSX'],settings:['Pengaturan Umum','Manajemen User / PIC Pelaporan']}
 type Room={id:number;name:string};type Profile={user_id:string;full_name:string;email:string;primary_room_id:number|null;role_id:string|null;is_active:boolean}
 const logo=(c='')=><img className={c} src="/assets/logo_rsud.png" alt="RSUD Sultan Syarif Mohamad Alkadrie" onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src=LOGO}}/>
