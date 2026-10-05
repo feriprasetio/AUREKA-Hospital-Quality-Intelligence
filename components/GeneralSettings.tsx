@@ -10,7 +10,6 @@ const sb = createClient(
   { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
 )
 
-const sys = () => sb.schema('aureka_system')
 
 type Room = { id: number; code?: string; name: string; is_active?: boolean }
 type Profile = {
@@ -101,29 +100,32 @@ export default function GeneralSettings({
 
   useEffect(() => {
     setMe(profile)
-    if (!profile?.role_id) return
-    sys()
-      .from('app_roles')
-      .select('id,code,name,description')
-      .eq('id', profile.role_id)
-      .maybeSingle()
-      .then(({ data }) => setRoleMeta((data as Role | null) ?? null))
+    sb.rpc('aureka_get_my_profile').then(({ data, error }) => {
+      if (!error && Array.isArray(data) && data[0]) {
+        const current = data[0] as Profile & { role_code?: string | null; role_name?: string | null; role_description?: string | null }
+        setMe(current)
+        setRoleMeta(current.role_id ? {
+          id: current.role_id,
+          code: current.role_code || '',
+          name: current.role_name || current.role_code || '',
+          description: current.role_description || null,
+        } : null)
+      }
+    })
   }, [profile])
 
   const loadUsers = async () => {
     if (!isAdmin) return
-    const { data, error } = await sys().rpc('admin_list_user_profiles')
+    const { data, error } = await sb.rpc('aureka_admin_list_user_profiles')
     if (error) setMsg(error.message)
     else setUsers((data || []) as Profile[])
   }
 
   useEffect(() => {
-    sys()
-      .from('app_roles')
-      .select('id,code,name,description')
-      .eq('is_active', true)
-      .order('name')
-      .then(({ data }) => setRoles((data || []) as Role[]))
+    sb.rpc('aureka_list_active_roles').then(({ data, error }) => {
+      if (error) setMsg(error.message)
+      else setRoles((data || []) as Role[])
+    })
     loadUsers()
   }, [isAdmin])
 
@@ -131,13 +133,10 @@ export default function GeneralSettings({
     if (!me?.user_id) return
     setBusy(true)
     setMsg('')
-    const { error } = await sys()
-      .from('user_profiles')
-      .update({
-        full_name: me.full_name,
-        primary_room_id: me.primary_room_id ? Number(me.primary_room_id) : null,
-      })
-      .eq('user_id', me.user_id)
+    const { error } = await sb.rpc('aureka_update_my_profile', {
+      p_full_name: me.full_name,
+      p_primary_room_id: me.primary_room_id ? Number(me.primary_room_id) : null,
+    })
     setBusy(false)
     setMsg(error ? `Gagal: ${error.message}` : 'Profil berhasil disimpan.')
   }
@@ -154,7 +153,7 @@ export default function GeneralSettings({
   const updateUser = async (u: Profile, patch: Partial<Profile>) => {
     setBusy(true)
     setMsg('')
-    const { error } = await sys().rpc('admin_update_user_profile', {
+    const { error } = await sb.rpc('aureka_admin_update_user_profile', {
       p_user_id: u.user_id,
       p_full_name: patch.full_name ?? u.full_name,
       p_primary_room_id: patch.primary_room_id ?? u.primary_room_id,
