@@ -26,8 +26,25 @@ function tm(v:string){if(!/^\d\d:\d\d$/.test(v))return null;const[a,b]=v.split('
 function diff(a:string,b:string){const x=tm(a),y=tm(b);return x==null||y==null?null:y>=x?y-x:y+1440-x}
 function hit(p:Profile,dx:string){const h=`${p.indicator_type} ${p.title}`.toLowerCase(),d=dx.toLowerCase();if(!h.includes('audit medis'))return false;const rules=[[/stroke|iskemik/,/stroke/],[/stemi|infark/,/stemi|killip|ekg/],[/tuberkulosis|tbc/,/tuberkulosis|sitb|oat/],[/sirosis/,/sirosis|varises/],[/ginjal|ckd|gagal ginjal/,/ginjal|dialisis|kt\/v/],[/diabetes|dm /,/diabetes|pedis|ankle|kaki/],[/carcinoma|kanker|mammae/,/mammae|mastektomi|imunohistokimia|tnm/],[/asfiksia|neonatus/,/asfiksia|apgar|vtp/],[/sectio|seksio|persalinan/,/sectio|menyusui|hemostasis/]];return rules.some(([a,b])=>(a as RegExp).test(d)&&(b as RegExp).test(h))}
 function kind(p:Profile){const h=String(p.title).toLowerCase();if(h.includes('jam visite dokter spesialis'))return'visit';if(h.includes('door-to-decision'))return'door';if(h.includes('response time')||h.includes('waktu tanggap'))return'minutes';if(h.includes('kt/v'))return'numeric';if(/kejadian |angka kematian|overcrowding|unplanned|kekosongan |dead stock|limfedema/.test(h))return'occurrence';return'compliance'}
+function optionsFor(p:Profile){return Array.isArray(p.options_json)?p.options_json.filter((x:any)=>x&&x.label):[]}
+function responseComplete(p:Profile,r:Resp|undefined){
+ if(!r)return false
+ const k=kind(p),opts=optionsFor(p)
+ if(k==='visit')return !!r.answer&&!!r.time
+ if(k==='door')return !!r.start&&!!r.end&&diff(r.start,r.end)!=null
+ if(k==='minutes')return r.minutes!=null&&Number(r.minutes)>=0
+ if(k==='numeric')return r.value!=null&&Number.isFinite(Number(r.value))
+ if(opts.length>0){
+   if(!r.answer)return false
+   const o=opts.find((x:any)=>String(x.label)===String(r.answer))
+   return o?.code!=null||!!r.notes||!!r.evidence
+ }
+ if(k==='occurrence')return !!r.occurrence
+ return !!r.answer
+}
 function filled(r:Resp|undefined){return!!r&&(!!r.answer||!!r.occurrence||!!r.time||!!r.start||!!r.end||r.minutes!=null||r.value!=null)}
 function empty(p:Profile):Resp{const k=kind(p);return k==='occurrence'?{occurrence:''}:k==='numeric'?{value:null}:k==='minutes'?{minutes:null}:k==='door'?{start:'',end:'',minutes:null}:k==='visit'?{time:'',answer:''}:{answer:''}}
+function displayTitle(p:Profile){return String(p.title??'').trim()||`Indikator ${p.code}`}
 
 export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(CONTAINERS[0])
@@ -109,13 +126,13 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    return ymd(p.admit)===year&&roomOk&&monthOk&&statusOk&&hay.includes(search.toLowerCase().trim())
  }),[patients,year,roomId,roomMap,monthFilter,status,search])
  const yearPatients=useMemo(()=>patients.filter(p=>ymd(p.admit)===year&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
- const applicable=useMemo(()=>selected?patientProfiles.filter(p=>p.unit_name===selected.unit).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,patientProfiles])
- const catalog=useMemo(()=>profiles.filter(p=>(catUnit==='Semua unit'||p.unit_name===catUnit)&&(!catGrain||p.measurement_grain===catGrain)&&`${p.code} ${p.title} ${p.unit_name}`.toLowerCase().includes(catSearch.toLowerCase().trim())),[profiles,catUnit,catGrain,catSearch])
- const filledN=useMemo(()=>applicable.filter(p=>filled(draft[p.id??p.code])).length,[applicable,draft])
+ const applicable=useMemo(()=>selected?patientProfiles.filter(p=>Number(p.room_id)===Number(selected.roomId)||(p.unit_name&&p.unit_name===selected.unit)).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,patientProfiles])
+ const catalog=useMemo(()=>profiles.filter(p=>(catUnit==='Semua unit'||p.unit_name===catUnit)&&(!catGrain||p.measurement_grain===catGrain)&&`${p.code} ${displayTitle(p)} ${p.unit_name}`.toLowerCase().includes(catSearch.toLowerCase().trim())),[profiles,catUnit,catGrain,catSearch])
+ const filledN=useMemo(()=>applicable.filter(p=>responseComplete(p,draft[p.id??p.code])).length,[applicable,draft])
 
  const openPatient=(p:Patient)=>{
    const r:any={}
-   patientProfiles.filter(x=>x.unit_name===p.unit).forEach(x=>{r[x.id??x.code]=p.indicatorValues?.[x.code]??empty(x)})
+   patientProfiles.filter(x=>Number(x.room_id)===Number(p.roomId)||(x.unit_name&&x.unit_name===p.unit)).forEach(x=>{r[x.id??x.code]=p.indicatorValues?.[x.code]??empty(x)})
    setSelected({...p})
    setDraft(r)
    setPatientOpen(true)
@@ -136,7 +153,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    if(!selected.name.trim()||!selected.rm.trim()||!selected.admit||!selected.diagnosis.trim()||!selected.dpjp.trim()){setMessage('Nama pasien, No. RM, tanggal masuk, diagnosis, dan DPJP wajib diisi.');return}
    const values:any={}
    applicable.forEach(p=>{const r=draft[p.id??p.code];if(r)values[p.code]=r})
-   const complete=applicable.length>0&&applicable.every(p=>filled(draft[p.id??p.code]))
+   const complete=applicable.length>0&&applicable.every(p=>responseComplete(p,draft[p.id??p.code]))
    const finalStatus=selected.discharge?(complete?'Ready for Review':'Draft'):(complete?'Ready for Review':'Aktif')
    const now=new Date().toISOString()
    const core={patient_name:selected.name.trim(),medical_record_no:selected.rm.trim(),sex:selected.sex,age:selected.age,admission_at:selected.admit,discharge_at:selected.discharge,diagnosis:selected.diagnosis.trim(),dpjp:selected.dpjp.trim(),unit_name:selected.unit,room_id:selected.roomId,status:finalStatus,indicator_values:values,los_days:los(selected.admit,selected.discharge)}
@@ -165,17 +182,23 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
  }
 
  const indicatorEditor=(p:Profile)=>{
-   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=kind(p),isHit=hit(p,selected?.diagnosis??'')
+   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=kind(p),isHit=hit(p,selected?.diagnosis??''),opts=optionsFor(p),title=displayTitle(p)
+   const option=opts.find((x:any)=>String(x.label)===String(r.answer))
+   const resultCode=r.code??option?.code??null
+   const resultLabel=resultCode===1?'Memenuhi / Sesuai':resultCode===2?'Pengecualian / Perlu review':resultCode===3?'Tidak memenuhi / Tidak sesuai':(option?.code==null&&r.answer)?'Perlu review':'Belum tervalidasi'
    const commonEvidence=<details className="aqEvidence"><summary>Bukti & catatan audit</summary><div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Sumber bukti</span><input value={r.evidence??''} onChange={(e:any)=>setResp(p,{evidence:e.target.value})} placeholder="RME / RM / hasil observasi…"/></label><label className="aqField"><span>Referensi / lokasi data</span><input value={r.reference??''} onChange={(e:any)=>setResp(p,{reference:e.target.value})} placeholder="No. dokumen / waktu / lokasi…"/></label></div><label className="aqField" style={{marginTop:10}}><span>Catatan</span><textarea value={r.notes??''} onChange={(e:any)=>setResp(p,{notes:e.target.value})} placeholder="Catatan audit bila diperlukan…"/></label></details>
-   return <article className={`aqInd ${isHit?'hit':''}`} key={k}><div className="aqIHead"><div><strong>{p.code} · {p.title}</strong><div className="aqMetaText">{p.unit_name} · Target {p.target_text||'—'} · {p.measurement_grain}</div></div>{isHit&&<span className="aqMatch">Relevan dengan diagnosis</span>}</div><div className="aqIBody"><div className="aqQ">{kindNow==='visit'?'Apakah pasien ini divisite dokter spesialis pada pukul 06.00–14.00?':kindNow==='door'?'Apakah keputusan medis definitif diperoleh dalam ≤ 2 jam sejak pasien tiba?':kindNow==='minutes'?'Apakah waktu tanggap berada dalam batas target indikator?':kindNow==='numeric'?'Nilai numerik indikator pada episode pasien:':kindNow==='occurrence'?'Apakah kejadian indikator terjadi pada episode pasien?':'Apakah indikator mutu ini dipenuhi pada pasien tersebut?'}</div>
-     {kindNow==='visit'&&<><div className="aqRadio"><label><input type="radio" checked={r.answer==='Ya'} onChange={()=>setResp(p,{answer:'Ya',code:1})}/> Ya, divisite 06.00–14.00</label><label><input type="radio" checked={r.answer==='Tidak'} onChange={()=>setResp(p,{answer:'Tidak',code:3})}/> Tidak</label></div><div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Waktu visite aktual</span><input type="time" value={r.time??''} onChange={(e:any)=>setResp(p,{time:e.target.value})}/></label><div className="aqAuto"><span>Hasil otomatis</span><strong>{r.time?(() => {const m=tm(r.time);return m!=null&&m>=360&&m<=840?'Memenuhi':'Tidak memenuhi'})():'Belum dihitung'}</strong><small>06.00–14.00</small></div></div></>}
+   const genericOptions=opts.length>0&&!['visit','door','minutes','numeric'].includes(kindNow)
+   return <article className={`aqInd ${isHit?'hit':''}`} key={k}><div className="aqIHead"><div><strong>{p.code} · {title}</strong><div className="aqMetaText">{p.unit_name} · {p.indicator_type||'Indikator Mutu'} · Target {p.target_text||'—'} · {p.measurement_grain}</div></div>{isHit&&<span className="aqMatch">Relevan dengan diagnosis</span>}</div><div className="aqIBody"><div className="aqQ">{kindNow==='visit'?'Apakah pasien ini divisite dokter spesialis pada pukul 06.00–14.00?':kindNow==='door'?'Apakah keputusan medis definitif diperoleh dalam ≤ 2 jam sejak pasien tiba?':kindNow==='minutes'?'Berapa waktu tanggap aktual pada episode pasien ini?':kindNow==='numeric'?'Berapa nilai numerik indikator pada episode pasien ini?':`Bagaimana hasil validasi ${title} pada pasien ini?`}</div>
+     {kindNow==='visit'&&<><div className="aqRadio"><label><input type="radio" checked={r.answer==='Ya'} onChange={()=>setResp(p,{answer:'Ya',code:1})}/> Ya, divisite 06.00–14.00</label><label><input type="radio" checked={r.answer==='Tidak'} onChange={()=>setResp(p,{answer:'Tidak',code:3})}/> Tidak</label></div><div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Waktu visite aktual</span><input type="time" value={r.time??''} onChange={(e:any)=>{const m=tm(e.target.value);setResp(p,{time:e.target.value,code:m!=null&&m>=360&&m<=840?1:3})}}/></label><div className="aqAuto"><span>Hasil otomatis</span><strong>{r.time?(()=>{const m=tm(r.time);return m!=null&&m>=360&&m<=840?'Memenuhi':'Tidak memenuhi'})():'Belum dihitung'}</strong><small>Target waktu 06.00–14.00</small></div></div></>}
      {kindNow==='door'&&<><div className="aqTwo"><label className="aqField"><span>Waktu pasien tiba</span><input type="time" value={r.start??''} onChange={(e:any)=>setResp(p,{start:e.target.value})}/></label><label className="aqField"><span>Waktu keputusan medis</span><input type="time" value={r.end??''} onChange={(e:any)=>setResp(p,{end:e.target.value})}/></label></div><div className="aqAuto" style={{marginTop:10}}><span>Durasi otomatis</span><strong>{r.start&&r.end&&diff(r.start,r.end)!=null?`${diff(r.start,r.end)} menit`:'Belum dihitung'}</strong><small>Target ≤ 120 menit</small></div></>}
-     {kindNow==='minutes'&&<div className="aqTwo"><label className="aqField"><span>Waktu aktual (menit)</span><input type="number" min="0" value={r.minutes??''} onChange={(e:any)=>setResp(p,{minutes:e.target.value===''?null:Number(e.target.value)})}/></label><div className="aqAuto"><span>Interpretasi</span><strong>{r.minutes==null?'Belum diisi':r.minutes<=30?'Memenuhi':'Tidak memenuhi'}</strong></div></div>}
-     {kindNow==='numeric'&&<label className="aqField"><span>Nilai indikator</span><input type="number" step="0.01" value={r.value??''} onChange={(e:any)=>setResp(p,{value:e.target.value===''?null:Number(e.target.value)})}/></label>}
-     {kindNow==='occurrence'&&<div className="aqRadio"><label><input type="radio" checked={r.occurrence==='Tidak terjadi'} onChange={()=>setResp(p,{occurrence:'Tidak terjadi',code:1})}/> Tidak terjadi</label><label><input type="radio" checked={r.occurrence==='Terjadi'} onChange={()=>setResp(p,{occurrence:'Terjadi',code:3})}/> Terjadi</label></div>}
-     {kindNow==='compliance'&&<div className="aqRadio"><label><input type="radio" checked={r.answer==='Sesuai'} onChange={()=>setResp(p,{answer:'Sesuai',code:1})}/> Sesuai</label><label><input type="radio" checked={r.answer==='Exception'} onChange={()=>setResp(p,{answer:'Exception',code:2})}/> Justified Exception</label><label><input type="radio" checked={r.answer==='Tidak sesuai'} onChange={()=>setResp(p,{answer:'Tidak sesuai',code:3})}/> Tidak sesuai</label></div>}
-     {(r.answer==='Tidak sesuai'||r.answer==='Exception'||r.occurrence==='Terjadi')&&commonEvidence}
-     {r.answer!=='Tidak sesuai'&&r.answer!=='Exception'&&r.occurrence!=='Terjadi'&&<details className="aqEvidence"><summary>Bukti & catatan audit</summary><div style={{marginTop:10}}>{commonEvidence.props.children}</div></details>}
+     {kindNow==='minutes'&&<div className="aqTwo"><label className="aqField"><span>Waktu aktual (menit)</span><input type="number" min="0" value={r.minutes??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value);setResp(p,{minutes:v,code:v==null?null:(v<=30?1:3)})}}/></label><div className="aqAuto"><span>Interpretasi</span><strong>{r.minutes==null?'Belum diisi':r.minutes<=30?'Memenuhi':'Tidak memenuhi'}</strong></div></div>}
+     {kindNow==='numeric'&&<label className="aqField"><span>Nilai indikator</span><input type="number" step="0.01" value={r.value??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value);setResp(p,{value:v,code:v==null?null:1})}}/></label>}
+     {kindNow==='occurrence'&&!genericOptions&&<div className="aqRadio"><label><input type="radio" checked={r.occurrence==='Tidak terjadi'} onChange={()=>setResp(p,{occurrence:'Tidak terjadi',code:1})}/> Tidak terjadi</label><label><input type="radio" checked={r.occurrence==='Terjadi'} onChange={()=>setResp(p,{occurrence:'Terjadi',code:3})}/> Terjadi</label></div>}
+     {genericOptions&&<div className="aqRadio">{opts.map((o:any,i:number)=><label key={`${k}-opt-${i}`}><input type="radio" name={`ind-${k}`} checked={r.answer===o.label} onChange={()=>setResp(p,{answer:o.label,code:o.code??null})}/><span>{o.label}</span></label>)}</div>}
+     {!genericOptions&&kindNow==='compliance'&&<div className="aqRadio"><label><input type="radio" checked={r.answer==='Sesuai'} onChange={()=>setResp(p,{answer:'Sesuai',code:1})}/> Sesuai</label><label><input type="radio" checked={r.answer==='Exception'} onChange={()=>setResp(p,{answer:'Exception',code:2})}/> Justified Exception</label><label><input type="radio" checked={r.answer==='Tidak sesuai'} onChange={()=>setResp(p,{answer:'Tidak sesuai',code:3})}/> Tidak sesuai</label></div>}
+     {r.answer==='Lainnya — tuliskan alasan/temuan'&&<label className="aqField" style={{marginTop:10}}><span>Alasan / temuan wajib</span><textarea value={r.notes??''} onChange={(e:any)=>setResp(p,{notes:e.target.value})} placeholder="Tuliskan alasan/temuan untuk review superadmin…"/></label>}
+     <div className="aqAuto" style={{marginTop:10}}><span>Hasil validasi indikator</span><strong>{resultLabel}</strong><small>{responseComplete(p,r)?'Respons lengkap':'Belum lengkap'}</small></div>
+     {commonEvidence}
    </div></article>
  }
 
