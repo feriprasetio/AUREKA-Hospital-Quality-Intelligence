@@ -414,6 +414,44 @@ begin
 end;
 $function$;
 
+create or replace function aureka_risk.update_mitigation_plan(
+  p_plan_id uuid, p_title text, p_objective text, p_action_plan text,
+  p_responsible_unit text, p_responsible_person text, p_target_date date,
+  p_target_residual_likelihood integer, p_target_residual_impact integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = aureka_risk, aureka_system, public, auth
+as $function$
+declare
+  v_plan aureka_risk.mitigation_plans%rowtype;
+  v_role text := aureka_risk.current_role_code();
+begin
+  if (select auth.uid()) is null then raise exception 'AUTHENTICATION_REQUIRED'; end if;
+  if v_role not in ('ADMIN','PMKP','MANAGEMENT','PIC','KABID') then raise exception 'FORBIDDEN: role cannot update mitigation plans'; end if;
+  if nullif(trim(p_title),'') is null or nullif(trim(p_action_plan),'') is null or p_target_date is null then raise exception 'VALIDATION: title, action plan, and target date are required'; end if;
+  if p_target_residual_likelihood not between 1 and 5 or p_target_residual_impact not between 1 and 5 then raise exception 'VALIDATION: residual targets must be 1–5'; end if;
+  select * into v_plan from aureka_risk.mitigation_plans where id=p_plan_id for update;
+  if not found then raise exception 'NOT_FOUND: mitigation plan'; end if;
+  if v_plan.created_by <> (select auth.uid()) then raise exception 'FORBIDDEN: only the plan owner can revise this plan'; end if;
+  if v_plan.status not in ('draft','returned') then raise exception 'INVALID_STATE: only a draft or returned plan can be revised'; end if;
+  if not exists(select 1 from aureka_risk.mitigation_plan_risks where plan_id=p_plan_id) then raise exception 'VALIDATION: plan must remain linked to at least one risk'; end if;
+  if exists (select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and not aureka_risk.can_edit_risk_id(mpr.risk_id)) then
+    raise exception 'FORBIDDEN: one or more linked risks are no longer within the owner scope';
+  end if;
+  update aureka_risk.mitigation_plans
+  set title=trim(p_title),objective=coalesce(trim(p_objective),''),action_plan=trim(p_action_plan),
+      responsible_unit=coalesce(trim(p_responsible_unit),''),responsible_person=coalesce(trim(p_responsible_person),''),
+      target_date=p_target_date,target_residual_likelihood=p_target_residual_likelihood,
+      target_residual_impact=p_target_residual_impact,updated_at=now()
+  where id=p_plan_id;
+  insert into aureka_risk.risk_audit_log(entity_type,entity_id,action,actor_user_id,details)
+  values('mitigation_plan',p_plan_id,'REVISED',(select auth.uid()),jsonb_build_object('status',v_plan.status));
+  return true;
+end;
+$function$;
+
 create or replace function aureka_risk.submit_mitigation_plan(p_plan_id uuid)
 returns boolean
 language plpgsql
@@ -620,6 +658,7 @@ revoke all on function aureka_risk.can_access_risk(uuid) from public,anon;
 revoke all on function aureka_risk.can_edit_risk_id(uuid) from public,anon;
 revoke all on function aureka_risk.can_access_plan(uuid) from public,anon;
 revoke all on function aureka_risk.create_mitigation_plan(text,text,text,text,text,date,integer,integer,uuid[]) from public,anon;
+revoke all on function aureka_risk.update_mitigation_plan(uuid,text,text,text,text,text,date,integer,integer) from public,anon;
 revoke all on function aureka_risk.submit_mitigation_plan(uuid) from public,anon;
 revoke all on function aureka_risk.review_mitigation_plan(uuid,text,text,text) from public,anon;
 revoke all on function aureka_risk.advance_mitigation_plan(uuid,text) from public,anon;
@@ -630,6 +669,7 @@ grant execute on function aureka_risk.can_access_risk(uuid) to authenticated;
 grant execute on function aureka_risk.can_edit_risk_id(uuid) to authenticated;
 grant execute on function aureka_risk.can_access_plan(uuid) to authenticated;
 grant execute on function aureka_risk.create_mitigation_plan(text,text,text,text,text,date,integer,integer,uuid[]) to authenticated;
+grant execute on function aureka_risk.update_mitigation_plan(uuid,text,text,text,text,text,date,integer,integer) to authenticated;
 grant execute on function aureka_risk.submit_mitigation_plan(uuid) to authenticated;
 grant execute on function aureka_risk.review_mitigation_plan(uuid,text,text,text) to authenticated;
 grant execute on function aureka_risk.advance_mitigation_plan(uuid,text) to authenticated;
