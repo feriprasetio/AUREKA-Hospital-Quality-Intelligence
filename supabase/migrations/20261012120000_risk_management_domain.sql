@@ -93,10 +93,10 @@ security definer
 set search_path = aureka_risk, aureka_system, public, auth
 as $function$
   select case
+    when aureka_risk.current_role_code() is null then false
     when aureka_risk.current_role_code() in ('ADMIN','PMKP','MANAGEMENT','KABID') then true
     when aureka_risk.current_role_code() <> 'PIC' then false
-    when p_created_by=(select auth.uid()) then true
-    when p_unit_id is null then false
+    when p_unit_id is null then p_created_by=(select auth.uid())
     else exists (
       select 1
       from aureka_system.user_profiles up
@@ -408,6 +408,8 @@ begin
   select v_plan.id,chosen.id from (
     select distinct unnest(p_risk_ids) as id
   ) chosen;
+  update aureka_risk.risk_register rr set risk_status='treatment_planned',updated_at=now()
+  where rr.id=any(p_risk_ids);
   return v_plan.plan_code;
 end;
 $function$;
@@ -427,6 +429,8 @@ begin
   if v_plan.status not in ('draft','returned') then raise exception 'INVALID_STATE: plan is not a draft or returned plan'; end if;
   if not exists(select 1 from aureka_risk.mitigation_plan_risks where plan_id=p_plan_id) then raise exception 'VALIDATION: plan must be linked to at least one risk'; end if;
   update aureka_risk.mitigation_plans set status='pending_kabid',current_stage='KABID',updated_at=now() where id=p_plan_id;
+  update aureka_risk.risk_register rr set risk_status='awaiting_kabid',updated_at=now()
+  where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
   insert into aureka_risk.risk_plan_approvals(plan_id,stage,stage_order,status)
   values(p_plan_id,'KABID',1,'pending');
   insert into aureka_risk.risk_audit_log(entity_type,entity_id,action,actor_user_id,details)
@@ -473,16 +477,24 @@ begin
 
   if p_decision='returned' then
     update aureka_risk.mitigation_plans set status='returned',current_stage=null,updated_at=now() where id=p_plan_id;
+    update aureka_risk.risk_register rr set risk_status='treatment_planned',updated_at=now()
+    where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
   elsif p_stage='KABID' then
     v_next:='DIREKTUR';v_next_order:=2;
     update aureka_risk.mitigation_plans set status='pending_director',current_stage=v_next,updated_at=now() where id=p_plan_id;
+    update aureka_risk.risk_register rr set risk_status='awaiting_director',updated_at=now()
+    where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
     insert into aureka_risk.risk_plan_approvals(plan_id,stage,stage_order,status) values(p_plan_id,v_next,v_next_order,'pending');
   elsif p_stage='DIREKTUR' then
     v_next:='DEWAN_PENGAWAS';v_next_order:=3;
     update aureka_risk.mitigation_plans set status='pending_board',current_stage=v_next,updated_at=now() where id=p_plan_id;
+    update aureka_risk.risk_register rr set risk_status='awaiting_board',updated_at=now()
+    where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
     insert into aureka_risk.risk_plan_approvals(plan_id,stage,stage_order,status) values(p_plan_id,v_next,v_next_order,'pending');
   else
     update aureka_risk.mitigation_plans set status='approved',current_stage=null,updated_at=now() where id=p_plan_id;
+    update aureka_risk.risk_register rr set risk_status='approved',updated_at=now()
+    where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
   end if;
 
   insert into aureka_risk.risk_audit_log(entity_type,entity_id,action,actor_user_id,details)
@@ -503,24 +515,30 @@ declare
 begin
   select * into v_plan from aureka_risk.mitigation_plans where id=p_plan_id for update;
   if not found then raise exception 'NOT_FOUND: mitigation plan'; end if;
-  if not (v_plan.created_by=(select auth.uid()) or aureka_risk.can_read_all_risks() or exists (
+  if not (v_plan.created_by=(select auth.uid()) or v_role in ('ADMIN','PMKP','MANAGEMENT') or exists (
     select 1 from aureka_risk.mitigation_plan_risks mpr
     where mpr.plan_id=p_plan_id and aureka_risk.can_edit_risk_id(mpr.risk_id)
   )) then raise exception 'FORBIDDEN: user cannot act on this mitigation plan'; end if;
   if p_next_status='in_progress' and v_plan.status='approved'
      and v_role in ('ADMIN','PMKP','MANAGEMENT','PIC','KABID') then
     update aureka_risk.mitigation_plans set status='in_progress',updated_at=now() where id=p_plan_id;
+    update aureka_risk.risk_register rr set risk_status='in_progress',updated_at=now()
+    where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
   elsif p_next_status='evaluating' and v_plan.status='in_progress'
      and v_role in ('ADMIN','PMKP','MANAGEMENT','PIC','KABID') then
     update aureka_risk.mitigation_plans set status='evaluating',updated_at=now() where id=p_plan_id;
+    update aureka_risk.risk_register rr set risk_status='evaluating',updated_at=now()
+    where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
   elsif p_next_status='closed' and v_plan.status='evaluating'
      and v_role in ('ADMIN','PMKP','MANAGEMENT') then
     if exists (
       select 1 from aureka_risk.mitigation_plan_risks mpr
       join aureka_risk.risk_register rr on rr.id=mpr.risk_id
-      where mpr.plan_id=p_plan_id and (rr.residual_probability is null or rr.residual_impact is null)
-    ) then raise exception 'VALIDATION: evaluate residual risk for all linked risks before closing the plan'; end if;
+      where mpr.plan_id=p_plan_id and (rr.residual_probability is null or rr.residual_impact is null or rr.residual_score > 9)
+    ) then raise exception 'VALIDATION: residual scores for all linked risks must be evaluated and inside accepted appetite (score <= 9) before closing'; end if;
     update aureka_risk.mitigation_plans set status='closed',updated_at=now() where id=p_plan_id;
+    update aureka_risk.risk_register rr set risk_status='closed',updated_at=now()
+    where exists(select 1 from aureka_risk.mitigation_plan_risks mpr where mpr.plan_id=p_plan_id and mpr.risk_id=rr.id);
   else
     raise exception 'FORBIDDEN_OR_INVALID: status transition is not permitted';
   end if;

@@ -20,7 +20,7 @@ Schema: `aureka_risk`.
 
 Tabel utama: `risk_matrix_reference`, `risk_register`, `risk_fmea`, `risk_links`, `mitigation_plans`, `mitigation_plan_risks`, `risk_plan_approvals`, dan `risk_audit_log`.
 
-Skor baseline dihitung oleh trigger melalui lookup matriks, bukan perkalian sederhana P×D. RPN FMEA dihitung secara terpisah oleh trigger. Transisi persetujuan dijalankan melalui fungsi backend `create_mitigation_plan`, `submit_mitigation_plan`, `review_mitigation_plan`, dan `advance_mitigation_plan`. Row Level Security diterapkan pada tabel operasional; peran review dicocokkan dengan role akun yang aktif.
+Skor baseline dihitung oleh trigger melalui lookup matriks, bukan perkalian sederhana P×D. RPN FMEA dihitung secara terpisah oleh trigger. Transisi persetujuan dijalankan melalui fungsi backend `create_mitigation_plan`, `submit_mitigation_plan`, `review_mitigation_plan`, dan `advance_mitigation_plan`. Row Level Security diterapkan pada tabel operasional; peran review dicocokkan dengan role akun yang aktif. Penutupan rencana ditolak jika ada risiko terkait yang belum dievaluasi residualnya atau masih memiliki skor residual di luar area penerimaan (skor > 9), sehingga tindakan lanjutan/keputusan risiko tetap diperlukan.
 
 ## Role dan tata kelola
 
