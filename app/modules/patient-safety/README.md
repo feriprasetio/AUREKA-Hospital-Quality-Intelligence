@@ -12,7 +12,7 @@ Modul ini dijalankan sebagai workspace native di `components/PatientSafetyWorksp
 
 ## Backend
 
-Migration domain: `supabase/migrations/20261012120000_patient_safety_domain.sql`
+Migration domain: `supabase/migrations/20261012045336_patient_safety_domain.sql`
 
 Jalankan migration pada project Supabase sebelum menguji modul. Tabel berada di schema `aureka_patient_safety`:
 
@@ -20,6 +20,8 @@ Jalankan migration pada project Supabase sebelum menguji modul. Tabel berada di 
 - `investigations`
 - `culture_responses`
 - `audit_log`
+
+Penguatan izin fungsi dan optimasi kebijakan RLS/indeks: `supabase/migrations/20261012045431_patient_safety_security_performance_hardening.sql`.
 
 Row Level Security membatasi laporan sesuai pembuat/role, membatasi perubahan investigasi ke Admin, PMKP, dan Manajemen, dan memberi akses baca respons survey mentah hanya kepada Admin/Superadmin. Respons survey bersifat insert-only bagi pengguna biasa; tidak terdapat kolom yang mengaitkan respons ke akun pengirim.
 
