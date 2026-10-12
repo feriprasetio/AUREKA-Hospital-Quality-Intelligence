@@ -30,7 +30,7 @@ language sql
 stable
 security definer
 set search_path = aureka_system, public
-as $
+as $function$
   select exists (
     select 1
     from aureka_system.user_profiles up
@@ -40,7 +40,7 @@ as $
       and ar.is_active = true
       and ar.code = 'ADMIN'
   );
-$;
+$function$;
 
 grant execute on function aureka_patient_safety.can_export_survey() to authenticated;
 
