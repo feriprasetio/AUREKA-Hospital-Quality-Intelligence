@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import { LiquidGlass } from '@/components/LiquidGlass'
 
 type Room = { id: number; name: string }
 type IncidentRow = {
@@ -327,7 +327,6 @@ export default function PatientSafetyWorkspace({
   const missingIncident = useMemo(() => INCIDENT_REQUIRED.filter(code => !String(incidentData[code] || '').trim()), [incidentData])
   const missingSurvey = useMemo(() => SURVEY_REQUIRED.filter(code => !Object.prototype.hasOwnProperty.call(surveyAnswers, code) || surveyAnswers[code] === ''), [surveyAnswers])
   const roomOptions = rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
-  const currentIncident = incidents.find(row => row.id === investigationIncidentId)
 
   const notify = (text: string) => {
     setMessage(text)
