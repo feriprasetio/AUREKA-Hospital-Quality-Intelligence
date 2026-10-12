@@ -24,6 +24,26 @@ $$;
 
 grant execute on function aureka_patient_safety.can_manage_workflow() to authenticated;
 
+create or replace function aureka_patient_safety.can_export_survey()
+returns boolean
+language sql
+stable
+security definer
+set search_path = aureka_system, public
+as $
+  select exists (
+    select 1
+    from aureka_system.user_profiles up
+    join aureka_system.app_roles ar on ar.id = up.role_id
+    where up.user_id = auth.uid()
+      and up.is_active = true
+      and ar.is_active = true
+      and ar.code = 'ADMIN'
+  );
+$;
+
+grant execute on function aureka_patient_safety.can_export_survey() to authenticated;
+
 create table if not exists aureka_patient_safety.incidents (
   id uuid primary key default gen_random_uuid(),
   incident_code text not null unique default (
@@ -173,7 +193,7 @@ with check (true);
 drop policy if exists "culture_response_select_superadmin" on aureka_patient_safety.culture_responses;
 create policy "culture_response_select_superadmin"
 on aureka_patient_safety.culture_responses for select to authenticated
-using (aureka_system.is_admin());
+using (aureka_patient_safety.can_export_survey());
 
 drop policy if exists "safety_audit_select_manager" on aureka_patient_safety.audit_log;
 create policy "safety_audit_select_manager"
