@@ -181,7 +181,7 @@ const CSS = `
 function emptyRecord() { return {} as Record<string, string> }
 function safeString(value: unknown) { return value == null ? '' : String(value) }
 function xmlEscape(value: unknown) {
-  return safeString(value).replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&apos;')
+  return safeString(value).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 }
 function spreadsheetCell(value: unknown) {
   const isNumber = typeof value === 'number' && Number.isFinite(value)
