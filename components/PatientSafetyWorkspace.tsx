@@ -599,10 +599,13 @@ export default function PatientSafetyWorkspace({
 
     <div className="psTabs glass">
       {([
-        ['overview', 'Overview'], ['incidents', 'Laporan IKP'], ['investigation', 'Investigasi / RCA'],
-        ['survey', 'Survey Budaya'], ...(isSuperAdmin ? [['responses', 'Rekapan Survey'] as [string, string][]] : []),
-      ] as [string, string][]).map(([value, label]) =>
-        <button type="button" key={value} className={'psTab' + (tab === value ? ' active' : '')} onClick={() => { setTab(value as typeof tab); setError(''); setMessage('') }}>{label}</button>
+        { value: 'overview' as const, label: 'Overview' },
+        { value: 'incidents' as const, label: 'Laporan IKP' },
+        { value: 'investigation' as const, label: 'Investigasi / RCA' },
+        { value: 'survey' as const, label: 'Survey Budaya' },
+        ...(isSuperAdmin ? [{ value: 'responses' as const, label: 'Rekapan Survey' }] : []),
+      ]).map(item =>
+        <button type="button" key={item.value} className={'psTab' + (tab === item.value ? ' active' : '')} onClick={() => { setTab(item.value); setError(''); setMessage('') }}>{item.label}</button>
       )}
     </div>
 
