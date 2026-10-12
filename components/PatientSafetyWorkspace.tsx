@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass } from '@/components/LiquidGlass'
 
 type Room = { id: number; name: string }
+type IncidentStatus = 'draft' | 'submitted' | 'under_review' | 'investigation' | 'closed'
 type IncidentRow = {
   id: string; incident_code: string; incident_date: string | null; incident_time: string | null
   unit_name: string; incident_type: string; summary: string; status: string
@@ -235,7 +236,7 @@ export default function PatientSafetyWorkspace({
 
   const [incidentId, setIncidentId] = useState('')
   const [incidentCode, setIncidentCode] = useState('')
-  const [incidentStatus, setIncidentStatus] = useState('draft')
+  const [incidentStatus, setIncidentStatus] = useState<IncidentStatus>('draft')
   const [incidentData, setIncidentData] = useState<Record<string, string>>(emptyRecord())
   const incidentLocked = incidentStatus !== 'draft' && !canManageWorkflow
 
@@ -337,7 +338,7 @@ export default function PatientSafetyWorkspace({
   const openIncident = (row: IncidentRow) => {
     setIncidentId(row.id)
     setIncidentCode(row.incident_code)
-    setIncidentStatus(row.status)
+    setIncidentStatus(row.status as IncidentStatus)
     setIncidentData({ ...(row.form_data || {}) })
     setTab('incidents')
     setError('')
@@ -351,9 +352,9 @@ export default function PatientSafetyWorkspace({
     setError('')
     setMessage('')
   }
-  const saveIncident = async (nextStatus: 'draft' | 'submitted') => {
+  const saveIncident = async (nextStatus: IncidentStatus) => {
     if (saving) return
-    if (nextStatus === 'submitted' && missingIncident.length) {
+    if (nextStatus !== 'draft' && missingIncident.length) {
       setError('Laporan belum lengkap. Lengkapi ' + missingIncident.length + ' field wajib sebelum mengirim.')
       return
     }
@@ -366,7 +367,7 @@ export default function PatientSafetyWorkspace({
       summary: incidentData.A1 || '',
       status: nextStatus,
       form_data: incidentData,
-      submitted_at: nextStatus === 'submitted' ? new Date().toISOString() : null,
+      submitted_at: nextStatus === 'draft' ? null : (incidents.find(row => row.id === incidentId)?.submitted_at || new Date().toISOString()),
     }
     try {
       let result: any
@@ -378,7 +379,7 @@ export default function PatientSafetyWorkspace({
       if (result.error) throw result.error
       setIncidentId(result.data.id)
       setIncidentCode(result.data.incident_code)
-      setIncidentStatus(result.data.status)
+      setIncidentStatus(result.data.status as IncidentStatus)
       await loadData()
       notify(nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code)
     } catch (e) {
@@ -640,6 +641,18 @@ export default function PatientSafetyWorkspace({
 
     {tab === 'incidents' ? <>
       <LiquidGlass className="psPanel">
+        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span><button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
+        <div className="psFilterGrid">
+          <div className="psFilter"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
+          <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draft</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Closed</option></select></div>
+          <div className="psFilter"><label>Unit</label><select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
+          <div className="psFilter"><label>Data tersedia</label><div className="psPill green">{incidents.length} record</div></div>
+        </div>
+        {filteredIncidents.length ? <div className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
+          {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '—'}</td><td>{row.unit_name || '—'}</td><td>{row.incident_type || '—'}</td><td>{row.summary || '—'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
+        </tbody></table></div> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+      </LiquidGlass>
+      <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><div className="psEyebrow">FORMULIR LAPORAN · INSIDEN KESELAMATAN PASIEN</div><h4>{incidentId ? 'Laporan ' + incidentCode : 'Laporan Insiden Keselamatan Pasien'}</h4><p>RAHASIA — UNTUK KEPENTINGAN INTERNAL. Pelaporan untuk pembelajaran dan perbaikan sistem, bukan untuk mencari kesalahan atau menghukum individu (non-punitive). Mohon laporkan maksimal 2×24 jam setelah kejadian.</p></div>
           <div className="psActions"><span className="psPill green">{incidentStatus === 'draft' ? 'Draft' : statusLabel(incidentStatus)}</span><button type="button" className="psBtn" onClick={newIncident}>＋ Laporan Baru</button></div>
         </div>
@@ -656,8 +669,15 @@ export default function PatientSafetyWorkspace({
         </section>)}
         <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 10 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Draft baru — kode dibuat oleh backend saat tersimpan.'}</div>
           <div className="psActions">
-            <button type="button" className="psBtn" disabled={saving || incidentLocked} onClick={() => void saveIncident('draft')}>Simpan Draft</button>
-            <button type="button" className="psBtn primary" disabled={saving || incidentLocked} onClick={() => void saveIncident('submitted')}>{saving ? 'Menyimpan…' : 'Simpan & Kirim Review'}</button>
+            {canManageWorkflow && incidentId ? <>
+              <select aria-label="Status workflow insiden" value={incidentStatus} disabled={saving} onChange={event => setIncidentStatus(event.target.value as IncidentStatus)} style={{ minHeight: 41, border: '1px solid rgba(35,63,50,.12)', borderRadius: 12, background: 'rgba(255,255,255,.72)', padding: '8px 10px', fontSize: 10 }}>
+                <option value="draft">Draft</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Closed</option>
+              </select>
+              <button type="button" className="psBtn primary" disabled={saving} onClick={() => void saveIncident(incidentStatus)}>{saving ? 'Menyimpan…' : 'Simpan Perubahan'}</button>
+            </> : <>
+              <button type="button" className="psBtn" disabled={saving || incidentLocked} onClick={() => void saveIncident('draft')}>Simpan Draft</button>
+              <button type="button" className="psBtn primary" disabled={saving || incidentLocked} onClick={() => void saveIncident('submitted')}>{saving ? 'Menyimpan…' : 'Simpan & Kirim Review'}</button>
+            </>}
           </div>
         </div>
       </LiquidGlass>
@@ -753,6 +773,12 @@ export default function PatientSafetyWorkspace({
         {renderSurveyQuestion('E2', 'Dalam 12 bulan terakhir, berapa kali Anda melaporkan insiden/kejadian nyaris cedera (near-miss) keselamatan pasien?',
           [{ value: '0', label: 'Tidak pernah' }, { value: '1', label: '1–2 kali' }, { value: '2', label: '3–5 kali' }, { value: '3', label: '6–10 kali' }, { value: '4', label: '> 10 kali' }])}
         <div className="psAlert warn" style={{ marginTop: 12 }}>Item B17 bertanda (R) dalam instrumen sumber. AUREKA menyimpan jawaban mentah dan tidak menerapkan reverse scoring otomatis sebelum formula skoring disepakati.</div>
+      </LiquidGlass>
+      <LiquidGlass className="psPanel">
+        <div className="psFormFooter" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
+          <div><span className="psPill blue">{SURVEY_REQUIRED.length - missingSurvey.length} / {SURVEY_REQUIRED.length} item terjawab</span></div>
+          <div className="psActions"><button type="button" className="psBtn" disabled={saving} onClick={resetSurvey}>Reset Pengisian</button><button type="button" className="psBtn primary" disabled={saving} onClick={() => void submitSurvey()}>{saving ? 'Menyimpan…' : 'Kirim Respons Anonim'}</button></div>
+        </div>
       </LiquidGlass>
     </div> : null}
 
