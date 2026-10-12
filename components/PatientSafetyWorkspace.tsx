@@ -181,7 +181,7 @@ const CSS = `
 function emptyRecord() { return {} as Record<string, string> }
 function safeString(value: unknown) { return value == null ? '' : String(value) }
 function xmlEscape(value: unknown) {
-  return safeString(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+  return safeString(value).replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&apos;')
 }
 function spreadsheetCell(value: unknown) {
   const isNumber = typeof value === 'number' && Number.isFinite(value)
@@ -570,7 +570,6 @@ export default function PatientSafetyWorkspace({
 
   const surveyCompletion = Math.round(((SURVEY_REQUIRED.length - missingSurvey.length) / SURVEY_REQUIRED.length) * 100)
   const incidentCompletion = Math.round(((INCIDENT_REQUIRED.length - missingIncident.length) / INCIDENT_REQUIRED.length) * 100)
-  const investigationsByIncident = new Map(investigations.map(row => [row.incident_id, row]))
   const statusLabel = (status: string) => ({
     draft: 'Draft', submitted: 'Dikirim', under_review: 'Review', investigation: 'Investigasi', active: 'Berjalan',
     action_planned: 'Rencana Tindakan', closed: 'Closed',
