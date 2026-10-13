@@ -172,12 +172,12 @@ export default function RiskManagementWorkspace({
     setLoading(true)
     setError('')
     const queries = await Promise.all([
-      fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).range(from, to)),
-      fetchAllPages((from, to) => db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).range(from, to)),
-      fetchAllPages((from, to) => db.from('mitigation_plan_risks').select('*').range(from, to)),
-      fetchAllPages((from, to) => db.from('risk_relationships').select('*').order('created_at', { ascending: false }).range(from, to)),
-      fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).range(from, to)),
-      fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plan_risks').select('*').order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_relationships').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
     ])
     const firstError = queries.find(q => q.error)
     if (firstError?.error) {
