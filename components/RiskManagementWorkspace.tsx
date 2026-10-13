@@ -14,6 +14,9 @@ type RiskRow = {
   residual_likelihood: number | null; residual_impact: number | null; residual_score: number | null
   residual_level: RiskLevel | null; owner_name: string; due_date: string | null; status: RiskStatus
   created_by: string; created_at: string; updated_at: string
+  source_sheet?: string | null; source_row_number?: number | null; source_record_no?: string | null
+  source_risk_code?: string | null; source_risk_score?: number | null; source_risk_level?: string | null
+  source_category_missing?: boolean; is_priority?: boolean; priority_rank?: number | null
 }
 type RiskForm = {
   risk_code: string; unit_id: string; category: string; objective: string; risk_event: string
@@ -202,6 +205,9 @@ export default function RiskManagementWorkspace({
     accepted: risks.filter(r => ['Sangat Rendah', 'Rendah'].includes(r.risk_level)).length,
     residualComplete: risks.filter(r => r.residual_score !== null && r.residual_score !== undefined).length,
     overdue: risks.filter(r => r.due_date && new Date(r.due_date + 'T23:59:59') < new Date() && r.status !== 'Controlled' && r.status !== 'Accepted').length,
+    sourceScoreDiff: risks.filter(r => r.source_risk_score != null && r.source_risk_score !== r.risk_score).length,
+    unitUnmapped: risks.filter(r => r.unit_id == null).length,
+    sourceCategoryMissing: risks.filter(r => r.source_category_missing === true).length,
   }), [risks])
   const selectedForPlan = useMemo(() => risks.filter(r => selectedRiskIds.includes(r.id)), [risks, selectedRiskIds])
   const activePlanRisks = useMemo(() => {
@@ -524,6 +530,10 @@ export default function RiskManagementWorkspace({
           <LiquidGlass className="rmKpi"><span>Risiko Tinggi / Sangat Tinggi</span><strong>{counts.high.toLocaleString('id-ID')}</strong><small>Prioritas perhatian manajemen</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Residual telah dinilai</span><strong>{counts.residualComplete.toLocaleString('id-ID')}</strong><small>{counts.total ? Math.round(counts.residualComplete / counts.total * 100) : 0}% register</small></LiquidGlass>
         </div>
+        {(counts.sourceScoreDiff > 0 || counts.unitUnmapped > 0 || counts.sourceCategoryMissing > 0) && <div className="rmNotice" role="status">
+          <span>Rekonsiliasi impor</span>
+          <p>Data workbook telah diimpor tanpa menghapus nilai sumber. {counts.sourceScoreDiff.toLocaleString('id-ID')} skor sumber berbeda dari kalkulasi matriks engine; kedua nilai dipertahankan untuk audit. {counts.unitUnmapped.toLocaleString('id-ID')} risiko masih belum terhubung ke ID unit master AUREKA, sehingga penetapan akses PIC unit memerlukan pemetaan unit. {counts.sourceCategoryMissing.toLocaleString('id-ID')} entri sheet Profesi memang tidak memiliki kategori pada sumber.</p>
+        </div>}
         <div className="rmOverviewGrid">
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">PROFIL RISIKO</span><h4>Peta risiko dan selera risiko</h4><p>Area Rendah/Sangat Rendah dapat diterima; level Sedang ke atas menjadi risiko utama yang perlu mitigasi.</p></div><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Lihat register →</button></div>{renderMatrix()}</LiquidGlass>
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">PENGENDALIAN</span><h4>Status tindak pengendalian</h4><p>Ringkasan untuk membantu penentuan prioritas dan pemantauan.</p></div></div>
@@ -560,7 +570,7 @@ export default function RiskManagementWorkspace({
           <div className="rmTableWrap"><table className="rmTable"><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th><th>Risiko / Kode</th><th>Unit</th><th>Skor</th><th>Level risiko</th><th>Status</th><th>Aksi</th></tr></thead>
               <tbody>{pageRisks.map(risk => <tr key={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih ' + risk.risk_code} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
-                <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small>{risk.risk_code} · {risk.category}</small></button></td>
+                <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small>{risk.risk_code} · {risk.category}{risk.is_priority ? ' · PRIORITAS #' + (risk.priority_rank ?? '—') : ''}</small></button></td>
                 <td>{risk.unit_name || '—'}</td><td><strong className="rmScore">{risk.risk_score}</strong></td><td>{renderRiskBadge(risk.risk_level)}</td><td>{renderStatus(risk.status)}</td>
                 <td><div className="rmActions"><button type="button" className="rmIconButton" aria-label="Lihat detail" title="Lihat detail" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(v => !v); }}>↗</button><button type="button" className="rmIconButton" disabled={!canEditRisk(risk)} aria-label="Edit risiko" title={canEditRisk(risk) ? 'Edit risiko' : 'Hanya unit terkait atau role pengelola yang dapat mengubah'} onClick={() => openRiskEditor(risk)}>✎</button></div></td>
               </tr>)}
@@ -605,7 +615,7 @@ export default function RiskManagementWorkspace({
         {!riskEditorOpen && activeRisk && registerDetailExpanded && <LiquidGlass className="rmPanel">
           <div className="rmSectionHead"><div><span className="rmEyebrow">DETAIL RISIKO TERPILIH</span><h4>{activeRisk.risk_event}</h4><p>{activeRisk.risk_code} · {activeRisk.unit_name} · diperbarui {fmtDate(activeRisk.updated_at)}</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setRegisterDetailExpanded(false)}>Ringkas</button><button type="button" className="rmButton primary" disabled={!canEditRisk(activeRisk)} onClick={() => openRiskEditor(activeRisk)}>Edit detail</button></div></div>
           <div className="rmDetailGrid">
-            <div><span>Kategori</span><b>{activeRisk.category}</b></div><div><span>Baseline</span><b>{activeRisk.likelihood} × {activeRisk.impact} · {activeRisk.risk_score}</b>{renderRiskBadge(activeRisk.risk_level)}</div><div><span>Residual</span><b>{activeRisk.residual_score == null ? 'Belum dinilai' : activeRisk.residual_score + ' · ' + activeRisk.residual_level}</b>{activeRisk.residual_level ? renderRiskBadge(activeRisk.residual_level) : null}</div><div><span>Pemilik risiko</span><b>{activeRisk.owner_name || 'Belum ditetapkan'}</b></div>
+            <div><span>Kategori</span><b>{activeRisk.category}</b></div><div><span>Baseline · engine</span><b>{activeRisk.likelihood} × {activeRisk.impact} · {activeRisk.risk_score}</b>{renderRiskBadge(activeRisk.risk_level)}</div><div><span>Skor sumber workbook</span><b>{activeRisk.source_risk_score ?? '—'}{activeRisk.source_risk_level ? ' · ' + activeRisk.source_risk_level : ''}</b>{activeRisk.source_risk_score != null && activeRisk.source_risk_score !== activeRisk.risk_score ? <p>Berbeda dari skor engine; nilai sumber tetap dipertahankan.</p> : null}</div><div><span>Sumber data</span><b>{activeRisk.source_sheet || 'Input AUREKA'}{activeRisk.source_row_number ? ' · baris ' + activeRisk.source_row_number : ''}</b></div><div><span>Residual</span><b>{activeRisk.residual_score == null ? 'Belum dinilai' : activeRisk.residual_score + ' · ' + activeRisk.residual_level}</b>{activeRisk.residual_level ? renderRiskBadge(activeRisk.residual_level) : null}</div><div><span>Pemilik risiko</span><b>{activeRisk.owner_name || 'Belum ditetapkan'}</b></div>
             <div className="wide"><span>Sasaran</span><p>{activeRisk.objective || 'Belum diuraikan'}</p></div><div className="wide"><span>Penyebab</span><p>{activeRisk.causes || 'Belum diuraikan'}</p></div><div className="wide"><span>Dampak</span><p>{activeRisk.impacts || 'Belum diuraikan'}</p></div><div className="wide"><span>Pengendalian saat ini</span><p>{activeRisk.existing_controls || 'Belum diuraikan'}</p></div>
           </div>
           {activeLinks.length > 0 && <div className="rmRelated"><b>Terhubung dengan {activeLinks.length} relasi</b>{activeLinks.map(link => { const other = risks.find(r => r.id === (link.source_risk_id === activeRisk.id ? link.target_risk_id : link.source_risk_id)); return <button type="button" key={link.id} onClick={() => { if (other) setSelectedRiskId(other.id); }}><span>{RELATION_TYPES.find(x => x.value === link.relationship_type)?.label || link.relationship_type}</span><b>{other?.risk_code || 'Risiko terkait'} · {other?.risk_event || ''}</b></button> })}</div>}
