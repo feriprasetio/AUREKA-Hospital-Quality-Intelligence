@@ -132,7 +132,7 @@ begin
   if auth.uid() is not null then new.updated_by := auth.uid(); end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists risk_register_recalculate on aureka_risk.risk_register;
 create trigger risk_register_recalculate
