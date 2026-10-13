@@ -84,6 +84,23 @@ const riskScore = (likelihood: number, impact: number) => MATRIX[likelihood]?.[i
 const scoreBand = (level: string) => level === 'Sangat Tinggi' ? 'very-high' : level === 'Tinggi' ? 'high' : level === 'Sedang' ? 'moderate' : level === 'Rendah' ? 'low' : 'very-low'
 const fmeaPriority = (severity: number, rpn: number) => severity >= 4 || rpn >= 30 ? 'Tinggi' : rpn >= 15 ? 'Sedang' : 'Rendah'
 const fmtDate = (value?: string | null) => value ? new Date(value + (value.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const sourceUnitLabel = (risk: Pick<RiskRow, 'unit_name'>) => risk.unit_name?.trim() || '[Tanpa nama unit]'
+const CONNECTOR_STOP_WORDS = new Set(['adalah', 'agar', 'akan', 'atau', 'bahwa', 'belum', 'bisa', 'dalam', 'dan', 'dapat', 'dari', 'dengan', 'dilakukan', 'diperlukan', 'guna', 'hingga', 'hanya', 'harus', 'jika', 'juga', 'karena', 'kedua', 'ketika', 'kondisi', 'kurang', 'lebih', 'melalui', 'menjadi', 'menyebabkan', 'meningkat', 'mungkin', 'pada', 'paling', 'para', 'perlu', 'saat', 'salah', 'sama', 'sebagai', 'sehingga', 'selama', 'sering', 'setiap', 'sudah', 'tanpa', 'terhadap', 'terjadi', 'terkait', 'terlalu', 'tidak', 'untuk', 'yang', 'unit', 'rumah', 'sakit', 'pelayanan', 'risiko', 'resiko', 'pasien', 'petugas', 'pegawai', 'tenaga'])
+const riskTokens = (value: unknown) => new Set(String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter(token => token.length >= 4 && !CONNECTOR_STOP_WORDS.has(token)))
+const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
+  const allRows: any[] = []
+  const batchSize = 1000
+  let from = 0
+  while (true) {
+    const { data, error } = await buildQuery(from, from + batchSize - 1)
+    if (error) return { data: null, error }
+    const batch = (data || []) as any[]
+    allRows.push(...batch)
+    if (batch.length < batchSize) break
+    from += batchSize
+  }
+  return { data: allRows, error: null }
+}
 const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"'
 const roleLabel = (role: string | null) => ({
   ADMIN: 'Super Admin', PIC: 'PIC Unit', PMKP: 'Komite PMKP', MANAGEMENT: 'Manajemen',
@@ -149,23 +166,30 @@ export default function RiskManagementWorkspace({
   const canEditPlan = (plan: PlanRow) => plan.created_by === undefined ? false : plan.created_by.length > 0 && (plan.owner_room_id === initialRoomId || canManageAll)
   const isWorkflowOwner = (plan: PlanRow) => plan.created_by !== '' && (plan.created_by === undefined ? false : plan.owner_room_id === initialRoomId || canManageAll)
   const unitOptions = useMemo(() => rooms.length ? rooms : [], [rooms])
+  const sourceUnitOptions = useMemo(() => Array.from(new Set(risks.map(sourceUnitLabel))).sort((a, b) => a.localeCompare(b, 'id')), [risks])
 
   const loadData = useCallback(async () => {
     setLoading(true)
     setError('')
     const queries = await Promise.all([
-      db.from('risk_register').select('*').order('risk_score', { ascending: false }).limit(5000),
-      db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).limit(1000),
-      db.from('mitigation_plan_risks').select('*').limit(5000),
-      db.from('risk_relationships').select('*').order('created_at', { ascending: false }).limit(5000),
-      db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).limit(2000),
-      db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).limit(1000),
+      fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plan_risks').select('*').range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_relationships').select('*').order('created_at', { ascending: false }).range(from, to)),
+      fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).range(from, to)),
     ])
     const firstError = queries.find(q => q.error)
     if (firstError?.error) {
       setError('Data Manajemen Risiko belum dapat dimuat. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase. Detail: ' + firstError.error.message)
     } else {
-      setRisks((queries[0].data || []) as RiskRow[])
+      const incomingRisks = (queries[0].data || []) as RiskRow[]
+      setRisks(incomingRisks)
+      setUnitFilter(current => {
+        if (current && current !== 'all' && incomingRisks.some(risk => sourceUnitLabel(risk) === current)) return current
+        if (currentRoom?.name && incomingRisks.some(risk => sourceUnitLabel(risk) === currentRoom.name)) return currentRoom.name
+        return incomingRisks.length ? sourceUnitLabel(incomingRisks[0]) : ''
+      })
       setPlans((queries[1].data || []) as PlanRow[])
       setPlanRisks((queries[2].data || []) as PlanRiskRow[])
       setLinks((queries[3].data || []) as LinkRow[])
@@ -175,7 +199,7 @@ export default function RiskManagementWorkspace({
       setSelectedPlanId(current => current || ((queries[1].data?.[0] as PlanRow | undefined)?.id || ''))
     }
     setLoading(false)
-  }, [db])
+  }, [db, currentRoom?.name])
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {
@@ -187,7 +211,7 @@ export default function RiskManagementWorkspace({
   const filteredRisks = useMemo(() => risks.filter(risk => {
     const q = search.trim().toLowerCase()
     const matchesText = !q || [risk.risk_code, risk.risk_event, risk.unit_name, risk.causes, risk.category].join(' ').toLowerCase().includes(q)
-    return matchesText && (unitFilter === 'all' || String(risk.unit_id || '') === unitFilter) &&
+    return matchesText && (unitFilter === 'all' || sourceUnitLabel(risk) === unitFilter) &&
       (levelFilter === 'all' || risk.risk_level === levelFilter) &&
       (categoryFilter === 'all' || risk.category === categoryFilter) &&
       (statusFilter === 'all' || risk.status === statusFilter) &&
@@ -216,6 +240,69 @@ export default function RiskManagementWorkspace({
   }, [activePlan, planRisks, risks])
   const activeEvents = useMemo(() => activePlan ? events.filter(e => e.plan_id === activePlan.id) : [], [activePlan, events])
   const activeLinks = useMemo(() => links.filter(l => l.source_risk_id === selectedRiskId || l.target_risk_id === selectedRiskId), [links, selectedRiskId])
+  const primaryRisksInUnit = useMemo(() => risks.filter(risk => risk.risk_level === 'Sangat Tinggi' && (unitFilter === 'all' || sourceUnitLabel(risk) === unitFilter)), [risks, unitFilter])
+  useEffect(() => {
+    setLinkForm(current => {
+      if (primaryRisksInUnit.some(risk => risk.id === current.source)) return current
+      const next = primaryRisksInUnit[0]
+      return { ...current, source: next?.id || '', target: next && current.target === next.id ? '' : current.target }
+    })
+  }, [primaryRisksInUnit])
+  const connectorPrimary = primaryRisksInUnit.find(risk => risk.id === linkForm.source) || primaryRisksInUnit[0] || null
+  const visibleLinks = useMemo(() => links.filter(link => {
+    const source = risks.find(risk => risk.id === link.source_risk_id)
+    return !!source && source.risk_level === 'Sangat Tinggi' && (unitFilter === 'all' || sourceUnitLabel(source) === unitFilter)
+  }), [links, risks, unitFilter])
+  const relatedRiskIds = useMemo(() => {
+    if (!connectorPrimary) return []
+    const ids = new Set<string>([connectorPrimary.id])
+    visibleLinks.filter(link => link.source_risk_id === connectorPrimary.id || link.target_risk_id === connectorPrimary.id).forEach(link => {
+      ids.add(link.source_risk_id); ids.add(link.target_risk_id)
+    })
+    return Array.from(ids)
+  }, [connectorPrimary, visibleLinks])
+  const connectorSuggestions = useMemo(() => {
+    if (!connectorPrimary || risks.length < 2) return []
+    const documentFrequency = new Map<string, number>()
+    risks.forEach(risk => {
+      const tokens = new Set([...riskTokens(risk.risk_event), ...riskTokens(risk.causes), ...riskTokens(risk.impacts), ...riskTokens(risk.existing_controls), ...riskTokens(risk.objective), ...riskTokens(risk.category)])
+      tokens.forEach(token => documentFrequency.set(token, (documentFrequency.get(token) || 0) + 1))
+    })
+    const idf = (token: string) => Math.log(1 + risks.length / (1 + (documentFrequency.get(token) || 0))) + 0.25
+    const fieldGroups = [
+      { key: 'event', label: 'peristiwa risiko', weight: 4 },
+      { key: 'causes', label: 'penyebab', weight: 3 },
+      { key: 'impacts', label: 'dampak', weight: 3 },
+      { key: 'controls', label: 'pengendalian', weight: 2 },
+      { key: 'objective', label: 'sasaran/kategori', weight: 1.25 },
+    ] as const
+    const readField = (risk: RiskRow, key: typeof fieldGroups[number]['key']) => key === 'event' ? risk.risk_event : key === 'causes' ? risk.causes : key === 'impacts' ? risk.impacts : key === 'controls' ? risk.existing_controls : [risk.objective, risk.category].filter(Boolean).join(' ')
+    return risks.filter(target => target.id !== connectorPrimary.id && !links.some(link => (link.source_risk_id === connectorPrimary.id && link.target_risk_id === target.id) || (link.source_risk_id === target.id && link.target_risk_id === connectorPrimary.id))).map(target => {
+      let weightedScore = 0
+      let denominator = 0
+      const evidence: string[] = []
+      const sharedTokens = new Set<string>()
+      fieldGroups.forEach(group => {
+        const sourceTokens = riskTokens(readField(connectorPrimary, group.key))
+        const targetTokens = riskTokens(readField(target, group.key))
+        if (!sourceTokens.size || !targetTokens.size) return
+        denominator += group.weight
+        const overlap = Array.from(sourceTokens).filter(token => targetTokens.has(token))
+        if (!overlap.length) return
+        const overlapMass = overlap.reduce((sum, token) => sum + idf(token), 0)
+        const sourceMass = Array.from(sourceTokens).reduce((sum, token) => sum + idf(token), 0)
+        const targetMass = Array.from(targetTokens).reduce((sum, token) => sum + idf(token), 0)
+        const normalizer = Math.max(0.01, Math.min(sourceMass, targetMass))
+        weightedScore += group.weight * Math.min(1, overlapMass / normalizer)
+        evidence.push(group.label)
+        overlap.forEach(token => sharedTokens.add(token))
+      })
+      const score = denominator ? Math.round(weightedScore / denominator * 100) : 0
+      const matchWords = Array.from(sharedTokens).sort((a, b) => idf(b) - idf(a)).slice(0, 6)
+      const recommendedType = evidence.includes('penyebab') ? 'shared_cause' : evidence.includes('pengendalian') ? 'shared_control' : evidence.includes('dampak') && evidence.includes('peristiwa risiko') ? 'downstream_effect' : 'reinforcing'
+      return { risk: target, score, evidence, matchWords, recommendedType }
+    }).filter(item => item.score >= 15 && item.matchWords.length >= 2).sort((a, b) => b.score - a.score).slice(0, 8)
+  }, [connectorPrimary, risks, links])
   const highCountForCell = (p: number, d: number) => risks.filter(r => r.likelihood === p && r.impact === d).length
 
   const clearMessages = () => { setMessage(''); setError('') }
@@ -406,8 +493,17 @@ export default function RiskManagementWorkspace({
 
   const addLink = async () => {
     if (saving) return
+    const sourceRisk = risks.find(risk => risk.id === linkForm.source)
+    if (!sourceRisk || sourceRisk.risk_level !== 'Sangat Tinggi') {
+      setError('Risiko sumber konektor wajib berlevel Sangat Tinggi. Risiko dengan level lain hanya dapat menjadi risiko terkait.')
+      return
+    }
     if (!linkForm.source || !linkForm.target || linkForm.source === linkForm.target) {
       setError('Pilih dua risiko yang berbeda untuk membentuk hubungan.')
+      return
+    }
+    if (links.some(link => (link.source_risk_id === linkForm.source && link.target_risk_id === linkForm.target) || (link.source_risk_id === linkForm.target && link.target_risk_id === linkForm.source))) {
+      setError('Hubungan antara kedua risiko sudah terdaftar. Periksa graf relasi terlebih dahulu.')
       return
     }
     setSaving(true); clearMessages()
@@ -423,6 +519,18 @@ export default function RiskManagementWorkspace({
     } catch (e) { setError('Hubungan risiko tidak tersimpan. Periksa izin dan pastikan pasangan ini belum tercatat. ' + (e instanceof Error ? e.message : '')) }
     finally { setSaving(false) }
   }
+  const prepareIntegratedPlan = () => {
+    if (!connectorPrimary) { setError('Pilih risiko utama Sangat Tinggi terlebih dahulu.'); return }
+    if (relatedRiskIds.length < 2) { setError('Hubungkan risiko utama dengan sedikitnya satu risiko terkait sebelum menyiapkan RTP gabungan.'); return }
+    const ids = relatedRiskIds
+    setSelectedRiskIds(ids)
+    setPlanForm(current => ({ ...current, title: 'RTP terpadu ' + connectorPrimary.risk_code + ' (' + ids.length + ' risiko)', objective: current.objective || 'Pengendalian terintegrasi untuk risiko utama ' + connectorPrimary.risk_code, owner_name: current.owner_name || userName }))
+    setPlanFormOpen(true)
+    setTab('mitigation')
+    clearMessages()
+    setMessage('RTP terpadu disiapkan dari ' + ids.length + ' risiko pada konektor aktif. Periksa kembali daftar risiko dan lengkapi tindakan, target, serta penanggung jawab sebelum menyimpan.')
+  }
+
   const deleteLink = async (id: string) => {
     setSaving(true); clearMessages()
     try {
@@ -435,8 +543,8 @@ export default function RiskManagementWorkspace({
 
   const exportCsv = () => {
     const rows = [
-      ['Kode Risiko', 'Unit', 'Kategori', 'Sasaran', 'Peristiwa Risiko', 'Penyebab', 'Dampak', 'Kontrol Saat Ini', 'Kemungkinan', 'Dampak Level', 'Skor', 'Level', 'Residual Kemungkinan', 'Residual Dampak', 'Skor Residual', 'Level Residual', 'PIC', 'Target', 'Status'],
-      ...filteredRisks.map(r => [r.risk_code, r.unit_name, r.category, r.objective, r.risk_event, r.causes, r.impacts, r.existing_controls, r.likelihood, r.impact, r.risk_score, r.risk_level, r.residual_likelihood, r.residual_impact, r.residual_score, r.residual_level, r.owner_name, r.due_date, r.status]),
+      ['Kode Risiko', 'Unit', 'Kategori', 'Sasaran', 'Peristiwa Risiko', 'Penyebab', 'Dampak', 'Kontrol Saat Ini', 'Kemungkinan', 'Dampak Level', 'Skor', 'Level', 'Residual Kemungkinan', 'Residual Dampak', 'Skor Residual', 'Level Residual', 'PIC', 'Target', 'Status', 'Sheet Sumber', 'Baris Sumber', 'Kode Sumber', 'Skor Sumber'],
+      ...filteredRisks.map(r => [r.risk_code, r.unit_name, r.category, r.objective, r.risk_event, r.causes, r.impacts, r.existing_controls, r.likelihood, r.impact, r.risk_score, r.risk_level, r.residual_likelihood, r.residual_impact, r.residual_score, r.residual_level, r.owner_name, r.due_date, r.status, r.source_sheet, r.source_row_number, r.source_risk_code, r.source_risk_score]),
     ]
     const csv = '\ufeff' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -467,6 +575,7 @@ export default function RiskManagementWorkspace({
   const renderRiskBadge = (level: string) => <span className={'rmBadge ' + scoreBand(level)}>{level || 'Belum dinilai'}</span>
   const renderStatus = (status: string) => <span className={'rmStatus ' + status.toLowerCase().replace(/\s+/g, '-')}>{status}</span>
   const renderRiskOption = (risk: RiskRow) => <option key={risk.id} value={risk.id}>{risk.risk_code} · {risk.risk_event}</option>
+  const renderSourceUnitOption = (unitName: string) => <option key={unitName} value={unitName}>{unitName}</option>
 
   const renderMatrix = (large = false) => (
     <div className={'rmMatrixWrap' + (large ? ' large' : '')}>
@@ -478,8 +587,8 @@ export default function RiskManagementWorkspace({
             <div className="rmMatrixLikelihood"><b>{p}</b><small>{LIKELIHOOD_LABELS[p - 1]}</small></div>
             {[1, 2, 3, 4, 5].map(d => {
               const score = riskScore(p, d)
-              const matching = risks.filter(r => r.likelihood === p && r.impact === d)
-              return <button type="button" key={d} className={'rmMatrixCell ' + scoreBand(levelFor(score))} onClick={() => { setTab('register'); setPage(0); setLevelFilter('all'); setSearch(''); setUnitFilter('all'); setCategoryFilter('all'); setStatusFilter('all'); setMatrixFilter({ likelihood: p, impact: d }); setSelectedRiskIds([]); setError(''); setMessage('Filter matriks P' + p + ' × D' + d + ' aktif: skor ' + score + ', ' + levelFor(score) + '. ' + matching.length + ' risiko terdaftar.'); }} title={'P' + p + ', D' + d + ' — skor ' + score}>
+              const matching = risks.filter(r => r.likelihood === p && r.impact === d && (unitFilter === 'all' || sourceUnitLabel(r) === unitFilter))
+              return <button type="button" key={d} className={'rmMatrixCell ' + scoreBand(levelFor(score))} onClick={() => { setTab('register'); setPage(0); setLevelFilter('all'); setSearch(''); setCategoryFilter('all'); setStatusFilter('all'); setMatrixFilter({ likelihood: p, impact: d }); setSelectedRiskIds([]); setError(''); setMessage('Filter matriks P' + p + ' × D' + d + ' aktif: skor ' + score + ', ' + levelFor(score) + '. ' + matching.length + ' risiko terdaftar.'); }} title={'P' + p + ', D' + d + ' — skor ' + score}>
                 <b>{score}</b><small>{matching.length ? matching.length + ' risiko' : '—'}</small>
               </button>
             })}
@@ -555,12 +664,12 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'register' && <>
         <LiquidGlass className="rmPanel">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">REGISTER TERKENDALI</span><h4>Risk Register</h4><p>Tampilan ringkas dengan pencarian, filter, detail per risiko, dan pilihan risiko untuk mitigasi bersama.</p></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">REGISTER TERKENDALI</span><h4>Risk Register</h4><p>Menampilkan record asli dari satu ruangan/kelompok sumber setiap kali. Teks sumber dan nomor baris dipertahankan untuk penelusuran; pindah ruangan melalui filter di bawah.</p></div>
             <div className="rmActions"><button type="button" className="rmButton subtle" onClick={exportCsv}>Ekspor CSV</button><button type="button" className="rmButton primary" onClick={openNewRisk}>＋ Tambah risiko</button></div>
           </div>
           <div className="rmFilterGrid">
             <label className="rmSearch">⌕ <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Cari kode, risiko, unit, atau penyebab…" /></label>
-            <select aria-label="Filter unit" value={unitFilter} onChange={e => { setUnitFilter(e.target.value); setPage(0); }}><option value="all">Semua unit</option>{unitOptions.map(r => <option key={r.id} value={String(r.id)}>{r.name}</option>)}</select>
+            <select aria-label="Ruangan atau kelompok sumber" value={unitFilter} onChange={e => { setUnitFilter(e.target.value); setPage(0); setSelectedRiskIds([]); }}><option value="">Pilih ruangan/kelompok sumber</option>{sourceUnitOptions.map(renderSourceUnitOption)}</select>
             <select aria-label="Filter level risiko" value={levelFilter} onChange={e => { setLevelFilter(e.target.value); setPage(0); }}><option value="all">Semua level</option>{LEVELS.map(x => <option key={x}>{x}</option>)}</select>
             <select aria-label="Filter kategori" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(0); }}><option value="all">Semua kategori</option>{Array.from(new Set([...CATEGORIES, ...risks.map(r => r.category)])).map(x => <option key={x}>{x}</option>)}</select>
             <select aria-label="Filter status" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(0); }}><option value="all">Semua status</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x}>{x}</option>)}</select>
@@ -570,7 +679,7 @@ export default function RiskManagementWorkspace({
           <div className="rmTableWrap"><table className="rmTable"><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th><th>Risiko / Kode</th><th>Unit</th><th>Skor</th><th>Level risiko</th><th>Status</th><th>Aksi</th></tr></thead>
               <tbody>{pageRisks.map(risk => <tr key={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih ' + risk.risk_code} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
-                <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small>{risk.risk_code} · {risk.category}{risk.is_priority ? ' · PRIORITAS #' + (risk.priority_rank ?? '—') : ''}</small></button></td>
+                <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small>{risk.risk_code} · {risk.category}{risk.is_priority ? ' · PRIORITAS #' + (risk.priority_rank ?? '—') : ''}{risk.source_sheet ? ' · Sumber: ' + risk.source_sheet + (risk.source_row_number ? ' baris ' + risk.source_row_number : '') : ''}</small></button></td>
                 <td>{risk.unit_name || '—'}</td><td><strong className="rmScore">{risk.risk_score}</strong></td><td>{renderRiskBadge(risk.risk_level)}</td><td>{renderStatus(risk.status)}</td>
                 <td><div className="rmActions"><button type="button" className="rmIconButton" aria-label="Lihat detail" title="Lihat detail" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(v => !v); }}>↗</button><button type="button" className="rmIconButton" disabled={!canEditRisk(risk)} aria-label="Edit risiko" title={canEditRisk(risk) ? 'Edit risiko' : 'Hanya unit terkait atau role pengelola yang dapat mengubah'} onClick={() => openRiskEditor(risk)}>✎</button></div></td>
               </tr>)}
@@ -615,7 +724,7 @@ export default function RiskManagementWorkspace({
         {!riskEditorOpen && activeRisk && registerDetailExpanded && <LiquidGlass className="rmPanel">
           <div className="rmSectionHead"><div><span className="rmEyebrow">DETAIL RISIKO TERPILIH</span><h4>{activeRisk.risk_event}</h4><p>{activeRisk.risk_code} · {activeRisk.unit_name} · diperbarui {fmtDate(activeRisk.updated_at)}</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setRegisterDetailExpanded(false)}>Ringkas</button><button type="button" className="rmButton primary" disabled={!canEditRisk(activeRisk)} onClick={() => openRiskEditor(activeRisk)}>Edit detail</button></div></div>
           <div className="rmDetailGrid">
-            <div><span>Kategori</span><b>{activeRisk.category}</b></div><div><span>Baseline · engine</span><b>{activeRisk.likelihood} × {activeRisk.impact} · {activeRisk.risk_score}</b>{renderRiskBadge(activeRisk.risk_level)}</div><div><span>Skor sumber workbook</span><b>{activeRisk.source_risk_score ?? '—'}{activeRisk.source_risk_level ? ' · ' + activeRisk.source_risk_level : ''}</b>{activeRisk.source_risk_score != null && activeRisk.source_risk_score !== activeRisk.risk_score ? <p>Berbeda dari skor engine; nilai sumber tetap dipertahankan.</p> : null}</div><div><span>Sumber data</span><b>{activeRisk.source_sheet || 'Input AUREKA'}{activeRisk.source_row_number ? ' · baris ' + activeRisk.source_row_number : ''}</b></div><div><span>Residual</span><b>{activeRisk.residual_score == null ? 'Belum dinilai' : activeRisk.residual_score + ' · ' + activeRisk.residual_level}</b>{activeRisk.residual_level ? renderRiskBadge(activeRisk.residual_level) : null}</div><div><span>Pemilik risiko</span><b>{activeRisk.owner_name || 'Belum ditetapkan'}</b></div>
+            <div><span>Kategori</span><b>{activeRisk.category}</b></div><div><span>Baseline · engine</span><b>{activeRisk.likelihood} × {activeRisk.impact} · {activeRisk.risk_score}</b>{renderRiskBadge(activeRisk.risk_level)}</div><div><span>Skor sumber workbook</span><b>{activeRisk.source_risk_score ?? '—'}{activeRisk.source_risk_level ? ' · ' + activeRisk.source_risk_level : ''}</b>{activeRisk.source_risk_score != null && activeRisk.source_risk_score !== activeRisk.risk_score ? <p>Berbeda dari skor engine; nilai sumber tetap dipertahankan.</p> : null}</div><div><span>Sumber data</span><b>{activeRisk.source_sheet || 'Input AUREKA'}{activeRisk.source_row_number ? ' · baris ' + activeRisk.source_row_number : ''}{activeRisk.source_record_no ? ' · record ' + activeRisk.source_record_no : ''}</b></div><div><span>Residual</span><b>{activeRisk.residual_score == null ? 'Belum dinilai' : activeRisk.residual_score + ' · ' + activeRisk.residual_level}</b>{activeRisk.residual_level ? renderRiskBadge(activeRisk.residual_level) : null}</div><div><span>Pemilik risiko</span><b>{activeRisk.owner_name || 'Belum ditetapkan'}</b></div>
             <div className="wide"><span>Sasaran</span><p>{activeRisk.objective || 'Belum diuraikan'}</p></div><div className="wide"><span>Penyebab</span><p>{activeRisk.causes || 'Belum diuraikan'}</p></div><div className="wide"><span>Dampak</span><p>{activeRisk.impacts || 'Belum diuraikan'}</p></div><div className="wide"><span>Pengendalian saat ini</span><p>{activeRisk.existing_controls || 'Belum diuraikan'}</p></div>
           </div>
           {activeLinks.length > 0 && <div className="rmRelated"><b>Terhubung dengan {activeLinks.length} relasi</b>{activeLinks.map(link => { const other = risks.find(r => r.id === (link.source_risk_id === activeRisk.id ? link.target_risk_id : link.source_risk_id)); return <button type="button" key={link.id} onClick={() => { if (other) setSelectedRiskId(other.id); }}><span>{RELATION_TYPES.find(x => x.value === link.relationship_type)?.label || link.relationship_type}</span><b>{other?.risk_code || 'Risiko terkait'} · {other?.risk_event || ''}</b></button> })}</div>}
@@ -686,21 +795,44 @@ export default function RiskManagementWorkspace({
       </>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'connections' && <>
-        <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">GRAPH RISIKO</span><h4>Konektor antar-risiko</h4><p>Hubungkan risiko yang memiliki penyebab, pengendalian, ketergantungan, atau dampak berantai. Konektor membantu membentuk rencana mitigasi terpadu; hubungan tidak otomatis menyatukan skor risiko.</p></div></div>
+        <LiquidGlass className="rmPanel">
+          <div className="rmSectionHead"><div><span className="rmEyebrow">GRAPH RISIKO</span><h4>Konektor risiko utama</h4><p>Hanya risiko Sangat Tinggi yang dapat menjadi sumber konektor. Sistem mengusulkan risiko terkait dari seluruh sumber berdasarkan kecocokan teks pada peristiwa, penyebab, dampak, kontrol, dan sasaran. Usulan tidak aktif sampai diverifikasi dan ditambahkan.</p></div></div>
           <div className="rmLinkComposer">
             <div className="rmFormGrid">
-              <label>Risiko sumber <select value={linkForm.source} onChange={e => setLinkForm(f => ({ ...f, source: e.target.value }))}><option value="">Pilih risiko</option>{risks.map(renderRiskOption)}</select></label>
-              <label>Risiko terkait <select value={linkForm.target} onChange={e => setLinkForm(f => ({ ...f, target: e.target.value }))}><option value="">Pilih risiko</option>{risks.map(renderRiskOption)}</select></label>
+              <label>Ruangan / kelompok risiko utama <select aria-label="Unit risiko utama" value={unitFilter} onChange={e => { setUnitFilter(e.target.value); setSelectedRiskIds([]); }}><option value="">Pilih ruangan/kelompok sumber</option>{sourceUnitOptions.map(renderSourceUnitOption)}</select></label>
+              <label>Risiko utama · Sangat Tinggi <select value={linkForm.source} onChange={e => setLinkForm(f => ({ ...f, source: e.target.value, target: f.target === e.target.value ? '' : f.target, description: '' }))}><option value="">Pilih risiko utama</option>{primaryRisksInUnit.map(renderRiskOption)}</select></label>
+              <label>Risiko terkait <select value={linkForm.target} onChange={e => setLinkForm(f => ({ ...f, target: e.target.value }))}><option value="">Pilih target dari seluruh register</option>{risks.filter(r => !connectorPrimary || r.id !== connectorPrimary.id).map(renderRiskOption)}</select></label>
               <label>Jenis hubungan <select value={linkForm.type} onChange={e => setLinkForm(f => ({ ...f, type: e.target.value }))}>{RELATION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select></label>
-              <label>Penjelasan relasi <input value={linkForm.description} onChange={e => setLinkForm(f => ({ ...f, description: e.target.value }))} placeholder="Dasar penghubung / mekanisme kausal" /></label>
+              <label className="full">Dasar / penjelasan relasi <input value={linkForm.description} onChange={e => setLinkForm(f => ({ ...f, description: e.target.value }))} placeholder="Tinjau bukti relasi atau gunakan salah satu kandidat berikut" /></label>
             </div>
-            <div className="rmFormFooter"><span className="rmFormNote">Koneksi harus memiliki dasar proses atau mekanisme yang dapat dijelaskan; hindari menghubungkan risiko hanya karena nama mirip.</span><button type="button" className="rmButton primary" disabled={saving} onClick={() => void addLink()}>＋ Tambah konektor</button></div>
+            <div className="rmFormFooter"><span className="rmFormNote">Record sumber tidak diubah oleh sistem rekomendasi. Periksa mekanisme hubungan sebelum mengaktifkan konektor.</span><button type="button" className="rmButton primary" disabled={saving || !connectorPrimary || !linkForm.target} onClick={() => void addLink()}>＋ Aktifkan konektor</button></div>
           </div>
-          <div className="rmSectionHead compactHead"><div><h4>Graf relasi terdaftar</h4><p>{links.length} konektor · pilih satu risiko untuk melihat dan menelusuri relasinya.</p></div></div>
-          <div className="rmGraphList">{links.map(link => {
+          {connectorPrimary ? <div className="rmSelectionBar">
+            <div><b>Risiko utama: {connectorPrimary.risk_code} · {connectorPrimary.risk_level}</b><span>{connectorPrimary.risk_event} · {connectorPrimary.unit_name} · sumber {connectorPrimary.source_sheet || 'Input AUREKA'}{connectorPrimary.source_row_number ? ' baris ' + connectorPrimary.source_row_number : ''}</span></div>
+            <button type="button" className="rmButton primary" disabled={relatedRiskIds.length < 2} onClick={prepareIntegratedPlan}>Siapkan RTP gabungan ({relatedRiskIds.length} risiko) →</button>
+          </div> : <div className="rmEmptySmall">Tidak ada risiko Sangat Tinggi pada kelompok sumber ini. Pilih kelompok lain atau periksa nilai risiko pada register.</div>}
+          <div className="rmSectionHead compactHead"><div><h4>Kandidat konektor yang disarankan</h4><p>{connectorPrimary ? 'Maksimal 8 kandidat teratas. Kecocokan dihitung dari kata-kata pada record, bukan bukti kausal otomatis.' : 'Pilih risiko utama untuk melihat kandidat.'}</p></div></div>
+          <div className="rmGraphList">{connectorPrimary && connectorSuggestions.map(suggestion => {
+            const relationshipLabel = RELATION_TYPES.find(type => type.value === suggestion.recommendedType)?.label || suggestion.recommendedType
+            const generatedDescription = 'Usulan kecocokan teks ' + suggestion.score + '%; bidang yang cocok: ' + suggestion.evidence.join(', ') + '; kata kunci: ' + suggestion.matchWords.join(', ') + '. Verifikasi hubungan proses sebelum mengaktifkan.'
+            return <div className="rmGraphLink" key={suggestion.risk.id}>
+              <button type="button" className="rmGraphNode" onClick={() => setLinkForm(f => ({ ...f, target: suggestion.risk.id, type: suggestion.recommendedType, description: generatedDescription }))}>
+                <span>{suggestion.risk.risk_code} · {suggestion.risk.unit_name}</span><b>{suggestion.risk.risk_event}</b><small>{suggestion.risk.source_sheet ? 'Sumber ' + suggestion.risk.source_sheet + (suggestion.risk.source_row_number ? ' · baris ' + suggestion.risk.source_row_number : '') : 'Record AUREKA'} · {suggestion.risk.risk_level}</small>
+              </button>
+              <div className="rmConnector"><span>Kecocokan teks {suggestion.score}%</span><i>→</i><small>{suggestion.evidence.join(', ')}<br />Kata kunci: {suggestion.matchWords.join(', ')}<br />Usulan: {relationshipLabel}</small></div>
+              <button type="button" className="rmButton subtle" onClick={() => { setLinkForm(f => ({ ...f, target: suggestion.risk.id, type: suggestion.recommendedType, description: generatedDescription })); setMessage('Kandidat dimasukkan ke form. Verifikasi jenis dan dasar hubungan, lalu aktifkan konektor.'); }}>Gunakan kandidat</button>
+            </div>
+          })}{connectorPrimary && !connectorSuggestions.length && <div className="rmEmptySmall">Belum ada kandidat yang melewati ambang kecocokan teks. Hal ini tidak membuktikan tidak ada hubungan; tinjau record manual atau tambah kata kunci yang relevan.</div>}</div>
+          <div className="rmSectionHead compactHead"><div><h4>Konektor aktif pada ruangan ini</h4><p>{visibleLinks.length} konektor · sumber setiap konektor dibatasi pada risiko utama Sangat Tinggi dalam kelompok sumber terpilih. Target dapat berasal dari unit lain.</p></div></div>
+          <div className="rmGraphList">{visibleLinks.map(link => {
             const a = risks.find(r => r.id === link.source_risk_id), b = risks.find(r => r.id === link.target_risk_id)
-            return <div className="rmGraphLink" key={link.id}><button type="button" className="rmGraphNode" onClick={() => { if (a) { setSelectedRiskId(a.id); setTab('register'); setRegisterDetailExpanded(true); } }}><span>{a?.risk_code || 'Risiko sumber'}</span><b>{a?.risk_event || 'Tidak ditemukan'}</b><small>{a?.unit_name}</small></button><div className="rmConnector"><span>{RELATION_TYPES.find(t => t.value === link.relationship_type)?.label || link.relationship_type}</span><i>⟷</i><small>{link.description || 'Relasi belum dijelaskan'}</small></div><button type="button" className="rmGraphNode" onClick={() => { if (b) { setSelectedRiskId(b.id); setTab('register'); setRegisterDetailExpanded(true); } }}><span>{b?.risk_code || 'Risiko terkait'}</span><b>{b?.risk_event || 'Tidak ditemukan'}</b><small>{b?.unit_name}</small></button><button type="button" className="rmIconButton dangerText" aria-label="Hapus konektor" onClick={() => setPendingAction({ kind: 'delete-link', id: link.id })}>×</button></div>
-          })}{!links.length && <div className="rmEmptySmall">Belum ada konektor. Mulai dengan memilih dua risiko dan menjelaskan hubungan prosesnya.</div>}</div>
+            return <div className="rmGraphLink" key={link.id}>
+              <button type="button" className="rmGraphNode" onClick={() => { if (a) { setUnitFilter(sourceUnitLabel(a)); setSelectedRiskId(a.id); setTab('register'); setRegisterDetailExpanded(true); } }}><span>{a?.risk_code || 'Risiko sumber'}</span><b>{a?.risk_event || 'Tidak ditemukan'}</b><small>{a?.unit_name} · Sangat Tinggi</small></button>
+              <div className="rmConnector"><span>{RELATION_TYPES.find(t => t.value === link.relationship_type)?.label || link.relationship_type}</span><i>⟷</i><small>{link.description || 'Relasi belum dijelaskan'}</small></div>
+              <button type="button" className="rmGraphNode" onClick={() => { if (b) { setUnitFilter(sourceUnitLabel(b)); setSelectedRiskId(b.id); setTab('register'); setRegisterDetailExpanded(true); } }}><span>{b?.risk_code || 'Risiko terkait'}</span><b>{b?.risk_event || 'Tidak ditemukan'}</b><small>{b?.unit_name} · {b?.risk_level}</small></button>
+              <button type="button" className="rmIconButton dangerText" aria-label="Hapus konektor" onClick={() => setPendingAction({ kind: 'delete-link', id: link.id })}>×</button>
+            </div>
+          })}{!visibleLinks.length && <div className="rmEmptySmall">Belum ada konektor aktif pada kelompok sumber ini. Pilih kandidat, verifikasi dasarnya, lalu aktifkan konektor.</div>}</div>
           {pendingAction?.kind === 'delete-link' && <div className="rmInlineConfirm"><div><b>Konfirmasi penghapusan konektor</b><p>Data risiko tetap dipertahankan; hanya relasi yang dihapus.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteLink(pendingAction.id)}>Hapus konektor</button></div></div>}
         </LiquidGlass>
       </>}
