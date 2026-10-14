@@ -579,3 +579,21 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .settingsTabText b{display:block;font-size:13px}
 .settingsTabText small{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
 .settingsTab.active .settingsTabText small{color:rgba(255,255,255,.82)}
+
+/* Manajemen Risiko: ukuran tombol konsisten (aturan lama `.rmWorkspace button{font:inherit}` membuat tombol tampil 16px)
+   + ukuran teks kecil dinaikkan agar mudah dibaca */
+.rmWorkspace .rmButton{font-size:12px;font-weight:850;line-height:1.2;min-height:40px;padding:9px 16px}
+.rmWorkspace .rmButton.wide{min-height:46px;font-size:13px}
+.rmWorkspace .rmIconButton{font-size:12px}
+.rmWorkspace .rmTabs button{font-size:12px}
+.rmWorkspace .rmRoleChip{font-size:11px;padding:9px 13px}
+.rmWorkspace .rmKpi span{font-size:10px}
+.rmWorkspace .rmKpi small{font-size:11px}
+.rmWorkspace .rmMiniSummary span{font-size:11px}
+.rmWorkspace .rmMiniSummary b{font-size:20px}
+.rmWorkspace .rmBadge{font-size:10px}
+.rmWorkspace .rmCellSmall{font-size:10px}
+.rmWorkspace .rmNotice p{font-size:11px}
+.rmWorkspace .rmNotice span{font-size:10px}
+.rmWorkspace .rmSectionHead p{font-size:11px}
+.rmWorkspace .rmFormNote,.rmWorkspace .rmFooterNote{font-size:11px}
