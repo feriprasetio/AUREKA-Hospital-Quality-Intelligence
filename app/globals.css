@@ -739,3 +739,29 @@ button.ovCell:not(:disabled):hover{transform:scale(1.07);box-shadow:0 8px 18px r
 @media(max-width:760px){.sidebar{height:calc(100dvh - 16px);overflow-y:auto;-webkit-overflow-scrolling:touch}}
 .psModalSheet .psBtn:not(.primary):not(.danger){background:#fff;border-color:rgba(20,34,27,.16);color:#264237}
 .psModalSheet .psBtn:not(.primary):not(.danger):hover{background:#f3f6f4}
+
+/* ---- Kartu nama di sidebar: klik untuk membuka profil ---- */
+.profileChipBtn{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s var(--ease),box-shadow .18s ease}
+.profileChipBtn:hover{background:rgba(255,255,255,.62);border-color:rgba(var(--accent-rgb),.35);box-shadow:0 10px 24px rgba(19,48,36,.1)}
+.profileChipBtn:active{transform:scale(.985)}
+.profileChipBtn:focus-visible{outline:2px solid rgba(var(--accent-rgb),.6);outline-offset:2px}
+.profileChipBtn.isActive{border-color:rgba(var(--accent-rgb),.4);background:rgba(255,255,255,.6)}
+.profileChipHint{display:block;margin-top:5px;font-style:normal;font-size:10px;font-weight:850;color:var(--accent)}
+.workspaceRoot.sidebarIsCollapsed .profileChipHint{display:none}
+@media(max-width:760px){.workspaceRoot.sidebarIsCollapsed .profileChipHint{display:block}}
+
+/* ---- Username & verifikasi email di halaman login/daftar ---- */
+.fieldHint{display:block;margin-top:5px;font-size:11px;color:var(--muted);line-height:1.4}
+.authResend{display:block;width:100%;margin:6px 0 8px;min-height:44px;border-radius:14px;border:1px solid rgba(var(--accent-rgb),.3);background:rgba(var(--accent-rgb),.07);color:var(--accent2);font-weight:850;font-size:13px}
+.authResend:hover{background:rgba(var(--accent-rgb),.13)}
+.userHandle{color:var(--accent2);font-weight:850}
+.userDetailCheck{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#38463f}
+.userDetailCheck input{width:16px;height:16px;accent-color:var(--accent)}
+.acctGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+/* kartu nama adalah <button> anak langsung sidebar: batalkan gaya tombol menu */
+.sidebar>.profileChipBtn{display:flex;align-items:center;gap:10px;width:100%;margin:auto 0 14px;padding:12px 13px;border-radius:18px;background:rgba(255,255,255,.28);border:1px solid rgba(255,255,255,.62);color:var(--ink);font-weight:400;font-size:inherit;text-align:left}
+.sidebar>.profileChipBtn:hover{background:rgba(255,255,255,.62);border-color:rgba(var(--accent-rgb),.35);color:var(--ink);font-weight:400}
+.sidebar>.profileChipBtn.isActive{border-color:rgba(var(--accent-rgb),.4);background:rgba(255,255,255,.6)}
+.workspaceRoot.sidebarIsCollapsed .sidebar>.profileChipBtn{justify-content:center;padding:9px}
+@media(max-width:760px){.workspaceRoot.sidebarIsCollapsed .sidebar>.profileChipBtn{justify-content:flex-start;padding:12px 13px}}
+.authSteps i.authStrong{display:inline;font-style:normal;font-weight:850;color:var(--ink)}
