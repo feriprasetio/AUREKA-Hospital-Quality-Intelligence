@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import type { RiskFocus } from '@/lib/aureka/focus'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
@@ -126,7 +127,7 @@ const roleLabel = (role: string | null) => ({
 }[role || ''] || role || 'Pengguna')
 
 export default function RiskManagementWorkspace({
-  supabase, rooms, initialRoomId, role, userId, userName,
+  supabase, rooms, initialRoomId, role, userId, userName, focus,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -134,6 +135,7 @@ export default function RiskManagementWorkspace({
   role: string | null
   userId: string
   userName: string
+  focus?: RiskFocus | null
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
   const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'>('overview')
@@ -261,9 +263,39 @@ export default function RiskManagementWorkspace({
       (!matrixFilter || (risk.likelihood === matrixFilter.likelihood && risk.impact === matrixFilter.impact))
   }), [risks, search, unitFilter, levelFilter, categoryFilter, statusFilter, matrixFilter])
   const pageSize = 15
+  // Terapkan perintah dari Overview (risiko tertentu / level / sel matriks / unit) setelah data termuat.
+  const appliedFocus = useRef(0)
+  const pendingFocusRisk = useRef('')
+  useEffect(() => {
+    if (!focus || loading || appliedFocus.current === focus.nonce) return
+    appliedFocus.current = focus.nonce
+    setTab('register'); setSearch(''); setCategoryFilter('all'); setStatusFilter('all'); setSelectedRiskIds([])
+    setLevelFilter(focus.level || 'all')
+    setMatrixFilter(focus.likelihood && focus.impact ? { likelihood: focus.likelihood, impact: focus.impact } : null)
+    setPage(0)
+    const target = focus.riskId ? risks.find(r => r.id === focus.riskId) : undefined
+    if (target) {
+      if (!scopedToUnit) setUnitFilter(sourceUnitLabel(target))
+      setSelectedRiskId(target.id)
+      setRegisterDetailExpanded(true)
+      pendingFocusRisk.current = target.id
+    } else if (!scopedToUnit) {
+      setUnitFilter(focus.unitName || 'all')
+    }
+  }, [focus, loading, risks, scopedToUnit])
   const pageCount = Math.max(1, Math.ceil(filteredRisks.length / pageSize))
   const pageRisks = filteredRisks.slice(page * pageSize, (page + 1) * pageSize)
   useEffect(() => { if (page >= pageCount) setPage(Math.max(0, pageCount - 1)) }, [page, pageCount])
+  useEffect(() => {
+    const id = pendingFocusRisk.current
+    if (!id) return
+    const idx = filteredRisks.findIndex(r => r.id === id)
+    if (idx < 0) return
+    const targetPage = Math.floor(idx / pageSize)
+    if (page !== targetPage) { setPage(targetPage); return }
+    pendingFocusRisk.current = ''
+    window.setTimeout(() => document.querySelector(`[data-risk-id="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120)
+  }, [filteredRisks, page])
 
   const counts = useMemo(() => ({
     total: risks.length,
@@ -723,7 +755,7 @@ export default function RiskManagementWorkspace({
           </div>
           <div className="rmFilterGrid">
             <label className="rmSearch">⌕ <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Cari kode, risiko, unit, atau penyebab…" /></label>
-            <select aria-label="Ruangan atau kelompok sumber" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setPage(0); setSelectedRiskIds([]); }}><option value="">Pilih ruangan/kelompok sumber</option>{sourceUnitOptions.map(renderSourceUnitOption)}</select>
+            <select aria-label="Ruangan atau kelompok sumber" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setPage(0); setSelectedRiskIds([]); }}><option value="">Pilih ruangan/kelompok sumber</option>{canManageAll && <option value="all">Semua ruangan / unit · {risks.length.toLocaleString('id-ID')} risiko</option>}{sourceUnitOptions.map(renderSourceUnitOption)}</select>
             <select aria-label="Filter level risiko" value={levelFilter} onChange={e => { setLevelFilter(e.target.value); setPage(0); }}><option value="all">Semua level</option>{LEVELS.map(x => <option key={x}>{x}</option>)}</select>
             <select aria-label="Filter kategori" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(0); }}><option value="all">Semua kategori</option>{Array.from(new Set([...CATEGORIES, ...risks.map(r => r.category)])).map(x => <option key={x}>{x}</option>)}</select>
             <select aria-label="Filter status" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(0); }}><option value="all">Semua status</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x}>{x}</option>)}</select>
@@ -731,7 +763,7 @@ export default function RiskManagementWorkspace({
           {matrixFilter && <div className="rmSelectionBar"><div><b>Filter matriks aktif · P{matrixFilter.likelihood} × D{matrixFilter.impact}</b><span>Register hanya menampilkan risiko pada kombinasi ini.</span></div><button type="button" className="rmButton subtle" onClick={() => setMatrixFilter(null)}>Hapus filter matriks</button></div>}
           {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan →</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
           <div className="rmTableWrap"><table className="rmTable"><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th><th>Risiko / Kode</th><th>Unit</th><th>Skor</th><th>Level risiko</th><th>Status</th><th>Aksi</th></tr></thead>
-              <tbody>{pageRisks.map(risk => <tr key={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
+              <tbody>{pageRisks.map(risk => <tr key={risk.id} data-risk-id={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih ' + risk.risk_code} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
                 <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small>{risk.risk_code} · {risk.category}{risk.is_priority ? ' · PRIORITAS #' + (risk.priority_rank ?? '—') : ''}{risk.source_sheet ? ' · Sumber: ' + risk.source_sheet + (risk.source_row_number ? ' baris ' + risk.source_row_number : '') : ''}</small></button></td>
                 <td>{risk.unit_name || '—'}</td><td><strong className="rmScore">{risk.risk_score}</strong></td><td>{renderRiskBadge(risk.risk_level)}</td><td>{renderStatus(risk.status)}</td>
@@ -743,7 +775,7 @@ export default function RiskManagementWorkspace({
         </LiquidGlass>
 
         {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className="rmPanel rmEditor">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4><p>Isi berdasarkan sasaran organisasi, kejadian risiko, penyebab, dampak, dan kontrol saat ini. Skor dihitung otomatis.</p></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}>Tutup panel</button></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4><p>Isi berdasarkan sasaran organisasi, kejadian risiko, penyebab, dampak, dan kontrol saat ini. Skor dihitung otomatis.</p></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
             <label>Kode risiko <input value={riskForm.risk_code} onChange={e => setRiskForm(f => ({ ...f, risk_code: e.target.value }))} placeholder="Dibuat otomatis jika kosong" /></label>
             <label>Unit kerja <select value={riskForm.unit_id} disabled={!canManageAll && initialRoomId != null} onChange={e => setRiskForm(f => ({ ...f, unit_id: e.target.value }))}><option value="">Pilih unit</option>{unitOptions.map(r => <option value={String(r.id)} key={r.id}>{r.name}</option>)}</select></label>
@@ -896,7 +928,7 @@ export default function RiskManagementWorkspace({
         <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">ANALISIS MODUS KEGAGALAN</span><h4>FMEA / HFMEA</h4><p>Engine FMEA dipisahkan dari baseline risk scoring. RPN = Severity × Occurrence × Detection; RPN bukan skor matriks kemungkinan–dampak.</p></div><button type="button" className="rmButton primary" onClick={() => openFmea()}>＋ Analisis FMEA</button></div>
           <div className="rmTableWrap"><table className="rmTable"><thead><tr><th>Kode FMEA</th><th>Unit / Proses</th><th>Modus kegagalan</th><th>S–O–D</th><th>RPN</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{fmeas.map(f => <tr key={f.id}><td><b>{f.fmea_code}</b></td><td>{f.unit_name}<small className="rmCellSmall">{f.process_name}</small></td><td><b>{f.failure_mode}</b><small className="rmCellSmall">{f.risk_register_id ? risks.find(r => r.id === f.risk_register_id)?.risk_code || 'Risiko tertaut' : 'Belum ditautkan ke register'}</small></td><td>{f.severity}–{f.occurrence}–{f.detection}</td><td><strong className="rmScore">{f.rpn}</strong></td><td><span className={'rmBadge ' + (f.priority === 'Tinggi' ? 'very-high' : f.priority === 'Sedang' ? 'moderate' : 'low')}>{f.priority}</span></td><td>{renderStatus(f.status)}</td><td><button type="button" className="rmIconButton" onClick={() => openFmea(f)} disabled={!canManageAll && !risks.some(r => r.id === f.risk_register_id && canEditRisk(r))} aria-label="Edit FMEA">✎</button></td></tr>)}{!fmeas.length && <tr><td colSpan={8}><div className="rmEmptySmall">Belum ada analisis FMEA. Tambahkan analisis dan tautkan ke risk register bila relevan.</div></td></tr>}</tbody></table></div>
         </LiquidGlass>
-        {fmeaEditorOpen && <RmModal label="Analisis FMEA" error={error}><LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4><p>Definisikan proses, failure mode, efek, penyebab, kontrol, dan tindakan pengurangan risiko.</p></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}>Tutup panel</button></div>
+        {fmeaEditorOpen && <RmModal label="Analisis FMEA" error={error}><LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4><p>Definisikan proses, failure mode, efek, penyebab, kontrol, dan tindakan pengurangan risiko.</p></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
             <label>Hubungkan ke risiko <select value={String(fmeaForm.risk_register_id || '')} onChange={e => { const risk = risks.find(r => r.id === e.target.value); setFmeaForm(f => ({ ...f, risk_register_id: e.target.value || null, unit_name: risk?.unit_name || f.unit_name })); }}><option value="">Tidak ditautkan</option>{risks.map(renderRiskOption)}</select></label>
             <label>Unit kerja <select value={String(fmeaForm.unit_name || '')} onChange={e => setFmeaForm(f => ({ ...f, unit_name: e.target.value }))}>{unitOptions.map(r => <option key={r.id}>{r.name}</option>)}</select></label>
