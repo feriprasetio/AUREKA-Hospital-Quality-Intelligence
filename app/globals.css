@@ -646,3 +646,8 @@ button.ovCell:not(:disabled):hover{transform:scale(1.07);box-shadow:0 8px 18px r
 .rmWorkspace .rmSelectedRisks span button{border:0;background:rgba(20,34,27,.08);width:18px;height:18px;border-radius:6px;font-size:12px;line-height:1;color:var(--muted);padding:0}
 .rmWorkspace .rmSelectedRisks span button:hover{background:rgba(194,65,77,.15);color:#8f2431}
 .rmSelectedMore{border:1px dashed rgba(var(--accent-rgb),.4);background:rgba(var(--accent-rgb),.06);color:var(--accent2);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:850}
+
+/* Animasi masuk modul hanya memakai opacity: animasi transform membuat elemen menjadi
+   containing block bagi position:fixed sehingga latar pop-up tidak menutupi sidebar. */
+@keyframes aurFadeOnly{from{opacity:0}to{opacity:1}}
+.moduleEnter{animation:aurFadeOnly .35s ease both!important}
