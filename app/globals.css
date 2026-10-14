@@ -464,3 +464,52 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 @media(max-width:1000px){.landingHero{grid-template-columns:1fr!important;min-height:auto!important}.landingModules{max-width:620px}}
 @media(max-width:760px){.landingTopActions .landingGhost{display:none}.landingCta,.landingGhost{font-size:13px;padding:10px 14px}.landingFeatureGrid{grid-template-columns:1fr}.landingStats{gap:18px}}
 @media(prefers-reduced-motion:reduce){.landingAura span,.landingPulse,.landingModule,.landingHero .heroCopy>*,.landingModal,.landingFeature,.authCard{animation:none!important}}
+
+/* ===================== Login & daftar akun ===================== */
+.authPage{position:relative;overflow:hidden;isolation:isolate;padding:80px 24px 40px!important}
+.authBack{position:absolute;top:22px;left:24px;z-index:5;display:inline-flex;gap:8px;align-items:center;padding:10px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.85);
+  background:rgba(255,255,255,.66);color:var(--accent2);font-size:13px;font-weight:850;box-shadow:0 10px 26px rgba(19,48,36,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .2s var(--ease),background .2s}
+.authBack:hover{transform:translateX(-2px);background:#fff}
+.authShell{width:min(1040px,100%);display:grid;grid-template-columns:1fr minmax(0,480px);border-radius:32px;overflow:hidden;
+  box-shadow:0 40px 110px rgba(17,45,33,.20);animation:aurScaleIn .5s var(--ease) both}
+.authAside{position:relative;display:flex;flex-direction:column;gap:14px;padding:40px 38px;color:#fff;
+  background:radial-gradient(circle at 15% 10%,rgba(255,255,255,.22),transparent 40%),linear-gradient(150deg,var(--accent),var(--accent2))}
+.authAside:after{content:'';position:absolute;right:-90px;bottom:-90px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.08)}
+.authAsideBrand{display:flex;align-items:center;gap:12px}
+.authAsideBrand img{width:46px;height:46px;object-fit:contain;background:#fff;border-radius:14px;padding:5px}
+.authAsideBrand b{display:block;font-size:16px}.authAsideBrand small{display:block;font-size:11px;opacity:.8}
+.authAside h2{margin:26px 0 0;font-size:32px;line-height:1.08;letter-spacing:-.04em}
+.authAside p{margin:0;font-size:14px;line-height:1.65;opacity:.9}
+.authAside ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
+.authAside li{display:flex;gap:10px;align-items:center;font-size:13px}
+.authAside li span{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:8px;background:rgba(255,255,255,.18);font-size:12px;font-weight:900}
+.authAsideFoot{margin-top:auto;font-size:11px;opacity:.7}
+.authShell .authCard{width:100%!important;border-radius:0!important;padding:38px 40px!important;background:linear-gradient(160deg,rgba(255,255,255,.94),rgba(255,255,255,.82))!important;animation:none}
+.authCard form{display:block}
+.authEyebrow{text-align:center}
+.authCard h1{font-size:30px!important}
+.authCard>p,.authCard form>p{text-align:center;color:var(--muted);font-size:13px!important;margin:8px auto 22px!important}
+.authCard .field label{font-size:12px!important;color:#3d4c45}
+.authCard .field input,.authCard .field select{height:52px!important;font-size:14px;border-radius:16px!important;background:rgba(255,255,255,.9)!important}
+.pwWrap{position:relative}
+.pwWrap input{padding-right:110px!important}
+.pwToggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;border-radius:11px;padding:8px 12px;font-size:11px;font-weight:850;color:var(--accent2);background:rgba(var(--accent-rgb),.08)}
+.pwToggle:hover{background:rgba(var(--accent-rgb),.16)}
+.authWide{width:100%;margin-top:8px}
+.authAlert{margin:6px 0 4px;padding:11px 14px;border-radius:14px;background:rgba(194,65,77,.08);border:1px solid rgba(194,65,77,.22);color:#8f2431;font-size:12px;line-height:1.5}
+.authSwitch{margin-top:18px;text-align:center;font-size:13px;color:var(--muted)}
+.authSwitch button{border:0;background:transparent;color:var(--accent);font-weight:900;font-size:13px;padding:4px}
+.authSwitch button:hover{text-decoration:underline}
+.authSuccess{text-align:center;animation:aurFadeUp .4s var(--ease) both}
+.authSuccessIcon{width:72px;height:72px;margin:6px auto 14px;display:grid;place-items:center;border-radius:24px;font-size:34px;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 18px 40px rgba(var(--accent-rgb),.35);animation:aurScaleIn .5s var(--ease) both}
+.authSuccess p{color:var(--muted);font-size:13px;line-height:1.6;margin:8px 0 18px}
+.authSuccess p b{color:var(--ink)}
+.authSteps{list-style:none;counter-reset:s;margin:0 0 20px;padding:0;display:grid;gap:10px;text-align:left}
+.authSteps li{counter-increment:s;position:relative;padding:12px 14px 12px 52px;border-radius:16px;background:rgba(255,255,255,.75);border:1px solid rgba(20,34,27,.06)}
+.authSteps li:before{content:counter(s);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;
+  background:rgba(var(--accent-rgb),.12);color:var(--accent2);font-weight:900;font-size:12px}
+.authSteps b{display:block;font-size:13px}.authSteps span{display:block;margin-top:3px;font-size:11px;color:var(--muted);line-height:1.5}
+.liquidButton.wide button{width:100%}
+@media(max-width:860px){.authShell{grid-template-columns:1fr}.authAside{padding:28px}.authAside h2{font-size:24px;margin-top:12px}.authAside ul,.authAsideFoot{display:none}.authShell .authCard{padding:28px 22px!important}}
