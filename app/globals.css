@@ -386,3 +386,15 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 @media(max-width:900px){.stFilters{grid-template-columns:1fr 1fr}.stSummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 @media(prefers-reduced-motion:reduce){.moduleEnter,.ovKpi,.ovPanel,.ovHero,.userRow,.rmModalSheet,.rmModalBackdrop,.ovBarFill,.ovColumnFill{animation:none!important}}
+
+/* Pengaturan pengguna: ganti password & data saya */
+.pwForm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pwForm .field{margin:0}.pwForm .field span{display:block;font-size:10px;font-weight:800;margin-bottom:6px;color:var(--muted)}
+.pwForm input{width:100%}
+.pwMsg{margin:10px 0 0;font-size:11px;color:#9b2433}.pwMsg.ok{color:var(--accent2)}
+.myDataGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:16px}
+.myDataGrid .ovKpi{min-height:96px}
+.myDataList{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.myDataList li{display:grid;gap:3px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55)}
+.myDataList b{font-size:11px}.myDataList span{font-size:10px;color:var(--muted);line-height:1.55}
+@media(max-width:1000px){.pwForm{grid-template-columns:1fr}.myDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}

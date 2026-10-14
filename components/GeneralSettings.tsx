@@ -47,12 +47,14 @@ export default function GeneralSettings({
   profile,
   role,
   rooms,
+  onNavigate,
 }: {
   profile: Profile | null
   role: string | null
   rooms: Room[]
+  onNavigate?: (moduleId: string) => void
 }) {
-  const [section, setSection] = useState<'menu' | 'general' | 'users'>('menu')
+  const [section, setSection] = useState<'menu' | 'general' | 'users' | 'mydata'>('menu')
   const [tab, setTab] = useState<'profile' | 'units' | 'appearance' | 'security'>('profile')
   const [me, setMe] = useState<Profile | null>(profile)
   const [users, setUsers] = useState<Profile[]>([])
@@ -61,6 +63,9 @@ export default function GeneralSettings({
   const [search, setSearch] = useState('')
   const [userFilter, setUserFilter] = useState<'all' | 'pending' | 'active' | 'unmapped'>('all')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [myData, setMyData] = useState<{ risks: number | null; highRisks: number | null; incidents: number | null; openIncidents: number | null; quality: number | null } | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [toneId, setToneId] = useState(() =>
@@ -195,6 +200,46 @@ export default function GeneralSettings({
     loadUsers()
   }
 
+  const changePassword = async () => {
+    setPwMsg(null)
+    if (pw.next.length < 8) return setPwMsg({ ok: false, text: 'Password baru minimal 8 karakter.' })
+    if (pw.next !== pw.confirm) return setPwMsg({ ok: false, text: 'Konfirmasi password baru tidak sama.' })
+    if (pw.next === pw.current) return setPwMsg({ ok: false, text: 'Password baru harus berbeda dari password saat ini.' })
+    const email = me?.email || profile?.email
+    if (!email) return setPwMsg({ ok: false, text: 'Email akun tidak ditemukan.' })
+    setBusy(true)
+    // Verifikasi password saat ini sebelum mengganti, agar sesi yang tertinggal di komputer bersama tidak bisa dipakai mengganti password.
+    const check = await sb.auth.signInWithPassword({ email, password: pw.current })
+    if (check.error) { setBusy(false); return setPwMsg({ ok: false, text: 'Password saat ini salah.' }) }
+    const { error } = await sb.auth.updateUser({ password: pw.next })
+    setBusy(false)
+    if (error) return setPwMsg({ ok: false, text: `Gagal mengganti password: ${error.message}` })
+    setPw({ current: '', next: '', confirm: '' })
+    setPwMsg({ ok: true, text: 'Password berhasil diganti. Gunakan password baru saat login berikutnya.' })
+  }
+
+  useEffect(() => {
+    if (section !== 'mydata') return
+    const roomId = me?.primary_room_id ?? null
+    const roomName = rooms.find((r) => r.id === roomId)?.name || ''
+    const anySb = sb as any
+    Promise.all([
+      anySb.schema('aureka_risk').from('risk_register').select('id,unit_id,unit_name,risk_level').range(0, 4999),
+      anySb.schema('aureka_patient_safety').from('incidents').select('id,status,created_by').eq('created_by', me?.user_id || '').range(0, 4999),
+      anySb.schema('aureka_quality').from('quality_records').select('id,room_id').eq('profile_year', new Date().getFullYear()).range(0, 4999),
+    ]).then(([r, i, q]: any[]) => {
+      const norm = (v: unknown) => String(v || '').trim().toLowerCase()
+      const mineRisk = (r.data || []).filter((x: any) => roomId != null && (x.unit_id === roomId || (x.unit_id == null && norm(x.unit_name) === norm(roomName))))
+      setMyData({
+        risks: r.error ? null : mineRisk.length,
+        highRisks: r.error ? null : mineRisk.filter((x: any) => x.risk_level === 'Tinggi' || x.risk_level === 'Sangat Tinggi').length,
+        incidents: i.error ? null : (i.data || []).length,
+        openIncidents: i.error ? null : (i.data || []).filter((x: any) => x.status !== 'closed').length,
+        quality: q.error ? null : (q.data || []).filter((x: any) => roomId != null && x.room_id === roomId).length,
+      })
+    })
+  }, [section, me?.primary_room_id, me?.user_id, rooms])
+
   const roleLabel = friendlyRole(roleMeta) !== '—' ? friendlyRole(roleMeta) : effectiveRole === 'ADMIN' ? 'Super Admin' : (role || '—')
 
   return (
@@ -220,17 +265,27 @@ export default function GeneralSettings({
               <span>Profil akun, akses, unit, tampilan, tone warna, preferensi, dan keamanan.</span>
             </button>
 
-            <button
-              type="button"
-              className="placeholderCard glassPanel"
-              onClick={() => isAdmin && setSection('users')}
-              disabled={!isAdmin}
-              style={{ textAlign: 'left', border: 0, cursor: isAdmin ? 'pointer' : 'not-allowed' }}
-            >
-              <span style={{ fontSize: 28 }}>👥</span>
-              <b style={{ display: 'block', marginTop: 8 }}>Manajemen User / PIC Pelaporan</b>
-              <span>{isAdmin ? 'Kelola profil, role, unit utama, dan status pengguna.' : 'Khusus Super Admin.'}</span>
+            <button type="button" className="placeholderCard glassPanel" onClick={() => { setSection('general'); setTab('security') }} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+              <span style={{ fontSize: 28 }}>🔒</span>
+              <b style={{ display: 'block', marginTop: 8 }}>Keamanan & Password</b>
+              <span>Ganti password akun dan lihat informasi sesi login.</span>
             </button>
+
+            {!isAdmin && (
+              <button type="button" className="placeholderCard glassPanel" onClick={() => setSection('mydata')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+                <span style={{ fontSize: 28 }}>📋</span>
+                <b style={{ display: 'block', marginTop: 8 }}>Data Saya untuk PMKP</b>
+                <span>Ringkasan data unit yang Anda laporkan, kewajiban PIC, dan kontak Komite PMKP.</span>
+              </button>
+            )}
+
+            {isAdmin && (
+              <button type="button" className="placeholderCard glassPanel" onClick={() => setSection('users')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+                <span style={{ fontSize: 28 }}>👥</span>
+                <b style={{ display: 'block', marginTop: 8 }}>Manajemen User / PIC Pelaporan</b>
+                <span>Kelola profil, role, unit utama, aktivasi, dan penghapusan akun pengguna.</span>
+              </button>
+            )}
           </div>
         </LiquidGlass>
       )}
@@ -276,8 +331,8 @@ export default function GeneralSettings({
                 ['profile', 'Akun & Akses'],
                 ['units', 'Unit & Instalasi'],
                 ['appearance', 'Tampilan & Tone'],
-                ['security', 'Keamanan'],
-              ] as const).map(([key, label]) => (
+                ['security', 'Keamanan & Password'],
+              ] as const).filter(([key]) => isAdmin || key !== 'units').map(([key, label]) => (
                 <button
                   type="button"
                   key={key}
@@ -412,6 +467,16 @@ export default function GeneralSettings({
 
           {tab === 'security' && (
             <LiquidGlass style={{ padding: 18 }}>
+              <h4 style={{ margin: '0 0 12px' }}>Ganti Password</h4>
+              <div className="pwForm">
+                <label className="field"><span>Password saat ini</span><input type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
+                <label className="field"><span>Password baru (min. 8 karakter)</span><input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
+                <label className="field"><span>Ulangi password baru</span><input type="password" autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
+              </div>
+              {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role="status">{pwMsg.text}</p>}
+              <div style={{ marginTop: 10, marginBottom: 18 }}>
+                <LiquidGlassButton onClick={changePassword} disabled={busy || !pw.current || !pw.next || !pw.confirm}>{busy ? 'Memproses…' : 'Simpan password baru'}</LiquidGlassButton>
+              </div>
               <h4 style={{ margin: '0 0 12px' }}>Keamanan & Session</h4>
               <div style={{ display: 'grid', gap: 9 }}>
                 {[
@@ -429,6 +494,50 @@ export default function GeneralSettings({
               </div>
             </LiquidGlass>
           )}
+        </>
+      )}
+
+      {section === 'mydata' && (
+        <>
+          <LiquidGlass style={{ padding: 18 }}>
+            <div className="eyebrow">DATA SAYA UNTUK PMKP</div>
+            <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</h3>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
+            <div className="myDataGrid">
+              {([
+                ['Risiko unit terdaftar', myData?.risks, 'risk'],
+                ['Risiko tinggi / sangat tinggi', myData?.highRisks, 'risk'],
+                ['Laporan IKP yang saya buat', myData?.incidents, 'safety'],
+                ['IKP belum ditutup', myData?.openIncidents, 'safety'],
+                [`Episode mutu unit ${new Date().getFullYear()}`, myData?.quality, 'quality'],
+              ] as const).map(([label, value, mod]) => (
+                <button key={label} type="button" className="ovKpi" onClick={() => onNavigate?.(mod)} disabled={!onNavigate}>
+                  <span className="ovKpiLabel">{label}</span>
+                  {myData === null ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value == null ? '—' : value.toLocaleString('id-ID')}</b>}
+                </button>
+              ))}
+            </div>
+          </LiquidGlass>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 14 }}>
+            <LiquidGlass style={{ padding: 18 }}>
+              <h4 style={{ margin: '0 0 10px' }}>Kewajiban PIC unit</h4>
+              <ul className="myDataList">
+                <li><b>Register risiko</b><span>Perbarui identifikasi, penilaian, dan pengendalian risiko unit secara berkala; koreksi data bila ada salah input.</span></li>
+                <li><b>Laporan IKP</b><span>Laporkan insiden keselamatan pasien melalui modul Keselamatan Pasien segera setelah kejadian (maks. 2×24 jam).</span></li>
+                <li><b>Indikator mutu</b><span>Input data indikator mutu unit sesuai periode pengumpulan yang ditetapkan Komite PMKP.</span></li>
+                <li><b>RTP</b><span>Tindak lanjuti rencana pengendalian risiko unit dan catat evaluasinya.</span></li>
+              </ul>
+            </LiquidGlass>
+            <LiquidGlass style={{ padding: 18 }}>
+              <h4 style={{ margin: '0 0 10px' }}>Perlu bantuan Komite PMKP?</h4>
+              <ul className="myDataList">
+                <li><b>Ganti unit / role</b><span>Unit utama dan role ditetapkan Super Admin. Hubungi Komite PMKP bila Anda pindah unit atau perlu akses tambahan.</span></li>
+                <li><b>Data salah input</b><span>Risiko unit dapat Anda edit sendiri. Laporan IKP yang sudah dikirim diperbaiki melalui Komite PMKP.</span></li>
+                <li><b>Lupa password</b><span>Ganti password di menu Keamanan & Password, atau minta Super Admin membantu reset.</span></li>
+              </ul>
+            </LiquidGlass>
+          </div>
         </>
       )}
 
