@@ -636,3 +636,13 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 button.ovCell{border:0;font:inherit;font-size:11px;font-weight:850;cursor:pointer;width:100%}
 button.ovCell:disabled{cursor:default}
 button.ovCell:not(:disabled):hover{transform:scale(1.07);box-shadow:0 8px 18px rgba(19,48,36,.15)}
+
+/* RTP: daftar risiko terpilih diringkas */
+.rmWorkspace .rmSelectedHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 6px}
+.rmWorkspace .rmSelectedHead b{font-size:12px}
+.rmWorkspace .rmSelectedRisks{max-height:none}
+.rmWorkspace .rmSelectedRisks.expanded{max-height:260px;overflow:auto;padding-right:4px}
+.rmWorkspace .rmSelectedRisks span{display:inline-flex;align-items:center;gap:6px}
+.rmWorkspace .rmSelectedRisks span button{border:0;background:rgba(20,34,27,.08);width:18px;height:18px;border-radius:6px;font-size:12px;line-height:1;color:var(--muted);padding:0}
+.rmWorkspace .rmSelectedRisks span button:hover{background:rgba(194,65,77,.15);color:#8f2431}
+.rmSelectedMore{border:1px dashed rgba(var(--accent-rgb),.4);background:rgba(var(--accent-rgb),.06);color:var(--accent2);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:850}

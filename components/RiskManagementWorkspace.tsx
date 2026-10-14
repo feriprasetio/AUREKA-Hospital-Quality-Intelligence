@@ -163,6 +163,7 @@ export default function RiskManagementWorkspace({
   const [riskForm, setRiskForm] = useState<RiskForm>(() => emptyRiskForm(initialRoomId))
   const [selectedPlanId, setSelectedPlanId] = useState('')
   const [planFormOpen, setPlanFormOpen] = useState(false)
+  const [showAllSelected, setShowAllSelected] = useState(false)
   const [planForm, setPlanForm] = useState({
     title: '', objective: '', action_plan: '', expected_output: '', owner_name: userName,
     target_date: '', target_likelihood: '2', target_impact: '2',
@@ -743,7 +744,13 @@ export default function RiskManagementWorkspace({
             </div>
             <div className="rmCallout"><b>Aturan keputusan</b><p>Skor 1–9: area penerimaan risiko. Skor 10–25: risiko utama sesuai selera risiko Kepmenkes dan harus direncanakan mitigasinya.</p></div>
             <div className="rmMiniSummary"><div><b>{plans.filter(p => p.status.startsWith('pending_')).length}</b><span>Menunggu persetujuan</span></div><div><b>{plans.filter(p => p.status === 'in_progress').length}</b><span>Mitigasi berjalan</span></div><div><b>{links.length}</b><span>Konektor risiko</span></div></div>
-            <button type="button" className="rmButton primary wide" onClick={() => { setSelectedRiskIds(risks.filter(r => ['Sedang', 'Tinggi', 'Sangat Tinggi'].includes(r.risk_level)).map(r => r.id)); setTab('register'); setMessage('Risiko utama terpilih. Tinjau daftar dan gunakan RTP Terintegrasi untuk membuat rencana gabungan.'); }}>Siapkan mitigasi risiko utama</button>
+            <button type="button" className="rmButton primary wide" onClick={() => {
+              // Pilih risiko utama (Sedang ke atas) hanya pada ruangan yang sedang dibuka, bukan seluruh rumah sakit.
+              const unitScope = unitFilter && unitFilter !== 'all' ? unitFilter : (currentRoom?.name || (risks[0] ? sourceUnitLabel(risks[0]) : ''))
+              const picked = risks.filter(r => ['Sedang', 'Tinggi', 'Sangat Tinggi'].includes(r.risk_level) && sourceUnitLabel(r) === unitScope)
+              setUnitFilter(unitScope); setSelectedRiskIds(picked.map(r => r.id)); setTab('register'); setPage(0)
+              setMessage(`${picked.length} risiko utama di ${unitScope} terpilih. Hapus centang risiko yang tidak terkait, lalu klik “Rencanakan mitigasi gabungan”.`)
+            }}>Siapkan mitigasi risiko utama (ruangan aktif)</button>
           </LiquidGlass>
         </div>
       </>}
@@ -824,7 +831,15 @@ export default function RiskManagementWorkspace({
         <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">MITIGASI TERINTEGRASI</span><h4>Rencana Tindak Pengendalian</h4><p>Satu rencana dapat menangani beberapa risiko yang berbagi penyebab, kontrol, atau proses. Semua tahap persetujuan dicatat.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Pilih risiko</button><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>＋ Rencana gabungan</button></div></div>
           {planFormOpen && <div className="rmPlanComposer">
             <div className="rmSectionHead"><div><span className="rmEyebrow">PENYUSUNAN RTP</span><h4>Rencana mitigasi untuk {selectedRiskIds.length} risiko</h4><p>Rencana lintas unit sebaiknya menyebutkan koordinator utama dan kontribusi tiap unit yang terlibat.</p></div><button type="button" className="rmButton subtle" onClick={() => setPlanFormOpen(false)}>Tutup formulir</button></div>
-            <div className="rmSelectedRisks">{selectedForPlan.map(r => <span key={r.id}>{r.risk_code} · {r.unit_name}</span>)}</div>
+            {selectedForPlan.length > 25 && <div className="rmNotice" role="status"><span>Terlalu banyak risiko</span><p>{selectedForPlan.length.toLocaleString('id-ID')} risiko dipilih. RTP gabungan sebaiknya hanya mencakup risiko yang benar-benar berbagi penyebab, kontrol, atau proses yang sama (umumnya di bawah 20). Kembali ke Risk Register untuk mempersempit pilihan.</p></div>}
+            <div className="rmSelectedHead">
+              <b>{selectedForPlan.length.toLocaleString('id-ID')} risiko dalam rencana</b>
+              {selectedForPlan.length > 12 && <button type="button" className="rmButton subtle" onClick={() => setShowAllSelected(v => !v)}>{showAllSelected ? 'Ringkas daftar' : `Tampilkan semua (${selectedForPlan.length.toLocaleString('id-ID')})`}</button>}
+            </div>
+            <div className={showAllSelected ? 'rmSelectedRisks expanded' : 'rmSelectedRisks'}>
+              {(showAllSelected ? selectedForPlan : selectedForPlan.slice(0, 12)).map(r => <span key={r.id} title={r.risk_event}>{r.risk_code} · {r.unit_name}<button type="button" aria-label={`Keluarkan ${r.risk_code}`} onClick={() => setSelectedRiskIds(ids => ids.filter(x => x !== r.id))}>×</button></span>)}
+              {!showAllSelected && selectedForPlan.length > 12 && <button type="button" className="rmSelectedMore" onClick={() => setShowAllSelected(true)}>+{(selectedForPlan.length - 12).toLocaleString('id-ID')} lainnya</button>}
+            </div>
             <div className="rmFormGrid">
               <label>Nama / judul rencana <input value={planForm.title} onChange={e => setPlanForm(f => ({ ...f, title: e.target.value }))} placeholder="Contoh: penguatan pelaporan hasil kritis" /></label>
               <label>Koordinator / PIC utama <input value={planForm.owner_name} onChange={e => setPlanForm(f => ({ ...f, owner_name: e.target.value }))} placeholder="Nama atau jabatan" /></label>
