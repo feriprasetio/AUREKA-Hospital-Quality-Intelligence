@@ -27,6 +27,11 @@ const QUICK_MODULES=[
 ] as const
 
 type QuickModule=typeof QUICK_MODULES[number]
+const MODULE_INFO:Record<QuickModule['id'],{tagline:string;features:[string,string][]}>={
+ quality:{tagline:'Pengumpulan & pemantauan capaian indikator mutu unit dan rumah sakit.',features:[['Audit Indikator Mutu','Logbook episode pasien per unit dengan profil indikator 2026.'],['Clinical Pathway','Kepatuhan alur klinis (dalam pengembangan).'],['Audit Klinis & Kematian','Instrumen audit klinis terstruktur (dalam pengembangan).'],['OPPE','Evaluasi praktik profesional berkelanjutan (dalam pengembangan).']]},
+ safety:{tagline:'Pelaporan insiden, investigasi RCA, dan budaya keselamatan pasien.',features:[['Laporan IKP','Formulir insiden sesuai format resmi, tersimpan aman di server.'],['Investigasi / RCA','Akar masalah, grading risiko, dan rekomendasi tindak lanjut.'],['Survey Budaya','Survei budaya keselamatan anonim untuk seluruh staf.'],['Rekap & Ekspor','Rekap respons dan ekspor Excel untuk Komite PMKP.']]},
+ risk:{tagline:'Register risiko per unit dengan matriks 5×5 dan RTP berjenjang.',features:[['Risk Register','Identifikasi, penilaian baseline & residual, otomatis dari matriks Kepmenkes.'],['RTP Terintegrasi','Satu rencana pengendalian untuk beberapa risiko, persetujuan Kabid → Direktur → Dewas.'],['Konektor Risiko','Hubungan penyebab bersama, hulu-hilir, dan potensi duplikasi.'],['FMEA / HFMEA','Analisis modus kegagalan dengan RPN terpisah dari skor matriks.']]},
+}
 function ModuleIcon({id}:{id:QuickModule['id']}){
  if(id==='quality')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7"/><path d="M3.5 19.5h17"/></svg>
  if(id==='safety')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="m8.8 12.1 2.1 2.1 4.5-4.7"/></svg>
@@ -60,29 +65,40 @@ export default function HomeClient(){
  const title=useMemo(()=>MODS.find(([id])=>id===active)?.[1]||'Overview',[active])
  if(view==='login'||view==='signup'){const l=view==='login';return <main className="authPage"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow">AUREKA WORKSPACE</div><h1>{l?'Masuk':'Daftar Akun'}</h1><p>{l?'Gunakan akun AUREKA sesuai role dan unit.':'Registrasi awal untuk calon PIC pelaporan.'}</p>{!l&&<><div className="field"><label>Nama Lengkap</label><input value={fullName} onChange={e=>setFullName(e.target.value)}/></div><div className="field"><label>Ruangan / Unit</label><select value={signupRoom} onChange={e=>setSignupRoom(e.target.value)}><option value="">Pilih unit</option>{roomsList.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></div></>}<div className="field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)}/></div><div className="field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)}/></div><LiquidGlassButton className="wide" onClick={l?login:signup} disabled={busy}>{busy?'Memproses…':l?'Masuk':'Buat Akun'}</LiquidGlassButton><div className={message?'msg visible':'msg'}>{message}</div><button className="textButton" onClick={()=>setView(l?'signup':'login')}>{l?'Daftar akun baru':'Kembali ke login'}</button><button className="textButton muted" onClick={()=>setView('public')}>← Dashboard publik</button></LiquidGlass></main>}
  if(view==='workspace')return <main className={`workspaceRoot ${sidebarCollapsed?'sidebarIsCollapsed':''}`}><button className="workspaceScrim" onClick={()=>setMobile(false)} data-open={mobile}/><aside className={`sidebar glassPanel ${mobile?'mobileOpen':''}`}><div className="sideHeader"><div className="sideBrand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div><button type="button" className="sidebarToggle" onClick={()=>setSidebarCollapsed(v=>!v)} aria-label={sidebarCollapsed?'Expand sidebar':'Collapse sidebar'} title={sidebarCollapsed?'Expand sidebar':'Collapse sidebar'}><span>{sidebarCollapsed?'›':'‹'}</span></button></div><div className="navLabel">Workspace</div><nav className="sidebarNav"><button type="button" title="Overview" className={active==='home'?'navActive':''} onClick={()=>{setActive('home');setQualityOpen(false);setMobile(false)}}><NavIcon id="home"/><span>Overview</span></button>{visibleMods.map(([id,n])=><button type="button" title={n} key={id} className={active===id?'navActive':''} onClick={()=>{setActive(id);if(id!=='quality')setQualityOpen(false);setMobile(false)}}><NavIcon id={id}/><span>{n}</span></button>)}</nav><div className="profileChip"><div className="profileAvatar">{initials(profile?.full_name||user?.email)}</div><div className="profileText"><b>{profile?.full_name||user?.email}</b><span>{ROLE_LABEL[role||'']||role||'Pengguna'} · {room?.name||'Unit belum dipetakan'}</span></div></div><LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton></aside><section className="workspaceContent"><div className="workspaceTop"><button className="mobileMenuButton" onClick={()=>setMobile(true)}>☰</button><div><div className="eyebrow">AUREKA</div><h2>{title}</h2><p>{profile?.full_name||user?.email}</p></div></div><div key={`${active}-${qualityOpen}`} className="moduleEnter">{active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setActive(id);setQualityOpen(id==='quality')}}}/>:active==='quality'&&!qualityOpen?<div className="placeholderGrid">{CHILD.quality.map((x:string,i:number)=>i===0?<button key={x} className="placeholderCard glassPanel" onClick={()=>setQualityOpen(true)}><b>{x}</b><span>Workspace pengumpulan data dinamis</span></button>:<LiquidGlass key={x} className="placeholderCard"><b>{x}</b><span>Container modul siap dikembangkan.</span></LiquidGlass>)}</div>:active==='quality'&&qualityOpen?<div><button className="textButton" onClick={()=>setQualityOpen(false)}>← Indikator Mutu</button><QualityIndicatorWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin}/></div>:active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'}/>:active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'}/>:active==='analytics'&&manager?<StatisticsWorkspace supabase={sb} rooms={roomsList}/>:active==='settings'?<GeneralSettings profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>{setActive(id);setQualityOpen(id==='quality')}}/>:<div className="placeholderGrid">{(CHILD[active]||[]).map((x:string)=><LiquidGlass key={x} className="placeholderCard"><b>{x}</b><span>Container modul siap dikembangkan.</span></LiquidGlass>)}</div>}</div></section></main>
- return <main className="publicRoot">
-  <header className="topbar glassPanel">
+ return <main className="publicRoot landing">
+  <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
+  <header className="topbar glassPanel landingTopbar">
    <div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
-   <LiquidGlassButton onClick={()=>setView('login')}>Login Workspace</LiquidGlassButton>
+   <div className="landingTopActions">
+    <button type="button" className="landingGhost" onClick={()=>{setMessage('');setView('signup')}}>Daftar akun unit</button>
+    <button type="button" className="landingCta" onClick={()=>{setMessage('');setView('login')}}>Masuk Workspace <span aria-hidden="true">→</span></button>
+   </div>
   </header>
 
-  <section className="heroPublic">
+  <section className="heroPublic landingHero">
    <div className="heroCopy">
-    <div className="eyebrow">UPT RSUD SULTAN SYARIF MOHAMAD ALKADRIE</div>
+    <div className="landingBadge"><span className="landingPulse" aria-hidden="true"/>UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP</div>
     <h1>AUREKA<br/><em>Alkadrie Unified Risk Evaluation, Quality, Assessment.</em></h1>
-    <p>AUREKA mengintegrasikan mutu, keselamatan pasien, manajemen risiko, analitik, dan reporting dalam satu workspace.</p>
+    <p>Satu workspace untuk indikator mutu, keselamatan pasien, dan manajemen risiko — setiap unit menginput datanya sendiri, Komite PMKP memantau seluruh rumah sakit secara langsung.</p>
+    <div className="landingActions">
+     <button type="button" className="landingCta big" onClick={()=>{setMessage('');setView('login')}}>Masuk Workspace <span aria-hidden="true">→</span></button>
+     <button type="button" className="landingGhost big" onClick={()=>{setMessage('');setView('signup')}}>Daftar sebagai PIC unit</button>
+    </div>
+    <div className="landingStats">
+     <div><b>{roomsList.length||37}</b><span>Unit kerja</span></div>
+     <div><b>3</b><span>Modul inti PMKP</span></div>
+     <div><b>5×5</b><span>Matriks risiko Kepmenkes</span></div>
+    </div>
    </div>
 
-   <div className="quickDockWrap" aria-label="Shortcut modul utama">
-    <div className="quickDockCaption">Quick overview</div>
-    <nav className="quickDock glassPanel" aria-label="Modul utama AUREKA">
-     {QUICK_MODULES.map(module=>
-      <button key={module.id} type="button" className={`quickDockItem quickDock-${module.id}`} onClick={()=>setOverviewModule(module.id)} aria-label={`Buka overview ${module.label}`}>
-       <span className="quickDockIcon"><ModuleIcon id={module.id}/></span>
-       <span className="quickDockText"><b>{module.label}</b><small>{module.short}</small></span>
-      </button>
-     )}
-    </nav>
+   <div className="landingModules" aria-label="Modul utama AUREKA">
+    {QUICK_MODULES.map((module,idx)=>
+     <button key={module.id} type="button" className={`landingModule quickDock-${module.id}`} style={{animationDelay:`${140+idx*90}ms`}} onClick={()=>setOverviewModule(module.id)} aria-label={`Lihat modul ${module.label}`}>
+      <span className="quickDockIcon"><ModuleIcon id={module.id}/></span>
+      <span className="landingModuleText"><b>{module.label}</b><small>{MODULE_INFO[module.id].tagline}</small></span>
+      <span className="landingModuleArrow" aria-hidden="true">↗</span>
+     </button>
+    )}
    </div>
   </section>
 
@@ -92,7 +108,7 @@ export default function HomeClient(){
 
   {systemOpen&&<section className="systemPanel glassPanel">
    <div className="systemGrid">
-    <LiquidGlass><strong>37</strong><span>Ruangan aktif</span></LiquidGlass>
+    <LiquidGlass><strong>{roomsList.length||37}</strong><span>Ruangan aktif</span></LiquidGlass>
     <LiquidGlass><strong>6</strong><span>Modul terintegrasi</span></LiquidGlass>
     <LiquidGlass><strong>Online</strong><span>Backend</span></LiquidGlass>
     <LiquidGlass><strong>Aktif</strong><span>Authentication</span></LiquidGlass>
@@ -102,16 +118,21 @@ export default function HomeClient(){
   {overviewModule&&(()=>{
    const selected=QUICK_MODULES.find(m=>m.id===overviewModule)
    if(!selected)return null
+   const info=MODULE_INFO[selected.id]
    return <div className="overviewOverlay" role="presentation" onClick={()=>setOverviewModule(null)}>
-    <section className="overviewModal glassPanel" role="dialog" aria-modal="true" aria-labelledby="overviewTitle" onClick={e=>e.stopPropagation()}>
-     <div style={{display:'flex',justifyContent:'space-between',gap:20,alignItems:'flex-start'}}>
-      <div><div className="eyebrow">AUREKA · PREVIEW</div><h2 id="overviewTitle" style={{margin:'6px 0',fontSize:28}}>{selected.label}</h2><p style={{margin:0,color:'var(--muted)',fontSize:12}}>{selected.description}</p></div>
-      <button type="button" onClick={()=>setOverviewModule(null)} aria-label="Tutup preview" style={{border:0,background:'rgba(255,255,255,.45)',borderRadius:12,width:38,height:38,fontSize:22,cursor:'pointer'}}>×</button>
+    <section className={`overviewModal landingModal quickDock-${selected.id}`} role="dialog" aria-modal="true" aria-labelledby="overviewTitle" onClick={e=>e.stopPropagation()}>
+     <div className="landingModalHead">
+      <span className="quickDockIcon"><ModuleIcon id={selected.id}/></span>
+      <div><div className="eyebrow">AUREKA · MODUL</div><h2 id="overviewTitle">{selected.label}</h2><p>{info.tagline}</p></div>
+      <button type="button" className="landingClose" onClick={()=>setOverviewModule(null)} aria-label="Tutup">×</button>
      </div>
-     <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:12,marginTop:20}}>
-      {['Total data','Met target','Belum met','Kelengkapan'].map(label=><LiquidGlass key={label} style={{padding:16}}><span style={{display:'block',fontSize:10,color:'var(--muted)'}}>{label}</span><b style={{display:'block',fontSize:24,marginTop:8}}>—</b><small style={{fontSize:9,color:'var(--muted)'}}>Preview modul</small></LiquidGlass>)}
+     <div className="landingFeatureGrid">
+      {info.features.map(([t,d])=><div key={t} className="landingFeature"><b>{t}</b><span>{d}</span></div>)}
      </div>
-     <div style={{marginTop:16,padding:18,borderRadius:20,background:'rgba(255,255,255,.22)',border:'1px solid rgba(255,255,255,.52)',fontSize:11,color:'var(--muted)'}}>Preview ini menjadi pintu masuk visual sebelum data operasional modul tersedia.</div>
+     <div className="landingModalFoot">
+      <span>Data operasional modul hanya dapat dilihat setelah login sesuai role dan unit kerja.</span>
+      <button type="button" className="landingCta" onClick={()=>{setOverviewModule(null);setMessage('');setView('login')}}>Masuk untuk melihat data <span aria-hidden="true">→</span></button>
+     </div>
     </section>
    </div>
   })()}

@@ -398,3 +398,69 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .myDataList li{display:grid;gap:3px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55)}
 .myDataList b{font-size:11px}.myDataList span{font-size:10px;color:var(--muted);line-height:1.55}
 @media(max-width:1000px){.pwForm{grid-template-columns:1fr}.myDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ===================== Landing page (halaman awal) ===================== */
+@keyframes aurFloat{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(30px,-24px,0) scale(1.08)}}
+@keyframes aurPulse{0%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.55)}70%{box-shadow:0 0 0 9px rgba(var(--accent-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0)}}
+.landing{position:relative;overflow:hidden;isolation:isolate}
+.landingAura{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.landingAura span{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;animation:aurFloat 16s ease-in-out infinite}
+.landingAura span:nth-child(1){width:520px;height:520px;left:-120px;top:120px;background:radial-gradient(circle,rgba(var(--accent-rgb),.38),transparent 65%)}
+.landingAura span:nth-child(2){width:460px;height:460px;right:-80px;top:-60px;background:radial-gradient(circle,rgba(37,106,145,.26),transparent 65%);animation-delay:-5s}
+.landingAura span:nth-child(3){width:600px;height:600px;left:38%;bottom:-320px;background:radial-gradient(circle,rgba(154,107,19,.18),transparent 65%);animation-delay:-10s}
+.landingTopbar{position:sticky;top:12px;z-index:40;animation:aurFadeUp .5s var(--ease) both}
+.landingTopActions{display:flex;gap:10px;align-items:center}
+.landingCta,.landingGhost{display:inline-flex;align-items:center;gap:8px;justify-content:center;border-radius:16px;font-weight:850;font-size:14px;padding:12px 20px;min-height:46px;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s ease,filter .2s ease;white-space:nowrap}
+.landingCta{border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 14px 34px rgba(var(--accent-rgb),.32),inset 0 1px 0 rgba(255,255,255,.28)}
+.landingCta:hover{transform:translateY(-2px);box-shadow:0 20px 44px rgba(var(--accent-rgb),.40),inset 0 1px 0 rgba(255,255,255,.3);filter:brightness(1.05)}
+.landingCta span{transition:transform .2s var(--ease)}.landingCta:hover span{transform:translateX(3px)}
+.landingGhost{color:var(--accent2);background:rgba(255,255,255,.62);border:1px solid rgba(var(--accent-rgb),.22);box-shadow:0 8px 22px rgba(19,48,36,.07)}
+.landingGhost:hover{transform:translateY(-2px);background:rgba(255,255,255,.9);border-color:rgba(var(--accent-rgb),.4)}
+.landingCta.big,.landingGhost.big{font-size:16px;padding:16px 26px;min-height:56px;border-radius:18px}
+.landingHero{grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr)!important;gap:56px!important;min-height:calc(100vh - 140px)!important;padding-top:56px!important}
+.landingHero .heroCopy>*{animation:aurFadeUp .6s var(--ease) both}
+.landingHero .heroCopy>*:nth-child(2){animation-delay:.06s}.landingHero .heroCopy>*:nth-child(3){animation-delay:.12s}
+.landingHero .heroCopy>*:nth-child(4){animation-delay:.18s}.landingHero .heroCopy>*:nth-child(5){animation-delay:.24s}
+.landingHero .heroCopy h1 em{display:inline-block;margin-top:6px}
+.landingHero .heroCopy p{font-size:18px;max-width:640px}
+.landingBadge{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85);
+  box-shadow:0 8px 24px rgba(19,48,36,.07);font-size:11px;font-weight:800;color:var(--accent2);letter-spacing:.02em}
+.landingPulse{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:aurPulse 2s infinite}
+.landingActions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.landingStats{display:flex;gap:30px;flex-wrap:wrap;margin-top:34px;padding-top:22px;border-top:1px solid rgba(20,34,27,.08)}
+.landingStats b{display:block;font-size:28px;letter-spacing:-.05em}.landingStats span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.landingModules{display:grid;gap:14px;align-self:center}
+.landingModule{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;text-align:left;padding:18px 20px;border-radius:24px;color:var(--ink);
+  border:1px solid rgba(255,255,255,.85);background:linear-gradient(140deg,rgba(255,255,255,.78),rgba(255,255,255,.42));
+  box-shadow:0 20px 50px rgba(19,48,36,.11),inset 0 1px 0 rgba(255,255,255,.95);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
+  transition:transform .25s var(--ease),box-shadow .25s var(--ease);animation:aurScaleIn .6s var(--ease) both}
+.landingModule:hover{transform:translateY(-4px) translateX(-2px);box-shadow:0 28px 64px rgba(19,48,36,.17),inset 0 1px 0 rgba(255,255,255,.95)}
+.landingModule .quickDockIcon{width:62px;height:62px}
+.landingModuleText b{display:block;font-size:17px;letter-spacing:-.02em}
+.landingModuleText small{display:block;margin-top:4px;font-size:12px;color:var(--muted);line-height:1.45}
+.landingModuleArrow{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:rgba(var(--accent-rgb),.08);color:var(--accent);font-weight:900;transition:transform .2s var(--ease),background .2s}
+.landingModule:hover .landingModuleArrow{transform:rotate(45deg);background:rgba(var(--accent-rgb),.16)}
+.systemReveal button{font-size:12px!important;padding:10px 18px!important}
+/* Pop-up modul: latar lebih pekat agar teks di belakang tidak tembus */
+.overviewOverlay{background:rgba(20,34,27,.38)!important;backdrop-filter:blur(16px) saturate(120%)!important;-webkit-backdrop-filter:blur(16px) saturate(120%)!important}
+.landingModal{background:linear-gradient(150deg,rgba(255,255,255,.96),rgba(246,250,248,.92))!important;animation:aurScaleIn .32s var(--ease) both;padding:30px!important}
+.landingModalHead{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.landingModalHead .quickDockIcon{width:64px;height:64px}
+.landingModalHead h2{margin:4px 0 4px;font-size:30px;letter-spacing:-.04em}
+.landingModalHead p{margin:0;color:var(--muted);font-size:13px}
+.landingClose{width:42px;height:42px;border-radius:14px;border:1px solid rgba(20,34,27,.08);background:#fff;font-size:22px;color:var(--ink);transition:transform .18s var(--ease)}
+.landingClose:hover{transform:rotate(90deg)}
+.landingFeatureGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:22px}
+.landingFeature{padding:16px 18px;border-radius:18px;background:rgba(255,255,255,.85);border:1px solid rgba(20,34,27,.06);box-shadow:0 10px 26px rgba(19,48,36,.06);animation:aurFadeUp .4s var(--ease) both}
+.landingFeature:nth-child(2){animation-delay:.05s}.landingFeature:nth-child(3){animation-delay:.1s}.landingFeature:nth-child(4){animation-delay:.15s}
+.landingFeature b{display:block;font-size:14px}.landingFeature span{display:block;margin-top:5px;font-size:12px;color:var(--muted);line-height:1.55}
+.landingModalFoot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid rgba(20,34,27,.07)}
+.landingModalFoot span{font-size:12px;color:var(--muted);max-width:520px}
+/* Halaman login/daftar */
+.authCard{animation:aurScaleIn .45s var(--ease) both}
+.authCard .liquidButton button{min-height:52px;font-size:15px}
+.authCard .textButton{font-size:13px}
+@media(max-width:1000px){.landingHero{grid-template-columns:1fr!important;min-height:auto!important}.landingModules{max-width:620px}}
+@media(max-width:760px){.landingTopActions .landingGhost{display:none}.landingCta,.landingGhost{font-size:13px;padding:10px 14px}.landingFeatureGrid{grid-template-columns:1fr}.landingStats{gap:18px}}
+@media(prefers-reduced-motion:reduce){.landingAura span,.landingPulse,.landingModule,.landingHero .heroCopy>*,.landingModal,.landingFeature,.authCard{animation:none!important}}
