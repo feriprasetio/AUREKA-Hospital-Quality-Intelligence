@@ -312,9 +312,9 @@ export default function GeneralSettings({
       )}
 
       {section !== 'menu' && (
-        <button type="button" className="textButton" onClick={() => setSection('menu')}>
-          ← Kembali ke Pengaturan
-        </button>
+        <div><button type="button" className="backBtn" onClick={() => setSection('menu')}>
+          <span aria-hidden="true">←</span> Kembali ke menu Pengaturan
+        </button></div>
       )}
 
       {section === 'general' && (
@@ -347,21 +347,23 @@ export default function GeneralSettings({
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 16 }}>
+            <div className="settingsTabs" role="tablist" aria-label="Bagian pengaturan">
               {([
-                ['profile', 'Akun & Akses'],
-                ['units', 'Unit & Instalasi'],
-                ['appearance', 'Tampilan & Tone'],
-                ['security', 'Keamanan & Password'],
-              ] as const).filter(([key]) => isAdmin || key !== 'units').map(([key, label]) => (
+                ['profile', 'Akun & Akses', '👤', 'Nama, role, unit'],
+                ['units', 'Unit & Instalasi', '🏥', 'Daftar unit kerja'],
+                ['appearance', 'Tampilan & Tone', '🎨', 'Warna aplikasi'],
+                ['security', 'Keamanan & Password', '🔒', 'Ganti password'],
+              ] as const).filter(([key]) => isAdmin || key !== 'units').map(([key, label, icon, hint]) => (
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={tab === key}
                   key={key}
-                  className={tab === key ? 'textButton navActive' : 'textButton'}
+                  className={tab === key ? 'settingsTab active' : 'settingsTab'}
                   onClick={() => setTab(key)}
-                  style={{ padding: '8px 12px', borderRadius: 12, background: tab === key ? 'var(--accent-soft)' : 'transparent' }}
                 >
-                  {label}
+                  <span className="settingsTabIcon" aria-hidden="true">{icon}</span>
+                  <span className="settingsTabText"><b>{label}</b><small>{hint}</small></span>
                 </button>
               ))}
             </div>

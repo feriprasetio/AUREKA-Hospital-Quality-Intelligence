@@ -563,3 +563,19 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .rmModalSheet .rmFormFooter{background:linear-gradient(180deg,rgba(251,253,252,0),#fbfdfc 30%)!important}
 .rmModalSheet input,.rmModalSheet select,.rmModalSheet textarea{background:#fff!important}
 .rmModalSheet .rmNotice{background:#fff3f4}
+
+/* Pengaturan: tab berupa tombol yang jelas dapat ditekan + tombol kembali */
+.backBtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;border:1px solid rgba(var(--accent-rgb),.25);
+  background:rgba(255,255,255,.8);color:var(--accent2);font-size:13px;font-weight:850;box-shadow:0 8px 20px rgba(19,48,36,.07);transition:transform .18s var(--ease),background .18s,border-color .18s}
+.backBtn:hover{transform:translateX(-2px);background:#fff;border-color:rgba(var(--accent-rgb),.45)}
+.settingsTabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:18px}
+.settingsTab{display:flex;gap:12px;align-items:center;text-align:left;padding:12px 14px;border-radius:16px;cursor:pointer;color:var(--ink);
+  border:1px solid rgba(20,34,27,.10);background:rgba(255,255,255,.7);box-shadow:0 6px 16px rgba(19,48,36,.05);
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s,background .18s}
+.settingsTab:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.4);box-shadow:0 12px 26px rgba(19,48,36,.10);background:#fff}
+.settingsTab.active{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 28px rgba(var(--accent-rgb),.32)}
+.settingsTabIcon{flex:none;width:36px;height:36px;display:grid;place-items:center;border-radius:12px;font-size:17px;background:rgba(var(--accent-rgb),.08)}
+.settingsTab.active .settingsTabIcon{background:rgba(255,255,255,.2)}
+.settingsTabText b{display:block;font-size:13px}
+.settingsTabText small{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
+.settingsTab.active .settingsTabText small{color:rgba(255,255,255,.82)}
