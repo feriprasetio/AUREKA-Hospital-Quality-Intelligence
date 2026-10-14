@@ -688,7 +688,7 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'overview' && <>
         <div className="rmKpis">
-          <LiquidGlass className="rmKpi"><span>Risiko terdaftar</span><strong>{counts.total.toLocaleString('id-ID')}</strong><small>Seluruh unit kerja</small></LiquidGlass>
+          <LiquidGlass className="rmKpi"><span>Risiko terdaftar</span><strong>{counts.total.toLocaleString('id-ID')}</strong><small>{scopedToUnit ? (currentRoom?.name || 'Unit Anda') : 'Seluruh unit kerja'}</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Risiko utama · perlu mitigasi</span><strong>{counts.needsMitigation.toLocaleString('id-ID')}</strong><small>Sedang, Tinggi, Sangat Tinggi</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Risiko Tinggi / Sangat Tinggi</span><strong>{counts.high.toLocaleString('id-ID')}</strong><small>Prioritas perhatian manajemen</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Residual telah dinilai</span><strong>{counts.residualComplete.toLocaleString('id-ID')}</strong><small>{counts.total ? Math.round(counts.residualComplete / counts.total * 100) : 0}% register</small></LiquidGlass>

@@ -345,7 +345,8 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .ovScore{min-width:30px;height:30px;display:grid;place-items:center;border-radius:10px;background:rgba(20,34,27,.06);font-size:12px}
 .ovDot{width:9px;height:9px;border-radius:50%;background:#9aa7a0;flex:none}
 .ovDot[data-status=submitted]{background:#2f78b7}.ovDot[data-status=under_review]{background:#c58a1c}.ovDot[data-status=investigation]{background:#c2414d}.ovDot[data-status=closed]{background:#4c9a5b}
-.ovStatus{font-size:9px;font-weight:800;color:var(--muted);white-space:nowrap}
+.ovList .rmBadge,.ovList .ovScore{flex:none}
+.ovStatus{flex:none;font-size:9px;font-weight:800;color:var(--muted);white-space:nowrap}
 .ovQuick{display:grid;gap:8px}
 .ovQuick button{display:block;text-align:left;padding:12px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.4);color:var(--ink);
   transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
@@ -358,6 +359,8 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .ovSkeletonNum{width:70px;height:28px}
 .ovSkeletonBlock{height:150px}
 .ovFoot{margin:2px 4px 0;font-size:10px;color:var(--muted)}
+/* stats layout variants */
+.ovKpis.ovKpis4{grid-template-columns:repeat(4,minmax(0,1fr))}.ovGrid.ovGrid2{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:1280px){.ovKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.ovGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ovGrid{grid-template-columns:1fr}.ovHero h3{font-size:22px}}
 

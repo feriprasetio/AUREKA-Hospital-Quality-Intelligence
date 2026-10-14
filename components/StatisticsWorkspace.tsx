@@ -140,14 +140,14 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
       <p className="stDesc">{dataset.description}</p>
 
       {error ? <div className="ovNotice">Dataset belum dapat dimuat: {error}</div> : <>
-        <div className="ovKpis">
+        <div className="ovKpis ovKpis4">
           <div className="ovKpi"><span className="ovKpiLabel">Jumlah baris</span>{loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{fmt(filtered.length)}</b>}</div>
           <div className="ovKpi"><span className="ovKpiLabel">Variabel</span>{loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{columns.length}</b>}</div>
           <div className="ovKpi"><span className="ovKpiLabel">Kelengkapan rata-rata</span>{loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{dictionary.length ? Math.round(dictionary.reduce((a, d) => a + d.pct, 0) / dictionary.length * 100) : 0}%</b>}</div>
           <div className="ovKpi"><span className="ovKpiLabel">Unit tercakup</span>{loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{unitKey ? new Set(filtered.map(r => unitLabel(r[unitKey]))).size : '—'}</b>}</div>
         </div>
 
-        <div className="ovGrid">
+        <div className="ovGrid ovGrid2">
           <section className="ovPanel">
             <header className="ovPanelHead"><div><span className="ovEyebrow">DISTRIBUSI</span><h4>{activeGroup || 'Tidak ada variabel kategorik'}</h4></div></header>
             {loading ? <div className="ovSkeletonBlock" /> : !freq.length ? <div className="ovEmpty"><b>Belum ada data</b></div> :

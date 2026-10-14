@@ -138,7 +138,7 @@ export default function OverviewDashboard({
     const byLevel = Object.fromEntries(LEVELS.map(l => [l, 0])) as Record<string, number>
     const matrix: number[][] = Array.from({ length: 5 }, () => [0, 0, 0, 0, 0])
     const unitHigh = new Map<string, number>()
-    let overdue = 0
+    let overdue = 0, overdueHigh = 0
     for (const r of risks.rows) {
       byLevel[r.risk_level] = (byLevel[r.risk_level] || 0) + 1
       if (r.likelihood >= 1 && r.likelihood <= 5 && r.impact >= 1 && r.impact <= 5) matrix[5 - r.likelihood][r.impact - 1]++
@@ -146,7 +146,10 @@ export default function OverviewDashboard({
         const key = r.unit_name?.trim() || 'Tanpa unit'
         unitHigh.set(key, (unitHigh.get(key) || 0) + 1)
       }
-      if (r.due_date && r.due_date < today && r.status !== 'Controlled' && r.status !== 'Accepted') overdue++
+      if (r.due_date && r.due_date < today && r.status !== 'Controlled' && r.status !== 'Accepted') {
+        overdue++
+        if (r.risk_level === 'Tinggi' || r.risk_level === 'Sangat Tinggi') overdueHigh++
+      }
     }
     const months: { label: string; key: string; count: number }[] = []
     for (let k = 5; k >= 0; k--) {
@@ -164,7 +167,7 @@ export default function OverviewDashboard({
       if (i.status !== 'closed' && i.status !== 'draft') incidentsOpen++
     }
     return {
-      byLevel, matrix, overdue, months, incidentsYear, incidentsMonth, incidentsOpen,
+      byLevel, matrix, overdue, overdueHigh, months, incidentsYear, incidentsMonth, incidentsOpen,
       high: (byLevel['Tinggi'] || 0) + (byLevel['Sangat Tinggi'] || 0),
       needsMitigation: (byLevel['Sedang'] || 0) + (byLevel['Tinggi'] || 0) + (byLevel['Sangat Tinggi'] || 0),
       plansActive: plans.rows.filter(p => PLAN_ACTIVE.includes(p.status)).length,
@@ -205,7 +208,7 @@ export default function OverviewDashboard({
 
       <div className="ovKpis">
         <Kpi delay={0} loading={loading} label="Risiko terdaftar" value={risks.error ? null : totalRisk} sub={risks.error ? 'Tidak tersedia' : `${stats.needsMitigation.toLocaleString('id-ID')} perlu mitigasi`} onClick={() => onNavigate('risk')} />
-        <Kpi delay={60} loading={loading} tone="danger" label="Risiko tinggi & sangat tinggi" value={risks.error ? null : stats.high} sub={stats.overdue ? `${stats.overdue} lewat target` : 'Tidak ada yang lewat target'} onClick={() => onNavigate('risk')} />
+        <Kpi delay={60} loading={loading} tone="danger" label="Risiko tinggi & sangat tinggi" value={risks.error ? null : stats.high} sub={stats.overdueHigh ? `${stats.overdueHigh} lewat target penyelesaian` : 'Tidak ada yang lewat target'} onClick={() => onNavigate('risk')} />
         <Kpi delay={120} loading={loading} label="RTP berjalan" value={plans.error ? null : stats.plansActive} sub={plans.error ? 'Tidak tersedia' : `${stats.plansPending} menunggu persetujuan`} onClick={() => onNavigate('risk')} />
         <Kpi delay={180} loading={loading} label={`Insiden ${year}`} value={incidents.error ? null : stats.incidentsYear} sub={incidents.error ? 'Tidak tersedia' : `${stats.incidentsMonth} bulan ini`} onClick={() => onNavigate('safety')} />
         <Kpi delay={240} loading={loading} tone="warn" label="Insiden dalam proses" value={incidents.error ? null : stats.incidentsOpen} sub="Belum ditutup" onClick={() => onNavigate('safety')} />
