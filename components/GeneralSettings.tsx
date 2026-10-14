@@ -15,6 +15,7 @@ type Profile = {
   primary_room_id: number | null
   role_id: string | null
   is_active: boolean
+  deactivated_at?: string | null
 }
 type Role = { id: string; code: string; name: string; description?: string | null }
 
@@ -48,11 +49,13 @@ export default function GeneralSettings({
   role,
   rooms,
   onNavigate,
+  onRoomsChanged,
 }: {
   profile: Profile | null
   role: string | null
   rooms: Room[]
   onNavigate?: (moduleId: string) => void
+  onRoomsChanged?: () => void
 }) {
   const [section, setSection] = useState<'menu' | 'general' | 'users' | 'mydata'>('menu')
   const [tab, setTab] = useState<'profile' | 'units' | 'appearance' | 'security'>('profile')
@@ -61,7 +64,13 @@ export default function GeneralSettings({
   const [roles, setRoles] = useState<Role[]>([])
   const [roleMeta, setRoleMeta] = useState<Role | null>(null)
   const [search, setSearch] = useState('')
-  const [userFilter, setUserFilter] = useState<'all' | 'pending' | 'active' | 'unmapped'>('all')
+  const [userFilter, setUserFilter] = useState<'all' | 'pending' | 'active' | 'inactive' | 'unmapped'>('all')
+  const [lifecycleSupported, setLifecycleSupported] = useState(true)
+  const [adminRooms, setAdminRooms] = useState<Room[] | null>(null)
+  const [roomsSupported, setRoomsSupported] = useState(true)
+  const [roomSearch, setRoomSearch] = useState('')
+  const [roomEdit, setRoomEdit] = useState<{ id: number | null; name: string; code: string; is_active: boolean } | null>(null)
+  const [showInactiveRooms, setShowInactiveRooms] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -126,6 +135,10 @@ export default function GeneralSettings({
 
   const loadUsers = async () => {
     if (!isAdmin) return
+    // v2 membedakan akun nonaktif vs menunggu aktivasi; fallback ke RPC lama bila migration belum dijalankan.
+    const v2 = await sb.rpc('aureka_admin_list_users_v2')
+    if (!v2.error) { setLifecycleSupported(true); setUsers((v2.data || []) as Profile[]); return }
+    setLifecycleSupported(false)
     const { data, error } = await sb.rpc('aureka_admin_list_user_profiles')
     if (error) setMsg(error.message)
     else setUsers((data || []) as Profile[])
@@ -159,16 +172,61 @@ export default function GeneralSettings({
       users.filter((u) => {
         const q = search.toLowerCase().trim()
         const matchesText = !q || [u.full_name, u.email || '', rooms.find((r) => r.id === u.primary_room_id)?.name || ''].join(' ').toLowerCase().includes(q)
-        const matchesStatus = userFilter === 'all' ||
-          (userFilter === 'pending' && !u.is_active) ||
+        const deactivated = !u.is_active && !!u.deactivated_at
+        const matchesStatus =
+          (userFilter === 'all' && !deactivated) ||
+          (userFilter === 'pending' && !u.is_active && !deactivated) ||
           (userFilter === 'active' && u.is_active) ||
-          (userFilter === 'unmapped' && !u.primary_room_id)
+          (userFilter === 'inactive' && deactivated) ||
+          (userFilter === 'unmapped' && !u.primary_room_id && !deactivated)
         return matchesText && matchesStatus
       }).sort((a, b) => Number(a.is_active) - Number(b.is_active)),
     [users, search, userFilter, rooms]
   )
-  const pendingCount = users.filter((u) => !u.is_active).length
-  const unmappedCount = users.filter((u) => !u.primary_room_id).length
+  const pendingCount = users.filter((u) => !u.is_active && !u.deactivated_at).length
+  const inactiveCount = users.filter((u) => !u.is_active && !!u.deactivated_at).length
+  const activeCount = users.filter((u) => u.is_active).length
+  const unmappedCount = users.filter((u) => !u.primary_room_id && !(!u.is_active && u.deactivated_at)).length
+
+  const loadRooms = async () => {
+    if (!isAdmin) return
+    const { data, error } = await sb.rpc('aureka_admin_list_rooms')
+    if (error) { setRoomsSupported(false); setAdminRooms(null); return }
+    setRoomsSupported(true)
+    setAdminRooms((data || []) as Room[])
+  }
+  useEffect(() => { if (tab === 'units') loadRooms() }, [tab, isAdmin])
+
+  const saveRoom = async () => {
+    if (!roomEdit) return
+    if (!roomEdit.name.trim()) { setMsg('Gagal: nama unit wajib diisi.'); return }
+    setBusy(true)
+    const { error } = await sb.rpc('aureka_admin_save_room', {
+      p_id: roomEdit.id, p_name: roomEdit.name.trim(), p_code: roomEdit.code.trim() || null, p_is_active: roomEdit.is_active,
+    })
+    setBusy(false)
+    if (error) {
+      const t = error.message || ''
+      setMsg(/DUPLICATE_ROOM/.test(t) ? 'Gagal: nama atau kode unit sudah dipakai unit lain.'
+        : error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Gagal: fitur kelola unit belum aktif. Jalankan migration 20261014093000_user_lifecycle_and_room_admin.sql di Supabase.'
+        : `Gagal menyimpan unit: ${t}`)
+      return
+    }
+    setMsg(roomEdit.id ? `Unit “${roomEdit.name.trim()}” diperbarui.` : `Unit “${roomEdit.name.trim()}” ditambahkan.`)
+    setRoomEdit(null)
+    await loadRooms()
+    onRoomsChanged?.()
+  }
+  const toggleRoom = async (r: Room) => {
+    setBusy(true)
+    const { error } = await sb.rpc('aureka_admin_save_room', { p_id: r.id, p_name: r.name, p_code: r.code || null, p_is_active: !(r.is_active ?? true) })
+    setBusy(false)
+    if (error) { setMsg(`Gagal mengubah status unit: ${error.message}`); return }
+    setMsg(r.is_active === false ? `Unit “${r.name}” diaktifkan kembali.` : `Unit “${r.name}” dinonaktifkan. Data lamanya tetap tersimpan.`)
+    await loadRooms()
+    onRoomsChanged?.()
+  }
+  const roomUserCount = (id: number) => users.filter((u) => u.primary_room_id === id && u.is_active).length
   const picRoleId = roles.find((r) => r.code === 'PIC')?.id || null
 
   const updateUser = async (u: Profile, patch: Partial<Profile>) => {
@@ -414,19 +472,53 @@ export default function GeneralSettings({
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div>
                   <h4 style={{ margin: 0 }}>Unit & Instalasi</h4>
-                  <p style={{ margin: '5px 0 0', fontSize: 10, color: 'var(--muted)' }}>
-                    Master unit dibaca langsung dari public.master_rooms.
+                  <p style={{ margin: '5px 0 0', fontSize: 11, color: 'var(--muted)' }}>
+                    {isAdmin ? 'Tambah, ubah nama/kode, atau nonaktifkan unit kerja. Unit tidak dihapus permanen karena masih dipakai data risiko dan akun.' : 'Daftar unit kerja aktif.'}
                   </p>
                 </div>
-                <div style={{ padding: '7px 10px', borderRadius: 12, background: 'rgba(255,255,255,.35)', fontSize: 10, fontWeight: 850 }}>
-                  {rooms.length} unit aktif
-                </div>
+                {isAdmin && roomsSupported && <button type="button" className="uBtn primary" onClick={() => setRoomEdit({ id: null, name: '', code: '', is_active: true })}><span aria-hidden="true">＋</span> Tambah unit</button>}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 8, marginTop: 14 }}>
-                {rooms.map((r, i) => (
-                  <div key={r.id} style={{ padding: 11, border: '1px solid rgba(20,34,27,.08)', borderRadius: 15, background: 'rgba(255,255,255,.18)' }}>
-                    <b style={{ display: 'block', fontSize: 10 }}>{String(i + 1).padStart(2, '0')} · {r.name}</b>
-                    <span style={{ display: 'block', marginTop: 4, fontSize: 8, color: 'var(--muted)' }}>{r.code || `ROOM-${r.id}`} · Aktif</span>
+
+              {isAdmin && !roomsSupported && <div className="userRowNote error" style={{ marginTop: 12 }}>Fitur tambah/edit unit belum aktif di database. Minta pemilik Supabase menjalankan <code>supabase/migrations/20261014093000_user_lifecycle_and_room_admin.sql</code> di SQL Editor.</div>}
+
+              {roomEdit && (
+                <div className="roomEditor">
+                  <b>{roomEdit.id ? 'Edit unit' : 'Unit baru'}</b>
+                  <div className="roomEditorGrid">
+                    <label className="field"><span>Nama unit</span><input autoFocus value={roomEdit.name} onChange={(e) => setRoomEdit({ ...roomEdit, name: e.target.value })} placeholder="mis. Kamar Jenazah" /></label>
+                    <label className="field"><span>Kode (opsional)</span><input value={roomEdit.code} onChange={(e) => setRoomEdit({ ...roomEdit, code: e.target.value.toUpperCase() })} placeholder="Otomatis dari nama" /></label>
+                  </div>
+                  <div className="userActions" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
+                    <button type="button" className="uBtn primary" disabled={busy} onClick={saveRoom}>{busy ? 'Menyimpan…' : 'Simpan unit'}</button>
+                    <button type="button" className="uBtn ghost" onClick={() => setRoomEdit(null)}>Batal</button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
+                <input placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
+                {isAdmin && adminRooms && <>
+                  <span className="filterCount">{adminRooms.filter((r) => r.is_active !== false).length} aktif · {adminRooms.filter((r) => r.is_active === false).length} nonaktif</span>
+                  <button type="button" className={showInactiveRooms ? 'filterChip active' : 'filterChip'} onClick={() => setShowInactiveRooms((v) => !v)}>{showInactiveRooms ? 'Sembunyikan unit nonaktif' : 'Tampilkan unit nonaktif'}</button>
+                </>}
+              </div>
+
+              <div className="roomGrid">
+                {(adminRooms || rooms)
+                  .filter((r) => showInactiveRooms || r.is_active !== false)
+                  .filter((r) => !roomSearch.trim() || `${r.name} ${r.code || ''}`.toLowerCase().includes(roomSearch.trim().toLowerCase()))
+                  .map((r) => (
+                  <div key={r.id} className={r.is_active === false ? 'roomCard off' : 'roomCard'}>
+                    <div className="roomCardText">
+                      <b>{r.name}</b>
+                      <span>{r.code || `ROOM-${r.id}`} · {r.is_active === false ? 'Nonaktif' : 'Aktif'}{isAdmin && users.length ? ` · ${roomUserCount(r.id)} user aktif` : ''}</span>
+                    </div>
+                    {isAdmin && adminRooms && (
+                      <div className="roomCardActions">
+                        <button type="button" className="uBtn outline sm" onClick={() => setRoomEdit({ id: r.id, name: r.name, code: r.code || '', is_active: r.is_active !== false })}>Edit</button>
+                        <button type="button" className={r.is_active === false ? 'uBtn primary sm' : 'uBtn danger sm'} disabled={busy} onClick={() => toggleRoom(r)}>{r.is_active === false ? 'Aktifkan' : 'Nonaktifkan'}</button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -574,13 +666,14 @@ export default function GeneralSettings({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
               <input placeholder="Cari nama / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
               {([
-                ['all', `Semua (${users.length})`],
+                ['all', `Semua (${users.length - inactiveCount})`],
                 ['pending', `Menunggu aktivasi (${pendingCount})`],
-                ['active', 'Aktif'],
+                ['active', `Aktif (${activeCount})`],
+                ['inactive', `Nonaktif (${inactiveCount})`],
                 ['unmapped', `Unit belum dipetakan (${unmappedCount})`],
               ] as const).map(([id, label]) => (
-                <button key={id} type="button" className="textButton" onClick={() => setUserFilter(id)}
-                  style={{ margin: 0, padding: '6px 10px', borderRadius: 999, background: userFilter === id ? 'rgba(var(--accent-rgb),.14)' : 'transparent', fontWeight: userFilter === id ? 900 : 700 }}>
+                <button key={id} type="button" className={userFilter === id ? 'filterChip active' : 'filterChip'} onClick={() => setUserFilter(id)}
+                  style={id === 'inactive' && !lifecycleSupported ? { display: 'none' } : undefined}>
                   {label}
                 </button>
               ))}
@@ -593,10 +686,10 @@ export default function GeneralSettings({
           <LiquidGlass style={{ padding: 14 }}>
             <div style={{ display: 'grid', gap: 8 }}>
               {filtered.map((u) => (
-                <div key={u.user_id} className="userRow" style={{ padding: 12, border: u.is_active ? '1px solid rgba(20,34,27,.08)' : '1px solid rgba(169,104,22,.45)', borderRadius: 16, background: u.is_active ? 'rgba(255,255,255,.18)' : 'rgba(251,239,217,.55)' }}>
+                <div key={u.user_id} className="userRow" style={{ padding: 12, border: u.is_active || u.deactivated_at ? '1px solid rgba(20,34,27,.08)' : '1px solid rgba(169,104,22,.45)', borderRadius: 16, background: u.is_active ? 'rgba(255,255,255,.18)' : u.deactivated_at ? 'rgba(20,34,27,.04)' : 'rgba(251,239,217,.55)' }}>
                   <div className="userRowGrid">
                     <div>
-                      <b className="userName">{u.full_name} <span className={`userStatus ${u.is_active ? 'on' : 'pending'}`}>{u.is_active ? 'Aktif' : 'Menunggu aktivasi'}</span></b>
+                      <b className="userName">{u.full_name} <span className={`userStatus ${u.is_active ? 'on' : u.deactivated_at ? 'off' : 'pending'}`}>{u.is_active ? 'Aktif' : u.deactivated_at ? 'Nonaktif' : 'Menunggu aktivasi'}</span></b>
                       <span className="userEmail">{u.email || '—'}</span>
                     </div>
 
@@ -618,7 +711,7 @@ export default function GeneralSettings({
                       <button type="button" className="uBtn primary" disabled={busy || (!u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
                         title={!u.primary_room_id ? 'Pilih unit terlebih dahulu untuk akun PIC' : 'Aktifkan akun agar bisa login'}
                         onClick={() => updateUser(u, { is_active: true, role_id: u.role_id || picRoleId })}>
-                        <span aria-hidden="true">✓</span> Aktifkan
+                        <span aria-hidden="true">✓</span> {u.deactivated_at ? 'Aktifkan kembali' : 'Aktifkan'}
                       </button>
                     ) : (
                       <button type="button" className="uBtn outline" disabled={busy || u.user_id === me?.user_id}

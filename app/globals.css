@@ -597,3 +597,27 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .rmWorkspace .rmNotice span{font-size:10px}
 .rmWorkspace .rmSectionHead p{font-size:11px}
 .rmWorkspace .rmFormNote,.rmWorkspace .rmFooterNote{font-size:11px}
+
+/* Filter chip, unit/instalasi editor */
+.filterChip{border:1px solid rgba(20,34,27,.1);background:rgba(255,255,255,.7);color:var(--accent2);font-size:12px;font-weight:800;padding:8px 14px;border-radius:999px;
+  transition:background .18s,border-color .18s,transform .18s var(--ease)}
+.filterChip:hover{transform:translateY(-1px);border-color:rgba(var(--accent-rgb),.4);background:#fff}
+.filterChip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(var(--accent-rgb),.28)}
+.filterCount{font-size:11px;color:var(--muted);font-weight:700}
+.userStatus.off{background:rgba(20,34,27,.08);color:#59665f}
+.uBtn.sm{min-height:32px;padding:6px 12px;font-size:11px}
+.roomEditor{margin-top:14px;padding:16px;border-radius:18px;background:#fff;border:1px solid rgba(var(--accent-rgb),.25);box-shadow:0 14px 34px rgba(19,48,36,.08);animation:aurFadeUp .25s var(--ease) both}
+.roomEditor>b{font-size:14px}
+.roomEditorGrid{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:10px}
+.roomEditorGrid .field{margin:0}.roomEditorGrid .field span{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px}
+.roomEditorGrid input{width:100%}
+.roomGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:14px}
+.roomCard{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.65);border:1px solid rgba(20,34,27,.07);
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease);animation:aurFadeUp .3s var(--ease) both}
+.roomCard:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(19,48,36,.08)}
+.roomCard.off{opacity:.65;background:rgba(20,34,27,.03)}
+.roomCardText{min-width:0}
+.roomCardText b{display:block;font-size:12px;line-height:1.35}
+.roomCardText span{display:block;margin-top:4px;font-size:10px;color:var(--muted)}
+.roomCardActions{display:flex;gap:6px;flex:none}
+@media(max-width:700px){.roomEditorGrid{grid-template-columns:1fr}}
