@@ -17,6 +17,7 @@ type Profile = {
   is_active: boolean
   deactivated_at?: string | null
   created_at?: string | null
+  username?: string | null
 }
 type Role = { id: string; code: string; name: string; description?: string | null }
 
@@ -51,14 +52,17 @@ export default function GeneralSettings({
   rooms,
   onNavigate,
   onRoomsChanged,
+  openProfile,
 }: {
   profile: Profile | null
   role: string | null
   rooms: Room[]
   onNavigate?: (moduleId: string) => void
   onRoomsChanged?: () => void
+  /** Dibuka dari kartu nama di sidebar: langsung ke Akun Saya → Profil. */
+  openProfile?: boolean
 }) {
-  const [section, setSection] = useState<'menu' | 'general' | 'users' | 'mydata'>('menu')
+  const [section, setSection] = useState<'menu' | 'general' | 'users' | 'mydata'>(openProfile ? 'general' : 'menu')
   const [tab, setTab] = useState<'profile' | 'units' | 'appearance' | 'security'>('profile')
   const [me, setMe] = useState<Profile | null>(profile)
   const [users, setUsers] = useState<Profile[]>([])
@@ -81,6 +85,10 @@ export default function GeneralSettings({
   const [rowNote, setRowNote] = useState<{ id: string; ok: boolean; text: string } | null>(null)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [detailName, setDetailName] = useState('')
+  const [detailIdent, setDetailIdent] = useState({ username: '', email: '', verify: true })
+  const [myAccount, setMyAccount] = useState<{ username: string; email: string; supported: boolean }>({ username: '', email: '', supported: true })
+  const [acctEdit, setAcctEdit] = useState({ username: '', email: '' })
+  const [acctNote, setAcctNote] = useState<{ ok: boolean; text: string } | null>(null)
   const [tempPw, setTempPw] = useState('')
   const [tempPwDone, setTempPwDone] = useState<{ id: string; pw: string } | null>(null)
   useEffect(() => {
@@ -141,6 +149,8 @@ export default function GeneralSettings({
   const loadUsers = async () => {
     if (!isAdmin) return
     // v2 membedakan akun nonaktif vs menunggu aktivasi; fallback ke RPC lama bila migration belum dijalankan.
+    const v3 = await sb.rpc('aureka_admin_list_users_v3')
+    if (!v3.error) { setLifecycleSupported(true); setUsers((v3.data || []) as Profile[]); return }
     const v2 = await sb.rpc('aureka_admin_list_users_v2')
     if (!v2.error) { setLifecycleSupported(true); setUsers((v2.data || []) as Profile[]); return }
     setLifecycleSupported(false)
@@ -156,6 +166,37 @@ export default function GeneralSettings({
     })
     loadUsers()
   }, [isAdmin])
+
+  const loadMyAccount = async () => {
+    const { data, error } = await sb.rpc('aureka_get_my_account')
+    const row = Array.isArray(data) ? data[0] : data
+    const next = { username: row?.username || '', email: row?.email || me?.email || profile?.email || '', supported: !error }
+    setMyAccount(next)
+    setAcctEdit({ username: next.username, email: next.email })
+  }
+  useEffect(() => { loadMyAccount() }, [])
+
+  const saveMyUsername = async () => {
+    const un = acctEdit.username.trim().toLowerCase()
+    if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(un)) return setAcctNote({ ok: false, text: 'Username 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau strip. Contoh: pic.isolasi' })
+    setBusy(true)
+    const { error } = await sb.rpc('aureka_set_my_username', { p_username: un })
+    setBusy(false)
+    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum aktif di database (migration 20261014095000_username_login.sql).' : `Gagal: ${error.message}` })
+    setAcctNote({ ok: true, text: `Username disimpan. Mulai sekarang Anda bisa login dengan “${un}”.` })
+    loadMyAccount()
+  }
+
+  const saveMyEmail = async () => {
+    const em = acctEdit.email.trim().toLowerCase()
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return setAcctNote({ ok: false, text: 'Format email tidak valid.' })
+    if (em === (myAccount.email || '').toLowerCase()) return setAcctNote({ ok: false, text: 'Email baru sama dengan email saat ini.' })
+    setBusy(true)
+    const { error } = await sb.auth.updateUser({ email: em }, { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` })
+    setBusy(false)
+    if (error) return setAcctNote({ ok: false, text: /rate limit|too many/i.test(error.message) ? 'Terlalu banyak permintaan email. Coba lagi beberapa menit lagi.' : /already|registered/i.test(error.message) ? 'Email sudah dipakai akun lain.' : `Gagal mengubah email: ${error.message}` })
+    setAcctNote({ ok: true, text: `Link konfirmasi dikirim ke ${em}. Email baru berlaku setelah Anda klik link tersebut (Supabase juga dapat mengirim konfirmasi ke email lama). Sampai saat itu, login tetap memakai email lama.` })
+  }
 
   const saveMe = async () => {
     if (!me?.user_id) return
@@ -176,7 +217,7 @@ export default function GeneralSettings({
     () =>
       users.filter((u) => {
         const q = search.toLowerCase().trim()
-        const matchesText = !q || [u.full_name, u.email || '', rooms.find((r) => r.id === u.primary_room_id)?.name || ''].join(' ').toLowerCase().includes(q)
+        const matchesText = !q || [u.full_name, u.email || '', u.username || '', rooms.find((r) => r.id === u.primary_room_id)?.name || ''].join(' ').toLowerCase().includes(q)
         const deactivated = !u.is_active && !!u.deactivated_at
         const matchesStatus =
           (userFilter === 'all' && !deactivated) ||
@@ -281,6 +322,7 @@ export default function GeneralSettings({
     if (detailId === u.user_id) { setDetailId(null); return }
     setDetailId(u.user_id)
     setDetailName(u.full_name || '')
+    setDetailIdent({ username: u.username || '', email: u.email || '', verify: true })
     setTempPw('')
     setTempPwDone(null)
     setConfirmDeleteId(null)
@@ -330,6 +372,42 @@ export default function GeneralSettings({
       : `Email reset password dikirim ke ${u.email}. Minta ${u.full_name} membuka tautan di email tersebut (cek juga folder Spam).`
     setMsg(text)
     setRowNote({ id: u.user_id, ok: !error, text })
+  }
+
+  const saveIdentity = async (u: Profile) => {
+    const un = detailIdent.username.trim().toLowerCase()
+    const em = detailIdent.email.trim().toLowerCase()
+    if (un && !/^[a-z0-9][a-z0-9._-]{2,29}$/.test(un)) { setRowNote({ id: u.user_id, ok: false, text: 'Username 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau strip.' }); return }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { setRowNote({ id: u.user_id, ok: false, text: 'Format email tidak valid.' }); return }
+    setBusy(true)
+    setMsg('')
+    const { data, error } = await sb.rpc('aureka_admin_set_user_identity', { p_user_id: u.user_id, p_username: un || null, p_email: em, p_require_verification: detailIdent.verify })
+    if (error) {
+      setBusy(false)
+      const t = error.message || ''
+      const note = error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Fitur ubah username/email belum aktif di database. Minta pemilik Supabase menjalankan supabase/migrations/20261014095000_username_login.sql.'
+        : /USERNAME_TAKEN/.test(t) ? 'Username sudah dipakai akun lain.' : /EMAIL_TAKEN/.test(t) ? 'Email sudah dipakai akun lain.' : /USERNAME_INVALID/.test(t) ? 'Username tidak valid.' : /EMAIL_INVALID/.test(t) ? 'Format email tidak valid.' : `Gagal menyimpan: ${t}`
+      setMsg(note); setRowNote({ id: u.user_id, ok: false, text: note }); return
+    }
+    let text = 'Username & email disimpan.'
+    if (data === 'verify') {
+      const r = await sb.auth.resend({ type: 'signup', email: em, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
+      text = r.error
+        ? `Email diubah ke ${em}, tetapi email verifikasi gagal dikirim (${/rate limit|too many/i.test(r.error.message) ? 'batas pengiriman email, coba “Kirim ulang” nanti' : r.error.message}).`
+        : `Email diubah ke ${em}. Link verifikasi dikirim; ${u.full_name} perlu klik link tersebut sebelum bisa login.`
+    } else if (data === 'changed') text = `Email diubah ke ${em} tanpa verifikasi.`
+    setBusy(false)
+    setMsg(text); setRowNote({ id: u.user_id, ok: true, text })
+    loadUsers()
+  }
+
+  const resendVerification = async (u: Profile) => {
+    if (!u.email) return
+    setBusy(true)
+    const r = await sb.auth.resend({ type: 'signup', email: u.email, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
+    setBusy(false)
+    const text = r.error ? (/already|confirmed/i.test(r.error.message) ? 'Email akun ini sudah terverifikasi.' : `Gagal mengirim: ${r.error.message}`) : `Email verifikasi dikirim ulang ke ${u.email}.`
+    setRowNote({ id: u.user_id, ok: !r.error, text })
   }
 
   const fmtDate = (v?: string | null) => {
@@ -503,10 +581,6 @@ export default function GeneralSettings({
                   <input value={me?.full_name || ''} onChange={(e) => me && setMe({ ...me, full_name: e.target.value })} />
                 </label>
                 <label className="field">
-                  <span>Email</span>
-                  <input value={me?.email || ''} disabled />
-                </label>
-                <label className="field">
                   <span>Role AUREKA</span>
                   <input value={roleLabel} disabled />
                 </label>
@@ -530,6 +604,32 @@ export default function GeneralSettings({
               <div style={{ marginTop: 14 }}>
                 <LiquidGlassButton onClick={saveMe} disabled={busy}>{busy ? 'Menyimpan…' : 'Simpan Profil'}</LiquidGlassButton>
               </div>
+            </LiquidGlass>
+          )}
+
+          {tab === 'profile' && (
+            <LiquidGlass style={{ padding: 18 }}>
+              <h4 style={{ margin: '0 0 4px' }}>Username & Email Login</h4>
+              <p style={{ margin: '0 0 12px', color: 'var(--muted)', fontSize: 12 }}>Login bisa memakai username atau email. Email dipakai untuk verifikasi dan reset password, jadi pastikan email aktif.</p>
+              {!myAccount.supported && <div className="userRowNote error" style={{ marginBottom: 10 }}>Fitur username belum aktif di database. Minta pemilik Supabase menjalankan migration 20261014095000_username_login.sql.</div>}
+              <div className="acctGrid">
+                <div>
+                  <label className="userDetailLabel" htmlFor="myUsername">Username</label>
+                  <div className="userDetailInline">
+                    <input id="myUsername" autoCapitalize="none" spellCheck={false} placeholder="contoh: pic.isolasi" value={acctEdit.username} onChange={(e) => setAcctEdit({ ...acctEdit, username: e.target.value.toLowerCase().replace(/\s+/g, '.') })} />
+                    <button type="button" className="uBtn primary" disabled={busy || !myAccount.supported || !acctEdit.username.trim() || acctEdit.username.trim() === myAccount.username} onClick={saveMyUsername}>Simpan username</button>
+                  </div>
+                </div>
+                <div>
+                  <label className="userDetailLabel" htmlFor="myEmail">Email</label>
+                  <div className="userDetailInline">
+                    <input id="myEmail" type="email" placeholder="nama@email.com" value={acctEdit.email} onChange={(e) => setAcctEdit({ ...acctEdit, email: e.target.value })} />
+                    <button type="button" className="uBtn outline" disabled={busy || !acctEdit.email.trim() || acctEdit.email.trim().toLowerCase() === (myAccount.email || '').toLowerCase()} onClick={saveMyEmail}>Ubah email</button>
+                  </div>
+                  <p className="userDetailHint">Email baru berlaku setelah Anda klik link konfirmasi yang dikirim ke email tersebut.</p>
+                </div>
+              </div>
+              {acctNote && <div className={`userRowNote ${acctNote.ok ? 'ok' : 'error'}`} style={{ marginTop: 10 }}>{acctNote.text}</div>}
             </LiquidGlass>
           )}
 
@@ -730,7 +830,7 @@ export default function GeneralSettings({
               Super Admin dapat mengelola role, unit utama, dan status akun pengguna.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
-              <input placeholder="Cari nama / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
+              <input placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
               {([
                 ['all', `Semua (${users.length - inactiveCount})`],
                 ['pending', `Menunggu aktivasi (${pendingCount})`],
@@ -756,7 +856,7 @@ export default function GeneralSettings({
                   <div className="userRowGrid">
                     <div>
                       <b className="userName">{u.full_name} <span className={`userStatus ${u.is_active ? 'on' : u.deactivated_at ? 'off' : 'pending'}`}>{u.is_active ? 'Aktif' : u.deactivated_at ? 'Nonaktif' : 'Menunggu aktivasi'}</span></b>
-                      <span className="userEmail">{u.email || '—'}</span>
+                      <span className="userEmail">{u.username ? <b className="userHandle">@{u.username}</b> : null}{u.username ? ' · ' : ''}{u.email || '—'}</span>
                     </div>
 
                     <select
@@ -809,7 +909,8 @@ export default function GeneralSettings({
                       <div className="userDetailCol">
                         <h5>Data akun</h5>
                         <dl className="userDetailInfo">
-                          <dt>Email login</dt><dd>{u.email || '—'}</dd>
+                          <dt>Username</dt><dd>{u.username || '—'}</dd>
+                          <dt>Email</dt><dd>{u.email || '—'}</dd>
                           <dt>Status</dt><dd>{u.is_active ? 'Aktif' : u.deactivated_at ? `Nonaktif sejak ${fmtDate(u.deactivated_at)}` : 'Menunggu aktivasi'}</dd>
                           <dt>Unit utama</dt><dd>{rooms.find((r) => r.id === u.primary_room_id)?.name || 'Belum dipetakan'}</dd>
                           <dt>Role</dt><dd>{friendlyRole(roles.find((r) => r.id === u.role_id))}</dd>
@@ -821,7 +922,17 @@ export default function GeneralSettings({
                           <button type="button" className="uBtn primary" disabled={busy || !detailName.trim() || detailName.trim() === u.full_name}
                             onClick={() => updateUser(u, { full_name: detailName.trim() })}>Simpan nama</button>
                         </div>
-                        <p className="userDetailHint">Unit dan role diubah lewat pilihan di baris atas. Email login tidak dapat diubah dari aplikasi.</p>
+                        <label className="userDetailLabel" htmlFor={`un-${u.user_id}`} style={{ marginTop: 12 }}>Username & email</label>
+                        <div className="userDetailInline">
+                          <input id={`un-${u.user_id}`} placeholder="username, mis. pic.isolasi" autoCapitalize="none" value={detailIdent.username} onChange={(e) => setDetailIdent({ ...detailIdent, username: e.target.value.toLowerCase().replace(/\s+/g, '.') })} />
+                          <input type="email" placeholder="email aktif" value={detailIdent.email} onChange={(e) => setDetailIdent({ ...detailIdent, email: e.target.value })} />
+                        </div>
+                        <label className="userDetailCheck"><input type="checkbox" checked={detailIdent.verify} onChange={(e) => setDetailIdent({ ...detailIdent, verify: e.target.checked })} /> Kirim email verifikasi bila email diganti (disarankan)</label>
+                        <div className="userDetailInline" style={{ marginTop: 8 }}>
+                          <button type="button" className="uBtn primary" disabled={busy || ((detailIdent.username.trim() || '') === (u.username || '') && detailIdent.email.trim().toLowerCase() === (u.email || '').toLowerCase())} onClick={() => saveIdentity(u)}>Simpan username & email</button>
+                          <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => resendVerification(u)}>✉️ Kirim ulang verifikasi</button>
+                        </div>
+                        <p className="userDetailHint">Unit dan role diubah lewat pilihan di baris atas. User login memakai username atau email.</p>
                       </div>
                       <div className="userDetailCol">
                         <h5>Reset password <span>untuk user yang lupa password</span></h5>
