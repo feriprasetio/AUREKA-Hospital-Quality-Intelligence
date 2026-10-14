@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { NavigateFn } from '@/lib/aureka/focus'
 
 type Risk = {
   id: string; risk_code: string; unit_id: number | null; unit_name: string; risk_event: string
@@ -89,7 +90,7 @@ export default function OverviewDashboard({
   roomName: string | null
   manager: boolean
   userName: string
-  onNavigate: (moduleId: string) => void
+  onNavigate: NavigateFn
 }) {
   const [loading, setLoading] = useState(true)
   const [risks, setRisks] = useState<Section<Risk>>({ rows: [], error: null })
@@ -221,25 +222,27 @@ export default function OverviewDashboard({
             <div className="ovBars" role="list">
               {LEVELS.map((l, idx) => {
                 const v = stats.byLevel[l] || 0
-                return <div key={l} className="ovBarRow" role="listitem" title={`${l}: ${v} risiko (${Math.round(v / totalRisk * 100)}%)`}>
+                return <button type="button" key={l} className="ovBarRow ovClickable" role="listitem" disabled={!v} onClick={() => onNavigate('risk', { level: l })} title={`${l}: ${v} risiko (${Math.round(v / totalRisk * 100)}%) — klik untuk melihat daftarnya`}>
                   <span className={`rmBadge ${LEVEL_CLASS[l]}`}>{l}</span>
                   <div className="ovBarTrack"><div className={`ovBarFill lvl-${LEVEL_CLASS[l]}`} style={{ width: `${(v / maxLevel) * 100}%`, animationDelay: `${200 + idx * 70}ms` }} /></div>
                   <b>{v.toLocaleString('id-ID')}</b>
-                </div>
+                </button>
               })}
             </div>}
         </Panel>
 
-        <Panel delay={180} eyebrow="PETA RISIKO" title="Sebaran kemungkinan × dampak">
+        <Panel delay={180} eyebrow="PETA RISIKO" title="Sebaran kemungkinan × dampak" action={<button type="button" className="ovLink" onClick={() => onNavigate('risk', {})}>Lihat semua →</button>}>
           {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> :
             <div className="ovMatrixWrap">
               <span className="ovAxisY">Kemungkinan</span>
               <div className="ovMatrix" role="table" aria-label="Jumlah risiko per kemungkinan dan dampak">
                 {stats.matrix.map((row, ri) => row.map((count, ci) => (
-                  <div key={`${ri}-${ci}`} role="cell" className="ovCell" title={`Kemungkinan ${5 - ri} × Dampak ${ci + 1}: ${count} risiko`}
+                  <button type="button" key={`${ri}-${ci}`} role="cell" className="ovCell" disabled={!count}
+                    onClick={() => onNavigate('risk', { likelihood: 5 - ri, impact: ci + 1 })}
+                    title={`Kemungkinan ${5 - ri} × Dampak ${ci + 1}: ${count} risiko${count ? ' — klik untuk melihat daftarnya' : ''}`}
                     style={{ ['--heat' as any]: count ? 0.18 + 0.82 * (count / stats.maxMatrix) : 0 }}>
                     {count || ''}
-                  </div>
+                  </button>
                 )))}
               </div>
               <span className="ovAxisX">Dampak →</span>
@@ -259,12 +262,12 @@ export default function OverviewDashboard({
             </div>}
         </Panel>
 
-        <Panel delay={300} eyebrow="PRIORITAS" title="Risiko dengan skor tertinggi">
+        <Panel delay={300} eyebrow="PRIORITAS" title="Risiko dengan skor tertinggi" action={<button type="button" className="ovLink" onClick={() => onNavigate('risk', {})}>Lihat semua →</button>}>
           {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> : !topRisks.length ? <div className="ovEmpty"><b>Belum ada risiko</b><span>Data akan tampil setelah risiko dicatat.</span></div> :
             <ol className="ovList">
               {topRisks.map(r => (
                 <li key={r.id}>
-                  <button type="button" onClick={() => onNavigate('risk')}>
+                  <button type="button" onClick={() => onNavigate('risk', { riskId: r.id })} aria-label={`Buka risiko ${r.risk_code}`}>
                     <strong className="ovScore">{r.risk_score}</strong>
                     <span className="ovListText" title={`${r.risk_event} · ${r.unit_name}`}><b>{r.risk_event}</b><small>{r.risk_code} · {r.unit_name}</small></span>
                     <span className={`rmBadge ${LEVEL_CLASS[r.risk_level] || ''}`}>{r.risk_level}</span>
@@ -274,12 +277,12 @@ export default function OverviewDashboard({
             </ol>}
         </Panel>
 
-        <Panel delay={360} eyebrow="KESELAMATAN PASIEN" title="Laporan insiden terbaru">
+        <Panel delay={360} eyebrow="KESELAMATAN PASIEN" title="Laporan insiden terbaru" action={<button type="button" className="ovLink" onClick={() => onNavigate('safety', { tab: 'overview' })}>Lihat semua →</button>}>
           {incidents.error ? <SectionError error={incidents.error} /> : loading ? <div className="ovSkeletonBlock" /> : !recentIncidents.length ? <div className="ovEmpty"><b>Belum ada laporan</b><span>Laporan IKP yang dibuat akan tampil di sini.</span></div> :
             <ol className="ovList">
               {recentIncidents.map(i => (
                 <li key={i.id}>
-                  <button type="button" onClick={() => onNavigate('safety')}>
+                  <button type="button" onClick={() => onNavigate('safety', { incidentId: i.id })} aria-label={`Buka laporan ${i.incident_code}`}>
                     <span className="ovDot" data-status={i.status} aria-hidden="true" />
                     <span className="ovListText" title={i.summary || i.incident_type || i.incident_code}><b>{i.summary || i.incident_type || i.incident_code}</b><small>{i.incident_code} · {i.unit_name || 'Unit belum diisi'} · {(i.incident_date || i.created_at).slice(0, 10)}</small></span>
                     <span className="ovStatus">{INCIDENT_STATUS[i.status] || i.status}</span>
@@ -289,15 +292,15 @@ export default function OverviewDashboard({
             </ol>}
         </Panel>
 
-        {manager && <Panel delay={420} eyebrow="UNIT KERJA" title="Unit dengan risiko tinggi terbanyak">
+        {manager && <Panel delay={420} eyebrow="UNIT KERJA" title="Unit dengan risiko tinggi terbanyak" action={<button type="button" className="ovLink" onClick={() => onNavigate('risk', {})}>Lihat semua →</button>}>
           {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> : !stats.topUnits.length ? <div className="ovEmpty"><b>Tidak ada risiko tinggi</b><span>Belum ada unit dengan risiko Tinggi/Sangat Tinggi.</span></div> :
             <div className="ovBars" role="list">
               {stats.topUnits.map(([unit, count], idx) => (
-                <div key={unit} className="ovBarRow ovBarRowUnit" role="listitem" title={`${unit}: ${count} risiko tinggi`}>
+                <button type="button" key={unit} className="ovBarRow ovBarRowUnit ovClickable" role="listitem" onClick={() => onNavigate('risk', { unitName: unit })} title={`${unit}: ${count} risiko tinggi — klik untuk membuka register unit ini`}>
                   <span className="ovUnitName">{unit}</span>
                   <div className="ovBarTrack"><div className="ovBarFill lvl-accent" style={{ width: `${(count / stats.topUnits[0][1]) * 100}%`, animationDelay: `${440 + idx * 70}ms` }} /></div>
                   <b>{count}</b>
-                </div>
+                </button>
               ))}
             </div>}
         </Panel>}
@@ -310,7 +313,7 @@ export default function OverviewDashboard({
           </div>
         </Panel>}
       </div>
-      <p className="ovFoot">Angka dihitung langsung dari database AUREKA sesuai hak akses {role === 'ADMIN' ? 'Super Admin' : 'akun Anda'}. Klik kartu untuk membuka modulnya.</p>
+      <p className="ovFoot">Angka dihitung langsung dari database AUREKA sesuai hak akses {role === 'ADMIN' ? 'Super Admin' : 'akun Anda'}. Klik kartu, baris, atau sel peta untuk langsung membuka datanya.</p>
     </div>
   )
 }

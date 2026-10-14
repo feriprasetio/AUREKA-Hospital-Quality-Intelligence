@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
 
 type Room = { id: number; name: string }
@@ -214,12 +215,14 @@ export default function PatientSafetyWorkspace({
   initialRoomId,
   isSuperAdmin,
   canManageWorkflow,
+  focus,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
   initialRoomId: number | null
   isSuperAdmin: boolean
   canManageWorkflow: boolean
+  focus?: SafetyFocus | null
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_patient_safety'), [supabase])
   const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>('overview')
@@ -344,6 +347,19 @@ export default function PatientSafetyWorkspace({
     setError('')
     setMessage('')
   }
+  const appliedFocus = useRef(0)
+  useEffect(() => {
+    if (!focus || appliedFocus.current === focus.nonce) return
+    if (focus.incidentId) {
+      const row = incidents.find(r => r.id === focus.incidentId)
+      if (!row) return // tunggu data insiden termuat
+      appliedFocus.current = focus.nonce
+      openIncident(row)
+      return
+    }
+    appliedFocus.current = focus.nonce
+    if (focus.tab) setTab(focus.tab)
+  }, [focus, incidents])
   const newIncident = () => {
     setIncidentId('')
     setIncidentCode('')
