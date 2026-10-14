@@ -1,8 +1,8 @@
 'use client'
 import {useEffect,useState} from 'react'
-import {createClient} from '@supabase/supabase-js'
+import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
-const sb=createClient('https://ktukmjscopggkzrkgnzp.supabase.co','sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
+const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
 const grains=['patient_episode','provider_day','daily_metric','event','activity','aggregate']
 const empty=(room:any,year:number)=>({profile_year:year,code:'',room_id:room?.id??'',unit_name:room?.name??'',title:'',indicator_type:'',category:'',unit_of_measure:'Persentase (%)',target_text:'',target_operator:'>=',target_value:'',numerator_definition:'',denominator_definition:'',measurement_grain:'activity',schema_json:{},options_json:[{label:'Lainnya — tuliskan alasan/temuan',code:null,numerator:null,denominator:true,review_required:true}],version:1,status:'published',is_active:true})

@@ -1,14 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
-const sb = createClient(
-  'https://ktukmjscopggkzrkgnzp.supabase.co',
-  'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX',
-  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
-)
+const sb = aurekaSupabase
 
 
 type Room = { id: number; code?: string; name: string; is_active?: boolean }
@@ -51,18 +47,25 @@ export default function GeneralSettings({
   profile,
   role,
   rooms,
+  onNavigate,
 }: {
   profile: Profile | null
   role: string | null
   rooms: Room[]
+  onNavigate?: (moduleId: string) => void
 }) {
-  const [section, setSection] = useState<'menu' | 'general' | 'users'>('menu')
+  const [section, setSection] = useState<'menu' | 'general' | 'users' | 'mydata'>('menu')
   const [tab, setTab] = useState<'profile' | 'units' | 'appearance' | 'security'>('profile')
   const [me, setMe] = useState<Profile | null>(profile)
   const [users, setUsers] = useState<Profile[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [roleMeta, setRoleMeta] = useState<Role | null>(null)
   const [search, setSearch] = useState('')
+  const [userFilter, setUserFilter] = useState<'all' | 'pending' | 'active' | 'unmapped'>('all')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [myData, setMyData] = useState<{ risks: number | null; highRisks: number | null; incidents: number | null; openIncidents: number | null; quality: number | null } | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [toneId, setToneId] = useState(() =>
@@ -135,7 +138,10 @@ export default function GeneralSettings({
     setMsg('')
     const { error } = await sb.rpc('aureka_update_my_profile', {
       p_full_name: me.full_name,
-      p_primary_room_id: me.primary_room_id ? Number(me.primary_room_id) : null,
+      // Unit utama menentukan data yang boleh diakses, jadi hanya Super Admin yang dapat mengubahnya.
+      p_primary_room_id: isAdmin
+        ? (me.primary_room_id ? Number(me.primary_room_id) : null)
+        : (profile?.primary_room_id ?? null),
     })
     setBusy(false)
     setMsg(error ? `Gagal: ${error.message}` : 'Profil berhasil disimpan.')
@@ -145,10 +151,18 @@ export default function GeneralSettings({
     () =>
       users.filter((u) => {
         const q = search.toLowerCase().trim()
-        return !q || [u.full_name, u.email || ''].join(' ').toLowerCase().includes(q)
-      }),
-    [users, search]
+        const matchesText = !q || [u.full_name, u.email || '', rooms.find((r) => r.id === u.primary_room_id)?.name || ''].join(' ').toLowerCase().includes(q)
+        const matchesStatus = userFilter === 'all' ||
+          (userFilter === 'pending' && !u.is_active) ||
+          (userFilter === 'active' && u.is_active) ||
+          (userFilter === 'unmapped' && !u.primary_room_id)
+        return matchesText && matchesStatus
+      }).sort((a, b) => Number(a.is_active) - Number(b.is_active)),
+    [users, search, userFilter, rooms]
   )
+  const pendingCount = users.filter((u) => !u.is_active).length
+  const unmappedCount = users.filter((u) => !u.primary_room_id).length
+  const picRoleId = roles.find((r) => r.code === 'PIC')?.id || null
 
   const updateUser = async (u: Profile, patch: Partial<Profile>) => {
     setBusy(true)
@@ -156,9 +170,10 @@ export default function GeneralSettings({
     const { error } = await sb.rpc('aureka_admin_update_user_profile', {
       p_user_id: u.user_id,
       p_full_name: patch.full_name ?? u.full_name,
-      p_primary_room_id: patch.primary_room_id ?? u.primary_room_id,
-      p_role_id: patch.role_id ?? u.role_id,
-      p_is_active: patch.is_active ?? u.is_active,
+      // Pakai 'in' agar pilihan kosong (null) benar-benar mengosongkan unit/role.
+      p_primary_room_id: 'primary_room_id' in patch ? patch.primary_room_id ?? null : u.primary_room_id,
+      p_role_id: 'role_id' in patch ? patch.role_id ?? null : u.role_id,
+      p_is_active: 'is_active' in patch ? !!patch.is_active : u.is_active,
     })
     setBusy(false)
     if (error) setMsg(error.message)
@@ -167,6 +182,63 @@ export default function GeneralSettings({
       loadUsers()
     }
   }
+
+  const deleteUser = async (u: Profile) => {
+    setBusy(true)
+    setMsg('')
+    const { error } = await sb.rpc('aureka_admin_delete_user', { p_user_id: u.user_id })
+    setBusy(false)
+    setConfirmDeleteId(null)
+    if (error) {
+      const text = error.message || ''
+      if (/USER_HAS_DATA/.test(text)) setMsg(`${u.full_name}: akun sudah memiliki data sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.`)
+      else if (error.code === 'PGRST202' || /Could not find the function/i.test(text)) setMsg('Fitur hapus akun belum aktif: migration 20261014092000_admin_delete_user.sql perlu dijalankan di Supabase.')
+      else setMsg(`Gagal menghapus: ${text}`)
+      return
+    }
+    setMsg(`Akun ${u.full_name} dihapus.`)
+    loadUsers()
+  }
+
+  const changePassword = async () => {
+    setPwMsg(null)
+    if (pw.next.length < 8) return setPwMsg({ ok: false, text: 'Password baru minimal 8 karakter.' })
+    if (pw.next !== pw.confirm) return setPwMsg({ ok: false, text: 'Konfirmasi password baru tidak sama.' })
+    if (pw.next === pw.current) return setPwMsg({ ok: false, text: 'Password baru harus berbeda dari password saat ini.' })
+    const email = me?.email || profile?.email
+    if (!email) return setPwMsg({ ok: false, text: 'Email akun tidak ditemukan.' })
+    setBusy(true)
+    // Verifikasi password saat ini sebelum mengganti, agar sesi yang tertinggal di komputer bersama tidak bisa dipakai mengganti password.
+    const check = await sb.auth.signInWithPassword({ email, password: pw.current })
+    if (check.error) { setBusy(false); return setPwMsg({ ok: false, text: 'Password saat ini salah.' }) }
+    const { error } = await sb.auth.updateUser({ password: pw.next })
+    setBusy(false)
+    if (error) return setPwMsg({ ok: false, text: `Gagal mengganti password: ${error.message}` })
+    setPw({ current: '', next: '', confirm: '' })
+    setPwMsg({ ok: true, text: 'Password berhasil diganti. Gunakan password baru saat login berikutnya.' })
+  }
+
+  useEffect(() => {
+    if (section !== 'mydata') return
+    const roomId = me?.primary_room_id ?? null
+    const roomName = rooms.find((r) => r.id === roomId)?.name || ''
+    const anySb = sb as any
+    Promise.all([
+      anySb.schema('aureka_risk').from('risk_register').select('id,unit_id,unit_name,risk_level').range(0, 4999),
+      anySb.schema('aureka_patient_safety').from('incidents').select('id,status,created_by').eq('created_by', me?.user_id || '').range(0, 4999),
+      anySb.schema('aureka_quality').from('quality_records').select('id,room_id').eq('profile_year', new Date().getFullYear()).range(0, 4999),
+    ]).then(([r, i, q]: any[]) => {
+      const norm = (v: unknown) => String(v || '').trim().toLowerCase()
+      const mineRisk = (r.data || []).filter((x: any) => roomId != null && (x.unit_id === roomId || (x.unit_id == null && norm(x.unit_name) === norm(roomName))))
+      setMyData({
+        risks: r.error ? null : mineRisk.length,
+        highRisks: r.error ? null : mineRisk.filter((x: any) => x.risk_level === 'Tinggi' || x.risk_level === 'Sangat Tinggi').length,
+        incidents: i.error ? null : (i.data || []).length,
+        openIncidents: i.error ? null : (i.data || []).filter((x: any) => x.status !== 'closed').length,
+        quality: q.error ? null : (q.data || []).filter((x: any) => roomId != null && x.room_id === roomId).length,
+      })
+    })
+  }, [section, me?.primary_room_id, me?.user_id, rooms])
 
   const roleLabel = friendlyRole(roleMeta) !== '—' ? friendlyRole(roleMeta) : effectiveRole === 'ADMIN' ? 'Super Admin' : (role || '—')
 
@@ -193,17 +265,27 @@ export default function GeneralSettings({
               <span>Profil akun, akses, unit, tampilan, tone warna, preferensi, dan keamanan.</span>
             </button>
 
-            <button
-              type="button"
-              className="placeholderCard glassPanel"
-              onClick={() => isAdmin && setSection('users')}
-              disabled={!isAdmin}
-              style={{ textAlign: 'left', border: 0, cursor: isAdmin ? 'pointer' : 'not-allowed' }}
-            >
-              <span style={{ fontSize: 28 }}>👥</span>
-              <b style={{ display: 'block', marginTop: 8 }}>Manajemen User / PIC Pelaporan</b>
-              <span>{isAdmin ? 'Kelola profil, role, unit utama, dan status pengguna.' : 'Khusus Super Admin.'}</span>
+            <button type="button" className="placeholderCard glassPanel" onClick={() => { setSection('general'); setTab('security') }} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+              <span style={{ fontSize: 28 }}>🔒</span>
+              <b style={{ display: 'block', marginTop: 8 }}>Keamanan & Password</b>
+              <span>Ganti password akun dan lihat informasi sesi login.</span>
             </button>
+
+            {!isAdmin && (
+              <button type="button" className="placeholderCard glassPanel" onClick={() => setSection('mydata')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+                <span style={{ fontSize: 28 }}>📋</span>
+                <b style={{ display: 'block', marginTop: 8 }}>Data Saya untuk PMKP</b>
+                <span>Ringkasan data unit yang Anda laporkan, kewajiban PIC, dan kontak Komite PMKP.</span>
+              </button>
+            )}
+
+            {isAdmin && (
+              <button type="button" className="placeholderCard glassPanel" onClick={() => setSection('users')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+                <span style={{ fontSize: 28 }}>👥</span>
+                <b style={{ display: 'block', marginTop: 8 }}>Manajemen User / PIC Pelaporan</b>
+                <span>Kelola profil, role, unit utama, aktivasi, dan penghapusan akun pengguna.</span>
+              </button>
+            )}
           </div>
         </LiquidGlass>
       )}
@@ -249,8 +331,8 @@ export default function GeneralSettings({
                 ['profile', 'Akun & Akses'],
                 ['units', 'Unit & Instalasi'],
                 ['appearance', 'Tampilan & Tone'],
-                ['security', 'Keamanan'],
-              ] as const).map(([key, label]) => (
+                ['security', 'Keamanan & Password'],
+              ] as const).filter(([key]) => isAdmin || key !== 'units').map(([key, label]) => (
                 <button
                   type="button"
                   key={key}
@@ -290,11 +372,13 @@ export default function GeneralSettings({
                   <span>Unit utama</span>
                   <select
                     value={me?.primary_room_id || ''}
+                    disabled={!isAdmin}
                     onChange={(e) => me && setMe({ ...me, primary_room_id: e.target.value ? Number(e.target.value) : null })}
                   >
                     <option value="">Belum dipetakan</option>
                     {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
+                  {!isAdmin && <small style={{ display: 'block', marginTop: 6, color: 'var(--muted)', fontSize: 9 }}>Unit utama menentukan data yang dapat Anda akses dan hanya dapat diubah oleh Super Admin.</small>}
                 </label>
               </div>
               <div style={{ marginTop: 14 }}>
@@ -383,6 +467,16 @@ export default function GeneralSettings({
 
           {tab === 'security' && (
             <LiquidGlass style={{ padding: 18 }}>
+              <h4 style={{ margin: '0 0 12px' }}>Ganti Password</h4>
+              <div className="pwForm">
+                <label className="field"><span>Password saat ini</span><input type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
+                <label className="field"><span>Password baru (min. 8 karakter)</span><input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
+                <label className="field"><span>Ulangi password baru</span><input type="password" autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
+              </div>
+              {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role="status">{pwMsg.text}</p>}
+              <div style={{ marginTop: 10, marginBottom: 18 }}>
+                <LiquidGlassButton onClick={changePassword} disabled={busy || !pw.current || !pw.next || !pw.confirm}>{busy ? 'Memproses…' : 'Simpan password baru'}</LiquidGlassButton>
+              </div>
               <h4 style={{ margin: '0 0 12px' }}>Keamanan & Session</h4>
               <div style={{ display: 'grid', gap: 9 }}>
                 {[
@@ -403,6 +497,50 @@ export default function GeneralSettings({
         </>
       )}
 
+      {section === 'mydata' && (
+        <>
+          <LiquidGlass style={{ padding: 18 }}>
+            <div className="eyebrow">DATA SAYA UNTUK PMKP</div>
+            <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</h3>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
+            <div className="myDataGrid">
+              {([
+                ['Risiko unit terdaftar', myData?.risks, 'risk'],
+                ['Risiko tinggi / sangat tinggi', myData?.highRisks, 'risk'],
+                ['Laporan IKP yang saya buat', myData?.incidents, 'safety'],
+                ['IKP belum ditutup', myData?.openIncidents, 'safety'],
+                [`Episode mutu unit ${new Date().getFullYear()}`, myData?.quality, 'quality'],
+              ] as const).map(([label, value, mod]) => (
+                <button key={label} type="button" className="ovKpi" onClick={() => onNavigate?.(mod)} disabled={!onNavigate}>
+                  <span className="ovKpiLabel">{label}</span>
+                  {myData === null ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value == null ? '—' : value.toLocaleString('id-ID')}</b>}
+                </button>
+              ))}
+            </div>
+          </LiquidGlass>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 14 }}>
+            <LiquidGlass style={{ padding: 18 }}>
+              <h4 style={{ margin: '0 0 10px' }}>Kewajiban PIC unit</h4>
+              <ul className="myDataList">
+                <li><b>Register risiko</b><span>Perbarui identifikasi, penilaian, dan pengendalian risiko unit secara berkala; koreksi data bila ada salah input.</span></li>
+                <li><b>Laporan IKP</b><span>Laporkan insiden keselamatan pasien melalui modul Keselamatan Pasien segera setelah kejadian (maks. 2×24 jam).</span></li>
+                <li><b>Indikator mutu</b><span>Input data indikator mutu unit sesuai periode pengumpulan yang ditetapkan Komite PMKP.</span></li>
+                <li><b>RTP</b><span>Tindak lanjuti rencana pengendalian risiko unit dan catat evaluasinya.</span></li>
+              </ul>
+            </LiquidGlass>
+            <LiquidGlass style={{ padding: 18 }}>
+              <h4 style={{ margin: '0 0 10px' }}>Perlu bantuan Komite PMKP?</h4>
+              <ul className="myDataList">
+                <li><b>Ganti unit / role</b><span>Unit utama dan role ditetapkan Super Admin. Hubungi Komite PMKP bila Anda pindah unit atau perlu akses tambahan.</span></li>
+                <li><b>Data salah input</b><span>Risiko unit dapat Anda edit sendiri. Laporan IKP yang sudah dikirim diperbaiki melalui Komite PMKP.</span></li>
+                <li><b>Lupa password</b><span>Ganti password di menu Keamanan & Password, atau minta Super Admin membantu reset.</span></li>
+              </ul>
+            </LiquidGlass>
+          </div>
+        </>
+      )}
+
       {section === 'users' && isAdmin && (
         <>
           <LiquidGlass style={{ padding: 18 }}>
@@ -411,17 +549,33 @@ export default function GeneralSettings({
             <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>
               Super Admin dapat mengelola role, unit utama, dan status akun pengguna.
             </p>
-            <input placeholder="Cari nama / email…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ marginTop: 14, maxWidth: 360 }} />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
+              <input placeholder="Cari nama / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
+              {([
+                ['all', `Semua (${users.length})`],
+                ['pending', `Menunggu aktivasi (${pendingCount})`],
+                ['active', 'Aktif'],
+                ['unmapped', `Unit belum dipetakan (${unmappedCount})`],
+              ] as const).map(([id, label]) => (
+                <button key={id} type="button" className="textButton" onClick={() => setUserFilter(id)}
+                  style={{ margin: 0, padding: '6px 10px', borderRadius: 999, background: userFilter === id ? 'rgba(var(--accent-rgb),.14)' : 'transparent', fontWeight: userFilter === id ? 900 : 700 }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 10, color: '#9a6b13' }}>
+              {pendingCount} akun baru menunggu aktivasi. Periksa unit dan role, lalu klik “Aktifkan”. Akun ruangan cukup diberi role PIC Pelaporan.
+            </p>}
           </LiquidGlass>
 
           <LiquidGlass style={{ padding: 14 }}>
             <div style={{ display: 'grid', gap: 8 }}>
               {filtered.map((u) => (
-                <div key={u.user_id} style={{ padding: 12, border: '1px solid rgba(20,34,27,.08)', borderRadius: 16, background: 'rgba(255,255,255,.18)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                <div key={u.user_id} className="userRow" style={{ padding: 12, border: u.is_active ? '1px solid rgba(20,34,27,.08)' : '1px solid rgba(169,104,22,.45)', borderRadius: 16, background: u.is_active ? 'rgba(255,255,255,.18)' : 'rgba(251,239,217,.55)' }}>
+                  <div className="userRowGrid">
                     <div>
                       <b style={{ display: 'block', fontSize: 11 }}>{u.full_name}</b>
-                      <span style={{ display: 'block', marginTop: 3, fontSize: 9, color: 'var(--muted)' }}>{u.email || '—'}</span>
+                      <span style={{ display: 'block', marginTop: 3, fontSize: 9, color: 'var(--muted)' }}>{u.email || '—'}{!u.is_active ? ' · Menunggu aktivasi' : ''}</span>
                     </div>
 
                     <select
@@ -437,9 +591,21 @@ export default function GeneralSettings({
                       {roles.map((r) => <option key={r.id} value={r.id}>{friendlyRole(r)}</option>)}
                     </select>
 
-                    <button type="button" className="textButton" onClick={() => updateUser(u, { is_active: !u.is_active })}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <button type="button" className="textButton" style={{ margin: 0 }} disabled={busy || (!u.is_active && !u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
+                      title={!u.is_active && !u.primary_room_id ? 'Petakan unit terlebih dahulu untuk akun PIC' : undefined}
+                      onClick={() => updateUser(u, u.is_active ? { is_active: false } : { is_active: true, role_id: u.role_id || picRoleId })}>
                       {u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                     </button>
+                    {u.user_id !== me?.user_id && (confirmDeleteId === u.user_id ? (
+                      <span className="userDeleteConfirm">
+                        <button type="button" className="textButton danger" style={{ margin: 0 }} disabled={busy} onClick={() => deleteUser(u)}>Ya, hapus</button>
+                        <button type="button" className="textButton muted" style={{ margin: 0 }} onClick={() => setConfirmDeleteId(null)}>Batal</button>
+                      </span>
+                    ) : (
+                      <button type="button" className="textButton danger" style={{ margin: 0 }} disabled={busy} title="Hapus akun (hanya untuk akun yang belum memiliki data)" onClick={() => setConfirmDeleteId(u.user_id)}>Hapus</button>
+                    ))}
+                    </div>
                   </div>
                 </div>
               ))}
