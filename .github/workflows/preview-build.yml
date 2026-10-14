@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -28,12 +28,3 @@ jobs:
           name: aureka-static-export
           path: ./out
           retention-days: 7
-      - name: Publish preview to ci-preview-build branch
-        run: |
-          cd out
-          git init -q -b ci-preview-build
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add -A
-          git commit -q -m "preview build ${GITHUB_SHA}"
-          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-preview-build

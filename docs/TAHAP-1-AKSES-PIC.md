@@ -10,6 +10,12 @@
 | Pengaturan → Akun Saya | Unit utama hanya dapat diubah Super Admin (unit menentukan data yang boleh diakses). |
 | Login | Akun yang belum aktif langsung di-logout dengan pesan yang jelas (sebelumnya sesi tetap tersimpan). |
 | Bug | Memilih "Unit/Role belum dipetakan" di Manajemen User sebelumnya tidak tersimpan (nilai lama dipertahankan karena `??`). Diperbaiki. |
+| Overview | Dashboard terhubung ke data: KPI risiko, RTP, insiden IKP, episode mutu; distribusi level risiko, peta 5×5, tren insiden 6 bulan, risiko prioritas, insiden terbaru, unit dengan risiko tinggi. Sesuai role (PIC = unitnya). |
+| Metadata & Statistik | Kamus data, kelengkapan pengisian, distribusi, statistik deskriptif, dan ekspor CSV per dataset (khusus pengelola). |
+| Manajemen Risiko | Form tambah/edit risiko & FMEA tampil sebagai jendela pop-up (tidak perlu scroll). |
+| Manajemen User | Tombol **Hapus** dengan konfirmasi. Akun yang sudah memiliki data tidak dapat dihapus (data tetap utuh); gunakan Nonaktifkan. |
+| Pengaturan non-admin | Menu Manajemen User disembunyikan. Tersedia **Ganti Password** (verifikasi password lama) dan **Data Saya untuk PMKP**. |
+| Tampilan | Halaman awal, login, dan daftar akun didesain ulang (tombol lebih besar, panel identitas, layar sukses pendaftaran); animasi transisi, skeleton loading, dan angka beranimasi. |
 | Bug | Empat komponen membuat client Supabase sendiri-sendiri (beberapa `GoTrueClient` berebut sesi). Kini memakai satu client bersama `lib/aureka/supabase.ts`. |
 
 ## Alur akun ruangan
@@ -27,8 +33,10 @@ Jalankan berurutan di **Supabase Dashboard → SQL Editor**:
    — membatasi baca risk register / FMEA / konektor / RTP per unit untuk role non-pengelola.
 2. `supabase/migrations/20261014091000_user_profile_privilege_guard.sql`
    — mencegah pengguna biasa mengubah role, status aktif, atau unit utamanya sendiri.
+3. `supabase/migrations/20261014092000_admin_delete_user.sql`
+   — fungsi hapus akun untuk Super Admin (menolak akun yang sudah memiliki data).
 
-Keduanya idempoten (aman dijalankan ulang) dan sudah diuji pada PostgreSQL 16 dengan
+Ketiganya idempoten (aman dijalankan ulang) dan sudah diuji pada PostgreSQL 16 dengan
 seluruh migration repo (kecuali dua migration `aureka_quality` yang bergantung pada tabel
 yang tidak ada di repo):
 
@@ -38,6 +46,8 @@ yang tidak ada di repo):
 - PIC dapat mengedit risiko unitnya; update ke risiko unit lain tidak berdampak.
 - PIC yang mencoba mengubah `role_id` / `primary_room_id` sendiri ditolak; ubah nama tetap bisa;
   `admin_update_user_profile` oleh Super Admin tetap berjalan.
+- Hapus akun: PIC ditolak, admin tidak dapat menghapus diri sendiri, akun yang memiliki data ditolak
+  (`USER_HAS_DATA`) dan seluruh data tetap ada, akun kosong terhapus.
 
 Tanpa migration ini, pembatasan tampilan tetap aktif di aplikasi, tetapi data unit lain
 masih dapat dibaca lewat API.
