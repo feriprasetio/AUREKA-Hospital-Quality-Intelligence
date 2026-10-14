@@ -60,6 +60,7 @@ export default function GeneralSettings({
   const [roleMeta, setRoleMeta] = useState<Role | null>(null)
   const [search, setSearch] = useState('')
   const [userFilter, setUserFilter] = useState<'all' | 'pending' | 'active' | 'unmapped'>('all')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [toneId, setToneId] = useState(() =>
@@ -175,6 +176,23 @@ export default function GeneralSettings({
       setMsg('Perubahan pengguna disimpan.')
       loadUsers()
     }
+  }
+
+  const deleteUser = async (u: Profile) => {
+    setBusy(true)
+    setMsg('')
+    const { error } = await sb.rpc('aureka_admin_delete_user', { p_user_id: u.user_id })
+    setBusy(false)
+    setConfirmDeleteId(null)
+    if (error) {
+      const text = error.message || ''
+      if (/USER_HAS_DATA/.test(text)) setMsg(`${u.full_name}: akun sudah memiliki data sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.`)
+      else if (error.code === 'PGRST202' || /Could not find the function/i.test(text)) setMsg('Fitur hapus akun belum aktif: migration 20261014092000_admin_delete_user.sql perlu dijalankan di Supabase.')
+      else setMsg(`Gagal menghapus: ${text}`)
+      return
+    }
+    setMsg(`Akun ${u.full_name} dihapus.`)
+    loadUsers()
   }
 
   const roleLabel = friendlyRole(roleMeta) !== '—' ? friendlyRole(roleMeta) : effectiveRole === 'ADMIN' ? 'Super Admin' : (role || '—')
@@ -444,8 +462,8 @@ export default function GeneralSettings({
           <LiquidGlass style={{ padding: 14 }}>
             <div style={{ display: 'grid', gap: 8 }}>
               {filtered.map((u) => (
-                <div key={u.user_id} style={{ padding: 12, border: u.is_active ? '1px solid rgba(20,34,27,.08)' : '1px solid rgba(169,104,22,.45)', borderRadius: 16, background: u.is_active ? 'rgba(255,255,255,.18)' : 'rgba(251,239,217,.55)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                <div key={u.user_id} className="userRow" style={{ padding: 12, border: u.is_active ? '1px solid rgba(20,34,27,.08)' : '1px solid rgba(169,104,22,.45)', borderRadius: 16, background: u.is_active ? 'rgba(255,255,255,.18)' : 'rgba(251,239,217,.55)' }}>
+                  <div className="userRowGrid">
                     <div>
                       <b style={{ display: 'block', fontSize: 11 }}>{u.full_name}</b>
                       <span style={{ display: 'block', marginTop: 3, fontSize: 9, color: 'var(--muted)' }}>{u.email || '—'}{!u.is_active ? ' · Menunggu aktivasi' : ''}</span>
@@ -464,11 +482,21 @@ export default function GeneralSettings({
                       {roles.map((r) => <option key={r.id} value={r.id}>{friendlyRole(r)}</option>)}
                     </select>
 
-                    <button type="button" className="textButton" disabled={busy || (!u.is_active && !u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <button type="button" className="textButton" style={{ margin: 0 }} disabled={busy || (!u.is_active && !u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
                       title={!u.is_active && !u.primary_room_id ? 'Petakan unit terlebih dahulu untuk akun PIC' : undefined}
                       onClick={() => updateUser(u, u.is_active ? { is_active: false } : { is_active: true, role_id: u.role_id || picRoleId })}>
                       {u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                     </button>
+                    {u.user_id !== me?.user_id && (confirmDeleteId === u.user_id ? (
+                      <span className="userDeleteConfirm">
+                        <button type="button" className="textButton danger" style={{ margin: 0 }} disabled={busy} onClick={() => deleteUser(u)}>Ya, hapus</button>
+                        <button type="button" className="textButton muted" style={{ margin: 0 }} onClick={() => setConfirmDeleteId(null)}>Batal</button>
+                      </span>
+                    ) : (
+                      <button type="button" className="textButton danger" style={{ margin: 0 }} disabled={busy} title="Hapus akun (hanya untuk akun yang belum memiliki data)" onClick={() => setConfirmDeleteId(u.user_id)}>Hapus</button>
+                    ))}
+                    </div>
                   </div>
                 </div>
               ))}

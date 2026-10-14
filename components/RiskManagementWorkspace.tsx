@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
@@ -102,6 +102,24 @@ const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
   return { data: allRows, error: null }
 }
 const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"'
+// Form ditampilkan sebagai jendela di atas halaman agar tidak perlu scroll ke bawah tabel.
+// Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
+function RmModal({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+  return (
+    <div className="rmModalBackdrop" role="dialog" aria-modal="true" aria-label={label}>
+      <div className="rmModalSheet">
+        {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
+        {children}
+      </div>
+    </div>
+  )
+}
+
 const roleLabel = (role: string | null) => ({
   ADMIN: 'Super Admin', PIC: 'PIC Unit', PMKP: 'Komite PMKP', MANAGEMENT: 'Manajemen',
   KABID: 'Kepala Bidang', DIREKTUR: 'Direktur', DEWAN_PENGAWAS: 'Dewan Pengawas',
@@ -724,7 +742,7 @@ export default function RiskManagementWorkspace({
           <div className="rmTableFooter"><span>Menampilkan {filteredRisks.length ? page * pageSize + 1 : 0}–{Math.min((page + 1) * pageSize, filteredRisks.length)} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span><div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
         </LiquidGlass>
 
-        {riskEditorOpen && <LiquidGlass className="rmPanel rmEditor">
+        {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className="rmPanel rmEditor">
           <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4><p>Isi berdasarkan sasaran organisasi, kejadian risiko, penyebab, dampak, dan kontrol saat ini. Skor dihitung otomatis.</p></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}>Tutup panel</button></div>
           <div className="rmFormGrid">
             <label>Kode risiko <input value={riskForm.risk_code} onChange={e => setRiskForm(f => ({ ...f, risk_code: e.target.value }))} placeholder="Dibuat otomatis jika kosong" /></label>
@@ -755,7 +773,7 @@ export default function RiskManagementWorkspace({
             <div className="rmScorePreview"><span>Skor residual</span><strong>{riskForm.residual_likelihood && riskForm.residual_impact ? riskScore(Number(riskForm.residual_likelihood), Number(riskForm.residual_impact)) : '—'}</strong>{riskForm.residual_likelihood && riskForm.residual_impact ? renderRiskBadge(levelFor(riskScore(Number(riskForm.residual_likelihood), Number(riskForm.residual_impact)))) : <span className="rmMuted">Belum dinilai</span>}</div>
           </div>
           <div className="rmFormFooter"><div className="rmFormNote">Peringkat Sedang ke atas berada di luar area penerimaan risiko dan membutuhkan keputusan mitigasi.</div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}>Batal</button><button type="button" className="rmButton primary" disabled={saving} onClick={saveRisk}>{saving ? 'Menyimpan…' : 'Simpan risk register'}</button></div></div>
-        </LiquidGlass>}
+        </LiquidGlass></RmModal>}
 
         {!riskEditorOpen && activeRisk && registerDetailExpanded && <LiquidGlass className="rmPanel">
           <div className="rmSectionHead"><div><span className="rmEyebrow">DETAIL RISIKO TERPILIH</span><h4>{activeRisk.risk_event}</h4><p>{activeRisk.risk_code} · {activeRisk.unit_name} · diperbarui {fmtDate(activeRisk.updated_at)}</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setRegisterDetailExpanded(false)}>Ringkas</button><button type="button" className="rmButton primary" disabled={!canEditRisk(activeRisk)} onClick={() => openRiskEditor(activeRisk)}>Edit detail</button></div></div>
@@ -878,7 +896,7 @@ export default function RiskManagementWorkspace({
         <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">ANALISIS MODUS KEGAGALAN</span><h4>FMEA / HFMEA</h4><p>Engine FMEA dipisahkan dari baseline risk scoring. RPN = Severity × Occurrence × Detection; RPN bukan skor matriks kemungkinan–dampak.</p></div><button type="button" className="rmButton primary" onClick={() => openFmea()}>＋ Analisis FMEA</button></div>
           <div className="rmTableWrap"><table className="rmTable"><thead><tr><th>Kode FMEA</th><th>Unit / Proses</th><th>Modus kegagalan</th><th>S–O–D</th><th>RPN</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{fmeas.map(f => <tr key={f.id}><td><b>{f.fmea_code}</b></td><td>{f.unit_name}<small className="rmCellSmall">{f.process_name}</small></td><td><b>{f.failure_mode}</b><small className="rmCellSmall">{f.risk_register_id ? risks.find(r => r.id === f.risk_register_id)?.risk_code || 'Risiko tertaut' : 'Belum ditautkan ke register'}</small></td><td>{f.severity}–{f.occurrence}–{f.detection}</td><td><strong className="rmScore">{f.rpn}</strong></td><td><span className={'rmBadge ' + (f.priority === 'Tinggi' ? 'very-high' : f.priority === 'Sedang' ? 'moderate' : 'low')}>{f.priority}</span></td><td>{renderStatus(f.status)}</td><td><button type="button" className="rmIconButton" onClick={() => openFmea(f)} disabled={!canManageAll && !risks.some(r => r.id === f.risk_register_id && canEditRisk(r))} aria-label="Edit FMEA">✎</button></td></tr>)}{!fmeas.length && <tr><td colSpan={8}><div className="rmEmptySmall">Belum ada analisis FMEA. Tambahkan analisis dan tautkan ke risk register bila relevan.</div></td></tr>}</tbody></table></div>
         </LiquidGlass>
-        {fmeaEditorOpen && <LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4><p>Definisikan proses, failure mode, efek, penyebab, kontrol, dan tindakan pengurangan risiko.</p></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}>Tutup panel</button></div>
+        {fmeaEditorOpen && <RmModal label="Analisis FMEA" error={error}><LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4><p>Definisikan proses, failure mode, efek, penyebab, kontrol, dan tindakan pengurangan risiko.</p></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}>Tutup panel</button></div>
           <div className="rmFormGrid">
             <label>Hubungkan ke risiko <select value={String(fmeaForm.risk_register_id || '')} onChange={e => { const risk = risks.find(r => r.id === e.target.value); setFmeaForm(f => ({ ...f, risk_register_id: e.target.value || null, unit_name: risk?.unit_name || f.unit_name })); }}><option value="">Tidak ditautkan</option>{risks.map(renderRiskOption)}</select></label>
             <label>Unit kerja <select value={String(fmeaForm.unit_name || '')} onChange={e => setFmeaForm(f => ({ ...f, unit_name: e.target.value }))}>{unitOptions.map(r => <option key={r.id}>{r.name}</option>)}</select></label>
@@ -900,7 +918,7 @@ export default function RiskManagementWorkspace({
           </div>
           <div className="rmFormFooter"><span className="rmFormNote">RPN tinggi atau Severity ≥ 4 memerlukan evaluasi prioritas dan pertimbangan RCA/redesign; keputusan klinis tetap memerlukan telaah tim terkait.</span><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}>Batal</button><button type="button" className="rmButton primary" disabled={saving} onClick={() => void saveFmea()}>{saving ? 'Menyimpan…' : 'Simpan FMEA'}</button></div></div>
           {pendingAction?.kind === 'delete-fmea' && <div className="rmInlineConfirm"><b>Hapus FMEA terpilih?</b><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" onClick={async () => { if (!pendingAction) return; const result = await db.from('fmea_analyses').delete().eq('id', pendingAction.id); if (result.error) setError(result.error.message); else { setMessage('FMEA dihapus.'); setPendingAction(null); await loadData(); } }}>Hapus</button></div></div>}
-        </LiquidGlass>}
+        </LiquidGlass></RmModal>}
       </>}
 
       <div className="rmFooterNote">Kerangka analisis menggunakan Kepmenkes HK.01.07/MENKES/1354/2024 untuk selera risiko. Tindakan dan persetujuan tidak menggantikan penetapan formal kebijakan manajemen risiko rumah sakit.</div>
