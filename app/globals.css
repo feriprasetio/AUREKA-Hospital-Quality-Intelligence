@@ -555,3 +555,11 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .ovList li{min-width:0}
 .ovList button{min-width:0;overflow:hidden}
 .ovBars,.ovBarRow{min-width:0}
+
+/* Jendela form risiko/FMEA: panel solid agar tabel di belakang tidak tembus */
+.rmModalBackdrop{background:rgba(20,34,27,.55)!important}
+.rmModalSheet>.rmPanel,.rmModalSheet>.liquidGlass{background:#fbfdfc!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid rgba(20,34,27,.08)!important}
+.rmModalSheet>.liquidGlass:before,.rmModalSheet>.liquidGlass:after,.rmModalSheet .liquidGlassSheen,.rmModalSheet .liquidGlassEdge{display:none!important}
+.rmModalSheet .rmFormFooter{background:linear-gradient(180deg,rgba(251,253,252,0),#fbfdfc 30%)!important}
+.rmModalSheet input,.rmModalSheet select,.rmModalSheet textarea{background:#fff!important}
+.rmModalSheet .rmNotice{background:#fff3f4}
