@@ -1,14 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
-const sb = createClient(
-  'https://ktukmjscopggkzrkgnzp.supabase.co',
-  'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX',
-  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
-)
+const sb = aurekaSupabase
 
 
 type Room = { id: number; code?: string; name: string; is_active?: boolean }
@@ -63,6 +59,7 @@ export default function GeneralSettings({
   const [roles, setRoles] = useState<Role[]>([])
   const [roleMeta, setRoleMeta] = useState<Role | null>(null)
   const [search, setSearch] = useState('')
+  const [userFilter, setUserFilter] = useState<'all' | 'pending' | 'active' | 'unmapped'>('all')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [toneId, setToneId] = useState(() =>
@@ -135,7 +132,10 @@ export default function GeneralSettings({
     setMsg('')
     const { error } = await sb.rpc('aureka_update_my_profile', {
       p_full_name: me.full_name,
-      p_primary_room_id: me.primary_room_id ? Number(me.primary_room_id) : null,
+      // Unit utama menentukan data yang boleh diakses, jadi hanya Super Admin yang dapat mengubahnya.
+      p_primary_room_id: isAdmin
+        ? (me.primary_room_id ? Number(me.primary_room_id) : null)
+        : (profile?.primary_room_id ?? null),
     })
     setBusy(false)
     setMsg(error ? `Gagal: ${error.message}` : 'Profil berhasil disimpan.')
@@ -145,10 +145,18 @@ export default function GeneralSettings({
     () =>
       users.filter((u) => {
         const q = search.toLowerCase().trim()
-        return !q || [u.full_name, u.email || ''].join(' ').toLowerCase().includes(q)
-      }),
-    [users, search]
+        const matchesText = !q || [u.full_name, u.email || '', rooms.find((r) => r.id === u.primary_room_id)?.name || ''].join(' ').toLowerCase().includes(q)
+        const matchesStatus = userFilter === 'all' ||
+          (userFilter === 'pending' && !u.is_active) ||
+          (userFilter === 'active' && u.is_active) ||
+          (userFilter === 'unmapped' && !u.primary_room_id)
+        return matchesText && matchesStatus
+      }).sort((a, b) => Number(a.is_active) - Number(b.is_active)),
+    [users, search, userFilter, rooms]
   )
+  const pendingCount = users.filter((u) => !u.is_active).length
+  const unmappedCount = users.filter((u) => !u.primary_room_id).length
+  const picRoleId = roles.find((r) => r.code === 'PIC')?.id || null
 
   const updateUser = async (u: Profile, patch: Partial<Profile>) => {
     setBusy(true)
@@ -156,9 +164,10 @@ export default function GeneralSettings({
     const { error } = await sb.rpc('aureka_admin_update_user_profile', {
       p_user_id: u.user_id,
       p_full_name: patch.full_name ?? u.full_name,
-      p_primary_room_id: patch.primary_room_id ?? u.primary_room_id,
-      p_role_id: patch.role_id ?? u.role_id,
-      p_is_active: patch.is_active ?? u.is_active,
+      // Pakai 'in' agar pilihan kosong (null) benar-benar mengosongkan unit/role.
+      p_primary_room_id: 'primary_room_id' in patch ? patch.primary_room_id ?? null : u.primary_room_id,
+      p_role_id: 'role_id' in patch ? patch.role_id ?? null : u.role_id,
+      p_is_active: 'is_active' in patch ? !!patch.is_active : u.is_active,
     })
     setBusy(false)
     if (error) setMsg(error.message)
@@ -290,11 +299,13 @@ export default function GeneralSettings({
                   <span>Unit utama</span>
                   <select
                     value={me?.primary_room_id || ''}
+                    disabled={!isAdmin}
                     onChange={(e) => me && setMe({ ...me, primary_room_id: e.target.value ? Number(e.target.value) : null })}
                   >
                     <option value="">Belum dipetakan</option>
                     {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
+                  {!isAdmin && <small style={{ display: 'block', marginTop: 6, color: 'var(--muted)', fontSize: 9 }}>Unit utama menentukan data yang dapat Anda akses dan hanya dapat diubah oleh Super Admin.</small>}
                 </label>
               </div>
               <div style={{ marginTop: 14 }}>
@@ -411,17 +422,33 @@ export default function GeneralSettings({
             <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>
               Super Admin dapat mengelola role, unit utama, dan status akun pengguna.
             </p>
-            <input placeholder="Cari nama / email…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ marginTop: 14, maxWidth: 360 }} />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
+              <input placeholder="Cari nama / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
+              {([
+                ['all', `Semua (${users.length})`],
+                ['pending', `Menunggu aktivasi (${pendingCount})`],
+                ['active', 'Aktif'],
+                ['unmapped', `Unit belum dipetakan (${unmappedCount})`],
+              ] as const).map(([id, label]) => (
+                <button key={id} type="button" className="textButton" onClick={() => setUserFilter(id)}
+                  style={{ margin: 0, padding: '6px 10px', borderRadius: 999, background: userFilter === id ? 'rgba(var(--accent-rgb),.14)' : 'transparent', fontWeight: userFilter === id ? 900 : 700 }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 10, color: '#9a6b13' }}>
+              {pendingCount} akun baru menunggu aktivasi. Periksa unit dan role, lalu klik “Aktifkan”. Akun ruangan cukup diberi role PIC Pelaporan.
+            </p>}
           </LiquidGlass>
 
           <LiquidGlass style={{ padding: 14 }}>
             <div style={{ display: 'grid', gap: 8 }}>
               {filtered.map((u) => (
-                <div key={u.user_id} style={{ padding: 12, border: '1px solid rgba(20,34,27,.08)', borderRadius: 16, background: 'rgba(255,255,255,.18)' }}>
+                <div key={u.user_id} style={{ padding: 12, border: u.is_active ? '1px solid rgba(20,34,27,.08)' : '1px solid rgba(169,104,22,.45)', borderRadius: 16, background: u.is_active ? 'rgba(255,255,255,.18)' : 'rgba(251,239,217,.55)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
                     <div>
                       <b style={{ display: 'block', fontSize: 11 }}>{u.full_name}</b>
-                      <span style={{ display: 'block', marginTop: 3, fontSize: 9, color: 'var(--muted)' }}>{u.email || '—'}</span>
+                      <span style={{ display: 'block', marginTop: 3, fontSize: 9, color: 'var(--muted)' }}>{u.email || '—'}{!u.is_active ? ' · Menunggu aktivasi' : ''}</span>
                     </div>
 
                     <select
@@ -437,7 +464,9 @@ export default function GeneralSettings({
                       {roles.map((r) => <option key={r.id} value={r.id}>{friendlyRole(r)}</option>)}
                     </select>
 
-                    <button type="button" className="textButton" onClick={() => updateUser(u, { is_active: !u.is_active })}>
+                    <button type="button" className="textButton" disabled={busy || (!u.is_active && !u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
+                      title={!u.is_active && !u.primary_room_id ? 'Petakan unit terlebih dahulu untuk akun PIC' : undefined}
+                      onClick={() => updateUser(u, u.is_active ? { is_active: false } : { is_active: true, role_id: u.role_id || picRoleId })}>
                       {u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                     </button>
                   </div>

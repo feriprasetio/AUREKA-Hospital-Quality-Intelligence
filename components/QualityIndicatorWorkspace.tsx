@@ -1,9 +1,9 @@
 'use client'
 import {useCallback,useEffect,useMemo,useState} from 'react'
-import {createClient} from '@supabase/supabase-js'
+import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 
-const sb=createClient('https://ktukmjscopggkzrkgnzp.supabase.co','sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
+const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
 const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian','Audit OPPE'] as const
