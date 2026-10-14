@@ -651,3 +651,50 @@ button.ovCell:not(:disabled):hover{transform:scale(1.07);box-shadow:0 8px 18px r
    containing block bagi position:fixed sehingga latar pop-up tidak menutupi sidebar. */
 @keyframes aurFadeOnly{from{opacity:0}to{opacity:1}}
 .moduleEnter{animation:aurFadeOnly .35s ease both!important}
+
+/* ---- Detail akun & reset password (Manajemen User) ---- */
+.uBtn.outline.active{background:rgba(var(--accent-rgb),.1);border-color:rgba(var(--accent-rgb),.55)}
+.userDetail{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:12px;padding-top:12px;border-top:1px dashed rgba(20,34,27,.14);animation:moduleEnter .25s ease}
+.userDetailCol{padding:14px;border-radius:14px;background:rgba(255,255,255,.55);border:1px solid rgba(20,34,27,.07);min-width:0}
+.userDetailCol h5{margin:0 0 10px;font-size:13px}
+.userDetailCol h5 span{font-weight:600;color:var(--muted);font-size:11px;margin-left:4px}
+.userDetailInfo{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:0 0 12px;font-size:12px}
+.userDetailInfo dt{color:var(--muted);font-weight:700}
+.userDetailInfo dd{margin:0;overflow-wrap:anywhere}
+.userDetailLabel{display:block;font-size:11px;font-weight:800;margin-bottom:5px}
+.userDetailInline{display:flex;gap:8px;flex-wrap:wrap}
+.userDetailInline input{flex:1 1 180px;min-width:0}
+.userDetailHint{font-size:11px;color:var(--muted);margin:10px 0 6px;line-height:1.45}
+.userTempPw{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(var(--accent-rgb),.08);border:1px solid rgba(var(--accent-rgb),.25);font-size:12px}
+.userTempPw code{font-size:15px;font-weight:800;letter-spacing:.06em;padding:3px 8px;border-radius:8px;background:#fff;user-select:all}
+
+/* ---- Lupa password ---- */
+.authForgot{display:block;margin:8px 0 0 auto;padding:4px 2px;background:none;border:0;color:var(--accent);font-size:13px;font-weight:800;cursor:pointer}
+.authForgot:hover{text-decoration:underline}
+.authShellSingle{width:min(480px,100%)!important;grid-template-columns:1fr!important}
+.authAlert.ok{background:rgba(15,118,86,.08);border-color:rgba(15,118,86,.25);color:#0b5a41}
+
+/* ---- Hub Indikator Mutu ---- */
+.qhGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.qhCard{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;padding:20px;border-radius:24px;min-height:190px;cursor:pointer;border:1px solid rgba(20,34,27,.08);font:inherit;color:inherit;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.qhCard:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(20,34,27,.12)}
+.qhCard.ready{border-color:rgba(var(--accent-rgb),.35);background:linear-gradient(160deg,rgba(var(--accent-rgb),.10),rgba(255,255,255,.7))}
+.qhCard.soon{opacity:.92}
+.qhCard.selected{border-color:rgba(169,104,22,.55);box-shadow:0 0 0 3px rgba(169,104,22,.12)}
+.qhCard b{font-size:18px;line-height:1.25}
+.qhTop{display:flex;width:100%;justify-content:space-between;align-items:center}
+.qhIcon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.8);font-size:22px;box-shadow:0 6px 16px rgba(20,34,27,.08)}
+.qhBadge{font-size:11px;font-weight:850;padding:4px 10px;border-radius:999px}
+.qhBadge.ok{background:rgba(var(--accent-rgb),.14);color:var(--accent2)}
+.qhBadge.soon{background:rgba(169,104,22,.13);color:#7a4c0f}
+.qhSummary{font-size:13px;color:var(--muted);line-height:1.5;flex:1}
+.qhCta{margin-top:4px;font-size:13px;font-weight:850;color:var(--accent)}
+.qhCard.ready .qhCta{display:inline-flex;padding:8px 14px;border-radius:12px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 18px rgba(var(--accent-rgb),.25)}
+.qhCard.soon .qhCta{color:#7a4c0f}
+.qhInfo{margin-top:16px;padding:20px 22px;border-radius:24px;animation:moduleEnter .25s ease}
+.qhInfoHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.qhInfoHead h3{margin:4px 0 0;font-size:20px}
+.qhInfoLead{margin:12px 0 6px;font-size:13px;color:var(--muted)}
+.qhInfo ul{margin:0 0 12px;padding-left:20px;display:grid;gap:6px;font-size:13px;line-height:1.5}
+.qhNeeds{display:grid;gap:4px;padding:12px 14px;border-radius:14px;background:rgba(169,104,22,.08);border:1px solid rgba(169,104,22,.22);font-size:13px}
+.qhInfoFoot{margin:12px 0 0;font-size:12px;color:var(--muted)}

@@ -15,6 +15,9 @@
 | Manajemen Risiko | Form tambah/edit risiko & FMEA tampil sebagai jendela pop-up (tidak perlu scroll). |
 | Manajemen User | Tombol **Hapus** dengan konfirmasi. Akun yang sudah memiliki data tidak dapat dihapus (data tetap utuh); gunakan Nonaktifkan. |
 | Pengaturan non-admin | Menu Manajemen User disembunyikan. Tersedia **Ganti Password** (verifikasi password lama) dan **Data Saya untuk PMKP**. |
+| Manajemen User → Detail | Super Admin dapat melihat data akun (email, status, unit, role, tanggal daftar), mengubah nama, **menyetel password sementara**, atau **mengirim email reset password**. |
+| Login | Tautan **Lupa password?** → email reset → halaman *Buat password baru*. |
+| Indikator Mutu | Kartu modul diberi status *Siap dipakai* / *Dalam pengembangan* beserta penjelasan fungsi. Audit Clinical Pathway, Audit Klinis & Kematian, dan Audit OPPE belum memiliki form (perlu instrumen dari Komite PMKP). |
 | Tampilan | Halaman awal, login, dan daftar akun didesain ulang (tombol lebih besar, panel identitas, layar sukses pendaftaran); animasi transisi, skeleton loading, dan angka beranimasi. |
 | Bug | Empat komponen membuat client Supabase sendiri-sendiri (beberapa `GoTrueClient` berebut sesi). Kini memakai satu client bersama `lib/aureka/supabase.ts`. |
 
@@ -38,8 +41,19 @@ Jalankan berurutan di **Supabase Dashboard → SQL Editor**:
 4. `supabase/migrations/20261014093000_user_lifecycle_and_room_admin.sql`
    — status akun **Nonaktif** (berbeda dari *Menunggu aktivasi*) dan kelola Unit & Instalasi
    (tambah, ubah nama/kode, nonaktifkan) oleh Super Admin.
+5. `supabase/migrations/20261014094000_admin_password_reset.sql`
+   — Super Admin dapat menyetel **password sementara** untuk user yang lupa password
+   (tanpa menghapus akun; data tetap utuh).
 
-Keempatnya idempoten (aman dijalankan ulang) dan sudah diuji pada PostgreSQL 16 dengan
+Pengaturan tambahan untuk tautan **Lupa password?** / email reset
+(Supabase Dashboard → Authentication → URL Configuration):
+- **Site URL**: `https://feriprasetio.github.io/AUREKA-Hospital-Quality-Intelligence/`
+- **Redirect URLs**: tambahkan `https://feriprasetio.github.io/AUREKA-Hospital-Quality-Intelligence/**`
+
+Email bawaan Supabase dibatasi beberapa email per jam; bila email reset tidak sampai,
+gunakan password sementara dari Super Admin.
+
+Kelimanya idempoten (aman dijalankan ulang) dan sudah diuji pada PostgreSQL 16 dengan
 seluruh migration repo (kecuali dua migration `aureka_quality` yang bergantung pada tabel
 yang tidak ada di repo):
 

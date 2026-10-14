@@ -16,6 +16,7 @@ type Profile = {
   role_id: string | null
   is_active: boolean
   deactivated_at?: string | null
+  created_at?: string | null
 }
 type Role = { id: string; code: string; name: string; description?: string | null }
 
@@ -78,6 +79,10 @@ export default function GeneralSettings({
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [rowNote, setRowNote] = useState<{ id: string; ok: boolean; text: string } | null>(null)
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const [detailName, setDetailName] = useState('')
+  const [tempPw, setTempPw] = useState('')
+  const [tempPwDone, setTempPwDone] = useState<{ id: string; pw: string } | null>(null)
   useEffect(() => {
     if (!msg) return
     const t = setTimeout(() => setMsg(''), 6000)
@@ -270,6 +275,67 @@ export default function GeneralSettings({
     setMsg(`Akun ${u.full_name} berhasil dihapus.`)
     setRowNote(null)
     loadUsers()
+  }
+
+  const openDetail = (u: Profile) => {
+    if (detailId === u.user_id) { setDetailId(null); return }
+    setDetailId(u.user_id)
+    setDetailName(u.full_name || '')
+    setTempPw('')
+    setTempPwDone(null)
+    setConfirmDeleteId(null)
+    setRowNote(null)
+  }
+
+  const generateTempPw = () => {
+    // Tanpa karakter yang mudah tertukar (0/O, 1/l/I) agar mudah didiktekan ke PIC.
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+    const buf = new Uint32Array(10)
+    crypto.getRandomValues(buf)
+    setTempPw(Array.from(buf, (n) => chars[n % chars.length]).join(''))
+  }
+
+  const setUserPassword = async (u: Profile) => {
+    const pwd = tempPw.trim()
+    if (pwd.length < 8) { setRowNote({ id: u.user_id, ok: false, text: 'Password sementara minimal 8 karakter.' }); return }
+    setBusy(true)
+    setMsg('')
+    const { error } = await sb.rpc('aureka_admin_set_user_password', { p_user_id: u.user_id, p_new_password: pwd })
+    setBusy(false)
+    if (error) {
+      const t = error.message || ''
+      let note = `Gagal menyetel password: ${t}`
+      if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t)) note = 'Fitur reset password belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014094000_admin_password_reset.sql di SQL Editor, lalu coba lagi.'
+      else if (/PASSWORD_TOO_SHORT/.test(t)) note = 'Password sementara minimal 8 karakter.'
+      setMsg(note)
+      setRowNote({ id: u.user_id, ok: false, text: note })
+      return
+    }
+    setTempPwDone({ id: u.user_id, pw: pwd })
+    setTempPw('')
+    // Tanpa toast agar password sementara di panel tidak tertutup notifikasi.
+    const text = `Password ${u.full_name} sudah diganti. Berikan password sementara kepada yang bersangkutan dan minta ia menggantinya di Pengaturan → Keamanan & Password.`
+    setRowNote({ id: u.user_id, ok: true, text })
+  }
+
+  const sendResetEmail = async (u: Profile) => {
+    if (!u.email) { setRowNote({ id: u.user_id, ok: false, text: 'Akun ini tidak memiliki email.' }); return }
+    setBusy(true)
+    setMsg('')
+    const redirectTo = `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`
+    const { error } = await sb.auth.resetPasswordForEmail(u.email, { redirectTo })
+    setBusy(false)
+    const text = error
+      ? `Gagal mengirim email reset: ${/rate limit|too many/i.test(error.message) ? 'terlalu banyak permintaan, coba lagi beberapa menit lagi.' : error.message}`
+      : `Email reset password dikirim ke ${u.email}. Minta ${u.full_name} membuka tautan di email tersebut (cek juga folder Spam).`
+    setMsg(text)
+    setRowNote({ id: u.user_id, ok: !error, text })
+  }
+
+  const fmtDate = (v?: string | null) => {
+    if (!v) return '—'
+    const d = new Date(v)
+    return isNaN(d.getTime()) ? '—' : d.toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
   const changePassword = async () => {
@@ -648,7 +714,7 @@ export default function GeneralSettings({
               <ul className="myDataList">
                 <li><b>Ganti unit / role</b><span>Unit utama dan role ditetapkan Super Admin. Hubungi Komite PMKP bila Anda pindah unit atau perlu akses tambahan.</span></li>
                 <li><b>Data salah input</b><span>Risiko unit dapat Anda edit sendiri. Laporan IKP yang sudah dikirim diperbaiki melalui Komite PMKP.</span></li>
-                <li><b>Lupa password</b><span>Ganti password di menu Keamanan & Password, atau minta Super Admin membantu reset.</span></li>
+                <li><b>Lupa password</b><span>Klik “Lupa password?” di halaman login untuk menerima email reset, atau minta Super Admin menyetel password sementara.</span></li>
               </ul>
             </LiquidGlass>
           </div>
@@ -707,6 +773,10 @@ export default function GeneralSettings({
                     </select>
 
                     <div className="userActions">
+                    <button type="button" className={detailId === u.user_id ? 'uBtn outline active' : 'uBtn outline'} aria-expanded={detailId === u.user_id}
+                      title="Lihat & ubah data akun, reset password" onClick={() => openDetail(u)}>
+                      <span aria-hidden="true">👤</span> {detailId === u.user_id ? 'Tutup detail' : 'Detail'}
+                    </button>
                     {!u.is_active ? (
                       <button type="button" className="uBtn primary" disabled={busy || (!u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
                         title={!u.primary_room_id ? 'Pilih unit terlebih dahulu untuk akun PIC' : 'Aktifkan akun agar bisa login'}
@@ -734,6 +804,47 @@ export default function GeneralSettings({
                     </div>
                   </div>
                   {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`}>{rowNote.text}</div>}
+                  {detailId === u.user_id && (
+                    <div className="userDetail">
+                      <div className="userDetailCol">
+                        <h5>Data akun</h5>
+                        <dl className="userDetailInfo">
+                          <dt>Email login</dt><dd>{u.email || '—'}</dd>
+                          <dt>Status</dt><dd>{u.is_active ? 'Aktif' : u.deactivated_at ? `Nonaktif sejak ${fmtDate(u.deactivated_at)}` : 'Menunggu aktivasi'}</dd>
+                          <dt>Unit utama</dt><dd>{rooms.find((r) => r.id === u.primary_room_id)?.name || 'Belum dipetakan'}</dd>
+                          <dt>Role</dt><dd>{friendlyRole(roles.find((r) => r.id === u.role_id))}</dd>
+                          <dt>Terdaftar</dt><dd>{fmtDate(u.created_at)}</dd>
+                        </dl>
+                        <label className="userDetailLabel" htmlFor={`nm-${u.user_id}`}>Nama lengkap</label>
+                        <div className="userDetailInline">
+                          <input id={`nm-${u.user_id}`} value={detailName} onChange={(e) => setDetailName(e.target.value)} />
+                          <button type="button" className="uBtn primary" disabled={busy || !detailName.trim() || detailName.trim() === u.full_name}
+                            onClick={() => updateUser(u, { full_name: detailName.trim() })}>Simpan nama</button>
+                        </div>
+                        <p className="userDetailHint">Unit dan role diubah lewat pilihan di baris atas. Email login tidak dapat diubah dari aplikasi.</p>
+                      </div>
+                      <div className="userDetailCol">
+                        <h5>Reset password <span>untuk user yang lupa password</span></h5>
+                        <p className="userDetailHint" style={{ marginTop: 0 }}><b>Cara 1 — Password sementara.</b> Buat password baru, lalu sampaikan ke user (WA/langsung). Akun dan datanya tetap utuh.</p>
+                        <div className="userDetailInline">
+                          <input placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
+                          <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">🎲 Buat acak</button>
+                        </div>
+                        <button type="button" className="uBtn primary" style={{ marginTop: 8 }} disabled={busy || tempPw.trim().length < 8} onClick={() => setUserPassword(u)}>
+                          {busy ? 'Menyimpan…' : '🔑 Setel password sementara'}
+                        </button>
+                        {tempPwDone?.id === u.user_id && (
+                          <div className="userTempPw">
+                            <span>Password baru {u.full_name}:</span>
+                            <code>{tempPwDone.pw}</code>
+                            <button type="button" className="uBtn ghost" onClick={() => { navigator.clipboard?.writeText(tempPwDone.pw); setRowNote({ id: u.user_id, ok: true, text: 'Password disalin.' }) }}>Salin</button>
+                          </div>
+                        )}
+                        <p className="userDetailHint"><b>Cara 2 — Email reset.</b> User menerima tautan di email untuk membuat password sendiri.</p>
+                        <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => sendResetEmail(u)}>✉️ Kirim email reset password</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 10 }}>Tidak ada pengguna yang cocok.</div>}
