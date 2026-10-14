@@ -362,7 +362,7 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 /* stats layout variants */
 .ovKpis.ovKpis4{grid-template-columns:repeat(4,minmax(0,1fr))}.ovGrid.ovGrid2{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:1280px){.ovKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.ovGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ovGrid{grid-template-columns:1fr}.ovHero h3{font-size:22px}}
+@media(max-width:760px){.ovKpis,.ovKpis.ovKpis4{grid-template-columns:repeat(2,minmax(0,1fr))}.ovGrid.ovGrid2{grid-template-columns:1fr}.ovGrid{grid-template-columns:1fr}.ovHero h3{font-size:22px}}
 
 /* ---------- Metadata & Statistik ---------- */
 .stFilters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
