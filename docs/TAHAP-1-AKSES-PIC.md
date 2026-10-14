@@ -35,8 +35,11 @@ Jalankan berurutan di **Supabase Dashboard → SQL Editor**:
    — mencegah pengguna biasa mengubah role, status aktif, atau unit utamanya sendiri.
 3. `supabase/migrations/20261014092000_admin_delete_user.sql`
    — fungsi hapus akun untuk Super Admin (menolak akun yang sudah memiliki data).
+4. `supabase/migrations/20261014093000_user_lifecycle_and_room_admin.sql`
+   — status akun **Nonaktif** (berbeda dari *Menunggu aktivasi*) dan kelola Unit & Instalasi
+   (tambah, ubah nama/kode, nonaktifkan) oleh Super Admin.
 
-Ketiganya idempoten (aman dijalankan ulang) dan sudah diuji pada PostgreSQL 16 dengan
+Keempatnya idempoten (aman dijalankan ulang) dan sudah diuji pada PostgreSQL 16 dengan
 seluruh migration repo (kecuali dua migration `aureka_quality` yang bergantung pada tabel
 yang tidak ada di repo):
 
@@ -48,6 +51,13 @@ yang tidak ada di repo):
   `admin_update_user_profile` oleh Super Admin tetap berjalan.
 - Hapus akun: PIC ditolak, admin tidak dapat menghapus diri sendiri, akun yang memiliki data ditolak
   (`USER_HAS_DATA`) dan seluruh data tetap ada, akun kosong terhapus.
+- Unit: PIC ditolak, nama/kode ganda ditolak, ganti nama unit ikut memperbarui `unit_name`
+  di risk register unit tersebut, akun yang dinonaktifkan tercatat `deactivated_at`.
+
+### Mengapa akun yang punya data tidak dihapus beserta datanya?
+Risk register, laporan IKP, dan rekam mutu adalah dokumen unit/rumah sakit (jejak audit
+akreditasi), bukan milik pribadi PIC. Akun cukup dinonaktifkan; akun nonaktif disembunyikan
+dari daftar utama dan dapat dilihat lewat filter **Nonaktif**.
 
 Tanpa migration ini, pembatasan tampilan tetap aktif di aplikasi, tetapi data unit lain
 masih dapat dibaca lewat API.
