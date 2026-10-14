@@ -68,6 +68,13 @@ export default function GeneralSettings({
   const [myData, setMyData] = useState<{ risks: number | null; highRisks: number | null; incidents: number | null; openIncidents: number | null; quality: number | null } | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [rowNote, setRowNote] = useState<{ id: string; ok: boolean; text: string } | null>(null)
+  useEffect(() => {
+    if (!msg) return
+    const t = setTimeout(() => setMsg(''), 6000)
+    return () => clearTimeout(t)
+  }, [msg])
+  const msgIsError = /gagal|tidak dapat|belum aktif|error|forbidden|tidak ditemukan|tidak dihapus/i.test(msg)
   const [toneId, setToneId] = useState(() =>
     typeof window === 'undefined' ? 'emerald' : localStorage.getItem('aureka-tone') || 'emerald'
   )
@@ -176,9 +183,13 @@ export default function GeneralSettings({
       p_is_active: 'is_active' in patch ? !!patch.is_active : u.is_active,
     })
     setBusy(false)
-    if (error) setMsg(error.message)
-    else {
-      setMsg('Perubahan pengguna disimpan.')
+    if (error) {
+      setMsg(`Gagal menyimpan: ${error.message}`)
+      setRowNote({ id: u.user_id, ok: false, text: error.message })
+    } else {
+      const text = 'is_active' in patch ? (patch.is_active ? `${u.full_name} diaktifkan. Akun sudah bisa login.` : `${u.full_name} dinonaktifkan.`) : `Perubahan untuk ${u.full_name} disimpan.`
+      setMsg(text)
+      setRowNote({ id: u.user_id, ok: true, text })
       loadUsers()
     }
   }
@@ -191,12 +202,15 @@ export default function GeneralSettings({
     setConfirmDeleteId(null)
     if (error) {
       const text = error.message || ''
-      if (/USER_HAS_DATA/.test(text)) setMsg(`${u.full_name}: akun sudah memiliki data sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.`)
-      else if (error.code === 'PGRST202' || /Could not find the function/i.test(text)) setMsg('Fitur hapus akun belum aktif: migration 20261014092000_admin_delete_user.sql perlu dijalankan di Supabase.')
-      else setMsg(`Gagal menghapus: ${text}`)
+      let note = `Gagal menghapus: ${text}`
+      if (/USER_HAS_DATA/.test(text)) note = 'Akun ini sudah memiliki data (risiko/laporan/rekam mutu), sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.'
+      else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014092000_admin_delete_user.sql di SQL Editor, lalu coba lagi.'
+      setMsg(note)
+      setRowNote({ id: u.user_id, ok: false, text: note })
       return
     }
-    setMsg(`Akun ${u.full_name} dihapus.`)
+    setMsg(`Akun ${u.full_name} berhasil dihapus.`)
+    setRowNote(null)
     loadUsers()
   }
 
@@ -244,6 +258,13 @@ export default function GeneralSettings({
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      {msg && (
+        <div className={`aurToast ${msgIsError ? 'error' : 'ok'}`} role="status" aria-live="polite">
+          <span className="aurToastIcon" aria-hidden="true">{msgIsError ? '!' : '✓'}</span>
+          <span className="aurToastText">{msg}</span>
+          <button type="button" onClick={() => setMsg('')} aria-label="Tutup notifikasi">×</button>
+        </div>
+      )}
       {section === 'menu' && (
         <LiquidGlass style={{ padding: 18 }}>
           <div className="eyebrow">PENGATURAN</div>
@@ -346,7 +367,6 @@ export default function GeneralSettings({
             </div>
           </LiquidGlass>
 
-          {msg && <div className="msg visible">{msg}</div>}
 
           {tab === 'profile' && (
             <LiquidGlass style={{ padding: 18 }}>
@@ -574,8 +594,8 @@ export default function GeneralSettings({
                 <div key={u.user_id} className="userRow" style={{ padding: 12, border: u.is_active ? '1px solid rgba(20,34,27,.08)' : '1px solid rgba(169,104,22,.45)', borderRadius: 16, background: u.is_active ? 'rgba(255,255,255,.18)' : 'rgba(251,239,217,.55)' }}>
                   <div className="userRowGrid">
                     <div>
-                      <b style={{ display: 'block', fontSize: 11 }}>{u.full_name}</b>
-                      <span style={{ display: 'block', marginTop: 3, fontSize: 9, color: 'var(--muted)' }}>{u.email || '—'}{!u.is_active ? ' · Menunggu aktivasi' : ''}</span>
+                      <b className="userName">{u.full_name} <span className={`userStatus ${u.is_active ? 'on' : 'pending'}`}>{u.is_active ? 'Aktif' : 'Menunggu aktivasi'}</span></b>
+                      <span className="userEmail">{u.email || '—'}</span>
                     </div>
 
                     <select
@@ -591,22 +611,34 @@ export default function GeneralSettings({
                       {roles.map((r) => <option key={r.id} value={r.id}>{friendlyRole(r)}</option>)}
                     </select>
 
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <button type="button" className="textButton" style={{ margin: 0 }} disabled={busy || (!u.is_active && !u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
-                      title={!u.is_active && !u.primary_room_id ? 'Petakan unit terlebih dahulu untuk akun PIC' : undefined}
-                      onClick={() => updateUser(u, u.is_active ? { is_active: false } : { is_active: true, role_id: u.role_id || picRoleId })}>
-                      {u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                    </button>
+                    <div className="userActions">
+                    {!u.is_active ? (
+                      <button type="button" className="uBtn primary" disabled={busy || (!u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
+                        title={!u.primary_room_id ? 'Pilih unit terlebih dahulu untuk akun PIC' : 'Aktifkan akun agar bisa login'}
+                        onClick={() => updateUser(u, { is_active: true, role_id: u.role_id || picRoleId })}>
+                        <span aria-hidden="true">✓</span> Aktifkan
+                      </button>
+                    ) : (
+                      <button type="button" className="uBtn outline" disabled={busy || u.user_id === me?.user_id}
+                        title={u.user_id === me?.user_id ? 'Tidak dapat menonaktifkan akun sendiri' : 'Nonaktifkan akun (data tetap tersimpan)'}
+                        onClick={() => updateUser(u, { is_active: false })}>
+                        Nonaktifkan
+                      </button>
+                    )}
                     {u.user_id !== me?.user_id && (confirmDeleteId === u.user_id ? (
                       <span className="userDeleteConfirm">
-                        <button type="button" className="textButton danger" style={{ margin: 0 }} disabled={busy} onClick={() => deleteUser(u)}>Ya, hapus</button>
-                        <button type="button" className="textButton muted" style={{ margin: 0 }} onClick={() => setConfirmDeleteId(null)}>Batal</button>
+                        <span>Hapus akun ini?</span>
+                        <button type="button" className="uBtn danger solid" disabled={busy} onClick={() => deleteUser(u)}>{busy ? 'Menghapus…' : 'Ya, hapus'}</button>
+                        <button type="button" className="uBtn ghost" onClick={() => setConfirmDeleteId(null)}>Batal</button>
                       </span>
                     ) : (
-                      <button type="button" className="textButton danger" style={{ margin: 0 }} disabled={busy} title="Hapus akun (hanya untuk akun yang belum memiliki data)" onClick={() => setConfirmDeleteId(u.user_id)}>Hapus</button>
+                      <button type="button" className="uBtn danger" disabled={busy} title="Hapus akun (hanya untuk akun yang belum memiliki data)" onClick={() => { setConfirmDeleteId(u.user_id); setRowNote(null) }}>
+                        <span aria-hidden="true">🗑</span> Hapus
+                      </button>
                     ))}
                     </div>
                   </div>
+                  {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`}>{rowNote.text}</div>}
                 </div>
               ))}
               {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 10 }}>Tidak ada pengguna yang cocok.</div>}
