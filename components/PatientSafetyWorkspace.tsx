@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type React from 'react'
+import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
 
@@ -209,6 +211,18 @@ function makeResponseIdentity() {
   return { id: raw.slice(0, 8) + '-' + raw.slice(8, 12) + '-4' + raw.slice(13, 16) + '-a' + raw.slice(17, 20) + '-' + raw.slice(20, 32), code: 'SC-' + date + '-' + raw.slice(0, 12).toUpperCase() }
 }
 
+// Formulir laporan tampil sebagai jendela di atas daftar agar tidak perlu scroll ke bawah,
+// dengan tombol kembali yang selalu terlihat di bagian atas.
+function PsFormModal({ label, children }: { label: string; children: React.ReactNode }) {
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+  // Dirender ke <body> agar latar menutup seluruh layar termasuk sidebar.
+  return createPortal(<div className="psModalBackdrop" role="dialog" aria-modal="true" aria-label={label}><div className="psModalSheet">{children}</div></div>, document.body)
+}
+
 export default function PatientSafetyWorkspace({
   supabase,
   rooms,
@@ -332,6 +346,14 @@ export default function PatientSafetyWorkspace({
   const missingSurvey = useMemo(() => SURVEY_REQUIRED.filter(code => !Object.prototype.hasOwnProperty.call(surveyAnswers, code) || surveyAnswers[code] === ''), [surveyAnswers])
   const roomOptions = rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
 
+  const [formOpen, setFormOpen] = useState(false)
+  const [confirmClose, setConfirmClose] = useState(false)
+  const formSnapshot = useRef('')
+  const formDirty = formOpen && JSON.stringify(incidentData) !== formSnapshot.current
+  const closeForm = (force = false) => {
+    if (!force && formDirty) { setConfirmClose(true); return }
+    setConfirmClose(false); setFormOpen(false); setError('')
+  }
   const notify = (text: string) => {
     setMessage(text)
     window.setTimeout(() => setMessage(current => current === text ? '' : current), 4500)
@@ -343,9 +365,12 @@ export default function PatientSafetyWorkspace({
     setIncidentCode(row.incident_code)
     setIncidentStatus(row.status as IncidentStatus)
     setIncidentData({ ...(row.form_data || {}) })
+    formSnapshot.current = JSON.stringify({ ...(row.form_data || {}) })
     setTab('incidents')
     setError('')
     setMessage('')
+    setConfirmClose(false)
+    setFormOpen(true)
   }
   const appliedFocus = useRef(0)
   useEffect(() => {
@@ -364,9 +389,14 @@ export default function PatientSafetyWorkspace({
     setIncidentId('')
     setIncidentCode('')
     setIncidentStatus('draft')
-    setIncidentData({ E2: rooms.find(room => room.id === initialRoomId)?.name || '' })
+    const initial = { E2: rooms.find(room => room.id === initialRoomId)?.name || '' }
+    setIncidentData(initial)
+    formSnapshot.current = JSON.stringify(initial)
+    setTab('incidents')
     setError('')
     setMessage('')
+    setConfirmClose(false)
+    setFormOpen(true)
   }
   const saveIncident = async (nextStatus: IncidentStatus) => {
     if (saving) return
@@ -396,7 +426,9 @@ export default function PatientSafetyWorkspace({
       setIncidentId(result.data.id)
       setIncidentCode(result.data.incident_code)
       setIncidentStatus(result.data.status as IncidentStatus)
+      formSnapshot.current = JSON.stringify(incidentData)
       await loadData()
+      if (nextStatus === 'submitted' && !canManageWorkflow) setFormOpen(false)
       notify(nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code)
     } catch (e) {
       setError('Gagal menyimpan laporan IKP: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
@@ -668,9 +700,20 @@ export default function PatientSafetyWorkspace({
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '—'}</td><td>{row.unit_name || '—'}</td><td>{row.incident_type || '—'}</td><td>{row.summary || '—'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></div> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
       </LiquidGlass>
+      {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'}>
+      <div className="psModalTop">
+      <div className="psModalBar">
+        <button type="button" className="psBackBtn" onClick={() => closeForm()}><span aria-hidden="true">←</span> Kembali ke daftar laporan</button>
+        <span className="psModalTitle">{incidentId ? incidentCode : 'Laporan IKP baru'}</span>
+        <button type="button" className="psCloseBtn" aria-label="Tutup formulir" onClick={() => closeForm()}>✕</button>
+      </div>
+      {confirmClose ? <div className="psConfirm" role="alert"><span>Ada isian yang belum disimpan. Tutup formulir tanpa menyimpan?</span><div className="psActions"><button type="button" className="psBtn" onClick={() => setConfirmClose(false)}>Lanjut mengisi</button>{!incidentLocked ? <button type="button" className="psBtn primary" disabled={saving} onClick={() => { setConfirmClose(false); void saveIncident('draft') }}>Simpan Draft</button> : null}<button type="button" className="psBtn danger" onClick={() => closeForm(true)}>Tutup tanpa simpan</button></div></div> : null}
+      </div>
+      {error ? <div className="psAlert error">{error}</div> : null}
+      {message ? <div className="psAlert">{message}</div> : null}
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><div className="psEyebrow">FORMULIR LAPORAN · INSIDEN KESELAMATAN PASIEN</div><h4>{incidentId ? 'Laporan ' + incidentCode : 'Laporan Insiden Keselamatan Pasien'}</h4><p>RAHASIA — UNTUK KEPENTINGAN INTERNAL. Pelaporan untuk pembelajaran dan perbaikan sistem, bukan untuk mencari kesalahan atau menghukum individu (non-punitive). Mohon laporkan maksimal 2×24 jam setelah kejadian.</p></div>
-          <div className="psActions"><span className="psPill green">{incidentStatus === 'draft' ? 'Draft' : statusLabel(incidentStatus)}</span><button type="button" className="psBtn" onClick={newIncident}>＋ Laporan Baru</button></div>
+          <div className="psActions"><span className="psPill green">{incidentStatus === 'draft' ? 'Draft' : statusLabel(incidentStatus)}</span></div>
         </div>
         <div className="psMetaGrid">
           <div className="psMeta"><span>Kode Laporan</span><strong>{incidentCode || 'Dibuat saat disimpan'}</strong></div>
@@ -697,6 +740,7 @@ export default function PatientSafetyWorkspace({
           </div>
         </div>
       </LiquidGlass>
+      </PsFormModal> : null}
     </> : null}
 
     {tab === 'investigation' ? <>
