@@ -266,7 +266,7 @@ export default function OverviewDashboard({
                 <li key={r.id}>
                   <button type="button" onClick={() => onNavigate('risk')}>
                     <strong className="ovScore">{r.risk_score}</strong>
-                    <span className="ovListText"><b>{r.risk_event}</b><small>{r.risk_code} · {r.unit_name}</small></span>
+                    <span className="ovListText" title={`${r.risk_event} · ${r.unit_name}`}><b>{r.risk_event}</b><small>{r.risk_code} · {r.unit_name}</small></span>
                     <span className={`rmBadge ${LEVEL_CLASS[r.risk_level] || ''}`}>{r.risk_level}</span>
                   </button>
                 </li>
@@ -281,7 +281,7 @@ export default function OverviewDashboard({
                 <li key={i.id}>
                   <button type="button" onClick={() => onNavigate('safety')}>
                     <span className="ovDot" data-status={i.status} aria-hidden="true" />
-                    <span className="ovListText"><b>{i.summary || i.incident_type || i.incident_code}</b><small>{i.incident_code} · {i.unit_name || 'Unit belum diisi'} · {(i.incident_date || i.created_at).slice(0, 10)}</small></span>
+                    <span className="ovListText" title={i.summary || i.incident_type || i.incident_code}><b>{i.summary || i.incident_type || i.incident_code}</b><small>{i.incident_code} · {i.unit_name || 'Unit belum diisi'} · {(i.incident_date || i.created_at).slice(0, 10)}</small></span>
                     <span className="ovStatus">{INCIDENT_STATUS[i.status] || i.status}</span>
                   </button>
                 </li>

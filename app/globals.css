@@ -548,3 +548,10 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 .aurToastText{flex:1;font-size:12px;line-height:1.5;color:var(--ink)}
 .aurToast button{flex:none;border:0;background:transparent;font-size:18px;line-height:1;color:var(--muted);padding:2px 4px}
 @media(max-width:900px){.userRowGrid{grid-template-columns:1fr!important}.userActions{justify-content:flex-start}}
+
+/* Daftar di Overview tidak boleh melebar keluar panel (teks panjang dipotong dengan …) */
+.ovPanel{overflow:hidden}
+.ovList{grid-template-columns:minmax(0,1fr)}
+.ovList li{min-width:0}
+.ovList button{min-width:0;overflow:hidden}
+.ovBars,.ovBarRow{min-width:0}
