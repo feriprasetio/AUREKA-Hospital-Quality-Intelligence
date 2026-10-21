@@ -707,7 +707,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       {form.template.source_notes.length > 0 && <div className="cpGlass cpPanel cpSourceNotes"><h4>Catatan sumber yang harus tetap diperhatikan</h4>{form.template.source_notes.map((note, i) => <div key={i} className="cpNotice">{note}</div>)}</div>}
       <div className="cpGlass cpFooter">
         <div><span className="cpTiny">Pengisi: {userName} · Petugas pelaksana dicatat pada rincian tiap item bila diperlukan.</span><div className="cpTiny">Snapshot CP versi {form.template.version} · Sistem tidak menggunakan cache lokal sebagai penyimpanan data audit.</div></div>
-        <div className="cpActions"><button type="button" className="cpBtn" disabled={saving} onClick={() => void saveAudit('draft')}>{saving ? 'Menyimpan…' : 'Simpan draf'}</button><button type="button" className="cpBtn primary" disabled={saving} onClick={() => void saveAudit(isAdmin && form.status === 'submitted' ? 'validated' : 'submitted')}>{saving ? 'Menyimpan…' : isAdmin && form.status === 'submitted' ? 'Simpan & validasi' : form.status === 'validated' ? 'Perbarui audit tervalidasi' : 'Simpan / ajukan audit'}</button></div>
+        <div className="cpActions"><button type="button" className="cpBtn" disabled={saving} onClick={() => void saveAudit('draft')}>{saving ? 'Menyimpan…' : 'Simpan draf'}</button><button type="button" className="cpBtn primary" disabled={saving} onClick={() => void saveAudit(isAdmin && form.status !== 'draft' ? 'validated' : 'submitted')}>{saving ? 'Menyimpan…' : isAdmin && form.status === 'submitted' ? 'Simpan & validasi' : form.status === 'validated' ? 'Perbarui audit tervalidasi' : 'Simpan / ajukan audit'}</button></div>
       </div>
     </>}
 
