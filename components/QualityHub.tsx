@@ -24,15 +24,10 @@ const ITEMS: Item[] = [
   {
     id: 'cp',
     title: 'Audit Clinical Pathway',
-    ready: false,
+    ready: true,
     icon: '🧭',
-    summary: 'Audit kepatuhan pelaksanaan clinical pathway pada diagnosis prioritas.',
-    detail: [
-      'Memeriksa apakah tata laksana pasien sesuai langkah clinical pathway (PPK) yang ditetapkan.',
-      'Mencatat variasi/penyimpangan, lama rawat (LOS), dan alasan ketidakpatuhan.',
-      'Hasil: persentase kepatuhan per clinical pathway dan per DPJP sebagai bahan evaluasi KSM.',
-    ],
-    needs: 'Daftar clinical pathway yang diaudit dan formulir/ceklis audit yang dipakai rumah sakit.',
+    summary: 'Checklist CP lintas PPA per pasien, kalkulasi otomatis Bagian D, dan bukti kinerja OPPE.',
+    detail: [],
   },
   {
     id: 'akk',
@@ -62,7 +57,7 @@ const ITEMS: Item[] = [
   },
 ]
 
-export default function QualityHub({ onOpen }: { onOpen: () => void }) {
+export default function QualityHub({ onOpen, onOpenClinicalPathway }: { onOpen: () => void; onOpenClinicalPathway: () => void }) {
   const [info, setInfo] = useState<string | null>(null)
   const sel = ITEMS.find((i) => i.id === info) || null
   return (
@@ -73,7 +68,7 @@ export default function QualityHub({ onOpen }: { onOpen: () => void }) {
             key={it.id}
             type="button"
             className={`qhCard glassPanel ${it.ready ? 'ready' : 'soon'} ${info === it.id ? 'selected' : ''}`}
-            onClick={() => (it.ready ? onOpen() : setInfo(info === it.id ? null : it.id))}
+            onClick={() => (it.id === 'cp' ? onOpenClinicalPathway() : it.ready ? onOpen() : setInfo(info === it.id ? null : it.id))}
             aria-expanded={it.ready ? undefined : info === it.id}
           >
             <span className="qhTop">

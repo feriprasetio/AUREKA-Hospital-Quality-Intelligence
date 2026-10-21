@@ -11,6 +11,7 @@ type Risk = {
 type Plan = { id: string; status: string; target_date: string | null; owner_room_id: number | null }
 type Incident = { id: string; incident_code: string; incident_date: string | null; unit_name: string; incident_type: string; summary: string; status: string; created_at: string }
 type QualityRecord = { id: string; room_id: number | null; status: string | null; review_required: boolean | null; created_at: string }
+type ClinicalPathwayAudit = { id: string; room_id: number; template_code: string; template_name: string; patient_name: string; status: string; calculation_json: Record<string, any>; created_at: string }
 type Section<T> = { rows: T[]; error: string | null }
 
 const LEVELS = ['Sangat Tinggi', 'Tinggi', 'Sedang', 'Rendah', 'Sangat Rendah'] as const
@@ -54,12 +55,12 @@ function useCountUp(target: number, run: boolean) {
   return value
 }
 
-function Kpi({ label, value, sub, tone, loading, onClick, delay }: { label: string; value: number | null; sub?: string; tone?: string; loading: boolean; onClick?: () => void; delay: number }) {
+function Kpi({ label, value, sub, tone, loading, onClick, delay, formatted }: { label: string; value: number | null; sub?: string; tone?: string; loading: boolean; onClick?: () => void; delay: number; formatted?: string }) {
   const shown = useCountUp(value ?? 0, !loading && value !== null)
   return (
     <button type="button" className={`ovKpi ${tone || ''}`} style={{ animationDelay: `${delay}ms` }} onClick={onClick} disabled={!onClick}>
       <span className="ovKpiLabel">{label}</span>
-      {loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value === null ? '—' : shown.toLocaleString('id-ID')}</b>}
+      {loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value === null ? '—' : formatted || shown.toLocaleString('id-ID')}</b>}
       {sub && !loading && <small>{sub}</small>}
     </button>
   )
@@ -97,6 +98,7 @@ export default function OverviewDashboard({
   const [plans, setPlans] = useState<Section<Plan>>({ rows: [], error: null })
   const [incidents, setIncidents] = useState<Section<Incident>>({ rows: [], error: null })
   const [quality, setQuality] = useState<Section<QualityRecord>>({ rows: [], error: null })
+  const [clinicalPathway, setClinicalPathway] = useState<Section<ClinicalPathwayAudit>>({ rows: [], error: null })
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const year = new Date().getFullYear()
@@ -117,7 +119,12 @@ export default function OverviewDashboard({
       fetchAll<QualityRecord>((f, t) => sb.schema('aureka_quality').from('quality_records')
         .select('id,room_id,status,review_required,created_at').eq('profile_year', year)
         .order('created_at', { ascending: false }).range(f, t)),
-    ]).then(([r, p, i, q]) => {
+      fetchAll<ClinicalPathwayAudit>((f, t) => sb.schema('aureka_quality').from('clinical_pathway_audits')
+        .select('id,room_id,template_code,template_name,patient_name,status,calculation_json,created_at')
+        .gte('created_at', String(year) + '-01-01T00:00:00.000Z')
+        .lt('created_at', String(year + 1) + '-01-01T00:00:00.000Z')
+        .neq('status', 'archived').order('created_at', { ascending: false }).range(f, t)),
+    ]).then(([r, p, i, q, cp]) => {
       if (cancelled) return
       // Role unit (PIC) melihat data unitnya saja, selaras dengan modul Manajemen Risiko.
       const norm = (v?: string | null) => String(v || '').trim().toLowerCase()
@@ -127,6 +134,7 @@ export default function OverviewDashboard({
       setPlans({ ...p, rows: p.rows.filter(x => manager || (roomId != null && x.owner_room_id === roomId)) })
       setIncidents(i)
       setQuality({ ...q, rows: q.rows.filter(x => manager || (roomId != null && x.room_id === roomId)) })
+      setClinicalPathway({ ...cp, rows: cp.rows.filter(x => manager || (roomId != null && x.room_id === roomId)) })
       setRefreshedAt(new Date())
       setLoading(false)
     })
@@ -175,11 +183,16 @@ export default function OverviewDashboard({
       plansPending: plans.rows.filter(p => PLAN_PENDING.includes(p.status)).length,
       qualityTotal: quality.rows.length,
       qualityReview: quality.rows.filter(q => q.review_required).length,
+      cpAuditTotal: clinicalPathway.rows.length,
+      cpReviewedTotal: clinicalPathway.rows.filter(x => x.status === 'submitted' || x.status === 'validated').length,
+      cpEligibleTotal: clinicalPathway.rows.filter(x => (x.status === 'submitted' || x.status === 'validated') && x.calculation_json?.included === true).length,
+      cpSectionDPass: clinicalPathway.rows.filter(x => (x.status === 'submitted' || x.status === 'validated') && x.calculation_json?.included === true && x.calculation_json?.section_d_pass === true).length,
+      cpAverageCompliance: (() => { const vals = clinicalPathway.rows.filter(x => (x.status === 'submitted' || x.status === 'validated') && x.calculation_json?.included === true && typeof x.calculation_json?.compliance_pct === 'number').map(x => x.calculation_json.compliance_pct as number); return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null })(),
       topUnits: Array.from(unitHigh.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6),
       maxMatrix: Math.max(1, ...matrix.flat()),
       maxMonth: Math.max(1, ...months.map(m => m.count)),
     }
-  }, [risks.rows, incidents.rows, plans.rows, quality.rows])
+  }, [risks.rows, incidents.rows, plans.rows, quality.rows, clinicalPathway.rows])
 
   const hour = new Date().getHours()
   const greeting = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam'
@@ -195,7 +208,7 @@ export default function OverviewDashboard({
         <div>
           <span className="ovEyebrow">{manager ? 'RINGKASAN RUMAH SAKIT' : 'RINGKASAN UNIT'}</span>
           <h3>{greeting}, {firstName}</h3>
-          <p>{manager ? 'Pantauan mutu, keselamatan pasien, dan manajemen risiko seluruh unit kerja.' : `Pantauan data unit ${roomName || 'Anda'}: register risiko, laporan insiden, dan input indikator mutu.`}</p>
+          <p>{manager ? 'Pantauan mutu, keselamatan pasien, Clinical Pathway, dan manajemen risiko seluruh unit kerja.' : `Pantauan data unit ${roomName || 'Anda'}: register risiko, laporan insiden, indikator mutu, dan audit Clinical Pathway.`}</p>
         </div>
         <div className="ovHeroMeta">
           <span className="ovChip">{manager ? 'Seluruh unit' : roomName || 'Unit belum dipetakan'}</span>
@@ -214,6 +227,9 @@ export default function OverviewDashboard({
         <Kpi delay={180} loading={loading} label={`Insiden ${year}`} value={incidents.error ? null : stats.incidentsYear} sub={incidents.error ? 'Tidak tersedia' : `${stats.incidentsMonth} bulan ini`} onClick={() => onNavigate('safety')} />
         <Kpi delay={240} loading={loading} tone="warn" label="Insiden dalam proses" value={incidents.error ? null : stats.incidentsOpen} sub="Belum ditutup" onClick={() => onNavigate('safety')} />
         <Kpi delay={300} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
+        <Kpi delay={360} loading={loading} label={`Audit Clinical Pathway ${year}`} value={clinicalPathway.error ? null : stats.cpAuditTotal} sub={clinicalPathway.error ? 'Tidak tersedia' : `${stats.cpReviewedTotal} diajukan / tervalidasi`} onClick={() => onNavigate('clinicalPathway')} />
+        <Kpi delay={420} loading={loading} tone="warn" label="CP memenuhi Bagian D" value={clinicalPathway.error ? null : stats.cpSectionDPass} sub={clinicalPathway.error ? 'Tidak tersedia' : `${stats.cpEligibleTotal} audit memenuhi kriteria inklusi`} onClick={() => onNavigate('clinicalPathway')} />
+        <Kpi delay={480} loading={loading} label="Rata-rata kepatuhan CP" value={clinicalPathway.error || stats.cpAverageCompliance == null ? null : Math.round(stats.cpAverageCompliance)} formatted={clinicalPathway.error || stats.cpAverageCompliance == null ? undefined : stats.cpAverageCompliance.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'} sub={clinicalPathway.error ? 'Tidak tersedia' : stats.cpAverageCompliance == null ? 'Belum ada audit yang dapat dinilai' : `Dari ${stats.cpEligibleTotal} audit masuk inklusi dan diajukan`} onClick={() => onNavigate('clinicalPathway')} />
       </div>
 
       <div className="ovGrid">
