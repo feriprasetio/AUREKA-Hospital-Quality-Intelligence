@@ -11,6 +11,7 @@ type CPItem = {
   id: string; section: string; profession: string; choice: string; stage: string
   label: string; detail: string; schedule: ScheduleCell[]; oppe?: boolean
 }
+type PPANameField = { key: string; label: string; profession: string }
 type Criterion = { id: string; label: string; type?: string; expected?: boolean }
 type Template = {
   code: string; name: string; icd10: string; source_filename: string; status: string
@@ -35,6 +36,7 @@ type AuditForm = {
   id?: string; room_id: number | null; template: Template; patient_name: string
   medical_record_no: string; sex: string; date_of_birth: string; admission_date: string
   discharge_date: string; unit_name: string; dpjp: string; clinical_data: Record<string, string>
+  ppa_names: Record<string, string>; selected_items_json: Record<string, boolean>
   inclusion_json: Record<string, boolean | undefined>; answers_json: Answers
   variations_json: VariationState; status: string
 }
@@ -52,7 +54,7 @@ const q = () => sb.schema('aureka_quality')
 const BASE_PATH = '/AUREKA-Hospital-Quality-Intelligence'
 const STATUS_LABEL: Record<string, string> = { draft: 'Draf', submitted: 'Diajukan', validated: 'Tervalidasi', archived: 'Diarsipkan' }
 
-const CSS = ".cpRoot{display:grid;gap:14px;color:var(--ink)}.cpRoot .cpGlass{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.72);border-radius:24px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}.cpHead{padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.cpEyebrow{font-size:10px;font-weight:900;letter-spacing:.12em;color:var(--accent2);text-transform:uppercase}.cpHead h3{font-size:28px;letter-spacing:-.045em;margin:7px 0 5px}.cpHead p{font-size:12px;color:var(--muted);margin:0;max-width:780px;line-height:1.6}.cpActions{display:flex;gap:8px;flex-wrap:wrap}.cpBtn{min-height:40px;border:1px solid rgba(255,255,255,.82);background:rgba(255,255,255,.5);color:#214a39;border-radius:13px;padding:9px 13px;font-size:11px;font-weight:850;cursor:pointer}.cpBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-color:transparent}.cpBtn:disabled{opacity:.5;cursor:not-allowed}.cpGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cpTile{padding:17px;text-align:left;width:100%;cursor:pointer;color:var(--ink);transition:transform .18s,border-color .18s}.cpTile:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.35)}.cpTileTop{display:flex;justify-content:space-between;align-items:center;gap:8px}.cpTileIcon{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent2);font-size:18px}.cpBadge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;background:#e8f7ef;color:#216b49;white-space:nowrap}.cpBadge.draft{background:#fff4d8;color:#835c15}.cpBadge.retired{background:#eceeed;color:#69746e}.cpTile h4{font-size:16px;line-height:1.35;margin:14px 0 4px}.cpTile p{font-size:11px;color:var(--muted);line-height:1.55;margin:0}.cpTileFoot{border-top:1px solid rgba(26,69,48,.09);display:flex;justify-content:space-between;gap:8px;margin-top:15px;padding-top:12px;font-size:10px;font-weight:850;color:var(--accent2)}.cpKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpKpi{padding:14px 16px}.cpKpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.cpKpi strong{display:block;font-size:23px;margin-top:5px;letter-spacing:-.03em}.cpKpi small{font-size:10px;color:var(--muted)}.cpToolbar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;align-items:end}.cpField{display:grid;gap:6px;min-width:0}.cpField label,.cpLabel{font-size:10px;font-weight:900;color:#68786f;letter-spacing:.035em}.cpField input,.cpField select,.cpField textarea,.cpInput{width:100%;min-height:42px;border:1px solid rgba(25,60,45,.14);border-radius:12px;background:rgba(255,255,255,.7);padding:10px 12px;color:var(--ink);outline:none;font-size:12px}.cpField textarea{min-height:72px;resize:vertical}.cpField input:focus,.cpField select:focus,.cpField textarea:focus,.cpInput:focus{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.08)}.cpSearch{flex:1;min-width:210px}.cpSelect{min-width:170px}.cpNotice{padding:12px 15px;border-radius:14px;background:#fff7e5;border:1px solid #f2dfb4;color:#77591d;font-size:11px;line-height:1.55}.cpNotice.info{background:#edf7f3;border-color:#d6ebe1;color:#245d48}.cpNotice.error{background:#fff0ef;border-color:#f4d0cc;color:#8d332d}.cpPanel{padding:17px}.cpPanel h4{margin:0 0 12px;font-size:15px}.cpBack{border:0;background:transparent;color:var(--accent2);font-size:11px;font-weight:900;padding:6px 0;cursor:pointer}.cpRecordList{display:grid;gap:8px}.cpRecord{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid rgba(25,60,45,.1);border-radius:14px;background:rgba(255,255,255,.42)}.cpRecord b{display:block;font-size:12px}.cpRecord small{display:block;font-size:10px;color:var(--muted);margin-top:4px}.cpRecordRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cpFormGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.cpFormGrid .span2{grid-column:span 2}.cpSectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 9px}.cpSectionHead h4{font-size:16px;margin:0}.cpSectionHead p{font-size:10px;color:var(--muted);margin:4px 0 0}.cpTableWrap{max-width:100%;overflow:auto;max-height:68vh;border:1px solid rgba(25,60,45,.12);border-radius:15px;background:rgba(255,255,255,.55)}table.cpTable{width:100%;min-width:1140px;border-collapse:separate;border-spacing:0;font-size:11px}table.cpTable th,table.cpTable td{padding:9px 10px;border-bottom:1px solid rgba(25,60,45,.1);border-right:1px solid rgba(25,60,45,.07);vertical-align:middle;text-align:left}table.cpTable th{position:sticky;top:0;z-index:3;background:rgba(246,250,247,.97);font-size:9px;color:#69796f;text-transform:uppercase;letter-spacing:.035em;white-space:nowrap}table.cpTable th.cpDayCol{text-align:center;min-width:72px}table.cpTable td:nth-child(1){min-width:150px;max-width:190px;white-space:normal}table.cpTable td:nth-child(2){min-width:140px;max-width:190px;white-space:normal}table.cpTable td:nth-child(3){min-width:240px;white-space:normal}table.cpTable td:nth-child(4){min-width:230px;white-space:normal;color:#607168}table.cpTable .cpGroup td{background:rgba(var(--accent-rgb),.1);color:var(--accent2);font-size:10px;font-weight:950;position:sticky;left:0;z-index:1}.cpCell{min-width:72px;text-align:center!important;padding:5px!important}.cpCell.required{background:rgba(145,203,81,.25)}.cpCell.conditional{background:rgba(255,225,53,.28)}.cpCell.not_scheduled{background:rgba(255,255,255,.24);color:#b0b8b3}.cpCellControls{display:flex;align-items:center;justify-content:center;gap:5px}.cpMark{height:28px;min-width:28px;border:1px solid rgba(15,118,86,.2);border-radius:8px;background:rgba(255,255,255,.65);font-size:14px;font-weight:900;color:var(--accent2);cursor:pointer}.cpMark.done{background:#dff3e6;border-color:#8bc6a4;color:#12683e}.cpMark.not_done{background:#fff0ef;border-color:#e9b5af;color:#ac3932}.cpMark.not_applicable{background:#ececfb;border-color:#cbcbee;color:#48478b;font-size:10px}.cpCellEdit{border:0;background:transparent;color:#718177;cursor:pointer;font-size:13px;padding:4px}.cpSubtle{font-size:9px;color:var(--muted)}.cpCellDetail{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;padding:14px;background:rgba(var(--accent-rgb),.06);border:1px solid rgba(var(--accent-rgb),.18);border-radius:15px;margin:10px 0}.cpCellDetail .cpWide{grid-column:1/-1}.cpScoreGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpScore{padding:13px;border-radius:14px;background:rgba(255,255,255,.58);border:1px solid rgba(24,64,43,.1)}.cpScore span{display:block;font-size:9px;color:var(--muted);font-weight:900;text-transform:uppercase}.cpScore strong{display:block;font-size:23px;margin:4px 0}.cpScore small{display:block;color:var(--muted);font-size:9px;line-height:1.45}.cpPass{background:#e8f7ef;color:#216b49}.cpFail{background:#fff0ef;color:#8d332d}.cpPending{background:#fff6dd;color:#805d18}.cpCriterionList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cpCriterion{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(24,64,43,.1);border-radius:13px;padding:11px 12px;background:rgba(255,255,255,.45)}.cpCriterion label{font-size:11px;font-weight:800}.cpToggleGroup{display:flex;gap:5px;flex-wrap:wrap}.cpToggle{border:1px solid rgba(25,60,45,.13);background:#fff;border-radius:9px;padding:7px 9px;font-size:10px;font-weight:850;cursor:pointer}.cpToggle.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent2)}.cpVarList{display:grid;gap:10px}.cpVar{border:1px solid rgba(25,60,45,.13);background:rgba(255,255,255,.4);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.cpVarHead{display:flex;justify-content:space-between;align-items:center;grid-column:1/-1}.cpVarHead b{font-size:11px}.cpVar .cpField.full{grid-column:1/-1}.cpFooter{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid rgba(25,60,45,.1)}.cpEmpty{padding:22px;text-align:center;color:var(--muted);font-size:11px}.cpBuilderTable{max-height:62vh}.cpBuilderInput{min-width:180px}.cpBuilderDay{min-width:115px}.cpOppe{display:flex;align-items:center;gap:6px;font-size:10px}.cpSourceNotes{display:grid;gap:6px}.cpTiny{font-size:9px;color:var(--muted)}@media(max-width:1080px){.cpGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpKpis,.cpScoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpCellDetail{grid-template-columns:1fr 1fr}}@media(max-width:650px){.cpGrid,.cpKpis,.cpScoreGrid,.cpCriterionList,.cpFormGrid{grid-template-columns:1fr}.cpHead h3{font-size:23px}.cpFormGrid .span2{grid-column:auto}.cpCellDetail,.cpVar{grid-template-columns:1fr}.cpCellDetail .cpWide,.cpVar .cpField.full,.cpVarHead{grid-column:auto}.cpRecord{grid-template-columns:1fr}.cpRecordRight{justify-content:flex-start}.cpSectionHead{align-items:flex-start}}"
+const CSS = ".cpRoot{display:grid;gap:14px;color:var(--ink)}.cpRoot .cpGlass{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.72);border-radius:24px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}.cpHead{padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.cpEyebrow{font-size:10px;font-weight:850;letter-spacing:.045em;color:var(--accent2);text-transform:none}.cpHead h3{font-size:28px;letter-spacing:-.045em;margin:7px 0 5px}.cpHead p{font-size:12px;color:var(--muted);margin:0;max-width:780px;line-height:1.6}.cpActions{display:flex;gap:8px;flex-wrap:wrap}.cpBtn{min-height:40px;border:1px solid rgba(255,255,255,.82);background:rgba(255,255,255,.5);color:#214a39;border-radius:13px;padding:9px 13px;font-size:11px;font-weight:850;cursor:pointer}.cpBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-color:transparent}.cpBtn:disabled{opacity:.5;cursor:not-allowed}.cpGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cpTile{padding:17px;text-align:left;width:100%;cursor:pointer;color:var(--ink);transition:transform .18s,border-color .18s}.cpTile:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.35)}.cpTileTop{display:flex;justify-content:space-between;align-items:center;gap:8px}.cpTileIcon{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent2);font-size:18px}.cpBadge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;background:#e8f7ef;color:#216b49;white-space:nowrap}.cpBadge.draft{background:#fff4d8;color:#835c15}.cpBadge.retired{background:#eceeed;color:#69746e}.cpTile h4{font-size:16px;line-height:1.35;margin:14px 0 4px}.cpTile p{font-size:11px;color:var(--muted);line-height:1.55;margin:0}.cpTileFoot{border-top:1px solid rgba(26,69,48,.09);display:flex;justify-content:space-between;gap:8px;margin-top:15px;padding-top:12px;font-size:10px;font-weight:850;color:var(--accent2)}.cpKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpKpi{padding:14px 16px}.cpKpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.cpKpi strong{display:block;font-size:23px;margin-top:5px;letter-spacing:-.03em}.cpKpi small{font-size:10px;color:var(--muted)}.cpToolbar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;align-items:end}.cpField{display:grid;gap:6px;min-width:0}.cpField label,.cpLabel{font-size:10px;font-weight:900;color:#68786f;letter-spacing:.035em}.cpField input,.cpField select,.cpField textarea,.cpInput{width:100%;min-height:42px;border:1px solid rgba(25,60,45,.14);border-radius:12px;background:rgba(255,255,255,.7);padding:10px 12px;color:var(--ink);outline:none;font-size:12px}.cpField textarea{min-height:72px;resize:vertical}.cpField input:focus,.cpField select:focus,.cpField textarea:focus,.cpInput:focus{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.08)}.cpSearch{flex:1;min-width:210px}.cpSelect{min-width:170px}.cpNotice{padding:12px 15px;border-radius:14px;background:#fff7e5;border:1px solid #f2dfb4;color:#77591d;font-size:11px;line-height:1.55}.cpNotice.info{background:#edf7f3;border-color:#d6ebe1;color:#245d48}.cpNotice.error{background:#fff0ef;border-color:#f4d0cc;color:#8d332d}.cpPanel{padding:17px}.cpPanel h4{margin:0 0 12px;font-size:15px}.cpBack{border:0;background:transparent;color:var(--accent2);font-size:11px;font-weight:900;padding:6px 0;cursor:pointer}.cpRecordList{display:grid;gap:8px}.cpRecord{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid rgba(25,60,45,.1);border-radius:14px;background:rgba(255,255,255,.42)}.cpRecord b{display:block;font-size:12px}.cpRecord small{display:block;font-size:10px;color:var(--muted);margin-top:4px}.cpRecordRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cpFormGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.cpFormGrid .span2{grid-column:span 2}.cpSectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 9px}.cpSectionHead h4{font-size:16px;margin:0}.cpSectionHead p{font-size:10px;color:var(--muted);margin:4px 0 0}.cpTableWrap{max-width:100%;overflow:auto;max-height:68vh;border:1px solid rgba(25,60,45,.12);border-radius:15px;background:rgba(255,255,255,.55)}table.cpTable{width:100%;min-width:1140px;border-collapse:separate;border-spacing:0;font-size:11px}table.cpTable th,table.cpTable td{padding:9px 10px;border-bottom:1px solid rgba(25,60,45,.1);border-right:1px solid rgba(25,60,45,.07);vertical-align:middle;text-align:left}table.cpTable th{position:sticky;top:0;z-index:3;background:rgba(246,250,247,.97);font-size:9px;color:#69796f;text-transform:uppercase;letter-spacing:.035em;white-space:nowrap}table.cpTable th.cpDayCol{text-align:center;min-width:72px}table.cpTable td:nth-child(1){min-width:150px;max-width:190px;white-space:normal}table.cpTable td:nth-child(2){min-width:140px;max-width:190px;white-space:normal}table.cpTable td:nth-child(3){min-width:240px;white-space:normal}table.cpTable td:nth-child(4){min-width:230px;white-space:normal;color:#607168}table.cpTable .cpGroup td{background:rgba(var(--accent-rgb),.1);color:var(--accent2);font-size:10px;font-weight:950;position:sticky;left:0;z-index:1}.cpCell{min-width:72px;text-align:center!important;padding:5px!important}.cpCell.required{background:rgba(145,203,81,.25)}.cpCell.conditional{background:rgba(255,225,53,.28)}.cpCell.not_scheduled{background:rgba(255,255,255,.24);color:#b0b8b3}.cpCellControls{display:flex;align-items:center;justify-content:center;gap:5px}.cpMark{height:28px;min-width:28px;border:1px solid rgba(15,118,86,.2);border-radius:8px;background:rgba(255,255,255,.65);font-size:14px;font-weight:900;color:var(--accent2);cursor:pointer}.cpMark.done{background:#dff3e6;border-color:#8bc6a4;color:#12683e}.cpMark.not_done{background:#fff0ef;border-color:#e9b5af;color:#ac3932}.cpMark.not_applicable{background:#ececfb;border-color:#cbcbee;color:#48478b;font-size:10px}.cpCellEdit{border:0;background:transparent;color:#718177;cursor:pointer;font-size:13px;padding:4px}.cpSubtle{font-size:9px;color:var(--muted)}.cpChoiceCell{min-width:145px;max-width:175px;text-align:left!important;white-space:normal}.cpChoiceToggle{display:flex;align-items:flex-start;gap:8px;font-size:11px;font-weight:750;line-height:1.45;cursor:pointer}.cpChoiceToggle input{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:var(--accent2)}.cpChoiceHint{display:block;margin:4px 0 0 24px;font-size:9px;color:var(--muted);line-height:1.4}.cpChoiceDisabled{opacity:.48}.cpProfessionHead td{padding:0!important;background:rgba(var(--accent-rgb),.12);border-right:0!important}.cpProfessionToggle{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:12px 14px;text-align:left;cursor:pointer;color:var(--accent2)}.cpProfessionToggle strong{font-size:12px;font-weight:850}.cpProfessionToggle small{margin-left:auto;font-size:10px;color:var(--muted);font-weight:650}.cpProfessionArrow{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(var(--accent-rgb),.2);border-radius:7px;background:rgba(255,255,255,.65)}.cpStageHead td{background:rgba(255,255,255,.58);color:#52675c;font-size:10px;font-weight:850;padding:8px 12px!important;border-bottom:1px solid rgba(25,60,45,.1)}.cpItemLabel{font-size:11px;font-weight:800;line-height:1.5}.cpItemDetail{font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px}.cpField label,.cpLabel{text-transform:none;letter-spacing:0}.cpCellDetail{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;padding:14px;background:rgba(var(--accent-rgb),.06);border:1px solid rgba(var(--accent-rgb),.18);border-radius:15px;margin:10px 0}.cpCellDetail .cpWide{grid-column:1/-1}.cpScoreGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpScore{padding:13px;border-radius:14px;background:rgba(255,255,255,.58);border:1px solid rgba(24,64,43,.1)}.cpScore span{display:block;font-size:9px;color:var(--muted);font-weight:850;text-transform:none}.cpScore strong{display:block;font-size:23px;margin:4px 0}.cpScore small{display:block;color:var(--muted);font-size:9px;line-height:1.45}.cpPass{background:#e8f7ef;color:#216b49}.cpFail{background:#fff0ef;color:#8d332d}.cpPending{background:#fff6dd;color:#805d18}.cpCriterionList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cpCriterion{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(24,64,43,.1);border-radius:13px;padding:11px 12px;background:rgba(255,255,255,.45)}.cpCriterion label{font-size:11px;font-weight:800}.cpToggleGroup{display:flex;gap:5px;flex-wrap:wrap}.cpToggle{border:1px solid rgba(25,60,45,.13);background:#fff;border-radius:9px;padding:7px 9px;font-size:10px;font-weight:850;cursor:pointer}.cpToggle.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent2)}.cpVarList{display:grid;gap:10px}.cpVar{border:1px solid rgba(25,60,45,.13);background:rgba(255,255,255,.4);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.cpVarHead{display:flex;justify-content:space-between;align-items:center;grid-column:1/-1}.cpVarHead b{font-size:11px}.cpVar .cpField.full{grid-column:1/-1}.cpFooter{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid rgba(25,60,45,.1)}.cpEmpty{padding:22px;text-align:center;color:var(--muted);font-size:11px}.cpBuilderTable{max-height:62vh}.cpBuilderInput{min-width:180px}.cpBuilderDay{min-width:115px}.cpOppe{display:flex;align-items:center;gap:6px;font-size:10px}.cpSourceNotes{display:grid;gap:6px}.cpTiny{font-size:9px;color:var(--muted)}@media(max-width:1080px){.cpGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpKpis,.cpScoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpCellDetail{grid-template-columns:1fr 1fr}}@media(max-width:650px){.cpGrid,.cpKpis,.cpScoreGrid,.cpCriterionList,.cpFormGrid{grid-template-columns:1fr}.cpHead h3{font-size:23px}.cpFormGrid .span2{grid-column:auto}.cpCellDetail,.cpVar{grid-template-columns:1fr}.cpCellDetail .cpWide,.cpVar .cpField.full,.cpVarHead{grid-column:auto}.cpRecord{grid-template-columns:1fr}.cpRecordRight{justify-content:flex-start}.cpSectionHead{align-items:flex-start}}"
 
 function normalizeCatalog(raw: any): Template[] {
   return (raw?.pathways || []).map((row: any[]) => {
@@ -113,13 +115,54 @@ function toLocalDateTimeInput(value?: string): string {
 function policyLabel(policy: Policy): string {
   return policy === 'required' ? 'Wajib' : policy === 'conditional' ? 'Kondisional' : 'Tidak dijadwalkan'
 }
+function humanizeProfession(value: string): string {
+  const trimmed = String(value || '').trim()
+  if (!trimmed) return 'PPA belum ditentukan'
+  if (trimmed === trimmed.toLocaleUpperCase('id-ID')) {
+    const lower = trimmed.toLocaleLowerCase('id-ID')
+    if (/^(DPJP|PPA|KIE|IGD|ICU|NICU|CSSD|EKG|PA)$/i.test(trimmed)) return trimmed.toLocaleUpperCase('id-ID')
+    return lower.replace(/^\p{L}/u, (m) => m.toLocaleUpperCase('id-ID'))
+  }
+  return trimmed
+}
+function ppaNameFields(template: Template): PPANameField[] {
+  const fields: PPANameField[] = [{ key: 'dpjp', label: 'Dokter Penanggung Jawab Pelayanan (DPJP)', profession: 'Dokter' }]
+  const seen = new Set<string>(['dpjp'])
+  const add = (key: string, label: string, profession: string) => {
+    if (seen.has(key)) return
+    seen.add(key)
+    fields.push({ key, label, profession })
+  }
+  const slug = (value: string) => value.toLocaleLowerCase('id-ID')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'ppa'
+  const professions = Array.from(new Set(template.items.map((item) => String(item.profession || '').trim()).filter(Boolean)))
+  for (const profession of professions) {
+    const low = profession.toLocaleLowerCase('id-ID')
+    if (/(perawat|nurse)/i.test(low)) {
+      add('perawat_penanggung_jawab', 'Perawat Penanggung Jawab', profession)
+    } else if (/(apoteker|farmasi|pharmacist)/i.test(low)) {
+      add('apoteker', 'Apoteker', profession)
+    } else if (/(nutrisionis|nutrisi|gizi|dietisien|dietitian)/i.test(low)) {
+      add('nutrisionis', 'Nutrisionis', profession)
+    } else if (/(anestesi|anesthesi)/i.test(low)) {
+      add('ppa_' + slug(profession), humanizeProfession(profession), profession)
+    } else if (/(dokter|dpjp|spesialis|physician|medical staff)/i.test(low)) {
+      continue
+    } else {
+      add('ppa_' + slug(profession), humanizeProfession(profession), profession)
+    }
+  }
+  return fields
+}
 function cellKey(itemId: string, day: string): string { return itemId + '|' + day }
 function cellStatus(form: AuditForm, itemId: string, day: string): CellStatus {
   return (form.answers_json[itemId]?.[day]?.status || '') as CellStatus
 }
 function calcClient(form: AuditForm) {
   let expected = 0, filled = 0, done = 0, notDone = 0, na = 0, oppeCells = 0, oppeMissing = 0
+  const selectedItemCount = form.template.items.filter((item) => form.selected_items_json?.[item.id] === true).length
   form.template.items.forEach((item) => {
+    if (form.selected_items_json?.[item.id] !== true) return
     item.schedule.forEach((sched) => {
       if (sched.policy !== 'not_scheduled') {
         expected++
@@ -152,7 +195,7 @@ function calcClient(form: AuditForm) {
   const completionPass = completion !== null && completion >= threshold
   const compliancePass = compliance !== null && compliance >= target
   const sectionDPass = inclusionReady && included && completionPass && compliancePass && variationComplete
-  return { expected, filled, done, notDone, na, completion, evaluation, compliance, criteria, inclusionReady, included,
+  return { expected, filled, done, notDone, na, completion, evaluation, compliance, criteria, inclusionReady, included, selectedItemCount,
     variationCount: variations.length, variationsReviewed, variationComplete, threshold, target,
     completionPass, compliancePass, sectionDPass, oppeCells, oppeMissing }
 }
@@ -164,7 +207,8 @@ function fromDatabase(row: any, fallback: Template, roomName: string): AuditForm
     medical_record_no: row.medical_record_no || '', sex: row.sex || '', date_of_birth: row.date_of_birth || '',
     admission_date: row.admission_date || '', discharge_date: row.discharge_date || '',
     unit_name: row.unit_name || roomName || '', dpjp: row.dpjp || '',
-    clinical_data: row.clinical_data || {}, inclusion_json: row.inclusion_json || {},
+    clinical_data: row.clinical_data || {}, ppa_names: { dpjp: row.dpjp || '', ...(row.ppa_names || {}) },
+    selected_items_json: row.selected_items_json || {}, inclusion_json: row.inclusion_json || {},
     answers_json: row.answers_json || {}, variations_json: row.variations_json || { reviewed: false, items: [] },
     status: row.status || 'draft',
   }
@@ -186,6 +230,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [auditLoading, setAuditLoading] = useState(false)
   const [form, setForm] = useState<AuditForm | null>(null)
   const [focusedCell, setFocusedCell] = useState<{ itemId: string; day: string } | null>(null)
+  const [collapsedProfessions, setCollapsedProfessions] = useState<Record<string, boolean>>({})
   const [builder, setBuilder] = useState<Template | null>(null)
 
   const selectedTemplate = templates.find((x) => x.code === selectedCode) || catalog.find((x) => x.code === selectedCode) || null
@@ -296,7 +341,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       room_id: roomId, template: clone(selectedTemplate), patient_name: '', medical_record_no: '', sex: '',
       date_of_birth: '', admission_date: '', discharge_date: '',
       unit_name: roomNames.get(Number(roomId)) || (roomId == null ? '' : ''), dpjp: '',
-      clinical_data: {}, inclusion_json: {}, answers_json: {}, variations_json: { reviewed: false, items: [] }, status: 'draft',
+      clinical_data: {}, ppa_names: { dpjp: '' }, selected_items_json: {}, inclusion_json: {}, answers_json: {},
+      variations_json: { reviewed: false, items: [] }, status: 'draft',
     })
     setFocusedCell(null)
     setMessage('')
@@ -337,8 +383,14 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     })
   }
 
-  function toggleCell(item: CPItem, day: string) {
+  function toggleItemChoice(item: CPItem, selected: boolean) {
     if (!form) return
+    patchForm({ selected_items_json: { ...(form.selected_items_json || {}), [item.id]: selected } })
+    if (!selected && focusedCell?.itemId === item.id) setFocusedCell(null)
+  }
+
+  function toggleCell(item: CPItem, day: string) {
+    if (!form || form.selected_items_json?.[item.id] !== true) return
     const currentCell = form.answers_json[item.id]?.[day] || {}
     patchCell(item, day, currentCell.status === 'done' ? { status: '' } : {
       status: 'done', performed_at: currentCell.performed_at || new Date().toISOString(),
@@ -391,7 +443,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         sex: form.sex, date_of_birth: form.date_of_birth || null,
         admission_date: form.admission_date || null, discharge_date: form.discharge_date || null,
         unit_name: form.unit_name || roomNames.get(Number(form.room_id)) || '',
-        dpjp: form.dpjp, clinical_data: form.clinical_data || {},
+        dpjp: form.ppa_names?.dpjp || form.dpjp || '', ppa_names: form.ppa_names || {},
+        clinical_data: form.clinical_data || {}, selected_items_json: form.selected_items_json || {},
         inclusion_json: form.inclusion_json || {}, answers_json: form.answers_json || {},
         variations_json: form.variations_json || { reviewed: false, items: [] },
         status: nextStatus, updated_by: auth.data.user.id,
@@ -507,7 +560,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     const passClass = (pass: boolean) => pass ? 'cpPass' : 'cpFail'
     return <div className="cpRoot">
       <div className="cpScoreGrid">
-        <div className="cpGlass cpScore"><span>Keterisian CP</span><strong>{pct(c.completion)}</strong><small>{c.filled}/{c.expected} sel terjadwal sudah diputuskan · standar ≥{c.threshold}%</small><div className={'cpBadge ' + (c.completionPass ? '' : 'draft')}>{c.completionPass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
+        <div className="cpGlass cpScore"><span>Keterisian CP</span><strong>{pct(c.completion)}</strong><small>{c.filled}/{c.expected} kotak harian dari {c.selectedItemCount} pilihan aktif sudah diputuskan · standar ≥{c.threshold}%</small><div className={'cpBadge ' + (c.completionPass ? '' : 'draft')}>{c.completionPass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
         <div className="cpGlass cpScore"><span>Kepatuhan CP</span><strong>{pct(c.compliance)}</strong><small>{c.done} sesuai dari {c.evaluation} sel yang dinilai · target {c.target}%</small><div className={'cpBadge ' + (c.compliancePass ? '' : 'draft')}>{c.compliancePass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
         <div className="cpGlass cpScore"><span>Inklusi penilaian</span><strong>{c.inclusionReady ? (c.included ? 'Ya' : 'Tidak') : '—'}</strong><small>{c.criteria.length} kriteria dari Bagian D harus diputuskan</small><div className={'cpBadge ' + (c.inclusionReady ? (c.included ? '' : 'draft') : 'draft')}>{!c.inclusionReady ? 'Belum lengkap' : c.included ? 'Layak dinilai' : 'Di luar inklusi'}</div></div>
         <div className="cpGlass cpScore"><span>Variasi pelayanan</span><strong>{c.variationCount}</strong><small>Justifikasi diperlukan untuk setiap variasi</small><div className={'cpBadge ' + (c.variationComplete ? '' : 'draft')}>{c.variationComplete ? 'Terdokumentasi' : 'Belum lengkap'}</div></div>
@@ -535,13 +588,13 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     </div>
   }
 
-  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · AUDIT CLINICAL PATHWAY</span><h3>Menyiapkan master Clinical Pathway…</h3><p>Membaca format dari dokumen sumber dan menyelaraskan master di Supabase.</p></div></div></div>
+  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Menyiapkan master Clinical Pathway…</h3><p>Membaca format dari dokumen sumber dan menyelaraskan master di Supabase.</p></div></div></div>
 
   return <div className="cpRoot">
     <style>{CSS}</style>
     <section className="cpGlass cpHead">
       <div>
-        <div className="cpEyebrow">AUREKA WORKSPACE · AUDIT CLINICAL PATHWAY</div>
+        <div className="cpEyebrow">AUREKA · Audit Clinical Pathway</div>
         <h3>{screen === 'library' ? 'Audit Clinical Pathway' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? 'Edit Format CP' : 'Audit Pasien · ' + (form?.template.name || '')}</h3>
         <p>{screen === 'library' ? 'Kelola format CP per diagnosis, dokumentasikan pelayanan seluruh PPA dalam satu tabel checklist, dan hitung otomatis Bagian D.' : screen === 'diagnosis' ? 'Daftar audit pasien untuk diagnosis terpilih. Setiap audit menggunakan snapshot versi format CP yang dipakai saat pengisian.' : screen === 'builder' ? 'Penyuntingan master hanya tersedia bagi Super Admin. Item dan jadwal ditampilkan dalam format yang seragam.' : 'Checklist semua item beserta hari perawatan dalam satu tabel. Klik tanda pada sel untuk menandai sesuai; gunakan rincian untuk mencatat pengecualian, petugas, dan bukti.'}</p>
       </div>
@@ -564,8 +617,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <LiquidGlass className="cpKpi"><span>Unit / ruangan</span><strong>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</strong><small>Disaring sesuai hak akses</small></LiquidGlass>
       </div>
       <div className="cpGlass cpToolbar">
-        <div className="cpField cpSearch"><label>CARI DIAGNOSIS / KODE ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
-        {isAdmin && <div className="cpField cpSelect"><label>UNIT UNTUK AUDIT BARU</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></div>}
+        <div className="cpField cpSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
+        {isAdmin && <div className="cpField cpSelect"><label>Unit untuk audit baru</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></div>}
         <button type="button" className="cpBtn" onClick={() => void loadTemplates()}>↻ Muat ulang master</button>
       </div>
       <div className="cpGrid">
@@ -589,7 +642,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       {selectedTemplate.source_notes.length > 0 && <div className="cpGlass cpPanel cpSourceNotes"><h4>Catatan dari dokumen sumber</h4>{selectedTemplate.source_notes.map((note, i) => <div key={i} className="cpNotice">{note}</div>)}</div>}
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Audit pasien · {selectedTemplate.name}</h4><p>Daftar audit tersimpan langsung di Supabase. Pilih rekam audit untuk melanjutkan atau buat audit baru.</p></div><span className="cpBadge">{audits.length} rekam audit</span></div>
-        {isAdmin && <div className="cpField cpSelect" style={{ marginBottom: 12 }}><label>FILTER UNIT / RUANGAN</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit</option>{rooms.map(roomOption)}</select></div>}
+        {isAdmin && <div className="cpField cpSelect" style={{ marginBottom: 12 }}><label>Filter unit / ruangan</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit</option>{rooms.map(roomOption)}</select></div>}
         {auditLoading ? <div className="cpEmpty">Memuat audit…</div> : audits.length === 0 ? <div className="cpEmpty">Belum ada rekam audit untuk diagnosis ini pada ruang lingkup akses Anda.</div> :
           <div className="cpRecordList">{audits.map((a) => {
             const c = a.calculation_json || {}
@@ -609,9 +662,16 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           <div className="cpField"><label>Tanggal lahir</label><input type="date" value={form.date_of_birth} onChange={(e) => patchForm({ date_of_birth: e.target.value })} /></div>
           <div className="cpField"><label>Tanggal masuk</label><input type="date" value={form.admission_date} onChange={(e) => patchForm({ admission_date: e.target.value })} /></div>
           <div className="cpField"><label>Tanggal keluar</label><input type="date" value={form.discharge_date} onChange={(e) => patchForm({ discharge_date: e.target.value })} /></div>
-          <div className="cpField"><label>DPJP</label><input value={form.dpjp} onChange={(e) => patchForm({ dpjp: e.target.value })} placeholder="Nama DPJP" /></div>
           <div className="cpField"><label>Unit / ruangan</label>{isAdmin ? <select value={form.room_id == null ? '' : String(form.room_id)} onChange={(e) => patchForm({ room_id: e.target.value ? Number(e.target.value) : null, unit_name: roomNames.get(Number(e.target.value)) || '' })}><option value="">Pilih unit</option>{rooms.map(roomOption)}</select> : <input value={form.unit_name || roomNames.get(Number(form.room_id)) || ''} readOnly />}</div>
           <div className="cpField"><label>Status audit</label><select value={form.status} onChange={(e) => patchForm({ status: e.target.value })} disabled={!isAdmin && form.status === 'validated'}><option value="draft">Draf</option><option value="submitted">Diajukan</option>{isAdmin && <option value="validated">Tervalidasi</option>}</select></div>
+        </div>
+        <div className="cpSectionHead"><div><h4>Penanggung jawab PPA</h4><p>Isi nama penanggung jawab sesuai profesi yang terdapat pada clinical pathway diagnosis ini.</p></div></div>
+        <div className="cpFormGrid">
+          {ppaNameFields(form.template).map((field) => <div key={field.key} className="cpField">
+            <label>{field.label}</label>
+            <input value={form.ppa_names?.[field.key] || ''} onChange={(e) => patchForm({ ppa_names: { ...(form.ppa_names || {}), [field.key]: e.target.value }, ...(field.key === 'dpjp' ? { dpjp: e.target.value } : {}) })} placeholder={`Nama ${field.label}`} />
+            {field.key !== 'dpjp' && <small className="cpTiny">Berdasarkan kelompok PPA: {humanizeProfession(field.profession)}</small>}
+          </div>)}
         </div>
         {form.template.clinical_fields.length > 0 && <>
           <div className="cpSectionHead"><div><h4>Data klinis dan administrasi khusus diagnosis</h4><p>Kolom sumber dipertahankan sebagai tambahan di luar identitas pasien yang seragam.</p></div></div>
@@ -626,7 +686,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>
 
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Checklist pelaksanaan CP · {form.template.name}</h4><p>Semua item dari dokumen sumber ditampilkan dalam satu tabel; hijau = wajib, kuning = kondisional, putih = tidak dijadwalkan.</p></div><span className="cpBadge">{form.template.items.length} item · {form.template.days.length} hari / tahap</span></div>
+        <div className="cpSectionHead"><div><h4>Checklist pelaksanaan clinical pathway · {form.template.name}</h4><p>Pilih terlebih dahulu item atau tindakan yang menjadi bagian dari perawatan pasien. Kotak harian aktif setelah pilihan dipilih; hijau menandai jadwal wajib dan kuning menandai jadwal kondisional.</p></div><span className="cpBadge">{form.template.items.length} item · {form.template.days.length} hari / tahap</span></div>
         {focusedCell && (() => {
           const item = form.template.items.find((it) => it.id === focusedCell.itemId)
           const sched = item?.schedule.find((s) => s.day === focusedCell.day)
@@ -652,32 +712,62 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         })()}
         <div className="cpTableWrap">
           <table className="cpTable">
-            <thead><tr><th>PPA / Bagian</th><th>Pilihan</th><th>Kelompok / Tahap</th><th>Item / Tindakan dan keterangan</th>{form.template.days.map((day) => <th key={day} className="cpDayCol">{day}</th>)}</tr></thead>
+            <thead><tr><th>Pilihan PPA</th><th>Item / tindakan dan keterangan</th>{form.template.days.map((day) => <th key={day} className="cpDayCol">{day}</th>)}</tr></thead>
             <tbody>{(() => {
-              let previous = ''
-              const rows: any[] = []
+              const professionMap = new Map<string, CPItem[]>()
               form.template.items.forEach((item) => {
-                const group = (item.section || '') + '|' + (item.profession || 'PPA belum ditentukan')
-                if (group !== previous) {
-                  rows.push(<tr key={'g-' + group + '-' + item.id} className="cpGroup"><td colSpan={4 + form.template.days.length}>{item.profession || 'PPA belum ditentukan'}{item.section ? ' · Bagian ' + item.section : ''}</td></tr>)
-                  previous = group
-                }
-                rows.push(<tr key={item.id}>
-                  <td>{item.profession || '—'}<div className="cpTiny">{item.section ? 'Bagian ' + item.section : ''}</div></td>
-                  <td>{item.choice || '—'}</td>
-                  <td>{item.stage || '—'}</td>
-                  <td><b>{item.label || '(Nama item belum diisi)'}</b>{item.detail && <div className="cpSubtle" style={{ marginTop: 4 }}>{item.detail}</div>}{item.oppe && <div className="cpTiny">↗ Bukti OPPE</div>}</td>
-                  {form.template.days.map((day) => {
-                    const sched = item.schedule.find((s) => s.day === day) || { day, policy: 'not_scheduled' as Policy }
-                    const status = cellStatus(form, item.id, day)
-                    return <td key={day} className={'cpCell ' + sched.policy}>
-                      {sched.policy === 'not_scheduled' ? <span className="cpTiny">—</span> : <div className="cpCellControls">
-                        <button type="button" className={'cpMark ' + (status || '')} onClick={() => toggleCell(item, day)} aria-label={(status === 'done' ? 'Batalkan tanda sesuai' : 'Tandai sesuai') + ' · ' + item.label + ' · ' + day} title={status === 'done' ? 'Klik untuk menghapus tanda sesuai' : 'Klik untuk menandai sesuai'}>{status === 'done' ? '✓' : status === 'not_done' ? '×' : status === 'not_applicable' ? 'N/A' : '□'}</button>
-                        <button type="button" className="cpCellEdit" onClick={() => setFocusedCell({ itemId: item.id, day })} aria-label={'Rincian ' + item.label + ' ' + day} title="Rincian petugas, waktu, bukti, atau ketidaksesuaian">⋯</button>
-                      </div>}
-                    </td>
-                  })}
+                const key = String(item.profession || 'PPA belum ditentukan').trim() || 'PPA belum ditentukan'
+                professionMap.set(key, [...(professionMap.get(key) || []), item])
+              })
+              const rows: any[] = []
+              Array.from(professionMap.entries()).forEach(([profession, items]) => {
+                const collapsed = !!collapsedProfessions[profession]
+                const chosenCount = items.filter((item) => form.selected_items_json?.[item.id] === true).length
+                rows.push(<tr key={'profession-' + profession} className="cpProfessionHead">
+                  <td colSpan={2 + form.template.days.length}>
+                    <button type="button" className="cpProfessionToggle" aria-expanded={!collapsed} onClick={() => setCollapsedProfessions((old) => ({ ...old, [profession]: !old[profession] }))}>
+                      <span className="cpProfessionArrow" aria-hidden="true">{collapsed ? '＋' : '−'}</span>
+                      <strong>{humanizeProfession(profession)}</strong>
+                      <small>{chosenCount} dari {items.length} pilihan diaktifkan</small>
+                    </button>
+                  </td>
                 </tr>)
+                if (collapsed) return
+                const stages = new Map<string, { key: string; title: string; items: CPItem[] }>()
+                items.forEach((item) => {
+                  const titleParts = [item.section ? 'Bagian ' + humanizeProfession(item.section) : '', item.stage ? humanizeProfession(item.stage) : ''].filter(Boolean)
+                  const title = titleParts.join(' · ') || 'Kelompok tindakan'
+                  const key = title.toLocaleLowerCase('id-ID')
+                  const existing = stages.get(key)
+                  if (existing) existing.items.push(item)
+                  else stages.set(key, { key, title, items: [item] })
+                })
+                Array.from(stages.values()).forEach((stage) => {
+                  rows.push(<tr key={'stage-' + profession + '-' + stage.key} className="cpStageHead"><td colSpan={2 + form.template.days.length}>{stage.title}</td></tr>)
+                  stage.items.forEach((item) => {
+                    const selected = form.selected_items_json?.[item.id] === true
+                    rows.push(<tr key={item.id}>
+                      <td className={'cpChoiceCell ' + (!selected ? 'cpChoiceDisabled' : '')}>
+                        <label className="cpChoiceToggle">
+                          <input type="checkbox" checked={selected} onChange={(e) => toggleItemChoice(item, e.target.checked)} aria-label={'Pilih ' + (item.choice || item.label) + ' untuk ' + humanizeProfession(profession)} />
+                          <span>{item.choice || 'Pilih item ini'}</span>
+                        </label>
+                        {!item.choice && <small className="cpChoiceHint">Aktifkan untuk mengisi hari perawatan.</small>}
+                      </td>
+                      <td><div className="cpItemLabel">{item.label || 'Nama item belum diisi'}</div>{item.detail && <div className="cpItemDetail">{item.detail}</div>}{item.oppe && <div className="cpTiny">↗ Bukti OPPE</div>}</td>
+                      {form.template.days.map((day) => {
+                        const sched = item.schedule.find((s) => s.day === day) || { day, policy: 'not_scheduled' as Policy }
+                        const status = selected ? cellStatus(form, item.id, day) : ''
+                        return <td key={day} className={'cpCell ' + sched.policy}>
+                          {sched.policy === 'not_scheduled' ? <span className="cpTiny">—</span> : <div className="cpCellControls">
+                            <button type="button" className={'cpMark ' + (status || '')} disabled={!selected} onClick={() => toggleCell(item, day)} aria-label={(status === 'done' ? 'Hapus tanda sesuai' : 'Tandai sesuai') + ' · ' + item.label + ' · ' + day} title={!selected ? 'Aktifkan pilihan terlebih dahulu' : status === 'done' ? 'Klik untuk menghapus tanda sesuai' : 'Klik untuk menandai sesuai'}>{status === 'done' ? '✓' : status === 'not_done' ? '×' : status === 'not_applicable' ? 'N/A' : '□'}</button>
+                            <button type="button" className="cpCellEdit" disabled={!selected} onClick={() => setFocusedCell({ itemId: item.id, day })} aria-label={'Rincian ' + item.label + ' ' + day} title={!selected ? 'Aktifkan pilihan terlebih dahulu' : 'Rincian petugas, waktu, bukti, atau ketidaksesuaian'}>⋯</button>
+                          </div>}
+                        </td>
+                      })}
+                    </tr>)
+                  })
+                })
               })
               return rows
             })()}</tbody>
@@ -726,7 +816,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Editor item dan jadwal</h4><p>Setiap baris berasal dari dokumen sumber. Pilih Wajib, Kondisional, atau Tidak dijadwalkan pada masing-masing hari.</p></div><div className="cpActions"><span className="cpBadge">{builder.items.length} item</span><button type="button" className="cpBtn" onClick={addBuilderItem}>＋ Item baru</button></div></div>
         <div className="cpTableWrap cpBuilderTable"><table className="cpTable" style={{ minWidth: 1280 }}>
-          <thead><tr><th>PPA / Bagian</th><th>Pilihan</th><th>Kelompok / Tahap</th><th>Item / Tindakan</th><th>Keterangan / dosis</th>{builder.days.map((day) => <th key={day} className="cpBuilderDay">{day}</th>)}<th>OPPE</th><th>Hapus</th></tr></thead>
+          <thead><tr><th>PPA / bagian</th><th>Pilihan</th><th>Kelompok / tahap</th><th>Item / tindakan</th><th>Keterangan / dosis</th>{builder.days.map((day) => <th key={day} className="cpBuilderDay">{day}</th>)}<th>Bukti OPPE</th><th>Hapus</th></tr></thead>
           <tbody>{builder.items.map((item) => <tr key={item.id}>
             <td><input className="cpInput cpBuilderInput" value={item.profession} onChange={(e) => patchBuilderItem(item.id, { profession: e.target.value })} /></td>
             <td><input className="cpInput" value={item.choice} onChange={(e) => patchBuilderItem(item.id, { choice: e.target.value })} /></td>
