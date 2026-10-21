@@ -175,8 +175,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
  const [auditRows,setAuditRows]=useState<Audit[]>([])
 
  const roomMap=useMemo(()=>new Map(rooms.map(r=>[Number(r.id),r.name])),[rooms])
+ const activeLayout=useMemo(()=>getLayout(roomId),[roomId])
  const hasHeaderMetadata=useMemo(()=>profiles.some(p=>String(p.schema_json?.header_label??'').trim()),[profiles])
- const patientProfiles=useMemo(()=>profiles.filter(p=>p.measurement_grain==='patient_episode'&&(!hasHeaderMetadata||String(p.schema_json?.header_label??'').trim())),[profiles,hasHeaderMetadata])
+ const patientProfiles=useMemo(()=>layoutProfiles(profiles,activeLayout),[profiles,activeLayout])
 
  const load=useCallback(async()=>{
    setBusy(true)
@@ -192,7 +193,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
      const rows:any[]=[]
      let from=0
      while(true){
-       let rq=q().from('quality_records').select('*').eq('profile_year',year).eq('measurement_grain','patient_episode').order('created_at',{ascending:false}).range(from,from+499)
+       let rq=q().from('quality_records').select('*').eq('profile_year',year).order('created_at',{ascending:false}).range(from,from+499)
        if(roomId!=null) rq=rq.eq('room_id',roomId)
        const {data,error}=await rq
        if(error) throw error
@@ -202,16 +203,19 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
      }
      const db=rows.filter(r=>r.status!=='archived').map((r:any)=>{
        const c=r.core_data??r.subject_json??{}
-       return {
-         id:String(r.id),recordId:String(r.id),roomId:r.room_id??c.room_id??null,
-         unit:String(c.unit_name??roomMap.get(Number(r.room_id))??''),name:String(c.patient_name??c.subject??''),
-         rm:String(c.medical_record_no??c.rm??''),sex:String(c.sex??''),age:c.age==null||c.age===''?null:Number(c.age),
-         admit:String(c.admission_at??c.admit??r.record_date??''),discharge:String(c.discharge_at??c.discharge??''),
-         diagnosis:String(c.diagnosis??c.dx??''),dpjp:String(c.dpjp??''),status:String(c.status??(c.discharge_at?'Ready for Review':'Aktif')),
-         indicatorValues:(c.indicator_values??{}),source:'database',updatedAt:String(r.updated_at??r.created_at??'')
-       }
+       const formData=(c.form_fields??c.form_data??{}) as Record<string,any>
+       const rowRoom=Number(r.room_id??c.room_id??0)||null
+       const rowLayout=getLayout(rowRoom)
+       const unit=String(c.unit_name??roomMap.get(Number(rowRoom))??'')
+       const admit=String(c.admission_at??c.admit??recordDateFrom(formData,rowLayout,String(r.record_date??''))??'')
+       const discharge=String(c.discharge_at??c.discharge??formData['Tanggal Keluar']??'')
+       const name=String(c.patient_name??formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??formData['Gangguan IT']??formData['Insiden yang Terjadi']??formData['Nama Pertemuan Ilmiah']??c.subject??'')
+       const rm=String(c.medical_record_no??c.rm??formData['No. Rekam Medis']??formData['No. RM']??'')
+       const diagnosis=String(c.diagnosis??formData['Diagnosa Tegak']??formData['Diagnosa']??formData['Diagnosa IGD']??formData['Diagnosa Pasien']??formData['Diagnosis Medis']??formData['Diagnosa Operasi']??c.dx??'')
+       const dpjp=String(c.dpjp??formData['DPJP']??formData['Dpjp']??'')
+       return {id:String(r.id),recordId:String(r.id),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),indicatorValues:(c.indicator_values??{}),formData,measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
      })
-     const merged=[...db,...local.filter(l=>!db.some(d=>d.rm===l.rm||d.id===l.id))]
+     const merged=[...db,...local.filter(l=>!db.some(d=>d.id===l.id||(!!d.rm&&!!l.rm&&d.rm===l.rm)))]
      setPatients(merged)
      setSource('Supabase')
    }catch(e){
@@ -228,10 +232,11 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
  const filtered=useMemo(()=>patients.filter(p=>{
    const roomOk=roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId))
    const monthOk=!monthFilter||mon(p.admit)===monthFilter
-   const statusOk=status==='Semua'||(status==='Aktif'?!p.discharge:p.status===status)
-   const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit}`.toLowerCase()
+   const hasStay=!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')
+   const statusOk=status==='Semua'||(status==='Aktif'?(hasStay?!p.discharge:p.status==='Aktif'):p.status===status)
+   const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit} ${JSON.stringify(p.formData??{})}`.toLowerCase()
    return ymd(p.admit)===year&&roomOk&&monthOk&&statusOk&&hay.includes(search.toLowerCase().trim())
- }),[patients,year,roomId,roomMap,monthFilter,status,search])
+ }),[patients,year,roomId,roomMap,monthFilter,status,search,activeLayout])
  const yearPatients=useMemo(()=>patients.filter(p=>ymd(p.admit)===year&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
  const applicable=useMemo(()=>selected?patientProfiles.filter(p=>Number(p.room_id)===Number(selected.roomId)||(p.unit_name&&p.unit_name===selected.unit)).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,patientProfiles])
  const catalog=useMemo(()=>profiles.filter(p=>(!hasHeaderMetadata||String(p.schema_json?.header_label??'').trim())&&(catUnit==='Semua unit'||p.unit_name===catUnit)&&(!catGrain||p.measurement_grain===catGrain)&&`${p.code} ${displayTitle(p)} ${p.title??''} ${p.unit_name}`.toLowerCase().includes(catSearch.toLowerCase().trim())),[profiles,hasHeaderMetadata,catUnit,catGrain,catSearch])
@@ -239,7 +244,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
 
  const openPatient=(p:Patient)=>{
    const r:any={}
-   patientProfiles.filter(x=>Number(x.room_id)===Number(p.roomId)||(x.unit_name&&x.unit_name===p.unit)).forEach(x=>{r[x.id??x.code]=p.indicatorValues?.[x.code]??empty(x)})
+   layoutProfiles(profiles,getLayout(Number(p.roomId))).forEach(x=>{r[x.id??x.code]=p.indicatorValues?.[x.code]??empty(x)})
    setSelected({...p})
    setDraft(r)
    setPatientOpen(true)
