@@ -190,6 +190,22 @@ function dominantGrain(profiles:Profile[],layout:AuditLayout|undefined){
  return layout?.fields.some(f=>normHeader(f)==='tanggal masuk')?'patient_episode':'event'
 }
 
+function grainLabel(grain:string){
+ if(grain==='patient_episode')return'Per episode pasien'
+ if(grain==='provider_day')return'Per dokter per hari'
+ if(grain==='daily_metric')return'Angka harian'
+ if(grain==='event')return'Per kejadian'
+ if(grain==='activity')return'Per aktivitas'
+ if(grain==='aggregate')return'Agregat'
+ return'Catatan logbook'
+}
+function statusLabel(status:unknown){
+ const s=String(status??'')
+ if(s==='Ready for Review')return'Siap ditinjau'
+ if(s==='Validated')return'Tervalidasi'
+ if(s==='Draft')return'Draf'
+ return s||'Draf'
+}
 export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(CONTAINERS[0])
  const [year,setYear]=useState(2026)
@@ -368,7 +384,14 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    try{
      const {data:{user}}=await sb.auth.getUser()
      if(!user) throw new Error('Sesi login tidak ditemukan.')
-     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:normalizedRm||`${selected.roomId}:${recordDate||now}:${selected.id}`,subject_json:core,core_data:core,status:'ready',review_required:!complete,entered_by:user.id}
+     const serviceStream=String(formData['Alur layanan']??'').trim()
+     const subjectKey=grain==='provider_day'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${String(formData['Klinik']??'').trim()}:${String(formData['Dokter']??'').trim()}`:grain==='daily_metric'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${serviceStream||'semua-alur'}`:normalizedRm||`${selected.roomId}:${recordDate||now}:${selected.id}`
+     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:'ready',review_required:!complete,entered_by:user.id}
+     if(!recordId&&['daily_metric','provider_day'].includes(grain)){
+       const {data:existing,error:lookupError}=await q().from('quality_records').select('id').eq('room_id',selected.roomId).eq('profile_year',year).eq('measurement_grain',grain).eq('subject_key',subjectKey).neq('status','archived').limit(1).maybeSingle()
+       if(lookupError)throw lookupError
+       if(existing?.id){setBusy(false);setMessage(grain==='provider_day'?'Catatan untuk dokter, klinik, dan tanggal tersebut sudah ada. Buka catatan yang ada untuk memperbaruinya.':'Catatan harian untuk tanggal dan alur layanan tersebut sudah ada. Buka catatan yang ada untuk memperbaruinya.');return}
+     }
      if(recordId){const {error}=await q().from('quality_records').update(payload).eq('id',recordId);if(error)throw error}
      else{const {data,error}=await q().from('quality_records').insert(payload).select('*').single();if(error)throw error;recordId=String(data.id)}
      await q().from('quality_record_responses').delete().eq('record_id',recordId)
@@ -411,6 +434,14 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    </div></article>
  }
 
+ const renderLogbookField=(field:string,i:number)=>{
+   const kindNow=inputKind(field,selectedLayout),raw=inputFieldValue(selected,field,selectedLayout),wide=kindNow==='textarea'||field.length>66
+   const groups=selectedLayout?.providerGroups??[]
+   const currentClinic=String(selected?.formData?.['Klinik']??'')
+   const doctors=groups.find(g=>g.clinic===currentClinic)?.doctors??[]
+   return <label key={field+'-'+i} className="aqField" style={wide?{gridColumn:'1/-1'}:undefined}><span>{field}{kindNow==='computed'?' · otomatis':''}</span>{kindNow==='computed'?<div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?`${raw} hari`:normHeader(field)==='lamanya tindak lanjut'?`${raw} hari`:normHeader(field)==='kecepatan respon menit'?`${raw} menit`:String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>:kindNow==='textarea'?<textarea value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>:kindNow==='select'&&normHeader(field)==='klinik'?<select value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>:kindNow==='select'&&normHeader(field)==='dokter'?<select value={String(raw??'')} disabled={!currentClinic} onChange={(e:any)=>setField(field,e.target.value)}><option value="">{currentClinic?'Pilih dokter':'Pilih klinik terlebih dahulu'}</option>{doctors.map(d=><option key={d} value={d}>{d}</option>)}</select>:<input type={kindNow==='date'?'date':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>}</label>
+ }
+
  return <div className="aq">
    <style dangerouslySetInnerHTML={{__html:CSS}}/>
    <section className="glass aqHead"><div><div className="eyebrow">AUREKA · INDIKATOR MUTU</div><h3>Audit Indikator Mutu</h3><p>Logbook master–detail. PIC mengisi fakta pasien; AUREKA menghitung agregat indikator dari episode pasien.</p></div><div className="aqActions"><button className="aqBtn" onClick={()=>setCatalogOpen(true)}>Master {hasHeaderMetadata?profiles.filter(p=>String(p.schema_json?.header_label??'').trim()).length:profiles.length} Header</button><button className="aqBtn" onClick={()=>{setAuditRows(localRead<Audit[]>(AUDIT_KEY,[]));setAuditOpen(true)}}>Audit Trail</button><button className="aqBtn primary" onClick={newPatient}>＋ Catatan</button></div></section>
@@ -422,7 +453,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
 
    {patientOpen&&selected&&<div className="aqBack" onClick={(e:any)=>{if(e.target===e.currentTarget&&!busy)setPatientOpen(false)}}><section className="aqDrawer" role="dialog" aria-modal="true" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><div className="eyebrow">LOGBOOK · {selected.unit}</div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" onClick={()=>!busy&&setPatientOpen(false)}>×</button></div><div className="aqBody">
       <div className="aqNotice" style={{marginBottom:12}}>Kolom data berikut berasal dari header Excel yang <b>tidak berwarna hijau</b>. Nilai turunan seperti LOS, umur dari tanggal lahir, lamanya tindak lanjut, dan kecepatan respons dihitung otomatis dan tidak perlu diketik.</div>
-      <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map((field,i)=>{const kindNow=inputKind(field,selectedLayout);const raw=inputFieldValue(selected,field,selectedLayout);const fullWidth=kindNow==='textarea'||field.length>66;return <label key={field+'-'+i} className="aqField" style={fullWidth?{gridColumn:'1/-1'}:undefined}><span>{field}{kindNow==='computed'?' · Otomatis':''}</span>{kindNow==='computed'?<div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?`${raw} hari`:normHeader(field)==='lamanya tindak lanjut'?`${raw} hari`:normHeader(field)==='kecepatan respon menit'?`${raw} menit`:String(raw)}</strong><small>Dihitung dari tanggal/waktu terkait bila tersedia</small></div>:kindNow==='textarea'?<textarea value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>:<input type={kindNow==='date'?'date':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} readOnly={false} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>}</label>})}</div>
+      <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map(renderLogbookField)}</div>
       <div className="aqDerived"><div><span>Unit logbook</span><strong>{selected.unit}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'—'}</strong></div><div><span>Kelengkapan indikator hijau</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
       <div className="aqSection"><h5>Indikator Mutu (Header Hijau)</h5><span>{filledN} dari {applicable.length} terisi</span></div>
       {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Layout Excel untuk unit ini belum mencantumkan header indikator berwarna hijau.</div>}
