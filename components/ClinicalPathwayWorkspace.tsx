@@ -103,6 +103,13 @@ function fmtDate(value?: string | null): string {
   const d = new Date(value)
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
 }
+function toLocalDateTimeInput(value?: string): string {
+  if (!value) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (v: number) => String(v).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 function policyLabel(policy: Policy): string {
   return policy === 'required' ? 'Wajib' : policy === 'conditional' ? 'Kondisional' : 'Tidak dijadwalkan'
 }
@@ -637,7 +644,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             }}><option value="">Belum dinilai</option><option value="done">Sesuai standar</option><option value="not_done">Tidak sesuai / tidak dilakukan</option>{sched.policy === 'conditional' && <option value="not_applicable">Tidak berlaku (kondisional)</option>}</select></div>
             <div className="cpField"><label>Petugas pelaksana {item.oppe ? '· bukti OPPE' : ''}</label><input value={answer.performer_name || ''} onChange={(e) => patchCell(item, focusedCell.day, { performer_name: e.target.value })} placeholder="Nama petugas yang benar-benar melaksanakan" /></div>
             <div className="cpField"><label>Profesi pelaksana</label><input value={answer.performer_profession || item.profession || ''} onChange={(e) => patchCell(item, focusedCell.day, { performer_profession: e.target.value })} /></div>
-            <div className="cpField"><label>Waktu pelaksanaan</label><input type="datetime-local" value={answer.performed_at ? new Date(answer.performed_at).toISOString().slice(0,16) : ''} onChange={(e) => patchCell(item, focusedCell.day, { performed_at: e.target.value ? new Date(e.target.value).toISOString() : '' })} /></div>
+            <div className="cpField"><label>Waktu pelaksanaan</label><input type="datetime-local" value={toLocalDateTimeInput(answer.performed_at)} onChange={(e) => patchCell(item, focusedCell.day, { performed_at: e.target.value ? new Date(e.target.value).toISOString() : '' })} /></div>
             <div className="cpField"><label>Bukti / referensi</label><input value={answer.evidence || ''} onChange={(e) => patchCell(item, focusedCell.day, { evidence: e.target.value })} placeholder="Nomor dokumen / catatan" /></div>
             <div className="cpField cpWide"><label>Catatan item / alasan ketidaksesuaian</label><textarea value={answer.note || ''} onChange={(e) => patchCell(item, focusedCell.day, { note: e.target.value })} placeholder="Catatan pelaksanaan; untuk variasi, isi pula Bagian Variasi di bawah." /></div>
             <div className="cpWide" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" className="cpBtn" onClick={() => setFocusedCell(null)}>Tutup rincian</button>{item.oppe && !String(answer.performer_name || '').trim() && <span className="cpNotice">Item ini dipetakan ke OPPE; isi nama pelaksana agar bukti dapat diatribusikan.</span>}</div>
