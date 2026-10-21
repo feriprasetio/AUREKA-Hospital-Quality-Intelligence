@@ -251,24 +251,73 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    setMessage('')
  }
  const newPatient=()=>{
-   if(roomId==null){setMessage('Pilih unit terlebih dahulu sebelum membuat pasien baru.');return}
+   if(roomId==null){setMessage('Pilih unit terlebih dahulu sebelum membuat catatan logbook.');return}
    const u=rooms.find(r=>Number(r.id)===Number(roomId))
-   const now=new Date().toISOString().slice(0,16)
-   setSelected({id:`LOCAL-${Date.now()}`,recordId:null,roomId,unit:u?.name??'',name:'',rm:'',sex:'',age:null,admit:now,discharge:'',diagnosis:'',dpjp:'',status:'Draft',indicatorValues:{},source:'local',updatedAt:null})
-   setDraft({});setPatientOpen(true);setMessage('')
+   const layout=getLayout(roomId)
+   const today=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`})()
+   const formData:Record<string,any>={}
+   ;(layout?.fields??[]).forEach(field=>{formData[field]=inputKind(field,layout)==='computed'?'':''})
+   const dateField=primaryDateField(layout)
+   if(dateField)formData[dateField]=today
+   const grain=dominantGrain(profiles,layout)
+   const admit=recordDateFrom(formData,layout,today)
+   const selectedRecord={id:`LOCAL-${Date.now()}`,recordId:null,roomId,unit:u?.name??'',name:String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??''),rm:String(formData['No. Rekam Medis']??formData['No. RM']??''),sex:String(formData['Jenis Kelamin']??''),age:null,admit,discharge:String(formData['Tanggal Keluar']??''),diagnosis:String(formData['Diagnosa Tegak']??formData['Diagnosa']??''),dpjp:String(formData['DPJP']??formData['Dpjp']??''),status:'Draft',indicatorValues:{},formData,measurementGrain:grain,source:'local',updatedAt:null}
+   setSelected(selectedRecord)
+   const r:any={}
+   layoutProfiles(profiles,layout).forEach(p=>{r[p.id??p.code]=empty(p)})
+   setDraft(r);setPatientOpen(true);setMessage('')
+ }
+ const setField=(field:string,value:any)=>{
+   setSelected(p=>{
+     if(!p)return p
+     const layout=getLayout(Number(p.roomId))
+     const formData={...(p.formData??{}),[field]:value}
+     const name=String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??formData['Gangguan IT']??formData['Insiden yang Terjadi']??formData['Nama Pertemuan Ilmiah']??formData['Nama MPP']??p.name??'')
+     const rm=String(formData['No. Rekam Medis']??formData['No. RM']??p.rm??'')
+     const admit=recordDateFrom(formData,layout,String(p.admit??''))
+     const discharge=String(formData['Tanggal Keluar']??p.discharge??'')
+     const diagnosis=String(formData['Diagnosa Tegak']??formData['Diagnosa']??formData['Diagnosa IGD']??formData['Diagnosa Pasien']??formData['Diagnosis Medis']??formData['Diagnosa Operasi']??p.diagnosis??'')
+     const dpjp=String(formData['DPJP']??formData['Dpjp']??p.dpjp??'')
+     const ageField=layout?.fields.find(x=>normHeader(x)==='umur'||normHeader(x)==='usia')
+     const ageValue=ageField&&isComputedField(ageField,layout)?computedField(ageField,formData,layout):formData['Umur']??formData['Usia']??p.age
+     return {...p,formData,name,rm,admit,discharge,diagnosis,dpjp,age:ageValue===''||ageValue==null?null:Number(ageValue)}
+   })
  }
  const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
  const audit=(x:Audit)=>{const a=[x,...localRead<Audit[]>(AUDIT_KEY,[])].slice(0,500);localWrite(AUDIT_KEY,a);setAuditRows(a)}
 
  const save=async()=>{
    if(!selected)return
-   if(!selected.name.trim()||!selected.rm.trim()||!selected.admit||!selected.diagnosis.trim()||!selected.dpjp.trim()){setMessage('Nama pasien, No. RM, tanggal masuk, diagnosis, dan DPJP wajib diisi.');return}
+   const layout=getLayout(Number(selected.roomId))??activeLayout
+   const formData:Record<string,any>={...(selected.formData??{})}
+   const identityCandidates=['Nama Pasien','Nama Mahasiswa','Nama MPP','Gangguan IT','Insiden yang Terjadi','Nama Pertemuan Ilmiah','Uraian Temuan Audit','Nama Pertemuan Ilmiah']
+   const identityField=layout?.fields.find(f=>identityCandidates.includes(f))??layout?.fields[0]
+   if(identityField&&!String(formData[identityField]??'').trim()){
+     setMessage(`Kolom "${identityField}" wajib diisi agar catatan mudah dikenali.`);return
+   }
+   const dateField=primaryDateField(layout)
+   if(dateField&&!String(formData[dateField]??'').trim()){
+     setMessage(`Kolom tanggal "${dateField}" wajib diisi untuk filter periode dan pelaporan.`);return
+   }
+   const calc:any={}
+   ;(layout?.fields??[]).filter(field=>isComputedField(field,layout)).forEach(field=>{
+     const v=computedField(field,formData,layout)
+     if(v!=null)calc[field]=v
+   })
+   const recordDate=recordDateFrom(formData,layout,String(selected.admit??''))
+   const normalizedName=String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??formData['Gangguan IT']??formData['Insiden yang Terjadi']??formData['Nama Pertemuan Ilmiah']??selected.name??'').trim()
+   const normalizedRm=String(formData['No. Rekam Medis']??formData['No. RM']??selected.rm??'').trim()
+   const normalizedDiagnosis=String(formData['Diagnosa Tegak']??formData['Diagnosa']??formData['Diagnosa IGD']??formData['Diagnosa Pasien']??formData['Diagnosis Medis']??formData['Diagnosa Operasi']??selected.diagnosis??'').trim()
+   const normalizedDpjp=String(formData['DPJP']??formData['Dpjp']??selected.dpjp??'').trim()
+   const discharge=String(formData['Tanggal Keluar']??selected.discharge??'')
    const values:any={}
    applicable.forEach(p=>{const r=draft[p.id??p.code];if(r)values[p.code]=r})
    const complete=applicable.length>0&&applicable.every(p=>responseComplete(p,draft[p.id??p.code]))
-   const finalStatus=selected.discharge?(complete?'Ready for Review':'Draft'):(complete?'Ready for Review':'Aktif')
+   const stayLayout=!!layout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!layout?.fields.some(f=>normHeader(f)==='tanggal keluar')
+   const finalStatus=complete?'Ready for Review':(stayLayout&&!discharge?'Aktif':'Draft')
    const now=new Date().toISOString()
-   const core={patient_name:selected.name.trim(),medical_record_no:selected.rm.trim(),sex:selected.sex,age:selected.age,admission_at:selected.admit,discharge_at:selected.discharge,diagnosis:selected.diagnosis.trim(),dpjp:selected.dpjp.trim(),unit_name:selected.unit,room_id:selected.roomId,status:finalStatus,indicator_values:values,los_days:los(selected.admit,selected.discharge)}
+   const grain=String(selected.measurementGrain??dominantGrain(profiles,layout))
+   const core={patient_name:normalizedName,medical_record_no:normalizedRm,sex:String(formData['Jenis Kelamin']??selected.sex??''),age:formData['Umur']??formData['Usia']??selected.age,admission_at:formData['Tanggal Masuk']??recordDate,discharge_at:discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,unit_name:selected.unit,room_id:selected.roomId,status:finalStatus,workflow_status:finalStatus,form_fields:formData,calculated_fields:calc,indicator_values:values,measurement_grain:grain,los_days:calc['Lenght of Stay']??calc['Length of Stay']??(stayLayout?los(String(formData['Tanggal Masuk']??''),discharge):null)}
    setBusy(true)
    let recordId=selected.recordId,backend=false,warning=''
    try{
