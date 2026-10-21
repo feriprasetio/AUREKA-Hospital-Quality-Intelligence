@@ -1,36 +1,770 @@
 [
-{"roomId":3,"fields":["Nama Pasien","Tanggal Permintaan","Waktu Permintaan","Waktu Diantar","Asal Ruangan","Nama Supir","Kegiatan Ambulance","Tujuan Ambulance","Kecepatan Respon (Menit)"],"indicators":["Pelayanan Ambulance"]},
-{"roomId":8,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Kategori Pasien","Perawat Penerima"],"indicators":["Akses Vaskular","Adekuasi Dialisis","Hipotensi","Kekosongan BHP/Linen"]},
-{"roomId":1,"fields":["Nama Pasien","Unit Pelayanan","Level Masalah","Tanggal Aduan","Tanggal Tindak Lanjut","Lamanya Tindak Lanjut","Sumber Aduan","Status Aduan","Kronologis Ringkas","Rencana Tindak Lanjut","Penyelesaian Aduan di Meja Informasi"],"indicators":["Respon Komplain","Mengerti Informasi"]},
-{"roomId":2,"fields":["Gangguan IT","Asal Ruangan","Tanggal Keluhan","Petugas IT","Tingkat Kesulitan"],"indicators":["Tindak Lanjut"]},
-{"roomId":4,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Diagnosa Operasi","Jenis Tindakan","DPJP"],"indicators":["Laporan Operasi <24h","Batal Operasi Elektif","Lokasi/Prosedur Tepat","Unplanned ICU Transfer"]},
-{"roomId":6,"fields":["Nama Pasien","No. Rekam Medis","Diagnosa IGD","Waktu Masuk","Waktu Transfer","Tujuan","Perawat Penerima","Dokter Umum","DPJP"],"indicators":["Antrian Rawat Inap","Overcrowding Index","Kematian IGD ≤8h","Kelengkapan Assessment Keperawatan","Door-to-Decision","Response Triage","Response Time DPJP"]},
-{"roomId":7,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Rawat Inap","Nutrisionis","Nama Dokter","Instruksi"],"indicators":["Assessment"]},
-{"roomId":9,"fields":["Nama Pasien","No. Rekam Medis","Waktu Permintaan","Waktu Selesai","Asal Ruangan","Dokter Pengirim","Tindakan","Analis Penerima"],"indicators":["Unordered Specimen","Delay Sampling","Lapor Tes Kritis","Darah Terbuang","Histopatologi"]},
-{"roomId":10,"fields":["No. Rekam Medis","Nama Pasien","Umur","Jenis Kelamin","Jenis Pasien","Dokter Pengirim (Umum)","Dokter Pengirim (Umum)2","Perawat","Waktu Registrasi","Waktu Permintaan","Waktu Selesai","Asal Ruangan","Tindakan","Radiografer Penerima"],"indicators":["Keterlambatan Rontgen","Pengulangan Rontgen","Kerusakan Film","Kekosongan BHP"]},
-{"roomId":11,"fields":["Klinik Anak (Pediatri)","dr. Raden Yutta Inten, Sp.A, M.Kes","dr. Rista Lestari, M.Sc, Sp.A","dr. Rosyadi Akbarri, M.Sc, Sp.A","dr. Widy Setiawan, Sp.A, M.Kes","Klinik Bedah Onkologi","dr. Eko R. Suhardiman, M.Si,Med, Sp.B (K) - Onk","dr. Vidiatma Agbari, Sp.OG (K)-ONK","Klinik Bedah Saraf","dr. Mitsu Dapot Parlindungan Sijabat, Sp.BS","Klinik Bedah Umum","dr. Boby Eko Nugroho, Sp.B","dr. Lilie Fransiska, Sp.B","Klinik Dermatologi dan Venereologi","dr. Arie Rakhmini, Sp.KK","dr. Herni, Sp.KK","Klinik Edukasi Diabetes Mellitus","dr. Nihayatus Solikhah","Klinik Endokrin, Metabolik dan Diabetes","dr. Amanda Trixie Hardigaloeh, Sp.PD, (K)-EMD","Klinik Gigi dan Mulut","drg. Luluk Yulianani, Sp.BM, M.Ked.Klim (Bedah Mulut)","drg. Trieska Annisa, Sp.KGA (Kedokteran Gigi Anak)","drg. Putra Qadri Fath, Sp.KG (Konservasi Gigi)","drg. Desy Marlin P. Br. S., Sp.Perio (Periodonsia)","Klinik Jantung dan Pembuluh Darah","dr. Aditya Pradhana, Sp.JP","dr. Christina Chandra, Sp.JP (K)","dr. Tommy Alexander, Sp.JP","Klinik Kedokteran Umum","dr. Welda Alfiansyah (Azalea)","dr. Welda Alfiansyah (MCU","Klinik Mata","dr. Sri Yuliani Elida, Sp.M","Klinik Obstetri & Gynecology","dr. Anton Suwito, Sp.OG","dr. Neny Dwi Anggraeni, Sp.OG","dr. Vidia Sari, Sp.OG, (K)-F.E.R","Klinik Penyakit Dalam","dr. I Ketut Sujana, Sp.PD","dr. Wirdasari, Sp.PD","dr. Yeni Anggraini, Sp.PD","Klinik Psikiatri dan Kenyamanan Tidur","dr. Romadhon Apdani, Sp.KJ","Klinik Pulmonologi dan Kedokteran Respirasi","dr. Nur Annisa, Sp.P","Klinik Rehabilitasi Medik","dr. Agus Suwandi Gandra, Sp.K.F.R","Klinik Saraf (Neurologi)","dr. Achmad Faqih, Sp.N","dr. Ditha Praritama Sebayang, Sp.N.","dr. Johnson Luke, Sp.N, M.Kes","Klinik THT-BKL","dr. Eva Nurfarihah, M.Kes, Sp.THT-BKL"],"indicators":[]},
-{"roomId":12,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Dilayani","Nama Terapis","Jenis Tindakan"],"indicators":["Efektivitas","Drop Out Tanpa Izin Dokter","Kejadian Jatuh","Salah Tindakan","Kepatuhan Durasi Pelayanan","Ketersediaan Media Terapi"]},
-{"roomId":13,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","DPJP"],"indicators":["Klaim","KLPCM"]},
-{"roomId":14,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen","Identifikasi Pasien","APD","Pencegahan Jatuh","Komunikasi Perawatan","Transfer IGD","LOS ICU Panjang","Kekosongan Obat","Kekosongan Linen"]},
-{"roomId":15,"fields":["Nama Pertemuan Ilmiah","Tanggal Pertemuan","Nama Dokter yang Diundang"],"indicators":["Kehadiran"]},
-{"roomId":18,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Keperawatan","Transfer IGD","Unplanned Extubation","LOS NICU Panjang","Kekosongan Obat","Kekosongan Linen"]},
-{"roomId":19,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Bidan Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Kebidanan","Transfer IGD","Kekosongan Obat","Kekosongan Linen","Antibiotik Profilaksis","IMD","Anestesi Regional","Hemostasis","Indikasi SC POGI","LOS Post SC <3"]},
-{"roomId":32,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","KB yang Digunakan"],"indicators":["Komplikasi"]},
-{"roomId":33,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Kategori Pasien","Diagnosa","Asal Kedatangan","Kondisi Masuk"],"indicators":["Petugas","Ruptur Perineum","Komunikasi Pra-Kedatangan","Stabilisasi Pra-Merujuk"]},
-{"roomId":20,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Berat Badan","Tinggi Badan","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Keperawatan","Transfer IGD","Stabilitas Bayi Transfer","Kekosongan Obat","Kekosongan Linen","Asfiksia Tidak Ada","Ventilator Bayi","APGAR Score","Usaha Nafas Bayi","VTP <1 Menit","HIE Tidak Ada"]},
-{"roomId":21,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Ruang Perawatan Pasien","Petugas Admisi (Hambatan Edukasi; Hak dan kewajiban pasien; Peraturan/tata tertib RS)","Dokter IGD (Informasi jenis pelayanan yang dibutuhkan beserta tarifnya; Diagnosis Penyakit; Hasil pemeriksaan; Nyeri akibat tindakan/prosedur pemeriksaan)","Perawat IGD (Pemasangan gelang identitas; Informasi Tindakan)","Dokter Rawat Inap (Diagnosis penyakit; Rencana asuhan; Hasil pemeriksaan; Perkembangan kondisi pasien; Tindakan dan pemeriksaan; Hasil asuhan dan pengobatan; Penggunaan peralatan medik aman; RTL asuhan)","Perawat/Bidan Rawat Inap (Rencana asuhan; Cuci tangan; Pencegahan pasien jatuh; Etika batuk; Manajemen nyeri; Prosedur pemeriksaan; Penggunaan peralatan medis aman)","Farmasi (Penggunaan obat efektif dan aman; Efek samping obat; Interaksi antarobat termasuk obat bebas dan makanan)","Nutrisionis (Pedoman gizi seimbang; Kebutuhan diet spesifik)","Rehabilitasi Medik (Teknik rehabilitasi; Penggunaan peralatan medik yang benar)"],"indicators":["Pelaksanaan Edukasi"]},
-{"roomId":22,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Berat Badan","Tinggi Badan","Tanggal Lahir","Umur","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Keperawatan","Transfer IGD","Infus Vena Perifer","Ketenangan Pasien","Kekosongan Obat","Kekosongan Linen","Assessment Stunting Wasting2","Demam 2–7H + Trombositopenia + ↑Ht","DR ≥1×/Hari","Kristaloid ≥500 cc/8J","Tidak DSS"]},
-{"roomId":23,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Keperawatan","Transfer IGD","Batal Operasi","Nyeri Terkontrol","Kekosongan Obat","Kekosongan Linen"]},
-{"roomId":24,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Keperawatan","Oksigen Transfer IGD","Kekosongan Obat","Kekosongan Linen","Terapi OAT","Sputum/TCM","SITB Pencatatan","Gejala TB Hilang"]},
-{"roomId":25,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Clinical Pathway","Validitas Asesmen Keperawatan","Transfer IGD","Kekosongan Linen Hari Pertama","Kekosongan Obat Selama Dirawat","Fungsi Ginjal/eGFR","USG Perawatan","Hemodialisis ≤48 Jam","Klinis PGTA","Lab PGTA","Anemia","Komponen Darah","Obat Vasoaktif","Koagulasi Lengkap","EGD + Terapi","HB Pulang >10","Perdarahan Henti"]},
-{"roomId":26,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Keperawatan","Transfer IGD","Kekosongan Linen","Kekosongan Obat","(STEMI) EKG di IGD","(STEMI) Killip Stratifikasi2","(STEMI) Door-to-Balloon ≤90 Menit","(STEMI) Revaskularisasi","(STEMI) LOS <5 Hari","(STEMI) Survival RS","(SNH) rTPA <4,5h","(SNH) CT Scan ≤30’","(SNH) Antiplatelet/Antikoagulan","(SNH) Pulang Hidup","(SNH) LOS <7"]},
-{"roomId":27,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Perawat Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen","Transfer IGD","Pengkajian IGD","Kekosongan BHP/Linen","Kekosongan Obat","Perawatan Kaki","Kontrol Metabolik","ABI","PEDIS","Tanpa Amputasi","Hifema"]},
-{"roomId":28,"fields":["Tanggal Audit","Unit / Instalasi (Auditee)","Uraian Temuan Audit","Rekomendasi Tindak Lanjut (TL)","Batas Waktu (Jatuh Tempo) TL","Tanggal Realisasi Selesai","Kendala / Keterangan"],"indicators":["Status Penyelesaian"]},
-{"roomId":29,"fields":["Tanggal Lapor","Jam Lapor","Insiden yang Terjadi","Tanggal Insiden","Jam Insiden","Lokasi Insiden","Ruang Perawatan Pasien","Diagnosa Pasien","Jenis Insiden","Akibat dari Insiden","Kronologi Kejadian","Nama Pasien","No. Rekam Medis","Usia","Jenis Kelamin","Penanggung Biaya","Tanggal Masuk Rumah Sakit","Jam Masuk Rumah Sakit","Orang Pertama yang Melaporkan Insiden","Petugas yang Pertama Kali Segera Melakukan Tindakan Penyelamatan","Tindakan yang Segera Dilakukan","Kejadian yang Sama Pernah Terjadi di Ruangan ini","Kejadian yang Sama Pernah Terjadi di Ruangan Lain","Langkah Pencegahan","Nama Pembuat Laporan","Unit Kerja","Finalisasi Laporan"],"indicators":["Waktu Laporan","Identifikasi"]},
-{"roomId":31,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Berkunjung","Durasi Pengobatan","Respons Klinis","Kepatuhan Kontrol","Supresi Viral Load","Faktor Sosial","Kelayakan MMD"],"indicators":["Kontrol Dokter"]},
-{"roomId":34,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Kunjungan","Nama Dokter","Diagnosa"],"indicators":["Kepatuhan Regimen Kemo","Mastektomi < 5 Minggu","Pemeriksaan IHC Lengkap","Kelengkapan Staging cTNM","Kepatuhan Follow-Up","Kejadian Limfedema"]},
-{"roomId":35,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Visite","Diagnosa Infeksi","Ruang Rawat","DPJP","Antibiotik Empirik","Jenis","Dosis","Frekuensi","Rute"],"indicators":["Kepatuhan Terapi"]},
-{"roomId":30,"fields":["Nama Mahasiswa","Profesi/Prodi","Kampus","Stase Terakhir","Tanggal Mulai Praktek","Tanggal Selesai Praktek","CI/Penanggung Jawab"],"indicators":["Administrasi","Atribut","Absensi","Sikap & Perilaku","Laporan"]},
-{"roomId":37,"fields":["Nama Pasien","No. Rekam Medis","Tanggal Masuk","Tanggal Keluar","Diagnosa Tegak","Status Pulang","Lenght of Stay","Bidan Penerima","DPJP"],"indicators":["Visite Spesialis","Validitas Asesmen Kebidanan","Kepatuhan Instruksi Bidan","Transfer IGD","Kekosongan BHP/Linen","Kekosongan Obat","Unplanned Return Ibu2","Partograf Lengkap","Tanggap SC Emergency"]},
-{"roomId":36,"fields":["Nama MPP","Ruangan","Nama Pasien","No. RM","Tanggal Masuk","Tanggal Pelaporan","Dpjp","Status Pembayaran","Diagnosis Medis","Biaya Akhir","Estimasi Ina-Cbgs","Masalah","Evaluasi Tindak Lanjut"],"indicators":["Visitasi Pasien High Risk dan High Cost"]}
+  {
+    "roomId": 3,
+    "fields": [
+      "Nama Pasien",
+      "Tanggal Permintaan",
+      "Waktu Permintaan",
+      "Waktu Diantar",
+      "Asal Ruangan",
+      "Nama Supir",
+      "Kegiatan Ambulance",
+      "Tujuan Ambulance",
+      "Kecepatan Respon (Menit)"
+    ],
+    "indicators": [
+      "Pelayanan Ambulance"
+    ]
+  },
+  {
+    "roomId": 8,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Kategori Pasien",
+      "Perawat Penerima"
+    ],
+    "indicators": [
+      "Akses Vaskular",
+      "Adekuasi Dialisis",
+      "Hipotensi",
+      "Kekosongan BHP/Linen"
+    ]
+  },
+  {
+    "roomId": 1,
+    "fields": [
+      "Nama Pasien",
+      "Unit Pelayanan",
+      "Level Masalah",
+      "Tanggal Aduan",
+      "Tanggal Tindak Lanjut",
+      "Lamanya Tindak Lanjut",
+      "Sumber Aduan",
+      "Status Aduan",
+      "Kronologis Ringkas",
+      "Rencana Tindak Lanjut",
+      "Penyelesaian Aduan di Meja Informasi"
+    ],
+    "indicators": [
+      "Respon Komplain",
+      "Mengerti Informasi"
+    ]
+  },
+  {
+    "roomId": 2,
+    "fields": [
+      "Gangguan IT",
+      "Asal Ruangan",
+      "Tanggal Keluhan",
+      "Petugas IT",
+      "Tingkat Kesulitan"
+    ],
+    "indicators": [
+      "Tindak Lanjut"
+    ]
+  },
+  {
+    "roomId": 4,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Diagnosa Operasi",
+      "Jenis Tindakan",
+      "DPJP"
+    ],
+    "indicators": [
+      "Laporan Operasi <24h",
+      "Batal Operasi Elektif",
+      "Lokasi/Prosedur Tepat",
+      "Unplanned ICU Transfer"
+    ]
+  },
+  {
+    "roomId": 6,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Diagnosa IGD",
+      "Waktu Masuk",
+      "Waktu Transfer",
+      "Tujuan",
+      "Perawat Penerima",
+      "Dokter Umum",
+      "DPJP"
+    ],
+    "indicators": [
+      "Antrian Rawat Inap",
+      "Overcrowding Index",
+      "Kematian IGD ≤8h",
+      "Kelengkapan Assessment Keperawatan",
+      "Door-to-Decision",
+      "Response Triage",
+      "Response Time DPJP"
+    ]
+  },
+  {
+    "roomId": 7,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Rawat Inap",
+      "Nutrisionis",
+      "Nama Dokter",
+      "Instruksi"
+    ],
+    "indicators": [
+      "Assessment"
+    ]
+  },
+  {
+    "roomId": 9,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Waktu Permintaan",
+      "Waktu Selesai",
+      "Asal Ruangan",
+      "Dokter Pengirim",
+      "Tindakan",
+      "Analis Penerima"
+    ],
+    "indicators": [
+      "Unordered Specimen",
+      "Delay Sampling",
+      "Lapor Tes Kritis",
+      "Darah Terbuang",
+      "Histopatologi"
+    ]
+  },
+  {
+    "roomId": 10,
+    "fields": [
+      "No. Rekam Medis",
+      "Nama Pasien",
+      "Umur",
+      "Jenis Kelamin",
+      "Jenis Pasien",
+      "Dokter Pengirim (Umum)",
+      "Dokter Pengirim (Umum)2",
+      "Perawat",
+      "Waktu Registrasi",
+      "Waktu Permintaan",
+      "Waktu Selesai",
+      "Asal Ruangan",
+      "Tindakan",
+      "Radiografer Penerima"
+    ],
+    "indicators": [
+      "Keterlambatan Rontgen",
+      "Pengulangan Rontgen",
+      "Kerusakan Film",
+      "Kekosongan BHP"
+    ]
+  },
+  {
+    "roomId": 11,
+    "fields": [
+      "Klinik Anak (Pediatri)",
+      "dr. Raden Yutta Inten, Sp.A, M.Kes",
+      "dr. Rista Lestari, M.Sc, Sp.A",
+      "dr. Rosyadi Akbarri, M.Sc, Sp.A",
+      "dr. Widy Setiawan, Sp.A, M.Kes",
+      "Klinik Bedah Onkologi",
+      "dr. Eko R. Suhardiman, M.Si,Med, Sp.B (K) - Onk",
+      "dr. Vidiatma Agbari, Sp.OG (K)-ONK",
+      "Klinik Bedah Saraf",
+      "dr. Mitsu Dapot Parlindungan Sijabat, Sp.BS",
+      "Klinik Bedah Umum",
+      "dr. Boby Eko Nugroho, Sp.B",
+      "dr. Lilie Fransiska, Sp.B",
+      "Klinik Dermatologi dan Venereologi",
+      "dr. Arie Rakhmini, Sp.KK",
+      "dr. Herni, Sp.KK",
+      "Klinik Edukasi Diabetes Mellitus",
+      "dr. Nihayatus Solikhah",
+      "Klinik Endokrin, Metabolik dan Diabetes",
+      "dr. Amanda Trixie Hardigaloeh, Sp.PD, (K)-EMD",
+      "Klinik Gigi dan Mulut",
+      "drg. Luluk Yulianani, Sp.BM, M.Ked.Klim (Bedah Mulut)",
+      "drg. Trieska Annisa, Sp.KGA (Kedokteran Gigi Anak)",
+      "drg. Putra Qadri Fath, Sp.KG (Konservasi Gigi)",
+      "drg. Desy Marlin P. Br. S., Sp.Perio (Periodonsia)",
+      "Klinik Jantung dan Pembuluh Darah",
+      "dr. Aditya Pradhana, Sp.JP",
+      "dr. Christina Chandra, Sp.JP (K)",
+      "dr. Tommy Alexander, Sp.JP",
+      "Klinik Kedokteran Umum",
+      "dr. Welda Alfiansyah (Azalea)",
+      "dr. Welda Alfiansyah (MCU",
+      "Klinik Mata",
+      "dr. Sri Yuliani Elida, Sp.M",
+      "Klinik Obstetri & Gynecology",
+      "dr. Anton Suwito, Sp.OG",
+      "dr. Neny Dwi Anggraeni, Sp.OG",
+      "dr. Vidia Sari, Sp.OG, (K)-F.E.R",
+      "Klinik Penyakit Dalam",
+      "dr. I Ketut Sujana, Sp.PD",
+      "dr. Wirdasari, Sp.PD",
+      "dr. Yeni Anggraini, Sp.PD",
+      "Klinik Psikiatri dan Kenyamanan Tidur",
+      "dr. Romadhon Apdani, Sp.KJ",
+      "Klinik Pulmonologi dan Kedokteran Respirasi",
+      "dr. Nur Annisa, Sp.P",
+      "Klinik Rehabilitasi Medik",
+      "dr. Agus Suwandi Gandra, Sp.K.F.R",
+      "Klinik Saraf (Neurologi)",
+      "dr. Achmad Faqih, Sp.N",
+      "dr. Ditha Praritama Sebayang, Sp.N.",
+      "dr. Johnson Luke, Sp.N, M.Kes",
+      "Klinik THT-BKL",
+      "dr. Eva Nurfarihah, M.Kes, Sp.THT-BKL"
+    ],
+    "indicators": []
+  },
+  {
+    "roomId": 12,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Dilayani",
+      "Nama Terapis",
+      "Jenis Tindakan"
+    ],
+    "indicators": [
+      "Efektivitas",
+      "Drop Out Tanpa Izin Dokter",
+      "Kejadian Jatuh",
+      "Salah Tindakan",
+      "Kepatuhan Durasi Pelayanan",
+      "Ketersediaan Media Terapi"
+    ]
+  },
+  {
+    "roomId": 13,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "DPJP"
+    ],
+    "indicators": [
+      "Klaim",
+      "KLPCM"
+    ]
+  },
+  {
+    "roomId": 14,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen",
+      "Identifikasi Pasien",
+      "APD",
+      "Pencegahan Jatuh",
+      "Komunikasi Perawatan",
+      "Transfer IGD",
+      "LOS ICU Panjang",
+      "Kekosongan Obat",
+      "Kekosongan Linen"
+    ]
+  },
+  {
+    "roomId": 15,
+    "fields": [
+      "Nama Pertemuan Ilmiah",
+      "Tanggal Pertemuan",
+      "Nama Dokter yang Diundang"
+    ],
+    "indicators": [
+      "Kehadiran"
+    ]
+  },
+  {
+    "roomId": 18,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Keperawatan",
+      "Transfer IGD",
+      "Unplanned Extubation",
+      "LOS NICU Panjang",
+      "Kekosongan Obat",
+      "Kekosongan Linen"
+    ]
+  },
+  {
+    "roomId": 19,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Bidan Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Kebidanan",
+      "Transfer IGD",
+      "Kekosongan Obat",
+      "Kekosongan Linen",
+      "Antibiotik Profilaksis",
+      "IMD",
+      "Anestesi Regional",
+      "Hemostasis",
+      "Indikasi SC POGI",
+      "LOS Post SC <3"
+    ]
+  },
+  {
+    "roomId": 32,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "KB yang Digunakan"
+    ],
+    "indicators": [
+      "Komplikasi"
+    ]
+  },
+  {
+    "roomId": 33,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Kategori Pasien",
+      "Diagnosa",
+      "Asal Kedatangan",
+      "Kondisi Masuk"
+    ],
+    "indicators": [
+      "Petugas",
+      "Ruptur Perineum",
+      "Komunikasi Pra-Kedatangan",
+      "Stabilisasi Pra-Merujuk"
+    ]
+  },
+  {
+    "roomId": 20,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Berat Badan",
+      "Tinggi Badan",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Keperawatan",
+      "Transfer IGD",
+      "Stabilitas Bayi Transfer",
+      "Kekosongan Obat",
+      "Kekosongan Linen",
+      "Asfiksia Tidak Ada",
+      "Ventilator Bayi",
+      "APGAR Score",
+      "Usaha Nafas Bayi",
+      "VTP <1 Menit",
+      "HIE Tidak Ada"
+    ]
+  },
+  {
+    "roomId": 21,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Ruang Perawatan Pasien",
+      "Petugas Admisi (Hambatan Edukasi; Hak dan kewajiban pasien; Peraturan/tata tertib RS)",
+      "Dokter IGD ( Informasi jenis pelayanan yg dibutuhkan beserta tarifnya; Diagnosis Penyakit; Hasil pemeriksaan; Nyeri Akibat tindakan/Prosedur pemeriksaan)",
+      "Perawat IGD (Pemasangan gelang Identitas; Informasi Tindakan)",
+      "Dokter Rawat Inap (Diagnosis penyakit; Rencana asuhan; Hasil pemeriksaan; Perkembangan kondisi pasien; Tindakan dan pemeriksaan; Hasil asuhan dan pengobatan; Penggunaan peralatan medik aman; RTL asuhan)",
+      "Perawat / Bidan Rawat Inap (Rencana asuhan perawatan; Cara cuci tangan yg benar; Pencegahan pasien jatuh; Etika batuk; Manajemen nyeri; Prosedur pemeriksaan; Penggunaan peralatan medis aman)",
+      "Farmasi (Penggunaan obat yg efektif dan aman termasuk efek samping obat; Interaksi antar obat termasuk dengan obat bebas dan makanan)",
+      "Nutrisionis (Pedoman gizi seimbang; Kebutuhan diet spesifik)",
+      "Rehabilitasi Medik (Teknik rehabilitasi medik; Penggunaan peralatan medik yg benar)"
+    ],
+    "indicators": [
+      "Pelaksanaan Edukasi"
+    ]
+  },
+  {
+    "roomId": 22,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Berat Badan",
+      "Tinggi Badan",
+      "Tanggal Lahir",
+      "Umur",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Keperawatan",
+      "Transfer IGD",
+      "Infus Vena Perifer",
+      "Ketenangan Pasien",
+      "Kekosongan Obat",
+      "Kekosongan Linen",
+      "Assessment Stunting Wasting2",
+      "Demam 2–7H + Trombositopenia + ↑Ht",
+      "DR ≥1×/Hari",
+      "Kristaloid ≥500 cc/8J",
+      "Tidak DSS"
+    ]
+  },
+  {
+    "roomId": 23,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Keperawatan",
+      "Transfer IGD",
+      "Batal Operasi",
+      "Nyeri Terkontrol",
+      "Kekosongan Obat",
+      "Kekosongan Linen"
+    ]
+  },
+  {
+    "roomId": 24,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Keperawatan",
+      "Oksigen Transfer IGD",
+      "Kekosongan Obat",
+      "Kekosongan Linen",
+      "Terapi OAT",
+      "Sputum/TCM",
+      "SITB Pencatatan",
+      "Gejala TB Hilang"
+    ]
+  },
+  {
+    "roomId": 25,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Clinical Pathway",
+      "Validitas Asesmen Keperawatan",
+      "Transfer IGD",
+      "Kekosongan Linen Hari Pertama",
+      "Kekosongan Obat Selama Dirawat",
+      "Fungsi Ginjal/eGFR",
+      "USG Perawatan",
+      "Hemodialisis ≤48 Jam",
+      "Klinis PGTA",
+      "Lab PGTA",
+      "Anemia",
+      "Komponen Darah",
+      "Obat Vasoaktif",
+      "Koagulasi Lengkap",
+      "EGD + Terapi",
+      "HB Pulang >10",
+      "Perdarahan Henti"
+    ]
+  },
+  {
+    "roomId": 26,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Keperawatan",
+      "Transfer IGD",
+      "Kekosongan Linen",
+      "Kekosongan Obat",
+      "(STEMI) EKG di IGD",
+      "(STEMI) Killip Stratifikasi2",
+      "(STEMI) Door-to-Balloon ≤90 Menit",
+      "(STEMI) Revaskularisasi",
+      "(STEMI) LOS <5 Hari",
+      "(STEMI) Survival RS",
+      "(SNH) rTPA <4,5h",
+      "(SNH) CT Scan ≤30’",
+      "(SNH) Antiplatelet/Antikoagulan",
+      "(SNH) Pulang Hidup",
+      "(SNH) LOS <7"
+    ]
+  },
+  {
+    "roomId": 27,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Perawat Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen",
+      "Transfer IGD",
+      "Pengkajian IGD",
+      "Kekosongan BHP/Linen",
+      "Kekosongan Obat",
+      "Perawatan Kaki",
+      "Kontrol Metabolik",
+      "ABI",
+      "PEDIS",
+      "Tanpa Amputasi",
+      "Hifema"
+    ]
+  },
+  {
+    "roomId": 28,
+    "fields": [
+      "Tanggal Audit",
+      "Unit / Instalasi (Auditee)",
+      "Uraian Temuan Audit",
+      "Rekomendasi Tindak Lanjut (TL)",
+      "Batas Waktu (Jatuh Tempo) TL",
+      "Tanggal Realisasi Selesai",
+      "Kendala / Keterangan"
+    ],
+    "indicators": [
+      "Status Penyelesaian"
+    ]
+  },
+  {
+    "roomId": 29,
+    "fields": [
+      "Tanggal Lapor",
+      "Jam Lapor",
+      "Insiden yang Terjadi",
+      "Tanggal Insiden",
+      "Jam Insiden",
+      "Lokasi Insiden",
+      "Ruang Perawatan Pasien",
+      "Diagnosa Pasien",
+      "Jenis Insiden",
+      "Akibat dari Insiden",
+      "Kronologi Kejadian",
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Usia",
+      "Jenis Kelamin",
+      "Penanggung Biaya",
+      "Tanggal Masuk Rumah Sakit",
+      "Jam Masuk Rumah Sakit",
+      "Orang Pertama yang Melaporkan Insiden",
+      "Petugas yang Pertama Kali Segera Melakukan Tindakan Penyelamatan",
+      "Tindakan yang Segera Dilakukan",
+      "Kejadian yang Sama Pernah Terjadi di Ruangan ini",
+      "Kejadian yang Sama Pernah Terjadi di Ruangan Lain",
+      "Langkah Pencegahan",
+      "Nama Pembuat Laporan",
+      "Unit Kerja",
+      "Finalisasi Laporan"
+    ],
+    "indicators": [
+      "Waktu Laporan",
+      "Identifikasi"
+    ]
+  },
+  {
+    "roomId": 31,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Berkunjung",
+      "Durasi Pengobatan",
+      "Respons Klinis",
+      "Kepatuhan Kontrol",
+      "Supresi Viral Load",
+      "Faktor Sosial",
+      "Kelayakan MMD"
+    ],
+    "indicators": [
+      "Kontrol Dokter"
+    ]
+  },
+  {
+    "roomId": 34,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Kunjungan",
+      "Nama Dokter",
+      "Diagnosa"
+    ],
+    "indicators": [
+      "Kepatuhan Regimen Kemo",
+      "Mastektomi < 5 Minggu",
+      "Pemeriksaan IHC Lengkap",
+      "Kelengkapan Staging cTNM",
+      "Kepatuhan Follow-Up",
+      "Kejadian Limfedema"
+    ]
+  },
+  {
+    "roomId": 35,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Visite",
+      "Diagnosa Infeksi",
+      "Ruang Rawat",
+      "DPJP",
+      "Antibiotik Empirik",
+      "Jenis",
+      "Dosis",
+      "Frekuensi",
+      "Rute"
+    ],
+    "indicators": [
+      "Kepatuhan Terapi"
+    ]
+  },
+  {
+    "roomId": 30,
+    "fields": [
+      "Nama Mahasiswa",
+      "Profesi/Prodi",
+      "Kampus",
+      "Stase Terakhir",
+      "Tanggal Mulai Praktek",
+      "Tanggal Selesai Praktek",
+      "CI/Penanggung Jawab"
+    ],
+    "indicators": [
+      "Administrasi",
+      "Atribut",
+      "Absensi",
+      "Sikap & Perilaku",
+      "Laporan"
+    ]
+  },
+  {
+    "roomId": 37,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Tanggal Keluar",
+      "Diagnosa Tegak",
+      "Status Pulang",
+      "Lenght of Stay",
+      "Bidan Penerima",
+      "DPJP"
+    ],
+    "indicators": [
+      "Visite Spesialis",
+      "Validitas Asesmen Kebidanan",
+      "Kepatuhan Instruksi Bidan",
+      "Transfer IGD",
+      "Kekosongan BHP/Linen",
+      "Kekosongan Obat",
+      "Unplanned Return Ibu2",
+      "Partograf Lengkap",
+      "Tanggap SC Emergency"
+    ]
+  },
+  {
+    "roomId": 36,
+    "fields": [
+      "Nama MPP",
+      "Ruangan",
+      "Nama Pasien",
+      "No. RM",
+      "Tanggal Masuk",
+      "Tanggal Pelaporan",
+      "Dpjp",
+      "Status Pembayaran",
+      "Diagnosis Medis",
+      "Biaya Akhir",
+      "Estimasi Ina-Cbgs",
+      "Masalah",
+      "Evaluasi Tindak Lanjut"
+    ],
+    "indicators": [
+      "Visitasi Pasien High Risk dan High Cost"
+    ]
+  }
 ]
