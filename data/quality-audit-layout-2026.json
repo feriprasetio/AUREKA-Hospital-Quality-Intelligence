@@ -1,38 +1,5 @@
 [
   {
-    "roomId": 3,
-    "fields": [
-      "Nama Pasien",
-      "Tanggal Permintaan",
-      "Waktu Permintaan",
-      "Waktu Diantar",
-      "Asal Ruangan",
-      "Nama Supir",
-      "Kegiatan Ambulance",
-      "Tujuan Ambulance",
-      "Kecepatan Respon (Menit)"
-    ],
-    "indicators": [
-      "Pelayanan Ambulance"
-    ]
-  },
-  {
-    "roomId": 8,
-    "fields": [
-      "Nama Pasien",
-      "No. Rekam Medis",
-      "Tanggal Masuk",
-      "Kategori Pasien",
-      "Perawat Penerima"
-    ],
-    "indicators": [
-      "Akses Vaskular",
-      "Adekuasi Dialisis",
-      "Hipotensi",
-      "Kekosongan BHP/Linen"
-    ]
-  },
-  {
     "roomId": 1,
     "fields": [
       "Nama Pasien",
@@ -66,6 +33,23 @@
     ]
   },
   {
+    "roomId": 3,
+    "fields": [
+      "Nama Pasien",
+      "Tanggal Permintaan",
+      "Waktu Permintaan",
+      "Waktu Diantar",
+      "Asal Ruangan",
+      "Nama Supir",
+      "Kegiatan Ambulance",
+      "Tujuan Ambulance",
+      "Kecepatan Respon (Menit)"
+    ],
+    "indicators": [
+      "Pelayanan Ambulance"
+    ]
+  },
+  {
     "roomId": 4,
     "fields": [
       "Nama Pasien",
@@ -81,6 +65,22 @@
       "Lokasi/Prosedur Tepat",
       "Unplanned ICU Transfer"
     ]
+  },
+  {
+    "roomId": 5,
+    "fields": [
+      "Tanggal pengamatan",
+      "Alur layanan",
+      "Catatan harian"
+    ],
+    "indicators": [
+      "Item Obat Dead Stock (Stagnan) > 3 Bulan",
+      "Angka Copy Resep",
+      "Kepatuhan Pelabelan Obat High Alert & LASA",
+      "Kepatuhan Penggunaan Formularium Nasional",
+      "Kepatuhan Penggunaan Formularium Rumah Sakit"
+    ],
+    "measurementGrain": "daily_metric"
   },
   {
     "roomId": 6,
@@ -118,6 +118,22 @@
     ],
     "indicators": [
       "Assessment"
+    ]
+  },
+  {
+    "roomId": 8,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Kategori Pasien",
+      "Perawat Penerima"
+    ],
+    "indicators": [
+      "Akses Vaskular",
+      "Adekuasi Dialisis",
+      "Hipotensi",
+      "Kekosongan BHP/Linen"
     ]
   },
   {
@@ -168,62 +184,142 @@
   {
     "roomId": 11,
     "fields": [
-      "Klinik Anak (Pediatri)",
-      "dr. Raden Yutta Inten, Sp.A, M.Kes",
-      "dr. Rista Lestari, M.Sc, Sp.A",
-      "dr. Rosyadi Akbarri, M.Sc, Sp.A",
-      "dr. Widy Setiawan, Sp.A, M.Kes",
-      "Klinik Bedah Onkologi",
-      "dr. Eko R. Suhardiman, M.Si,Med, Sp.B (K) - Onk",
-      "dr. Vidiatma Agbari, Sp.OG (K)-ONK",
-      "Klinik Bedah Saraf",
-      "dr. Mitsu Dapot Parlindungan Sijabat, Sp.BS",
-      "Klinik Bedah Umum",
-      "dr. Boby Eko Nugroho, Sp.B",
-      "dr. Lilie Fransiska, Sp.B",
-      "Klinik Dermatologi dan Venereologi",
-      "dr. Arie Rakhmini, Sp.KK",
-      "dr. Herni, Sp.KK",
-      "Klinik Edukasi Diabetes Mellitus",
-      "dr. Nihayatus Solikhah",
-      "Klinik Endokrin, Metabolik dan Diabetes",
-      "dr. Amanda Trixie Hardigaloeh, Sp.PD, (K)-EMD",
-      "Klinik Gigi dan Mulut",
-      "drg. Luluk Yulianani, Sp.BM, M.Ked.Klim (Bedah Mulut)",
-      "drg. Trieska Annisa, Sp.KGA (Kedokteran Gigi Anak)",
-      "drg. Putra Qadri Fath, Sp.KG (Konservasi Gigi)",
-      "drg. Desy Marlin P. Br. S., Sp.Perio (Periodonsia)",
-      "Klinik Jantung dan Pembuluh Darah",
-      "dr. Aditya Pradhana, Sp.JP",
-      "dr. Christina Chandra, Sp.JP (K)",
-      "dr. Tommy Alexander, Sp.JP",
-      "Klinik Kedokteran Umum",
-      "dr. Welda Alfiansyah (Azalea)",
-      "dr. Welda Alfiansyah (MCU",
-      "Klinik Mata",
-      "dr. Sri Yuliani Elida, Sp.M",
-      "Klinik Obstetri & Gynecology",
-      "dr. Anton Suwito, Sp.OG",
-      "dr. Neny Dwi Anggraeni, Sp.OG",
-      "dr. Vidia Sari, Sp.OG, (K)-F.E.R",
-      "Klinik Penyakit Dalam",
-      "dr. I Ketut Sujana, Sp.PD",
-      "dr. Wirdasari, Sp.PD",
-      "dr. Yeni Anggraini, Sp.PD",
-      "Klinik Psikiatri dan Kenyamanan Tidur",
-      "dr. Romadhon Apdani, Sp.KJ",
-      "Klinik Pulmonologi dan Kedokteran Respirasi",
-      "dr. Nur Annisa, Sp.P",
-      "Klinik Rehabilitasi Medik",
-      "dr. Agus Suwandi Gandra, Sp.K.F.R",
-      "Klinik Saraf (Neurologi)",
-      "dr. Achmad Faqih, Sp.N",
-      "dr. Ditha Praritama Sebayang, Sp.N.",
-      "dr. Johnson Luke, Sp.N, M.Kes",
-      "Klinik THT-BKL",
-      "dr. Eva Nurfarihah, M.Kes, Sp.THT-BKL"
+      "Tanggal pengamatan",
+      "Klinik",
+      "Dokter"
     ],
-    "indicators": []
+    "indicators": [
+      "Waktu Tunggu Rawat Jalan"
+    ],
+    "measurementGrain": "provider_day",
+    "providerGroups": [
+      {
+        "clinic": "Klinik Anak (Pediatri)",
+        "doctors": [
+          "dr. Raden Yutta Inten, Sp.A, M.Kes",
+          "dr. Rista Lestari, M.Sc, Sp.A",
+          "dr. Rosyadi Akbarri, M.Sc, Sp.A",
+          "dr. Widy Setiawan, Sp.A, M.Kes"
+        ]
+      },
+      {
+        "clinic": "Klinik Bedah Onkologi",
+        "doctors": [
+          "dr. Eko R. Suhardiman, M.Si,Med, Sp.B (K) - Onk",
+          "dr. Vidiatma Agbari, Sp.OG (K)-ONK"
+        ]
+      },
+      {
+        "clinic": "Klinik Bedah Saraf",
+        "doctors": [
+          "dr. Mitsu Dapot Parlindungan Sijabat, Sp.BS"
+        ]
+      },
+      {
+        "clinic": "Klinik Bedah Umum",
+        "doctors": [
+          "dr. Boby Eko Nugroho, Sp.B",
+          "dr. Lilie Fransiska, Sp.B"
+        ]
+      },
+      {
+        "clinic": "Klinik Dermatologi dan Venereologi",
+        "doctors": [
+          "dr. Arie Rakhmini, Sp.KK",
+          "dr. Herni, Sp.KK"
+        ]
+      },
+      {
+        "clinic": "Klinik Edukasi Diabetes Mellitus",
+        "doctors": [
+          "dr. Nihayatus Solikhah"
+        ]
+      },
+      {
+        "clinic": "Klinik Endokrin, Metabolik dan Diabetes",
+        "doctors": [
+          "dr. Amanda Trixie Hardigaloeh, Sp.PD, (K)-EMD"
+        ]
+      },
+      {
+        "clinic": "Klinik Gigi dan Mulut",
+        "doctors": [
+          "drg. Luluk Yulianani, Sp.BM, M.Ked.Klim (Bedah Mulut)",
+          "drg. Trieska Annisa, Sp.KGA (Kedokteran Gigi Anak)",
+          "drg. Putra Qadri Fath, Sp.KG (Konservasi Gigi)",
+          "drg. Desy Marlin P. Br. S., Sp.Perio (Periodonsia)"
+        ]
+      },
+      {
+        "clinic": "Klinik Jantung dan Pembuluh Darah",
+        "doctors": [
+          "dr. Aditya Pradhana, Sp.JP",
+          "dr. Christina Chandra, Sp.JP (K)",
+          "dr. Tommy Alexander, Sp.JP"
+        ]
+      },
+      {
+        "clinic": "Klinik Kedokteran Umum",
+        "doctors": [
+          "dr. Welda Alfiansyah (Azalea)",
+          "dr. Welda Alfiansyah (MCU"
+        ]
+      },
+      {
+        "clinic": "Klinik Mata",
+        "doctors": [
+          "dr. Sri Yuliani Elida, Sp.M"
+        ]
+      },
+      {
+        "clinic": "Klinik Obstetri & Gynecology",
+        "doctors": [
+          "dr. Anton Suwito, Sp.OG",
+          "dr. Neny Dwi Anggraeni, Sp.OG",
+          "dr. Vidia Sari, Sp.OG, (K)-F.E.R"
+        ]
+      },
+      {
+        "clinic": "Klinik Penyakit Dalam",
+        "doctors": [
+          "dr. I Ketut Sujana, Sp.PD",
+          "dr. Wirdasari, Sp.PD",
+          "dr. Yeni Anggraini, Sp.PD"
+        ]
+      },
+      {
+        "clinic": "Klinik Psikiatri dan Kenyamanan Tidur",
+        "doctors": [
+          "dr. Romadhon Apdani, Sp.KJ"
+        ]
+      },
+      {
+        "clinic": "Klinik Pulmonologi dan Kedokteran Respirasi",
+        "doctors": [
+          "dr. Nur Annisa, Sp.P"
+        ]
+      },
+      {
+        "clinic": "Klinik Rehabilitasi Medik",
+        "doctors": [
+          "dr. Agus Suwandi Gandra, Sp.K.F.R"
+        ]
+      },
+      {
+        "clinic": "Klinik Saraf (Neurologi)",
+        "doctors": [
+          "dr. Achmad Faqih, Sp.N",
+          "dr. Ditha Praritama Sebayang, Sp.N.",
+          "dr. Johnson Luke, Sp.N, M.Kes"
+        ]
+      },
+      {
+        "clinic": "Klinik THT-BKL",
+        "doctors": [
+          "dr. Eva Nurfarihah, M.Kes, Sp.THT-BKL"
+        ]
+      }
+    ]
   },
   {
     "roomId": 12,
@@ -341,36 +437,6 @@
       "Hemostasis",
       "Indikasi SC POGI",
       "LOS Post SC <3"
-    ]
-  },
-  {
-    "roomId": 32,
-    "fields": [
-      "Nama Pasien",
-      "No. Rekam Medis",
-      "Tanggal Masuk",
-      "KB yang Digunakan"
-    ],
-    "indicators": [
-      "Komplikasi"
-    ]
-  },
-  {
-    "roomId": 33,
-    "fields": [
-      "Nama Pasien",
-      "No. Rekam Medis",
-      "Tanggal Masuk",
-      "Kategori Pasien",
-      "Diagnosa",
-      "Asal Kedatangan",
-      "Kondisi Masuk"
-    ],
-    "indicators": [
-      "Petugas",
-      "Ruptur Perineum",
-      "Komunikasi Pra-Kedatangan",
-      "Stabilisasi Pra-Merujuk"
     ]
   },
   {
@@ -649,6 +715,25 @@
     ]
   },
   {
+    "roomId": 30,
+    "fields": [
+      "Nama Mahasiswa",
+      "Profesi/Prodi",
+      "Kampus",
+      "Stase Terakhir",
+      "Tanggal Mulai Praktek",
+      "Tanggal Selesai Praktek",
+      "CI/Penanggung Jawab"
+    ],
+    "indicators": [
+      "Administrasi",
+      "Atribut",
+      "Absensi",
+      "Sikap & Perilaku",
+      "Laporan"
+    ]
+  },
+  {
     "roomId": 31,
     "fields": [
       "Nama Pasien",
@@ -663,6 +748,36 @@
     ],
     "indicators": [
       "Kontrol Dokter"
+    ]
+  },
+  {
+    "roomId": 32,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "KB yang Digunakan"
+    ],
+    "indicators": [
+      "Komplikasi"
+    ]
+  },
+  {
+    "roomId": 33,
+    "fields": [
+      "Nama Pasien",
+      "No. Rekam Medis",
+      "Tanggal Masuk",
+      "Kategori Pasien",
+      "Diagnosa",
+      "Asal Kedatangan",
+      "Kondisi Masuk"
+    ],
+    "indicators": [
+      "Petugas",
+      "Ruptur Perineum",
+      "Komunikasi Pra-Kedatangan",
+      "Stabilisasi Pra-Merujuk"
     ]
   },
   {
@@ -703,22 +818,24 @@
     ]
   },
   {
-    "roomId": 30,
+    "roomId": 36,
     "fields": [
-      "Nama Mahasiswa",
-      "Profesi/Prodi",
-      "Kampus",
-      "Stase Terakhir",
-      "Tanggal Mulai Praktek",
-      "Tanggal Selesai Praktek",
-      "CI/Penanggung Jawab"
+      "Nama MPP",
+      "Ruangan",
+      "Nama Pasien",
+      "No. RM",
+      "Tanggal Masuk",
+      "Tanggal Pelaporan",
+      "Dpjp",
+      "Status Pembayaran",
+      "Diagnosis Medis",
+      "Biaya Akhir",
+      "Estimasi Ina-Cbgs",
+      "Masalah",
+      "Evaluasi Tindak Lanjut"
     ],
     "indicators": [
-      "Administrasi",
-      "Atribut",
-      "Absensi",
-      "Sikap & Perilaku",
-      "Laporan"
+      "Visitasi Pasien High Risk dan High Cost"
     ]
   },
   {
@@ -744,27 +861,6 @@
       "Unplanned Return Ibu2",
       "Partograf Lengkap",
       "Tanggap SC Emergency"
-    ]
-  },
-  {
-    "roomId": 36,
-    "fields": [
-      "Nama MPP",
-      "Ruangan",
-      "Nama Pasien",
-      "No. RM",
-      "Tanggal Masuk",
-      "Tanggal Pelaporan",
-      "Dpjp",
-      "Status Pembayaran",
-      "Diagnosis Medis",
-      "Biaya Akhir",
-      "Estimasi Ina-Cbgs",
-      "Masalah",
-      "Evaluasi Tindak Lanjut"
-    ],
-    "indicators": [
-      "Visitasi Pasien High Risk dan High Cost"
     ]
   }
 ]
