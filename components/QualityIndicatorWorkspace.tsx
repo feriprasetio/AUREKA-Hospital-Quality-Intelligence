@@ -323,7 +323,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    try{
      const {data:{user}}=await sb.auth.getUser()
      if(!user) throw new Error('Sesi login tidak ditemukan.')
-     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:'patient_episode',record_date:selected.admit||null,subject_key:selected.rm.trim(),subject_json:core,core_data:core,status:'ready',review_required:!complete,entered_by:user.id}
+     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:normalizedRm||`${selected.roomId}:${recordDate||now}:${selected.id}`,subject_json:core,core_data:core,status:'ready',review_required:!complete,entered_by:user.id}
      if(recordId){const {error}=await q().from('quality_records').update(payload).eq('id',recordId);if(error)throw error}
      else{const {data,error}=await q().from('quality_records').insert(payload).select('*').single();if(error)throw error;recordId=String(data.id)}
      await q().from('quality_record_responses').delete().eq('record_id',recordId)
@@ -332,13 +332,13 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
      backend=true
    }catch(e){
      const cached:Patient={...selected,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:'local'}
-     localWrite(LOCAL_KEY,[cached,...localRead<Patient[]>(LOCAL_KEY,[]).filter(x=>x.id!==selected.id&&x.rm!==selected.rm)].slice(0,5000))
+     localWrite(LOCAL_KEY,[cached,...localRead<Patient[]>(LOCAL_KEY,[]).filter(x=>x.id!==selected.id&&(!x.rm||!cached.rm||x.rm!==cached.rm))].slice(0,5000))
      setSource('Cache lokal')
      warning=`Episode tersimpan di cache lokal karena backend belum menerima perubahan. ${e instanceof Error?e.message:''}`.trim()
    }
-   const saved:Patient={...selected,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
-   setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&x.rm!==saved.rm)])
-   audit({at:now,actor:'PIC / Pengguna Aktif',unit:selected.unit,patient:selected.name,indicator:`${Object.keys(values).length}/${applicable.length} indikator`,action:selected.recordId?'Ubah':'Isi',change:`Episode ${finalStatus}`})
+   const saved:Patient={...selected,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
+   setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
+   audit({at:now,actor:'PIC / Pengguna Aktif',unit:selected.unit,patient:recordTitle(saved),indicator:`${Object.keys(values).length}/${applicable.length} indikator`,action:selected.recordId?'Ubah':'Isi',change:`Catatan logbook ${finalStatus}`})
    setSelected(saved);setPatientOpen(false);setMessage(warning||'Episode pasien tersimpan dan siap dilanjutkan.');setBusy(false)
  }
 
