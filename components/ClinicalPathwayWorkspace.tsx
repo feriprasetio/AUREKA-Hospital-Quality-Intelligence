@@ -54,7 +54,7 @@ const q = () => sb.schema('aureka_quality')
 const BASE_PATH = '/AUREKA-Hospital-Quality-Intelligence'
 const STATUS_LABEL: Record<string, string> = { draft: 'Draf', submitted: 'Diajukan', validated: 'Tervalidasi', archived: 'Diarsipkan' }
 
-const CSS = ".cpRoot{display:grid;gap:14px;color:var(--ink)}.cpRoot .cpGlass{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.72);border-radius:24px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}.cpHead{padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.cpEyebrow{font-size:10px;font-weight:850;letter-spacing:.045em;color:var(--accent2);text-transform:none}.cpHead h3{font-size:28px;letter-spacing:-.045em;margin:7px 0 5px}.cpHead p{font-size:12px;color:var(--muted);margin:0;max-width:780px;line-height:1.6}.cpActions{display:flex;gap:8px;flex-wrap:wrap}.cpBtn{min-height:40px;border:1px solid rgba(255,255,255,.82);background:rgba(255,255,255,.5);color:#214a39;border-radius:13px;padding:9px 13px;font-size:11px;font-weight:850;cursor:pointer}.cpBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-color:transparent}.cpBtn:disabled{opacity:.5;cursor:not-allowed}.cpGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cpTile{padding:17px;text-align:left;width:100%;cursor:pointer;color:var(--ink);transition:transform .18s,border-color .18s}.cpTile:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.35)}.cpTileTop{display:flex;justify-content:space-between;align-items:center;gap:8px}.cpTileIcon{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent2);font-size:18px}.cpBadge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;background:#e8f7ef;color:#216b49;white-space:nowrap}.cpBadge.draft{background:#fff4d8;color:#835c15}.cpBadge.retired{background:#eceeed;color:#69746e}.cpTile h4{font-size:16px;line-height:1.35;margin:14px 0 4px}.cpTile p{font-size:11px;color:var(--muted);line-height:1.55;margin:0}.cpTileFoot{border-top:1px solid rgba(26,69,48,.09);display:flex;justify-content:space-between;gap:8px;margin-top:15px;padding-top:12px;font-size:10px;font-weight:850;color:var(--accent2)}.cpKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpKpi{padding:14px 16px}.cpKpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.cpKpi strong{display:block;font-size:23px;margin-top:5px;letter-spacing:-.03em}.cpKpi small{font-size:10px;color:var(--muted)}.cpToolbar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;align-items:end}.cpField{display:grid;gap:6px;min-width:0}.cpField label,.cpLabel{font-size:10px;font-weight:900;color:#68786f;letter-spacing:.035em}.cpField input,.cpField select,.cpField textarea,.cpInput{width:100%;min-height:42px;border:1px solid rgba(25,60,45,.14);border-radius:12px;background:rgba(255,255,255,.7);padding:10px 12px;color:var(--ink);outline:none;font-size:12px}.cpField textarea{min-height:72px;resize:vertical}.cpField input:focus,.cpField select:focus,.cpField textarea:focus,.cpInput:focus{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.08)}.cpSearch{flex:1;min-width:210px}.cpSelect{min-width:170px}.cpNotice{padding:12px 15px;border-radius:14px;background:#fff7e5;border:1px solid #f2dfb4;color:#77591d;font-size:11px;line-height:1.55}.cpNotice.info{background:#edf7f3;border-color:#d6ebe1;color:#245d48}.cpNotice.error{background:#fff0ef;border-color:#f4d0cc;color:#8d332d}.cpPanel{padding:17px}.cpPanel h4{margin:0 0 12px;font-size:15px}.cpBack{border:0;background:transparent;color:var(--accent2);font-size:11px;font-weight:900;padding:6px 0;cursor:pointer}.cpRecordList{display:grid;gap:8px}.cpRecord{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid rgba(25,60,45,.1);border-radius:14px;background:rgba(255,255,255,.42)}.cpRecord b{display:block;font-size:12px}.cpRecord small{display:block;font-size:10px;color:var(--muted);margin-top:4px}.cpRecordRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cpFormGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.cpFormGrid .span2{grid-column:span 2}.cpSectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 9px}.cpSectionHead h4{font-size:16px;margin:0}.cpSectionHead p{font-size:10px;color:var(--muted);margin:4px 0 0}.cpTableWrap{max-width:100%;overflow:auto;max-height:68vh;border:1px solid rgba(25,60,45,.12);border-radius:15px;background:rgba(255,255,255,.55)}table.cpTable{width:100%;min-width:1140px;border-collapse:separate;border-spacing:0;font-size:11px}table.cpTable th,table.cpTable td{padding:9px 10px;border-bottom:1px solid rgba(25,60,45,.1);border-right:1px solid rgba(25,60,45,.07);vertical-align:middle;text-align:left}table.cpTable th{position:sticky;top:0;z-index:3;background:rgba(246,250,247,.97);font-size:9px;color:#69796f;text-transform:uppercase;letter-spacing:.035em;white-space:nowrap}table.cpTable th.cpDayCol{text-align:center;min-width:72px}table.cpTable td:nth-child(1){min-width:150px;max-width:190px;white-space:normal}table.cpTable td:nth-child(2){min-width:140px;max-width:190px;white-space:normal}table.cpTable td:nth-child(3){min-width:240px;white-space:normal}table.cpTable td:nth-child(4){min-width:230px;white-space:normal;color:#607168}table.cpTable .cpGroup td{background:rgba(var(--accent-rgb),.1);color:var(--accent2);font-size:10px;font-weight:950;position:sticky;left:0;z-index:1}.cpCell{min-width:72px;text-align:center!important;padding:5px!important}.cpCell.required{background:rgba(145,203,81,.25)}.cpCell.conditional{background:rgba(255,225,53,.28)}.cpCell.not_scheduled{background:rgba(255,255,255,.24);color:#b0b8b3}.cpCellControls{display:flex;align-items:center;justify-content:center;gap:5px}.cpMark{height:28px;min-width:28px;border:1px solid rgba(15,118,86,.2);border-radius:8px;background:rgba(255,255,255,.65);font-size:14px;font-weight:900;color:var(--accent2);cursor:pointer}.cpMark.done{background:#dff3e6;border-color:#8bc6a4;color:#12683e}.cpMark.not_done{background:#fff0ef;border-color:#e9b5af;color:#ac3932}.cpMark.not_applicable{background:#ececfb;border-color:#cbcbee;color:#48478b;font-size:10px}.cpCellEdit{border:0;background:transparent;color:#718177;cursor:pointer;font-size:13px;padding:4px}.cpSubtle{font-size:9px;color:var(--muted)}.cpChoiceCell{min-width:145px;max-width:175px;text-align:left!important;white-space:normal}.cpChoiceToggle{display:flex;align-items:flex-start;gap:8px;font-size:11px;font-weight:750;line-height:1.45;cursor:pointer}.cpChoiceToggle input{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:var(--accent2)}.cpChoiceHint{display:block;margin:4px 0 0 24px;font-size:9px;color:var(--muted);line-height:1.4}.cpChoiceDisabled{opacity:.48}.cpProfessionHead td{padding:0!important;background:rgba(var(--accent-rgb),.12);border-right:0!important}.cpProfessionToggle{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:12px 14px;text-align:left;cursor:pointer;color:var(--accent2)}.cpProfessionToggle strong{font-size:12px;font-weight:850}.cpProfessionToggle small{margin-left:auto;font-size:10px;color:var(--muted);font-weight:650}.cpProfessionArrow{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(var(--accent-rgb),.2);border-radius:7px;background:rgba(255,255,255,.65)}.cpStageHead td{background:rgba(255,255,255,.58);color:#52675c;font-size:10px;font-weight:850;padding:8px 12px!important;border-bottom:1px solid rgba(25,60,45,.1)}.cpItemLabel{font-size:11px;font-weight:800;line-height:1.5}.cpItemDetail{font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px}.cpField label,.cpLabel{text-transform:none;letter-spacing:0}.cpCellDetail{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;padding:14px;background:rgba(var(--accent-rgb),.06);border:1px solid rgba(var(--accent-rgb),.18);border-radius:15px;margin:10px 0}.cpCellDetail .cpWide{grid-column:1/-1}.cpScoreGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpScore{padding:13px;border-radius:14px;background:rgba(255,255,255,.58);border:1px solid rgba(24,64,43,.1)}.cpScore span{display:block;font-size:9px;color:var(--muted);font-weight:850;text-transform:none}.cpScore strong{display:block;font-size:23px;margin:4px 0}.cpScore small{display:block;color:var(--muted);font-size:9px;line-height:1.45}.cpPass{background:#e8f7ef;color:#216b49}.cpFail{background:#fff0ef;color:#8d332d}.cpPending{background:#fff6dd;color:#805d18}.cpCriterionList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cpCriterion{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(24,64,43,.1);border-radius:13px;padding:11px 12px;background:rgba(255,255,255,.45)}.cpCriterion label{font-size:11px;font-weight:800}.cpToggleGroup{display:flex;gap:5px;flex-wrap:wrap}.cpToggle{border:1px solid rgba(25,60,45,.13);background:#fff;border-radius:9px;padding:7px 9px;font-size:10px;font-weight:850;cursor:pointer}.cpToggle.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent2)}.cpVarList{display:grid;gap:10px}.cpVar{border:1px solid rgba(25,60,45,.13);background:rgba(255,255,255,.4);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.cpVarHead{display:flex;justify-content:space-between;align-items:center;grid-column:1/-1}.cpVarHead b{font-size:11px}.cpVar .cpField.full{grid-column:1/-1}.cpFooter{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid rgba(25,60,45,.1)}.cpEmpty{padding:22px;text-align:center;color:var(--muted);font-size:11px}.cpBuilderTable{max-height:62vh}.cpBuilderInput{min-width:180px}.cpBuilderDay{min-width:115px}.cpOppe{display:flex;align-items:center;gap:6px;font-size:10px}.cpSourceNotes{display:grid;gap:6px}.cpTiny{font-size:9px;color:var(--muted)}@media(max-width:1080px){.cpGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpKpis,.cpScoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpCellDetail{grid-template-columns:1fr 1fr}}@media(max-width:650px){.cpGrid,.cpKpis,.cpScoreGrid,.cpCriterionList,.cpFormGrid{grid-template-columns:1fr}.cpHead h3{font-size:23px}.cpFormGrid .span2{grid-column:auto}.cpCellDetail,.cpVar{grid-template-columns:1fr}.cpCellDetail .cpWide,.cpVar .cpField.full,.cpVarHead{grid-column:auto}.cpRecord{grid-template-columns:1fr}.cpRecordRight{justify-content:flex-start}.cpSectionHead{align-items:flex-start}}"
+const CSS = ".cpRoot{display:grid;gap:14px;color:var(--ink)}.cpRoot .cpGlass{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.72);border-radius:24px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}.cpHead{padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.cpEyebrow{font-size:10px;font-weight:850;letter-spacing:.045em;color:var(--accent2);text-transform:none}.cpHead h3{font-size:28px;letter-spacing:-.045em;margin:7px 0 5px}.cpHead p{font-size:12px;color:var(--muted);margin:0;max-width:780px;line-height:1.6}.cpActions{display:flex;gap:8px;flex-wrap:wrap}.cpBtn{min-height:40px;border:1px solid rgba(255,255,255,.82);background:rgba(255,255,255,.5);color:#214a39;border-radius:13px;padding:9px 13px;font-size:11px;font-weight:850;cursor:pointer}.cpBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-color:transparent}.cpBtn:disabled{opacity:.5;cursor:not-allowed}.cpGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cpTile{padding:17px;text-align:left;width:100%;cursor:pointer;color:var(--ink);transition:transform .18s,border-color .18s}.cpTile:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.35)}.cpTileTop{display:flex;justify-content:space-between;align-items:center;gap:8px}.cpTileIcon{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent2);font-size:18px}.cpBadge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;background:#e8f7ef;color:#216b49;white-space:nowrap}.cpBadge.draft{background:#fff4d8;color:#835c15}.cpBadge.retired{background:#eceeed;color:#69746e}.cpTile h4{font-size:16px;line-height:1.35;margin:14px 0 4px}.cpTile p{font-size:11px;color:var(--muted);line-height:1.55;margin:0}.cpTileFoot{border-top:1px solid rgba(26,69,48,.09);display:flex;justify-content:space-between;gap:8px;margin-top:15px;padding-top:12px;font-size:10px;font-weight:850;color:var(--accent2)}.cpKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpKpi{padding:14px 16px}.cpKpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.cpKpi strong{display:block;font-size:23px;margin-top:5px;letter-spacing:-.03em}.cpKpi small{font-size:10px;color:var(--muted)}.cpToolbar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;align-items:end}.cpField{display:grid;gap:6px;min-width:0}.cpField label,.cpLabel{font-size:10px;font-weight:900;color:#68786f;letter-spacing:.035em}.cpField input,.cpField select,.cpField textarea,.cpInput{width:100%;min-height:42px;border:1px solid rgba(25,60,45,.14);border-radius:12px;background:rgba(255,255,255,.7);padding:10px 12px;color:var(--ink);outline:none;font-size:12px}.cpField textarea{min-height:72px;resize:vertical}.cpField input:focus,.cpField select:focus,.cpField textarea:focus,.cpInput:focus{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.08)}.cpSearch{flex:1;min-width:210px}.cpSelect{min-width:170px}.cpNotice{padding:12px 15px;border-radius:14px;background:#fff7e5;border:1px solid #f2dfb4;color:#77591d;font-size:11px;line-height:1.55}.cpNotice.info{background:#edf7f3;border-color:#d6ebe1;color:#245d48}.cpNotice.error{background:#fff0ef;border-color:#f4d0cc;color:#8d332d}.cpPanel{padding:17px}.cpPanel h4{margin:0 0 12px;font-size:15px}.cpBack{border:0;background:transparent;color:var(--accent2);font-size:11px;font-weight:900;padding:6px 0;cursor:pointer}.cpRecordList{display:grid;gap:8px}.cpRecord{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid rgba(25,60,45,.1);border-radius:14px;background:rgba(255,255,255,.42)}.cpRecord b{display:block;font-size:12px}.cpRecord small{display:block;font-size:10px;color:var(--muted);margin-top:4px}.cpRecordRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cpFormGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.cpFormGrid .span2{grid-column:span 2}.cpSectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 9px}.cpSectionHead h4{font-size:16px;margin:0}.cpSectionHead p{font-size:10px;color:var(--muted);margin:4px 0 0}.cpTableWrap{max-width:100%;overflow:auto;max-height:68vh;border:1px solid rgba(25,60,45,.12);border-radius:15px;background:rgba(255,255,255,.55)}table.cpTable{width:100%;min-width:1140px;border-collapse:separate;border-spacing:0;font-size:11px}table.cpTable th,table.cpTable td{padding:9px 10px;border-bottom:1px solid rgba(25,60,45,.1);border-right:1px solid rgba(25,60,45,.07);vertical-align:middle;text-align:left}table.cpTable th{position:sticky;top:0;z-index:3;background:rgba(246,250,247,.97);font-size:9px;color:#69796f;text-transform:uppercase;letter-spacing:.035em;white-space:nowrap}table.cpTable th.cpDayCol{text-align:center;min-width:72px}table.cpTable td:nth-child(1){min-width:150px;max-width:190px;white-space:normal}table.cpTable td:nth-child(2){min-width:140px;max-width:190px;white-space:normal}table.cpTable td:nth-child(3){min-width:240px;white-space:normal}table.cpTable td:nth-child(4){min-width:230px;white-space:normal;color:#607168}table.cpTable .cpGroup td{background:rgba(var(--accent-rgb),.1);color:var(--accent2);font-size:10px;font-weight:950;position:sticky;left:0;z-index:1}.cpCell{min-width:72px;text-align:center!important;padding:5px!important}.cpCell.required{background:rgba(145,203,81,.25)}.cpCell.conditional{background:rgba(255,225,53,.28)}.cpCell.not_scheduled{background:rgba(255,255,255,.24);color:#b0b8b3}.cpCellControls{display:flex;align-items:center;justify-content:center;gap:5px}.cpMark{height:28px;min-width:28px;border:1px solid rgba(15,118,86,.2);border-radius:8px;background:rgba(255,255,255,.65);font-size:14px;font-weight:900;color:var(--accent2);cursor:pointer}.cpMark.done{background:#dff3e6;border-color:#8bc6a4;color:#12683e}.cpMark.not_done{background:#fff0ef;border-color:#e9b5af;color:#ac3932}.cpMark.not_applicable{background:#ececfb;border-color:#cbcbee;color:#48478b;font-size:10px}.cpCellEdit{border:0;background:transparent;color:#718177;cursor:pointer;font-size:13px;padding:4px}.cpSubtle{font-size:9px;color:var(--muted)}.cpChoiceCell{min-width:145px;max-width:175px;text-align:left!important;white-space:normal}.cpChoiceToggle{display:flex;align-items:flex-start;gap:8px;font-size:11px;font-weight:750;line-height:1.45;cursor:pointer}.cpChoiceToggle input{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:var(--accent2)}.cpChoiceHint{display:block;margin:4px 0 0 24px;font-size:9px;color:var(--muted);line-height:1.4}.cpChoiceDisabled{opacity:.48}.cpProfessionHead td{padding:0!important;background:rgba(var(--accent-rgb),.12);border-right:0!important}.cpProfessionToggle{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:12px 14px;text-align:left;cursor:pointer;color:var(--accent2)}.cpProfessionToggle strong{font-size:12px;font-weight:850}.cpProfessionToggle small{margin-left:auto;font-size:10px;color:var(--muted);font-weight:650}.cpProfessionArrow{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(var(--accent-rgb),.2);border-radius:7px;background:rgba(255,255,255,.65)}.cpStageHead td{background:rgba(255,255,255,.58);color:#52675c;font-size:10px;font-weight:850;padding:8px 12px!important;border-bottom:1px solid rgba(25,60,45,.1)}.cpItemLabel{font-size:11px;font-weight:800;line-height:1.5}.cpItemDetail{font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px}.cpField label,.cpLabel{text-transform:none;letter-spacing:0}.cpCellDetail{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;padding:14px;background:rgba(var(--accent-rgb),.06);border:1px solid rgba(var(--accent-rgb),.18);border-radius:15px;margin:10px 0}.cpCellDetail .cpWide{grid-column:1/-1}.cpScoreGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpScore{padding:13px;border-radius:14px;background:rgba(255,255,255,.58);border:1px solid rgba(24,64,43,.1)}.cpScore span{display:block;font-size:9px;color:var(--muted);font-weight:850;text-transform:none}.cpScore strong{display:block;font-size:23px;margin:4px 0}.cpScore small{display:block;color:var(--muted);font-size:9px;line-height:1.45}.cpPass{background:#e8f7ef;color:#216b49}.cpFail{background:#fff0ef;color:#8d332d}.cpPending{background:#fff6dd;color:#805d18}.cpCriterionList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cpCriterion{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(24,64,43,.1);border-radius:13px;padding:11px 12px;background:rgba(255,255,255,.45)}.cpCriterion label{font-size:11px;font-weight:800}.cpToggleGroup{display:flex;gap:5px;flex-wrap:wrap}.cpToggle{border:1px solid rgba(25,60,45,.13);background:#fff;border-radius:9px;padding:7px 9px;font-size:10px;font-weight:850;cursor:pointer}.cpToggle.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent2)}.cpVarList{display:grid;gap:10px}.cpVar{border:1px solid rgba(25,60,45,.13);background:rgba(255,255,255,.4);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.cpVarHead{display:flex;justify-content:space-between;align-items:center;grid-column:1/-1}.cpVarHead b{font-size:11px}.cpVar .cpField.full{grid-column:1/-1}.cpFooter{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid rgba(25,60,45,.1)}.cpEmpty{padding:22px;text-align:center;color:var(--muted);font-size:11px}.cpBuilderTable{max-height:62vh}.cpBuilderInput{min-width:180px}.cpBuilderDay{min-width:115px}.cpOppe{display:flex;align-items:center;gap:6px;font-size:10px}.cpSourceNotes{display:grid;gap:6px}.cpTiny{font-size:9px;color:var(--muted)}.cpAuditWrap{overflow:auto;max-width:100%}table.cpTable.cpAuditTable{table-layout:fixed;width:max-content;min-width:0}table.cpTable.cpAuditTable th:nth-child(1),table.cpTable.cpAuditTable td.cpChoiceCell{width:180px;min-width:180px;max-width:180px}table.cpTable.cpAuditTable th:nth-child(2),table.cpTable.cpAuditTable td:nth-child(2){width:270px;min-width:270px;max-width:270px}table.cpTable.cpAuditTable th.cpDayCol,table.cpTable.cpAuditTable td.cpCell{width:84px;min-width:84px;max-width:84px;text-align:center}table.cpTable.cpAuditTable td:nth-child(n+3){min-width:0;max-width:none;white-space:normal}table.cpTable.cpAuditTable td.cpCell{padding:5px 3px!important}table.cpTable.cpAuditTable .cpCellControls{gap:3px}.cpPatientSummary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-top:14px;padding:14px;border:1px solid rgba(25,60,45,.11);border-radius:14px;background:rgba(255,255,255,.44)}.cpPatientSummary>div{display:grid;gap:4px;min-width:0}.cpPatientSummary small{font-size:9px;color:var(--muted)}.cpPatientSummary b{font-size:11px;overflow-wrap:anywhere}.cpCollapseBtn{white-space:nowrap}.cpBuilderLegend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.cpBuilderLegend span{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#52675c;padding:6px 9px;border:1px solid rgba(25,60,45,.1);border-radius:9px;background:rgba(255,255,255,.46)}.cpLegendDot{width:10px;height:10px;border-radius:3px;display:inline-block}.cpLegendDot.required{background:rgba(145,203,81,.65)}.cpLegendDot.conditional{background:rgba(255,225,53,.8)}.cpLegendDot.not_scheduled{background:rgba(170,180,175,.3);border:1px solid rgba(25,60,45,.13)}.cpBuilderTable{max-height:65vh}table.cpTable.cpBuilderMatrix{table-layout:fixed;width:max-content;min-width:0}table.cpTable.cpBuilderMatrix th,table.cpTable.cpBuilderMatrix td{padding:7px 8px;vertical-align:top}table.cpTable.cpBuilderMatrix th:nth-child(1),table.cpTable.cpBuilderMatrix td:nth-child(1){width:170px;min-width:170px;max-width:170px}table.cpTable.cpBuilderMatrix th:nth-child(2),table.cpTable.cpBuilderMatrix td:nth-child(2){width:145px;min-width:145px;max-width:145px}table.cpTable.cpBuilderMatrix th:nth-child(3),table.cpTable.cpBuilderMatrix td:nth-child(3){width:180px;min-width:180px;max-width:180px}table.cpTable.cpBuilderMatrix th:nth-child(4),table.cpTable.cpBuilderMatrix td:nth-child(4){width:300px;min-width:300px;max-width:300px}table.cpTable.cpBuilderMatrix th.cpBuilderDayHead,table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell{width:90px;min-width:90px;max-width:90px}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell{padding:5px!important}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell.required{background:rgba(145,203,81,.3)}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell.conditional{background:rgba(255,225,53,.34)}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell.not_scheduled{background:rgba(255,255,255,.26)}.cpBuilderDayHead{display:grid;grid-template-columns:minmax(0,1fr) 24px;align-items:center;gap:4px}.cpBuilderDayName{width:100%;min-width:0;min-height:30px;border:1px solid rgba(25,60,45,.16);border-radius:7px;padding:4px 5px;text-align:center;background:#fff;color:var(--ink);font-size:10px;font-weight:800}.cpBuilderDayRemove{border:0;border-radius:6px;background:rgba(255,255,255,.65);color:#8c3c34;width:22px;height:24px;padding:0;font-size:15px}.cpBuilderPolicy{width:100%;min-width:0;min-height:36px;padding:5px 3px!important;font-size:9px!important;font-weight:800;border-radius:7px!important}.cpBuilderPolicy.required{background:#e5f2d9!important;border-color:#a6cd83!important;color:#345e22}.cpBuilderPolicy.conditional{background:#fff1ad!important;border-color:#e6d16b!important;color:#735a00}.cpBuilderPolicy.not_scheduled{background:rgba(255,255,255,.72)!important;border-color:rgba(25,60,45,.12)!important;color:#647168}.cpBuilderTextCell{display:grid;gap:6px}.cpBuilderTextCell .cpInput,.cpBuilderItemCell .cpInput{min-width:0;min-height:35px;padding:7px 8px;font-size:10px}.cpBuilderItemCell{display:grid;gap:6px}.cpBuilderItemCell textarea{min-height:58px;resize:vertical}.cpBuilderConfigList{display:grid;gap:9px}.cpBuilderConfigRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:8px;align-items:start;padding:10px;border:1px solid rgba(25,60,45,.1);border-radius:12px;background:rgba(255,255,255,.35)}.cpBuilderConfigRow .cpInput{min-width:0}.cpBuilderConfigRow .cpBuilderLong{grid-column:span 2}.cpBuilderDelete{min-height:35px}.cpBuilderSectionText{font-size:10px;color:var(--muted);line-height:1.5}.cpBuilderMatrix .cpOppe{justify-content:center}@media(max-width:760px){.cpPatientSummary{grid-template-columns:repeat(2,minmax(0,1fr))}.cpBuilderConfigRow{grid-template-columns:1fr}.cpBuilderConfigRow .cpBuilderLong{grid-column:auto}}@media(max-width:1080px){.cpGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpKpis,.cpScoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpCellDetail{grid-template-columns:1fr 1fr}}@media(max-width:650px){.cpGrid,.cpKpis,.cpScoreGrid,.cpCriterionList,.cpFormGrid{grid-template-columns:1fr}.cpHead h3{font-size:23px}.cpFormGrid .span2{grid-column:auto}.cpCellDetail,.cpVar{grid-template-columns:1fr}.cpCellDetail .cpWide,.cpVar .cpField.full,.cpVarHead{grid-column:auto}.cpRecord{grid-template-columns:1fr}.cpRecordRight{justify-content:flex-start}.cpSectionHead{align-items:flex-start}}"
 
 function normalizeCatalog(raw: any): Template[] {
   return (raw?.pathways || []).map((row: any[]) => {
@@ -188,15 +188,16 @@ function calcClient(form: AuditForm) {
   const included = inclusionReady && criteria.every((c) => form.inclusion_json[c.id] === (c.expected !== false))
   const variations = form.variations_json.items || []
   const variationsReviewed = form.variations_json.reviewed === true
-  const variationComplete = variationsReviewed && variations.every((v) =>
-    !!v.date && !!String(v.variation || '').trim() && !!String(v.reason || '').trim() && !!String(v.justification || '').trim())
+  const variationRequired = form.template.scoring_rules.variation_required !== false
+  const variationComplete = !variationRequired || (variationsReviewed && variations.every((v) =>
+    !!v.date && !!String(v.variation || '').trim() && !!String(v.reason || '').trim() && !!String(v.justification || '').trim()))
   const threshold = n(form.template.scoring_rules.completion_threshold_pct || 85)
   const target = n(form.template.scoring_rules.compliance_target_pct || 100)
   const completionPass = completion !== null && completion >= threshold
   const compliancePass = compliance !== null && compliance >= target
   const sectionDPass = inclusionReady && included && completionPass && compliancePass && variationComplete
   return { expected, filled, done, notDone, na, completion, evaluation, compliance, criteria, inclusionReady, included, selectedItemCount,
-    variationCount: variations.length, variationsReviewed, variationComplete, threshold, target,
+    variationCount: variations.length, variationsReviewed, variationRequired, variationComplete, threshold, target,
     completionPass, compliancePass, sectionDPass, oppeCells, oppeMissing }
 }
 
@@ -232,12 +233,15 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [focusedCell, setFocusedCell] = useState<{ itemId: string; day: string } | null>(null)
   const [collapsedProfessions, setCollapsedProfessions] = useState<Record<string, boolean>>({})
   const [builder, setBuilder] = useState<Template | null>(null)
+  const [builderIsNew, setBuilderIsNew] = useState(false)
+  const [builderReturnScreen, setBuilderReturnScreen] = useState<'library' | 'diagnosis'>('diagnosis')
+  const [patientPanelCollapsed, setPatientPanelCollapsed] = useState(false)
 
   const selectedTemplate = templates.find((x) => x.code === selectedCode) || catalog.find((x) => x.code === selectedCode) || null
   const roomNames = useMemo(() => new Map(rooms.map((r) => [Number(r.id), r.name])), [rooms])
   const score = useMemo(() => form ? calcClient(form) : null, [form])
   const filteredTemplates = useMemo(() => templates
-    .filter((t) => t.status !== 'retired' || isAdmin)
+    .filter((t) => isAdmin || t.status === 'published')
     .filter((t) => (t.name + ' ' + t.icd10 + ' ' + t.code).toLowerCase().includes(search.toLowerCase().trim()))
     .sort((a, b) => a.name.localeCompare(b.name, 'id')), [templates, search, isAdmin])
 
@@ -287,7 +291,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         setMessageKind('error')
       } else {
         const byCode = new Map(remote.map((r) => [r.code, mapRow(r)]))
-        const shown = source.map((t) => byCode.get(t.code) || t).filter((t) => t.status !== 'retired' || isAdmin)
+        const sourceCodes = new Set(source.map((t) => t.code))
+        const shown = [...source.map((t) => byCode.get(t.code) || t), ...remote.filter((row) => !sourceCodes.has(String(row.code))).map(mapRow)]
+          .filter((t) => t.status !== 'retired' || isAdmin).sort((a, b) => a.name.localeCompare(b.name, 'id'))
         setTemplates(shown)
         setMasterReady(source.every((t) => byCode.has(t.code)))
         if (!source.every((t) => byCode.has(t.code))) {
@@ -336,6 +342,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
   function newAudit() {
     if (!selectedTemplate) return
+    if (selectedTemplate.status !== 'published') { setMessage('Format Clinical Pathway ini belum diterbitkan. Super Admin perlu menerbitkannya sebelum digunakan untuk audit pasien.'); setMessageKind('error'); return }
     const roomId = selectedRoomId ?? (isAdmin ? null : initialRoomId)
     setForm({
       room_id: roomId, template: clone(selectedTemplate), patient_name: '', medical_record_no: '', sex: '',
@@ -345,6 +352,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       variations_json: { reviewed: false, items: [] }, status: 'draft',
     })
     setFocusedCell(null)
+    setPatientPanelCollapsed(false)
     setMessage('')
     setScreen('audit')
   }
@@ -360,6 +368,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       setForm(fromDatabase(data, fallback, roomNames.get(Number(data.room_id)) || ''))
       setSelectedCode(row.template_code)
       setFocusedCell(null)
+      setPatientPanelCollapsed(false)
       setScreen('audit')
     } catch (e: any) {
       setMessage('Tidak dapat membuka audit: ' + (e?.message || 'Kesalahan server.'))
@@ -471,15 +480,83 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     }
   }
 
-  function beginBuilder() {
-    if (!isAdmin || !selectedTemplate) return
-    setBuilder(clone(selectedTemplate))
-    setScreen('builder')
-    setMessage('')
+  function beginBuilder(template: Template | null = selectedTemplate, returnTo: 'library' | 'diagnosis' = 'diagnosis') {
+    if (!isAdmin || !template) return
+    setBuilder(clone(template)); setBuilderIsNew(false); setBuilderReturnScreen(returnTo)
+    setSelectedCode(template.code); setScreen('builder'); setMessage('')
   }
 
-  function patchBuilder(patch: Partial<Template>) {
-    setBuilder((current) => current ? { ...current, ...patch } : current)
+  function beginNewBuilder() {
+    if (!isAdmin) return
+    const code = 'cp-baru-' + Date.now(), days = ['H1', 'H2', 'H3']
+    setBuilder({
+      code, name: '', icd10: '', source_filename: 'Master Clinical Pathway baru', status: 'draft', version: 1, days,
+      items: [{ id: code + '-item-1', section: 'A', profession: '', choice: '', stage: '', label: '', detail: '',
+        schedule: days.map((day) => ({ day, policy: 'not_scheduled' as Policy })), oppe: false }],
+      clinical_fields: [], source_notes: [],
+      scoring_rules: {
+        completion_threshold_pct: 85, compliance_target_pct: 100,
+        completion_definition: 'Persentase kotak jadwal wajib dan kondisional pada item yang dipilih PPA dan telah diputuskan.',
+        compliance_definition: 'Jumlah sel sesuai dibagi seluruh sel yang dinilai sesuai atau tidak sesuai, dikalikan 100%.',
+        variation_required: true, variation_definition: 'Jika terjadi variasi, isi tanggal, ringkasan variasi, alasan, dan justifikasi.',
+        inclusion_mode: 'all', inclusion_criteria: [], source_section_d: [],
+      },
+    })
+    setBuilderIsNew(true); setBuilderReturnScreen('library'); setSelectedCode(code); setScreen('builder'); setMessage(''); setMessageKind('info')
+  }
+  function patchBuilder(patch: Partial<Template>) { setBuilder((current) => current ? { ...current, ...patch } : current) }
+  function patchBuilderScoring(patch: Partial<Template['scoring_rules']>) {
+    setBuilder((current) => current ? { ...current, scoring_rules: { ...current.scoring_rules, ...patch } } : current)
+  }
+  function addBuilderDay() {
+    if (!builder) return
+    let number = builder.days.length + 1, day = 'H' + number
+    while (builder.days.includes(day)) { number += 1; day = 'H' + number }
+    patchBuilder({ days: [...builder.days, day], items: builder.items.map((item) => ({ ...item, schedule: [...item.schedule, { day, policy: 'not_scheduled' as Policy }] })) })
+  }
+  function renameBuilderDay(oldDay: string, nextDay: string) {
+    if (!builder || oldDay === nextDay) return
+    if (nextDay && builder.days.some((day) => day !== oldDay && day.toLocaleLowerCase('id-ID') === nextDay.toLocaleLowerCase('id-ID'))) return
+    patchBuilder({ days: builder.days.map((day) => day === oldDay ? nextDay : day), items: builder.items.map((item) => ({ ...item, schedule: item.schedule.map((cell) => cell.day === oldDay ? { ...cell, day: nextDay } : cell) })) })
+  }
+  function removeBuilderDay(day: string) {
+    if (!builder) return
+    if (builder.days.length <= 1) { setMessage('Clinical Pathway harus memiliki sekurang-kurangnya satu hari atau tahap.'); setMessageKind('error'); return }
+    if (!window.confirm('Hapus kolom ' + (day || 'hari/tahap ini') + ' beserta seluruh jadwalnya dari master CP?')) return
+    patchBuilder({ days: builder.days.filter((item) => item !== day), items: builder.items.map((item) => ({ ...item, schedule: item.schedule.filter((cell) => cell.day !== day) })) })
+  }
+  function addBuilderClinicalField() {
+    if (!builder) return
+    const id='clinical-field-'+Date.now()
+    patchBuilder({ clinical_fields: [...builder.clinical_fields, { id, label:'', hint:'', code_label:'', additional_label:'' }] })
+  }
+  function patchBuilderClinicalField(id: string, patch: Partial<Template['clinical_fields'][number]>) {
+    if (!builder) return
+    patchBuilder({ clinical_fields: builder.clinical_fields.map((field) => field.id === id ? { ...field, ...patch } : field) })
+  }
+  function removeBuilderClinicalField(id: string) { if (builder) patchBuilder({ clinical_fields: builder.clinical_fields.filter((field) => field.id !== id) }) }
+  function addBuilderSourceNote() { if (builder) patchBuilder({ source_notes: [...builder.source_notes, ''] }) }
+  function patchBuilderSourceNote(index: number, value: string) { if (builder) patchBuilder({ source_notes: builder.source_notes.map((note, i) => i === index ? value : note) }) }
+  function removeBuilderSourceNote(index: number) { if (builder) patchBuilder({ source_notes: builder.source_notes.filter((_, i) => i !== index) }) }
+  function addBuilderCriterion() {
+    if (!builder) return
+    const id='inclusion-'+Date.now()
+    patchBuilderScoring({ inclusion_criteria: [...(builder.scoring_rules.inclusion_criteria || []), { id, label:'', type:'boolean', expected:true }] })
+  }
+  function patchBuilderCriterion(id: string, patch: Partial<Criterion>) {
+    if (builder) patchBuilderScoring({ inclusion_criteria: (builder.scoring_rules.inclusion_criteria || []).map((criterion) => criterion.id === id ? { ...criterion, ...patch } : criterion) })
+  }
+  function removeBuilderCriterion(id: string) {
+    if (builder) patchBuilderScoring({ inclusion_criteria: (builder.scoring_rules.inclusion_criteria || []).filter((criterion) => criterion.id !== id) })
+  }
+  function addBuilderSectionD() {
+    if (builder) patchBuilderScoring({ source_section_d: [...(builder.scoring_rules.source_section_d || []), { item:'', standard:'', source_result:'' }] })
+  }
+  function patchBuilderSectionD(index: number, patch: Partial<Template['scoring_rules']['source_section_d'][number]>) {
+    if (builder) patchBuilderScoring({ source_section_d: (builder.scoring_rules.source_section_d || []).map((criterion, i) => i === index ? { ...criterion, ...patch } : criterion) })
+  }
+  function removeBuilderSectionD(index: number) {
+    if (builder) patchBuilderScoring({ source_section_d: (builder.scoring_rules.source_section_d || []).filter((_, i) => i !== index) })
   }
 
   function patchBuilderItem(id: string, patch: Partial<CPItem>) {
@@ -513,40 +590,44 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
   async function saveBuilder() {
     if (!isAdmin || !builder) return
-    if (!builder.name.trim() || !builder.items.length || builder.items.some((i) => !i.label.trim())) {
-      setMessage('Nama CP wajib terisi dan setiap item harus mempunyai nama item/tindakan.')
-      setMessageKind('error')
-      return
-    }
-    setSaving(true)
-    setMessage('')
+    const normalizedDays=builder.days.map((day)=>day.trim())
+    if (!builder.code.trim() || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(builder.code.trim())) { setMessage('Kode internal harus memakai huruf kecil, angka, dan tanda hubung tanpa spasi.');setMessageKind('error');return }
+    if (builderIsNew && templates.some((item)=>item.code===builder.code.trim())) { setMessage('Kode CP tersebut sudah digunakan. Pilih kode internal lain.');setMessageKind('error');return }
+    if (!builder.name.trim() || !builder.items.length || builder.items.some((item)=>!item.label.trim())) { setMessage('Nama CP wajib terisi dan setiap item harus mempunyai nama item/tindakan.');setMessageKind('error');return }
+    if (!normalizedDays.length || normalizedDays.some((day)=>!day) || new Set(normalizedDays.map((day)=>day.toLocaleLowerCase('id-ID'))).size!==normalizedDays.length) { setMessage('Setiap hari/tahap harus memiliki nama yang terisi dan tidak boleh duplikat.');setMessageKind('error');return }
+    const criteria=(builder.scoring_rules.inclusion_criteria||[]).filter((criterion)=>criterion.label.trim())
+    if(criteria.some((criterion)=>!criterion.id.trim())||new Set(criteria.map((criterion)=>criterion.id.trim())).size!==criteria.length){setMessage('Setiap kriteria inklusi harus memiliki ID yang terisi dan unik.');setMessageKind('error');return}
+    setSaving(true);setMessage('')
     try {
-      const auth = await sb.auth.getUser()
-      if (auth.error || !auth.data.user) throw new Error('Sesi login tidak tersedia.')
-      const current = templates.find((t) => t.code === builder.code)
-      const nextVersion = Math.max(1, (current?.version || builder.version || 1) + 1)
-      const saved: Template = { ...builder, version: nextVersion }
-      const { data, error } = await q().from('clinical_pathway_templates').upsert({
-        code: saved.code, name: saved.name.trim(), icd10: saved.icd10 || '', status: saved.status,
-        version: saved.version, template_json: saved, source_filename: saved.source_filename || '',
-        created_by: auth.data.user.id, updated_by: auth.data.user.id,
-      }, { onConflict: 'code' }).select('*').single()
-      if (error) throw error
-      const normalized: Template = { ...(data.template_json || saved), code: data.code, name: data.name, icd10: data.icd10 || '', status: data.status, version: data.version }
-      setTemplates((old) => [...old.filter((t) => t.code !== normalized.code), normalized].sort((a, b) => a.name.localeCompare(b.name, 'id')))
-      setCatalog((old) => old.map((t) => t.code === normalized.code ? normalized : t))
-      setMasterReady(true)
-      setSelectedCode(normalized.code)
-      setBuilder(null)
-      setScreen('diagnosis')
-      setMessage('Format CP versi ' + nextVersion + ' berhasil disimpan. Audit terdahulu tetap memakai snapshot versi sebelumnya.')
-      setMessageKind('info')
-    } catch (e: any) {
-      setMessage('Gagal menyimpan format CP: ' + (e?.message || 'Kesalahan server.'))
-      setMessageKind('error')
-    } finally {
-      setSaving(false)
-    }
+      const auth=await sb.auth.getUser()
+      if(auth.error||!auth.data.user)throw new Error('Sesi login tidak tersedia.')
+      const current=templates.find((item)=>item.code===builder.code.trim())
+      const nextVersion=builderIsNew?Math.max(1,builder.version||1):Math.max(1,(current?.version||builder.version||1)+1)
+      const normalizedItems=builder.items.map((item)=>({...item,schedule:normalizedDays.map((day)=>({day,policy:item.schedule.find((cell)=>cell.day.trim()===day)?.policy||'not_scheduled'}))}))
+      const saved:Template={
+        ...builder,code:builder.code.trim(),name:builder.name.trim(),icd10:builder.icd10.trim(),source_filename:builder.source_filename.trim(),
+        days:normalizedDays,items:normalizedItems,clinical_fields:builder.clinical_fields.filter((field)=>field.label.trim()),
+        source_notes:builder.source_notes.map((note)=>note.trim()).filter(Boolean),
+        scoring_rules:{
+          ...builder.scoring_rules,completion_threshold_pct:Math.min(100,Math.max(0,n(builder.scoring_rules.completion_threshold_pct))),
+          compliance_target_pct:Math.min(100,Math.max(0,n(builder.scoring_rules.compliance_target_pct))),
+          inclusion_criteria:criteria.map((criterion)=>({...criterion,id:criterion.id.trim(),label:criterion.label.trim()})),
+          source_section_d:(builder.scoring_rules.source_section_d||[]).filter((criterion)=>criterion.item.trim()),
+        },version:nextVersion,
+      }
+      const masterPayload:Record<string,any>={name:saved.name,icd10:saved.icd10,status:saved.status,version:saved.version,template_json:saved,source_filename:saved.source_filename||'',updated_by:auth.data.user.id}
+      let result:any
+      if(builderIsNew) result=await q().from('clinical_pathway_templates').insert({code:saved.code,...masterPayload,created_by:auth.data.user.id}).select('*').single()
+      else result=await q().from('clinical_pathway_templates').update(masterPayload).eq('code',saved.code).select('*').single()
+      if(result.error)throw result.error
+      if(!result.data)throw new Error('Master CP tidak mengembalikan hasil simpan.')
+      const normalized:Template={...(result.data.template_json||saved),code:result.data.code,name:result.data.name,icd10:result.data.icd10||'',status:result.data.status,version:result.data.version,source_filename:result.data.source_filename||saved.source_filename||''}
+      setTemplates((old)=>[...old.filter((item)=>item.code!==normalized.code),normalized].sort((a,b)=>a.name.localeCompare(b.name,'id')))
+      setCatalog((old)=>old.map((item)=>item.code===normalized.code?normalized:item))
+      setMasterReady(true);setSelectedCode(normalized.code);setBuilder(null);setBuilderIsNew(false);setScreen(builderReturnScreen)
+      setMessage((builderIsNew?'Clinical Pathway baru':'Format CP')+' versi '+nextVersion+' berhasil disimpan. Audit terdahulu tetap memakai snapshot versi sebelumnya.');setMessageKind('info')
+    } catch(e:any){setMessage('Gagal menyimpan format CP: '+(e?.message||'Kesalahan server.'));setMessageKind('error')}
+    finally{setSaving(false)}
   }
 
   const roomOption = (room: Room) => <option key={room.id} value={room.id}>{room.name}</option>
@@ -563,7 +644,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <div className="cpGlass cpScore"><span>Keterisian CP</span><strong>{pct(c.completion)}</strong><small>{c.filled}/{c.expected} kotak harian dari {c.selectedItemCount} pilihan aktif sudah diputuskan · standar ≥{c.threshold}%</small><div className={'cpBadge ' + (c.completionPass ? '' : 'draft')}>{c.completionPass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
         <div className="cpGlass cpScore"><span>Kepatuhan CP</span><strong>{pct(c.compliance)}</strong><small>{c.done} sesuai dari {c.evaluation} sel yang dinilai · target {c.target}%</small><div className={'cpBadge ' + (c.compliancePass ? '' : 'draft')}>{c.compliancePass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
         <div className="cpGlass cpScore"><span>Inklusi penilaian</span><strong>{c.inclusionReady ? (c.included ? 'Ya' : 'Tidak') : '—'}</strong><small>{c.criteria.length} kriteria dari Bagian D harus diputuskan</small><div className={'cpBadge ' + (c.inclusionReady ? (c.included ? '' : 'draft') : 'draft')}>{!c.inclusionReady ? 'Belum lengkap' : c.included ? 'Layak dinilai' : 'Di luar inklusi'}</div></div>
-        <div className="cpGlass cpScore"><span>Variasi pelayanan</span><strong>{c.variationCount}</strong><small>Justifikasi diperlukan untuk setiap variasi</small><div className={'cpBadge ' + (c.variationComplete ? '' : 'draft')}>{c.variationComplete ? 'Terdokumentasi' : 'Belum lengkap'}</div></div>
+        <div className="cpGlass cpScore"><span>Variasi pelayanan</span><strong>{c.variationCount}</strong><small>{c.variationRequired ? 'Justifikasi diperlukan untuk setiap variasi' : 'Tidak dipersyaratkan pada master CP'}</small><div className={'cpBadge ' + (c.variationComplete ? '' : 'draft')}>{!c.variationRequired ? 'Tidak diwajibkan' : c.variationComplete ? 'Terdokumentasi' : 'Belum lengkap'}</div></div>
       </div>
       <div className="cpPanel cpGlass">
         <div className="cpSectionHead"><div><h4>Bagian D · Kepatuhan Clinical Pathway</h4><p>Perhitungan langsung mengikuti kriteria pada master CP dan direkalkulasi oleh Supabase saat disimpan.</p></div><span className={'cpBadge ' + (c.sectionDPass ? '' : 'draft')}>{c.sectionDPass ? 'Memenuhi seluruh kriteria' : 'Belum memenuhi seluruh kriteria'}</span></div>
@@ -577,7 +658,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
                 if (/inklu|pasien dinyatakan/i.test(item.item)) result = c.inclusionReady ? (c.included ? 'Memenuhi' : 'Tidak memenuhi') : 'Belum dinilai'
                 else if (/terisi/i.test(item.item) && /clinical pathway/i.test(item.item)) result = pct(c.completion) + ' (' + c.filled + '/' + c.expected + ')'
                 else if (/kepatuhan pasien/i.test(item.item)) result = pct(c.compliance)
-                else if (/variasi pelayanan/i.test(item.item)) result = c.variationComplete ? 'Terisi / lengkap' : 'Belum lengkap'
+                else if (/variasi pelayanan/i.test(item.item)) result = !c.variationRequired ? 'Tidak diwajibkan' : c.variationComplete ? 'Terisi / lengkap' : 'Belum lengkap'
                 return <tr key={item.item + i}><td>{item.item}</td><td>{item.standard}</td><td>{result}</td></tr>
               })}
             </tbody>
@@ -595,13 +676,14 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     <section className="cpGlass cpHead">
       <div>
         <div className="cpEyebrow">AUREKA · Audit Clinical Pathway</div>
-        <h3>{screen === 'library' ? 'Audit Clinical Pathway' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? 'Edit Format CP' : 'Audit Pasien · ' + (form?.template.name || '')}</h3>
-        <p>{screen === 'library' ? 'Kelola format CP per diagnosis, dokumentasikan pelayanan seluruh PPA dalam satu tabel checklist, dan hitung otomatis Bagian D.' : screen === 'diagnosis' ? 'Daftar audit pasien untuk diagnosis terpilih. Setiap audit menggunakan snapshot versi format CP yang dipakai saat pengisian.' : screen === 'builder' ? 'Penyuntingan master hanya tersedia bagi Super Admin. Item dan jadwal ditampilkan dalam format yang seragam.' : 'Checklist semua item beserta hari perawatan dalam satu tabel. Klik tanda pada sel untuk menandai sesuai; gunakan rincian untuk mencatat pengecualian, petugas, dan bukti.'}</p>
+        <h3>{screen === 'library' ? 'Audit Clinical Pathway' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}</h3>
+        <p>{screen === 'library' ? 'Kelola format CP per diagnosis, dokumentasikan pelayanan seluruh PPA dalam satu tabel checklist, dan hitung otomatis Bagian D.' : screen === 'diagnosis' ? 'Daftar audit pasien untuk diagnosis terpilih. Setiap audit menggunakan snapshot versi format CP yang dipakai saat pengisian.' : screen === 'builder' ? 'Editor Super Admin untuk identitas diagnosis, kelompok PPA, item/tindakan, jadwal berwarna, data klinis, kriteria inklusi, dan aturan penilaian.' : 'Checklist semua item beserta hari perawatan dalam satu tabel. Klik tanda pada sel untuk menandai sesuai; gunakan rincian untuk mencatat pengecualian, petugas, dan bukti.'}</p>
       </div>
       <div className="cpActions">
         <button type="button" className="cpBtn" onClick={onBack}>← Kembali ke kontainer mutu</button>
-        {screen !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(screen === 'audit' ? 'diagnosis' : 'library'); setFocusedCell(null); setForm(null); setBuilder(null) }}>← Kembali</button>}
-        {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={beginBuilder}>⚙ Edit Form CP</button>}
+        {screen !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(screen === 'audit' ? 'diagnosis' : screen === 'builder' ? builderReturnScreen : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
+        {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit Form CP</button>}
+        {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={beginNewBuilder}>＋ Tambah CP baru</button>}
         {screen === 'diagnosis' && <button type="button" className="cpBtn primary" onClick={newAudit}>＋ Audit pasien baru</button>}
         {screen === 'audit' && <button type="button" className="cpBtn" onClick={() => window.print()}>Cetak / PDF</button>}
       </div>
@@ -612,10 +694,18 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
     {screen === 'library' && <>
       <div className="cpGrid">
-        <LiquidGlass className="cpKpi"><span>Format CP tersedia</span><strong>{templates.filter((t) => t.status === 'published').length}</strong><small>Dari 6 diagnosis sumber</small></LiquidGlass>
+        <LiquidGlass className="cpKpi"><span>Format CP tersedia</span><strong>{templates.filter((t) => t.status === 'published').length}</strong><small>Diagnosis sumber dan CP tambahan</small></LiquidGlass>
         <LiquidGlass className="cpKpi"><span>Total item master</span><strong>{templates.filter((t) => t.status === 'published').reduce((a, t) => a + t.items.length, 0).toLocaleString('id-ID')}</strong><small>Item dan jadwal dari dokumen sumber</small></LiquidGlass>
         <LiquidGlass className="cpKpi"><span>Unit / ruangan</span><strong>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</strong><small>Disaring sesuai hak akses</small></LiquidGlass>
       </div>
+      {isAdmin && <div className="cpGlass cpPanel">
+        <div className="cpSectionHead"><div><h4>Pengelolaan master Clinical Pathway</h4><p>Super Admin dapat membuat CP baru atau membuka format yang sudah ada untuk diedit. Perubahan tersimpan di Supabase sebagai versi master.</p></div><span className="cpBadge">Super Admin</span></div>
+        <div className="cpToolbar" style={{ padding: 0 }}>
+          <div className="cpField cpSearch"><label>Format CP yang akan diedit</label><select value={selectedCode} onChange={(e) => setSelectedCode(e.target.value)}><option value="">Pilih diagnosis / format CP</option>{templates.map((template) => <option key={template.code} value={template.code}>{template.name} · {template.status === 'published' ? 'Aktif' : template.status === 'draft' ? 'Draf' : 'Tidak aktif'} · v{template.version}</option>)}</select></div>
+          <button type="button" className="cpBtn" disabled={!selectedTemplate} onClick={() => beginBuilder(selectedTemplate, 'library')}>✎ Edit format terpilih</button>
+          <button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ Tambah CP baru</button>
+        </div>
+      </div>}
       <div className="cpGlass cpToolbar">
         <div className="cpField cpSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
         {isAdmin && <div className="cpField cpSelect"><label>Unit untuk audit baru</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></div>}
@@ -649,12 +739,21 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             return <div key={a.id} className="cpRecord"><div><b>{a.patient_name || 'Pasien tanpa nama'} <span className="cpSubtle">· RM {a.medical_record_no || '—'}</span></b><small>{roomNames.get(Number(a.room_id)) || a.unit_name || 'Unit'} · Masuk {fmtDate(a.admission_date)} · Dibuat {fmtDate(a.created_at)}</small><small>Keterisian {c.completion_pct == null ? '—' : c.completion_pct + '%'} · Kepatuhan {c.compliance_pct == null ? '—' : c.compliance_pct + '%'} · Bagian D {c.section_d_pass ? 'Memenuhi' : 'Belum memenuhi'}</small></div><div className="cpRecordRight"><span className={'cpBadge ' + (a.status === 'draft' ? 'draft' : '')}>{STATUS_LABEL[a.status] || a.status}</span><button type="button" className="cpBtn" onClick={() => void openAudit(a)}>Buka / Edit</button></div></div>
           })}</div>}
       </div>
-      {isAdmin && <div className="cpGlass cpPanel"><h4>Pengelolaan master</h4><p className="cpTiny">Menu edit format hanya tersedia bagi Super Admin dan dilindungi kebijakan RLS database.</p><button type="button" className="cpBtn" onClick={beginBuilder}>⚙ Edit Form CP · Super Admin</button></div>}
+      {isAdmin && <div className="cpGlass cpPanel"><h4>Pengelolaan master</h4><p className="cpTiny">Menu master hanya tersedia bagi Super Admin dan dilindungi kebijakan RLS database.</p><div className="cpActions"><button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit format ini</button><button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ Tambah CP baru</button></div></div>}
     </>}
 
     {screen === 'audit' && form && <>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Identitas pasien dan episode perawatan</h4><p>Petugas pengisi terekam otomatis dari akun AUREKA. Identitas pelaksana setiap item dapat diisi pada rincian sel.</p></div><span className={'cpBadge ' + (form.status === 'draft' ? 'draft' : '')}>{STATUS_LABEL[form.status] || form.status}</span></div>
+        <div className="cpSectionHead"><div><h4>Identitas pasien dan episode perawatan</h4><p>Petugas pengisi terekam otomatis dari akun AUREKA. Identitas pelaksana setiap item dapat diisi pada rincian sel.</p></div>
+          <div className="cpActions"><span className={'cpBadge ' + (form.status === 'draft' ? 'draft' : '')}>{STATUS_LABEL[form.status] || form.status}</span><button type="button" className="cpBtn cpCollapseBtn" aria-expanded={!patientPanelCollapsed} onClick={() => setPatientPanelCollapsed((value) => !value)}>{patientPanelCollapsed ? 'Tampilkan data' : 'Ringkas data'}</button></div>
+        </div>
+        {patientPanelCollapsed ? <div className="cpPatientSummary">
+          <div><small>Nama pasien</small><b>{form.patient_name || 'Belum diisi'}</b></div>
+          <div><small>Nomor rekam medis</small><b>{form.medical_record_no || 'Belum diisi'}</b></div>
+          <div><small>Unit / ruangan</small><b>{form.unit_name || roomNames.get(Number(form.room_id)) || 'Belum dipilih'}</b></div>
+          <div><small>Episode perawatan</small><b>{fmtDate(form.admission_date)} – {fmtDate(form.discharge_date)}</b></div>
+          <div><small>Penanggung jawab PPA</small><b>{ppaNameFields(form.template).filter((field) => String(form.ppa_names?.[field.key] || '').trim()).length} dari {ppaNameFields(form.template).length} terisi</b></div>
+        </div> : <>
         <div className="cpFormGrid">
           <div className="cpField span2"><label>Nama pasien *</label><input value={form.patient_name} onChange={(e) => patchForm({ patient_name: e.target.value })} placeholder="Nama sesuai rekam medis" /></div>
           <div className="cpField"><label>Nomor rekam medis</label><input value={form.medical_record_no} onChange={(e) => patchForm({ medical_record_no: e.target.value })} /></div>
@@ -677,16 +776,17 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           <div className="cpSectionHead"><div><h4>Data klinis dan administrasi khusus diagnosis</h4><p>Kolom sumber dipertahankan sebagai tambahan di luar identitas pasien yang seragam.</p></div></div>
           <div className="cpFormGrid">{form.template.clinical_fields.map((f) => <div key={f.id} className="cpField"><label>{f.label}</label><input value={form.clinical_data[f.id] || ''} onChange={(e) => patchForm({ clinical_data: { ...form.clinical_data, [f.id]: e.target.value } })} placeholder={f.hint || f.code_label || f.additional_label || 'Isi bila relevan'} />{(f.code_label || f.additional_label) && <small className="cpTiny">{[f.code_label, f.additional_label].filter(Boolean).join(' · ')}</small>}</div>)}</div>
         </>}
+        </>}
       </div>
 
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Inklusi penilaian · Bagian D</h4><p>Kriteria berbeda mengikuti dokumen masing-masing diagnosis. Belum diputuskan tidak dianggap memenuhi.</p></div><span className={'cpBadge ' + (currentScore?.inclusionReady && currentScore.included ? '' : 'draft')}>{currentScore?.inclusionReady ? (currentScore.included ? 'Termasuk inklusi' : 'Di luar inklusi') : 'Belum diputuskan'}</span></div>
+        <div className="cpSectionHead"><div><h4>Inklusi penilaian</h4><p>Kriteria berbeda mengikuti dokumen masing-masing diagnosis. Belum diputuskan tidak dianggap memenuhi.</p></div><span className={'cpBadge ' + (currentScore?.inclusionReady && currentScore.included ? '' : 'draft')}>{currentScore?.inclusionReady ? (currentScore.included ? 'Termasuk inklusi' : 'Di luar inklusi') : 'Belum diputuskan'}</span></div>
         <div className="cpCriterionList">{form.template.scoring_rules.inclusion_criteria.map((c) => <div key={c.id} className="cpCriterion"><label>{c.label}</label><div className="cpToggleGroup"><button type="button" className={'cpToggle ' + (form.inclusion_json[c.id] === true ? 'active' : '')} onClick={() => setInclusion(c.id, true)}>Ya / Memenuhi</button><button type="button" className={'cpToggle ' + (form.inclusion_json[c.id] === false ? 'active' : '')} onClick={() => setInclusion(c.id, false)}>Tidak</button></div></div>)}</div>
         {form.template.code === 'soft-tissue-tumor' && <div className="cpNotice" style={{ marginTop: 10 }}>Catatan sumber Soft Tissue Tumor memuat ukuran &gt;5 cm, lokasi dekat sendi/pembuluh darah/organ penting, komorbid DM/HT tidak terkontrol, dan hasil Patologi Anatomi. Kriteria gabungannya tetap dikonfirmasi DPJP; isian ini merekam penetapan inklusi sesuai dokumen, tidak menafsirkan ulang logika klinis.</div>}
       </div>
 
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Checklist pelaksanaan clinical pathway · {form.template.name}</h4><p>Pilih terlebih dahulu item atau tindakan yang menjadi bagian dari perawatan pasien. Kotak harian aktif setelah pilihan dipilih; hijau menandai jadwal wajib dan kuning menandai jadwal kondisional.</p></div><span className="cpBadge">{form.template.items.length} item · {form.template.days.length} hari / tahap</span></div>
+        <div className="cpSectionHead"><div><h4>Checklist pelaksanaan clinical pathway · {form.template.name}{form.patient_name.trim() ? ' · ' + form.patient_name.trim() : ''}</h4><p>Pilih terlebih dahulu item atau tindakan yang menjadi bagian dari perawatan pasien. Kotak harian aktif setelah pilihan dipilih; hijau menandai jadwal wajib dan kuning menandai jadwal kondisional.</p></div><span className="cpBadge">{form.template.items.length} item · {form.template.days.length} hari / tahap</span></div>
         {focusedCell && (() => {
           const item = form.template.items.find((it) => it.id === focusedCell.itemId)
           const sched = item?.schedule.find((s) => s.day === focusedCell.day)
@@ -710,8 +810,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             <div className="cpWide" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" className="cpBtn" onClick={() => setFocusedCell(null)}>Tutup rincian</button>{item.oppe && !String(answer.performer_name || '').trim() && <span className="cpNotice">Item ini dipetakan ke OPPE; isi nama pelaksana agar bukti dapat diatribusikan.</span>}</div>
           </div>
         })()}
-        <div className="cpTableWrap">
-          <table className="cpTable">
+        <div className="cpTableWrap cpAuditWrap">
+          <table className="cpTable cpAuditTable" style={{ width: 450 + form.template.days.length * 84, minWidth: 450 + form.template.days.length * 84, tableLayout: 'fixed' }}>
+            <colgroup><col style={{ width: 180 }} /><col style={{ width: 270 }} />{form.template.days.map((day) => <col key={day} style={{ width: 84 }} />)}</colgroup>
             <thead><tr><th>Pilihan PPA</th><th>Item / tindakan dan keterangan</th>{form.template.days.map((day) => <th key={day} className="cpDayCol">{day}</th>)}</tr></thead>
             <tbody>{(() => {
               const professionMap = new Map<string, CPItem[]>()
@@ -802,34 +903,69 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     </>}
 
     {screen === 'builder' && builder && isAdmin && <>
-      <div className="cpNotice info">Mode Super Admin. Perubahan disimpan sebagai versi master baru. Rekam audit yang sudah ada mempertahankan snapshot versi lamanya.</div>
+      <div className="cpNotice info">{builderIsNew ? 'Mode pembuatan master baru.' : 'Mode penyuntingan master.'} Semua pengaturan, teks keterangan, pilihan PPA, dan warna jadwal disimpan sebagai satu versi master. Audit terdahulu tetap memakai snapshot versi yang telah digunakan.</div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Identitas format master</h4><p>Kode internal dipertahankan agar tautan audit tidak putus; judul, ICD-10, status, dan ambang dapat dikelola.</p></div><span className="cpBadge">Versi sekarang {builder.version}</span></div>
+        <div className="cpSectionHead"><div><h4>Identitas format Clinical Pathway</h4><p>Lengkapi identitas diagnosis, status publikasi, ambang penilaian, dan definisi perhitungan.</p></div><span className="cpBadge">{builderIsNew ? 'Master baru' : 'Versi ' + builder.version}</span></div>
         <div className="cpFormGrid">
-          <div className="cpField span2"><label>Nama diagnosis / Clinical Pathway</label><input value={builder.name} onChange={(e) => patchBuilder({ name: e.target.value })} /></div>
-          <div className="cpField"><label>Kode ICD-10</label><input value={builder.icd10} onChange={(e) => patchBuilder({ icd10: e.target.value })} /></div>
-          <div className="cpField"><label>Status master</label><select value={builder.status} onChange={(e) => patchBuilder({ status: e.target.value })}><option value="published">Aktif / diterbitkan</option><option value="draft">Draf</option><option value="retired">Tidak aktif</option></select></div>
-          <div className="cpField"><label>Standar keterisian (%)</label><input type="number" min="0" max="100" value={builder.scoring_rules.completion_threshold_pct} onChange={(e) => patchBuilder({ scoring_rules: { ...builder.scoring_rules, completion_threshold_pct: n(e.target.value) } })} /></div>
-          <div className="cpField"><label>Target kepatuhan (%)</label><input type="number" min="0" max="100" value={builder.scoring_rules.compliance_target_pct} onChange={(e) => patchBuilder({ scoring_rules: { ...builder.scoring_rules, compliance_target_pct: n(e.target.value) } })} /></div>
+          <div className="cpField"><label>Kode internal</label><input value={builder.code} readOnly={!builderIsNew} onChange={(e) => patchBuilder({ code: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-') })} placeholder="mis. cp-diagnosis-baru" /><small className="cpTiny">Huruf kecil, angka, dan tanda hubung. Kode format lama dikunci untuk menjaga tautan audit.</small></div>
+          <div className="cpField span2"><label>Nama diagnosis / Clinical Pathway *</label><input value={builder.name} onChange={(e) => patchBuilder({ name: e.target.value })} placeholder="Nama diagnosis atau tindakan" /></div>
+          <div className="cpField"><label>Kode ICD-10</label><input value={builder.icd10} onChange={(e) => patchBuilder({ icd10: e.target.value })} placeholder="Kode ICD-10" /></div>
+          <div className="cpField"><label>Status master</label><select value={builder.status} onChange={(e) => patchBuilder({ status: e.target.value })}><option value="draft">Draf</option><option value="published">Aktif / diterbitkan</option><option value="retired">Tidak aktif</option></select></div>
+          <div className="cpField span2"><label>Nama dokumen sumber / rujukan</label><input value={builder.source_filename} onChange={(e) => patchBuilder({ source_filename: e.target.value })} placeholder="Nama dokumen atau sumber penyusunan" /></div>
+          <div className="cpField"><label>Standar keterisian (%)</label><input type="number" min="0" max="100" value={builder.scoring_rules.completion_threshold_pct} onChange={(e) => patchBuilderScoring({ completion_threshold_pct: n(e.target.value) })} /></div>
+          <div className="cpField"><label>Target kepatuhan (%)</label><input type="number" min="0" max="100" value={builder.scoring_rules.compliance_target_pct} onChange={(e) => patchBuilderScoring({ compliance_target_pct: n(e.target.value) })} /></div>
+          <div className="cpField span2"><label>Definisi persentase keterisian</label><textarea rows={2} value={builder.scoring_rules.completion_definition} onChange={(e) => patchBuilderScoring({ completion_definition: e.target.value })} /></div>
+          <div className="cpField span2"><label>Definisi persentase kepatuhan</label><textarea rows={2} value={builder.scoring_rules.compliance_definition} onChange={(e) => patchBuilderScoring({ compliance_definition: e.target.value })} /></div>
+          <div className="cpField"><label>Variasi pelayanan wajib diisi?</label><select value={builder.scoring_rules.variation_required === false ? 'false' : 'true'} onChange={(e) => patchBuilderScoring({ variation_required: e.target.value === 'true' })}><option value="true">Ya, wajib dinyatakan</option><option value="false">Tidak diwajibkan</option></select></div>
+          <div className="cpField span2"><label>Ketentuan variasi pelayanan</label><textarea rows={2} value={builder.scoring_rules.variation_definition} onChange={(e) => patchBuilderScoring({ variation_definition: e.target.value })} /></div>
         </div>
       </div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Editor item dan jadwal</h4><p>Setiap baris berasal dari dokumen sumber. Pilih Wajib, Kondisional, atau Tidak dijadwalkan pada masing-masing hari.</p></div><div className="cpActions"><span className="cpBadge">{builder.items.length} item</span><button type="button" className="cpBtn" onClick={addBuilderItem}>＋ Item baru</button></div></div>
-        <div className="cpTableWrap cpBuilderTable"><table className="cpTable" style={{ minWidth: 1280 }}>
-          <thead><tr><th>PPA / bagian</th><th>Pilihan</th><th>Kelompok / tahap</th><th>Item / tindakan</th><th>Keterangan / dosis</th>{builder.days.map((day) => <th key={day} className="cpBuilderDay">{day}</th>)}<th>Bukti OPPE</th><th>Hapus</th></tr></thead>
-          <tbody>{builder.items.map((item) => <tr key={item.id}>
-            <td><input className="cpInput cpBuilderInput" value={item.profession} onChange={(e) => patchBuilderItem(item.id, { profession: e.target.value })} /></td>
-            <td><input className="cpInput" value={item.choice} onChange={(e) => patchBuilderItem(item.id, { choice: e.target.value })} /></td>
-            <td><input className="cpInput cpBuilderInput" value={item.stage} onChange={(e) => patchBuilderItem(item.id, { stage: e.target.value })} /></td>
-            <td><input className="cpInput cpBuilderInput" value={item.label} onChange={(e) => patchBuilderItem(item.id, { label: e.target.value })} /></td>
-            <td><input className="cpInput cpBuilderInput" value={item.detail} onChange={(e) => patchBuilderItem(item.id, { detail: e.target.value })} /></td>
-            {builder.days.map((day) => <td key={day}><select className="cpInput cpBuilderDay" value={item.schedule.find((s) => s.day === day)?.policy || 'not_scheduled'} onChange={(e) => patchBuilderSchedule(item.id, day, e.target.value as Policy)}><option value="required">Wajib (hijau)</option><option value="conditional">Kondisional (kuning)</option><option value="not_scheduled">Tidak dijadwalkan</option></select></td>)}
-            <td><label className="cpOppe"><input type="checkbox" checked={!!item.oppe} onChange={(e) => patchBuilderItem(item.id, { oppe: e.target.checked })} />Ya</label></td>
-            <td><button type="button" className="cpBtn" onClick={() => removeBuilderItem(item.id)}>Hapus</button></td>
-          </tr>)}</tbody>
-        </table></div>
-        <div className="cpFooter"><span className="cpTiny">Hasil perubahan baru aktif setelah disimpan. Validasi klinis master tetap merupakan tanggung jawab pejabat/komite yang berwenang.</span><div className="cpActions"><button type="button" className="cpBtn" onClick={() => { setBuilder(null); setScreen('diagnosis') }}>Batal</button><button type="button" className="cpBtn primary" disabled={saving} onClick={() => void saveBuilder()}>{saving ? 'Menyimpan…' : 'Simpan versi master baru'}</button></div></div>
+        <div className="cpSectionHead"><div><h4>Checklist item / tindakan dan jadwal</h4><p>Atur kolom pilihan PPA, profesi, kelompok, item, keterangan, dan status jadwal per hari. Hijau = wajib, kuning = kondisional, putih = tidak dijadwalkan.</p></div><div className="cpActions"><span className="cpBadge">{builder.items.length} item · {builder.days.length} hari/tahap</span><button type="button" className="cpBtn" onClick={addBuilderDay}>＋ Tambah hari / tahap</button><button type="button" className="cpBtn primary" onClick={addBuilderItem}>＋ Tambah item</button></div></div>
+        <div className="cpBuilderLegend"><span><i className="cpLegendDot required" /> Jadwal wajib</span><span><i className="cpLegendDot conditional" /> Jadwal kondisional</span><span><i className="cpLegendDot not_scheduled" /> Tidak dijadwalkan</span></div>
+        <div className="cpTableWrap cpBuilderTable">
+          <table className="cpTable cpBuilderMatrix" style={{ width: 951 + builder.days.length * 90, minWidth: 951 + builder.days.length * 90, tableLayout: 'fixed' }}>
+            <colgroup><col style={{ width: 170 }} /><col style={{ width: 145 }} /><col style={{ width: 180 }} /><col style={{ width: 300 }} />{builder.days.map((day,index)=><col key={'builder-col-'+index} style={{ width: 90 }} />)}<col style={{ width: 76 }} /><col style={{ width: 80 }} /></colgroup>
+            <thead><tr><th>Profesi / bagian</th><th>Pilihan PPA</th><th>Kelompok / tahap</th><th>Item / tindakan dan keterangan</th>
+              {builder.days.map((day,index)=><th key={'builder-day-'+index} className="cpBuilderDayHead"><input className="cpBuilderDayName" value={day} onChange={(e)=>renameBuilderDay(day,e.target.value)} aria-label={'Nama hari atau tahap '+(index+1)} title="Ubah nama hari/tahap"/><button type="button" className="cpBuilderDayRemove" disabled={builder.days.length<=1} onClick={()=>removeBuilderDay(day)} title="Hapus hari/tahap" aria-label={'Hapus '+day}>×</button></th>)}
+              <th>Bukti OPPE</th><th>Hapus</th></tr></thead>
+            <tbody>{builder.items.map((item)=><tr key={item.id}>
+              <td className="cpBuilderTextCell"><input className="cpInput" value={item.profession} onChange={(e)=>patchBuilderItem(item.id,{profession:e.target.value})} placeholder="Profesi / kelompok PPA" aria-label="Profesi PPA"/><input className="cpInput" value={item.section} onChange={(e)=>patchBuilderItem(item.id,{section:e.target.value})} placeholder="Bagian (A, B, C…)" aria-label="Bagian pathway"/></td>
+              <td><input className="cpInput" value={item.choice} onChange={(e)=>patchBuilderItem(item.id,{choice:e.target.value})} placeholder="Pilih item ini" aria-label="Label pilihan PPA"/></td>
+              <td><input className="cpInput" value={item.stage} onChange={(e)=>patchBuilderItem(item.id,{stage:e.target.value})} placeholder="Kelompok / tahap" aria-label="Kelompok atau tahap"/></td>
+              <td className="cpBuilderItemCell"><input className="cpInput" value={item.label} onChange={(e)=>patchBuilderItem(item.id,{label:e.target.value})} placeholder="Nama item / tindakan *" aria-label="Nama item atau tindakan"/><textarea className="cpInput" value={item.detail} onChange={(e)=>patchBuilderItem(item.id,{detail:e.target.value})} placeholder="Keterangan, dosis, atau detail" aria-label="Keterangan atau dosis"/></td>
+              {builder.days.map((day,index)=>{const policy=item.schedule.find((cell)=>cell.day===day)?.policy||'not_scheduled';return <td key={item.id+'-schedule-'+index} className={'cpCell cpBuilderScheduleCell '+policy}><select className={'cpInput cpBuilderPolicy '+policy} value={policy} onChange={(e)=>patchBuilderSchedule(item.id,day,e.target.value as Policy)} aria-label={'Jadwal '+day+' · '+item.label}><option value="required">Wajib · hijau</option><option value="conditional">Kondisional · kuning</option><option value="not_scheduled">Tidak dijadwalkan</option></select></td>})}
+              <td><label className="cpOppe"><input type="checkbox" checked={!!item.oppe} onChange={(e)=>patchBuilderItem(item.id,{oppe:e.target.checked})}/>Ya</label></td><td><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderItem(item.id)}>Hapus</button></td>
+            </tr>)}</tbody>
+          </table>
+        </div>
+        <div className="cpTiny" style={{marginTop:10}}>Nama hari/tahap dapat diedit pada judul kolom. Saat dihapus, semua aturan jadwal pada kolom tersebut ikut dihapus dari master.</div>
+      </div>
+      <div className="cpGlass cpPanel">
+        <div className="cpSectionHead"><div><h4>Data klinis dan administrasi khusus diagnosis</h4><p>Kolom tambahan ini akan tampil pada form audit setelah identitas pasien dan penanggung jawab PPA.</p></div><div className="cpActions"><span className="cpBadge">{builder.clinical_fields.length} kolom</span><button type="button" className="cpBtn" onClick={addBuilderClinicalField}>＋ Tambah kolom</button></div></div>
+        <div className="cpBuilderConfigList">{builder.clinical_fields.map((field)=><div className="cpBuilderConfigRow" key={field.id}><input className="cpInput" value={field.label} onChange={(e)=>patchBuilderClinicalField(field.id,{label:e.target.value})} placeholder="Label kolom / pertanyaan" aria-label="Label kolom klinis"/><input className="cpInput" value={field.hint} onChange={(e)=>patchBuilderClinicalField(field.id,{hint:e.target.value})} placeholder="Petunjuk pengisian" aria-label="Petunjuk kolom klinis"/><input className="cpInput" value={field.code_label} onChange={(e)=>patchBuilderClinicalField(field.id,{code_label:e.target.value})} placeholder="Kode / nilai baku" aria-label="Kode atau nilai baku"/><input className="cpInput" value={field.additional_label} onChange={(e)=>patchBuilderClinicalField(field.id,{additional_label:e.target.value})} placeholder="Keterangan tambahan" aria-label="Keterangan tambahan"/><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderClinicalField(field.id)}>Hapus</button></div>)}</div>
+        {builder.clinical_fields.length===0&&<div className="cpEmpty">Belum ada kolom klinis tambahan. Tambahkan bila diperlukan oleh diagnosis.</div>}
+      </div>
+      <div className="cpGlass cpPanel">
+        <div className="cpSectionHead"><div><h4>Inklusi penilaian</h4><p>Tambahkan kriteria sesuai dokumen atau keputusan klinis yang telah disahkan. Kriteria ini digunakan dalam penilaian Bagian D.</p></div><div className="cpActions"><span className="cpBadge">{(builder.scoring_rules.inclusion_criteria||[]).length} kriteria</span><button type="button" className="cpBtn" onClick={addBuilderCriterion}>＋ Tambah kriteria</button></div></div>
+        <div className="cpBuilderConfigList">{(builder.scoring_rules.inclusion_criteria||[]).map((criterion)=><div className="cpBuilderConfigRow" key={criterion.id}><input className="cpInput" value={criterion.id} onChange={(e)=>patchBuilderCriterion(criterion.id,{id:e.target.value})} placeholder="ID kriteria" aria-label="ID kriteria inklusi"/><input className="cpInput cpBuilderLong" value={criterion.label} onChange={(e)=>patchBuilderCriterion(criterion.id,{label:e.target.value})} placeholder="Kriteria inklusi yang harus diputuskan" aria-label="Label kriteria inklusi"/><select className="cpInput" value={criterion.expected===false?'false':'true'} onChange={(e)=>patchBuilderCriterion(criterion.id,{expected:e.target.value==='true'})} aria-label="Jawaban yang memenuhi inklusi"><option value="true">Memenuhi jika Ya</option><option value="false">Memenuhi jika Tidak</option></select><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderCriterion(criterion.id)}>Hapus</button></div>)}</div>
+        {(builder.scoring_rules.inclusion_criteria||[]).length===0&&<div className="cpEmpty">Belum ada kriteria inklusi. Tanpa kriteria, inklusi otomatis tidak membatasi penilaian.</div>}
+      </div>
+      <div className="cpGlass cpPanel">
+        <div className="cpSectionHead"><div><h4>Kriteria dan rincian Bagian D</h4><p>Catatan sumber ini ditampilkan pada tabel ringkasan penilaian; hasil otomatis tetap dihitung oleh mesin penilaian.</p></div><div className="cpActions"><span className="cpBadge">{(builder.scoring_rules.source_section_d||[]).length} butir</span><button type="button" className="cpBtn" onClick={addBuilderSectionD}>＋ Tambah butir</button></div></div>
+        <div className="cpBuilderConfigList">{(builder.scoring_rules.source_section_d||[]).map((criterion,index)=><div className="cpBuilderConfigRow" key={'section-d-'+index}><input className="cpInput" value={criterion.item} onChange={(e)=>patchBuilderSectionD(index,{item:e.target.value})} placeholder="Item penilaian" aria-label="Item penilaian Bagian D"/><textarea className="cpInput cpBuilderLong" value={criterion.standard} onChange={(e)=>patchBuilderSectionD(index,{standard:e.target.value})} placeholder="Standar pada dokumen sumber" aria-label="Standar penilaian"/><input className="cpInput" value={criterion.source_result} onChange={(e)=>patchBuilderSectionD(index,{source_result:e.target.value})} placeholder="Hasil / catatan sumber" aria-label="Hasil sumber"/><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderSectionD(index)}>Hapus</button></div>)}</div>
+        {(builder.scoring_rules.source_section_d||[]).length===0&&<div className="cpEmpty">Belum ada butir dari dokumen sumber.</div>}
+      </div>
+      <div className="cpGlass cpPanel">
+        <div className="cpSectionHead"><div><h4>Catatan sumber dan petunjuk</h4><p>Catatan dipertahankan bersama format master dan ditampilkan pada form audit untuk mengingatkan PPA terhadap ketentuan sumber.</p></div><button type="button" className="cpBtn" onClick={addBuilderSourceNote}>＋ Tambah catatan</button></div>
+        <div className="cpBuilderConfigList">{builder.source_notes.map((note,index)=><div className="cpBuilderConfigRow" key={'source-note-'+index}><textarea className="cpInput cpBuilderLong" value={note} onChange={(e)=>patchBuilderSourceNote(index,e.target.value)} placeholder="Catatan dari dokumen sumber atau ketentuan pelaksanaan" aria-label={'Catatan sumber '+(index+1)}/><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderSourceNote(index)}>Hapus</button></div>)}</div>
+        {builder.source_notes.length===0&&<div className="cpEmpty">Belum ada catatan sumber.</div>}
+      </div>
+      <div className="cpGlass cpFooter">
+        <div><span className="cpTiny">Format ini dapat dipublikasikan setelah ditinjau dan disahkan. Pilihan jadwal berwarna hijau/kuning akan tampil pada checklist audit.</span><div className="cpTiny">{builderIsNew?'Master baru · versi pertama':'Snapshot audit terdahulu tidak akan berubah'} · {builder.items.length} item · {builder.days.length} hari/tahap</div></div>
+        <div className="cpActions"><button type="button" className="cpBtn" onClick={()=>{setBuilder(null);setBuilderIsNew(false);setScreen(builderReturnScreen)}}>Batal</button><button type="button" className="cpBtn primary" disabled={saving} onClick={()=>void saveBuilder()}>{saving?'Menyimpan…':builderIsNew?'Simpan Clinical Pathway baru':'Simpan versi master baru'}</button></div>
       </div>
     </>}
+
   </div>
 }
