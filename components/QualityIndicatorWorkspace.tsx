@@ -176,6 +176,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
 
  const roomMap=useMemo(()=>new Map(rooms.map(r=>[Number(r.id),r.name])),[rooms])
  const activeLayout=useMemo(()=>getLayout(roomId),[roomId])
+ const selectedLayout=useMemo(()=>selected?getLayout(Number(selected.roomId)):activeLayout,[selected,activeLayout])
  const hasHeaderMetadata=useMemo(()=>profiles.some(p=>String(p.schema_json?.header_label??'').trim()),[profiles])
  const patientProfiles=useMemo(()=>layoutProfiles(profiles,activeLayout),[profiles,activeLayout])
 
@@ -238,7 +239,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    return ymd(p.admit)===year&&roomOk&&monthOk&&statusOk&&hay.includes(search.toLowerCase().trim())
  }),[patients,year,roomId,roomMap,monthFilter,status,search,activeLayout])
  const yearPatients=useMemo(()=>patients.filter(p=>ymd(p.admit)===year&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
- const applicable=useMemo(()=>selected?patientProfiles.filter(p=>Number(p.room_id)===Number(selected.roomId)||(p.unit_name&&p.unit_name===selected.unit)).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,patientProfiles])
+ const applicable=useMemo(()=>selected?layoutProfiles(profiles,selectedLayout).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,profiles,selectedLayout])
  const catalog=useMemo(()=>profiles.filter(p=>(!hasHeaderMetadata||String(p.schema_json?.header_label??'').trim())&&(catUnit==='Semua unit'||p.unit_name===catUnit)&&(!catGrain||p.measurement_grain===catGrain)&&`${p.code} ${displayTitle(p)} ${p.title??''} ${p.unit_name}`.toLowerCase().includes(catSearch.toLowerCase().trim())),[profiles,hasHeaderMetadata,catUnit,catGrain,catSearch])
  const filledN=useMemo(()=>applicable.filter(p=>responseComplete(p,draft[p.id??p.code])).length,[applicable,draft])
 
