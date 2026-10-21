@@ -2,6 +2,7 @@
 import {useCallback,useEffect,useMemo,useState} from 'react'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
+import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 
 const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
@@ -11,7 +12,7 @@ const STATUS=['Semua','Aktif','Draft','Ready for Review','Validated']
 const YEARS=[2025,2026,2027,2028,2029]
 const LOCAL_KEY='aureka-quality-episode-cache-v3',AUDIT_KEY='aureka-quality-audit-v3'
 
-type Room={id:number;name:string};type Profile=Record<string,any>;type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null};type Patient=Record<string,any>;type Audit=Record<string,any>
+type Room={id:number;name:string};type Profile=Record<string,any>;type AuditLayout={roomId:number;fields:string[];indicators:string[]};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null};type Patient=Record<string,any>;type Audit=Record<string,any>
 
 const CSS=`
 .aq{display:grid;gap:14px}.aq .glass{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.72);border-radius:26px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}.aqHead{padding:20px 22px;display:flex;justify-content:space-between;gap:18px}.aqHead h3{margin:5px 0;font-size:29px;letter-spacing:-.055em}.aqHead p{margin:0;max-width:760px;color:var(--muted);font-size:12px;line-height:1.55}.aqActions{display:flex;gap:8px;flex-wrap:wrap}.aqBtn{min-height:42px;border:1px solid rgba(255,255,255,.78);background:rgba(255,255,255,.44);color:#264237;border-radius:13px;padding:10px 13px;font-size:11px;font-weight:900}.aqBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}.aqTabs{padding:6px;display:flex;gap:7px;flex-wrap:wrap}.aqTab{border:1px solid rgba(255,255,255,.68);background:rgba(255,255,255,.28);color:#52625b;padding:10px 14px;border-radius:14px;font-size:11px;font-weight:850;min-height:42px}.aqTab.active{background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(var(--accent-rgb),.13));color:var(--accent2)}.aqFilters{padding:17px 18px}.aqGrid{display:grid;grid-template-columns:1fr .55fr .75fr 1.8fr;gap:10px}.aqField span,.aqLabel{display:block;font-size:10px;color:#6f7d75;font-weight:900;text-transform:uppercase;letter-spacing:.055em;margin:0 0 6px 2px}.aqField input,.aqField select,.aqField textarea,.aqCat input,.aqCat select{width:100%;border:1px solid rgba(35,63,50,.12);border-radius:14px;background:rgba(255,255,255,.56);padding:11px 13px;font-size:13px;color:var(--ink);outline:none;min-height:46px}.aqField textarea{min-height:88px;resize:vertical}.aqMonths{display:grid;grid-template-columns:repeat(13,minmax(70px,1fr));gap:7px;overflow:auto;margin-top:6px}.aqMonths button{border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.34);border-radius:13px;padding:10px 8px;color:#506059;font-weight:850;font-size:11px;white-space:nowrap}.aqMonths .active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}.aqKpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.aqKpi .glass{padding:16px 17px}.aqKpi span{font-size:10px;color:#6c7a73;font-weight:900;text-transform:uppercase}.aqKpi strong{display:block;font-size:27px;margin-top:5px}.aqKpi small{color:var(--muted);font-size:10px}.aqTable{overflow:hidden}.aqTableHead{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;padding:16px 18px;border-bottom:1px solid var(--line)}.aqTableHead h4{margin:0;font-size:18px}.aqTableHead p{margin:4px 0 0;color:var(--muted);font-size:11px}.aqMeta{display:flex;gap:7px;flex-wrap:wrap}.aqPill{padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.66);font-size:10px;font-weight:850}.aqPill.green{background:var(--accent-soft);color:var(--accent2);border:0}.aqNotice{padding:10px 17px;background:#fff8e7;color:#7b5d25;font-size:11px}.aqWrap{overflow:auto;max-height:calc(100vh - 455px)}table.aqData{width:100%;min-width:1180px;border-collapse:separate;border-spacing:0;font-size:12px}table.aqData th,table.aqData td{padding:12px 11px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}table.aqData th{position:sticky;top:0;background:rgba(249,252,250,.94);font-size:9px;color:#748078;text-transform:uppercase;z-index:3}table.aqData tbody tr{cursor:pointer}.aqName{font-weight:900;color:var(--accent2)}.aqSub{font-size:10px;color:var(--muted)}.aqStatus{padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900;background:#eef1ef}.aqStatus.aktif{background:#e8f7ef;color:#216b49}.aqStatus.ready-for-review{background:#edf2ff;color:#4c5f98}.aqStatus.validated{background:var(--accent-soft);color:var(--accent2)}.aqLos,.aqFilled{font-weight:900;color:var(--accent2)}.aqEmpty{min-height:120px;display:grid;place-items:center;color:var(--muted);font-size:11px}.aqBack{position:fixed;inset:0;z-index:100;background:rgba(11,22,17,.24);backdrop-filter:blur(4px);display:flex;justify-content:flex-end}.aqDrawer{height:100%;width:min(950px,96vw);background:rgba(248,251,249,.98);box-shadow:-24px 0 65px rgba(0,0,0,.18);display:flex;flex-direction:column}.aqWide{width:min(1180px,97vw)}.aqDHead{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:20px}.aqDHead h4{font-size:24px;margin:4px 0}.aqDHead p{margin:0;color:var(--muted);font-size:11px}.aqClose{width:38px;height:38px;border:0;background:#eceeed;border-radius:12px;font-size:22px}.aqBody{padding:18px 22px;overflow:auto;min-height:0;flex:1}.aqEpisode{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.aqDerived{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:13px 0}.aqDerived div{padding:11px 13px;background:#fff;border:1px solid var(--line);border-radius:14px}.aqDerived span{font-size:9px;color:var(--muted)}.aqDerived strong{display:block;margin-top:4px;font-size:13px}.aqGuard{padding:11px 13px;border-radius:14px;background:#e9f7ef;color:#1e6c43;font-size:11px;line-height:1.5}.aqSection{display:flex;justify-content:space-between;align-items:end;margin:15px 0 8px}.aqSection h5{margin:0;font-size:17px}.aqSection span{font-size:10px;color:var(--muted)}.aqInd{background:#fff;border:1px solid var(--line);border-radius:17px;margin:11px 0;overflow:hidden}.aqInd.hit{border-color:rgba(var(--accent-rgb),.3)}.aqIHead{padding:14px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.aqIHead strong{font-size:13px;line-height:1.42}.aqMetaText{font-size:9px;color:var(--muted);margin-top:4px}.aqMatch{font-size:9px;background:var(--accent-soft);color:var(--accent2);padding:5px 7px;border-radius:999px;font-weight:900;white-space:nowrap}.aqIBody{padding:15px}.aqQ{font-size:16px;font-weight:900;line-height:1.42;margin-bottom:9px}.aqTwo{display:grid;grid-template-columns:1fr 1fr;gap:10px}.aqAuto{padding:11px 13px;background:#eef8f4;border:1px solid #dcefe7;border-radius:13px}.aqAuto span,.aqAuto small{display:block;font-size:9px;color:var(--muted)}.aqAuto strong{display:block;font-size:18px;color:var(--accent2)}.aqRadio{display:flex;gap:8px;flex-wrap:wrap}.aqRadio label{display:inline-flex;align-items:center;gap:7px;border:1px solid #d8dadc;background:#fff;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:800}.aqEvidence{border-top:1px dashed #d9dcda;margin-top:12px;padding-top:11px}.aqFoot{padding:13px 22px;border-top:1px solid var(--line);background:rgba(255,255,255,.82);display:flex;justify-content:space-between;align-items:center;gap:10px}.aqCat{padding:18px 22px;overflow:auto}.aqCatFilters{display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:9px;margin-bottom:12px}.aqCatWrap{overflow:auto;max-height:calc(100vh - 220px)}table.aqCatalog{width:100%;min-width:1100px;border-collapse:separate;border-spacing:0}table.aqCatalog th,table.aqCatalog td{font-size:10px;padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}table.aqCatalog th{font-size:8px;color:#748078;position:sticky;top:0;background:#f8fbf9}table.aqCatalog td:nth-child(4){white-space:normal;min-width:390px}.aqCatalog td:nth-child(8),.aqCatalog td:nth-child(9){white-space:normal;min-width:320px;max-width:520px}@media(max-width:1180px){.aqGrid{grid-template-columns:1fr 1fr 1fr}.aqGrid label:last-child{grid-column:1/-1}.aqEpisode{grid-template-columns:1fr 1fr}.aqCatFilters{grid-template-columns:1fr 1fr}.aqMonths{grid-template-columns:repeat(13,86px)}}@media(max-width:850px){.aqHead{display:block}.aqActions{margin-top:12px}.aqGrid{grid-template-columns:1fr 1fr}.aqKpi{grid-template-columns:1fr}.aqWrap{max-height:calc(100vh - 520px)}.aqDrawer,.aqWide{width:100%}.aqDerived{grid-template-columns:1fr}.aqTwo{grid-template-columns:1fr}.aqEpisode{grid-template-columns:1fr 1fr}.aqFoot{display:block}.aqCatFilters{grid-template-columns:1fr 1fr}}@media(max-width:560px){.aqGrid{grid-template-columns:1fr}.aqGrid label:last-child{grid-column:auto}.aqEpisode{grid-template-columns:1fr}.aqIHead{display:block}.aqMatch{display:inline-flex;margin-top:7px}.aqCatFilters{grid-template-columns:1fr}.aqMeta{margin-top:8px}}
@@ -45,6 +46,111 @@ function responseComplete(p:Profile,r:Resp|undefined){
 function filled(r:Resp|undefined){return!!r&&(!!r.answer||!!r.occurrence||!!r.time||!!r.start||!!r.end||r.minutes!=null||r.value!=null)}
 function empty(p:Profile):Resp{const k=kind(p);return k==='occurrence'?{occurrence:''}:k==='numeric'?{value:null}:k==='minutes'?{minutes:null}:k==='door'?{start:'',end:'',minutes:null}:k==='visit'?{time:'',answer:''}:{answer:''}}
 function displayTitle(p:Profile){return String(p.schema_json?.header_label??'').trim()||String(p.title??'').trim()||`Indikator ${p.code}`}
+const QUALITY_AUDIT_LAYOUTS=qualityAuditLayout2026 as AuditLayout[]
+function getLayout(roomId:number|null|undefined){return roomId==null?undefined:QUALITY_AUDIT_LAYOUTS.find(x=>Number(x.roomId)===Number(roomId))}
+function normHeader(v:unknown){return String(v??'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function profileMatchesHeader(header:string,p:Profile){
+ const label=String(p.schema_json?.header_label??'').trim()
+ const h=normHeader(header),l=normHeader(label)
+ if(!h||!l)return false
+ if(h===l)return true
+ const stripDomain=(s:string)=>s.replace(/^(stemi|snh)\\s*/,'').trim()
+ if(stripDomain(h)===stripDomain(l))return true
+ if(/kekosongan.*bhp.*linen|kekosongan.*linen.*bhp/.test(h)&&/kekosongan (linen|obat)/.test(l))return true
+ return false
+}
+function layoutProfiles(all:Profile[],layout:AuditLayout|undefined){
+ if(!layout)return all
+ if(!layout.indicators.length)return []
+ return all.filter(p=>layout.indicators.some(h=>profileMatchesHeader(h,p)))
+}
+function isComputedField(field:string,layout:AuditLayout|undefined){
+ const n=normHeader(field)
+ if(/^(length of stay|lenght of stay|los|lamanya tindak lanjut|kecepatan respon menit)$/.test(n))return true
+ return (n==='umur'||n==='usia')&&!!layout?.fields.some(x=>normHeader(x)==='tanggal lahir')
+}
+function inputKind(field:string,layout:AuditLayout|undefined){
+ if(isComputedField(field,layout))return'computed'
+ const n=normHeader(field)
+ if(n.startsWith('tanggal ')||n.includes('jatuh tempo')||n.includes('deadline'))return'date'
+ if(n.startsWith('waktu ')||n.startsWith('jam '))return'time'
+ if(/kronologi|kronologis|rencana|uraian|rekomendasi|kendala|tindakan yang segera|evaluasi tindak lanjut|penyelesaian aduan|instruksi|masalah/.test(n))return'textarea'
+ if(/^(umur|usia|berat badan|tinggi badan|biaya akhir|estimasi ina cbgs)$/.test(n)&&!(n==='umur'&&layout?.fields.some(x=>normHeader(x)==='tanggal lahir')))return'number'
+ return'text'
+}
+function recordDateFrom(formData:Record<string,any>,layout:AuditLayout|undefined,fallback=''){
+ const priorities=['Tanggal Masuk','Tanggal Aduan','Tanggal Permintaan','Tanggal Keluhan','Tanggal Dilayani','Tanggal Audit','Tanggal Lapor','Tanggal Kunjungan','Tanggal Berkunjung','Tanggal Visite','Tanggal Pertemuan','Tanggal Mulai Praktek','Tanggal Pelaporan','Tanggal Insiden','Tanggal']
+ for(const label of priorities)if(layout?.fields.includes(label)&&formData?.[label])return String(formData[label])
+ const alternative=layout?.fields.find(label=>/tanggal|date/i.test(label)&&formData?.[label]&&!isComputedField(label,layout))
+ return alternative?String(formData[alternative]):fallback
+}
+function dateDiffDays(a:unknown,b:unknown){
+ if(!a||!b)return null
+ const x=new Date(String(a)).getTime(),y=new Date(String(b)).getTime()
+ return Number.isFinite(x)&&Number.isFinite(y)?Math.max(0,Math.floor((y-x)/86400000)):null
+}
+function ageFromDob(dob:unknown,at:unknown){
+ if(!dob)return null
+ const d=new Date(String(dob)),end=at?new Date(String(at)):new Date()
+ if(Number.isNaN(d.getTime())||Number.isNaN(end.getTime()))return null
+ let age=end.getFullYear()-d.getFullYear()
+ if(end.getMonth()<d.getMonth()||(end.getMonth()===d.getMonth()&&end.getDate()<d.getDate()))age--
+ return Math.max(0,age)
+}
+function computedField(field:string,formData:Record<string,any>,layout:AuditLayout|undefined){
+ const n=normHeader(field)
+ if(/^(length of stay|lenght of stay|los)$/.test(n)){
+  const start=formData?.['Tanggal Masuk']??formData?.['Tanggal Masuk Rumah Sakit']
+  const end=formData?.['Tanggal Keluar']??''
+  return start?los(String(start),String(end)):null
+ }
+ if(n==='lamanya tindak lanjut')return dateDiffDays(formData?.['Tanggal Aduan'],formData?.['Tanggal Tindak Lanjut'])
+ if(n==='kecepatan respon menit'){
+  const start=String(formData?.['Waktu Permintaan']??''),end=String(formData?.['Waktu Diantar']??'')
+  return start&&end?diff(start,end):null
+ }
+ if((n==='umur'||n==='usia')&&layout?.fields.some(x=>normHeader(x)==='tanggal lahir')){
+  return ageFromDob(formData?.['Tanggal Lahir'],formData?.['Tanggal Masuk']??formData?.['Tanggal Lapor'])
+ }
+ return null
+}
+function fieldValue(p:Patient,field:string,layout:AuditLayout|undefined){
+ const f=p.formData&&typeof p.formData==='object'?p.formData:{}
+ if(isComputedField(field,layout)){
+  const v=computedField(field,f,layout)
+  if(v==null)return'—'
+  if(normHeader(field)==='lamanya tindak lanjut')return `${v} hari`
+  if(normHeader(field)==='kecepatan respon menit')return `${v} menit`
+  if(/length of stay|lenght of stay|los/i.test(field))return `${v} hari`
+  return v
+ }
+ if(f[field]!==undefined&&f[field]!==null&&f[field]!=='')return f[field]
+ const n=normHeader(field)
+ if(n==='nama pasien')return p.name??''
+ if(n==='nama mahasiswa')return p.name??''
+ if(n==='nama mpp')return p.name??''
+ if(n==='no rm'||n==='no rekam medis')return p.rm??''
+ if(n==='tanggal masuk')return p.admit??''
+ if(n==='tanggal keluar')return p.discharge??''
+ if(/diagnos/.test(n))return p.diagnosis??''
+ if(n==='dpjp'||n==='dpjp')return p.dpjp??''
+ if(n==='umur'||n==='usia')return p.age??''
+ return''
+}
+function recordTitle(p:Patient){
+ return String(p.name??'').trim()||String(p.formData?.['Gangguan IT']??'').trim()||String(p.formData?.['Insiden yang Terjadi']??'').trim()||String(p.formData?.['Nama Pertemuan Ilmiah']??'').trim()||String(p.formData?.['Nama Mahasiswa']??'').trim()||String(p.formData?.['Nama MPP']??'').trim()||'Catatan Logbook'
+}
+function primaryDateField(layout:AuditLayout|undefined){
+ return layout?.fields.find(f=>/tanggal masuk|tanggal aduan|tanggal permintaan|tanggal keluhan|tanggal dilayani|tanggal audit|tanggal lapor|tanggal kunjungan|tanggal berkunjung|tanggal visite|tanggal pertemuan|tanggal mulai praktek|tanggal pelaporan/i.test(f))
+}
+function dominantGrain(profiles:Profile[],layout:AuditLayout|undefined){
+ const matched=layoutProfiles(profiles,layout)
+ const counts=new Map<string,number>()
+ matched.forEach(p=>counts.set(String(p.measurement_grain||'event'),(counts.get(String(p.measurement_grain||'event'))||0)+1))
+ const winner=[...counts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]
+ if(winner)return winner
+ return layout?.fields.some(f=>normHeader(f)==='tanggal masuk')?'patient_episode':'event'
+}
 
 export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(CONTAINERS[0])
