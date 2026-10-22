@@ -8,6 +8,7 @@ const sb = aurekaSupabase
 
 
 type Room = { id: number; code?: string; name: string; is_active?: boolean }
+type AccountCredential = { unit: string; unit_code: string; role: string; username: string; initial_password: string; must_change_password_on_first_login: boolean }
 type Profile = {
   user_id: string
   full_name: string
@@ -18,6 +19,7 @@ type Profile = {
   deactivated_at?: string | null
   created_at?: string | null
   username?: string | null
+  must_change_password?: boolean
 }
 type Role = { id: string; code: string; name: string; description?: string | null }
 
@@ -91,6 +93,9 @@ export default function GeneralSettings({
   const [acctNote, setAcctNote] = useState<{ ok: boolean; text: string } | null>(null)
   const [tempPw, setTempPw] = useState('')
   const [tempPwDone, setTempPwDone] = useState<{ id: string; pw: string } | null>(null)
+  const [provisioning, setProvisioning] = useState(false)
+  const [provisionedCredentials, setProvisionedCredentials] = useState<AccountCredential[] | null>(null)
+  const [provisionMessage, setProvisionMessage] = useState('')
   useEffect(() => {
     if (!msg) return
     const t = setTimeout(() => setMsg(''), 6000)
@@ -358,6 +363,58 @@ export default function GeneralSettings({
     // Tanpa toast agar password sementara di panel tidak tertutup notifikasi.
     const text = `Password ${u.full_name} sudah diganti. Berikan password sementara kepada yang bersangkutan dan minta ia menggantinya di Pengaturan → Keamanan & Password.`
     setRowNote({ id: u.user_id, ok: true, text })
+  }
+
+  const provisionUnitAccounts = async () => {
+    if (!isAdmin || provisioning) return
+    const confirmed = window.confirm('AUREKA akan menyiapkan 74 akun (PIC dan Validator untuk 37 unit aktif). Password awal akan dibuat unik, akun memakai username tanpa kotak surat pribadi, dan setiap pemilik wajib mengganti password pada login pertama. Lanjutkan?')
+    if (!confirmed) return
+    setProvisioning(true)
+    setProvisionMessage('')
+    setProvisionedCredentials(null)
+    try {
+      const { data: token, error: tokenError } = await sb.rpc('aureka_admin_start_unit_account_provisioning')
+      if (tokenError || typeof token !== 'string' || token.length < 80) throw new Error(tokenError?.message || 'Token provisioning tidak dapat dibuat.')
+      const { data, error } = await sb.functions.invoke('aureka-provision-unit-accounts', { body: { token } })
+      if (error) {
+        const ctx = (error as any).context
+        let detail = error.message || 'Permintaan provisioning gagal.'
+        try {
+          const body = ctx?.json ? await ctx.json() : null
+          if (body?.error) detail = body.error
+        } catch {}
+        throw new Error(detail)
+      }
+      if (!data?.success || !Array.isArray(data.credentials) || data.credentials.length !== 74) {
+        throw new Error(data?.error || 'Hasil provisioning tidak lengkap; kredensial belum ditampilkan.')
+      }
+      setProvisionedCredentials(data.credentials as AccountCredential[])
+      setProvisionMessage(`${data.accounts_created_or_reset} akun siap: ${data.active_units} unit, masing-masing satu PIC dan satu Validator. Unduh kredensial satu kali sebelum menutup panel ini.`)
+      await loadUsers()
+    } catch (e) {
+      setProvisionMessage(`Gagal membuat akun: ${e instanceof Error ? e.message : 'Kesalahan yang tidak diketahui'}`)
+    } finally {
+      setProvisioning(false)
+    }
+  }
+
+  const downloadProvisionedCredentials = () => {
+    if (!provisionedCredentials?.length) return
+    const header = ['Unit', 'Kode unit', 'Peran', 'Username', 'Password awal', 'Wajib ganti password saat login pertama']
+    const rows = provisionedCredentials.map((x) => [x.unit, x.unit_code, x.role, x.username, x.initial_password, x.must_change_password_on_first_login ? 'Ya' : 'Tidak'])
+    const csvCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`
+    const csv = '\uFEFF' + [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'Kredensial_AUREKA_PIC_Validator.csv'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500)
+    setProvisionedCredentials(null)
+    setProvisionMessage('File kredensial telah diunduh. Untuk keamanan, password awal tidak lagi ditampilkan oleh panel ini.')
   }
 
   const sendResetEmail = async (u: Profile) => {
@@ -824,11 +881,30 @@ export default function GeneralSettings({
       {section === 'users' && isAdmin && (
         <>
           <LiquidGlass style={{ padding: 18 }}>
-            <div className="eyebrow">MANAJEMEN USER</div>
-            <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>User / PIC Pelaporan</h3>
+            <div className="eyebrow">Manajemen pengguna</div>
+            <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>Pengguna dan akun unit</h3>
             <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>
-              Super Admin dapat mengelola role, unit utama, dan status akun pengguna.
+              Kelola role, unit utama, status, dan penggantian password untuk akun AUREKA.
             </p>
+            <div style={{ marginTop: 14, padding: 14, border: '1px solid rgba(15,118,86,.18)', borderRadius: 16, background: 'rgba(255,255,255,.25)' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 280px' }}>
+                  <b>Buat akun PIC dan Validator untuk semua unit</b>
+                  <p style={{ margin: '5px 0 0', fontSize: 10, color: 'var(--muted)', lineHeight: 1.5 }}>
+                    Menyiapkan 74 akun dari 37 unit aktif. Setiap akun mendapat password awal yang unik dan wajib menggantinya sebelum membuka workspace.
+                  </p>
+                </div>
+                <button type="button" className="uBtn primary" disabled={provisioning || busy} onClick={provisionUnitAccounts}>
+                  {provisioning ? 'Menyiapkan akun…' : 'Buat 74 akun unit'}
+                </button>
+              </div>
+              {provisionMessage && <div role="status" style={{ marginTop: 10, fontSize: 11, color: /Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? '#9a4b32' : 'var(--accent2)' }}>{provisionMessage}</div>}
+              {provisionedCredentials?.length === 74 && <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button type="button" className="uBtn primary" onClick={downloadProvisionedCredentials}>Unduh kredensial awal (.csv)</button>
+                <button type="button" className="uBtn outline" onClick={() => { setProvisionedCredentials(null); setProvisionMessage('Daftar password awal dihapus dari memori panel ini.'); }}>Hapus daftar password</button>
+                <span style={{ flexBasis: '100%', fontSize: 10, color: '#946b20' }}>Unduh sekali dan simpan secara terbatas. CSV ini berisi password awal; jangan kirim melalui grup percakapan.</span>
+              </div>}
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
               <input placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
               {([
@@ -856,7 +932,7 @@ export default function GeneralSettings({
                   <div className="userRowGrid">
                     <div>
                       <b className="userName">{u.full_name} <span className={`userStatus ${u.is_active ? 'on' : u.deactivated_at ? 'off' : 'pending'}`}>{u.is_active ? 'Aktif' : u.deactivated_at ? 'Nonaktif' : 'Menunggu aktivasi'}</span></b>
-                      <span className="userEmail">{u.username ? <b className="userHandle">@{u.username}</b> : null}{u.username ? ' · ' : ''}{u.email || '—'}</span>
+                      <span className="userEmail">{u.username ? <b className="userHandle">@{u.username}</b> : null}{u.username ? ' · ' : ''}{u.email || '—'}{u.must_change_password ? <b style={{ marginLeft: 6, color: '#946b20' }}>· Wajib ganti password</b> : null}</span>
                     </div>
 
                     <select
