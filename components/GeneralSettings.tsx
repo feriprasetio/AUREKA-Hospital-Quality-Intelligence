@@ -336,32 +336,32 @@ export default function GeneralSettings({
 
   const generateTempPw = () => {
     // Tanpa karakter yang mudah tertukar (0/O, 1/l/I) agar mudah didiktekan ke PIC.
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
-    const buf = new Uint32Array(10)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%_-+'
+    const buf = new Uint32Array(20)
     crypto.getRandomValues(buf)
     setTempPw(Array.from(buf, (n) => chars[n % chars.length]).join(''))
   }
 
   const setUserPassword = async (u: Profile) => {
     const pwd = tempPw.trim()
-    if (pwd.length < 8) { setRowNote({ id: u.user_id, ok: false, text: 'Password sementara minimal 8 karakter.' }); return }
+    if (pwd.length < 12) { setRowNote({ id: u.user_id, ok: false, text: 'Password sementara minimal 12 karakter.' }); return }
     setBusy(true)
     setMsg('')
-    const { error } = await sb.rpc('aureka_admin_set_user_password', { p_user_id: u.user_id, p_new_password: pwd })
+    const { data: resetResult, error } = await sb.functions.invoke('aureka-admin-reset-unit-password', { body: { user_id: u.user_id, new_password: pwd } })
     setBusy(false)
     if (error) {
       const t = error.message || ''
       let note = `Gagal menyetel password: ${t}`
       if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t)) note = 'Fitur reset password belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014094000_admin_password_reset.sql di SQL Editor, lalu coba lagi.'
-      else if (/PASSWORD_TOO_SHORT/.test(t)) note = 'Password sementara minimal 8 karakter.'
+      else if (/PASSWORD_TOO_SHORT/.test(t)) note = 'Password sementara minimal 12 karakter.'
       setMsg(note)
       setRowNote({ id: u.user_id, ok: false, text: note })
       return
     }
     setTempPwDone({ id: u.user_id, pw: pwd })
     setTempPw('')
-    // Tanpa toast agar password sementara di panel tidak tertutup notifikasi.
-    const text = `Password ${u.full_name} sudah diganti. Berikan password sementara kepada yang bersangkutan dan minta ia menggantinya di Pengaturan → Keamanan & Password.`
+    // Password reset server-side marks the account as must_change_password.
+    const text = `Password sementara untuk ${u.full_name} sudah disetel. Pengguna wajib membuat password baru saat login berikutnya.`
     setRowNote({ id: u.user_id, ok: true, text })
   }
 
@@ -1017,7 +1017,7 @@ export default function GeneralSettings({
                           <input placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
                           <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">🎲 Buat acak</button>
                         </div>
-                        <button type="button" className="uBtn primary" style={{ marginTop: 8 }} disabled={busy || tempPw.trim().length < 8} onClick={() => setUserPassword(u)}>
+                        <button type="button" className="uBtn primary" style={{ marginTop: 8 }} disabled={busy || tempPw.trim().length < 12} onClick={() => setUserPassword(u)}>
                           {busy ? 'Menyimpan…' : '🔑 Setel password sementara'}
                         </button>
                         {tempPwDone?.id === u.user_id && (
