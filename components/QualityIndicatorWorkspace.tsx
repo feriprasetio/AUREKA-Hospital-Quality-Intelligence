@@ -8,7 +8,7 @@ const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
 const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian','Audit OPPE'] as const
-const STATUS=['Semua','Aktif','Draft','Ready for Review','Validated']
+const STATUS=['Semua','Aktif','Draft','Ready for Review','Validated','Reopened']
 const YEARS=[2025,2026,2027,2028,2029]
 const LOCAL_KEY='aureka-quality-episode-cache-v3',AUDIT_KEY='aureka-quality-audit-v3'
 
@@ -203,12 +203,14 @@ function grainLabel(grain:string){
 }
 function statusLabel(status:unknown){
  const s=String(status??'')
- if(s==='Ready for Review')return'Siap ditinjau'
- if(s==='Validated')return'Tervalidasi'
- if(s==='Draft')return'Draf'
+ if(s==='ready'||s==='Ready for Review')return'Siap ditinjau'
+ if(s==='validated'||s==='Validated')return'Tervalidasi'
+ if(s==='reopened'||s==='Reopened')return'Perlu perbaikan'
+ if(s==='draft'||s==='Draft')return'Draf'
+ if(s==='Aktif')return'Aktif'
  return s||'Draf'
 }
-export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean}){
+export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,isValidator=false}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean;isValidator?:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(CONTAINERS[0])
  const [year,setYear]=useState(2026)
  const [roomId,setRoomId]=useState<number|null>(initialRoomId??(isAdmin?null:rooms[0]?.id??null))
@@ -271,7 +273,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
        const rm=String(c.medical_record_no??c.rm??formData['No. Rekam Medis']??formData['No. RM']??'')
        const diagnosis=String(c.diagnosis??formData['Diagnosa Tegak']??formData['Diagnosa']??formData['Diagnosa IGD']??formData['Diagnosa Pasien']??formData['Diagnosis Medis']??formData['Diagnosa Operasi']??c.dx??'')
        const dpjp=String(c.dpjp??formData['DPJP']??formData['Dpjp']??'')
-       return {id:String(r.id),recordId:String(r.id),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),indicatorValues:(c.indicator_values??{}),formData,measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
+       return {id:String(r.id),recordId:String(r.id),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
      })
      const merged=[...db,...local.filter(l=>!db.some(d=>d.id===l.id||(!!d.rm&&!!l.rm&&d.rm===l.rm)))]
      setPatients(merged)
@@ -291,7 +293,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    const roomOk=roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId))
    const monthOk=!monthFilter||mon(p.admit)===monthFilter
    const hasStay=!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')
-   const statusOk=status==='Semua'||(status==='Aktif'?(hasStay?!p.discharge:!['Ready for Review','Validated'].includes(String(p.status))):p.status===status)
+   const statusOk=status==='Semua'||(status==='Aktif'?(hasStay?!p.discharge:!['Ready for Review','Validated','Reopened'].includes(String(p.status))):p.status===status)
    const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit} ${JSON.stringify(p.formData??{})}`.toLowerCase()
    return ymd(p.admit)===year&&roomOk&&monthOk&&statusOk&&hay.includes(search.toLowerCase().trim())
  }),[patients,year,roomId,roomMap,monthFilter,status,search,activeLayout])
@@ -311,6 +313,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    setMessage('')
  }
  const newPatient=()=>{
+   if(isValidator){setMessage('Akun validator hanya dapat meninjau dan memvalidasi catatan yang dikirim unit.');return}
    if(roomId==null){setMessage('Pilih unit terlebih dahulu sebelum membuat catatan logbook.');return}
    const u=rooms.find(r=>Number(r.id)===Number(roomId))
    const layout=getLayout(roomId)
@@ -348,6 +351,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
  const audit=(x:Audit)=>{const a=[x,...localRead<Audit[]>(AUDIT_KEY,[])].slice(0,500);localWrite(AUDIT_KEY,a);setAuditRows(a)}
 
  const save=async()=>{
+   if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Gunakan tindakan validasi pada daftar logbook.');return}
    if(!selected)return
    const layout=getLayout(Number(selected.roomId))??activeLayout
    const formData:Record<string,any>={...(selected.formData??{})}
@@ -388,7 +392,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
      if(!user) throw new Error('Sesi login tidak ditemukan.')
      const serviceStream=String(formData['Alur layanan']??'').trim()
      const subjectKey=grain==='provider_day'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${String(formData['Klinik']??'').trim()}:${String(formData['Dokter']??'').trim()}`:grain==='daily_metric'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${serviceStream||'semua-alur'}`:normalizedRm||`${selected.roomId}:${recordDate||now}:${selected.id}`
-     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:'ready',review_required:!complete,entered_by:user.id}
+     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:complete?'ready':'draft',review_required:complete,entered_by:user.id}
      if(!recordId&&['daily_metric','provider_day'].includes(grain)){
        const {data:existing,error:lookupError}=await q().from('quality_records').select('id').eq('room_id',selected.roomId).eq('profile_year',year).eq('measurement_grain',grain).eq('subject_key',subjectKey).neq('status','archived').limit(1).maybeSingle()
        if(lookupError)throw lookupError
@@ -436,6 +440,17 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin}:
    </div></article>
  }
 
+ const reviewRecord=async(p:Patient,decision:'validated'|'reopened')=>{
+   if(!isValidator){setMessage('Hanya akun validator yang dapat melakukan validasi unit.');return}
+   const id=String(p.recordId??p.id??'')
+   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){setMessage('Catatan ini belum tersimpan di server sehingga tidak dapat divalidasi.');return}
+   if(!['Ready for Review','Reopened'].includes(String(p.status))){setMessage('Hanya catatan siap ditinjau atau yang dikembalikan yang dapat diproses.');return}
+   setBusy(true);setMessage('')
+   const {error}=await q().rpc('aureka_validator_review_quality_record',{p_record_id:id,p_decision:decision,p_note:decision==='reopened'?'Dikembalikan oleh validator untuk perbaikan.':null})
+   if(error){setBusy(false);setMessage(/FORBIDDEN/i.test(error.message)?'Akses validasi ditolak. Pastikan akun memiliki role Validator dan unit yang sesuai.':`Gagal memproses validasi: ${error.message}`);return}
+   await load()
+   setMessage(decision==='validated'?'Catatan mutu berhasil divalidasi.':'Catatan dikembalikan untuk perbaikan oleh PIC.')
+ }
  const renderLogbookField=(field:string,i:number)=>{
    const kindNow=inputKind(field,selectedLayout),raw=inputFieldValue(selected??{},field,selectedLayout),wide=kindNow==='textarea'||field.length>66
    const groups=selectedLayout?.providerGroups??[]
