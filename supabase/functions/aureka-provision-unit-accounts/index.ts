@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://feriprasetio.github.io",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Cache-Control": "no-store, max-age=0",
 };
 
@@ -50,11 +50,16 @@ function slug(value: string) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "GET") return reply(405, { error: "Method not allowed" });
+  if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
 
-  const url = new URL(req.url);
-  const token = url.searchParams.get("token") || "";
-  if (token.length < 50) return reply(401, { error: "Provisioning authorization is invalid or expired." });
+  let body: { token?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return reply(400, { error: "Invalid request body." });
+  }
+  const token = typeof body.token === "string" ? body.token : "";
+  if (token.length < 80 || token.length > 160) return reply(401, { error: "Provisioning authorization is invalid or expired." });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -116,7 +121,9 @@ Deno.serve(async (req) => {
     const existingMap = new Map((existingRows || []).map((p: any) => [p.username, p]));
     const alreadyUsed = specs.filter((x: any) => {
       const p: any = existingMap.get(x.username);
-      return p && p.is_active && !p.must_change_password;
+      // Do not reset any pre-existing account unless it was created by an earlier,
+      // interrupted run of this provisioning workflow and is still flagged for rotation.
+      return p && !p.must_change_password;
     });
     if (alreadyUsed.length) {
       throw new Error(`Provisioning stopped to protect accounts already in use: ${alreadyUsed.map((x: any) => x.username).join(", ")}. No passwords were reset.`);
