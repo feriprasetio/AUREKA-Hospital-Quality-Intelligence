@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
@@ -280,7 +280,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
     }
   }
 
-  const fieldStyle: React.CSSProperties = {
+  const fieldStyle: CSSProperties = {
     display: 'grid',
     gap: 5,
     fontSize: 10,
