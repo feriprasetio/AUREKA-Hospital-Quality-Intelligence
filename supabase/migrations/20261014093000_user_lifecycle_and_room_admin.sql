@@ -39,7 +39,7 @@ as $$
   select up.user_id, up.full_name, up.email, up.primary_room_id, up.role_id,
          up.is_active, up.created_at, up.deactivated_at
   from aureka_system.user_profiles up
-  where aureka_system.is_admin()
+  where public.aureka_is_admin()
   order by up.is_active, lower(up.full_name);
 $$;
 
@@ -54,7 +54,7 @@ stable
 security definer
 set search_path = public, aureka_system
 as $$
-  select * from public.master_rooms where aureka_system.is_admin() order by sort_order;
+  select * from public.master_rooms where public.aureka_is_admin() order by sort_order;
 $$;
 
 create or replace function public.aureka_admin_save_room(
@@ -74,7 +74,7 @@ declare
   v_old  public.master_rooms;
   v_row  public.master_rooms;
 begin
-  if not aureka_system.is_admin() then
+  if not public.aureka_is_admin() then
     raise exception 'FORBIDDEN: hanya Super Admin yang dapat mengelola unit' using errcode = '42501';
   end if;
   if v_name is null then
