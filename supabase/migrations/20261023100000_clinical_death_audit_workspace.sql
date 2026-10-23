@@ -6,7 +6,7 @@ create table if not exists aureka_quality.clinical_death_audits (
   source_record_id uuid references aureka_quality.quality_records(id) on delete set null,
   source_subject_key text not null,
   audit_type text not null check (audit_type in ('clinical','death')),
-  review_period text not null check (review_period ~ '^[0-9]{4}),
+  review_period text not null check (review_period ~ '^[0-9]{4}$'),
   episode_snapshot jsonb not null default '{}'::jsonb,
   criteria_snapshot jsonb not null default '{}'::jsonb,
   review_json jsonb not null default '{}'::jsonb,
