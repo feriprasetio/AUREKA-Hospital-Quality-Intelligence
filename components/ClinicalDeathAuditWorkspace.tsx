@@ -502,7 +502,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
             <div className="acdSectionTitle"><div><h5>Ringkasan klinis</h5><p>Tulis ringkasan faktual dan relevan dari rekam medis; jangan menyalin seluruh catatan.</p></div></div>
             <div className="acdEditorField"><label htmlFor="acd-background">Riwayat singkat, perjalanan klinis dan konteks kasus</label><textarea id="acd-background" disabled={isValidator} value={draft.background} onChange={(event) => setDraft((current) => ({...current, background: event.target.value}))} placeholder="Keluhan awal, komorbiditas relevan, perubahan kondisi, intervensi penting, dan hasil akhir…" /></div>
 
-            <div className="acdSectionTitle"><div><h5>Penilaian mutu per fase perawatan</h5><p>Skala SJR: 1 sangat buruk, 2 buruk, 3 adekuat, 4 baik, 5 sangat baik. Setiap skor harus disertai alasan klinis.</p></div></div>
+            <div className="acdSectionTitle"><div><h5>Penilaian mutu per fase perawatan</h5><p>Skala penilaian internal AUREKA (1–5), bukan skor SJR resmi: 1 sangat buruk, 2 buruk, 3 adekuat, 4 baik, 5 sangat baik. Setiap skor harus disertai alasan klinis.</p></div></div>
             {PHASES.map((phase) => {
               const entry = draft.phases[phase.id] ?? {score:null,comment:'',notApplicable:false}
               return <article className="acdPhase" key={phase.id}>
