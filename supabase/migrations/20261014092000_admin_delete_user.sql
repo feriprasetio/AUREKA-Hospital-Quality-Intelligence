@@ -15,7 +15,7 @@ security definer
 set search_path = public, aureka_system, auth
 as $$
 begin
-  if not aureka_system.is_admin() then
+  if not public.aureka_is_admin() then
     raise exception 'FORBIDDEN: hanya Super Admin yang dapat menghapus akun' using errcode = '42501';
   end if;
   if p_user_id is null then
