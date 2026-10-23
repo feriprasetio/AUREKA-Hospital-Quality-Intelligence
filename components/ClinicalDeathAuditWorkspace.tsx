@@ -457,13 +457,14 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       const { data: userData, error: userError } = await sb.auth.getUser()
       if (userError || !userData.user) throw new Error('Sesi login tidak ditemukan. Silakan masuk kembali.')
       const now = new Date().toISOString()
-      const { error } = await q().from('clinical_death_audits').update({
+      const { data: changed, error } = await q().from('clinical_death_audits').update({
         status: nextStatus,
         validated_by: nextStatus === 'validated' ? userData.user.id : null,
         validated_at: nextStatus === 'validated' ? now : null,
         updated_by: userData.user.id,
-      }).eq('id', audit.id).eq('status', 'submitted')
+      }).eq('id', audit.id).eq('status', 'submitted').select('id').maybeSingle()
       if (error) throw error
+      if (!changed) throw new Error('Status telaah sudah berubah. Muat ulang daftar sebelum melanjutkan.')
       await load()
       setEditorOpen(false)
       setActiveEpisode(null)
