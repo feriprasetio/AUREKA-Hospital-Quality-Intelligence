@@ -32,15 +32,14 @@ const ITEMS: Item[] = [
   {
     id: 'akk',
     title: 'Audit Klinis dan Kematian',
-    ready: false,
+    ready: true,
     icon: '🩺',
-    summary: 'Telaah kasus klinis dan kasus kematian untuk menemukan masalah pelayanan.',
+    summary: 'Pemilihan kandidat otomatis dari episode pasien, telaah mutu pelayanan per fase, dan tindak lanjut.',
     detail: [
-      'Mendata kasus kematian/kasus klinis terpilih beserta kronologi pelayanan.',
-      'Telaah oleh tim (komite medik/PMKP): kategori kematian, ada tidaknya masalah pelayanan.',
-      'Hasil: rekomendasi dan tindak lanjut perbaikan, serta angka kematian (mis. GDR/NDR) per periode.',
+      'Menyeleksi kandidat audit dari episode pasien yang tersedia serta status akhir kematian yang tercatat.',
+      'Menilai mutu pelayanan terstruktur per fase dengan komentar berbasis rekam medis.',
+      'Mencatat kesimpulan, pelajaran, rekomendasi, dan status telaah untuk perbaikan mutu.',
     ],
-    needs: 'Formulir audit kematian/audit klinis yang berlaku dan siapa yang berwenang mengisi.',
   },
   {
     id: 'oppe',
@@ -57,7 +56,7 @@ const ITEMS: Item[] = [
   },
 ]
 
-export default function QualityHub({ onOpen, onOpenClinicalPathway }: { onOpen: () => void; onOpenClinicalPathway: () => void }) {
+export default function QualityHub({ onOpen, onOpenClinicalPathway, onOpenClinicalDeathReview }: { onOpen: () => void; onOpenClinicalPathway: () => void; onOpenClinicalDeathReview: () => void }) {
   const [info, setInfo] = useState<string | null>(null)
   const sel = ITEMS.find((i) => i.id === info) || null
   return (
@@ -68,7 +67,7 @@ export default function QualityHub({ onOpen, onOpenClinicalPathway }: { onOpen: 
             key={it.id}
             type="button"
             className={`qhCard glassPanel ${it.ready ? 'ready' : 'soon'} ${info === it.id ? 'selected' : ''}`}
-            onClick={() => (it.id === 'cp' ? onOpenClinicalPathway() : it.ready ? onOpen() : setInfo(info === it.id ? null : it.id))}
+            onClick={() => (it.id === 'cp' ? onOpenClinicalPathway() : it.id === 'akk' ? onOpenClinicalDeathReview() : it.ready ? onOpen() : setInfo(info === it.id ? null : it.id))}
             aria-expanded={it.ready ? undefined : info === it.id}
           >
             <span className="qhTop">

@@ -235,7 +235,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
   const [activeAudit, setActiveAudit] = useState<AuditRow | null>(null)
   const [draft, setDraft] = useState<ReviewDraft>(() => makeDraft())
 
-  const roomMap = useMemo(() => new Map(rooms.map((room) => [Number(room.id), room.name]), [rooms])
+  const roomMap = useMemo(() => new Map<number, string>(rooms.map((room) => [Number(room.id), room.name] as [number, string])), [rooms])
   const load = useCallback(async () => {
     setLoading(true)
     setMessage('')
