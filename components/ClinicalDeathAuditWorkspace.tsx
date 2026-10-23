@@ -240,18 +240,39 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
     setLoading(true)
     setMessage('')
     setLoadWarning('')
-    const [episodeResult, auditResult] = await Promise.all([
-      q().from('quality_records')
-        .select('id,room_id,profile_year,measurement_grain,record_date,subject_key,subject_json,core_data,status,created_at,updated_at')
-        .eq('measurement_grain', 'patient_episode')
-        .neq('status', 'archived')
-        .order('created_at', { ascending: false })
-        .limit(1000),
-      q().from('clinical_death_audits')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(1000),
-    ])
+    const readEpisodes = async () => {
+      const rows: any[] = []
+      let from = 0
+      while (true) {
+        const { data, error } = await q().from('quality_records')
+          .select('id,room_id,profile_year,measurement_grain,record_date,subject_key,subject_json,core_data,status,created_at,updated_at')
+          .eq('measurement_grain', 'patient_episode')
+          .neq('status', 'archived')
+          .order('created_at', { ascending: false })
+          .range(from, from + 499)
+        if (error) return { data: null, error }
+        rows.push(...(data ?? []))
+        if ((data ?? []).length < 500) break
+        from += 500
+      }
+      return { data: rows, error: null }
+    }
+    const readAudits = async () => {
+      const rows: any[] = []
+      let from = 0
+      while (true) {
+        const { data, error } = await q().from('clinical_death_audits')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .range(from, from + 499)
+        if (error) return { data: null, error }
+        rows.push(...(data ?? []))
+        if ((data ?? []).length < 500) break
+        from += 500
+      }
+      return { data: rows, error: null }
+    }
+    const [episodeResult, auditResult] = await Promise.all([readEpisodes(), readAudits()])
     const databaseEpisodes: Episode[] = []
     if (episodeResult.error) {
       setLoadWarning('Data episode dari database belum dapat dibaca. Periksa koneksi dan hak akses; cache pada perangkat ini akan tetap diperiksa.')
@@ -428,6 +449,34 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
     }
   }
 
+  const reviewAudit = async (audit: AuditRow, nextStatus: 'validated' | 'reopened') => {
+    if ((!isValidator && !isAdmin) || saving) return
+    setSaving(true)
+    setMessage('')
+    try {
+      const { data: userData, error: userError } = await sb.auth.getUser()
+      if (userError || !userData.user) throw new Error('Sesi login tidak ditemukan. Silakan masuk kembali.')
+      const now = new Date().toISOString()
+      const { error } = await q().from('clinical_death_audits').update({
+        status: nextStatus,
+        validated_by: nextStatus === 'validated' ? userData.user.id : null,
+        validated_at: nextStatus === 'validated' ? now : null,
+        updated_by: userData.user.id,
+      }).eq('id', audit.id).eq('status', 'submitted')
+      if (error) throw error
+      await load()
+      setEditorOpen(false)
+      setActiveEpisode(null)
+      setActiveAudit(null)
+      setMessage(nextStatus === 'validated' ? 'Telaah berhasil divalidasi.' : 'Telaah dikembalikan untuk perbaikan.')
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : 'Kesalahan yang tidak diketahui.'
+      setMessage('Gagal memperbarui status telaah: ' + detail)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="acd">
       <style>{CSS}</style>
@@ -481,7 +530,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
                 <td>{episode.admit ? episode.admit.slice(0, 10) : '—'}<div className="acdSmall">Keluar: {episode.discharge ? episode.discharge.slice(0, 10) : 'Belum tercatat'}</div></td>
                 <td>{episode.outcome || 'Belum dinyatakan'}{episode.isDeath && <div className="acdSmall"><span className="acdPill red">Kematian tercatat</span></div>}</td>
                 <td><span className={'acdPill ' + (previous?.status === 'submitted' || previous?.status === 'validated' ? 'green' : previous?.status === 'reopened' ? 'amber' : '')}>{phaseStatus(previous)}</span></td>
-                <td><button type="button" className="acdBtn primary" disabled={isValidator || episode.roomId == null} onClick={() => openReview(episode, previous)}>{previous ? 'Buka telaah' : 'Mulai telaah'}</button><span className="acdSource">{episode.source === 'local' ? 'Cache perangkat' : 'Database'}</span></td>
+                <td><button type="button" className="acdBtn primary" disabled={episode.roomId == null || (isValidator && (!previous || previous.status !== 'submitted'))} onClick={() => openReview(episode, previous)}>{previous ? 'Buka telaah' : 'Mulai telaah'}</button><span className="acdSource">{episode.source === 'local' ? 'Cache perangkat' : 'Database'}</span></td>
               </tr>
             })}
             {!filteredEpisodes.length && <tr><td colSpan={8}><div className="acdEmpty">{loading ? 'Memuat episode pasien…' : auditType === 'death' ? 'Tidak ditemukan episode dengan hasil akhir kematian yang eksplisit pada sumber dan filter ini. Pastikan status hasil akhir sudah tercatat; diagnosis atau status logbook tidak digunakan sebagai pengganti status kematian.' : 'Belum ada episode pasien yang sesuai. Pastikan catatan logbook menggunakan measurement grain patient_episode atau tunggu sumber episode SIMRS terhubung.'}</div></td></tr>}
@@ -528,7 +577,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
             {message && <div className="acdInfo error" role="alert" style={{marginTop:12}}>{message}</div>}
             <div className="acdInfo" style={{marginTop:12}}>Jika ditemukan masalah kompleks atau serius, telaah ini dapat diteruskan ke analisis sistem / RCA sesuai kriteria eskalasi rumah sakit. Formulir ini tidak otomatis menjalankan RCA dan tidak menyimpulkan keterhindaran kematian.</div>
           </div>
-          <div className="acdDrawerFoot"><span className="acdFootNote">{isValidator ? 'Mode baca saja — Validator tidak dapat mengubah penilaian klinis.' : 'Simpan sebagai draf untuk dilanjutkan, atau ajukan setelah penilaian dan bukti memadai.'}</span><div className="acdActions"><button type="button" className="acdBtn" disabled={saving} onClick={() => setEditorOpen(false)}>Tutup</button><button type="button" className="acdBtn" disabled={saving || isValidator} onClick={() => void saveReview('draft')}>{saving ? 'Menyimpan…' : 'Simpan draf'}</button><button type="button" className="acdBtn primary" disabled={saving || isValidator} onClick={() => void saveReview('submitted')}>{saving ? 'Menyimpan…' : 'Ajukan telaah'}</button></div></div>
+          <div className="acdDrawerFoot"><span className="acdFootNote">{isValidator ? 'Mode baca saja — periksa telaah yang diajukan sebelum memvalidasi atau mengembalikannya.' : 'Simpan sebagai draf untuk dilanjutkan, atau ajukan setelah penilaian dan bukti memadai.'}</span><div className="acdActions"><button type="button" className="acdBtn" disabled={saving} onClick={() => setEditorOpen(false)}>Tutup</button>{(isValidator || isAdmin) && activeAudit?.status === 'submitted' && <><button type="button" className="acdBtn" disabled={saving} onClick={() => void reviewAudit(activeAudit, 'reopened')}>Kembalikan</button><button type="button" className="acdBtn primary" disabled={saving} onClick={() => void reviewAudit(activeAudit, 'validated')}>Validasi telaah</button></>}{!isValidator && <><button type="button" className="acdBtn" disabled={saving} onClick={() => void saveReview('draft')}>{saving ? 'Menyimpan…' : 'Simpan draf'}</button><button type="button" className="acdBtn primary" disabled={saving} onClick={() => void saveReview('submitted')}>{saving ? 'Menyimpan…' : 'Ajukan telaah'}</button></>}</div></div>
         </section>
       </div>}
     </div>
