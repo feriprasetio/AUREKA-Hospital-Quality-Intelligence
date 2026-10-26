@@ -601,6 +601,15 @@ export default function OppeAuditWorkspace({
         setError('Definisi numerator dan denominator harus lengkap sebelum indikator diaktifkan untuk skor otomatis.')
         return
       }
+      if (ruleDraft.measurementMethod === 'numerator_denominator') {
+        const grain = String(ruleProfile.measurement_grain || '')
+        const fields = Array.isArray(ruleProfile.schema_json?.fields) ? ruleProfile.schema_json.fields.map((field: unknown) => norm(field)) : []
+        const supportsRatioInput = ['daily_metric', 'provider_day'].includes(grain) || (fields.includes('numerator') && fields.includes('denominator'))
+        if (!supportsRatioInput) {
+          setError('Grain/form ini belum menyediakan input numerator dan denominator per catatan. Gunakan Pilihan Respons berkode untuk kasus per pasien (jika opsi master valid), atau Telaah Manual; jangan mengaktifkan metode yang tidak didukung oleh formulir sumber.')
+          return
+        }
+      }
       if (ruleDraft.measurementMethod === 'option_response') {
         const opts = Array.isArray(ruleProfile.options_json) ? ruleProfile.options_json : []
         const validOptions = opts.filter((option: any) => typeof option?.numerator === 'boolean' && typeof option?.denominator === 'boolean')
@@ -717,7 +726,7 @@ export default function OppeAuditWorkspace({
           source: 'AUREKA OPPE gap proposal',
           header_label: gapDraft.title.trim(),
           header_source: 'OPPE · draf indikator spesifik profesi',
-          collection_mode: 'patient_episode',
+          collection_mode: gapDraft.measurementGrain,
           oppe_dynamic: true,
           oppe_profession_label: gapDraft.professionLabel.trim(),
           oppe_responsibility_field: gapDraft.responsibilityField.trim(),
@@ -925,7 +934,7 @@ export default function OppeAuditWorkspace({
               <div className="oppeFormGrid">
                 <label className="oppeField"><span>Profesi/SMF yang dinilai *</span><input value={ruleDraft.professionLabel} onChange={(e) => setRuleDraft((current) => current ? { ...current, professionLabel: e.target.value } : current)} placeholder="Harus cocok dengan profesi di form OPPE" /></label>
                 <label className="oppeField"><span>Field penanggung jawab logbook *</span><select value={ruleDraft.responsibilityField} onChange={(e) => setRuleDraft((current) => current ? { ...current, responsibilityField: e.target.value } : current)}><option value="">Pilih field yang tersedia</option>{staffFieldOptions(Number(ruleProfile.room_id)).map((field) => <option key={field} value={field}>{field}</option>)}</select></label>
-                <label className="oppeField"><span>Metode pengukuran</span><select value={ruleDraft.measurementMethod} onChange={(e) => setRuleDraft((current) => current ? { ...current, measurementMethod: e.target.value as RuleDraft['measurementMethod'] } : current)}><option value="numerator_denominator">Pembilang / penyebut (rasio)</option><option value="option_response">Pilihan respons berkode</option><option value="numeric_target">Nilai numerik dibanding target</option><option value="manual_review">Telaah manual, tidak masuk skor otomatis</option></select></label>
+                <label className="oppeField"><span>Metode pengukuran</span><select value={ruleDraft.measurementMethod} onChange={(e) => setRuleDraft((current) => current ? { ...current, measurementMethod: e.target.value as RuleDraft['measurementMethod'] } : current)}><option value="numerator_denominator">Pembilang / penyebut (rasio)</option><option value="option_response">Pilihan respons berkode</option><option value="numeric_target">Nilai numerik dibanding target</option><option value="manual_review">Telaah manual, tidak masuk skor otomatis</option></select><small className="oppeMuted">Rasio dipakai bila logbook menyimpan N dan D; pilihan respons dipakai bila setiap kasus memiliki opsi master terpetakan; nilai numerik membandingkan rerata nilai mentah dengan target. Jika tidak jelas, pilih telaah manual.</small></label>
                 <label className="oppeField"><span>Minimum observasi</span><input type="number" min={1} max={5000} value={ruleDraft.minimumObservations} onChange={(e) => setRuleDraft((current) => current ? { ...current, minimumObservations: Number(e.target.value) } : current)} /></label>
                 <label className="oppeField"><span>Tingkat telaah</span><select value={ruleDraft.criticality} onChange={(e) => setRuleDraft((current) => current ? { ...current, criticality: e.target.value as RuleDraft['criticality'] } : current)}><option value="standard">Standar</option><option value="high">Tinggi — perlu telaah bila target gagal</option><option value="critical">Kritis — wajib telaah terpisah bila target gagal</option></select></label>
                 <label className="oppeField oppeWide"><span>Dasar pemetaan / validasi definisi *</span><textarea value={ruleDraft.notes} onChange={(e) => setRuleDraft((current) => current ? { ...current, notes: e.target.value } : current)} placeholder="Contoh: indikator mengukur aktivitas perawat yang tercatat pada field Perawat Penerima; numerator dan denominator telah diverifikasi oleh pemilik indikator." /></label>
