@@ -966,8 +966,13 @@ export default function OppeAuditWorkspace({
 
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">RANAH II</div><h4>Pengembangan profesionalisme</h4><p>Jumlah kegiatan ditampilkan sebagai bukti/progres. Status akhir membutuhkan dokumentasi dan evaluasi penilai.</p></div><span className="oppeDomainScore">{fmtPct(score.professionalism.score)}</span></div>
-              <div className="oppeManualItems">{form.professionalism.map((item) => <ManualItemCard key={item.id} item={item} disabled={currentReadOnly} statusDisabled={currentReadOnly || (item.id === 'meetings_annual' && form.quarter < 4)} onChange={(patch) => patchManualItem('professionalism', item.id, patch)} />)}</div>
-              {form.quarter < 4 && <div className="oppeNotice oppeNoticeInfo">Kehadiran pertemuan ilmiah menggunakan target tahunan. Pada Triwulan I–III, jumlahnya dipantau kumulatif dan tidak otomatis diberi nilai akhir.</div>}
+              <div className="oppeManualItems">{form.professionalism.map((item) => {
+                const displayItem = item.id === 'meetings_annual' && form.quarter === 4
+                  ? { ...item, status: annualMeetingMetrics.status }
+                  : item
+                return <ManualItemCard key={item.id} item={displayItem} disabled={currentReadOnly} statusDisabled={currentReadOnly || item.id === 'meetings_annual'} onChange={(patch) => patchManualItem('professionalism', item.id, patch)} />
+              })}</div>
+              {form.professionalism.some((item) => item.id === 'meetings_annual') && form.staffName.trim() && <div className="oppeNotice oppeNoticeInfo">Kehadiran pertemuan ilmiah: {annualMeetingMetrics.previousCount} kegiatan dari triwulan terdahulu yang sudah tervalidasi + {annualMeetingMetrics.currentCount} kegiatan pada triwulan ini = <strong>{annualMeetingMetrics.totalCount} kegiatan kumulatif</strong> (target tahunan ≥ 3). {form.quarter === 4 ? (annualMeetingMetrics.status === 'good' ? 'Target tahunan terpenuhi.' : annualMeetingMetrics.status === 'needs_review' ? 'Target tahunan belum tercapai berdasarkan data triwulan yang lengkap.' : `Data belum memadai; triwulan terdahulu belum tervalidasi: ${annualMeetingMetrics.missingPriorQuarters.map((period) => `TW${period}`).join(', ')}.`) : 'Status tahunan belum difinalkan sampai Triwulan IV.'}</div>}
             </section>
 
             <section className="oppeGlass oppeSection">
