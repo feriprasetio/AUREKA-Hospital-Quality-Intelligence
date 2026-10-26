@@ -339,6 +339,39 @@ export default function OppeAuditWorkspace({
     [rules],
   )
 
+  const annualMeetingMetrics = useMemo(() => {
+    const currentItem = form.professionalism.find((item) => item.id === 'meetings_annual')
+    const currentCount = Math.max(0, Number(currentItem?.count || 0) || 0)
+    const staffKey = keyName(form.staffIdentifier.trim() || form.staffName)
+    const previous = assessments.filter((assessment) =>
+      String(assessment.staff_key || '') === staffKey
+      && Number(assessment.room_id) === Number(form.roomId)
+      && Number(assessment.period_year) === Number(form.year)
+      && Number(assessment.period_quarter) < Number(form.quarter)
+      && String(assessment.status) === 'validated'
+    )
+    const previousCount = previous.reduce((sum, assessment) => {
+      const items = Array.isArray(assessment.professionalism_json) ? assessment.professionalism_json : []
+      const item = items.find((candidate: any) => candidate?.id === 'meetings_annual')
+      return sum + Math.max(0, Number(item?.count || 0) || 0)
+    }, 0)
+    const expectedPriorQuarters = Array.from({ length: Math.max(0, form.quarter - 1) }, (_, index) => index + 1)
+    const validatedPriorQuarters = new Set(previous.map((assessment) => Number(assessment.period_quarter)))
+    const priorDataComplete = expectedPriorQuarters.every((period) => validatedPriorQuarters.has(period))
+    const totalCount = previousCount + currentCount
+    let status: ManualItemStatus = 'pending'
+    if (form.quarter === 4) {
+      status = totalCount >= 3 ? 'good' : priorDataComplete ? 'needs_review' : 'insufficient_data'
+    }
+    return { currentCount, previousCount, totalCount, priorDataComplete, missingPriorQuarters: expectedPriorQuarters.filter((period) => !validatedPriorQuarters.has(period)), status }
+  }, [assessments, form.professionalism, form.staffIdentifier, form.staffName, form.roomId, form.year, form.quarter])
+
+  const professionalismForScore = useMemo(() => form.professionalism.map((item) =>
+    item.id === 'meetings_annual' && form.quarter === 4
+      ? { ...item, status: annualMeetingMetrics.status }
+      : item
+  ), [form.professionalism, form.quarter, annualMeetingMetrics.status])
+
   const staffSuggestions = useMemo(() => {
     const values = new Map<string, { name: string; fields: Set<string> }>()
     records.filter((record) => record.status === 'validated').forEach((record) => {
