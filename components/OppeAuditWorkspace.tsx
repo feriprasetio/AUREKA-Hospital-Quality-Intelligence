@@ -74,7 +74,7 @@ const quarters = [
   { value: 3, label: 'Triwulan III' },
   { value: 4, label: 'Triwulan IV' },
 ]
-const years = Array.from({ length: 8 }, (_, i) => 2024 + i)
+const years = Array.from({ length: 8 }, (_, i) => new Date().getFullYear() - 2 + i)
 const statusLabel: Record<string, string> = {
   draft: 'Draf',
   submitted: 'Menunggu validasi',
@@ -185,8 +185,8 @@ export default function OppeAuditWorkspace({
   canManage: boolean
 }) {
   const initialRoom = initialRoomId ?? rooms[0]?.id ?? 0
-  const [year, setYear] = useState(2026)
-  const [quarter, setQuarter] = useState(4)
+  const [year, setYear] = useState(() => new Date().getFullYear())
+  const [quarter, setQuarter] = useState(() => Math.ceil((new Date().getMonth() + 1) / 3))
   const [roomFilter, setRoomFilter] = useState<number | null>(canManage ? null : initialRoom)
   const [profiles, setProfiles] = useState<any[]>([])
   const [rules, setRules] = useState<OppeRule[]>([])
@@ -198,7 +198,7 @@ export default function OppeAuditWorkspace({
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [screen, setScreen] = useState<'assessment' | 'rules' | 'history'>('assessment')
-  const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, 2026, 4))
+  const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, new Date().getFullYear(), Math.ceil((new Date().getMonth() + 1) / 3)))
   const [ruleProfile, setRuleProfile] = useState<any | null>(null)
   const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null)
   const [gapDraft, setGapDraft] = useState<GapDraft | null>(null)
