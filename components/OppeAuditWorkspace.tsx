@@ -12,6 +12,7 @@ import {
   recordFields,
   type ClinicalIndicatorResult,
   type ManualAssessmentItem,
+  type ManualItemStatus,
   type OppeProfile,
   type OppeQualityRecord,
   type OppeResponseRow,
@@ -202,6 +203,8 @@ export default function OppeAuditWorkspace({
   const [notice, setNotice] = useState('')
   const [screen, setScreen] = useState<'assessment' | 'rules' | 'history'>('assessment')
   const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, new Date().getFullYear(), Math.ceil((new Date().getMonth() + 1) / 3)))
+  const [savedClinicalSnapshot, setSavedClinicalSnapshot] = useState<ClinicalIndicatorResult[] | null>(null)
+  const [savedScoreSnapshot, setSavedScoreSnapshot] = useState<ReturnType<typeof buildOppeScore> | null>(null)
   const [ruleProfile, setRuleProfile] = useState<any | null>(null)
   const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null)
   const [gapDraft, setGapDraft] = useState<GapDraft | null>(null)
@@ -211,6 +214,7 @@ export default function OppeAuditWorkspace({
   const roomMap = useMemo(() => new Map(rooms.map((room) => [Number(room.id), room.name])), [rooms])
   const layoutForRoom = (roomId: number) => LAYOUTS.find((layout) => Number(layout.roomId) === Number(roomId))
   const selectedRoomName = roomMap.get(Number(form.roomId)) || 'Unit belum dipetakan'
+  const currentReadOnly = form.status === 'submitted' || form.status === 'validated'
 
   const load = useCallback(async () => {
     if (!canManage) return
