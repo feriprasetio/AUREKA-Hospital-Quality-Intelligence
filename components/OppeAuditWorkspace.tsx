@@ -418,12 +418,19 @@ export default function OppeAuditWorkspace({
       .sort((a, b) => (a.criticality === 'critical' ? -1 : b.criticality === 'critical' ? 1 : a.title.localeCompare(b.title, 'id')))
   }, [activeProfiles, activeRulesByProfile, form.staffName, form.profession, form.roomId, form.year, form.quarter, records, responseRows])
 
-  const score = useMemo(() => buildOppeScore({
-    behavior: form.behavior,
-    professionalism: form.professionalism,
-    clinical: clinicalResults,
-    quarter: form.quarter,
-  }), [form.behavior, form.professionalism, clinicalResults, form.quarter])
+  const score = useMemo(() => {
+    if (currentReadOnly && savedScoreSnapshot) return savedScoreSnapshot
+    return buildOppeScore({
+      behavior: form.behavior,
+      professionalism: professionalismForScore,
+      clinical: clinicalResults,
+      quarter: form.quarter,
+    })
+  }, [currentReadOnly, savedScoreSnapshot, form.behavior, professionalismForScore, clinicalResults, form.quarter])
+
+  const clinicalResultsForDisplay = currentReadOnly && savedClinicalSnapshot
+    ? savedClinicalSnapshot
+    : clinicalResults
 
   const sourceRecordCount = useMemo(() => records.filter((record) =>
     record.status === 'validated'
@@ -512,7 +519,7 @@ export default function OppeAuditWorkspace({
     if (!form.evaluatorName.trim()) return 'Nama evaluator wajib diisi.'
     const items = [
       ...form.behavior,
-      ...form.professionalism.filter((item) => !(item.id === 'meetings_annual' && form.quarter < 4)),
+      ...professionalismForScore.filter((item) => !(item.id === 'meetings_annual' && form.quarter < 4)),
     ]
     const notRated = items.find((item) => item.status === 'pending')
     if (notRated) return `Butir “${notRated.label}” belum dinilai.`
@@ -522,6 +529,9 @@ export default function OppeAuditWorkspace({
       }
       if (item.status === 'na' && item.notes.trim().length < 10) {
         return `Alasan Tidak Berlaku minimal 10 karakter untuk “${item.label}”.`
+      }
+      if (item.status === 'insufficient_data' && item.notes.trim().length < 10) {
+        return `Jelaskan kekurangan data minimal 10 karakter untuk “${item.label}”.`
       }
       if (item.status !== 'pending' && item.evidence.trim().length < 3) {
         return `Sumber bukti wajib diisi untuk “${item.label}”.`
