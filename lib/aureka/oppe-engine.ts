@@ -536,7 +536,7 @@ export function buildOppeScore(args: {
   const clinical = scoreClinicalItems(args.clinical)
   const domains = [behavior, professionalism, clinical]
   const complete = domains.every((domain) => domain.score !== null && domain.complete)
-  const overall = domains.every((domain) => domain.score !== null)
+  const overall = domains.every((domain) => domain.score !== null && domain.complete)
     ? domains.reduce((sum, domain) => sum + (domain.score ?? 0), 0) / domains.length
     : null
   const criticalIssues = args.clinical.filter((item) => item.criticality === 'critical' && item.targetMet === false)
