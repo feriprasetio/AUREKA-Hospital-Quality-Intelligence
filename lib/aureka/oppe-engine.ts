@@ -113,6 +113,26 @@ const norm = (value: unknown) => String(value ?? '')
   .toLocaleLowerCase('id-ID')
   .replace(/\s+/g, ' ')
 
+export function professionMatches(expected: string, actual: string): boolean {
+  const e = norm(expected)
+  const a = norm(actual)
+  if (!e || !a) return false
+  if (e === a) return true
+  const groups: Array<[RegExp, RegExp]> = [
+    [/^(tenaga medis|dokter|dokter spesialis)$/, /(dokter|dokter gigi)/],
+    [/^dokter gigi$/, /dokter gigi/],
+    [/^(perawat|nurse)$/, /perawat|nurse/],
+    [/^(bidan|midwife)$/, /bidan|midwife/],
+    [/^(farmasi\/apoteker|apoteker|farmasi|tenaga teknis kefarmasian)$/, /apoteker|farmasi|tenaga teknis kefarmasian|asisten apoteker/],
+    [/^(atlm\/analis|atlm|analis laboratorium|teknologi laboratorium medik)$/, /atlm|analis laboratorium|teknologi laboratorium medik/],
+    [/^(radiografer|tenaga radiologi)$/, /radiografer|radiologi/],
+    [/^(nutrisionis\/dietisien|nutrisionis|dietisien)$/, /nutrisionis|dietisien|dietitian|gizi/],
+    [/^(tenaga rehabilitasi medik|rehabilitasi medik)$/, /fisioterapis|fisioterapi|terapis okupasi|terapis wicara|rehabilitasi medik/],
+    [/^(tenaga kesehatan lainnya|tenaga kesehatan)$/, /(psikolog|penata anestesi|terapis|elektromedis|refraksionis|sanitarian|epidemiolog|pembimbing kesehatan kerja|administrator kesehatan|penyuluh kesehatan)/],
+  ]
+  return groups.some(([pattern, group]) => pattern.test(e) && group.test(a))
+}
+
 const asObject = (value: unknown): Record<string, any> =>
   value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, any>
@@ -296,6 +316,7 @@ export function evaluateClinicalIndicator(args: {
   records: OppeQualityRecord[]
   responseRows: OppeResponseRow[]
   staffName: string
+  profession: string
   year: number
   quarter: number
 }): ClinicalIndicatorResult {
@@ -307,8 +328,8 @@ export function evaluateClinicalIndicator(args: {
   if (!rule.profession_label.trim() || !rule.responsibility_field.trim()) {
     return emptyResult(profile, rule, 0, 'Profesi dan field penanggung jawab belum dikonfigurasi.')
   }
-  if (norm(rule.profession_label) !== norm(args.rule.profession_label)) {
-    return emptyResult(profile, rule, 0, 'Profil profesi tidak sesuai dengan aturan indikator.')
+  if (!professionMatches(rule.profession_label, args.profession)) {
+    return emptyResult(profile, rule, 0, 'Profesi staf tidak sesuai dengan aturan indikator.')
   }
   const matchingRecords = records.filter((record) =>
     record.status === 'validated'
