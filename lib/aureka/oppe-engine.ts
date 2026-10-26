@@ -86,7 +86,7 @@ export type ClinicalIndicatorResult = {
   sourceRecordIds: string[]
 }
 
-export type ManualItemStatus = 'pending' | 'good' | 'needs_review' | 'na'
+export type ManualItemStatus = 'pending' | 'good' | 'needs_review' | 'na' | 'insufficient_data'
 export type ManualAssessmentItem = {
   id: string
   label: string
@@ -484,7 +484,7 @@ export function scoreManualItems(items: ManualAssessmentItem[], quarter: number)
   if (!applicable.length) {
     return { score: null, assessed: 0, applicable: 0, complete: false, label: 'Belum dinilai', reason: 'Tidak ada indikator yang berlaku untuk periode ini.' }
   }
-  const complete = assessedItems.length === applicable.length
+  const complete = assessedItems.length === applicable.length && !assessedItems.some((item) => item.status === 'insufficient_data')
   const score = scoredItems.length
     ? scoredItems.filter((item) => item.status === 'good').length / scoredItems.length * 100
     : null
