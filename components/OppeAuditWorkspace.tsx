@@ -391,6 +391,10 @@ export default function OppeAuditWorkspace({
       setError('Akses Audit OPPE hanya tersedia bagi Superadmin/Komite PMKP yang berwenang.')
       return
     }
+    if (!form.staffName.trim()) { setError('Nama tenaga kesehatan wajib diisi.'); return }
+    if (!form.profession.trim()) { setError('Profesi/SMF wajib diisi.'); return }
+    if (!form.roomId) { setError('Unit kerja wajib dipilih.'); return }
+    if (!form.evaluatorName.trim()) { setError('Nama evaluator wajib diisi.'); return }
     if (nextStatus === 'submitted' || nextStatus === 'validated') {
       const validation = assessmentValidationError()
       if (validation) {
@@ -435,8 +439,9 @@ export default function OppeAuditWorkspace({
         assessment_notes: form.assessmentNotes.trim(),
         development_plan: form.developmentPlan.trim(),
         updated_by: authData.user.id,
+        validated_by: nextStatus === 'validated' ? authData.user.id : null,
+        validated_at: nextStatus === 'validated' ? new Date().toISOString() : null,
         ...(nextStatus === 'submitted' ? { submitted_at: new Date().toISOString() } : {}),
-        ...(nextStatus === 'validated' ? { validated_by: authData.user.id, validated_at: new Date().toISOString() } : {}),
       }
       let savedId = form.id
       if (savedId) {
@@ -743,7 +748,7 @@ export default function OppeAuditWorkspace({
 
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">RANAH II</div><h4>Pengembangan profesionalisme</h4><p>Jumlah kegiatan ditampilkan sebagai bukti/progres. Status akhir membutuhkan dokumentasi dan evaluasi penilai.</p></div><span className="oppeDomainScore">{fmtPct(score.professionalism.score)}</span></div>
-              <div className="oppeManualItems">{form.professionalism.map((item) => <ManualItemCard key={item.id} item={item} disabled={currentReadOnly || (item.id === 'meetings_annual' && form.quarter < 4)} onChange={(patch) => patchManualItem('professionalism', item.id, patch)} />)}</div>
+              <div className="oppeManualItems">{form.professionalism.map((item) => <ManualItemCard key={item.id} item={item} disabled={currentReadOnly} statusDisabled={currentReadOnly || (item.id === 'meetings_annual' && form.quarter < 4)} onChange={(patch) => patchManualItem('professionalism', item.id, patch)} />)}</div>
               {form.quarter < 4 && <div className="oppeNotice oppeNoticeInfo">Kehadiran pertemuan ilmiah menggunakan target tahunan. Pada Triwulan I–III, jumlahnya dipantau kumulatif dan tidak otomatis diberi nilai akhir.</div>}
             </section>
 
@@ -877,12 +882,12 @@ export default function OppeAuditWorkspace({
   )
 }
 
-function ManualItemCard({ item, disabled, onChange }: { item: ManualAssessmentItem; disabled: boolean; onChange: (patch: Partial<ManualAssessmentItem>) => void }) {
+function ManualItemCard({ item, disabled, statusDisabled = false, onChange }: { item: ManualAssessmentItem; disabled: boolean; statusDisabled?: boolean; onChange: (patch: Partial<ManualAssessmentItem>) => void }) {
   const annualDeferred = item.id === 'meetings_annual'
   return <article className="oppeManualCard">
     <div className="oppeManualTitle"><div><strong>{item.label}</strong><span>{item.target}</span></div>{annualDeferred && <span className="oppeTinyTag">Tahunan</span>}</div>
     <div className="oppeFormGrid oppeManualGrid">
-      <label className="oppeField"><span>Status penilaian</span><select value={item.status} disabled={disabled} onChange={(e) => onChange({ status: e.target.value as ManualAssessmentItem['status'] })}>{statusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+      <label className="oppeField"><span>Status penilaian</span><select value={item.status} disabled={disabled || statusDisabled} onChange={(e) => onChange({ status: e.target.value as ManualAssessmentItem['status'] })}>{statusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
       <label className="oppeField"><span>Jumlah kejadian/kegiatan</span><input type="number" min="0" value={item.count} disabled={disabled} onChange={(e) => onChange({ count: e.target.value })} placeholder="0" /></label>
       <label className="oppeField oppeWide"><span>Sumber bukti / referensi *</span><input value={item.evidence} disabled={disabled} onChange={(e) => onChange({ evidence: e.target.value })} placeholder="Nomor laporan terverifikasi, notulen, SK tugas atau bukti lain" /></label>
       <label className="oppeField oppeWide"><span>Catatan telaah / alasan</span><textarea value={item.notes} disabled={disabled} onChange={(e) => onChange({ notes: e.target.value })} placeholder="Konteks, hasil verifikasi, alasan tidak berlaku, atau tindak lanjut." /></label>
