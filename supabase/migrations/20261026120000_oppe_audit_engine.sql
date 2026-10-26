@@ -48,11 +48,10 @@ create table if not exists aureka_quality.oppe_indicator_rules (
   )
 );
 
-create unique index if not exists oppe_indicator_rules_profile_profession_responsibility_uidx
+create unique index if not exists oppe_indicator_rules_profile_profession_uidx
   on aureka_quality.oppe_indicator_rules (
     profile_id,
-    lower(btrim(profession_label)),
-    lower(btrim(responsibility_field))
+    lower(btrim(profession_label))
   );
 
 create index if not exists oppe_indicator_rules_room_year_status_idx
