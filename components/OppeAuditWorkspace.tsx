@@ -603,6 +603,10 @@ export default function OppeAuditWorkspace({
       setError('Pilih field penanggung jawab yang memang tersedia pada logbook unit tersebut.')
       return
     }
+    if (gapDraft.notes.trim().length < 10) {
+      setError('Catatan sumber dan alasan klinis minimal 10 karakter agar draf memiliki dasar yang dapat ditelaah.')
+      return
+    }
     setBusy(true)
     setError('')
     setNotice('')
@@ -610,7 +614,7 @@ export default function OppeAuditWorkspace({
       const { data: authData, error: authError } = await sb.auth.getUser()
       if (authError || !authData.user) throw new Error('Sesi login tidak ditemukan.')
       const unitName = roomMap.get(Number(gapDraft.roomId)) || 'Unit belum dipetakan'
-      const code = `OPPE-${gapDraft.roomId}-${year}-${Date.now().toString().slice(-6)}`
+      const code = `OPPE-${gapDraft.roomId}-${year}-${Date.now()}`
       const profile = {
         profile_year: year,
         code,
@@ -641,7 +645,7 @@ export default function OppeAuditWorkspace({
         options_json: [
           { label: 'Sesuai / memenuhi definisi indikator', code: 1, numerator: true, denominator: true },
           { label: 'Tidak sesuai / tidak memenuhi definisi indikator', code: 3, numerator: false, denominator: true },
-          { label: 'Tidak berlaku / tidak memenuhi kriteria inklusi', code: null, numerator: null, denominator: false, review_required: true },
+          { label: 'Tidak berlaku / tidak memenuhi kriteria inklusi', code: null, numerator: false, denominator: false, review_required: true },
         ],
         version: 1,
         status: 'draft',
