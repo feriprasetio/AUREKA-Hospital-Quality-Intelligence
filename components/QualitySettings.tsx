@@ -388,7 +388,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {profile.is_active && profile.status === 'published' && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>Edit versi</button>}
+                    {(profile.status === 'draft' || (profile.is_active && profile.status === 'published')) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit versi'}</button>}
                     {profile.is_active && profile.status === 'published' && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
                   </div>
                 </div>
