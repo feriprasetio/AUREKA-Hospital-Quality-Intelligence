@@ -741,7 +741,7 @@ export default function OppeAuditWorkspace({
 
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">RANAH II</div><h4>Pengembangan profesionalisme</h4><p>Jumlah kegiatan ditampilkan sebagai bukti/progres. Status akhir membutuhkan dokumentasi dan evaluasi penilai.</p></div><span className="oppeDomainScore">{fmtPct(score.professionalism.score)}</span></div>
-              <div className="oppeManualItems">{form.professionalism.map((item) => <ManualItemCard key={item.id} item={item} disabled={currentReadOnly || (item.id === 'meetings_annual' && form.quarter < 4)} onChange={(patch) => patchManualItem('professionalism', item.id, patch)} /></div>
+              <div className="oppeManualItems">{form.professionalism.map((item) => <ManualItemCard key={item.id} item={item} disabled={currentReadOnly || (item.id === 'meetings_annual' && form.quarter < 4)} onChange={(patch) => patchManualItem('professionalism', item.id, patch)} />)}</div>
               {form.quarter < 4 && <div className="oppeNotice oppeNoticeInfo">Kehadiran pertemuan ilmiah menggunakan target tahunan. Pada Triwulan I–III, jumlahnya dipantau kumulatif dan tidak otomatis diberi nilai akhir.</div>}
             </section>
 
