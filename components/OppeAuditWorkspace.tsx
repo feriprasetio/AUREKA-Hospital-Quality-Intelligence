@@ -193,6 +193,8 @@ export default function OppeAuditWorkspace({
   const [records, setRecords] = useState<OppeQualityRecord[]>([])
   const [responseRows, setResponseRows] = useState<OppeResponseRow[]>([])
   const [assessments, setAssessments] = useState<SavedAssessment[]>([])
+  const [assessmentEvents, setAssessmentEvents] = useState<Record<string, any>[]>([])
+  const [eventsLoading, setEventsLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -272,6 +274,30 @@ export default function OppeAuditWorkspace({
   }, [canManage, year, roomFilter])
 
   useEffect(() => { void load() }, [load])
+
+  const loadAssessmentEvents = useCallback(async (assessmentId: string) => {
+    setEventsLoading(true)
+    try {
+      const { data, error } = await q().from('oppe_assessment_events')
+        .select('id,event_type,from_status,to_status,actor_id,source_records_count,score_snapshot_json,created_at')
+        .eq('assessment_id', assessmentId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setAssessmentEvents((data || []) as Record<string, any>[])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Riwayat proses OPPE gagal dimuat.')
+    } finally {
+      setEventsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!form.id) {
+      setAssessmentEvents([])
+      return
+    }
+    void loadAssessmentEvents(form.id)
+  }, [form.id, loadAssessmentEvents])
 
   useEffect(() => {
     if (!canManage) return
@@ -571,6 +597,7 @@ export default function OppeAuditWorkspace({
         nextStatus === 'submitted' ? 'OPPE berhasil disubmit untuk validasi.' :
           nextStatus === 'validated' ? 'OPPE berhasil divalidasi dan snapshot penilaiannya tersimpan.' : 'OPPE dikembalikan untuk perbaikan.')
       await load()
+      if (savedId) await loadAssessmentEvents(savedId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'OPPE gagal disimpan.')
     } finally {
@@ -897,6 +924,33 @@ export default function OppeAuditWorkspace({
               <label className="oppeField oppeWide"><span>Catatan evaluasi / alasan telaah / keputusan penilai</span><textarea value={form.assessmentNotes} onChange={(e) => setForm((current) => ({ ...current, assessmentNotes: e.target.value }))} placeholder="Cantumkan ringkasan diskusi, konteks kasus, faktor sistem, dan alasan keputusan penilaian." /></label>
               <label className="oppeField oppeWide"><span>Rencana pengembangan / tindak lanjut</span><textarea value={form.developmentPlan} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, developmentPlan: e.target.value }))} placeholder="Tujuan perbaikan, tindakan, penanggung jawab dan waktu evaluasi ulang." /></label>
             </section>
+
+            {form.id && (
+              <section className="oppeGlass oppeSection">
+                <div className="oppeSectionHead"><div><div className="oppeEyebrow">AUDIT TRAIL</div><h4>Riwayat proses OPPE</h4><p>Jejak status disimpan terpisah dan tidak dapat diubah melalui antarmuka ini.</p></div><button type="button" className="oppeBtn" disabled={eventsLoading} onClick={() => void loadAssessmentEvents(form.id!)}>{eventsLoading ? 'Memuat…' : 'Perbarui riwayat'}</button></div>
+                <div className="oppeEventList">
+                  {assessmentEvents.map((event) => (
+                    <article className="oppeEventItem" key={event.id}>
+                      <div className="oppeEventMarker" aria-hidden="true" />
+                      <div className="oppeEventBody">
+                        <strong>{({
+                          created: 'Draf OPPE dibuat',
+                          draft_saved: 'Draf OPPE disimpan',
+                          submitted: 'OPPE diajukan untuk validasi',
+                          validated: 'OPPE divalidasi',
+                          reopened: 'OPPE dikembalikan / dibuka ulang',
+                          archived: 'OPPE diarsipkan',
+                          updated: 'Perubahan OPPE disimpan',
+                        } as Record<string, string>)[String(event.event_type)] || 'Perubahan OPPE'}</strong>
+                        <span>{event.created_at ? new Date(event.created_at).toLocaleString('id-ID') : 'Waktu tidak tersedia'} · {event.actor_id ? `Akun ${String(event.actor_id).slice(0, 8)}…` : 'Akun tidak tercatat'}</span>
+                        <small>{event.from_status ? `${statusLabel[String(event.from_status)] || event.from_status} → ` : ''}{statusLabel[String(event.to_status)] || event.to_status} · {Number(event.source_records_count || 0)} sumber logbook · snapshot skor tersimpan</small>
+                      </div>
+                    </article>
+                  ))}
+                  {!assessmentEvents.length && <div className="oppeEmpty">{eventsLoading ? 'Memuat riwayat proses…' : 'Belum ada event audit yang tercatat.'}</div>}
+                </div>
+              </section>
+            )}
           </main>
 
           <aside className="oppeAside">
@@ -1148,7 +1202,7 @@ const CSS = `
 .oppeModalBody{padding:16px 20px;overflow:auto;display:grid;gap:13px}.oppeModalFooter{display:flex;justify-content:flex-end;gap:8px;padding:13px 20px;border-top:1px solid rgba(25,60,45,.1)}
 .oppeCheck{display:flex;gap:10px;padding:12px;border-radius:13px;background:rgba(255,255,255,.58);border:1px solid rgba(25,60,45,.12);font-size:10px;line-height:1.5}
 .oppeCheck input{accent-color:var(--accent);margin-top:3px}.oppeCheck span{display:grid;gap:4px}.oppeCheck small{color:var(--muted)}
-.oppePrintOnly{display:none}
+.oppeEventList{display:grid;gap:0}.oppeEventItem{display:grid;grid-template-columns:14px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid rgba(25,60,45,.09)}.oppeEventMarker{width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:4px;box-shadow:0 0 0 4px rgba(15,118,86,.09)}.oppeEventBody{display:grid;gap:4px}.oppeEventBody strong{font-size:10px}.oppeEventBody span,.oppeEventBody small{font-size:9px;line-height:1.45;color:var(--muted)}.oppePrintOnly{display:none}
 @media(max-width:1150px){.oppeFilters{grid-template-columns:repeat(3,minmax(0,1fr))}.oppeFilterMeta{grid-column:1/-1;text-align:left;max-width:none}.oppeWorkGrid{grid-template-columns:minmax(0,1.4fr) minmax(250px,.8fr)}}
 @media(max-width:900px){.oppeWorkGrid{grid-template-columns:1fr}.oppeAside{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}.oppeScorePanel:first-child{grid-row:span 2}}
 @media(max-width:620px){.oppeHeader{padding:16px}.oppeHeader h3{font-size:24px}.oppeFilters{grid-template-columns:1fr 1fr}.oppeWorkGrid,.oppeAside,.oppeFormGrid,.oppeManualGrid{grid-template-columns:1fr}.oppeWide{grid-column:auto}.oppeRuleRow{display:grid}.oppeRuleActions{flex-direction:row;justify-content:space-between;align-items:center}.oppeClinicalHead{display:grid}.oppeClinicalStats{grid-template-columns:1fr 1fr}.oppeScorePanel:first-child{grid-row:auto}}
