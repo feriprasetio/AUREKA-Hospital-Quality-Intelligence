@@ -19,7 +19,7 @@ import {
 
 type Room = { id: number; name: string }
 type SavedAssessment = Record<string, any>
-type AuditLayout = { roomId: number; fields: string[]; indicators: string[] }
+type AuditLayout = { roomId: number; fields: string[]; indicators: string[]; measurementGrain?: string }
 type RuleDraft = {
   ruleId: string | null
   profileId: string
@@ -37,6 +37,7 @@ type GapDraft = {
   title: string
   professionLabel: string
   roomId: number
+  measurementGrain: string
   targetText: string
   targetOperator: string
   targetValue: string
@@ -144,6 +145,25 @@ const suggestedField = (profile: any, layout?: AuditLayout) => {
 const staffFieldOptions = (roomId: number) => {
   const layout = LAYOUTS.find((item) => Number(item.roomId) === Number(roomId))
   return Array.from(new Set((layout?.fields || []).filter((field) => /(dpjp|dokter|perawat|bidan|petugas|penanggung jawab|radiografer|analis|atlm|terapis|apoteker|nutrisionis|dietisien|pemeriksa|pelaksana)/i.test(field))))
+}
+const suggestedMeasurementGrain = (profiles: any[], roomId: number) => {
+  const layout = LAYOUTS.find((item) => Number(item.roomId) === Number(roomId))
+  if (layout?.measurementGrain) return layout.measurementGrain
+  const matching = profiles.filter((profile) => Number(profile.room_id) === Number(roomId) && profile.status === 'published' && profile.is_active === true)
+  const counts = new Map<string, number>()
+  matching.forEach((profile) => {
+    const grain = String(profile.measurement_grain || 'patient_episode')
+    counts.set(grain, (counts.get(grain) || 0) + 1)
+  })
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || 'patient_episode'
+}
+const GRAIN_LABELS: Record<string, string> = {
+  patient_episode: 'Episode pasien',
+  provider_day: 'Nakes per hari',
+  daily_metric: 'Data harian (numerator/denominator)',
+  event: 'Kejadian / event',
+  activity: 'Aktivitas / kegiatan',
+  aggregate: 'Agregat periode',
 }
 const statusOptions: Array<{ value: ManualAssessmentItem['status']; label: string }> = [
   { value: 'pending', label: 'Belum dinilai' },
@@ -658,6 +678,10 @@ export default function OppeAuditWorkspace({
       setError('Target, definisi numerator dan denominator wajib lengkap untuk membuat draf indikator.')
       return
     }
+    if (gapDraft.measurementGrain !== suggestedMeasurementGrain(profiles, gapDraft.roomId)) {
+      setError('Grain draf harus sesuai dengan metode pencatatan aktif di unit ini. Siapkan layout logbook terpisah terlebih dahulu bila membutuhkan grain berbeda.')
+      return
+    }
     if (!gapDraft.responsibilityField.trim()) {
       setError('Pilih field penanggung jawab yang memang tersedia pada logbook unit tersebut.')
       return
@@ -688,7 +712,7 @@ export default function OppeAuditWorkspace({
         target_value: gapDraft.targetValue === '' ? null : Number(gapDraft.targetValue),
         numerator_definition: gapDraft.numeratorDefinition.trim(),
         denominator_definition: gapDraft.denominatorDefinition.trim(),
-        measurement_grain: 'patient_episode',
+        measurement_grain: gapDraft.measurementGrain,
         schema_json: {
           source: 'AUREKA OPPE gap proposal',
           header_label: gapDraft.title.trim(),
@@ -699,7 +723,7 @@ export default function OppeAuditWorkspace({
           oppe_responsibility_field: gapDraft.responsibilityField.trim(),
           oppe_gap_status: 'draft',
           oppe_gap_notes: gapDraft.notes.trim(),
-          fields: ['record_date', 'patient_name', 'medical_record_no', 'diagnosis', gapDraft.responsibilityField.trim(), 'status'],
+          fields: gapDraft.measurementGrain === 'patient_episode'\n            ? ['record_date', 'patient_name', 'medical_record_no', 'diagnosis', gapDraft.responsibilityField.trim(), 'status']\n            : ['record_date', 'activity', gapDraft.responsibilityField.trim(), 'numerator', 'denominator', 'notes'],
         },
         options_json: [
           { label: 'Sesuai / memenuhi definisi indikator', code: 1, numerator: true, denominator: true },
@@ -868,7 +892,7 @@ export default function OppeAuditWorkspace({
 
       {screen === 'rules' && (
         <section className="oppeGlass oppeSection">
-          <div className="oppeSectionHead"><div><div className="oppeEyebrow">GOVERNANCE · MASTER MUTU AUREKA</div><h4>Pemetaan indikator ke OPPE individual</h4><p>Setiap indikator perlu ditetapkan apakah layak dinilai per individu, siapa profesi yang dinilai, field tanggung jawab dan metode hitung. Aturan baru tidak otomatis aktif.</p></div>{isSuperAdmin && <LiquidGlassButton onClick={() => { const roomId = roomFilter ?? initialRoom; setGapDraft({ title: '', professionLabel: '', roomId, targetText: '', targetOperator: '>=', targetValue: '', unitOfMeasure: 'Persentase (%)', numeratorDefinition: '', denominatorDefinition: '', responsibilityField: staffFieldOptions(roomId)[0] || '', notes: '' }); setError(''); setNotice('') }}>＋ Draf indikator yang belum ada</LiquidGlassButton>}</div>
+          <div className="oppeSectionHead"><div><div className="oppeEyebrow">GOVERNANCE · MASTER MUTU AUREKA</div><h4>Pemetaan indikator ke OPPE individual</h4><p>Setiap indikator perlu ditetapkan apakah layak dinilai per individu, siapa profesi yang dinilai, field tanggung jawab dan metode hitung. Aturan baru tidak otomatis aktif.</p></div>{isSuperAdmin && <LiquidGlassButton onClick={() => { const roomId = roomFilter ?? initialRoom; setGapDraft({ title: '', professionLabel: '', roomId, measurementGrain: suggestedMeasurementGrain(profiles, roomId), targetText: '', targetOperator: '>=', targetValue: '', unitOfMeasure: 'Persentase (%)', numeratorDefinition: '', denominatorDefinition: '', responsibilityField: staffFieldOptions(roomId)[0] || '', notes: '' }); setError(''); setNotice('') }}>＋ Draf indikator yang belum ada</LiquidGlassButton>}</div>
           <div className="oppeRuleToolbar"><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari kode, indikator, unit, profesi…" /><span>{filteredProfiles.length} profil master · {rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length} aturan aktif pada hasil pemuatan</span></div>
           <div className="oppeRuleList">{filteredProfiles.map((profile) => {
             const profileRules = rules.filter((item) => item.profile_id === String(profile.id))
@@ -911,7 +935,7 @@ export default function OppeAuditWorkspace({
           {gapDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setGapDraft(null) }}><section className="oppeModal" role="dialog" aria-modal="true" aria-label="Tambah draf indikator OPPE">
             <header className="oppeModalHeader"><div><div className="oppeEyebrow">MASTER INDIKATOR · DRAF KESENJANGAN</div><h4>Usulkan indikator profesional baru</h4><p>Draf tidak masuk kalkulasi sampai ditelaah, diterbitkan dan dipetakan.</p></div><button type="button" className="oppeClose" onClick={() => setGapDraft(null)}>×</button></header>
             <div className="oppeModalBody"><div className="oppeFormGrid">
-              <label className="oppeField"><span>Unit pemilik</span><select value={gapDraft.roomId} onChange={(e) => { const value = Number(e.target.value); setGapDraft((current) => current ? { ...current, roomId: value, responsibilityField: staffFieldOptions(value)[0] || '' } : current) }}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
+              <label className="oppeField"><span>Unit pemilik</span><select value={gapDraft.roomId} onChange={(e) => { const value = Number(e.target.value); setGapDraft((current) => current ? { ...current, roomId: value, measurementGrain: suggestedMeasurementGrain(profiles, value), responsibilityField: staffFieldOptions(value)[0] || '' } : current) }}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
               <label className="oppeField"><span>Profesi/SMF *</span><input value={gapDraft.professionLabel} onChange={(e) => setGapDraft((current) => current ? { ...current, professionLabel: e.target.value } : current)} placeholder="Contoh: Dokter Spesialis Anestesiologi" /></label>
               <label className="oppeField oppeWide"><span>Nama indikator *</span><input value={gapDraft.title} onChange={(e) => setGapDraft((current) => current ? { ...current, title: e.target.value } : current)} /></label>
               <label className="oppeField"><span>Target tertulis *</span><input value={gapDraft.targetText} onChange={(e) => setGapDraft((current) => current ? { ...current, targetText: e.target.value } : current)} placeholder="Contoh: ≥ 95%" /></label>
@@ -920,6 +944,7 @@ export default function OppeAuditWorkspace({
               <label className="oppeField"><span>Satuan</span><input value={gapDraft.unitOfMeasure} onChange={(e) => setGapDraft((current) => current ? { ...current, unitOfMeasure: e.target.value } : current)} /></label>
               <label className="oppeField oppeWide"><span>Definisi numerator *</span><textarea value={gapDraft.numeratorDefinition} onChange={(e) => setGapDraft((current) => current ? { ...current, numeratorDefinition: e.target.value } : current)} /></label>
               <label className="oppeField oppeWide"><span>Definisi denominator *</span><textarea value={gapDraft.denominatorDefinition} onChange={(e) => setGapDraft((current) => current ? { ...current, denominatorDefinition: e.target.value } : current)} /></label>
+              <label className="oppeField"><span>Metode pencatatan yang digunakan</span><input value={`${GRAIN_LABELS[gapDraft.measurementGrain] || gapDraft.measurementGrain} · ${gapDraft.measurementGrain}`} disabled /><small className="oppeMuted">Mengikuti grain dominan/layout unit supaya record yang dimasukkan PIC dapat dihitung konsisten. Grain berbeda perlu layout logbook terpisah terlebih dahulu.</small></label>
               <label className="oppeField"><span>Field nakes penanggung jawab *</span><select value={gapDraft.responsibilityField} onChange={(e) => setGapDraft((current) => current ? { ...current, responsibilityField: e.target.value } : current)}><option value="">Pilih field dari logbook</option>{staffFieldOptions(gapDraft.roomId).map((field) => <option key={field} value={field}>{field}</option>)}</select></label>
               <label className="oppeField oppeWide"><span>Catatan kebutuhan / sumber</span><textarea value={gapDraft.notes} onChange={(e) => setGapDraft((current) => current ? { ...current, notes: e.target.value } : current)} placeholder="Dasar klinis, SOP/pedoman, ruang lingkup profesi dan alasan gap." /></label>
             </div><div className="oppeNotice oppeNoticeInfo">Draf disimpan dengan status nonaktif. Publikasi harus ditinjau di Metadata. Pastikan field penanggung jawab memang ada di layout logbook unit agar setiap catatan dapat diatribusikan.</div></div>
