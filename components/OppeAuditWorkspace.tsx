@@ -251,6 +251,24 @@ export default function OppeAuditWorkspace({
 
   useEffect(() => { void load() }, [load])
 
+  useEffect(() => {
+    if (!canManage) return
+    let active = true
+    const refresh = () => { if (active) void load() }
+    const channel = sb.channel(`oppe-live-${year}-${roomFilter ?? 'all'}`)
+      .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'quality_records' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'quality_record_responses' }, refresh)
+      .subscribe()
+    const timer = window.setInterval(refresh, 60000)
+    window.addEventListener('focus', refresh)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refresh)
+      void sb.removeChannel(channel)
+    }
+  }, [canManage, year, roomFilter, load])
+
   const activeProfiles = useMemo(() => profiles.filter((profile) =>
     profile.status === 'published' && profile.is_active === true
   ), [profiles])
@@ -708,9 +726,9 @@ export default function OppeAuditWorkspace({
           <div className="oppeEyebrow">AUREKA · ONGOING PROFESSIONAL PRACTICE EVALUATION</div>
           <h3>Audit OPPE</h3>
           <p>Penilaian profesional berbasis data logbook terverifikasi, bukti perilaku, dan pengembangan profesi. FPPE tidak termasuk pada versi ini.</p>
-          <div className="oppeHeaderNotes"><span>Data klinis: hanya logbook tervalidasi</span><span>Indikator otomatis: wajib memiliki aturan atribusi aktif</span><span>Skor bukan keputusan otomatis kewenangan klinis</span></div>
+          <div className="oppeHeaderNotes"><span>Data klinis: hanya logbook tervalidasi</span><span>Pembaruan realtime + fallback 60 detik</span><span>Indikator otomatis: wajib memiliki aturan atribusi aktif</span><span>Skor bukan keputusan otomatis kewenangan klinis</span></div>
         </div>
-        <div className="oppeHeaderActions"><LiquidGlassButton onClick={resetNew}>＋ Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>
+        <div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}>＋ Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>
       </header>
 
       {error && <div className="oppeNotice oppeError" role="alert">{error}</div>}
