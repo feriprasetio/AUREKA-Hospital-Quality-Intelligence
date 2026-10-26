@@ -21,6 +21,7 @@ type Room = { id: number; name: string }
 type SavedAssessment = Record<string, any>
 type AuditLayout = { roomId: number; fields: string[]; indicators: string[] }
 type RuleDraft = {
+  ruleId: string | null
   profileId: string
   profileYear: number
   roomId: number
@@ -273,11 +274,18 @@ export default function OppeAuditWorkspace({
     profile.status === 'published' && profile.is_active === true
   ), [profiles])
 
-  const activeRuleMap = useMemo(() => {
-    const map = new Map<string, OppeRule>()
-    rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).forEach((rule) => map.set(rule.profile_id, rule))
+  const activeRulesByProfile = useMemo(() => {
+    const map = new Map<string, OppeRule[]>()
+    rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).forEach((rule) => {
+      const key = String(rule.profile_id)
+      map.set(key, [...(map.get(key) || []), rule])
+    })
     return map
   }, [rules])
+  const activeRuleCount = useMemo(
+    () => rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length,
+    [rules],
+  )
 
   const staffSuggestions = useMemo(() => {
     const values = new Map<string, { name: string; fields: Set<string> }>()
@@ -300,10 +308,18 @@ export default function OppeAuditWorkspace({
     if (!form.staffName.trim() || !form.profession.trim()) return []
     return activeProfiles
       .filter((profile) => Number(profile.room_id) === Number(form.roomId))
-      .map((profile) => {
-        const rule = activeRuleMap.get(String(profile.id))
-        if (!rule || !professionMatches(rule.profession_label, form.profession)) return null
-        return evaluateClinicalIndicator({
+      .flatMap((profile) => {
+        const mappings = (activeRulesByProfile.get(String(profile.id)) || [])
+          .filter((rule) => professionMatches(rule.profession_label, form.profession))
+        if (!mappings.length) return []
+        const exact = mappings.filter((rule) => norm(rule.profession_label) === norm(form.profession))
+        const specific = mappings.filter((rule) => !['tenaga medis', 'tenaga kesehatan', 'tenaga kesehatan lainnya'].includes(norm(rule.profession_label)))
+        // Prefer exact-profession rules; otherwise choose the most specific matching group rule.
+        // This prevents a broad group rule and a narrower rule from counting the same indicator twice.
+        const chosen = (exact.length ? exact : specific.length ? specific : mappings)
+          .sort((a, b) => b.profession_label.length - a.profession_label.length)
+          .slice(0, 1)
+        return chosen.map((rule) => evaluateClinicalIndicator({
           profile: profile as OppeProfile,
           rule,
           records,
@@ -312,11 +328,10 @@ export default function OppeAuditWorkspace({
           profession: form.profession,
           year: form.year,
           quarter: form.quarter,
-        })
+        }))
       })
-      .filter((item): item is ClinicalIndicatorResult => !!item)
       .sort((a, b) => (a.criticality === 'critical' ? -1 : b.criticality === 'critical' ? 1 : a.title.localeCompare(b.title, 'id')))
-  }, [activeProfiles, activeRuleMap, form.staffName, form.profession, form.roomId, form.year, form.quarter, records, responseRows])
+  }, [activeProfiles, activeRulesByProfile, form.staffName, form.profession, form.roomId, form.year, form.quarter, records, responseRows])
 
   const score = useMemo(() => buildOppeScore({
     behavior: form.behavior,
@@ -521,11 +536,11 @@ export default function OppeAuditWorkspace({
     await saveAssessment('reopened')
   }
 
-  const startRuleEdit = (profile: any) => {
-    const existing = rules.find((rule) => rule.profile_id === String(profile.id))
+  const startRuleEdit = (profile: any, existing: OppeRule | null) => {
     const layout = layoutForRoom(Number(profile.room_id))
     setRuleProfile(profile)
     setRuleDraft({
+      ruleId: existing?.id ? String(existing.id) : null,
       profileId: String(profile.id),
       profileYear: Number(profile.profile_year),
       roomId: Number(profile.room_id),
@@ -587,7 +602,15 @@ export default function OppeAuditWorkspace({
     try {
       const { data: authData, error: authError } = await sb.auth.getUser()
       if (authError || !authData.user) throw new Error('Sesi login tidak ditemukan.')
-      const existing = rules.find((rule) => rule.profile_id === ruleDraft.profileId)
+      const existing = ruleDraft.ruleId ? rules.find((rule) => String(rule.id) === ruleDraft.ruleId) : null
+      const duplicateProfession = rules.find((rule) =>
+        rule.profile_id === ruleDraft.profileId
+        && norm(rule.profession_label) === norm(ruleDraft.professionLabel)
+        && String(rule.id || '') !== String(ruleDraft.ruleId || '')
+      )
+      if (duplicateProfession) {
+        throw new Error('Pemetaan untuk indikator dan profesi ini sudah ada. Buka aturan yang ada dan edit field penanggung jawab atau metodenya.')
+      }
       const payload: Record<string, any> = {
         profile_id: ruleDraft.profileId,
         room_id: ruleDraft.roomId,
@@ -728,7 +751,7 @@ export default function OppeAuditWorkspace({
     if (typeof window !== 'undefined') window.print()
   }
 
-  const selectedRuleCount = activeRuleMap.size
+  const selectedRuleCount = activeRuleCount
   const currentReadOnly = form.status === 'submitted' || form.status === 'validated'
   const scoreStatus = score.overall === null ? 'Belum dapat dihitung' : score.needsReview ? 'Memerlukan telaah khusus' : score.complete ? 'Siap ditinjau' : 'Nilai sementara'
 
@@ -848,15 +871,29 @@ export default function OppeAuditWorkspace({
           <div className="oppeSectionHead"><div><div className="oppeEyebrow">GOVERNANCE · MASTER MUTU AUREKA</div><h4>Pemetaan indikator ke OPPE individual</h4><p>Setiap indikator perlu ditetapkan apakah layak dinilai per individu, siapa profesi yang dinilai, field tanggung jawab dan metode hitung. Aturan baru tidak otomatis aktif.</p></div>{isSuperAdmin && <LiquidGlassButton onClick={() => { const roomId = roomFilter ?? initialRoom; setGapDraft({ title: '', professionLabel: '', roomId, targetText: '', targetOperator: '>=', targetValue: '', unitOfMeasure: 'Persentase (%)', numeratorDefinition: '', denominatorDefinition: '', responsibilityField: staffFieldOptions(roomId)[0] || '', notes: '' }); setError(''); setNotice('') }}>＋ Draf indikator yang belum ada</LiquidGlassButton>}</div>
           <div className="oppeRuleToolbar"><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari kode, indikator, unit, profesi…" /><span>{filteredProfiles.length} profil master · {rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length} aturan aktif pada hasil pemuatan</span></div>
           <div className="oppeRuleList">{filteredProfiles.map((profile) => {
-            const rule = rules.find((item) => item.profile_id === String(profile.id))
-            const active = !!rule && rule.status === 'active' && rule.is_oppe_eligible
+            const profileRules = rules.filter((item) => item.profile_id === String(profile.id))
+              .sort((a, b) => a.profession_label.localeCompare(b.profession_label, 'id'))
+            const active = profileRules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible)
             return <article className="oppeRuleRow" key={profile.id}>
-              <div className="oppeRuleTitle"><strong>{profile.code} · {profile.title}</strong><span>{profile.unit_name} · {profile.indicator_type || 'Tanpa program'} · {profile.measurement_grain} · {profile.status}{profile.is_active ? '' : ' / nonaktif'}</span>{rule && <span className="oppeRuleDescription">{rule.profession_label || 'Profesi belum diatur'} · Field: {rule.responsibility_field || '—'} · {displayMethod(rule.measurement_method)} · Minimum {rule.minimum_observations}</span>}</div>
-              <div className="oppeRuleActions"><span className={`oppeStatus ${active ? 'oppeGood' : 'oppeNeutral'}`}>{active ? 'Aktif untuk OPPE' : rule ? 'Belum aktif' : 'Belum dipetakan'}</span><button type="button" className="oppeBtn" onClick={() => startRuleEdit(profile)}>{rule ? 'Ubah aturan' : 'Atur OPPE'}</button></div>
+              <div className="oppeRuleTitle">
+                <strong>{profile.code} · {profile.title}</strong>
+                <span>{profile.unit_name} · {profile.indicator_type || 'Tanpa program'} · {profile.measurement_grain} · {profile.status}{profile.is_active ? '' : ' / nonaktif'}</span>
+                <span className="oppeRuleDescription">{profileRules.length} pemetaan profesi · {active.length} aktif untuk kalkulasi</span>
+                <div className="oppeRuleMappings">
+                  {profileRules.map((rule) => (
+                    <div className="oppeRuleMapping" key={rule.id}>
+                      <div><b>{rule.profession_label || 'Profesi belum diatur'}</b><span>Field: {rule.responsibility_field || '—'} · {displayMethod(rule.measurement_method)} · Minimum {rule.minimum_observations}</span></div>
+                      <div className="oppeRuleMappingActions"><span className={`oppeStatus ${rule.status === 'active' && rule.is_oppe_eligible ? 'oppeGood' : 'oppeNeutral'}`}>{rule.status === 'active' && rule.is_oppe_eligible ? 'Aktif' : 'Draf / nonaktif'}</span><button type="button" className="oppeBtn" onClick={() => startRuleEdit(profile, rule)}>Ubah</button></div>
+                    </div>
+                  ))}
+                  {!profileRules.length && <span className="oppeMuted">Belum ada pemetaan profesi.</span>}
+                </div>
+              </div>
+              <div className="oppeRuleActions"><button type="button" className="oppeBtn" onClick={() => startRuleEdit(profile, null)}>＋ Tambah pemetaan</button></div>
             </article>
           })}{!filteredProfiles.length && <div className="oppeEmpty">Tidak ada profil pada filter ini.</div>}</div>
           {ruleProfile && ruleDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) { setRuleProfile(null); setRuleDraft(null) } }}><section className="oppeModal" role="dialog" aria-modal="true" aria-label="Atur indikator OPPE">
-            <header className="oppeModalHeader"><div><div className="oppeEyebrow">ATURAN ATRIBUSI &amp; SKOR</div><h4>{ruleProfile.code} · {ruleProfile.title}</h4><p>{ruleProfile.unit_name} · target master: {ruleProfile.target_text || 'Belum ditentukan'}</p></div><button type="button" className="oppeClose" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>×</button></header>
+            <header className="oppeModalHeader"><div><div className="oppeEyebrow">ATURAN ATRIBUSI &amp; SKOR</div><h4>{ruleProfile.code} · {ruleProfile.title}</h4><p>{ruleDraft.ruleId ? 'Edit pemetaan profesi yang ada' : 'Tambah pemetaan profesi baru'} · {ruleProfile.unit_name} · target master: {ruleProfile.target_text || 'Belum ditentukan'}</p></div><button type="button" className="oppeClose" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>×</button></header>
             <div className="oppeModalBody">
               <label className="oppeCheck"><input type="checkbox" checked={ruleDraft.eligible} onChange={(e) => setRuleDraft((current) => current ? { ...current, eligible: e.target.checked } : current)} /><span><strong>Aktifkan untuk kalkulasi OPPE individual</strong><small>Centang hanya setelah memastikan bahwa indikator memang mengukur kinerja individu dan field tanggung jawab benar.</small></span></label>
               <div className="oppeFormGrid">
@@ -867,7 +904,7 @@ export default function OppeAuditWorkspace({
                 <label className="oppeField"><span>Tingkat telaah</span><select value={ruleDraft.criticality} onChange={(e) => setRuleDraft((current) => current ? { ...current, criticality: e.target.value as RuleDraft['criticality'] } : current)}><option value="standard">Standar</option><option value="high">Tinggi — perlu telaah bila target gagal</option><option value="critical">Kritis — wajib telaah terpisah bila target gagal</option></select></label>
                 <label className="oppeField oppeWide"><span>Dasar pemetaan / validasi definisi *</span><textarea value={ruleDraft.notes} onChange={(e) => setRuleDraft((current) => current ? { ...current, notes: e.target.value } : current)} placeholder="Contoh: indikator mengukur aktivitas perawat yang tercatat pada field Perawat Penerima; numerator dan denominator telah diverifikasi oleh pemilik indikator." /></label>
               </div>
-              <div className="oppeNotice oppeNoticeInfo">Skor otomatik hanya akan memakai catatan dengan status Validated, pada unit/tahun/triwulan terpilih dan nama yang cocok persis dengan field penanggung jawab. Data draf, data lokal, dan catatan tanpa atribusi tidak masuk skor.</div>
+              <div className="oppeNotice oppeNoticeInfo">Satu indikator dapat memiliki beberapa pemetaan profesi; untuk satu staf, aturan profesi yang persis akan mengalahkan aturan kelompok umum agar indikator tidak terhitung ganda. Skor otomatis hanya akan memakai catatan dengan status Validated, pada unit/tahun/triwulan terpilih dan nama yang cocok persis dengan field penanggung jawab. Data draf, data lokal, dan catatan tanpa atribusi tidak masuk skor.</div>
             </div>
             <footer className="oppeModalFooter"><button type="button" className="oppeBtn" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>Batal</button><LiquidGlassButton disabled={busy} onClick={() => void saveRule()}>{busy ? 'Menyimpan…' : 'Simpan pemetaan'}</LiquidGlassButton></footer>
           </section></div>}
@@ -1033,7 +1070,7 @@ const CSS = `
 .oppeRuleList{display:grid;gap:7px}
 .oppeRuleRow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px;border:1px solid rgba(25,60,45,.1);background:rgba(255,255,255,.37);border-radius:14px}
 .oppeRuleTitle{display:grid;gap:5px;min-width:0}.oppeRuleTitle strong{font-size:10px;line-height:1.55;overflow-wrap:anywhere}.oppeRuleTitle>span{font-size:9px;color:var(--muted);line-height:1.5}
-.oppeRuleDescription{color:#536a5c!important}
+.oppeRuleDescription{color:#536a5c!important}.oppeRuleMappings{display:grid;gap:7px;margin-top:7px}.oppeRuleMapping{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid rgba(25,60,45,.1);border-radius:11px;padding:9px;background:rgba(255,255,255,.36)}.oppeRuleMapping>div:first-child{display:grid;gap:4px;min-width:0}.oppeRuleMapping b{font-size:10px}.oppeRuleMapping span{font-size:9px;line-height:1.45;color:var(--muted)}.oppeRuleMappingActions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .oppeRuleActions{display:flex;align-items:flex-end;gap:7px;flex-direction:column;flex-shrink:0}
 .oppeModalBackdrop{position:fixed;inset:0;z-index:120;background:rgba(11,22,17,.32);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:16px}
 .oppeModal{width:min(820px,96vw);max-height:92vh;display:flex;flex-direction:column;background:rgba(249,252,250,.99);border:1px solid rgba(255,255,255,.78);box-shadow:0 25px 80px rgba(0,0,0,.23);border-radius:22px;overflow:hidden}
