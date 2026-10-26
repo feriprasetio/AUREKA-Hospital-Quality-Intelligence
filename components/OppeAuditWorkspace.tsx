@@ -429,6 +429,17 @@ export default function OppeAuditWorkspace({
       if (nextStatus === 'validated' && !['submitted', 'reopened'].includes(form.status)) {
         throw new Error('Hanya OPPE yang telah disubmit atau dikembalikan yang dapat divalidasi.')
       }
+      if (nextStatus === 'validated') {
+        if (!form.id) throw new Error('ID penilaian belum tersedia.')
+        const { data: ownership, error: ownershipError } = await q().from('oppe_assessments')
+          .select('created_by')
+          .eq('id', form.id)
+          .single()
+        if (ownershipError) throw ownershipError
+        if (ownership?.created_by === authData.user.id) {
+          throw new Error('Validasi harus dilakukan oleh evaluator yang berbeda dari pembuat OPPE untuk menjaga independensi penilaian.')
+        }
+      }
       const clinicalSnapshot = clinicalResults
       const scoreSnapshot = buildOppeScore({
         behavior: form.behavior,
