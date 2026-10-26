@@ -391,7 +391,7 @@ export default function OppeAuditWorkspace({
       setError('Akses Audit OPPE hanya tersedia bagi Superadmin/Komite PMKP yang berwenang.')
       return
     }
-    if (nextStatus !== 'draft') {
+    if (nextStatus === 'submitted' || nextStatus === 'validated') {
       const validation = assessmentValidationError()
       if (validation) {
         setError(validation)
@@ -497,7 +497,7 @@ export default function OppeAuditWorkspace({
       roomId: Number(profile.room_id),
       eligible: existing?.is_oppe_eligible ?? false,
       professionLabel: existing?.profession_label || String(profile.schema_json?.oppe_profession_label || groupForTitle(profile.title) || ''),
-      responsibilityField: existing?.responsibility_field || suggestedField(profile, layout),
+      responsibilityField: existing?.responsibility_field || String(profile.schema_json?.oppe_responsibility_field || suggestedField(profile, layout)),
       measurementMethod: existing?.measurement_method || 'manual_review',
       minimumObservations: Number(existing?.minimum_observations || 5),
       criticality: existing?.criticality || 'standard',
@@ -605,7 +605,7 @@ export default function OppeAuditWorkspace({
       const { data: authData, error: authError } = await sb.auth.getUser()
       if (authError || !authData.user) throw new Error('Sesi login tidak ditemukan.')
       const unitName = roomMap.get(Number(gapDraft.roomId)) || 'Unit belum dipetakan'
-      const code = `OPPE-${gapDraft.roomId}-${gapDraft.year || year}-${Date.now().toString().slice(-6)}`
+      const code = `OPPE-${gapDraft.roomId}-${year}-${Date.now().toString().slice(-6)}`
       const profile = {
         profile_year: year,
         code,
@@ -630,6 +630,7 @@ export default function OppeAuditWorkspace({
           oppe_profession_label: gapDraft.professionLabel.trim(),
           oppe_responsibility_field: gapDraft.responsibilityField.trim(),
           oppe_gap_status: 'draft',
+          oppe_gap_notes: gapDraft.notes.trim(),
           fields: ['record_date', 'patient_name', 'medical_record_no', 'diagnosis', gapDraft.responsibilityField.trim(), 'status'],
         },
         options_json: [
@@ -645,22 +646,6 @@ export default function OppeAuditWorkspace({
       }
       const { data: created, error: insertError } = await q().from('indicator_profiles').insert(profile).select('id').single()
       if (insertError) throw insertError
-      const { error: ruleError } = await q().from('oppe_indicator_rules').insert({
-        profile_id: created.id,
-        room_id: gapDraft.roomId,
-        profile_year: year,
-        is_oppe_eligible: false,
-        profession_label: gapDraft.professionLabel.trim(),
-        responsibility_field: gapDraft.responsibilityField.trim(),
-        measurement_method: 'option_response',
-        minimum_observations: 5,
-        criticality: 'standard',
-        status: 'draft',
-        notes: gapDraft.notes.trim() || 'Draf dibuat dari identifikasi kesenjangan OPPE; perlu validasi klinis dan target oleh pengelola indikator.',
-        created_by: authData.user.id,
-        updated_by: authData.user.id,
-      })
-      if (ruleError) throw ruleError
       setGapDraft(null)
       setNotice('Draf indikator OPPE masuk ke master AUREKA dengan status draft/nonaktif. Setelah definisi ditelaah dan profil diterbitkan melalui Metadata, pemetaan dapat diaktifkan di tab Pemetaan indikator.')
       await load()
@@ -774,7 +759,7 @@ export default function OppeAuditWorkspace({
 
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">KESIMPULAN &amp; TINDAK LANJUT</div><h4>Catatan penilaian dan rencana pengembangan</h4><p>Nilai digunakan untuk umpan balik dan perbaikan profesional. Keputusan kewenangan klinis tidak dibuat secara otomatis dari skor ini.</p></div></div>
-              <label className="oppeField oppeWide"><span>Catatan evaluasi / alasan telaah / keputusan penilai</span><textarea value={form.assessmentNotes} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, assessmentNotes: e.target.value }))} placeholder="Cantumkan ringkasan diskusi, konteks kasus, faktor sistem, dan alasan keputusan penilaian." /></label>
+              <label className="oppeField oppeWide"><span>Catatan evaluasi / alasan telaah / keputusan penilai</span><textarea value={form.assessmentNotes} onChange={(e) => setForm((current) => ({ ...current, assessmentNotes: e.target.value }))} placeholder="Cantumkan ringkasan diskusi, konteks kasus, faktor sistem, dan alasan keputusan penilaian." /></label>
               <label className="oppeField oppeWide"><span>Rencana pengembangan / tindak lanjut</span><textarea value={form.developmentPlan} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, developmentPlan: e.target.value }))} placeholder="Tujuan perbaikan, tindakan, penanggung jawab dan waktu evaluasi ulang." /></label>
             </section>
           </main>
