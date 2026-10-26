@@ -241,8 +241,8 @@ export default function OppeAuditWorkspace({
       if (roomFilter != null) rQuery = rQuery.eq('room_id', roomFilter)
       const nextRules = await fetchAll(rQuery, 'Pemetaan OPPE')
 
-      let qQuery = q().from('quality_records').select('*').eq('profile_year', year).neq('status', 'archived').order('created_at', { ascending: false })
-      if (roomFilter != null) qQuery = qQuery.eq('room_id', roomFilter)
+      // Clinical scoring only needs the currently selected staff assessment unit; keep the full hospital scope for the master/rule lists.
+      let qQuery = q().from('quality_records').select('*').eq('profile_year', year).eq('room_id', form.roomId).neq('status', 'archived').order('created_at', { ascending: false })
       const nextRecords = await fetchAll(qQuery, 'Logbook mutu')
 
       const ids = nextRecords.map((record: any) => String(record.id)).filter(Boolean)
@@ -276,7 +276,7 @@ export default function OppeAuditWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [canManage, year, roomFilter])
+  }, [canManage, year, roomFilter, form.roomId])
 
   useEffect(() => { void load() }, [load])
 
@@ -311,6 +311,7 @@ export default function OppeAuditWorkspace({
     const channel = sb.channel(`oppe-live-${year}-${roomFilter ?? 'all'}`)
       .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'quality_records' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'quality_record_responses' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'oppe_assessments' }, refresh)
       .subscribe()
     const timer = window.setInterval(refresh, 60000)
     window.addEventListener('focus', refresh)
@@ -982,7 +983,7 @@ export default function OppeAuditWorkspace({
               ) : (
                 <div className="oppeClinicalList">{clinicalResultsForDisplay.map((item) => <ClinicalResultCard key={item.profileId} item={item} />)}</div>
               )}
-              <div className="oppeDataSummary"><span><b>{sourceRecordCount}</b> logbook tervalidasi pada unit/tahun</span><span><b>{clinicalResultsForDisplay.reduce((sum, item) => sum + item.observations, 0)}</b> observasi indikator yang terpakai</span><span><b>{clinicalResultsForDisplay.filter((item) => item.status === 'insufficient_data').length}</b> indikator belum cukup data</span></div>
+              <div className="oppeDataSummary"><span><b>{sourceRecordCount}</b> logbook tervalidasi pada unit/periode penilaian</span><span><b>{clinicalResultsForDisplay.reduce((sum, item) => sum + item.observations, 0)}</b> observasi indikator yang terpakai</span><span><b>{clinicalResultsForDisplay.filter((item) => item.status === 'insufficient_data').length}</b> indikator belum cukup data</span></div>
             </section>
 
             <section className="oppeGlass oppeSection">
@@ -1134,7 +1135,7 @@ export default function OppeAuditWorkspace({
         <h3>I. Perilaku profesional</h3><PrintManualTable items={form.behavior} />
         <h3>II. Pengembangan profesionalisme</h3><PrintManualTable items={professionalismForScore} />
         <h3>III. Kinerja klinis/profesional</h3>
-        <table className="oppePrintTable"><thead><tr><th>Kode</th><th>Indikator</th><th>N/D atau rerata</th><th>Capaian</th><th>Target</th><th>Jumlah observasi</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody>{clinicalResults.map((item) => <tr key={item.profileId}><td>{item.code}</td><td>{item.title}</td><td>{item.rate !== null ? `${fmtNum(item.numerator)}/${fmtNum(item.denominator)}` : fmtNum(item.numericMean)}</td><td>{fmtPct(item.rate)}</td><td>{item.targetText || '—'}</td><td>{item.observations}</td><td>{item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target' : item.status === 'manual_review' ? 'Telaah manual' : 'Data belum memadai'}</td><td>{item.reason}</td></tr>)}</tbody></table>
+        <table className="oppePrintTable"><thead><tr><th>Kode</th><th>Indikator</th><th>N/D atau rerata</th><th>Capaian</th><th>Target</th><th>Jumlah observasi</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody>{clinicalResultsForDisplay.map((item) => <tr key={item.profileId}><td>{item.code}</td><td>{item.title}</td><td>{item.rate !== null ? `${fmtNum(item.numerator)}/${fmtNum(item.denominator)}` : fmtNum(item.numericMean)}</td><td>{fmtPct(item.rate)}</td><td>{item.targetText || '—'}</td><td>{item.observations}</td><td>{item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target' : item.status === 'manual_review' ? 'Telaah manual' : 'Data belum memadai'}</td><td>{item.reason}</td></tr>)}</tbody></table>
         <h3>IV. Ringkasan hasil</h3>
         <table className="oppePrintMeta"><tbody><tr><th>Skor perilaku</th><td>{fmtPct(score.behavior.score)}</td><th>Skor pengembangan</th><td>{fmtPct(score.professionalism.score)}</td></tr><tr><th>Skor klinis</th><td>{fmtPct(score.clinical.score)}</td><th>Total OPPE</th><td>{fmtPct(score.overall)} · {score.category}</td></tr></tbody></table>
         <p><strong>Metode:</strong> {score.method}</p>
