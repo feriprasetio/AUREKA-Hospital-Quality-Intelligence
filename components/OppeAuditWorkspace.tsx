@@ -7,6 +7,7 @@ import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   buildOppeScore,
   evaluateClinicalIndicator,
+  isInPeriod,
   professionMatches,
   recordFields,
   type ClinicalIndicatorResult,
@@ -364,18 +365,48 @@ export default function OppeAuditWorkspace({
     record.status === 'validated'
     && Number(record.room_id) === Number(form.roomId)
     && Number(record.profile_year) === Number(form.year)
-  ).length, [records, form.roomId, form.year])
+    && isInPeriod(record, form.year, form.quarter)
+  ).length, [records, form.roomId, form.year, form.quarter])
 
   const activeClinicalRules = rules.filter((rule) =>
     rule.status === 'active' && rule.is_oppe_eligible && (roomFilter == null || Number(rule.room_id) === Number(roomFilter))
   ).length
 
+  const hasCurrentFormContent = () => !!(
+    form.id
+    || form.staffName.trim()
+    || form.staffIdentifier.trim()
+    || form.profession.trim()
+    || form.behavior.some((item) => item.status !== 'pending' || item.count.trim() || item.evidence.trim() || item.notes.trim())
+    || form.professionalism.some((item) => item.status !== 'pending' || item.count.trim() || item.evidence.trim() || item.notes.trim())
+    || form.assessmentNotes.trim()
+    || form.developmentPlan.trim()
+  )
+
+  const confirmLeavingForm = () => {
+    if (!hasCurrentFormContent()) return true
+    return typeof window === 'undefined' || window.confirm('Formulir OPPE yang sedang terbuka akan ditinggalkan. Simpan draf terlebih dahulu jika ingin mempertahankan perubahan. Lanjutkan?')
+  }
+
   const resetNew = () => {
+    if (!confirmLeavingForm()) return
     const nextRoom = roomFilter ?? initialRoom
-    setForm(defaultForm(nextRoom, year, quarter))
+    setForm(defaultForm(nextRoom, year, quarter, form.evaluatorName))
     setScreen('assessment')
     setNotice('')
     setError('')
+  }
+
+  const changeScope = (nextYear: number, nextQuarter: number, nextRoom: number | null) => {
+    if (!confirmLeavingForm()) return
+    const nextFormRoom = nextRoom ?? (form.roomId || initialRoom)
+    setYear(nextYear)
+    setQuarter(nextQuarter)
+    setRoomFilter(nextRoom)
+    setForm(defaultForm(nextFormRoom, nextYear, nextQuarter, form.evaluatorName))
+    setScreen('assessment')
+    setError('')
+    setNotice('Periode/unit berubah. Formulir baru dibuka agar identitas, data klinis, dan skor tidak terbawa ke periode atau unit lain.')
   }
 
   const openSaved = (assessment: SavedAssessment) => {
@@ -432,8 +463,8 @@ export default function OppeAuditWorkspace({
         return `Sumber bukti wajib diisi untuk “${item.label}”.`
       }
     }
-    if (score.clinical.score === null || !score.clinical.complete) {
-      return 'Komponen kinerja klinis belum dapat difinalkan. Periksa pemetaan indikator, atribusi nakes, target, minimum observasi, dan data logbook tervalidasi.'
+    if ((score.clinical.score === null || !score.clinical.complete) && form.assessmentNotes.trim().length < 10) {
+      return 'Komponen kinerja klinis belum lengkap. Tambahkan catatan minimal 10 karakter tentang gap data/pemetaan/atribusi sebelum mengirim penilaian parsial untuk ditelaah.'
     }
     return ''
   }
@@ -811,9 +842,9 @@ export default function OppeAuditWorkspace({
       {notice && <div className="oppeNotice oppeSuccess" role="status">{notice}</div>}
 
       <section className="oppeGlass oppeFilters">
-        <label className="oppeField"><span>Tahun</span><select value={year} onChange={(e) => { const next = Number(e.target.value); setYear(next); setForm((current) => ({ ...current, year: next, id: null, status: 'draft' })) }}>{years.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="oppeField"><span>Periode penilaian</span><select value={quarter} onChange={(e) => { const next = Number(e.target.value); setQuarter(next); setForm((current) => ({ ...current, quarter: next, id: null, status: 'draft' })) }}>{quarters.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-        <label className="oppeField"><span>Unit kerja</span><select value={roomFilter ?? ''} onChange={(e) => { const value = e.target.value === '' ? null : Number(e.target.value); setRoomFilter(value); if (value != null) setForm((current) => ({ ...current, roomId: value, id: null, status: 'draft' })) }}><option value="">Semua unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label className="oppeField"><span>Tahun</span><select value={year} onChange={(e) => changeScope(Number(e.target.value), quarter, roomFilter)}>{years.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="oppeField"><span>Periode penilaian</span><select value={quarter} onChange={(e) => changeScope(year, Number(e.target.value), roomFilter)}>{quarters.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+        <label className="oppeField"><span>Unit kerja</span><select value={roomFilter ?? ''} onChange={(e) => changeScope(year, quarter, e.target.value === '' ? null : Number(e.target.value))}><option value="">Semua unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         <div className="oppeFilterMeta">{loading ? 'Memuat data…' : `${records.filter((record) => record.status === 'validated').length} logbook tervalidasi pada tahun ${year} · ${selectedRuleCount} aturan OPPE aktif`}</div>
       </section>
 
