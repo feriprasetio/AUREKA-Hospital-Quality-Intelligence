@@ -543,7 +543,7 @@ export default function OppeAuditWorkspace({
         setError('Catatan dasar pemetaan minimal 10 karakter agar keputusan atribusi dapat diaudit.')
         return
       }
-      if (ruleDraft.measurementMethod !== 'manual_review' && !String(ruleProfile.target_text || '').trim() && ruleProfile.target_value == null) {
+      if (ruleDraft.measurementMethod !== 'manual_review' && /target\\s+(dikaji|akan\\s+dikaji|belum\\s+ditetapkan)|target\\s+absolut/i.test(String(ruleProfile.target_text || ''))) {\n        setError('Target master masih berupa placeholder atau belum disepakati. Verifikasi target numerik/arah target di Metadata sebelum mengaktifkan skor otomatis.')\n        return\n      }\n      if (ruleDraft.measurementMethod !== 'manual_review' && !String(ruleProfile.target_text || '').trim() && ruleProfile.target_value == null) {
         setError('Target belum tersedia. Lengkapi/verifikasi master indikator sebelum mengaktifkan skor otomatis.')
         return
       }
@@ -553,8 +553,11 @@ export default function OppeAuditWorkspace({
       }
       if (ruleDraft.measurementMethod === 'option_response') {
         const opts = Array.isArray(ruleProfile.options_json) ? ruleProfile.options_json : []
-        if (!opts.some((option: any) => typeof option?.numerator === 'boolean' && typeof option?.denominator === 'boolean')) {
-          setError('Opsi respons belum memiliki pemetaan numerator/denominator yang eksplisit. Pilih Telaah Manual atau lengkapi definisi opsi pada master.')
+        const validOptions = opts.filter((option: any) => typeof option?.numerator === 'boolean' && typeof option?.denominator === 'boolean')
+        const hasPass = validOptions.some((option: any) => option.denominator === true && option.numerator === true)
+        const hasFail = validOptions.some((option: any) => option.denominator === true && option.numerator === false)
+        if (!hasPass || !hasFail) {
+          setError('Opsi respons harus mempunyai pemetaan eksplisit untuk kondisi memenuhi target (N=true, D=true) dan tidak memenuhi target (N=false, D=true). Metadata yang belum konsisten tidak boleh diaktifkan untuk skor otomatis.')
           return
         }
       }
@@ -897,7 +900,7 @@ export default function OppeAuditWorkspace({
         <p><strong>Metode:</strong> {score.method}</p>
         <p><strong>Catatan evaluasi:</strong> {form.assessmentNotes || '—'}</p>
         <p><strong>Rencana pengembangan:</strong> {form.developmentPlan || '—'}</p>
-        <div className="oppePrintSignatures"><div>Mengetahui,<br/>Ketua Sub Komite Mutu Profesi<br/><br/><br/>________________________</div><div>Penilai,<br/>Kepala KSM / evaluator<br/><br/><br/>________________________</div><div>Menyetujui,<br/>Ketua Komite / pejabat berwenang<br/><br/><br/>________________________</div></div>
+        <div className="oppePrintSignatures"><div>Mengetahui,<br/>Ketua Sub Komite Mutu Profesi<br/><br/><br/>________________________</div><div>Penilai,<br/>Kepala KSM / evaluator<br/><br/><br/>________________________</div><div>Menyetujui,<br/>Ketua Komite Medik<br/><br/><br/>________________________</div><div>Menyetujui,<br/>Kepala Bidang Pelayanan Medik dan Keperawatan<br/><br/><br/>________________________</div></div>
         <p className="oppePrintFoot">Dokumen internal. Skor OPPE merupakan ringkasan penilaian dan bukan keputusan otomatis tentang kewenangan klinis. Indikator tim/unit tidak dimasukkan ke skor individu tanpa atribusi terverifikasi.</p>
       </section>
     </section>
@@ -1038,7 +1041,7 @@ const CSS = `
   .oppePrintTable,.oppePrintMeta{border-collapse:collapse;width:100%;table-layout:auto}
   .oppePrintTable th,.oppePrintTable td,.oppePrintMeta th,.oppePrintMeta td{border:1px solid #777;padding:5px;text-align:left;vertical-align:top;white-space:normal;overflow-wrap:anywhere}
   .oppePrintTable th,.oppePrintMeta th{background:#f1f1f1}
-  .oppePrintSignatures{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:35px;text-align:center;line-height:1.5;page-break-inside:avoid}
+  .oppePrintSignatures{display:grid;grid-template-columns:repeat(2,1fr);gap:24px 20px;margin-top:35px;text-align:center;line-height:1.5;page-break-inside:avoid}
   .oppePrintFoot{font-size:8pt;margin-top:20px}
   @page{size:A4 portrait;margin:12mm}
 }
