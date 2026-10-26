@@ -463,6 +463,8 @@ export default function OppeAuditWorkspace({
     if (!confirmLeavingForm()) return
     const nextRoom = roomFilter ?? initialRoom
     setForm(defaultForm(nextRoom, year, quarter, form.evaluatorName))
+    setSavedClinicalSnapshot(null)
+    setSavedScoreSnapshot(null)
     setScreen('assessment')
     setNotice('')
     setError('')
@@ -475,12 +477,17 @@ export default function OppeAuditWorkspace({
     setQuarter(nextQuarter)
     setRoomFilter(nextRoom)
     setForm(defaultForm(nextFormRoom, nextYear, nextQuarter, form.evaluatorName))
+    setSavedClinicalSnapshot(null)
+    setSavedScoreSnapshot(null)
     setScreen('assessment')
     setError('')
     setNotice('Periode/unit berubah. Formulir baru dibuka agar identitas, data klinis, dan skor tidak terbawa ke periode atau unit lain.')
   }
 
   const openSaved = (assessment: SavedAssessment) => {
+    setSavedClinicalSnapshot(Array.isArray(assessment.clinical_snapshot_json) ? assessment.clinical_snapshot_json as ClinicalIndicatorResult[] : null)
+    const savedScore = asObject(assessment.score_json)
+    setSavedScoreSnapshot(Object.keys(savedScore).length ? savedScore as ReturnType<typeof buildOppeScore> : null)
     setForm({
       id: assessment.id,
       roomId: Number(assessment.room_id),
@@ -580,13 +587,17 @@ export default function OppeAuditWorkspace({
           throw new Error('Validasi harus dilakukan oleh evaluator yang berbeda dari pembuat OPPE untuk menjaga independensi penilaian.')
         }
       }
-      const clinicalSnapshot = clinicalResults
-      const scoreSnapshot = buildOppeScore({
-        behavior: form.behavior,
-        professionalism: form.professionalism,
-        clinical: clinicalSnapshot,
-        quarter: form.quarter,
-      })
+      const clinicalSnapshot = nextStatus === 'validated' && savedClinicalSnapshot
+        ? savedClinicalSnapshot
+        : clinicalResults
+      const scoreSnapshot = nextStatus === 'validated' && savedScoreSnapshot
+        ? savedScoreSnapshot
+        : buildOppeScore({
+            behavior: form.behavior,
+            professionalism: professionalismForScore,
+            clinical: clinicalSnapshot,
+            quarter: form.quarter,
+          })
       const key = keyName(form.staffIdentifier.trim() || form.staffName)
       if (!key) throw new Error('Identitas tenaga kesehatan tidak valid.')
       const payload: Record<string, any> = {
@@ -599,7 +610,7 @@ export default function OppeAuditWorkspace({
         period_quarter: form.quarter,
         status: nextStatus,
         behavior_json: form.behavior,
-        professionalism_json: form.professionalism,
+        professionalism_json: professionalismForScore,
         clinical_snapshot_json: clinicalSnapshot,
         score_json: scoreSnapshot,
         source_records_count: sourceRecordCount,
@@ -641,6 +652,8 @@ export default function OppeAuditWorkspace({
         }
       }
       setForm((current) => ({ ...current, id: savedId, status: nextStatus }))
+      setSavedClinicalSnapshot(clinicalSnapshot)
+      setSavedScoreSnapshot(scoreSnapshot)
       setNotice(nextStatus === 'draft' ? 'Draf OPPE berhasil disimpan.' :
         nextStatus === 'submitted' ? 'OPPE berhasil disubmit untuk validasi.' :
           nextStatus === 'validated' ? 'OPPE berhasil divalidasi dan snapshot penilaiannya tersimpan.' : 'OPPE dikembalikan untuk perbaikan.')
@@ -959,12 +972,12 @@ export default function OppeAuditWorkspace({
 
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">RANAH III</div><h4>Kinerja klinis / profesional otomatis</h4><p>Indikator berasal dari master AUREKA. Hanya data tervalidasi dengan aturan atribusi nakes aktif dan minimum observasi yang cukup yang memengaruhi skor.</p></div><span className="oppeDomainScore">{fmtPct(score.clinical.score)}</span></div>
-              {clinicalResults.length === 0 ? (
+              {clinicalResultsForDisplay.length === 0 ? (
                 <div className="oppeEmpty"><strong>Belum ada indikator klinis yang terhubung ke profesi ini.</strong><span>Pastikan nama dan profesi benar, pilih unit yang sesuai, lalu atur indikator pada tab Pemetaan indikator. Indikator unit/tim tidak otomatis dimasukkan ke skor individu.</span><button type="button" className="oppeBtn" onClick={() => setScreen('rules')}>Buka pemetaan indikator</button></div>
               ) : (
-                <div className="oppeClinicalList">{clinicalResults.map((item) => <ClinicalResultCard key={item.profileId} item={item} />)}</div>
+                <div className="oppeClinicalList">{clinicalResultsForDisplay.map((item) => <ClinicalResultCard key={item.profileId} item={item} />)}</div>
               )}
-              <div className="oppeDataSummary"><span><b>{sourceRecordCount}</b> logbook tervalidasi pada unit/tahun</span><span><b>{clinicalResults.reduce((sum, item) => sum + item.observations, 0)}</b> observasi indikator yang terpakai</span><span><b>{clinicalResults.filter((item) => item.status === 'insufficient_data').length}</b> indikator belum cukup data</span></div>
+              <div className="oppeDataSummary"><span><b>{sourceRecordCount}</b> logbook tervalidasi pada unit/tahun</span><span><b>{clinicalResultsForDisplay.reduce((sum, item) => sum + item.observations, 0)}</b> observasi indikator yang terpakai</span><span><b>{clinicalResultsForDisplay.filter((item) => item.status === 'insufficient_data').length}</b> indikator belum cukup data</span></div>
             </section>
 
             <section className="oppeGlass oppeSection">
@@ -1114,7 +1127,7 @@ export default function OppeAuditWorkspace({
           <tr><th>Evaluator</th><td>{form.evaluatorName || '—'}</td><th>Status</th><td>{statusLabel[form.status] || form.status}</td></tr>
         </tbody></table>
         <h3>I. Perilaku profesional</h3><PrintManualTable items={form.behavior} />
-        <h3>II. Pengembangan profesionalisme</h3><PrintManualTable items={form.professionalism} />
+        <h3>II. Pengembangan profesionalisme</h3><PrintManualTable items={professionalismForScore} />
         <h3>III. Kinerja klinis/profesional</h3>
         <table className="oppePrintTable"><thead><tr><th>Kode</th><th>Indikator</th><th>N/D atau rerata</th><th>Capaian</th><th>Target</th><th>Jumlah observasi</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody>{clinicalResults.map((item) => <tr key={item.profileId}><td>{item.code}</td><td>{item.title}</td><td>{item.rate !== null ? `${fmtNum(item.numerator)}/${fmtNum(item.denominator)}` : fmtNum(item.numericMean)}</td><td>{fmtPct(item.rate)}</td><td>{item.targetText || '—'}</td><td>{item.observations}</td><td>{item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target' : item.status === 'manual_review' ? 'Telaah manual' : 'Data belum memadai'}</td><td>{item.reason}</td></tr>)}</tbody></table>
         <h3>IV. Ringkasan hasil</h3>
