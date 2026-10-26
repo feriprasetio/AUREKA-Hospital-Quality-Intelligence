@@ -723,7 +723,9 @@ export default function OppeAuditWorkspace({
           oppe_responsibility_field: gapDraft.responsibilityField.trim(),
           oppe_gap_status: 'draft',
           oppe_gap_notes: gapDraft.notes.trim(),
-          fields: gapDraft.measurementGrain === 'patient_episode'\n            ? ['record_date', 'patient_name', 'medical_record_no', 'diagnosis', gapDraft.responsibilityField.trim(), 'status']\n            : ['record_date', 'activity', gapDraft.responsibilityField.trim(), 'numerator', 'denominator', 'notes'],
+          fields: gapDraft.measurementGrain === 'patient_episode'
+            ? ['record_date', 'patient_name', 'medical_record_no', 'diagnosis', gapDraft.responsibilityField.trim(), 'status']
+            : ['record_date', 'activity', gapDraft.responsibilityField.trim(), 'numerator', 'denominator', 'notes'],
         },
         options_json: [
           { label: 'Sesuai / memenuhi definisi indikator', code: 1, numerator: true, denominator: true },
