@@ -546,7 +546,8 @@ export default function OppeAuditWorkspace({
       if (ruleDraft.measurementMethod !== 'manual_review' && /target\s+(dikaji|akan\s+dikaji|belum\s+ditetapkan)|target\s+absolut/i.test(String(ruleProfile.target_text || ''))) {
         setError('Target master masih berupa placeholder atau belum disepakati. Verifikasi target numerik/arah target di Metadata sebelum mengaktifkan skor otomatis.')
         return
-      }\n      if (ruleDraft.measurementMethod !== 'manual_review' && !String(ruleProfile.target_text || '').trim() && ruleProfile.target_value == null) {
+      }
+      if (ruleDraft.measurementMethod !== 'manual_review' && !String(ruleProfile.target_text || '').trim() && ruleProfile.target_value == null) {
         setError('Target belum tersedia. Lengkapi/verifikasi master indikator sebelum mengaktifkan skor otomatis.')
         return
       }
