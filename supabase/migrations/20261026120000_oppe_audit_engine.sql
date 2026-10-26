@@ -161,18 +161,111 @@ with check (
   and updated_by = auth.uid()
 );
 
+create table if not exists aureka_quality.oppe_assessment_events (
+  id uuid primary key default gen_random_uuid(),
+  assessment_id uuid not null references aureka_quality.oppe_assessments(id) on delete cascade,
+  event_type text not null check (event_type in ('created', 'draft_saved', 'submitted', 'validated', 'reopened', 'archived', 'updated')),
+  from_status text,
+  to_status text not null,
+  actor_id uuid references auth.users(id),
+  source_records_count integer not null default 0 check (source_records_count >= 0),
+  score_snapshot_json jsonb not null default '{}'::jsonb check (jsonb_typeof(score_snapshot_json) = 'object'),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists oppe_assessment_events_assessment_created_idx
+  on aureka_quality.oppe_assessment_events (assessment_id, created_at desc);
+
+alter table aureka_quality.oppe_assessment_events enable row level security;
+grant select on aureka_quality.oppe_assessment_events to authenticated;
+revoke insert, update, delete on aureka_quality.oppe_assessment_events from anon, authenticated;
+
+drop policy if exists oppe_assessment_events_manager_read on aureka_quality.oppe_assessment_events;
+create policy oppe_assessment_events_manager_read
+on aureka_quality.oppe_assessment_events for select to authenticated
+using (
+  aureka_system.can_manage_oppe()
+  and exists (
+    select 1
+    from aureka_quality.oppe_assessments assessment
+    where assessment.id = assessment_id
+      and aureka_system.has_quality_room_access(assessment.room_id)
+  )
+);
+
+create or replace function aureka_quality.log_oppe_assessment_event()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, aureka_quality, auth
+as $
+declare
+  v_event_type text;
+  v_from_status text;
+  v_actor uuid;
+begin
+  if tg_op = 'INSERT' then
+    v_from_status := null;
+    v_event_type := case new.status
+      when 'submitted' then 'submitted'
+      when 'validated' then 'validated'
+      when 'reopened' then 'reopened'
+      when 'archived' then 'archived'
+      else 'created'
+    end;
+  else
+    v_from_status := old.status;
+    v_event_type := case
+      when old.status is distinct from new.status then
+        case new.status
+          when 'draft' then 'draft_saved'
+          when 'submitted' then 'submitted'
+          when 'validated' then 'validated'
+          when 'reopened' then 'reopened'
+          when 'archived' then 'archived'
+          else 'updated'
+        end
+      when new.status = 'draft' then 'draft_saved'
+      else 'updated'
+    end;
+  end if;
+
+  v_actor := coalesce(auth.uid(), new.updated_by, new.created_by);
+  insert into aureka_quality.oppe_assessment_events (
+    assessment_id, event_type, from_status, to_status, actor_id,
+    source_records_count, score_snapshot_json
+  ) values (
+    new.id, v_event_type, v_from_status, new.status, v_actor,
+    new.source_records_count, coalesce(new.score_json, '{}'::jsonb)
+  );
+  return new;
+end;
+$;
+
+revoke all on function aureka_quality.log_oppe_assessment_event() from public;
+
+drop trigger if exists oppe_assessment_event_after_insert on aureka_quality.oppe_assessments;
+create trigger oppe_assessment_event_after_insert
+after insert on aureka_quality.oppe_assessments
+for each row execute function aureka_quality.log_oppe_assessment_event();
+
+drop trigger if exists oppe_assessment_event_after_update on aureka_quality.oppe_assessments;
+create trigger oppe_assessment_event_after_update
+after update on aureka_quality.oppe_assessments
+for each row execute function aureka_quality.log_oppe_assessment_event();
+
 create or replace function aureka_quality.touch_oppe_audit_row()
 returns trigger
 language plpgsql
 security invoker
 set search_path = pg_catalog, aureka_quality, auth
-as $$
+as $
 begin
   new.updated_at := now();
   new.updated_by := auth.uid();
   return new;
 end;
-$$;
+$;
 
 drop trigger if exists oppe_indicator_rules_touch_updated_at on aureka_quality.oppe_indicator_rules;
 create trigger oppe_indicator_rules_touch_updated_at
@@ -188,5 +281,7 @@ comment on table aureka_quality.oppe_indicator_rules is
   'Versioned-by-profile OPPE eligibility and attribution rules; automatic scoring requires explicit, reviewed configuration.';
 comment on table aureka_quality.oppe_assessments is
   'OPPE periodic assessments, manual evidence, validated-record clinical score snapshots, and review workflow.';
+comment on table aureka_quality.oppe_assessment_events is
+  'Append-only lifecycle events for OPPE assessments, including actor, status transitions, source counts, and score snapshots.';
 
 commit;
