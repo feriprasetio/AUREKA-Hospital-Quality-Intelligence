@@ -110,7 +110,7 @@ const defaultBehavior = (): ManualAssessmentItem[] => [
   { id: 'management_complaints', label: 'Keluhan/temuan manajemen yang telah diverifikasi', target: 'Trigger referensi formulir revisi: ≥ 1 kali; wajib telaah konteks', status: 'pending', count: '', evidence: '', notes: '' },
 ]
 const defaultProfessionalism = (): ManualAssessmentItem[] => [
-  { id: 'meetings_annual', label: 'Pertemuan ilmiah/profesi dalam tahun berjalan', target: 'Target tahunan ≥ 3 kali; dipantau kumulatif dan baru dinilai final pada Triwulan IV', status: 'pending', count: '', evidence: '', notes: '' },
+  { id: 'meetings_annual', label: 'Jumlah pertemuan ilmiah/profesi yang dihadiri pada triwulan ini', target: 'Target tahunan ≥ 3 kali; jumlah per triwulan dijumlah otomatis pada Triwulan IV', status: 'pending', count: '', evidence: '', notes: '' },
   { id: 'quality_contribution', label: 'Pelaksanaan tugas pengembangan mutu/profesi pada periode ini', target: 'Target referensi formulir revisi: ≥ 1 kegiatan/periode', status: 'pending', count: '', evidence: '', notes: '' },
 ]
 const defaultForm = (roomId: number, year: number, quarter: number, evaluatorName = ''): FormState => ({
@@ -171,6 +171,7 @@ const statusOptions: Array<{ value: ManualAssessmentItem['status']; label: strin
   { value: 'good', label: 'Baik / memenuhi' },
   { value: 'needs_review', label: 'Perlu telaah / tindak lanjut' },
   { value: 'na', label: 'Tidak berlaku (dengan alasan)' },
+  { value: 'insufficient_data', label: 'Data belum memadai' },
 ]
 
 export default function OppeAuditWorkspace({
