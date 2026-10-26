@@ -7,6 +7,7 @@ import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   buildOppeScore,
   evaluateClinicalIndicator,
+  professionMatches,
   recordFields,
   type ClinicalIndicatorResult,
   type ManualAssessmentItem,
@@ -283,13 +284,14 @@ export default function OppeAuditWorkspace({
       .filter((profile) => Number(profile.room_id) === Number(form.roomId))
       .map((profile) => {
         const rule = activeRuleMap.get(String(profile.id))
-        if (!rule || norm(rule.profession_label) !== norm(form.profession)) return null
+        if (!rule || !professionMatches(rule.profession_label, form.profession)) return null
         return evaluateClinicalIndicator({
           profile: profile as OppeProfile,
           rule,
           records,
           responseRows,
           staffName: form.staffName,
+          profession: form.profession,
           year: form.year,
           quarter: form.quarter,
         })
