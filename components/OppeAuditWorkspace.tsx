@@ -589,6 +589,7 @@ export default function OppeAuditWorkspace({
 
   const startRuleEdit = (profile: any, existing: OppeRule | null) => {
     const layout = layoutForRoom(Number(profile.room_id))
+    const hasExistingMapping = rules.some((rule) => rule.profile_id === String(profile.id))
     setRuleProfile(profile)
     setRuleDraft({
       ruleId: existing?.id ? String(existing.id) : null,
@@ -596,8 +597,8 @@ export default function OppeAuditWorkspace({
       profileYear: Number(profile.profile_year),
       roomId: Number(profile.room_id),
       eligible: existing?.is_oppe_eligible ?? false,
-      professionLabel: existing?.profession_label || String(profile.schema_json?.oppe_profession_label || groupForTitle(profile.title) || ''),
-      responsibilityField: existing?.responsibility_field || String(profile.schema_json?.oppe_responsibility_field || suggestedField(profile, layout)),
+      professionLabel: existing?.profession_label || (hasExistingMapping ? '' : String(profile.schema_json?.oppe_profession_label || groupForTitle(profile.title) || '')),
+      responsibilityField: existing?.responsibility_field || (hasExistingMapping ? '' : String(profile.schema_json?.oppe_responsibility_field || suggestedField(profile, layout))),
       measurementMethod: existing?.measurement_method || 'manual_review',
       minimumObservations: Number(existing?.minimum_observations || 5),
       criticality: existing?.criticality || 'standard',
