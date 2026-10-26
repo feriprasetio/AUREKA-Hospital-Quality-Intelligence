@@ -22,7 +22,7 @@ grant execute on function aureka_system.can_manage_oppe() to authenticated;
 
 create table if not exists aureka_quality.oppe_indicator_rules (
   id uuid primary key default gen_random_uuid(),
-  profile_id uuid not null unique references aureka_quality.indicator_profiles(id) on delete cascade,
+  profile_id uuid not null references aureka_quality.indicator_profiles(id) on delete cascade,
   room_id bigint not null references public.master_rooms(id),
   profile_year integer not null check (profile_year between 2000 and 2200),
   is_oppe_eligible boolean not null default false,
@@ -47,6 +47,13 @@ create table if not exists aureka_quality.oppe_indicator_rules (
     )
   )
 );
+
+create unique index if not exists oppe_indicator_rules_profile_profession_responsibility_uidx
+  on aureka_quality.oppe_indicator_rules (
+    profile_id,
+    lower(btrim(profession_label)),
+    lower(btrim(responsibility_field))
+  );
 
 create index if not exists oppe_indicator_rules_room_year_status_idx
   on aureka_quality.oppe_indicator_rules (room_id, profile_year, status, is_oppe_eligible);
