@@ -8,7 +8,6 @@ import {
   buildOppeScore,
   evaluateClinicalIndicator,
   recordFields,
-  scoreCategory,
   type ClinicalIndicatorResult,
   type ManualAssessmentItem,
   type OppeProfile,
@@ -315,7 +314,6 @@ export default function OppeAuditWorkspace({
   const activeClinicalRules = rules.filter((rule) =>
     rule.status === 'active' && rule.is_oppe_eligible && (roomFilter == null || Number(rule.room_id) === Number(roomFilter))
   ).length
-  const profileById = useMemo(() => new Map(profiles.map((profile) => [String(profile.id), profile])), [profiles])
 
   const resetNew = () => {
     const nextRoom = roomFilter ?? initialRoom
