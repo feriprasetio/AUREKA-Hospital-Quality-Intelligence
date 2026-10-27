@@ -908,7 +908,6 @@ export default function OppeAuditWorkspace({
   }
 
   const selectedRuleCount = activeRuleCount
-  const currentReadOnly = form.status === 'submitted' || form.status === 'validated'
   const scoreStatus = score.overall === null ? 'Belum dapat dihitung' : score.needsReview ? 'Memerlukan telaah khusus' : score.complete ? 'Siap ditinjau' : 'Nilai sementara'
 
   if (!canManage) {
