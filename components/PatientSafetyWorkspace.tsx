@@ -727,6 +727,41 @@ export default function PatientSafetyWorkspace({
   const renderInvestigationField = (field: IncidentField) => {
     const value = investigationData[field.code] || ''
     const wide = field.type === 'textarea'
+    const linkedIncident = incidents.find(row => row.id === investigationIncidentId)
+    const unitStaff = staffOptions.filter(staff => staff.room_name === (linkedIncident?.unit_name || ''))
+    if (field.code === '5') return <div className="psField full" key={field.code}>
+      <label className="psLabel">{field.code} · {field.label}</label>
+      <textarea rows={3} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Uraikan pihak yang terlibat; nama yang dipilih di bawah akan ditautkan ke ID AUREKA." />
+      <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',gap:8,marginTop:9,alignItems:'end'}}>
+        <label className="psField"><span className="psLabel">Tautkan tenaga yang terlibat</span>
+          <select value={investigationStaffToAdd} disabled={!canManageWorkflow || saving || !unitStaff.length} onChange={event => setInvestigationStaffToAdd(event.target.value)}>
+            <option value="">Pilih tenaga dari roster unit insiden…</option>
+            {unitStaff.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+          </select>
+        </label>
+        <button type="button" className="psBtn" disabled={!canManageWorkflow || saving || !investigationStaffToAdd} onClick={() => {
+          const staff = unitStaff.find(item => item.id === investigationStaffToAdd)
+          if (!staff) return
+          setInvestigationStaffIds(current => current.includes(staff.id) ? current : [...current, staff.id])
+          setInvestigationData(current => {
+            const oldText = String(current['5'] || '')
+            const hasName = oldText.split(/[\n;,]/).some(item => item.trim().toLocaleLowerCase('id') === staff.display_name.toLocaleLowerCase('id'))
+            return hasName ? current : { ...current, '5': oldText ? oldText + '\n' + staff.display_name : staff.display_name }
+          })
+          setInvestigationStaffToAdd('')
+        }}>Tambah tenaga</button>
+      </div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:7}}>
+        {investigationStaffIds.map(staffId => {
+          const staff = staffOptions.find(item => item.id === staffId)
+          return <span key={staffId} className="psPill blue" style={{display:'inline-flex',gap:7,alignItems:'center'}}>
+            {staff?.display_name || ('ID tenaga ' + staffId.slice(0,8))}
+            <button type="button" disabled={!canManageWorkflow || saving} aria-label="Lepaskan tautan identitas" onClick={() => setInvestigationStaffIds(current => current.filter(id => id !== staffId))} style={{border:0,background:'transparent',cursor:'pointer',fontWeight:900}}>×</button>
+          </span>
+        })}
+      </div>
+      <div className="psHint">Nama yang dipilih akan disimpan sebagai staff_id terpisah dari catatan teks. Survei budaya tetap anonim dan tidak ditautkan ke direktori.</div>
+    </div>
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel">{field.code} · {field.label}</label>
       {field.type === 'textarea' ?
@@ -739,7 +774,6 @@ export default function PatientSafetyWorkspace({
       }
     </div>
   }
-
   const renderSurveyScale = (code: string, options: { value: string; label: string; short?: string }[]) =>
     <div className="psScale" key={code}>{options.map(option =>
       <button type="button" key={option.value} className={surveyAnswers[code] === option.value ? 'selected' : ''}
