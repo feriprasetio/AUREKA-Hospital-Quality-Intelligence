@@ -47,6 +47,7 @@ type AuditRow = {
   unit_name?: string
 }
 type Room = { id: number; name: string }
+type StaffOption = { id: string; employee_code: string; display_name: string; profession_group: string; position_title: string; room_id: number; room_name: string }
 type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; userName: string; onBack: () => void }
 
 const sb = aurekaSupabase
@@ -271,6 +272,10 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [builderIsNew, setBuilderIsNew] = useState(false)
   const [builderReturnScreen, setBuilderReturnScreen] = useState<'library' | 'diagnosis'>('diagnosis')
   const [patientPanelCollapsed, setPatientPanelCollapsed] = useState(false)
+  const [teamStaff, setTeamStaff] = useState<StaffOption[]>([])
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [staffAttributions, setStaffAttributions] = useState<Record<string, string>>({})
+  const [savedStaffAttributions, setSavedStaffAttributions] = useState<Record<string, string>>({})
 
   const selectedTemplate = templates.find((x) => x.code === selectedCode) || catalog.find((x) => x.code === selectedCode) || null
   const roomNames = useMemo(() => new Map(rooms.map((r) => [Number(r.id), r.name])), [rooms])
@@ -281,6 +286,59 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     .filter((t) => isAdmin || t.status === 'published')
     .filter((t) => (t.name + ' ' + t.icd10 + ' ' + t.code).toLowerCase().includes(search.toLowerCase().trim()))
     .sort((a, b) => a.name.localeCompare(b.name, 'id')), [templates, search, isAdmin])
+
+  const loadTeamStaff = useCallback(async () => {
+    setStaffLoading(true)
+    try {
+      const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
+        .select('staff_id,room_id')
+        .eq('assignment_status', 'active')
+        .eq('is_locked', true)
+      if (assignmentError) throw assignmentError
+      const roomByStaff = new Map<string, number>(
+        ((assignmentRows || []) as Array<{staff_id: string; room_id: number}>).map((row) => [String(row.staff_id), Number(row.room_id)]),
+      )
+      const ids = Array.from(roomByStaff.keys())
+      const next: StaffOption[] = []
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const batch = ids.slice(offset, offset + 100)
+        const { data, error } = await q().from('staff_directory')
+          .select('id,employee_code,display_name,profession_group,position_title,directory_status')
+          .eq('directory_status', 'available')
+          .in('id', batch)
+          .order('display_name')
+        if (error) throw error
+        next.push(...(data || []).map((row: any) => {
+          const roomId = Number(roomByStaff.get(String(row.id)))
+          return { ...row, id: String(row.id), room_id: roomId, room_name: roomNames.get(roomId) || '' }
+        }).filter((staff: StaffOption) => staff.room_name))
+      }
+      setTeamStaff(next)
+    } catch {
+      setTeamStaff([])
+      setMessage('Direktori tenaga belum dapat dimuat. Pemetaan identitas PPA dan pelaksana tetap dibatasi sampai roster tim tersedia.')
+      setMessageKind('error')
+    } finally {
+      setStaffLoading(false)
+    }
+  }, [roomNames])
+
+  useEffect(() => { void loadTeamStaff() }, [loadTeamStaff])
+
+  const staffForProfession = useCallback((profession: string, roomId: number | null) => {
+    const low = String(profession || '').toLocaleLowerCase('id-ID')
+    const roster = teamStaff.filter((staff) => Number(staff.room_id) === Number(roomId))
+    if (/dokter|dpjp|physician|spesialis/.test(low)) return roster.filter((staff) => /dokter/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/perawat|nurse/.test(low)) return roster.filter((staff) => /perawat/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/bidan|midwife/.test(low)) return roster.filter((staff) => /bidan/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/apoteker|farmasi|pharmacist/.test(low)) return roster.filter((staff) => /kefarmasian|farmasi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/gizi|nutrisi|dietisien/.test(low)) return roster.filter((staff) => /gizi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/radiologi|radiographer/.test(low)) return roster.filter((staff) => /radiologi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/laboratorium|atlm|analis|laboratory/.test(low)) return roster.filter((staff) => /laboratorium/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/fisioterapi|terapi okupasi/.test(low)) return roster.filter((staff) => /terapi|fisioterapi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    const exact = roster.filter((staff) => staff.profession_group.toLocaleLowerCase('id-ID') === low)
+    return exact.length ? exact : roster
+  }, [teamStaff])
 
   const loadTemplates = useCallback(async () => {
     setLoading(true)
@@ -388,6 +446,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       clinical_data: {}, ppa_names: { dpjp: '' }, selected_items_json: {}, additional_phases_json: [], inclusion_json: {}, answers_json: {},
       variations_json: { reviewed: false, items: [] }, status: 'draft',
     })
+    setStaffAttributions({})
+    setSavedStaffAttributions({})
     setFocusedCell(null)
     setPatientPanelCollapsed(false)
     setMessage('')
@@ -403,6 +463,14 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       const fallback = templates.find((x) => x.code === row.template_code) || catalog.find((x) => x.code === row.template_code)
       if (!fallback) throw new Error('Master CP untuk audit ini tidak ditemukan.')
       setForm(fromDatabase(data, fallback, roomNames.get(Number(data.room_id)) || ''))
+      const { data: links, error: linkError } = await q().from('staff_entity_attributions')
+        .select('field_key,staff_id')
+        .eq('entity_type', 'clinical_pathway_audit')
+        .eq('entity_id', String(data.id))
+      if (linkError) throw linkError
+      const linked = Object.fromEntries((links || []).map((link: any) => [String(link.field_key), String(link.staff_id)]))
+      setStaffAttributions(linked)
+      setSavedStaffAttributions(linked)
       setSelectedCode(row.template_code)
       setFocusedCell(null)
       setPatientPanelCollapsed(false)
