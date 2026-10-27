@@ -396,6 +396,17 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      return {...p,formData,name,rm,admit,discharge,diagnosis,dpjp,age:ageValue===''||ageValue==null?null:Number(ageValue)}
    })
  }
+ const setStaffField=(field:string,staffId:string)=>{
+   const staff=staffOptions.find((item)=>item.id===staffId&&Number(item.room_id)===Number(selected?.roomId))
+   setSelected((p:any)=>{
+     if(!p)return p
+     const formData={...(p.formData??{}),[field]:staff?.display_name??''}
+     const staffIdByField={...(p.staffIdByField??{})}
+     if(staff)staffIdByField[field]=staff.id
+     else delete staffIdByField[field]
+     return {...p,formData,staffIdByField,dpjp:/dpjp|dokter/i.test(field)?(staff?.display_name??''):p.dpjp}
+   })
+ }
  const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
  const audit=(x:Audit)=>{const a=[x,...localRead<Audit[]>(AUDIT_KEY,[])].slice(0,500);localWrite(AUDIT_KEY,a);setAuditRows(a)}
 
@@ -452,6 +463,16 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      await q().from('quality_record_responses').delete().eq('record_id',recordId)
      const obs=applicable.map(p=>{const r=values[p.code];if(!r||!p.id)return null;return{record_id:recordId,indicator_id:p.id,response_label:r.answer??r.occurrence??null,response_code:r.code??null,raw_value:r,other_text:r.evidence??r.notes??null,review_status:r.answer==='Exception'?'pending':'not_required'}}).filter(Boolean)
      if(obs.length){const {error}=await q().from('quality_record_responses').insert(obs);if(error)warning=`Episode tersimpan, tetapi detail respons belum tersalin ke ledger respons: ${error.message}`}
+     const attributionRows=Object.entries(selected.staffIdByField??{})
+       .filter(([field,staffId])=>!!field&&!!staffId&&staffOptions.some((staff)=>staff.id===staffId&&Number(staff.room_id)===Number(selected.roomId)))
+       .map(([field,staffId])=>({record_id:recordId,staff_id:staffId,field_key:field,attribution_type:/dpjp|dokter/i.test(field)?'responsible_provider':'related_provider',created_by:user.id,updated_by:user.id}))
+     const {error:attributionDeleteError}=await q().from('quality_record_staff_attributions').delete().eq('record_id',recordId)
+     if(attributionDeleteError){
+       warning='Logbook tersimpan, tetapi tautan identitas tenaga lama tidak dapat diperbarui: '+attributionDeleteError.message
+     }else if(attributionRows.length){
+       const {error:attributionSaveError}=await q().from('quality_record_staff_attributions').insert(attributionRows)
+       if(attributionSaveError)warning='Logbook tersimpan, tetapi tautan identitas tenaga belum tersimpan: '+attributionSaveError.message
+     }
      backend=true
    }catch(e){
      const cached:Patient={...selected,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:'local'}
@@ -459,7 +480,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setSource('Cache lokal')
      warning=`Episode tersimpan di cache lokal karena backend belum menerima perubahan. ${e instanceof Error?e.message:''}`.trim()
    }
-   const saved:Patient={...selected,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
+   const saved:Patient={...selected,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
    setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
    audit({at:now,actor:'PIC / Pengguna Aktif',unit:selected.unit,patient:recordTitle(saved),indicator:`${Object.keys(values).length}/${applicable.length} indikator`,action:selected.recordId?'Ubah':'Isi',change:`Catatan logbook ${finalStatus}`})
    setSelected(saved);setPatientOpen(false);setMessage(warning||'Catatan tersimpan dan siap dilanjutkan.');setBusy(false)
@@ -500,12 +521,44 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    await load()
    setMessage(decision==='validated'?'Catatan mutu berhasil divalidasi.':'Catatan dikembalikan untuk perbaikan oleh PIC.')
  }
+ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penanggung jawab|radiografer|analis|atlm|terapis|apoteker|nutrisionis|dietisien|pemeriksa|pelaksana)/i.test(field)
+ const staffOptionsForField=(field:string)=>{
+   const options=staffOptions.filter((staff)=>Number(staff.room_id)===Number(selected?.roomId))
+   const n=normHeader(field)
+   if(/dokter|dpjp/.test(n))return options.filter((staff)=>/dokter/.test(staff.profession_group.toLowerCase())||/dokter|sp\./i.test(staff.position_title))
+   if(/perawat/.test(n))return options.filter((staff)=>staff.profession_group==='Perawat')
+   if(/bidan/.test(n))return options.filter((staff)=>staff.profession_group==='Bidan')
+   if(/apoteker|farmasi/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga kefarmasian')
+   if(/radiografer|radiologi/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga radiologi')
+   if(/analis|atlm|laboratorium/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga laboratorium')
+   if(/terapis|fisioterapi/.test(n))return options.filter((staff)=>staff.profession_group==='Fisioterapi/terapi okupasi')
+   if(/nutrisionis|dietisien|gizi/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga gizi')
+   return options
+ }
  const renderLogbookField=(field:string,i:number)=>{
    const kindNow=inputKind(field,selectedLayout),raw=inputFieldValue(selected??{},field,selectedLayout),wide=kindNow==='textarea'||field.length>66
    const groups=selectedLayout?.providerGroups??[]
    const currentClinic=String(selected?.formData?.['Klinik']??'')
-   const doctors=groups.find(g=>g.clinic===currentClinic)?.doctors??[]
-   return <label key={field+'-'+i} className="aqField" style={wide?{gridColumn:'1/-1'}:undefined}><span>{field}{kindNow==='computed'?' · otomatis':''}</span>{kindNow==='computed'?<div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?`${raw} hari`:normHeader(field)==='lamanya tindak lanjut'?`${raw} hari`:normHeader(field)==='kecepatan respon menit'?`${raw} menit`:String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>:kindNow==='textarea'?<textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>:kindNow==='select'&&normHeader(field)==='klinik'?<select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>:kindNow==='select'&&normHeader(field)==='dokter'?<select value={String(raw??'')} disabled={isValidator||!currentClinic} onChange={(e:any)=>setField(field,e.target.value)}><option value="">{currentClinic?'Pilih dokter':'Pilih klinik terlebih dahulu'}</option>{doctors.map(d=><option key={d} value={d}>{d}</option>)}</select>:<input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>}</label>
+   const staffField=isStaffNameField(field)&&kindNow!=='computed'
+   const staffCandidates=staffField?staffOptionsForField(field):[]
+   const selectedStaffId=String(selected?.staffIdByField?.[field]??'')
+   return <label key={field+'-'+i} className="aqField" style={wide?{gridColumn:'1/-1'}:undefined}>
+     <span>{field}{kindNow==='computed'?' · otomatis':''}{staffField?' · direktori AUREKA':''}</span>
+     {kindNow==='computed'
+       ? <div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?String(raw)+' hari':normHeader(field)==='lamanya tindak lanjut'?String(raw)+' hari':normHeader(field)==='kecepatan respon menit'?String(raw)+' menit':String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>
+       : staffField
+         ? <><select disabled={isValidator} value={selectedStaffId} onChange={(e:any)=>setStaffField(field,e.target.value)}>
+             <option value="">{selectedStaffId?'Identitas belum tersedia di roster unit':'Pilih tenaga yang terkunci pada tim ini…'}</option>
+             {staffCandidates.map((staff)=><option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+           </select>
+           <small className="aqMetaText">{selectedStaffId?'Identitas terhubung ke staff_id AUREKA.':raw?'Catatan lama: '+String(raw)+'. Pilih identitas kanonik untuk mengikat nama ke direktori.':staffCandidates.length?'Nama hanya dapat dipilih dari roster unit yang terkunci.':'Belum ada anggota roster yang cocok pada unit ini; tetapkan tenaga melalui Tim Tenaga Kerja.'}</small></>
+         : kindNow==='textarea'
+           ? <textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+           : kindNow==='select'&&normHeader(field)==='klinik'
+             ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>
+             : <input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+     }
+   </label>
  }
 
  return <div className="aq">
