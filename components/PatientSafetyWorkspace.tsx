@@ -672,10 +672,24 @@ export default function PatientSafetyWorkspace({
     const value = incidentData[field.code] || ''
     const disabled = incidentLocked || saving
     const wide = field.type === 'textarea' || field.type === 'radio'
+    const reporterOptions = staffOptions.filter(staff => staff.room_name === (incidentData.E2 || ''))
+    const reporterSelectValue = incidentStaffId || (value ? '__unmapped__' : '')
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel">{field.code} · {field.label} <span className="psRequired">*</span></label>
       {field.hint ? <div className="psHint">{field.hint}</div> : null}
-      {field.type === 'radio' ? <div className="psRadioGrid">
+      {field.code === 'E1' ? <><select value={reporterSelectValue} disabled={disabled} onChange={event => {
+        const value = event.target.value
+        if (value === '__external__') { setIncidentStaffId(''); setIncidentValue('E1', 'Pelapor bukan tenaga AUREKA / identitas belum dipetakan'); return }
+        const staff = reporterOptions.find(item => item.id === value)
+        setIncidentStaffId(staff?.id || '')
+        setIncidentValue('E1', staff?.display_name || '')
+      }}>
+        <option value="">Pilih pelapor dari roster terkunci unit…</option>
+        {value && !incidentStaffId ? <option value="__unmapped__" disabled>Nama lama belum terhubung ke identitas AUREKA</option> : null}
+        {reporterOptions.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+        <option value="__external__">Pelapor bukan tenaga AUREKA / identitas belum dapat dipetakan</option>
+      </select><div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
+      : field.type === 'radio' ? <div className="psRadioGrid">
         {(field.options || []).map(option => <label className="psRadio" key={option}>
           <input type="radio" name={'incident-' + field.code} value={option} checked={value === option} disabled={disabled}
             onChange={() => setIncidentValue(field.code, option)} />
@@ -692,7 +706,6 @@ export default function PatientSafetyWorkspace({
       }
     </div>
   }
-
   const renderInvestigationField = (field: IncidentField) => {
     const value = investigationData[field.code] || ''
     const wide = field.type === 'textarea'
