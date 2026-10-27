@@ -58,7 +58,7 @@ begin
           and other_assignment.is_locked = true
       )
     )
-  order by d.display_name collate "id-ID-x-icu", d.employee_code;
+  order by lower(d.display_name), d.employee_code;
 end;
 $function$;
 
