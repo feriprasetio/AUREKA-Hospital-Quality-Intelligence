@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'components/OppeAuditWorkspace.tsx'
+      - 'components/QualityHub.tsx'
+      - 'components/HomeClient.tsx'
       - 'lib/aureka/oppe-engine.ts'
       - 'components/QualityIndicatorWorkspace.tsx'
       - 'supabase/migrations/20261026120000_oppe_audit_engine.sql'
@@ -18,6 +20,8 @@ on:
       - fix/oppe-engine-hardening-20261027
     paths:
       - 'components/OppeAuditWorkspace.tsx'
+      - 'components/QualityHub.tsx'
+      - 'components/HomeClient.tsx'
       - 'lib/aureka/oppe-engine.ts'
       - 'components/QualityIndicatorWorkspace.tsx'
       - 'supabase/migrations/20261026120000_oppe_audit_engine.sql'
