@@ -74,7 +74,7 @@ create policy staff_entity_attr_insert_room
       from aureka_quality.staff_team_assignments a
       join aureka_quality.staff_directory d on d.id = a.staff_id
       join public.master_rooms mr on mr.id = a.room_id
-      where a.staff_id = staff_id
+      where a.staff_id = staff_entity_attributions.staff_id
         and a.assignment_status = 'active'
         and a.is_locked = true
         and d.directory_status = 'available'
@@ -106,7 +106,7 @@ create policy staff_entity_attr_update_room
       from aureka_quality.staff_team_assignments a
       join aureka_quality.staff_directory d on d.id = a.staff_id
       join public.master_rooms mr on mr.id = a.room_id
-      where a.staff_id = staff_id
+      where a.staff_id = staff_entity_attributions.staff_id
         and a.assignment_status = 'active'
         and a.is_locked = true
         and d.directory_status = 'available'
