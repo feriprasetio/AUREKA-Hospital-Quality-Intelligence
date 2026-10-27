@@ -259,7 +259,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = pg_catalog, aureka_quality, auth
-as $
+as $$
 declare
   v_allowed boolean := false;
 begin
@@ -326,7 +326,7 @@ begin
 
   return new;
 end;
-$;
+$$;
 
 revoke all on function aureka_quality.guard_oppe_assessment_transition() from public;
 
