@@ -23,6 +23,12 @@ type Staff = {
   updated_at: string
 }
 
+type StaffDraft = Pick<Staff,
+  'display_name' | 'normalized_name' | 'name_prefix' | 'credentials' |
+  'profession_group' | 'position_title' | 'source_unit' |
+  'directory_status' | 'review_note'
+>
+
 const statusLabel: Record<Staff['directory_status'], string> = {
   available: 'Siap dipetakan',
   needs_review: 'Perlu verifikasi',
@@ -69,6 +75,8 @@ export default function StaffDirectoryWorkspace() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
+  const [draft, setDraft] = useState<StaffDraft | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
@@ -100,6 +108,65 @@ export default function StaffDirectoryWorkspace() {
   const availableCount = rows.filter((row) => row.directory_status === 'available').length
   const reviewCount = rows.filter((row) => row.directory_status === 'needs_review').length
   const inactiveCount = rows.filter((row) => row.directory_status === 'inactive').length
+
+  const beginEdit = (staff: Staff) => {
+    setEditingStaff(staff)
+    setDraft({
+      display_name: staff.display_name,
+      normalized_name: staff.normalized_name,
+      name_prefix: staff.name_prefix,
+      credentials: staff.credentials,
+      profession_group: staff.profession_group,
+      position_title: staff.position_title,
+      source_unit: staff.source_unit,
+      directory_status: staff.directory_status,
+      review_note: staff.review_note,
+    })
+    setError('')
+    setMessage('')
+  }
+
+  const closeEdit = () => {
+    if (busy) return
+    setEditingStaff(null)
+    setDraft(null)
+  }
+
+  const saveEdit = async () => {
+    if (busy || !editingStaff || !draft) return
+    if (!draft.display_name.trim() || !draft.normalized_name.trim() || !draft.profession_group.trim()) {
+      setError('Nama tampilan, kunci nama, dan kelompok profesi wajib diisi.')
+      return
+    }
+    setBusy(true); setError(''); setMessage('')
+    try {
+      const { data: authData, error: authError } = await aurekaSupabase.auth.getUser()
+      if (authError || !authData.user) throw new Error('Sesi login tidak ditemukan. Silakan login ulang.')
+      const { error: updateError } = await q().from('staff_directory')
+        .update({
+          display_name: draft.display_name.trim(),
+          normalized_name: draft.normalized_name.trim().toLocaleLowerCase('id'),
+          name_prefix: draft.name_prefix.trim(),
+          credentials: draft.credentials.trim(),
+          profession_group: draft.profession_group.trim(),
+          position_title: draft.position_title.trim(),
+          source_unit: draft.source_unit.trim(),
+          directory_status: draft.directory_status,
+          review_note: draft.review_note.trim(),
+          updated_by: authData.user.id,
+        })
+        .eq('id', editingStaff.id)
+      if (updateError) throw new Error('Metadata tenaga tidak dapat disimpan: ' + updateError.message)
+      setMessage(`Metadata ${editingStaff.employee_code} berhasil diperbarui. Kode AUREKA dan ID riwayat tidak berubah.`)
+      setEditingStaff(null)
+      setDraft(null)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Perubahan metadata tidak berhasil disimpan.')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const changeStatus = async (staff: Staff, next: Staff['directory_status']) => {
     if (busy) return
@@ -241,6 +308,21 @@ export default function StaffDirectoryWorkspace() {
         .sdActionsCell{display:flex;gap:5px;flex-wrap:wrap}
         .sdMini{border:1px solid #d7e2db;background:#fff;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:850;cursor:pointer;color:#335143;white-space:nowrap}
         .sdMini:disabled{opacity:.55;cursor:wait}
+        .sdEditBackdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:rgba(17,33,25,.48);backdrop-filter:blur(8px)}
+        .sdEditDialog{width:min(880px,100%);max-height:min(92vh,920px);overflow:auto;padding:22px;border:1px solid rgba(255,255,255,.8);border-radius:22px;background:#f8fbf9;color:#20372d;box-shadow:0 24px 80px rgba(0,0,0,.24)}
+        .sdEditHeader{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}
+        .sdEditGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+        .sdEditField{display:grid;gap:6px;min-width:0}
+        .sdEditField.full{grid-column:1/-1}
+        .sdEditField span{font-size:10px;font-weight:900;color:#596f63}
+        .sdEditField input,.sdEditField select,.sdEditField textarea{width:100%;min-width:0;padding:11px 12px;border:1px solid #d4e1d8;border-radius:11px;background:#fff;color:#20372d;font:inherit;font-size:12px}
+        .sdEditField textarea{min-height:82px;resize:vertical;line-height:1.5}
+        .sdEditHelp{margin:0;font-size:10px;line-height:1.5;color:#65776c}
+        .sdEditFooter{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid #dce7df}
+        .sdCodeLock{padding:11px 12px;border:1px dashed #b8cdbf;border-radius:11px;background:#edf5ef;font-size:12px;font-weight:900}
+        .sdModalTitle{font-size:19px;font-weight:950;letter-spacing:-.03em;margin:4px 0;color:#20372d}
+        .sdEditBtn{border:1px solid #cfded4;background:#fff;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:900;cursor:pointer;color:#335143;white-space:nowrap}
+        .sdEditBtn:disabled{opacity:.55;cursor:wait}
         .sdEmpty{padding:35px;text-align:center;color:var(--muted,#64756b);font-size:12px}
         @media(max-width:900px){.sdKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sdFilters{grid-template-columns:1fr 1fr}.sdFilters input{grid-column:1/-1}}
         @media(max-width:560px){.sdPanel{padding:14px}.sdKpis{grid-template-columns:1fr 1fr}.sdFilters{grid-template-columns:1fr}.sdFilters input{grid-column:auto}.sdTitle{font-size:21px}}
@@ -296,6 +378,7 @@ export default function StaffDirectoryWorkspace() {
                     <td>{staff.position_title || '—'}<div className="sdSub">{staff.source_unit || 'Unit sumber belum dicantumkan'}</div></td>
                     <td><span className={`sdPill ${staff.directory_status}`}>{statusLabel[staff.directory_status]}</span></td>
                     <td><div className="sdActionsCell">
+                      <button type="button" className="sdEditBtn" disabled={busy} onClick={() => beginEdit(staff)}>Edit metadata</button>
                       {staff.directory_status !== 'available' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'available')}>Verifikasi / aktifkan</button>}
                       {staff.directory_status === 'available' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'needs_review')}>Tahan</button>}
                       {staff.directory_status !== 'inactive' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'inactive')}>Nonaktifkan</button>}
@@ -308,6 +391,37 @@ export default function StaffDirectoryWorkspace() {
           </div>
         )}
       </div>
+
+      {editingStaff && draft && (
+        <div className="sdEditBackdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEdit() }}>
+          <section className="sdEditDialog" role="dialog" aria-modal="true" aria-labelledby="sd-edit-title">
+            <div className="sdEditHeader">
+              <div>
+                <div className="sdEyebrow">Metadata · Perubahan Terkendali</div>
+                <h4 id="sd-edit-title" className="sdModalTitle">Edit tenaga kerja</h4>
+                <p className="sdDesc">Perubahan nama, profesi, gelar, jabatan, dan unit sumber berlaku sebagai master identitas lintas modul. ID internal serta kode AUREKA tidak dapat diedit agar riwayat OPPE dan audit tetap konsisten.</p>
+              </div>
+              <div className="sdCodeLock">{editingStaff.employee_code}<br/><span style={{fontSize:9,fontWeight:700}}>Kode identitas permanen</span></div>
+            </div>
+            <div className="sdEditGrid">
+              <label className="sdEditField full"><span>Nama lengkap untuk ditampilkan di AUREKA *</span><input value={draft.display_name} onChange={(e) => setDraft((current) => current ? {...current,display_name:e.target.value} : current)} /></label>
+              <label className="sdEditField"><span>Nama dasar / kunci nama *</span><input value={draft.normalized_name} onChange={(e) => setDraft((current) => current ? {...current,normalized_name:e.target.value} : current)} /><p className="sdEditHelp">Isi nama dasar tanpa gelar. Kesamaan nama tidak otomatis berarti orang yang sama; gunakan kode AUREKA, profesi, dan sumber untuk membedakan identitas.</p></label>
+              <label className="sdEditField"><span>Gelar / prefiks nama</span><input value={draft.name_prefix} onChange={(e) => setDraft((current) => current ? {...current,name_prefix:e.target.value} : current)} placeholder="Contoh: dr., Ns., Apt."/></label>
+              <label className="sdEditField full"><span>Gelar / kualifikasi setelah nama</span><input value={draft.credentials} onChange={(e) => setDraft((current) => current ? {...current,credentials:e.target.value} : current)} placeholder="Contoh: S.Kep., Sp.P., M.Kes."/></label>
+              <label className="sdEditField"><span>Kelompok profesi *</span><input value={draft.profession_group} onChange={(e) => setDraft((current) => current ? {...current,profession_group:e.target.value} : current)} /></label>
+              <label className="sdEditField"><span>Jabatan / peran</span><input value={draft.position_title} onChange={(e) => setDraft((current) => current ? {...current,position_title:e.target.value} : current)} /></label>
+              <label className="sdEditField full"><span>Unit kerja / asal penugasan</span><input value={draft.source_unit} onChange={(e) => setDraft((current) => current ? {...current,source_unit:e.target.value} : current)} /></label>
+              <label className="sdEditField"><span>Kelayakan penugasan</span><select value={draft.directory_status} onChange={(e) => setDraft((current) => current ? {...current,directory_status:e.target.value as StaffDraft['directory_status']} : current)}><option value="available">Siap dipetakan</option><option value="needs_review">Perlu verifikasi</option><option value="inactive">Nonaktif</option></select></label>
+              <label className="sdEditField full"><span>Catatan verifikasi / pembedaan identitas</span><textarea value={draft.review_note} onChange={(e) => setDraft((current) => current ? {...current,review_note:e.target.value} : current)} placeholder="Catatan singkat untuk petugas metadata. Jangan masukkan NIP/NIK atau ciri fisik." /></label>
+            </div>
+            {error && <div className="sdError" role="alert">{error}</div>}
+            <div className="sdEditFooter">
+              <button type="button" className="sdBtn" disabled={busy} onClick={closeEdit}>Batal</button>
+              <button type="button" className="sdBtn primary" disabled={busy} onClick={() => void saveEdit()}>{busy ? 'Menyimpan…' : 'Simpan perubahan'}</button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   )
 }
