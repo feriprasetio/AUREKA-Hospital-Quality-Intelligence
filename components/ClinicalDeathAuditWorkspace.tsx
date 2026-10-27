@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
 type Room = { id: number; name: string }
+type StaffOption = { id: string; employee_code: string; display_name: string; profession_group: string; position_title: string; room_id: number; room_name: string }
 type AuditType = 'clinical' | 'death'
 type Phase = { id: string; label: string; hint: string; optional?: boolean }
 type PhaseReview = { score: number | null; comment: string; notApplicable: boolean }
@@ -234,8 +235,35 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
   const [activeEpisode, setActiveEpisode] = useState<Episode | null>(null)
   const [activeAudit, setActiveAudit] = useState<AuditRow | null>(null)
   const [draft, setDraft] = useState<ReviewDraft>(() => makeDraft())
+  const [teamStaff, setTeamStaff] = useState<StaffOption[]>([])
+  const [auditStaffIds, setAuditStaffIds] = useState<Record<string, string>>({})
+  const [dpjpStaffId, setDpjpStaffId] = useState('')
+  const [savedDpjpStaffId, setSavedDpjpStaffId] = useState('')
 
   const roomMap = useMemo(() => new Map<number, string>(rooms.map((room) => [Number(room.id), room.name] as [number, string])), [rooms])
+  const loadTeamStaff = useCallback(async () => {
+    try {
+      const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
+        .select('staff_id,room_id').eq('assignment_status', 'active').eq('is_locked', true)
+      if (assignmentError) throw assignmentError
+      const roomByStaff = new Map<string, number>(((assignmentRows || []) as Array<{staff_id:string;room_id:number}>).map((row) => [String(row.staff_id), Number(row.room_id)]))
+      const ids = Array.from(roomByStaff.keys())
+      const next: StaffOption[] = []
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const { data, error } = await q().from('staff_directory').select('id,employee_code,display_name,profession_group,position_title,directory_status').eq('directory_status', 'available').in('id', ids.slice(offset, offset + 100)).order('display_name')
+        if (error) throw error
+        next.push(...(data || []).map((row: any) => {
+          const roomId = Number(roomByStaff.get(String(row.id)))
+          return { ...row, id: String(row.id), room_id: roomId, room_name: roomMap.get(roomId) || '' }
+        }).filter((staff: StaffOption) => staff.room_name))
+      }
+      setTeamStaff(next)
+    } catch {
+      setTeamStaff([])
+    }
+  }, [roomMap])
+
+  useEffect(() => { void loadTeamStaff() }, [loadTeamStaff])
   const load = useCallback(async () => {
     setLoading(true)
     setMessage('')
@@ -282,7 +310,21 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
     if (auditResult.error) {
       setMessage('Data telaah belum dapat dimuat: ' + auditResult.error.message)
     } else {
-      setAudits((auditResult.data ?? []) as AuditRow[])
+      const nextAudits = (auditResult.data ?? []) as AuditRow[]
+      setAudits(nextAudits)
+      const nextLinks: Record<string, string> = {}
+      try {
+        const auditIds = nextAudits.map((row) => String(row.id)).filter(Boolean)
+        for (let offset = 0; offset < auditIds.length; offset += 100) {
+          const { data: linkRows, error: linkError } = await q().from('staff_entity_attributions')
+            .select('entity_id,staff_id,field_key').eq('entity_type', 'clinical_death_audit').eq('field_key', 'dpjp').in('entity_id', auditIds.slice(offset, offset + 100))
+          if (linkError) throw linkError
+          ;(linkRows || []).forEach((link: any) => { nextLinks[String(link.entity_id)] = String(link.staff_id) })
+        }
+        setAuditStaffIds(nextLinks)
+      } catch {
+        setAuditStaffIds({})
+      }
     }
     const localRows = safeLocalRead().filter((row: any) => String(row.measurementGrain ?? row.measurement_grain ?? '') === 'patient_episode')
     const localEpisodes = localRows.map((row: any) => buildLocalEpisode(row, roomMap)).filter((episode) => {
