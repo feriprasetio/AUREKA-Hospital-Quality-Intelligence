@@ -18,7 +18,8 @@ as $$
   );
 $$;
 
-revoke all on function aureka_system.can_manage_oppe() from public;\ngrant execute on function aureka_system.can_manage_oppe() to authenticated;
+revoke all on function aureka_system.can_manage_oppe() from public;
+grant execute on function aureka_system.can_manage_oppe() to authenticated;
 
 create table if not exists aureka_quality.oppe_indicator_rules (
   id uuid primary key default gen_random_uuid(),
