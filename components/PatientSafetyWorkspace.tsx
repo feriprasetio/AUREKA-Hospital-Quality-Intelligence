@@ -571,9 +571,14 @@ export default function PatientSafetyWorkspace({
     if (saving) return
     const targetIncident = incidents.find(row => row.id === investigationIncidentId)
     const targetUnitName = targetIncident?.unit_name || ''
+    const oldLinkedIds = staffEntityLinks
+      .filter(link => link.entity_type === 'patient_safety_investigation' && link.entity_id === investigationId && link.field_key === '5')
+      .map(link => link.staff_id).sort()
+    const selectedLinkedIds = Array.from(new Set(investigationStaffIds)).sort()
+    const sameAsSavedLinks = oldLinkedIds.length === selectedLinkedIds.length && oldLinkedIds.every((id, index) => id === selectedLinkedIds[index])
     const allowedInvestigationStaff = new Set(staffOptions.filter(staff => staff.room_name === targetUnitName).map(staff => staff.id))
-    if (investigationStaffIds.some(staffId => !allowedInvestigationStaff.has(staffId))) {
-      setError('Ada identitas tenaga dalam investigasi yang tidak lagi berada pada roster terkunci unit. Periksa Tim Tenaga Kerja sebelum menyimpan.')
+    if (!sameAsSavedLinks && selectedLinkedIds.some(staffId => !allowedInvestigationStaff.has(staffId))) {
+      setError('Ada identitas tenaga baru yang tidak berada pada roster terkunci unit. Identitas historis tetap dapat dipertahankan, tetapi perubahan baru harus menggunakan roster unit yang sah.')
       return
     }
     setSaving(true); setError(''); setMessage('')
