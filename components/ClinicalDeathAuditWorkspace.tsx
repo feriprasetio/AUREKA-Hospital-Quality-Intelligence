@@ -362,9 +362,12 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
   }).length
 
   const openReview = (episode: Episode, audit?: AuditRow) => {
+    const linkedStaffId = audit?.id ? (auditStaffIds[audit.id] || '') : ''
     setActiveEpisode(episode)
     setActiveAudit(audit ?? null)
     setDraft(makeDraft(audit?.review_json))
+    setDpjpStaffId(linkedStaffId)
+    setSavedDpjpStaffId(linkedStaffId)
     setMessage('')
     setEditorOpen(true)
   }
@@ -383,6 +386,14 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
     if (!activeEpisode || saving) return
     if (activeEpisode.roomId == null) {
       setMessage('Episode belum terpetakan ke unit yang valid. Telaah tidak dapat disimpan.')
+      return
+    }
+    if (nextStatus === 'submitted' && activeEpisode.dpjp.trim() && !dpjpStaffId && !savedDpjpStaffId) {
+      setMessage('Pilih identitas DPJP dari roster terkunci unit untuk menautkan nama sumber ke direktori AUREKA sebelum mengajukan telaah.')
+      return
+    }
+    if (dpjpStaffId && dpjpStaffId !== savedDpjpStaffId && !teamStaff.some((staff) => staff.id === dpjpStaffId && Number(staff.room_id) === Number(activeEpisode.roomId))) {
+      setMessage('Identitas DPJP baru harus berasal dari roster terkunci pada unit episode ini.')
       return
     }
     if (nextStatus === 'submitted') {
@@ -428,6 +439,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         learning_points: draft.learningPoints,
         recommended_actions: draft.actions,
       }
+      let savedAuditId = activeAudit?.id ? String(activeAudit.id) : ''
       const payload: Record<string, any> = {
         room_id: activeEpisode.roomId,
         source_record_id: activeEpisode.sourceRecordId,
@@ -474,13 +486,35 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
           created_by: userData.user.id,
         }).select('*').single()
         if (error) throw error
+        savedAuditId = String(data.id)
         setActiveAudit(data as AuditRow)
+      }
+      let identityWarning = ''
+      if (savedAuditId && dpjpStaffId !== savedDpjpStaffId) {
+        const { error: deleteLinkError } = await q().from('staff_entity_attributions').delete()
+          .eq('entity_type', 'clinical_death_audit').eq('entity_id', savedAuditId).eq('field_key', 'dpjp')
+        if (deleteLinkError) {
+          identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP tidak dapat diperbarui: ' + deleteLinkError.message
+        } else if (dpjpStaffId) {
+          const { error: insertLinkError } = await q().from('staff_entity_attributions').insert({
+            entity_type: 'clinical_death_audit',
+            entity_id: savedAuditId,
+            staff_id: dpjpStaffId,
+            field_key: 'dpjp',
+            attribution_type: 'responsible_provider',
+            created_by: userData.user.id,
+            updated_by: userData.user.id,
+          })
+          if (insertLinkError) identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP gagal disimpan: ' + insertLinkError.message
+        }
       }
       await load()
       setEditorOpen(false)
       setActiveEpisode(null)
       setActiveAudit(null)
-      setMessage(nextStatus === 'submitted' ? 'Telaah diajukan dan tersimpan.' : 'Draf telaah tersimpan.')
+      setMessage(identityWarning || (nextStatus === 'submitted' ? 'Telaah diajukan dan tersimpan. Identitas DPJP tertaut pada direktori AUREKA.' : 'Draf telaah tersimpan.'))
+      setDpjpStaffId('')
+      setSavedDpjpStaffId('')
     } catch (error) {
       const detail = error instanceof Error ? error.message : 'Kesalahan yang tidak diketahui.'
       setMessage(/duplicate key|unique constraint|clinical_death_audits_source/i.test(detail)
@@ -590,6 +624,15 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
               <div className="acdMetaBox"><span>DPJP</span><strong>{activeEpisode.dpjp || 'Belum dipetakan'}</strong></div>
               <div className="acdMetaBox"><span>Admisi</span><strong>{activeEpisode.admit || 'Belum tersedia'}</strong></div>
               <div className="acdMetaBox"><span>Keluar / hasil akhir</span><strong>{activeEpisode.discharge || activeEpisode.outcome || 'Belum tersedia'}</strong></div>
+            </div>
+            <div className="acdEditorField">
+              <label htmlFor="acd-dpjp-staff">DPJP · Identitas direktori AUREKA</label>
+              <select id="acd-dpjp-staff" value={dpjpStaffId} disabled={isValidator || saving} onChange={(event) => setDpjpStaffId(event.target.value)}>
+                <option value="">Pilih identitas DPJP dari roster unit…</option>
+                {teamStaff.filter((staff) => Number(staff.room_id) === Number(activeEpisode.roomId) && (/dokter/i.test(staff.profession_group) || /dokter/i.test(staff.position_title))).map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code}</option>)}
+              </select>
+              <div className="acdSmall">Nama DPJP pada sumber episode: {activeEpisode.dpjp || 'Belum dipetakan'}. Pilih identitas yang benar-benar sesuai dengan sumber; nama snapshot tidak diubah.</div>
+              {dpjpStaffId && <div className="acdSmall">ID tenaga AUREKA: {dpjpStaffId.slice(0,8).toUpperCase()} · identitas akan disimpan terpisah dari snapshot klinis.</div>}
             </div>
             <div className="acdSectionTitle"><div><h5>Ringkasan klinis</h5><p>Tulis ringkasan faktual dan relevan dari rekam medis; jangan menyalin seluruh catatan.</p></div></div>
             <div className="acdEditorField"><label htmlFor="acd-background">Riwayat singkat, perjalanan klinis dan konteks kasus</label><textarea id="acd-background" disabled={isValidator} value={draft.background} onChange={(event) => setDraft((current) => ({...current, background: event.target.value}))} placeholder="Keluhan awal, komorbiditas relevan, perubahan kondisi, intervensi penting, dan hasil akhir…" /></div>
