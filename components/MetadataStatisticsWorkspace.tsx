@@ -104,7 +104,7 @@ export default function MetadataStatisticsWorkspace({
         <div className="mswContent" role="tabpanel" aria-label="Direktori Tenaga Kerja">
           <div className="mswAccessNote">
             <span aria-hidden="true">🔐</span>
-            <span><strong>Master tenaga kerja — Superadmin.</strong> Data ini menjadi identitas induk lintas modul. Nama yang belum diverifikasi atau terindikasi ganda tidak dapat dikunci ke tim sampai ditelaah.</span>
+            <span><strong>Master tenaga kerja — Superadmin.</strong> Data ini menjadi identitas induk lintas modul. Rekam dengan sumber atau ejaan yang belum pasti tetap ditahan. Kesamaan nama saja tidak dianggap duplikasi; kode AUREKA, gelar, profesi, dan jabatan dipertahankan untuk membedakan orang.</span>
           </div>
           <StaffDirectoryWorkspace />
         </div>
