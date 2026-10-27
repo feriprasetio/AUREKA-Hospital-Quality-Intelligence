@@ -8,6 +8,22 @@ import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
 
 type Room = { id: number; name: string }
+type StaffOption = {
+  id: string
+  employee_code: string
+  display_name: string
+  profession_group: string
+  position_title: string
+  room_id: number
+  room_name: string
+}
+type StaffEntityAttribution = {
+  entity_type: 'patient_safety_incident' | 'patient_safety_investigation'
+  entity_id: string
+  staff_id: string
+  field_key: string
+  attribution_type: string
+}
 type IncidentStatus = 'draft' | 'submitted' | 'under_review' | 'investigation' | 'closed'
 type IncidentRow = {
   id: string; incident_code: string; incident_date: string | null; incident_time: string | null
@@ -239,6 +255,7 @@ export default function PatientSafetyWorkspace({
   focus?: SafetyFocus | null
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_patient_safety'), [supabase])
+  const qualityDb = useMemo(() => (supabase as any).schema('aureka_quality'), [supabase])
   const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>('overview')
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
@@ -262,6 +279,11 @@ export default function PatientSafetyWorkspace({
   const [investigationIncidentId, setInvestigationIncidentId] = useState('')
   const [investigationStatus, setInvestigationStatus] = useState('draft')
   const [investigationData, setInvestigationData] = useState<Record<string, string>>(emptyRecord())
+  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([])
+  const [staffEntityLinks, setStaffEntityLinks] = useState<StaffEntityAttribution[]>([])
+  const [incidentStaffId, setIncidentStaffId] = useState('')
+  const [investigationStaffIds, setInvestigationStaffIds] = useState<string[]>([])
+  const [investigationStaffToAdd, setInvestigationStaffToAdd] = useState('')
 
   const [surveyPeriod, setSurveyPeriod] = useState('2026-Q4')
   const [surveyUnit, setSurveyUnit] = useState('')
@@ -287,12 +309,72 @@ export default function PatientSafetyWorkspace({
         db.from('investigations').select('id,investigation_code,incident_id,status,form_data,created_at,updated_at').order('updated_at', { ascending: false }).limit(500),
       ])
       if (incidentResult.error) throw incidentResult.error
-      setIncidents((incidentResult.data || []) as IncidentRow[])
+      const nextIncidents = (incidentResult.data || []) as IncidentRow[]
+      setIncidents(nextIncidents)
       if (investigationResult.error) {
         if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + investigationResult.error.message)
       } else {
         setInvestigations((investigationResult.data || []) as InvestigationRow[])
       }
+
+      // Cross-module personnel identities come from the active locked roster, restricted by RLS to accessible rooms.
+      try {
+        const { data: assignmentRows, error: assignmentError } = await qualityDb
+          .from('staff_team_assignments')
+          .select('staff_id,room_id')
+          .eq('assignment_status', 'active')
+          .eq('is_locked', true)
+        if (assignmentError) throw assignmentError
+        const assignments = (assignmentRows || []) as Array<{ staff_id: string; room_id: number }>
+        const roomById = new Map(rooms.map((room) => [Number(room.id), room.name]))
+        const roomByStaff = new Map(assignments.map((assignment) => [String(assignment.staff_id), Number(assignment.room_id)]))
+        const staffIds = Array.from(roomByStaff.keys())
+        const nextStaff: StaffOption[] = []
+        for (let offset = 0; offset < staffIds.length; offset += 100) {
+          const batch = staffIds.slice(offset, offset + 100)
+          const { data: directoryRows, error: directoryError } = await qualityDb
+            .from('staff_directory')
+            .select('id,employee_code,display_name,profession_group,position_title,directory_status')
+            .eq('directory_status', 'available')
+            .in('id', batch)
+            .order('display_name')
+          if (directoryError) throw directoryError
+          nextStaff.push(...(directoryRows || []).map((row: any) => ({
+            id: String(row.id),
+            employee_code: String(row.employee_code || ''),
+            display_name: String(row.display_name || ''),
+            profession_group: String(row.profession_group || ''),
+            position_title: String(row.position_title || ''),
+            room_id: Number(roomByStaff.get(String(row.id))),
+            room_name: roomById.get(Number(roomByStaff.get(String(row.id)))) || '',
+          })))
+        }
+        setStaffOptions(nextStaff.filter((staff) => staff.room_name))
+      } catch (staffLoadError) {
+        setStaffOptions([])
+        setMessage('Direktori tenaga belum dapat dimuat; penautan identitas staf dinonaktifkan sementara. Periksa akses Metadata / Tim Tenaga Kerja.')
+      }
+
+      try {
+        const entityIds = [
+          ...nextIncidents.map((row) => String(row.id)),
+          ...(((investigationResult.data || []) as InvestigationRow[]).map((row) => String(row.id))),
+        ]
+        const links: StaffEntityAttribution[] = []
+        for (let offset = 0; offset < entityIds.length; offset += 100) {
+          const batch = entityIds.slice(offset, offset + 100)
+          const { data: linkRows, error: linkError } = await qualityDb
+            .from('staff_entity_attributions')
+            .select('entity_type,entity_id,staff_id,field_key,attribution_type')
+            .in('entity_id', batch)
+          if (linkError) throw linkError
+          links.push(...((linkRows || []) as StaffEntityAttribution[]))
+        }
+        setStaffEntityLinks(links)
+      } catch {
+        setStaffEntityLinks([])
+      }
+
       if (isSuperAdmin) {
         const allResponses: CultureResponse[] = []
         let start = 0
@@ -313,7 +395,7 @@ export default function PatientSafetyWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [db, canManageWorkflow, isSuperAdmin])
+  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin])
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {
@@ -349,7 +431,7 @@ export default function PatientSafetyWorkspace({
   const [formOpen, setFormOpen] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const formSnapshot = useRef('')
-  const formDirty = formOpen && JSON.stringify(incidentData) !== formSnapshot.current
+  const formDirty = formOpen && JSON.stringify({ data: incidentData, staffId: incidentStaffId }) !== formSnapshot.current
   const closeForm = (force = false) => {
     if (!force && formDirty) { setConfirmClose(true); return }
     setConfirmClose(false); setFormOpen(false); setError('')
@@ -365,7 +447,9 @@ export default function PatientSafetyWorkspace({
     setIncidentCode(row.incident_code)
     setIncidentStatus(row.status as IncidentStatus)
     setIncidentData({ ...(row.form_data || {}) })
-    formSnapshot.current = JSON.stringify({ ...(row.form_data || {}) })
+    const reporterLink = staffEntityLinks.find((link) => link.entity_type === 'patient_safety_incident' && link.entity_id === row.id && link.field_key === 'E1')
+    setIncidentStaffId(reporterLink?.staff_id || '')
+    formSnapshot.current = JSON.stringify({ data: { ...(row.form_data || {}) }, staffId: reporterLink?.staff_id || '' })
     setTab('incidents')
     setError('')
     setMessage('')
@@ -391,7 +475,8 @@ export default function PatientSafetyWorkspace({
     setIncidentStatus('draft')
     const initial = { E2: rooms.find(room => room.id === initialRoomId)?.name || '' }
     setIncidentData(initial)
-    formSnapshot.current = JSON.stringify(initial)
+    setIncidentStaffId('')
+    formSnapshot.current = JSON.stringify({ data: initial, staffId: '' })
     setTab('incidents')
     setError('')
     setMessage('')
