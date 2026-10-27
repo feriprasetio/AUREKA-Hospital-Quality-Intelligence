@@ -154,6 +154,44 @@ test('parses Indonesian decimal values and exposes the calculated metric with it
   assert.equal(result.status, 'meets_target')
 })
 
+
+test('uses canonical staff IDs when a logbook field has a verified staff attribution', () => {
+  const assignedRecords = [
+    record('canonical-1', { staff_attributions: [{ staff_id: 'staff-a', field_key: 'Perawat Penerima' }] }),
+    record('canonical-2', { staff_attributions: [{ staff_id: 'staff-a', field_key: 'Perawat Penerima' }] }),
+  ]
+  const index = buildOppeResponseIndex([
+    responseRow('canonical-1', { answer: 'Memenuhi' }),
+    responseRow('canonical-2', { answer: 'Tidak memenuhi' }),
+  ])
+  const forCorrectStaff = evaluateClinicalIndicator({
+    profile: profileBase,
+    rule: ruleBase,
+    records: assignedRecords,
+    responseRows: index,
+    staffName: 'Siti',
+    staffId: 'staff-a',
+    profession: 'Perawat',
+    year: 2026,
+    quarter: 1,
+  })
+  const forDifferentStaff = evaluateClinicalIndicator({
+    profile: profileBase,
+    rule: ruleBase,
+    records: assignedRecords,
+    responseRows: index,
+    staffName: 'Siti',
+    staffId: 'staff-b',
+    profession: 'Perawat',
+    year: 2026,
+    quarter: 1,
+  })
+  assert.equal(forCorrectStaff.observations, 2)
+  assert.equal(forCorrectStaff.rate, 50)
+  assert.equal(forDifferentStaff.attributedRecords, 0)
+  assert.equal(forDifferentStaff.status, 'insufficient_data')
+})
+
 test('does not convert inadequate evidence into a zero overall OPPE score', () => {
   const pending = (id, label) => ({ id, label, target: '', status: 'insufficient_data', count: '', evidence: '', notes: 'Bukti belum tersedia pada periode penilaian.' })
   const score = buildOppeScore({
