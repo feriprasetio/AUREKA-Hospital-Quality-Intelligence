@@ -552,13 +552,18 @@ export default function PatientSafetyWorkspace({
       setInvestigationCode(existing.investigation_code)
       setInvestigationStatus(existing.status)
       setInvestigationData({ ...(existing.form_data || {}) })
+      setInvestigationStaffIds(staffEntityLinks
+        .filter(link => link.entity_type === 'patient_safety_investigation' && link.entity_id === existing.id && link.field_key === '5')
+        .map(link => link.staff_id))
     } else {
       setInvestigationId('')
       setInvestigationCode('')
       setInvestigationStatus('draft')
       setInvestigationData(emptyRecord())
+      setInvestigationStaffIds([])
+      setInvestigationStaffToAdd('')
     }
-  }, [investigationIncidentId, investigations])
+  }, [investigationIncidentId, investigations, staffEntityLinks])
 
   const saveInvestigation = async () => {
     if (!canManageWorkflow) { setError('Akses investigasi hanya untuk Admin, Komite PMKP, atau Manajemen yang berwenang.'); return }
