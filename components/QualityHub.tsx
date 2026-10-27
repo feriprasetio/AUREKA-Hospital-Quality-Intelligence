@@ -59,13 +59,14 @@ const ITEMS: Item[] = [
   },
 ]
 
-export default function QualityHub({ onOpen, onOpenClinicalPathway, onOpenClinicalDeathReview, onOpenOPPE, onOpenStaffTeam }: { onOpen: () => void; onOpenClinicalPathway: () => void; onOpenClinicalDeathReview: () => void; onOpenOPPE: () => void; onOpenStaffTeam: () => void }) {
+export default function QualityHub({ onOpen, onOpenClinicalPathway, onOpenClinicalDeathReview, onOpenOPPE, onOpenStaffTeam, canOpenStaffTeam }: { onOpen: () => void; onOpenClinicalPathway: () => void; onOpenClinicalDeathReview: () => void; onOpenOPPE: () => void; onOpenStaffTeam: () => void; canOpenStaffTeam: boolean }) {
   const [info, setInfo] = useState<string | null>(null)
-  const sel = ITEMS.find((i) => i.id === info) || null
+  const visibleItems = ITEMS.filter((item) => item.id !== 'team' || canOpenStaffTeam)
+  const sel = visibleItems.find((i) => i.id === info) || null
   return (
     <div className="qhWrap">
       <div className="qhGrid">
-        {ITEMS.map((it) => (
+        {visibleItems.map((it) => (
           <button
             key={it.id}
             type="button"
