@@ -442,6 +442,24 @@ export default function PatientSafetyWorkspace({
   }
   const setIncidentValue = (code: string, value: string) => setIncidentData(current => ({ ...current, [code]: value }))
   const setInvestigationValue = (code: string, value: string) => setInvestigationData(current => ({ ...current, [code]: value }))
+  const syncStaffEntityAttributions = async (
+    entityType: StaffEntityAttribution['entity_type'], entityId: string, fieldKey: string, selectedIds: string[],
+    attributionType: StaffEntityAttribution['attribution_type'], unitName: string,
+  ): Promise<string> => {
+    const uniqueIds = Array.from(new Set(selectedIds.filter(Boolean))).sort()
+    const oldIds = staffEntityLinks.filter(link => link.entity_type === entityType && link.entity_id === entityId && link.field_key === fieldKey).map(link => link.staff_id).sort()
+    if (oldIds.length === uniqueIds.length && oldIds.every((id, index) => id === uniqueIds[index])) return ''
+    const allowedIds = new Set(staffOptions.filter(staff => staff.room_name === unitName).map(staff => staff.id))
+    if (uniqueIds.some(id => !allowedIds.has(id))) return 'Data tersimpan, tetapi tautan identitas tidak diubah karena tenaga tidak lagi berada pada roster terkunci unit. Minta Admin/PMKP meninjau pemetaan tim.'
+    const { error: deleteError } = await qualityDb.from('staff_entity_attributions').delete().eq('entity_type', entityType).eq('entity_id', entityId).eq('field_key', fieldKey)
+    if (deleteError) return 'Data form tersimpan, tetapi tautan identitas lama tidak dapat diperbarui: ' + deleteError.message
+    if (!uniqueIds.length) return ''
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+    if (authError || !authData.user) return 'Data form tersimpan, tetapi sesi login tidak tersedia untuk mencatat atribusi identitas.'
+    const payload = uniqueIds.map(staffId => ({ entity_type: entityType, entity_id: entityId, staff_id: staffId, field_key: fieldKey, attribution_type: attributionType, created_by: authData.user.id, updated_by: authData.user.id }))
+    const { error: insertError } = await qualityDb.from('staff_entity_attributions').insert(payload)
+    return insertError ? 'Data form tersimpan, tetapi atribusi identitas gagal disimpan: ' + insertError.message : ''
+  }
   const openIncident = (row: IncidentRow) => {
     setIncidentId(row.id)
     setIncidentCode(row.incident_code)
