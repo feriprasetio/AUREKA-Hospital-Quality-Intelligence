@@ -40,7 +40,7 @@ export default function StaffTeamWorkspace({
 }) {
   const canChooseRoom = isSuperAdmin || canManageAllRooms
   const canRelease = isSuperAdmin || canManageAllRooms
-  const [roomId, setRoomId] = useState<number>(Number(initialRoomId || rooms[0]?.id || 0))
+  const [roomId, setRoomId] = useState<number>(() => Number(initialRoomId || (canChooseRoom ? rooms[0]?.id : 0) || 0))
   const [directory, setDirectory] = useState<DirectoryStaff[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [search, setSearch] = useState('')
