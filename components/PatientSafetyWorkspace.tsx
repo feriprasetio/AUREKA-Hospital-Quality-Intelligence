@@ -282,6 +282,7 @@ export default function PatientSafetyWorkspace({
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([])
   const [staffEntityLinks, setStaffEntityLinks] = useState<StaffEntityAttribution[]>([])
   const [incidentStaffId, setIncidentStaffId] = useState('')
+  const [incidentReporterExternal, setIncidentReporterExternal] = useState(false)
   const [investigationStaffIds, setInvestigationStaffIds] = useState<string[]>([])
   const [investigationStaffToAdd, setInvestigationStaffToAdd] = useState('')
 
@@ -431,7 +432,7 @@ export default function PatientSafetyWorkspace({
   const [formOpen, setFormOpen] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const formSnapshot = useRef('')
-  const formDirty = formOpen && JSON.stringify({ data: incidentData, staffId: incidentStaffId }) !== formSnapshot.current
+  const formDirty = formOpen && JSON.stringify({ data: incidentData, staffId: incidentStaffId, externalReporter: incidentReporterExternal }) !== formSnapshot.current
   const closeForm = (force = false) => {
     if (!force && formDirty) { setConfirmClose(true); return }
     setConfirmClose(false); setFormOpen(false); setError('')
@@ -467,7 +468,8 @@ export default function PatientSafetyWorkspace({
     setIncidentData({ ...(row.form_data || {}) })
     const reporterLink = staffEntityLinks.find((link) => link.entity_type === 'patient_safety_incident' && link.entity_id === row.id && link.field_key === 'E1')
     setIncidentStaffId(reporterLink?.staff_id || '')
-    formSnapshot.current = JSON.stringify({ data: { ...(row.form_data || {}) }, staffId: reporterLink?.staff_id || '' })
+    setIncidentReporterExternal(false)
+    formSnapshot.current = JSON.stringify({ data: { ...(row.form_data || {}) }, staffId: reporterLink?.staff_id || '', externalReporter: false })
     setTab('incidents')
     setError('')
     setMessage('')
@@ -494,7 +496,8 @@ export default function PatientSafetyWorkspace({
     const initial = { E2: rooms.find(room => room.id === initialRoomId)?.name || '' }
     setIncidentData(initial)
     setIncidentStaffId('')
-    formSnapshot.current = JSON.stringify({ data: initial, staffId: '' })
+    setIncidentReporterExternal(false)
+    formSnapshot.current = JSON.stringify({ data: initial, staffId: '', externalReporter: false })
     setTab('incidents')
     setError('')
     setMessage('')
@@ -529,7 +532,7 @@ export default function PatientSafetyWorkspace({
       setIncidentId(result.data.id)
       setIncidentCode(result.data.incident_code)
       setIncidentStatus(result.data.status as IncidentStatus)
-      formSnapshot.current = JSON.stringify({ data: incidentData, staffId: incidentStaffId })
+      formSnapshot.current = JSON.stringify({ data: incidentData, staffId: incidentStaffId, externalReporter: incidentReporterExternal })
       let attributionWarning = ''
       try {
         attributionWarning = await syncStaffEntityAttributions('patient_safety_incident', String(result.data.id), 'E1', incidentStaffId ? [incidentStaffId] : [], 'reporter', incidentData.E2 || '')
@@ -700,18 +703,25 @@ export default function PatientSafetyWorkspace({
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel">{field.code} · {field.label} <span className="psRequired">*</span></label>
       {field.hint ? <div className="psHint">{field.hint}</div> : null}
-      {field.code === 'E1' ? <><select value={reporterSelectValue} disabled={disabled} onChange={event => {
+      {field.code === 'E1' ? <><select value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
         const value = event.target.value
-        if (value === '__external__') { setIncidentStaffId(''); setIncidentValue('E1', 'Pelapor bukan tenaga AUREKA / identitas belum dipetakan'); return }
+        if (value === '__external__') {
+          const currentStaff = reporterOptions.find(item => item.id === incidentStaffId)
+          if (currentStaff && incidentData.E1 === currentStaff.display_name) setIncidentValue('E1', '')
+          setIncidentStaffId('')
+          setIncidentReporterExternal(true)
+          return
+        }
         const staff = reporterOptions.find(item => item.id === value)
         setIncidentStaffId(staff?.id || '')
+        setIncidentReporterExternal(false)
         setIncidentValue('E1', staff?.display_name || '')
       }}>
         <option value="">Pilih pelapor dari roster terkunci unit…</option>
         {value && !incidentStaffId ? <option value="__unmapped__" disabled>Nama lama belum terhubung ke identitas AUREKA</option> : null}
         {reporterOptions.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
         <option value="__external__">Pelapor bukan tenaga AUREKA / identitas belum dapat dipetakan</option>
-      </select><div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
+      </select>{incidentReporterExternal ? <input value={value} disabled={disabled} onChange={event => setIncidentValue('E1', event.target.value)} placeholder="Nama pelapor dari luar direktori AUREKA" /> : null}<div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : incidentReporterExternal ? 'Pelapor non-tenaga AUREKA: nama disimpan sebagai teks dan tidak ditautkan sebagai pegawai internal.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
       : field.type === 'radio' ? <div className="psRadioGrid">
         {(field.options || []).map(option => <label className="psRadio" key={option}>
           <input type="radio" name={'incident-' + field.code} value={option} checked={value === option} disabled={disabled}

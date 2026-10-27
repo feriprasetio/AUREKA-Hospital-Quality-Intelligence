@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
 type Room = { id: number; name: string }
+type StaffOption = { id: string; employee_code: string; display_name: string; profession_group: string; position_title: string; room_id: number; room_name: string }
 type AuditType = 'clinical' | 'death'
 type Phase = { id: string; label: string; hint: string; optional?: boolean }
 type PhaseReview = { score: number | null; comment: string; notApplicable: boolean }
@@ -234,8 +235,35 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
   const [activeEpisode, setActiveEpisode] = useState<Episode | null>(null)
   const [activeAudit, setActiveAudit] = useState<AuditRow | null>(null)
   const [draft, setDraft] = useState<ReviewDraft>(() => makeDraft())
+  const [teamStaff, setTeamStaff] = useState<StaffOption[]>([])
+  const [auditStaffIds, setAuditStaffIds] = useState<Record<string, string>>({})
+  const [dpjpStaffId, setDpjpStaffId] = useState('')
+  const [savedDpjpStaffId, setSavedDpjpStaffId] = useState('')
 
   const roomMap = useMemo(() => new Map<number, string>(rooms.map((room) => [Number(room.id), room.name] as [number, string])), [rooms])
+  const loadTeamStaff = useCallback(async () => {
+    try {
+      const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
+        .select('staff_id,room_id').eq('assignment_status', 'active').eq('is_locked', true)
+      if (assignmentError) throw assignmentError
+      const roomByStaff = new Map<string, number>(((assignmentRows || []) as Array<{staff_id:string;room_id:number}>).map((row) => [String(row.staff_id), Number(row.room_id)]))
+      const ids = Array.from(roomByStaff.keys())
+      const next: StaffOption[] = []
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const { data, error } = await q().from('staff_directory').select('id,employee_code,display_name,profession_group,position_title,directory_status').eq('directory_status', 'available').in('id', ids.slice(offset, offset + 100)).order('display_name')
+        if (error) throw error
+        next.push(...(data || []).map((row: any) => {
+          const roomId = Number(roomByStaff.get(String(row.id)))
+          return { ...row, id: String(row.id), room_id: roomId, room_name: roomMap.get(roomId) || '' }
+        }).filter((staff: StaffOption) => staff.room_name))
+      }
+      setTeamStaff(next)
+    } catch {
+      setTeamStaff([])
+    }
+  }, [roomMap])
+
+  useEffect(() => { void loadTeamStaff() }, [loadTeamStaff])
   const load = useCallback(async () => {
     setLoading(true)
     setMessage('')
@@ -282,7 +310,21 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
     if (auditResult.error) {
       setMessage('Data telaah belum dapat dimuat: ' + auditResult.error.message)
     } else {
-      setAudits((auditResult.data ?? []) as AuditRow[])
+      const nextAudits = (auditResult.data ?? []) as AuditRow[]
+      setAudits(nextAudits)
+      const nextLinks: Record<string, string> = {}
+      try {
+        const auditIds = nextAudits.map((row) => String(row.id)).filter(Boolean)
+        for (let offset = 0; offset < auditIds.length; offset += 100) {
+          const { data: linkRows, error: linkError } = await q().from('staff_entity_attributions')
+            .select('entity_id,staff_id,field_key').eq('entity_type', 'clinical_death_audit').eq('field_key', 'dpjp').in('entity_id', auditIds.slice(offset, offset + 100))
+          if (linkError) throw linkError
+          ;(linkRows || []).forEach((link: any) => { nextLinks[String(link.entity_id)] = String(link.staff_id) })
+        }
+        setAuditStaffIds(nextLinks)
+      } catch {
+        setAuditStaffIds({})
+      }
     }
     const localRows = safeLocalRead().filter((row: any) => String(row.measurementGrain ?? row.measurement_grain ?? '') === 'patient_episode')
     const localEpisodes = localRows.map((row: any) => buildLocalEpisode(row, roomMap)).filter((episode) => {
@@ -320,9 +362,12 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
   }).length
 
   const openReview = (episode: Episode, audit?: AuditRow) => {
+    const linkedStaffId = audit?.id ? (auditStaffIds[audit.id] || '') : ''
     setActiveEpisode(episode)
     setActiveAudit(audit ?? null)
     setDraft(makeDraft(audit?.review_json))
+    setDpjpStaffId(linkedStaffId)
+    setSavedDpjpStaffId(linkedStaffId)
     setMessage('')
     setEditorOpen(true)
   }
@@ -341,6 +386,14 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
     if (!activeEpisode || saving) return
     if (activeEpisode.roomId == null) {
       setMessage('Episode belum terpetakan ke unit yang valid. Telaah tidak dapat disimpan.')
+      return
+    }
+    if (nextStatus === 'submitted' && activeEpisode.dpjp.trim() && !dpjpStaffId && !savedDpjpStaffId) {
+      setMessage('Pilih identitas DPJP dari roster terkunci unit untuk menautkan nama sumber ke direktori AUREKA sebelum mengajukan telaah.')
+      return
+    }
+    if (dpjpStaffId && dpjpStaffId !== savedDpjpStaffId && !teamStaff.some((staff) => staff.id === dpjpStaffId && Number(staff.room_id) === Number(activeEpisode.roomId))) {
+      setMessage('Identitas DPJP baru harus berasal dari roster terkunci pada unit episode ini.')
       return
     }
     if (nextStatus === 'submitted') {
@@ -386,6 +439,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         learning_points: draft.learningPoints,
         recommended_actions: draft.actions,
       }
+      let savedAuditId = activeAudit?.id ? String(activeAudit.id) : ''
       const payload: Record<string, any> = {
         room_id: activeEpisode.roomId,
         source_record_id: activeEpisode.sourceRecordId,
@@ -432,13 +486,35 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
           created_by: userData.user.id,
         }).select('*').single()
         if (error) throw error
+        savedAuditId = String(data.id)
         setActiveAudit(data as AuditRow)
+      }
+      let identityWarning = ''
+      if (savedAuditId && dpjpStaffId !== savedDpjpStaffId) {
+        const { error: deleteLinkError } = await q().from('staff_entity_attributions').delete()
+          .eq('entity_type', 'clinical_death_audit').eq('entity_id', savedAuditId).eq('field_key', 'dpjp')
+        if (deleteLinkError) {
+          identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP tidak dapat diperbarui: ' + deleteLinkError.message
+        } else if (dpjpStaffId) {
+          const { error: insertLinkError } = await q().from('staff_entity_attributions').insert({
+            entity_type: 'clinical_death_audit',
+            entity_id: savedAuditId,
+            staff_id: dpjpStaffId,
+            field_key: 'dpjp',
+            attribution_type: 'responsible_provider',
+            created_by: userData.user.id,
+            updated_by: userData.user.id,
+          })
+          if (insertLinkError) identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP gagal disimpan: ' + insertLinkError.message
+        }
       }
       await load()
       setEditorOpen(false)
       setActiveEpisode(null)
       setActiveAudit(null)
-      setMessage(nextStatus === 'submitted' ? 'Telaah diajukan dan tersimpan.' : 'Draf telaah tersimpan.')
+      setMessage(identityWarning || (nextStatus === 'submitted' ? 'Telaah diajukan dan tersimpan. Identitas DPJP tertaut pada direktori AUREKA.' : 'Draf telaah tersimpan.'))
+      setDpjpStaffId('')
+      setSavedDpjpStaffId('')
     } catch (error) {
       const detail = error instanceof Error ? error.message : 'Kesalahan yang tidak diketahui.'
       setMessage(/duplicate key|unique constraint|clinical_death_audits_source/i.test(detail)
@@ -548,6 +624,15 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
               <div className="acdMetaBox"><span>DPJP</span><strong>{activeEpisode.dpjp || 'Belum dipetakan'}</strong></div>
               <div className="acdMetaBox"><span>Admisi</span><strong>{activeEpisode.admit || 'Belum tersedia'}</strong></div>
               <div className="acdMetaBox"><span>Keluar / hasil akhir</span><strong>{activeEpisode.discharge || activeEpisode.outcome || 'Belum tersedia'}</strong></div>
+            </div>
+            <div className="acdEditorField">
+              <label htmlFor="acd-dpjp-staff">DPJP · Identitas direktori AUREKA</label>
+              <select id="acd-dpjp-staff" value={dpjpStaffId} disabled={isValidator || saving} onChange={(event) => setDpjpStaffId(event.target.value)}>
+                <option value="">Pilih identitas DPJP dari roster unit…</option>
+                {teamStaff.filter((staff) => Number(staff.room_id) === Number(activeEpisode.roomId) && (/dokter/i.test(staff.profession_group) || /dokter/i.test(staff.position_title))).map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code}</option>)}
+              </select>
+              <div className="acdSmall">Nama DPJP pada sumber episode: {activeEpisode.dpjp || 'Belum dipetakan'}. Pilih identitas yang benar-benar sesuai dengan sumber; nama snapshot tidak diubah.</div>
+              {dpjpStaffId && <div className="acdSmall">ID tenaga AUREKA: {dpjpStaffId.slice(0,8).toUpperCase()} · identitas akan disimpan terpisah dari snapshot klinis.</div>}
             </div>
             <div className="acdSectionTitle"><div><h5>Ringkasan klinis</h5><p>Tulis ringkasan faktual dan relevan dari rekam medis; jangan menyalin seluruh catatan.</p></div></div>
             <div className="acdEditorField"><label htmlFor="acd-background">Riwayat singkat, perjalanan klinis dan konteks kasus</label><textarea id="acd-background" disabled={isValidator} value={draft.background} onChange={(event) => setDraft((current) => ({...current, background: event.target.value}))} placeholder="Keluhan awal, komorbiditas relevan, perubahan kondisi, intervensi penting, dan hasil akhir…" /></div>

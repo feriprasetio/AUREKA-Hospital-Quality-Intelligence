@@ -47,6 +47,7 @@ type AuditRow = {
   unit_name?: string
 }
 type Room = { id: number; name: string }
+type StaffOption = { id: string; employee_code: string; display_name: string; profession_group: string; position_title: string; room_id: number; room_name: string }
 type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; userName: string; onBack: () => void }
 
 const sb = aurekaSupabase
@@ -271,6 +272,10 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [builderIsNew, setBuilderIsNew] = useState(false)
   const [builderReturnScreen, setBuilderReturnScreen] = useState<'library' | 'diagnosis'>('diagnosis')
   const [patientPanelCollapsed, setPatientPanelCollapsed] = useState(false)
+  const [teamStaff, setTeamStaff] = useState<StaffOption[]>([])
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [staffAttributions, setStaffAttributions] = useState<Record<string, string>>({})
+  const [savedStaffAttributions, setSavedStaffAttributions] = useState<Record<string, string>>({})
 
   const selectedTemplate = templates.find((x) => x.code === selectedCode) || catalog.find((x) => x.code === selectedCode) || null
   const roomNames = useMemo(() => new Map(rooms.map((r) => [Number(r.id), r.name])), [rooms])
@@ -281,6 +286,59 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     .filter((t) => isAdmin || t.status === 'published')
     .filter((t) => (t.name + ' ' + t.icd10 + ' ' + t.code).toLowerCase().includes(search.toLowerCase().trim()))
     .sort((a, b) => a.name.localeCompare(b.name, 'id')), [templates, search, isAdmin])
+
+  const loadTeamStaff = useCallback(async () => {
+    setStaffLoading(true)
+    try {
+      const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
+        .select('staff_id,room_id')
+        .eq('assignment_status', 'active')
+        .eq('is_locked', true)
+      if (assignmentError) throw assignmentError
+      const roomByStaff = new Map<string, number>(
+        ((assignmentRows || []) as Array<{staff_id: string; room_id: number}>).map((row) => [String(row.staff_id), Number(row.room_id)]),
+      )
+      const ids = Array.from(roomByStaff.keys())
+      const next: StaffOption[] = []
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const batch = ids.slice(offset, offset + 100)
+        const { data, error } = await q().from('staff_directory')
+          .select('id,employee_code,display_name,profession_group,position_title,directory_status')
+          .eq('directory_status', 'available')
+          .in('id', batch)
+          .order('display_name')
+        if (error) throw error
+        next.push(...(data || []).map((row: any) => {
+          const roomId = Number(roomByStaff.get(String(row.id)))
+          return { ...row, id: String(row.id), room_id: roomId, room_name: roomNames.get(roomId) || '' }
+        }).filter((staff: StaffOption) => staff.room_name))
+      }
+      setTeamStaff(next)
+    } catch {
+      setTeamStaff([])
+      setMessage('Direktori tenaga belum dapat dimuat. Pemetaan identitas PPA dan pelaksana tetap dibatasi sampai roster tim tersedia.')
+      setMessageKind('error')
+    } finally {
+      setStaffLoading(false)
+    }
+  }, [roomNames])
+
+  useEffect(() => { void loadTeamStaff() }, [loadTeamStaff])
+
+  const staffForProfession = useCallback((profession: string, roomId: number | null) => {
+    const low = String(profession || '').toLocaleLowerCase('id-ID')
+    const roster = teamStaff.filter((staff) => Number(staff.room_id) === Number(roomId))
+    if (/dokter|dpjp|physician|spesialis/.test(low)) return roster.filter((staff) => /dokter/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/perawat|nurse/.test(low)) return roster.filter((staff) => /perawat/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/bidan|midwife/.test(low)) return roster.filter((staff) => /bidan/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/apoteker|farmasi|pharmacist/.test(low)) return roster.filter((staff) => /kefarmasian|farmasi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/gizi|nutrisi|dietisien/.test(low)) return roster.filter((staff) => /gizi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/radiologi|radiographer/.test(low)) return roster.filter((staff) => /radiologi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/laboratorium|atlm|analis|laboratory/.test(low)) return roster.filter((staff) => /laboratorium/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    if (/fisioterapi|terapi okupasi/.test(low)) return roster.filter((staff) => /terapi|fisioterapi/.test(staff.profession_group.toLocaleLowerCase('id-ID')))
+    const exact = roster.filter((staff) => staff.profession_group.toLocaleLowerCase('id-ID') === low)
+    return exact.length ? exact : roster
+  }, [teamStaff])
 
   const loadTemplates = useCallback(async () => {
     setLoading(true)
@@ -388,6 +446,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       clinical_data: {}, ppa_names: { dpjp: '' }, selected_items_json: {}, additional_phases_json: [], inclusion_json: {}, answers_json: {},
       variations_json: { reviewed: false, items: [] }, status: 'draft',
     })
+    setStaffAttributions({})
+    setSavedStaffAttributions({})
     setFocusedCell(null)
     setPatientPanelCollapsed(false)
     setMessage('')
@@ -403,6 +463,14 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       const fallback = templates.find((x) => x.code === row.template_code) || catalog.find((x) => x.code === row.template_code)
       if (!fallback) throw new Error('Master CP untuk audit ini tidak ditemukan.')
       setForm(fromDatabase(data, fallback, roomNames.get(Number(data.room_id)) || ''))
+      const { data: links, error: linkError } = await q().from('staff_entity_attributions')
+        .select('field_key,staff_id')
+        .eq('entity_type', 'clinical_pathway_audit')
+        .eq('entity_id', String(data.id))
+      if (linkError) throw linkError
+      const linked = Object.fromEntries((links || []).map((link: any) => [String(link.field_key), String(link.staff_id)]))
+      setStaffAttributions(linked)
+      setSavedStaffAttributions(linked)
       setSelectedCode(row.template_code)
       setFocusedCell(null)
       setPatientPanelCollapsed(false)
@@ -426,6 +494,38 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       const nextCell = { ...currentCell, ...patch }
       const nextAnswers = { ...current.answers_json, [item.id]: { ...(current.answers_json[item.id] || {}), [day]: nextCell } }
       return { ...current, answers_json: nextAnswers }
+    })
+  }
+
+  function selectPpaStaff(field: PPANameField, staffId: string) {
+    const fieldKey = 'ppa:' + field.key
+    const staff = teamStaff.find((row) => row.id === staffId && Number(row.room_id) === Number(form?.room_id))
+    setStaffAttributions((current) => {
+      const next = { ...current }
+      if (staff) next[fieldKey] = staff.id
+      else delete next[fieldKey]
+      return next
+    })
+    if (staff) {
+      patchForm({
+        ppa_names: { ...(form?.ppa_names || {}), [field.key]: staff.display_name },
+        ...(field.key === 'dpjp' ? { dpjp: staff.display_name } : {}),
+      })
+    }
+  }
+
+  function selectPerformerStaff(item: CPItem, day: string, staffId: string) {
+    const fieldKey = 'performer:' + item.id + ':' + day
+    const staff = teamStaff.find((row) => row.id === staffId && Number(row.room_id) === Number(form?.room_id))
+    setStaffAttributions((current) => {
+      const next = { ...current }
+      if (staff) next[fieldKey] = staff.id
+      else delete next[fieldKey]
+      return next
+    })
+    patchCell(item, day, {
+      performer_name: staff?.display_name || '',
+      performer_profession: staff?.profession_group || item.profession,
     })
   }
 
@@ -483,6 +583,22 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     if (!masterReady) { setMessage('Audit belum dapat disimpan: master CP belum tersinkron di Supabase.'); setMessageKind('error'); return }
     if (!form.room_id) { setMessage('Pilih unit/ruangan sebelum menyimpan audit.'); setMessageKind('error'); return }
     if (!form.patient_name.trim()) { setMessage('Nama pasien wajib diisi.'); setMessageKind('error'); return }
+    if (nextStatus === 'submitted' && !form.id && !staffAttributions['ppa:dpjp']) {
+      setMessage('Pilih DPJP dari roster tenaga terkunci unit sebelum mengajukan audit Clinical Pathway baru.')
+      setMessageKind('error')
+      return
+    }
+    const allowedStaffIds = new Set(teamStaff.filter((staff) => Number(staff.room_id) === Number(form.room_id)).map((staff) => staff.id))
+    const identityKeys = Array.from(new Set([...Object.keys(savedStaffAttributions), ...Object.keys(staffAttributions)]))
+    const changedIdentityKeys = identityKeys.filter((key) => (savedStaffAttributions[key] || '') !== (staffAttributions[key] || ''))
+    if (changedIdentityKeys.some((key) => {
+      const staffId = staffAttributions[key]
+      return !!staffId && !allowedStaffIds.has(staffId)
+    })) {
+      setMessage('Ada identitas PPA/pelaksana baru yang tidak berada pada roster terkunci unit. Segarkan roster atau minta Admin/PMKP memperbarui penetapan tim.')
+      setMessageKind('error')
+      return
+    }
     if (!isAdmin && form.id && form.status === 'validated') { setMessage('Audit yang sudah tervalidasi hanya dapat diubah oleh Super Admin.'); setMessageKind('error'); return }
     if (!isAdmin && form.room_id !== initialRoomId) { setMessage('Anda hanya dapat menyimpan audit pada unit yang ditetapkan di akun.'); setMessageKind('error'); return }
     setSaving(true)
@@ -511,11 +627,37 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         result = await q().from('clinical_pathway_audits').insert(payload).select('*').single()
       }
       if (result.error) throw result.error
+      const auditId = String(result.data.id)
+      let identityWarning = ''
+      for (const fieldKey of changedIdentityKeys) {
+        const { error: deleteLinkError } = await q().from('staff_entity_attributions')
+          .delete().eq('entity_type', 'clinical_pathway_audit').eq('entity_id', auditId).eq('field_key', fieldKey)
+        if (deleteLinkError) {
+          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga tidak dapat diperbarui: ' + deleteLinkError.message
+          break
+        }
+        const staffId = staffAttributions[fieldKey]
+        if (!staffId) continue
+        const { error: insertLinkError } = await q().from('staff_entity_attributions').insert({
+          entity_type: 'clinical_pathway_audit',
+          entity_id: auditId,
+          staff_id: staffId,
+          field_key: fieldKey,
+          attribution_type: fieldKey.startsWith('ppa:') ? 'responsible_provider' : 'involved_person',
+          created_by: auth.data.user.id,
+          updated_by: auth.data.user.id,
+        })
+        if (insertLinkError) {
+          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga gagal disimpan: ' + insertLinkError.message
+          break
+        }
+      }
+      if (!identityWarning) setSavedStaffAttributions({ ...staffAttributions })
       const fallback = templates.find((x) => x.code === result.data.template_code) || form.template
       setForm(fromDatabase(result.data, fallback, roomNames.get(Number(result.data.room_id)) || ''))
       setSelectedCode(result.data.template_code)
-      setMessage('Audit CP berhasil disimpan ke Supabase. Hasil Bagian D dihitung ulang oleh database.')
-      setMessageKind('info')
+      setMessage(identityWarning || 'Audit CP berhasil disimpan ke Supabase. Identitas PPA/pelaksana tertaut ke direktori AUREKA; hasil Bagian D dihitung ulang oleh database.')
+      setMessageKind(identityWarning ? 'error' : 'info')
       if (screen === 'diagnosis') await loadAudits(result.data.template_code)
     } catch (e: any) {
       setMessage('Gagal menyimpan audit ke Supabase: ' + (e?.message || 'Kesalahan server.'))
@@ -797,11 +939,20 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         </div>
         <div className="cpSectionHead"><div><h4>Penanggung jawab PPA</h4><p>Isi nama penanggung jawab sesuai profesi yang terdapat pada clinical pathway diagnosis ini.</p></div></div>
         <div className="cpFormGrid cpPpaGrid">
-          {ppaNameFields(form.template).map((field) => <div key={field.key} className="cpField">
-            <label>{field.label}</label>
-            <input value={form.ppa_names?.[field.key] || ''} onChange={(e) => patchForm({ ppa_names: { ...(form.ppa_names || {}), [field.key]: e.target.value }, ...(field.key === 'dpjp' ? { dpjp: e.target.value } : {}) })} placeholder={`Nama ${field.label}`} />
-            {field.key !== 'dpjp' && <small className="cpTiny">Berdasarkan kelompok PPA: {humanizeProfession(field.profession)}</small>}
-          </div>)}
+          {ppaNameFields(form.template).map((field) => {
+            const fieldKey = 'ppa:' + field.key
+            const options = staffForProfession(field.profession, form.room_id)
+            const linkedId = staffAttributions[fieldKey] || ''
+            const savedName = form.ppa_names?.[field.key] || ''
+            return <div key={field.key} className="cpField">
+              <label>{field.label}</label>
+              <select value={linkedId} disabled={!form.room_id || staffLoading || (!isAdmin && form.status === 'validated')} onChange={(event) => selectPpaStaff(field, event.target.value)}>
+                <option value="">Pilih dari roster terkunci {field.profession ? '(' + humanizeProfession(field.profession) + ')' : ''}…</option>
+                {options.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code}</option>)}
+              </select>
+              <small className="cpTiny">{linkedId ? 'ID tenaga AUREKA tertaut.' : savedName ? 'Nama pada snapshot audit: ' + savedName + '. Pilih identitas kanonik jika orang tersebut sudah ada pada roster unit.' : options.length ? 'Nama dipilih dari roster unit yang telah dikunci.' : 'Roster belum memiliki tenaga yang cocok untuk profesi ini pada unit audit.'}</small>
+            </div>
+          })}
         </div>
         </>}
       </div>
@@ -841,7 +992,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
                 performer_profession: answer.performer_profession || item.profession,
               })
             }}><option value="">Belum dinilai</option><option value="done">Sesuai standar</option><option value="not_done">Tidak sesuai / tidak dilakukan</option>{(sched.policy === 'conditional' || !!phase) && <option value="not_applicable">Tidak berlaku (kondisional / fase tambahan)</option>}</select></div>
-            <div className="cpField"><label>Petugas pelaksana {item.oppe ? '· bukti OPPE' : ''}</label><input value={answer.performer_name || ''} onChange={(e) => patchCell(item, focusedCell.day, { performer_name: e.target.value })} placeholder="Nama petugas yang benar-benar melaksanakan" /></div>
+            <div className="cpField"><label>Petugas pelaksana {item.oppe ? '· bukti OPPE' : ''}</label><select value={staffAttributions['performer:' + item.id + ':' + focusedCell.day] || ''} disabled={!form.room_id || staffLoading || (!isAdmin && form.status === 'validated')} onChange={(e) => selectPerformerStaff(item, focusedCell.day, e.target.value)}><option value="">Pilih petugas dari roster terkunci unit…</option>{staffForProfession(answer.performer_profession || item.profession, form.room_id).map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}</select><small className="cpTiny">{staffAttributions['performer:' + item.id + ':' + focusedCell.day] ? 'Identitas pelaksana tertaut ke staff_id AUREKA.' : answer.performer_name ? 'Nama pada snapshot saat ini: ' + answer.performer_name + '. Pilih tenaga dari roster untuk mengaitkan identitas.' : 'Pilih tenaga yang benar-benar melaksanakan tindakan.'}</small></div>
             <div className="cpField"><label>Profesi pelaksana</label><input value={answer.performer_profession || item.profession || ''} onChange={(e) => patchCell(item, focusedCell.day, { performer_profession: e.target.value })} /></div>
             <div className="cpField"><label>Waktu pelaksanaan</label><input type="datetime-local" value={toLocalDateTimeInput(answer.performed_at)} onChange={(e) => patchCell(item, focusedCell.day, { performed_at: e.target.value ? new Date(e.target.value).toISOString() : '' })} /></div>
             <div className="cpField"><label>Bukti / referensi</label><input value={answer.evidence || ''} onChange={(e) => patchCell(item, focusedCell.day, { evidence: e.target.value })} placeholder="Nomor dokumen / catatan" /></div>
