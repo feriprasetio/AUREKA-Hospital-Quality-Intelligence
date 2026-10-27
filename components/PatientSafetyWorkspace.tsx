@@ -569,6 +569,13 @@ export default function PatientSafetyWorkspace({
     if (!canManageWorkflow) { setError('Akses investigasi hanya untuk Admin, Komite PMKP, atau Manajemen yang berwenang.'); return }
     if (!investigationIncidentId) { setError('Pilih laporan IKP yang akan diinvestigasi.'); return }
     if (saving) return
+    const targetIncident = incidents.find(row => row.id === investigationIncidentId)
+    const targetUnitName = targetIncident?.unit_name || ''
+    const allowedInvestigationStaff = new Set(staffOptions.filter(staff => staff.room_name === targetUnitName).map(staff => staff.id))
+    if (investigationStaffIds.some(staffId => !allowedInvestigationStaff.has(staffId))) {
+      setError('Ada identitas tenaga dalam investigasi yang tidak lagi berada pada roster terkunci unit. Periksa Tim Tenaga Kerja sebelum menyimpan.')
+      return
+    }
     setSaving(true); setError(''); setMessage('')
     const formData = investigationData
     const payload = {
@@ -587,8 +594,14 @@ export default function PatientSafetyWorkspace({
       if (result.error) throw result.error
       setInvestigationId(result.data.id)
       setInvestigationCode(result.data.investigation_code)
+      let attributionWarning = ''
+      try {
+        attributionWarning = await syncStaffEntityAttributions('patient_safety_investigation', String(result.data.id), '5', investigationStaffIds, 'involved_person', targetUnitName)
+      } catch (attributionError) {
+        attributionWarning = 'Investigasi tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+      }
       await loadData()
-      notify('Hasil investigasi disimpan. Kode: ' + result.data.investigation_code)
+      notify(attributionWarning || 'Hasil investigasi disimpan. Kode: ' + result.data.investigation_code)
     } catch (e) {
       setError('Gagal menyimpan investigasi: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
     } finally { setSaving(false) }
