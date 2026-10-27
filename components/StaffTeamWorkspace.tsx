@@ -15,6 +15,7 @@ type DirectoryStaff = {
   source_unit: string
   staff_group: string
   directory_status: 'available' | 'needs_review' | 'inactive'
+  already_locked_here: boolean
 }
 type Assignment = {
   id: string
@@ -57,24 +58,22 @@ export default function StaffTeamWorkspace({
   const load = useCallback(async () => {
     setLoading(true); setError('')
     try {
-      const { data: directoryRows, error: directoryError } = await q().from('staff_directory')
-        .select('id,employee_code,display_name,profession_group,position_title,source_unit,staff_group,directory_status')
-        .in('directory_status', ['available','needs_review'])
-        .order('display_name', { ascending: true })
-        .limit(5000)
-      if (directoryError) throw new Error('Direktori tenaga kerja: ' + directoryError.message)
-      setDirectory((directoryRows || []) as DirectoryStaff[])
       if (!roomId) {
+        setDirectory([])
         setAssignments([])
-      } else {
-        const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
-          .select('id,staff_id,room_id,assignment_status,is_locked,assigned_at,assigned_user_id')
-          .eq('room_id', roomId)
-          .eq('assignment_status', 'active')
-          .order('assigned_at', { ascending: true })
-        if (assignmentError) throw new Error('Daftar tim: ' + assignmentError.message)
-        setAssignments((assignmentRows || []) as Assignment[])
+        throw new Error('Pilih unit kerja yang diizinkan untuk memuat roster.')
       }
+      // The database RPC deliberately omits staff locked to other teams.
+      const { data: directoryRows, error: directoryError } = await q().rpc('list_assignable_staff', { p_room_id: roomId })
+      if (directoryError) throw new Error('Daftar tenaga yang dapat dipetakan: ' + directoryError.message)
+      setDirectory((directoryRows || []) as DirectoryStaff[])
+      const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
+        .select('id,staff_id,room_id,assignment_status,is_locked,assigned_at,assigned_user_id')
+        .eq('room_id', roomId)
+        .eq('assignment_status', 'active')
+        .order('assigned_at', { ascending: true })
+      if (assignmentError) throw new Error('Daftar tim: ' + assignmentError.message)
+      setAssignments((assignmentRows || []) as Assignment[])
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal memuat daftar tim.')
     } finally {
@@ -89,13 +88,13 @@ export default function StaffTeamWorkspace({
   const availableToChoose = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('id')
     return directory.filter((staff) => {
-      if (staff.directory_status !== 'available' || rosterIds.has(staff.id)) return false
+      if (staff.directory_status !== 'available' || staff.already_locked_here || rosterIds.has(staff.id)) return false
       if (!term) return true
       return [staff.display_name, staff.employee_code, staff.profession_group, staff.position_title, staff.source_unit, staff.staff_group]
         .some((value) => String(value || '').toLocaleLowerCase('id').includes(term))
     })
   }, [directory, search, rosterIds])
-  const reviewCount = directory.filter((staff) => staff.directory_status === 'needs_review').length
+  const reviewCount = 0
   const roster = useMemo(() => {
     const index = new Map(directory.map((staff) => [staff.id, staff]))
     return assignments.map((assignment) => ({ assignment, staff: index.get(assignment.staff_id) }))
@@ -205,7 +204,7 @@ export default function StaffTeamWorkspace({
         {canChooseRoom ? (
           <label className="stField" style={{maxWidth:520,marginTop:14}}>
             <span>Unit / tim yang dikelola</span>
-            <select value={roomId || ''} onChange={(e) => setRoomId(Number(e.target.value))}>
+            <select value={roomId || ''} onChange={(e) => {setSelectedStaffId('');setMessage('');setError('');setRoomId(e.target.value ? Number(e.target.value) : 0)}}>
               <option value="">Pilih unit</option>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
             </select>
           </label>
@@ -214,8 +213,8 @@ export default function StaffTeamWorkspace({
         )}
         <div className="stKpis">
           <div className="stKpi"><span>Anggota tim terkunci</span><strong>{assignments.length.toLocaleString('id-ID')}</strong></div>
-          <div className="stKpi"><span>Direktori siap dipetakan</span><strong>{directory.filter((row) => row.directory_status === 'available').length.toLocaleString('id-ID')}</strong></div>
-          <div className="stKpi"><span>Menunggu verifikasi Admin</span><strong>{reviewCount.toLocaleString('id-ID')}</strong></div>
+          <div className="stKpi"><span>Kandidat yang belum terkunci</span><strong>{directory.filter((row) => row.directory_status === 'available' && !row.already_locked_here).length.toLocaleString('id-ID')}</strong></div>
+          <div className="stKpi"><span>Perlindungan identitas</span><strong>Aktif</strong></div>
         </div>
         {message && <div className="stNotice" role="status">{message}</div>}
         {error && <div className="stError" role="alert">{error}</div>}
