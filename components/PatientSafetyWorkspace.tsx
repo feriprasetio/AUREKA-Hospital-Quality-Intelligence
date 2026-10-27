@@ -529,10 +529,17 @@ export default function PatientSafetyWorkspace({
       setIncidentId(result.data.id)
       setIncidentCode(result.data.incident_code)
       setIncidentStatus(result.data.status as IncidentStatus)
-      formSnapshot.current = JSON.stringify(incidentData)
+      formSnapshot.current = JSON.stringify({ data: incidentData, staffId: incidentStaffId })
+      let attributionWarning = ''
+      try {
+        attributionWarning = await syncStaffEntityAttributions('patient_safety_incident', String(result.data.id), 'E1', incidentStaffId ? [incidentStaffId] : [], 'reporter', incidentData.E2 || '')
+      } catch (attributionError) {
+        attributionWarning = 'Laporan tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+      }
       await loadData()
       if (nextStatus === 'submitted' && !canManageWorkflow) setFormOpen(false)
-      notify(nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code)
+      const successMessage = nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code
+      notify(attributionWarning || successMessage)
     } catch (e) {
       setError('Gagal menyimpan laporan IKP: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
     } finally { setSaving(false) }
