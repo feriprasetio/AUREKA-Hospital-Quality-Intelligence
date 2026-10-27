@@ -8,14 +8,14 @@ set directory_status = 'available',
     review_note = '',
     updated_at = now()
 where employee_code in (
-  'AUR-0149', -- Sri Wahyuni, S.Kep. (perawat); distinct from cleaner without degree
-  'AUR-0179', -- Ns. Nur Annisa, S.Kep.; distinct from dr. Nur Annisa, Sp.P.
-  'AUR-0279', -- Herman, A.Md.Kep. (perawat); distinct from cleaner
-  'AUR-0316', -- Rahmawati, A.Md.Keb.; distinct from pharmacy assistant
-  'AUR-0364', -- dr. Nur Annisa, Sp.P.; different profession/credentials
-  'AUR-0506', -- Rahmawati, A.Md.Farm.; distinct from midwife
-  'AUR-0567', -- Herman, cleaner; distinct from nurse
-  'AUR-0573'  -- Sri Wahyuni, cleaner; distinct from nurse
+  'AUR-0149',
+  'AUR-0179',
+  'AUR-0279',
+  'AUR-0316',
+  'AUR-0364',
+  'AUR-0506',
+  'AUR-0567',
+  'AUR-0573'
 )
 and directory_status = 'needs_review'
 and review_note like 'Nama dasar sama muncul pada lebih dari satu baris sumber%';
@@ -24,14 +24,14 @@ and review_note like 'Nama dasar sama muncul pada lebih dari satu baris sumber%'
 -- AUREKA codes for disambiguation; no physical descriptors are stored.
 update aureka_quality.staff_directory
 set directory_status = 'available',
-    review_note = 'Klarifikasi PMKP: terdapat dua personel berbeda bernama Nurbani pada daftar tenaga kebersihan. Gunakan kode AUREKA AUR-0568 untuk memilih identitas ini; tidak memakai ciri fisik sebagai label.',
+    review_note = 'Klarifikasi PMKP: identitas ini adalah salah satu dari dua personel berbeda dengan nama dasar yang sama pada daftar tenaga kebersihan. Gunakan kode AUREKA yang tampil di daftar untuk memilih identitas; tidak memakai ciri fisik sebagai label.',
     updated_at = now()
 where employee_code = 'AUR-0568'
   and directory_status = 'needs_review';
 
 update aureka_quality.staff_directory
 set directory_status = 'available',
-    review_note = 'Klarifikasi PMKP: terdapat dua personel berbeda bernama Nurbani pada daftar tenaga kebersihan. Gunakan kode AUREKA AUR-0570 untuk memilih identitas ini; tidak memakai ciri fisik sebagai label.',
+    review_note = 'Klarifikasi PMKP: identitas ini adalah salah satu dari dua personel berbeda dengan nama dasar yang sama pada daftar tenaga kebersihan. Gunakan kode AUREKA yang tampil di daftar untuk memilih identitas; tidak memakai ciri fisik sebagai label.',
     updated_at = now()
 where employee_code = 'AUR-0570'
   and directory_status = 'needs_review';
