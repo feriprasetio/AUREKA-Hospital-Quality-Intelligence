@@ -363,7 +363,7 @@ export default function StaffDirectoryWorkspace() {
       <div className="sdPanel">
         <div className="sdHead" style={{alignItems:'center',marginBottom:12}}>
           <div><div className="sdEyebrow">Direktori Terpadu</div><div style={{fontSize:13,fontWeight:900,marginTop:4}}>Menampilkan {filtered.length.toLocaleString('id-ID')} dari {rows.length.toLocaleString('id-ID')} rekam</div></div>
-          <div className="sdSub">Nama sama tetap memiliki ID berbeda sampai verifikasi selesai.</div>
+          <div className="sdSub">Kesamaan nama tidak otomatis dianggap data ganda; gunakan kode AUREKA, gelar, kelompok profesi, dan jabatan untuk memastikan identitas yang tepat.</div>
         </div>
         {loading ? <div className="sdEmpty">Memuat direktori tenaga kerja…</div> : (
           <div className="sdTableWrap">
