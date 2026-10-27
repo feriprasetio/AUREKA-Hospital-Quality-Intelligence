@@ -5,6 +5,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
+  buildOppeResponseIndex,
   buildOppeScore,
   evaluateClinicalIndicator,
   isInPeriod,
@@ -211,6 +212,7 @@ export default function OppeAuditWorkspace({
   const [search, setSearch] = useState('')
   const [historySearch, setHistorySearch] = useState('')
 
+  const responseIndex = useMemo(() => buildOppeResponseIndex(responseRows), [responseRows])
   const roomMap = useMemo(() => new Map(rooms.map((room) => [Number(room.id), room.name])), [rooms])
   const layoutForRoom = (roomId: number) => LAYOUTS.find((layout) => Number(layout.roomId) === Number(roomId))
   const selectedRoomName = roomMap.get(Number(form.roomId)) || 'Unit belum dipetakan'
@@ -409,7 +411,7 @@ export default function OppeAuditWorkspace({
           profile: profile as OppeProfile,
           rule,
           records,
-          responseRows,
+          responseRows: responseIndex,
           staffName: form.staffName,
           profession: form.profession,
           year: form.year,
@@ -417,7 +419,7 @@ export default function OppeAuditWorkspace({
         }))
       })
       .sort((a, b) => (a.criticality === 'critical' ? -1 : b.criticality === 'critical' ? 1 : a.title.localeCompare(b.title, 'id')))
-  }, [activeProfiles, activeRulesByProfile, form.staffName, form.profession, form.roomId, form.year, form.quarter, records, responseRows])
+  }, [activeProfiles, activeRulesByProfile, form.staffName, form.profession, form.roomId, form.year, form.quarter, records, responseIndex])
 
   const score = useMemo(() => {
     if (currentReadOnly && savedScoreSnapshot) return savedScoreSnapshot
@@ -574,8 +576,8 @@ export default function OppeAuditWorkspace({
     try {
       const { data: authData, error: authError } = await sb.auth.getUser()
       if (authError || !authData.user) throw new Error('Sesi login tidak ditemukan. Silakan login ulang.')
-      if (nextStatus === 'validated' && !['submitted', 'reopened'].includes(form.status)) {
-        throw new Error('Hanya OPPE yang telah disubmit atau dikembalikan yang dapat divalidasi.')
+      if (nextStatus === 'validated' && form.status !== 'submitted') {
+        throw new Error('OPPE yang dikembalikan untuk revisi harus disubmit ulang sebelum dapat divalidasi.')
       }
       if (nextStatus === 'validated') {
         if (!form.id) throw new Error('ID penilaian belum tersedia.')
@@ -645,11 +647,20 @@ export default function OppeAuditWorkspace({
           const { error: updateError } = await q().from('oppe_assessments').update(payload).eq('id', savedId)
           if (updateError) throw updateError
         } else {
+          // The database intentionally requires new assessments to start as drafts.
+          // Persist a new submission as draft first, then use the allowed draft -> submitted transition.
+          const initialPayload = nextStatus === 'submitted'
+            ? { ...payload, status: 'draft', submitted_at: null, validated_by: null, validated_at: null }
+            : payload
           const { data: inserted, error: insertError } = await q().from('oppe_assessments')
-            .insert({ ...payload, created_by: authData.user.id })
+            .insert({ ...initialPayload, created_by: authData.user.id })
             .select('id').single()
           if (insertError) throw insertError
           savedId = String(inserted.id)
+          if (nextStatus === 'submitted') {
+            const { error: submitError } = await q().from('oppe_assessments').update(payload).eq('id', savedId)
+            if (submitError) throw submitError
+          }
         }
       }
       setForm((current) => ({ ...current, id: savedId, status: nextStatus }))
@@ -987,7 +998,7 @@ export default function OppeAuditWorkspace({
 
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">KESIMPULAN &amp; TINDAK LANJUT</div><h4>Catatan penilaian dan rencana pengembangan</h4><p>Nilai digunakan untuk umpan balik dan perbaikan profesional. Keputusan kewenangan klinis tidak dibuat secara otomatis dari skor ini.</p></div></div>
-              <label className="oppeField oppeWide"><span>Catatan evaluasi / alasan telaah / keputusan penilai</span><textarea value={form.assessmentNotes} onChange={(e) => setForm((current) => ({ ...current, assessmentNotes: e.target.value }))} placeholder="Cantumkan ringkasan diskusi, konteks kasus, faktor sistem, dan alasan keputusan penilaian." /></label>
+              <label className="oppeField oppeWide"><span>Catatan evaluasi / alasan telaah / keputusan penilai</span><textarea value={form.assessmentNotes} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, assessmentNotes: e.target.value }))} placeholder="Cantumkan ringkasan diskusi, konteks kasus, faktor sistem, dan alasan keputusan penilaian." /></label>
               <label className="oppeField oppeWide"><span>Rencana pengembangan / tindak lanjut</span><textarea value={form.developmentPlan} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, developmentPlan: e.target.value }))} placeholder="Tujuan perbaikan, tindakan, penanggung jawab dan waktu evaluasi ulang." /></label>
             </section>
 
@@ -1134,7 +1145,7 @@ export default function OppeAuditWorkspace({
         <h3>I. Perilaku profesional</h3><PrintManualTable items={form.behavior} />
         <h3>II. Pengembangan profesionalisme</h3><PrintManualTable items={professionalismForScore} />
         <h3>III. Kinerja klinis/profesional</h3>
-        <table className="oppePrintTable"><thead><tr><th>Kode</th><th>Indikator</th><th>N/D atau rerata</th><th>Capaian</th><th>Target</th><th>Jumlah observasi</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody>{clinicalResultsForDisplay.map((item) => <tr key={item.profileId}><td>{item.code}</td><td>{item.title}</td><td>{item.rate !== null ? `${fmtNum(item.numerator)}/${fmtNum(item.denominator)}` : fmtNum(item.numericMean)}</td><td>{fmtPct(item.rate)}</td><td>{item.targetText || '—'}</td><td>{item.observations}</td><td>{item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target' : item.status === 'manual_review' ? 'Telaah manual' : 'Data belum memadai'}</td><td>{item.reason}</td></tr>)}</tbody></table>
+        <table className="oppePrintTable"><thead><tr><th>Kode</th><th>Indikator</th><th>N / D</th><th>Capaian / nilai aktual</th><th>Target</th><th>Jumlah observasi</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody>{clinicalResultsForDisplay.map((item) => <tr key={item.profileId}><td>{item.code}</td><td>{item.title}</td><td>{item.numerator !== null && item.denominator !== null ? `${fmtNum(item.numerator)}/${fmtNum(item.denominator)}` : '—'}</td><td>{item.measurementMethod === 'numeric_target' ? (item.numericMean === null ? '—' : `${fmtNum(item.numericMean)}${item.unitOfMeasure ? ` ${item.unitOfMeasure}` : ''}`) : fmtPct(item.rate)}</td><td>{item.targetText || '—'}</td><td>{item.observations}</td><td>{item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target' : item.status === 'manual_review' ? 'Telaah manual' : 'Data belum memadai'}</td><td>{item.reason}</td></tr>)}</tbody></table>
         <h3>IV. Ringkasan hasil</h3>
         <table className="oppePrintMeta"><tbody><tr><th>Skor perilaku</th><td>{fmtPct(score.behavior.score)}</td><th>Skor pengembangan</th><td>{fmtPct(score.professionalism.score)}</td></tr><tr><th>Skor klinis</th><td>{fmtPct(score.clinical.score)}</td><th>Total OPPE</th><td>{fmtPct(score.overall)} · {score.category}</td></tr></tbody></table>
         <p><strong>Metode:</strong> {score.method}</p>
@@ -1161,6 +1172,8 @@ function ManualItemCard({ item, disabled, statusDisabled = false, onChange }: { 
 }
 
 function ClinicalResultCard({ item }: { item: ClinicalIndicatorResult }) {
+  const numericValue = item.numericMean === null ? '—' : `${fmtNum(item.numericMean)}${item.unitOfMeasure ? ` ${item.unitOfMeasure}` : ''}`
+  const primaryValue = item.measurementMethod === 'numeric_target' ? numericValue : fmtPct(item.rate)
   const stateLabel = item.status === 'meets_target' ? 'Memenuhi target'
     : item.status === 'below_target' ? 'Di bawah target'
       : item.status === 'manual_review' ? 'Konteks telaah'
@@ -1169,7 +1182,7 @@ function ClinicalResultCard({ item }: { item: ClinicalIndicatorResult }) {
   return <article className="oppeClinicalCard">
     <div className="oppeClinicalHead"><div><strong>{item.code} · {item.title}</strong><span>{item.unitName} · {item.grain} · atribusi: {item.attributionField} = profesi/nama yang dipilih</span></div><span className={`oppeStatus ${tone}`}>{stateLabel}</span></div>
     <div className="oppeClinicalStats">
-      <div><span>Capaian</span><strong>{fmtPct(item.rate)}</strong></div>
+      <div><span>{item.measurementMethod === 'numeric_target' ? 'Nilai aktual' : 'Capaian'}</span><strong>{primaryValue}</strong></div>
       <div><span>N / D</span><strong>{item.numerator == null ? '—' : `${fmtNum(item.numerator)} / ${fmtNum(item.denominator)}`}</strong></div>
       <div><span>Observasi</span><strong>{item.observations}</strong></div>
       <div><span>Target</span><strong>{item.targetText || '—'}</strong></div>

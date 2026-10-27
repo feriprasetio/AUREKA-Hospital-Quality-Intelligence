@@ -60,11 +60,22 @@ export type OppeResponseRow = {
   response_code?: number | null
 }
 
+export type OppeResponseIndex = ReadonlyMap<string, OppeResponseRow>
+
+const responseIndexKey = (recordId: string, indicatorId: string) => `${recordId}::${indicatorId}`
+
+export function buildOppeResponseIndex(rows: OppeResponseRow[]): OppeResponseIndex {
+  const index = new Map<string, OppeResponseRow>()
+  for (const row of rows) index.set(responseIndexKey(String(row.record_id), String(row.indicator_id)), row)
+  return index
+}
+
 export type ClinicalIndicatorResult = {
   profileId: string
   code: string
   title: string
   unitName: string
+  unitOfMeasure: string
   grain: string
   profession: string
   attributionField: string
@@ -140,7 +151,13 @@ const asObject = (value: unknown): Record<string, any> =>
 
 const numberOrNull = (value: unknown): number | null => {
   if (value === null || value === undefined || value === '') return null
-  const result = Number(value)
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  let text = String(value).trim().replace(/\s+/g, '')
+  if (!text) return null
+  // Accept Indonesian decimal notation (95,5) and grouped values (1.234,5) without guessing on 1.234.
+  if (/^-?\d{1,3}(?:\.\d{3})+,\d+$/.test(text)) text = text.replace(/\./g, '').replace(',', '.')
+  else if (/^-?\d+,\d+$/.test(text)) text = text.replace(',', '.')
+  const result = Number(text)
   return Number.isFinite(result) ? result : null
 }
 
@@ -158,43 +175,105 @@ export function periodBounds(year: number, quarter: number) {
   return { start, end }
 }
 
+const normalizeDate = (value: unknown): string => {
+  const text = String(value ?? '').trim()
+  if (!text) return ''
+
+  const toIso = (year: number, month: number, day: number) => {
+    const date = new Date(Date.UTC(year, month - 1, day))
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return ''
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  }
+
+  const iso = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?=$|[T\s])/)
+  if (iso) return toIso(Number(iso[1]), Number(iso[2]), Number(iso[3]))
+
+  // The application is Indonesian: slash/dot dates are interpreted as DD/MM/YYYY.
+  const local = text.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})(?=$|[T\s])/)
+  if (local) {
+    const first = Number(local[1])
+    const second = Number(local[2])
+    const year = Number(local[3])
+    if (first > 12) return toIso(year, second, first)
+    if (second > 12) return toIso(year, first, second)
+    return toIso(year, second, first)
+  }
+  return ''
+}
+
 export function recordDate(record: OppeQualityRecord): string {
   const core = asObject(record.core_data)
   const subject = asObject(record.subject_json)
-  const fields = asObject(core.form_fields ?? core.form_data ?? subject.form_fields ?? subject.form_data)
-  const raw = record.record_date
-    ?? core.record_date
-    ?? fields['Tanggal Pengamatan']
-    ?? fields['Tanggal Audit']
-    ?? fields['Tanggal Dilayani']
-    ?? fields['Tanggal Kunjungan']
-    ?? fields['Tanggal Masuk']
-    ?? fields['Tanggal Lapor']
-    ?? fields['Tanggal']
-    ?? core.admission_at
-    ?? core.admit
-    ?? subject.record_date
-    ?? ''
-  return String(raw).slice(0, 10)
+  const fields = recordFields(record)
+  const candidates = [
+    record.record_date,
+    core.record_date,
+    fields['Tanggal Pengamatan'],
+    fields['Tanggal Audit'],
+    fields['Tanggal Dilayani'],
+    fields['Tanggal Kunjungan'],
+    fields['Tanggal Masuk'],
+    fields['Tanggal Lapor'],
+    fields['Tanggal'],
+    core.admission_at,
+    core.admit,
+    subject.record_date,
+    record.period_end,
+    record.period_start,
+  ]
+  for (const candidate of candidates) {
+    const date = normalizeDate(candidate)
+    if (date) return date
+  }
+  return ''
 }
 
 export function isInPeriod(record: OppeQualityRecord, year: number, quarter: number): boolean {
+  if (!Number.isInteger(quarter) || quarter < 1 || quarter > 4) return false
+  const bounds = periodBounds(year, quarter)
+  const core = recordCore(record)
+  const fields = recordFields(record)
+  const periodStartCandidates = [
+    record.period_start, core.period_start, core.periodStart,
+    fields['Periode Mulai'], fields['Tanggal Mulai Periode'], fields['Period Start'],
+  ]
+  const periodEndCandidates = [
+    record.period_end, core.period_end, core.periodEnd,
+    fields['Periode Selesai'], fields['Tanggal Selesai Periode'], fields['Period End'],
+  ]
+  const periodStart = periodStartCandidates.map(normalizeDate).find(Boolean) || ''
+  const periodEnd = periodEndCandidates.map(normalizeDate).find(Boolean) || ''
+
+  // Aggregated records must belong wholly to one quarter; do not allocate a cross-quarter aggregate arbitrarily.
+  if (periodStart && periodEnd) {
+    return periodStart <= periodEnd && periodStart >= bounds.start && periodEnd <= bounds.end
+  }
+  if (periodStart || periodEnd) {
+    const boundary = periodStart || periodEnd
+    return boundary >= bounds.start && boundary <= bounds.end
+  }
+
   const date = recordDate(record)
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false
-  const y = Number(date.slice(0, 4))
-  const m = Number(date.slice(5, 7))
-  return y === year && Math.ceil(m / 3) === quarter
+  if (!date) return false
+  return date >= bounds.start && date <= bounds.end
 }
 
 export function recordCore(record: OppeQualityRecord): Record<string, any> {
   const core = asObject(record.core_data)
   const subject = asObject(record.subject_json)
-  return Object.keys(core).length ? core : subject
+  // Core values take precedence, but subject fields remain available if core_data is partial.
+  return { ...subject, ...core }
 }
 
 export function recordFields(record: OppeQualityRecord): Record<string, any> {
-  const core = recordCore(record)
-  return asObject(core.form_fields ?? core.form_data)
+  const core = asObject(record.core_data)
+  const subject = asObject(record.subject_json)
+  const candidates = [core.form_fields, core.form_data, subject.form_fields, subject.form_data]
+  for (const candidate of candidates) {
+    const fields = asObject(candidate)
+    if (Object.keys(fields).length) return fields
+  }
+  return {}
 }
 
 export function responsibleName(record: OppeQualityRecord, field: string): string {
@@ -232,18 +311,28 @@ export function responsibleName(record: OppeQualityRecord, field: string): strin
 export function responseFor(
   record: OppeQualityRecord,
   profile: OppeProfile,
-  responseRows: OppeResponseRow[],
+  responseRows: OppeResponseRow[] | OppeResponseIndex,
 ): Record<string, any> | null {
   const core = recordCore(record)
   const values = asObject(core.indicator_values)
   const byCode = asObject(values[profile.code])
   if (Object.keys(byCode).length) return byCode
 
-  const row = responseRows.find((item) => item.record_id === record.id && item.indicator_id === profile.id)
-  if (row?.raw_value && typeof row.raw_value === 'object') return row.raw_value
-  if (row?.response_label) return { answer: row.response_label, code: row.response_code }
+  const row = Array.isArray(responseRows)
+    ? responseRows.find((item) => item.record_id === record.id && item.indicator_id === profile.id)
+    : (responseRows as OppeResponseIndex).get(responseIndexKey(String(record.id), String(profile.id)))
+
+  if (row?.raw_value && typeof row.raw_value === 'object' && Object.keys(row.raw_value).length) return row.raw_value
+  if (row?.raw_value !== null && row?.raw_value !== undefined && typeof row.raw_value !== 'object') {
+    return { answer: String(row.raw_value), value: row.raw_value }
+  }
+  if (row?.response_label || (row?.response_code !== null && row?.response_code !== undefined)) {
+    return { answer: row.response_label || '', code: row.response_code, response_code: row.response_code }
+  }
   return null
 }
+
+
 
 function targetOf(profile: OppeProfile): { value: number | null; operator: string | null; reason: string } {
   const text = String(profile.target_text ?? '').trim()
@@ -288,6 +377,7 @@ function emptyResult(
     code: profile.code,
     title: profile.title || profile.code,
     unitName: profile.unit_name || '',
+    unitOfMeasure: profile.unit_of_measure || '',
     grain: profile.measurement_grain || '',
     profession: rule.profession_label,
     attributionField: rule.responsibility_field,
@@ -314,7 +404,7 @@ export function evaluateClinicalIndicator(args: {
   profile: OppeProfile
   rule: OppeRule
   records: OppeQualityRecord[]
-  responseRows: OppeResponseRow[]
+  responseRows: OppeResponseRow[] | OppeResponseIndex
   staffName: string
   profession: string
   year: number
@@ -390,7 +480,7 @@ export function evaluateClinicalIndicator(args: {
     const met = targetSatisfied(mean, target.value, target.operator)
     return {
       profileId: profile.id, code: profile.code, title: profile.title || profile.code,
-      unitName: profile.unit_name || '', grain: profile.measurement_grain || '',
+      unitName: profile.unit_name || '', unitOfMeasure: profile.unit_of_measure || '', grain: profile.measurement_grain || '',
       profession: rule.profession_label, attributionField: rule.responsibility_field,
       measurementMethod: rule.measurement_method, criticality: rule.criticality,
       observations: values.length, attributedRecords: matchingRecords.length,
@@ -463,7 +553,7 @@ export function evaluateClinicalIndicator(args: {
   const met = targetSatisfied(rate, target.value, target.operator)
   return {
     profileId: profile.id, code: profile.code, title: profile.title || profile.code,
-    unitName: profile.unit_name || '', grain: profile.measurement_grain || '',
+    unitName: profile.unit_name || '', unitOfMeasure: profile.unit_of_measure || '', grain: profile.measurement_grain || '',
     profession: rule.profession_label, attributionField: rule.responsibility_field,
     measurementMethod: rule.measurement_method, criticality: rule.criticality,
     observations: valid, attributedRecords: matchingRecords.length,

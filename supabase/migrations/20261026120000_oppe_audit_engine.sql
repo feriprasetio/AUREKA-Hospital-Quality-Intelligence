@@ -306,6 +306,12 @@ begin
     or new.professionalism_json is distinct from old.professionalism_json
     or new.clinical_snapshot_json is distinct from old.clinical_snapshot_json
     or new.score_json is distinct from old.score_json
+    or new.source_records_count is distinct from old.source_records_count
+    or new.evaluator_name is distinct from old.evaluator_name
+    or new.evaluator_role is distinct from old.evaluator_role
+    or new.assessment_notes is distinct from old.assessment_notes
+    or new.development_plan is distinct from old.development_plan
+    or new.submitted_at is distinct from old.submitted_at
   ) then
     raise exception 'Isi dan snapshot OPPE yang sudah disubmit tidak boleh diubah saat validasi. Kembalikan untuk revisi terlebih dahulu.';
   end if;
