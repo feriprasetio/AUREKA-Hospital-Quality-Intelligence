@@ -57,6 +57,8 @@ export default function StaffTeamWorkspace({
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
+    // Clear any previous unit's data before fetching a new scope.
+    setDirectory([]); setAssignments([])
     try {
       if (!roomId) {
         setDirectory([])
@@ -94,7 +96,6 @@ export default function StaffTeamWorkspace({
         .some((value) => String(value || '').toLocaleLowerCase('id').includes(term))
     })
   }, [directory, search, rosterIds])
-  const reviewCount = 0
   const roster = useMemo(() => {
     const index = new Map(directory.map((staff) => [staff.id, staff]))
     return assignments.map((assignment) => ({ assignment, staff: index.get(assignment.staff_id) }))
@@ -204,7 +205,7 @@ export default function StaffTeamWorkspace({
         {canChooseRoom ? (
           <label className="stField" style={{maxWidth:520,marginTop:14}}>
             <span>Unit / tim yang dikelola</span>
-            <select value={roomId || ''} onChange={(e) => {setSelectedStaffId('');setMessage('');setError('');setRoomId(e.target.value ? Number(e.target.value) : 0)}}>
+            <select value={roomId || ''} disabled={loading || busy} onChange={(e) => {setSelectedStaffId('');setMessage('');setError('');setRoomId(e.target.value ? Number(e.target.value) : 0)}}>
               <option value="">Pilih unit</option>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
             </select>
           </label>
@@ -218,6 +219,8 @@ export default function StaffTeamWorkspace({
         </div>
         {message && <div className="stNotice" role="status">{message}</div>}
         {error && <div className="stError" role="alert">{error}</div>}
+        {!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Metadata → Tenaga Kerja terlebih dahulu.</div>}
+        {!loading && directory.length > 0 && availableToChoose.length === 0 && <div className="stNotice">Tidak ada kandidat yang cocok. Tenaga yang telah terkunci pada tim ini sudah tercatat di roster; tenaga yang terkunci pada unit lain sengaja tidak ditampilkan.</div>}
         <div className="stForm">
           <label className="stField"><span>Cari tenaga</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nama, kode, profesi, jabatan…"/></label>
           <label className="stField"><span>Tenaga yang akan ditambahkan</span>
