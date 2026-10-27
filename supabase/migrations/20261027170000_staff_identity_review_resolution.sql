@@ -20,8 +20,8 @@ where employee_code in (
 and directory_status = 'needs_review'
 and review_note like 'Nama dasar sama muncul pada lebih dari satu baris sumber%';
 
--- Two people genuinely named Nurbani are retained. Use their unique internal
--- AUREKA codes for disambiguation; no physical descriptors are stored.
+-- Two confirmed distinct records with the same normalized name are retained.
+-- Use their unique internal AUREKA codes for disambiguation; no physical descriptors are stored.
 update aureka_quality.staff_directory
 set directory_status = 'available',
     review_note = 'Klarifikasi PMKP: identitas ini adalah salah satu dari dua personel berbeda dengan nama dasar yang sama pada daftar tenaga kebersihan. Gunakan kode AUREKA yang tampil di daftar untuk memilih identitas; tidak memakai ciri fisik sebagai label.',
