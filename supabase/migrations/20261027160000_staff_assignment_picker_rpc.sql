@@ -27,7 +27,7 @@ begin
     raise exception 'Login diperlukan untuk membuka direktori tenaga kerja.';
   end if;
 
-  if v_role not in ('ADMIN','PMKP','PIC','VALIDATOR') then
+  if coalesce(v_role, '') not in ('ADMIN','PMKP','PIC','VALIDATOR') then
     raise exception 'Role akun tidak diizinkan mengelola roster tenaga kerja.';
   end if;
 
