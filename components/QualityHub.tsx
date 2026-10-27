@@ -44,19 +44,14 @@ const ITEMS: Item[] = [
   {
     id: 'oppe',
     title: 'Audit OPPE',
-    ready: false,
+    ready: true,
     icon: '👩‍⚕️',
-    summary: 'Ongoing Professional Practice Evaluation: evaluasi praktik profesional berkelanjutan.',
-    detail: [
-      'Menilai kinerja tenaga medis/keperawatan secara berkala (perilaku, kepatuhan, capaian klinis).',
-      'Dipakai komite medik/keperawatan sebagai dasar rekredensial dan penetapan kewenangan klinis.',
-      'Hasil: rekap nilai OPPE per tenaga dan per periode penilaian.',
-    ],
-    needs: 'Indikator/instrumen OPPE per profesi dan periode penilaian yang dipakai rumah sakit.',
+    summary: 'Ongoing Professional Practice Evaluation: evaluasi praktik profesional berkelanjutan berdasarkan logbook terverifikasi dan penilaian evaluator.',
+    detail: [],
   },
 ]
 
-export default function QualityHub({ onOpen, onOpenClinicalPathway, onOpenClinicalDeathReview }: { onOpen: () => void; onOpenClinicalPathway: () => void; onOpenClinicalDeathReview: () => void }) {
+export default function QualityHub({ onOpen, onOpenClinicalPathway, onOpenClinicalDeathReview, onOpenOPPE }: { onOpen: () => void; onOpenClinicalPathway: () => void; onOpenClinicalDeathReview: () => void; onOpenOPPE: () => void }) {
   const [info, setInfo] = useState<string | null>(null)
   const sel = ITEMS.find((i) => i.id === info) || null
   return (
@@ -67,7 +62,7 @@ export default function QualityHub({ onOpen, onOpenClinicalPathway, onOpenClinic
             key={it.id}
             type="button"
             className={`qhCard glassPanel ${it.ready ? 'ready' : 'soon'} ${info === it.id ? 'selected' : ''}`}
-            onClick={() => (it.id === 'cp' ? onOpenClinicalPathway() : it.id === 'akk' ? onOpenClinicalDeathReview() : it.ready ? onOpen() : setInfo(info === it.id ? null : it.id))}
+            onClick={() => (it.id === 'oppe' ? onOpenOPPE() : it.id === 'cp' ? onOpenClinicalPathway() : it.id === 'akk' ? onOpenClinicalDeathReview() : it.ready ? onOpen() : setInfo(info === it.id ? null : it.id))}
             aria-expanded={it.ready ? undefined : info === it.id}
           >
             <span className="qhTop">
