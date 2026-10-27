@@ -1,0 +1,44 @@
+name: AUREKA OPPE build validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/OppeAuditWorkspace.tsx'
+      - 'lib/aureka/oppe-engine.ts'
+      - 'components/QualityIndicatorWorkspace.tsx'
+      - 'supabase/migrations/20261026120000_oppe_audit_engine.sql'
+      - 'package.json'
+      - '.github/workflows/oppe-build-validation.yml'
+  push:
+    branches:
+      - main
+      - fix/oppe-engine-hardening-20261027
+    paths:
+      - 'components/OppeAuditWorkspace.tsx'
+      - 'lib/aureka/oppe-engine.ts'
+      - 'components/QualityIndicatorWorkspace.tsx'
+      - 'supabase/migrations/20261026120000_oppe_audit_engine.sql'
+      - 'package.json'
+      - '.github/workflows/oppe-build-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+      - name: Build Next.js application
+        run: npm run build
