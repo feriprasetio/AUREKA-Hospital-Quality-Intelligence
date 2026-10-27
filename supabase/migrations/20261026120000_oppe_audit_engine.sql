@@ -198,7 +198,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = pg_catalog, aureka_quality, auth
-as $
+as $$
 declare
   v_event_type text;
   v_from_status text;
@@ -240,7 +240,7 @@ begin
   );
   return new;
 end;
-$;
+$$;
 
 revoke all on function aureka_quality.log_oppe_assessment_event() from public;
 
@@ -259,13 +259,13 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = pg_catalog, aureka_quality, auth
-as $
+as $$
 begin
   new.updated_at := now();
   new.updated_by := auth.uid();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists oppe_indicator_rules_touch_updated_at on aureka_quality.oppe_indicator_rules;
 create trigger oppe_indicator_rules_touch_updated_at
