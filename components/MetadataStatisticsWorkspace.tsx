@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import QualitySettings from '@/components/QualitySettings'
 import StatisticsWorkspace from '@/components/StatisticsWorkspace'
+import StaffDirectoryWorkspace from '@/components/StaffDirectoryWorkspace'
 
 type Room = { id: number; name: string }
 
-type Container = 'metadata' | 'statistics'
+type Container = 'metadata' | 'staff' | 'statistics'
 
 export default function MetadataStatisticsWorkspace({
   supabase,
@@ -55,16 +56,28 @@ export default function MetadataStatisticsWorkspace({
         </div>
         <div className="mswTabs" role="tablist" aria-label="Kontainer Metadata dan Statistik">
           {isSuperAdmin && (
-            <button
-              type="button"
-              role="tab"
-              aria-selected={active === 'metadata'}
-              className="mswTab"
-              onClick={() => setActive('metadata')}
-            >
-              <span className="mswTabIcon" aria-hidden="true">▤</span>
-              <span>Metadata</span>
-            </button>
+            <>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={active === 'metadata'}
+                className="mswTab"
+                onClick={() => setActive('metadata')}
+              >
+                <span className="mswTabIcon" aria-hidden="true">▤</span>
+                <span>Kamus Indikator</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={active === 'staff'}
+                className="mswTab"
+                onClick={() => setActive('staff')}
+              >
+                <span className="mswTabIcon" aria-hidden="true">♙</span>
+                <span>Tenaga Kerja</span>
+              </button>
+            </>
           )}
           <button
             type="button"
@@ -80,12 +93,20 @@ export default function MetadataStatisticsWorkspace({
       </header>
 
       {active === 'metadata' && isSuperAdmin ? (
-        <div className="mswContent" role="tabpanel" aria-label="Metadata">
+        <div className="mswContent" role="tabpanel" aria-label="Kamus Indikator">
           <div className="mswAccessNote">
             <span aria-hidden="true">🔐</span>
             <span><strong>Kontrol metadata — Superadmin.</strong> Pengelolaan lintas unit tersedia di sini. Indikator yang tidak digunakan sebaiknya dinonaktifkan/dipensiunkan, bukan dihapus permanen, agar jejak historis tetap terjaga.</span>
           </div>
           <QualitySettings rooms={rooms} />
+        </div>
+      ) : active === 'staff' && isSuperAdmin ? (
+        <div className="mswContent" role="tabpanel" aria-label="Direktori Tenaga Kerja">
+          <div className="mswAccessNote">
+            <span aria-hidden="true">🔐</span>
+            <span><strong>Master tenaga kerja — Superadmin.</strong> Data ini menjadi identitas induk lintas modul. Nama yang belum diverifikasi atau terindikasi ganda tidak dapat dikunci ke tim sampai ditelaah.</span>
+          </div>
+          <StaffDirectoryWorkspace />
         </div>
       ) : (
         <div className="mswContent" role="tabpanel" aria-label="Statistik">

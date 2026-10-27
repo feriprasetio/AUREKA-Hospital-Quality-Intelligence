@@ -50,6 +50,7 @@ export type OppeQualityRecord = {
   core_data?: Record<string, any> | null
   subject_json?: Record<string, any> | null
   measurement_grain?: string | null
+  staff_attributions?: Array<{ staff_id: string; field_key: string }> | null
 }
 
 export type OppeResponseRow = {
@@ -406,11 +407,12 @@ export function evaluateClinicalIndicator(args: {
   records: OppeQualityRecord[]
   responseRows: OppeResponseRow[] | OppeResponseIndex
   staffName: string
+  staffId?: string | null
   profession: string
   year: number
   quarter: number
 }): ClinicalIndicatorResult {
-  const { profile, rule, records, responseRows, staffName, year, quarter } = args
+  const { profile, rule, records, responseRows, staffName, staffId, year, quarter } = args
   const target = targetOf(profile)
   if (rule.status !== 'active' || !rule.is_oppe_eligible) {
     return emptyResult(profile, rule, 0, 'Aturan OPPE belum diaktifkan oleh pengelola.')
@@ -421,13 +423,22 @@ export function evaluateClinicalIndicator(args: {
   if (!professionMatches(rule.profession_label, args.profession)) {
     return emptyResult(profile, rule, 0, 'Profesi staf tidak sesuai dengan aturan indikator.')
   }
-  const matchingRecords = records.filter((record) =>
-    record.status === 'validated'
-    && Number(record.room_id) === Number(profile.room_id)
-    && Number(record.profile_year) === Number(year)
-    && isInPeriod(record, year, quarter)
-    && norm(responsibleName(record, rule.responsibility_field)) === norm(staffName)
-  )
+  const matchingRecords = records.filter((record) => {
+    if (
+      record.status !== 'validated'
+      || Number(record.room_id) !== Number(profile.room_id)
+      || Number(record.profile_year) !== Number(year)
+      || !isInPeriod(record, year, quarter)
+    ) return false
+
+    const attribution = (record.staff_attributions || []).find(
+      (item) => norm(item.field_key) === norm(rule.responsibility_field),
+    )
+    // A canonical staff_id attribution takes precedence over text matching.
+    // Legacy records without an attribution still use exact-name matching for backward compatibility.
+    if (attribution) return !!staffId && String(attribution.staff_id) === String(staffId)
+    return norm(responsibleName(record, rule.responsibility_field)) === norm(staffName)
+  })
   const withResponse = matchingRecords
     .map((record) => ({ record, response: responseFor(record, profile, responseRows) }))
     .filter((item): item is { record: OppeQualityRecord; response: Record<string, any> } => !!item.response)

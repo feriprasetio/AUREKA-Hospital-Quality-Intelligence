@@ -4,17 +4,18 @@ import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import ClinicalDeathAuditWorkspace from '@/components/ClinicalDeathAuditWorkspace'
 import OppeAuditWorkspace from '@/components/OppeAuditWorkspace'
+import StaffTeamWorkspace from '@/components/StaffTeamWorkspace'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 
 const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian','Audit OPPE'] as const
+const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian','Audit OPPE','Tim Tenaga Kerja'] as const
 const STATUS=['Semua','Aktif','Draft','Ready for Review','Validated','Reopened']
 const YEARS=[2025,2026,2027,2028,2029]
 const LOCAL_KEY='aureka-quality-episode-cache-v3',AUDIT_KEY='aureka-quality-audit-v3'
 
-type Room={id:number;name:string};type Profile=Record<string,any>;type AuditLayout={roomId:number;fields:string[];indicators:string[];measurementGrain?:string;providerGroups?:{clinic:string;doctors:string[]}[]};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;numerator?:number|null;denominator?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null};type Patient=Record<string,any>;type Audit=Record<string,any>
+type Room={id:number;name:string};type Profile=Record<string,any>;type TeamStaffOption={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;directory_status:'available';room_id:number};type AuditLayout={roomId:number;fields:string[];indicators:string[];measurementGrain?:string;providerGroups?:{clinic:string;doctors:string[]}[]};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;numerator?:number|null;denominator?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null};type Patient=Record<string,any>;type Audit=Record<string,any>
 
 const CSS=`
 .aq{display:grid;gap:14px}.aq .glass{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.72);border-radius:26px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}.aqHead{padding:20px 22px;display:flex;justify-content:space-between;gap:18px}.aqHead h3{margin:5px 0;font-size:29px;letter-spacing:-.055em}.aqHead p{margin:0;max-width:760px;color:var(--muted);font-size:12px;line-height:1.55}.aqActions{display:flex;gap:8px;flex-wrap:wrap}.aqBtn{min-height:42px;border:1px solid rgba(255,255,255,.78);background:rgba(255,255,255,.44);color:#264237;border-radius:13px;padding:10px 13px;font-size:11px;font-weight:900}.aqBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}.aqTabs{padding:6px;display:flex;gap:7px;flex-wrap:wrap}.aqTab{border:1px solid rgba(255,255,255,.68);background:rgba(255,255,255,.28);color:#52625b;padding:10px 14px;border-radius:14px;font-size:11px;font-weight:850;min-height:42px}.aqTab.active{background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(var(--accent-rgb),.13));color:var(--accent2)}.aqFilters{padding:17px 18px}.aqGrid{display:grid;grid-template-columns:1fr .55fr .75fr 1.8fr;gap:10px}.aqField span,.aqLabel{display:block;font-size:10px;color:#6f7d75;font-weight:900;text-transform:none;letter-spacing:.055em;margin:0 0 6px 2px}.aqField input,.aqField select,.aqField textarea,.aqCat input,.aqCat select{width:100%;border:1px solid rgba(35,63,50,.12);border-radius:14px;background:rgba(255,255,255,.56);padding:11px 13px;font-size:13px;color:var(--ink);outline:none;min-height:46px}.aqField textarea{min-height:88px;resize:vertical}.aqMonths{display:grid;grid-template-columns:repeat(13,minmax(70px,1fr));gap:7px;overflow:auto;margin-top:6px}.aqMonths button{border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.34);border-radius:13px;padding:10px 8px;color:#506059;font-weight:850;font-size:11px;white-space:nowrap}.aqMonths .active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}.aqKpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.aqKpi .glass{padding:16px 17px}.aqKpi span{font-size:10px;color:#6c7a73;font-weight:900;text-transform:none}.aqKpi strong{display:block;font-size:27px;margin-top:5px}.aqKpi small{color:var(--muted);font-size:10px}.aqTable{overflow:hidden}.aqTableHead{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;padding:16px 18px;border-bottom:1px solid var(--line)}.aqTableHead h4{margin:0;font-size:18px}.aqTableHead p{margin:4px 0 0;color:var(--muted);font-size:11px}.aqMeta{display:flex;gap:7px;flex-wrap:wrap}.aqPill{padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.66);font-size:10px;font-weight:850}.aqPill.green{background:var(--accent-soft);color:var(--accent2);border:0}.aqNotice{padding:10px 17px;background:#fff8e7;color:#7b5d25;font-size:11px}.aqWrap{overflow:auto;max-height:calc(100vh - 455px)}table.aqData{width:100%;min-width:1180px;border-collapse:separate;border-spacing:0;font-size:12px}table.aqData th,table.aqData td{padding:12px 11px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}table.aqData th{position:sticky;top:0;background:rgba(249,252,250,.94);font-size:9px;color:#748078;text-transform:none;z-index:3}table.aqData tbody tr{cursor:pointer}.aqName{font-weight:900;color:var(--accent2)}.aqSub{font-size:10px;color:var(--muted)}.aqStatus{padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900;background:#eef1ef}.aqStatus.aktif{background:#e8f7ef;color:#216b49}.aqStatus.ready-for-review{background:#edf2ff;color:#4c5f98}.aqStatus.validated{background:var(--accent-soft);color:var(--accent2)}.aqLos,.aqFilled{font-weight:900;color:var(--accent2)}.aqEmpty{min-height:120px;display:grid;place-items:center;color:var(--muted);font-size:11px}.aqBack{position:fixed;inset:0;z-index:100;background:rgba(11,22,17,.24);backdrop-filter:blur(4px);display:flex;justify-content:flex-end}.aqDrawer{height:100%;width:min(950px,96vw);background:rgba(248,251,249,.98);box-shadow:-24px 0 65px rgba(0,0,0,.18);display:flex;flex-direction:column}.aqWide{width:min(1180px,97vw)}.aqDHead{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:20px}.aqDHead h4{font-size:24px;margin:4px 0}.aqDHead p{margin:0;color:var(--muted);font-size:11px}.aqClose{width:38px;height:38px;border:0;background:#eceeed;border-radius:12px;font-size:22px}.aqBody{padding:18px 22px;overflow:auto;min-height:0;flex:1}.aqEpisode{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.aqDerived{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:13px 0}.aqDerived div{padding:11px 13px;background:#fff;border:1px solid var(--line);border-radius:14px}.aqDerived span{font-size:9px;color:var(--muted)}.aqDerived strong{display:block;margin-top:4px;font-size:13px}.aqGuard{padding:11px 13px;border-radius:14px;background:#e9f7ef;color:#1e6c43;font-size:11px;line-height:1.5}.aqSection{display:flex;justify-content:space-between;align-items:end;margin:15px 0 8px}.aqSection h5{margin:0;font-size:17px}.aqSection span{font-size:10px;color:var(--muted)}.aqInd{background:#fff;border:1px solid var(--line);border-radius:17px;margin:11px 0;overflow:hidden}.aqInd.hit{border-color:rgba(var(--accent-rgb),.3)}.aqIHead{padding:14px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.aqIHead strong{font-size:13px;line-height:1.42}.aqMetaText{font-size:9px;color:var(--muted);margin-top:4px}.aqMatch{font-size:9px;background:var(--accent-soft);color:var(--accent2);padding:5px 7px;border-radius:999px;font-weight:900;white-space:nowrap}.aqIBody{padding:15px}.aqQ{font-size:16px;font-weight:900;line-height:1.42;margin-bottom:9px}.aqTwo{display:grid;grid-template-columns:1fr 1fr;gap:10px}.aqAuto{padding:11px 13px;background:#eef8f4;border:1px solid #dcefe7;border-radius:13px}.aqAuto span,.aqAuto small{display:block;font-size:9px;color:var(--muted)}.aqAuto strong{display:block;font-size:18px;color:var(--accent2)}.aqRadio{display:flex;gap:8px;flex-wrap:wrap}.aqRadio label{display:inline-flex;align-items:center;gap:7px;border:1px solid #d8dadc;background:#fff;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:800}.aqEvidence{border-top:1px dashed #d9dcda;margin-top:12px;padding-top:11px}.aqFoot{padding:13px 22px;border-top:1px solid var(--line);background:rgba(255,255,255,.82);display:flex;justify-content:space-between;align-items:center;gap:10px}.aqCat{padding:18px 22px;overflow:auto}.aqCatFilters{display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:9px;margin-bottom:12px}.aqCatWrap{overflow:auto;max-height:calc(100vh - 220px)}table.aqCatalog{width:100%;min-width:1100px;border-collapse:separate;border-spacing:0}table.aqCatalog th,table.aqCatalog td{font-size:10px;padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}table.aqCatalog th{font-size:8px;color:#748078;position:sticky;top:0;background:#f8fbf9}table.aqCatalog td:nth-child(4){white-space:normal;min-width:390px}.aqCatalog td:nth-child(8),.aqCatalog td:nth-child(9){white-space:normal;min-width:320px;max-width:520px}@media(max-width:1180px){.aqGrid{grid-template-columns:1fr 1fr 1fr}.aqGrid label:last-child{grid-column:1/-1}.aqEpisode{grid-template-columns:1fr 1fr}.aqCatFilters{grid-template-columns:1fr 1fr}.aqMonths{grid-template-columns:repeat(13,86px)}}@media(max-width:850px){.aqHead{display:block}.aqActions{margin-top:12px}.aqGrid{grid-template-columns:1fr 1fr}.aqKpi{grid-template-columns:1fr}.aqWrap{max-height:calc(100vh - 520px)}.aqDrawer,.aqWide{width:100%}.aqDerived{grid-template-columns:1fr}.aqTwo{grid-template-columns:1fr}.aqEpisode{grid-template-columns:1fr 1fr}.aqFoot{display:block}.aqCatFilters{grid-template-columns:1fr 1fr}}@media(max-width:560px){.aqGrid{grid-template-columns:1fr}.aqGrid label:last-child{grid-column:auto}.aqEpisode{grid-template-columns:1fr}.aqIHead{display:block}.aqMatch{display:inline-flex;margin-top:7px}.aqCatFilters{grid-template-columns:1fr}.aqMeta{margin-top:8px}}
@@ -225,6 +226,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [status,setStatus]=useState('Semua')
  const [search,setSearch]=useState('')
  const [profiles,setProfiles]=useState<Profile[]>([])
+ const [staffOptions,setStaffOptions]=useState<TeamStaffOption[]>([])
  const [patients,setPatients]=useState<Patient[]>([])
  const [selected,setSelected]=useState<Patient|null>(null)
  const [draft,setDraft]=useState<Record<string,Resp>>({})
@@ -257,6 +259,26 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      const {data:pd,error:pe}=await pq
      if(pe) throw pe
      setProfiles(pd??[])
+     // Personnel fields are linked only to the locked roster for the current unit.
+     const {data:assignmentRows,error:assignmentError}=await q().from('staff_team_assignments')
+       .select('staff_id,room_id')
+       .eq('assignment_status','active')
+     if(assignmentError) throw assignmentError
+     const assignedPairs=(assignmentRows??[]).filter((a:any)=>roomId==null||Number(a.room_id)===Number(roomId))
+     const roomByStaff=new Map<string,number>(assignedPairs.map((a:any)=>[String(a.staff_id),Number(a.room_id)]))
+     const assignedStaffIds=Array.from(roomByStaff.keys())
+     const staffRows:TeamStaffOption[]=[]
+     for(let offset=0;offset<assignedStaffIds.length;offset+=100){
+       const batch=assignedStaffIds.slice(offset,offset+100)
+       const {data:sd,error:staffError}=await q().from('staff_directory')
+         .select('id,employee_code,display_name,profession_group,position_title,directory_status')
+         .eq('directory_status','available')
+         .in('id',batch)
+         .order('display_name')
+       if(staffError) throw staffError
+       staffRows.push(...(sd??[]).map((s:any)=>({...s,id:String(s.id),room_id:Number(roomByStaff.get(String(s.id)))})))
+     }
+     setStaffOptions(staffRows)
      const rows:any[]=[]
      let from=0
      while(true){
@@ -267,6 +289,26 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        rows.push(...(data??[]))
        if((data??[]).length<500) break
        from+=500
+     }
+     const attributionByRecord=new Map<string,Record<string,string>>()
+     const databaseRecordIds=rows.map((r:any)=>String(r.id)).filter(Boolean)
+     for(let offset=0;offset<databaseRecordIds.length;offset+=100){
+       const batch=databaseRecordIds.slice(offset,offset+100)
+       let attrFrom=0
+       while(true){
+         const {data:attributions,error:attributionError}=await q().from('quality_record_staff_attributions')
+           .select('record_id,staff_id,field_key')
+           .in('record_id',batch)
+           .range(attrFrom,attrFrom+499)
+         if(attributionError) throw attributionError
+         ;(attributions??[]).forEach((a:any)=>{
+           const key=String(a.record_id)
+           if(!attributionByRecord.has(key)) attributionByRecord.set(key,{})
+           attributionByRecord.get(key)![String(a.field_key)]=String(a.staff_id)
+         })
+         if(!attributions||attributions.length<500) break
+         attrFrom+=500
+       }
      }
      const db=rows.filter(r=>r.status!=='archived').map((r:any)=>{
        const c=r.core_data??r.subject_json??{}
@@ -280,7 +322,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        const rm=String(c.medical_record_no??c.rm??formData['No. Rekam Medis']??formData['No. RM']??'')
        const diagnosis=String(c.diagnosis??formData['Diagnosa Tegak']??formData['Diagnosa']??formData['Diagnosa IGD']??formData['Diagnosa Pasien']??formData['Diagnosis Medis']??formData['Diagnosa Operasi']??c.dx??'')
        const dpjp=String(c.dpjp??formData['DPJP']??formData['Dpjp']??'')
-       return {id:String(r.id),recordId:String(r.id),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
+       return {id:String(r.id),recordId:String(r.id),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,staffIdByField:attributionByRecord.get(String(r.id))??{},measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
      })
      const merged=[...db,...local.filter(l=>!db.some(d=>d.id===l.id||(!!d.rm&&!!l.rm&&d.rm===l.rm)))]
      setPatients(merged)
@@ -331,7 +373,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    if(dateField)formData[dateField]=today
    const grain=dominantGrain(profiles,layout)
    const admit=recordDateFrom(formData,layout,today)
-   const selectedRecord={id:`LOCAL-${Date.now()}`,recordId:null,roomId,unit:u?.name??'',name:String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??''),rm:String(formData['No. Rekam Medis']??formData['No. RM']??''),sex:String(formData['Jenis Kelamin']??''),age:null,admit,discharge:String(formData['Tanggal Keluar']??''),diagnosis:String(formData['Diagnosa Tegak']??formData['Diagnosa']??''),dpjp:String(formData['DPJP']??formData['Dpjp']??''),status:'Draft',indicatorValues:{},formData,measurementGrain:grain,source:'local',updatedAt:null}
+   const selectedRecord={id:`LOCAL-${Date.now()}`,recordId:null,roomId,unit:u?.name??'',name:String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??''),rm:String(formData['No. Rekam Medis']??formData['No. RM']??''),sex:String(formData['Jenis Kelamin']??''),age:null,admit,discharge:String(formData['Tanggal Keluar']??''),diagnosis:String(formData['Diagnosa Tegak']??formData['Diagnosa']??''),dpjp:String(formData['DPJP']??formData['Dpjp']??''),status:'Draft',indicatorValues:{},formData,staffIdByField:{},measurementGrain:grain,source:'local',updatedAt:null}
    setSelected(selectedRecord)
    const r:any={}
    layoutProfiles(profiles,layout).forEach(p=>{r[p.id??p.code]=empty(p)})
@@ -352,6 +394,17 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      const ageField=layout?.fields.find(x=>normHeader(x)==='umur'||normHeader(x)==='usia')
      const ageValue=ageField&&isComputedField(ageField,layout)?computedField(ageField,formData,layout):formData['Umur']??formData['Usia']??p.age
      return {...p,formData,name,rm,admit,discharge,diagnosis,dpjp,age:ageValue===''||ageValue==null?null:Number(ageValue)}
+   })
+ }
+ const setStaffField=(field:string,staffId:string)=>{
+   const staff=staffOptions.find((item)=>item.id===staffId&&Number(item.room_id)===Number(selected?.roomId))
+   setSelected((p:any)=>{
+     if(!p)return p
+     const formData={...(p.formData??{}),[field]:staff?.display_name??''}
+     const staffIdByField={...(p.staffIdByField??{})}
+     if(staff)staffIdByField[field]=staff.id
+     else delete staffIdByField[field]
+     return {...p,formData,staffIdByField,dpjp:/dpjp|dokter/i.test(field)?(staff?.display_name??''):p.dpjp}
    })
  }
  const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
@@ -410,6 +463,16 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      await q().from('quality_record_responses').delete().eq('record_id',recordId)
      const obs=applicable.map(p=>{const r=values[p.code];if(!r||!p.id)return null;return{record_id:recordId,indicator_id:p.id,response_label:r.answer??r.occurrence??null,response_code:r.code??null,raw_value:r,other_text:r.evidence??r.notes??null,review_status:r.answer==='Exception'?'pending':'not_required'}}).filter(Boolean)
      if(obs.length){const {error}=await q().from('quality_record_responses').insert(obs);if(error)warning=`Episode tersimpan, tetapi detail respons belum tersalin ke ledger respons: ${error.message}`}
+     const attributionRows=Object.entries(selected.staffIdByField??{})
+       .filter(([field,staffId])=>!!field&&!!staffId&&staffOptions.some((staff)=>staff.id===staffId&&Number(staff.room_id)===Number(selected.roomId)))
+       .map(([field,staffId])=>({record_id:recordId,staff_id:staffId,field_key:field,attribution_type:/dpjp|dokter/i.test(field)?'responsible_provider':'related_provider',created_by:user.id,updated_by:user.id}))
+     const {error:attributionDeleteError}=await q().from('quality_record_staff_attributions').delete().eq('record_id',recordId)
+     if(attributionDeleteError){
+       warning='Logbook tersimpan, tetapi tautan identitas tenaga lama tidak dapat diperbarui: '+attributionDeleteError.message
+     }else if(attributionRows.length){
+       const {error:attributionSaveError}=await q().from('quality_record_staff_attributions').insert(attributionRows)
+       if(attributionSaveError)warning='Logbook tersimpan, tetapi tautan identitas tenaga belum tersimpan: '+attributionSaveError.message
+     }
      backend=true
    }catch(e){
      const cached:Patient={...selected,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:'local'}
@@ -417,7 +480,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setSource('Cache lokal')
      warning=`Episode tersimpan di cache lokal karena backend belum menerima perubahan. ${e instanceof Error?e.message:''}`.trim()
    }
-   const saved:Patient={...selected,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
+   const saved:Patient={...selected,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
    setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
    audit({at:now,actor:'PIC / Pengguna Aktif',unit:selected.unit,patient:recordTitle(saved),indicator:`${Object.keys(values).length}/${applicable.length} indikator`,action:selected.recordId?'Ubah':'Isi',change:`Catatan logbook ${finalStatus}`})
    setSelected(saved);setPatientOpen(false);setMessage(warning||'Catatan tersimpan dan siap dilanjutkan.');setBusy(false)
@@ -458,19 +521,51 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    await load()
    setMessage(decision==='validated'?'Catatan mutu berhasil divalidasi.':'Catatan dikembalikan untuk perbaikan oleh PIC.')
  }
+ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penanggung jawab|radiografer|analis|atlm|terapis|apoteker|nutrisionis|dietisien|pemeriksa|pelaksana)/i.test(field)
+ const staffOptionsForField=(field:string)=>{
+   const options=staffOptions.filter((staff)=>Number(staff.room_id)===Number(selected?.roomId))
+   const n=normHeader(field)
+   if(/dokter|dpjp/.test(n))return options.filter((staff)=>/dokter/.test(staff.profession_group.toLowerCase())||/dokter|sp\./i.test(staff.position_title))
+   if(/perawat/.test(n))return options.filter((staff)=>staff.profession_group==='Perawat')
+   if(/bidan/.test(n))return options.filter((staff)=>staff.profession_group==='Bidan')
+   if(/apoteker|farmasi/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga kefarmasian')
+   if(/radiografer|radiologi/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga radiologi')
+   if(/analis|atlm|laboratorium/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga laboratorium')
+   if(/terapis|fisioterapi/.test(n))return options.filter((staff)=>staff.profession_group==='Fisioterapi/terapi okupasi')
+   if(/nutrisionis|dietisien|gizi/.test(n))return options.filter((staff)=>staff.profession_group==='Tenaga gizi')
+   return options
+ }
  const renderLogbookField=(field:string,i:number)=>{
    const kindNow=inputKind(field,selectedLayout),raw=inputFieldValue(selected??{},field,selectedLayout),wide=kindNow==='textarea'||field.length>66
    const groups=selectedLayout?.providerGroups??[]
    const currentClinic=String(selected?.formData?.['Klinik']??'')
-   const doctors=groups.find(g=>g.clinic===currentClinic)?.doctors??[]
-   return <label key={field+'-'+i} className="aqField" style={wide?{gridColumn:'1/-1'}:undefined}><span>{field}{kindNow==='computed'?' · otomatis':''}</span>{kindNow==='computed'?<div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?`${raw} hari`:normHeader(field)==='lamanya tindak lanjut'?`${raw} hari`:normHeader(field)==='kecepatan respon menit'?`${raw} menit`:String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>:kindNow==='textarea'?<textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>:kindNow==='select'&&normHeader(field)==='klinik'?<select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>:kindNow==='select'&&normHeader(field)==='dokter'?<select value={String(raw??'')} disabled={isValidator||!currentClinic} onChange={(e:any)=>setField(field,e.target.value)}><option value="">{currentClinic?'Pilih dokter':'Pilih klinik terlebih dahulu'}</option>{doctors.map(d=><option key={d} value={d}>{d}</option>)}</select>:<input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={`Isi ${field.toLowerCase()}…`}/>}</label>
+   const staffField=isStaffNameField(field)&&kindNow!=='computed'
+   const staffCandidates=staffField?staffOptionsForField(field):[]
+   const selectedStaffId=String(selected?.staffIdByField?.[field]??'')
+   return <label key={field+'-'+i} className="aqField" style={wide?{gridColumn:'1/-1'}:undefined}>
+     <span>{field}{kindNow==='computed'?' · otomatis':''}{staffField?' · direktori AUREKA':''}</span>
+     {kindNow==='computed'
+       ? <div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?String(raw)+' hari':normHeader(field)==='lamanya tindak lanjut'?String(raw)+' hari':normHeader(field)==='kecepatan respon menit'?String(raw)+' menit':String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>
+       : staffField
+         ? <><select disabled={isValidator} value={selectedStaffId} onChange={(e:any)=>setStaffField(field,e.target.value)}>
+             <option value="">{selectedStaffId?'Identitas belum tersedia di roster unit':'Pilih tenaga yang terkunci pada tim ini…'}</option>
+             {staffCandidates.map((staff)=><option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+           </select>
+           <small className="aqMetaText">{selectedStaffId?'Identitas terhubung ke staff_id AUREKA.':raw?'Catatan lama: '+String(raw)+'. Pilih identitas kanonik untuk mengikat nama ke direktori.':staffCandidates.length?'Nama hanya dapat dipilih dari roster unit yang terkunci.':'Belum ada anggota roster yang cocok pada unit ini; tetapkan tenaga melalui Tim Tenaga Kerja.'}</small></>
+         : kindNow==='textarea'
+           ? <textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+           : kindNow==='select'&&normHeader(field)==='klinik'
+             ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>
+             : <input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+     }
+   </label>
  }
 
  return <div className="aq">
    <style dangerouslySetInnerHTML={{__html:CSS}}/>
    <section className="glass aqHead"><div><div className="eyebrow">AUREKA · Indikator mutu</div><h3>Audit Indikator Mutu</h3><p>Logbook mengikuti metode pengukuran setiap unit. Data harian, dokter per hari, kejadian, aktivitas, dan episode pasien dicatat dengan cara yang sesuai.</p></div><div className="aqActions"><button className="aqBtn" onClick={()=>setCatalogOpen(true)}>Master {hasHeaderMetadata?profiles.filter(p=>String(p.schema_json?.header_label??'').trim()).length:profiles.length} indikator</button><button className="aqBtn" onClick={()=>{setAuditRows(localRead<Audit[]>(AUDIT_KEY,[]));setAuditOpen(true)}}>Audit trail</button>{!isValidator&&<button className="aqBtn primary" onClick={newPatient}>＋ Catatan</button>}</div></section>
    <nav className="glass aqTabs">{CONTAINERS.map(x=><button key={x} className={`aqTab ${container===x?'active':''}`} onClick={()=>setContainer(x)}>{x}</button>)}</nav>
-   {container==='Audit Klinis dan Kematian'?<ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator}/>:container==='Audit OPPE'?<OppeAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isSuperAdmin={isAdmin} canManage={isAdmin||canViewAllRooms}/>:container!=='Audit Indikator Mutu'?<section className="glass aqBody" style={{minHeight:320,display:'grid',placeItems:'center',textAlign:'center'}}><div><div className="eyebrow">AUREKA · CONTAINER</div><h4 style={{fontSize:24,margin:'6px 0'}}>{container}</h4><p style={{maxWidth:720,color:'var(--muted)',fontSize:12,lineHeight:1.6}}>Container menggunakan shell AUREKA yang sama. Workspace pengumpulan data lanjutan mengikuti master indikator dan audit trail yang sama.</p></div></section>:<>
+   {container==='Audit Klinis dan Kematian'?<ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator}/>:container==='Audit OPPE'?<OppeAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isSuperAdmin={isAdmin} canManage={isAdmin||canViewAllRooms}/>:container==='Tim Tenaga Kerja'?<StaffTeamWorkspace initialRoomId={initialRoomId} rooms={rooms} isSuperAdmin={isAdmin} canManageAllRooms={isAdmin||canViewAllRooms}/>:container!=='Audit Indikator Mutu'?<section className="glass aqBody" style={{minHeight:320,display:'grid',placeItems:'center',textAlign:'center'}}><div><div className="eyebrow">AUREKA · CONTAINER</div><h4 style={{fontSize:24,margin:'6px 0'}}>{container}</h4><p style={{maxWidth:720,color:'var(--muted)',fontSize:12,lineHeight:1.6}}>Container menggunakan shell AUREKA yang sama. Workspace pengumpulan data lanjutan mengikuti master indikator dan audit trail yang sama.</p></div></section>:<>
      <section className="glass aqFilters"><div className="aqGrid"><label className="aqField"><span>Unit</span><select value={roomId??''} disabled={!isAdmin} onChange={(e:any)=>setRoomId(e.target.value?Number(e.target.value):null)}>{isAdmin&&<option value="">Semua Unit</option>}{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><label className="aqField"><span>Tahun</span><select value={year} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label><label className="aqField"><span>Status</span><select value={status} onChange={(e:any)=>setStatus(e.target.value)}>{STATUS.map(s=><option key={s} value={s}>{s==='Aktif'?(activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Aktif (belum pulang)':'Aktif / belum selesai'):s==='Draft'?'Draf':s==='Ready for Review'?'Siap ditinjau':s==='Validated'?'Tervalidasi':s}</option>)}</select></label><label className="aqField"><span>Pencarian</span><input value={search} onChange={(e:any)=>setSearch(e.target.value)} placeholder="Nama / No. RM / diagnosis / DPJP…"/></label></div><div style={{marginTop:12}}><div className="aqLabel">Bulan Pengamatan</div><div className="aqMonths"><button className={!monthFilter?'active':''} onClick={()=>setMonthFilter(0)}>Semua Bulan</button>{MONTHS.map((m,i)=><button key={m} className={monthFilter===i+1?'active':''} onClick={()=>setMonthFilter(i+1)}>{m}</button>)}</div></div></section>
      <section className="aqKpi"><div className="glass"><span>{activeGrain==='patient_episode'?'Total episode pasien':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='provider_day'?'Catatan dokter per hari':activeGrain==='event'?'Total kejadian':activeGrain==='activity'?'Total aktivitas':'Total catatan logbook'}</span><strong>{yearPatients.length}</strong><small>Catatan pada tahun {year}</small></div><div className="glass"><span>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Pasien masih dirawat':activeGrain==='provider_day'?'Catatan dengan dokter':activeGrain==='daily_metric'?'Catatan harian dengan data':activeGrain==='event'?'Kejadian belum selesai':'Catatan dengan data'}</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed|ready for review|validated)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong><small>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Belum memiliki tanggal keluar':activeGrain==='provider_day'?'Setiap catatan mewakili satu dokter pada satu tanggal':activeGrain==='daily_metric'?'Data numerik harian dari indikator yang dipilih':'Berdasarkan data logbook unit'}</small></div><div className="glass"><span>Catatan dengan indikator terisi</span><strong>{yearPatients.filter(p=>(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length}</strong><small>Memiliki minimal satu respons indikator mutu</small></div></section>
      <section className="glass aqTable"><div className="aqTableHead"><div><h4>Logbook {roomId===1?'aduan':activeGrain==='patient_episode'?'pasien':activeGrain==='provider_day'?'dokter per hari':activeGrain==='daily_metric'?'harian':activeGrain==='event'?'kejadian':activeGrain==='activity'?'aktivitas':'unit'}</h4><p>Kolom tabel mengikuti seluruh header Excel yang tidak berwarna hijau. Indikator berwarna hijau tampil di dalam detail catatan.</p></div><div className="aqMeta"><span className="aqPill green">{filtered.length} catatan</span><span className="aqPill">{patientProfiles.length} indikator mutu</span><span className="aqPill green">{source}</span></div></div>{message&&<div className="aqNotice">{message}</div>}{activeLayout&&!activeLayout.indicators.length&&<div className="aqNotice">Pada layout unit ini tidak ditemukan header indikator berwarna hijau. Data logbook tetap dapat dicatat menggunakan header data yang tersedia.</div>}{unmatchedIndicatorHeaders.length>0&&<div className="aqNotice">{unmatchedIndicatorHeaders.length} header hijau belum mempunyai profil indikator aktif di master: {unmatchedIndicatorHeaders.join(' · ')}. Header tetap ditampilkan saat catatan dibuka, tetapi belum dapat dihitung sebagai indikator sampai master dilengkapi.</div>}<div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{(activeLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>Indikator terisi</th><th>Status</th>{isValidator&&<th>Tindakan validasi</th>}</tr></thead><tbody>{filtered.map((p:any,i:number)=>{const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)),total=rowProfiles.length,count=rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <tr key={`${p.id}-${p.rm||i}`} tabIndex={0} onClick={()=>openPatient(p)} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPatient(p)}}}><td>{i+1}</td>{(activeLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map((field,j)=><td key={field+'-'+j}>{String(fieldValue(p,field,getLayout(Number(p.roomId)))??'')||'—'}</td>)}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td>{isValidator&&<td><div style={{display:'flex',gap:6}}>{['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>}</div></td>}</tr>})}{!filtered.length&&<tr><td colSpan={(activeLayout?.fields.length??7)+3+(isValidator?1:0)}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada unit/periode ini. Tekan ＋ Catatan untuk mulai mengisi header putih dan indikator hijau.'}</div></td></tr>}</tbody></table></div></section></>}

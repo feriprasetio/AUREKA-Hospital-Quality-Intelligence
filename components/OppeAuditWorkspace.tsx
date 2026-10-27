@@ -22,6 +22,15 @@ import {
 
 type Room = { id: number; name: string }
 type SavedAssessment = Record<string, any>
+type AssignedStaff = {
+  id: string
+  employee_code: string
+  display_name: string
+  profession_group: string
+  position_title: string
+  directory_status: 'available'
+  room_id: number
+}
 type AuditLayout = { roomId: number; fields: string[]; indicators: string[]; measurementGrain?: string }
 type RuleDraft = {
   ruleId: string | null
@@ -53,6 +62,7 @@ type GapDraft = {
 type FormState = {
   id: string | null
   roomId: number
+  staffId: string
   staffName: string
   staffIdentifier: string
   profession: string
@@ -116,7 +126,7 @@ const defaultProfessionalism = (): ManualAssessmentItem[] => [
   { id: 'quality_contribution', label: 'Pelaksanaan tugas pengembangan mutu/profesi pada periode ini', target: 'Target referensi formulir revisi: ≥ 1 kegiatan/periode', status: 'pending', count: '', evidence: '', notes: '' },
 ]
 const defaultForm = (roomId: number, year: number, quarter: number, evaluatorName = ''): FormState => ({
-  id: null, roomId, staffName: '', staffIdentifier: '', profession: '', year, quarter, status: 'draft',
+  id: null, roomId, staffId: '', staffName: '', staffIdentifier: '', profession: '', year, quarter, status: 'draft',
   behavior: defaultBehavior(), professionalism: defaultProfessionalism(),
   evaluatorName, evaluatorRole: 'Komite PMKP / evaluator yang ditetapkan',
   assessmentNotes: '', developmentPlan: '',
@@ -195,6 +205,7 @@ export default function OppeAuditWorkspace({
   const [rules, setRules] = useState<OppeRule[]>([])
   const [records, setRecords] = useState<OppeQualityRecord[]>([])
   const [responseRows, setResponseRows] = useState<OppeResponseRow[]>([])
+  const [teamStaff, setTeamStaff] = useState<AssignedStaff[]>([])
   const [assessments, setAssessments] = useState<SavedAssessment[]>([])
   const [assessmentEvents, setAssessmentEvents] = useState<Record<string, any>[]>([])
   const [eventsLoading, setEventsLoading] = useState(false)
@@ -213,6 +224,11 @@ export default function OppeAuditWorkspace({
   const [historySearch, setHistorySearch] = useState('')
 
   const responseIndex = useMemo(() => buildOppeResponseIndex(responseRows), [responseRows])
+  const assignableStaff = useMemo(
+    () => teamStaff.filter((staff) => Number(staff.room_id) === Number(form.roomId) && staff.directory_status === 'available'),
+    [teamStaff, form.roomId],
+  )
+  const selectedStaff = assignableStaff.find((staff) => staff.id === form.staffId) || null
   const roomMap = useMemo(() => new Map(rooms.map((room) => [Number(room.id), room.name])), [rooms])
   const layoutForRoom = (roomId: number) => LAYOUTS.find((layout) => Number(layout.roomId) === Number(roomId))
   const selectedRoomName = roomMap.get(Number(form.roomId)) || 'Unit belum dipetakan'
@@ -243,11 +259,35 @@ export default function OppeAuditWorkspace({
       if (roomFilter != null) rQuery = rQuery.eq('room_id', roomFilter)
       const nextRules = await fetchAll(rQuery, 'Pemetaan OPPE')
 
-      // Clinical scoring only needs the currently selected staff assessment unit; keep the full hospital scope for the master/rule lists.
-      let qQuery = q().from('quality_records').select('*').eq('profile_year', year).eq('room_id', form.roomId).neq('status', 'archived').order('created_at', { ascending: false })
-      const nextRecords = await fetchAll(qQuery, 'Logbook mutu')
+      // Identity choices come only from the locked team roster, never from names typed into logbooks.
+      const activeAssignments = await fetchAll(
+        q().from('staff_team_assignments').select('staff_id,room_id').eq('assignment_status', 'active').order('assigned_at'),
+        'Penetapan tim tenaga kerja',
+      )
+      const assignmentRoomByStaff = new Map<string, number>(
+        activeAssignments.map((item: any) => [String(item.staff_id), Number(item.room_id)]),
+      )
+      const assignedIds = Array.from(assignmentRoomByStaff.keys())
+      const directoryRows: any[] = []
+      for (let offset = 0; offset < assignedIds.length; offset += 100) {
+        const batch = assignedIds.slice(offset, offset + 100)
+        const { data: directoryBatch, error: directoryError } = await q().from('staff_directory')
+          .select('id,employee_code,display_name,profession_group,position_title,directory_status')
+          .eq('directory_status', 'available')
+          .in('id', batch)
+          .order('display_name')
+        if (directoryError) throw new Error('Master tenaga kerja OPPE: ' + directoryError.message)
+        directoryRows.push(...(directoryBatch || []))
+      }
+      const nextTeamStaff: AssignedStaff[] = directoryRows
+        .map((staff: any) => ({ ...staff, id: String(staff.id), room_id: Number(assignmentRoomByStaff.get(String(staff.id))) }))
+        .filter((staff: AssignedStaff) => Number.isFinite(staff.room_id) && staff.room_id > 0)
 
-      const ids = nextRecords.map((record: any) => String(record.id)).filter(Boolean)
+      // Clinical scoring uses validated logbooks plus canonical staff-ID attributions when available.
+      let qQuery = q().from('quality_records').select('*').eq('profile_year', year).eq('room_id', form.roomId).neq('status', 'archived').order('created_at', { ascending: false })
+      const nextRecordsRaw = await fetchAll(qQuery, 'Logbook mutu')
+
+      const ids = nextRecordsRaw.map((record: any) => String(record.id)).filter(Boolean)
       const nextResponses: OppeResponseRow[] = []
       for (let offset = 0; offset < ids.length; offset += 100) {
         const batch = ids.slice(offset, offset + 100)
@@ -264,6 +304,26 @@ export default function OppeAuditWorkspace({
         }
       }
 
+      const nextAttributions: Array<{ record_id: string; staff_id: string; field_key: string }> = []
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const batch = ids.slice(offset, offset + 100)
+        let from = 0
+        while (from < 20000) {
+          const { data, error: attributionError } = await q().from('quality_record_staff_attributions')
+            .select('record_id,staff_id,field_key')
+            .in('record_id', batch)
+            .range(from, from + 499)
+          if (attributionError) throw new Error('Atribusi tenaga pada logbook: ' + attributionError.message)
+          nextAttributions.push(...((data || []) as Array<{ record_id: string; staff_id: string; field_key: string }>))
+          if (!data || data.length < 500) break
+          from += 500
+        }
+      }
+      const nextRecords = nextRecordsRaw.map((record: any) => ({
+        ...record,
+        staff_attributions: nextAttributions.filter((attribution) => String(attribution.record_id) === String(record.id)),
+      }))
+
       let aQuery = q().from('oppe_assessments').select('*').eq('period_year', year).order('updated_at', { ascending: false })
       if (roomFilter != null) aQuery = aQuery.eq('room_id', roomFilter)
       const nextAssessments = await fetchAll(aQuery, 'Riwayat OPPE')
@@ -272,6 +332,7 @@ export default function OppeAuditWorkspace({
       setRules(nextRules as OppeRule[])
       setRecords(nextRecords as OppeQualityRecord[])
       setResponseRows(nextResponses)
+      setTeamStaff(nextTeamStaff)
       setAssessments(nextAssessments)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Data OPPE gagal dimuat.')
@@ -345,9 +406,9 @@ export default function OppeAuditWorkspace({
   const annualMeetingMetrics = useMemo(() => {
     const currentItem = form.professionalism.find((item) => item.id === 'meetings_annual')
     const currentCount = Math.max(0, Number(currentItem?.count || 0) || 0)
-    const staffKey = keyName(form.staffIdentifier.trim() || form.staffName)
+    const staffKey = form.staffId || keyName(form.staffIdentifier.trim() || form.staffName)
     const previous = assessments.filter((assessment) =>
-      String(assessment.staff_key || '') === staffKey
+      String(assessment.staff_id || assessment.staff_key || '') === staffKey
       && Number(assessment.room_id) === Number(form.roomId)
       && Number(assessment.period_year) === Number(form.year)
       && Number(assessment.period_quarter) < Number(form.quarter)
@@ -413,6 +474,7 @@ export default function OppeAuditWorkspace({
           records,
           responseRows: responseIndex,
           staffName: form.staffName,
+          staffId: form.staffId || null,
           profession: form.profession,
           year: form.year,
           quarter: form.quarter,
@@ -494,6 +556,7 @@ export default function OppeAuditWorkspace({
     setForm({
       id: assessment.id,
       roomId: Number(assessment.room_id),
+      staffId: String(assessment.staff_id || ''),
       staffName: String(assessment.staff_name || ''),
       staffIdentifier: String(assessment.staff_identifier || ''),
       profession: String(assessment.profession || ''),
@@ -523,6 +586,7 @@ export default function OppeAuditWorkspace({
   }
 
   const assessmentValidationError = (): string => {
+    if (!form.staffId) return 'Pilih tenaga yang sudah ditetapkan dan dikunci pada tim/unit kerja.'
     if (!form.staffName.trim()) return 'Nama tenaga kesehatan wajib diisi.'
     if (!form.profession.trim()) return 'Profesi/SMF wajib diisi.'
     if (!form.roomId) return 'Unit kerja wajib dipilih.'
@@ -559,8 +623,13 @@ export default function OppeAuditWorkspace({
       setError('Akses Audit OPPE hanya tersedia bagi Superadmin/Komite PMKP yang berwenang.')
       return
     }
+    if (!form.staffId) { setError('Pilih tenaga yang sudah ditetapkan dan dikunci pada tim/unit kerja.'); return }
     if (!form.staffName.trim()) { setError('Nama tenaga kesehatan wajib diisi.'); return }
     if (!form.profession.trim()) { setError('Profesi/SMF wajib diisi.'); return }
+    if (!assignableStaff.some((staff) => staff.id === form.staffId && Number(staff.room_id) === Number(form.roomId))) {
+      setError('Identitas tenaga tidak cocok dengan tim pada unit yang dipilih. Muat ulang data tim sebelum menyimpan.')
+      return
+    }
     if (!form.roomId) { setError('Unit kerja wajib dipilih.'); return }
     if (!form.evaluatorName.trim()) { setError('Nama evaluator wajib diisi.'); return }
     if (nextStatus === 'submitted' || nextStatus === 'validated') {
@@ -601,10 +670,11 @@ export default function OppeAuditWorkspace({
             clinical: clinicalSnapshot,
             quarter: form.quarter,
           })
-      const key = keyName(form.staffIdentifier.trim() || form.staffName)
+      const key = form.staffId || keyName(form.staffIdentifier.trim() || form.staffName)
       if (!key) throw new Error('Identitas tenaga kesehatan tidak valid.')
       const payload: Record<string, any> = {
         room_id: form.roomId,
+        staff_id: form.staffId,
         staff_key: key,
         staff_identifier: form.staffIdentifier.trim() || null,
         staff_name: form.staffName.trim(),
@@ -960,10 +1030,32 @@ export default function OppeAuditWorkspace({
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">IDENTITAS PENILAIAN</div><h4>Profil tenaga kesehatan</h4><p>Nama dapat dipilih dari catatan tervalidasi atau diketik sementara. Identitas resmi akan dipadankan setelah master tenaga kerja tersedia.</p></div><span className={`oppeStatus ${statusTone[form.status] || 'oppeNeutral'}`}>{statusLabel[form.status] || statusLabel.draft}</span></div>
               <div className="oppeFormGrid">
-                <label className="oppeField"><span>Nama staf yang dinilai *</span><input list="oppe-staff-suggestions" value={form.staffName} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, staffName: e.target.value }))} placeholder="Pilih/tulis nama sesuai bukti logbook" /><datalist id="oppe-staff-suggestions">{staffSuggestions.map((item) => <option key={item.name} value={item.name}>{item.fields.join(', ')}</option>)}</datalist></label>
-                <label className="oppeField"><span>Identitas pegawai (sementara)</span><input value={form.staffIdentifier} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, staffIdentifier: e.target.value }))} placeholder="Diintegrasikan dengan master pegawai nanti" /></label>
-                <label className="oppeField"><span>Profesi / SMF *</span><input value={form.profession} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, profession: e.target.value }))} placeholder="Contoh: Dokter Spesialis Anak" /></label>
-                <label className="oppeField"><span>Unit penilaian *</span><select value={form.roomId} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, roomId: Number(e.target.value) }))}>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="oppeField"><span>Nama staf yang dinilai *</span>
+                  {currentReadOnly ? (
+                    <input value={form.staffName} disabled aria-label="Nama staf yang dinilai" />
+                  ) : (
+                    <select value={form.staffId} onChange={(e) => {
+                      const staff = assignableStaff.find((item) => item.id === e.target.value)
+                      setForm((current) => ({
+                        ...current,
+                        staffId: staff?.id || '',
+                        staffName: staff?.display_name || '',
+                        staffIdentifier: staff?.employee_code || '',
+                        profession: staff?.profession_group || '',
+                      }))
+                    }}>
+                      <option value="">Pilih tenaga yang terkunci pada unit ini…</option>
+                      {assignableStaff.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+                    </select>
+                  )}
+                  <small className="oppeMuted">{currentReadOnly ? 'Identitas mengikuti snapshot penilaian tersimpan.' : assignableStaff.length ? 'Pilihan dibatasi pada roster tim yang sudah dikunci. Nama tidak dapat diketik bebas.' : 'Belum ada tenaga yang dikunci pada tim ini. Buka kontainer Tim Tenaga Kerja untuk menetapkan roster terlebih dahulu.'}</small>
+                </label>
+                <label className="oppeField"><span>Kode Tenaga AUREKA</span><input value={form.staffIdentifier} readOnly disabled placeholder="Terisi dari direktori induk" /><small className="oppeMuted">Kode internal AUREKA, bukan NIP/NIK.</small></label>
+                <label className="oppeField"><span>Kelompok profesi *</span><input value={form.profession} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, profession: e.target.value }))} placeholder="Terisi dari direktori induk; dapat dipersempit sesuai pemetaan profesi." /></label>
+                <label className="oppeField"><span>Unit penilaian *</span><select value={form.roomId} disabled={currentReadOnly} onChange={(e) => {
+                  const nextRoom = Number(e.target.value)
+                  setForm((current) => ({ ...current, roomId: nextRoom, staffId: '', staffName: '', staffIdentifier: '', profession: '' }))
+                }}>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
                 <label className="oppeField"><span>Evaluator *</span><input value={form.evaluatorName} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, evaluatorName: e.target.value }))} placeholder="Nama penilai yang ditetapkan" /></label>
                 <label className="oppeField"><span>Jabatan evaluator</span><input value={form.evaluatorRole} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, evaluatorRole: e.target.value }))} /></label>
               </div>

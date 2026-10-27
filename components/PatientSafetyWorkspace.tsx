@@ -8,6 +8,22 @@ import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
 
 type Room = { id: number; name: string }
+type StaffOption = {
+  id: string
+  employee_code: string
+  display_name: string
+  profession_group: string
+  position_title: string
+  room_id: number
+  room_name: string
+}
+type StaffEntityAttribution = {
+  entity_type: 'patient_safety_incident' | 'patient_safety_investigation'
+  entity_id: string
+  staff_id: string
+  field_key: string
+  attribution_type: string
+}
 type IncidentStatus = 'draft' | 'submitted' | 'under_review' | 'investigation' | 'closed'
 type IncidentRow = {
   id: string; incident_code: string; incident_date: string | null; incident_time: string | null
@@ -239,6 +255,7 @@ export default function PatientSafetyWorkspace({
   focus?: SafetyFocus | null
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_patient_safety'), [supabase])
+  const qualityDb = useMemo(() => (supabase as any).schema('aureka_quality'), [supabase])
   const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>('overview')
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
@@ -262,6 +279,11 @@ export default function PatientSafetyWorkspace({
   const [investigationIncidentId, setInvestigationIncidentId] = useState('')
   const [investigationStatus, setInvestigationStatus] = useState('draft')
   const [investigationData, setInvestigationData] = useState<Record<string, string>>(emptyRecord())
+  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([])
+  const [staffEntityLinks, setStaffEntityLinks] = useState<StaffEntityAttribution[]>([])
+  const [incidentStaffId, setIncidentStaffId] = useState('')
+  const [investigationStaffIds, setInvestigationStaffIds] = useState<string[]>([])
+  const [investigationStaffToAdd, setInvestigationStaffToAdd] = useState('')
 
   const [surveyPeriod, setSurveyPeriod] = useState('2026-Q4')
   const [surveyUnit, setSurveyUnit] = useState('')
@@ -287,12 +309,72 @@ export default function PatientSafetyWorkspace({
         db.from('investigations').select('id,investigation_code,incident_id,status,form_data,created_at,updated_at').order('updated_at', { ascending: false }).limit(500),
       ])
       if (incidentResult.error) throw incidentResult.error
-      setIncidents((incidentResult.data || []) as IncidentRow[])
+      const nextIncidents = (incidentResult.data || []) as IncidentRow[]
+      setIncidents(nextIncidents)
       if (investigationResult.error) {
         if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + investigationResult.error.message)
       } else {
         setInvestigations((investigationResult.data || []) as InvestigationRow[])
       }
+
+      // Cross-module personnel identities come from the active locked roster, restricted by RLS to accessible rooms.
+      try {
+        const { data: assignmentRows, error: assignmentError } = await qualityDb
+          .from('staff_team_assignments')
+          .select('staff_id,room_id')
+          .eq('assignment_status', 'active')
+          .eq('is_locked', true)
+        if (assignmentError) throw assignmentError
+        const assignments = (assignmentRows || []) as Array<{ staff_id: string; room_id: number }>
+        const roomById = new Map(rooms.map((room) => [Number(room.id), room.name]))
+        const roomByStaff = new Map(assignments.map((assignment) => [String(assignment.staff_id), Number(assignment.room_id)]))
+        const staffIds = Array.from(roomByStaff.keys())
+        const nextStaff: StaffOption[] = []
+        for (let offset = 0; offset < staffIds.length; offset += 100) {
+          const batch = staffIds.slice(offset, offset + 100)
+          const { data: directoryRows, error: directoryError } = await qualityDb
+            .from('staff_directory')
+            .select('id,employee_code,display_name,profession_group,position_title,directory_status')
+            .eq('directory_status', 'available')
+            .in('id', batch)
+            .order('display_name')
+          if (directoryError) throw directoryError
+          nextStaff.push(...(directoryRows || []).map((row: any) => ({
+            id: String(row.id),
+            employee_code: String(row.employee_code || ''),
+            display_name: String(row.display_name || ''),
+            profession_group: String(row.profession_group || ''),
+            position_title: String(row.position_title || ''),
+            room_id: Number(roomByStaff.get(String(row.id))),
+            room_name: roomById.get(Number(roomByStaff.get(String(row.id)))) || '',
+          })))
+        }
+        setStaffOptions(nextStaff.filter((staff) => staff.room_name))
+      } catch (staffLoadError) {
+        setStaffOptions([])
+        setMessage('Direktori tenaga belum dapat dimuat; penautan identitas staf dinonaktifkan sementara. Periksa akses Metadata / Tim Tenaga Kerja.')
+      }
+
+      try {
+        const entityIds = [
+          ...nextIncidents.map((row) => String(row.id)),
+          ...(((investigationResult.data || []) as InvestigationRow[]).map((row) => String(row.id))),
+        ]
+        const links: StaffEntityAttribution[] = []
+        for (let offset = 0; offset < entityIds.length; offset += 100) {
+          const batch = entityIds.slice(offset, offset + 100)
+          const { data: linkRows, error: linkError } = await qualityDb
+            .from('staff_entity_attributions')
+            .select('entity_type,entity_id,staff_id,field_key,attribution_type')
+            .in('entity_id', batch)
+          if (linkError) throw linkError
+          links.push(...((linkRows || []) as StaffEntityAttribution[]))
+        }
+        setStaffEntityLinks(links)
+      } catch {
+        setStaffEntityLinks([])
+      }
+
       if (isSuperAdmin) {
         const allResponses: CultureResponse[] = []
         let start = 0
@@ -313,7 +395,7 @@ export default function PatientSafetyWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [db, canManageWorkflow, isSuperAdmin])
+  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin])
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {
@@ -349,7 +431,7 @@ export default function PatientSafetyWorkspace({
   const [formOpen, setFormOpen] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const formSnapshot = useRef('')
-  const formDirty = formOpen && JSON.stringify(incidentData) !== formSnapshot.current
+  const formDirty = formOpen && JSON.stringify({ data: incidentData, staffId: incidentStaffId }) !== formSnapshot.current
   const closeForm = (force = false) => {
     if (!force && formDirty) { setConfirmClose(true); return }
     setConfirmClose(false); setFormOpen(false); setError('')
@@ -360,12 +442,32 @@ export default function PatientSafetyWorkspace({
   }
   const setIncidentValue = (code: string, value: string) => setIncidentData(current => ({ ...current, [code]: value }))
   const setInvestigationValue = (code: string, value: string) => setInvestigationData(current => ({ ...current, [code]: value }))
+  const syncStaffEntityAttributions = async (
+    entityType: StaffEntityAttribution['entity_type'], entityId: string, fieldKey: string, selectedIds: string[],
+    attributionType: StaffEntityAttribution['attribution_type'], unitName: string,
+  ): Promise<string> => {
+    const uniqueIds = Array.from(new Set(selectedIds.filter(Boolean))).sort()
+    const oldIds = staffEntityLinks.filter(link => link.entity_type === entityType && link.entity_id === entityId && link.field_key === fieldKey).map(link => link.staff_id).sort()
+    if (oldIds.length === uniqueIds.length && oldIds.every((id, index) => id === uniqueIds[index])) return ''
+    const allowedIds = new Set(staffOptions.filter(staff => staff.room_name === unitName).map(staff => staff.id))
+    if (uniqueIds.some(id => !allowedIds.has(id))) return 'Data tersimpan, tetapi tautan identitas tidak diubah karena tenaga tidak lagi berada pada roster terkunci unit. Minta Admin/PMKP meninjau pemetaan tim.'
+    const { error: deleteError } = await qualityDb.from('staff_entity_attributions').delete().eq('entity_type', entityType).eq('entity_id', entityId).eq('field_key', fieldKey)
+    if (deleteError) return 'Data form tersimpan, tetapi tautan identitas lama tidak dapat diperbarui: ' + deleteError.message
+    if (!uniqueIds.length) return ''
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+    if (authError || !authData.user) return 'Data form tersimpan, tetapi sesi login tidak tersedia untuk mencatat atribusi identitas.'
+    const payload = uniqueIds.map(staffId => ({ entity_type: entityType, entity_id: entityId, staff_id: staffId, field_key: fieldKey, attribution_type: attributionType, created_by: authData.user.id, updated_by: authData.user.id }))
+    const { error: insertError } = await qualityDb.from('staff_entity_attributions').insert(payload)
+    return insertError ? 'Data form tersimpan, tetapi atribusi identitas gagal disimpan: ' + insertError.message : ''
+  }
   const openIncident = (row: IncidentRow) => {
     setIncidentId(row.id)
     setIncidentCode(row.incident_code)
     setIncidentStatus(row.status as IncidentStatus)
     setIncidentData({ ...(row.form_data || {}) })
-    formSnapshot.current = JSON.stringify({ ...(row.form_data || {}) })
+    const reporterLink = staffEntityLinks.find((link) => link.entity_type === 'patient_safety_incident' && link.entity_id === row.id && link.field_key === 'E1')
+    setIncidentStaffId(reporterLink?.staff_id || '')
+    formSnapshot.current = JSON.stringify({ data: { ...(row.form_data || {}) }, staffId: reporterLink?.staff_id || '' })
     setTab('incidents')
     setError('')
     setMessage('')
@@ -391,7 +493,8 @@ export default function PatientSafetyWorkspace({
     setIncidentStatus('draft')
     const initial = { E2: rooms.find(room => room.id === initialRoomId)?.name || '' }
     setIncidentData(initial)
-    formSnapshot.current = JSON.stringify(initial)
+    setIncidentStaffId('')
+    formSnapshot.current = JSON.stringify({ data: initial, staffId: '' })
     setTab('incidents')
     setError('')
     setMessage('')
@@ -426,10 +529,17 @@ export default function PatientSafetyWorkspace({
       setIncidentId(result.data.id)
       setIncidentCode(result.data.incident_code)
       setIncidentStatus(result.data.status as IncidentStatus)
-      formSnapshot.current = JSON.stringify(incidentData)
+      formSnapshot.current = JSON.stringify({ data: incidentData, staffId: incidentStaffId })
+      let attributionWarning = ''
+      try {
+        attributionWarning = await syncStaffEntityAttributions('patient_safety_incident', String(result.data.id), 'E1', incidentStaffId ? [incidentStaffId] : [], 'reporter', incidentData.E2 || '')
+      } catch (attributionError) {
+        attributionWarning = 'Laporan tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+      }
       await loadData()
       if (nextStatus === 'submitted' && !canManageWorkflow) setFormOpen(false)
-      notify(nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code)
+      const successMessage = nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code
+      notify(attributionWarning || successMessage)
     } catch (e) {
       setError('Gagal menyimpan laporan IKP: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
     } finally { setSaving(false) }
@@ -442,18 +552,35 @@ export default function PatientSafetyWorkspace({
       setInvestigationCode(existing.investigation_code)
       setInvestigationStatus(existing.status)
       setInvestigationData({ ...(existing.form_data || {}) })
+      setInvestigationStaffIds(staffEntityLinks
+        .filter(link => link.entity_type === 'patient_safety_investigation' && link.entity_id === existing.id && link.field_key === '5')
+        .map(link => link.staff_id))
     } else {
       setInvestigationId('')
       setInvestigationCode('')
       setInvestigationStatus('draft')
       setInvestigationData(emptyRecord())
+      setInvestigationStaffIds([])
+      setInvestigationStaffToAdd('')
     }
-  }, [investigationIncidentId, investigations])
+  }, [investigationIncidentId, investigations, staffEntityLinks])
 
   const saveInvestigation = async () => {
     if (!canManageWorkflow) { setError('Akses investigasi hanya untuk Admin, Komite PMKP, atau Manajemen yang berwenang.'); return }
     if (!investigationIncidentId) { setError('Pilih laporan IKP yang akan diinvestigasi.'); return }
     if (saving) return
+    const targetIncident = incidents.find(row => row.id === investigationIncidentId)
+    const targetUnitName = targetIncident?.unit_name || ''
+    const oldLinkedIds = staffEntityLinks
+      .filter(link => link.entity_type === 'patient_safety_investigation' && link.entity_id === investigationId && link.field_key === '5')
+      .map(link => link.staff_id).sort()
+    const selectedLinkedIds = Array.from(new Set(investigationStaffIds)).sort()
+    const sameAsSavedLinks = oldLinkedIds.length === selectedLinkedIds.length && oldLinkedIds.every((id, index) => id === selectedLinkedIds[index])
+    const allowedInvestigationStaff = new Set(staffOptions.filter(staff => staff.room_name === targetUnitName).map(staff => staff.id))
+    if (!sameAsSavedLinks && selectedLinkedIds.some(staffId => !allowedInvestigationStaff.has(staffId))) {
+      setError('Ada identitas tenaga baru yang tidak berada pada roster terkunci unit. Identitas historis tetap dapat dipertahankan, tetapi perubahan baru harus menggunakan roster unit yang sah.')
+      return
+    }
     setSaving(true); setError(''); setMessage('')
     const formData = investigationData
     const payload = {
@@ -472,8 +599,14 @@ export default function PatientSafetyWorkspace({
       if (result.error) throw result.error
       setInvestigationId(result.data.id)
       setInvestigationCode(result.data.investigation_code)
+      let attributionWarning = ''
+      try {
+        attributionWarning = await syncStaffEntityAttributions('patient_safety_investigation', String(result.data.id), '5', investigationStaffIds, 'involved_person', targetUnitName)
+      } catch (attributionError) {
+        attributionWarning = 'Investigasi tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+      }
       await loadData()
-      notify('Hasil investigasi disimpan. Kode: ' + result.data.investigation_code)
+      notify(attributionWarning || 'Hasil investigasi disimpan. Kode: ' + result.data.investigation_code)
     } catch (e) {
       setError('Gagal menyimpan investigasi: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
     } finally { setSaving(false) }
@@ -562,10 +695,24 @@ export default function PatientSafetyWorkspace({
     const value = incidentData[field.code] || ''
     const disabled = incidentLocked || saving
     const wide = field.type === 'textarea' || field.type === 'radio'
+    const reporterOptions = staffOptions.filter(staff => staff.room_name === (incidentData.E2 || ''))
+    const reporterSelectValue = incidentStaffId || (value ? '__unmapped__' : '')
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel">{field.code} · {field.label} <span className="psRequired">*</span></label>
       {field.hint ? <div className="psHint">{field.hint}</div> : null}
-      {field.type === 'radio' ? <div className="psRadioGrid">
+      {field.code === 'E1' ? <><select value={reporterSelectValue} disabled={disabled} onChange={event => {
+        const value = event.target.value
+        if (value === '__external__') { setIncidentStaffId(''); setIncidentValue('E1', 'Pelapor bukan tenaga AUREKA / identitas belum dipetakan'); return }
+        const staff = reporterOptions.find(item => item.id === value)
+        setIncidentStaffId(staff?.id || '')
+        setIncidentValue('E1', staff?.display_name || '')
+      }}>
+        <option value="">Pilih pelapor dari roster terkunci unit…</option>
+        {value && !incidentStaffId ? <option value="__unmapped__" disabled>Nama lama belum terhubung ke identitas AUREKA</option> : null}
+        {reporterOptions.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+        <option value="__external__">Pelapor bukan tenaga AUREKA / identitas belum dapat dipetakan</option>
+      </select><div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
+      : field.type === 'radio' ? <div className="psRadioGrid">
         {(field.options || []).map(option => <label className="psRadio" key={option}>
           <input type="radio" name={'incident-' + field.code} value={option} checked={value === option} disabled={disabled}
             onChange={() => setIncidentValue(field.code, option)} />
@@ -582,10 +729,44 @@ export default function PatientSafetyWorkspace({
       }
     </div>
   }
-
   const renderInvestigationField = (field: IncidentField) => {
     const value = investigationData[field.code] || ''
     const wide = field.type === 'textarea'
+    const linkedIncident = incidents.find(row => row.id === investigationIncidentId)
+    const unitStaff = staffOptions.filter(staff => staff.room_name === (linkedIncident?.unit_name || ''))
+    if (field.code === '5') return <div className="psField full" key={field.code}>
+      <label className="psLabel">{field.code} · {field.label}</label>
+      <textarea rows={3} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Uraikan pihak yang terlibat; nama yang dipilih di bawah akan ditautkan ke ID AUREKA." />
+      <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',gap:8,marginTop:9,alignItems:'end'}}>
+        <label className="psField"><span className="psLabel">Tautkan tenaga yang terlibat</span>
+          <select value={investigationStaffToAdd} disabled={!canManageWorkflow || saving || !unitStaff.length} onChange={event => setInvestigationStaffToAdd(event.target.value)}>
+            <option value="">Pilih tenaga dari roster unit insiden…</option>
+            {unitStaff.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+          </select>
+        </label>
+        <button type="button" className="psBtn" disabled={!canManageWorkflow || saving || !investigationStaffToAdd} onClick={() => {
+          const staff = unitStaff.find(item => item.id === investigationStaffToAdd)
+          if (!staff) return
+          setInvestigationStaffIds(current => current.includes(staff.id) ? current : [...current, staff.id])
+          setInvestigationData(current => {
+            const oldText = String(current['5'] || '')
+            const hasName = oldText.split(/[\n;,]/).some(item => item.trim().toLocaleLowerCase('id') === staff.display_name.toLocaleLowerCase('id'))
+            return hasName ? current : { ...current, '5': oldText ? oldText + '\n' + staff.display_name : staff.display_name }
+          })
+          setInvestigationStaffToAdd('')
+        }}>Tambah tenaga</button>
+      </div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:7}}>
+        {investigationStaffIds.map(staffId => {
+          const staff = staffOptions.find(item => item.id === staffId)
+          return <span key={staffId} className="psPill blue" style={{display:'inline-flex',gap:7,alignItems:'center'}}>
+            {staff?.display_name || ('ID tenaga ' + staffId.slice(0,8))}
+            <button type="button" disabled={!canManageWorkflow || saving} aria-label="Lepaskan tautan identitas" onClick={() => setInvestigationStaffIds(current => current.filter(id => id !== staffId))} style={{border:0,background:'transparent',cursor:'pointer',fontWeight:900}}>×</button>
+          </span>
+        })}
+      </div>
+      <div className="psHint">Nama yang dipilih akan disimpan sebagai staff_id terpisah dari catatan teks. Survei budaya tetap anonim dan tidak ditautkan ke direktori.</div>
+    </div>
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel">{field.code} · {field.label}</label>
       {field.type === 'textarea' ?
@@ -598,7 +779,6 @@ export default function PatientSafetyWorkspace({
       }
     </div>
   }
-
   const renderSurveyScale = (code: string, options: { value: string; label: string; short?: string }[]) =>
     <div className="psScale" key={code}>{options.map(option =>
       <button type="button" key={option.value} className={surveyAnswers[code] === option.value ? 'selected' : ''}
