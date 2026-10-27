@@ -9,6 +9,7 @@ on:
       - 'components/QualityIndicatorWorkspace.tsx'
       - 'supabase/migrations/20261026120000_oppe_audit_engine.sql'
       - 'package.json'
+      - 'tests/oppe-engine.test.mjs'
       - '.github/workflows/oppe-build-validation.yml'
   push:
     branches:
@@ -20,6 +21,7 @@ on:
       - 'components/QualityIndicatorWorkspace.tsx'
       - 'supabase/migrations/20261026120000_oppe_audit_engine.sql'
       - 'package.json'
+      - 'tests/oppe-engine.test.mjs'
       - '.github/workflows/oppe-build-validation.yml'
 
 permissions:
@@ -38,6 +40,8 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: OPPE engine regression tests
+        run: node --experimental-strip-types --test tests/oppe-engine.test.mjs
       - name: TypeScript type check
         run: npx tsc --noEmit
       - name: Build Next.js application
