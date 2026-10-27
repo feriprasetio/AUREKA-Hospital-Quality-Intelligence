@@ -85,12 +85,12 @@ export default function StaffDirectoryWorkspace() {
 
   useEffect(() => { void load() }, [load])
 
-  const groups = useMemo(() => [...new Set(rows.map((row) => row.staff_group).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id')), [rows])
+  const groups = useMemo(() => [...new Set(rows.map((row) => row.profession_group).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id')), [rows])
   const filtered = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('id')
     return rows.filter((row) => {
       if (statusFilter !== 'all' && row.directory_status !== statusFilter) return false
-      if (groupFilter !== 'all' && row.staff_group !== groupFilter) return false
+      if (groupFilter !== 'all' && row.profession_group !== groupFilter) return false
       if (!term) return true
       return [row.employee_code, row.display_name, row.profession_group, row.position_title, row.source_unit, row.staff_group]
         .some((value) => String(value || '').toLocaleLowerCase('id').includes(term))
@@ -251,7 +251,7 @@ export default function StaffDirectoryWorkspace() {
           <div>
             <div className="sdEyebrow">Metadata · Master Tenaga Kerja</div>
             <h3 className="sdTitle">Direktori Tenaga Kerja AUREKA</h3>
-            <p className="sdDesc">Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak disimpan pada direktori ini.</p>
+            <p className="sdDesc">Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak digunakan sebagai identitas atau dasar penugasan AUREKA.</p>
           </div>
           <div className="sdActions">
             <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => void importCsv(e.target.files?.[0])}/>
@@ -270,8 +270,8 @@ export default function StaffDirectoryWorkspace() {
           <select aria-label="Filter kelayakan penugasan" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">Semua kelayakan</option><option value="available">Siap dipetakan</option><option value="needs_review">Perlu verifikasi</option><option value="inactive">Nonaktif</option>
           </select>
-          <select aria-label="Filter kategori tenaga" value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)}>
-            <option value="all">Semua kategori tenaga</option>{groups.map((group) => <option key={group} value={group}>{group}</option>)}
+          <select aria-label="Filter kelompok profesi" value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)}>
+            <option value="all">Semua kelompok profesi</option>{groups.map((group) => <option key={group} value={group}>{group}</option>)}
           </select>
         </div>
         {message && <div className="sdNotice" role="status">{message}</div>}
@@ -286,15 +286,14 @@ export default function StaffDirectoryWorkspace() {
         {loading ? <div className="sdEmpty">Memuat direktori tenaga kerja…</div> : (
           <div className="sdTableWrap">
             <table className="sdTable">
-              <thead><tr><th>Identitas AUREKA</th><th>Nama dan gelar</th><th>Kelompok profesi</th><th>Jabatan / unit sumber</th><th>Kategori sumber</th><th>Kelayakan</th><th>Aksi</th></tr></thead>
+              <thead><tr><th>Kode AUREKA</th><th>Nama resmi dan gelar</th><th>Kelompok profesi</th><th>Jabatan / unit kerja</th><th>Kelayakan untuk pemetaan</th><th>Aksi</th></tr></thead>
               <tbody>
                 {filtered.map((staff) => (
                   <tr key={staff.id}>
-                    <td><div className="sdName">{staff.employee_code}</div><div className="sdSub">{staff.id.slice(0,8).toUpperCase()} · {staff.source_sheet}{staff.source_year ? ` · ${staff.source_year}` : ''}</div></td>
+                    <td><div className="sdName">{staff.employee_code}</div><div className="sdSub">Identitas internal AUREKA</div></td>
                     <td><div className="sdName">{staff.display_name}</div>{staff.review_note && <div className="sdSub">{staff.review_note}</div>}</td>
                     <td>{staff.profession_group}</td>
                     <td>{staff.position_title || '—'}<div className="sdSub">{staff.source_unit || 'Unit sumber belum dicantumkan'}</div></td>
-                    <td>{staff.staff_group || '—'}</td>
                     <td><span className={`sdPill ${staff.directory_status}`}>{statusLabel[staff.directory_status]}</span></td>
                     <td><div className="sdActionsCell">
                       {staff.directory_status !== 'available' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'available')}>Verifikasi / aktifkan</button>}
@@ -303,7 +302,7 @@ export default function StaffDirectoryWorkspace() {
                     </div></td>
                   </tr>
                 ))}
-                {!filtered.length && <tr><td colSpan={7} className="sdEmpty">Tidak ada tenaga kerja yang cocok dengan filter ini.</td></tr>}
+                {!filtered.length && <tr><td colSpan={6} className="sdEmpty">Tidak ada tenaga kerja yang cocok dengan filter ini.</td></tr>}
               </tbody>
             </table>
           </div>
