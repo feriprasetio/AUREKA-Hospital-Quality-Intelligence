@@ -647,11 +647,20 @@ export default function OppeAuditWorkspace({
           const { error: updateError } = await q().from('oppe_assessments').update(payload).eq('id', savedId)
           if (updateError) throw updateError
         } else {
+          // The database intentionally requires new assessments to start as drafts.
+          // Persist a new submission as draft first, then use the allowed draft -> submitted transition.
+          const initialPayload = nextStatus === 'submitted'
+            ? { ...payload, status: 'draft', submitted_at: null, validated_by: null, validated_at: null }
+            : payload
           const { data: inserted, error: insertError } = await q().from('oppe_assessments')
-            .insert({ ...payload, created_by: authData.user.id })
+            .insert({ ...initialPayload, created_by: authData.user.id })
             .select('id').single()
           if (insertError) throw insertError
           savedId = String(inserted.id)
+          if (nextStatus === 'submitted') {
+            const { error: submitError } = await q().from('oppe_assessments').update(payload).eq('id', savedId)
+            if (submitError) throw submitError
+          }
         }
       }
       setForm((current) => ({ ...current, id: savedId, status: nextStatus }))
@@ -989,7 +998,7 @@ export default function OppeAuditWorkspace({
 
             <section className="oppeGlass oppeSection">
               <div className="oppeSectionHead"><div><div className="oppeEyebrow">KESIMPULAN &amp; TINDAK LANJUT</div><h4>Catatan penilaian dan rencana pengembangan</h4><p>Nilai digunakan untuk umpan balik dan perbaikan profesional. Keputusan kewenangan klinis tidak dibuat secara otomatis dari skor ini.</p></div></div>
-              <label className="oppeField oppeWide"><span>Catatan evaluasi / alasan telaah / keputusan penilai</span><textarea value={form.assessmentNotes} onChange={(e) => setForm((current) => ({ ...current, assessmentNotes: e.target.value }))} placeholder="Cantumkan ringkasan diskusi, konteks kasus, faktor sistem, dan alasan keputusan penilaian." /></label>
+              <label className="oppeField oppeWide"><span>Catatan evaluasi / alasan telaah / keputusan penilai</span><textarea value={form.assessmentNotes} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, assessmentNotes: e.target.value }))} placeholder="Cantumkan ringkasan diskusi, konteks kasus, faktor sistem, dan alasan keputusan penilaian." /></label>
               <label className="oppeField oppeWide"><span>Rencana pengembangan / tindak lanjut</span><textarea value={form.developmentPlan} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, developmentPlan: e.target.value }))} placeholder="Tujuan perbaikan, tindakan, penanggung jawab dan waktu evaluasi ulang." /></label>
             </section>
 
