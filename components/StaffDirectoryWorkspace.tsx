@@ -171,12 +171,35 @@ export default function StaffDirectoryWorkspace() {
       })
       const { data: authData, error: authError } = await aurekaSupabase.auth.getUser()
       if (authError || !authData.user) throw new Error('Sesi login tidak ditemukan. Silakan login ulang.')
-      for (let start = 0; start < imported.length; start += 100) {
-        const batch = imported.slice(start, start + 100).map((item) => ({ ...item, updated_by: authData.user.id }))
+
+      // Preserve canonical UUIDs when this CSV is re-imported after assignments
+      // or historical module attributions already reference the existing staff row.
+      const existingByCode = new Map<string, string>()
+      const codes = imported.map((item) => item.employee_code)
+      for (let start = 0; start < codes.length; start += 100) {
+        const batchCodes = codes.slice(start, start + 100)
+        const { data: existingRows, error: lookupError } = await q().from('staff_directory')
+          .select('id,employee_code')
+          .in('employee_code', batchCodes)
+        if (lookupError) throw new Error('Gagal mencocokkan kode Tenaga AUREKA yang sudah ada: ' + lookupError.message)
+        for (const row of existingRows || []) existingByCode.set(String(row.employee_code), String(row.id))
+      }
+      const stableImported = imported.map((item) => ({
+        ...item,
+        id: existingByCode.get(item.employee_code) || item.id,
+      }))
+      const stableIds = new Set<string>()
+      for (const item of stableImported) {
+        if (stableIds.has(item.id)) throw new Error('Impor dibatalkan: satu ID tenaga akan dipakai oleh lebih dari satu kode AUREKA.')
+        stableIds.add(item.id)
+      }
+
+      for (let start = 0; start < stableImported.length; start += 100) {
+        const batch = stableImported.slice(start, start + 100).map((item) => ({ ...item, updated_by: authData.user.id }))
         const { error: upsertError } = await q().from('staff_directory').upsert(batch, { onConflict: 'id' })
         if (upsertError) throw new Error(`Impor berhenti pada batch ${Math.floor(start / 100) + 1}: ${upsertError.message}`)
       }
-      setMessage(`Impor selesai: ${imported.length.toLocaleString('id-ID')} rekam diproses. Rekam dengan status “Perlu verifikasi” belum bisa dipetakan ke tim.`)
+      setMessage(`Impor selesai: ${stableImported.length.toLocaleString('id-ID')} rekam diproses. UUID staf yang sudah memiliki penetapan tim/atribusi dipertahankan berdasarkan kode AUREKA.`)
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'File CSV tidak dapat diproses.')
