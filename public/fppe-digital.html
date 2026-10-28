@@ -460,19 +460,19 @@ function populateProfessions() {
 
 function bestProfessionForStaff(staff) {
   const profiles = MASTER.profiles || [];
-  const rawTitle = String(staff.position_title || "").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+  const rawTitle = String(staff.position_title || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const rawGroup = String(staff.profession_group || "").toLowerCase();
   const source = (rawTitle + " " + rawGroup).replace(/[^a-z0-9]+/g, " ").trim();
   const exactCandidates = profiles.filter(p => {
-    const pNorm = p.profession.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+    const pNorm = p.profession.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
     return source.includes(pNorm) || pNorm.includes(source);
   });
   if (exactCandidates.length) return exactCandidates.sort((a,b)=>b.profession.length-a.profession.length)[0].profession;
   const stop = new Set(["dokter","spesialis","subspesialis","sub","profesi","tenaga","kesehatan","medis","jabatan","madya","muda","pertama","utama","ahli","terampil","kelompok","profesi"]);
-  const tokens = source.split(/\\s+/).filter(t=>t.length>2 && !stop.has(t));
+  const tokens = source.split(/\s+/).filter(t=>t.length>2 && !stop.has(t));
   let best = null, bestScore = 0;
   for (const p of profiles) {
-    const candidate = p.profession.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g," ").split(/\\s+/).filter(t=>t.length>2 && !stop.has(t));
+    const candidate = p.profession.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g," ").split(/\s+/).filter(t=>t.length>2 && !stop.has(t));
     const overlap = tokens.filter(t=>candidate.includes(t)).length;
     const score = overlap / Math.max(1, candidate.length);
     if (overlap > 0 && score > bestScore) { best = p.profession; bestScore = score; }
