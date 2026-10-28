@@ -443,7 +443,7 @@ export default function FppeEvaluationWorkspace({
                   reset: !activeRef.current,
                   readOnly: ['submitted', 'validated', 'archived'].includes(String(activeRef.current?.status || '')),
                 })
-              }
+              }}
               style={{ width: '100%', height: frameHeight, border: 0, display: 'block', background: '#edf2f5' }}
               sandbox="allow-scripts allow-forms allow-same-origin allow-downloads"
             />
