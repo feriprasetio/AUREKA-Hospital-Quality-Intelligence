@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 
 type Room = { id: number; name: string }
 type Staff = {
@@ -182,6 +183,101 @@ export default function FppeEvaluationWorkspace({
       title: current?.position_title || String(record.position_snapshot || record.profession_snapshot || '—'),
     }
   }, [teamStaff])
+
+  const exportFileStem = (record: FppeRecord) => {
+    const staff = staffForRecord(record)
+    const id = String(record.id || '').slice(0, 8)
+    return ['AUREKA-FPPE', staff.code, staff.name, id].filter(Boolean).join('-')
+      .normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '')
+  }
+
+  const exportFppePdf = (record: FppeRecord) => {
+    const staff = staffForRecord(record)
+    const form = record.form_json && typeof record.form_json === 'object' ? record.form_json : {}
+    const meta = form.meta && typeof form.meta === 'object' ? form.meta : {}
+    const evidence = form.evidence && typeof form.evidence === 'object' ? form.evidence : {}
+    const summary = record.summary_json && typeof record.summary_json === 'object' ? record.summary_json : {}
+    const competencyAnswers = form.competencyAnswers && typeof form.competencyAnswers === 'object' ? form.competencyAnswers : {}
+    const competencyRows = Object.entries(competencyAnswers).map(([key, value], index) => {
+      const parts = key.split('::')
+      return [index + 1, parts.slice(2).join('::') || key, value]
+    })
+    const evidenceRows = [
+      ['Observasi langsung', evidence.evidenceObservation],
+      ['Telaah rekam medis', evidence.evidenceRecord],
+      ['Logbook / data terstruktur', evidence.evidenceLogbook],
+      ['Bukti lain', evidence.evidenceOther],
+      ['Keputusan FPPE', evidence.overallDecision],
+      ['Rencana tindak lanjut', evidence.actionPlan],
+      ['Tanggal reassessment', evidence.reassessmentDate],
+      ['Kesimpulan evaluator', evidence.conclusion],
+    ]
+    const signatoryRows = [
+      ['Atasan langsung / evaluator', meta.directSupervisor, meta.directSupervisorNip],
+      [meta.headDivisionRole || 'Kepala bidang', meta.headDivisionName, meta.headDivisionNip],
+      ['Ketua subkomite', meta.subcommitteeName, meta.subcommitteeNip],
+      ['Ketua komite profesi', meta.committeeName, meta.committeeNip],
+    ]
+    const opened = openPrintableIndividualReport({
+      title: 'Focused Professional Practice Evaluation (FPPE)',
+      subtitle: 'Rumah Sakit Umum Daerah Sultan Syarif Mohamad Alkadrie · Audit OPPE AUREKA',
+      metadata: [
+        ['Nama tenaga saat ini (Metadata)', staff.name],
+        ['Nama pada snapshot penilaian', record.staff_name_snapshot],
+        ['Kode tenaga AUREKA', staff.code],
+        ['Jabatan Metadata', staff.title],
+        ['Profesi / SMF / area praktik', record.profession_snapshot || meta.profession],
+        ['Unit penilaian', roomMap.get(Number(record.room_id)) || record.unit_snapshot || '—'],
+        ['Jenis FPPE', record.evaluation_type === 'triggered' ? 'FPPE Triggered' : 'FPPE Initial'],
+        ['Status', STATUS_LABEL[String(record.status)] || record.status],
+        ['Alasan / trigger', record.trigger_reason || meta.trigger],
+        ['Uraian trigger', record.trigger_detail || meta.triggerDetail],
+        ['Periode evaluasi', (record.period_start || meta.startDate || '—') + ' s.d. ' + (record.period_end || meta.endDate || '—')],
+        ['Ruang lingkup / privilege', record.scope_text || meta.scope],
+        ['Kompetensi dinilai', String(summary.assessed ?? 0) + ' / ' + String(summary.totalCompetencies ?? competencyRows.length)],
+        ['Keputusan ringkas', summary.decision || evidence.overallDecision],
+        ['Diajukan pada', record.submitted_at ? new Date(record.submitted_at).toLocaleString('id-ID') : '—'],
+        ['Divalidasi pada', record.validated_at ? new Date(record.validated_at).toLocaleString('id-ID') : '—'],
+      ],
+      sections: [
+        { title: 'Hasil kompetensi', columns: ['No.', 'Domain / kompetensi', 'Hasil'], rows: competencyRows },
+        { title: 'Bukti dan keputusan evaluasi', columns: ['Komponen', 'Catatan'], rows: evidenceRows },
+        { title: 'Pengesahan', columns: ['Peran', 'Nama', 'Nomor identitas / NIP'], rows: signatoryRows },
+        { title: 'Ringkasan kompetensi', columns: ['Indikator', 'Jumlah'], rows: [
+          ['Butir dinilai', summary.assessed ?? 0],
+          ['Kompeten', summary.competent ?? 0],
+          ['Kompeten dengan supervisi', summary.supervised ?? 0],
+          ['Perlu remediasi', summary.remedial ?? 0],
+          ['Belum kompeten', summary.notCompetent ?? 0],
+        ] },
+        { title: 'Catatan reviewer', columns: ['Catatan'], rows: [[record.review_note || '—']] },
+      ],
+      footer: 'Snapshot nama dan kode saat evaluasi dipertahankan untuk audit trail; identitas tenaga terkini diambil dari Metadata berdasarkan UUID tenaga.',
+    })
+    if (!opened) setError('Jendela ekspor diblokir browser. Izinkan pop-up untuk AUREKA lalu ulangi ekspor.')
+  }
+
+  const exportFppeJson = (record: FppeRecord) => {
+    const staff = staffForRecord(record)
+    downloadAssessmentJson(exportFileStem(record) + '.json', {
+      ...record,
+      current_metadata_identity: { id: String(record.staff_id || ''), name: staff.name, employee_code: staff.code, position_title: staff.title },
+    })
+  }
+
+  const exportFppeListCsv = () => {
+    downloadAssessmentCsv('AUREKA-FPPE-daftar-unit-' + roomId + '.csv',
+      ['ID FPPE', 'Nama Metadata terkini', 'Nama snapshot', 'Kode AUREKA', 'Jabatan', 'Profesi / SMF', 'Unit', 'Jenis', 'Trigger', 'Periode mulai', 'Periode akhir', 'Status', 'Keputusan', 'Diajukan pada', 'Divalidasi pada'],
+      filtered.map((record) => {
+        const staff = staffForRecord(record)
+        const form = record.form_json && typeof record.form_json === 'object' ? record.form_json : {}
+        const evidence = form.evidence && typeof form.evidence === 'object' ? form.evidence : {}
+        return [record.id, staff.name, record.staff_name_snapshot, staff.code, staff.title, record.profession_snapshot,
+          roomMap.get(Number(record.room_id)) || record.unit_snapshot, record.evaluation_type === 'triggered' ? 'Triggered' : 'Initial',
+          record.trigger_reason, record.period_start, record.period_end, STATUS_LABEL[String(record.status)] || record.status,
+          record.summary_json?.decision || evidence.overallDecision, record.submitted_at, record.validated_at]
+      }))
+  }
 
   const saveFromFrame = async (message: FppeMessage) => {
     if (!canManage || busy) return
@@ -417,7 +513,7 @@ export default function FppeEvaluationWorkspace({
       <style>{CSS}</style>
       <div className="fppePanel fppeHeader">
         <div><div className="fppeEyebrow">AUREKA · FOCUSED PROFESSIONAL PRACTICE EVALUATION</div><h3>Evaluasi Praktik Profesional Terfokus (FPPE)</h3><p>FPPE terintegrasi di dalam Kontainer Audit OPPE. Identitas tenaga mengikuti Metadata dan roster Tim Tenaga Kerja. Pengajuan memerlukan validasi oleh akun yang berbeda dari pembuat.</p></div>
-        <div className="fppeHeaderActions"><button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}>＋ FPPE baru</button></div>
+        <div className="fppeHeaderActions"><button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}>＋ FPPE baru</button></div>
       </div>
       {error && <div className="fppeAlert fppeError" role="alert">{error}</div>}
       {notice && <div className="fppeAlert fppeSuccess" role="status">{notice}</div>}
@@ -469,13 +565,19 @@ export default function FppeEvaluationWorkspace({
           {loading ? <p className="fppeMuted">Memuat riwayat…</p> : <div className="fppeHistoryList">
             {filtered.map((record) => {
               const staff = staffForRecord(record)
-              return <button type="button" key={String(record.id)} className={'fppeHistoryItem ' + (String(activeEvaluation?.id) === String(record.id) ? 'selected' : '')} onClick={() => openEvaluation(record)}>
-                <span className={'fppeBadge ' + (STATUS_CLASS[record.status] || 'fppeNeutral')}>{STATUS_LABEL[record.status] || record.status}</span>
-                <strong>{staff.name}</strong>
-                <small>{staff.code} · {staff.title}</small>
-                <small>{record.evaluation_type === 'triggered' ? 'Triggered FPPE' : 'Initial FPPE'} · {record.period_start || 'Tanggal belum diisi'} – {record.period_end || 'Tanggal belum diisi'}</small>
-                <small>Trigger: {record.trigger_reason || 'Belum ditentukan'}</small>
-              </button>
+              return <div className="fppeHistoryRecord" key={String(record.id)}>
+                <button type="button" className={'fppeHistoryItem ' + (String(activeEvaluation?.id) === String(record.id) ? 'selected' : '')} onClick={() => openEvaluation(record)}>
+                  <span className={'fppeBadge ' + (STATUS_CLASS[record.status] || 'fppeNeutral')}>{STATUS_LABEL[record.status] || record.status}</span>
+                  <strong>{staff.name}</strong>
+                  <small>{staff.code} · {staff.title}</small>
+                  <small>{record.evaluation_type === 'triggered' ? 'Triggered FPPE' : 'Initial FPPE'} · {record.period_start || 'Tanggal belum diisi'} – {record.period_end || 'Tanggal belum diisi'}</small>
+                  <small>Trigger: {record.trigger_reason || 'Belum ditentukan'}</small>
+                </button>
+                <div className="fppeHistoryExportActions">
+                  <button type="button" onClick={() => exportFppePdf(record)} title={'Ekspor PDF FPPE ' + staff.name}>Ekspor PDF</button>
+                  <button type="button" onClick={() => exportFppeJson(record)} title={'Unduh JSON FPPE ' + staff.name}>JSON</button>
+                </div>
+              </div>
             })}
             {!filtered.length && <div className="fppeEmpty">{search ? 'Tidak ada rekaman yang cocok.' : 'Belum ada rekaman FPPE pada unit ini. Gunakan FPPE baru untuk memulai.'}</div>}
           </div>}
@@ -529,8 +631,11 @@ const CSS = `
 .fppeNeutral{background:#edf0ee;color:#647269}.fppeInfo{background:#e8efff;color:#455c9a}.fppeGood{background:#e4f5eb;color:#216b49}.fppeWarn{background:#fff1dc;color:#8b5a12}
 .fppeHistory{position:sticky;top:12px;display:grid;gap:10px;max-height:calc(100vh - 90px);overflow:hidden}
 .fppeHistoryHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.fppeHistoryHead h4{margin:4px 0 0;font-size:16px}.fppeHistoryHead>span{font-size:11px;font-weight:900;background:rgba(255,255,255,.65);border-radius:999px;padding:5px 8px}
-.fppeHistoryList{display:grid;gap:7px;overflow:auto;min-height:100px;padding-right:2px}
-.fppeHistoryItem{display:grid;justify-items:start;gap:5px;text-align:left;border-radius:13px!important;padding:10px!important;border:1px solid rgba(35,63,50,.1)!important;background:rgba(255,255,255,.38)!important}
+.fppeHistoryList{display:grid;gap:8px;overflow:auto;min-height:100px;padding-right:2px}
+.fppeHistoryRecord{display:grid;gap:5px;min-width:0}
+.fppeHistoryExportActions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+.fppeHistoryExportActions button{padding:6px 8px;font-size:9px;background:rgba(255,255,255,.55)}
+.fppeHistoryItem{width:100%;display:grid;justify-items:start;gap:5px;text-align:left;border-radius:13px!important;padding:10px!important;border:1px solid rgba(35,63,50,.1)!important;background:rgba(255,255,255,.38)!important}
 .fppeHistoryItem.selected{border-color:var(--accent)!important;background:rgba(255,255,255,.82)!important;box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08)}
 .fppeHistoryItem strong{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
 .fppeHistoryItem small{font-size:9px;color:var(--muted);line-height:1.45}

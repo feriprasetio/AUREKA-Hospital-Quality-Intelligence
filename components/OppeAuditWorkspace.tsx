@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import FppeEvaluationWorkspace from '@/components/FppeEvaluationWorkspace'
+import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   buildOppeResponseIndex,
@@ -983,6 +984,108 @@ export default function OppeAuditWorkspace({
     })
   }, [assessments, historySearch, roomFilter, quarter])
 
+  const oppeExportStem = (assessment: SavedAssessment) => [
+    'AUREKA-OPPE', assessment.staff_identifier || assessment.staff_id || 'tenaga',
+    assessment.staff_name || 'individu', assessment.period_year, 'TW' + assessment.period_quarter,
+  ].filter(Boolean).join('-').normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '')
+
+  const exportOppePdf = (assessment: SavedAssessment) => {
+    const snapshot = asObject(assessment.score_json)
+    const clinical = Array.isArray(assessment.clinical_snapshot_json) ? assessment.clinical_snapshot_json : []
+    const behaviour = Array.isArray(assessment.behavior_json) ? assessment.behavior_json : []
+    const professionalism = Array.isArray(assessment.professionalism_json) ? assessment.professionalism_json : []
+    const canonical = teamStaff.find((item) => String(item.id) === String(assessment.staff_id))
+    const currentName = canonical?.display_name || String(assessment.staff_name || 'Nama tidak tersedia')
+    const currentCode = canonical?.employee_code || String(assessment.staff_identifier || '—')
+    const currentTitle = canonical?.position_title || '—'
+    const scoreDomain = (key: string) => {
+      const domain = asObject(snapshot[key])
+      return fmtPct(domain.score)
+    }
+    const manualRows = (items: any[]) => items.map((item) => [
+      item.label || item.id || '—',
+      item.target || '—',
+      item.count ?? '—',
+      statusOptions.find((option) => option.value === item.status)?.label || item.status || '—',
+      item.evidence || '—',
+      item.notes || '—',
+    ])
+    const clinicalRows = clinical.map((item: any) => [
+      item.code || '—',
+      item.title || '—',
+      item.numerator == null || item.denominator == null ? '—' : String(item.numerator) + ' / ' + String(item.denominator),
+      item.measurementMethod === 'numeric_target'
+        ? (item.numericMean == null ? '—' : fmtNum(item.numericMean) + (item.unitOfMeasure ? ' ' + item.unitOfMeasure : ''))
+        : fmtPct(item.rate),
+      item.targetText || '—',
+      item.observations ?? 0,
+      item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target'
+        : item.status === 'manual_review' ? 'Telaah manual' : item.status === 'not_applicable' ? 'Tidak berlaku' : 'Data belum memadai',
+      item.reason || '—',
+    ])
+    const opened = openPrintableIndividualReport({
+      title: 'Ongoing Professional Practice Evaluation (OPPE)',
+      subtitle: 'Rumah Sakit Umum Daerah Sultan Syarif Mohamad Alkadrie · Audit OPPE AUREKA',
+      metadata: [
+        ['Nama tenaga saat ini (Metadata)', currentName],
+        ['Nama snapshot OPPE', assessment.staff_name],
+        ['Kode tenaga AUREKA', currentCode],
+        ['Jabatan Metadata', currentTitle],
+        ['Profesi / SMF', assessment.profession],
+        ['Unit kerja', roomMap.get(Number(assessment.room_id)) || '—'],
+        ['Periode', (quarters.find((item) => item.value === Number(assessment.period_quarter))?.label || ('TW ' + assessment.period_quarter)) + ' ' + assessment.period_year],
+        ['Status', statusLabel[String(assessment.status)] || assessment.status],
+        ['Evaluator', assessment.evaluator_name || '—'],
+        ['Jabatan evaluator', assessment.evaluator_role || '—'],
+        ['Logbook tervalidasi yang dipakai', Number(assessment.source_records_count || 0)],
+        ['Skor perilaku profesional', scoreDomain('behavior')],
+        ['Skor pengembangan profesional', scoreDomain('professionalism')],
+        ['Skor kinerja klinis/profesional', scoreDomain('clinical')],
+        ['Skor total OPPE', fmtPct(snapshot.overall)],
+        ['Kategori', snapshot.category || '—'],
+        ['Metode skoring', snapshot.method || '—'],
+        ['Dibuat', assessment.created_at ? new Date(assessment.created_at).toLocaleString('id-ID') : '—'],
+        ['Divalidasi pada', assessment.validated_at ? new Date(assessment.validated_at).toLocaleString('id-ID') : '—'],
+      ],
+      sections: [
+        { title: 'I. Perilaku profesional', columns: ['Butir', 'Target', 'Jumlah', 'Status', 'Sumber bukti', 'Catatan'], rows: manualRows(behaviour) },
+        { title: 'II. Pengembangan profesionalisme', columns: ['Butir', 'Target', 'Jumlah', 'Status', 'Sumber bukti', 'Catatan'], rows: manualRows(professionalism) },
+        { title: 'III. Kinerja klinis / profesional', columns: ['Kode', 'Indikator', 'N / D', 'Capaian / nilai aktual', 'Target', 'Observasi', 'Hasil', 'Keterangan'], rows: clinicalRows },
+        { title: 'IV. Catatan evaluasi', columns: ['Komponen', 'Isi'], rows: [
+          ['Catatan / alasan telaah', assessment.assessment_notes || '—'],
+          ['Rencana pengembangan / tindak lanjut', assessment.development_plan || '—'],
+        ] },
+      ],
+      footer: 'Snapshot OPPE adalah hasil penilaian tersimpan. Nama terkini ditampilkan dari Metadata bila tenaga masih tersedia; identitas historis tidak diubah. Skor bukan keputusan otomatis tentang kewenangan klinis.',
+    })
+    if (!opened) setError('Jendela ekspor diblokir browser. Izinkan pop-up untuk AUREKA lalu ulangi ekspor.')
+  }
+
+  const exportOppeJson = (assessment: SavedAssessment) => {
+    const canonical = teamStaff.find((item) => String(item.id) === String(assessment.staff_id))
+    downloadAssessmentJson(oppeExportStem(assessment) + '.json', {
+      ...assessment,
+      current_metadata_identity: canonical ? {
+        id: canonical.id, display_name: canonical.display_name,
+        employee_code: canonical.employee_code, position_title: canonical.position_title,
+      } : null,
+    })
+  }
+
+  const exportOppeListCsv = () => {
+    downloadAssessmentCsv('AUREKA-OPPE-daftar-' + year + '-TW' + quarter + '.csv',
+      ['ID OPPE', 'Nama Metadata terkini', 'Nama snapshot', 'Kode tenaga AUREKA', 'Profesi / SMF', 'Unit', 'Tahun', 'Triwulan', 'Status', 'Skor total', 'Kategori', 'Evaluator', 'Logbook tervalidasi', 'Dibuat', 'Divalidasi pada'],
+      filteredAssessments.map((assessment) => {
+        const canonical = teamStaff.find((item) => String(item.id) === String(assessment.staff_id))
+        const score = asObject(assessment.score_json)
+        return [assessment.id, canonical?.display_name || assessment.staff_name, assessment.staff_name,
+          canonical?.employee_code || assessment.staff_identifier, assessment.profession,
+          roomMap.get(Number(assessment.room_id)) || assessment.room_id, assessment.period_year, assessment.period_quarter,
+          statusLabel[String(assessment.status)] || assessment.status, fmtPct(score.overall), score.category,
+          assessment.evaluator_name, assessment.source_records_count, assessment.created_at, assessment.validated_at]
+      }))
+  }
+
   const handlePrint = () => {
     if (!form.staffName.trim()) {
       setError('Isi nama tenaga kesehatan sebelum membuat output OPPE.')
@@ -1235,8 +1338,8 @@ export default function OppeAuditWorkspace({
       {screen === 'history' && (
         <section className="oppeGlass oppeSection">
           <div className="oppeSectionHead"><div><div className="oppeEyebrow">RIWAYAT &amp; OUTPUT</div><h4>Penilaian tersimpan</h4><p>Buka penilaian untuk melihat bukti, snapshot skor dan status validasi. Draf dapat dilanjutkan; penilaian tervalidasi hanya dapat dikoreksi melalui alur pembukaan kembali.</p></div></div>
-          <div className="oppeRuleToolbar"><input value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="Cari nama, profesi, ID pegawai, evaluator…" /><span>{filteredAssessments.length} penilaian pada filter aktif</span></div>
-          <div className="oppeRuleList">{filteredAssessments.map((assessment) => <article className="oppeRuleRow" key={assessment.id}><div className="oppeRuleTitle"><strong>{assessment.staff_name} · {assessment.profession}</strong><span>{roomMap.get(Number(assessment.room_id)) || 'Unit'} · {quarters.find((item) => item.value === Number(assessment.period_quarter))?.label} {assessment.period_year}</span><span className="oppeRuleDescription">Nilai: {fmtPct(asObject(assessment.score_json).overall)} · {asObject(assessment.score_json).category || 'Belum dinilai'} · Evaluator: {assessment.evaluator_name || '—'}</span></div><div className="oppeRuleActions"><span className={`oppeStatus ${statusTone[assessment.status] || 'oppeNeutral'}`}>{statusLabel[assessment.status] || assessment.status}</span><button type="button" className="oppeBtn" onClick={() => openSaved(assessment)}>Buka penilaian</button></div></article>)}{!filteredAssessments.length && <div className="oppeEmpty">{loading ? 'Memuat riwayat…' : 'Belum ada penilaian tersimpan untuk periode ini. Gunakan Form & output OPPE untuk memulai draf.'}</div>}</div>
+          <div className="oppeRuleToolbar"><input value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="Cari nama, profesi, ID pegawai, evaluator…" /><span>{filteredAssessments.length} penilaian pada filter aktif</span><button type="button" className="oppeBtn" onClick={exportOppeListCsv} disabled={!filteredAssessments.length}>Ekspor daftar CSV</button></div>
+          <div className="oppeRuleList">{filteredAssessments.map((assessment) => <article className="oppeRuleRow" key={assessment.id}><div className="oppeRuleTitle"><strong>{assessment.staff_name} · {assessment.profession}</strong><span>{roomMap.get(Number(assessment.room_id)) || 'Unit'} · {quarters.find((item) => item.value === Number(assessment.period_quarter))?.label} {assessment.period_year}</span><span className="oppeRuleDescription">Nilai: {fmtPct(asObject(assessment.score_json).overall)} · {asObject(assessment.score_json).category || 'Belum dinilai'} · Evaluator: {assessment.evaluator_name || '—'}</span></div><div className="oppeRuleActions"><span className={`oppeStatus ${statusTone[assessment.status] || 'oppeNeutral'}`}>{statusLabel[assessment.status] || assessment.status}</span><button type="button" className="oppeBtn" onClick={() => openSaved(assessment)}>Buka penilaian</button><button type="button" className="oppeBtn" onClick={() => exportOppePdf(assessment)}>Ekspor PDF</button><button type="button" className="oppeBtn" onClick={() => exportOppeJson(assessment)}>JSON</button></div></article>)}{!filteredAssessments.length && <div className="oppeEmpty">{loading ? 'Memuat riwayat…' : 'Belum ada penilaian tersimpan untuk periode ini. Gunakan Form & output OPPE untuk memulai draf.'}</div>}</div>
         </section>
       )}
 
