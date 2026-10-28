@@ -19,12 +19,6 @@ const escapeHtml = (value: unknown) => String(value ?? '—')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#39;')
 
-const fileStem = (value: string) => value
-  .normalize('NFKD')
-  .replace(/[^a-zA-Z0-9_-]+/g, '-')
-  .replace(/^-+|-+$/g, '')
-  .slice(0, 100) || 'aureka-report'
-
 export function downloadAssessmentJson(filename: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' })
   downloadBlob(filename.endsWith('.json') ? filename : `${filename}.json`, blob)
