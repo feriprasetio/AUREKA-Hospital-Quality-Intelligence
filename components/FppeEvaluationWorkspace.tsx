@@ -34,6 +34,13 @@ const STATUS_CLASS: Record<string, string> = {
   archived: 'fppeNeutral',
 }
 const esc = (value: unknown) => String(value ?? '').trim()
+const isFppeEligible = (staff: Pick<Staff, 'profession_group' | 'position_title'>) => {
+  const group = String(staff.profession_group || '').toLowerCase()
+  const title = String(staff.position_title || '').toLowerCase()
+  const clinicalGroup = /dokter|keperawatan|kebidanan|kefarmasian|laboratorium medis|tenaga gizi|tenaga radiologi|rehabilitasi medik/.test(group)
+  const clinicalTitle = /dokter|spesialis|perawat|bidan|apoteker|farmasi|laboratorium|\banalis\b|atlm|radiografer|radiologi|nutrisionis|\bgizi\b|terapis|fisioterapis|psikolog|sanitarian|epidemiolog|elektromedis|perekam medis|rekam medis|refraksionis|penata anestesi|kesehatan kerja|penyuluh kesehatan|administrator kesehatan|tenaga teknis kefarmasian/.test(title)
+  return clinicalGroup || clinicalTitle
+}
 
 export default function FppeEvaluationWorkspace({
   initialRoomId,
@@ -66,7 +73,7 @@ export default function FppeEvaluationWorkspace({
 
   const roomMap = useMemo(() => new Map(rooms.map((room) => [Number(room.id), room.name])), [rooms])
   const roster = useMemo(() => teamStaff
-    .filter((staff) => Number(staff.room_id) === Number(roomId) && staff.directory_status === 'available')
+    .filter((staff) => Number(staff.room_id) === Number(roomId) && staff.directory_status === 'available' && isFppeEligible(staff))
     .map((staff) => ({
       ...staff,
       id: String(staff.id),
@@ -78,6 +85,8 @@ export default function FppeEvaluationWorkspace({
   activeRef.current = activeEvaluation
   roomRef.current = roomId
   rosterRef.current = roster
+
+  const saveFromFrameRef = useRef<(message: FppeMessage) => Promise<void>>(async () => undefined)
 
   const postToFrame = useCallback((message: Record<string, any>) => {
     frameRef.current?.contentWindow?.postMessage(message, window.location.origin)
@@ -157,22 +166,22 @@ export default function FppeEvaluationWorkspace({
         const height = Number(message.height)
         if (Number.isFinite(height)) setFrameHeight(Math.max(1300, Math.min(8000, height + 28)))
       } else if (message.type === 'AUREKA_FPPE_SAVE') {
-        void saveFromFrame(message)
+        void saveFromFrameRef.current(message)
       }
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
-    // saveFromFrame reads the latest state from refs and intentionally receives postMessage events.
-  })
+    // The ref keeps the bridge stable while save callbacks use current React state.
+  }, [postToFrame])
 
-  const staffForRecord = (record: FppeRecord) => {
+  const staffForRecord = useCallback((record: FppeRecord) => {
     const current = teamStaff.find((staff) => String(staff.id) === String(record.staff_id))
     return {
       name: current?.display_name || String(record.staff_name_snapshot || 'Nama tidak tersedia'),
       code: current?.employee_code || String(record.staff_code_snapshot || '—'),
       title: current?.position_title || String(record.position_snapshot || record.profession_snapshot || '—'),
     }
-  }
+  }, [teamStaff])
 
   const saveFromFrame = async (message: FppeMessage) => {
     if (!canManage || busy) return
@@ -309,6 +318,8 @@ export default function FppeEvaluationWorkspace({
     }
   }
 
+  saveFromFrameRef.current = saveFromFrame
+
   const startNew = (nextRoom = roomId) => {
     setRoomId(nextRoom)
     setActiveEvaluation(null)
@@ -317,7 +328,7 @@ export default function FppeEvaluationWorkspace({
     setError('')
     if (frameReady) {
       const nextRoster = teamStaff
-        .filter((staff) => Number(staff.room_id) === Number(nextRoom) && staff.directory_status === 'available')
+        .filter((staff) => Number(staff.room_id) === Number(nextRoom) && staff.directory_status === 'available' && isFppeEligible(staff))
         .map((staff) => ({ ...staff, id: String(staff.id), room_name: roomMap.get(Number(nextRoom)) || '' }))
       postToFrame({ type: 'AUREKA_FPPE_ROSTER', roster: nextRoster })
       postToFrame({ type: 'AUREKA_FPPE_NEW', roster: nextRoster })
@@ -333,7 +344,7 @@ export default function FppeEvaluationWorkspace({
     setError('')
     if (frameReady) {
       const nextRoster = teamStaff
-        .filter((staff) => Number(staff.room_id) === nextRoom && staff.directory_status === 'available')
+        .filter((staff) => Number(staff.room_id) === nextRoom && staff.directory_status === 'available' && isFppeEligible(staff))
         .map((staff) => ({ ...staff, id: String(staff.id), room_name: roomMap.get(nextRoom) || '' }))
       postToFrame({ type: 'AUREKA_FPPE_ROSTER', roster: nextRoster })
       postToFrame({ type: 'AUREKA_FPPE_LOAD', evaluation: record })
@@ -397,7 +408,7 @@ export default function FppeEvaluationWorkspace({
       return [staff.name, staff.code, staff.title, row.profession_snapshot, row.trigger_reason, STATUS_LABEL[row.status] || row.status]
         .some((value) => String(value || '').toLowerCase().includes(term))
     })
-  }, [evaluations, search, teamStaff])
+  }, [evaluations, search, staffForRecord])
 
   if (!canManage) return <section className="fppeWorkspace"><div className="fppePanel">Akses FPPE hanya tersedia bagi Superadmin/Komite PMKP yang berwenang.</div></section>
 
@@ -423,7 +434,16 @@ export default function FppeEvaluationWorkspace({
               ref={frameRef}
               title="Formulir FPPE AUREKA"
               src="/AUREKA-Hospital-Quality-Intelligence/fppe-digital.html"
-              onLoad={() => setFrameReady(true)}
+              onLoad={() => {
+                setFrameReady(true)
+                postToFrame({
+                  type: 'AUREKA_FPPE_INIT',
+                  roster: rosterRef.current,
+                  evaluation: activeRef.current || undefined,
+                  reset: !activeRef.current,
+                  readOnly: ['submitted', 'validated', 'archived'].includes(String(activeRef.current?.status || '')),
+                })
+              }
               style={{ width: '100%', height: frameHeight, border: 0, display: 'block', background: '#edf2f5' }}
               sandbox="allow-scripts allow-forms allow-same-origin allow-downloads"
             />
