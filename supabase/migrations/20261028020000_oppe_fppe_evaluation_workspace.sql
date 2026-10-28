@@ -95,8 +95,45 @@ create or replace function aureka_quality.guard_oppe_fppe_evaluation_transition(
 returns trigger language plpgsql security invoker
 set search_path = pg_catalog, aureka_quality, auth
 as $$
-declare v_allowed boolean := false;
+declare
+  v_allowed boolean := false;
+  v_check_identity boolean := false;
+  v_staff aureka_quality.staff_directory%rowtype;
 begin
+  if tg_op = 'INSERT' then
+    v_check_identity := true;
+  else
+    v_check_identity := new.status = 'submitted'
+      or new.staff_id is distinct from old.staff_id
+      or new.staff_code_snapshot is distinct from old.staff_code_snapshot
+      or new.staff_name_snapshot is distinct from old.staff_name_snapshot
+      or new.position_snapshot is distinct from old.position_snapshot
+      or new.unit_snapshot is distinct from old.unit_snapshot;
+  end if;
+
+  if v_check_identity then
+    select * into v_staff from aureka_quality.staff_directory d
+    where d.id = new.staff_id and d.directory_status = 'available';
+    if not found then raise exception 'Tenaga FPPE tidak aktif/tersedia pada Metadata. Muat ulang roster sebelum menyimpan.'; end if;
+    if new.staff_code_snapshot is distinct from v_staff.employee_code
+      or new.staff_name_snapshot is distinct from v_staff.display_name
+      or new.position_snapshot is distinct from v_staff.position_title then
+      raise exception 'Identitas FPPE harus mengikuti kode, nama, dan jabatan terbaru dari Metadata tenaga kerja.';
+    end if;
+    if coalesce(new.form_json->'meta'->>'staffUuid', '') is distinct from new.staff_id::text
+      or coalesce(new.form_json->'meta'->>'staffId', '') is distinct from v_staff.employee_code
+      or coalesce(new.form_json->'meta'->>'staffName', '') is distinct from v_staff.display_name then
+      raise exception 'Identitas pada formulir FPPE tidak konsisten dengan Metadata tenaga kerja.';
+    end if;
+    if not exists (
+      select 1 from aureka_quality.staff_team_assignments a
+      where a.staff_id = new.staff_id and a.room_id = new.room_id
+        and a.assignment_status = 'active' and a.is_locked = true
+    ) then
+      raise exception 'Tenaga FPPE harus berasal dari roster Tim Tenaga Kerja yang aktif dan terkunci pada unit terpilih.';
+    end if;
+  end if;
+
   if tg_op = 'INSERT' then
     if new.status <> 'draft' then raise exception 'FPPE baru harus dibuat sebagai draf.'; end if;
     if new.created_by is distinct from auth.uid() then raise exception 'Pembuat FPPE harus sama dengan pengguna yang login.'; end if;
