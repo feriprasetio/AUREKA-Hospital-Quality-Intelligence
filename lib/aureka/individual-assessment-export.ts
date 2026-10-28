@@ -108,8 +108,13 @@ footer{margin-top:26px;padding-top:12px;border-top:1px solid var(--line);font-si
 function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
+  const safeName = filename
+    .split(/[\\\\/]/)
+    .pop()
+    ?.replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'aureka-report'
   anchor.href = url
-  anchor.download = fileStem(filename)
+  anchor.download = safeName
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()
