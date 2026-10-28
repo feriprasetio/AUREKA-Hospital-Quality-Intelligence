@@ -667,7 +667,7 @@ function loadServerForm(payload) {
     const currentStaff = fppeRoster.find(item=>String(item.id)===String(state.meta.staffUuid));
     if (currentStaff) applyStaffIdentity(currentStaff, false);
   }
-  setReadOnly(!!incoming.read_only || incoming.status === "submitted" || incoming.status === "validated");
+  setReadOnly(!!incoming.read_only || incoming.status === "submitted" || incoming.status === "validated" || incoming.status === "archived");
   if (incoming.status) setIntegrationStatus("FPPE " + incoming.status + " · " + (incoming.staff_name_snapshot || state.meta.staffName) + (incoming.staff_code_snapshot ? " · " + incoming.staff_code_snapshot : ""));
   else setIntegrationStatus("Form FPPE aktif. Identitas dipasok oleh Metadata tenaga kerja AUREKA.");
 }
