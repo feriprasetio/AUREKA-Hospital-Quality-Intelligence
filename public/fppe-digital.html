@@ -372,6 +372,10 @@ function render() {
 
   renderPrintIdentity();
   renderPrintSignatures();
+  if (EMBEDDED) {
+    setReadOnly(fppeReadOnly);
+    notifyFrameHeight();
+  }
 }
 
 function saveState(show=true) {
