@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FPPE — RSUD Sultan Syarif Mohamad Alkadrie</title>
+<style>
+:root{--navy:#17324d;--blue:#246b9c;--border:#cfd8df;--text:#202a33;--muted:#657483;--light:#f5f8fa;--good:#18864b;--warn:#9a6800;--bad:#b22c2c}
+*{box-sizing:border-box}
+body{margin:0;background:#edf2f5;color:var(--text);font-family:Segoe UI,Arial,sans-serif}
+.container{max-width:1280px;margin:auto;padding:20px}
+.header{background:linear-gradient(135deg,var(--navy),#2b6688);color:#fff;border-radius:16px;padding:20px 22px;margin-bottom:14px}
+.header h1{margin:0;font-size:25px}
+.header p{margin:4px 0 0;font-size:13px}
+.grid{display:grid;grid-template-columns:330px 1fr;gap:14px}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 18px rgba(20,45,65,.07)}
+.card .hd{padding:13px 15px;border-bottom:1px solid var(--border);font-weight:800;color:var(--navy)}
+.card .bd{padding:15px}
+label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:5px}
+input,select,textarea{width:100%;font:inherit;border:1px solid #cfd8df;border-radius:9px;padding:9px;background:#fff}
+textarea{min-height:72px;resize:vertical}
+.field{margin-bottom:10px}
+.field-inline{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.section-mini{border-top:1px dashed var(--border);padding-top:10px;margin-top:8px}
+.mini-title{font-size:12px;font-weight:800;color:var(--navy);margin-bottom:8px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+button{border:0;border-radius:9px;padding:9px 11px;font-weight:800;cursor:pointer}
+.primary{background:var(--navy);color:#fff}.secondary{background:#eaf0f4;color:var(--navy)}.danger{background:#fae9e9;color:var(--bad)}
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+.kpi{border:1px solid var(--border);background:var(--light);border-radius:10px;padding:10px}
+.kpi .n{font-size:19px;font-weight:900;color:var(--navy)}.kpi .l{font-size:9.5px;color:var(--muted)}
+.section{margin-top:11px}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.section-title h2{margin:0;color:var(--navy);font-size:14px}
+.table-wrap{border:1px solid var(--border);border-radius:10px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{border-bottom:1px solid var(--border);padding:7px 8px;font-size:11.5px;vertical-align:top}
+th{background:#f7f9fa;text-align:left;font-size:10px;color:#586978}
+tr:last-child td{border-bottom:0}
+.choice-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.choice{border:1px solid #d5dee5;border-radius:8px;padding:6px 7px;background:#fff;font-size:10px;cursor:pointer}
+.choice input{width:auto}
+.choice.sel{font-weight:800;background:#eef8f2;border-color:#a7d7b7}
+.choice.red.sel{background:#fdeeee;border-color:#efb2b2}
+.note{padding:9px 10px;background:#f4f8fb;border-left:4px solid var(--blue);border-radius:8px;font-size:10.5px;color:#536472}
+.pill{font-size:9px;font-weight:800;padding:4px 7px;border-radius:999px;background:#edf2f6;color:#536472}
+.status-good{color:var(--good);font-weight:800}.status-warn{color:var(--warn);font-weight:800}.status-bad{color:var(--bad);font-weight:800}
+.print-only,.print-signatures{display:none}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){.summary{grid-template-columns:repeat(2,1fr)}.field-inline{grid-template-columns:1fr}.container{padding:10px}}
+@media print{
+  @page{size:A4 portrait;margin:7mm 7mm 6mm}
+  body{background:#fff}
+  .container{max-width:none;padding:0}
+  .header{background:none;color:#111;border:0;border-bottom:1px solid #111;border-radius:0;box-shadow:none;padding:0 0 5px;margin-bottom:5px}
+  .header h1{font-size:15px;text-align:center}
+  .header p{font-size:9px;text-align:center;color:#111}
+  .grid{display:block}
+  .sidebar{display:none!important}
+  .maincard{border:0;box-shadow:none;border-radius:0}
+  .maincard>.hd{padding:0 0 4px;border:0;font-size:11px}
+  .maincard>.bd{padding:0}
+  .summary{grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0 5px}
+  .kpi{padding:4px;border:1px solid #666;background:#fff;border-radius:0}
+  .kpi .n{font-size:13px;color:#111}.kpi .l{font-size:7.4px;color:#222}
+  .section{margin-top:5px;page-break-inside:avoid}
+  .section-title{margin-bottom:2px}
+  .section-title h2{font-size:9.5px}
+  .table-wrap{border:0;overflow:visible}
+  table{min-width:0;width:100%}
+  th,td{border:1px solid #727b82;padding:3px 4px;font-size:8.4px;line-height:1.15}
+  th{font-size:7.8px}
+  .choice-grid{grid-template-columns:repeat(4,1fr);gap:2px}
+  .choice{border:0;background:none!important;padding:0;font-size:7.7px}
+  .choice input{display:none}
+  .choice::before{content:"☐ "}
+  .choice.sel::before{content:"☑ "}
+  .choice.sel{font-weight:800}
+  .note,.actions,.status{display:none!important}
+  .print-only,.print-signatures{display:block!important}
+  .print-table{width:100%;border-collapse:collapse;margin-bottom:4px}
+  .print-table th,.print-table td{border:1px solid #666;padding:3px 4px;font-size:8px}
+  .signature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:7px}
+  .signature-box{border:1px solid #666;min-height:88px;padding:4px;display:flex;flex-direction:column;justify-content:space-between}
+  .signature-role{font-size:7.8px;text-align:center;font-weight:800;line-height:1.2}
+  .signature-space{height:28px}
+  .signature-name{font-size:7.7px;text-align:center;border-top:1px solid #111;padding-top:2px;line-height:1.25}
+  .small-muted{font-size:6.8px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Focused Professional Practice Evaluation</h1>
+    <p>Staff Medis dan Tenaga Kesehatan · Rumah Sakit Umum Daerah Sultan Syarif Mohamad Alkadrie</p>
+  </div>
+
+  <div class="grid">
+    <aside class="card sidebar">
+      <div class="hd">Identitas & Konfigurasi FPPE</div>
+      <div class="bd">
+        <div class="field"><label>Pilih Tenaga (Metadata &amp; Tim Unit)</label><select id="staffPicker"><option value="">Memuat roster tenaga kerja…</option></select><small class="muted">Identitas bersumber dari Metadata tenaga kerja AUREKA. Pilihan dibatasi pada tenaga yang ditetapkan ke unit.</small></div>
+        <div class="field"><label>Nama Staf</label><input id="staffName" placeholder="Pilih tenaga dari Metadata" readonly></div>
+        <div class="field"><label>Kode Tenaga AUREKA</label><input id="staffId" placeholder="Terisi dari Metadata" readonly></div>
+        <div class="field"><label>Profesi / SMF / Area Praktik</label><select id="profession"></select><small class="muted">Disarankan dari jabatan/kelompok profesi Metadata; periksa area praktik sebelum pengajuan.</small></div>
+        <div class="field"><label>Unit / Wilayah Kerja</label><input id="unit" placeholder="Terisi dari Tim Tenaga Kerja" readonly></div>
+        <div id="integrationStatus" class="note" role="status">Menunggu koneksi ke kontainer Audit OPPE AUREKA…</div>
+
+        <div class="field">
+          <label>Jenis FPPE</label>
+          <select id="fppeType">
+            <option value="initial">FPPE Initial</option>
+            <option value="triggered">FPPE Triggered</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Alasan / Trigger FPPE</label>
+          <select id="trigger">
+            <option value="Nakes baru bergabung">Nakes baru bergabung</option>
+            <option value="Clinical privilege baru">Clinical privilege baru</option>
+            <option value="Mutasi / perpindahan unit">Mutasi / perpindahan unit</option>
+            <option value="Prosedur / teknologi baru">Prosedur / teknologi baru</option>
+            <option value="Hasil OPPE tidak memenuhi">Hasil OPPE tidak memenuhi</option>
+            <option value="Insiden keselamatan pasien">Insiden keselamatan pasien</option>
+            <option value="Keluhan pasien / pengguna layanan">Keluhan pasien / pengguna layanan</option>
+            <option value="Keluhan sejawat">Keluhan sejawat</option>
+            <option value="Hasil audit klinis">Hasil audit klinis</option>
+            <option value="Komplikasi / outcome tertentu">Komplikasi / outcome tertentu</option>
+            <option value="Ketidakpatuhan SOP">Ketidakpatuhan SOP</option>
+            <option value="Evaluasi kompetensi">Evaluasi kompetensi</option>
+            <option value="Permintaan Komite / Manajemen">Permintaan Komite / Manajemen</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Uraian Trigger / Masalah</label>
+          <textarea id="triggerDetail" placeholder="Jelaskan dasar dilakukannya FPPE, bila ada."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Periode Evaluasi</label>
+          <div class="field-inline">
+            <input id="startDate" type="date">
+            <input id="endDate" type="date">
+          </div>
+        </div>
+
+        <div class="section-mini">
+          <div class="mini-title">Ruang Lingkup / Privilege yang Dievaluasi</div>
+          <textarea id="scope" placeholder="Contoh: pemasangan CVC; ventilator management; tindakan hemodialisis tertentu;"></textarea>
+        </div>
+
+        <div class="section-mini">
+          <div class="mini-title">Pengesahan</div>
+          <div class="field"><label>Atasan Langsung / Evaluator — Nama</label><input id="directSupervisor"></div>
+          <div class="field"><label>Atasan Langsung / Evaluator — NIP</label><input id="directSupervisorNip"></div>
+
+          <div class="field"><label>Kepala Bidang Atasan Langsung</label>
+            <select id="headDivisionRole">
+              <option>Kepala Bidang Pelayanan Medik dan Keperawatan</option>
+              <option>Kepala Bidang Penunjang Medik dan Non-Medik</option>
+            </select>
+          </div>
+          <div class="field"><label>Kepala Bidang — Nama</label><input id="headDivisionName"></div>
+          <div class="field"><label>Kepala Bidang — NIP</label><input id="headDivisionNip"></div>
+
+          <div class="field"><label id="subcommitteeLabel">Ketua Sub Komite Mutu</label><input id="subcommitteeName"></div>
+          <div class="field"><label id="subcommitteeNipLabel">NIP Ketua Sub Komite Mutu</label><input id="subcommitteeNip"></div>
+          <div class="field"><label id="committeeLabel">Ketua Komite</label><input id="committeeName"></div>
+          <div class="field"><label id="committeeNipLabel">NIP Ketua Komite</label><input id="committeeNip"></div>
+        </div>
+
+        <div class="actions">
+          <button id="saveFppeBtn" class="primary" onclick="saveToServer(\'draft\')">Simpan draf</button>
+          <button id="submitFppeBtn" class="primary" onclick="saveToServer(\'submitted\')">Ajukan untuk validasi</button>
+          <button class="secondary" onclick="exportJSON()">Export JSON</button>
+          <button class="secondary" onclick="window.print()">Cetak</button>
+          <button id="resetFppeBtn" class="danger" onclick="resetForm()">Penilaian baru</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="card maincard">
+      <div class="hd" id="profileTitle">Pilih profesi untuk memuat FPPE</div>
+      <div class="bd">
+        <div id="printIdentity" class="print-only"></div>
+
+        <div class="summary">
+          <div class="kpi"><div class="n" id="assessed">0</div><div class="l">Kompetensi Dinilai</div></div>
+          <div class="kpi"><div class="n" id="competent">0</div><div class="l">Kompeten</div></div>
+          <div class="kpi"><div class="n" id="supervised">0</div><div class="l">Kompeten + Supervisi</div></div>
+          <div class="kpi"><div class="n" id="remedial">0</div><div class="l">Perlu Remediasi</div></div>
+          <div class="kpi"><div class="n" id="status">—</div><div class="l">Status FPPE</div></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <h2>1. Penilaian Kompetensi Terfokus</h2>
+            <span class="pill">sesuai profesi / area praktik</span>
+          </div>
+          <div id="competencyTable" class="table-wrap"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><h2>2. Metode / Bukti Evaluasi</h2></div>
+          <div class="table-wrap">
+            <table style="min-width:0">
+              <tr><th style="width:27%">Metode</th><th>Bukti / Catatan</th></tr>
+              <tr><td>Observasi langsung</td><td><textarea id="evidenceObservation" placeholder="Temuan observasi"></textarea></td></tr>
+              <tr><td>Audit rekam medis / dokumentasi</td><td><textarea id="evidenceRecord" placeholder="Temuan audit"></textarea></td></tr>
+              <tr><td>Logbook / volume kasus / privilege</td><td><textarea id="evidenceLogbook" placeholder="Bukti volume / logbook"></textarea></td></tr>
+              <tr><td>Wawancara / diskusi kasus / simulasi</td><td><textarea id="evidenceOther" placeholder="Hasil wawancara / simulasi"></textarea></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><h2>3. Kesimpulan & Tindak Lanjut</h2></div>
+          <div class="table-wrap">
+            <table style="min-width:0">
+              <tr>
+                <th style="width:27%">Keputusan FPPE</th>
+                <td>
+                  <select id="overallDecision">
+                    <option value="">Pilih keputusan</option>
+                    <option>Kompeten / dapat praktik sesuai kewenangan</option>
+                    <option>Kompeten dengan supervisi</option>
+                    <option>Perlu remediasi dan reassessment</option>
+                    <option>Belum kompeten / privilege ditunda atau dibatasi</option>
+                  </select>
+                </td>
+              </tr>
+              <tr><th>Rencana Tindak Lanjut</th><td><textarea id="actionPlan" placeholder="Supervisi, mentoring, pendidikan ulang, audit tambahan, pembatasan privilege, dsb."></textarea></td></tr>
+              <tr><th>Tanggal Reassessment</th><td><input id="reassessmentDate" type="date"></td></tr>
+              <tr><th>Kesimpulan Evaluator</th><td><textarea id="conclusion" placeholder="Ringkasan hasil FPPE"></textarea></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="note">
+            <strong>Logika FPPE:</strong> FPPE menilai kompetensi yang menjadi ruang lingkup evaluasi. Status akhir mengikuti hasil kompetensi dan keputusan evaluator; FPPE tidak menggantikan OPPE periodik.
+          </div>
+        </div>
+
+        <div id="printSignatures" class="print-signatures"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const MASTER = {"commonBehavior": [{"no": "1", "indicator": "Keluhan dari pasien/pengguna layanan", "trigger": "> 2 kali"}, {"no": "2", "indicator": "Keluhan dari rekan sejawat", "trigger": "> 2 kali"}, {"no": "3", "indicator": "Keluhan dari manajemen rumah sakit", "trigger": "≥ 1 kali"}], "commonProfessional": [{"no": "1", "indicator": "Menghadiri pertemuan ilmiah/profesi", "trigger": "< 3 kali/tahun"}, {"no": "2", "indicator": "Pelaksanaan tugas pengembangan mutu/profesi", "trigger": "< 1 kali/periode"}], "profiles": [{"profession": "Dokter Spesialis Anak", "clinical": [{"no": "1", "indicator": "Waktu tunggu pelayanan pasien Rawat Jalan", "trigger": "> 60 menit"}, {"no": "2", "indicator": "Kelengkapan assessment pediatrik <24 jam", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan penilaian status gizi/tumbuh kembang sesuai indikasi", "trigger": "< 95%"}, {"no": "4", "indicator": "Kelengkapan rekam medis dan resume medis", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan clinical pathway/protokol pediatrik", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Anestesiologi", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen pra-anestesi sebelum tindakan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan checklist keselamatan anestesi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan catatan anestesi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan serah terima pasien pasca-anestesi dengan SBAR", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan pemantauan dan dokumentasi nyeri pascaoperasi", "trigger": "< 95%"}]}, {"profession": "Dokter Spesialis Bedah", "clinical": [{"no": "1", "indicator": "Kepatuhan surgical safety checklist", "trigger": "< 100%"}, {"no": "2", "indicator": "Kelengkapan asesmen praoperasi <24 jam", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan laporan operasi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan site marking/time-out sebelum insisi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan antibiotik profilaksis sesuai indikasi", "trigger": "< 95%"}]}, {"profession": "Dokter Spesialis Bedah Subspesialis Onkologi", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen dan staging keganasan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan surgical safety checklist", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan laporan operasi dan spesimen patologi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan dokumentasi informed consent tindakan onkologi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan clinical pathway kanker sesuai indikasi", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Bedah Saraf", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen neurologis praoperasi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan surgical safety checklist", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan dokumentasi tindakan dan implant/drain", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pemantauan status neurologis pascaoperasi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan resume medis", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Jantung dan Pembuluh Darah", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen risiko kardiovaskular", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan tata laksana sindrom koroner akut sesuai pathway", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan dokumentasi interpretasi pemeriksaan jantung", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan rekonsiliasi obat kardiovaskular", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan discharge plan", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Kulit dan Kelamin", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen lesi/diagnosis dermatologi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan identifikasi dan dokumentasi lokasi lesi", "trigger": "< 95%"}, {"no": "3", "indicator": "Kelengkapan informed consent tindakan/prosedur", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi pada tindakan", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan rencana tindak lanjut", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Mata", "clinical": [{"no": "1", "indicator": "Kelengkapan pemeriksaan mata sesuai diagnosis", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi pasien/lokasi tindakan mata", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan informed consent tindakan/operasi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan catatan operasi/tindakan", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan evaluasi pascatindakan dan follow-up", "trigger": "< 95%"}]}, {"profession": "Dokter Spesialis Obstetri dan Ginekologi", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen risiko obstetri/ginekologi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pemantauan persalinan dan dokumentasi partograf bila indikasi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan tata laksana perdarahan postpartum/preeklamsia sesuai protokol", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan rekam medis dan informed consent", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan clinical pathway obstetri/ginekologi", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Obstetri dan Ginekologi Subspesialis Endokrin Reproduksi dan Fertilisasi", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen infertilitas pasangan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan dokumentasi rencana diagnostik dan terapi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan informed consent tindakan reproduksi berbantu", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pemantauan terapi dan efek samping", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan tindak lanjut", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Obstetri dan Ginekologi Subspesialis Onkologi Ginekologi", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen dan staging keganasan ginekologi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan dokumentasi hasil histopatologi dan rencana terapi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan informed consent tindakan onkologi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan surgical safety checklist bila operasi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan discharge plan", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Paru", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen status respirasi dan kebutuhan oksigen", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pathway penyakit paru/infeksi sesuai indikasi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan dokumentasi penggunaan antibiotik dan antimikroba", "trigger": "< 95%"}, {"no": "4", "indicator": "Kepatuhan pencegahan transmisi pada kasus infeksi saluran napas", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan rencana tindak lanjut", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Patologi Anatomi", "clinical": [{"no": "1", "indicator": "Kesesuaian identitas spesimen dan formulir permintaan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kelengkapan deskripsi makroskopik/mikroskopik sesuai jenis pemeriksaan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan target turnaround time hasil patologi", "trigger": "< 95%"}, {"no": "4", "indicator": "Kepatuhan komunikasi hasil kritis/bermakna klinis", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan dan konsistensi laporan final", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Patologi Klinik", "clinical": [{"no": "1", "indicator": "Kesesuaian identitas spesimen dan permintaan pemeriksaan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan validasi hasil laboratorium kritis", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan target turnaround time pemeriksaan prioritas", "trigger": "< 95%"}, {"no": "4", "indicator": "Kelengkapan interpretasi hasil/komentar klinis bila diperlukan", "trigger": "< 95%"}, {"no": "5", "indicator": "Kepatuhan quality control dan review hasil tidak lazim", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Penyakit Dalam", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen medis <24 jam", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan tata laksana penyakit prioritas sesuai clinical pathway", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan rekonsiliasi obat saat transisi pelayanan", "trigger": "< 95%"}, {"no": "4", "indicator": "Kelengkapan rencana pulang dan tindak lanjut", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan rekam medis <14 hari", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Penyakit Dalam Subspesialis Endokrin Metabolik", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen status metabolik dan komplikasi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pemantauan glukosa dan risiko hipoglikemia", "trigger": "< 95%"}, {"no": "3", "indicator": "Kepatuhan terapi sesuai pathway diabetes/tiroid/endokrin", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan edukasi dan target terapi terdokumentasi", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan rencana tindak lanjut", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Radiologi", "clinical": [{"no": "1", "indicator": "Kesesuaian identitas dan protokol pemeriksaan radiologi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan target turnaround time ekspertise", "trigger": "< 95%"}, {"no": "3", "indicator": "Kepatuhan komunikasi temuan kritis", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan laporan radiologi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan keselamatan radiasi dan justifikasi pemeriksaan", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Syaraf", "clinical": [{"no": "1", "indicator": "Kelengkapan pemeriksaan neurologis dan skor klinis bila indikasi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pathway stroke akut bila indikasi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan evaluasi risiko jatuh dan disfagia pada pasien relevan", "trigger": "< 95%"}, {"no": "4", "indicator": "Kelengkapan rencana terapi dan rehabilitasi neurologis", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan discharge plan", "trigger": "< 100%"}]}, {"profession": "Dokter Spesialis Orthopedi", "clinical": [{"no": "1", "indicator": "Kepatuhan verifikasi lokasi/sisi tindakan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan surgical safety checklist", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan asesmen neurovaskular ekstremitas", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan laporan operasi dan implant bila digunakan", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan rencana rehabilitasi pascatindakan", "trigger": "< 95%"}]}, {"profession": "Dokter Gigi Spesialis Bedah Mulut", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen gigi/mulut dan radiografis bila indikasi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi pasien dan lokasi tindakan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan informed consent tindakan bedah mulut", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi dan sterilisasi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan catatan tindakan dan follow-up", "trigger": "< 100%"}]}, {"profession": "Dokter Gigi Spesialis Konservasi Gigi", "clinical": [{"no": "1", "indicator": "Kelengkapan diagnosis dan charting gigi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi gigi dan prosedur sebelum tindakan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan dokumentasi restorasi/perawatan saluran akar", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi dan penggunaan APD", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan evaluasi hasil dan kontrol", "trigger": "< 95%"}]}, {"profession": "Dokter Gigi Spesialis Konservasi Gigi Anak", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen risiko karies dan perilaku anak", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi pasien/gigi dan informed consent wali", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan dokumentasi tindakan konservasi anak", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi dan manajemen perilaku", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan follow-up dan edukasi orang tua", "trigger": "< 95%"}]}, {"profession": "Dokter Gigi Spesialis Periodonsia", "clinical": [{"no": "1", "indicator": "Kelengkapan periodontal charting dan diagnosis", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi lokasi/prosedur sebelum tindakan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan rencana terapi periodontal", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi dan sterilisasi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan reevaluasi periodontal dan follow-up", "trigger": "< 95%"}]}, {"profession": "Dokter Spesialis THT-KL", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen THT dan pemeriksaan terkait", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi lokasi/prosedur sebelum tindakan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan informed consent dan dokumentasi prosedur", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi pada tindakan THT", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan follow-up dan evaluasi hasil terapi", "trigger": "< 95%"}]}, {"profession": "Dokter Umum", "clinical": [{"no": "1", "indicator": "Waktu tunggu pelayanan pasien Rawat Jalan", "trigger": "> 60 menit"}, {"no": "2", "indicator": "Kepatuhan assessment awal pasien sesuai standar", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan assessment medis <24 jam", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan pengisian rekam medis <14 hari", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan clinical pathway/protokol pelayanan", "trigger": "< 100%"}]}, {"profession": "Dokter Gigi", "clinical": [{"no": "1", "indicator": "Kelengkapan dental charting dan diagnosis", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi pasien dan gigi sebelum tindakan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan informed consent tindakan", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi dan sterilisasi alat", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan rekam medis dan rencana kontrol", "trigger": "< 100%"}]}, {"profession": "Perawat Kamar Operasi", "clinical": [{"no": "1", "indicator": "Kepatuhan verifikasi identitas pasien, jenis tindakan, lokasi dan sisi operasi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan surgical safety checklist dan time-out", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan hitung instrumen, kasa, jarum dan bahan operasi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pelabelan dan verifikasi spesimen operasi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan serah terima pasien ke PACU/ruang perawatan dengan SBAR", "trigger": "< 100%"}]}, {"profession": "Perawat Hemodialisa", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen pra-hemodialisis termasuk status cairan dan akses vaskular", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan verifikasi resep dan parameter hemodialisis sebelum tindakan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan asepsis dan perawatan akses vaskular selama hemodialisis", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan monitoring tanda vital dan kejadian intradialisis", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi ultrafiltrasi, kondisi pasien dan edukasi pascadialisis", "trigger": "< 100%"}]}, {"profession": "Perawat ICU", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen dan monitoring hemodinamik pasien kritis sesuai interval", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan bundle pencegahan infeksi terkait alat invasif sesuai indikasi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan pemantauan ventilator, oksigenasi dan keselamatan jalan napas", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan asesmen nyeri, sedasi/delirium dan pencegahan komplikasi imobilisasi", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan serah terima pasien kritis antarshift/antarunit dengan SBAR", "trigger": "< 100%"}]}, {"profession": "Perawat NICU", "clinical": [{"no": "1", "indicator": "Kepatuhan identifikasi bayi dan verifikasi gelang identitas sebelum tindakan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pemantauan suhu dan pencegahan hipotermia neonatus", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan pencegahan infeksi dan perawatan akses/instrumen invasif neonatus", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan monitoring toleransi nutrisi/ASI atau enteral sesuai rencana klinis", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan pemantauan nyeri, respons terapi dan dokumentasi perkembangan bayi", "trigger": "< 100%"}]}, {"profession": "Perawat IGD", "clinical": [{"no": "1", "indicator": "Kepatuhan pelaksanaan triase dan prioritas pelayanan sesuai kondisi pasien", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan respons awal dan pelaksanaan resusitasi sesuai kewenangan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan verifikasi dan pemberian obat/tindakan emergensi secara aman", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan reassessment pasien selama menunggu pelayanan/tindakan", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan serah terima pasien IGD ke unit tujuan dengan SBAR", "trigger": "< 100%"}]}, {"profession": "Perawat Rawat Inap", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen awal keperawatan dan rencana asuhan ≤24 jam", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan asesmen dan intervensi risiko jatuh sesuai kategori risiko", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan pemberian obat dan verifikasi 6 benar sesuai kewenangan", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan monitoring nyeri, kondisi klinis dan deteksi dini perubahan pasien", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan serah terima antarshift dan dokumentasi perkembangan pasien", "trigger": "< 100%"}]}, {"profession": "Perawat Rawat Jalan", "clinical": [{"no": "1", "indicator": "Kepatuhan verifikasi identitas dan tujuan pelayanan pasien", "trigger": "< 100%"}, {"no": "2", "indicator": "Kelengkapan asesmen keperawatan/parameter vital sesuai jenis layanan", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan persiapan pasien dan tindakan keperawatan sesuai standar", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan edukasi pasien/keluarga dan verifikasi pemahaman", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi pelayanan keperawatan dan rujukan/tindak lanjut", "trigger": "< 100%"}]}, {"profession": "Perawat PONEK/Obstetri", "clinical": [{"no": "1", "indicator": "Kepatuhan identifikasi ibu, janin dan bayi pada setiap transisi pelayanan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pemantauan persalinan dan dokumentasi kemajuan persalinan sesuai indikasi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan deteksi dini dan respons kegawatdaruratan obstetri/neonatal", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi dan keselamatan pasien pada pelayanan maternitas", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan serah terima ibu/bayi dan dokumentasi asuhan keperawatan/bidan terkait", "trigger": "< 100%"}]}, {"profession": "Bidan", "clinical": [{"no": "1", "indicator": "Kepatuhan identifikasi ibu dan bayi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kelengkapan partograf/dokumentasi kemajuan persalinan bila indikasi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan tata laksana perdarahan postpartum/preeklamsia sesuai kewenangan", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencegahan infeksi dan hand hygiene", "trigger": "< 85%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi asuhan kebidanan dan serah terima", "trigger": "< 100%"}]}, {"profession": "Psikolog Klinis", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen psikologis awal", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan skrining risiko bunuh diri/kekerasan bila indikasi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan rencana intervensi dan tujuan terapi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan catatan perkembangan terapi", "trigger": "< 95%"}, {"no": "5", "indicator": "Kepatuhan rujukan/follow-up kasus risiko tinggi", "trigger": "< 100%"}]}, {"profession": "Penata Anestesi", "clinical": [{"no": "1", "indicator": "Kepatuhan verifikasi identitas pasien dan tindakan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kelengkapan checklist kesiapan mesin/peralatan anestesi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan pelabelan obat anestesi sesuai standar", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan dokumentasi intra-anestesi dan monitoring", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan serah terima pasien pasca-anestesi dengan SBAR", "trigger": "< 100%"}]}, {"profession": "Terapis Gigi dan Mulut", "clinical": [{"no": "1", "indicator": "Kepatuhan identifikasi pasien", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pencegahan infeksi dan sterilisasi instrumen", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan dental charting/asuhan kesehatan gigi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan edukasi kesehatan gigi dan mulut", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi tindakan dan rujukan", "trigger": "< 100%"}]}, {"profession": "Apoteker/Farmasi", "clinical": [{"no": "1", "indicator": "Kepatuhan skrining resep klinis dan administrasi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan medication reconciliation", "trigger": "< 95%"}, {"no": "3", "indicator": "Kepatuhan double-check obat high alert/LASA", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan konseling obat pasien sesuai kriteria", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi intervensi farmasi dan dispensing", "trigger": "< 100%"}]}, {"profession": "Asisten Apoteker / Tenaga Teknis Kefarmasian", "clinical": [{"no": "1", "indicator": "Akurasi picking/dispensing obat", "trigger": "< 99%"}, {"no": "2", "indicator": "Kepatuhan pelabelan etiket obat", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan FEFO/FIFO dan kondisi penyimpanan", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pencatatan suhu lemari obat/refrigerator", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan dokumentasi obat narkotika/psikotropika sesuai kewenangan", "trigger": "< 100%"}]}, {"profession": "Radiografer", "clinical": [{"no": "1", "indicator": "Kepatuhan identifikasi pasien dan pemeriksaan", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan protokol pemeriksaan dan positioning", "trigger": "< 100%"}, {"no": "3", "indicator": "Pengulangan pemeriksaan akibat kesalahan teknis", "trigger": "> 5%"}, {"no": "4", "indicator": "Kepatuhan proteksi radiasi pasien dan petugas", "trigger": "< 100%"}, {"no": "5", "indicator": "Kepatuhan target waktu penyelesaian pemeriksaan", "trigger": "< 95%"}]}, {"profession": "Perekam Medis", "clinical": [{"no": "1", "indicator": "Kelengkapan dan konsistensi dokumen rekam medis", "trigger": "< 100%"}, {"no": "2", "indicator": "Akurasi pengkodean diagnosis/tindakan", "trigger": "< 95%"}, {"no": "3", "indicator": "Ketepatan waktu penyelesaian data pasien pulang", "trigger": "< 95%"}, {"no": "4", "indicator": "Kejadian duplikasi identitas/nomor rekam medis", "trigger": "> 1 kejadian"}, {"no": "5", "indicator": "Kepatuhan kerahasiaan dan keamanan informasi medis", "trigger": "< 100%"}]}, {"profession": "Ahli Tenaga Laboratorium Medik", "clinical": [{"no": "1", "indicator": "Kepatuhan identifikasi dan penerimaan spesimen", "trigger": "< 100%"}, {"no": "2", "indicator": "Penolakan spesimen karena kesalahan pra-analitik", "trigger": "> 2%"}, {"no": "3", "indicator": "Kepatuhan internal quality control", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan turnaround time pemeriksaan prioritas", "trigger": "< 95%"}, {"no": "5", "indicator": "Kepatuhan komunikasi hasil kritis", "trigger": "< 100%"}]}, {"profession": "Fisioterapis", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen fungsi pada sesi awal", "trigger": "< 95%"}, {"no": "2", "indicator": "Kepatuhan rencana intervensi sesuai diagnosis dan tujuan", "trigger": "< 95%"}, {"no": "3", "indicator": "Kelengkapan dokumentasi setiap sesi terapi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan evaluasi outcome fungsi berkala", "trigger": "< 90%"}, {"no": "5", "indicator": "Kepatuhan keselamatan pasien selama terapi", "trigger": "< 100%"}]}, {"profession": "Terapis Okupasi", "clinical": [{"no": "1", "indicator": "Kelengkapan occupational profile dan asesmen fungsi aktivitas sehari-hari", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan penetapan tujuan terapi yang spesifik dan individual", "trigger": "< 95%"}, {"no": "3", "indicator": "Kepatuhan pelaksanaan intervensi sesuai diagnosis, tujuan dan rencana terapi", "trigger": "< 95%"}, {"no": "4", "indicator": "Kepatuhan evaluasi outcome fungsi dan progres terapi secara berkala", "trigger": "< 90%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi sesi terapi, edukasi keluarga dan rencana tindak lanjut", "trigger": "< 100%"}]}, {"profession": "Terapis Wicara", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen komunikasi, bahasa, suara dan menelan sesuai indikasi", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan penetapan tujuan terapi wicara/menelan yang terukur", "trigger": "< 95%"}, {"no": "3", "indicator": "Kepatuhan intervensi dan modifikasi terapi berdasarkan respons pasien", "trigger": "< 95%"}, {"no": "4", "indicator": "Kepatuhan asesmen/manajemen risiko aspirasi atau disfagia bila terindikasi", "trigger": "< 100%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi outcome, edukasi keluarga dan tindak lanjut", "trigger": "< 100%"}]}, {"profession": "Nutrisionis", "clinical": [{"no": "1", "indicator": "Kepatuhan skrining risiko malnutrisi <24 jam", "trigger": "< 95%"}, {"no": "2", "indicator": "Kelengkapan asesmen gizi dan diagnosis gizi", "trigger": "< 95%"}, {"no": "3", "indicator": "Ketepatan preskripsi diet sesuai asesmen", "trigger": "< 95%"}, {"no": "4", "indicator": "Kepatuhan monitoring dan evaluasi asupan/status gizi", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan dokumentasi asuhan gizi", "trigger": "< 100%"}]}, {"profession": "Teknisi Elektromedis", "clinical": [{"no": "1", "indicator": "Realisasi preventive maintenance alat kesehatan", "trigger": "< 95%"}, {"no": "2", "indicator": "Kepatuhan status kalibrasi alat kesehatan", "trigger": "< 100%"}, {"no": "3", "indicator": "Response time penanganan kerusakan alat", "trigger": "> 4 jam"}, {"no": "4", "indicator": "Kepatuhan penutupan work order/maintenance report", "trigger": "< 95%"}, {"no": "5", "indicator": "Kepatuhan keselamatan listrik dan fungsi alat", "trigger": "< 100%"}]}, {"profession": "Refraksionis Optisien", "clinical": [{"no": "1", "indicator": "Kelengkapan pemeriksaan tajam penglihatan dan refraksi", "trigger": "< 100%"}, {"no": "2", "indicator": "Akurasi pencatatan hasil refraksi", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan pencegahan infeksi alat pemeriksaan", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan resep/koreksi optik dan edukasi", "trigger": "< 95%"}, {"no": "5", "indicator": "Kepatuhan rujukan kasus dengan tanda bahaya/abnormal", "trigger": "< 100%"}]}, {"profession": "Sanitarian", "clinical": [{"no": "1", "indicator": "Kepatuhan monitoring kualitas air rumah sakit", "trigger": "< 100%"}, {"no": "2", "indicator": "Kepatuhan pengelolaan limbah sesuai standar", "trigger": "< 100%"}, {"no": "3", "indicator": "Kelengkapan inspeksi sanitasi lingkungan", "trigger": "< 95%"}, {"no": "4", "indicator": "Kepatuhan tindak lanjut temuan sanitasi", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan laporan hasil surveilans lingkungan", "trigger": "< 100%"}]}, {"profession": "Epidemiolog Kesehatan", "clinical": [{"no": "1", "indicator": "Kelengkapan data surveilans penyakit dan kejadian", "trigger": "< 100%"}, {"no": "2", "indicator": "Ketepatan waktu pelaporan surveilans", "trigger": "< 95%"}, {"no": "3", "indicator": "Ketepatan investigasi awal KLB/kejadian sentinel sesuai standar", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan analisis tren dan interpretasi epidemiologi", "trigger": "< 95%"}, {"no": "5", "indicator": "Kelengkapan umpan balik hasil surveilans kepada unit terkait", "trigger": "< 95%"}]}, {"profession": "Pembimbing Kesehatan Kerja", "clinical": [{"no": "1", "indicator": "Kepatuhan pemeriksaan/surveilans kesehatan pekerja sesuai program", "trigger": "< 95%"}, {"no": "2", "indicator": "Kelengkapan asesmen risiko kesehatan kerja", "trigger": "< 100%"}, {"no": "3", "indicator": "Kepatuhan tindak lanjut kasus pajanan/cedera kerja", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan rekomendasi fit to work/restriksi kerja bila diperlukan", "trigger": "< 95%"}, {"no": "5", "indicator": "Kepatuhan edukasi dan promosi kesehatan kerja", "trigger": "< 95%"}]}, {"profession": "Administrator Kesehatan", "clinical": [{"no": "1", "indicator": "Ketepatan waktu penyusunan laporan pelayanan/program", "trigger": "< 95%"}, {"no": "2", "indicator": "Akurasi dan konsistensi data indikator", "trigger": "< 95%"}, {"no": "3", "indicator": "Kelengkapan dokumentasi tindak lanjut program", "trigger": "< 100%"}, {"no": "4", "indicator": "Kepatuhan pemutakhiran data dan eviden program", "trigger": "< 95%"}, {"no": "5", "indicator": "Kepatuhan pengendalian dokumen dan versi data", "trigger": "< 100%"}]}, {"profession": "Penyuluh Kesehatan Masyarakat", "clinical": [{"no": "1", "indicator": "Kelengkapan asesmen kebutuhan edukasi kesehatan", "trigger": "< 95%"}, {"no": "2", "indicator": "Pelaksanaan edukasi/promosi kesehatan sesuai rencana", "trigger": "< 95%"}, {"no": "3", "indicator": "Kepatuhan penggunaan materi edukasi tervalidasi", "trigger": "< 100%"}, {"no": "4", "indicator": "Kelengkapan dokumentasi dan bukti kegiatan edukasi", "trigger": "< 100%"}, {"no": "5", "indicator": "Tingkat pemahaman pasien/keluarga pada evaluasi edukasi", "trigger": "< 90%"}]}]};
+const COMPETENCY_MASTER = {"Dokter Spesialis Anak": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Anestesiologi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Bedah": [["Clinical Assessment", "Asesmen, diagnosis, indikasi dan rencana terapi"], ["Technical/Procedure Skill", "Pelaksanaan tindakan/prosedur sesuai privilege"], ["Patient Safety", "Surgical/procedure safety dan pencegahan komplikasi"], ["Clinical Decision Making", "Keputusan klinis dan respons terhadap komplikasi"], ["Documentation", "Dokumentasi rekam medis, consent, laporan tindakan"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP, pathway, dan etika profesi"]], "Dokter Spesialis Bedah Subspesialis Onkologi": [["Clinical Assessment", "Asesmen, diagnosis, indikasi dan rencana terapi"], ["Technical/Procedure Skill", "Pelaksanaan tindakan/prosedur sesuai privilege"], ["Patient Safety", "Surgical/procedure safety dan pencegahan komplikasi"], ["Clinical Decision Making", "Keputusan klinis dan respons terhadap komplikasi"], ["Documentation", "Dokumentasi rekam medis, consent, laporan tindakan"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP, pathway, dan etika profesi"]], "Dokter Spesialis Bedah Saraf": [["Clinical Assessment", "Asesmen, diagnosis, indikasi dan rencana terapi"], ["Technical/Procedure Skill", "Pelaksanaan tindakan/prosedur sesuai privilege"], ["Patient Safety", "Surgical/procedure safety dan pencegahan komplikasi"], ["Clinical Decision Making", "Keputusan klinis dan respons terhadap komplikasi"], ["Documentation", "Dokumentasi rekam medis, consent, laporan tindakan"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP, pathway, dan etika profesi"]], "Dokter Spesialis Jantung dan Pembuluh Darah": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Kulit dan Kelamin": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Mata": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Obstetri dan Ginekologi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Obstetri dan Ginekologi Subspesialis Endokrin Reproduksi dan Fertilisasi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Obstetri dan Ginekologi Subspesialis Onkologi Ginekologi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Paru": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Patologi Anatomi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Patologi Klinik": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Penyakit Dalam": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Penyakit Dalam Subspesialis Endokrin Metabolik": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Radiologi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Syaraf": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis Orthopedi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Gigi Spesialis Bedah Mulut": [["Clinical Assessment", "Asesmen, diagnosis, indikasi dan rencana terapi"], ["Technical/Procedure Skill", "Pelaksanaan tindakan/prosedur sesuai privilege"], ["Patient Safety", "Surgical/procedure safety dan pencegahan komplikasi"], ["Clinical Decision Making", "Keputusan klinis dan respons terhadap komplikasi"], ["Documentation", "Dokumentasi rekam medis, consent, laporan tindakan"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP, pathway, dan etika profesi"]], "Dokter Gigi Spesialis Konservasi Gigi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Gigi Spesialis Konservasi Gigi Anak": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Gigi Spesialis Periodonsia": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Spesialis THT-KL": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Umum": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Dokter Gigi": [["Clinical Assessment", "Asesmen, diagnosis, dan rencana tata laksana sesuai kompetensi"], ["Clinical Decision Making", "Ketepatan pengambilan keputusan klinis"], ["Patient Safety", "Penerapan keselamatan pasien dan pencegahan risiko"], ["Technical/Procedure Skill", "Tindakan/prosedur sesuai privilege bila relevan"], ["Documentation", "Kelengkapan rekam medis dan informed consent"], ["Communication", "Komunikasi pasien/keluarga dan handover"], ["Professionalism", "Kepatuhan SOP/pathway dan etika profesi"]], "Perawat Kamar Operasi": [["Patient Safety", "Identifikasi pasien, site marking/time-out, surgical safety"], ["Technical Skill", "Persiapan instrumen, asistensi tindakan, asepsis, specimen handling"], ["Clinical Monitoring", "Monitoring intraoperatif dan respons terhadap perubahan kondisi pasien"], ["Documentation", "Kelengkapan dokumentasi keperawatan perioperatif"], ["Communication", "Handover perioperatif dan komunikasi tim"], ["Professionalism", "Kepatuhan SOP, disiplin, kolaborasi"]], "Perawat Hemodialisa": [["Patient Safety", "Identifikasi pasien dan verifikasi program hemodialisis"], ["Technical Skill", "Persiapan mesin, dialyzer, akses vaskuler, dan tindakan HD"], ["Clinical Monitoring", "Monitoring tanda vital, komplikasi intradialisis, dan respons klinis"], ["Infection Prevention", "Pencegahan infeksi dan teknik aseptik akses vaskuler"], ["Documentation", "Dokumentasi tindakan dan respons pasien"], ["Professionalism", "Kepatuhan SOP dan komunikasi kolaboratif"]], "Perawat ICU": [["Patient Safety", "Identifikasi, keselamatan pasien kritis, high-alert medication"], ["Critical Care Skill", "Monitoring pasien kritis, alat monitoring, dan intervensi dasar ICU"], ["Clinical Deterioration", "Deteksi dini deteriorasi dan respons sesuai eskalasi"], ["Infection Prevention", "Bundle pencegahan infeksi terkait alat"], ["Documentation", "Dokumentasi asuhan keperawatan pasien kritis"], ["Communication", "Handover dan komunikasi kondisi kritis"], ["Professionalism", "Kolaborasi multidisiplin dan kepatuhan SOP"]], "Perawat NICU": [["Patient Safety", "Identifikasi neonatus, medication safety, dan lingkungan aman"], ["Neonatal Skill", "Perawatan neonatus, monitoring, dan tindakan sesuai kompetensi"], ["Clinical Monitoring", "Pemantauan respirasi, termoregulasi, nutrisi, dan tanda deteriorasi"], ["Infection Prevention", "Pencegahan infeksi neonatus dan teknik aseptik"], ["Documentation", "Dokumentasi asuhan neonatus"], ["Communication", "Handover dan komunikasi dengan tim/orang tua sesuai kebijakan"], ["Professionalism", "Kepatuhan SOP dan kolaborasi"]], "Perawat IGD": [["Patient Safety", "Identifikasi pasien, triase, dan keselamatan tindakan"], ["Emergency Skill", "Respons awal kegawatan dan tindakan keperawatan emergensi"], ["Clinical Monitoring", "Pemantauan tanda vital dan perubahan kondisi"], ["Triage", "Ketepatan dokumentasi dan pelaksanaan proses triase"], ["Documentation", "Kelengkapan dokumentasi IGD"], ["Communication", "Handover dan eskalasi kondisi"], ["Professionalism", "Kepatuhan SOP dan kerja tim"]], "Perawat Rawat Inap": [["Patient Safety", "Identifikasi pasien, keselamatan obat, dan pencegahan jatuh"], ["Nursing Assessment", "Asesmen awal dan reassessment"], ["Clinical Monitoring", "Monitoring kondisi pasien dan eskalasi"], ["Medication Safety", "Pemberian obat sesuai prinsip 6/7 benar sesuai kebijakan RS"], ["Documentation", "Kelengkapan dokumentasi asuhan keperawatan"], ["Communication", "Handover dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP dan etika profesi"]], "Perawat Rawat Jalan": [["Patient Safety", "Identifikasi pasien dan keselamatan pelayanan"], ["Assessment", "Asesmen keperawatan sesuai kebutuhan pelayanan"], ["Clinical Support", "Pelaksanaan intervensi/tindakan keperawatan rawat jalan"], ["Education", "Edukasi pasien dan keluarga"], ["Documentation", "Dokumentasi pelayanan"], ["Communication", "Komunikasi dan koordinasi tindak lanjut"], ["Professionalism", "Kepatuhan SOP dan etika profesi"]], "Perawat PONEK/Obstetri": [["Patient Safety", "Identifikasi ibu/bayi dan keselamatan pelayanan obstetri-neonatal"], ["Maternal Care", "Asuhan maternitas dan monitoring kondisi ibu"], ["Emergency Skill", "Respons kegawatan obstetri sesuai kompetensi"], ["Neonatal Care", "Perawatan awal neonatus sesuai kompetensi"], ["Documentation", "Dokumentasi asuhan maternitas"], ["Communication", "Handover dan koordinasi tim PONEK"], ["Professionalism", "Kepatuhan SOP dan kolaborasi"]], "Bidan": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Psikolog Klinis": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Penata Anestesi": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Terapis Gigi dan Mulut": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Apoteker/Farmasi": [["Patient Safety", "Medication safety dan pencegahan medication error"], ["Clinical Practice", "Telaah resep, dispensing, informasi obat, monitoring terapi"], ["Documentation", "Kelengkapan dokumentasi pelayanan kefarmasian"], ["Communication", "Komunikasi dengan pasien dan tenaga kesehatan"], ["Professionalism", "Kepatuhan regulasi/SOP dan etika profesi"]], "Asisten Apoteker / Tenaga Teknis Kefarmasian": [["Patient Safety", "Medication safety dan pencegahan medication error"], ["Clinical Practice", "Telaah resep, dispensing, informasi obat, monitoring terapi"], ["Documentation", "Kelengkapan dokumentasi pelayanan kefarmasian"], ["Communication", "Komunikasi dengan pasien dan tenaga kesehatan"], ["Professionalism", "Kepatuhan regulasi/SOP dan etika profesi"]], "Radiografer": [["Patient Safety", "Identifikasi pasien, verifikasi pemeriksaan dan keselamatan radiasi"], ["Technical Skill", "Pelaksanaan pemeriksaan sesuai prosedur"], ["Image Quality", "Kualitas citra dan kesesuaian pemeriksaan"], ["Documentation", "Dokumentasi pelayanan dan penggunaan alat"], ["Communication", "Komunikasi pasien dan koordinasi klinis"], ["Professionalism", "Kepatuhan SOP dan keselamatan kerja"]], "Perekam Medis": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Ahli Tenaga Laboratorium Medik": [["Patient Safety", "Identifikasi pasien dan keselamatan spesimen"], ["Pre-Analytical", "Ketepatan identifikasi, pengambilan, pelabelan dan transport spesimen"], ["Analytical", "Kepatuhan proses analitik, QC dan prosedur"], ["Post-Analytical", "Validasi, pelaporan dan critical value"], ["Documentation", "Dokumentasi hasil dan traceability"], ["Professionalism", "Kepatuhan SOP dan keselamatan kerja"]], "Fisioterapis": [["Assessment", "Asesmen fisioterapi dan penetapan tujuan terapi"], ["Clinical Skill", "Pelaksanaan intervensi sesuai indikasi"], ["Patient Safety", "Pencegahan risiko selama terapi"], ["Outcome Monitoring", "Monitoring respons dan outcome terapi"], ["Documentation", "Dokumentasi terapi"], ["Communication", "Edukasi dan komunikasi"], ["Professionalism", "Kepatuhan SOP dan etika"]], "Terapis Okupasi": [["Assessment", "Asesmen aktivitas, fungsi, dan kebutuhan okupasional"], ["Therapeutic Skill", "Intervensi terapi okupasi sesuai tujuan"], ["Patient Safety", "Keselamatan selama terapi dan penggunaan alat"], ["Outcome Monitoring", "Monitoring progres dan outcome"], ["Documentation", "Dokumentasi proses dan hasil terapi"], ["Communication", "Edukasi dan kolaborasi"], ["Professionalism", "Kepatuhan SOP dan etika"]], "Terapis Wicara": [["Assessment", "Asesmen komunikasi, bahasa, bicara, suara, atau menelan sesuai kasus"], ["Therapeutic Skill", "Pelaksanaan intervensi terapi wicara"], ["Patient Safety", "Keselamatan dan risiko aspirasi bila relevan"], ["Outcome Monitoring", "Monitoring progres dan outcome"], ["Documentation", "Dokumentasi terapi"], ["Communication", "Edukasi dan komunikasi dengan pasien/keluarga"], ["Professionalism", "Kepatuhan SOP dan etika"]], "Nutrisionis": [["Assessment", "Asesmen status gizi dan kebutuhan nutrisi"], ["Clinical Nutrition", "Perencanaan dan monitoring intervensi nutrisi"], ["Patient Safety", "Keamanan pemberian nutrisi"], ["Outcome Monitoring", "Monitoring respons/intervensi gizi"], ["Documentation", "Dokumentasi asuhan gizi"], ["Communication", "Edukasi dan kolaborasi"], ["Professionalism", "Kepatuhan SOP dan etika"]], "Teknisi Elektromedis": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Refraksionis Optisien": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Sanitarian": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Epidemiolog Kesehatan": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Pembimbing Kesehatan Kerja": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Administrator Kesehatan": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]], "Penyuluh Kesehatan Masyarakat": [["Professional Competence", "Pelaksanaan tugas inti sesuai kewenangan dan kompetensi"], ["Patient Safety", "Penerapan prinsip keselamatan pasien"], ["Technical/Clinical Skill", "Keterampilan teknis/klinis sesuai profesi"], ["Assessment & Decision Making", "Asesmen dan pengambilan keputusan sesuai kewenangan"], ["Documentation", "Kelengkapan dokumentasi pelayanan"], ["Communication", "Komunikasi dan kolaborasi interprofesional"], ["Professionalism", "Kepatuhan SOP, etika dan tanggung jawab profesi"]]};
+const STORAGE_KEY = "fppe_rsud_ssma_v1";
+const EMBEDDED = window.parent !== window;
+let fppeRoster = [];
+let fppeReadOnly = false;
+let fppeSaveBusy = false;
+
+const state = {
+  meta: {
+    staffName:"", staffId:"", staffUuid:"", evaluationId:"", profession:"", unit:"",
+    fppeType:"initial", trigger:"Nakes baru bergabung", triggerDetail:"",
+    startDate:"", endDate:"", scope:"",
+    directSupervisor:"", directSupervisorNip:"",
+    headDivisionRole:"Kepala Bidang Pelayanan Medik dan Keperawatan",
+    headDivisionName:"", headDivisionNip:"",
+    subcommitteeName:"", subcommitteeNip:"",
+    committeeName:"", committeeNip:""
+  },
+  competencyAnswers: {},
+  evidence: {
+    evidenceObservation:"", evidenceRecord:"", evidenceLogbook:"", evidenceOther:"",
+    overallDecision:"", actionPlan:"", reassessmentDate:"", conclusion:""
+  }
+};
+
+const $ = id => document.getElementById(id);
+
+function committeeForProfession(p) {
+  if (/^Dokter\b|^Dokter Gigi\b/i.test(p || "")) return "Komite Medik";
+  if (/^Perawat\b/i.test(p || "")) return "Komite Keperawatan";
+  return "Komite Tenaga Kesehatan Lainnya";
+}
+
+function answerKey(i, idx) {
+  return state.meta.profession + "::" + idx + "::" + i.name;
+}
+
+function setAnswer(key, value) {
+  state.competencyAnswers[key] = value;
+  saveState(false);
+  render();
+}
+
+function competencyRows() {
+  return COMPETENCY_MASTER[state.meta.profession] || [];
+}
+
+function scoreSummary() {
+  const rows = competencyRows();
+  const vals = rows.map((r, i) => state.competencyAnswers[answerKey({name:r[0]}, i)]).filter(Boolean);
+  return {
+    assessed: vals.length,
+    competent: vals.filter(v => v === "Kompeten").length,
+    supervised: vals.filter(v => v === "Kompeten dengan supervisi").length,
+    remedial: vals.filter(v => v === "Perlu remediasi").length,
+    notCompetent: vals.filter(v => v === "Belum kompeten").length
+  };
+}
+
+function overallStatus() {
+  const s = scoreSummary();
+  if (!s.assessed) return "—";
+  if (s.notCompetent > 0) return "Belum Kompeten";
+  if (s.remedial > 0) return "Remediasi";
+  if (s.supervised > 0) return "Supervisi";
+  return "Kompeten";
+}
+
+function statusClass(v) {
+  return v === "Kompeten" ? "status-good" : (v === "Kompeten dengan supervisi" ? "status-warn" : "status-bad");
+}
+
+function renderCompetency() {
+  const rows = competencyRows();
+  const el = $("competencyTable");
+  if (!rows.length) {
+    el.innerHTML = "<div style='padding:10px'>Belum ada master kompetensi untuk profesi ini.</div>";
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th style="width:44px">No.</th><th style="width:19%">Domain</th><th>Fokus Kompetensi</th><th style="width:45%">Hasil</th></tr></thead>
+    <tbody>${rows.map((r,i) => {
+      const key = answerKey({name:r[0]}, i);
+      const v = state.competencyAnswers[key] || "";
+      return `<tr>
+        <td>${i+1}</td>
+        <td><strong>${esc(r[0])}</strong></td>
+        <td>${esc(r[1])}</td>
+        <td>
+          <div class="choice-grid">
+            ${["Kompeten","Kompeten dengan supervisi","Perlu remediasi","Belum kompeten"].map(x => `
+              <label class="choice ${v===x ? "sel" : ""} ${x.includes("Belum") || x.includes("remediasi") ? "red" : ""}">
+                <input type="radio" name="${btoa(unescape(encodeURIComponent(key)))}" ${v===x?"checked":""} onchange="setAnswer('${escJs(key)}','${escJs(x)}')">
+                ${esc(x)}
+              </label>`).join("")}
+          </div>
+        </td>
+      </tr>`;
+    }).join("")}</tbody>
+  </table>`;
+}
+
+function esc(s) { return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function escJs(s) { return String(s||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
+
+function render() {
+  $("profileTitle").textContent = state.meta.profession ? "FPPE — " + state.meta.profession : "Pilih profesi untuk memuat FPPE";
+  renderCompetency();
+
+  const s = scoreSummary();
+  $("assessed").textContent = s.assessed;
+  $("competent").textContent = s.competent;
+  $("supervised").textContent = s.supervised;
+  $("remedial").textContent = s.remedial + s.notCompetent;
+  $("status").textContent = overallStatus();
+
+  renderPrintIdentity();
+  renderPrintSignatures();
+}
+
+function saveState(show=true) {
+  const ids = [
+    "staffName","staffId","profession","unit","fppeType","trigger","triggerDetail","startDate","endDate","scope",
+    "directSupervisor","directSupervisorNip","headDivisionRole","headDivisionName","headDivisionNip",
+    "subcommitteeName","subcommitteeNip","committeeName","committeeNip"
+  ];
+  ids.forEach(id => state.meta[id] = $(id).value);
+
+  ["evidenceObservation","evidenceRecord","evidenceLogbook","evidenceOther","overallDecision","actionPlan","reassessmentDate","conclusion"]
+    .forEach(id => state.evidence[id] = $(id).value);
+
+  if (!EMBEDDED) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (show && !EMBEDDED) {
+    const old = document.title; document.title = "✓ Tersimpan — " + old;
+    setTimeout(() => document.title = old, 700);
+  }
+}
+
+function loadState() {
+  if (EMBEDDED) return;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
+  try {
+    const x = JSON.parse(saved);
+    state.meta = Object.assign(state.meta, x.meta||{});
+    state.competencyAnswers = Object.assign({}, x.competencyAnswers||{});
+    state.evidence = Object.assign(state.evidence, x.evidence||{});
+  } catch(e) {}
+}
+
+function syncInputs() {
+  Object.keys(state.meta).forEach(id => { if ($(id)) $(id).value = state.meta[id] || ""; });
+  Object.keys(state.evidence).forEach(id => { if ($(id)) $(id).value = state.evidence[id] || ""; });
+  updateCommitteeLabels();
+}
+
+function updateCommitteeLabels() {
+  const c = committeeForProfession(state.meta.profession);
+  $("subcommitteeLabel").textContent = "Ketua Sub Komite Mutu — " + c;
+  $("subcommitteeNipLabel").textContent = "NIP Ketua Sub Komite Mutu — " + c;
+  $("committeeLabel").textContent = "Ketua " + c;
+  $("committeeNipLabel").textContent = "NIP Ketua " + c;
+}
+
+function bind() {
+  [...Object.keys(state.meta), ...Object.keys(state.evidence)].forEach(id => {
+    if (!$(id)) return;
+    $(id).addEventListener("input", () => { saveState(false); render(); });
+    $(id).addEventListener("change", () => { saveState(false); render(); });
+  });
+  $("profession").addEventListener("change", () => {
+    state.meta.profession = $("profession").value;
+    state.meta.headDivisionRole = $("headDivisionRole").value;
+    updateCommitteeLabels();
+    saveState(false);
+    render();
+  });
+  $("staffPicker").addEventListener("change", () => {
+    const staff = fppeRoster.find(item => String(item.id) === $("staffPicker").value);
+    if (staff) applyStaffIdentity(staff, true);
+    else {
+      state.meta.staffUuid = "";
+      state.meta.staffName = "";
+      state.meta.staffId = "";
+      state.meta.unit = "";
+      syncInputs();
+      render();
+    }
+    saveState(false);
+  });
+}
+
+function populateProfessions() {
+  const s = $("profession");
+  MASTER.profiles.forEach(p => {
+    const o = document.createElement("option");
+    o.value = p.profession; o.textContent = p.profession; s.appendChild(o);
+  });
+}
+
+function bestProfessionForStaff(staff) {
+  const profiles = MASTER.profiles || [];
+  const rawTitle = String(staff.position_title || "").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+  const rawGroup = String(staff.profession_group || "").toLowerCase();
+  const source = (rawTitle + " " + rawGroup).replace(/[^a-z0-9]+/g, " ").trim();
+  const exactCandidates = profiles.filter(p => {
+    const pNorm = p.profession.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+    return source.includes(pNorm) || pNorm.includes(source);
+  });
+  if (exactCandidates.length) return exactCandidates.sort((a,b)=>b.profession.length-a.profession.length)[0].profession;
+  const stop = new Set(["dokter","spesialis","subspesialis","sub","profesi","tenaga","kesehatan","medis","jabatan","madya","muda","pertama","utama","ahli","terampil","kelompok","profesi"]);
+  const tokens = source.split(/\\s+/).filter(t=>t.length>2 && !stop.has(t));
+  let best = null, bestScore = 0;
+  for (const p of profiles) {
+    const candidate = p.profession.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g," ").split(/\\s+/).filter(t=>t.length>2 && !stop.has(t));
+    const overlap = tokens.filter(t=>candidate.includes(t)).length;
+    const score = overlap / Math.max(1, candidate.length);
+    if (overlap > 0 && score > bestScore) { best = p.profession; bestScore = score; }
+  }
+  if (best && bestScore >= 0.34) return best;
+  const group = String(staff.profession_group || "").toLowerCase();
+  if (group.includes("dokter")) return profiles.some(p=>p.profession==="Dokter Umum") ? "Dokter Umum" : profiles[0]?.profession || "";
+  if (group.includes("perawat")) return profiles.find(p=>/^Perawat /.test(p.profession))?.profession || "";
+  if (group.includes("bidan")) return "Bidan";
+  if (group.includes("farmasi") || group.includes("apoteker")) return profiles.find(p=>/Apoteker\\/Farmasi/.test(p.profession))?.profession || "";
+  const title = String(staff.position_title || "");
+  return profiles.find(p=>p.profession.toLowerCase().includes(title.toLowerCase()) || title.toLowerCase().includes(p.profession.toLowerCase()))?.profession || profiles[0]?.profession || "";
+}
+
+function setIntegrationStatus(message, isError=false) {
+  const el = $("integrationStatus");
+  if (!el) return;
+  el.textContent = message;
+  el.style.borderLeftColor = isError ? "#b22c2c" : "#246b9c";
+}
+
+function applyStaffIdentity(staff, updateSuggestedProfession=false) {
+  if (!staff) return;
+  state.meta.staffUuid = String(staff.id || "");
+  state.meta.staffName = String(staff.display_name || "");
+  state.meta.staffId = String(staff.employee_code || "");
+  state.meta.unit = String(staff.room_name || "");
+  if (updateSuggestedProfession || !state.meta.profession) {
+    state.meta.profession = bestProfessionForStaff(staff);
+  }
+  $("staffPicker").value = state.meta.staffUuid;
+  syncInputs();
+  $("profession").value = state.meta.profession;
+  updateCommitteeLabels();
+  render();
+}
+
+function applyRoster(roster) {
+  const selectedId = String(state.meta.staffUuid || $("staffPicker").value || "");
+  fppeRoster = Array.isArray(roster) ? roster.filter(item => item && item.id && item.employee_code && item.display_name) : [];
+  const picker = $("staffPicker");
+  const previous = selectedId;
+  picker.innerHTML = '<option value="">Pilih tenaga dari Metadata…</option>' + fppeRoster.map(staff =>
+    '<option value="' + esc(staff.id) + '">' + esc(staff.display_name) + ' — ' + esc(staff.employee_code) + ' · ' + esc(staff.position_title || staff.profession_group || "Jabatan belum dipetakan") + '</option>'
+  ).join("");
+  const selected = fppeRoster.find(item=>String(item.id)===previous);
+  if (selected) {
+    applyStaffIdentity(selected, false);
+  } else if (previous) {
+    // Preserve the snapshot identity if the selected staff has been removed from the current roster.
+    picker.value = "";
+    state.meta.staffUuid = previous;
+    syncInputs();
+  } else {
+    picker.value = "";
+  }
+  picker.disabled = fppeReadOnly || fppeRoster.length === 0;
+  if (!fppeReadOnly && fppeRoster.length === 0) setIntegrationStatus("Belum ada tenaga yang terkunci pada unit ini. Tetapkan roster melalui kontainer Tim Tenaga Kerja.", true);
+  else if (fppeRoster.length) setIntegrationStatus("Terhubung ke Metadata tenaga kerja AUREKA · " + fppeRoster.length + " tenaga tersedia pada roster unit.");
+}
+
+function setReadOnly(value) {
+  fppeReadOnly = !!value;
+  document.querySelectorAll(".sidebar input, .sidebar select, .sidebar textarea, .maincard input, .maincard select, .maincard textarea").forEach(el => { el.disabled = fppeReadOnly; });
+  ["saveFppeBtn","submitFppeBtn","resetFppeBtn"].forEach(id => { const el=$(id); if(el) el.style.display = fppeReadOnly ? "none" : ""; });
+  const picker = $("staffPicker");
+  if (picker) picker.disabled = fppeReadOnly || fppeRoster.length === 0;
+}
+
+function resetEmbeddedForm() {
+  Object.assign(state.meta, {
+    staffName:"", staffId:"", staffUuid:"", evaluationId:"", profession:"",
+    unit:"", fppeType:"initial", trigger:"Nakes baru bergabung", triggerDetail:"",
+    startDate:"", endDate:"", scope:"", directSupervisor:"", directSupervisorNip:"",
+    headDivisionRole:"Kepala Bidang Pelayanan Medik dan Keperawatan",
+    headDivisionName:"", headDivisionNip:"", subcommitteeName:"", subcommitteeNip:"",
+    committeeName:"", committeeNip:""
+  });
+  state.competencyAnswers = {};
+  Object.keys(state.evidence).forEach(key=>state.evidence[key]="");
+  syncInputs();
+  $("staffPicker").value = "";
+  fppeReadOnly = false;
+  setReadOnly(false);
+  render();
+}
+
+function competencyRows() {
+  const c = committeeForProfession(state.meta.profession);
+  $("printIdentity").innerHTML = `<table class="print-table">
+    <tr><th style="width:15%">Nama Staf</th><td style="width:35%">${disp(state.meta.staffName)}</td><th style="width:15%">NIP / ID</th><td>${disp(state.meta.staffId)}</td></tr>
+    <tr><th>Profesi / SMF / Area</th><td>${disp(state.meta.profession)}</td><th>Unit / Wilayah Kerja</th><td>${disp(state.meta.unit)}</td></tr>
+    <tr><th>Jenis FPPE</th><td>${disp(state.meta.fppeType === "initial" ? "FPPE Initial" : "FPPE Triggered")}</td><th>Alasan / Trigger</th><td>${disp(state.meta.trigger)}</td></tr>
+    <tr><th>Periode Evaluasi</th><td>${disp(state.meta.startDate)} s.d. ${disp(state.meta.endDate)}</td><th>Ruang Lingkup</th><td>${disp(state.meta.scope)}</td></tr>
+    <tr><th>Komite Profesi</th><td>${esc(c)}</td><th>Status FPPE</th><td><strong>${esc(overallStatus())}</strong></td></tr>
+    <tr><th>Uraian Trigger</th><td colspan="3">${disp(state.meta.triggerDetail)}</td></tr>
+  </table>`;
+}
+
+function disp(v) { return v ? esc(v) : "........................................................"; }
+
+function renderPrintSignatures() {
+  const c = committeeForProfession(state.meta.profession);
+  $("printSignatures").innerHTML = `
+    <div class="signature-grid">
+      <div class="signature-box"><div class="signature-role">Atasan Langsung / Evaluator</div><div class="signature-space"></div><div class="signature-name">${disp(state.meta.directSupervisor)}<br>NIP: ${disp(state.meta.directSupervisorNip)}</div></div>
+      <div class="signature-box"><div class="signature-role">${esc(state.meta.headDivisionRole || "Kepala Bidang Atasan Langsung")}</div><div class="signature-space"></div><div class="signature-name">${disp(state.meta.headDivisionName)}<br>NIP: ${disp(state.meta.headDivisionNip)}</div></div>
+      <div class="signature-box"><div class="signature-role">Ketua Sub Komite Mutu<br>${esc(c)}</div><div class="signature-space"></div><div class="signature-name">${disp(state.meta.subcommitteeName)}<br>NIP: ${disp(state.meta.subcommitteeNip)}</div></div>
+      <div class="signature-box"><div class="signature-role">Ketua ${esc(c)}</div><div class="signature-space"></div><div class="signature-name">${disp(state.meta.committeeName)}<br>NIP: ${disp(state.meta.committeeNip)}</div></div>
+    </div>`;
+}
+
+function exportJSON() {
+  saveState(false);
+  const payload = {app:"FPPE RSUD SSMA",version:"1.0",exportedAt:new Date().toISOString(),data:state};
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `FPPE_${(state.meta.staffName||"Tanpa_Nama").replace(/[^a-z0-9_-]+/gi,"_")}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function saveToServer(action) {
+  if (fppeSaveBusy || fppeReadOnly) return;
+  saveState(false);
+  if (!state.meta.staffUuid || !fppeRoster.some(staff=>String(staff.id)===String(state.meta.staffUuid))) {
+    setIntegrationStatus("Pilih tenaga dari Metadata yang sudah dikunci pada roster unit.", true); return;
+  }
+  const required = [];
+  if (!state.meta.staffName.trim()) required.push("nama tenaga");
+  if (!state.meta.profession.trim()) required.push("profesi/SMF");
+  if (action === "submitted") {
+    if (!state.meta.startDate || !state.meta.endDate) required.push("periode awal dan akhir");
+    if (state.meta.endDate && state.meta.startDate && state.meta.endDate < state.meta.startDate) required.push("periode evaluasi yang valid");
+    if (!state.meta.scope.trim()) required.push("ruang lingkup/privilege");
+    if (!state.meta.directSupervisor.trim()) required.push("nama evaluator/atasan langsung");
+    if (!state.evidence.overallDecision) required.push("keputusan FPPE");
+    if (!state.evidence.conclusion.trim()) required.push("kesimpulan evaluator");
+    if (scoreSummary().assessed !== competencyRows().length) required.push("seluruh butir kompetensi");
+    if (["Perlu remediasi dan reassessment","Belum kompeten / privilege ditunda atau dibatasi"].includes(state.evidence.overallDecision) && !state.evidence.actionPlan.trim()) required.push("rencana tindak lanjut/remediasi");
+    if (![state.evidence.evidenceObservation,state.evidence.evidenceRecord,state.evidence.evidenceLogbook,state.evidence.evidenceOther].some(value=>String(value||"").trim().length>=3)) required.push("minimal satu bukti evaluasi");
+    if (state.meta.fppeType === "triggered" && !state.meta.triggerDetail.trim()) required.push("uraian trigger FPPE");
+  }
+  if (required.length) {
+    setIntegrationStatus("Belum dapat diajukan. Lengkapi: " + required.join(", ") + ".", true); return;
+  }
+  fppeSaveBusy = true;
+  setIntegrationStatus(action === "submitted" ? "Mengirim FPPE untuk validasi…" : "Menyimpan draf FPPE…");
+  const payload = { type:"AUREKA_FPPE_SAVE", action, data:JSON.parse(JSON.stringify(state)), summary:{
+    status: overallStatus(), decision: state.evidence.overallDecision || "",
+    assessed: scoreSummary().assessed, totalCompetencies: competencyRows().length,
+    competent: scoreSummary().competent, supervised: scoreSummary().supervised,
+    remedial: scoreSummary().remedial, notCompetent: scoreSummary().notCompetent
+  }};
+  if (EMBEDDED && window.parent) window.parent.postMessage(payload, window.location.origin);
+  else {
+    fppeSaveBusy = false;
+    setIntegrationStatus("Form ini harus dibuka dari kontainer Audit OPPE AUREKA untuk menyimpan ke server.", true);
+  }
+}
+
+function resetForm() {
+  if (EMBEDDED) {
+    resetEmbeddedForm();
+    window.parent.postMessage({type:"AUREKA_FPPE_NEW"}, window.location.origin);
+    setIntegrationStatus("Formulir baru dibuka. Pilih tenaga dari Metadata sebelum mengisi FPPE.");
+    return;
+  }
+  if (confirm("Reset seluruh data FPPE yang tersimpan di browser?")) {
+    localStorage.removeItem(STORAGE_KEY); location.reload();
+  }
+}
+
+function loadServerForm(payload) {
+  resetEmbeddedForm();
+  const incoming = payload && typeof payload === "object" ? payload : {};
+  const form = incoming.form_json && typeof incoming.form_json === "object" ? incoming.form_json : incoming;
+  if (form.meta) Object.assign(state.meta, form.meta);
+  if (form.competencyAnswers) state.competencyAnswers = Object.assign({}, form.competencyAnswers);
+  if (form.evidence) state.evidence = Object.assign(state.evidence, form.evidence);
+  if (incoming.id) state.meta.evaluationId = String(incoming.id);
+  if (incoming.staff_id) state.meta.staffUuid = String(incoming.staff_id);
+  if (incoming.staff_code_snapshot) state.meta.staffId = String(incoming.staff_code_snapshot);
+  if (incoming.staff_name_snapshot) state.meta.staffName = String(incoming.staff_name_snapshot);
+  if (incoming.profession_snapshot) state.meta.profession = String(incoming.profession_snapshot);
+  if (incoming.unit_snapshot) state.meta.unit = String(incoming.unit_snapshot);
+  if (incoming.evaluation_type) state.meta.fppeType = String(incoming.evaluation_type);
+  if (incoming.trigger_reason) state.meta.trigger = String(incoming.trigger_reason);
+  if (incoming.trigger_detail) state.meta.triggerDetail = String(incoming.trigger_detail);
+  if (incoming.period_start) state.meta.startDate = String(incoming.period_start);
+  if (incoming.period_end) state.meta.endDate = String(incoming.period_end);
+  if (incoming.scope_text) state.meta.scope = String(incoming.scope_text);
+  syncInputs();
+  $("staffPicker").value = state.meta.staffUuid || "";
+  if (fppeRoster.length) {
+    const currentStaff = fppeRoster.find(item=>String(item.id)===String(state.meta.staffUuid));
+    if (currentStaff) applyStaffIdentity(currentStaff, false);
+  }
+  setReadOnly(!!incoming.read_only || incoming.status === "submitted" || incoming.status === "validated");
+  if (incoming.status) setIntegrationStatus("FPPE " + incoming.status + " · " + (incoming.staff_name_snapshot || state.meta.staffName) + (incoming.staff_code_snapshot ? " · " + incoming.staff_code_snapshot : ""));
+  else setIntegrationStatus("Form FPPE aktif. Identitas dipasok oleh Metadata tenaga kerja AUREKA.");
+}
+
+window.addEventListener("message", event => {
+  if (event.origin !== window.location.origin || !event.data || typeof event.data !== "object") return;
+  const msg = event.data;
+  if (msg.type === "AUREKA_FPPE_INIT") {
+    applyRoster(msg.roster || []);
+    if (msg.evaluation) loadServerForm(msg.evaluation);
+    else if (msg.reset) resetEmbeddedForm();
+    setReadOnly(!!msg.readOnly);
+  } else if (msg.type === "AUREKA_FPPE_ROSTER") {
+    applyRoster(msg.roster || []);
+  } else if (msg.type === "AUREKA_FPPE_LOAD") {
+    loadServerForm(msg.evaluation || {});
+  } else if (msg.type === "AUREKA_FPPE_NEW") {
+    resetEmbeddedForm();
+    applyRoster(msg.roster || fppeRoster);
+    setIntegrationStatus("Formulir baru. Pilih tenaga dari Metadata, kemudian isi ruang lingkup/privilege dan bukti FPPE.");
+  } else if (msg.type === "AUREKA_FPPE_SAVE_RESULT") {
+    fppeSaveBusy = false;
+    if (msg.ok) {
+      state.meta.evaluationId = String(msg.id || state.meta.evaluationId || "");
+      setIntegrationStatus(msg.message || "FPPE berhasil disimpan ke server.");
+      if (msg.status === "submitted" || msg.status === "validated") setReadOnly(true);
+    } else {
+      setIntegrationStatus(msg.message || "FPPE gagal disimpan ke server.", true);
+    }
+  }
+});
+
+function notifyFrameHeight() {
+  if (EMBEDDED && window.parent) window.parent.postMessage({type:"AUREKA_FPPE_RESIZE",height:document.documentElement.scrollHeight},window.location.origin);
+}
+window.addEventListener("resize", notifyFrameHeight);
+window.addEventListener("load", notifyFrameHeight);
+
+loadState();
+populateProfessions();
+if (!state.meta.profession && MASTER.profiles.length) {
+  state.meta.profession = MASTER.profiles[0].profession;
+}
+syncInputs();
+$("profession").value = state.meta.profession;
+bind();
+render();
+if (EMBEDDED) {
+  window.parent.postMessage({type:"AUREKA_FPPE_READY"}, window.location.origin);
+  setTimeout(notifyFrameHeight, 100);
+}
+</script>
+</body>
+</html>
