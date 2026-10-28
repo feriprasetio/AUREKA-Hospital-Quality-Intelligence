@@ -376,6 +376,8 @@ export default function OppeAuditWorkspace({
       .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'quality_records' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'quality_record_responses' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'oppe_assessments' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'staff_directory' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'aureka_quality', table: 'staff_team_assignments' }, refresh)
       .subscribe()
     const timer = window.setInterval(refresh, 60000)
     window.addEventListener('focus', refresh)
