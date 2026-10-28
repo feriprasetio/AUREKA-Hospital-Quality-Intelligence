@@ -448,6 +448,10 @@ function bind() {
 
 function populateProfessions() {
   const s = $("profession");
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Pilih profesi / SMF / area praktik…";
+  s.appendChild(placeholder);
   MASTER.profiles.forEach(p => {
     const o = document.createElement("option");
     o.value = p.profession; o.textContent = p.profession; s.appendChild(o);
@@ -474,13 +478,8 @@ function bestProfessionForStaff(staff) {
     if (overlap > 0 && score > bestScore) { best = p.profession; bestScore = score; }
   }
   if (best && bestScore >= 0.34) return best;
-  const group = String(staff.profession_group || "").toLowerCase();
-  if (group.includes("dokter")) return profiles.some(p=>p.profession==="Dokter Umum") ? "Dokter Umum" : profiles[0]?.profession || "";
-  if (group.includes("perawat")) return profiles.find(p=>/^Perawat /.test(p.profession))?.profession || "";
-  if (group.includes("bidan")) return "Bidan";
-  if (group.includes("farmasi") || group.includes("apoteker")) return profiles.find(p=>/Apoteker\\/Farmasi/.test(p.profession))?.profession || "";
-  const title = String(staff.position_title || "");
-  return profiles.find(p=>p.profession.toLowerCase().includes(title.toLowerCase()) || title.toLowerCase().includes(p.profession.toLowerCase()))?.profession || profiles[0]?.profession || "";
+  const title = String(staff.position_title || "").trim().toLowerCase();
+  return profiles.find(p => p.profession.toLowerCase() === title || title === p.profession.toLowerCase())?.profession || "";
 }
 
 function setIntegrationStatus(message, isError=false) {
@@ -708,7 +707,7 @@ window.addEventListener("load", notifyFrameHeight);
 
 loadState();
 populateProfessions();
-if (!state.meta.profession && MASTER.profiles.length) {
+if (!EMBEDDED && !state.meta.profession && MASTER.profiles.length) {
   state.meta.profession = MASTER.profiles[0].profession;
 }
 syncInputs();
