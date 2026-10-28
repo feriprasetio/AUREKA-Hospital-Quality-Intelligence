@@ -476,7 +476,6 @@ export default function FppeEvaluationWorkspace({
                 <small>{record.evaluation_type === 'triggered' ? 'Triggered FPPE' : 'Initial FPPE'} · {record.period_start || 'Tanggal belum diisi'} – {record.period_end || 'Tanggal belum diisi'}</small>
                 <small>Trigger: {record.trigger_reason || 'Belum ditentukan'}</small>
               </button>
-            )
             })}
             {!filtered.length && <div className="fppeEmpty">{search ? 'Tidak ada rekaman yang cocok.' : 'Belum ada rekaman FPPE pada unit ini. Gunakan FPPE baru untuk memulai.'}</div>}
           </div>}
