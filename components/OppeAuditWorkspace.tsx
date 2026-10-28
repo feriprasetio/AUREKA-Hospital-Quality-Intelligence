@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import FppeEvaluationWorkspace from '@/components/FppeEvaluationWorkspace'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   buildOppeResponseIndex,
@@ -213,7 +214,7 @@ export default function OppeAuditWorkspace({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [screen, setScreen] = useState<'assessment' | 'rules' | 'history'>('assessment')
+  const [screen, setScreen] = useState<'assessment' | 'fppe' | 'rules' | 'history'>('assessment')
   const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, new Date().getFullYear(), Math.ceil((new Date().getMonth() + 1) / 3)))
   const [savedClinicalSnapshot, setSavedClinicalSnapshot] = useState<ClinicalIndicatorResult[] | null>(null)
   const [savedScoreSnapshot, setSavedScoreSnapshot] = useState<ReturnType<typeof buildOppeScore> | null>(null)
@@ -1002,7 +1003,7 @@ export default function OppeAuditWorkspace({
         <div>
           <div className="oppeEyebrow">AUREKA · ONGOING PROFESSIONAL PRACTICE EVALUATION</div>
           <h3>Audit OPPE</h3>
-          <p>Penilaian profesional berbasis data logbook terverifikasi, bukti perilaku, dan pengembangan profesi. FPPE tidak termasuk pada versi ini.</p>
+          <p>Penilaian profesional berbasis logbook terverifikasi, bukti perilaku, dan pengembangan profesi. FPPE terfokus memakai identitas kanonis dari Metadata tenaga kerja dan tersimpan dengan alur validasi tersendiri.</p>
           <div className="oppeHeaderNotes"><span>Data klinis: hanya logbook tervalidasi</span><span>Pembaruan realtime + fallback 60 detik</span><span>Indikator otomatis: wajib memiliki aturan atribusi aktif</span><span>Skor bukan keputusan otomatis kewenangan klinis</span></div>
         </div>
         <div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}>＋ Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>
@@ -1020,6 +1021,7 @@ export default function OppeAuditWorkspace({
 
       <nav className="oppeTabs" aria-label="Kontainer Audit OPPE">
         <button type="button" className={screen === 'assessment' ? 'active' : ''} onClick={() => setScreen('assessment')}>Form &amp; output OPPE</button>
+        <button type="button" className={screen === 'fppe' ? 'active' : ''} onClick={() => setScreen('fppe')}>FPPE terfokus</button>
         <button type="button" className={screen === 'rules' ? 'active' : ''} onClick={() => setScreen('rules')}>Pemetaan indikator <span>{selectedRuleCount}</span></button>
         <button type="button" className={screen === 'history' ? 'active' : ''} onClick={() => setScreen('history')}>Riwayat penilaian <span>{assessments.length}</span></button>
       </nav>
@@ -1154,6 +1156,15 @@ export default function OppeAuditWorkspace({
             </section>
           </aside>
         </div>
+      )}
+
+      {screen === 'fppe' && (
+        <FppeEvaluationWorkspace
+          rooms={rooms}
+          teamStaff={teamStaff}
+          initialRoomId={roomFilter ?? form.roomId ?? initialRoom}
+          canManage={canManage}
+        />
       )}
 
       {screen === 'rules' && (
