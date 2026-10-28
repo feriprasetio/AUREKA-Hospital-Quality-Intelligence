@@ -556,7 +556,7 @@ function resetEmbeddedForm() {
   render();
 }
 
-function competencyRows() {
+function renderPrintIdentity() {
   const c = committeeForProfession(state.meta.profession);
   $("printIdentity").innerHTML = `<table class="print-table">
     <tr><th style="width:15%">Nama Staf</th><td style="width:35%">${disp(state.meta.staffName)}</td><th style="width:15%">NIP / ID</th><td>${disp(state.meta.staffId)}</td></tr>
