@@ -152,6 +152,12 @@ export default function RiskManagementWorkspace({
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  useEffect(() => {
+    const text = error || message
+    if (!text || typeof window === 'undefined') return
+    const type = error || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'Manajemen Risiko' } }))
+  }, [message, error])
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [unitFilter, setUnitFilter] = useState('all')
