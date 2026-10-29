@@ -37,10 +37,10 @@ function toCsv(rows: Row[], cols: string[]) {
   const esc = (v: unknown) => {
     let s = cell(v)
     // Prevent spreadsheet formula execution for untrusted text while preserving numeric cells.
-    if (typeof v !== 'number' && /^[\\t\\r\\n ]*[=+\\-@]/.test(s)) s = `'${s}`
-    return /[";\\n,]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    if (typeof v !== 'number' && /^[\t\r\n ]*[=+\-@]/.test(s)) s = `'${s}`
+    return /[";\n,]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
-  return '﻿' + [cols.join(';'), ...rows.map(r => cols.map(c => esc(r[c])).join(';'))].join('\\n')
+  return '﻿' + [cols.join(';'), ...rows.map(r => cols.map(c => esc(r[c])).join(';'))].join('\n')
 }
 
 export default function StatisticsWorkspace({ supabase, rooms }: { supabase: SupabaseClient; rooms: { id: number; name: string }[] }) {
