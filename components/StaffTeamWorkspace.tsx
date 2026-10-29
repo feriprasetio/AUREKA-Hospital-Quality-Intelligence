@@ -50,6 +50,12 @@ export default function StaffTeamWorkspace({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  useEffect(() => {
+    const text = error || message
+    if (!text || typeof window === 'undefined') return
+    const type = error || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'Tim & Penugasan' } }))
+  }, [message, error])
 
   useEffect(() => {
     if (canChooseRoom && !roomId && rooms[0]?.id) setRoomId(Number(rooms[0].id))
