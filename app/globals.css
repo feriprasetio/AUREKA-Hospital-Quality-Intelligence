@@ -1226,7 +1226,6 @@ html[data-theme="amoled"] body .workspaceGlobalSearch{background:#080808!importa
 html[data-theme="amoled"] body .workspaceGlobalSearch input{background:transparent!important;color:#fff!important}
 html[data-theme="amoled"] body .workspaceSearchResults>button:hover{background:#101b15!important}
 html[data-theme="amoled"] body .workspaceSearchResultTag,html[data-theme="amoled"] body .workspaceSearchResultsHead span{color:#fff!important}
-html[data-theme="amoled"] body .workspaceSearchFocus{outline-color:#fff!important}
 html[data-theme="amoled"] body .publicChartTrack,html[data-theme="amoled"] body .publicCategoryTrack{background:#090909!important;border-color:#292929!important}
 html[data-theme="amoled"] body .publicChartBar,html[data-theme="amoled"] body .publicCategoryBar{background:#fff!important}
 html[data-theme="amoled"] body .sidebar .themeModeActive{background:#143526!important}
@@ -1241,3 +1240,85 @@ html[data-theme="amoled"] body .aqStatus,html[data-theme="amoled"] body .aqPill,
 
 html[data-theme="amoled"] body *::before,html[data-theme="amoled"] body *::after{background-image:none!important;background-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;text-shadow:none!important}
 html[data-theme="amoled"] body .liquidGlass::before,html[data-theme="amoled"] body .liquidGlass::after,html[data-theme="amoled"] body .glassPanel::before,html[data-theme="amoled"] body .glassPanel::after{display:none!important;content:none!important}
+
+
+/* AUREKA workspace refinement — compact, searchable, wide logbooks */
+.themeModeSwitch.themeModeIconOnly{display:inline-grid;place-items:center;flex:0 0 34px;width:34px;min-width:34px;height:34px;min-height:34px;padding:0;margin:0;border:1px solid var(--border)!important;border-radius:11px!important;background:var(--surface)!important;color:var(--ink)!important;box-shadow:none!important;cursor:pointer}
+.themeModeSwitch.themeModeIconOnly svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.workspaceRoot.sidebarIsCollapsed{grid-template-columns:76px minmax(0,1fr);gap:12px}
+.workspaceRoot.sidebarIsCollapsed .sidebar{padding:14px 9px}
+.workspaceRoot.sidebarIsCollapsed .sideBrand>div,.workspaceRoot.sidebarIsCollapsed .navLabel,.workspaceRoot.sidebarIsCollapsed .sidebarFooter .profileText{display:none!important}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup>button,.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNav>button{justify-content:center;padding:10px 7px}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup>button>span:not(.sidebarChevron),.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNav>button>span{display:none!important}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron,.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren{display:none!important}
+.workspaceRoot.sidebarIsCollapsed .sidebar .profileChipBtn{justify-content:center;padding:8px!important}
+.workspaceRoot.sidebarIsCollapsed .sidebar .profileAvatar{flex-basis:34px;width:34px;height:34px}
+.workspaceRoot.sidebarIsCollapsed .workspaceContent{padding-left:0}
+.sidebar{overflow:hidden!important}
+.sidebar .sidebarNav{overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
+.sidebar .sidebarNav::-webkit-scrollbar{display:none}
+.sideHeader{display:flex!important;align-items:center;justify-content:space-between;gap:7px}
+.sidebarToggle,.desktopSidebarToggle{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;padding:0;border:1px solid var(--sidebar-border)!important;border-radius:9px!important;background:transparent!important;color:var(--sidebar-ink)!important}
+.sidebarToggle svg,.desktopSidebarToggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.desktopSidebarToggle{display:none;flex:0 0 28px;width:28px;height:28px;color:var(--muted)!important;border-color:var(--border)!important}
+.workspaceHeaderTheme.themeModeIconOnly{width:34px;min-width:34px;padding:0;background:var(--surface)!important}
+.workspaceHeaderBar{grid-template-columns:minmax(0,205px) minmax(160px,1fr) 34px;gap:8px;min-height:50px;padding:6px 8px}
+.workspaceGlobalSearch{height:34px;border-radius:10px;padding:0 9px;gap:7px}
+.workspaceGlobalSearch:focus-within{outline:none!important;box-shadow:none!important;border-color:var(--border)!important}
+.workspaceGlobalSearch input:focus,.workspaceGlobalSearch input:focus-visible{outline:none!important;box-shadow:none!important;border-color:transparent!important}
+.workspaceGlobalSearch input{font-size:11px}
+.moduleEnter{width:100%;max-width:none}
+.moduleEnter .aq{gap:8px}
+.moduleEnter .aqFilters{padding:10px 12px;border-radius:13px}
+.moduleEnter .aqGrid{grid-template-columns:minmax(0,1.1fr) minmax(100px,.55fr) minmax(120px,.75fr) minmax(0,1.25fr) minmax(130px,.72fr);gap:8px;align-items:end}
+.moduleEnter .aqField span,.moduleEnter .aqLabel{font-size:9px;margin-bottom:4px}
+.moduleEnter .aqField input,.moduleEnter .aqField select{min-height:35px;height:35px;padding:6px 9px;border-radius:9px;font-size:11px}
+.moduleEnter .aqField.aqLocalSearch{display:none!important}
+.moduleEnter .aqMonthSelect{grid-column:auto}
+.moduleEnter .aqDataBar{display:flex;align-items:center;gap:0;min-width:0;margin:0 0 1px;padding:4px 7px;border:1px solid var(--border);border-radius:11px;background:var(--surface);overflow:hidden}
+.moduleEnter .aqDataBar>div{display:flex;align-items:center;gap:6px;min-width:0;padding:3px 10px;border-right:1px solid var(--border)}
+.moduleEnter .aqDataBar>div:first-child{padding-left:4px}
+.moduleEnter .aqDataBar>div span{color:var(--muted);font-size:9px;font-weight:650;white-space:nowrap}
+.moduleEnter .aqDataBar>div strong{color:var(--ink);font-size:12px;font-weight:850;font-variant-numeric:tabular-nums}
+.moduleEnter .aqDataBar .aqImportButton{margin-left:auto;min-height:27px;padding:5px 9px;border-radius:8px;font-size:10px;white-space:nowrap}
+.moduleEnter .aqTable{border-radius:13px;min-width:0}
+.moduleEnter .aqTableHead{padding:8px 11px;min-height:42px}
+.moduleEnter .aqTableHead h4{font-size:14px}
+.moduleEnter .aqMeta{gap:6px}
+.moduleEnter .aqWrap{max-height:calc(100vh - 205px);min-height:180px;overflow:auto}
+.moduleEnter table.aqData{width:100%;min-width:1050px;table-layout:auto;font-size:11px}
+.moduleEnter table.aqData th,.moduleEnter table.aqData td{padding:8px 10px;min-width:88px;max-width:280px;overflow-wrap:anywhere}
+.moduleEnter table.aqData th:first-child,.moduleEnter table.aqData td:first-child{min-width:42px;width:42px}
+.moduleEnter table.aqData th:last-child,.moduleEnter table.aqData td:last-child{min-width:105px}
+.moduleEnter .aqInlineEditorRow td{min-width:0;max-width:none}
+.moduleEnter .aqInlineEditor{width:100%;max-width:none}
+@media(max-width:1180px){.moduleEnter .aqGrid{grid-template-columns:repeat(3,minmax(0,1fr))}.moduleEnter .aqMonthSelect{grid-column:auto}.moduleEnter .aqWrap{max-height:calc(100vh - 220px)}}
+@media(max-width:760px){
+ .workspaceRoot.sidebarIsCollapsed{grid-template-columns:1fr}
+ .workspaceRoot.sidebarIsCollapsed .sidebar{padding:18px}
+ .workspaceRoot.sidebarIsCollapsed .sideBrand>div,.workspaceRoot.sidebarIsCollapsed .navLabel,.workspaceRoot.sidebarIsCollapsed .sidebarFooter .profileText{display:block!important}
+ .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup>button,.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNav>button{justify-content:flex-start;padding:10px 11px}
+ .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup>button>span:not(.sidebarChevron),.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNav>button>span{display:inline!important}
+ .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron{display:inline!important}
+ .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren{display:grid!important}
+ .desktopSidebarToggle{display:none!important}.sidebarToggle{display:none!important}
+ .workspaceHeaderBar{grid-template-columns:30px minmax(0,1fr) 34px;gap:6px;min-height:46px;margin-bottom:8px}
+ .workspaceContext{display:none}.mobileMenuButton{grid-column:1;grid-row:1;width:28px;height:28px}
+ .workspaceGlobalSearch{grid-column:2;grid-row:1;height:32px}.workspaceHeaderTheme{grid-column:3;grid-row:1}
+ .moduleEnter .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .moduleEnter .aqMonthSelect{grid-column:auto}.moduleEnter .aqDataBar{flex-wrap:wrap;gap:2px}
+ .moduleEnter .aqDataBar>div{padding:3px 6px}.moduleEnter .aqDataBar>div span{font-size:8px}
+ .moduleEnter .aqWrap{max-height:calc(100vh - 245px)}
+}
+@media(max-width:430px){.moduleEnter .aqGrid{grid-template-columns:1fr}.moduleEnter .aqDataBar>div{flex:1 1 31%;border-right:0}.moduleEnter .aqDataBar .aqImportButton{margin-left:0}}
+/* AMOLED means full black page and surfaces, white typography, green accents only on active actions. */
+html[data-theme="amoled"]{--page-bg:#000;--surface:#050505;--surface-raised:#080808;--border:#292929;--line:#292929;--ink:#fff;--muted:#fff;--accent:#fff;--accent2:#fff;--accent-rgb:255,255,255;--accent-soft:#102319;--green:#fff;--green2:#fff;--sidebar-bg:#000;--sidebar-ink:#fff;--sidebar-muted:#fff;--sidebar-active:#10251a;--sidebar-border:#292929;color-scheme:dark}
+html[data-theme="amoled"] body,html[data-theme="amoled"] body *,html[data-theme="amoled"] body *:not(svg):not(path){text-shadow:none!important}
+html[data-theme="amoled"] body,html[data-theme="amoled"] .workspaceRoot,html[data-theme="amoled"] .workspaceContent,html[data-theme="amoled"] .moduleEnter,html[data-theme="amoled"] .aq,html[data-theme="amoled"] .aqTable,html[data-theme="amoled"] .aqFilters,html[data-theme="amoled"] .aqDataBar,html[data-theme="amoled"] .aq .glass{background-color:#000!important;background-image:none!important;color:#fff!important}
+html[data-theme="amoled"] .aq .aqBtn.primary,html[data-theme="amoled"] .aq .sidebarNavGroup>button.navActive,html[data-theme="amoled"] .aq .aqMonths .active{background:#123b29!important;color:#fff!important;border-color:#315640!important}
+html[data-theme="amoled"] .aq .aqWrap,html[data-theme="amoled"] .aq table,html[data-theme="amoled"] .aq tbody tr,html[data-theme="amoled"] .aq td,html[data-theme="amoled"] .aq th{background-color:#050505!important;color:#fff!important}
+html[data-theme="amoled"] .aq .aqField input,html[data-theme="amoled"] .aq .aqField select,html[data-theme="amoled"] .aq .aqField textarea{background:#080808!important;color:#fff!important;border-color:#333!important}
+html[data-theme="amoled"] .aq .aqTableHead{background:#050505!important}
+html[data-theme="amoled"] .aq .aqStatus,html[data-theme="amoled"] .aq .aqPill{background:#101010!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="amoled"] .workspaceHeaderBar,html[data-theme="amoled"] .workspaceGlobalSearch,html[data-theme="amoled"] .workspaceGlobalSearch input,html[data-theme="amoled"] .themeModeIconOnly{background:#050505!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="amoled"] .sidebar,html[data-theme="amoled"] .sidebarFooter,html[data-theme="amoled"] .sidebarNav{background:#000!important;color:#fff!important}
