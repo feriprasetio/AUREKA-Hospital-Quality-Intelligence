@@ -17,7 +17,7 @@ import ClinicalWorkforceWorkspace from '@/components/ClinicalWorkforceWorkspace'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
-const LOGO='https://rsudssma.pontianak.go.id/storage/settings/October2023/8ODy7bT72ice4vVuuC9d.png'
+const LOGO='/AUREKA-Hospital-Quality-Intelligence/logo-rsudssma.svg'
 const FALLBACK=['Informasi dan Pengaduan','Informatika dan Teknologi','Instalasi Ambulance','Instalasi Bedah Sentral','Instalasi Farmasi','Instalasi Gawat Darurat','Instalasi Gizi','Instalasi Hemodialisis','Instalasi Laboratorium','Instalasi Radiologi','Instalasi Rawat Jalan','Instalasi Rehab Medik','Instalasi Rekam Medis','Intensive Care Unit & High Care Unit','Komite Medik','Komite Pencegahan dan Pengendalian Infeksi','Manajemen rumah Sakit','Neonatal Intensive Care Unit & Pediatrics High Dependency Unit','Nifas Obstetrics & Gynecology','Perinatology & Neonatology','Promosi Kesehatan Rumah Sakit','Rawat Inap Anak','Rawat Inap Bedah','Rawat Inap Isolasi','Rawat Inap Penyakit Dalam','Rawat Inap Saraf','Rawat Inap VIP','Satuan Pengawas Intern','Tim Investigasi','Tim Koordinasi Pendidikan','Tim Pelayanan Human Immunodeficiency Virus','Tim Pelayanan Keluarga Berencana Rumah Sakit','Tim Pelayanan Obstetri Neonatal Emergensi Komprehensif','Tim Pelayanan Onkologi','Tim Pencegahan Resistensi Antimikroba','Tim Peningkatan Kinerja Klinis','Verlos Kamer']
 const MODS=AUREKA_PRIMARY_NAV.map(({id,label})=>[id,label] as const)
 const MANAGER_ONLY_MODULES:string[]=AUREKA_PRIMARY_NAV.filter(({visibility})=>visibility==='management-only').map(({id})=>id)
@@ -69,13 +69,19 @@ function ThemeModeToggle({mode,onChange,variant=''}:{mode:'light'|'amoled';onCha
  </div>
 }
 const CHILD:any={quality:['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'],safety:['Insiden Keselamatan Pasien','Investigasi / Root Cause Analysis (RCA)','Survey Budaya Keselamatan Pasien'],risk:['Risk Register','RTP','FMEA / HFMEA'],staff:['Direktori Tenaga','Tim & Penugasan','OPPE / FPPE'],analytics:['Dashboard Statistik','Kelengkapan Data','Ekspor Agregat','Laporan Individu'],settings:['Pengguna & Role','Unit','Kamus Indikator / CP','Versi Aturan','Konfigurasi']}
+type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
+type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'
+type StaffWorkspaceArea='directory'|'team'|'oppe'
+type AnalyticsWorkspaceTab='metadata'|'staff'|'statistics'
+type WorkspaceSearchResult={node:HTMLElement;text:string;tag:string}
+type SidebarChild={id:string;label:string}
 type Room={id:number;name:string};type Profile={user_id:string;full_name:string;email:string;username?:string|null;primary_room_id:number|null;role_id:string|null;is_active:boolean;must_change_password?:boolean;role_code?:string|null;role_name?:string|null}
-const logo=(c='')=><span className={'brandLogoWrap '+c}><img className="brandLogoImage" src={LOGO} alt="Logo RSUD Sultan Syarif Mohamad Alkadrie" loading="eager" decoding="async" onError={e=>{e.currentTarget.style.display='none';const fallback=e.currentTarget.nextElementSibling as HTMLElement|null;if(fallback)fallback.style.display='grid'}}/><span className="brandLogoFallback" aria-hidden="true">SSMA</span></span>
+const logo=(c='')=><span className={'brandLogoWrap '+c}><img className="brandLogoImage" src={LOGO} alt="Logo RSUD Sultan Syarif Mohamad Alkadrie" loading="eager" decoding="async" onError={e=>{e.currentTarget.style.display='none';const fallback=e.currentTarget.nextElementSibling as HTMLElement|null;if(fallback)fallback.style.display='grid'}}/><span className="brandLogoFallback" aria-hidden="true">A</span></span>
 async function rooms(){const {data,error}=await sb.from('master_rooms').select('id,name').eq('is_active',true).order('sort_order');return !error&&data?.length?data as Room[]:FALLBACK.map((name,i)=>({id:i+1,name}))}
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[themeMode,setThemeMode]=useState<'light'|'amoled'>('light')
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[themeMode,setThemeMode]=useState<'light'|'amoled'>('light'),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([])
  const applyTheme=(nextMode:'light'|'amoled')=>{
   setThemeMode(nextMode)
   if(typeof window==='undefined')return
@@ -182,10 +188,131 @@ export default function HomeClient(){
  const manager=MANAGER_ROLES.includes(role||'')
  const validator=role==='VALIDATOR'
  const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole)).map(({id,label})=>[id,label] as const),[role])
+ const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
+  const groups:Record<string,SidebarChild[]> = {
+   quality:[
+    {id:'indicators',label:'Audit Indikator Mutu'},
+    {id:'clinical-pathway',label:'Audit Clinical Pathway'},
+    {id:'clinical-death',label:'Audit Klinis dan Kematian'},
+   ],
+   safety:[
+    {id:'overview',label:'Ringkasan Keselamatan'},
+    {id:'incidents',label:'Laporan IKP'},
+    {id:'investigation',label:'Investigasi / RCA'},
+    {id:'survey',label:'Survei Budaya Keselamatan'},
+    ...(admin?[{id:'responses',label:'Rekapan Survei'}]:[]),
+   ],
+   risk:[
+    {id:'overview',label:'Ikhtisar Risiko'},
+    {id:'register',label:'Risk Register'},
+    {id:'mitigation',label:'RTP Terintegrasi'},
+    {id:'connections',label:'Konektor Risiko'},
+    {id:'fmea',label:'FMEA / HFMEA'},
+   ],
+   staff:[
+    ...(admin?[{id:'directory',label:'Direktori Tenaga'}]:[]),
+    ...(['ADMIN','PMKP','PIC','VALIDATOR'].includes(role||'')?[{id:'team',label:'Tim & Penugasan'}]:[]),
+    ...(['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'].includes(role||'')?[{id:'oppe',label:'OPPE / FPPE'}]:[]),
+   ],
+   analytics:[
+    ...(admin?[{id:'metadata',label:'Kamus Indikator'}]:[]),
+    ...(admin?[{id:'staff',label:'Tenaga Kerja'}]:[]),
+    {id:'statistics',label:'Statistik & Laporan'},
+   ],
+  }
+  if(!manager)delete groups.analytics
+  return groups
+ },[admin,manager,role])
+ const currentContainer=useMemo(()=>{
+  if(active==='home')return 'Ringkasan'
+  if(active==='quality')return clinicalPathwayOpen?'Audit Clinical Pathway':qualityInitialContainer
+  if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Laporan IKP',investigation:'Investigasi / RCA',survey:'Survei Budaya Keselamatan',responses:'Rekapan Survei'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
+  if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register',mitigation:'RTP Terintegrasi',connections:'Konektor Risiko',fmea:'FMEA / HFMEA'} as Record<RiskWorkspaceTab,string>)[riskTab]
+  if(active==='staff')return ({directory:'Direktori Tenaga',team:'Tim & Penugasan',oppe:'OPPE / FPPE'} as Record<StaffWorkspaceArea,string>)[staffArea]
+  if(active==='analytics')return ({metadata:'Kamus Indikator',staff:'Tenaga Kerja',statistics:'Statistik & Laporan'} as Record<AnalyticsWorkspaceTab,string>)[analyticsTab]
+  if(active==='settings')return 'Administrasi'
+  return MODS.find(([id])=>id===active)?.[1]||'Workspace'
+ },[active,clinicalPathwayOpen,qualityInitialContainer,safetyTab,riskTab,staffArea,analyticsTab])
+ const openMainModule=(id:string)=>{
+  setProfileFocus(0);setMobile(false);setGlobalSearch('');setActive(id)
+  if(id==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);setQualityOpen(true)}
+  else {setQualityOpen(false);setClinicalPathwayOpen(false)}
+  if(id==='safety')setSafetyTab('overview')
+  if(id==='risk')setRiskTab('overview')
+  if(id==='staff')setStaffArea(admin?'directory':(['ADMIN','PMKP','PIC','VALIDATOR'].includes(role||'')?'team':'oppe'))
+  if(id==='analytics')setAnalyticsTab(admin?'metadata':'statistics')
+ }
+ const selectSidebarChild=(moduleId:string,childId:string)=>{
+  setProfileFocus(0);setMobile(false);setGlobalSearch('');setActive(moduleId)
+  if(moduleId==='quality'){
+   setClinicalPathwayOpen(childId==='clinical-pathway')
+   setQualityOpen(childId!=='clinical-pathway')
+   if(childId==='indicators')setQualityInitialContainer('Audit Indikator Mutu')
+   if(childId==='clinical-death')setQualityInitialContainer('Audit Klinis dan Kematian')
+  }else if(moduleId==='safety')setSafetyTab(childId as SafetyWorkspaceTab)
+  else if(moduleId==='risk')setRiskTab(childId as RiskWorkspaceTab)
+  else if(moduleId==='staff')setStaffArea(childId as StaffWorkspaceArea)
+  else if(moduleId==='analytics')setAnalyticsTab(childId as AnalyticsWorkspaceTab)
+ }
+ const selectedSidebarChild=(moduleId:string)=>{
+  if(moduleId==='quality')return clinicalPathwayOpen?'clinical-pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators'
+  if(moduleId==='safety')return safetyTab
+  if(moduleId==='risk')return riskTab
+  if(moduleId==='staff')return staffArea
+  if(moduleId==='analytics')return analyticsTab
+  return ''
+ }
+ const dispatchWorkspaceSearch=(query:string)=>{
+  setGlobalSearch(query)
+ }
+ useEffect(()=>{
+  if(typeof window==='undefined'||view!=='workspace')return
+  window.dispatchEvent(new CustomEvent('aureka:workspace-search',{detail:{query:globalSearch,module:active,container:currentContainer}}))
+ },[globalSearch,active,currentContainer,view])
+ useEffect(()=>{if(typeof window==='undefined')return;const onKeyDown=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&view==='workspace'){event.preventDefault();document.getElementById('workspaceGlobalSearchInput')?.focus()}};window.addEventListener('keydown',onKeyDown);return()=>window.removeEventListener('keydown',onKeyDown)},[view])
+ useEffect(()=>{
+  if(typeof window==='undefined'||view!=='workspace'||!globalSearch.trim()){
+   setSearchResults([])
+   document.querySelectorAll('.workspaceSearchFocus').forEach(node=>node.classList.remove('workspaceSearchFocus'))
+   return
+  }
+  let first=0,second=0,delay=0
+  delay=window.setTimeout(()=>{first=window.requestAnimationFrame(()=>{second=window.requestAnimationFrame(()=>{
+    const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
+    if(!root){setSearchResults([]);return}
+    const tokens=globalSearch.toLowerCase().trim().split(/\s+/).filter(Boolean)
+    if(!tokens.length){setSearchResults([]);return}
+    const candidates=Array.from(root.querySelectorAll<HTMLElement>('tr,article,li,summary,button,label,td,th,h2,h3,h4,h5,p,.aqKpi,.ovKpi,.cpTile,.cpPanel,.psPanel,.rmPanel,.cwPanel,.mswAccessNote,[data-searchable="true"]'))
+      .filter(node=>{
+       if(!node.textContent?.trim()||node.closest('.workspaceSearchResults'))return false
+       const style=window.getComputedStyle(node)
+       if(style.display==='none'||style.visibility==='hidden')return false
+       const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()
+       return tokens.every(token=>text.includes(token))
+      })
+    const leaves=candidates.filter(node=>!candidates.some(other=>other!==node&&node.contains(other)))
+    const unique:WorkspaceSearchResult[]=[]
+    for(const node of leaves){
+     const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim()
+     if(!text)continue
+     if(unique.some(result=>result.node===node||result.text===text))continue
+     unique.push({node,text:text.length>190?text.slice(0,187)+'…':text,tag:node.tagName.toLowerCase()})
+     if(unique.length>=8)break
+    }
+    setSearchResults(unique)
+   })})},100)
+  return ()=>{window.clearTimeout(delay);window.cancelAnimationFrame(first);window.cancelAnimationFrame(second)}
+ },[globalSearch,view,active,currentContainer,qualityOpen,clinicalPathwayOpen,safetyTab,riskTab,staffArea,analyticsTab])
+ const jumpToSearchResult=(result:WorkspaceSearchResult)=>{
+  document.querySelectorAll('.workspaceSearchFocus').forEach(node=>node.classList.remove('workspaceSearchFocus'))
+  result.node.classList.add('workspaceSearchFocus')
+  result.node.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})
+ }
+
  useEffect(()=>{if(!manager&&MANAGER_ONLY_MODULES.includes(active))setActive('home')},[manager,active])
  const title=useMemo(()=>MODS.find(([id])=>id===active)?.[1]||(active==='home'?'Ringkasan':'Workspace'),[active])
- if(view==='force-password')return <main className="authPage"><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||'unit yang ditetapkan'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack" style={{position:'static',marginTop:16}} onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
- if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage">
+ if(view==='force-password')return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div><ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="authThemeToggle"/></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||'unit yang ditetapkan'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack" style={{position:'static',marginTop:16}} onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
+ if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div><ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="authThemeToggle"/></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   {!rec&&<button type="button" className="authBack" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('normal')}}><span aria-hidden="true">←</span> Kembali ke login</button>}
   <div className="authShell authShellSingle">
@@ -216,7 +343,7 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='login'||view==='signup'){const l=view==='login';const submit=(e:any)=>{e.preventDefault();l?login():signup()};return <main className="authPage">
+ if(view==='login'||view==='signup'){const l=view==='login';const submit=(e:any)=>{e.preventDefault();l?login():signup()};return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div><ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="authThemeToggle"/></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}><span aria-hidden="true">←</span> Kembali ke beranda</button>
   <div className="authShell">
@@ -258,7 +385,69 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='workspace')return <main className="workspaceRoot"><button className="workspaceScrim" onClick={()=>setMobile(false)} data-open={mobile}/><aside className={`sidebar glassPanel ${mobile?'mobileOpen':''}`}><div className="sideHeader"><div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></div><div className="themeModeLabel">TEMA TAMPILAN</div><ThemeModeToggle mode={themeMode} onChange={applyTheme}/><div className="navLabel">Workspace</div><nav className="sidebarNav" aria-label="Navigasi utama AUREKA"><button type="button" title="Ringkasan" className={active==='home'?'navActive':''} onClick={()=>{setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><NavIcon id="home"/><span>Ringkasan</span></button>{visibleMods.map(([id,n])=><button type="button" title={n} key={id} className={active===id?'navActive':''} onClick={()=>{setProfileFocus(0);setActive(id);if(id!=='quality')setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><NavIcon id={id}/><span>{n}</span></button>)}</nav><button type="button" className={`profileChip profileChipBtn ${active==='settings'&&profileFocus>0?'isActive':''}`} title="Profil saya: ubah nama, password, dan data akun" onClick={()=>{setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><div className="profileAvatar">{initials(profile?.full_name||user?.email)}</div><div className="profileText"><b>{profile?.full_name||user?.email}</b><span>{ROLE_LABEL[role||'']||role||'Pengguna'} · {room?.name||'Unit belum dipetakan'}</span><em className="profileChipHint">Lihat & ubah profil ›</em></div></button><LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton></aside><section className="workspaceContent"><div className="workspaceTop"><button className="mobileMenuButton" onClick={()=>setMobile(true)}>☰</button><div><div className="eyebrow">AUREKA / {title}</div><h2>{title}</h2><p>{active==='home'?'Pemantauan mutu, keselamatan pasien, dan risiko — satu tampilan kerja.':'Ruang kerja operasional sesuai peran dan unit penugasan.'}</p></div><div className="workspaceTopMeta"><span>Unit kerja</span><b>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</b><small>{ROLE_LABEL[role||""]||"Pengguna"}</small></div></div><div key={`${active}-${qualityOpen}-${clinicalPathwayOpen}`} className="moduleEnter">{active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway'){setActive('quality');setQualityOpen(false);setClinicalPathwayOpen(true);}else{setActive(id);setQualityOpen(id==='quality');setClinicalPathwayOpen(false);}}}}/>:active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>{setClinicalPathwayOpen(false);setQualityOpen(false);}}/>:active==='quality'&&!qualityOpen?<QualityHub onOpen={()=>{setQualityInitialContainer('Audit Indikator Mutu');setQualityOpen(true)}} onOpenClinicalPathway={()=>{setClinicalPathwayOpen(true);setQualityOpen(false)}} onOpenClinicalDeathReview={()=>{setQualityInitialContainer('Audit Klinis dan Kematian');setClinicalPathwayOpen(false);setQualityOpen(true)}}/>:active==='quality'&&qualityOpen?<div><button type="button" className="backBtn" style={{marginBottom:12}} onClick={()=>{setQualityOpen(false);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Indikator Mutu')}}><span aria-hidden="true">←</span> Kembali ke Indikator Mutu</button><QualityIndicatorWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} initialContainer={qualityInitialContainer}/></div>:active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus}/>:active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus}/>:active==='staff'?<ClinicalWorkforceWorkspace rooms={roomsList} initialRoomId={room?.id??null} role={role} isSuperAdmin={admin}/>:active==='analytics'&&manager?<MetadataStatisticsWorkspace supabase={sb} rooms={roomsList} isSuperAdmin={admin}/>:active==='settings'?<GeneralSettings key={profileFocus} openProfile={profileFocus>0} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>{setActive(id);setQualityOpen(id==='quality')}} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>:<div className="placeholderGrid">{(CHILD[active]||[]).map((x:string)=><LiquidGlass key={x} className="placeholderCard"><b>{x}</b><span>Container modul siap dikembangkan.</span></LiquidGlass>)}</div>}</div></section></main>
+ if(view==='workspace')return <main className="workspaceRoot">
+ <button className="workspaceScrim" onClick={()=>setMobile(false)} data-open={mobile} aria-label="Tutup navigasi"/>
+ <aside className={'sidebar glassPanel '+(mobile?'mobileOpen':'')}>
+  <div className="sideHeader">
+   <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
+  </div>
+  <div className="navLabel">Workspace</div>
+  <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
+   <button type="button" title="Ringkasan" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
+    <NavIcon id="home"/><span>Ringkasan</span>
+   </button>
+   {visibleMods.map(([id,n])=><div className={'sidebarNavGroup '+(active===id?'expanded':'')} key={id}>
+    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={active===id} onClick={()=>openMainModule(id)}>
+     <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
+    </button>
+    {active===id&&sidebarChildGroups[id]?.length?<div className="sidebarTreeChildren">
+     {sidebarChildGroups[id].map(child=><button type="button" key={child.id} className={selectedSidebarChild(id)===child.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===child.id?'page':undefined} onClick={()=>selectSidebarChild(id,child.id)}>
+      <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span>
+     </button>)}
+    </div>:null}
+   </div>)}
+  </nav>
+  <div className="sidebarFooter">
+   <button type="button" className={'profileChip profileChipBtn '+(active==='settings'&&profileFocus>0?'isActive':'')} title="Profil saya: ubah nama, password, dan data akun" onClick={()=>{setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setMobile(false)}}>
+    <div className="profileAvatar">{initials(profile?.full_name||user?.email)}</div>
+    <div className="profileText"><b>{profile?.full_name||user?.email}</b><span>{ROLE_LABEL[role||'']||role||'Pengguna'} · {room?.name||'Unit belum dipetakan'}</span><em className="profileChipHint">Lihat & ubah profil ›</em></div>
+   </button>
+   <LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton>
+  </div>
+ </aside>
+ <section className="workspaceContent">
+  <header className="workspaceHeaderBar">
+   <button className="mobileMenuButton" onClick={()=>setMobile(true)} aria-label="Buka navigasi">☰</button>
+   <div className="workspaceContext" title={(manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' / '+currentContainer}>
+    <span>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</span><span className="workspaceContextDivider" aria-hidden="true">/</span><b>{currentContainer}</b>
+   </div>
+   <div className="workspaceGlobalSearch">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
+    <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder={'Cari kata kunci dalam '+currentContainer+'…'} aria-label={'Cari di dalam '+currentContainer}/>
+    {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:<kbd>Ctrl K</kbd>}
+    {globalSearch.trim()&&<div className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
+     <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResults.length?searchResults.length+' hasil':'Mencari…'}</span></div>
+     {searchResults.length?searchResults.map((result,index)=><button type="button" role="option" aria-selected="false" key={index+'-'+result.text} onClick={()=>jumpToSearchResult(result)}>
+      <span className="workspaceSearchResultTag">{result.tag}</span><span>{result.text}</span><span className="workspaceSearchResultArrow" aria-hidden="true">↗</span>
+     </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
+    </div>}
+   </div>
+   <ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="workspaceHeaderTheme"/>
+  </header>
+  <div key={active+'-'+qualityOpen+'-'+clinicalPathwayOpen} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
+   {active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','clinical-pathway');else openMainModule(id)}}}/>
+   :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>openMainModule('quality')}/>
+   :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={qualityInitialContainer} initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} initialContainer={qualityInitialContainer} showContainerTabs={false}/>
+   :active==='quality'?<QualityHub onOpen={()=>selectSidebarChild('quality','indicators')} onOpenClinicalPathway={()=>selectSidebarChild('quality','clinical-pathway')} onOpenClinicalDeathReview={()=>selectSidebarChild('quality','clinical-death')}/>
+   :active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false}/>
+   :active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false}/>
+   :active==='staff'?<ClinicalWorkforceWorkspace rooms={roomsList} initialRoomId={room?.id??null} role={role} isSuperAdmin={admin} initialArea={staffArea} showTabs={false}/>
+   :active==='analytics'&&manager?<MetadataStatisticsWorkspace supabase={sb} rooms={roomsList} isSuperAdmin={admin} initialContainer={analyticsTab} showTabs={false}/>
+   :active==='settings'?<GeneralSettings key={profileFocus} openProfile={profileFocus>0} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
+   :<div className="placeholderGrid">{(CHILD[active]||[]).map((x:string)=><LiquidGlass key={x} className="placeholderCard"><b>{x}</b><span>Container modul siap dikembangkan.</span></LiquidGlass>)}</div>}
+  </div>
+ </section>
+</main>
  return <main className="publicRoot landing">
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   <header className="topbar glassPanel landingTopbar">

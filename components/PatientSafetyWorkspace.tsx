@@ -246,6 +246,8 @@ export default function PatientSafetyWorkspace({
   isSuperAdmin,
   canManageWorkflow,
   focus,
+  initialTab = 'overview',
+  showTabs = true,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -253,10 +255,13 @@ export default function PatientSafetyWorkspace({
   isSuperAdmin: boolean
   canManageWorkflow: boolean
   focus?: SafetyFocus | null
+  initialTab?: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'
+  showTabs?: boolean
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_patient_safety'), [supabase])
   const qualityDb = useMemo(() => (supabase as any).schema('aureka_quality'), [supabase])
-  const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>('overview')
+  const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>(initialTab)
+  useEffect(() => { setTab(initialTab) }, [initialTab])
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
   const [responses, setResponses] = useState<CultureResponse[]>([])
@@ -265,6 +270,7 @@ export default function PatientSafetyWorkspace({
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; const query = String(detail?.query ?? ''); setSearch(query); setResponseSearch(query) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [statusFilter, setStatusFilter] = useState('all')
   const [unitFilter, setUnitFilter] = useState('all')
 
@@ -836,17 +842,17 @@ export default function PatientSafetyWorkspace({
       <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{isSuperAdmin ? responses.length : '—'}</strong><small>{isSuperAdmin ? 'Rekapan dari Supabase' : 'Data agregat terbatas pada Superadmin'}</small></LiquidGlass>
     </div>
 
-    <div className="psTabs glass">
-      {([
-        { value: 'overview' as const, label: 'Overview' },
-        { value: 'incidents' as const, label: 'Laporan IKP' },
-        { value: 'investigation' as const, label: 'Investigasi / RCA' },
-        { value: 'survey' as const, label: 'Survey Budaya' },
-        ...(isSuperAdmin ? [{ value: 'responses' as const, label: 'Rekapan Survey' }] : []),
-      ]).map(item =>
-        <button type="button" key={item.value} className={'psTab' + (tab === item.value ? ' active' : '')} onClick={() => { setTab(item.value); setError(''); setMessage('') }}>{item.label}</button>
-      )}
-    </div>
+    {showTabs && <div className="psTabs glass">
+          {([
+            { value: 'overview' as const, label: 'Overview' },
+            { value: 'incidents' as const, label: 'Laporan IKP' },
+            { value: 'investigation' as const, label: 'Investigasi / RCA' },
+            { value: 'survey' as const, label: 'Survey Budaya' },
+            ...(isSuperAdmin ? [{ value: 'responses' as const, label: 'Rekapan Survey' }] : []),
+          ]).map(item =>
+            <button type="button" key={item.value} className={'psTab' + (tab === item.value ? ' active' : '')} onClick={() => { setTab(item.value); setError(''); setMessage('') }}>{item.label}</button>
+          )}
+        </div>}
 
     {error ? <div className="psAlert error">{error}</div> : null}
     {message ? <div className="psAlert">{message}</div> : null}
@@ -881,7 +887,7 @@ export default function PatientSafetyWorkspace({
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span><button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
         <div className="psFilterGrid">
-          <div className="psFilter"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
+          <div className="psFilter psLocalSearch"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
           <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draft</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Closed</option></select></div>
           <div className="psFilter"><label>Unit</label><select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
           <div className="psFilter"><label>Data tersedia</label><div className="psPill green">{incidents.length} record</div></div>

@@ -70,6 +70,7 @@ export default function FppeEvaluationWorkspace({
   const [activeEvaluation, setActiveEvaluation] = useState<FppeRecord | null>(null)
   const [events, setEvents] = useState<FppeEvent[]>([])
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [reviewNote, setReviewNote] = useState('')
 
   const roomMap = useMemo(() => new Map(rooms.map((room) => [Number(room.id), room.name])), [rooms])
@@ -561,7 +562,7 @@ export default function FppeEvaluationWorkspace({
         </div>
         <aside className="fppePanel fppeHistory">
           <div className="fppeHistoryHead"><div><div className="fppeEyebrow">ARSIP FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
+          <input className="fppeLocalSearch" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
           {loading ? <p className="fppeMuted">Memuat riwayat…</p> : <div className="fppeHistoryList">
             {filtered.map((record) => {
               const staff = staffForRecord(record)

@@ -223,6 +223,7 @@ export default function OppeAuditWorkspace({
   const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null)
   const [gapDraft, setGapDraft] = useState<GapDraft | null>(null)
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; const query = String(detail?.query ?? ''); setSearch(query); setHistorySearch(query) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [historySearch, setHistorySearch] = useState('')
 
   const responseIndex = useMemo(() => buildOppeResponseIndex(responseRows), [responseRows])
@@ -1275,7 +1276,7 @@ export default function OppeAuditWorkspace({
       {screen === 'rules' && (
         <section className="oppeGlass oppeSection">
           <div className="oppeSectionHead"><div><div className="oppeEyebrow">GOVERNANCE · MASTER MUTU AUREKA</div><h4>Pemetaan indikator ke OPPE individual</h4><p>Setiap indikator perlu ditetapkan apakah layak dinilai per individu, siapa profesi yang dinilai, field tanggung jawab dan metode hitung. Aturan baru tidak otomatis aktif.</p></div>{isSuperAdmin && <LiquidGlassButton onClick={() => { const roomId = roomFilter ?? initialRoom; setGapDraft({ title: '', professionLabel: '', roomId, measurementGrain: suggestedMeasurementGrain(profiles, roomId), targetText: '', targetOperator: '>=', targetValue: '', unitOfMeasure: 'Persentase (%)', numeratorDefinition: '', denominatorDefinition: '', responsibilityField: staffFieldOptions(roomId)[0] || '', notes: '' }); setError(''); setNotice('') }}>＋ Draf indikator yang belum ada</LiquidGlassButton>}</div>
-          <div className="oppeRuleToolbar"><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari kode, indikator, unit, profesi…" /><span>{filteredProfiles.length} profil master · {rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length} aturan aktif pada hasil pemuatan</span></div>
+          <div className="oppeRuleToolbar"><input className="oppeLocalSearch" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari kode, indikator, unit, profesi…" /><span>{filteredProfiles.length} profil master · {rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length} aturan aktif pada hasil pemuatan</span></div>
           <div className="oppeRuleList">{filteredProfiles.map((profile) => {
             const profileRules = rules.filter((item) => item.profile_id === String(profile.id))
               .sort((a, b) => a.profession_label.localeCompare(b.profession_label, 'id'))

@@ -14,12 +14,17 @@ export default function MetadataStatisticsWorkspace({
   supabase,
   rooms,
   isSuperAdmin,
+  initialContainer,
+  showTabs = true,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
   isSuperAdmin: boolean
+  initialContainer?: Container
+  showTabs?: boolean
 }) {
-  const [active, setActive] = useState<Container>(isSuperAdmin ? 'metadata' : 'statistics')
+  const [active, setActive] = useState<Container>(initialContainer || (isSuperAdmin ? 'metadata' : 'statistics'))
+  useEffect(() => { if (initialContainer && (initialContainer !== 'metadata' || isSuperAdmin)) setActive(initialContainer) }, [initialContainer, isSuperAdmin])
 
   useEffect(() => {
     if (!isSuperAdmin && active === 'metadata') setActive('statistics')
@@ -54,42 +59,43 @@ export default function MetadataStatisticsWorkspace({
             membandingkan, dan mengekstrak data yang sudah tercatat.
           </p>
         </div>
-        <div className="mswTabs" role="tablist" aria-label="Kontainer Metadata dan Statistik">
-          {isSuperAdmin && (
-            <>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={active === 'metadata'}
-                className="mswTab"
-                onClick={() => setActive('metadata')}
-              >
-                <span className="mswTabIcon" aria-hidden="true">▤</span>
-                <span>Kamus Indikator</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={active === 'staff'}
-                className="mswTab"
-                onClick={() => setActive('staff')}
-              >
-                <span className="mswTabIcon" aria-hidden="true">♙</span>
-                <span>Tenaga Kerja</span>
-              </button>
-            </>
-          )}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={active === 'statistics'}
-            className="mswTab"
-            onClick={() => setActive('statistics')}
-          >
-            <span className="mswTabIcon" aria-hidden="true">▥</span>
-            <span>Statistik</span>
-          </button>
-        </div>
+        {showTabs && <div className="mswTabs" role="tablist" aria-label="Kontainer Metadata dan Statistik">
+                  {isSuperAdmin && (
+                    <>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={active === 'metadata'}
+                        className="mswTab"
+                        onClick={() => setActive('metadata')}
+                      >
+                        <span className="mswTabIcon" aria-hidden="true">▤</span>
+                        <span>Kamus Indikator</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={active === 'staff'}
+                        className="mswTab"
+                        onClick={() => setActive('staff')}
+                      >
+                        <span className="mswTabIcon" aria-hidden="true">♙</span>
+                        <span>Tenaga Kerja</span>
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={active === 'statistics'}
+                    className="mswTab"
+                    onClick={() => setActive('statistics')}
+                  >
+                    <span className="mswTabIcon" aria-hidden="true">▥</span>
+                    <span>Statistik</span>
+                  </button>
+                </div>}
+
       </header>
 
       {active === 'metadata' && isSuperAdmin ? (

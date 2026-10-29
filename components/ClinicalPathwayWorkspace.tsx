@@ -263,6 +263,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [selectedCode, setSelectedCode] = useState('')
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(initialRoomId)
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [audits, setAudits] = useState<AuditRow[]>([])
   const [auditLoading, setAuditLoading] = useState(false)
   const [form, setForm] = useState<AuditForm | null>(null)
@@ -881,7 +882,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         </div>
       </div>}
       <div className="cpGlass cpToolbar">
-        <div className="cpField cpSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
+        <div className="cpField cpSearch cpLocalSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
         {isAdmin && <div className="cpField cpSelect"><label>Unit untuk audit baru</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></div>}
         <button type="button" className="cpBtn" onClick={() => void loadTemplates()}>↻ Muat ulang master</button>
       </div>

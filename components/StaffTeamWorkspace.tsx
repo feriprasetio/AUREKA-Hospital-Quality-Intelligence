@@ -44,6 +44,7 @@ export default function StaffTeamWorkspace({
   const [directory, setDirectory] = useState<DirectoryStaff[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [selectedStaffId, setSelectedStaffId] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -222,7 +223,7 @@ export default function StaffTeamWorkspace({
         {!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Metadata → Tenaga Kerja terlebih dahulu.</div>}
         {!loading && directory.length > 0 && availableToChoose.length === 0 && <div className="stNotice">Tidak ada kandidat yang cocok. Tenaga yang telah terkunci pada tim ini sudah tercatat di roster; tenaga yang terkunci pada unit lain sengaja tidak ditampilkan.</div>}
         <div className="stForm">
-          <label className="stField"><span>Cari tenaga</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nama, kode, profesi, jabatan…"/></label>
+          <label className="stField stLocalSearch"><span>Cari tenaga</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nama, kode, profesi, jabatan…"/></label>
           <label className="stField"><span>Tenaga yang akan ditambahkan</span>
             <select value={selectedStaffId} onChange={(e) => setSelectedStaffId(e.target.value)} disabled={loading || busy || !roomId}>
               <option value="">Pilih tenaga dari direktori…</option>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import StaffDirectoryWorkspace from '@/components/StaffDirectoryWorkspace'
 import StaffTeamWorkspace from '@/components/StaffTeamWorkspace'
 import OppeAuditWorkspace from '@/components/OppeAuditWorkspace'
@@ -9,17 +9,20 @@ type WorkforceArea = 'directory' | 'team' | 'oppe'
 type LocalRoom = { id: number; name: string }
 
 export default function ClinicalWorkforceWorkspace({
-  rooms, initialRoomId, role, isSuperAdmin,
+  rooms, initialRoomId, role, isSuperAdmin, initialArea, showTabs = true,
 }: {
   rooms: LocalRoom[]
   initialRoomId: number | null
   role: string | null
   isSuperAdmin: boolean
+  initialArea?: 'directory' | 'team' | 'oppe'
+  showTabs?: boolean
 }) {
   const canManageAllRooms = isSuperAdmin || role === 'PMKP'
   const canOpenTeam = ['ADMIN', 'PMKP', 'PIC', 'VALIDATOR'].includes(role || '')
   const canOpenOppe = ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'].includes(role || '')
-  const [area, setArea] = useState<WorkforceArea>(isSuperAdmin ? 'directory' : canOpenTeam ? 'team' : 'oppe')
+  const [area, setArea] = useState<WorkforceArea>(initialArea || (isSuperAdmin ? 'directory' : canOpenTeam ? 'team' : 'oppe'))
+  useEffect(() => { if (initialArea && tabs.some((tab) => tab.id === initialArea)) setArea(initialArea) }, [initialArea, isSuperAdmin, canOpenTeam, canOpenOppe])
   const tabs: { id: WorkforceArea; title: string; description: string }[] = [
     ...(isSuperAdmin ? [{ id: 'directory' as const, title: 'Direktori Tenaga', description: 'Master identitas kanonik lintas modul.' }] : []),
     ...(canOpenTeam ? [{ id: 'team' as const, title: 'Tim & Penugasan', description: 'Pemetaan staf yang terkunci ke unit kerja.' }] : []),
@@ -40,15 +43,15 @@ export default function ClinicalWorkforceWorkspace({
 
       {tabs.length > 0 ? (
         <>
-          <div className="cwTabs" role="tablist" aria-label="Area kerja Tenaga Klinis">
-            {tabs.map((tab) => (
-              <button key={tab.id} type="button" className="cwTab" role="tab"
-                aria-selected={activeArea === tab.id} onClick={() => setArea(tab.id)}>
-                <span aria-hidden="true">{tab.id === 'directory' ? '▤' : tab.id === 'team' ? '♙' : '✓'}</span>
-                <span>{tab.title}</span>
-              </button>
-            ))}
-          </div>
+          {showTabs && <div className="cwTabs" role="tablist" aria-label="Area kerja Tenaga Klinis">
+                      {tabs.map((tab) => (
+                        <button key={tab.id} type="button" className="cwTab" role="tab"
+                          aria-selected={activeArea === tab.id} onClick={() => setArea(tab.id)}>
+                          <span aria-hidden="true">{tab.id === 'directory' ? '▤' : tab.id === 'team' ? '♙' : '✓'}</span>
+                          <span>{tab.title}</span>
+                        </button>
+                      ))}
+                    </div>}
           {activeArea === 'directory' && isSuperAdmin && (
             <div className="cwPanel" role="tabpanel" aria-label="Direktori tenaga">
               <p className="cwHint">Perubahan metadata memengaruhi pemetaan tenaga di modul terkait. Gunakan status verifikasi untuk menahan identitas yang belum pasti; jangan menyatukan orang hanya karena nama serupa.</p>
