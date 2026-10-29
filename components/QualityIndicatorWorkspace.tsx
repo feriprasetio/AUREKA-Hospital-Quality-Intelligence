@@ -257,6 +257,7 @@ function fieldValue(p:Patient,field:string,layout:AuditLayout|undefined){
 function inputFieldValue(p:Patient,field:string,layout:AuditLayout|undefined){
  const form=p.formData&&typeof p.formData==='object'?p.formData:{}
  if(isComputedField(field,layout))return computedField(field,form,layout)??''
+ if(inputKind(field,layout)==='datetime-local')return normalizePastedDateTime(String(form[field]??fieldValue(p,field,layout)??''))??''
  if(Object.prototype.hasOwnProperty.call(form,field)&&form[field]!==null&&form[field]!==undefined)return form[field]
  const n=normHeader(field)
  if(n==='nama pasien'||n==='nama mahasiswa'||n==='nama mpp')return p.name??''
