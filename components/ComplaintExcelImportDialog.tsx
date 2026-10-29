@@ -11,11 +11,11 @@ const MAX_FILE_BYTES = 15 * 1024 * 1024
 const MAX_ROWS = 500
 const SOURCE_KEY_PREFIX = 'excel-pmkp-informasi-pengaduan-2026:row:'
 
-type IndicatorProfile = {
-  id: string
-  room_id: number
-  profile_year: number
-  code: string
+type IndicatorProfile = Record<string, any> & {
+  id?: string
+  room_id?: number
+  profile_year?: number
+  code?: string
   options_json?: Array<{ label: string; code?: number | null; numerator?: boolean | null; denominator?: boolean | null; review_required?: boolean }>
 }
 type PreparedRow = {
