@@ -66,6 +66,12 @@ export default function FppeEvaluationWorkspace({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  useEffect(() => {
+    const text = error || notice
+    if (!text || typeof window === 'undefined') return
+    const type = error || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'FPPE' } }))
+  }, [notice, error])
   const [evaluations, setEvaluations] = useState<FppeRecord[]>([])
   const [activeEvaluation, setActiveEvaluation] = useState<FppeRecord | null>(null)
   const [events, setEvents] = useState<FppeEvent[]>([])
