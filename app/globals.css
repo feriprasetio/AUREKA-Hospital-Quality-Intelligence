@@ -958,3 +958,127 @@ html[data-theme="amoled"] .workspaceScrim{background:rgba(0,0,0,.72)!important;}
   .authCard{background:var(--surface)!important;}
 }
 @media(prefers-reduced-motion:reduce){.moduleEnter{animation:none!important;}}
+
+/* --------------------------------------------------------------------------
+   Public landing: single action header, reliable official mark, aggregate charts.
+   -------------------------------------------------------------------------- */
+.brandLogoWrap{position:relative;display:grid;place-items:center;flex:0 0 46px;width:46px;height:46px;overflow:hidden;border-radius:14px;background:transparent}
+.brandLogoImage{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
+.brandLogoFallback{display:none;place-items:center;position:absolute;inset:0;border:1px solid rgba(var(--accent-rgb),.18);border-radius:14px;background:var(--accent-soft);color:var(--accent2);font-size:10px;font-weight:900;letter-spacing:-.04em}
+.brand .brandLogoWrap{width:46px;height:46px;flex-basis:46px}
+.authLogo .brandLogoWrap{width:72px;height:72px;flex-basis:72px;border-radius:20px}
+.workspaceLogo{width:46px;height:46px;flex-basis:46px;background:#fff;border-radius:15px}
+.workspaceLogo .brandLogoImage{padding:2px}
+.workspaceLogo .brandLogoFallback{background:#dcefe5;color:#0d6b4b}
+.brand{min-width:0;gap:12px}
+.brand b{font-size:17px;font-weight:850;letter-spacing:-.04em}
+.brand small{font-size:10px}
+.landingTopbar{min-height:74px;height:auto;padding:10px 18px 10px 22px;gap:18px;border-radius:20px!important}
+.landingTopActions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.landingTopActions .landingCta,.landingTopActions .landingGhost{min-height:42px;padding:10px 16px;border-radius:14px;font-size:12px;font-weight:800;box-shadow:none}
+.landingTopActions .landingCta{background:var(--accent)!important;background-image:none!important}
+.landingTopActions .landingGhost{background:var(--surface)!important;border:1px solid var(--border);color:var(--accent2);box-shadow:none}
+.themeModeSwitchPublic{width:164px;max-width:100%;padding:3px;margin:0;background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:15px!important;box-shadow:none!important}
+.themeModeSwitchPublic button{min-height:34px;gap:5px;padding:6px 5px;border-radius:11px;color:var(--muted);font-size:10px}
+.themeModeSwitchPublic button.themeModeActive{background:var(--accent-soft);border-color:transparent;color:var(--accent2);box-shadow:none}
+.themeModeSwitchPublic button svg{width:14px;height:14px;flex-basis:14px}
+.landingHero{min-height:0!important;padding-top:36px!important;padding-bottom:46px!important;align-items:center}
+.landingHero .heroCopy>*{animation-duration:.35s}
+.landingHero .heroCopy h1{margin-top:17px;margin-bottom:20px}
+.landingHero .heroCopy p{font-size:16px;line-height:1.75}
+.landingModules{gap:12px}
+.landingModule{background:var(--surface)!important;background-image:none!important;border:1px solid var(--border)!important;border-radius:22px!important;box-shadow:var(--shadow)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:17px 18px}
+.landingModule:hover{transform:translateY(-2px);box-shadow:0 7px 20px rgba(19,49,36,.08)!important}
+.landingModule .quickDockIcon{width:54px;height:54px;border-radius:17px;background:var(--accent-soft)!important;border:1px solid var(--border)!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.landingModule .quickDockIcon svg{width:24px;height:24px}
+.landingModuleText b{font-size:15px;font-weight:800}
+.landingModuleText small{font-size:11px;line-height:1.5}
+.landingModuleArrow{width:32px;height:32px;border-radius:12px;background:var(--accent-soft);color:var(--accent2)}
+.landingBadge{background:var(--surface)!important;border:1px solid var(--border)!important;box-shadow:none!important;color:var(--accent2)}
+.landingPulse{animation:none}
+.overviewOverlay{background:rgba(12,25,19,.56)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.landingModal{background:var(--surface)!important;background-image:none!important;border:1px solid var(--border)!important;border-radius:26px!important;box-shadow:0 18px 60px rgba(0,0,0,.22)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:26px!important;color:var(--ink)}
+.landingModalHead .quickDockIcon{background:var(--accent-soft)!important;border:1px solid var(--border)!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.landingModalHead h2{color:var(--ink)}
+.landingModalHead .eyebrow{color:var(--muted)}
+.landingClose{background:var(--surface)!important;border-color:var(--border)!important;color:var(--ink)!important;box-shadow:none!important}
+.landingModalFoot{border-color:var(--border)}
+.publicMetricsPanel{margin-top:22px;min-height:240px;padding:20px;border:1px solid var(--border);border-radius:22px;background:var(--surface-raised,var(--surface));}
+.publicMetricsState{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;text-align:center;color:var(--muted)}
+.publicMetricsState b{max-width:480px;color:var(--ink);font-size:15px;line-height:1.4}
+.publicMetricsState>span{max-width:520px;font-size:12px;line-height:1.6}
+.publicMetricsEmptyIcon{display:grid;place-items:center;width:44px;height:44px;margin-bottom:4px;border:1px solid var(--border);border-radius:15px;background:var(--accent-soft);color:var(--accent2);font-size:23px}
+.publicMetricSpinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:publicMetricSpin .8s linear infinite}
+@keyframes publicMetricSpin{to{transform:rotate(360deg)}}
+.publicMetricsContent{min-width:0}
+.publicMetricsHeading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.publicMetricKicker{display:block;margin-bottom:5px;color:var(--muted);font-size:9px;font-weight:850;letter-spacing:.13em}
+.publicMetricsHeading h3{margin:0;color:var(--ink);font-size:19px;letter-spacing:-.035em}
+.publicAggregatePill{display:inline-flex;align-items:center;min-height:29px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:var(--accent-soft);color:var(--accent2);font-size:10px;font-weight:800}
+.publicMonthlyChart{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px;min-height:190px;padding:8px 0 0}
+.publicMonthlyPoint{display:grid;grid-template-rows:20px minmax(96px,1fr) 22px;align-items:end;gap:6px;min-width:0;text-align:center}
+.publicChartValue{overflow:hidden;color:var(--muted);font-size:10px;font-weight:750;text-overflow:clip}
+.publicChartTrack{position:relative;display:flex;align-items:flex-end;justify-content:center;min-height:96px;height:100%;overflow:hidden;border-radius:10px 10px 5px 5px;background:var(--page-bg);border:1px solid var(--border)}
+.publicChartBar{width:68%;min-height:0;border-radius:8px 8px 3px 3px;background:var(--accent);transition:height .25s ease}
+.publicChartLabel{white-space:nowrap;font-size:9px;color:var(--muted);overflow:hidden;text-overflow:clip}
+.publicCategoryChart{display:grid;gap:14px}
+.publicCategoryPoint{display:grid;grid-template-columns:minmax(108px,150px) minmax(0,1fr) 52px;align-items:center;gap:12px}
+.publicCategoryLabel{font-size:12px;color:var(--ink);font-weight:650}
+.publicCategoryTrack{height:16px;overflow:hidden;border:1px solid var(--border);border-radius:999px;background:var(--page-bg)}
+.publicCategoryBar{height:100%;border-radius:999px;background:var(--accent);transition:width .25s ease}
+.publicCategoryPoint>b{text-align:right;color:var(--ink);font-size:12px;font-variant-numeric:tabular-nums}
+.publicMetricsPrivacy{margin:18px 0 0;padding-top:13px;border-top:1px solid var(--border);color:var(--muted);font-size:11px;line-height:1.6}
+.publicMetricsUpdated{display:block;margin-top:8px;color:var(--muted);font-size:10px}
+html[data-theme="amoled"] .publicRoot,html[data-theme="amoled"] .landing,html[data-theme="amoled"] .landingHero,html[data-theme="amoled"] .heroPublic{background:#000!important;background-image:none!important;color:var(--ink)!important}
+html[data-theme="amoled"] .landingAura{display:none!important}
+html[data-theme="amoled"] .landingTopbar{background:#050505!important;border-color:#252525!important;box-shadow:none!important}
+html[data-theme="amoled"] .brand small,html[data-theme="amoled"] .landingHero .heroCopy p{color:var(--muted)!important}
+html[data-theme="amoled"] .landingHero .heroCopy h1,html[data-theme="amoled"] .landingHero .heroCopy h1 em{color:var(--ink)!important;background:none!important;-webkit-text-fill-color:currentColor}
+html[data-theme="amoled"] .landingHero .heroCopy h1 em{color:#8fe8bd!important}
+html[data-theme="amoled"] .landingBadge,html[data-theme="amoled"] .landingModule,html[data-theme="amoled"] .landingModal,html[data-theme="amoled"] .publicMetricsPanel{background:#050505!important;background-image:none!important;border-color:#292929!important;box-shadow:none!important;color:var(--ink)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html[data-theme="amoled"] .landingBadge{color:#bdf0d4!important}
+html[data-theme="amoled"] .landingModuleText b,html[data-theme="amoled"] .landingModalHead h2,html[data-theme="amoled"] .publicMetricsHeading h3,html[data-theme="amoled"] .publicCategoryLabel,html[data-theme="amoled"] .publicCategoryPoint>b{color:var(--ink)!important}
+html[data-theme="amoled"] .landingModuleText small,html[data-theme="amoled"] .landingModalFoot span{color:var(--muted)!important}
+html[data-theme="amoled"] .landingModule .quickDockIcon,html[data-theme="amoled"] .landingModalHead .quickDockIcon,html[data-theme="amoled"] .publicMetricsEmptyIcon{background:#10281d!important;border-color:#284636!important;color:#bdf0d4!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html[data-theme="amoled"] .landingModuleArrow{background:#10281d;color:#bdf0d4}
+html[data-theme="amoled"] .landingTopActions .landingGhost,html[data-theme="amoled"] .themeModeSwitchPublic{background:#050505!important;border-color:#303030!important;color:var(--ink)!important}
+html[data-theme="amoled"] .themeModeSwitchPublic button{color:var(--muted)}
+html[data-theme="amoled"] .themeModeSwitchPublic button.themeModeActive{background:#153329;color:#bdf0d4;border-color:#2e5a43}
+html[data-theme="amoled"] .landingCta,html[data-theme="amoled"] .landingTopActions .landingCta{background:#c9f2d9!important;color:#092a1c!important;box-shadow:none!important}
+html[data-theme="amoled"] .overviewOverlay{background:rgba(0,0,0,.82)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html[data-theme="amoled"] .landingClose{background:#0b0b0b!important;border-color:#303030!important;color:var(--ink)!important}
+html[data-theme="amoled"] .publicChartTrack,html[data-theme="amoled"] .publicCategoryTrack{background:#0b0b0b;border-color:#252525}
+html[data-theme="amoled"] .publicChartBar,html[data-theme="amoled"] .publicCategoryBar{background:#8fe8bd}
+html[data-theme="amoled"] .publicMetricsPrivacy{border-color:#252525}
+@media(max-width:900px){
+ .landingTopbar{align-items:flex-start;flex-wrap:wrap;padding:12px!important}
+ .landingTopActions{justify-content:flex-start;width:100%}
+ .landingHero{min-height:0!important;padding-top:28px!important;gap:28px!important}
+ .landingMonthlyChart,.publicMonthlyChart{gap:4px}
+}
+@media(max-width:600px){
+ .landingTopbar{position:relative;top:auto}
+ .brandLogoWrap,.brand .brandLogoWrap{width:40px;height:40px;flex-basis:40px}
+ .landingTopActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ .landingTopActions .themeModeSwitchPublic{grid-column:1 / -1;width:100%}
+ .landingTopActions .landingCta,.landingTopActions .landingGhost{width:100%;padding:9px 8px;font-size:11px;min-width:0;white-space:normal}
+ .landingHero .heroCopy h1{font-size:clamp(37px,10vw,48px)}
+ .landingHero .heroCopy p{font-size:14px}
+ .landingModule{grid-template-columns:auto minmax(0,1fr) auto;gap:11px;padding:14px}
+ .landingModule .quickDockIcon{width:46px;height:46px}
+ .landingModuleText b{font-size:14px}
+ .landingModuleText small{font-size:10px}
+ .landingModal{padding:18px!important}
+ .landingModalHead{grid-template-columns:auto minmax(0,1fr) auto;gap:10px}
+ .landingModalHead .quickDockIcon{width:44px;height:44px}
+ .landingModalHead h2{font-size:22px}
+ .publicMetricsPanel{padding:12px;margin-top:16px}
+ .publicMonthlyChart{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:12px}
+ .publicMonthlyPoint{grid-template-rows:18px 78px 18px}
+ .publicChartTrack{min-height:78px}
+ .publicChartLabel{font-size:9px}
+ .publicCategoryPoint{grid-template-columns:minmax(83px,104px) minmax(0,1fr) 36px;gap:7px}
+ .publicCategoryLabel,.publicCategoryPoint>b{font-size:10px}
+ .publicCategoryTrack{height:13px}
+ .publicMetricsHeading h3{font-size:16px}
+}
