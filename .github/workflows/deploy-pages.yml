@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Unit, data and type checks
+        run: npm test
+
       - name: Build static export
         run: npm run build
 
