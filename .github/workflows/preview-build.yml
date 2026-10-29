@@ -21,6 +21,11 @@ jobs:
         with:
           node-version: 24
       - run: npm install
+      - name: Report dependency audit findings
+        run: |
+          npm audit --json > /tmp/audit.json || true
+          node -e "const a=require('/tmp/audit.json'); for(const [name,v] of Object.entries(a.vulnerabilities||{})){if(v.severity==='critical'||v.severity==='high') console.log(JSON.stringify({name,severity:v.severity,isDirect:v.isDirect,range:v.range,fixAvailable:v.fixAvailable,via:v.via.map(x=>typeof x==='string'?x:{name:x.name,title:x.title,url:x.url,range:x.range})}))}"
+      - run: node --experimental-strip-types --test tests/*.test.mjs
       - run: npx tsc --noEmit
       - run: npm run build
       - uses: actions/upload-artifact@v4
