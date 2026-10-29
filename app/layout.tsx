@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import './clinical-ui.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',
