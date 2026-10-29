@@ -1778,3 +1778,28 @@ html[data-theme="amoled"] .dynamicIslandText strong,html[data-theme="amoled"] .d
  .moduleEnter>.aq table.aqData td .aqStatus{min-height:20px!important;height:20px!important;padding:2px 6px!important;font-size:8px!important}
  .moduleEnter>.aq table.aqData td .aqBtn,.moduleEnter>.aq table.aqData td button.aqDeleteBtn{min-height:22px!important;height:22px!important;padding:2px 6px!important;font-size:8px!important;border-radius:6px!important}
 }
+
+
+/* Unit selection is a compact dialog, not a full-height empty drawer. */
+.moduleEnter .aqBack:has(.aqUnitPicker){justify-content:center!important;align-items:center!important;padding:18px!important}
+.moduleEnter .aqUnitPicker{
+ display:flex!important;flex-direction:column!important;flex:0 1 auto!important;
+ width:min(520px,calc(100vw - 28px))!important;height:auto!important;max-height:calc(100dvh - 36px)!important;
+ min-height:0!important;margin:0!important;overflow:hidden!important;border:1px solid var(--border)!important;
+ border-radius:16px!important;background:var(--surface)!important;color:var(--ink)!important;
+ box-shadow:0 22px 70px rgba(0,0,0,.22)!important
+}
+.moduleEnter .aqUnitPicker .aqDHead{flex:0 0 auto!important;align-items:center!important;gap:10px!important;padding:13px 15px!important;background:var(--surface)!important;border-color:var(--border)!important}
+.moduleEnter .aqUnitPicker .aqDHead .eyebrow{font-size:8px!important;letter-spacing:.1em!important}
+.moduleEnter .aqUnitPicker .aqDHead h4{font-size:17px!important;line-height:1.2!important;margin:3px 0!important;color:var(--ink)!important}
+.moduleEnter .aqUnitPicker .aqDHead p{display:none!important}
+.moduleEnter .aqUnitPicker .aqClose{width:28px!important;height:28px!important;flex:0 0 28px!important;border-radius:8px!important;font-size:16px!important;background:var(--surface-raised)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
+.moduleEnter .aqUnitPicker .aqBody{flex:0 1 auto!important;min-height:0!important;padding:12px 15px!important;overflow:auto!important}
+.moduleEnter .aqUnitPicker .aqBody .aqField>span{font-size:9px!important;margin:0 0 4px!important;color:var(--muted)!important}
+.moduleEnter .aqUnitPicker .aqBody .aqField select{width:100%!important;min-height:34px!important;height:34px!important;padding:6px 9px!important;border-radius:8px!important;background:var(--surface-raised)!important;color:var(--ink)!important;border-color:var(--border)!important;font-size:11px!important}
+.moduleEnter .aqUnitPicker .aqFoot{position:static!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex:0 0 auto!important;margin:10px -15px -12px!important;padding:10px 15px!important;border-top:1px solid var(--border)!important;background:var(--surface-raised)!important}
+.moduleEnter .aqUnitPicker .aqFoot .aqMetaText{display:none!important}
+.moduleEnter .aqUnitPicker .aqFoot .aqBtn{min-height:30px!important;height:30px!important;padding:6px 11px!important;border-radius:8px!important;font-size:10px!important}
+html[data-theme="amoled"] .moduleEnter .aqUnitPicker{background:#050505!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="amoled"] .moduleEnter .aqUnitPicker .aqDHead,html[data-theme="amoled"] .moduleEnter .aqUnitPicker .aqFoot{background:#080808!important;border-color:#292929!important}
+html[data-theme="amoled"] .moduleEnter .aqUnitPicker .aqBody .aqField select{background:#090909!important;color:#fff!important;border-color:#333!important}
