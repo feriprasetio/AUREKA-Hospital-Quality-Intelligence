@@ -3,6 +3,7 @@ import {Fragment,useCallback,useEffect,useMemo,useState} from 'react'
 import QualityExcelPastePanel from '@/components/QualityExcelPastePanel'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind } from '@/lib/aureka/indicator-engine'
+import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '@/lib/aureka/complaint-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import ClinicalDeathAuditWorkspace from '@/components/ClinicalDeathAuditWorkspace'
@@ -15,7 +16,7 @@ const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis 
 const STATUS=['Semua','Aktif','Draft','Ready for Review','Validated','Reopened']
 const YEARS=[2025,2026,2027,2028,2029]
 
-type Room={id:number;name:string};type Profile=Record<string,any>;type TeamStaffOption={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;directory_status:'available';room_id:number};type AuditLayout={roomId:number;fields:string[];indicators:string[];measurementGrain?:string;providerGroups?:{clinic:string;doctors:string[]}[]};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;numerator?:number|null;denominator?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null};type Patient=Record<string,any>
+type Room={id:number;name:string};type Profile=Record<string,any>;type TeamStaffOption={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;directory_status:'available';room_id:number};type AuditLayout={roomId:number;fields:string[];indicators:string[];measurementGrain?:string;providerGroups?:{clinic:string;doctors:string[]}[];fieldOptions?:Record<string,string[]>;fieldTypes?:Record<string,'select'|'date'|'datetime-local'|'time'|'number'|'textarea'|'text'>;indicatorControl?:'select'|'radio'};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;numerator?:number|null;denominator?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null};type Patient=Record<string,any>
 
 const CSS=`
 .aq{display:grid;gap:14px}.aqInlineEditor{display:grid;gap:0;overflow:visible;border-radius:18px;box-shadow:0 8px 28px rgba(19,48,36,.08);background:rgba(255,255,255,.82)}.aqInlineEditor .aqDHead{padding:17px 19px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.aqInlineEditor .aqDHead h4{font-size:22px;margin:4px 0;letter-spacing:-.04em}.aqInlineEditor .aqBody{padding:16px 19px;max-height:none;overflow:visible}.aqInlineEditor .aqFoot{position:sticky;bottom:0;z-index:4;padding:12px 19px;border-top:1px solid var(--line);background:rgba(248,251,249,.96);backdrop-filter:blur(10px);display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:0 0 18px 18px}.aqInlineEditorRow td{padding:12px!important;background:rgba(var(--accent-rgb),.045)!important;white-space:normal!important}.aqInlineEditorRow:hover td{background:rgba(var(--accent-rgb),.045)!important}.aq .glass{position:relative;min-width:0;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 3px rgba(19,48,36,.045)}.aqHead{padding:20px 22px;display:flex;justify-content:space-between;gap:18px}.aqHead h3{margin:5px 0;font-size:29px;letter-spacing:-.055em}.aqHead p{margin:0;max-width:760px;color:var(--muted);font-size:12px;line-height:1.55}.aqActions{display:flex;gap:8px;flex-wrap:wrap}.aqBtn{min-height:42px;border:1px solid rgba(255,255,255,.78);background:rgba(255,255,255,.44);color:#264237;border-radius:13px;padding:10px 13px;font-size:11px;font-weight:900}.aqBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}.aqTabs{padding:6px;display:flex;gap:7px;flex-wrap:wrap}.aqTab{border:1px solid var(--line);background:#fff;color:#52625b;padding:9px 13px;border-radius:10px;font-size:12px;font-weight:750;min-height:40px}.aqTab.active{background:var(--accent-soft);border-color:rgba(var(--accent-rgb),.24);color:var(--accent2)}.aqFilters{padding:17px 18px}.aqGrid{display:grid;grid-template-columns:1fr .55fr .75fr 1.8fr;gap:10px}.aqField span,.aqLabel{display:block;font-size:10px;color:#6f7d75;font-weight:900;text-transform:none;letter-spacing:.055em;margin:0 0 6px 2px}.aqField input,.aqField select,.aqField textarea,.aqCat input,.aqCat select{width:100%;border:1px solid rgba(35,63,50,.12);border-radius:14px;background:rgba(255,255,255,.56);padding:11px 13px;font-size:13px;color:var(--ink);outline:none;min-height:46px}.aqField textarea{min-height:88px;resize:vertical}.aqMonths{display:grid;grid-template-columns:repeat(13,minmax(70px,1fr));gap:7px;overflow:auto;margin-top:6px}.aqMonths button{border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.34);border-radius:13px;padding:10px 8px;color:#506059;font-weight:850;font-size:11px;white-space:nowrap}.aqMonths .active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}.aqKpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.aqKpi .glass{padding:16px 17px}.aqKpi span{font-size:10px;color:#6c7a73;font-weight:900;text-transform:none}.aqKpi strong{display:block;font-size:27px;margin-top:5px}.aqKpi small{color:var(--muted);font-size:10px}.aqTable{overflow:hidden}.aqTableHead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}.aqTableHead h4{margin:0;font-size:18px}.aqTableHead p{margin:4px 0 0;color:var(--muted);font-size:11px}.aqMeta{display:flex;gap:7px;flex-wrap:wrap}.aqPill{padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.66);font-size:10px;font-weight:850}.aqPill.green{background:var(--accent-soft);color:var(--accent2);border:0}.aqNotice{padding:10px 17px;background:#fff8e7;color:#7b5d25;font-size:11px}.aqWrap{overflow:auto;max-height:calc(100vh - 330px);max-width:100%;width:100%;min-width:0;overscroll-behavior:contain}table.aqData{width:100%;max-width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:12px}table.aqData th,table.aqData td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:normal;overflow-wrap:anywhere;word-break:normal;vertical-align:top}table.aqData th{position:sticky;top:0;background:rgba(249,252,250,.94);font-size:9px;color:#748078;text-transform:none;z-index:3}table.aqData tbody tr{cursor:pointer}.aqName{font-weight:900;color:var(--accent2)}.aqSub{font-size:10px;color:var(--muted)}.aqStatus{padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900;background:#eef1ef}.aqStatus.aktif{background:#e8f7ef;color:#216b49}.aqStatus.ready-for-review{background:#edf2ff;color:#4c5f98}.aqStatus.validated{background:var(--accent-soft);color:var(--accent2)}.aqLos,.aqFilled{font-weight:900;color:var(--accent2)}.aqEmpty{min-height:120px;display:grid;place-items:center;color:var(--muted);font-size:11px}.aqBack{position:fixed;inset:0;z-index:100;background:rgba(11,22,17,.24);backdrop-filter:blur(4px);display:flex;justify-content:flex-end}.aqDrawer{height:100%;width:min(950px,96vw);background:rgba(248,251,249,.98);box-shadow:-24px 0 65px rgba(0,0,0,.18);display:flex;flex-direction:column}.aqWide{width:min(1180px,97vw)}.aqDHead{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:20px}.aqDHead h4{font-size:24px;margin:4px 0}.aqDHead p{margin:0;color:var(--muted);font-size:11px}.aqClose{width:38px;height:38px;border:0;background:#eceeed;border-radius:12px;font-size:22px}.aqBody{padding:18px 22px;overflow:auto;min-height:0;flex:1}.aqEpisode{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.aqDerived{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:13px 0}.aqDerived div{padding:11px 13px;background:#fff;border:1px solid var(--line);border-radius:14px}.aqDerived span{font-size:9px;color:var(--muted)}.aqDerived strong{display:block;margin-top:4px;font-size:13px}.aqGuard{padding:11px 13px;border-radius:14px;background:#e9f7ef;color:#1e6c43;font-size:11px;line-height:1.5}.aqSection{display:flex;justify-content:space-between;align-items:end;margin:15px 0 8px}.aqSection h5{margin:0;font-size:17px}.aqSection span{font-size:10px;color:var(--muted)}.aqInd{background:#fff;border:1px solid var(--line);border-radius:17px;margin:11px 0;overflow:hidden}.aqInd.hit{border-color:rgba(var(--accent-rgb),.3)}.aqIHead{padding:14px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.aqIHead strong{font-size:13px;line-height:1.42}.aqMetaText{font-size:9px;color:var(--muted);margin-top:4px}.aqMatch{font-size:9px;background:var(--accent-soft);color:var(--accent2);padding:5px 7px;border-radius:999px;font-weight:900;white-space:nowrap}.aqIBody{padding:15px}.aqQ{font-size:16px;font-weight:900;line-height:1.42;margin-bottom:9px}.aqTwo{display:grid;grid-template-columns:1fr 1fr;gap:10px}.aqAuto{padding:11px 13px;background:#eef8f4;border:1px solid #dcefe7;border-radius:13px}.aqAuto span,.aqAuto small{display:block;font-size:9px;color:var(--muted)}.aqAuto strong{display:block;font-size:18px;color:var(--accent2)}.aqRadio{display:flex;gap:8px;flex-wrap:wrap}.aqRadio label{display:inline-flex;align-items:center;gap:7px;border:1px solid #d8dadc;background:#fff;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:800}.aqEvidence{border-top:1px dashed #d9dcda;margin-top:12px;padding-top:11px}.aqFoot{padding:13px 22px;border-top:1px solid var(--line);background:rgba(255,255,255,.82);display:flex;justify-content:space-between;align-items:center;gap:10px}.aqCat{padding:18px 22px;overflow:auto}.aqCatFilters{display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:9px;margin-bottom:12px}.aqCatWrap{overflow:auto;max-height:calc(100vh - 220px)}table.aqCatalog{width:100%;min-width:1100px;border-collapse:separate;border-spacing:0}table.aqCatalog th,table.aqCatalog td{font-size:10px;padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}table.aqCatalog th{font-size:8px;color:#748078;position:sticky;top:0;background:#f8fbf9}table.aqCatalog td:nth-child(4){white-space:normal;min-width:390px}.aqCatalog td:nth-child(8),.aqCatalog td:nth-child(9){white-space:normal;min-width:320px;max-width:520px}@media(max-width:1180px){.aqGrid{grid-template-columns:1fr 1fr 1fr}.aqGrid label:last-child{grid-column:1/-1}.aqEpisode{grid-template-columns:1fr 1fr}.aqCatFilters{grid-template-columns:1fr 1fr}.aqMonths{grid-template-columns:repeat(13,86px)}}@media(max-width:850px){.aqHead{display:block}.aqActions{margin-top:12px}.aqGrid{grid-template-columns:1fr 1fr}.aqKpi{grid-template-columns:1fr}.aqWrap{max-height:calc(100vh - 350px)}.aqDrawer,.aqWide{width:100%}.aqDerived{grid-template-columns:1fr}.aqTwo{grid-template-columns:1fr}.aqEpisode{grid-template-columns:1fr 1fr}.aqFoot{display:block}.aqCatFilters{grid-template-columns:1fr 1fr}}@media(max-width:560px){.aqGrid{grid-template-columns:1fr}.aqGrid label:last-child{grid-column:auto}.aqEpisode{grid-template-columns:1fr}.aqIHead{display:block}.aqMatch{display:inline-flex;margin-top:7px}.aqCatFilters{grid-template-columns:1fr}.aqMeta{margin-top:8px}}
@@ -23,6 +24,7 @@ const CSS=`
 function ymd(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?0:d.getFullYear()}
 function mon(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?0:d.getMonth()+1}
 function fmt(v:string){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
+function fmtDateTime(v:string){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}
 function los(a:string,b:string){if(!a)return 0;const x=new Date(a).getTime(),y=(b?new Date(b):new Date()).getTime();return Number.isFinite(x)&&Number.isFinite(y)?Math.max(1,Math.ceil((y-x)/86400000)):0}
 function tm(v:string){if(!/^\d\d:\d\d$/.test(v))return null;const[a,b]=v.split(':').map(Number);return a<24&&b<60?a*60+b:null}
 function diff(a:string,b:string){const x=tm(a),y=tm(b);return x==null||y==null?null:y>=x?y-x:y+1440-x}
@@ -82,6 +84,23 @@ function normalizePastedDate(value:string):string|null{
  }
  return null
 }
+function normalizePastedDateTime(value:string):string|null{
+ const v=String(value??'').trim()
+ if(!v)return null
+ const serial=Number(v.replace(',','.'))
+ if(/^\d+(?:[.,]\d+)?$/.test(v)&&Number.isFinite(serial)&&serial>=20000&&serial<=80000){
+  const d=new Date(Date.UTC(1899,11,30)+serial*86400000)
+  return Number.isNaN(d.getTime())?null:d.toISOString().slice(0,16)
+ }
+ const iso=v.match(/^(\d{4}-\d{2}-\d{2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/)
+ const dmy=v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/)
+ let datePart='',hour=0,minute=0,second=0
+ if(iso){datePart=iso[1];hour=Number(iso[2]??0);minute=Number(iso[3]??0);second=Number(iso[4]??0)}
+ else if(dmy){const dd=Number(dmy[1]),mm=Number(dmy[2]),yyyy=Number(dmy[3]);datePart=String(yyyy)+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');hour=Number(dmy[4]??0);minute=Number(dmy[5]??0);second=Number(dmy[6]??0)}
+ else return null
+ if(!normalizePastedDate(datePart)||hour<0||hour>23||minute<0||minute>59||second<0||second>59)return null
+ return datePart+'T'+String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')
+}
 function parsePastedNumber(value:string):number|null{
  let v=String(value??'').trim().replace(/\s/g,'')
  if(!v)return null
@@ -92,6 +111,8 @@ function parsePastedNumber(value:string):number|null{
 }
 function parsePastedIndicator(p:Profile,raw:string):{response:Resp;matched:boolean}{
  const base=empty(p),norm=normalizeExactHeader(raw),opts=optionsFor(p)
+ const logbookOption=matchLogbookOption(raw,opts)
+ if(logbookOption)return {response:{...base,answer:String(logbookOption.label),code:validResponseCode(logbookOption.code)},matched:true}
  const exact=opts.find((o:any)=>normalizeExactHeader(o.label)===norm)
  if(exact)return {response:{...base,answer:String(exact.label),code:validResponseCode(exact.code)},matched:true}
  const coded=opts.filter((o:any)=>o.code!=null&&String(o.code)===raw.trim())
@@ -163,6 +184,9 @@ function isComputedField(field:string,layout:AuditLayout|undefined){
 }
 function inputKind(field:string,layout:AuditLayout|undefined){
  if(isComputedField(field,layout))return'computed'
+ const declared=layout?.fieldTypes?.[field]
+ if(declared)return declared
+ if(layout?.fieldOptions?.[field]?.length)return'select'
  const n=normHeader(field)
  if(layout?.providerGroups?.length&&['klinik','dokter'].includes(n))return'select'
  if(n.startsWith('tanggal ')||n.includes('jatuh tempo')||n.includes('deadline'))return'date'
@@ -197,7 +221,7 @@ function computedField(field:string,formData:Record<string,any>,layout:AuditLayo
   const end=formData?.['Tanggal Keluar']??''
   return start?los(String(start),String(end)):null
  }
- if(n==='lamanya tindak lanjut')return dateDiffDays(formData?.['Tanggal Aduan'],formData?.['Tanggal Tindak Lanjut'])
+ if(n==='lamanya tindak lanjut')return calculateInclusiveDurationDays(formData?.['Tanggal Aduan'],formData?.['Tanggal Tindak Lanjut'])
  if(n==='kecepatan respon menit'){
   const start=String(formData?.['Waktu Permintaan']??''),end=String(formData?.['Waktu Diantar']??'')
   return start&&end?diff(start,end):null
@@ -217,7 +241,7 @@ function fieldValue(p:Patient,field:string,layout:AuditLayout|undefined){
   if(/length of stay|lenght of stay|los/i.test(field))return `${v} hari`
   return v
  }
- if(f[field]!==undefined&&f[field]!==null&&f[field]!==''){if(inputKind(field,layout)==='date')return fmt(String(f[field]));return f[field]}
+ if(f[field]!==undefined&&f[field]!==null&&f[field]!==''){if(inputKind(field,layout)==='date')return fmt(String(f[field]));if(inputKind(field,layout)==='datetime-local')return fmtDateTime(String(f[field]));return f[field]}
  const n=normHeader(field)
  if(n==='nama pasien')return p.name??''
  if(n==='nama mahasiswa')return p.name??''
@@ -248,6 +272,7 @@ function inputFieldValue(p:Patient,field:string,layout:AuditLayout|undefined){
   const d=new Date(String(raw))
   return Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10)
  }
+ if(inputKind(field,layout)==='datetime-local')return normalizePastedDateTime(String(form[field]??fieldValue(p,field,layout)??''))??''
  return fieldValue(p,field,layout)??''
 }
 function recordTitle(p:Patient){
@@ -319,6 +344,16 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const activeGrain=useMemo(()=>dominantGrain(profiles,activeLayout),[profiles,activeLayout])
  const selectedLayout=useMemo(()=>selected?(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??'')):activeLayout,[selected,activeLayout])
  const patientProfiles=useMemo(()=>layoutProfiles(profiles,activeLayout),[profiles,activeLayout])
+ const complaintMetricSummary=useMemo(()=>{
+   if(Number(activeLayout?.roomId)!==1)return null
+   const rows=patients.filter(p=>Number(p.roomId)===1&&(!monthFilter||mon(String(p.admit??''))===monthFilter))
+   const responseProfile=profiles.find(p=>Number(p.room_id)===1&&String(p.code)==='1.1')
+   const comprehensionProfile=profiles.find(p=>Number(p.room_id)===1&&String(p.code)==='1.2')
+   const response=summarizeOptionResponses(rows.map(p=>p.indicatorValues?.['1.1']).filter(Boolean),Array.isArray(responseProfile?.options_json)?responseProfile.options_json:[])
+   const comprehension=summarizeOptionResponses(rows.map(p=>p.indicatorValues?.['1.2']).filter(Boolean),Array.isArray(comprehensionProfile?.options_json)?comprehensionProfile.options_json:[])
+   const durations=rows.map(p=>calculateInclusiveDurationDays(p.formData?.['Tanggal Aduan'],p.formData?.['Tanggal Tindak Lanjut'])).filter((v):v is number=>v!==null&&Number.isFinite(v))
+   return {records:rows.length,response,comprehension,avgDuration:durations.length?durations.reduce((a,b)=>a+b,0)/durations.length:null,durationN:durations.length}
+ },[activeLayout,patients,monthFilter,profiles])
  const summaryFields=useMemo(()=>{
    const fields=activeLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Diagnosa Tegak','DPJP']
    const patterns=[/nama pasien|nama mahasiswa|nama mpp|nama pelapor|nama tenaga|uraian temuan|insiden yang terjadi/i,/no\.? rekam medis|no\.? rm|kode laporan|kode insiden/i,/tanggal masuk|tanggal audit|tanggal aduan|tanggal kunjungan|tanggal permintaan|tanggal kejadian|tanggal laporan/i,/tanggal keluar|tanggal selesai/i,/diagnosa|diagnosis|jenis kejadian|jenis layanan|klinik|unit kerja|ruangan/i,/dpjp|dokter|petugas|penanggung jawab/i]
@@ -457,7 +492,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const formData:Record<string,any>={}
    ;(layout.fields??[]).forEach(field=>{formData[field]=inputKind(field,layout)==='computed'?'':''})
    const dateField=primaryDateField(layout)
-   if(dateField)formData[dateField]=today
+   if(dateField){const now=new Date();formData[dateField]=inputKind(dateField,layout)==='datetime-local'?today+'T'+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'):today}
    const grain=dominantGrain(profiles,layout)
    const admit=recordDateFrom(formData,layout,today)
    const selectedRecord={id:`LOCAL-${Date.now()}`,recordId:null,roomId:canonicalRoomId,unit:unitName,layoutOverride:layout,name:String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??''),rm:String(formData['No. Rekam Medis']??formData['No. RM']??''),sex:String(formData['Jenis Kelamin']??''),age:null,admit,discharge:String(formData['Tanggal Keluar']??''),diagnosis:String(formData['Diagnosa Tegak']??formData['Diagnosa']??''),dpjp:String(formData['DPJP']??formData['Dpjp']??''),status:'Draft',indicatorValues:{},formData,staffIdByField:{},measurementGrain:grain,source:'local',updatedAt:null}
@@ -509,6 +544,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
     if(inputKind(field,activeLayout)==='date'){
      const normalized=normalizePastedDate(raw)
      if(!normalized){importWarnings.push('Tanggal pada kolom "'+field+'" di baris Excel '+sourceRow+' tidak dikenali dan dikosongkan.');return}
+     formData[field]=normalized
+    }else if(inputKind(field,activeLayout)==='datetime-local'){
+     const normalized=normalizePastedDateTime(raw)
+     if(!normalized){importWarnings.push('Tanggal/waktu pada kolom "'+field+'" di baris Excel '+sourceRow+' tidak dikenali dan dikosongkan.');return}
      formData[field]=normalized
     }else formData[field]=raw
    })
@@ -673,7 +712,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      {kindNow==='minutes'&&<div className="aqTwo"><label className="aqField"><span>Waktu aktual (menit)</span><input disabled={isValidator} type="number" min="0" value={r.minutes??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,minutes:v});setResp(p,{minutes:v,code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Interpretasi</span><strong>{r.minutes==null?'Belum diisi':metricMet==null?'Target perlu dilengkapi':metricMet?'Memenuhi target':'Tidak memenuhi target'}</strong></div></div>}
      {kindNow==='numeric'&&<label className="aqField"><span>Nilai indikator</span><input disabled={isValidator} type="number" step="0.01" value={r.value??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,value:v});setResp(p,{value:v,code:met==null?null:met?1:3})}}/></label>}
      {kindNow==='occurrence'&&!genericOptions&&<div className="aqRadio"><label><input disabled={isValidator} type="radio" checked={r.occurrence==='Tidak terjadi'} onChange={()=>setResp(p,{occurrence:'Tidak terjadi',code:1})}/> Tidak terjadi</label><label><input disabled={isValidator} type="radio" checked={r.occurrence==='Terjadi'} onChange={()=>setResp(p,{occurrence:'Terjadi',code:3})}/> Terjadi</label></div>}
-     {genericOptions&&<div className="aqRadio">{opts.map((o:any,i:number)=><label key={`${k}-opt-${i}`}><input disabled={isValidator} type="radio" name={`ind-${k}`} checked={r.answer===o.label} onChange={()=>setResp(p,{answer:o.label,code:o.code??null})}/><span>{o.label}</span></label>)}</div>}
+     {genericOptions&&(selectedLayout?.indicatorControl==='select'
+       ? <label className="aqField"><span>Pilih hasil sesuai Logbook</span><select disabled={isValidator} value={String(r.answer??'')} onChange={(e:any)=>{const selectedOption=opts.find((o:any)=>String(o.label)===e.target.value);setResp(p,{answer:e.target.value,code:selectedOption?.code??null})}}><option value="">Pilih hasil…</option>{opts.map((o:any,i:number)=><option key={`${k}-opt-${i}`} value={String(o.label)}>{String(o.label)}</option>)}</select></label>
+       : <div className="aqRadio">{opts.map((o:any,i:number)=><label key={`${k}-opt-${i}`}><input disabled={isValidator} type="radio" name={`ind-${k}`} checked={r.answer===o.label} onChange={()=>setResp(p,{answer:o.label,code:o.code??null})}/><span>{o.label}</span></label></div>)}
      {!genericOptions&&kindNow==='compliance'&&<div className="aqRadio"><label><input disabled={isValidator} type="radio" checked={r.answer==='Sesuai'} onChange={()=>setResp(p,{answer:'Sesuai',code:1})}/> Sesuai</label><label><input disabled={isValidator} type="radio" checked={r.answer==='Exception'} onChange={()=>setResp(p,{answer:'Exception',code:2})}/> Justified Exception</label><label><input disabled={isValidator} type="radio" checked={r.answer==='Tidak sesuai'} onChange={()=>setResp(p,{answer:'Tidak sesuai',code:3})}/> Tidak sesuai</label></div>}
      {r.answer==='Lainnya — tuliskan alasan/temuan'&&<label className="aqField" style={{marginTop:10}}><span>Alasan / temuan wajib</span><textarea disabled={isValidator} value={r.notes??''} onChange={(e:any)=>setResp(p,{notes:e.target.value})} placeholder="Tuliskan alasan/temuan untuk review superadmin…"/></label>}
      <div className="aqAuto" style={{marginTop:10}}><span>Hasil validasi indikator</span><strong>{resultLabel}</strong><small>{responseComplete(p,r)?'Respons lengkap':'Belum lengkap'}</small></div>
@@ -727,7 +768,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
            ? <textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
            : kindNow==='select'&&normHeader(field)==='klinik'
              ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>
-             : <input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+             : kindNow==='select'&&selectedLayout?.fieldOptions?.[field]
+       ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih {field.toLowerCase()}…</option>{[...new Set([...(String(raw??'')&&!selectedLayout.fieldOptions[field].includes(String(raw))?[String(raw)]:[]),...selectedLayout.fieldOptions[field]])].map((option:string)=><option key={option} value={option}>{option}</option>)}</select>
+       : <input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='datetime-local'?'datetime-local':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
      }
    </label>
  }
@@ -745,6 +788,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    {showContainerTabs&&<nav className="glass aqTabs">{CONTAINERS.map(x=><button key={x} className={`aqTab ${container===x?'active':''}`} onClick={()=>setContainer(x)}>{x}</button>)}</nav>}
    {container==='Audit Klinis dan Kematian'?<ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator}/>:<>
      <section className="glass aqFilters"><div className="aqGrid"><label className="aqField"><span>Unit</span><select aria-label="Unit" title="Unit" value={roomId??''} disabled={!isAdmin} onChange={(e:any)=>setRoomId(e.target.value?Number(e.target.value):null)}>{isAdmin&&<option value="">Semua Unit</option>}{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><label className="aqField"><span>Tahun</span><select aria-label="Tahun" title="Tahun" value={year} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label><label className="aqField"><span>Status</span><select aria-label="Status" title="Status catatan" value={status} onChange={(e:any)=>setStatus(e.target.value)}>{STATUS.map(s=><option key={s} value={s}>{s==='Aktif'?(activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Aktif (belum pulang)':'Aktif / belum selesai'):s==='Draft'?'Draf':s==='Ready for Review'?'Siap ditinjau':s==='Validated'?'Tervalidasi':s}</option>)}</select></label><label className="aqField aqLocalSearch"><span>Pencarian</span><input value={search} onChange={(e:any)=>setSearch(e.target.value)} placeholder="Nama / No. RM / diagnosis / DPJP…"/></label><label className="aqField aqMonthSelect"><span>Bulan Pengamatan</span><select aria-label="Bulan pengamatan" title="Bulan pengamatan" value={monthFilter} onChange={(e:any)=>setMonthFilter(Number(e.target.value))}><option value={0}>Semua bulan</option>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select></label></div></section>
+      {complaintMetricSummary&&<><style>{`.aqComplaintKpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.aqComplaintKpi .glass{padding:14px 16px;min-width:0}.aqComplaintKpi span{font-size:10px;color:#6c7a73;font-weight:900}.aqComplaintKpi strong{display:block;font-size:23px;margin-top:5px;overflow-wrap:anywhere}.aqComplaintKpi small{font-size:10px;color:var(--muted)}@media(max-width:850px){.aqComplaintKpi{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.aqComplaintKpi{grid-template-columns:1fr}}`}</style><section className="aqComplaintKpi" aria-label="Ringkasan indikator pengaduan"><div className="glass"><span>Total aduan</span><strong>{complaintMetricSummary.records}</strong><small>{monthFilter?MONTHS[monthFilter-1]+' ':''}tahun {year}</small></div><div className="glass"><span>Respon tepat waktu</span><strong>{complaintMetricSummary.response.rate==null?'—':complaintMetricSummary.response.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.response.numerator}/{complaintMetricSummary.response.denominator} · target ≥ 75%</small></div><div className="glass"><span>Pasien tidak mengerti informasi</span><strong>{complaintMetricSummary.comprehension.rate==null?'—':complaintMetricSummary.comprehension.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.comprehension.numerator}/{complaintMetricSummary.comprehension.denominator} · target ≤ 5%</small></div><div className="glass"><span>Rata-rata tindak lanjut</span><strong>{complaintMetricSummary.avgDuration==null?'—':complaintMetricSummary.avgDuration.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+' hari'}</strong><small>{complaintMetricSummary.durationN} aduan bertanggal lengkap</small></div></section></>}
       <div className="aqDataBar" aria-label="Ringkasan logbook">
        <div><span>{activeGrain==='patient_episode'?'Total episode':activeGrain==='provider_day'?'Catatan dokter/hari':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='event'?'Kejadian':activeGrain==='activity'?'Aktivitas':'Total catatan'}</span><strong>{yearPatients.length}</strong></div>
        <div><span>Dengan data</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed|ready for review|validated)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong></div>
