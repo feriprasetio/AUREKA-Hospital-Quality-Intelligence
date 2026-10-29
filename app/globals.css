@@ -1498,3 +1498,62 @@ html[data-theme="amoled"] .workspaceSupportMessage.mine,html[data-theme="amoled"
  .moduleEnter .aqDataBar>div strong{font-size:10px!important}
  .moduleEnter .aqDataBar .aqImportButton{padding:3px 6px!important;font-size:8px!important}
 }
+
+
+/* Compact per-module filter strips that keep their controls aligned in one row. */
+.moduleEnter .rmFilterGrid{
+ display:grid!important;grid-template-columns:minmax(140px,1.25fr) minmax(145px,1.3fr) repeat(3,minmax(90px,1fr))!important;
+ align-items:center;gap:6px!important;padding:7px 9px!important;margin:0 0 6px!important;border:1px solid var(--border);border-radius:10px;background:var(--surface)
+}
+.moduleEnter .rmFilterGrid>select,.moduleEnter .rmFilterGrid .rmSearch{
+ min-width:0;height:31px!important;min-height:31px!important;padding:4px 8px!important;border-radius:8px!important;font-size:10px!important
+}
+.moduleEnter .rmFilterGrid .rmSearch{display:flex;align-items:center;gap:5px}
+.moduleEnter .rmFilterGrid .rmSearch input{width:100%;min-width:0;height:25px!important;min-height:25px!important;padding:3px 4px!important;border:0!important;background:transparent!important;box-shadow:none!important;font-size:10px!important;outline:none!important}
+.moduleEnter .psFilterGrid{
+ display:grid!important;grid-template-columns:minmax(150px,1.35fr) minmax(110px,.8fr) minmax(125px,1fr) minmax(95px,.65fr)!important;
+ align-items:end;gap:6px!important;padding:7px 9px!important;margin:0 0 6px!important;border:1px solid var(--border);border-radius:10px;background:var(--surface)
+}
+.moduleEnter .psFilter{min-width:0;gap:3px!important}
+.moduleEnter .psFilter>label{font-size:8px!important;margin:0 0 2px!important}
+.moduleEnter .psFilter :is(input,select){min-width:0;height:31px!important;min-height:31px!important;padding:4px 8px!important;border-radius:8px!important;font-size:10px!important}
+.moduleEnter .psFilter .psPill{min-height:30px!important;padding:6px 7px!important;font-size:9px!important}
+.moduleEnter .oppeFilters{
+ display:grid!important;grid-template-columns:minmax(85px,.65fr) minmax(105px,.8fr) minmax(130px,1fr) auto!important;
+ align-items:end;gap:6px!important;padding:7px 9px!important;border-radius:10px!important;margin:0 0 6px!important
+}
+.moduleEnter .oppeField{min-width:0;gap:3px!important}
+.moduleEnter .oppeField span{font-size:8px!important;margin:0 0 2px!important}
+.moduleEnter .oppeField select{min-width:0;min-height:31px!important;height:31px!important;padding:4px 8px!important;border-radius:8px!important;font-size:10px!important}
+.moduleEnter .oppeFilterMeta{align-self:end;padding:7px 8px!important;font-size:8px!important;line-height:1.25!important;white-space:nowrap}
+.moduleEnter .cpScoreGrid{
+ display:flex!important;align-items:stretch;flex-wrap:nowrap;gap:0!important;width:100%;overflow-x:auto;overflow-y:hidden;
+ padding:3px 6px!important;margin:0 0 6px!important;border:1px solid var(--border);border-radius:9px;background:var(--surface);scrollbar-width:none
+}
+.moduleEnter .cpScoreGrid::-webkit-scrollbar{display:none}
+.moduleEnter .cpScore{
+ display:flex!important;flex:1 0 120px;align-items:center;gap:6px;min-width:0;min-height:28px;padding:4px 8px!important;
+ border:0!important;border-right:1px solid var(--border)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important
+}
+.moduleEnter .cpScore:last-child{border-right:0!important}
+.moduleEnter .oppeClinicalStats{
+ display:flex!important;gap:0!important;align-items:stretch;width:100%;overflow-x:auto;padding:3px 6px!important;margin:4px 0 6px!important;
+ border:1px solid var(--border);border-radius:9px;background:var(--surface);scrollbar-width:none
+}
+.moduleEnter .oppeClinicalStats>div{
+ display:flex;align-items:center;gap:5px;flex:1 0 auto;min-width:0;padding:3px 8px!important;border:0!important;border-right:1px solid var(--border)!important;background:transparent!important
+}
+.moduleEnter .oppeClinicalStats>div:last-child{border-right:0!important}
+.moduleEnter .oppeClinicalStats span{font-size:8px!important;white-space:nowrap;color:var(--muted)}
+.moduleEnter .oppeClinicalStats strong{font-size:10px!important;white-space:nowrap}
+@media(max-width:1180px) and (min-width:761px){
+ .moduleEnter .rmFilterGrid{grid-template-columns:minmax(115px,1.1fr) minmax(120px,1.2fr) repeat(3,minmax(75px,.8fr))!important}
+ .moduleEnter .psFilterGrid{grid-template-columns:minmax(120px,1.2fr) minmax(90px,.8fr) minmax(105px,1fr) minmax(78px,.65fr)!important}
+}
+@media(max-width:760px){
+ .moduleEnter .rmFilterGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .moduleEnter .psFilterGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .moduleEnter .oppeFilters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .moduleEnter .oppeFilterMeta{grid-column:1/-1;white-space:normal}
+ .moduleEnter .cpScoreGrid{flex-wrap:wrap}
+}
