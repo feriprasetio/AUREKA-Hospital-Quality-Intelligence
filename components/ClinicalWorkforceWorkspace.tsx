@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import type { Room } from '@/lib/aureka/workspace-types'
 import StaffDirectoryWorkspace from '@/components/StaffDirectoryWorkspace'
 import StaffTeamWorkspace from '@/components/StaffTeamWorkspace'
 import OppeAuditWorkspace from '@/components/OppeAuditWorkspace'
