@@ -217,6 +217,7 @@ export default function AmbulanceExcelImportDialog({
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
   const [excludedRows, setExcludedRows] = useState<ExcludedRow[]>([])
+  const [formulaErrorCount, setFormulaErrorCount] = useState(0)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -228,6 +229,7 @@ export default function AmbulanceExcelImportDialog({
     setFile(null)
     setRows([])
     setExcludedRows([])
+    setFormulaErrorCount(0)
     setErrors([])
     setParsing(false)
     setImporting(false)
@@ -244,6 +246,7 @@ export default function AmbulanceExcelImportDialog({
     setFile(selectedFile)
     setRows([])
     setExcludedRows([])
+    setFormulaErrorCount(0)
     setErrors([])
     setResult(null)
     setErrorMessage('')
@@ -291,6 +294,7 @@ export default function AmbulanceExcelImportDialog({
       const excluded: ExcludedRow[] = []
       const rowErrors: string[] = []
       let sourceRows = 0
+      let formulaErrors = 0
       for (let excelRow = 3; excelRow <= Math.min(worksheet.rowCount, 5003); excelRow++) {
         const sourceRow = worksheet.getRow(excelRow)
         if (!rowHasData(sourceRow, columns)) continue
@@ -314,6 +318,7 @@ export default function AmbulanceExcelImportDialog({
         const rawIndicator = readOptional(sourceRow, columns, 'indicator')
         const formulaColumn = findHeader(columns, REQUIRED_HEADERS.formula)!
         const formulaValue = formulaCellValue(sourceRow.getCell(formulaColumn))
+        if (typeof formulaValue === 'string' && /^#(VALUE|NUM|REF|DIV\/0|N\/A|NAME)!?$/i.test(formulaValue.trim())) formulaErrors += 1
 
         if (!requestDate) {
           const reason = readCellValue(sourceRow.getCell(dateColumn!)) == null || cellText(sourceRow.getCell(dateColumn!)) === ''
@@ -387,10 +392,12 @@ export default function AmbulanceExcelImportDialog({
       if (sourceRows === 0 && rowErrors.length === 0) rowErrors.push('Tidak ada baris operasional yang ditemukan mulai dari baris 3.')
       setRows(parsed.sort((a, b) => a.sourceRow - b.sourceRow))
       setExcludedRows(excluded.sort((a, b) => a.sourceRow - b.sourceRow))
+      setFormulaErrorCount(formulaErrors)
       setErrors(rowErrors)
     } catch (error) {
       setRows([])
       setExcludedRows([])
+      setFormulaErrorCount(0)
       setErrors([])
       setErrorMessage(error instanceof Error ? error.message : 'Workbook tidak dapat dibaca.')
     } finally {
@@ -433,7 +440,6 @@ export default function AmbulanceExcelImportDialog({
 
   if (!open) return null
   const warningRows = rows.filter(row => row.warnings.length > 0)
-  const formulaErrorRows = rows.filter(row => typeof row.raw.formulaValue === 'string' && /^#(VALUE|NUM|REF|DIV\/0|N\/A|NAME)!?$/i.test(row.raw.formulaValue.trim()))
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section className="aqDrawer aqAmbulanceImport" role="dialog" aria-modal="true" aria-labelledby="aqAmbulanceImportTitle">
@@ -467,7 +473,7 @@ export default function AmbulanceExcelImportDialog({
             <div className="ciStat"><span>Baris valid bertanggal</span><strong>{rows.length}</strong></div>
             <div className="ciStat"><span>Dikecualikan</span><strong>{excludedRows.length}</strong></div>
             <div className="ciStat"><span>Perlu verifikasi</span><strong>{warningRows.length}</strong></div>
-            <div className="ciStat"><span>Rumus error</span><strong>{formulaErrorRows.length}</strong></div>
+            <div className="ciStat"><span>Rumus error (semua baris)</span><strong>{formulaErrorCount}</strong></div>
             <div className="ciStat"><span>Kesalahan struktur</span><strong>{errors.length}</strong></div>
           </div>}
           {errors.length > 0 && <div className="ciMessage ciError" role="alert">
