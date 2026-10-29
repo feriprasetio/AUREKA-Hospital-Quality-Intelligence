@@ -215,6 +215,12 @@ export default function OppeAuditWorkspace({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  useEffect(() => {
+    const text = error || notice
+    if (!text || typeof window === 'undefined') return
+    const type = error || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'OPPE / FPPE' } }))
+  }, [notice, error])
   const [screen, setScreen] = useState<'assessment' | 'fppe' | 'rules' | 'history'>('assessment')
   const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, new Date().getFullYear(), Math.ceil((new Date().getMonth() + 1) / 3)))
   const [savedClinicalSnapshot, setSavedClinicalSnapshot] = useState<ClinicalIndicatorResult[] | null>(null)
