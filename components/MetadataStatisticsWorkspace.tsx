@@ -94,8 +94,8 @@ export default function MetadataStatisticsWorkspace({
                     <span className="mswTabIcon" aria-hidden="true">▥</span>
                     <span>Statistik</span>
                   </button>
-                </div}
->
+                </div>}
+
       </header>
 
       {active === 'metadata' && isSuperAdmin ? (
