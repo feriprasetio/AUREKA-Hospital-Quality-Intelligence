@@ -126,6 +126,7 @@ BEGIN
       RAISE EXCEPTION 'Nomor sumber pada baris Excel % tidak valid.', v_source_row USING ERRCODE = '22023';
     END;
     IF v_source_row < 3 OR v_source_row > 5003
+       OR v_source_no IS NULL
        OR v_key <> 'excel-pmkp-ambulance-2026:row:' || v_source_row
        OR v_source_no <> v_source_row - 2 THEN
       RAISE EXCEPTION 'Nomor baris Excel tidak konsisten dengan kunci impor Ambulance.' USING ERRCODE = '22023';
