@@ -1488,3 +1488,13 @@ html[data-theme="amoled"] .workspaceSupportMessage.mine,html[data-theme="amoled"
 .moduleEnter .cpScore small{display:none!important}
 .moduleEnter .cpScore span{font-size:9px!important}
 .moduleEnter .cpBadge{font-size:8px!important;padding:3px 5px!important}
+
+
+/* Keep the compact quality toolbar single-line on desktop and laptop widths. */
+@media(max-width:1180px) and (min-width:761px){
+ .moduleEnter .aqDataBar{flex:1 1 245px!important;min-width:0!important;width:auto!important}
+ .moduleEnter .aqDataBar>div{padding:2px 5px!important}
+ .moduleEnter .aqDataBar>div span{font-size:7px!important}
+ .moduleEnter .aqDataBar>div strong{font-size:10px!important}
+ .moduleEnter .aqDataBar .aqImportButton{padding:3px 6px!important;font-size:8px!important}
+}
