@@ -395,7 +395,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setPatients(scoped)
      setProfiles([])
      setSource('Mode pemulihan sementara')
-     setMessage(\`Backend belum dapat dimuat. \${scoped.length?'Draf lama dipulihkan ke memori sementara; jangan tutup halaman sebelum koneksi pulih dan data berhasil disimpan. ':''}\${e instanceof Error?e.message:''}\`.trim())
+     setMessage(`Backend belum dapat dimuat. ${scoped.length?'Draf lama dipulihkan ke memori sementara; jangan tutup halaman sebelum koneksi pulih dan data berhasil disimpan. ':''}${e instanceof Error?e.message:''}`.trim())
    }finally{setBusy(false)}
  },[roomId,roomMap,year])
 
@@ -588,7 +588,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      backend=true
    }catch(e){
      setSource('Supabase')
-     setMessage(\`Belum tersimpan ke server. Periksa koneksi dan isi formulir; draf tetap terbuka dan hanya berada di memori sampai penyimpanan berhasil. \${e instanceof Error?e.message:''}\`.trim())
+     setMessage(`Belum tersimpan ke server. Periksa koneksi dan isi formulir; draf tetap terbuka dan hanya berada di memori sampai penyimpanan berhasil. ${e instanceof Error?e.message:''}`.trim())
      setBusy(false)
      return
    }
