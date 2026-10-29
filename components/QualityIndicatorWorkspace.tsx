@@ -573,10 +573,11 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    if(grain==='provider_day'&&!recordDate){setMessage('Tanggal pengamatan wajib diisi.');return}
    const core={patient_name:normalizedName,medical_record_no:normalizedRm,sex:String(formData['Jenis Kelamin']??selected.sex??''),age:formData['Umur']??formData['Usia']??selected.age,admission_at:formData['Tanggal Masuk']??recordDate,discharge_at:discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,unit_name:selected.unit,room_id:selected.roomId,status:finalStatus,workflow_status:finalStatus,form_fields:formData,calculated_fields:calc,indicator_values:values,measurement_grain:grain,los_days:calc['Lenght of Stay']??calc['Length of Stay']??(stayLayout?los(String(formData['Tanggal Masuk']??''),discharge):null)}
    setBusy(true)
-   let recordId=selected.recordId,backend=false
+   let recordId=selected.recordId,backend=false,savedEnteredBy=String(selected.enteredBy??'')
    try{
      const {data:{user}}=await sb.auth.getUser()
      if(!user) throw new Error('Sesi login tidak ditemukan.')
+     savedEnteredBy=savedEnteredBy||String(user.id)
      const serviceStream=String(formData['Alur layanan']??'').trim()
      const subjectKey=grain==='provider_day'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${String(formData['Klinik']??'').trim()}:${String(formData['Dokter']??'').trim()}`:grain==='daily_metric'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${serviceStream||'semua-alur'}`:normalizedRm||`${selected.roomId}:${recordDate||now}:${selected.id}`
      const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:complete?'ready':'draft',review_required:complete,entered_by:user.id}
@@ -600,7 +601,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setBusy(false)
      return
    }
-    const saved:Patient={...selected,id:recordId??selected.id,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
+    const saved:Patient={...selected,id:recordId??selected.id,enteredBy:savedEnteredBy,databaseStatus:complete?'ready':'draft',name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
    setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
    setSelected(saved);setPatientOpen(false);setMessage('Logbook berhasil disimpan ke server.');setBusy(false)
  }
