@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { calculateInclusiveDurationDays, matchLogbookOption } from '@/lib/aureka/complaint-logbook'
+import { calculateInclusiveDurationDays, complaintSourceWarnings, matchLogbookOption } from '@/lib/aureka/complaint-logbook'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 
 const sb = aurekaSupabase
@@ -25,6 +25,7 @@ type PreparedRow = {
   medicalRecordNo: string
   complaintAt: string
   durationDays: number
+  warnings: string[]
   formFields: Record<string, string>
   response11: { answer: string; code: number; sourceValue: string; reviewRequired: boolean }
   response12: { answer: string; code: number; sourceValue: string; reviewRequired: boolean }
@@ -334,6 +335,7 @@ export default function ComplaintExcelImportDialog({
           if (!followupAt) throw new Error('Baris Excel ' + excelRow + ': tanggal tindak lanjut tidak valid.')
           const durationDays = calculateInclusiveDurationDays(complaintAt, followupAt)
           if (durationDays == null || !Number.isFinite(durationDays)) throw new Error('Baris Excel ' + excelRow + ': durasi tindak lanjut tidak dapat dihitung.')
+          const warnings = complaintSourceWarnings(medicalRecordNo, complaintAt, followupAt)
           const source = requiredText(sourceRow, columns, 'source', excelRow)
           const status = requiredText(sourceRow, columns, 'status', excelRow)
           const narrative = requiredText(sourceRow, columns, 'narrative', excelRow)
@@ -374,6 +376,7 @@ export default function ComplaintExcelImportDialog({
             medicalRecordNo,
             complaintAt,
             durationDays,
+            warnings,
             formFields,
             response11,
             response12,
@@ -432,7 +435,7 @@ export default function ComplaintExcelImportDialog({
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section className="aqDrawer aqComplaintImport" role="dialog" aria-modal="true" aria-labelledby="aqComplaintImportTitle">
-        <style>{'.aqComplaintImport .aqBody{display:grid;align-content:start;gap:14px}.aqComplaintImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqComplaintImport .ciUpload{display:grid;gap:8px;padding:16px;border:1px dashed var(--line);border-radius:16px;background:rgba(255,255,255,.65)}.aqComplaintImport .ciUpload input{width:100%;font-size:12px}.aqComplaintImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqComplaintImport .ciStat{padding:11px;background:#fff;border:1px solid var(--line);border-radius:12px;min-width:0}.aqComplaintImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqComplaintImport .ciStat strong{display:block;margin-top:4px;font-size:20px;overflow-wrap:anywhere}.aqComplaintImport .ciMessage{padding:12px 14px;border-radius:12px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqComplaintImport .ciError{background:#fff0ef;color:#8b2822}.aqComplaintImport .ciSuccess{background:#eaf8ef;color:#206443}.aqComplaintImport .ciTable{overflow:auto;max-height:300px;border:1px solid var(--line);border-radius:12px}.aqComplaintImport table{width:100%;border-collapse:collapse;font-size:11px}.aqComplaintImport th,.aqComplaintImport td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqComplaintImport th{position:sticky;top:0;background:#f7faf8}.aqComplaintImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}@media(max-width:560px){.aqComplaintImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
+        <style>{'.aqComplaintImport .aqBody{display:grid;align-content:start;gap:14px}.aqComplaintImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqComplaintImport .ciUpload{display:grid;gap:8px;padding:16px;border:1px dashed var(--line);border-radius:16px;background:rgba(255,255,255,.65)}.aqComplaintImport .ciUpload input{width:100%;font-size:12px}.aqComplaintImport .ciStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.aqComplaintImport .ciStat{padding:11px;background:#fff;border:1px solid var(--line);border-radius:12px;min-width:0}.aqComplaintImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqComplaintImport .ciStat strong{display:block;margin-top:4px;font-size:20px;overflow-wrap:anywhere}.aqComplaintImport .ciMessage{padding:12px 14px;border-radius:12px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqComplaintImport .ciError{background:#fff0ef;color:#8b2822}.aqComplaintImport .ciSuccess{background:#eaf8ef;color:#206443}.aqComplaintImport .ciTable{overflow:auto;max-height:300px;border:1px solid var(--line);border-radius:12px}.aqComplaintImport table{width:100%;border-collapse:collapse;font-size:11px}.aqComplaintImport th,.aqComplaintImport td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqComplaintImport th{position:sticky;top:0;background:#f7faf8}.aqComplaintImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}@media(max-width:560px){.aqComplaintImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
         <div className="aqDHead">
           <div>
             <div className="eyebrow">Audit Indikator Mutu · Impor Terarah</div>
@@ -462,13 +465,14 @@ export default function ComplaintExcelImportDialog({
             <div className="ciStat"><span>Baris valid</span><strong>{rows.length}</strong></div>
             <div className="ciStat"><span>Periode 2026</span><strong>{rows.filter(row => !row.allowCrossYear).length}</strong></div>
             <div className="ciStat"><span>Lintas tahun</span><strong>{rows.filter(row => row.allowCrossYear).length}</strong></div>
+            <div className="ciStat"><span>Peringatan sumber</span><strong>{rows.filter(row => row.warnings.length > 0).length}</strong></div>
             <div className="ciStat"><span>Kesalahan</span><strong>{errors.length}</strong></div>
           </div>}
           {errors.length > 0 && <div className="ciMessage ciError" role="alert">
             <strong>Impor diblokir: perbaiki/cek data sumber dahulu.</strong>{'\n'}{errors.slice(0, 20).map((error, index) => String(index + 1) + '. ' + error).join('\n')}{errors.length > 20 ? '\n… dan ' + (errors.length - 20) + ' kesalahan lainnya.' : ''}
           </div>}
           {rows.length > 0 && <div className="ciTable">
-            <table><thead><tr><th>Baris</th><th>Tanggal aduan</th><th>Nama (disamarkan)</th><th>No. RM</th><th>Unit layanan</th><th>Durasi formula Excel</th></tr></thead>
+            <table><thead><tr><th>Baris</th><th>Tanggal aduan</th><th>Nama (disamarkan)</th><th>No. RM</th><th>Unit layanan</th><th>Durasi formula Excel</th><th>Peringatan sumber</th></tr></thead>
               <tbody>{rows.slice(0, 100).map(row => <tr key={row.sourceRow}>
                 <td>{row.sourceRow}</td>
                 <td>{row.formFields['Tanggal Aduan'].replace('T', ' ')}</td>
@@ -476,10 +480,12 @@ export default function ComplaintExcelImportDialog({
                 <td>••••••</td>
                 <td>{row.formFields['Unit Pelayanan']}</td>
                 <td>{row.durationDays.toLocaleString('id-ID', { maximumFractionDigits: 4 })} hari</td>
+                <td style={{whiteSpace:'normal',minWidth:260,color:row.warnings.length?'#8b5b13':'var(--muted)'}}>{row.warnings.length ? row.warnings.join(' ') : '—'}</td>
               </tr>)}</tbody>
             </table>
           </div>}
           <div className="ciPrivacy">Catatan 2025 pada workbook 2026 tetap disimpan sebagai data sumber lintas tahun, tetapi tidak masuk denominator capaian indikator tahun 2026. Impor ulang menggunakan kunci baris Excel yang stabil: baris yang sudah ada akan dilewati, bukan digandakan atau ditimpa otomatis.</div>
+          {rows.some(row => row.warnings.length > 0) && <div className="ciMessage ciError" role="alert"><strong>Perhatian sumber:</strong> beberapa baris memiliki nilai yang harus diverifikasi manual. Nilai asli tetap dipertahankan; impor akan menyimpan catatan dalam status siap ditinjau.</div>}
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai. {result.imported_count ?? 0} catatan baru disimpan; {result.skipped_existing_count ?? 0} baris yang sebelumnya ada dilewati. Data telah dimuat ulang dari server.</div>}
         </div>
         <div className="aqFoot">
