@@ -159,6 +159,7 @@ export function normalizeAmbulanceTime(value: unknown): NormalizedAmbulanceTime 
 
   replaceAndTrack(/[;"'’]/g, ':')
   replaceAndTrack(/[pP]/g, ':')
+  replaceAndTrack(/(?<=\d)[oO](?=[:;])/g, '0')
   replaceAndTrack(/(?<=\d)[oO](?=\d)/g, '0')
   replaceAndTrack(/:+/g, ':')
   normalized = normalized.replace(/^:|:$/g, '')
