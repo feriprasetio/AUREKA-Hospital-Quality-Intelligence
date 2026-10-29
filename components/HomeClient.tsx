@@ -58,8 +58,45 @@ async function rooms(){const {data,error}=await sb.from('master_rooms').select('
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState('')
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false)
  useEffect(()=>{const toneMap:any={emerald:['#0f7656','#084f3a','15,118,86','#e1f3eb'],ocean:['#1769aa','#0b3f70','23,105,170','#e1effb'],indigo:['#4f46b5','#29216f','79,70,181','#e9e7fb'],teal:['#087f8c','#07505a','8,127,140','#def4f5'],violet:['#7c4d9e','#4b2865','124,77,158','#f0e5f6'],amber:['#a96816','#68400e','169,104,22','#fbefd9']};const selected=toneMap[typeof window==='undefined'?'emerald':localStorage.getItem('aureka-tone')||'emerald']||toneMap.emerald;document.documentElement.style.setProperty('--accent',selected[0]);document.documentElement.style.setProperty('--accent2',selected[1]);document.documentElement.style.setProperty('--accent-rgb',selected[2]);document.documentElement.style.setProperty('--accent-soft',selected[3]);rooms().then(setRoomsList);const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}sb.rpc('aureka_sync_my_email').then(()=>{},()=>{});if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setView(p.must_change_password?'force-password':'workspace')}})},[])
+ useEffect(()=>{
+  if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
+  const applyHash=(raw:string)=>{
+   const path=raw.replace(/^#\/?/,'').toLowerCase()
+   if(path.startsWith('mutu-klinis/clinical-pathway')){
+    setActive('quality');setQualityOpen(false);setClinicalPathwayOpen(true);return
+   }
+   if(path.startsWith('mutu-klinis/audit-klinis-dan-kematian')){
+    setActive('quality');setQualityOpen(true);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Klinis dan Kematian');return
+   }
+   if(path.startsWith('mutu-klinis/audit-indikator')){
+    setActive('quality');setQualityOpen(true);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Indikator Mutu');return
+   }
+   const routes:Record<string,string>={'ringkasan':'home','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','analitik-laporan':'analytics','administrasi':'settings'}
+   let next=routes[path]||'home'
+   if(next==='analytics'&&!manager)next='home'
+   setActive(next)
+   setQualityOpen(false)
+   setClinicalPathwayOpen(false)
+  }
+  applyHash(window.location.hash)
+  const onHashChange=()=>applyHash(window.location.hash)
+  window.addEventListener('hashchange',onHashChange)
+  setRouteReady(true)
+  return ()=>window.removeEventListener('hashchange',onHashChange)
+ },[view,manager])
+ useEffect(()=>{
+  if(view!=='workspace'||!routeReady||typeof window==='undefined')return
+  let hash='#ringkasan'
+  if(active==='quality'){
+   hash=clinicalPathwayOpen?'#mutu-klinis/clinical-pathway':qualityOpen&&qualityInitialContainer==='Audit Klinis dan Kematian'?'#mutu-klinis/audit-klinis-dan-kematian':qualityOpen?'#mutu-klinis/audit-indikator':'#mutu-klinis'
+  }else{
+   const routes:Record<string,string>={home:'#ringkasan',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',staff:'#tenaga-klinis',analytics:'#analitik-laporan',settings:'#administrasi'}
+   hash=routes[active]||'#ringkasan'
+  }
+  if(window.location.hash!==hash)window.location.hash=hash
+ },[view,routeReady,active,qualityOpen,clinicalPathwayOpen,qualityInitialContainer])
  const resolveLoginEmail=async(input:string)=>{const v=input.trim();if(!v)throw new Error('Isi username atau email.');if(v.includes('@'))return v;const {data,error}=await sb.rpc('aureka_login_email',{p_username:v});if(error){if(error.code==='PGRST202'||/Could not find the function|schema cache/i.test(error.message))throw new Error('Login dengan username belum aktif. Silakan masuk memakai email.');throw error}if(!data)throw new Error('Username tidak ditemukan. Periksa ejaan atau masuk memakai email.');return String(data)}
  const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return m||'Terjadi kesalahan'}
  const resendVerify=async()=>{if(busy||!needVerify)return;setBusy(true);const {error}=await sb.auth.resend({type:'signup',email:needVerify,options:{emailRedirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`}});setBusy(false);setAuthInfo('');setMessage(error?authError(error):`Email verifikasi dikirim ulang ke ${needVerify}. Cek juga folder Spam.`)}
