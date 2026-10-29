@@ -238,6 +238,7 @@ BEGIN
          OR coalesce(v_response->>'response_code', '') !~ '^[1-3]$'
          OR coalesce(v_source_values->>v_code, '') = ''
          OR coalesce(v_source_values->>v_code, '') !~* ('[(]code[[:space:]]*' || coalesce(v_response->>'response_code', '') || '[)]$')
+         OR regexp_replace(v_source_values->>v_code, '[[:space:]]*[(]code[[:space:]]*[0-9]+[)]$', '', 'i') <> v_response->>'response_label'
          OR coalesce(v_response->'raw_value'->>'source_value', '') <> coalesce(v_source_values->>v_code, '') THEN
         RAISE EXCEPTION 'Respons atau nilai sumber indikator % tidak konsisten pada baris Excel %.', v_code, v_source_row USING ERRCODE = '22023';
       END IF;
