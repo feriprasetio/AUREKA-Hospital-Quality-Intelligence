@@ -280,20 +280,20 @@ export default function HomeClient(){
   delay=window.setTimeout(()=>{first=window.requestAnimationFrame(()=>{second=window.requestAnimationFrame(()=>{
     const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
     if(!root){setSearchResults([]);return}
-    const tokens=globalSearch.toLowerCase().trim().split(/\\s+/).filter(Boolean)
+    const tokens=globalSearch.toLowerCase().trim().split(/\s+/).filter(Boolean)
     if(!tokens.length){setSearchResults([]);return}
     const candidates=Array.from(root.querySelectorAll<HTMLElement>('tr,article,li,summary,button,label,td,th,h2,h3,h4,h5,p,.aqKpi,.ovKpi,.cpTile,.cpPanel,.psPanel,.rmPanel,.cwPanel,.mswAccessNote,[data-searchable="true"]'))
       .filter(node=>{
        if(!node.textContent?.trim()||node.closest('.workspaceSearchResults'))return false
        const style=window.getComputedStyle(node)
        if(style.display==='none'||style.visibility==='hidden')return false
-       const text=(node.innerText||node.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase()
+       const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()
        return tokens.every(token=>text.includes(token))
       })
     const leaves=candidates.filter(node=>!candidates.some(other=>other!==node&&node.contains(other)))
     const unique:WorkspaceSearchResult[]=[]
     for(const node of leaves){
-     const text=(node.innerText||node.textContent||'').replace(/\\s+/g,' ').trim()
+     const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim()
      if(!text)continue
      if(unique.some(result=>result.node===node||result.text===text))continue
      unique.push({node,text:text.length>190?text.slice(0,187)+'…':text,tag:node.tagName.toLowerCase()})
