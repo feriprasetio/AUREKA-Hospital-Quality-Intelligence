@@ -242,6 +242,7 @@ export default function ComplaintExcelImportDialog({
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<ImportResponse | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [refreshWarning, setRefreshWarning] = useState('')
   const eligible = useMemo(() => open && authorized && roomId === 1 && year === 2026, [open, authorized, roomId, year])
 
   const reset = useCallback(() => {
@@ -252,6 +253,7 @@ export default function ComplaintExcelImportDialog({
     setImporting(false)
     setResult(null)
     setErrorMessage('')
+    setRefreshWarning('')
   }, [])
   const close = () => {
     if (parsing || importing) return
@@ -265,6 +267,7 @@ export default function ComplaintExcelImportDialog({
     setErrors([])
     setResult(null)
     setErrorMessage('')
+    setRefreshWarning('')
     if (!eligible) {
       setErrorMessage('Pilih unit Informasi dan Pengaduan serta tahun profil 2026 sebelum mengimpor.')
       return
@@ -395,6 +398,7 @@ export default function ComplaintExcelImportDialog({
     if (!file || !rows.length || errors.length || !eligible || !authorized) return
     setImporting(true)
     setErrorMessage('')
+    setRefreshWarning('')
     setResult(null)
     try {
       const { data: authData, error: authError } = await sb.auth.getUser()
@@ -416,7 +420,11 @@ export default function ComplaintExcelImportDialog({
         throw new Error('Ringkasan hasil dari server tidak konsisten. Jangan ulangi impor sebelum memeriksa log server.')
       }
       setResult(summary)
-      await onImported({ imported, skipped, received })
+      try {
+        await onImported({ imported, skipped, received })
+      } catch {
+        setRefreshWarning('Data berhasil disimpan di server, tetapi tampilan daftar belum berhasil dimuat ulang. Muat ulang modul Audit Indikator Mutu; jangan unggah ulang untuk mengatasi masalah tampilan ini.')
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Impor gagal. Data sumber tidak dianggap berhasil disimpan.')
     } finally {
@@ -428,7 +436,7 @@ export default function ComplaintExcelImportDialog({
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section className="aqDrawer aqComplaintImport" role="dialog" aria-modal="true" aria-labelledby="aqComplaintImportTitle">
-        <style>{'.aqComplaintImport .aqBody{display:grid;align-content:start;gap:14px}.aqComplaintImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqComplaintImport .ciUpload{display:grid;gap:8px;padding:16px;border:1px dashed var(--line);border-radius:16px;background:rgba(255,255,255,.65)}.aqComplaintImport .ciUpload input{width:100%;font-size:12px}.aqComplaintImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqComplaintImport .ciStat{padding:11px;background:#fff;border:1px solid var(--line);border-radius:12px;min-width:0}.aqComplaintImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqComplaintImport .ciStat strong{display:block;margin-top:4px;font-size:20px;overflow-wrap:anywhere}.aqComplaintImport .ciMessage{padding:12px 14px;border-radius:12px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqComplaintImport .ciError{background:#fff0ef;color:#8b2822}.aqComplaintImport .ciSuccess{background:#eaf8ef;color:#206443}.aqComplaintImport .ciTable{overflow:auto;max-height:300px;border:1px solid var(--line);border-radius:12px}.aqComplaintImport table{width:100%;border-collapse:collapse;font-size:11px}.aqComplaintImport th,.aqComplaintImport td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqComplaintImport th{position:sticky;top:0;background:#f7faf8}.aqComplaintImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}@media(max-width:560px){.aqComplaintImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
+        <style>{'.aqComplaintImport .aqBody{display:grid;align-content:start;gap:14px}.aqComplaintImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqComplaintImport .ciUpload{display:grid;gap:8px;padding:16px;border:1px dashed var(--line);border-radius:16px;background:rgba(255,255,255,.65)}.aqComplaintImport .ciUpload input{width:100%;font-size:12px}.aqComplaintImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqComplaintImport .ciStat{padding:11px;background:#fff;border:1px solid var(--line);border-radius:12px;min-width:0}.aqComplaintImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqComplaintImport .ciStat strong{display:block;margin-top:4px;font-size:20px;overflow-wrap:anywhere}.aqComplaintImport .ciMessage{padding:12px 14px;border-radius:12px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqComplaintImport .ciError{background:#fff0ef;color:#8b2822}.aqComplaintImport .ciWarning{background:#fff6dd;color:#805a14}.aqComplaintImport .ciSuccess{background:#eaf8ef;color:#206443}.aqComplaintImport .ciTable{overflow:auto;max-height:300px;border:1px solid var(--line);border-radius:12px}.aqComplaintImport table{width:100%;border-collapse:collapse;font-size:11px}.aqComplaintImport th,.aqComplaintImport td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqComplaintImport th{position:sticky;top:0;background:#f7faf8}.aqComplaintImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}@media(max-width:560px){.aqComplaintImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
         <div className="aqDHead">
           <div>
             <div className="eyebrow">Audit Indikator Mutu · Impor Terarah</div>
@@ -454,6 +462,7 @@ export default function ComplaintExcelImportDialog({
           </div>
           {parsing && <div className="ciMessage">Membaca workbook dan memvalidasi baris logbook…</div>}
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
+          {refreshWarning && <div className="ciMessage ciWarning" role="status">{refreshWarning}</div>}
           {rows.length > 0 && <div className="ciStats">
             <div className="ciStat"><span>Baris valid</span><strong>{rows.length}</strong></div>
             <div className="ciStat"><span>Periode 2026</span><strong>{rows.filter(row => !row.allowCrossYear).length}</strong></div>
