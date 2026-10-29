@@ -26,7 +26,7 @@ const MANAGER_ONLY_MODULES=['analytics']
 const ROLE_LABEL:Record<string,string>={ADMIN:'Super Admin',PMKP:'Komite PMKP',MANAGEMENT:'Manajemen',PIC:'PIC Unit',VALIDATOR:'Validator Unit',KABID:'Kepala Bidang',DIREKTUR:'Direktur',DEWAN_PENGAWAS:'Dewan Pengawas'}
 const initials=(name?:string|null)=>{const parts=String(name||'').split('@')[0].replace(/[^A-Za-z0-9\u00C0-\u024F ]/g,' ').trim().split(/\s+/).filter(Boolean);return ((parts[0]?.[0]||'A')+(parts.length>1?parts[parts.length-1][0]:'')).toUpperCase()}
 const QUICK_MODULES=[
- {id:'quality',label:'Indikator Mutu',short:'Quality',description:'Preview capaian indikator mutu rumah sakit.'},
+ {id:'quality',label:'Mutu Klinis',short:'Clinical quality',description:'Preview modul audit indikator, Clinical Pathway, dan audit klinis.'},
  {id:'safety',label:'Keselamatan Pasien',short:'Safety',description:'Preview insiden dan keselamatan pasien.'},
  {id:'risk',label:'Manajemen Risiko',short:'Risk',description:'Preview Risk Register dan pengendalian risiko.'},
 ] as const
