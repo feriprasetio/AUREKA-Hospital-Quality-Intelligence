@@ -34,7 +34,7 @@ test('rejects source code contradictions and ambiguous master choices', () => {
 })
 
 test('normalizes obvious spreadsheet punctuation errors while preserving warnings', () => {
-  const cases: Array<[string, string]> = [
+  const cases = [
     ['10;00:00', '10:00'],
     ['00"35:00', '00:35'],
     ['15;:10', '15:10'],
