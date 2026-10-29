@@ -10,7 +10,7 @@ export function escapeSpreadsheetCell(value: unknown): string {
   let text = rawCell(value)
   // Prefix dangerous text cells so spreadsheet apps do not evaluate user-controlled formulas.
   // Numeric values remain numbers and are not rewritten.
-  const firstNonWhitespace = text.replace(/^[\\t\\r\\n ]+/, '')[0]
+  const firstNonWhitespace = text.trimStart()[0]
   if (typeof value !== 'number' && ['=', '+', '-', '@'].includes(firstNonWhitespace)) text = "'" + text
   return /[";\n,]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text
 }
