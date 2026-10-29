@@ -644,8 +644,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    setPatients(current=>current.filter(row=>String(row.recordId??row.id)!==String(p.recordId)))
    if(selected&&String(selected.recordId??selected.id)===String(p.recordId)){setPatientOpen(false);setSelected(null)}
    setPendingArchive(null)
+   setPendingArchive(null)
+   await load()
    setMessage('Catatan berhasil dihapus dari logbook aktif.')
-   void load()
   }catch(error){
    const raw=error as {message?:string;details?:string;hint?:string;code?:string}
    const detail=[raw?.message,raw?.details,raw?.hint,raw?.code?('Kode '+raw.code):''].filter(Boolean).join(' · ')||'Periksa koneksi dan hak akses.'
