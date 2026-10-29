@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { buildCsv } from '@/lib/aureka/csv-export'
 
 type Dataset = {
   id: string; label: string; schema: string; table: string; select: string; description: string
@@ -32,16 +33,6 @@ const typeOf = (values: unknown[]) => {
 }
 const fmt = (n: number) => n.toLocaleString('id-ID', { maximumFractionDigits: 2 })
 const cell = (v: unknown) => v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v)
-
-function toCsv(rows: Row[], cols: string[]) {
-  const esc = (v: unknown) => {
-    let s = cell(v)
-    // Prevent spreadsheet formula execution for untrusted text while preserving numeric cells.
-    if (typeof v !== 'number' && /^[\t\r\n ]*[=+\-@]/.test(s)) s = `'${s}`
-    return /[";\n,]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
-  }
-  return '﻿' + [cols.join(';'), ...rows.map(r => cols.map(c => esc(r[c])).join(';'))].join('\n')
-}
 
 export default function StatisticsWorkspace({ supabase, rooms }: { supabase: SupabaseClient; rooms: { id: number; name: string }[] }) {
   const [datasetId, setDatasetId] = useState(DATASETS[0].id)
@@ -116,7 +107,7 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
 
   const exportCsv = () => {
     const cols = columns
-    const blob = new Blob([toCsv(filtered, cols)], { type: 'text/csv;charset=utf-8' })
+    const blob = new Blob([buildCsv(filtered, cols)], { type: 'text/csv;charset=utf-8' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     const dateParts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Pontianak', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
