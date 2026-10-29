@@ -555,7 +555,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const save=async()=>{
    if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Gunakan tindakan validasi pada daftar logbook.');return}
    if(!selected)return
-   const layout=getLayout(Number(selected.roomId))??activeLayout
+   const layout=(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??''))??activeLayout
    const formData:Record<string,any>={...(selected.formData??{})}
    const identityCandidates=['Nama Pasien','Nama Mahasiswa','Nama MPP','Gangguan IT','Insiden yang Terjadi','Nama Pertemuan Ilmiah','Uraian Temuan Audit','Nama Pertemuan Ilmiah']
    const identityField=layout?.fields.find(f=>identityCandidates.includes(f))??layout?.fields[0]
