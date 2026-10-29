@@ -127,7 +127,7 @@ const roleLabel = (role: string | null) => ({
 }[role || ''] || role || 'Pengguna')
 
 export default function RiskManagementWorkspace({
-  supabase, rooms, initialRoomId, role, userId, userName, focus,
+  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -136,9 +136,12 @@ export default function RiskManagementWorkspace({
   userId: string
   userName: string
   focus?: RiskFocus | null
+  initialTab?: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'
+  showTabs?: boolean
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
-  const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'>('overview')
+  const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'>(initialTab)
+  useEffect(() => { setTab(initialTab) }, [initialTab])
   const [risks, setRisks] = useState<RiskRow[]>([])
   const [plans, setPlans] = useState<PlanRow[]>([])
   const [planRisks, setPlanRisks] = useState<PlanRiskRow[]>([])
@@ -150,6 +153,7 @@ export default function RiskManagementWorkspace({
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [unitFilter, setUnitFilter] = useState('all')
   const [levelFilter, setLevelFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -705,14 +709,15 @@ export default function RiskManagementWorkspace({
         <button type="button" onClick={clearMessages} aria-label="Tutup pesan">Tutup</button>
       </div>}
 
-      <nav className="rmTabs" aria-label="Bagian Manajemen Risiko">
-        {[
-          ['overview', '◫', 'Ikhtisar'], ['register', '▤', 'Risk Register'],
-          ['mitigation', '↗', 'RTP Terintegrasi'], ['connections', '⌘', 'Konektor Risiko'], ['fmea', '◎', 'FMEA / HFMEA'],
-        ].map(([key, icon, label]) => <button type="button" key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key as typeof tab); clearMessages(); }}>
-          <span>{icon}</span>{label}
-        </button>)}
-      </nav>
+      {showTabs && <nav className="rmTabs" aria-label="Bagian Manajemen Risiko">
+              {[
+                ['overview', '◫', 'Ikhtisar'], ['register', '▤', 'Risk Register'],
+                ['mitigation', '↗', 'RTP Terintegrasi'], ['connections', '⌘', 'Konektor Risiko'], ['fmea', '◎', 'FMEA / HFMEA'],
+              ].map(([key, icon, label]) => <button type="button" key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key as typeof tab); clearMessages(); }}>
+                <span>{icon}</span>{label}
+              </button>)}
+            </nav>}
+
 
       {loading && <div className="rmPanel rmLoading"><span className="rmSpinner"></span>Memuat data risiko dan riwayat pengendalian…</div>}
       {!loading && error.startsWith('Data Manajemen Risiko') && <div className="rmPanel rmEmpty">
