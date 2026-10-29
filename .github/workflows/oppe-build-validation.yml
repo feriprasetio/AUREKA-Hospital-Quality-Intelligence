@@ -13,6 +13,11 @@ on:
       - 'components/ClinicalDeathAuditWorkspace.tsx'
       - 'lib/aureka/oppe-engine.ts'
       - 'components/QualityIndicatorWorkspace.tsx'
+      - 'components/QualityExcelPastePanel.tsx'
+      - 'lib/aureka/excel-paste.ts'
+      - 'supabase/migrations/20261029013512_quality_logbook_atomic_save.sql'
+      - 'supabase/migrations/20261029014335_quality_logbook_require_valid_role.sql'
+      - 'tests/excel-paste.test.mjs'
       - 'components/PatientSafetyWorkspace.tsx'
       - 'components/StaffDirectoryWorkspace.tsx'
       - 'components/StaffTeamWorkspace.tsx'
@@ -43,6 +48,11 @@ on:
       - 'components/ClinicalDeathAuditWorkspace.tsx'
       - 'lib/aureka/oppe-engine.ts'
       - 'components/QualityIndicatorWorkspace.tsx'
+      - 'components/QualityExcelPastePanel.tsx'
+      - 'lib/aureka/excel-paste.ts'
+      - 'supabase/migrations/20261029013512_quality_logbook_atomic_save.sql'
+      - 'supabase/migrations/20261029014335_quality_logbook_require_valid_role.sql'
+      - 'tests/excel-paste.test.mjs'
       - 'components/PatientSafetyWorkspace.tsx'
       - 'components/StaffDirectoryWorkspace.tsx'
       - 'components/StaffTeamWorkspace.tsx'
@@ -75,7 +85,7 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: OPPE engine regression tests
-        run: node --experimental-strip-types --test tests/oppe-engine.test.mjs
+        run: node --experimental-strip-types --test tests/*.test.mjs
       - name: TypeScript type check
         run: npx tsc --noEmit
       - name: Build Next.js application
