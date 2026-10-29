@@ -76,6 +76,12 @@ export default function StaffDirectoryWorkspace() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  useEffect(() => {
+    const text = error || message
+    if (!text || typeof window === 'undefined') return
+    const type = error || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'Direktori Tenaga' } }))
+  }, [message, error])
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
   const [draft, setDraft] = useState<StaffDraft | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
