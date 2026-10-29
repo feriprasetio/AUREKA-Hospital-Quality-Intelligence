@@ -69,6 +69,7 @@ const requiredFields = [
 export default function StaffDirectoryWorkspace() {
   const [rows, setRows] = useState<Staff[]>([])
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [statusFilter, setStatusFilter] = useState('all')
   const [groupFilter, setGroupFilter] = useState('all')
   const [busy, setBusy] = useState(false)
@@ -348,7 +349,7 @@ export default function StaffDirectoryWorkspace() {
           <div className="sdKpi"><span>Nonaktif</span><strong>{inactiveCount.toLocaleString('id-ID')}</strong></div>
         </div>
         <div className="sdFilters">
-          <input aria-label="Cari tenaga kerja" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode AUREKA, profesi, jabatan, atau unit…"/>
+          <input className="staffLocalSearch" aria-label="Cari tenaga kerja" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode AUREKA, profesi, jabatan, atau unit…"/>
           <select aria-label="Filter kelayakan penugasan" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">Semua kelayakan</option><option value="available">Siap dipetakan</option><option value="needs_review">Perlu verifikasi</option><option value="inactive">Nonaktif</option>
           </select>
