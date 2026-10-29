@@ -83,12 +83,12 @@ export default function GeneralSettings({
       if (!text || typeof window === 'undefined') return
       window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type: error ? 'error' : 'success', module } }))
     }
-    if (msg) notify(msg, msgIsError, 'Administrasi')
+    if (msg) notify(msg, /gagal|tidak dapat|belum aktif|error|forbidden|tidak ditemukan|tidak dihapus/i.test(msg), 'Administrasi')
     if (pwMsg?.text) notify(pwMsg.text, !pwMsg.ok, 'Keamanan akun')
     if (rowNote?.text) notify(rowNote.text, !rowNote.ok, 'Manajemen pengguna')
     if (acctNote?.text) notify(acctNote.text, !acctNote.ok, 'Akun')
     if (provisionMessage) notify(provisionMessage, /gagal|tidak dapat|belum/i.test(provisionMessage), 'Provisioning akun')
-  }, [msg, msgIsError, pwMsg, rowNote, acctNote, provisionMessage])
+  }, [msg, pwMsg, rowNote, acctNote, provisionMessage])
   useEffect(() => {
     if (!msg) return
     const t = setTimeout(() => setMsg(''), 6000)
