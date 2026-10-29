@@ -62,3 +62,18 @@ export function summarizeOptionResponses(responses: unknown[], options: LogbookO
   }
   return { numerator, denominator, rate: denominator > 0 ? numerator / denominator * 100 : null, counts }
 }
+
+/** Source-data anomalies remain visible and are never silently corrected. */
+export function complaintSourceWarnings(medicalRecordNo: unknown, complaintAt: unknown, followupAt: unknown): string[] {
+  const warnings: string[] = []
+  const medicalRecord = String(medicalRecordNo ?? '').trim()
+  if (/^0+$/.test(medicalRecord)) {
+    warnings.push('No. RM pada sumber bernilai 0; verifikasi identitas sebelum validasi.')
+  }
+  const complaintMs = new Date(String(complaintAt ?? '')).getTime()
+  const followupMs = new Date(String(followupAt ?? '')).getTime()
+  if (Number.isFinite(complaintMs) && Number.isFinite(followupMs) && followupMs < complaintMs) {
+    warnings.push('Waktu tindak lanjut lebih awal daripada waktu aduan pada sumber; verifikasi urutan waktu.')
+  }
+  return warnings
+}
