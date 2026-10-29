@@ -269,15 +269,15 @@ export default function HomeClient(){
   if(typeof window==='undefined'||view!=='workspace')return
   window.dispatchEvent(new CustomEvent('aureka:workspace-search',{detail:{query:globalSearch,module:active,container:currentContainer}}))
  },[globalSearch,active,currentContainer,view])
+ useEffect(()=>{if(typeof window==='undefined')return;const onKeyDown=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&view==='workspace'){event.preventDefault();document.getElementById('workspaceGlobalSearchInput')?.focus()}};window.addEventListener('keydown',onKeyDown);return()=>window.removeEventListener('keydown',onKeyDown)},[view])
  useEffect(()=>{
   if(typeof window==='undefined'||view!=='workspace'||!globalSearch.trim()){
    setSearchResults([])
    document.querySelectorAll('.workspaceSearchFocus').forEach(node=>node.classList.remove('workspaceSearchFocus'))
    return
   }
-  let first=0,second=0
-  first=window.requestAnimationFrame(()=>{
-   second=window.requestAnimationFrame(()=>{
+  let first=0,second=0,delay=0
+  delay=window.setTimeout(()=>{first=window.requestAnimationFrame(()=>{second=window.requestAnimationFrame(()=>{
     const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
     if(!root){setSearchResults([]);return}
     const tokens=globalSearch.toLowerCase().trim().split(/\\s+/).filter(Boolean)
@@ -300,9 +300,8 @@ export default function HomeClient(){
      if(unique.length>=8)break
     }
     setSearchResults(unique)
-   })
-  })
-  return ()=>{window.cancelAnimationFrame(first);window.cancelAnimationFrame(second)}
+   })})},100)
+  return ()=>{window.clearTimeout(delay);window.cancelAnimationFrame(first);window.cancelAnimationFrame(second)}
  },[globalSearch,view,active,currentContainer,qualityOpen,clinicalPathwayOpen,safetyTab,riskTab,staffArea,analyticsTab])
  const jumpToSearchResult=(result:WorkspaceSearchResult)=>{
   document.querySelectorAll('.workspaceSearchFocus').forEach(node=>node.classList.remove('workspaceSearchFocus'))
@@ -424,7 +423,7 @@ export default function HomeClient(){
    </div>
    <div className="workspaceGlobalSearch">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
-    <input type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder={'Cari kata kunci dalam '+currentContainer+'…'} aria-label={'Cari di dalam '+currentContainer}/>
+    <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder={'Cari kata kunci dalam '+currentContainer+'…'} aria-label={'Cari di dalam '+currentContainer}/>
     {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:<kbd>Ctrl K</kbd>}
     {globalSearch.trim()&&<div className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
      <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResults.length?searchResults.length+' hasil':'Mencari…'}</span></div>
