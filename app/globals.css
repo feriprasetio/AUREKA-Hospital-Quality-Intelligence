@@ -1967,3 +1967,72 @@ html[data-theme="amoled"] .moduleEnter .aqUnitPicker .aqBody .aqField select{bac
 .moduleEnter .aqDeleteConfirmActions .aqBtn.danger{border:1px solid #be3b34!important;background:#b8322c!important;color:white!important}
 html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm{background:#050505!important;color:#fff!important;border-color:#292929!important}
 html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm h4{color:#fff!important}
+
+
+/* Compact module-specific navigation and analytic cards that are not plain tables. */
+.moduleEnter .rmTabs,.moduleEnter .psTabs,.moduleEnter .oppeTabs,.moduleEnter .cwTabs{
+ display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:4px!important;
+ min-width:0!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;
+ padding:3px 5px!important;margin:0 0 5px!important;border-radius:9px!important
+}
+.moduleEnter :is(.rmTabs,.psTabs,.oppeTabs,.cwTabs)::-webkit-scrollbar{display:none!important}
+.moduleEnter :is(.rmTabs,.psTabs,.oppeTabs,.cwTabs) button{
+ flex:0 0 auto!important;min-height:26px!important;height:26px!important;padding:4px 8px!important;
+ border-radius:7px!important;font-size:9px!important;line-height:1.15!important;white-space:nowrap!important
+}
+.moduleEnter .psTabs button span,.moduleEnter .rmTabs button small{display:none!important}
+.moduleEnter .acdMode{display:flex!important;flex-wrap:nowrap!important;gap:4px!important;padding:4px 6px!important;margin:0!important;overflow-x:auto!important;scrollbar-width:none!important;border-radius:9px!important}
+.moduleEnter .acdMode button{flex:1 0 auto!important;min-width:0!important;min-height:29px!important;padding:5px 8px!important;border-radius:7px!important;font-size:9px!important;line-height:1.2!important}
+.moduleEnter .acdMode button span{display:none!important}
+.moduleEnter .oppeWorkGrid{gap:6px!important;grid-template-columns:minmax(0,1fr)!important}
+.moduleEnter .oppeScorePanel{padding:8px 10px!important;border-radius:10px!important}
+.moduleEnter .oppeScoreRows{gap:4px!important}
+.moduleEnter .oppeScoreRows>div{padding:5px 7px!important;border-radius:7px!important}
+.moduleEnter .oppeScoreRows span,.moduleEnter .oppeScoreRows small{font-size:8px!important;line-height:1.25!important}
+.moduleEnter .oppeScoreRows strong{font-size:10px!important}
+.moduleEnter :is(.oppeClinicalCard,.oppeManualCard,.oppeRuleRow){
+ padding:8px 10px!important;margin:0 0 5px!important;border-radius:9px!important;box-shadow:none!important
+}
+.moduleEnter .oppeClinicalHead{display:flex!important;align-items:center!important;gap:6px!important;margin-bottom:4px!important}
+.moduleEnter .oppeClinicalHead strong{font-size:10px!important;line-height:1.25!important}
+.moduleEnter .oppeClinicalHead>span{font-size:8px!important}
+.moduleEnter .cpToolbar,.moduleEnter .cpGlass.cpToolbar{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important;padding:6px 8px!important;margin:0 0 5px!important;border-radius:9px!important
+}
+.moduleEnter .cpToolbar .cpField,.moduleEnter .cpToolbar .cpSearch{flex:1 1 170px!important;min-width:0!important}
+.moduleEnter .cpToolbar .cpField label{font-size:8px!important;margin:0 0 3px!important}
+.moduleEnter .cpToolbar .cpField :is(input,select){height:29px!important;min-height:29px!important;padding:4px 7px!important;border-radius:7px!important;font-size:9px!important}
+.moduleEnter .cpRecordList{display:grid!important;gap:5px!important}
+.moduleEnter .cpRecord{padding:7px 9px!important;margin:0!important;border-radius:9px!important}
+.moduleEnter .cpRecord :is(h4,h5,strong){font-size:10px!important;line-height:1.25!important}
+.moduleEnter .cpRecord :is(p,small){font-size:8px!important;line-height:1.25!important}
+.moduleEnter .cpGlass.cpPanel{padding:8px 10px!important}
+.moduleEnter .cpProfessionHead,.moduleEnter .cpStageHead,.moduleEnter .cpVarHead{padding:6px 8px!important;gap:5px!important}
+.moduleEnter .cpProfessionHead :is(strong,b),.moduleEnter .cpStageHead :is(strong,b){font-size:9px!important}
+.moduleEnter .acdTableWrap,.moduleEnter .cpAuditWrap,.moduleEnter .cpBuilderTable{max-height:none!important;min-height:0!important;overflow:auto!important}
+.moduleEnter .acdTable,.moduleEnter .cpAuditTable,.moduleEnter .cpBuilderMatrix{font-size:9px!important;line-height:1.2!important}
+.moduleEnter .acdTable :is(th,td),.moduleEnter .cpAuditTable :is(th,td),.moduleEnter .cpBuilderMatrix :is(th,td){padding:5px 6px!important;font-size:8px!important;line-height:1.2!important}
+.moduleEnter .staffDirectory,.moduleEnter .staffTeam{gap:6px!important}
+.moduleEnter .staffDirectory>.sdPanel:first-child,.moduleEnter .staffTeam>.stPanel:first-child{padding:8px 10px!important}
+.moduleEnter .sdTitle,.moduleEnter .stTitle{font-size:16px!important;line-height:1.2!important;margin:2px 0!important}
+.moduleEnter .sdActions,.moduleEnter .stActions{gap:4px!important}
+.moduleEnter .sdTableWrap,.moduleEnter .stRows{border-radius:9px!important}
+.moduleEnter .stRow{display:grid!important;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1fr) auto!important;align-items:center!important;gap:7px!important;padding:6px 8px!important;border-radius:7px!important}
+.moduleEnter .stLock{font-size:8px!important;padding:3px 5px!important}
+.moduleEnter .stRelease{min-height:22px!important;padding:3px 6px!important;border-radius:6px!important;font-size:8px!important}
+.moduleEnter .cwPanel{padding:6px!important;border-radius:9px!important}
+.moduleEnter .cwHint{display:none!important}
+.moduleEnter .cwTab{min-height:25px!important;height:25px!important;padding:4px 7px!important;font-size:8px!important}
+.moduleEnter .ovKpi{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;min-height:31px!important;padding:6px 9px!important;border-radius:8px!important}
+.moduleEnter .ovKpiLabel{font-size:9px!important;line-height:1.2!important}
+.moduleEnter .ovKpi b{font-size:11px!important}
+.moduleEnter .acctGrid,.moduleEnter .roomEditorGrid{gap:7px!important}
+.moduleEnter .roomGrid{gap:6px!important}
+.moduleEnter .roomGrid .roomCardText{font-size:9px!important;line-height:1.25!important}
+.moduleEnter .userRowGrid{padding:7px 9px!important;gap:7px!important}
+.moduleEnter .userDetailHint{display:none!important}
+@media(max-width:760px){
+ .moduleEnter .oppeWorkGrid{grid-template-columns:minmax(0,1fr)!important}
+ .moduleEnter .stRow{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .moduleEnter :is(.rmTabs,.psTabs,.oppeTabs,.cwTabs){flex-wrap:nowrap!important}
+}
