@@ -3,6 +3,7 @@ import {Fragment,useCallback,useEffect,useMemo,useState} from 'react'
 import QualityExcelPastePanel from '@/components/QualityExcelPastePanel'
 import ComplaintExcelImportDialog from '@/components/ComplaintExcelImportDialog'
 import AmbulanceExcelImportDialog from '@/components/AmbulanceExcelImportDialog'
+import IbsExcelImportDialog from '@/components/IbsExcelImportDialog'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind } from '@/lib/aureka/indicator-engine'
 import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '@/lib/aureka/complaint-logbook'
@@ -346,6 +347,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [excelPasteOpen,setExcelPasteOpen]=useState(false)
  const [complaintImportOpen,setComplaintImportOpen]=useState(false)
  const [ambulanceImportOpen,setAmbulanceImportOpen]=useState(false)
+ const [ibsImportOpen,setIbsImportOpen]=useState(false)
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
 
@@ -809,6 +811,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        {!isValidator&&<button type="button" className="aqBtn aqImportButton" onClick={()=>setExcelPasteOpen(v=>!v)} aria-expanded={excelPasteOpen} title={excelPasteOpen?'Tutup panel impor Excel':'Buka impor data dari Excel'}>{excelPasteOpen?'Tutup impor':'Impor Excel'}</button>}
        {!isValidator&&roomId===1&&year===2026&&(isAdmin||canViewAllRooms)&&<button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setComplaintImportOpen(true)} title="Unggah workbook Excel resmi unit Informasi dan Pengaduan">Unggah workbook .xlsx</button>}
        {!isValidator&&roomId===3&&year===2026&&(isAdmin||canViewAllRooms)&&<button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setAmbulanceImportOpen(true)} title="Unggah workbook Excel resmi unit Ambulance">Unggah workbook .xlsx</button>}
+       {!isValidator&&roomId===4&&year===2026&&(isAdmin||canViewAllRooms)&&<button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setIbsImportOpen(true)} title="Unggah workbook Excel resmi Instalasi Bedah Sentral">Unggah workbook .xlsx</button>}
        {!isValidator&&<button type="button" className="aqBtn primary aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button>}
       </div>
       {!isValidator&&excelPasteOpen&&<QualityExcelPastePanel key={roomId??'all'} headers={[...(activeLayout?.fields??[]),...(activeLayout?.indicators??[])]} disabledReason={roomId==null?'Pilih satu unit pada filter sebelum mengimpor.':!activeLayout?'Layout header aktif untuk unit ini belum tersedia.':''} onUseRow={importExcelRow} onUseRows={importExcelRows} onClose={()=>setExcelPasteOpen(false)}/>}
@@ -816,6 +819,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
 
    <ComplaintExcelImportDialog open={complaintImportOpen} roomId={roomId} year={year} authorized={isAdmin||canViewAllRooms} profiles={profiles} onClose={()=>setComplaintImportOpen(false)} onImported={async()=>{await load()}}/>
    <AmbulanceExcelImportDialog open={ambulanceImportOpen} roomId={roomId} year={year} authorized={isAdmin||canViewAllRooms} profiles={profiles} onClose={()=>setAmbulanceImportOpen(false)} onImported={async()=>{await load()}}/>
+   <IbsExcelImportDialog open={ibsImportOpen} roomId={roomId} year={year} authorized={isAdmin||canViewAllRooms} profiles={profiles} onClose={()=>setIbsImportOpen(false)} onImported={async()=>{await load()}}/>
 
    {pendingArchive&&<div className="aqBack aqDeleteConfirmBack" role="presentation" onClick={(e:any)=>{if(e.target===e.currentTarget&&!busy)setPendingArchive(null)}}><section className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqDeleteConfirmTitle" aria-describedby="aqDeleteConfirmText"><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span><button type="button" className="aqDeleteConfirmClose" aria-label="Tutup dialog" disabled={busy} onClick={()=>setPendingArchive(null)}>×</button></div><h4 id="aqDeleteConfirmTitle">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf catatan?':'Hapus catatan dari logbook aktif?'}</h4><p id="aqDeleteConfirmText">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Draf ini belum tersimpan ke server dan akan dibuang dari sesi ini.':'Catatan akan diarsipkan dan hilang dari daftar aktif. Jejak audit tetap dipertahankan.'}</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" disabled={busy} onClick={()=>setPendingArchive(null)}>Batal</button><button type="button" className="aqBtn danger" disabled={busy} onClick={()=>void archivePatient(pendingArchive)}>{busy?'Memproses…':pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf':'Ya, hapus'}</button></div></section></div>}
 
