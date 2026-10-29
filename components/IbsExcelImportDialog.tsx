@@ -165,6 +165,7 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
     source_indicator_values: sourceIndicatorValues,
     source_warnings: row.warnings,
     allow_cross_year: Number(row.date.slice(0, 4)) !== 2026,
+    exclude_from_profile_year_metrics: Number(row.date.slice(0, 4)) !== 2026,
   }
   const formFields: Record<string, unknown> = {
     'Nama Pasien': row.patientName,

@@ -181,7 +181,8 @@ BEGIN
     IF coalesce(v_form->>'Tanggal Masuk', '') !~ '^\d{4}-\d{2}-\d{2}$'
        OR coalesce(v_payload->>'record_date', '') <> coalesce(v_form->>'Tanggal Masuk', '')
        OR coalesce(v_core->>'admission_at', '') <> coalesce(v_form->>'Tanggal Masuk', '')
-       OR coalesce(v_source->>'allow_cross_year', 'false') <> (substring(v_form->>'Tanggal Masuk' from 1 for 4) <> '2026')::text THEN
+       OR coalesce(v_source->>'allow_cross_year', 'false') <> (substring(v_form->>'Tanggal Masuk' from 1 for 4) <> '2026')::text
+       OR coalesce(v_source->>'exclude_from_profile_year_metrics', 'false') <> (substring(v_form->>'Tanggal Masuk' from 1 for 4) <> '2026')::text THEN
       RAISE EXCEPTION 'Tanggal masuk atau penanda lintas tahun tidak konsisten pada baris Excel %.', v_source_row USING ERRCODE = '22023';
     END IF;
 
