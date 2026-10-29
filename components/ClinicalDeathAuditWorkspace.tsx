@@ -222,6 +222,12 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [loadWarning, setLoadWarning] = useState('')
+  useEffect(() => {
+    const text = message || loadWarning
+    if (!text || typeof window === 'undefined') return
+    const type = /gagal|belum|tidak dapat|periksa|wajib|kesalahan|warning/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'Audit Klinis dan Kematian' } }))
+  }, [message, loadWarning])
   const [editorOpen, setEditorOpen] = useState(false)
   const [activeEpisode, setActiveEpisode] = useState<Episode | null>(null)
   const [activeAudit, setActiveAudit] = useState<AuditRow | null>(null)
