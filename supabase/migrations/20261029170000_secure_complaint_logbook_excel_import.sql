@@ -158,18 +158,26 @@ BEGIN
     END IF;
 
     IF coalesce(v_form->>'Level Masalah','') NOT IN ('Ringan','Sedang','Berat')
-       OR coalesce(v_form->>'Sumber Aduan','') NOT IN ('Website Rumah Sakit','Sumber Lainnya','Aduan Langsung Tatap Muka')
-       OR coalesce(v_form->>'Unit Pelayanan','') NOT IN ('Farmasi','farmasi','Pelayanan','Radiologi','IT','Sarana dan prasarana','Parkiran','Poli anak','Pendaftaran / RM Loket 2 (di gedung belakang)','Pendaftaran IGD','Rajal','Ranap R.Mawar 2-Bedah')
+       OR coalesce(v_form->>'Sumber Aduan','') NOT IN (
+         'Aduan Langsung Tatap Muka',
+         'Contact Person Pengaduan',
+         'Instansi Lain (Misal: Kantor BPJS)',
+         'Sosial Media (FB, IG, dll)',
+         'Website Rumah Sakit',
+         'Sumber Lainnya'
+       )
        OR coalesce(v_form->>'Status Aduan','') NOT IN (
+         'Aduan Tidak Selesai Ditindaklanjuti',
          'Aduan Selesai Dengan Klarifikasi Dari Manajemen',
          'Aduan Selesai Dengan Proses Pengadaan',
          'Aduan Selesai Dengan Penegakan Aturan',
+         'Aduan Selesai Dengan Mediasi Manajemen',
          'Pengaduan selesai dengan ditindaklanjuti manajemen  melalui aplikasi simponi',
          'Pengaduan selesai dengan ditindaklanjuti manajemen ',
          'Pengaduan selesai dengan ditindaklanjuti manajemen  melalui tatapmuka dengan keluarga pasien',
          'Sudah ditindak lanjut ke bidang terkait , pasien di edukasi mengenai penggunaan aplikasi simponi.'
        ) THEN
-      RAISE EXCEPTION 'Nilai unit layanan, level masalah, sumber, atau status aduan bukan pilihan yang diizinkan pada baris Excel %.', v_source_row USING ERRCODE = '22023';
+      RAISE EXCEPTION 'Nilai level masalah, sumber, atau status aduan bukan pilihan yang diizinkan pada baris Excel %.', v_source_row USING ERRCODE = '22023';
     END IF;
 
     v_seen_ids := ARRAY[]::uuid[];
