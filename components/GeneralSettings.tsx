@@ -493,7 +493,7 @@ export default function GeneralSettings({
             >
               <span style={{ fontSize: 28 }}>⚙️</span>
               <b style={{ display: 'block', marginTop: 8 }}>Pengaturan Umum</b>
-              <span>Profil akun, akses, unit, tampilan, tone warna, preferensi, dan keamanan.</span>
+              <span>Profil akun, akses, unit, preferensi tampilan, dan keamanan.</span>
             </button>
 
             <button type="button" className="placeholderCard glassPanel" onClick={() => { setSection('general'); setTab('security') }} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
@@ -548,7 +548,7 @@ export default function GeneralSettings({
                 ['Peran', roleLabel],
                 ['Unit', rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Belum dipetakan'],
                 ['Authentication', 'Supabase Auth'],
-                ['Tone', tone.name],
+                ['Status akun', me?.is_active ? 'Aktif' : 'Nonaktif'],
               ].map(([label, value]) => (
                 <div key={label} style={{ padding: 12, borderRadius: 16, background: 'rgba(255,255,255,.28)', border: '1px solid rgba(255,255,255,.6)' }}>
                   <span style={{ display: 'block', color: 'var(--muted)', fontSize: 9 }}>{label}</span>
@@ -717,7 +717,7 @@ export default function GeneralSettings({
                   ['Session', 'Persistent session + automatic refresh'],
                   ['Authorization', `Role-based access · ${roleLabel}`],
                   ['Password', 'Dikelola oleh Supabase Auth, bukan disimpan di halaman Pengaturan.'],
-                  ['Preferensi tone', 'Disimpan lokal pada browser ini.'],
+                  ['Tema tampilan', 'Diatur melalui kontrol Light / AMOLED pada sidebar.'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>
                     <b style={{ fontSize: 10 }}>{label}</b>
