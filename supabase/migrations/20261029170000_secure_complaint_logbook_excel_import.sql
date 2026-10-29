@@ -14,7 +14,8 @@ AS $function$
 DECLARE
   v_user_id uuid := auth.uid();
   v_role text := aureka_system.current_role_code();
-  v_item jsonb;
+  v_row jsonb;
+  v_response jsonb;
   v_payload jsonb;
   v_responses jsonb;
   v_attributions jsonb;
@@ -71,16 +72,16 @@ BEGIN
   END IF;
 
   -- Validate the entire batch before writing any row.
-  FOR v_item IN SELECT value FROM jsonb_array_elements(p_rows)
+  FOR v_row IN SELECT value FROM jsonb_array_elements(p_rows)
   LOOP
-    v_payload := v_item->'payload';
-    v_responses := v_item->'responses';
-    v_attributions := coalesce(v_item->'attributions', '[]'::jsonb);
+    v_payload := v_row->'payload';
+    v_responses := v_row->'responses';
+    v_attributions := coalesce(v_row->'attributions', '[]'::jsonb);
 
-    IF jsonb_typeof(v_payload) <> 'object'
-       OR jsonb_typeof(v_responses) <> 'array'
+    IF coalesce(jsonb_typeof(v_payload),'') <> 'object'
+       OR coalesce(jsonb_typeof(v_responses),'') <> 'array'
        OR jsonb_array_length(v_responses) <> 2
-       OR jsonb_typeof(v_attributions) <> 'array'
+       OR coalesce(jsonb_typeof(v_attributions),'') <> 'array'
        OR jsonb_array_length(v_attributions) <> 0 THEN
       RAISE EXCEPTION 'Bentuk payload, respons indikator, atau atribusi tidak valid.' USING ERRCODE = '22023';
     END IF;
@@ -100,9 +101,9 @@ BEGIN
 
     IF v_key IS NULL
        OR v_key !~ '^excel-pmkp-informasi-pengaduan-2026:row:[0-9]+$'
-       OR jsonb_typeof(v_core) <> 'object'
-       OR jsonb_typeof(v_form) <> 'object'
-       OR jsonb_typeof(v_source) <> 'object'
+       OR coalesce(jsonb_typeof(v_core),'') <> 'object'
+       OR coalesce(jsonb_typeof(v_form),'') <> 'object'
+       OR coalesce(jsonb_typeof(v_source),'') <> 'object'
        OR v_source->>'source_sheet' <> 'Logbook'
        OR nullif(v_source->>'source_excel_row','') !~ '^[0-9]+$' THEN
       RAISE EXCEPTION 'Identitas sumber workbook/logbook tidak valid.' USING ERRCODE = '22023';
@@ -141,13 +142,13 @@ BEGIN
     END IF;
 
     v_seen_ids := ARRAY[]::uuid[];
-    FOR v_item IN SELECT value FROM jsonb_array_elements(v_responses)
+    FOR v_response IN SELECT value FROM jsonb_array_elements(v_responses)
     LOOP
       v_code := NULL;
       SELECT ip.code, ip.id
         INTO v_code, v_indicator_id
         FROM aureka_quality.indicator_profiles ip
-       WHERE ip.id = nullif(v_item->>'indicator_id','')::uuid
+       WHERE ip.id = nullif(v_response->>'indicator_id','')::uuid
          AND ip.room_id = 1 AND ip.profile_year = 2026
          AND ip.is_active AND ip.status = 'published'
          AND ip.code = ANY (v_expected_codes);
@@ -157,17 +158,17 @@ BEGIN
       END IF;
       v_seen_ids := array_append(v_seen_ids, v_indicator_id);
 
-      IF nullif(v_item->>'response_code','') IS NULL
-         OR (v_item->>'response_code')::integer NOT BETWEEN 1 AND 3
-         OR nullif(v_item->>'response_label','') IS NULL THEN
+      IF nullif(v_response->>'response_code','') IS NULL
+         OR (v_response->>'response_code')::integer NOT BETWEEN 1 AND 3
+         OR nullif(v_response->>'response_label','') IS NULL THEN
         RAISE EXCEPTION 'Respons indikator baris Excel % belum sesuai master pilihan.', v_source_row USING ERRCODE = '22023';
       END IF;
 
       IF v_code = '1.1'
-         AND (v_item->>'response_label') <> 'Respon Tepat Waktu (Sesuai Grading Merah/Kuning/Hijau)' THEN
+         AND (v_response->>'response_label') <> 'Respon Tepat Waktu (Sesuai Grading Merah/Kuning/Hijau)' THEN
         RAISE EXCEPTION 'Pilihan indikator 1.1 tidak konsisten dengan metadata sumber pada baris Excel %.', v_source_row USING ERRCODE = '22023';
       ELSIF v_code = '1.2'
-         AND (v_item->>'response_label') <> 'Pasien Mengerti (Verifikasi pemahaman/Teach-back berhasil)' THEN
+         AND (v_response->>'response_label') <> 'Pasien Mengerti (Verifikasi pemahaman/Teach-back berhasil)' THEN
         RAISE EXCEPTION 'Pilihan indikator 1.2 tidak konsisten dengan metadata sumber pada baris Excel %.', v_source_row USING ERRCODE = '22023';
       END IF;
     END LOOP;
@@ -186,11 +187,11 @@ BEGIN
   END LOOP;
 
   -- Re-read each row in a fresh loop and use the existing, audited save RPC.
-  FOR v_item IN SELECT value FROM jsonb_array_elements(p_rows)
+  FOR v_row IN SELECT value FROM jsonb_array_elements(p_rows)
   LOOP
-    v_payload := v_item->'payload';
-    v_responses := v_item->'responses';
-    v_attributions := coalesce(v_item->'attributions', '[]'::jsonb);
+    v_payload := v_row->'payload';
+    v_responses := v_row->'responses';
+    v_attributions := coalesce(v_row->'attributions', '[]'::jsonb);
     v_key := v_payload->>'subject_key';
 
     IF EXISTS (
