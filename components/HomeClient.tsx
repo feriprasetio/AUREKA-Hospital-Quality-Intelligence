@@ -32,6 +32,13 @@ const QUICK_MODULES=[
 ] as const
 
 type QuickModule=typeof QUICK_MODULES[number]
+type PublicLandingPoint={label:string;value:number|null}
+type PublicLandingMetrics={domain:QuickModule['id'];kind:'monthly'|'category';title:string;generated_at:string;minimum_group_size:number;points:PublicLandingPoint[]}
+function publicMetricLabel(kind:'monthly'|'category',label:string){
+ if(kind!=='monthly'||!/^\d{4}-\d{2}$/.test(label))return label
+ const [year,month]=label.split('-').map(Number)
+ return new Intl.DateTimeFormat('id-ID',{month:'short',year:'2-digit',timeZone:'Asia/Pontianak'}).format(new Date(Date.UTC(year,month-1,1,5)))
+}
 const MODULE_INFO:Record<QuickModule['id'],{tagline:string;features:[string,string][]}>={
  quality:{tagline:'Pengumpulan & pemantauan capaian indikator mutu unit dan rumah sakit.',features:[['Audit Indikator Mutu','Logbook episode pasien per unit dengan profil indikator 2026.'],['Clinical Pathway','Audit per episode, checklist PPA, dan penghitungan kepatuhan.'],['Audit Klinis & Kematian','Telaah klinis terstruktur, pembelajaran, rekomendasi, dan tindak lanjut.'],['OPPE','Penilaian praktik profesional berbasis logbook tervalidasi dan bukti indikator.']]},
  safety:{tagline:'Pelaporan insiden, investigasi RCA, dan budaya keselamatan pasien.',features:[['Laporan IKP','Formulir insiden sesuai format resmi, tersimpan aman di server.'],['Investigasi / RCA','Akar masalah, grading risiko, dan rekomendasi tindak lanjut.'],['Survey Budaya','Survei budaya keselamatan anonim untuk seluruh staf.'],['Rekap & Ekspor','Rekap respons dan ekspor Excel untuk Komite PMKP.']]},
@@ -51,9 +58,19 @@ function NavIcon({id}:{id:string}){
  if(id==='analytics')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-8"/><path d="M3 19.5h18"/></svg>
  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 13.7 5l2.3-.2.9 2.1 2 1.2-.7 2.2 1.1 2-1.5 1.8.2 2.3-2.1.9-1.2 2-2.2-.7-2 1.1-1.8-1.5-2.3.2-.9-2.1-2-1.2.7-2.2-1.1-2 1.5-1.8-.2-2.3 2.1-.9 1.2-2 2.2.7 2-1.1Z"/><circle cx="12" cy="12" r="3"/></svg>
 }
+function ThemeModeToggle({mode,onChange,variant=''}:{mode:'light'|'amoled';onChange:(mode:'light'|'amoled')=>void;variant?:string}){
+ return <div className={'themeModeSwitch '+variant} role="group" aria-label="Mode tampilan">
+  <button type="button" className={mode==='light'?'themeModeActive':''} aria-pressed={mode==='light'} onClick={()=>onChange('light')}>
+   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><span>Light</span>
+  </button>
+  <button type="button" className={mode==='amoled'?'themeModeActive':''} aria-pressed={mode==='amoled'} onClick={()=>onChange('amoled')}>
+   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.7 8.7 0 0 1 8.8 3.5 8.8 8.8 0 1 0 20.5 15.2Z"/></svg><span>AMOLED</span>
+  </button>
+ </div>
+}
 const CHILD:any={quality:['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'],safety:['Insiden Keselamatan Pasien','Investigasi / Root Cause Analysis (RCA)','Survey Budaya Keselamatan Pasien'],risk:['Risk Register','RTP','FMEA / HFMEA'],staff:['Direktori Tenaga','Tim & Penugasan','OPPE / FPPE'],analytics:['Dashboard Statistik','Kelengkapan Data','Ekspor Agregat','Laporan Individu'],settings:['Pengguna & Role','Unit','Kamus Indikator / CP','Versi Aturan','Konfigurasi']}
 type Room={id:number;name:string};type Profile={user_id:string;full_name:string;email:string;username?:string|null;primary_room_id:number|null;role_id:string|null;is_active:boolean;must_change_password?:boolean;role_code?:string|null;role_name?:string|null}
-const logo=(c='')=><img className={c} src="/assets/logo_rsud.png" alt="RSUD Sultan Syarif Mohamad Alkadrie" onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src=LOGO}}/>
+const logo=(c='')=><span className={'brandLogoWrap '+c}><img className="brandLogoImage" src={LOGO} alt="Logo RSUD Sultan Syarif Mohamad Alkadrie" loading="eager" decoding="async" onError={e=>{e.currentTarget.style.display='none';const fallback=e.currentTarget.nextElementSibling as HTMLElement|null;if(fallback)fallback.style.display='grid'}}/><span className="brandLogoFallback" aria-hidden="true">SSMA</span></span>
 async function rooms(){const {data,error}=await sb.from('master_rooms').select('id,name').eq('is_active',true).order('sort_order');return !error&&data?.length?data as Room[]:FALLBACK.map((name,i)=>({id:i+1,name}))}
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
@@ -74,6 +91,28 @@ export default function HomeClient(){
   document.documentElement.style.colorScheme=nextMode==='amoled'?'dark':'light'
   setThemeMode(nextMode)
  },[])
+ const [publicMetrics,setPublicMetrics]=useState<PublicLandingMetrics|null>(null)
+ const [publicMetricsLoading,setPublicMetricsLoading]=useState(false)
+ const [publicMetricsError,setPublicMetricsError]=useState('')
+ useEffect(()=>{
+  if(!overviewModule){setPublicMetrics(null);setPublicMetricsError('');setPublicMetricsLoading(false);return}
+  let cancelled=false
+  setPublicMetrics(null);setPublicMetricsError('');setPublicMetricsLoading(true)
+  const load=async()=>{
+   try{
+    const {data,error}=await sb.schema('aureka_analytics').rpc('public_landing_metrics',{p_domain:overviewModule})
+    if(cancelled)return
+    if(error){setPublicMetricsError('Grafik publik belum dapat dimuat saat ini.');return}
+    const value=data as unknown as PublicLandingMetrics
+    if(!value||!Array.isArray(value.points)){setPublicMetricsError('Format data agregat publik belum tersedia.');return}
+    setPublicMetrics(value)
+   }catch{
+    if(!cancelled)setPublicMetricsError('Grafik publik belum dapat dimuat saat ini.')
+   }finally{if(!cancelled)setPublicMetricsLoading(false)}
+  }
+  void load()
+  return ()=>{cancelled=true}
+ },[overviewModule])
  useEffect(()=>{rooms().then(setRoomsList);const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}sb.rpc('aureka_sync_my_email').then(()=>{},()=>{});if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setView(p.must_change_password?'force-password':'workspace')}})},[])
  useEffect(()=>{
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
@@ -219,12 +258,13 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='workspace')return <main className="workspaceRoot"><button className="workspaceScrim" onClick={()=>setMobile(false)} data-open={mobile}/><aside className={`sidebar glassPanel ${mobile?'mobileOpen':''}`}><div className="sideHeader"><div className="sideBrand"><span className="workspaceBrandMark" aria-hidden="true">A</span><div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></div><div className="themeModeLabel">TEMA TAMPILAN</div><div className="themeModeSwitch" role="group" aria-label="Mode tampilan"><button type="button" className={themeMode==='light'?'themeModeActive':''} aria-pressed={themeMode==='light'} onClick={()=>applyTheme('light')}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><span>Light</span></button><button type="button" className={themeMode==='amoled'?'themeModeActive':''} aria-pressed={themeMode==='amoled'} onClick={()=>applyTheme('amoled')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.7 8.7 0 0 1 8.8 3.5 8.8 8.8 0 1 0 20.5 15.2Z"/></svg><span>AMOLED</span></button></div><div className="navLabel">Workspace</div><nav className="sidebarNav" aria-label="Navigasi utama AUREKA"><button type="button" title="Ringkasan" className={active==='home'?'navActive':''} onClick={()=>{setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><NavIcon id="home"/><span>Ringkasan</span></button>{visibleMods.map(([id,n])=><button type="button" title={n} key={id} className={active===id?'navActive':''} onClick={()=>{setProfileFocus(0);setActive(id);if(id!=='quality')setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><NavIcon id={id}/><span>{n}</span></button>)}</nav><button type="button" className={`profileChip profileChipBtn ${active==='settings'&&profileFocus>0?'isActive':''}`} title="Profil saya: ubah nama, password, dan data akun" onClick={()=>{setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><div className="profileAvatar">{initials(profile?.full_name||user?.email)}</div><div className="profileText"><b>{profile?.full_name||user?.email}</b><span>{ROLE_LABEL[role||'']||role||'Pengguna'} · {room?.name||'Unit belum dipetakan'}</span><em className="profileChipHint">Lihat & ubah profil ›</em></div></button><LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton></aside><section className="workspaceContent"><div className="workspaceTop"><button className="mobileMenuButton" onClick={()=>setMobile(true)}>☰</button><div><div className="eyebrow">AUREKA / {title}</div><h2>{title}</h2><p>{active==='home'?'Pemantauan mutu, keselamatan pasien, dan risiko — satu tampilan kerja.':'Ruang kerja operasional sesuai peran dan unit penugasan.'}</p></div><div className="workspaceTopMeta"><span>Unit kerja</span><b>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</b><small>{ROLE_LABEL[role||""]||"Pengguna"}</small></div></div><div key={`${active}-${qualityOpen}-${clinicalPathwayOpen}`} className="moduleEnter">{active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway'){setActive('quality');setQualityOpen(false);setClinicalPathwayOpen(true);}else{setActive(id);setQualityOpen(id==='quality');setClinicalPathwayOpen(false);}}}}/>:active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>{setClinicalPathwayOpen(false);setQualityOpen(false);}}/>:active==='quality'&&!qualityOpen?<QualityHub onOpen={()=>{setQualityInitialContainer('Audit Indikator Mutu');setQualityOpen(true)}} onOpenClinicalPathway={()=>{setClinicalPathwayOpen(true);setQualityOpen(false)}} onOpenClinicalDeathReview={()=>{setQualityInitialContainer('Audit Klinis dan Kematian');setClinicalPathwayOpen(false);setQualityOpen(true)}}/>:active==='quality'&&qualityOpen?<div><button type="button" className="backBtn" style={{marginBottom:12}} onClick={()=>{setQualityOpen(false);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Indikator Mutu')}}><span aria-hidden="true">←</span> Kembali ke Indikator Mutu</button><QualityIndicatorWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} initialContainer={qualityInitialContainer}/></div>:active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus}/>:active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus}/>:active==='staff'?<ClinicalWorkforceWorkspace rooms={roomsList} initialRoomId={room?.id??null} role={role} isSuperAdmin={admin}/>:active==='analytics'&&manager?<MetadataStatisticsWorkspace supabase={sb} rooms={roomsList} isSuperAdmin={admin}/>:active==='settings'?<GeneralSettings key={profileFocus} openProfile={profileFocus>0} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>{setActive(id);setQualityOpen(id==='quality')}} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>:<div className="placeholderGrid">{(CHILD[active]||[]).map((x:string)=><LiquidGlass key={x} className="placeholderCard"><b>{x}</b><span>Container modul siap dikembangkan.</span></LiquidGlass>)}</div>}</div></section></main>
+ if(view==='workspace')return <main className="workspaceRoot"><button className="workspaceScrim" onClick={()=>setMobile(false)} data-open={mobile}/><aside className={`sidebar glassPanel ${mobile?'mobileOpen':''}`}><div className="sideHeader"><div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></div><div className="themeModeLabel">TEMA TAMPILAN</div><ThemeModeToggle mode={themeMode} onChange={applyTheme}/><div className="navLabel">Workspace</div><nav className="sidebarNav" aria-label="Navigasi utama AUREKA"><button type="button" title="Ringkasan" className={active==='home'?'navActive':''} onClick={()=>{setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><NavIcon id="home"/><span>Ringkasan</span></button>{visibleMods.map(([id,n])=><button type="button" title={n} key={id} className={active===id?'navActive':''} onClick={()=>{setProfileFocus(0);setActive(id);if(id!=='quality')setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><NavIcon id={id}/><span>{n}</span></button>)}</nav><button type="button" className={`profileChip profileChipBtn ${active==='settings'&&profileFocus>0?'isActive':''}`} title="Profil saya: ubah nama, password, dan data akun" onClick={()=>{setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setMobile(false)}}><div className="profileAvatar">{initials(profile?.full_name||user?.email)}</div><div className="profileText"><b>{profile?.full_name||user?.email}</b><span>{ROLE_LABEL[role||'']||role||'Pengguna'} · {room?.name||'Unit belum dipetakan'}</span><em className="profileChipHint">Lihat & ubah profil ›</em></div></button><LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton></aside><section className="workspaceContent"><div className="workspaceTop"><button className="mobileMenuButton" onClick={()=>setMobile(true)}>☰</button><div><div className="eyebrow">AUREKA / {title}</div><h2>{title}</h2><p>{active==='home'?'Pemantauan mutu, keselamatan pasien, dan risiko — satu tampilan kerja.':'Ruang kerja operasional sesuai peran dan unit penugasan.'}</p></div><div className="workspaceTopMeta"><span>Unit kerja</span><b>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</b><small>{ROLE_LABEL[role||""]||"Pengguna"}</small></div></div><div key={`${active}-${qualityOpen}-${clinicalPathwayOpen}`} className="moduleEnter">{active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway'){setActive('quality');setQualityOpen(false);setClinicalPathwayOpen(true);}else{setActive(id);setQualityOpen(id==='quality');setClinicalPathwayOpen(false);}}}}/>:active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>{setClinicalPathwayOpen(false);setQualityOpen(false);}}/>:active==='quality'&&!qualityOpen?<QualityHub onOpen={()=>{setQualityInitialContainer('Audit Indikator Mutu');setQualityOpen(true)}} onOpenClinicalPathway={()=>{setClinicalPathwayOpen(true);setQualityOpen(false)}} onOpenClinicalDeathReview={()=>{setQualityInitialContainer('Audit Klinis dan Kematian');setClinicalPathwayOpen(false);setQualityOpen(true)}}/>:active==='quality'&&qualityOpen?<div><button type="button" className="backBtn" style={{marginBottom:12}} onClick={()=>{setQualityOpen(false);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Indikator Mutu')}}><span aria-hidden="true">←</span> Kembali ke Indikator Mutu</button><QualityIndicatorWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} initialContainer={qualityInitialContainer}/></div>:active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus}/>:active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus}/>:active==='staff'?<ClinicalWorkforceWorkspace rooms={roomsList} initialRoomId={room?.id??null} role={role} isSuperAdmin={admin}/>:active==='analytics'&&manager?<MetadataStatisticsWorkspace supabase={sb} rooms={roomsList} isSuperAdmin={admin}/>:active==='settings'?<GeneralSettings key={profileFocus} openProfile={profileFocus>0} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>{setActive(id);setQualityOpen(id==='quality')}} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>:<div className="placeholderGrid">{(CHILD[active]||[]).map((x:string)=><LiquidGlass key={x} className="placeholderCard"><b>{x}</b><span>Container modul siap dikembangkan.</span></LiquidGlass>)}</div>}</div></section></main>
  return <main className="publicRoot landing">
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   <header className="topbar glassPanel landingTopbar">
    <div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
    <div className="landingTopActions">
+    <ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="themeModeSwitchPublic"/>
     <button type="button" className="landingGhost" onClick={()=>{setMessage('');setView('signup')}}>Daftar akun unit</button>
     <button type="button" className="landingCta" onClick={()=>{setMessage('');setView('login')}}>Masuk Workspace <span aria-hidden="true">→</span></button>
    </div>
@@ -235,15 +275,7 @@ export default function HomeClient(){
     <div className="landingBadge"><span className="landingPulse" aria-hidden="true"/>UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP</div>
     <h1>AUREKA<br/><em>Alkadrie Unified Risk Evaluation, Quality, Assessment.</em></h1>
     <p>Satu workspace untuk indikator mutu, keselamatan pasien, dan manajemen risiko — setiap unit menginput datanya sendiri, Komite PMKP memantau seluruh rumah sakit secara langsung.</p>
-    <div className="landingActions">
-     <button type="button" className="landingCta big" onClick={()=>{setMessage('');setView('login')}}>Masuk Workspace <span aria-hidden="true">→</span></button>
-     <button type="button" className="landingGhost big" onClick={()=>{setMessage('');setView('signup')}}>Daftar sebagai PIC unit</button>
-    </div>
-    <div className="landingStats">
-     <div><b>{roomsList.length||37}</b><span>Unit kerja</span></div>
-     <div><b>3</b><span>Modul inti PMKP</span></div>
-     <div><b>5×5</b><span>Matriks risiko Kepmenkes</span></div>
-    </div>
+
    </div>
 
    <div className="landingModules" aria-label="Modul utama AUREKA">
@@ -268,12 +300,35 @@ export default function HomeClient(){
       <div><div className="eyebrow">AUREKA · MODUL</div><h2 id="overviewTitle">{selected.label}</h2><p>{info.tagline}</p></div>
       <button type="button" className="landingClose" onClick={()=>setOverviewModule(null)} aria-label="Tutup">×</button>
      </div>
-     <div className="landingFeatureGrid">
-      {info.features.map(([t,d])=><div key={t} className="landingFeature"><b>{t}</b><span>{d}</span></div>)}
+     <div className="publicMetricsPanel">
+      {publicMetricsLoading
+       ? <div className="publicMetricsState"><span className="publicMetricSpinner" aria-hidden="true"/><b>Memuat grafik publik…</b><span>Menyiapkan ringkasan agregat dari data yang tersedia.</span></div>
+       : publicMetricsError
+        ? <div className="publicMetricsState"><b>Grafik belum tersedia</b><span>{publicMetricsError}</span></div>
+        : !publicMetrics || publicMetrics.domain!==selected.id
+         ? <div className="publicMetricsState"><b>Menyiapkan grafik</b><span>Data agregat akan muncul setelah tersedia.</span></div>
+         : (() => {
+            const visible=publicMetrics.points.filter(point=>point.value!==null&&Number.isFinite(Number(point.value))&&Number(point.value)>=publicMetrics.minimum_group_size)
+            const maxValue=Math.max(1,...visible.map(point=>Number(point.value)))
+            if(!visible.length)return <div className="publicMetricsState"><div className="publicMetricsEmptyIcon" aria-hidden="true">▥</div><b>Belum ada data agregat yang cukup untuk publikasi</b><span>Grafik hanya memuat catatan tervalidasi atau laporan yang telah ditutup, dengan sedikitnya {publicMetrics.minimum_group_size} catatan per kelompok. Tidak ada data contoh.</span></div>
+            return <div className="publicMetricsContent">
+             <div className="publicMetricsHeading"><div><span className="publicMetricKicker">RINGKASAN PUBLIK</span><h3>{publicMetrics.title}</h3></div><span className="publicAggregatePill">Agregat saja</span></div>
+             {publicMetrics.kind==='monthly'
+              ? <div className="publicMonthlyChart" role="img" aria-label={publicMetrics.title}>
+                 {publicMetrics.points.map(point=>{const shown=point.value!==null&&Number(point.value)>=publicMetrics.minimum_group_size;const value=shown?Number(point.value):0;return <div className="publicMonthlyPoint" key={point.label} title={shown?publicMetricLabel(publicMetrics.kind,point.label)+': '+value:'Nilai disembunyikan'}><span className="publicChartValue">{shown?value.toLocaleString('id-ID'):'—'}</span><div className="publicChartTrack"><div className="publicChartBar" style={{height:shown?Math.max(7,value/maxValue*100)+'%':'0%'}}/></div><span className="publicChartLabel">{publicMetricLabel(publicMetrics.kind,point.label)}</span></div>})}
+                </div>
+              : <div className="publicCategoryChart" role="img" aria-label={publicMetrics.title}>
+                 {publicMetrics.points.map(point=>{const shown=point.value!==null&&Number(point.value)>=publicMetrics.minimum_group_size;const value=shown?Number(point.value):0;return <div className="publicCategoryPoint" key={point.label}><span className="publicCategoryLabel">{point.label}</span><div className="publicCategoryTrack"><div className="publicCategoryBar" style={{width:shown?Math.max(2,value/maxValue*100)+'%':'0%'}}/></div><b>{shown?value.toLocaleString('id-ID'):'—'}</b></div>})}
+                </div>
+             }
+             <p className="publicMetricsPrivacy">Angka di bawah ambang publikasi {publicMetrics.minimum_group_size} disembunyikan. Grafik tidak memuat identitas pasien, nama unit, uraian risiko, maupun rincian insiden.</p>
+             <small className="publicMetricsUpdated">Pembaruan data: {new Date(publicMetrics.generated_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})} WIB</small>
+            </div>
+           })()
+      }
      </div>
      <div className="landingModalFoot">
-      <span>Data operasional modul hanya dapat dilihat setelah login sesuai role dan unit kerja.</span>
-      <button type="button" className="landingCta" onClick={()=>{setOverviewModule(null);setMessage('');setView('login')}}>Masuk untuk melihat data <span aria-hidden="true">→</span></button>
+      <span>Grafik ini menampilkan data agregat yang memenuhi ambang publikasi. Rincian operasional tetap memerlukan login sesuai hak akses.</span>
      </div>
     </section>
    </div>
