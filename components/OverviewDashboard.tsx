@@ -219,11 +219,12 @@ export default function OverviewDashboard({
       {!manager && roomId == null && <div className="ovNotice">Akun Anda belum terhubung ke ruangan/unit kerja, sehingga data unit belum dapat ditampilkan. Hubungi Super Admin untuk memetakan unit utama akun Anda.</div>}
 
       <section className="ovContextBar" aria-label="Periode dan status data">
-        <div><span>PERIODE</span><b>Jan – {new Date().toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Pontianak' })} {year}</b></div>
+        <div><span>TAHUN PELAPORAN</span><b>Jan–{new Date().toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Pontianak' })} {year} · YTD</b></div>
         <div><span>UNIT</span><b>{manager ? 'Seluruh rumah sakit' : roomName || 'Unit belum dipetakan'}</b></div>
         <div><span>PEMUTAKHIRAN DATA</span><b>{loading ? 'Memuat data…' : refreshedAt ? `Dicek ${refreshedAt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Pontianak' })}, ${refreshedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Pontianak' })} WIB` : 'Belum diperbarui'}</b></div>
         <div className="ovContextStatus"><span>STATUS SUMBER</span><b className={sourceError ? 'error' : loading ? 'loading' : 'ok'}>{loading ? 'Memuat' : sourceError ? 'Perlu pemeriksaan' : 'Pembacaan selesai'}</b></div>
       </section>
+      <p className="ovScopeNote">Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan; risiko dihitung dari register yang dapat diakses; IKP perlu tindak lanjut menghitung laporan yang belum ditutup tanpa batasan tahun. Ini bukan satu periode filter yang diterapkan ke seluruh modul.</p>
 
       <div className="ovKpis">
         <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
