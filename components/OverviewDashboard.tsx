@@ -143,7 +143,7 @@ export default function OverviewDashboard({
 
   const stats = useMemo(() => {
     const now = new Date()
-    const today = now.toISOString().slice(0, 10)
+    const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-')
     const byLevel = Object.fromEntries(LEVELS.map(l => [l, 0])) as Record<string, number>
     const matrix: number[][] = Array.from({ length: 5 }, () => [0, 0, 0, 0, 0])
     const unitHigh = new Map<string, number>()

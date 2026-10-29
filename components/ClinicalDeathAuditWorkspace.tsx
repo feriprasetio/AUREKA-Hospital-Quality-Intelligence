@@ -112,8 +112,11 @@ function safeLocalRead(): any[] {
   if (typeof window === 'undefined') return []
   try {
     const value = JSON.parse(window.localStorage.getItem(EPISODE_CACHE_KEY) || '[]')
+    // Keep legacy recovery data in memory only; remove persistent patient data from shared browsers.
+    window.localStorage.removeItem(EPISODE_CACHE_KEY)
     return Array.isArray(value) ? value : []
   } catch {
+    try { window.localStorage.removeItem(EPISODE_CACHE_KEY) } catch {}
     return []
   }
 }

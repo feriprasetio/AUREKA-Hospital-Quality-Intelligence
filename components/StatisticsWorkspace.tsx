@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 type Dataset = {
-  id: string; label: string; schema: string; table: string; description: string
+  id: string; label: string; schema: string; table: string; select: string; description: string
   orderBy: string; hide?: string[]
 }
 type Row = Record<string, unknown>
@@ -12,12 +12,12 @@ type Row = Record<string, unknown>
 // Dataset yang dapat dianalisis. Kolom berisi identitas pasien atau JSON mentah disembunyikan
 // dari tabel ringkasan; tetap dapat diunduh oleh pengelola melalui ekspor bila diperlukan.
 const DATASETS: Dataset[] = [
-  { id: 'risk', label: 'Risk Register', schema: 'aureka_risk', table: 'risk_register', orderBy: 'risk_score', description: 'Register risiko seluruh unit dengan skor baseline & residual.' },
-  { id: 'plans', label: 'RTP / Rencana Mitigasi', schema: 'aureka_risk', table: 'mitigation_plans', orderBy: 'updated_at', description: 'Rencana tindak pengendalian dan status persetujuan.' },
-  { id: 'fmea', label: 'FMEA / HFMEA', schema: 'aureka_risk', table: 'fmea_analyses', orderBy: 'rpn', description: 'Analisis modus kegagalan dengan RPN.' },
-  { id: 'incidents', label: 'Insiden Keselamatan Pasien', schema: 'aureka_patient_safety', table: 'incidents', orderBy: 'created_at', hide: ['form_data'], description: 'Laporan IKP (tanpa isi formulir rinci).' },
-  { id: 'investigations', label: 'Investigasi / RCA', schema: 'aureka_patient_safety', table: 'investigations', orderBy: 'updated_at', hide: ['form_data'], description: 'Hasil investigasi yang terhubung ke laporan IKP.' },
-  { id: 'quality', label: 'Episode Indikator Mutu', schema: 'aureka_quality', table: 'quality_records', orderBy: 'created_at', hide: ['subject_json', 'core_data', 'subject_key'], description: 'Rekam episode indikator mutu (identitas pasien disembunyikan).' },
+  { id: 'risk', label: 'Risk Register', schema: 'aureka_risk', table: 'risk_register', select: 'id,risk_code,unit_id,unit_name,category,objective,risk_event,likelihood,impact,risk_score,risk_level,residual_likelihood,residual_impact,residual_score,residual_level,owner_name,due_date,status,created_at,updated_at', orderBy: 'risk_score', description: 'Register risiko seluruh unit dengan skor baseline & residual.' },
+  { id: 'plans', label: 'RTP / Rencana Mitigasi', schema: 'aureka_risk', table: 'mitigation_plans', select: 'id,plan_code,title,objective,action_plan,expected_output,owner_name,owner_room_id,target_date,target_likelihood,target_impact,status,created_at,updated_at', orderBy: 'updated_at', description: 'Rencana tindak pengendalian dan status persetujuan.' },
+  { id: 'fmea', label: 'FMEA / HFMEA', schema: 'aureka_risk', table: 'fmea_analyses', select: 'id,fmea_code,unit_name,process_name,failure_mode,failure_effect,causes,existing_controls,severity,occurrence,detection,rpn,priority,action_plan,owner_name,target_date,status,created_at,updated_at', orderBy: 'rpn', description: 'Analisis modus kegagalan dengan RPN.' },
+  { id: 'incidents', label: 'Insiden Keselamatan Pasien', schema: 'aureka_patient_safety', table: 'incidents', select: 'id,incident_code,incident_date,unit_name,incident_type,status,created_at', orderBy: 'created_at', description: 'Laporan IKP (tanpa isi formulir rinci).' },
+  { id: 'investigations', label: 'Investigasi / RCA', schema: 'aureka_patient_safety', table: 'investigations', select: 'id,investigation_code,incident_id,status,completed_at,created_at,updated_at', orderBy: 'updated_at', description: 'Hasil investigasi yang terhubung ke laporan IKP.' },
+  { id: 'quality', label: 'Episode Indikator Mutu', schema: 'aureka_quality', table: 'quality_records', select: 'id,room_id,profile_year,measurement_grain,record_date,period_start,period_end,status,review_required,created_at,updated_at', orderBy: 'created_at', description: 'Rekam episode indikator mutu tanpa meminta identitas pasien atau JSON mentah.' },
 ]
 
 const isId = (k: string) => k === 'id' || k.endsWith('_by') || k.endsWith('_id') && k !== 'unit_id' && k !== 'room_id' && k !== 'owner_room_id'
@@ -55,7 +55,7 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
     ;(async () => {
       const all: Row[] = []
       for (let from = 0; from < 20000; from += 1000) {
-        const { data, error } = await sb.schema(dataset.schema).from(dataset.table).select('*')
+        const { data, error } = await sb.schema(dataset.schema).from(dataset.table).select(dataset.select)
           .order(dataset.orderBy, { ascending: false }).order('id', { ascending: true }).range(from, from + 999)
         if (error) { if (!cancelled) setError(error.message); break }
         all.push(...(data || []))

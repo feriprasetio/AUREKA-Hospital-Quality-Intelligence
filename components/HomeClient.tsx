@@ -32,7 +32,7 @@ const QUICK_MODULES=[
 
 type QuickModule=typeof QUICK_MODULES[number]
 const MODULE_INFO:Record<QuickModule['id'],{tagline:string;features:[string,string][]}>={
- quality:{tagline:'Pengumpulan & pemantauan capaian indikator mutu unit dan rumah sakit.',features:[['Audit Indikator Mutu','Logbook episode pasien per unit dengan profil indikator 2026.'],['Clinical Pathway','Kepatuhan alur klinis (dalam pengembangan).'],['Audit Klinis & Kematian','Instrumen audit klinis terstruktur (dalam pengembangan).'],['OPPE','Evaluasi praktik profesional berkelanjutan (dalam pengembangan).']]},
+ quality:{tagline:'Pengumpulan & pemantauan capaian indikator mutu unit dan rumah sakit.',features:[['Audit Indikator Mutu','Logbook episode pasien per unit dengan profil indikator 2026.'],['Clinical Pathway','Audit per episode, checklist PPA, dan penghitungan kepatuhan.'],['Audit Klinis & Kematian','Telaah klinis terstruktur, pembelajaran, rekomendasi, dan tindak lanjut.'],['OPPE','Penilaian praktik profesional berbasis logbook tervalidasi dan bukti indikator.']]},
  safety:{tagline:'Pelaporan insiden, investigasi RCA, dan budaya keselamatan pasien.',features:[['Laporan IKP','Formulir insiden sesuai format resmi, tersimpan aman di server.'],['Investigasi / RCA','Akar masalah, grading risiko, dan rekomendasi tindak lanjut.'],['Survey Budaya','Survei budaya keselamatan anonim untuk seluruh staf.'],['Rekap & Ekspor','Rekap respons dan ekspor Excel untuk Komite PMKP.']]},
  risk:{tagline:'Register risiko per unit dengan matriks 5×5 dan RTP berjenjang.',features:[['Risk Register','Identifikasi, penilaian baseline & residual, otomatis dari matriks Kepmenkes.'],['RTP Terintegrasi','Satu rencana pengendalian untuk beberapa risiko, persetujuan Kabid → Direktur → Dewas.'],['Konektor Risiko','Hubungan penyebab bersama, hulu-hilir, dan potensi duplikasi.'],['FMEA / HFMEA','Analisis modus kegagalan dengan RPN terpisah dari skor matriks.']]},
 }
@@ -212,8 +212,8 @@ export default function HomeClient(){
    <div className="systemGrid">
     <LiquidGlass><strong>{roomsList.length||37}</strong><span>Ruangan aktif</span></LiquidGlass>
     <LiquidGlass><strong>6</strong><span>Modul terintegrasi</span></LiquidGlass>
-    <LiquidGlass><strong>Online</strong><span>Backend</span></LiquidGlass>
-    <LiquidGlass><strong>Aktif</strong><span>Authentication</span></LiquidGlass>
+    <LiquidGlass><strong>Supabase</strong><span>Layanan data</span></LiquidGlass>
+    <LiquidGlass><strong>Terproteksi</strong><span>Autentikasi akun</span></LiquidGlass>
    </div>
   </section>}
 
