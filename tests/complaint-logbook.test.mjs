@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '../lib/aureka/complaint-logbook.ts'
+import { calculateInclusiveDurationDays, complaintSourceWarnings, matchLogbookOption, summarizeOptionResponses } from '../lib/aureka/complaint-logbook.ts'
 
 const responseOptions = [
   { label: 'Respon Tepat Waktu (Sesuai Grading Merah/Kuning/Hijau)', code: 1, numerator: true, denominator: true },
@@ -50,4 +50,18 @@ test('summarizes numerator and denominator flags from indicator choice metadata'
   assert.equal(comprehensionSummary.numerator, 0)
   assert.equal(comprehensionSummary.denominator, 27)
   assert.equal(comprehensionSummary.rate, 0)
+})
+
+test('source warnings flag zero medical record numbers without modifying source values', () => {
+  const warnings = complaintSourceWarnings('0', '2026-01-01T10:00', '2026-01-01T11:00')
+  assert.equal(warnings.length, 1)
+  assert.match(warnings[0], /No\\. RM.*bernilai 0/)
+  assert.deepEqual(complaintSourceWarnings('001234', '2026-01-01T10:00', '2026-01-01T11:00'), [])
+})
+
+test('source warnings flag reversed complaint/follow-up time order while preserving Excel duration behavior', () => {
+  const warnings = complaintSourceWarnings('123456', '2026-02-02T10:00', '2026-02-02T07:55')
+  assert.equal(warnings.length, 1)
+  assert.match(warnings[0], /lebih awal daripada waktu aduan/)
+  assert.ok((calculateInclusiveDurationDays('2026-02-02T10:00', '2026-02-02T07:55') ?? 0) > 0)
 })
