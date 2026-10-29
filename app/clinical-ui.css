@@ -1,0 +1,260 @@
+/* AUREKA Clinical UI System — aligned to Audit Menyeluruh target mockups.
+   Operational workspaces use solid surfaces and readable clinical typography.
+   The public landing page keeps its existing visual identity. */
+:root{
+  --green:#0f7656;--green2:#084f3a;--accent:#0f7656;--accent2:#084f3a;
+  --accent-rgb:15,118,86;--accent-soft:#e1f3eb;--ink:#172820;--muted:#63736a;
+  --line:#d9e4dd;--glass:#fff;--glassStrong:#fff;
+  --shadow:0 1px 3px rgba(23,40,32,.045);--ease:cubic-bezier(.2,.8,.2,1);
+  --clinical-bg:#f3f7f4;--clinical-card:#fff;--clinical-border:#d8e4dc;
+}
+.workspaceRoot{
+  display:grid!important;grid-template-columns:260px minmax(0,1fr)!important;gap:0!important;
+  padding:0!important;margin:0!important;min-height:100vh;background:var(--clinical-bg)!important;
+  color:var(--ink)!important;font-size:14px;line-height:1.5;
+}
+.workspaceRoot *{box-sizing:border-box}
+.workspaceRoot .sidebar{
+  position:sticky!important;top:0!important;align-self:start!important;display:flex!important;flex-direction:column!important;
+  width:260px!important;min-width:260px!important;height:100vh!important;min-height:100vh!important;max-height:100vh!important;
+  overflow:auto!important;padding:18px 14px 14px!important;margin:0!important;border:0!important;border-radius:0!important;
+  background:#084f3a!important;background-image:none!important;color:#fff!important;box-shadow:none!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;z-index:40;
+}
+.workspaceRoot .sideHeader{min-height:64px!important;align-items:center!important;border-bottom:1px solid rgba(255,255,255,.18);padding:0 0 16px!important;margin-bottom:19px!important}
+.workspaceRoot .sideBrand{display:flex!important;align-items:center!important;gap:12px!important;padding:0!important;min-width:0!important}
+.workspaceRoot .workspaceBrandMark{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border-radius:12px;background:#0f7656;color:#fff;font-size:25px;font-weight:850;letter-spacing:-.04em}
+.workspaceRoot .sideBrand>div{display:grid;gap:2px;min-width:0}
+.workspaceRoot .sideBrand b{color:#fff!important;font-size:20px!important;font-weight:800!important;line-height:1.15;letter-spacing:-.025em}
+.workspaceRoot .sideBrand small{color:#b9d6c8!important;font-size:11px!important;line-height:1.25;letter-spacing:.01em}
+.workspaceRoot .sidebarToggle{display:none!important}
+.workspaceRoot .navLabel{margin:0 0 8px!important;padding:0 10px!important;color:#9fc7b4!important;font-size:11px!important;font-weight:800!important;letter-spacing:.11em;text-transform:uppercase}
+.workspaceRoot .sidebarNav{display:grid!important;gap:4px!important}
+.workspaceRoot .sidebarNav>button{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;width:100%!important;
+  min-height:46px!important;margin:0!important;padding:11px 12px!important;border:1px solid transparent!important;border-radius:10px!important;
+  color:#d8e8df!important;background:transparent!important;text-align:left!important;font-size:14px!important;font-weight:600!important;
+  transition:background .16s ease,color .16s ease!important;
+}
+.workspaceRoot .sidebarNav>button:hover{background:rgba(255,255,255,.09)!important;color:#fff!important}
+.workspaceRoot .sidebarNav>button.navActive{background:#176b50!important;color:#fff!important;border-color:rgba(255,255,255,.06)!important;font-weight:750!important}
+.workspaceRoot .sidebarNav>button svg{width:19px!important;height:19px!important;flex:0 0 19px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important}
+.workspaceRoot .sidebar>.profileChipBtn{
+  display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-width:0!important;
+  margin:auto 0 12px!important;padding:12px 9px!important;border:0!important;border-top:1px solid rgba(255,255,255,.2)!important;
+  border-radius:0!important;background:transparent!important;color:#fff!important;box-shadow:none!important;
+}
+.workspaceRoot .sidebar>.profileChipBtn:hover,.workspaceRoot .sidebar>.profileChipBtn.isActive{background:rgba(255,255,255,.07)!important;color:#fff!important}
+.workspaceRoot .profileAvatar{width:38px!important;height:38px!important;flex:0 0 38px!important;border-radius:50%!important;background:#176b50!important;color:#fff!important;font-size:12px!important}
+.workspaceRoot .profileText{display:grid!important;gap:3px!important;min-width:0!important}
+.workspaceRoot .profileText b{font-size:13px!important;color:#fff!important;overflow-wrap:anywhere}
+.workspaceRoot .profileText span{font-size:11px!important;color:#c0d9cc!important;line-height:1.4}
+.workspaceRoot .profileChipHint{font-size:11px!important;color:#9fd8bd!important}
+.workspaceRoot .sidebar>.liquidButton{width:100%;margin:0!important;padding:0!important}
+.workspaceRoot .sidebar>.liquidButton button{
+  width:100%!important;min-height:42px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;
+  border:1px solid rgba(255,255,255,.28)!important;border-radius:9px!important;background:transparent!important;color:#f3faf6!important;
+  box-shadow:none!important;font-size:13px!important;font-weight:650!important;
+}
+.workspaceRoot .sidebar>.liquidButton button:hover{background:rgba(255,255,255,.08)!important}
+.workspaceRoot.sidebarIsCollapsed{grid-template-columns:260px minmax(0,1fr)!important}
+.workspaceRoot.sidebarIsCollapsed .sidebar{width:260px!important;min-width:260px!important;padding:18px 14px 14px!important}
+.workspaceRoot.sidebarIsCollapsed .sideBrand{padding:0!important}
+.workspaceRoot.sidebarIsCollapsed .sideBrand>div,.workspaceRoot.sidebarIsCollapsed .navLabel,
+.workspaceRoot.sidebarIsCollapsed .sidebarNav>button span,.workspaceRoot.sidebarIsCollapsed .profileText,
+.workspaceRoot.sidebarIsCollapsed .logoutLabel{display:grid!important}
+.workspaceRoot.sidebarIsCollapsed .sidebarNav>button{justify-content:flex-start!important;padding:11px 12px!important}
+.workspaceRoot.sidebarIsCollapsed .profileChip{justify-content:flex-start!important}
+.workspaceRoot .workspaceContent{min-width:0!important;padding:0 28px 32px!important;background:var(--clinical-bg)!important}
+.workspaceRoot .workspaceTop{
+  position:sticky!important;top:0!important;z-index:25!important;display:flex!important;align-items:center!important;gap:18px!important;
+  min-height:92px!important;margin:0 -28px 24px!important;padding:18px 28px!important;
+  border:0!important;border-bottom:1px solid var(--clinical-border)!important;border-radius:0!important;
+  background:#fff!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.workspaceRoot .workspaceTop>div:first-of-type{display:grid;gap:2px;min-width:0}
+.workspaceRoot .workspaceTop .eyebrow{color:#63766b!important;font-size:12px!important;font-weight:600!important;letter-spacing:.02em!important;text-transform:none!important}
+.workspaceRoot .workspaceTop h2{margin:0!important;color:#172820!important;font-size:28px!important;font-weight:780!important;line-height:1.2!important;letter-spacing:-.035em!important}
+.workspaceRoot .workspaceTop p{margin:4px 0 0!important;color:#63736a!important;font-size:13px!important;line-height:1.4!important}
+.workspaceRoot .workspaceTopMeta{display:grid;gap:2px;min-width:190px;max-width:290px;margin-left:auto;padding:10px 14px;border:1px solid #d1e0d6;border-radius:10px;background:#fff}
+.workspaceRoot .workspaceTopMeta span{font-size:11px!important;color:#63736a!important;line-height:1.2}
+.workspaceRoot .workspaceTopMeta b{font-size:14px!important;color:#172820!important;font-weight:750!important;overflow-wrap:anywhere}
+.workspaceRoot .workspaceTopMeta small{font-size:11px!important;color:#63736a!important}
+.workspaceRoot .mobileMenuButton{display:none!important}
+.workspaceRoot .moduleEnter{min-width:0;color:var(--ink)!important;font-size:14px!important;line-height:1.5!important}
+.workspaceRoot .moduleEnter p{font-size:14px;line-height:1.55}
+.workspaceRoot .moduleEnter :is(input,select,textarea){font-size:14px!important;line-height:1.4!important;min-height:42px;border-color:#cfdcd3!important;background:#fff!important;color:#172820!important;box-shadow:none!important}
+.workspaceRoot .moduleEnter textarea{min-height:90px}
+.workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton){font-size:13px!important;line-height:1.4!important}
+.workspaceRoot .moduleEnter :is(small,.aqSub,.aqMetaText,.ovEyebrow,.ovKpiLabel,.fieldHint,[class*="Eyebrow"],[class*="eyebrow"],[class*="Meta"],[class*="Sub"],[class*="Hint"]){font-size:12px!important;line-height:1.45!important}
+.workspaceRoot .moduleEnter :is(table td,table th){font-size:13px!important;line-height:1.45!important}
+.workspaceRoot .moduleEnter :is(h3,.aqHead h3){font-size:26px!important;line-height:1.25!important;letter-spacing:-.025em!important}
+.workspaceRoot .moduleEnter :is(h4,.aqTableHead h4,.oppeSectionTitle){font-size:18px!important;line-height:1.3!important;letter-spacing:-.015em!important}
+.workspaceRoot .moduleEnter h5{font-size:15px!important;line-height:1.35!important}
+.workspaceRoot .moduleEnter .backBtn{border:1px solid #cedbd2!important;border-radius:9px!important;background:#fff!important;color:#24513d!important;box-shadow:none!important;font-weight:650!important}
+.workspaceRoot .moduleEnter .backBtn:hover{background:#f4f8f5!important}
+.workspaceRoot .moduleEnter .liquidGlass,
+.workspaceRoot .moduleEnter .glassPanel,
+.workspaceRoot .moduleEnter .glass,
+.workspaceRoot .moduleEnter .ovPanel,
+.workspaceRoot .moduleEnter .ovKpi,
+.workspaceRoot .moduleEnter .qhCard,
+.workspaceRoot .moduleEnter .aqTable,
+.workspaceRoot .moduleEnter .aqInd,
+.workspaceRoot .moduleEnter .stPanel,
+.workspaceRoot .moduleEnter .mswHeader,
+.workspaceRoot .moduleEnter .sdPanel,
+.workspaceRoot .moduleEnter .cpGlass,
+.workspaceRoot .moduleEnter .cpPanel,
+.workspaceRoot .moduleEnter .oppeScorePanel,
+.workspaceRoot .moduleEnter .oppePanel,
+.workspaceRoot .moduleEnter .rmPanel{
+  background:#fff!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  border:1px solid var(--clinical-border)!important;border-radius:13px!important;
+  box-shadow:0 1px 3px rgba(23,40,32,.045)!important;
+}
+.workspaceRoot .moduleEnter .liquidGlassEdge,.workspaceRoot .moduleEnter .liquidGlassSheen{display:none!important}
+.workspaceRoot .moduleEnter .liquidGlassContent{position:relative!important;width:100%!important;z-index:1!important}
+.workspaceRoot .moduleEnter .liquidGlassClickable:hover{transform:none!important;box-shadow:0 2px 7px rgba(23,40,32,.07)!important}
+.workspaceRoot .moduleEnter .ovKpi{
+  display:flex!important;align-items:flex-start!important;gap:7px!important;min-height:116px!important;padding:17px 17px 15px!important;
+  border-radius:13px!important;text-align:left!important;box-shadow:0 1px 3px rgba(23,40,32,.04)!important;
+}
+.workspaceRoot .moduleEnter .ovKpi:before{left:0!important;top:0!important;bottom:0!important;width:4px!important;border-radius:13px 0 0 13px!important;opacity:1!important}
+.workspaceRoot .moduleEnter .ovKpi b{font-size:29px!important;line-height:1.08!important;letter-spacing:-.03em!important;color:#172820!important}
+.workspaceRoot .moduleEnter .ovKpiLabel{font-size:13px!important;color:#63736a!important;font-weight:650!important}
+.workspaceRoot .moduleEnter .ovKpi small{font-size:12px!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
+.workspaceRoot .moduleEnter .ovGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important}
+.workspaceRoot .moduleEnter .ovPanel{padding:18px!important;min-width:0;border-radius:14px!important}
+.workspaceRoot .moduleEnter .ovPanelHead{margin-bottom:15px!important}
+.workspaceRoot .moduleEnter .ovPanelHead h4{font-size:18px!important;color:#172820!important}
+.workspaceRoot .moduleEnter .ovPanelHead .ovEyebrow{font-size:12px!important}
+.workspaceRoot .moduleEnter .ovBars{gap:10px!important}
+.workspaceRoot .moduleEnter .ovBarRow{font-size:13px!important;grid-template-columns:minmax(92px,1.1fr) 1fr 38px!important}
+.workspaceRoot .moduleEnter .ovUnitName{font-size:12px!important}
+.workspaceRoot .moduleEnter .ovMatrixWrap{max-width:100%}
+.workspaceRoot .moduleEnter .ovCell{min-height:35px!important;border:1px solid #fff!important;border-radius:5px!important;font-size:13px!important}
+.workspaceRoot .moduleEnter .ovEmpty{font-size:13px!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .ovLink{font-size:13px!important;color:#0f7656!important;font-weight:700!important}
+.workspaceRoot .moduleEnter .aq{gap:14px!important}
+.workspaceRoot .moduleEnter .aqHead{padding:22px 23px!important;background:#fff!important;border:1px solid var(--clinical-border)!important;border-radius:13px!important;box-shadow:var(--shadow)!important}
+.workspaceRoot .moduleEnter .aqHead p{font-size:14px!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .aqTabs{gap:8px!important;padding:6px!important;border:1px solid #d8e4dc!important;border-radius:12px!important;background:#eaf1ec!important}
+.workspaceRoot .moduleEnter .aqTab{min-height:42px!important;padding:10px 15px!important;border:1px solid transparent!important;border-radius:8px!important;background:transparent!important;color:#4d6256!important;font-size:13px!important;font-weight:650!important}
+.workspaceRoot .moduleEnter .aqTab.active{background:#fff!important;border-color:#cbdacf!important;color:#0f7656!important;box-shadow:0 1px 2px rgba(23,40,32,.05)!important}
+.workspaceRoot .moduleEnter .aqFilters{padding:18px!important;background:#fff!important;border:1px solid var(--clinical-border)!important;border-radius:13px!important}
+.workspaceRoot .moduleEnter .aqGrid{gap:12px!important}
+.workspaceRoot .moduleEnter .aqField span,.workspaceRoot .moduleEnter .aqLabel{font-size:12px!important;color:#52665b!important;font-weight:700!important;letter-spacing:0!important}
+.workspaceRoot .moduleEnter .aqKpi{gap:12px!important}
+.workspaceRoot .moduleEnter .aqKpi .glass{padding:17px!important;border-radius:12px!important}
+.workspaceRoot .moduleEnter .aqKpi span{font-size:12px!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .aqKpi strong{font-size:29px!important;line-height:1.12!important;color:#172820!important}
+.workspaceRoot .moduleEnter .aqTable{overflow:hidden!important;border-radius:13px!important}
+.workspaceRoot .moduleEnter .aqTableHead{padding:18px 19px!important;background:#fff!important}
+.workspaceRoot .moduleEnter .aqTableHead h4{font-size:18px!important}
+.workspaceRoot .moduleEnter .aqTableHead p{font-size:13px!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .aqWrap,.workspaceRoot .moduleEnter .aqCatWrap{background:#fff!important;max-width:100%!important;max-height:calc(100vh - 400px)!important}
+.workspaceRoot .moduleEnter table.aqData{min-width:1040px!important;font-size:13px!important}
+.workspaceRoot .moduleEnter table.aqData th{font-size:12px!important;padding:13px 12px!important;background:#eef4f0!important;color:#53695c!important}
+.workspaceRoot .moduleEnter table.aqData td{padding:13px 12px!important;color:#24392d!important}
+.workspaceRoot .moduleEnter .aqInlineEditorRow td{padding:12px!important;background:#eef6f0!important}
+.workspaceRoot .moduleEnter .aqInlineEditor{background:#fff!important;border:1px solid #cbdacf!important;border-radius:12px!important;box-shadow:0 2px 8px rgba(23,40,32,.06)!important}
+.workspaceRoot .moduleEnter .aqInlineEditor .aqDHead{background:#fff!important}
+.workspaceRoot .moduleEnter .aqInlineEditor .aqFoot{background:#f7faf8!important}
+.workspaceRoot .moduleEnter .aqBtn{min-height:40px!important;padding:9px 13px!important;border:1px solid #d1ddd4!important;border-radius:8px!important;background:#fff!important;color:#244a37!important;box-shadow:none!important;font-size:13px!important;font-weight:700!important}
+.workspaceRoot .moduleEnter .aqBtn.primary,.workspaceRoot .moduleEnter .aqBtn.primary:hover{background:#0f7656!important;color:#fff!important;border-color:#0f7656!important}
+.workspaceRoot .moduleEnter .aqStatus{font-size:12px!important;font-weight:750!important;border:1px solid transparent!important}
+.workspaceRoot .moduleEnter .aqStatus.aktif{background:#e1f3eb!important;color:#176342!important}
+.workspaceRoot .moduleEnter .aqStatus.ready-for-review{background:#fff1d8!important;color:#80520b!important}
+.workspaceRoot .moduleEnter .aqStatus.validated{background:#e6f2ff!important;color:#215b8d!important}
+.workspaceRoot .moduleEnter .aqNotice{font-size:13px!important;line-height:1.5!important;background:#fff8e8!important;border:1px solid #f0dfb4!important;color:#76551b!important}
+.workspaceRoot .moduleEnter .rmWorkspace .rmHero{background:#fff!important;border:1px solid var(--clinical-border)!important;border-radius:13px!important;padding:21px!important;box-shadow:none!important}
+.workspaceRoot .moduleEnter .rmWorkspace .rmHero h3{font-size:26px!important}
+.workspaceRoot .moduleEnter .rmWorkspace .rmHero p{font-size:14px!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .rmEyebrow,.workspaceRoot .moduleEnter .psEyebrow,.workspaceRoot .moduleEnter .cpEyebrow{font-size:12px!important;letter-spacing:.04em!important}
+.workspaceRoot .moduleEnter .rmButton,.workspaceRoot .moduleEnter .psBtn,.workspaceRoot .moduleEnter .cpButton,.workspaceRoot .moduleEnter .oppeButton{min-height:40px!important;border:1px solid #d1ddd4!important;border-radius:8px!important;background:#fff!important;color:#244a37!important;box-shadow:none!important;font-size:13px!important}
+.workspaceRoot .moduleEnter .rmButton.primary,.workspaceRoot .moduleEnter .psBtn.primary,.workspaceRoot .moduleEnter .cpButton.primary,.workspaceRoot .moduleEnter .oppeButton.primary{background:#0f7656!important;color:#fff!important;border-color:#0f7656!important}
+.workspaceRoot .moduleEnter .oppeHeader{background:#fff!important;border:1px solid var(--clinical-border)!important;border-radius:13px!important;box-shadow:none!important;padding:20px!important}
+.workspaceRoot .moduleEnter .oppeHeader h3{font-size:25px!important}
+.workspaceRoot .moduleEnter .oppeFilters,.workspaceRoot .moduleEnter .oppeScorePanel,.workspaceRoot .moduleEnter .oppeWorkCard,.workspaceRoot .moduleEnter .oppeFormCard{background:#fff!important;background-image:none!important;backdrop-filter:none!important;border:1px solid var(--clinical-border)!important;border-radius:13px!important;box-shadow:none!important}
+.workspaceRoot .moduleEnter .oppeModal{background:#fff!important;border:1px solid var(--clinical-border)!important;border-radius:13px!important;box-shadow:0 16px 44px rgba(15,35,25,.18)!important;backdrop-filter:none!important}
+.workspaceRoot .moduleEnter .oppeModalBackdrop,.workspaceRoot .moduleEnter .psModalBackdrop,.workspaceRoot .moduleEnter .overviewOverlay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.workspaceRoot .moduleEnter .sdHeader,.workspaceRoot .moduleEnter .stHeader,.workspaceRoot .moduleEnter .mswHeader{background:#fff!important;border:1px solid var(--clinical-border)!important;border-radius:13px!important;box-shadow:none!important}
+.workspaceRoot .moduleEnter .sdTableWrap,.workspaceRoot .moduleEnter .stRows,.workspaceRoot .moduleEnter .mswContent{min-width:0;overflow:auto}
+.workspaceRoot .moduleEnter table :is(th,td){padding:12px 11px!important;border-bottom:1px solid #e2eae5!important;vertical-align:top}
+.workspaceRoot .moduleEnter table th{background:#eef4f0!important;color:#51675a!important;font-weight:750!important}
+.workspaceRoot .moduleEnter table tr:hover td{background:#f8fbf9!important}
+.workspaceRoot .moduleEnter .qhWrap{gap:16px!important}
+.workspaceRoot .moduleEnter .qhGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important}
+.workspaceRoot .moduleEnter .qhCard{min-height:220px!important;padding:20px!important;text-align:left!important}
+.workspaceRoot .moduleEnter .qhCard.ready{background:#fff!important;border-color:var(--clinical-border)!important}
+.workspaceRoot .moduleEnter .qhIcon{background:#e8f2ec!important;box-shadow:none!important;color:#0f7656!important}
+.workspaceRoot .moduleEnter .qhCard b{font-size:18px!important;line-height:1.35!important}
+.workspaceRoot .moduleEnter .qhSummary{font-size:14px!important;line-height:1.55!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .qhCta{font-size:13px!important;font-weight:750!important;color:#0f7656!important}
+.workspaceRoot .moduleEnter .qhCard.ready .qhCta{padding:8px 12px!important;border-radius:8px!important;background:#0f7656!important;box-shadow:none!important;color:#fff!important}
+.workspaceRoot .moduleEnter .cwWorkspace{display:grid;gap:16px;min-width:0}
+.workspaceRoot .moduleEnter .cwHeader{padding:22px 24px;background:#fff;border:1px solid var(--clinical-border);border-radius:13px}
+.workspaceRoot .moduleEnter .cwEyebrow{font-size:12px;font-weight:750;color:#0f7656;letter-spacing:.04em}
+.workspaceRoot .moduleEnter .cwTitle{margin:5px 0;font-size:26px;font-weight:780;letter-spacing:-.025em;color:#172820}
+.workspaceRoot .moduleEnter .cwDescription{margin:0;max-width:800px;color:#63736a;font-size:14px;line-height:1.55}
+.workspaceRoot .moduleEnter .cwTabs{display:flex;gap:8px;flex-wrap:wrap;padding:6px;border:1px solid #d8e4dc;border-radius:12px;background:#eaf1ec}
+.workspaceRoot .moduleEnter .cwTab{display:flex;align-items:center;gap:8px;min-height:42px;padding:10px 14px;border:1px solid transparent;border-radius:8px;background:transparent;color:#4d6256;font-size:13px;font-weight:650;cursor:pointer}
+.workspaceRoot .moduleEnter .cwTab[aria-selected="true"]{background:#fff;border-color:#cbdacf;color:#0f7656;box-shadow:0 1px 2px rgba(23,40,32,.05)}
+.workspaceRoot .moduleEnter .cwPanel{min-width:0}
+.workspaceRoot .moduleEnter .cwHint{margin:0;padding:12px 14px;border:1px solid #d4e1d8;border-radius:10px;background:#fff;color:#53695c;font-size:13px;line-height:1.5}
+.workspaceRoot .moduleEnter .workspaceTopMeta{flex:0 0 auto}
+.workspaceRoot .workspaceRoot{background:var(--clinical-bg)!important}
+.workspaceRoot :is(.liquidGlassEdge,.liquidGlassSheen){pointer-events:none}
+.workspaceRoot :focus-visible{outline:3px solid #4d9b79!important;outline-offset:2px!important}
+.workspaceRoot button{cursor:pointer}
+.workspaceRoot button:disabled{cursor:not-allowed;opacity:.58}
+@media(max-width:1240px){
+ .workspaceRoot .workspaceContent{padding:0 18px 26px!important}
+ .workspaceRoot .workspaceTop{margin:0 -18px 18px!important;padding:16px 18px!important}
+ .workspaceRoot .ovKpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ .workspaceRoot .ovGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:900px){
+ .workspaceRoot{grid-template-columns:230px minmax(0,1fr)!important}
+ .workspaceRoot .sidebar{width:230px!important;min-width:230px!important;padding:16px 10px!important}
+ .workspaceRoot .workspaceContent{padding:0 14px 22px!important}
+ .workspaceRoot .workspaceTop{margin:0 -14px 16px!important;padding:15px 14px!important}
+ .workspaceRoot .workspaceTop h2{font-size:24px!important}
+ .workspaceRoot .workspaceTopMeta{min-width:150px}
+ .workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .workspaceRoot .moduleEnter .qhGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .workspaceRoot .moduleEnter .oppeFilters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+ .workspaceRoot{display:block!important;min-height:100vh}
+ .workspaceRoot .sidebar{position:fixed!important;left:-310px!important;top:0!important;height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;width:286px!important;min-width:286px!important;padding:calc(16px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom))!important;transition:left .22s ease!important}
+ .workspaceRoot .sidebar.mobileOpen{left:0!important}
+ .workspaceRoot .workspaceScrim{position:fixed!important;inset:0!important;z-index:35!important;background:rgba(13,29,21,.35)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:0!important}
+ .workspaceRoot .workspaceScrim[data-open='false']{display:none!important}
+ .workspaceRoot .workspaceScrim[data-open='true']{display:block!important}
+ .workspaceRoot .workspaceContent{padding:0 12px 22px!important}
+ .workspaceRoot .workspaceTop{position:sticky!important;margin:0 -12px 14px!important;padding:12px!important;min-height:78px!important;gap:10px!important}
+ .workspaceRoot .mobileMenuButton{display:grid!important;place-items:center!important;width:40px!important;height:40px!important;flex:0 0 40px!important;border:1px solid #d8e4dc!important;border-radius:9px!important;background:#fff!important;color:#24513d!important}
+ .workspaceRoot .workspaceTop h2{font-size:21px!important}
+ .workspaceRoot .workspaceTop p{font-size:12px!important}
+ .workspaceRoot .workspaceTopMeta{display:none!important}
+ .workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ .workspaceRoot .moduleEnter .ovGrid{grid-template-columns:1fr!important;gap:12px!important}
+ .workspaceRoot .moduleEnter .qhGrid{grid-template-columns:1fr!important}
+ .workspaceRoot .moduleEnter .aqHead{padding:16px!important}
+ .workspaceRoot .moduleEnter .aqKpi{grid-template-columns:1fr!important}
+ .workspaceRoot .moduleEnter .aqWrap,.workspaceRoot .moduleEnter .aqCatWrap{max-height:none!important}
+ .workspaceRoot .moduleEnter .aqEpisode,.workspaceRoot .moduleEnter .aqGrid{grid-template-columns:1fr!important}
+ .workspaceRoot .moduleEnter .cwHeader{padding:16px!important}
+ .workspaceRoot .moduleEnter .cwTabs{display:grid;grid-template-columns:1fr}
+ .workspaceRoot .moduleEnter .cwTab{justify-content:flex-start}
+ .workspaceRoot .moduleEnter .stRow{grid-template-columns:1fr!important}
+ .workspaceRoot .moduleEnter .oppeWorkGrid,.workspaceRoot .moduleEnter .oppeAside,.workspaceRoot .moduleEnter .oppeFormGrid,.workspaceRoot .moduleEnter .oppeManualGrid{grid-template-columns:1fr!important}
+ .workspaceRoot .moduleEnter .oppeFilters{grid-template-columns:1fr!important}
+ .workspaceRoot .moduleEnter .rmHero{display:grid!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .workspaceRoot *, .workspaceRoot *::before, .workspaceRoot *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
