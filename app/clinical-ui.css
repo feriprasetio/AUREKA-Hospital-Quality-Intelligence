@@ -258,3 +258,57 @@
 @media(prefers-reduced-motion:reduce){
  .workspaceRoot *, .workspaceRoot *::before, .workspaceRoot *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+/* Dashboard hierarchy: solid status strip and restrained page heading */
+.workspaceRoot .moduleEnter .ovHero{
+  display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:16px!important;
+  padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+  background-image:none!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.workspaceRoot .moduleEnter .ovHero>div:first-child{display:grid;gap:4px;min-width:0}
+.workspaceRoot .moduleEnter .ovHero h3{margin:0!important;font-size:23px!important;line-height:1.25!important;letter-spacing:-.025em!important;color:#172820!important}
+.workspaceRoot .moduleEnter .ovHero p{max-width:820px;margin:0!important;color:#63736a!important;font-size:13px!important;line-height:1.5!important}
+.workspaceRoot .moduleEnter .ovEyebrow{font-size:11px!important;letter-spacing:.08em!important;color:#62776a!important;font-weight:750!important}
+.workspaceRoot .moduleEnter .ovHeroMeta{display:flex!important;align-items:center!important;gap:8px!important;flex:0 0 auto}
+.workspaceRoot .moduleEnter .ovRefresh{min-height:39px!important;padding:9px 13px!important;border:1px solid #d3e0d7!important;border-radius:8px!important;background:#fff!important;color:#24513d!important;font-size:13px!important;font-weight:700!important;box-shadow:none!important}
+.workspaceRoot .moduleEnter .ovRefresh:hover{background:#f5f9f6!important}
+.workspaceRoot .moduleEnter .ovContextBar{
+  display:grid!important;grid-template-columns:1fr 1.15fr 1.5fr auto!important;align-items:center!important;gap:18px!important;
+  min-width:0!important;padding:13px 17px!important;border:1px solid #d8e4dc!important;border-radius:12px!important;
+  background:#fff!important;box-shadow:none!important;
+}
+.workspaceRoot .moduleEnter .ovContextBar>div{display:grid;gap:4px;min-width:0}
+.workspaceRoot .moduleEnter .ovContextBar span{font-size:10px!important;line-height:1.2!important;letter-spacing:.07em!important;font-weight:800!important;color:#687a6f!important}
+.workspaceRoot .moduleEnter .ovContextBar b{font-size:13px!important;line-height:1.35!important;font-weight:750!important;color:#26392e!important;overflow-wrap:anywhere}
+.workspaceRoot .moduleEnter .ovContextBar .ovContextStatus b{display:inline-flex;align-items:center;justify-content:center;width:max-content;max-width:100%;padding:6px 10px;border-radius:999px;font-size:11px!important;letter-spacing:0!important}
+.workspaceRoot .moduleEnter .ovContextBar .ok{background:#e1f3e9;color:#146444}
+.workspaceRoot .moduleEnter .ovContextBar .loading{background:#eef2f0;color:#52635a}
+.workspaceRoot .moduleEnter .ovContextBar .error{background:#fff0ed;color:#a6322d}
+.workspaceRoot .moduleEnter .ovNotice{padding:12px 14px!important;border:1px solid #efddaf!important;border-radius:10px!important;background:#fff8e7!important;color:#76551b!important;font-size:13px!important;line-height:1.5!important}
+.workspaceRoot .moduleEnter .ovFoot{margin:0!important;padding:0 2px!important;color:#63736a!important;font-size:12px!important;line-height:1.5!important}
+/* Mutu Klinis chooser: modular cards with non-translucent surfaces */
+.workspaceRoot .moduleEnter .qhHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:20px 22px;background:#fff;border:1px solid var(--clinical-border);border-radius:13px}
+.workspaceRoot .moduleEnter .qhHeader h3{margin:5px 0 4px!important;font-size:25px!important;color:#172820!important}
+.workspaceRoot .moduleEnter .qhHeader p{margin:0!important;max-width:780px;font-size:13px!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .qhEyebrow{font-size:11px;font-weight:800;color:#0f7656;letter-spacing:.08em}
+.workspaceRoot .moduleEnter .qhGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;align-items:stretch}
+.workspaceRoot .moduleEnter .qhCard{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:14px!important;text-align:left!important;min-height:210px!important;padding:20px!important;border:1px solid #d8e4dc!important;border-radius:13px!important;background:#fff!important;color:#172820!important}
+.workspaceRoot .moduleEnter .qhCard:hover{transform:translateY(-2px)!important;border-color:#a9c7b5!important;box-shadow:0 5px 16px rgba(23,40,32,.07)!important}
+.workspaceRoot .moduleEnter .qhTop{display:flex!important;align-items:center!important;justify-content:space-between!important;width:100%!important}
+.workspaceRoot .moduleEnter .qhIcon{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;border-radius:10px!important;background:#e8f2ec!important;color:#0f7656!important;font-size:22px!important;font-weight:800!important;box-shadow:none!important}
+.workspaceRoot .moduleEnter .qhIndex{font-size:12px!important;font-variant-numeric:tabular-nums;color:#8a9a90!important;font-weight:800!important}
+.workspaceRoot .moduleEnter .qhCard>b{font-size:18px!important;line-height:1.35!important;color:#172820!important}
+.workspaceRoot .moduleEnter .qhSummary{font-size:13px!important;line-height:1.55!important;color:#63736a!important}
+.workspaceRoot .moduleEnter .qhCta{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;margin-top:auto;padding-top:11px;border-top:1px solid #e5ece7;font-size:13px!important;font-weight:750!important;color:#0f7656!important}
+.workspaceRoot .moduleEnter .qhCta span{font-size:17px!important}
+@media(max-width:1000px){
+ .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:1fr 1fr!important;gap:12px!important}
+}
+@media(max-width:760px){
+ .workspaceRoot .moduleEnter .ovHero{align-items:flex-start!important;flex-direction:column!important}
+ .workspaceRoot .moduleEnter .ovHero h3{font-size:21px!important}
+ .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:1fr!important;gap:10px!important}
+ .workspaceRoot .moduleEnter .ovContextBar>div{padding-bottom:9px;border-bottom:1px solid #e5ece7}
+ .workspaceRoot .moduleEnter .ovContextBar>div:last-child{padding-bottom:0;border-bottom:0}
+ .workspaceRoot .moduleEnter .qhHeader{padding:16px!important}
+}
