@@ -5,7 +5,6 @@
     <path id="top-arc" d="M 76,260 A 180,180 0 0,1 436,260"/>
     <path id="bottom-arc" d="M 105,310 A 160,160 0 0,0 407,310"/>
   </defs>
-  <circle cx="256" cy="256" r="226" fill="#f6f8f7"/>
   <circle cx="256" cy="250" r="194" fill="#108b49"/>
   <circle cx="256" cy="250" r="148" fill="#ffffff"/>
   <text font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="24" letter-spacing="1.1" fill="#ffffff">
