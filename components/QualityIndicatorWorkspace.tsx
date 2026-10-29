@@ -12,7 +12,7 @@ import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian','Audit OPPE','Tim Tenaga Kerja'] as const
+const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'] as const
 const STATUS=['Semua','Aktif','Draft','Ready for Review','Validated','Reopened']
 const YEARS=[2025,2026,2027,2028,2029]
 const LOCAL_KEY='aureka-quality-episode-cache-v3',AUDIT_KEY='aureka-quality-audit-v3'
