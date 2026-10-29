@@ -16,9 +16,9 @@ export type NormalizedAmbulanceTime = {
 function cleanChoice(value: unknown): string {
   return String(value ?? '')
     .normalize('NFKC')
-    .replace(/\\s+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
-    .replace(/\\s*\\(code\\s*\\d+\\)\\s*$/i, '')
+    .replace(/\s*\(code\s*\d+\)\s*$/i, '')
     .toLocaleLowerCase('id-ID')
 }
 
@@ -65,7 +65,7 @@ export function matchAmbulanceOption<T extends AmbulanceIndicatorOption>(raw: un
   const sourceText = String(raw ?? '').trim()
   if (!sourceText) return null
 
-  const codeSuffix = sourceText.match(/\\s*\\(code\\s*(\\d+)\\)\\s*$/i)
+  const codeSuffix = sourceText.match(/\s*\(code\s*(\d+)\)\s*$/i)
   const sourceCode = codeSuffix ? Number(codeSuffix[1]) : null
   const sourceLabel = cleanChoice(sourceText)
   const alias = SOURCE_OPTION_ALIASES.find(item => cleanChoice(item.source) === sourceLabel)
@@ -147,7 +147,7 @@ export function normalizeAmbulanceTime(value: unknown): NormalizedAmbulanceTime 
   }
 
   const original = String(value).trim()
-  const compact = original.replace(/\\s+/g, '')
+  const compact = original.replace(/\s+/g, '')
   let normalized = compact
   let repaired = false
 
@@ -159,11 +159,11 @@ export function normalizeAmbulanceTime(value: unknown): NormalizedAmbulanceTime 
 
   replaceAndTrack(/[;"'’]/g, ':')
   replaceAndTrack(/[pP]/g, ':')
-  replaceAndTrack(/(?<=\\d)[oO](?=\\d)/g, '0')
+  replaceAndTrack(/(?<=\d)[oO](?=\d)/g, '0')
   replaceAndTrack(/:+/g, ':')
   normalized = normalized.replace(/^:|:$/g, '')
 
-  const match = normalized.match(/^(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?$/)
+  const match = normalized.match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/)
   if (!match) {
     return {
       time: null,
@@ -211,8 +211,8 @@ export function normalizeAmbulanceDate(value: unknown): string | null {
   let year: number
   let month: number
   let day: number
-  const iso = raw.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})(?:[T ].*)?$/)
-  const dmy = raw.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/)
+  const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ].*)?$/)
+  const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/)
   if (iso) {
     year = Number(iso[1]); month = Number(iso[2]); day = Number(iso[3])
   } else if (dmy) {
@@ -234,7 +234,7 @@ export function calculateAmbulanceResponseMinutes(
 ): number | null {
   const parse = (value: unknown): number | null => {
     const text = String(value ?? '').trim()
-    const match = text.match(/^(\\d{2}):(\\d{2})$/)
+    const match = text.match(/^(\d{2}):(\d{2})$/)
     if (!match) return null
     const hour = Number(match[1])
     const minute = Number(match[2])
@@ -280,7 +280,7 @@ export function ambulanceSourceWarnings(input: {
   if (/^0+$/.test(String(input.driver ?? '').trim())) {
     warnings.push('Nama supir pada sumber bernilai 0; identitas petugas perlu diverifikasi.')
   }
-  if (input.formulaValue != null && /^#(VALUE|NUM|REF|DIV\\/0|N\\/A|NAME)!?$/i.test(String(input.formulaValue).trim())) {
+  if (input.formulaValue != null && /^#(VALUE|NUM|REF|DIV\/0|N\/A|NAME)!?$/i.test(String(input.formulaValue).trim())) {
     warnings.push('Rumus Kecepatan Respon pada workbook menghasilkan ' + String(input.formulaValue).trim() + '; nilai dihitung ulang dari jam sumber yang dapat dibaca.')
   }
   if (input.overnightRollover) {
