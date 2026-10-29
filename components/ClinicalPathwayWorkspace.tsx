@@ -259,6 +259,11 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [messageKind, setMessageKind] = useState<'info' | 'error'>('info')
+  useEffect(() => {
+    if (!message || typeof window === 'undefined') return
+    const type = messageKind === 'error' || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(message) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(message) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message, type, module: 'Audit Clinical Pathway' } }))
+  }, [message, messageKind])
   const [screen, setScreen] = useState<'library' | 'diagnosis' | 'audit' | 'builder'>('library')
   const [selectedCode, setSelectedCode] = useState('')
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(initialRoomId)
