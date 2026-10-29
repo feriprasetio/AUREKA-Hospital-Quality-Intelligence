@@ -13,11 +13,13 @@ import QualityHub from '@/components/QualityHub'
 import GeneralSettings from '@/components/GeneralSettings'
 import OverviewDashboard from '@/components/OverviewDashboard'
 import MetadataStatisticsWorkspace from '@/components/MetadataStatisticsWorkspace'
+import ClinicalWorkforceWorkspace from '@/components/ClinicalWorkforceWorkspace'
+import { AUREKA_PRIMARY_NAV } from '@/lib/aureka/module-registry'
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
 const LOGO='https://rsudssma.pontianak.go.id/storage/settings/October2023/8ODy7bT72ice4vVuuC9d.png'
 const FALLBACK=['Informasi dan Pengaduan','Informatika dan Teknologi','Instalasi Ambulance','Instalasi Bedah Sentral','Instalasi Farmasi','Instalasi Gawat Darurat','Instalasi Gizi','Instalasi Hemodialisis','Instalasi Laboratorium','Instalasi Radiologi','Instalasi Rawat Jalan','Instalasi Rehab Medik','Instalasi Rekam Medis','Intensive Care Unit & High Care Unit','Komite Medik','Komite Pencegahan dan Pengendalian Infeksi','Manajemen rumah Sakit','Neonatal Intensive Care Unit & Pediatrics High Dependency Unit','Nifas Obstetrics & Gynecology','Perinatology & Neonatology','Promosi Kesehatan Rumah Sakit','Rawat Inap Anak','Rawat Inap Bedah','Rawat Inap Isolasi','Rawat Inap Penyakit Dalam','Rawat Inap Saraf','Rawat Inap VIP','Satuan Pengawas Intern','Tim Investigasi','Tim Koordinasi Pendidikan','Tim Pelayanan Human Immunodeficiency Virus','Tim Pelayanan Keluarga Berencana Rumah Sakit','Tim Pelayanan Obstetri Neonatal Emergensi Komprehensif','Tim Pelayanan Onkologi','Tim Pencegahan Resistensi Antimikroba','Tim Peningkatan Kinerja Klinis','Verlos Kamer']
-const MODS=[['quality','Indikator Mutu'],['safety','Keselamatan Pasien'],['risk','Manajemen Risiko'],['analytics','Metadata dan Statistik'],['settings','Pengaturan']] as const
+const MODS=AUREKA_PRIMARY_NAV.map(({id,label})=>[id,label] as const)
 // Role pengelola melihat seluruh rumah sakit; role unit (PIC) hanya modul input unitnya.
 const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS']
 const MANAGER_ONLY_MODULES=['analytics']
