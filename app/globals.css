@@ -1557,3 +1557,103 @@ html[data-theme="amoled"] .workspaceSupportMessage.mine,html[data-theme="amoled"
  .moduleEnter .oppeFilterMeta{grid-column:1/-1;white-space:normal}
  .moduleEnter .cpScoreGrid{flex-wrap:wrap}
 }
+
+
+/* Final UX pass: the workspace uses the full available height; logbook list fills the viewport. */
+@media(min-width:761px){
+ .workspaceRoot{height:100dvh!important;min-height:100dvh!important;overflow:hidden!important}
+ .workspaceContent{display:flex!important;flex-direction:column!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding:6px 16px!important;gap:0!important}
+ .workspaceHeaderBar{flex:0 0 auto!important;min-height:44px!important;margin-bottom:7px!important}
+ .moduleEnter{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;max-height:none!important;width:100%!important;overflow:auto}
+ .moduleEnter:has(>.aq){overflow:hidden!important}
+ .moduleEnter>.aq{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;height:100%!important;max-height:100%!important;overflow:hidden!important;gap:6px!important}
+ .moduleEnter>.aq>style{display:none!important}
+ .moduleEnter>.aq>.aqFilters{flex:0 0 auto!important;margin:0!important}
+ .moduleEnter>.aq>.aqDataBar{flex:0 0 auto!important;margin:0!important}
+ .moduleEnter>.aq>.aqTable{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;max-height:none!important;width:100%!important;margin:0!important;overflow:hidden!important}
+ .moduleEnter>.aq>.aqTable>.aqWrap{flex:1 1 auto!important;min-height:0!important;height:100%!important;max-height:none!important;width:100%!important;overflow:auto!important;overscroll-behavior:contain}
+}
+.moduleEnter .aqDataBar{display:flex!important;align-items:center!important;gap:0!important;min-height:32px!important;padding:3px 5px!important;margin:0!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;white-space:nowrap!important}
+.moduleEnter .aqDataBar::-webkit-scrollbar{display:none}
+.moduleEnter .aqDataBar>div{flex:0 0 auto!important;min-width:0!important;gap:4px!important;padding:3px 7px!important}
+.moduleEnter .aqDataBar>div span{font-size:8px!important}
+.moduleEnter .aqDataBar>div strong{font-size:10px!important}
+.moduleEnter .aqDataBar .aqImportButton{margin-left:auto!important;flex:0 0 auto!important;min-height:26px!important;padding:4px 8px!important;border-radius:8px!important;font-size:9px!important}
+.moduleEnter .aqDataBar .aqAddButton{margin-left:5px!important;flex:0 0 auto!important;min-height:26px!important;padding:4px 8px!important;border-radius:8px!important;font-size:9px!important;white-space:nowrap!important}
+.moduleEnter .aqTableHead{display:none!important}
+.moduleEnter .aqTable .aqWrap{max-height:none!important}
+.moduleEnter table.aqData{width:max-content!important;min-width:100%!important;max-width:none!important;table-layout:auto!important;font-size:10px!important}
+.moduleEnter table.aqData th{white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important;hyphens:none!important;padding:7px 8px!important;min-width:max-content!important;font-size:9px!important;line-height:1.2!important}
+.moduleEnter table.aqData td{padding:6px 8px!important;min-width:74px!important;max-width:340px!important;font-size:10px!important;line-height:1.35!important;vertical-align:middle!important;overflow-wrap:break-word!important;word-break:normal!important}
+.moduleEnter table.aqData th:first-child,.moduleEnter table.aqData td:first-child{min-width:34px!important;width:34px!important;white-space:nowrap!important}
+.moduleEnter table.aqData th:last-child,.moduleEnter table.aqData td:last-child{min-width:78px!important;white-space:nowrap!important}
+.moduleEnter .aqInlineEditorRow td{padding:6px!important;min-width:0!important;max-width:none!important;white-space:normal!important}
+.moduleEnter .aqInlineEditor{display:flex!important;flex-direction:column!important;width:100%!important;max-width:none!important;min-width:0!important;max-height:none!important;overflow:hidden!important;border-radius:11px!important;box-shadow:none!important;background:var(--surface)!important;border-color:var(--border)!important}
+.moduleEnter .aqInlineEditor .aqDHead{flex:0 0 auto!important;align-items:center!important;padding:7px 10px!important;gap:7px!important;min-height:38px!important;background:var(--surface)!important;border-bottom:1px solid var(--border)!important}
+.moduleEnter .aqInlineEditor .aqDHead h4{font-size:14px!important;line-height:1.2!important;margin:0!important;letter-spacing:-.02em!important}
+.moduleEnter .aqInlineEditor .aqDHead p{margin:2px 0 0!important;font-size:9px!important;line-height:1.25!important}
+.moduleEnter .aqInlineEditor .aqDHead .aqClose{width:26px!important;height:26px!important;flex:0 0 26px!important;border-radius:8px!important;font-size:16px!important}
+.moduleEnter .aqInlineEditor .aqBody{flex:1 1 auto!important;min-height:0!important;max-height:min(50dvh,520px)!important;overflow:auto!important;padding:8px 10px!important}
+.moduleEnter .aqInlineEditor .aqEpisode{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:start!important;gap:6px 8px!important}
+.moduleEnter .aqInlineEditor .aqField{min-width:0!important;gap:3px!important;margin:0!important}
+.moduleEnter .aqInlineEditor .aqField>span{font-size:9px!important;line-height:1.2!important;letter-spacing:0!important;margin:0 0 2px!important;color:var(--muted)!important}
+.moduleEnter .aqInlineEditor .aqField :is(input,select,textarea){min-width:0!important;width:100%!important;min-height:29px!important;height:29px!important;padding:4px 7px!important;border-radius:7px!important;font-size:10px!important;line-height:1.25!important;background:var(--surface-raised)!important;color:var(--ink)!important;border-color:var(--border)!important;outline:none!important;box-shadow:none!important}
+.moduleEnter .aqInlineEditor .aqField textarea{height:auto!important;min-height:58px!important;resize:vertical!important}
+.moduleEnter .aqInlineEditor .aqField small{font-size:8px!important;line-height:1.25!important}
+.moduleEnter .aqInlineEditor .aqAuto{display:flex!important;align-items:center!important;gap:6px!important;min-height:29px!important;padding:5px 7px!important;border-radius:7px!important;background:var(--surface-raised)!important;border-color:var(--border)!important}
+.moduleEnter .aqInlineEditor .aqAuto strong{font-size:10px!important;line-height:1.2!important;color:var(--ink)!important}
+.moduleEnter .aqInlineEditor .aqAuto small{font-size:8px!important;line-height:1.2!important}
+.moduleEnter .aqInlineEditor .aqDerived{display:flex!important;flex-wrap:nowrap!important;gap:0!important;overflow-x:auto!important;margin:7px 0!important;padding:3px 5px!important;border:1px solid var(--border)!important;border-radius:8px!important;background:var(--surface-raised)!important}
+.moduleEnter .aqInlineEditor .aqDerived>div{display:flex!important;align-items:center!important;gap:5px!important;flex:1 0 auto!important;min-width:0!important;padding:3px 7px!important;border:0!important;border-right:1px solid var(--border)!important;border-radius:0!important;background:transparent!important}
+.moduleEnter .aqInlineEditor .aqDerived>div:last-child{border-right:0!important}
+.moduleEnter .aqInlineEditor .aqDerived span{font-size:8px!important;white-space:nowrap!important;color:var(--muted)!important}
+.moduleEnter .aqInlineEditor .aqDerived strong{font-size:9px!important;line-height:1.2!important;margin:0!important;white-space:nowrap!important;color:var(--ink)!important}
+.moduleEnter .aqInlineEditor .aqSection{align-items:center!important;margin:8px 0 5px!important;gap:8px!important}
+.moduleEnter .aqInlineEditor .aqSection h5{font-size:11px!important;line-height:1.2!important;margin:0!important}
+.moduleEnter .aqInlineEditor .aqSection span{font-size:9px!important}
+.moduleEnter .aqInlineEditor .aqInd{margin:5px 0!important;border-radius:9px!important;background:var(--surface)!important;border-color:var(--border)!important}
+.moduleEnter .aqInlineEditor .aqIHead{padding:7px 9px!important;gap:7px!important;background:var(--surface-raised)!important;border-bottom:1px solid var(--border)!important}
+.moduleEnter .aqInlineEditor .aqIHead strong{font-size:10px!important;line-height:1.3!important}
+.moduleEnter .aqInlineEditor .aqMetaText{font-size:8px!important;line-height:1.25!important;margin-top:2px!important}
+.moduleEnter .aqInlineEditor .aqMatch{font-size:8px!important;padding:3px 6px!important}
+.moduleEnter .aqInlineEditor .aqIBody{padding:7px 9px!important}
+.moduleEnter .aqInlineEditor .aqQ{font-size:11px!important;line-height:1.35!important;margin:0 0 6px!important;font-weight:800!important}
+.moduleEnter .aqInlineEditor .aqRadio{gap:5px!important}
+.moduleEnter .aqInlineEditor .aqRadio label{gap:5px!important;padding:6px 8px!important;border-radius:7px!important;font-size:9px!important;background:var(--surface-raised)!important;color:var(--ink)!important;border-color:var(--border)!important}
+.moduleEnter .aqInlineEditor .aqRadio input{min-height:0!important;height:auto!important;width:auto!important}
+.moduleEnter .aqInlineEditor .aqEvidence{margin-top:7px!important;padding-top:6px!important}
+.moduleEnter .aqInlineEditor .aqEvidence summary{font-size:9px!important}
+.moduleEnter .aqInlineEditor .aqTwo{gap:6px!important}
+.moduleEnter .aqInlineEditor .aqFoot{position:sticky!important;bottom:0!important;flex:0 0 auto!important;z-index:5!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;padding:6px 10px!important;border-top:1px solid var(--border)!important;background:var(--surface)!important;backdrop-filter:blur(10px);border-radius:0 0 11px 11px!important}
+.moduleEnter .aqInlineEditor .aqFoot>span{display:none!important}
+.moduleEnter .aqInlineEditor .aqFoot .aqBtn{min-height:27px!important;padding:5px 9px!important;border-radius:7px!important;font-size:9px!important}
+.moduleEnter .aqInlineEditor .aqNotice{display:none!important}
+.moduleEnter table th{white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important;hyphens:none!important}
+.moduleEnter table th,.moduleEnter table td{word-break:normal}
+.moduleEnter :is(.rmTable,.psTable,.sdTable,.stTable,.oppeTable,.cpTable,.cwTable) th{white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important;hyphens:none!important}
+.dynamicIslandToast{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--border)!important;box-shadow:0 10px 30px rgba(0,0,0,.13)!important}
+.dynamicIslandToast .dynamicIslandIcon{background:var(--accent-soft)!important;color:var(--ink)!important}
+.dynamicIslandToast.error .dynamicIslandIcon{background:color-mix(in srgb,#d64d45 14%,var(--surface))!important;color:#d64d45!important}
+.dynamicIslandToast.success .dynamicIslandIcon{background:color-mix(in srgb,#16995e 14%,var(--surface))!important;color:#16804f!important}
+.dynamicIslandText strong,.dynamicIslandText span{color:var(--ink)!important}
+.dynamicIslandToast>button{color:var(--muted)!important}
+@media(max-width:760px){
+ .workspaceRoot{height:auto!important;min-height:100dvh!important;overflow:visible!important}
+ .workspaceContent{display:flex!important;flex-direction:column!important;height:auto!important;min-height:100dvh!important;overflow:visible!important;padding:5px 8px!important}
+ .moduleEnter{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:calc(100dvh - 65px)!important;max-height:none!important;overflow:visible!important}
+ .moduleEnter:has(>.aq){overflow:visible!important}
+ .moduleEnter>.aq{height:auto!important;max-height:none!important;min-height:calc(100dvh - 65px)!important;overflow:visible!important;gap:6px!important}
+ .moduleEnter>.aq>.aqTable{flex:1 1 auto!important;min-height:55vh!important;overflow:hidden!important}
+ .moduleEnter>.aq>.aqTable>.aqWrap{flex:1 1 auto!important;min-height:40vh!important;height:auto!important;max-height:none!important}
+ .moduleEnter .aqInlineEditor .aqEpisode{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .moduleEnter .aqInlineEditor .aqBody{max-height:55dvh!important}
+ .moduleEnter .aqDataBar{min-width:0!important;width:100%!important}
+ .moduleEnter .aqDataBar>div{padding:3px 5px!important}
+ .moduleEnter .aqDataBar>div span{font-size:7px!important}
+ .moduleEnter .aqDataBar .aqImportButton,.moduleEnter .aqDataBar .aqAddButton{font-size:8px!important;padding:4px 6px!important}
+}
+@media(max-width:430px){
+ .moduleEnter .aqInlineEditor .aqEpisode{grid-template-columns:minmax(0,1fr)!important}
+ .moduleEnter .aqDataBar{flex-wrap:nowrap!important}
+ .moduleEnter .aqDataBar>div span{display:none!important}
+}
