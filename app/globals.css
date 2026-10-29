@@ -2036,3 +2036,14 @@ html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amole
  .moduleEnter .stRow{grid-template-columns:repeat(2,minmax(0,1fr))!important}
  .moduleEnter :is(.rmTabs,.psTabs,.oppeTabs,.cwTabs){flex-wrap:nowrap!important}
 }
+
+
+/* Retain OPPE's intended two-column analysis/aside layout on desktop. */
+@media(min-width:1181px){
+ .moduleEnter .oppeWorkGrid{grid-template-columns:minmax(0,1.7fr) minmax(230px,.8fr)!important;gap:6px!important}
+ .moduleEnter .oppeAside{position:sticky!important;top:6px!important;gap:6px!important}
+}
+@media(min-width:761px) and (max-width:1180px){
+ .moduleEnter .oppeWorkGrid{grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr)!important;gap:6px!important}
+ .moduleEnter .oppeAside{position:static!important;gap:6px!important}
+}
