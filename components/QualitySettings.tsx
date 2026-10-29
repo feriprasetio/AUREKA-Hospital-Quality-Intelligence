@@ -69,6 +69,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
   const [newOne, setNewOne] = useState<Model | null>(null)
   const [tab, setTab] = useState<MetadataTab>('programs')
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
   const [msg, setMsg] = useState('')
   const [loading, setLoading] = useState(false)
@@ -370,7 +371,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
         {tab === 'profiles' && (
           <div style={{ marginTop: 12 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
-              <input aria-label="Cari kode, nama indikator, program, kategori, atau unit" placeholder="Cari kode, indikator, program, kategori, unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '1 1 240px', minWidth: 180 }} />
+              <input className="qualitySettingsLocalSearch" aria-label="Cari kode, nama indikator, program, kategori, atau unit" placeholder="Cari kode, indikator, program, kategori, unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '1 1 240px', minWidth: 180 }} />
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter('') }}>Reset filter</button>
               <LiquidGlassButton onClick={() => openNew(programFilter)}>+ Tambah indikator</LiquidGlassButton>
