@@ -112,7 +112,7 @@ export const AUREKA_MODULE_REGISTRY = [
 ] as const satisfies readonly AurekaModule[]
 
 export type AurekaModuleId = (typeof AUREKA_MODULE_REGISTRY)[number]['id']
-export const AUREKA_PRIMARY_NAV = AUREKA_MODULE_REGISTRY.filter((module) => module.id !== 'home')
+export const AUREKA_PRIMARY_NAV: readonly AurekaModule[] = AUREKA_MODULE_REGISTRY.filter((module) => module.id !== 'home')
 
 export const AUREKA_QUALITY_FEATURES = [
   {
