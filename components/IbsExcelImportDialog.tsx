@@ -525,7 +525,7 @@ export default function IbsExcelImportDialog({
           <span style={{ fontSize: 11, color: 'var(--muted)' }}>Data sumber pasien tetap perlu pemeriksaan oleh petugas.</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Tutup</button>
-            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || excludedRows.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor…' : 'Impor ' + rows.length + ' catatan'}</button>
+            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor…' : 'Impor ' + rows.length + ' catatan'}</button>
           </div>
         </div>
       </section>
