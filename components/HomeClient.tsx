@@ -14,7 +14,7 @@ import GeneralSettings from '@/components/GeneralSettings'
 import OverviewDashboard from '@/components/OverviewDashboard'
 import MetadataStatisticsWorkspace from '@/components/MetadataStatisticsWorkspace'
 import ClinicalWorkforceWorkspace from '@/components/ClinicalWorkforceWorkspace'
-import { AUREKA_PRIMARY_NAV } from '@/lib/aureka/module-registry'
+import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
 const LOGO='https://rsudssma.pontianak.go.id/storage/settings/October2023/8ODy7bT72ice4vVuuC9d.png'
@@ -22,7 +22,6 @@ const FALLBACK=['Informasi dan Pengaduan','Informatika dan Teknologi','Instalasi
 const MODS=AUREKA_PRIMARY_NAV.map(({id,label})=>[id,label] as const)
 // Role pengelola melihat seluruh rumah sakit; role unit (PIC) hanya modul input unitnya.
 const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS']
-const MANAGER_ONLY_MODULES=['analytics']
 const ROLE_LABEL:Record<string,string>={ADMIN:'Super Admin',PMKP:'Komite PMKP',MANAGEMENT:'Manajemen',PIC:'PIC Unit',VALIDATOR:'Validator Unit',KABID:'Kepala Bidang',DIREKTUR:'Direktur',DEWAN_PENGAWAS:'Dewan Pengawas'}
 const initials=(name?:string|null)=>{const parts=String(name||'').split('@')[0].replace(/[^A-Za-z0-9\u00C0-\u024F ]/g,' ').trim().split(/\s+/).filter(Boolean);return ((parts[0]?.[0]||'A')+(parts.length>1?parts[parts.length-1][0]:'')).toUpperCase()}
 const QUICK_MODULES=[
@@ -127,7 +126,7 @@ export default function HomeClient(){
   const admin=role==='ADMIN'
  const manager=MANAGER_ROLES.includes(role||'')
  const validator=role==='VALIDATOR'
- const visibleMods=useMemo(()=>MODS.filter(([id])=>manager||(validator?['quality','staff','settings'].includes(id):!MANAGER_ONLY_MODULES.includes(id))),[manager,validator])
+ const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole)).map(({id,label})=>[id,label] as const),[role])
  useEffect(()=>{if(!manager&&MANAGER_ONLY_MODULES.includes(active))setActive('home')},[manager,active])
  const title=useMemo(()=>MODS.find(([id])=>id===active)?.[1]||(active==='home'?'Ringkasan':'Workspace'),[active])
  if(view==='force-password')return <main className="authPage"><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||'unit yang ditetapkan'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack" style={{position:'static',marginTop:16}} onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
