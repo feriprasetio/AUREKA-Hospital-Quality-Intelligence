@@ -126,6 +126,12 @@ function validResponseCode(value:unknown):number|null{
 const QUALITY_AUDIT_LAYOUTS=qualityAuditLayout2026 as AuditLayout[]
 function getLayout(roomId:number|null|undefined){return roomId==null?undefined:QUALITY_AUDIT_LAYOUTS.find(x=>Number(x.roomId)===Number(roomId))}
 function normHeader(v:unknown){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function getLayoutForRoom(roomId:number|null|undefined,roomName?:string|null){
+ const unit=normHeader(roomName)
+ if(unit==='informasi dan pengaduan')return QUALITY_AUDIT_LAYOUTS.find(layout=>layout.fields.some(field=>normHeader(field)==='tanggal aduan'))??getLayout(roomId)
+ if(unit==='informatika dan teknologi')return QUALITY_AUDIT_LAYOUTS.find(layout=>layout.fields.some(field=>normHeader(field)==='gangguan it'))??getLayout(roomId)
+ return getLayout(roomId)
+}
 function profileMatchesHeader(header:string,p:Profile){
  const label=String(p.schema_json?.header_label??'').trim()||String(p.title??'').trim()
  const h=normHeader(header),l=normHeader(label)
@@ -311,7 +317,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const roomMap=useMemo(()=>new Map(rooms.map(r=>[Number(r.id),r.name])),[rooms])
  const activeLayout=useMemo(()=>getLayout(roomId),[roomId])
  const activeGrain=useMemo(()=>dominantGrain(profiles,activeLayout),[profiles,activeLayout])
- const selectedLayout=useMemo(()=>selected?getLayout(Number(selected.roomId)):activeLayout,[selected,activeLayout])
+ const selectedLayout=useMemo(()=>selected?(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??'')):activeLayout,[selected,activeLayout])
  const patientProfiles=useMemo(()=>layoutProfiles(profiles,activeLayout),[profiles,activeLayout])
  const summaryFields=useMemo(()=>{
    const fields=activeLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Diagnosa Tegak','DPJP']
@@ -425,9 +431,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const filledN=useMemo(()=>applicable.filter(p=>responseComplete(p,draft[p.id??p.code])).length,[applicable,draft])
 
  const openPatient=(p:Patient)=>{
+   const layout=getLayoutForRoom(Number(p.roomId),String(p.unit??''))
    const r:any={}
-   layoutProfiles(profiles,getLayout(Number(p.roomId))).forEach(x=>{r[x.id??x.code]=p.indicatorValues?.[x.code]??empty(x)})
-   setSelected({...p})
+   layoutProfiles(profiles,layout).forEach(x=>{r[x.id??x.code]=p.indicatorValues?.[x.code]??empty(x)})
+   setSelected({...p,layoutOverride:layout})
    setDraft(r)
    setPatientOpen(true)
    setMessage('')
@@ -436,16 +443,24 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    if(isValidator){setMessage('Akun validator hanya dapat meninjau dan memvalidasi catatan yang dikirim unit.');return}
    const targetRoomId=requestedRoomId??roomId
    if(targetRoomId==null){setUnitPickerRoomId(rooms[0]?String(rooms[0].id):'');setUnitPickerOpen(true);return}
-   const u=rooms.find(r=>Number(r.id)===Number(targetRoomId))
-   const layout=getLayout(targetRoomId)
+   const pickedRoom=rooms.find(r=>Number(r.id)===Number(targetRoomId))
+   const layout=getLayoutForRoom(targetRoomId,pickedRoom?.name)
+   if(!layout){
+     setMessage('Template logbook untuk unit ini belum tersedia. Catatan baru tidak dibuka agar tidak memakai formulir unit lain.')
+     return
+   }
+   // Template matching uses the selected room label as well as its ID; this prevents a stale/mismatched ID from opening another unit's form.
+   const canonicalRoomId=Number(layout.roomId)
+   const canonicalRoom=rooms.find(r=>Number(r.id)===canonicalRoomId)
+   const unitName=String(pickedRoom?.name??canonicalRoom?.name??roomMap.get(canonicalRoomId)??'')
    const today=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`})()
    const formData:Record<string,any>={}
-   ;(layout?.fields??[]).forEach(field=>{formData[field]=inputKind(field,layout)==='computed'?'':''})
+   ;(layout.fields??[]).forEach(field=>{formData[field]=inputKind(field,layout)==='computed'?'':''})
    const dateField=primaryDateField(layout)
    if(dateField)formData[dateField]=today
    const grain=dominantGrain(profiles,layout)
    const admit=recordDateFrom(formData,layout,today)
-   const selectedRecord={id:`LOCAL-${Date.now()}`,recordId:null,roomId:targetRoomId,unit:u?.name??'',name:String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??''),rm:String(formData['No. Rekam Medis']??formData['No. RM']??''),sex:String(formData['Jenis Kelamin']??''),age:null,admit,discharge:String(formData['Tanggal Keluar']??''),diagnosis:String(formData['Diagnosa Tegak']??formData['Diagnosa']??''),dpjp:String(formData['DPJP']??formData['Dpjp']??''),status:'Draft',indicatorValues:{},formData,staffIdByField:{},measurementGrain:grain,source:'local',updatedAt:null}
+   const selectedRecord={id:`LOCAL-${Date.now()}`,recordId:null,roomId:canonicalRoomId,unit:unitName,layoutOverride:layout,name:String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??''),rm:String(formData['No. Rekam Medis']??formData['No. RM']??''),sex:String(formData['Jenis Kelamin']??''),age:null,admit,discharge:String(formData['Tanggal Keluar']??''),diagnosis:String(formData['Diagnosa Tegak']??formData['Diagnosa']??''),dpjp:String(formData['DPJP']??formData['Dpjp']??''),status:'Draft',indicatorValues:{},formData,staffIdByField:{},measurementGrain:grain,source:'local',updatedAt:null}
    setPatients(p=>[selectedRecord,...p.filter(x=>x.id!==selectedRecord.id)])
    setSelected(selectedRecord)
    const r:any={}
@@ -455,7 +470,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const setField=(field:string,value:any)=>{
    setSelected(p=>{
      if(!p)return p
-     const layout=getLayout(Number(p.roomId))
+     const layout=(p.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(p.roomId),String(p.unit??''))
      const formData={...(p.formData??{}),[field]:value}
      if(normHeader(field)==='klinik'&&layout?.providerGroups?.length){const selectedClinic=layout.providerGroups.find(g=>g.clinic===String(value));if(!selectedClinic?.doctors.includes(String(formData['Dokter']??'')))formData['Dokter']=''}
      const name=String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??formData['Gangguan IT']??formData['Insiden yang Terjadi']??formData['Nama Pertemuan Ilmiah']??formData['Nama MPP']??p.name??'')
@@ -607,8 +622,16 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
 
  const archivePatient=async(p:Patient)=>{
-  if(isValidator||!p.recordId)return
-  if(!window.confirm('Hapus catatan ini dari logbook aktif? Catatan hanya dapat dihapus sebelum validasi dan tetap diarsipkan untuk menjaga jejak audit.'))return
+  if(isValidator)return
+  if(p.source==='local'&&!p.recordId){
+   if(!window.confirm('Buang draf yang belum disimpan ke server?'))return
+   setPatients(current=>current.filter(row=>String(row.id)!==String(p.id)))
+   if(selected&&String(selected.id)===String(p.id)){setPatientOpen(false);setSelected(null)}
+   setMessage('Draf yang belum disimpan berhasil dibuang.')
+   return
+  }
+  if(!p.recordId){setMessage('Catatan ini tidak memiliki identitas server yang valid. Buka dan simpan ulang sebelum menghapusnya.');return}
+  if(!window.confirm('Hapus catatan ini dari logbook aktif? Catatan tetap diarsipkan untuk menjaga jejak audit.'))return
   setBusy(true)
   try{
    const {error}=await q().rpc('archive_quality_logbook',{p_record_id:String(p.recordId)})
@@ -617,7 +640,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    if(selected&&String(selected.recordId??selected.id)===String(p.recordId)){setPatientOpen(false);setSelected(null)}
    setMessage('Catatan berhasil dihapus dari logbook aktif.')
   }catch(error){
-   setMessage('Catatan belum dapat dihapus: '+(error instanceof Error?error.message:'Periksa koneksi dan hak akses.'))
+   const detail=error instanceof Error?error.message:'Periksa koneksi dan hak akses.'
+   setMessage('Catatan belum dapat dihapus: '+detail)
   }finally{setBusy(false)}
  }
 
@@ -721,7 +745,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        {!isValidator&&<button type="button" className="aqBtn primary aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button>}
       </div>
       {!isValidator&&excelPasteOpen&&<QualityExcelPastePanel key={roomId??'all'} headers={[...(activeLayout?.fields??[]),...(activeLayout?.indicators??[])]} disabledReason={roomId==null?'Pilih satu unit pada filter sebelum mengimpor.':!activeLayout?'Layout header aktif untuk unit ini belum tersedia.':''} onUseRow={importExcelRow} onUseRows={importExcelRows} onClose={()=>setExcelPasteOpen(false)}/>}
-     <section className="glass aqTable"><div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>Indikator terisi</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)),total=rowProfiles.length,count=rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=><td key={field+'-'+j}>{String(fieldValue(p,field,getLayout(Number(p.roomId)))??'')||'—'}</td>)}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase())?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void archivePatient(p)}}>Hapus</button>:<span className="aqMetaText">—</span>)}</div></td></tr>{patientOpen&&selected&&String(selected.id)===String(p.id)&&<tr className="aqInlineEditorRow" onClick={(event:any)=>event.stopPropagation()}><td colSpan={summaryFields.length+4}>{renderPatientEditor()}</td></tr>}</Fragment>})}{!filtered.length&&<tr><td colSpan={summaryFields.length+4}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada periode ini.'}</div></td></tr>}</tbody></table></div></section></>}
+     <section className="glass aqTable"><div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>Indikator terisi</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)),total=rowProfiles.length,count=rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=><td key={field+'-'+j}>{String(fieldValue(p,field,getLayout(Number(p.roomId)))??'')||'—'}</td>)}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase()))?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void archivePatient(p)}}>Hapus</button>:<span className="aqMetaText">—</span>)}</div></td></tr>{patientOpen&&selected&&String(selected.id)===String(p.id)&&<tr className="aqInlineEditorRow" onClick={(event:any)=>event.stopPropagation()}><td colSpan={summaryFields.length+4}>{renderPatientEditor()}</td></tr>}</Fragment>})}{!filtered.length&&<tr><td colSpan={summaryFields.length+4}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada periode ini.'}</div></td></tr>}</tbody></table></div></section></>}
 
    {unitPickerOpen&&<div className="aqBack" onClick={(e:any)=>{if(e.target===e.currentTarget)setUnitPickerOpen(false)}}><section className="aqDrawer" role="dialog" aria-modal="true" aria-label="Pilih unit untuk catatan baru"><div className="aqDHead"><div><div className="eyebrow">Logbook mutu</div><h4>Pilih unit kerja</h4><p>Catatan baru harus terikat pada satu unit agar master indikator dan kewenangan tersaring dengan benar.</p></div><button className="aqClose" onClick={()=>setUnitPickerOpen(false)} aria-label="Tutup">×</button></div><div className="aqBody"><label className="aqField"><span>Unit kerja</span><select value={unitPickerRoomId} onChange={(e:any)=>setUnitPickerRoomId(e.target.value)}><option value="">Pilih unit…</option>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><div className="aqFoot" style={{margin:'18px -22px -18px'}}><span className="aqMetaText">Pilih unit terlebih dahulu untuk membuka formulir catatan.</span><button className="aqBtn primary" disabled={!unitPickerRoomId||busy} onClick={()=>{const id=Number(unitPickerRoomId);setUnitPickerOpen(false);if(Number.isFinite(id)&&id>0)newPatient(id)}}>Buat catatan</button></div></div></section></div>}
 
