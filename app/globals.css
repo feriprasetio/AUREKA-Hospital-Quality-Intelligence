@@ -1237,3 +1237,6 @@ html[data-theme="amoled"] body .aqData th,html[data-theme="amoled"] body .cpTabl
 html[data-theme="amoled"] body .aqData td,html[data-theme="amoled"] body .cpTable td,html[data-theme="amoled"] body .psTable td,html[data-theme="amoled"] body .rmTable td,html[data-theme="amoled"] body .stTable td{background:#050505!important;color:#fff!important}
 html[data-theme="amoled"] body .aqStatus,html[data-theme="amoled"] body .aqPill,html[data-theme="amoled"] body .cpBadge,html[data-theme="amoled"] body .psPill,html[data-theme="amoled"] body .rmPill,html[data-theme="amoled"] body .cwBadge{background:#101010!important;color:#fff!important;border-color:#292929!important}
 @media(prefers-reduced-motion:reduce){.sidebar .sidebarChevron,.workspaceSearchFocus{transition:none!important;scroll-behavior:auto!important}}
+
+html[data-theme="amoled"] body *::before,html[data-theme="amoled"] body *::after{background-image:none!important;background-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;text-shadow:none!important}
+html[data-theme="amoled"] body .liquidGlass::before,html[data-theme="amoled"] body .liquidGlass::after,html[data-theme="amoled"] body .glassPanel::before,html[data-theme="amoled"] body .glassPanel::after{display:none!important;content:none!important}
