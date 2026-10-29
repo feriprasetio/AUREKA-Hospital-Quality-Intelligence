@@ -309,7 +309,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  },[message])
  const [busy,setBusy]=useState(false)
  const [source,setSource]=useState('Memuat…')
- const [patientOpen,setPatientOpen]=useState(false)
+ const [patientOpen,setPatientOpen]=useState(false),[pendingArchive,setPendingArchive]=useState<Patient|null>(null)
  const [excelPasteOpen,setExcelPasteOpen]=useState(false)
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
@@ -622,25 +622,34 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
 
  const archivePatient=async(p:Patient)=>{
-  if(isValidator)return
+  if(isValidator||busy)return
   if(p.source==='local'&&!p.recordId){
-   if(!window.confirm('Buang draf yang belum disimpan ke server?'))return
    setPatients(current=>current.filter(row=>String(row.id)!==String(p.id)))
    if(selected&&String(selected.id)===String(p.id)){setPatientOpen(false);setSelected(null)}
+   setPendingArchive(null)
    setMessage('Draf yang belum disimpan berhasil dibuang.')
    return
   }
-  if(!p.recordId){setMessage('Catatan ini tidak memiliki identitas server yang valid. Buka dan simpan ulang sebelum menghapusnya.');return}
-  if(!window.confirm('Hapus catatan ini dari logbook aktif? Catatan tetap diarsipkan untuk menjaga jejak audit.'))return
+  if(!p.recordId){
+   setPendingArchive(null)
+   setMessage('Catatan ini tidak memiliki identitas server yang valid. Muat ulang data atau simpan ulang catatan.')
+   return
+  }
   setBusy(true)
+  setMessage('')
   try{
-   const {error}=await q().rpc('archive_quality_logbook',{p_record_id:String(p.recordId)})
+   const {data,error}=await q().rpc('archive_quality_logbook',{p_record_id:String(p.recordId)})
    if(error)throw error
+   if(data!==true)throw new Error('Server tidak mengonfirmasi pengarsipan catatan.')
    setPatients(current=>current.filter(row=>String(row.recordId??row.id)!==String(p.recordId)))
    if(selected&&String(selected.recordId??selected.id)===String(p.recordId)){setPatientOpen(false);setSelected(null)}
+   setPendingArchive(null)
    setMessage('Catatan berhasil dihapus dari logbook aktif.')
+   void load()
   }catch(error){
-   const detail=error instanceof Error?error.message:'Periksa koneksi dan hak akses.'
+   const raw=error as {message?:string;details?:string;hint?:string;code?:string}
+   const detail=[raw?.message,raw?.details,raw?.hint,raw?.code?('Kode '+raw.code):''].filter(Boolean).join(' · ')||'Periksa koneksi dan hak akses.'
+   setPendingArchive(null)
    setMessage('Catatan belum dapat dihapus: '+detail)
   }finally{setBusy(false)}
  }
@@ -745,7 +754,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        {!isValidator&&<button type="button" className="aqBtn primary aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button>}
       </div>
       {!isValidator&&excelPasteOpen&&<QualityExcelPastePanel key={roomId??'all'} headers={[...(activeLayout?.fields??[]),...(activeLayout?.indicators??[])]} disabledReason={roomId==null?'Pilih satu unit pada filter sebelum mengimpor.':!activeLayout?'Layout header aktif untuk unit ini belum tersedia.':''} onUseRow={importExcelRow} onUseRows={importExcelRows} onClose={()=>setExcelPasteOpen(false)}/>}
-     <section className="glass aqTable"><div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>Indikator terisi</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)),total=rowProfiles.length,count=rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=><td key={field+'-'+j}>{String(fieldValue(p,field,getLayout(Number(p.roomId)))??'')||'—'}</td>)}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase()))?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void archivePatient(p)}}>Hapus</button>:<span className="aqMetaText">—</span>)}</div></td></tr>{patientOpen&&selected&&String(selected.id)===String(p.id)&&<tr className="aqInlineEditorRow" onClick={(event:any)=>event.stopPropagation()}><td colSpan={summaryFields.length+4}>{renderPatientEditor()}</td></tr>}</Fragment>})}{!filtered.length&&<tr><td colSpan={summaryFields.length+4}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada periode ini.'}</div></td></tr>}</tbody></table></div></section></>}
+     <section className="glass aqTable"><div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>Indikator terisi</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)),total=rowProfiles.length,count=rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=><td key={field+'-'+j}>{String(fieldValue(p,field,getLayout(Number(p.roomId)))??'')||'—'}</td>)}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase()))?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.preventDefault();e.stopPropagation();setPendingArchive(p)}}>Hapus</button>:<span className="aqMetaText">—</span>)}</div></td></tr>{patientOpen&&selected&&String(selected.id)===String(p.id)&&<tr className="aqInlineEditorRow" onClick={(event:any)=>event.stopPropagation()}><td colSpan={summaryFields.length+4}>{renderPatientEditor()}</td></tr>}</Fragment>})}{!filtered.length&&<tr><td colSpan={summaryFields.length+4}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada periode ini.'}</div></td></tr>}</tbody></table></div></section></>}
+
+   {pendingArchive&&<div className="aqBack aqDeleteConfirmBack" role="presentation" onClick={(e:any)=>{if(e.target===e.currentTarget&&!busy)setPendingArchive(null)}}><section className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqDeleteConfirmTitle" aria-describedby="aqDeleteConfirmText"><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span><button type="button" className="aqDeleteConfirmClose" aria-label="Tutup dialog" disabled={busy} onClick={()=>setPendingArchive(null)}>×</button></div><h4 id="aqDeleteConfirmTitle">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf catatan?':'Hapus catatan dari logbook aktif?'}</h4><p id="aqDeleteConfirmText">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Draf ini belum tersimpan ke server dan akan dibuang dari sesi ini.':'Catatan akan diarsipkan dan hilang dari daftar aktif. Jejak audit tetap dipertahankan.'}</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" disabled={busy} onClick={()=>setPendingArchive(null)}>Batal</button><button type="button" className="aqBtn danger" disabled={busy} onClick={()=>void archivePatient(pendingArchive)}>{busy?'Memproses…':pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf':'Ya, hapus'}</button></div></section></div>}
 
    {unitPickerOpen&&<div className="aqBack" onClick={(e:any)=>{if(e.target===e.currentTarget)setUnitPickerOpen(false)}}><section className="aqDrawer aqUnitPicker" role="dialog" aria-modal="true" aria-label="Pilih unit untuk catatan baru"><div className="aqDHead"><div><div className="eyebrow">Logbook mutu</div><h4>Pilih unit kerja</h4><p>Catatan baru harus terikat pada satu unit agar master indikator dan kewenangan tersaring dengan benar.</p></div><button className="aqClose" onClick={()=>setUnitPickerOpen(false)} aria-label="Tutup">×</button></div><div className="aqBody"><label className="aqField"><span>Unit kerja</span><select value={unitPickerRoomId} onChange={(e:any)=>setUnitPickerRoomId(e.target.value)}><option value="">Pilih unit…</option>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><div className="aqFoot" style={{margin:'18px -22px -18px'}}><span className="aqMetaText">Pilih unit terlebih dahulu untuk membuka formulir catatan.</span><button className="aqBtn primary" disabled={!unitPickerRoomId||busy} onClick={()=>{const id=Number(unitPickerRoomId);setUnitPickerOpen(false);if(Number.isFinite(id)&&id>0)newPatient(id)}}>Buat catatan</button></div></div></section></div>}
 
