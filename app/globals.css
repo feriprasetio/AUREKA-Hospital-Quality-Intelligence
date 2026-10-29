@@ -1147,7 +1147,7 @@ html[data-theme="amoled"] .publicMetricsPrivacy{border-color:#252525}
 .workspaceHeaderTheme button svg{width:13px;height:13px;flex:0 0 13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .workspaceHeaderTheme button.themeModeActive{background:var(--accent-soft);border-color:var(--border);color:var(--accent2)}
 .moduleEnter{min-width:0;max-width:100%;color:var(--ink)}
-.moduleEnter .aqLocalSearch,.moduleEnter .cpLocalSearch,.moduleEnter .psLocalSearch,.moduleEnter .rmSearch,.moduleEnter .staffLocalSearch,.moduleEnter .stLocalSearch,.moduleEnter .oppeLocalSearch,.moduleEnter .fppeLocalSearch,.moduleEnter .acdLocalSearch{display:none!important}
+.moduleEnter .aqLocalSearch,.moduleEnter .cpLocalSearch,.moduleEnter .psLocalSearch,.moduleEnter .rmSearch,.moduleEnter .staffLocalSearch,.moduleEnter .stLocalSearch,.moduleEnter .oppeLocalSearch,.moduleEnter .fppeLocalSearch,.moduleEnter .acdLocalSearch{display:none!important}\n.moduleEnter .adminLocalSearch,.moduleEnter .qualitySettingsLocalSearch{display:none!important}
 .moduleEnter .aqFilters .aqGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .workspaceSearchFocus{outline:3px solid rgba(var(--accent-rgb),.75)!important;outline-offset:3px!important;scroll-margin-top:90px!important;position:relative;z-index:1}
 .mobileMenuButton{width:34px;height:34px;flex:0 0 34px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--ink);font-size:15px}
