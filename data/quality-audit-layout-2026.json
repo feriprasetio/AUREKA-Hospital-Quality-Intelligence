@@ -3,6 +3,7 @@
     "roomId": 1,
     "fields": [
       "Nama Pasien",
+      "No. Rekam Medis",
       "Unit Pelayanan",
       "Level Masalah",
       "Tanggal Aduan",
@@ -17,7 +18,48 @@
     "indicators": [
       "Respon Komplain",
       "Mengerti Informasi"
-    ]
+    ],
+    "fieldOptions": {
+      "Unit Pelayanan": [
+        "Farmasi",
+        "farmasi",
+        "Pelayanan",
+        "Radiologi",
+        "IT",
+        "Sarana dan prasarana",
+        "Parkiran",
+        "Poli anak",
+        "Pendaftaran / RM Loket 2 (di gedung belakang)",
+        "Pendaftaran IGD",
+        "Rajal",
+        "Ranap R.Mawar 2-Bedah"
+      ],
+      "Level Masalah": [
+        "Ringan",
+        "Sedang",
+        "Berat"
+      ],
+      "Sumber Aduan": [
+        "Website Rumah Sakit",
+        "Sumber Lainnya",
+        "Aduan Langsung Tatap Muka"
+      ],
+      "Status Aduan": [
+        "Aduan Selesai Dengan Klarifikasi Dari Manajemen",
+        "Aduan Selesai Dengan Proses Pengadaan",
+        "Aduan Selesai Dengan Penegakan Aturan",
+        "Pengaduan selesai dengan ditindaklanjuti manajemen  melalui aplikasi simponi",
+        "Pengaduan selesai dengan ditindaklanjuti manajemen ",
+        "Pengaduan selesai dengan ditindaklanjuti manajemen  melalui tatapmuka dengan keluarga pasien",
+        "Sudah ditindak lanjut ke bidang terkait , pasien di edukasi mengenai penggunaan aplikasi simponi."
+      ]
+    },
+    "fieldTypes": {
+      "Tanggal Aduan": "datetime-local",
+      "Tanggal Tindak Lanjut": "datetime-local"
+    },
+    "measurementGrain": "event",
+    "indicatorControl": "select"
   },
   {
     "roomId": 2,
