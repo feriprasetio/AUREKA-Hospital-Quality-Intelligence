@@ -1751,3 +1751,30 @@ html[data-theme="amoled"] .workspaceSupportMessage.mine,html[data-theme="amoled"
 .dynamicIslandToast>button{color:var(--muted)!important}
 html[data-theme="amoled"] .dynamicIslandToast{background:#050505!important;color:#fff!important;border-color:#292929!important}
 html[data-theme="amoled"] .dynamicIslandText strong,html[data-theme="amoled"] .dynamicIslandText span{color:#fff!important}
+
+
+/* Compact status and actions: preserve a single-line row in every quality logbook. */
+@media(min-width:761px){
+ .moduleEnter>.aq table.aqData td:nth-last-child(2),
+ .moduleEnter>.aq table.aqData td:last-child{white-space:nowrap!important;min-width:66px!important;width:1%!important}
+ .moduleEnter>.aq table.aqData td .aqStatus{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:20px!important;height:20px!important;padding:2px 6px!important;border-radius:999px!important;
+  font-size:8px!important;line-height:1!important;font-weight:800!important;white-space:nowrap!important
+ }
+ .moduleEnter>.aq table.aqData td .aqBtn,
+ .moduleEnter>.aq table.aqData td button.aqDeleteBtn{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:22px!important;height:22px!important;max-height:22px!important;min-width:0!important;
+  padding:2px 7px!important;margin:0!important;border-radius:6px!important;
+  font-size:8px!important;line-height:1!important;font-weight:800!important;white-space:nowrap!important;
+  box-shadow:none!important
+ }
+ .moduleEnter>.aq table.aqData td .aqMetaText{font-size:8px!important;line-height:1.15!important;margin:0!important}
+ .moduleEnter>.aq table.aqData td:last-child>div{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:4px!important;flex-wrap:nowrap!important}
+ .moduleEnter>.aq table.aqData td .aqBtn.primary{padding:2px 7px!important}
+}
+@media(max-width:760px){
+ .moduleEnter>.aq table.aqData td .aqStatus{min-height:20px!important;height:20px!important;padding:2px 6px!important;font-size:8px!important}
+ .moduleEnter>.aq table.aqData td .aqBtn,.moduleEnter>.aq table.aqData td button.aqDeleteBtn{min-height:22px!important;height:22px!important;padding:2px 6px!important;font-size:8px!important;border-radius:6px!important}
+}
