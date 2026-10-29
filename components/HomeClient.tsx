@@ -75,7 +75,7 @@ export default function HomeClient(){
    }
    const routes:Record<string,string>={'ringkasan':'home','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','analitik-laporan':'analytics','administrasi':'settings'}
    let next=routes[path]||'home'
-   if(next==='analytics'&&!manager)next='home'
+   if(next==='analytics'&&!MANAGER_ROLES.includes(role||''))next='home'
    setActive(next)
    setQualityOpen(false)
    setClinicalPathwayOpen(false)
@@ -85,7 +85,7 @@ export default function HomeClient(){
   window.addEventListener('hashchange',onHashChange)
   setRouteReady(true)
   return ()=>window.removeEventListener('hashchange',onHashChange)
- },[view,manager])
+ },[view,role])
  useEffect(()=>{
   if(view!=='workspace'||!routeReady||typeof window==='undefined')return
   let hash='#ringkasan'
