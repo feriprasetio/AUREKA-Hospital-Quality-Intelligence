@@ -223,7 +223,7 @@ export default function OppeAuditWorkspace({
   const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null)
   const [gapDraft, setGapDraft] = useState<GapDraft | null>(null)
   const [search, setSearch] = useState('')
-  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; const query = String(detail?.query ?? ''); setSearch(query); setHistorySearch(query) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [historySearch, setHistorySearch] = useState('')
 
   const responseIndex = useMemo(() => buildOppeResponseIndex(responseRows), [responseRows])
