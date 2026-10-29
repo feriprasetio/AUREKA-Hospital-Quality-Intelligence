@@ -79,6 +79,17 @@ export default function GeneralSettings({
   const [provisionedCredentials, setProvisionedCredentials] = useState<AccountCredential[] | null>(null)
   const [provisionMessage, setProvisionMessage] = useState('')
   useEffect(() => {
+    const notify = (text: string, error = false, module = 'Administrasi') => {
+      if (!text || typeof window === 'undefined') return
+      window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type: error ? 'error' : 'success', module } }))
+    }
+    if (msg) notify(msg, msgIsError, 'Administrasi')
+    if (pwMsg?.text) notify(pwMsg.text, !pwMsg.ok, 'Keamanan akun')
+    if (rowNote?.text) notify(rowNote.text, !rowNote.ok, 'Manajemen pengguna')
+    if (acctNote?.text) notify(acctNote.text, !acctNote.ok, 'Akun')
+    if (provisionMessage) notify(provisionMessage, /gagal|tidak dapat|belum/i.test(provisionMessage), 'Provisioning akun')
+  }, [msg, msgIsError, pwMsg, rowNote, acctNote, provisionMessage])
+  useEffect(() => {
     if (!msg) return
     const t = setTimeout(() => setMsg(''), 6000)
     return () => clearTimeout(t)
