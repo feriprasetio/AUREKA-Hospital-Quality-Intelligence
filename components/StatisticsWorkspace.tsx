@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { buildCsv } from '@/lib/aureka/csv-export'
 
 type Dataset = {
   id: string; label: string; schema: string; table: string; select: string; description: string
@@ -33,16 +34,12 @@ const typeOf = (values: unknown[]) => {
 const fmt = (n: number) => n.toLocaleString('id-ID', { maximumFractionDigits: 2 })
 const cell = (v: unknown) => v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v)
 
-function toCsv(rows: Row[], cols: string[]) {
-  const esc = (v: unknown) => { const s = cell(v); return /[";\n,]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s }
-  return '﻿' + [cols.join(';'), ...rows.map(r => cols.map(c => esc(r[c])).join(';'))].join('\n')
-}
-
 export default function StatisticsWorkspace({ supabase, rooms }: { supabase: SupabaseClient; rooms: { id: number; name: string }[] }) {
   const [datasetId, setDatasetId] = useState(DATASETS[0].id)
   const [rows, setRows] = useState<Row[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [truncated, setTruncated] = useState(false)
   const [groupBy, setGroupBy] = useState('')
   const [measure, setMeasure] = useState('')
   const [unit, setUnit] = useState('all')
@@ -51,17 +48,19 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
   useEffect(() => {
     let cancelled = false
     const sb = supabase as any
-    setLoading(true); setError(''); setRows([]); setGroupBy(''); setMeasure(''); setUnit('all')
+    setLoading(true); setError(''); setRows([]); setGroupBy(''); setMeasure(''); setUnit('all'); setTruncated(false)
     ;(async () => {
       const all: Row[] = []
+      let hitLimit = false
       for (let from = 0; from < 20000; from += 1000) {
         const { data, error } = await sb.schema(dataset.schema).from(dataset.table).select(dataset.select)
           .order(dataset.orderBy, { ascending: false }).order('id', { ascending: true }).range(from, from + 999)
         if (error) { if (!cancelled) setError(error.message); break }
         all.push(...(data || []))
         if (!data || data.length < 1000) break
+        if (from + 1000 >= 20000) { hitLimit = true; break }
       }
-      if (!cancelled) { setRows(all); setLoading(false) }
+      if (!cancelled) { setRows(all); setTruncated(hitLimit); setLoading(false) }
     })()
     return () => { cancelled = true }
   }, [supabase, dataset])
@@ -108,10 +107,14 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
 
   const exportCsv = () => {
     const cols = columns
-    const blob = new Blob([toCsv(filtered, cols)], { type: 'text/csv;charset=utf-8' })
+    const blob = new Blob([buildCsv(filtered, cols)], { type: 'text/csv;charset=utf-8' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `AUREKA_${dataset.id}_${unit === 'all' ? 'semua-unit' : unit.replace(/\W+/g, '-')}_${new Date().toISOString().slice(0, 10)}.csv`
+    const dateParts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Pontianak', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
+    const part = (type: string) => dateParts.find(p => p.type === type)?.value || '00'
+    const exportDate = part('year') + '-' + part('month') + '-' + part('day')
+    const unitName = unit === 'all' ? 'semua-unit' : unit.replace(/\W+/g, '-')
+    a.download = 'AUREKA_' + dataset.id + '_' + unitName + '_' + exportDate + '.csv'
     a.click()
     setTimeout(() => URL.revokeObjectURL(a.href), 1000)
   }
@@ -138,6 +141,7 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
         <label>Variabel numerik<select value={activeMeasure} onChange={e => setMeasure(e.target.value)} disabled={!numeric.length}>{numeric.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}</select></label>
       </div>
       <p className="stDesc">{dataset.description}</p>
+      {truncated && <div className="ovNotice" role="status">Dataset mencapai batas 20.000 baris yang dimuat pada browser. Ringkasan dan ekspor hanya mencakup baris yang berhasil dimuat; gunakan filter unit/dataset atau batasi periode sebelum menarik kesimpulan.</div>}
 
       {error ? <div className="ovNotice">Dataset belum dapat dimuat: {error}</div> : <>
         <div className="ovKpis ovKpis4">
