@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Logo RSUD Sultan Syarif Mohamad Alkadrie</title>
+  <desc id="desc">Lambang lingkaran hijau dengan motif silang hijau dan kuning dan tulisan Kota Pontianak.</desc>
+  <defs>
+    <path id="top-arc" d="M 76,260 A 180,180 0 0,1 436,260"/>
+    <path id="bottom-arc" d="M 105,310 A 160,160 0 0,0 407,310"/>
+  </defs>
+  <circle cx="256" cy="256" r="226" fill="#f6f8f7"/>
+  <circle cx="256" cy="250" r="194" fill="#108b49"/>
+  <circle cx="256" cy="250" r="148" fill="#ffffff"/>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="24" letter-spacing="1.1" fill="#ffffff">
+    <textPath href="#top-arc" startOffset="50%" text-anchor="middle">RSUD SULTAN SYARIF MOHAMAD ALKADRIE</textPath>
+  </text>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="21" letter-spacing="1.1" fill="#ffffff">
+    <textPath href="#bottom-arc" startOffset="50%" text-anchor="middle">KOTA PONTIANAK</textPath>
+  </text>
+  <!-- Simplified, vector-rendered interwoven cross mark. -->
+  <path d="M235 136
+           C218 136 207 151 207 169
+           L207 198 L178 198
+           C160 198 149 210 149 227
+           C149 244 160 256 178 256
+           L207 256 L207 284
+           C207 302 219 314 236 314
+           C252 314 264 302 264 284
+           L264 256 L292 256
+           C310 256 322 244 322 227
+           C322 210 310 198 292 198
+           L264 198 L264 169
+           C264 151 252 136 235 136 Z"
+        fill="#f4c51c" transform="translate(8 -2)"/>
+  <path d="M277 187
+           C260 187 248 200 248 218
+           L248 246 L219 246
+           C201 246 189 258 189 275
+           C189 292 201 304 219 304
+           L248 304 L248 333
+           C248 351 260 363 277 363
+           C294 363 306 351 306 333
+           L306 304 L335 304
+           C353 304 365 292 365 275
+           C365 258 353 246 335 246
+           L306 246 L306 218
+           C306 200 294 187 277 187 Z"
+        fill="#118c49"/>
+  <path d="M256 167 L268 181 L256 194 L244 181 Z" fill="#ffffff"/>
+  <path d="M219 249 L231 261 L219 273 L207 261 Z" fill="#ffffff"/>
+  <path d="M295 249 L307 261 L295 273 L283 261 Z" fill="#ffffff"/>
+  <path d="M277 321 L289 333 L277 345 L265 333 Z" fill="#ffffff"/>
+</svg>
