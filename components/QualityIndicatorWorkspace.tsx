@@ -351,8 +351,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const responseProfile=profiles.find(p=>Number(p.room_id)===1&&String(p.code)==='1.1')
    const comprehensionProfile=profiles.find(p=>Number(p.room_id)===1&&String(p.code)==='1.2')
    const reportingRows=rows.filter(p=>ymd(p.admit)===year)
-   const response=summarizeOptionResponses(reportingRows.map(p=>p.indicatorValues?.['1.1']).filter(Boolean),Array.isArray(responseProfile?.options_json)?responseProfile.options_json:[])
-   const comprehension=summarizeOptionResponses(reportingRows.map(p=>p.indicatorValues?.['1.2']).filter(Boolean),Array.isArray(comprehensionProfile?.options_json)?comprehensionProfile.options_json:[])
+   const response=summarizeOptionResponses(reportingRows.map(p=>p.indicatorValues?.['1.1']?p.indicatorValues['1.1']:{answer:p.formData?.['Respon Komplain']}).filter(Boolean),Array.isArray(responseProfile?.options_json)?responseProfile.options_json:[])
+   const comprehension=summarizeOptionResponses(reportingRows.map(p=>p.indicatorValues?.['1.2']?p.indicatorValues['1.2']:{answer:p.formData?.['Mengerti Informasi']}).filter(Boolean),Array.isArray(comprehensionProfile?.options_json)?comprehensionProfile.options_json:[])
    const durations=reportingRows.map(p=>calculateInclusiveDurationDays(p.formData?.['Tanggal Aduan'],p.formData?.['Tanggal Tindak Lanjut'])).filter((v):v is number=>v!==null&&Number.isFinite(v))
    return {records:rows.length,reportingRecords:reportingRows.length,response,comprehension,avgDuration:durations.length?durations.reduce((a,b)=>a+b,0)/durations.length:null,durationN:durations.length}
  },[activeLayout,patients,monthFilter,profiles])
