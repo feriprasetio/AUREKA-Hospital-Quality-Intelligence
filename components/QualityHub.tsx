@@ -1,32 +1,8 @@
 'use client'
 
-type Item = {
-  id: 'imut' | 'cp' | 'akk'
-  title: string
-  icon: string
-  summary: string
-}
+import { AUREKA_QUALITY_FEATURES } from '@/lib/aureka/module-registry'
 
-const ITEMS: Item[] = [
-  {
-    id: 'imut',
-    title: 'Audit Indikator Mutu',
-    icon: '▥',
-    summary: 'Input, review, dan pantau indikator mutu nasional, rumah sakit, dan unit kerja.',
-  },
-  {
-    id: 'cp',
-    title: 'Audit Clinical Pathway',
-    icon: '↗',
-    summary: 'Audit per episode pasien, checklist lintas PPA, dan penghitungan kepatuhan.',
-  },
-  {
-    id: 'akk',
-    title: 'Audit Klinis dan Kematian',
-    icon: '＋',
-    summary: 'Telaah klinis terstruktur, pembelajaran, rekomendasi, dan tindak lanjut.',
-  },
-]
+type Item = (typeof AUREKA_QUALITY_FEATURES)[number]
 
 export default function QualityHub({
   onOpen,
@@ -53,7 +29,7 @@ export default function QualityHub({
         </div>
       </header>
       <div className="qhGrid">
-        {ITEMS.map((item, index) => (
+        {AUREKA_QUALITY_FEATURES.map((item, index) => (
           <button
             key={item.id}
             type="button"
