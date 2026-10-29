@@ -1205,43 +1205,6 @@ html[data-theme="amoled"] .publicMetricsPrivacy{border-color:#252525}
  .workspaceGlobalSearch input{font-size:10px}
 }
 
-/* Strict AMOLED contract: all page surfaces stay black; all interface text stays white. */
-html[data-theme="amoled"]{color-scheme:dark!important;--page-bg:#000000;--surface:#050505;--surface-raised:#080808;--border:#292929;--line:#292929;--ink:#ffffff;--muted:#ffffff;--accent:#ffffff;--accent2:#ffffff;--accent-rgb:255,255,255;--accent-soft:#101b15;--green:#ffffff;--green2:#ffffff;--glass:#050505;--glassStrong:#080808;--shadow:none;--sidebar-bg:#000000;--sidebar-ink:#ffffff;--sidebar-muted:#ffffff;--sidebar-active:#10251a;--sidebar-border:#292929}
-html[data-theme="amoled"],html[data-theme="amoled"] body,html[data-theme="amoled"] body>*,html[data-theme="amoled"] .publicRoot,html[data-theme="amoled"] .landing,html[data-theme="amoled"] .authPage,html[data-theme="amoled"] .workspaceRoot,html[data-theme="amoled"] .workspaceContent,html[data-theme="amoled"] .moduleEnter{background:#000!important;background-image:none!important;color:#fff!important}
-html[data-theme="amoled"] body *{color:#fff!important;border-color:#292929!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important}
-html[data-theme="amoled"] body :where(main,section,article,aside,header,footer,nav,form,fieldset,dialog,table,thead,tbody,tfoot,tr,th,td,div,button,input,select,textarea,details,summary,pre,blockquote){background-color:#050505!important}
-html[data-theme="amoled"] body :where(span,b,strong,em,i,small,label,code,kbd,a,svg,path,circle,line,polyline,rect,text,textPath){background-color:transparent!important}
-html[data-theme="amoled"] body input,html[data-theme="amoled"] body select,html[data-theme="amoled"] body textarea{background:#080808!important;background-image:none!important;color:#fff!important;border-color:#333!important;caret-color:#fff!important}
-html[data-theme="amoled"] body input::placeholder,html[data-theme="amoled"] body textarea::placeholder{color:#fff!important;opacity:.74!important}
-html[data-theme="amoled"] body option{background:#050505!important;color:#fff!important}
-html[data-theme="amoled"] body button,html[data-theme="amoled"] body a{color:#fff!important}
-html[data-theme="amoled"] body .landingCta,html[data-theme="amoled"] body .landingTopActions .landingCta,html[data-theme="amoled"] body .liquidButton button,html[data-theme="amoled"] body .aqBtn.primary,html[data-theme="amoled"] body .cpBtn.primary,html[data-theme="amoled"] body .psBtn.primary,html[data-theme="amoled"] body .rmButton.primary,html[data-theme="amoled"] body .sidebarNavGroup>button.navActive,html[data-theme="amoled"] body .sidebarNav>button.navActive{background:#123b29!important;background-image:none!important;color:#fff!important;border-color:#315640!important}
-html[data-theme="amoled"] body .themeModeSwitch button.themeModeActive,html[data-theme="amoled"] body .workspaceHeaderTheme button.themeModeActive,html[data-theme="amoled"] body .authThemeToggle button.themeModeActive,html[data-theme="amoled"] body .themeModeSwitchPublic button.themeModeActive{background:#143526!important;color:#fff!important;border-color:#315640!important}
-html[data-theme="amoled"] body .sidebar,html[data-theme="amoled"] body .workspaceHeaderBar,html[data-theme="amoled"] body .workspaceSearchResults,html[data-theme="amoled"] body .authTopbar,html[data-theme="amoled"] body .authCard,html[data-theme="amoled"] body .authAside,html[data-theme="amoled"] body .landingModule,html[data-theme="amoled"] body .landingModal,html[data-theme="amoled"] body .publicMetricsPanel,html[data-theme="amoled"] body .glassPanel,html[data-theme="amoled"] body .liquidGlass,html[data-theme="amoled"] body .glass,html[data-theme="amoled"] body .cpGlass,html[data-theme="amoled"] body .cpRoot .cpGlass,html[data-theme="amoled"] body .psPanel,html[data-theme="amoled"] body .rmPanel,html[data-theme="amoled"] body .ovPanel,html[data-theme="amoled"] body .aqFilters,html[data-theme="amoled"] body .aqTable,html[data-theme="amoled"] body .aqKpi,html[data-theme="amoled"] body .metricCard,html[data-theme="amoled"] body .placeholderCard{background:#050505!important;background-image:none!important;color:#fff!important;border-color:#292929!important;box-shadow:none!important}
-html[data-theme="amoled"] body .landingHero .heroCopy h1,html[data-theme="amoled"] body .landingHero .heroCopy h1 em{background:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
-html[data-theme="amoled"] body .landingBadge,html[data-theme="amoled"] body .landingModule .quickDockIcon,html[data-theme="amoled"] body .landingModuleArrow,html[data-theme="amoled"] body .publicMetricsEmptyIcon{background:#101b15!important;color:#fff!important;border-color:#2b4335!important}
-html[data-theme="amoled"] body .workspaceHeaderTheme,html[data-theme="amoled"] body .authThemeToggle,html[data-theme="amoled"] body .themeModeSwitchPublic{background:#050505!important;color:#fff!important;border-color:#292929!important}
-html[data-theme="amoled"] body .sidebar .sidebarChild.active{background:#10251a!important;color:#fff!important;border-color:#2a4334!important}
-html[data-theme="amoled"] body .workspaceGlobalSearch{background:#080808!important;color:#fff!important;border-color:#303030!important}
-html[data-theme="amoled"] body .workspaceGlobalSearch input{background:transparent!important;color:#fff!important}
-html[data-theme="amoled"] body .workspaceSearchResults>button:hover{background:#101b15!important}
-html[data-theme="amoled"] body .workspaceSearchResultTag,html[data-theme="amoled"] body .workspaceSearchResultsHead span{color:#fff!important}
-html[data-theme="amoled"] body .publicChartTrack,html[data-theme="amoled"] body .publicCategoryTrack{background:#090909!important;border-color:#292929!important}
-html[data-theme="amoled"] body .publicChartBar,html[data-theme="amoled"] body .publicCategoryBar{background:#fff!important}
-html[data-theme="amoled"] body .sidebar .themeModeActive{background:#143526!important}
-html[data-theme="amoled"] body .landingAura{display:none!important}
-html[data-theme="amoled"] body .workspaceScrim{background:rgba(0,0,0,.82)!important}
-html[data-theme="amoled"] body .profileAvatar,html[data-theme="amoled"] body .workspaceLogo{background:transparent!important}
-html[data-theme="amoled"] body .authAlert,html[data-theme="amoled"] body .cpNotice,html[data-theme="amoled"] body .psAlert,html[data-theme="amoled"] body .rmAlert,html[data-theme="amoled"] body .aqNotice{background:#080808!important;color:#fff!important;border-color:#292929!important}
-html[data-theme="amoled"] body .aqData th,html[data-theme="amoled"] body .cpTable th,html[data-theme="amoled"] body .psTable th,html[data-theme="amoled"] body .rmTable th,html[data-theme="amoled"] body .stTable th{background:#0a0a0a!important;color:#fff!important}
-html[data-theme="amoled"] body .aqData td,html[data-theme="amoled"] body .cpTable td,html[data-theme="amoled"] body .psTable td,html[data-theme="amoled"] body .rmTable td,html[data-theme="amoled"] body .stTable td{background:#050505!important;color:#fff!important}
-html[data-theme="amoled"] body .aqStatus,html[data-theme="amoled"] body .aqPill,html[data-theme="amoled"] body .cpBadge,html[data-theme="amoled"] body .psPill,html[data-theme="amoled"] body .rmPill,html[data-theme="amoled"] body .cwBadge{background:#101010!important;color:#fff!important;border-color:#292929!important}
-@media(prefers-reduced-motion:reduce){.sidebar .sidebarChevron,.workspaceSearchFocus{transition:none!important;scroll-behavior:auto!important}}
-
-html[data-theme="amoled"] body *::before,html[data-theme="amoled"] body *::after{background-image:none!important;background-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;text-shadow:none!important}
-html[data-theme="amoled"] body .liquidGlass::before,html[data-theme="amoled"] body .liquidGlass::after,html[data-theme="amoled"] body .glassPanel::before,html[data-theme="amoled"] body .glassPanel::after{display:none!important;content:none!important}
-
-
 /* AUREKA workspace refinement — compact, searchable, wide logbooks */
 .themeModeSwitch.themeModeIconOnly{display:inline-grid;place-items:center;flex:0 0 34px;width:34px;min-width:34px;height:34px;min-height:34px;padding:0;margin:0;border:1px solid var(--border)!important;border-radius:11px!important;background:var(--surface)!important;color:var(--ink)!important;box-shadow:none!important;cursor:pointer}
 .themeModeSwitch.themeModeIconOnly svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -1270,7 +1233,7 @@ html[data-theme="amoled"] body .liquidGlass::before,html[data-theme="amoled"] bo
 .moduleEnter{width:100%;max-width:none}
 .moduleEnter .aq{gap:8px}
 .moduleEnter .aqFilters{padding:10px 12px;border-radius:13px}
-.moduleEnter .aqGrid{grid-template-columns:minmax(0,1.1fr) minmax(100px,.55fr) minmax(120px,.75fr) minmax(0,1.25fr) minmax(130px,.72fr);gap:8px;align-items:end}
+.moduleEnter .aqGrid{grid-template-columns:minmax(0,1.1fr) minmax(100px,.55fr) minmax(120px,.75fr) minmax(130px,.72fr);gap:8px;align-items:end}
 .moduleEnter .aqField span,.moduleEnter .aqLabel{font-size:9px;margin-bottom:4px}
 .moduleEnter .aqField input,.moduleEnter .aqField select{min-height:35px;height:35px;padding:6px 9px;border-radius:9px;font-size:11px}
 .moduleEnter .aqField.aqLocalSearch{display:none!important}
@@ -1312,8 +1275,8 @@ html[data-theme="amoled"] body .liquidGlass::before,html[data-theme="amoled"] bo
 }
 @media(max-width:430px){.moduleEnter .aqGrid{grid-template-columns:1fr}.moduleEnter .aqDataBar>div{flex:1 1 31%;border-right:0}.moduleEnter .aqDataBar .aqImportButton{margin-left:0}}
 /* AMOLED means full black page and surfaces, white typography, green accents only on active actions. */
-html[data-theme="amoled"]{--page-bg:#000;--surface:#050505;--surface-raised:#080808;--border:#292929;--line:#292929;--ink:#fff;--muted:#fff;--accent:#fff;--accent2:#fff;--accent-rgb:255,255,255;--accent-soft:#102319;--green:#fff;--green2:#fff;--sidebar-bg:#000;--sidebar-ink:#fff;--sidebar-muted:#fff;--sidebar-active:#10251a;--sidebar-border:#292929;color-scheme:dark}
-html[data-theme="amoled"] body,html[data-theme="amoled"] body *,html[data-theme="amoled"] body *:not(svg):not(path){text-shadow:none!important}
+html[data-theme="amoled"]{--page-bg:#000;--surface:#050505;--surface-raised:#080808;--border:#292929;--line:#292929;--ink:#fff;--muted:#b8c2bc;--accent:#8fe8bd;--accent2:#c0f5d9;--accent-rgb:143,232,189;--accent-soft:#102319;--green:#8fe8bd;--green2:#c0f5d9;--sidebar-bg:#000;--sidebar-ink:#fff;--sidebar-muted:#b8c2bc;--sidebar-active:#10251a;--sidebar-border:#292929;color-scheme:dark}
+html[data-theme="amoled"] body,html[data-theme="amoled"] body *{text-shadow:none!important}
 html[data-theme="amoled"] body,html[data-theme="amoled"] .workspaceRoot,html[data-theme="amoled"] .workspaceContent,html[data-theme="amoled"] .moduleEnter,html[data-theme="amoled"] .aq,html[data-theme="amoled"] .aqTable,html[data-theme="amoled"] .aqFilters,html[data-theme="amoled"] .aqDataBar,html[data-theme="amoled"] .aq .glass{background-color:#000!important;background-image:none!important;color:#fff!important}
 html[data-theme="amoled"] .aq .aqBtn.primary,html[data-theme="amoled"] .aq .sidebarNavGroup>button.navActive,html[data-theme="amoled"] .aq .aqMonths .active{background:#123b29!important;color:#fff!important;border-color:#315640!important}
 html[data-theme="amoled"] .aq .aqWrap,html[data-theme="amoled"] .aq table,html[data-theme="amoled"] .aq tbody tr,html[data-theme="amoled"] .aq td,html[data-theme="amoled"] .aq th{background-color:#050505!important;color:#fff!important}
