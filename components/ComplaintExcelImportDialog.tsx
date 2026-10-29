@@ -57,16 +57,13 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   response12: ['Mengerti Informasi'],
 }
 const LEVELS = ['Ringan', 'Sedang', 'Berat']
-const SOURCES = ['Website Rumah Sakit', 'Sumber Lainnya', 'Aduan Langsung Tatap Muka']
-const SERVICE_UNITS = [
-  'Farmasi', 'farmasi', 'Pelayanan', 'Radiologi', 'IT', 'Sarana dan prasarana',
-  'Parkiran', 'Poli anak', 'Pendaftaran / RM Loket 2 (di gedung belakang)',
-  'Pendaftaran IGD', 'Rajal', 'Ranap R.Mawar 2-Bedah',
-]
+const SOURCES = ['Aduan Langsung Tatap Muka', 'Contact Person Pengaduan', 'Instansi Lain (Misal: Kantor BPJS)', 'Sosial Media (FB, IG, dll)', 'Website Rumah Sakit', 'Sumber Lainnya']
 const STATUSES = [
+  'Aduan Tidak Selesai Ditindaklanjuti',
   'Aduan Selesai Dengan Klarifikasi Dari Manajemen',
   'Aduan Selesai Dengan Proses Pengadaan',
   'Aduan Selesai Dengan Penegakan Aturan',
+  'Aduan Selesai Dengan Mediasi Manajemen',
   'Pengaduan selesai dengan ditindaklanjuti manajemen  melalui aplikasi simponi',
   'Pengaduan selesai dengan ditindaklanjuti manajemen ',
   'Pengaduan selesai dengan ditindaklanjuti manajemen  melalui tatapmuka dengan keluarga pasien',
@@ -342,7 +339,6 @@ export default function ComplaintExcelImportDialog({
           const response11Raw = requiredText(sourceRow, columns, 'response11', excelRow)
           const response12Raw = requiredText(sourceRow, columns, 'response12', excelRow)
           if (!LEVELS.includes(level)) throw new Error('Baris Excel ' + excelRow + ': Level Masalah "' + level + '" bukan pilihan yang valid.')
-          if (!SERVICE_UNITS.includes(serviceUnit)) throw new Error('Baris Excel ' + excelRow + ': Unit Pelayanan "' + serviceUnit + '" tidak dikenal.')
           if (!SOURCES.includes(source)) throw new Error('Baris Excel ' + excelRow + ': Sumber Aduan "' + source + '" bukan pilihan yang valid.')
           if (!STATUSES.includes(status)) throw new Error('Baris Excel ' + excelRow + ': Status Aduan tidak cocok dengan daftar pilihan sumber.')
           const response11 = findIndicatorOption(response11Raw, p11, 'Respon Komplain', excelRow)
