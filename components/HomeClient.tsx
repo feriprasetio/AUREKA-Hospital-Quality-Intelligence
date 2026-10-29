@@ -231,8 +231,8 @@ export default function HomeClient(){
   if(active==='staff')return ({directory:'Direktori Tenaga',team:'Tim & Penugasan',oppe:'OPPE / FPPE'} as Record<StaffWorkspaceArea,string>)[staffArea]
   if(active==='analytics')return ({metadata:'Kamus Indikator',staff:'Tenaga Kerja',statistics:'Statistik & Laporan'} as Record<AnalyticsWorkspaceTab,string>)[analyticsTab]
   if(active==='settings')return 'Administrasi'
-  return title
- },[active,clinicalPathwayOpen,qualityInitialContainer,safetyTab,riskTab,staffArea,analyticsTab,title])
+  return MODS.find(([id])=>id===active)?.[1]||'Workspace'
+ },[active,clinicalPathwayOpen,qualityInitialContainer,safetyTab,riskTab,staffArea,analyticsTab])
  const openMainModule=(id:string)=>{
   setProfileFocus(0);setMobile(false);setGlobalSearch('');setActive(id)
   if(id==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);setQualityOpen(true)}
