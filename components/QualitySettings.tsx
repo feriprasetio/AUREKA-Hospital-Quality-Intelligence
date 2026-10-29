@@ -72,6 +72,11 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
   const [msg, setMsg] = useState('')
+  useEffect(() => {
+    if (!msg || typeof window === 'undefined') return
+    const type = /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(msg) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(msg) ? 'success' : 'info'
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: msg, type, module: 'Kamus Indikator' } }))
+  }, [msg])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
