@@ -8,6 +8,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_quality_records_complaint_excel_row
 CREATE OR REPLACE FUNCTION aureka_quality.import_quality_logbook_batch(p_rows jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
+SECURITY INVOKER
 SET search_path TO 'pg_catalog', 'aureka_quality', 'aureka_system', 'auth'
 AS $function$
 DECLARE
