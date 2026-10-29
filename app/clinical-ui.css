@@ -467,3 +467,10 @@
  .workspaceRoot .moduleEnter :is(.psTable,.rmTable,.cpTable,.sdTable,.stTable,.oppePrintTable){min-width:680px!important}
  .workspaceRoot .moduleEnter :is(.psModalSheet,.rmModalSheet,.oppeModal,.sdEditDialog){width:min(100%,96vw)!important;max-height:calc(100dvh - 24px)!important}
 }
+
+.workspaceRoot .moduleEnter .ovScopeNote{
+  margin:0!important;padding:0 2px!important;color:#63736a!important;font-size:11px!important;line-height:1.45!important;
+}
+@media(max-width:760px){
+ .workspaceRoot .moduleEnter .ovScopeNote{font-size:11px!important}
+}
