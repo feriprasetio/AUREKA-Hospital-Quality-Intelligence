@@ -1,4 +1,4 @@
-name: AUREKA OPPE build validation
+name: AUREKA unit, data & build validation
 
 on:
   pull_request:
@@ -7,11 +7,11 @@ on:
       - 'components/OppeAuditWorkspace.tsx'
       - 'components/QualityHub.tsx'
       - 'components/HomeClient.tsx'
+      - 'lib/aureka/module-registry.ts'
+      - 'scripts/validate-aureka-data.mjs'
       - 'components/ClinicalWorkforceWorkspace.tsx'
       - 'app/clinical-ui.css'
       - 'app/layout.tsx'
-      - 'components/ClinicalPathwayWorkspace.tsx'
-      - 'components/ClinicalDeathAuditWorkspace.tsx'
       - 'components/ClinicalPathwayWorkspace.tsx'
       - 'components/ClinicalDeathAuditWorkspace.tsx'
       - 'lib/aureka/oppe-engine.ts'
@@ -32,7 +32,6 @@ on:
       - 'supabase/migrations/20261027150000_staff_identity_clinical_modules.sql'
       - 'supabase/migrations/20261027160000_staff_assignment_picker_rpc.sql'
       - 'supabase/migrations/20261027170000_staff_identity_review_resolution.sql'
-      - 'supabase/migrations/20261027170000_staff_identity_review_resolution.sql'
       - 'supabase/migrations/20261026120000_oppe_audit_engine.sql'
       - 'supabase/migrations/20261027023830_oppe_validation_integrity.sql'
       - 'package.json'
@@ -46,11 +45,11 @@ on:
       - 'components/OppeAuditWorkspace.tsx'
       - 'components/QualityHub.tsx'
       - 'components/HomeClient.tsx'
+      - 'lib/aureka/module-registry.ts'
+      - 'scripts/validate-aureka-data.mjs'
       - 'components/ClinicalWorkforceWorkspace.tsx'
       - 'app/clinical-ui.css'
       - 'app/layout.tsx'
-      - 'components/ClinicalPathwayWorkspace.tsx'
-      - 'components/ClinicalDeathAuditWorkspace.tsx'
       - 'components/ClinicalPathwayWorkspace.tsx'
       - 'components/ClinicalDeathAuditWorkspace.tsx'
       - 'lib/aureka/oppe-engine.ts'
@@ -92,9 +91,11 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: OPPE engine regression tests
-        run: node --experimental-strip-types --test tests/*.test.mjs
+      - name: Unit and regression tests
+        run: npm run test:unit
+      - name: Master/layout data validation
+        run: npm run test:data
       - name: TypeScript type check
-        run: npx tsc --noEmit
+        run: npm run typecheck
       - name: Build Next.js application
         run: npm run build
