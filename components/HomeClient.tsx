@@ -59,14 +59,12 @@ function NavIcon({id}:{id:string}){
  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 13.7 5l2.3-.2.9 2.1 2 1.2-.7 2.2 1.1 2-1.5 1.8.2 2.3-2.1.9-1.2 2-2.2-.7-2 1.1-1.8-1.5-2.3.2-.9-2.1-2-1.2.7-2.2-1.1-2 1.5-1.8-.2-2.3 2.1-.9 1.2-2 2.2.7 2-1.1Z"/><circle cx="12" cy="12" r="3"/></svg>
 }
 function ThemeModeToggle({mode,onChange,variant=''}:{mode:'light'|'amoled';onChange:(mode:'light'|'amoled')=>void;variant?:string}){
- return <div className={'themeModeSwitch '+variant} role="group" aria-label="Mode tampilan">
-  <button type="button" className={mode==='light'?'themeModeActive':''} aria-pressed={mode==='light'} onClick={()=>onChange('light')}>
-   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><span>Light</span>
-  </button>
-  <button type="button" className={mode==='amoled'?'themeModeActive':''} aria-pressed={mode==='amoled'} onClick={()=>onChange('amoled')}>
-   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.7 8.7 0 0 1 8.8 3.5 8.8 8.8 0 1 0 20.5 15.2Z"/></svg><span>AMOLED</span>
-  </button>
- </div>
+ const nextMode=mode==='light'?'amoled':'light'
+ return <button type="button" className={'themeModeSwitch themeModeIconOnly '+variant} aria-label={mode==='light'?'Aktifkan mode AMOLED':'Aktifkan mode terang'} title={mode==='light'?'Aktifkan mode AMOLED':'Aktifkan mode terang'} aria-pressed={mode==='amoled'} onClick={()=>onChange(nextMode)}>
+  {mode==='light'
+   ?<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+   :<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.7 8.7 0 0 1 8.8 3.5 8.8 8.8 0 1 0 20.5 15.2Z"/></svg>}
+ </button>
 }
 const CHILD:any={quality:['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'],safety:['Insiden Keselamatan Pasien','Investigasi / Root Cause Analysis (RCA)','Survey Budaya Keselamatan Pasien'],risk:['Risk Register','RTP','FMEA / HFMEA'],staff:['Direktori Tenaga','Tim & Penugasan','OPPE / FPPE'],analytics:['Dashboard Statistik','Kelengkapan Data','Ekspor Agregat','Laporan Individu'],settings:['Pengguna & Role','Unit','Kamus Indikator / CP','Versi Aturan','Konfigurasi']}
 type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
@@ -81,7 +79,7 @@ async function rooms(){const {data,error}=await sb.from('master_rooms').select('
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[themeMode,setThemeMode]=useState<'light'|'amoled'>('light'),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([])
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[themeMode,setThemeMode]=useState<'light'|'amoled'>('light'),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[sidebarCollapsed,setSidebarCollapsed]=useState(false)
  const applyTheme=(nextMode:'light'|'amoled')=>{
   setThemeMode(nextMode)
   if(typeof window==='undefined')return
@@ -273,39 +271,37 @@ export default function HomeClient(){
  useEffect(()=>{
   if(typeof window==='undefined'||view!=='workspace'||!globalSearch.trim()){
    setSearchResults([])
-   document.querySelectorAll('.workspaceSearchFocus').forEach(node=>node.classList.remove('workspaceSearchFocus'))
    return
   }
-  let first=0,second=0,delay=0
-  delay=window.setTimeout(()=>{first=window.requestAnimationFrame(()=>{second=window.requestAnimationFrame(()=>{
-    const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
-    if(!root){setSearchResults([]);return}
-    const tokens=globalSearch.toLowerCase().trim().split(/\s+/).filter(Boolean)
-    if(!tokens.length){setSearchResults([]);return}
-    const candidates=Array.from(root.querySelectorAll<HTMLElement>('tr,article,li,summary,button,label,td,th,h2,h3,h4,h5,p,.aqKpi,.ovKpi,.cpTile,.cpPanel,.psPanel,.rmPanel,.cwPanel,.mswAccessNote,[data-searchable="true"]'))
-      .filter(node=>{
-       if(!node.textContent?.trim()||node.closest('.workspaceSearchResults'))return false
-       const style=window.getComputedStyle(node)
-       if(style.display==='none'||style.visibility==='hidden')return false
-       const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()
-       return tokens.every(token=>text.includes(token))
-      })
-    const leaves=candidates.filter(node=>!candidates.some(other=>other!==node&&node.contains(other)))
-    const unique:WorkspaceSearchResult[]=[]
-    for(const node of leaves){
-     const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim()
-     if(!text)continue
-     if(unique.some(result=>result.node===node||result.text===text))continue
-     unique.push({node,text:text.length>190?text.slice(0,187)+'…':text,tag:node.tagName.toLowerCase()})
-     if(unique.length>=8)break
-    }
-    setSearchResults(unique)
-   })})},100)
-  return ()=>{window.clearTimeout(delay);window.cancelAnimationFrame(first);window.cancelAnimationFrame(second)}
+  let delay=0
+  delay=window.setTimeout(()=>{
+   const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
+   if(!root){setSearchResults([]);return}
+   const tokens=globalSearch.toLowerCase().trim().split(/\s+/).filter(Boolean)
+   if(!tokens.length){setSearchResults([]);return}
+   // Search only record-like content, never headings, labels, buttons or helper text.
+   const candidates=Array.from(root.querySelectorAll<HTMLElement>(
+    'table tbody tr:not(.aqInlineEditorRow),[data-searchable="true"],.rmTable tbody tr,.psTable tbody tr,.cpTable tbody tr,.stTable tbody tr,.cwTable tbody tr'
+   )).filter(node=>{
+    if(node.closest('.workspaceSearchResults')||node.closest('[aria-hidden="true"]'))return false
+    const style=window.getComputedStyle(node)
+    if(style.display==='none'||style.visibility==='hidden')return false
+    if(node.matches('tr')&&node.querySelector('th'))return false
+    const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()
+    return !!text&&tokens.every(token=>text.includes(token))
+   })
+   const unique:WorkspaceSearchResult[]=[]
+   for(const node of candidates){
+    const text=(node.innerText||node.textContent||'').replace(/\s+/g,' ').trim()
+    if(!text||unique.some(result=>result.node===node||result.text===text))continue
+    unique.push({node,text:text.length>190?text.slice(0,187)+'…':text,tag:node.tagName.toLowerCase()==='tr'?'Catatan':(node.dataset.searchType||'Data')})
+    if(unique.length>=8)break
+   }
+   setSearchResults(unique)
+  },120)
+  return ()=>window.clearTimeout(delay)
  },[globalSearch,view,active,currentContainer,qualityOpen,clinicalPathwayOpen,safetyTab,riskTab,staffArea,analyticsTab])
  const jumpToSearchResult=(result:WorkspaceSearchResult)=>{
-  document.querySelectorAll('.workspaceSearchFocus').forEach(node=>node.classList.remove('workspaceSearchFocus'))
-  result.node.classList.add('workspaceSearchFocus')
   result.node.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})
  }
 
@@ -385,11 +381,14 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='workspace')return <main className="workspaceRoot">
+ if(view==='workspace')return <main className={'workspaceRoot '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
  <button className="workspaceScrim" onClick={()=>setMobile(false)} data-open={mobile} aria-label="Tutup navigasi"/>
  <aside className={'sidebar glassPanel '+(mobile?'mobileOpen':'')}>
   <div className="sideHeader">
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
+   <button type="button" className="sidebarToggle" aria-label={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} title={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} aria-expanded={!sidebarCollapsed} onClick={()=>setSidebarCollapsed(v=>!v)}>
+    <svg viewBox="0 0 24 24" aria-hidden="true">{sidebarCollapsed?<path d="m9 5 7 7-7 7"/>:<path d="m15 5-7 7 7 7"/>}</svg>
+   </button>
   </div>
   <div className="navLabel">Workspace</div>
   <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
@@ -418,12 +417,15 @@ export default function HomeClient(){
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
    <button className="mobileMenuButton" onClick={()=>setMobile(true)} aria-label="Buka navigasi">☰</button>
+   <button type="button" className="desktopSidebarToggle" aria-label={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} title={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} aria-expanded={!sidebarCollapsed} onClick={()=>setSidebarCollapsed(v=>!v)}>
+    <svg viewBox="0 0 24 24" aria-hidden="true">{sidebarCollapsed?<path d="m9 5 7 7-7 7"/>:<path d="m15 5-7 7 7 7"/>}</svg>
+   </button>
    <div className="workspaceContext" title={(manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' / '+currentContainer}>
     <span>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</span><span className="workspaceContextDivider" aria-hidden="true">/</span><b>{currentContainer}</b>
    </div>
    <div className="workspaceGlobalSearch">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
-    <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder={'Cari kata kunci dalam '+currentContainer+'…'} aria-label={'Cari di dalam '+currentContainer}/>
+    <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder="Cari data dalam modul ini…" aria-label="Cari catatan atau data yang sudah diinput"/>
     {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:<kbd>Ctrl K</kbd>}
     {globalSearch.trim()&&<div className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
      <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResults.length?searchResults.length+' hasil':'Mencari…'}</span></div>
