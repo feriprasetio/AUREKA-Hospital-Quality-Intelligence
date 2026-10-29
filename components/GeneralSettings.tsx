@@ -23,25 +23,6 @@ type Profile = {
 }
 type Role = { id: string; code: string; name: string; description?: string | null }
 
-type Tone = {
-  id: string
-  name: string
-  description: string
-  accent: string
-  accent2: string
-  rgb: string
-  soft: string
-}
-
-const TONES: Tone[] = [
-  { id: 'emerald', name: 'Emerald', description: 'Hijau AUREKA saat ini', accent: '#0f7656', accent2: '#084f3a', rgb: '15,118,86', soft: '#e1f3eb' },
-  { id: 'ocean', name: 'Ocean Blue', description: 'Biru profesional & tenang', accent: '#1769aa', accent2: '#0b3f70', rgb: '23,105,170', soft: '#e1effb' },
-  { id: 'indigo', name: 'Indigo', description: 'Biru-indigo modern', accent: '#4f46b5', accent2: '#29216f', rgb: '79,70,181', soft: '#e9e7fb' },
-  { id: 'teal', name: 'Teal', description: 'Turquoise klinis & segar', accent: '#087f8c', accent2: '#07505a', rgb: '8,127,140', soft: '#def4f5' },
-  { id: 'violet', name: 'Violet', description: 'Elegan & kontemporer', accent: '#7c4d9e', accent2: '#4b2865', rgb: '124,77,158', soft: '#f0e5f6' },
-  { id: 'amber', name: 'Amber', description: 'Hangat, premium & energik', accent: '#a96816', accent2: '#68400e', rgb: '169,104,22', soft: '#fbefd9' },
-]
-
 const friendlyRole = (r?: Role | null) => {
   if (!r) return '—'
   if (r.code === 'ADMIN') return 'Super Admin'
@@ -65,7 +46,7 @@ export default function GeneralSettings({
   openProfile?: boolean
 }) {
   const [section, setSection] = useState<'menu' | 'general' | 'users' | 'mydata'>(openProfile ? 'general' : 'menu')
-  const [tab, setTab] = useState<'profile' | 'units' | 'appearance' | 'security'>('profile')
+  const [tab, setTab] = useState<'profile' | 'units' | 'security'>('profile')
   const [me, setMe] = useState<Profile | null>(profile)
   const [users, setUsers] = useState<Profile[]>([])
   const [roles, setRoles] = useState<Role[]>([])
@@ -102,38 +83,8 @@ export default function GeneralSettings({
     return () => clearTimeout(t)
   }, [msg])
   const msgIsError = /gagal|tidak dapat|belum aktif|error|forbidden|tidak ditemukan|tidak dihapus/i.test(msg)
-  const [toneId, setToneId] = useState(() =>
-    typeof window === 'undefined' ? 'emerald' : localStorage.getItem('aureka-tone') || 'emerald'
-  )
-
-  const tone = TONES.find((item) => item.id === toneId) ?? TONES[0]
   const effectiveRole = roleMeta?.code ?? role
   const isAdmin = effectiveRole === 'ADMIN'
-
-  const applyTone = (nextTone: Tone) => {
-    setToneId(nextTone.id)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('aureka-tone', nextTone.id)
-      const root = document.documentElement
-      root.style.setProperty('--accent', nextTone.accent)
-      root.style.setProperty('--accent2', nextTone.accent2)
-      root.style.setProperty('--accent-rgb', nextTone.rgb)
-      root.style.setProperty('--accent-soft', nextTone.soft)
-      root.dataset.tone = nextTone.id
-    }
-    setMsg(`Tone ${nextTone.name} diterapkan pada tampilan AUREKA di perangkat ini.`)
-  }
-
-  useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('aureka-tone') || 'emerald' : 'emerald'
-    const selected = TONES.find((item) => item.id === stored) ?? TONES[0]
-    const root = document.documentElement
-    root.style.setProperty('--accent', selected.accent)
-    root.style.setProperty('--accent2', selected.accent2)
-    root.style.setProperty('--accent-rgb', selected.rgb)
-    root.style.setProperty('--accent-soft', selected.soft)
-    root.dataset.tone = selected.id
-  }, [])
 
   useEffect(() => {
     setMe(profile)
@@ -542,7 +493,7 @@ export default function GeneralSettings({
             >
               <span style={{ fontSize: 28 }}>⚙️</span>
               <b style={{ display: 'block', marginTop: 8 }}>Pengaturan Umum</b>
-              <span>Profil akun, akses, unit, tampilan, tone warna, preferensi, dan keamanan.</span>
+              <span>Profil akun, akses, unit, preferensi tampilan, dan keamanan.</span>
             </button>
 
             <button type="button" className="placeholderCard glassPanel" onClick={() => { setSection('general'); setTab('security') }} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
@@ -597,7 +548,7 @@ export default function GeneralSettings({
                 ['Peran', roleLabel],
                 ['Unit', rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Belum dipetakan'],
                 ['Authentication', 'Supabase Auth'],
-                ['Tone', tone.name],
+                ['Status akun', me?.is_active ? 'Aktif' : 'Nonaktif'],
               ].map(([label, value]) => (
                 <div key={label} style={{ padding: 12, borderRadius: 16, background: 'rgba(255,255,255,.28)', border: '1px solid rgba(255,255,255,.6)' }}>
                   <span style={{ display: 'block', color: 'var(--muted)', fontSize: 9 }}>{label}</span>
@@ -610,7 +561,6 @@ export default function GeneralSettings({
               {([
                 ['profile', 'Akun & Akses', '👤', 'Nama, role, unit'],
                 ['units', 'Unit & Instalasi', '🏥', 'Daftar unit kerja'],
-                ['appearance', 'Tampilan & Tone', '🎨', 'Warna aplikasi'],
                 ['security', 'Keamanan & Password', '🔒', 'Ganti password'],
               ] as const).filter(([key]) => isAdmin || key !== 'units').map(([key, label, icon, hint]) => (
                 <button
@@ -748,60 +698,6 @@ export default function GeneralSettings({
             </LiquidGlass>
           )}
 
-          {tab === 'appearance' && (
-            <LiquidGlass style={{ padding: 18 }}>
-              <div className="eyebrow">VISUAL TONE</div>
-              <h4 style={{ margin: '5px 0 4px', fontSize: 18 }}>Tone Warna AUREKA</h4>
-              <p style={{ margin: 0, fontSize: 10, lineHeight: 1.6, color: 'var(--muted)' }}>
-                Pilih nuansa warna antarmuka tanpa mengubah struktur atau menggunakan dark mode.
-              </p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 10, marginTop: 16 }}>
-                {TONES.map((item) => {
-                  const selected = tone.id === item.id
-                  return (
-                    <button
-                      type="button"
-                      key={item.id}
-                      onClick={() => applyTone(item)}
-                      style={{
-                        textAlign: 'left',
-                        border: selected ? `2px solid ${item.accent}` : '1px solid rgba(255,255,255,.65)',
-                        borderRadius: 18,
-                        padding: 12,
-                        background: selected ? item.soft : 'rgba(255,255,255,.28)',
-                        boxShadow: selected ? `0 12px 30px rgba(${item.rgb},.15)` : 'none',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <span style={{ width: 32, height: 32, borderRadius: 11, display: 'block', background: `linear-gradient(135deg,${item.accent},${item.accent2})` }} />
-                        <div>
-                          <b style={{ display: 'block', fontSize: 11 }}>{item.name}</b>
-                          <span style={{ display: 'block', fontSize: 8, color: 'var(--muted)', marginTop: 2 }}>{item.description}</span>
-                        </div>
-                      </div>
-                      {selected && <span style={{ display: 'inline-block', marginTop: 8, fontSize: 8, fontWeight: 900, color: item.accent }}>✓ AKTIF</span>}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div style={{ marginTop: 18, padding: 16, borderRadius: 18, background: 'linear-gradient(135deg,rgba(255,255,255,.38),rgba(255,255,255,.16))', border: '1px solid rgba(255,255,255,.62)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                  <div>
-                    <b style={{ fontSize: 12 }}>Preview tone</b>
-                    <div style={{ color: 'var(--muted)', fontSize: 9, marginTop: 3 }}>Contoh tombol dan aksen aktif.</div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
-                    <span style={{ width: 76, height: 32, borderRadius: 12, display: 'grid', placeItems: 'center', background: `linear-gradient(135deg,${tone.accent},${tone.accent2})`, color: '#fff', fontSize: 9, fontWeight: 850 }}>AUREKA</span>
-                    <span style={{ width: 54, height: 32, borderRadius: 12, display: 'block', background: tone.soft, border: `1px solid ${tone.accent}` }} />
-                  </div>
-                </div>
-              </div>
-            </LiquidGlass>
-          )}
-
           {tab === 'security' && (
             <LiquidGlass style={{ padding: 18 }}>
               <h4 style={{ margin: '0 0 12px' }}>Ganti Password</h4>
@@ -821,7 +717,7 @@ export default function GeneralSettings({
                   ['Session', 'Persistent session + automatic refresh'],
                   ['Authorization', `Role-based access · ${roleLabel}`],
                   ['Password', 'Dikelola oleh Supabase Auth, bukan disimpan di halaman Pengaturan.'],
-                  ['Preferensi tone', 'Disimpan lokal pada browser ini.'],
+                  ['Tema tampilan', 'Diatur melalui kontrol Light / AMOLED pada sidebar.'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>
                     <b style={{ fontSize: 10 }}>{label}</b>

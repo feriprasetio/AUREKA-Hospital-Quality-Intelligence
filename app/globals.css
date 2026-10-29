@@ -765,3 +765,196 @@ button.ovCell:not(:disabled):hover{transform:scale(1.07);box-shadow:0 8px 18px r
 .workspaceRoot.sidebarIsCollapsed .sidebar>.profileChipBtn{justify-content:center;padding:9px}
 @media(max-width:760px){.workspaceRoot.sidebarIsCollapsed .sidebar>.profileChipBtn{justify-content:flex-start;padding:12px 13px}}
 .authSteps i.authStrong{display:inline;font-style:normal;font-weight:850;color:var(--ink)}
+
+
+/* --------------------------------------------------------------------------
+   AUREKA · Material 3 Expressive-inspired foundation
+   Solid clinical surfaces, clear hierarchy, and persistent Light / AMOLED.
+   -------------------------------------------------------------------------- */
+:root{
+  --page-bg:#f4f7f4;
+  --surface:#ffffff;
+  --surface-raised:#ffffff;
+  --border:#dfe7e1;
+  --ink:#172720;
+  --muted:#64736b;
+  --accent:#0d6b4b;
+  --accent2:#084732;
+  --accent-rgb:13,107,75;
+  --accent-soft:#dcefe5;
+  --green:#0d6b4b;
+  --green2:#084732;
+  --line:#dfe7e1;
+  --glass:#ffffff;
+  --glassStrong:#ffffff;
+  --shadow:0 2px 8px rgba(19,49,36,.045);
+  --sidebar-bg:#103f32;
+  --sidebar-ink:#f4faf6;
+  --sidebar-muted:#b7d1c5;
+  --sidebar-active:#1b624b;
+  --sidebar-border:rgba(230,250,239,.13);
+  color-scheme:light;
+}
+html,body{background:var(--page-bg)!important;background-image:none!important;color:var(--ink);}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+button,input,select,textarea{font:inherit;}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{outline:3px solid rgba(var(--accent-rgb),.58);outline-offset:2px;}
+
+/* Retire the old liquid-glass effect across the entire application. */
+.liquidGlass,.glassPanel{
+  background:var(--surface)!important;
+  background-image:none!important;
+  border:1px solid var(--border)!important;
+  box-shadow:var(--shadow)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  isolation:auto;
+}
+.liquidGlass{border-radius:24px;}
+.liquidGlass:before,.liquidGlass:after,.liquidGlassEdge,.liquidGlassSheen{display:none!important;content:none!important;}
+.liquidGlassContent{position:relative;z-index:1;}
+.liquidGlassClickable{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;}
+.liquidGlassClickable:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(19,49,36,.075)!important;}
+.liquidButton{padding:0!important;border:0!important;border-radius:999px!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;}
+.liquidButton:before{display:none!important;}
+.liquidButton button{border:1px solid transparent;border-radius:999px!important;background:var(--accent)!important;background-image:none!important;color:#fff!important;box-shadow:none!important;min-height:44px;padding:11px 18px;font-weight:750;}
+.liquidButton button:hover{filter:brightness(1.05);transform:translateY(-1px);}
+.liquidButton button:focus-visible{outline:3px solid rgba(var(--accent-rgb),.56);outline-offset:3px;}
+.eyebrow{color:var(--muted);letter-spacing:.12em;font-size:10px;font-weight:800;}
+
+/* Workspace frame and sidebar. */
+.workspaceRoot{grid-template-columns:minmax(246px,264px) minmax(0,1fr);gap:22px;padding:16px 20px;background:var(--page-bg);}
+.sidebar{
+  width:auto;height:calc(100vh - 32px);min-height:560px;top:16px;padding:16px;
+  border:1px solid var(--sidebar-border)!important;border-radius:24px!important;
+  background:var(--sidebar-bg)!important;background-image:none!important;color:var(--sidebar-ink)!important;
+  box-shadow:0 8px 26px rgba(7,39,28,.08)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+.sideHeader{min-height:auto;display:block;border-bottom:1px solid var(--sidebar-border);margin:0 0 14px;padding:3px 4px 15px;}
+.sideBrand{gap:11px;padding:0!important;min-width:0;}
+.workspaceBrandMark{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:15px;background:#1a7657;color:#fff;font-size:22px;font-weight:900;letter-spacing:-.06em;box-shadow:none;}
+.sideBrand b{color:#fff;font-size:18px;letter-spacing:-.04em;font-weight:850;}
+.sideBrand small{margin-top:3px;color:#bdd9cd;font-size:10px;line-height:1.4;}
+.themeModeLabel{margin:0 7px 7px;color:#a9c9bb;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;}
+.themeModeSwitch{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin:0 0 12px;border:1px solid rgba(232,250,240,.12);border-radius:17px;background:rgba(3,27,20,.3);}
+.themeModeSwitch button{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:38px;padding:8px 6px;border:1px solid transparent;border-radius:13px;background:transparent;color:#c2d9ce;font-size:11px;font-weight:750;transition:background .16s ease,color .16s ease,transform .16s ease;}
+.themeModeSwitch button:hover{background:rgba(255,255,255,.08);color:#fff;}
+.themeModeSwitch button:active{transform:scale(.98);}
+.themeModeSwitch button svg{width:16px;height:16px;flex:0 0 16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.themeModeSwitch button.themeModeActive{background:#ddf4e7;color:#0a4b36;border-color:rgba(221,244,231,.5);box-shadow:none;}
+.navLabel{margin:14px 8px 8px;color:#a9c9bb;font-size:10px;letter-spacing:.1em;font-weight:800;}
+.sidebarNav{display:grid;gap:5px;}
+.sidebarNav>button{display:flex!important;align-items:center;gap:12px;min-height:45px;width:100%;padding:11px 13px;border:1px solid transparent!important;border-radius:15px!important;background:transparent!important;color:var(--sidebar-muted)!important;font-size:12px;font-weight:650;line-height:1.25;text-align:left;transition:background .16s ease,color .16s ease,border-color .16s ease,transform .16s ease;}
+.sidebarNav>button:hover{background:rgba(233,250,240,.075)!important;color:#fff!important;transform:translateX(1px);}
+.sidebarNav>button.navActive{background:var(--sidebar-active)!important;border-color:rgba(210,246,226,.12)!important;color:#fff!important;font-weight:800;box-shadow:inset 3px 0 0 #a7e2c2;}
+.sidebarNav>button svg{width:18px;height:18px;flex:0 0 18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.sidebar>.profileChipBtn{display:flex;align-items:center;gap:10px;width:100%;margin:auto 0 12px!important;padding:12px!important;border-radius:18px!important;border:1px solid var(--sidebar-border)!important;background:rgba(255,255,255,.045)!important;color:var(--sidebar-ink)!important;text-align:left;box-shadow:none!important;}
+.sidebar>.profileChipBtn:hover{background:rgba(255,255,255,.085)!important;border-color:rgba(230,250,239,.22)!important;color:#fff!important;}
+.sidebar>.profileChipBtn.isActive{background:rgba(255,255,255,.09)!important;border-color:rgba(230,250,239,.25)!important;}
+.sidebar .profileAvatar{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:14px;background:#1b7053;color:#fff;font-size:11px;font-weight:850;}
+.sidebar .profileText{min-width:0;}
+.sidebar .profileText b{display:block;overflow-wrap:anywhere;color:#fff;font-size:11px;line-height:1.4;}
+.sidebar .profileText span{color:#bdd5c9;font-size:10px;line-height:1.45;}
+.sidebar .profileChipHint{color:#c9eedb;font-size:10px;}
+.sidebar>.liquidButton{display:block;width:100%;}
+.sidebar>.liquidButton button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:43px;padding:10px 14px;background:#dff3e7!important;color:#0a4a35!important;border:1px solid rgba(255,255,255,.2);border-radius:999px!important;font-size:11px;font-weight:800;}
+.sidebar>.liquidButton button:hover{background:#f0fbf4!important;filter:none;}
+.workspaceContent{min-width:0;padding:12px 6px 24px;color:var(--ink);}
+.workspaceTop{display:flex;align-items:center;gap:14px;min-height:84px;padding:8px 5px 18px;margin-bottom:8px;border-bottom:1px solid var(--border);}
+.workspaceTop h2{margin:5px 0 0;font-size:clamp(26px,2.3vw,32px);line-height:1.12;letter-spacing:-.045em;font-weight:800;color:var(--ink);}
+.workspaceTop p{margin:7px 0 0;max-width:680px;color:var(--muted);font-size:12px;line-height:1.55;}
+.workspaceTopMeta{margin-left:auto;min-width:170px;padding:10px 13px;border:1px solid var(--border);border-radius:16px;background:var(--surface);}
+.workspaceTopMeta span,.workspaceTopMeta small{display:block;color:var(--muted);font-size:10px;}
+.workspaceTopMeta b{display:block;margin:3px 0;color:var(--ink);font-size:12px;line-height:1.4;}
+.mobileMenuButton{display:none;place-items:center;width:42px;height:42px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--ink);}
+.workspaceScrim{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(5,19,13,.48)!important;}
+
+/* Keep module surfaces quiet and consistent, with no translucent glass layer. */
+.moduleEnter{min-width:0;color:var(--ink);animation:m3Enter .2s ease both;}
+@keyframes m3Enter{from{opacity:.7;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.moduleEnter .glass,.moduleEnter .glassPanel,.moduleEnter .liquidGlass{
+  background:var(--surface)!important;background-image:none!important;border-color:var(--border)!important;
+  box-shadow:var(--shadow)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.moduleEnter .glass:before,.moduleEnter .glass:after{display:none!important;}
+.moduleEnter input,.moduleEnter select,.moduleEnter textarea,.field input,.field select{
+  border-color:var(--border);box-shadow:none;
+}
+.moduleEnter input:focus,.moduleEnter select:focus,.moduleEnter textarea:focus,.field input:focus,.field select:focus{
+  border-color:rgba(var(--accent-rgb),.58);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.1);
+}
+
+/* AMOLED: genuinely black page and black surfaces, with restrained green accents. */
+html[data-theme="amoled"]{
+  color-scheme:dark;
+  --page-bg:#000000;
+  --surface:#050505;
+  --surface-raised:#0a0a0a;
+  --border:#252525;
+  --ink:#f0f3f1;
+  --muted:#a3aca7;
+  --accent:#8fe8bd;
+  --accent2:#c0f5d9;
+  --accent-rgb:143,232,189;
+  --accent-soft:#153329;
+  --green:#8fe8bd;
+  --green2:#c0f5d9;
+  --line:#252525;
+  --glass:#050505;
+  --glassStrong:#0a0a0a;
+  --shadow:none;
+  --sidebar-bg:#000000;
+  --sidebar-ink:#f0f3f1;
+  --sidebar-muted:#a6b0aa;
+  --sidebar-active:#14261d;
+  --sidebar-border:#292929;
+}
+html[data-theme="amoled"],html[data-theme="amoled"] body{background:#000!important;background-image:none!important;color:var(--ink);}
+html[data-theme="amoled"] .workspaceRoot,html[data-theme="amoled"] .workspaceContent,html[data-theme="amoled"] .moduleEnter{background:#000!important;color:var(--ink)!important;}
+html[data-theme="amoled"] .sidebar{background:#000!important;border-color:#242424!important;box-shadow:none!important;}
+html[data-theme="amoled"] .workspaceBrandMark{background:#163b2b;color:#b8f3d4;}
+html[data-theme="amoled"] .themeModeSwitch{background:#080808;border-color:#292929;}
+html[data-theme="amoled"] .themeModeSwitch button{color:#b7c1bb;}
+html[data-theme="amoled"] .themeModeSwitch button.themeModeActive{background:#173628;color:#bcf2d5;border-color:#285b43;}
+html[data-theme="amoled"] .sidebarNav>button.navActive{background:#14261d!important;border-color:#294838!important;color:#d8f5e5!important;box-shadow:inset 3px 0 0 #8fe8bd;}
+html[data-theme="amoled"] .sidebar>.profileChipBtn{background:#070707!important;border-color:#252525!important;color:var(--ink)!important;}
+html[data-theme="amoled"] .sidebar .profileAvatar{background:#142a20;color:#b9f2d5;}
+html[data-theme="amoled"] .sidebar>.liquidButton button{background:#c9f2d9!important;color:#092a1c!important;border-color:#c9f2d9!important;}
+html[data-theme="amoled"] .liquidGlass,html[data-theme="amoled"] .glassPanel,html[data-theme="amoled"] .moduleEnter .glass,html[data-theme="amoled"] .moduleEnter .glassPanel,html[data-theme="amoled"] .moduleEnter .liquidGlass,html[data-theme="amoled"] .workspaceTopMeta,html[data-theme="amoled"] .metricCard,html[data-theme="amoled"] .placeholderCard{
+  background:#050505!important;background-image:none!important;border-color:#252525!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;color:var(--ink)!important;
+}
+html[data-theme="amoled"] .liquidGlass:before,html[data-theme="amoled"] .liquidGlass:after,html[data-theme="amoled"] .liquidGlassEdge,html[data-theme="amoled"] .liquidGlassSheen{display:none!important;}
+html[data-theme="amoled"] .moduleEnter [class*="Card"],html[data-theme="amoled"] .moduleEnter [class*="card"],html[data-theme="amoled"] .moduleEnter [class*="Panel"],html[data-theme="amoled"] .moduleEnter [class*="panel"]{
+  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html[data-theme="amoled"] .moduleEnter input,html[data-theme="amoled"] .moduleEnter select,html[data-theme="amoled"] .moduleEnter textarea,html[data-theme="amoled"] .field input,html[data-theme="amoled"] .field select{
+  background:#0d0d0d!important;color:#f0f3f1!important;border-color:#353535!important;box-shadow:none!important;
+}
+html[data-theme="amoled"] .moduleEnter option{background:#090909;color:#f0f3f1;}
+html[data-theme="amoled"] .moduleEnter table th,html[data-theme="amoled"] .moduleEnter table thead th{background:#0b0b0b!important;color:#b5beb8!important;border-color:#282828!important;}
+html[data-theme="amoled"] .moduleEnter table td,html[data-theme="amoled"] .moduleEnter table tr{border-color:#242424!important;}
+html[data-theme="amoled"] .moduleEnter .aqNotice,html[data-theme="amoled"] .moduleEnter [class*="Notice"],html[data-theme="amoled"] .moduleEnter [class*="notice"]{background:#111!important;border-color:#303030!important;color:#d8e2dc!important;}
+html[data-theme="amoled"] .moduleEnter button:not(.navActive):not(.themeModeActive):not(.liquidGlassClickable){box-shadow:none;}
+html[data-theme="amoled"] .workspaceTop{border-color:#242424;}
+html[data-theme="amoled"] .mobileMenuButton{background:#070707;border-color:#292929;color:#f0f3f1;}
+html[data-theme="amoled"] .workspaceScrim{background:rgba(0,0,0,.72)!important;}
+
+@media(max-width:1000px){
+  .workspaceRoot{grid-template-columns:minmax(220px,244px) minmax(0,1fr);gap:14px;padding:12px;}
+  .workspaceContent{padding:10px 2px 20px;}
+}
+@media(max-width:760px){
+  .workspaceRoot{grid-template-columns:minmax(0,1fr);gap:0;padding:8px;}
+  .sidebar{position:fixed;left:-306px;top:8px;width:286px;height:calc(100vh - 16px);min-height:0;padding:16px;transition:left .22s ease;}
+  .sidebar.mobileOpen{left:8px;}
+  .workspaceContent{padding:14px 8px 22px;}
+  .workspaceTop{align-items:flex-start;padding:5px 0 15px;gap:10px;}
+  .workspaceTop h2{font-size:25px;}
+  .workspaceTop p{font-size:11px;}
+  .workspaceTopMeta{display:none;}
+  .mobileMenuButton{display:grid;flex:0 0 42px;}
+  .authCard{background:var(--surface)!important;}
+}
+@media(prefers-reduced-motion:reduce){.moduleEnter{animation:none!important;}}
