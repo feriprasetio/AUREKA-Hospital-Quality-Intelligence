@@ -1,3 +1,13 @@
+export type AurekaRole =
+  | 'ADMIN'
+  | 'PMKP'
+  | 'MANAGEMENT'
+  | 'KABID'
+  | 'DIREKTUR'
+  | 'DEWAN_PENGAWAS'
+  | 'PIC'
+  | 'VALIDATOR'
+
 export type ModuleStatus = 'available' | 'beta' | 'maintenance' | 'planned'
 export type ModuleVisibility = 'all-authenticated' | 'management-only'
 
@@ -7,9 +17,10 @@ export type AurekaModule = {
   group: 'overview' | 'clinical' | 'governance'
   status: ModuleStatus
   visibility: ModuleVisibility
+  requiredRoles: readonly AurekaRole[]
   routeHash: string
   owner: string
-  lastVerified: string
+  lastReviewed: string
   description: string
 }
 
@@ -20,9 +31,10 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'overview',
     status: 'beta',
     visibility: 'all-authenticated',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'],
     routeHash: '#ringkasan',
     owner: 'Komite PMKP',
-    lastVerified: '2026-10-29',
+    lastReviewed: '2026-10-29',
     description: 'Dashboard operasional, antrean prioritas, dan status data sesuai hak akses.',
   },
   {
@@ -31,9 +43,10 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'clinical',
     status: 'beta',
     visibility: 'all-authenticated',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'],
     routeHash: '#mutu-klinis',
     owner: 'Komite PMKP / pemilik indikator',
-    lastVerified: '2026-10-29',
+    lastReviewed: '2026-10-29',
     description: 'Audit Indikator Mutu, Clinical Pathway, dan Audit Klinis dan Kematian.',
   },
   {
@@ -42,9 +55,10 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'clinical',
     status: 'beta',
     visibility: 'all-authenticated',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC'],
     routeHash: '#keselamatan-pasien',
     owner: 'Komite PMKP / Tim Keselamatan Pasien',
-    lastVerified: '2026-10-29',
+    lastReviewed: '2026-10-29',
     description: 'Laporan insiden, investigasi, pembelajaran, dan tindak lanjut.',
   },
   {
@@ -53,9 +67,10 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC'],
     routeHash: '#manajemen-risiko',
     owner: 'Manajemen risiko rumah sakit',
-    lastVerified: '2026-10-29',
+    lastReviewed: '2026-10-29',
     description: 'Risk Register, RTP, FMEA/HFMEA, dan pemantauan pengendalian.',
   },
   {
@@ -64,9 +79,10 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'],
     routeHash: '#tenaga-klinis',
     owner: 'Super Admin / Komite PMKP',
-    lastVerified: '2026-10-29',
+    lastReviewed: '2026-10-29',
     description: 'Direktori kanonik, tim dan penugasan, OPPE, FPPE, serta riwayat individu.',
   },
   {
@@ -75,9 +91,10 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'governance',
     status: 'beta',
     visibility: 'management-only',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS'],
     routeHash: '#analitik-laporan',
     owner: 'Komite PMKP / pengelola data',
-    lastVerified: '2026-10-29',
+    lastReviewed: '2026-10-29',
     description: 'Statistik, kelengkapan data, dan ekstraksi sesuai scope pengguna.',
   },
   {
@@ -86,9 +103,10 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'],
     routeHash: '#administrasi',
     owner: 'Super Admin / Komite PMKP',
-    lastVerified: '2026-10-29',
+    lastReviewed: '2026-10-29',
     description: 'Akun, role, unit, kamus indikator, dan konfigurasi berwenang.',
   },
 ] as const satisfies readonly AurekaModule[]
