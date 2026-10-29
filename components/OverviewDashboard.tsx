@@ -183,6 +183,7 @@ export default function OverviewDashboard({
       plansPending: plans.rows.filter(p => PLAN_PENDING.includes(p.status)).length,
       qualityTotal: quality.rows.length,
       qualityReview: quality.rows.filter(q => q.review_required).length,
+      auditPending: quality.rows.filter(q => q.review_required).length + clinicalPathway.rows.filter(x => x.status === 'submitted').length,
       cpAuditTotal: clinicalPathway.rows.length,
       cpReviewedTotal: clinicalPathway.rows.filter(x => x.status === 'submitted' || x.status === 'validated').length,
       cpEligibleTotal: clinicalPathway.rows.filter(x => (x.status === 'submitted' || x.status === 'validated') && x.calculation_json?.included === true).length,
@@ -194,42 +195,41 @@ export default function OverviewDashboard({
     }
   }, [risks.rows, incidents.rows, plans.rows, quality.rows, clinicalPathway.rows])
 
-  const hour = new Date().getHours()
-  const greeting = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam'
   const totalRisk = risks.rows.length
   const maxLevel = Math.max(1, ...LEVELS.map(l => stats.byLevel[l] || 0))
   const topRisks = risks.rows.slice(0, 5)
   const recentIncidents = incidents.rows.slice(0, 5)
-  const firstName = userName.split(/\s|,/)[0] || userName
+  const sourceError = Boolean(risks.error || plans.error || incidents.error || quality.error || clinicalPathway.error)
 
   return (
     <div className="ovRoot">
       <section className="ovHero">
         <div>
-          <span className="ovEyebrow">{manager ? 'RINGKASAN RUMAH SAKIT' : 'RINGKASAN UNIT'}</span>
-          <h3>{greeting}, {firstName}</h3>
-          <p>{manager ? 'Pantauan mutu, keselamatan pasien, Clinical Pathway, dan manajemen risiko seluruh unit kerja.' : `Pantauan data unit ${roomName || 'Anda'}: register risiko, laporan insiden, indikator mutu, dan audit Clinical Pathway.`}</p>
+          <span className="ovEyebrow">DASHBOARD OPERASIONAL</span>
+          <h3>Ikhtisar mutu, keselamatan pasien, dan risiko</h3>
+          <p>{manager ? 'Pemantauan agregat lintas unit untuk membantu penentuan prioritas perbaikan.' : `Pemantauan data unit ${roomName || 'Anda'} sesuai hak akses akun.`}</p>
         </div>
         <div className="ovHeroMeta">
-          <span className="ovChip">{manager ? 'Seluruh unit' : roomName || 'Unit belum dipetakan'}</span>
           <button type="button" className="ovRefresh" onClick={() => setReloadKey(k => k + 1)} disabled={loading} aria-label="Muat ulang data">
-            <span className={loading ? 'ovSpin' : ''}>↻</span> {loading ? 'Memuat…' : refreshedAt ? `Diperbarui ${refreshedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` : 'Muat ulang'}
+            <span className={loading ? 'ovSpin' : ''}>↻</span> {loading ? 'Memuat…' : 'Muat ulang data'}
           </button>
         </div>
       </section>
 
       {!manager && roomId == null && <div className="ovNotice">Akun Anda belum terhubung ke ruangan/unit kerja, sehingga data unit belum dapat ditampilkan. Hubungi Super Admin untuk memetakan unit utama akun Anda.</div>}
 
+      <section className="ovContextBar" aria-label="Periode dan status data">
+        <div><span>PERIODE</span><b>Jan – {new Date().toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Pontianak' })} {year}</b></div>
+        <div><span>UNIT</span><b>{manager ? 'Seluruh rumah sakit' : roomName || 'Unit belum dipetakan'}</b></div>
+        <div><span>PEMUTAKHIRAN DATA</span><b>{loading ? 'Memuat data…' : refreshedAt ? `Dicek ${refreshedAt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Pontianak' })}, ${refreshedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Pontianak' })} WIB` : 'Belum diperbarui'}</b></div>
+        <div className="ovContextStatus"><span>STATUS SUMBER</span><b className={sourceError ? 'error' : loading ? 'loading' : 'ok'}>{loading ? 'Memuat' : sourceError ? 'Perlu pemeriksaan' : 'Pembacaan selesai'}</b></div>
+      </section>
+
       <div className="ovKpis">
-        <Kpi delay={0} loading={loading} label="Risiko terdaftar" value={risks.error ? null : totalRisk} sub={risks.error ? 'Tidak tersedia' : `${stats.needsMitigation.toLocaleString('id-ID')} perlu mitigasi`} onClick={() => onNavigate('risk')} />
-        <Kpi delay={60} loading={loading} tone="danger" label="Risiko tinggi & sangat tinggi" value={risks.error ? null : stats.high} sub={stats.overdueHigh ? `${stats.overdueHigh} lewat target penyelesaian` : 'Tidak ada yang lewat target'} onClick={() => onNavigate('risk')} />
-        <Kpi delay={120} loading={loading} label="RTP berjalan" value={plans.error ? null : stats.plansActive} sub={plans.error ? 'Tidak tersedia' : `${stats.plansPending} menunggu persetujuan`} onClick={() => onNavigate('risk')} />
-        <Kpi delay={180} loading={loading} label={`Insiden ${year}`} value={incidents.error ? null : stats.incidentsYear} sub={incidents.error ? 'Tidak tersedia' : `${stats.incidentsMonth} bulan ini`} onClick={() => onNavigate('safety')} />
-        <Kpi delay={240} loading={loading} tone="warn" label="Insiden dalam proses" value={incidents.error ? null : stats.incidentsOpen} sub="Belum ditutup" onClick={() => onNavigate('safety')} />
-        <Kpi delay={300} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
-        <Kpi delay={360} loading={loading} label={`Audit Clinical Pathway ${year}`} value={clinicalPathway.error ? null : stats.cpAuditTotal} sub={clinicalPathway.error ? 'Tidak tersedia' : `${stats.cpReviewedTotal} diajukan / tervalidasi`} onClick={() => onNavigate('clinicalPathway')} />
-        <Kpi delay={420} loading={loading} tone="warn" label="CP memenuhi Bagian D" value={clinicalPathway.error ? null : stats.cpSectionDPass} sub={clinicalPathway.error ? 'Tidak tersedia' : `${stats.cpEligibleTotal} audit memenuhi kriteria inklusi`} onClick={() => onNavigate('clinicalPathway')} />
-        <Kpi delay={480} loading={loading} label="Rata-rata kepatuhan CP" value={clinicalPathway.error || stats.cpAverageCompliance == null ? null : Math.round(stats.cpAverageCompliance)} formatted={clinicalPathway.error || stats.cpAverageCompliance == null ? undefined : stats.cpAverageCompliance.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'} sub={clinicalPathway.error ? 'Tidak tersedia' : stats.cpAverageCompliance == null ? 'Belum ada audit yang dapat dinilai' : `Dari ${stats.cpEligibleTotal} audit masuk inklusi dan diajukan`} onClick={() => onNavigate('clinicalPathway')} />
+        <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
+        <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
+        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
+        <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
       </div>
 
       <div className="ovGrid">
