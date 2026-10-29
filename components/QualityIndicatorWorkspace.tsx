@@ -3,6 +3,7 @@ import {Fragment,useCallback,useEffect,useMemo,useState} from 'react'
 import QualityExcelPastePanel from '@/components/QualityExcelPastePanel'
 import ComplaintExcelImportDialog from '@/components/ComplaintExcelImportDialog'
 import AmbulanceExcelImportDialog from '@/components/AmbulanceExcelImportDialog'
+import IbsExcelImportDialog from '@/components/IbsExcelImportDialog'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind } from '@/lib/aureka/indicator-engine'
 import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '@/lib/aureka/complaint-logbook'
@@ -346,6 +347,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [excelPasteOpen,setExcelPasteOpen]=useState(false)
  const [complaintImportOpen,setComplaintImportOpen]=useState(false)
  const [ambulanceImportOpen,setAmbulanceImportOpen]=useState(false)
+ const [ibsImportOpen,setIbsImportOpen]=useState(false)
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
 
@@ -448,7 +450,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        const rm=String(c.medical_record_no??c.rm??formData['No. Rekam Medis']??formData['No. RM']??'')
        const diagnosis=String(c.diagnosis??formData['Diagnosa Tegak']??formData['Diagnosa']??formData['Diagnosa IGD']??formData['Diagnosa Pasien']??formData['Diagnosis Medis']??formData['Diagnosa Operasi']??c.dx??'')
        const dpjp=String(c.dpjp??formData['DPJP']??formData['Dpjp']??'')
-       return {id:String(r.id),recordId:String(r.id),enteredBy:String(r.entered_by??''),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,allowCrossYear:c.source_import?.allow_cross_year===true,staffIdByField:attributionByRecord.get(String(r.id))??{},measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
+       return {id:String(r.id),recordId:String(r.id),enteredBy:String(r.entered_by??''),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,allowCrossYear:c.source_import?.allow_cross_year===true,excludeFromYearMetrics:c.source_import?.exclude_from_profile_year_metrics===true,staffIdByField:attributionByRecord.get(String(r.id))??{},measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
      })
      setPatients(db.filter((row:Patient)=>String(row.databaseStatus??'')!=='archived'))
      setSource('Supabase')
@@ -470,7 +472,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit} ${JSON.stringify(p.formData??{})}`.toLowerCase()
    return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&statusOk&&hay.includes(search.toLowerCase().trim())
  }),[patients,year,roomId,roomMap,monthFilter,status,search,activeLayout])
- const yearPatients=useMemo(()=>patients.filter(p=>(ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
+ const yearPatients=useMemo(()=>patients.filter(p=>!p.excludeFromYearMetrics&&(ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
  const unmatchedIndicatorHeaders=useMemo(()=>unmatchedHeaders(profiles,activeLayout),[profiles,activeLayout])
  const selectedUnmatchedHeaders=useMemo(()=>unmatchedHeaders(profiles,selectedLayout),[profiles,selectedLayout])
  const applicable=useMemo(()=>selected?layoutProfiles(profiles,selectedLayout).filter(p=>Number(p.room_id)===Number(selected.roomId)).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,profiles,selectedLayout])
@@ -809,6 +811,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        {!isValidator&&<button type="button" className="aqBtn aqImportButton" onClick={()=>setExcelPasteOpen(v=>!v)} aria-expanded={excelPasteOpen} title={excelPasteOpen?'Tutup panel impor Excel':'Buka impor data dari Excel'}>{excelPasteOpen?'Tutup impor':'Impor Excel'}</button>}
        {!isValidator&&roomId===1&&year===2026&&(isAdmin||canViewAllRooms)&&<button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setComplaintImportOpen(true)} title="Unggah workbook Excel resmi unit Informasi dan Pengaduan">Unggah workbook .xlsx</button>}
        {!isValidator&&roomId===3&&year===2026&&(isAdmin||canViewAllRooms)&&<button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setAmbulanceImportOpen(true)} title="Unggah workbook Excel resmi unit Ambulance">Unggah workbook .xlsx</button>}
+       {!isValidator&&roomId===4&&year===2026&&(isAdmin||canViewAllRooms)&&<button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setIbsImportOpen(true)} title="Unggah workbook Excel resmi Instalasi Bedah Sentral">Unggah workbook .xlsx</button>}
        {!isValidator&&<button type="button" className="aqBtn primary aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button>}
       </div>
       {!isValidator&&excelPasteOpen&&<QualityExcelPastePanel key={roomId??'all'} headers={[...(activeLayout?.fields??[]),...(activeLayout?.indicators??[])]} disabledReason={roomId==null?'Pilih satu unit pada filter sebelum mengimpor.':!activeLayout?'Layout header aktif untuk unit ini belum tersedia.':''} onUseRow={importExcelRow} onUseRows={importExcelRows} onClose={()=>setExcelPasteOpen(false)}/>}
@@ -816,6 +819,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
 
    <ComplaintExcelImportDialog open={complaintImportOpen} roomId={roomId} year={year} authorized={isAdmin||canViewAllRooms} profiles={profiles} onClose={()=>setComplaintImportOpen(false)} onImported={async()=>{await load()}}/>
    <AmbulanceExcelImportDialog open={ambulanceImportOpen} roomId={roomId} year={year} authorized={isAdmin||canViewAllRooms} profiles={profiles} onClose={()=>setAmbulanceImportOpen(false)} onImported={async()=>{await load()}}/>
+   <IbsExcelImportDialog open={ibsImportOpen} roomId={roomId} year={year} authorized={isAdmin||canViewAllRooms} profiles={profiles} onClose={()=>setIbsImportOpen(false)} onImported={async()=>{await load()}}/>
 
    {pendingArchive&&<div className="aqBack aqDeleteConfirmBack" role="presentation" onClick={(e:any)=>{if(e.target===e.currentTarget&&!busy)setPendingArchive(null)}}><section className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqDeleteConfirmTitle" aria-describedby="aqDeleteConfirmText"><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span><button type="button" className="aqDeleteConfirmClose" aria-label="Tutup dialog" disabled={busy} onClick={()=>setPendingArchive(null)}>×</button></div><h4 id="aqDeleteConfirmTitle">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf catatan?':'Hapus catatan dari logbook aktif?'}</h4><p id="aqDeleteConfirmText">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Draf ini belum tersimpan ke server dan akan dibuang dari sesi ini.':'Catatan akan diarsipkan dan hilang dari daftar aktif. Jejak audit tetap dipertahankan.'}</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" disabled={busy} onClick={()=>setPendingArchive(null)}>Batal</button><button type="button" className="aqBtn danger" disabled={busy} onClick={()=>void archivePatient(pendingArchive)}>{busy?'Memproses…':pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf':'Ya, hapus'}</button></div></section></div>}
 
