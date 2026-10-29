@@ -60,7 +60,6 @@ type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; is
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
-const EPISODE_CACHE_KEY = 'aureka-quality-episode-cache-v3'
 const PHASES: Phase[] = [
   { id: 'admission', label: 'Admisi dan perawatan awal', hint: 'Fokus 24 jam pertama sejak masuk rumah sakit.' },
   { id: 'ongoing', label: 'Perawatan lanjutan', hint: 'Pemantauan, respons terapi, eskalasi dan koordinasi selama perawatan.' },
@@ -107,18 +106,6 @@ function labelValue(record: Record<string, any>, labels: string[]): string {
 }
 function isDeathOutcome(value: string): boolean {
   return /meninggal|death|deceased|died|expired|dead on arrival|\bdoa\b/.test(norm(value))
-}
-function safeLocalRead(): any[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const value = JSON.parse(window.localStorage.getItem(EPISODE_CACHE_KEY) || '[]')
-    // Keep legacy recovery data in memory only; remove persistent patient data from shared browsers.
-    window.localStorage.removeItem(EPISODE_CACHE_KEY)
-    return Array.isArray(value) ? value : []
-  } catch {
-    try { window.localStorage.removeItem(EPISODE_CACHE_KEY) } catch {}
-    return []
-  }
 }
 function makeDraft(source?: any): ReviewDraft {
   const input = objectValue(source)
@@ -271,6 +258,8 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
     setLoading(true)
     setMessage('')
     setLoadWarning('')
+    // Remove the legacy shared-browser PHI cache; never read or restore its contents.
+    if (typeof window !== 'undefined') { try { window.localStorage.removeItem('aureka-quality-episode-cache-v3') } catch {} }
     const readEpisodes = async () => {
       const rows: any[] = []
       let from = 0
@@ -329,13 +318,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         setAuditStaffIds({})
       }
     }
-    const localRows = safeLocalRead().filter((row: any) => String(row.measurementGrain ?? row.measurement_grain ?? '') === 'patient_episode')
-    const localEpisodes = localRows.map((row: any) => buildLocalEpisode(row, roomMap)).filter((episode) => {
-      return !databaseEpisodes.some((dbEpisode) => dbEpisode.id === episode.id ||
-        (dbEpisode.roomId === episode.roomId && dbEpisode.rm && episode.rm &&
-          dbEpisode.rm === episode.rm && dbEpisode.admit.slice(0, 10) === episode.admit.slice(0, 10)))
-    })
-    setEpisodes([...databaseEpisodes, ...localEpisodes])
+    setEpisodes(databaseEpisodes)
     setLoading(false)
   }, [roomMap])
 
