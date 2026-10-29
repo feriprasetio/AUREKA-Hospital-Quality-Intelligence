@@ -55,7 +55,7 @@ test('summarizes numerator and denominator flags from indicator choice metadata'
 test('source warnings flag zero medical record numbers without modifying source values', () => {
   const warnings = complaintSourceWarnings('0', '2026-01-01T10:00', '2026-01-01T11:00')
   assert.equal(warnings.length, 1)
-  assert.match(warnings[0], /No\\. RM.*bernilai 0/)
+  assert.match(warnings[0], /No\. RM.*bernilai 0/)
   assert.deepEqual(complaintSourceWarnings('001234', '2026-01-01T10:00', '2026-01-01T11:00'), [])
 })
 
