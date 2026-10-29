@@ -1412,3 +1412,17 @@ html[data-theme="amoled"] .workspaceSupportMessage.mine,html[data-theme="amoled"
  .workspaceContext strong{font-size:9px}
  .workspaceContext span{font-size:7px}
 }
+
+
+/* Collapse legacy inline feedback banners into the shared Dynamic Island. */
+.moduleEnter .aurToast,.moduleEnter .sdNotice,.moduleEnter .sdError,.moduleEnter .stNotice,.moduleEnter .stError,
+.moduleEnter .oppeNotice,.moduleEnter .acdInfo.error,.moduleEnter .msg.visible,.moduleEnter .userRowNote,
+.moduleEnter .aqNotice,.moduleEnter .aqHead p,.moduleEnter .aqDHead p,.moduleEnter .aqTableHead p,
+.moduleEnter .psAlert,.moduleEnter .rmNotice,.moduleEnter .rmFormNote,
+.moduleEnter .cpNotice.info,.moduleEnter .cpNotice.error{display:none!important}
+.moduleEnter :is(.oppeFilters,.sdFilters,.stFilters,.psFilters,.rmFilters,.cpFilters,.aqFilters){padding:8px 10px!important;gap:7px!important;border-radius:11px!important}
+.moduleEnter :is(.oppeFilters,.sdFilters,.stFilters,.psFilters,.rmFilters,.cpFilters,.aqFilters) :is(input,select){min-width:0;min-height:32px!important;height:32px!important;padding:5px 8px!important;border-radius:8px!important;font-size:10px!important}
+.moduleEnter :is(.sdPanel,.stPanel,.oppeGlass,.psPanel,.rmPanel,.cpPanel,.cwPanel){padding:10px 12px!important;border-radius:12px!important}
+.moduleEnter :is(.sdHead,.stHead,.oppeSectionHead,.psSectionHead,.rmSectionHead,.cpSectionHead){gap:7px!important;margin-bottom:6px!important}
+.moduleEnter :is(.sdTitle,.stTitle,.oppeTitle,.psTitle,.rmTitle,.cpTitle){font-size:17px!important;letter-spacing:-.03em!important}
+.moduleEnter :is(.sdNotice,.sdError,.stNotice,.stError,.oppeNotice,.acdInfo.error,.aurToast,.userRowNote){display:none!important}
