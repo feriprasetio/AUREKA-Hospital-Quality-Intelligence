@@ -41,27 +41,11 @@ const ITEMS: Item[] = [
       'Mencatat kesimpulan, pelajaran, rekomendasi, dan status telaah untuk perbaikan mutu.',
     ],
   },
-  {
-    id: 'oppe',
-    title: 'Audit OPPE',
-    ready: true,
-    icon: '👩‍⚕️',
-    summary: 'Ongoing Professional Practice Evaluation: evaluasi praktik profesional berkelanjutan berdasarkan logbook terverifikasi dan penilaian evaluator.',
-    detail: [],
-  },
-  {
-    id: 'team',
-    title: 'Tim Tenaga Kerja',
-    ready: true,
-    icon: '👥',
-    summary: 'Pilih dan kunci identitas tenaga ke unit kerja agar OPPE, logbook mutu, audit klinis, CP, dan insiden keselamatan pasien menggunakan orang yang sama.',
-    detail: [],
-  },
 ]
 
 export default function QualityHub({ onOpen, onOpenClinicalPathway, onOpenClinicalDeathReview, onOpenOPPE, onOpenStaffTeam, canOpenStaffTeam }: { onOpen: () => void; onOpenClinicalPathway: () => void; onOpenClinicalDeathReview: () => void; onOpenOPPE: () => void; onOpenStaffTeam: () => void; canOpenStaffTeam: boolean }) {
   const [info, setInfo] = useState<string | null>(null)
-  const visibleItems = ITEMS.filter((item) => item.id !== 'team' || canOpenStaffTeam)
+  const visibleItems = ITEMS
   const sel = visibleItems.find((i) => i.id === info) || null
   return (
     <div className="qhWrap">
