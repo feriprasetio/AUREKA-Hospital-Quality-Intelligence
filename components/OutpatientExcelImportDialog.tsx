@@ -74,10 +74,10 @@ function parseNumber(value:unknown):number|null{
  const n=Number(normalized);return Number.isFinite(n)&&n>=0&&n<=1440?n:null
 }
 function keyFor(row:PreparedRow):string{return SOURCE_PREFIX+row.date+':'+canonical(row.clinic)+':'+canonical(row.doctor)}
-function payloadFor(row:PreparedRow,fileName:string){
+function payloadFor(row:PreparedRow,fileName:string,year:number){
  const formFields={'Tanggal pengamatan':row.date,'Klinik':row.clinic,'Dokter':row.doctor,'Waktu Tunggu Rawat Jalan (Menit)':row.waitingMinutes}
  const core={patient_name:row.doctor+' · '+row.clinic,admission_at:row.date,unit_name:'Instalasi Rawat Jalan',room_id:11,status:'Ready for Review',workflow_status:'Ready for Review',form_fields:formFields,calculated_fields:{'Waktu Tunggu Rawat Jalan (Menit)':row.waitingMinutes},measurement_grain:'provider_day',source_import:{source_workbook:fileName,source_sheet:'Data Rawat Jalan',source_excel_row:row.sourceRow,import_scope:'outpatient_provider_day_waiting_time',idempotency_basis:'date_clinic_doctor'}}
- return {room_id:11,profile_year:2026,measurement_grain:'provider_day',record_date:row.date,subject_key:keyFor(row),subject_json:core,core_data:core,status:'ready',review_required:true}
+ return {room_id:11,profile_year:year,measurement_grain:'provider_day',record_date:row.date,subject_key:keyFor(row),subject_json:core,core_data:core,status:'ready',review_required:true}
 }
 export default function OutpatientExcelImportDialog({open,roomId,year,authorized,layout,onClose,onImported}:Props){
  const [file,setFile]=useState<File|null>(null),[rows,setRows]=useState<PreparedRow[]>([]),[errors,setErrors]=useState<string[]>([]),[parsing,setParsing]=useState(false),[importing,setImporting]=useState(false),[result,setResult]=useState<{imported:number;skipped:number;received:number}|null>(null),[errorMessage,setErrorMessage]=useState(''),[fileKey,setFileKey]=useState(0)
@@ -143,7 +143,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
    let imported=0,skipped=0
    for(let offset=0;offset<rows.length;offset+=BATCH_SIZE){
     const batch=rows.slice(offset,offset+BATCH_SIZE)
-    const pRows=batch.map(row=>({payload:payloadFor(row,file?.name??'workbook.xlsx')}))
+    const pRows=batch.map(row=>({payload:payloadFor(row,file?.name??'workbook.xlsx',year)}))
     const {data,error}=await quality().rpc('import_outpatient_logbook_batch',{p_rows:pRows})
     if(error)throw error
     imported+=Number(data?.imported_count??0);skipped+=Number(data?.skipped_existing_count??0)

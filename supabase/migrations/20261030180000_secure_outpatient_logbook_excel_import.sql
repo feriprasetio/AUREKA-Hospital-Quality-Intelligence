@@ -1,4 +1,4 @@
--- Secure XLSX import for outpatient provider-day logbook observations.
+-- Generalize outpatient import to the selected profile year (2026+).
 CREATE OR REPLACE FUNCTION aureka_quality.import_outpatient_logbook_batch(p_rows jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -15,6 +15,7 @@ DECLARE
   v_form jsonb;
   v_source jsonb;
   v_date date;
+  v_year integer;
   v_key text;
   v_minutes numeric;
   v_inserted integer := 0;
@@ -23,7 +24,7 @@ DECLARE
   v_rows_written integer;
 BEGIN
   IF v_user_id IS NULL THEN RAISE EXCEPTION 'Login diperlukan untuk impor Rawat Jalan.' USING ERRCODE='28000'; END IF;
-  IF v_role NOT IN ('ADMIN','PMKP') OR NOT aureka_system.has_quality_room_access(11) THEN
+  IF coalesce(v_role,'') NOT IN ('ADMIN','PMKP') OR NOT aureka_system.has_quality_room_access(11) THEN
     RAISE EXCEPTION 'Impor workbook hanya diizinkan bagi ADMIN/PMKP dengan akses Instalasi Rawat Jalan.' USING ERRCODE='42501';
   END IF;
   IF p_rows IS NULL OR jsonb_typeof(p_rows)<>'array' THEN RAISE EXCEPTION 'Batch harus berupa array JSON.' USING ERRCODE='22023'; END IF;
@@ -33,15 +34,17 @@ BEGIN
     RAISE EXCEPTION 'Kunci tanggal/klinik/dokter kosong atau duplikat dalam batch.' USING ERRCODE='22023';
   END IF;
 
-  -- Validate the complete batch before inserting any row.
   FOR v_row IN SELECT value FROM jsonb_array_elements(p_rows) LOOP
     v_payload:=v_row->'payload'; v_core:=v_payload->'core_data'; v_form:=v_core->'form_fields'; v_source:=v_core->'source_import';
-    IF coalesce(v_payload->>'room_id','')<>'11'
-       OR coalesce(v_payload->>'profile_year','')<>'2026'
+    BEGIN v_year:=(v_payload->>'profile_year')::integer;
+    EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Tahun profil impor tidak valid.' USING ERRCODE='22023'; END;
+    IF v_year<2026 OR v_year>2099
+       OR coalesce(v_payload->>'room_id','')<>'11'
+       OR coalesce(v_payload->>'profile_year','')<>v_year::text
        OR coalesce(v_payload->>'measurement_grain','')<>'provider_day'
        OR coalesce(v_payload->>'status','')<>'ready'
        OR coalesce(v_payload->>'review_required','')<>'true'
-       OR coalesce(v_payload->>'record_date','') !~ '^2026-\d{2}-\d{2}$'
+       OR coalesce(v_payload->>'record_date','') !~ '^\d{4}-\d{2}-\d{2}$'
        OR coalesce(v_core->>'unit_name','')<>'Instalasi Rawat Jalan'
        OR coalesce(v_core->>'room_id','')<>'11'
        OR coalesce(v_core->>'measurement_grain','')<>'provider_day'
@@ -53,8 +56,8 @@ BEGIN
     END IF;
     BEGIN v_date:=(v_payload->>'record_date')::date;
     EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Tanggal pengamatan tidak valid.' USING ERRCODE='22007'; END;
-    IF v_date::text<>v_payload->>'record_date' OR extract(year FROM v_date)<>2026 THEN
-      RAISE EXCEPTION 'Tanggal pengamatan tidak konsisten dengan profil tahun 2026.' USING ERRCODE='22007';
+    IF v_date::text<>v_payload->>'record_date' OR extract(year FROM v_date)<>v_year THEN
+      RAISE EXCEPTION 'Tanggal pengamatan tidak konsisten dengan tahun profil.' USING ERRCODE='22007';
     END IF;
     IF coalesce(v_form->>'Tanggal pengamatan','')<>v_date::text
        OR coalesce(v_payload->>'subject_key','') NOT LIKE 'excel-pmkp-rawat-jalan-2026:%'
@@ -72,13 +75,13 @@ BEGIN
   END LOOP;
 
   FOR v_row IN SELECT value FROM jsonb_array_elements(p_rows) LOOP
-    v_payload:=v_row->'payload'; v_key:=v_payload->>'subject_key';
+    v_payload:=v_row->'payload'; v_key:=v_payload->>'subject_key'; v_year:=(v_payload->>'profile_year')::integer;
     SELECT count(*) INTO v_rows_written FROM aureka_quality.quality_records
-      WHERE room_id=11 AND profile_year=2026 AND measurement_grain='provider_day'
+      WHERE room_id=11 AND profile_year=v_year AND measurement_grain='provider_day'
         AND subject_key=v_key AND status<>'archived';
     IF v_rows_written>0 THEN v_existing:=v_existing+1; CONTINUE; END IF;
     INSERT INTO aureka_quality.quality_records(room_id,profile_year,measurement_grain,record_date,subject_key,subject_json,core_data,status,review_required,entered_by)
-    VALUES(11,2026,'provider_day',(v_payload->>'record_date')::date,v_key,
+    VALUES(11,v_year,'provider_day',(v_payload->>'record_date')::date,v_key,
       coalesce(v_payload->'subject_json','{}'::jsonb),coalesce(v_payload->'core_data','{}'::jsonb),
       'ready',true,v_user_id);
     v_inserted:=v_inserted+1;
@@ -92,5 +95,5 @@ GRANT EXECUTE ON FUNCTION aureka_quality.import_outpatient_logbook_batch(jsonb) 
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_quality_records_outpatient_provider_day_excel_2026
 ON aureka_quality.quality_records(room_id,profile_year,measurement_grain,subject_key)
-WHERE room_id=11 AND profile_year=2026 AND measurement_grain='provider_day'
+WHERE room_id=11 AND profile_year>=2026 AND measurement_grain='provider_day'
 AND status<>'archived' AND subject_key LIKE 'excel-pmkp-rawat-jalan-2026:%';
