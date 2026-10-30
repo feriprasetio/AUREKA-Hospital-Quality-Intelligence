@@ -95,7 +95,7 @@ const SectionError = ({ error }: { error: string }) => (
 )
 
 export default function OverviewDashboard({
-  supabase, role, roomId, roomName, manager, userName, dashboardView, onDashboardViewChange, onNavigate,
+  supabase, role, roomId, roomName, manager, userName, onNavigate,
 }: {
   supabase: SupabaseClient
   role: string | null
@@ -103,8 +103,6 @@ export default function OverviewDashboard({
   roomName: string | null
   manager: boolean
   userName: string
-  dashboardView: 'operational' | 'executive'
-  onDashboardViewChange: (view: 'operational' | 'executive') => void
   onNavigate: NavigateFn
 }) {
   const [loading, setLoading] = useState(true)
@@ -219,13 +217,11 @@ export default function OverviewDashboard({
     <div className="ovRoot">
       <section className="ovHero">
         <div className="ovHeroCopy">
-          <span className="ovEyebrow">{dashboardView === 'executive' ? 'HOSPITAL QUALITY INTELLIGENCE' : 'AUREKA · PMKP WORKSPACE'}</span>
-          <h3>{dashboardView === 'executive' ? 'Executive Hospital Dashboard' : `Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}</h3>
-          <p>{dashboardView === 'executive'
-            ? 'Ikhtisar eksekutif mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
-            : manager
-              ? 'Pantau indikator mutu, keselamatan pasien, Clinical Pathway, serta risiko prioritas dalam satu ruang kendali.'
-              : `Ruang kerja mutu untuk ${roomName || 'unit Anda'} · input dan tindak lanjut sesuai hak akses.`}</p>
+          <span className="ovEyebrow">'AUREKA · PMKP WORKSPACE'</span>
+          <h3>{`Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}</h3>
+          <p>{manager
+            ? 'Ringkasan terpadu indikator mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
+            : `Ruang kerja mutu untuk ${roomName || 'unit Anda'} · input dan tindak lanjut sesuai hak akses.`}</p>
         </div>
         <div className="ovHeroMeta">
           <span className="ovHeroDate">{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Pontianak' }).format(new Date())}</span>
@@ -245,16 +241,7 @@ export default function OverviewDashboard({
       </section>
       <p className="ovScopeNote">Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan; risiko dihitung dari register yang dapat diakses; IKP perlu tindak lanjut menghitung laporan yang belum ditutup tanpa batasan tahun. Ini bukan satu periode filter yang diterapkan ke seluruh modul.</p>
 
-      {manager && <div className="ovDashboardTabs" role="tablist" aria-label="Pilihan dashboard">
-        <button type="button" role="tab" aria-selected={dashboardView === 'operational'} className={dashboardView === 'operational' ? 'active' : ''} onClick={() => onDashboardViewChange('operational')}>
-          <span className="ovDashboardTabIcon" aria-hidden="true">▦</span><span><b>Dashboard 1</b><small>Operasional PMKP</small></span>
-        </button>
-        <button type="button" role="tab" aria-selected={dashboardView === 'executive'} className={dashboardView === 'executive' ? 'active' : ''} onClick={() => onDashboardViewChange('executive')}>
-          <span className="ovDashboardTabIcon" aria-hidden="true">▥</span><span><b>Dashboard 2</b><small>Eksekutif rumah sakit</small></span>
-        </button>
-      </div>}
-
-      {dashboardView === 'operational' ? <>
+      <>
       <div className="ovKpis">
         <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
         <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
@@ -360,13 +347,7 @@ export default function OverviewDashboard({
         </Panel>}
       </div>
       <p className="ovFoot">Angka dihitung langsung dari database AUREKA sesuai hak akses {role === 'ADMIN' ? 'Super Admin' : 'akun Anda'}. Klik kartu, baris, atau sel peta untuk langsung membuka datanya.</p>
-      </> : <section className="ovExecutive" aria-label="Dashboard eksekutif rumah sakit">
-        <div className="ovKpis ovExecutiveKpis">
-          <Kpi delay={0} loading={loading} label="Episode indikator mutu" value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Sumber tidak tersedia' : stats.qualityReview + ' memerlukan review'} onClick={() => onNavigate('quality')} />
-          <Kpi delay={60} loading={loading} label="Audit Clinical Pathway" value={clinicalPathway.error ? null : stats.cpAuditTotal} sub={clinicalPathway.error ? 'Sumber tidak tersedia' : stats.cpReviewedTotal + ' sudah disubmit / divalidasi'} onClick={() => onNavigate('quality')} />
-          <Kpi delay={120} loading={loading} tone="warn" label="IKP belum ditutup" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.error ? 'Sumber tidak tersedia' : 'Memerlukan pemantauan tindak lanjut'} onClick={() => onNavigate('safety')} />
-          <Kpi delay={180} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.error ? 'Sumber tidak tersedia' : stats.overdueHigh + ' melewati target RTP'} onClick={() => onNavigate('risk')} />
-        </div>
+      </> {manager && <section className="ovExecutive" aria-label="Ringkasan manajemen terpadu">
         <div className="ovExecGrid">
           <Panel delay={120} eyebrow="EARLY WARNING" title="Peringatan prioritas manajemen">
             <div className="ovExecutiveAlerts">
@@ -396,14 +377,6 @@ export default function OverviewDashboard({
                 <div className="ovExecMetric"><span>Lulus komponen Section D</span><b>{stats.cpEligibleTotal ? stats.cpSectionDPass.toLocaleString('id-ID') + ' / ' + stats.cpEligibleTotal.toLocaleString('id-ID') : '—'}</b></div>
               </div>}
           </Panel>
-          <Panel delay={300} eyebrow="MANAJEMEN RISIKO" title="Distribusi level risiko">
-            {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> :
-              <div className="ovBars" role="list">
-                {LEVELS.map((level, idx) => { const count = stats.byLevel[level] || 0; return <button type="button" key={level} className={'ovBarRow ovClickable'} role="listitem" disabled={!count} onClick={() => onNavigate('risk', { level })}>
-                  <span className={'rmBadge ' + LEVEL_CLASS[level]}>{level}</span><div className="ovBarTrack"><div className={'ovBarFill lvl-' + LEVEL_CLASS[level]} style={{ width: ((count / maxLevel) * 100) + '%' }}/></div><b>{count.toLocaleString('id-ID')}</b>
-                </button>})}
-              </div>}
-          </Panel>
           <Panel delay={360} eyebrow="PENGENDALIAN" title="Status rencana tindak pengendalian">
             {plans.error ? <SectionError error={plans.error} /> : loading ? <div className="ovSkeletonBlock" /> :
               <div className="ovExecRtp">
@@ -418,7 +391,7 @@ export default function OverviewDashboard({
               <div className="ovBars" role="list">{stats.topUnits.map(([unit, count]) => <button type="button" key={unit} className="ovBarRow ovClickable" role="listitem" onClick={() => onNavigate('risk', { unitName: unit })}><span className="ovUnitName">{unit}</span><div className="ovBarTrack"><div className="ovBarFill lvl-accent" style={{ width: ((count / stats.topUnits[0][1]) * 100) + '%' }}/></div><b>{count}</b></button>)}</div>}
           </Panel>
         </div>
-        <p className="ovFoot">Dashboard eksekutif menyajikan agregat dari sumber yang berhasil dibaca. Angka lintas-modul tidak boleh ditafsirkan sebagai satu skor mutu rumah sakit atau sebagai indikator nasional yang telah tervalidasi.</p>
+        <p className="ovFoot">Bagian ringkasan manajemen melengkapi panel operasional pada halaman yang sama; setiap angka tetap mengikuti cakupan sumber dan hak akses. Angka lintas-modul tidak boleh ditafsirkan sebagai satu skor mutu rumah sakit atau sebagai indikator nasional yang telah tervalidasi.</p>
       </section>}
     </div>
   )
