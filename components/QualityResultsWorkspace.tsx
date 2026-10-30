@@ -273,8 +273,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     const candidates = mode === 'indicators'
       ? indicatorResults.map((result) => result.latestInputAt)
       : mode === 'pathway'
-        ? pathwayData.map((row) => row.updated_at ?? row.created_at ?? null)
-        : clinicalData.map((row) => String(row.updated_at ?? row.created_at ?? '') || null)
+        ? pathwayData.map((row) => row.created_at ?? row.updated_at ?? null)
+        : clinicalData.map((row) => String(row.created_at ?? row.updated_at ?? '') || null)
     return candidates.filter((value): value is string => !!value).sort().at(-1) ?? null
   }, [mode, indicatorResults, pathwayData, clinicalData])
 
