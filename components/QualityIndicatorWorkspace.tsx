@@ -577,8 +577,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const roomOk=roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId))
    const monthOk=!monthFilter||mon(p.admit)===monthFilter
    const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit} ${JSON.stringify(p.formData??{})}`.toLowerCase()
-   return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&statusOk&&hay.includes(search.toLowerCase().trim())
- }),[patients,year,roomId,roomMap,monthFilter,status,search,activeLayout])
+   return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&hay.includes(search.toLowerCase().trim())
+ }),[patients,year,roomId,roomMap,monthFilter,search])
  const yearPatients=useMemo(()=>patients.filter(p=>!p.excludeFromYearMetrics&&(ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
  const unmatchedIndicatorHeaders=useMemo(()=>unmatchedHeaders(profiles,activeLayout),[profiles,activeLayout])
  const selectedUnmatchedHeaders=useMemo(()=>unmatchedHeaders(profiles,selectedLayout),[profiles,selectedLayout])
@@ -919,7 +919,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
       <div className="aqSection"><h5>Indikator mutu (header hijau)</h5><span>{filledN} dari {applicable.length} terisi</span></div>
       {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Layout Excel untuk unit ini belum mencantumkan header indikator berwarna hijau.</div>}
       {applicable.map(indicatorEditor)}{selectedUnmatchedHeaders.map((header,i)=><article className="aqInd" key={`unmapped-${selected.roomId}-${i}-${header}`}><div className="aqIHead"><div><strong>{header}</strong><div className="aqMetaText">Header hijau dari Header Aureka.xlsx · indikator belum terpetakan ke master aktif</div></div></div><div className="aqIBody"><div className="aqNotice">Profil ini belum memiliki pasangan aktif dengan target dan definisi operasional yang tervalidasi. Isian angka/hasil indikator belum diaktifkan agar tidak menghasilkan perhitungan mutu yang keliru.</div></div></article>)}{!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator hijau pada layout unit ini.</div>}
-    </div><div className="aqFoot"><span style={{fontSize:11,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Validasi dilakukan dari daftar logbook setelah memeriksa data.':`${source} · Laporan disimpan sebagai final dan tetap dapat diedit PIC sampai diarsipkan.`}</span><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="aqBtn" disabled={busy} onClick={()=>setPatientOpen(false)}>Batal</button>{!isValidator&&<><button type="button" className="aqBtn" onClick={()=>void save()} disabled={busy}>{busy?'Menyimpan…':'Simpan Laporan'}</button><button type="button" className="aqBtn primary"  disabled={busy}>{busy?'Melaporkan…':'Laporkan'}</button></>}</div></div></section>:null
+    </div><div className="aqFoot"><span style={{fontSize:11,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Gunakan pemeriksaan laporan bulanan untuk mencatat seluruh pemeriksaan.':`${source} · Laporan disimpan sebagai final dan tetap dapat diedit PIC sampai diarsipkan.`}</span><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="aqBtn" disabled={busy} onClick={()=>setPatientOpen(false)}>Batal</button>{!isValidator&&<><button type="button" className="aqBtn" onClick={()=>void save()} disabled={busy}>{busy?'Menyimpan…':'Simpan Laporan'}</button></>}</div></div></section>:null
 
   return <div className="aq">
    <style dangerouslySetInnerHTML={{__html:CSS}}/>
