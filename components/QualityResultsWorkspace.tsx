@@ -85,6 +85,7 @@ function indicatorMonthlyLabel(result: ReturnType<typeof calculateIndicatorResul
 }
 
 function attainmentCaption(result: ReturnType<typeof calculateIndicatorResult>): string {
+  if (result.validatedRecords === 0) return 'Belum ada data tervalidasi'
   if (result.continuous) {
     return result.annualTargetAttainment == null
       ? 'Rerata pengukuran; target per observasi belum dapat dihitung'
@@ -204,14 +205,21 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         setCapped(result.capped)
       } else {
         const result = await readPaged<ClinicalDeathAuditResultRow>((from, to) => q().from('clinical_death_audits')
-          .select('room_id,audit_type,review_period,review_json,overall_care_score,care_issue_identified,contribution_to_outcome,avoidability_score,status,created_at,updated_at,validated_at')
+          .select('room_id,audit_type,review_period,review_phases:review_json->phases,review_recommended_actions:review_json->>recommended_actions,review_learning_points:review_json->>learning_points,overall_care_score,care_issue_identified,contribution_to_outcome,avoidability_score,status,created_at,updated_at,validated_at')
           .eq('room_id', selectedRoom)
           .eq('review_period', String(year))
           .neq('status', 'archived')
           .order('updated_at', { ascending: false })
           .range(from, to))
         if (cancelled) return
-        setClinicalData(result.rows)
+        setClinicalData(result.rows.map((row) => ({
+          ...row,
+          review_json: {
+            phases: row.review_phases ?? {},
+            recommended_actions: row.review_recommended_actions ?? '',
+            learning_points: row.review_learning_points ?? '',
+          },
+        })))
         setCapped(result.capped)
       }
     }
