@@ -318,6 +318,13 @@ function normalizeRoomIdValue(value:unknown):number|null{
  const parsed=Number(raw)
  return Number.isSafeInteger(parsed)&&parsed>0?parsed:null
 }
+function defaultAuditRoomId(rooms:Room[],initialRoomId:number|null,isAdmin:boolean):number|null{
+ if(isAdmin){
+  const firstQualityRoom=rooms.find(room=>/informasi\s+dan\s+pengaduan/i.test(String(room.name??'')))
+  return normalizeRoomIdValue(firstQualityRoom?.id)??normalizeRoomIdValue(rooms[0]?.id)
+ }
+ return normalizeRoomIdValue(initialRoomId)??normalizeRoomIdValue(rooms[0]?.id)
+}
 function statusLabel(status:unknown){
  const s=String(status??'')
  if(s==='ready'||s==='Ready for Review')return'Siap ditinjau'
@@ -330,8 +337,14 @@ function statusLabel(status:unknown){
 export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,isValidator=false,canViewAllRooms=false,initialContainer,showContainerTabs=true}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean;isValidator?:boolean;canViewAllRooms?:boolean;initialContainer?:(typeof CONTAINERS)[number];showContainerTabs?:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(initialContainer&&CONTAINERS.includes(initialContainer)?initialContainer:CONTAINERS[0])
  const [year,setYear]=useState(2026)
- const [roomId,setRoomId]=useState<number|null>(()=>normalizeRoomIdValue(initialRoomId)??(isAdmin?null:normalizeRoomIdValue(rooms[0]?.id)))
+ const [roomId,setRoomId]=useState<number|null>(()=>defaultAuditRoomId(rooms,initialRoomId,isAdmin))
  const canImportWorkbook=isAdmin||canViewAllRooms
+ useEffect(()=>{
+  if(roomId==null&&rooms.length){
+   const initial=defaultAuditRoomId(rooms,initialRoomId,isAdmin)
+   if(initial!=null)setRoomId(initial)
+  }
+ },[roomId,rooms,initialRoomId,isAdmin])
  const [monthFilter,setMonthFilter]=useState(0)
  const [status,setStatus]=useState('Semua')
  const [search,setSearch]=useState('')
@@ -447,8 +460,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    // Remove legacy PHI caches without reading or restoring their contents.
    if(typeof window!=='undefined'){try{window.localStorage.removeItem('aureka-quality-episode-cache-v3');window.localStorage.removeItem('aureka-quality-audit-v3')}catch{}}
    try{
-     let pq=q().from('indicator_profiles').select('*').eq('profile_year',year).eq('status','published').eq('is_active',true).order('code')
-     if(roomId!=null) pq=pq.eq('room_id',roomId)
+     if(roomId==null){setProfiles([]);setStaffOptions([]);setPatients([]);setSource('Unit belum dipilih');setMessage('Unit kerja belum tersedia. Pilih unit pertama yang tersedia sebelum membuka logbook.');return}
+     let pq=q().from('indicator_profiles').select('*').eq('room_id',roomId).eq('profile_year',year).eq('status','published').eq('is_active',true).order('code')
      const {data:pd,error:pe}=await pq
      if(pe) throw pe
      setProfiles(pd??[])
@@ -457,7 +470,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        .select('staff_id,room_id')
        .eq('assignment_status','active')
      if(assignmentError) throw assignmentError
-     const assignedPairs=(assignmentRows??[]).filter((a:any)=>roomId==null||Number(a.room_id)===Number(roomId))
+     const assignedPairs=(assignmentRows??[]).filter((a:any)=>Number(a.room_id)===Number(roomId))
      const roomByStaff=new Map<string,number>(assignedPairs.map((a:any)=>[String(a.staff_id),Number(a.room_id)]))
      const assignedStaffIds=Array.from(roomByStaff.keys())
      const staffRows:TeamStaffOption[]=[]
@@ -475,8 +488,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      const rows:any[]=[]
      let from=0
      while(true){
-       let rq=q().from('quality_records').select('*').eq('profile_year',year).order('created_at',{ascending:false}).range(from,from+499)
-       if(roomId!=null) rq=rq.eq('room_id',roomId)
+       let rq=q().from('quality_records').select('*').eq('room_id',roomId).eq('profile_year',year).order('created_at',{ascending:false}).range(from,from+499)
        const {data,error}=await rq
        if(error) throw error
        rows.push(...(data??[]))
@@ -823,7 +835,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    <style dangerouslySetInnerHTML={{__html:CSS}}/>
    {showContainerTabs&&<nav className="glass aqTabs">{CONTAINERS.map(x=><button key={x} className={`aqTab ${container===x?'active':''}`} onClick={()=>setContainer(x)}>{x}</button>)}</nav>}
    {container==='Audit Klinis dan Kematian'?<ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator}/>:<>
-     <section className="glass aqFilters"><div className="aqGrid"><label className="aqField"><span>Unit</span><select aria-label="Unit" title="Unit" value={roomId??''} disabled={!isAdmin} onChange={(e:any)=>setRoomId(e.target.value?Number(e.target.value):null)}>{isAdmin&&<option value="">Semua Unit</option>}{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><label className="aqField"><span>Tahun</span><select aria-label="Tahun" title="Tahun" value={year} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label><label className="aqField"><span>Status</span><select aria-label="Status" title="Status catatan" value={status} onChange={(e:any)=>setStatus(e.target.value)}>{STATUS.map(s=><option key={s} value={s}>{s==='Aktif'?(activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Aktif (belum pulang)':'Aktif / belum selesai'):s==='Draft'?'Draf':s==='Ready for Review'?'Siap ditinjau':s==='Validated'?'Tervalidasi':s}</option>)}</select></label><label className="aqField aqLocalSearch"><span>Pencarian</span><input value={search} onChange={(e:any)=>setSearch(e.target.value)} placeholder="Nama / No. RM / diagnosis / DPJP…"/></label><label className="aqField aqMonthSelect"><span>Bulan Pengamatan</span><select aria-label="Bulan pengamatan" title="Bulan pengamatan" value={monthFilter} onChange={(e:any)=>setMonthFilter(Number(e.target.value))}><option value={0}>Semua bulan</option>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select></label></div></section>
+     <section className="glass aqFilters"><div className="aqGrid"><label className="aqField"><span>Unit</span><select aria-label="Unit" title="Unit" value={roomId??''} disabled={!isAdmin||!rooms.length} onChange={(e:any)=>{const next=normalizeRoomIdValue(e.target.value);if(next!=null)setRoomId(next)}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><label className="aqField"><span>Tahun</span><select aria-label="Tahun" title="Tahun" value={year} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label><label className="aqField"><span>Status</span><select aria-label="Status" title="Status catatan" value={status} onChange={(e:any)=>setStatus(e.target.value)}>{STATUS.map(s=><option key={s} value={s}>{s==='Aktif'?(activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Aktif (belum pulang)':'Aktif / belum selesai'):s==='Draft'?'Draf':s==='Ready for Review'?'Siap ditinjau':s==='Validated'?'Tervalidasi':s}</option>)}</select></label><label className="aqField aqLocalSearch"><span>Pencarian</span><input value={search} onChange={(e:any)=>setSearch(e.target.value)} placeholder="Nama / No. RM / diagnosis / DPJP…"/></label><label className="aqField aqMonthSelect"><span>Bulan Pengamatan</span><select aria-label="Bulan pengamatan" title="Bulan pengamatan" value={monthFilter} onChange={(e:any)=>setMonthFilter(Number(e.target.value))}><option value={0}>Semua bulan</option>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select></label></div></section>
       {complaintMetricSummary&&<><style>{`.aqComplaintKpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.aqComplaintKpi .glass{padding:14px 16px;min-width:0}.aqComplaintKpi span{font-size:10px;color:#6c7a73;font-weight:900}.aqComplaintKpi strong{display:block;font-size:23px;margin-top:5px;overflow-wrap:anywhere}.aqComplaintKpi small{font-size:10px;color:var(--muted)}@media(max-width:850px){.aqComplaintKpi{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.aqComplaintKpi{grid-template-columns:1fr}}`}</style><section className="aqComplaintKpi" aria-label="Ringkasan indikator pengaduan"><div className="glass"><span>Total aduan</span><strong>{complaintMetricSummary.records}</strong><small>{monthFilter?MONTHS[monthFilter-1]+' ':''}tahun {year}</small></div><div className="glass"><span>Respon tepat waktu</span><strong>{complaintMetricSummary.response.rate==null?'—':complaintMetricSummary.response.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.response.numerator}/{complaintMetricSummary.response.denominator} · target ≥ 75%; denominator tahun {year}</small></div><div className="glass"><span>Pasien tidak mengerti informasi</span><strong>{complaintMetricSummary.comprehension.rate==null?'—':complaintMetricSummary.comprehension.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.comprehension.numerator}/{complaintMetricSummary.comprehension.denominator} · target ≤ 5%; denominator tahun {year}</small></div><div className="glass"><span>Rata-rata tindak lanjut</span><strong>{complaintMetricSummary.avgDuration==null?'—':complaintMetricSummary.avgDuration.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+' hari'}</strong><small>{complaintMetricSummary.durationN} aduan bertanggal lengkap</small></div></section></>}
       {pharmacyMetricSummary&&<><style>{'.aqPharmacySummary{margin-bottom:10px}.aqPharmacySummary .aqTableHead{padding:12px 16px}.aqPharmacySummary .aqWrap{max-height:none}.aqPharmacySummary table{min-width:1050px}.aqPharmacySummary td strong{display:block;font-size:11px}.aqPharmacySummary td small{display:block;font-size:9px;color:var(--muted);margin-top:3px}.aqPharmacySummary .aqStatus{display:inline-block;white-space:nowrap}@media(max-width:850px){.aqPharmacySummary table{min-width:950px}}'}</style><section className="glass aqTable aqPharmacySummary"><div className="aqTableHead"><div><h4>Rekap harian Instalasi Farmasi</h4><p>{pharmacyMetricSummary.periodLabel} · Gabungan Rawat Jalan + Rawat Inap · {pharmacyMetricSummary.records} catatan terkirim ({pharmacyMetricSummary.ready} siap ditinjau, {pharmacyMetricSummary.validated} tervalidasi)</p></div><span className="aqPill green">Σ N / Σ D</span></div><div className="aqWrap"><table className="aqData"><thead><tr><th>Indikator</th><th>Rawat Jalan · Data sumber (N/D)</th><th>Hasil</th><th>Rawat Inap · Data sumber (N/D)</th><th>Hasil</th><th>Gabungan · Data sumber (N/D)</th><th>Hasil gabungan</th><th>Target master</th><th>Interpretasi</th></tr></thead><tbody>{pharmacyMetricSummary.metrics.map(item=>{const showCounts=(aggregate:any)=>{if(aggregate.denominator<=0)return'—';const sourceN=item.code==='5.3'?aggregate.noncompliant:aggregate.numerator;return Number(sourceN).toLocaleString('id-ID')+' / '+Number(aggregate.denominator).toLocaleString('id-ID')};const showRate=(aggregate:any)=>aggregate.rate==null?'—':aggregate.rate.toFixed(2)+'%';const statusText=item.combined.rate==null?'Belum ada data':item.meets==null?'Target belum dapat dinilai':item.meets?'Memenuhi target':'Belum memenuhi target';return <tr key={item.code}><td><strong>{item.title}</strong><small>{item.code==='5.3'?'Data sumber: jumlah obat tidak berlabel; hasil adalah kepatuhan terkonversi.':''}</small></td><td>{showCounts(item.outpatient)}</td><td>{showRate(item.outpatient)}</td><td>{showCounts(item.inpatient)}</td><td>{showRate(item.inpatient)}</td><td><strong>{showCounts(item.combined)}</strong></td><td><strong>{showRate(item.combined)}</strong></td><td>{item.profile?.target_text??'—'}{item.code==='5.2'&&<small>Workbook: ≤ 5%</small>}</td><td><span className={'aqStatus '+(item.combined.rate==null?'':item.meets?'validated':'ready-for-review')}>{statusText}</span></td></tr>})}</tbody></table></div><div className="aqNotice">Rasio gabungan dihitung dari (N Rawat Jalan + N Rawat Inap) ÷ (D Rawat Jalan + D Rawat Inap) × 100%, bukan rata-rata dua persentase. Untuk 5.3, hasil kepatuhan dihitung sebagai (total sampel − obat tidak berlabel) ÷ total sampel; sumber workbook belum mencatat sampel LASA.</div><div className="aqNotice">Perbedaan target 5.2 perlu keputusan pemilik indikator: workbook menetapkan ≤ 5%, sedangkan master AUREKA aktif saat ini menetapkan ≤ 20%. Sistem tetap memakai target master ≤ 20% dan tidak mengubah target tanpa persetujuan.</div><div className="aqNotice">Indikator 5.1 Dead Stock/Stagnan tidak dimasukkan ke dua alur harian ini karena merupakan pengukuran stock opname gudang; perlu logbook stok terpisah dengan periode dan denominator stok yang sesuai.</div></section></>}
       <div className="aqDataBar" aria-label="Ringkasan logbook">
