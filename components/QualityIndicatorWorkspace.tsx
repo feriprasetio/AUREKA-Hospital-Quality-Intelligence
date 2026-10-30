@@ -630,7 +630,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
  const setStaffNameValue=(field:string,name:string)=>{
     const normalized=String(name??'').trim()
-    const staff=staffOptionsForField(field).find(item=>item.display_name.trim()===normalized)
+    const nameKey=(value:string)=>value.normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase('id-ID')
+    const staff=staffOptionsForField(field).find(item=>nameKey(item.display_name)===nameKey(normalized))
     setSelected((p:any)=>{
       if(!p)return p
       const formData={...(p.formData??{}),[field]:staff?.display_name??normalized}
@@ -823,16 +824,26 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const staffField=isStaffNameField(field)&&kindNow!=='computed'
    const staffCandidates=staffField?staffOptionsForField(field):[]
    const selectedStaffId=String(selected?.staffIdByField?.[field]??'')
+   const workbookStaffChoices=selectedLayout?.fieldOptions?.[field]??[]
+   const nameKey=(value:string)=>value.normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase('id-ID')
+   const staffSelectChoices=staffField?[
+     ...staffCandidates.map(staff=>({key:'staff:'+staff.id,name:staff.display_name,staffId:staff.id,label:staff.display_name+' — '+staff.employee_code+' · '+staff.profession_group})),
+     ...workbookStaffChoices.filter(name=>!staffCandidates.some(staff=>nameKey(staff.display_name)===nameKey(name))).map((name,index)=>({key:'workbook:'+index,name,staffId:null as string|null,label:name})),
+   ]:[]
+   if(staffField&&String(raw??'').trim()&&!staffSelectChoices.some(choice=>nameKey(choice.name)===nameKey(String(raw))))staffSelectChoices.push({key:'legacy:'+nameKey(String(raw)),name:String(raw),staffId:null,label:String(raw)+' · nilai tersimpan'})
+   const activeStaffChoice=selectedStaffId&&staffCandidates.some(staff=>staff.id===selectedStaffId)
+     ? 'staff:'+selectedStaffId
+     : staffSelectChoices.find(choice=>nameKey(choice.name)===nameKey(String(raw??'')))?.key??''
    return <label key={field+'-'+i} className="aqField" style={wide?{gridColumn:'1/-1'}:undefined}>
      <span>{field}{kindNow==='computed'?' · otomatis':''}{staffField?' · direktori AUREKA':''}</span>
      {kindNow==='computed'
        ? <div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?String(raw)+' hari':normHeader(field)==='lamanya tindak lanjut'?String(raw)+' hari':normHeader(field)==='kecepatan respon menit'?String(raw)+' menit':String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>
        : staffField
-         ? <><select disabled={isValidator} value={selectedStaffId} onChange={(e:any)=>setStaffField(field,e.target.value)}>
-             <option value="">{selectedStaffId?'Identitas belum tersedia di roster unit':'Pilih tenaga yang terkunci pada tim ini…'}</option>
-             {staffCandidates.map((staff)=><option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+         ? <><select disabled={isValidator} value={activeStaffChoice} onChange={(e:any)=>{const choice=staffSelectChoices.find(item=>item.key===e.target.value);if(!choice){setStaffNameValue(field,'');return}if(choice.staffId)setStaffField(field,choice.staffId);else setStaffNameValue(field,choice.name)}}>
+             <option value="">Pilih tenaga atau nilai dari workbook…</option>
+             {staffSelectChoices.map(choice=><option key={choice.key} value={choice.key}>{choice.label}</option>)}
            </select>
-           <small className="aqMetaText">{selectedStaffId?'Identitas terhubung ke staff_id AUREKA.':raw?'Catatan lama: '+String(raw)+'. Pilih identitas kanonik untuk mengikat nama ke direktori.':staffCandidates.length?'Nama hanya dapat dipilih dari roster unit yang terkunci.':'Belum ada anggota roster yang cocok pada unit ini; tetapkan tenaga melalui area Tenaga Klinis.'}</small></>
+           <small className="aqMetaText">{selectedStaffId&&staffCandidates.some(staff=>staff.id===selectedStaffId)?'Identitas terhubung ke staff_id AUREKA.':workbookStaffChoices.length?'Daftar mencakup pilihan asli workbook; nama yang cocok dengan roster unit akan dihubungkan ke direktori AUREKA.':'Nama dapat dipilih dari roster tenaga klinis unit.'}</small></>
          : kindNow==='textarea'
            ? <textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
            : kindNow==='select'&&normHeader(field)==='klinik'
