@@ -1,5 +1,5 @@
 export const DEFAULT_IMPORT_BATCH_SIZE = 20
-export const MIN_IMPORT_BATCH_SIZE = 5
+export const MIN_IMPORT_BATCH_SIZE = 1
 
 /** Detect PostgreSQL statement_timeout errors returned by PostgREST/Supabase RPC. */
 export function isStatementTimeout(error: unknown): boolean {
