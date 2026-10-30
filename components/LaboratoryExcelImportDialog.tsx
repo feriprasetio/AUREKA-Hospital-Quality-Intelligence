@@ -226,8 +226,8 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
     admission_at: row.requestedAt,
     unit_name: 'Instalasi Laboratorium',
     room_id: 9,
-    status: 'Ready for Review',
-    workflow_status: 'Ready for Review',
+    status: 'Dilaporkan',
+    workflow_status: 'Dilaporkan',
     form_fields: formFields,
     calculated_fields: { 'Waktu Tunggu (Menit)': row.waitMinutes },
     indicator_values: indicatorValues,
@@ -245,7 +245,7 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
       subject_json: { source_import: sourceImport },
       core_data: core,
       status: 'ready',
-      review_required: true,
+      review_required: false,
       entered_by: userId,
     },
     responses,
@@ -610,7 +610,7 @@ export default function LaboratoryExcelImportDialog({
             <h4 id="aqLaboratoryImportTitle">Unggah workbook Instalasi Laboratorium</h4>
             <p>Profil 2026 · 5 indikator · satu event laboratorium per baris Logbook</p>
           </div>
-          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
+          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Batal">×</button>
         </div>
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke Instalasi Laboratorium.</div>}
@@ -672,7 +672,7 @@ export default function LaboratoryExcelImportDialog({
         <div className="aqFoot">
           <span style={{ fontSize: 11, color: 'var(--muted)' }}>Tinjau pilihan yang tidak cocok dan verifikasi setiap event sebelum validasi klinis.</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Tutup</button>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor…' : 'Impor ' + rows.length + ' event'}</button>
           </div>
         </div>

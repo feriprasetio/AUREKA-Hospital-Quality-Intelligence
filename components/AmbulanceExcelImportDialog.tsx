@@ -178,8 +178,8 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
     admission_at: row.requestDate,
     unit_name: 'Ambulance',
     room_id: 3,
-    status: 'Ready for Review',
-    workflow_status: 'Ready for Review',
+    status: 'Dilaporkan',
+    workflow_status: 'Dilaporkan',
     form_fields: formFields,
     calculated_fields: { 'Kecepatan Respon (Menit)': row.responseMinutes },
     indicator_values: { '3.1': indicatorValue },
@@ -196,7 +196,7 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
       subject_json: { source_import: sourceImport },
       core_data: core,
       status: 'ready',
-      review_required: true,
+      review_required: false,
       entered_by: userId,
     },
     responses: [{
@@ -450,7 +450,7 @@ export default function AmbulanceExcelImportDialog({
             <h4 id="aqAmbulanceImportTitle">Unggah workbook Ambulance</h4>
             <p>Unit Ambulance · profil indikator 2026</p>
           </div>
-          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
+          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Batal">×</button>
         </div>
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
@@ -507,7 +507,7 @@ export default function AmbulanceExcelImportDialog({
         <div className="aqFoot">
           <span style={{fontSize:11,color:'var(--muted)'}}>Tidak ada data yang dianggap tervalidasi otomatis.</span>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Tutup</button>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor…' : 'Impor ' + rows.length + ' catatan bertanggal'}</button>
           </div>
         </div>

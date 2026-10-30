@@ -190,8 +190,8 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
     admission_at: row.date,
     unit_name: 'Instalasi Gizi',
     room_id: 7,
-    status: 'Ready for Review',
-    workflow_status: 'Ready for Review',
+    status: 'Dilaporkan',
+    workflow_status: 'Dilaporkan',
     form_fields: formFields,
     calculated_fields: {},
     indicator_values: indicatorValues,
@@ -209,7 +209,7 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
       subject_json: { source_import: sourceImport },
       core_data: core,
       status: 'ready',
-      review_required: true,
+      review_required: false,
       entered_by: userId,
     },
     responses,
@@ -536,7 +536,7 @@ export default function GiziExcelImportDialog({
             <h4 id="aqGiziImportTitle">Unggah workbook Instalasi Gizi</h4>
             <p>Profil 2026 · 2 indikator · satu episode pasien per baris Logbook</p>
           </div>
-          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
+          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Batal">×</button>
         </div>
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke unit Instalasi Gizi.</div>}
@@ -597,7 +597,7 @@ export default function GiziExcelImportDialog({
         <div className="aqFoot">
           <span style={{ fontSize: 11, color: 'var(--muted)' }}>Verifikasi seluruh temuan sumber sebelum validasi klinis.</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Tutup</button>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor…' : 'Impor ' + rows.length + ' episode'}</button>
           </div>
         </div>

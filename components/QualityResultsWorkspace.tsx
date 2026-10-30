@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import qualityLayouts from '@/data/quality-audit-layout-2026.json'
+import { summarizeOutpatientClinics } from '@/lib/aureka/outpatient-logbook'
 import {
   aggregateClinicalDeathAudits,
   aggregateClinicalDeathByValidationMonth,
@@ -22,6 +24,7 @@ type Props = {
   initialRoomId: number | null
   rooms: Room[]
   canViewAllRooms: boolean
+  isValidator?: boolean
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
 type PathwayDataset = ClinicalPathwayRow[]
@@ -85,7 +88,7 @@ function indicatorMonthlyLabel(result: ReturnType<typeof calculateIndicatorResul
 }
 
 function attainmentCaption(result: ReturnType<typeof calculateIndicatorResult>): string {
-  if (result.validatedRecords === 0) return 'Belum ada data tervalidasi'
+  if (result.observations === 0) return 'Belum ada laporan final'
   if (result.continuous) {
     return result.annualTargetAttainment == null
       ? 'Rerata pengukuran; target per observasi belum dapat dihitung'
@@ -135,7 +138,7 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
   return { rows, capped: true }
 }
 
-export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms }: Props) {
+export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, isValidator = false }: Props) {
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
@@ -146,6 +149,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const [error, setError] = useState('')
   const [capped, setCapped] = useState(false)
   const [reload, setReload] = useState(0)
+  const [monthlyValidation, setMonthlyValidation] = useState<any | null>(null)
+  const [validatingMonth, setValidatingMonth] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -172,7 +177,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             .eq('is_active', true)
             .order('code'),
           readPaged<ResultRecord>((from, to) => q().from('quality_records')
-            .select('id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values')
+            .select('id,room_id,profile_year,record_date,status,created_at,updated_at,core_data')
             .eq('room_id', selectedRoom)
             .eq('profile_year', year)
             .neq('status', 'archived')
@@ -180,12 +185,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             .range(from, to)),
         ])
         if (profileResult.error) throw profileResult.error
-        if (recordResult.rows.length > 0) {
-          recordResult.rows = recordResult.rows.map((row: any) => ({
-            ...row,
-            core_data: { indicator_values: row.indicator_values ?? {} },
-          }))
-        }
         if (cancelled) return
         setIndicatorData({ profiles: (profileResult.data ?? []) as IndicatorProfileForResults[], rows: recordResult.rows })
         setCapped(recordResult.capped)
@@ -233,17 +232,40 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     return () => { cancelled = true }
   }, [mode, roomId, year, reload])
 
-  const indicatorResults = useMemo(() => indicatorData.profiles.map((profile) =>
+  const outpatientGroups = useMemo(() => ((qualityLayouts as any[]).find((layout) => Number(layout.roomId) === 11)?.providerGroups ?? []) as Array<{clinic:string;doctors:string[]}>, [])
+  const outpatientClinicResults = useMemo(() => {
+    if (Number(roomId) !== 11) return null
+    const finalRecords = indicatorData.rows.filter((row) => ['ready','validated'].includes(String(row.status ?? '').toLowerCase()))
+    const records = finalRecords.map((row) => ({ recordDate: row.record_date, admit: row.record_date, formData: row.core_data?.form_fields ?? {} }))
+    const all = summarizeOutpatientClinics(records, outpatientGroups, year)
+    const average = (items: typeof all) => {
+      const values = items.filter((item) => item.rosterDoctorCount > 0 && item.averageMinutes != null).map((item) => item.averageMinutes as number)
+      return values.length ? values.reduce((sum,value)=>sum+value,0)/values.length : null
+    }
+    const monthResults = Array.from({length:12},(_,index)=>{
+      const month=index+1
+      const items=summarizeOutpatientClinics(records,outpatientGroups,year,month)
+      const compliant=items.filter(item=>item.rosterDoctorCount>0&&item.averageMinutes!=null&&item.averageMinutes<60).length
+      const operational=outpatientGroups.length
+      const hasObservations=items.some(item=>item.rosterDoctorCount>0&&item.averageMinutes!=null)
+      return {month,items,compliant,operational,rate:operational&&hasObservations?(compliant/operational)*100:null,mean:average(items)}
+    })
+    const compliant=all.filter(item=>item.rosterDoctorCount>0&&item.averageMinutes!=null&&item.averageMinutes<60).length
+    const hasObservations=all.some(item=>item.rosterDoctorCount>0&&item.averageMinutes!=null)
+    return {items:all,operational:outpatientGroups.length,compliant,missing:all.filter(item=>item.rosterDoctorCount>0&&item.averageMinutes==null).length,rate:outpatientGroups.length&&hasObservations?(compliant/outpatientGroups.length)*100:null,mean:average(all),records:records.length,monthResults}
+  }, [roomId,indicatorData,year,outpatientGroups])
+  const indicatorResults = useMemo(() => indicatorData.profiles.filter(profile => !(Number(roomId)===11 && String(profile.code)==='11.1')).map((profile) =>
     calculateIndicatorResult(profile, indicatorData.rows, year),
-  ), [indicatorData, year])
+  ), [indicatorData, year, roomId])
   const assessedIndicators = indicatorResults.filter((result) => result.observations > 0 && result.targetMet != null)
-  const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
-  const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
-  const readyCount = mode === 'indicators'
-    ? indicatorData.rows.filter((row) => String(row.status).toLowerCase() === 'ready').length
+  const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length + (outpatientClinicResults?.rate!=null && outpatientClinicResults.rate >= 100 ? 1 : 0)
+  const overallDenominator = assessedIndicators.length + (outpatientClinicResults?.rate!=null ? 1 : 0)
+  const overallIndicatorAchievement = overallDenominator ? (metIndicators / overallDenominator) * 100 : null
+  const finalReportCount = mode === 'indicators'
+    ? indicatorData.rows.filter((row) => ['ready','validated'].includes(String(row.status).toLowerCase())).length
     : 0
-  const validatedCount = mode === 'indicators'
-    ? indicatorData.rows.filter((row) => String(row.status).toLowerCase() === 'validated').length
+  const temporaryCount = mode === 'indicators'
+    ? indicatorData.rows.filter((row) => String(row.status).toLowerCase() === 'draft').length
     : 0
 
   const pathway = useMemo(() => aggregateClinicalPathwayRows(pathwayData), [pathwayData])
@@ -279,8 +301,29 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }, [mode, indicatorResults, pathwayData, clinicalData])
 
   const selectedRoomName = rooms.find((room) => Number(room.id) === Number(roomId))?.name ?? 'Unit tidak diketahui'
+  const previousPeriod = (() => { const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Pontianak',year:'numeric',month:'2-digit'}).formatToParts(new Date());const cy=Number(parts.find(p=>p.type==='year')?.value),cm=Number(parts.find(p=>p.type==='month')?.value);const d=new Date(Date.UTC(cy,cm-2,1));return {year:d.getUTCFullYear(),month:d.getUTCMonth()+1} })()
+  const [monthlyValidationError, setMonthlyValidationError] = useState('')
+  const validateMonthlyReport = async () => {
+    if (!isValidator || roomId == null || validatingMonth || monthlyValidation) return
+    setValidatingMonth(true);setMonthlyValidationError('')
+    try {
+      const {data,error} = await q().rpc('validate_quality_monthly_report',{p_room_id:roomId,p_report_year:previousPeriod.year,p_report_month:previousPeriod.month})
+      if(error) throw error
+      setMonthlyValidation(data)
+    } catch (error) { setMonthlyValidationError(error instanceof Error ? error.message : 'Validasi laporan bulanan gagal.') }
+    finally { setValidatingMonth(false) }
+  }
+  useEffect(() => {
+    let cancelled=false
+    setMonthlyValidation(null);setMonthlyValidationError('')
+    if(!isValidator||roomId==null)return
+    void q().from('monthly_report_validations').select('*').eq('room_id',roomId).eq('report_year',previousPeriod.year).eq('report_month',previousPeriod.month).maybeSingle()
+      .then(({data,error})=>{if(cancelled)return;if(error)setMonthlyValidationError(error.message);else setMonthlyValidation(data)})
+    return ()=>{cancelled=true}
+  },[isValidator,roomId,reload,previousPeriod.year,previousPeriod.month])
 
   const pageCss = `
+    .qraValidation{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:14px}.qraValidation strong{font-size:12px}.qraValidation p{margin:3px 0 0;color:var(--muted);font-size:9px;line-height:1.5}.qraValidationMeta{font-size:9px;color:var(--muted)}.qraValidationBtn{border:0;border-radius:9px;padding:10px 15px;background:var(--accent2);color:#fff;font-size:10px;font-weight:850;cursor:pointer}.qraValidationBtn:disabled{opacity:.5;cursor:not-allowed}.qraValidationDone{padding:7px 10px;border-radius:8px;background:#e9f6ee;color:#216b49;font-size:10px;font-weight:850}
     .qra{display:grid;gap:14px;color:var(--ink)}
     .qraHero,.qraPanel{background:var(--surface,#fff);border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 3px rgba(18,47,34,.045)}
     .qraHero{padding:18px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
@@ -358,8 +401,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         <p>{mode === 'indicators'
           ? 'Analisis capaian indikator per bulan, hasil kumulatif tahunan, status target, keterkinian input, dan kelengkapan data untuk satu unit kerja.'
           : mode === 'pathway'
-            ? 'Analisis kelengkapan dan kepatuhan Clinical Pathway pada episode yang telah tervalidasi, dengan denominator sel yang benar-benar dijadwalkan dan dinilai.'
-            : 'Analisis hasil telaah klinis dan kematian. Distribusi serta median skor hanya dihitung dari telaah tervalidasi; data pasien tidak ditampilkan pada laporan.'}</p>
+            ? 'Analisis kelengkapan dan kepatuhan Clinical Pathway pada seluruh laporan final PIC, dengan denominator sel yang benar-benar dijadwalkan dan dinilai.'
+            : 'Analisis hasil telaah klinis dan kematian. Distribusi serta median skor dihitung dari laporan final PIC; data pasien tidak ditampilkan pada laporan.'}</p>
       </div>
       <div className="qraActions">
         <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms} onChange={(event) => setRoomId(normalizeRoom(event.target.value))}>
@@ -374,6 +417,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
 
     {error && <div className="qraError" role="alert">{error}</div>}
     {capped && <div className="qraInfo" role="status">Daftar dibatasi 10.000 catatan. Ringkasan ini hanya mencakup data yang terbaca; periksa rentang tahun atau unit bila diperlukan.</div>}
+    {isValidator && <section className="qraValidation" aria-label="Pemeriksaan laporan bulanan"><div><strong>Pemeriksaan laporan bulanan · {MONTHS[previousPeriod.month-1]} {previousPeriod.year}</strong><p>Satu konfirmasi untuk seluruh laporan periode sebelumnya pada unit ini. Batas penilaian tepat waktu: tanggal 10 bulan berjalan. Konfirmasi setelah tanggal 10 tetap tercatat sebagai terlambat.</p>{monthlyValidationError&&<p role="alert" style={{color:'#9b3b31'}}>{monthlyValidationError}</p>}{monthlyValidation&&<div className="qraValidationMeta">Diperiksa {formatDateTime(monthlyValidation.validated_at)} · {monthlyValidation.validated_on_time?'Tepat waktu':'Terlambat'} · {formatCount(monthlyValidation.total_record_count)} laporan tercakup (Indikator {formatCount(monthlyValidation.quality_record_count)}, CP {formatCount(monthlyValidation.clinical_pathway_count)}, Klinis/Kematian {formatCount(monthlyValidation.clinical_death_count)})</div>}</div>{monthlyValidation?<span className="qraValidationDone">✓ Sudah diperiksa</span>:<button className="qraValidationBtn" type="button" disabled={validatingMonth||loading||roomId==null} onClick={()=>void validateMonthlyReport()}>{validatingMonth?'Menyimpan pemeriksaan…':'Sudah diperiksa'}</button>}</section>}
     {loading
       ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…" detail="Mengambil data satu unit dan satu tahun sesuai hak akses." /></div>
       : loadingError
@@ -382,9 +426,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           ? <>
             <div className="qraKpis">
               <Kpi label="Capaian Mutu Unit Secara Keseluruhan" value={overallIndicatorAchievement == null ? '—' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
-              <Kpi label="Indikator aktif" value={formatCount(indicatorResults.length)} detail="Profil terbit dan aktif pada tahun terpilih" />
-              <Kpi label="Data siap ditinjau" value={formatCount(readyCount)} detail="Data masuk yang belum tervalidasi" />
-              <Kpi label="Data tervalidasi" value={formatCount(validatedCount)} detail="Data yang telah melewati validasi" />
+              <Kpi label="Indikator aktif" value={formatCount(indicatorResults.length + (outpatientClinicResults ? 1 : 0))} detail="Profil terbit dan aktif pada tahun terpilih" />
+              <Kpi label="Laporan final" value={formatCount(finalReportCount)} detail="Laporan yang telah disampaikan PIC" />
+              <Kpi label="Data sementara" value={formatCount(temporaryCount)} detail="Belum masuk perhitungan hasil audit" />
             </div>
             <section className="qraPanel">
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3><p>Setiap persentase rasio menggunakan Σ numerator ÷ Σ denominator; bukan rerata sederhana antarbaris atau antarb ulan.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
@@ -392,51 +436,46 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 ? <EmptyState title="Belum ada indikator aktif" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
                 : <div className="qraTableWrap"><table className="qraTable qraIndicatorTable">
                   <thead><tr><th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
-                  <tbody>{indicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
+                  <tbody>{outpatientClinicResults && <tr key="outpatient-clinic-summary"><td><strong>11.1 · Waktu Tunggu Rawat Jalan</strong><small>Target: 100% klinik operasional memiliki rerata waktu tunggu &lt;60 menit · Rerata tidak berbobot dari rerata setiap dokter.</small></td>{outpatientClinicResults.monthResults.map(month=><td key={month.month} className={month.items.some(item=>item.averageMinutes!=null)?'':'qraDim'}><b>{month.rate==null?'—':formatPct(month.rate)}</b><small>{month.rate==null?'Belum ada data':month.compliant+'/'+month.operational+' klinik &lt;60 menit'}</small></td>)}<td><strong>{outpatientClinicResults.rate==null?'—':formatPct(outpatientClinicResults.rate)}</strong><small>{outpatientClinicResults.rate==null?'Belum ada data pengukuran klinik':outpatientClinicResults.compliant+'/'+outpatientClinicResults.operational+' klinik · rerata '+(outpatientClinicResults.mean==null?'—':outpatientClinicResults.mean.toFixed(2).replace('.',',')+' menit')} · {outpatientClinicResults.missing} klinik tanpa data</small></td><td><StatusPill value={outpatientClinicResults.rate==null?null:outpatientClinicResults.rate>=100}/></td><td>{formatDateTime(indicatorData.rows.filter(row=>['ready','validated'].includes(String(row.status??'').toLowerCase())).map(row=>row.updated_at??row.created_at??'').filter(Boolean).sort().at(-1)??null)}</td><td><strong>{formatCount(outpatientClinicResults.records)}</strong><small>Catatan dokter-hari final</small></td></tr>}{indicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
-                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '—'}</small></td>)}
-                    <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
+                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>n={formatCount(month.observations)} laporan final{result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)}</small></td>)}
+                    <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
                     <td>{formatDateTime(result.latestInputAt)}</td>
-                    <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small></td>
+                    <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.observations)} laporan final</small></td>
                   </tr>)}</tbody>
                 </table></div>}
-              <div className="qraNotice">Capaian mutu unit merupakan proporsi indikator yang targetnya dapat dinilai dan memenuhi target, bukan rata-rata persentase indikator yang berbeda definisi. Data Ready for Review tetap ditampilkan sebagai antrean peninjauan dan tidak masuk perhitungan capaian resmi; hanya catatan tervalidasi yang dihitung sebagai hasil. Untuk rasio, capaian tahunan menggunakan penggabungan numerator dan denominator. Untuk durasi/nilai kontinu, ditampilkan rerata dan proporsi observasi yang memenuhi target.</div>
+              <div className="qraNotice">Capaian mutu unit merupakan proporsi indikator yang targetnya dapat dinilai dan memenuhi target, bukan rata-rata persentase indikator yang berbeda definisi. Laporan final yang disampaikan PIC masuk dalam perhitungan; data sementara tidak dihitung. Untuk indikator 11.1, proporsi dihitung dari jumlah klinik operasional dengan rerata waktu tunggu &lt;60 menit dibagi seluruh klinik dalam roster operasional. Klinik tanpa data tetap berada dalam denominator dan tidak dinilai memenuhi target. Untuk rasio lain, capaian menggunakan penggabungan numerator dan denominator.</div>
             </section>
           </>
           : mode === 'pathway'
             ? <>
               <div className="qraKpis">
-                <Kpi label="Audit Clinical Pathway" value={formatCount(pathway.overall.totalRecords)} detail={pathway.overall.validatedRecords + ' tervalidasi · ' + pathway.overall.readyRecords + ' menunggu review'} />
-                <Kpi label="Keterisian CP tervalidasi" value={formatPct(pathway.overall.completionPct)} detail={formatCount(pathway.overall.filled) + ' dari ' + formatCount(pathway.overall.expected) + ' sel terjadwal telah diputuskan'} />
-                <Kpi label="Kepatuhan CP tervalidasi" value={formatPct(pathway.overall.compliancePct)} detail={formatCount(pathway.overall.done) + ' sesuai dari ' + formatCount(pathway.overall.done + pathway.overall.notDone) + ' sel yang dinilai'} />
+                <Kpi label="Audit Clinical Pathway" value={formatCount(pathway.overall.totalRecords)} detail={pathway.overall.validatedRecords + ' laporan final'} />
+                <Kpi label="Keterisian laporan CP" value={formatPct(pathway.overall.completionPct)} detail={formatCount(pathway.overall.filled) + ' dari ' + formatCount(pathway.overall.expected) + ' sel terjadwal telah diputuskan'} />
+                <Kpi label="Kepatuhan laporan CP" value={formatPct(pathway.overall.compliancePct)} detail={formatCount(pathway.overall.done) + ' sesuai dari ' + formatCount(pathway.overall.done + pathway.overall.notDone) + ' sel yang dinilai'} />
                 <Kpi label="Episode memenuhi target CP" value={formatPct(pathway.overall.episodeTargetMetPct)} detail={pathway.overall.targetMetRecords + ' dari ' + pathway.overall.assessedRecords + ' episode dengan skor terukur'} />
               </div>
               <section className="qraPanel">
-                <div className="qraPanelHead"><div><h3>Tren bulanan berdasarkan tanggal masuk</h3><p>Hanya audit tervalidasi; numerator dan denominator dijumlahkan antar-episode.</p></div><span className="qraPill">{pathway.overall.validatedRecords} episode tervalidasi</span></div>
+                <div className="qraPanelHead"><div><h3>Tren bulanan berdasarkan tanggal masuk</h3><p>Seluruh laporan final; numerator dan denominator dijumlahkan antar-episode.</p></div><span className="qraPill">{pathway.overall.validatedRecords} laporan final</span></div>
                 {pathway.overall.validatedRecords === 0
-                  ? <EmptyState title="Belum ada hasil Clinical Pathway tervalidasi" detail="Grafik dan capaian akan tersedia setelah audit Clinical Pathway disimpan dan divalidasi. Data draf tidak diperlakukan sebagai capaian." />
+                  ? <EmptyState title="Belum ada laporan Clinical Pathway" detail="Grafik dan capaian akan tersedia setelah PIC melaporkan audit Clinical Pathway. Data sementara tidak diperlakukan sebagai capaian." />
                   : <>
                     <div className="qraBars">{pathwayMonthly.map((month) => <div className="qraBarsItem" key={month.month}>
                       <div className="qraBarsTrack"><span style={{ height: (month.compliancePct ?? 0) + '%' }} /></div><b>{month.compliancePct == null ? '—' : Math.round(month.compliancePct) + '%'}</b><small>{MONTHS[month.month - 1]}</small>
                     </div>)}</div>
-                    <div className="qraLegend"><span><i className="qraDot"/>Kepatuhan CP tervalidasi</span></div>
+                    <div className="qraLegend"><span><i className="qraDot"/>Kepatuhan laporan CP</span></div>
                   </>}
               </section>
               <section className="qraPanel">
                 <div className="qraPanelHead"><div><h3>Hasil menurut Clinical Pathway</h3><p>Rekap per template; denominator kepatuhan mengecualikan sel N/A dan sel yang tidak dijadwalkan.</p></div></div>
                 {pathwayTemplates.length === 0
                   ? <EmptyState title="Belum ada template dengan catatan audit" detail="Daftar akan terbentuk otomatis berdasarkan template yang dipakai pada audit." />
-                  : <div className="qraTableWrap"><table className="qraTable"><thead><tr><th>Clinical Pathway</th><th>Jumlah audit</th><th>Tervalidasi</th><th>Keterisian tertimbang</th><th>Kepatuhan tertimbang</th><th>Rata-rata per episode</th><th>Episode memenuhi target</th><th>Bagian D lulus</th></tr></thead><tbody>{pathwayTemplates.map((item) => <tr key={item.code}>
+                  : <div className="qraTableWrap"><table className="qraTable"><thead><tr><th>Clinical Pathway</th><th>Jumlah audit</th><th>Laporan final</th><th>Keterisian tertimbang</th><th>Kepatuhan tertimbang</th><th>Rata-rata per episode</th><th>Episode memenuhi target</th><th>Bagian D lulus</th></tr></thead><tbody>{pathwayTemplates.map((item) => <tr key={item.code}>
                     <td><strong>{item.name}</strong><small>{item.code}</small></td><td>{formatCount(item.result.totalRecords)}</td><td>{formatCount(item.result.validatedRecords)}</td><td>{formatPct(item.result.completionPct)}</td><td>{formatPct(item.result.compliancePct)}</td><td>{formatPct(item.result.meanEpisodeCompliancePct)}</td><td>{formatPct(item.result.episodeTargetMetPct)}</td><td>{formatPct(item.result.sectionDPassPct)}</td>
                   </tr>)}</tbody></table></div>}
               </section>
-              <section className="qraPanel"><div className="qraPanelHead"><div><h3>Alur review data</h3><p>Audit tercatat seluruh status; capaian hanya dari status tervalidasi.</p></div></div><div className="qraStatusGrid">
-                <div className="qraStatusBox"><span>Tervalidasi</span><strong>{pathway.statusCounts.validated}</strong></div>
-                <div className="qraStatusBox"><span>Menunggu review</span><strong>{pathway.statusCounts.submitted + pathway.statusCounts.ready}</strong></div>
-                <div className="qraStatusBox"><span>Draf</span><strong>{pathway.statusCounts.draft}</strong></div>
-                <div className="qraStatusBox"><span>Dibuka kembali</span><strong>{pathway.statusCounts.reopened}</strong></div>
-              </div></section>
+              
               <div className="qraInfo">Interpretasi: keterisian = sel terisi ÷ seluruh sel yang dijadwalkan. Kepatuhan = sel “Sesuai” ÷ (sel “Sesuai” + “Tidak Sesuai”); N/A dan sel yang tidak dijadwalkan tidak masuk denominator. Karena setiap template memiliki target sendiri, proporsi episode yang memenuhi target dihitung terhadap target pada snapshot template masing-masing.</div>
             </>
             : <>
@@ -444,20 +483,20 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 <div className="qraTabs"><button type="button" className={clinicalTab === 'clinical' ? 'active' : ''} onClick={() => setClinicalTab('clinical')}>Audit Klinis</button><button type="button" className={clinicalTab === 'death' ? 'active' : ''} onClick={() => setClinicalTab('death')}>Audit Kematian</button></div>
               </div></div>
               <div className="qraKpis">
-                <Kpi label="Telaah tercatat" value={formatCount(selectedClinical.totalRecords)} detail="Draf, diajukan, dibuka kembali, dan tervalidasi" />
-                <Kpi label="Telaah tervalidasi" value={formatCount(selectedClinical.validatedRecords)} detail="Satu-satunya status yang masuk ringkasan skor" />
-                <Kpi label="Median skor mutu pelayanan" value={selectedClinical.overallScore.median == null ? '—' : String(selectedClinical.overallScore.median).replace('.', ',') + ' / 5'} detail={selectedClinical.overallScore.n ? 'IQR ' + selectedClinical.overallScore.q1 + '–' + selectedClinical.overallScore.q3 + ' · n=' + selectedClinical.overallScore.n : 'Belum ada skor tervalidasi'} />
-                <Kpi label="Rekomendasi tindak lanjut" value={formatCount(selectedClinical.createdActions)} detail="Telaah tervalidasi dengan rekomendasi terdokumentasi" />
+                <Kpi label="Telaah tercatat" value={formatCount(selectedClinical.totalRecords)} detail="Seluruh catatan audit pada periode terpilih" />
+                <Kpi label="Laporan final" value={formatCount(selectedClinical.validatedRecords)} detail="Laporan PIC yang masuk ringkasan audit" />
+                <Kpi label="Median skor mutu pelayanan" value={selectedClinical.overallScore.median == null ? '—' : String(selectedClinical.overallScore.median).replace('.', ',') + ' / 5'} detail={selectedClinical.overallScore.n ? 'IQR ' + selectedClinical.overallScore.q1 + '–' + selectedClinical.overallScore.q3 + ' · n=' + selectedClinical.overallScore.n : 'Belum ada skor laporan final'} />
+                <Kpi label="Rekomendasi tindak lanjut" value={formatCount(selectedClinical.createdActions)} detail="Laporan final dengan rekomendasi terdokumentasi" />
               </div>
               <div className="qraSplit">
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor per fase perawatan</h3><p>Median dan IQR skala ordinal 1–5; fase N/A tidak dihitung.</p></div></div>
                   {selectedClinical.validatedRecords === 0
-                    ? <EmptyState title="Belum ada telaah tervalidasi" detail="Skor fase akan dihitung setelah reviewer memvalidasi telaah. Draf dan telaah yang belum disetujui tidak dimasukkan." />
+                    ? <EmptyState title="Belum ada laporan final" detail="Skor fase akan dihitung setelah PIC melaporkan telaah. Catatan sementara tidak dimasukkan." />
                     : <div className="qraContent">{selectedClinical.phases.map((phase) => <Bar key={phase.id} label={phase.label} value={phase.summary.median} max={5} suffix=" / 5" sublabel={'Median ordinal · IQR ' + (phase.summary.q1 ?? '—') + '–' + (phase.summary.q3 ?? '—') + ' · n=' + phase.summary.n} />)}</div>}
                 </section>
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Masalah mutu pelayanan</h3><p>Distribusi penilaian reviewer pada telaah tervalidasi.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Masalah mutu pelayanan</h3><p>Distribusi penilaian pada seluruh laporan final.</p></div></div>
                   {selectedClinical.validatedRecords === 0
-                    ? <EmptyState title="Belum ada hasil untuk ditampilkan" detail="Distribusi akan terbentuk setelah telaah tervalidasi." />
+                    ? <EmptyState title="Belum ada hasil untuk ditampilkan" detail="Distribusi akan terbentuk setelah PIC melaporkan telaah." />
                     : <div className="qraContent">{[
                       ['Teridentifikasi', selectedClinical.careIssue.yes],
                       ['Tidak teridentifikasi', selectedClinical.careIssue.no],
@@ -469,7 +508,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               {clinicalTab === 'death' && <div className="qraSplit">
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Kontribusi masalah pelayanan terhadap kematian</h3><p>Penilaian reviewer; bukan kesimpulan otomatis kausalitas.</p></div></div>
                   {selectedClinical.validatedRecords === 0
-                    ? <EmptyState title="Belum ada hasil audit kematian tervalidasi" detail="Distribusi kontribusi akan tampil setelah telaah kematian tervalidasi." />
+                    ? <EmptyState title="Belum ada laporan audit kematian" detail="Distribusi kontribusi akan tampil setelah laporan audit kematian disampaikan." />
                     : <div className="qraContent">{[
                       ['Ya', selectedClinical.contribution.yes],
                       ['Tidak', selectedClinical.contribution.no],
@@ -479,32 +518,24 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 </section>
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor ketercegahan kematian</h3><p>Skala ordinal 1–6; laporkan distribusi, median dan IQR tanpa menyamakan skor sebagai probabilitas kausal.</p></div></div>
                   {selectedClinical.avoidability.n === 0
-                    ? <EmptyState title="Belum ada skor ketercegahan" detail="Skala 1 (pasti dapat dicegah) sampai 6 (pasti tidak dapat dicegah) akan ditampilkan setelah data tervalidasi." />
+                    ? <EmptyState title="Belum ada skor ketercegahan" detail="Skala 1 (pasti dapat dicegah) sampai 6 (pasti tidak dapat dicegah) akan ditampilkan setelah laporan final tersedia." />
                     : <><div className="qraContent"><strong>Median {selectedClinical.avoidability.median} / 6 · IQR {selectedClinical.avoidability.q1}–{selectedClinical.avoidability.q3} · n={selectedClinical.avoidability.n}</strong></div><Distribution summary={selectedClinical.avoidability} minimum={1} maximum={6}/></>}
                 </section>
               </div>}
               <div className="qraSplit">
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Distribusi skor mutu pelayanan</h3><p>Skala ordinal 1–5; median dan IQR menjadi ringkasan utama.</p></div></div>
                   {selectedClinical.overallScore.n === 0
-                    ? <EmptyState title="Belum ada skor mutu pelayanan" detail="Tidak ada nilai yang dibuat-buat; distribusi menunggu telaah yang tervalidasi." />
+                    ? <EmptyState title="Belum ada skor mutu pelayanan" detail="Tidak ada nilai yang dibuat-buat; distribusi menunggu laporan final." />
                     : <><div className="qraContent"><strong>Median {selectedClinical.overallScore.median} / 5 · IQR {selectedClinical.overallScore.q1}–{selectedClinical.overallScore.q3} · n={selectedClinical.overallScore.n}</strong></div><Distribution summary={selectedClinical.overallScore} minimum={1} maximum={5}/></>}
                 </section>
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Hasil validasi per bulan</h3><p>Jumlah telaah yang divalidasi pada setiap bulan berdasarkan tanggal validasi.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Jumlah laporan final per bulan</h3><p>Jumlah laporan yang tercatat pada periode masing-masing.</p></div></div>
                   {selectedClinical.validatedRecords === 0
-                    ? <EmptyState title="Belum ada validasi pada periode ini" detail="Grafik bulanan akan muncul seiring penyelesaian review dan validasi." />
+                    ? <EmptyState title="Belum ada laporan final pada periode ini" detail="Grafik bulanan akan muncul seiring penyampaian laporan final PIC." />
                     : <div className="qraBars">{selectedValidationMonthly.map((item) => <div className="qraBarsItem" key={item.month}><div className="qraBarsTrack"><span style={{ height: (item.validated / Math.max(1, ...selectedValidationMonthly.map((entry) => entry.validated))) * 100 + '%' }} /></div><b>{item.validated}</b><small>{MONTHS[item.month - 1]}</small></div>)}</div>}
                 </section>
               </div>
-              <section className="qraPanel"><div className="qraPanelHead"><div><h3>Jejak kelengkapan telaah</h3><p>Dokumentasi tidak disamakan dengan penyelesaian tindak lanjut.</p></div></div>
-                <div className="qraStatusGrid">
-                  <div className="qraStatusBox"><span>Tervalidasi</span><strong>{selectedClinical.statusCounts.validated}</strong></div>
-                  <div className="qraStatusBox"><span>Menunggu review</span><strong>{selectedClinical.statusCounts.submitted}</strong></div>
-                  <div className="qraStatusBox"><span>Draf</span><strong>{selectedClinical.statusCounts.draft}</strong></div>
-                  <div className="qraStatusBox"><span>Dibuka kembali</span><strong>{selectedClinical.statusCounts.reopened}</strong></div>
-                </div>
-                <div className="qraNotice">Poin pembelajaran terdokumentasi: {selectedClinical.learningDocumented} telaah tervalidasi. Rekomendasi tindak lanjut terdokumentasi: {selectedClinical.createdActions} telaah tervalidasi. Modul saat ini menyimpan rekomendasi, belum status penyelesaian tindakan.</div>
-              </section>
-              <div className="qraInfo">Semua skor dan distribusi pada halaman ini dihitung dari telaah tervalidasi untuk unit dan periode yang dipilih. Skor 1–5 dan 1–6 diperlakukan sebagai data ordinal; median, IQR, dan distribusi diprioritaskan dibanding rerata aritmetika. Audit kematian tidak secara otomatis menyimpulkan bahwa kematian dapat dicegah atau bahwa masalah pelayanan menyebabkan kematian.</div>
+              <section className="qraPanel"><div className="qraPanelHead"><div><h3>Jejak kelengkapan telaah</h3><p>Dokumentasi tidak disamakan dengan penyelesaian tindak lanjut.</p></div></div><div className="qraNotice">Poin pembelajaran terdokumentasi: {selectedClinical.learningDocumented} laporan final. Rekomendasi tindak lanjut terdokumentasi: {selectedClinical.createdActions} laporan final. Modul saat ini menyimpan rekomendasi, belum status penyelesaian tindakan.</div></section>
+              <div className="qraInfo">Semua skor dan distribusi pada halaman ini dihitung dari laporan final untuk unit dan periode yang dipilih. Skor 1–5 dan 1–6 diperlakukan sebagai data ordinal; median, IQR, dan distribusi diprioritaskan dibanding rerata aritmetika. Audit kematian tidak secara otomatis menyimpulkan bahwa kematian dapat dicegah atau bahwa masalah pelayanan menyebabkan kematian.</div>
             </>}
 
     <div className="qraFoot"><span>Sumber: Supabase AUREKA · {selectedRoomName} · {year} · {formatCount(totalRows)} catatan terbaca</span><span>Data terakhir diperbarui: {formatDateTime(latestDataInputAt)}</span></div>

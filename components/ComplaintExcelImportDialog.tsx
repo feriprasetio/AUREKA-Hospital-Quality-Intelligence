@@ -186,8 +186,8 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
     admission_at: row.formFields['Tanggal Aduan'],
     unit_name: 'Informasi dan Pengaduan',
     room_id: 1,
-    status: 'Ready for Review',
-    workflow_status: 'Ready for Review',
+    status: 'Dilaporkan',
+    workflow_status: 'Dilaporkan',
     form_fields: row.formFields,
     calculated_fields: { 'Lamanya Tindak Lanjut': row.durationDays },
     indicator_values: indicatorValues,
@@ -228,7 +228,7 @@ function makePayload(row: PreparedRow, fileName: string, userId: string, profile
       subject_json: { source_import: core.source_import },
       core_data: core,
       status: 'ready',
-      review_required: true,
+      review_required: false,
       entered_by: userId,
     },
     responses,
@@ -442,7 +442,7 @@ export default function ComplaintExcelImportDialog({
             <h4 id="aqComplaintImportTitle">Unggah workbook Informasi dan Pengaduan</h4>
             <p>Unit Informasi dan Pengaduan · profil indikator 2026</p>
           </div>
-          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
+          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Batal">×</button>
         </div>
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
@@ -491,7 +491,7 @@ export default function ComplaintExcelImportDialog({
         <div className="aqFoot">
           <span style={{fontSize:11,color:'var(--muted)'}}>Data pasien tidak disertakan dalam commit kode.</span>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Tutup</button>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor…' : 'Impor ' + rows.length + ' baris tervalidasi'}</button>
           </div>
         </div>
