@@ -20,20 +20,6 @@
       "Mengerti Informasi"
     ],
     "fieldOptions": {
-      "Unit Pelayanan": [
-        "Farmasi",
-        "farmasi",
-        "Pelayanan",
-        "Radiologi",
-        "IT",
-        "Sarana dan prasarana",
-        "Parkiran",
-        "Poli anak",
-        "Pendaftaran / RM Loket 2 (di gedung belakang)",
-        "Pendaftaran IGD",
-        "Rajal",
-        "Ranap R.Mawar 2-Bedah"
-      ],
       "Level Masalah": [
         "Ringan",
         "Sedang",
@@ -56,7 +42,8 @@
     },
     "fieldTypes": {
       "Tanggal Aduan": "datetime-local",
-      "Tanggal Tindak Lanjut": "datetime-local"
+      "Tanggal Tindak Lanjut": "datetime-local",
+      "Unit Pelayanan": "text"
     },
     "measurementGrain": "event",
     "indicatorControl": "select"

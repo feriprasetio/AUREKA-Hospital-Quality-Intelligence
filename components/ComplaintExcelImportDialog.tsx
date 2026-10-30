@@ -59,11 +59,6 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
 }
 const LEVELS = ['Ringan', 'Sedang', 'Berat']
 const SOURCES = ['Website Rumah Sakit', 'Sumber Lainnya', 'Aduan Langsung Tatap Muka']
-const SERVICE_UNITS = [
-  'Farmasi', 'farmasi', 'Pelayanan', 'Radiologi', 'IT', 'Sarana dan prasarana',
-  'Parkiran', 'Poli anak', 'Pendaftaran / RM Loket 2 (di gedung belakang)',
-  'Pendaftaran IGD', 'Rajal', 'Ranap R.Mawar 2-Bedah',
-]
 const STATUSES = [
   'Aduan Selesai Dengan Klarifikasi Dari Manajemen',
   'Aduan Selesai Dengan Proses Pengadaan',
@@ -344,7 +339,6 @@ export default function ComplaintExcelImportDialog({
           const response11Raw = requiredText(sourceRow, columns, 'response11', excelRow)
           const response12Raw = requiredText(sourceRow, columns, 'response12', excelRow)
           if (!LEVELS.includes(level)) throw new Error('Baris Excel ' + excelRow + ': Level Masalah "' + level + '" bukan pilihan yang valid.')
-          if (!SERVICE_UNITS.includes(serviceUnit)) throw new Error('Baris Excel ' + excelRow + ': Unit Pelayanan "' + serviceUnit + '" tidak dikenal.')
           if (!SOURCES.includes(source)) throw new Error('Baris Excel ' + excelRow + ': Sumber Aduan "' + source + '" bukan pilihan yang valid.')
           if (!STATUSES.includes(status)) throw new Error('Baris Excel ' + excelRow + ': Status Aduan tidak cocok dengan daftar pilihan sumber.')
           const response11 = findIndicatorOption(response11Raw, p11, 'Respon Komplain', excelRow)
@@ -447,7 +441,7 @@ export default function ComplaintExcelImportDialog({
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Informasi dan Pengaduan serta tahun 2026 sebelum membuka jalur impor ini.</div>}
-          <div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong> dengan header di baris 2 dan data mulai baris 3. Baris ditinjau sebelum disimpan ke Supabase melalui sesi login AUREKA; workbook tidak dikirim ke penyimpanan browser atau repositori.</div>
+          <div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong> dengan header di baris 2 dan data mulai baris 3. Nilai <strong>Unit Pelayanan</strong> diterima sebagai teks bebas (tetap wajib diisi), bukan dibatasi daftar pilihan. Baris ditinjau sebelum disimpan ke Supabase melalui sesi login AUREKA; workbook tidak dikirim ke repositori.</div>
           <div className="ciUpload">
             <label className="aqField"><span>Workbook Excel (.xlsx), maksimal 15 MB</span>
               <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || parsing || importing} onChange={event => {

@@ -668,19 +668,19 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   }
   const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
 
- const save=async()=>{
+ const save=async(mode:'temporary'|'report')=>{
    if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Gunakan tindakan validasi pada daftar logbook.');return}
    if(!selected)return
    const layout=(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??''))??activeLayout
    const formData:Record<string,any>={...(selected.formData??{})}
    const identityCandidates=['Nama Pasien','Nama Mahasiswa','Nama MPP','Gangguan IT','Insiden yang Terjadi','Nama Pertemuan Ilmiah','Uraian Temuan Audit','Nama Pertemuan Ilmiah']
    const identityField=layout?.fields.find(f=>identityCandidates.includes(f))??layout?.fields[0]
-   if(identityField&&!String(formData[identityField]??'').trim()){
-     setMessage(`Kolom "${identityField}" wajib diisi agar catatan mudah dikenali.`);return
+   if(mode==='report'&&identityField&&!String(formData[identityField]??'').trim()){
+     setMessage(`Kolom "${identityField}" wajib diisi sebelum laporan dikirim.`);return
    }
    const dateField=primaryDateField(layout)
-   if(dateField&&!String(formData[dateField]??'').trim()){
-     setMessage(`Kolom tanggal "${dateField}" wajib diisi untuk filter periode dan pelaporan.`);return
+   if(mode==='report'&&dateField&&!String(formData[dateField]??'').trim()){
+     setMessage(`Kolom tanggal "${dateField}" wajib diisi sebelum laporan dikirim.`);return
    }
    const calc:any={}
    ;(layout?.fields??[]).filter(field=>isComputedField(field,layout)).forEach(field=>{
@@ -706,18 +706,20 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      &&Number.isFinite(Number(formData['Waktu Tunggu Rawat Jalan (Menit)']))
      &&Number(formData['Waktu Tunggu Rawat Jalan (Menit)'])>=0
      &&Number(formData['Waktu Tunggu Rawat Jalan (Menit)'])<=1440
-   const complete=outpatientProviderDay?outpatientMeasurementComplete:(applicable.length>0&&applicable.every(p=>responseComplete(p,draft[p.id??p.code])))
+   const complete=outpatientProviderDay?outpatientMeasurementComplete:(applicable.length===0||applicable.every(p=>responseComplete(p,draft[p.id??p.code])))
    const stayLayout=!!layout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!layout?.fields.some(f=>normHeader(f)==='tanggal keluar')
-   const finalStatus=complete?'Ready for Review':(stayLayout&&!discharge?'Aktif':'Draft')
+   if(mode==='report'&&!complete){setMessage('Indikator atau pengukuran belum lengkap. Lengkapi seluruh isian wajib, atau pilih Simpan Sementara untuk menyimpan sebagai draf.');return}
+   const finalStatus=mode==='report'?'Ready for Review':(stayLayout&&!discharge?'Aktif':'Draft')
+   const payloadStatus=mode==='report'?'ready':'draft'
    const now=new Date().toISOString()
    const serviceStream=String(formData['Alur layanan']??'').trim()
-   if(Number(selected.roomId)===5&&grain==='daily_metric'&&!['Rawat Jalan','Rawat Inap'].includes(serviceStream)){setMessage('Pilih alur layanan Rawat Jalan atau Rawat Inap sebelum menyimpan catatan harian Farmasi.');return}
-   if(grain==='provider_day'&&(!String(formData['Klinik']??'').trim()||!String(formData['Dokter']??'').trim())){setMessage('Pilih klinik dan dokter untuk catatan harian rawat jalan.');return}
-   if(Number(selected.roomId)===11&&grain==='provider_day'){
+   if(mode==='report'&&Number(selected.roomId)===5&&grain==='daily_metric'&&!['Rawat Jalan','Rawat Inap'].includes(serviceStream)){setMessage('Pilih alur layanan Rawat Jalan atau Rawat Inap sebelum melaporkan catatan harian Farmasi.');return}
+   if(mode==='report'&&grain==='provider_day'&&(!String(formData['Klinik']??'').trim()||!String(formData['Dokter']??'').trim())){setMessage('Klinik dan dokter wajib diisi sebelum melaporkan catatan dokter-hari.');return}
+   if(mode==='report'&&Number(selected.roomId)===11&&grain==='provider_day'){
      const waitingMinutes=formData['Waktu Tunggu Rawat Jalan (Menit)']
-     if(waitingMinutes==null||String(waitingMinutes).trim()===''||!Number.isFinite(Number(waitingMinutes))||Number(waitingMinutes)<0){setMessage('Isi waktu tunggu rawat jalan dalam menit (angka 0 atau lebih) sebelum menyimpan.');return}
+     if(waitingMinutes==null||String(waitingMinutes).trim()===''||!Number.isFinite(Number(waitingMinutes))||Number(waitingMinutes)<0||Number(waitingMinutes)>1440){setMessage('Isi waktu tunggu rawat jalan 0–1.440 menit sebelum melaporkan.');return}
    }
-   if(grain==='provider_day'&&!recordDate){setMessage('Tanggal pengamatan wajib diisi.');return}
+   if(mode==='report'&&grain==='provider_day'&&!recordDate){setMessage('Tanggal pengamatan wajib diisi sebelum melaporkan.');return}
    const core={patient_name:normalizedName,medical_record_no:normalizedRm,sex:String(formData['Jenis Kelamin']??selected.sex??''),age:formData['Umur']??formData['Usia']??selected.age,admission_at:formData['Tanggal Masuk']??recordDate,discharge_at:discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,unit_name:selected.unit,room_id:selected.roomId,status:finalStatus,workflow_status:finalStatus,form_fields:formData,calculated_fields:calc,indicator_values:values,measurement_grain:grain,los_days:calc['Lenght of Stay']??calc['Length of Stay']??(stayLayout?los(String(formData['Tanggal Masuk']??''),discharge):null)}
    setBusy(true)
    let recordId=selected.recordId,backend=false,savedEnteredBy=String(selected.enteredBy??'')
@@ -725,9 +727,13 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      const {data:{user}}=await sb.auth.getUser()
      if(!user) throw new Error('Sesi login tidak ditemukan.')
      savedEnteredBy=savedEnteredBy||String(user.id)
-     const subjectKey=grain==='provider_day'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${String(formData['Klinik']??'').trim()}:${String(formData['Dokter']??'').trim()}`:grain==='daily_metric'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${serviceStream||'semua-alur'}`:normalizedRm||`${selected.roomId}:${recordDate||now}:${selected.id}`
-     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:complete?'ready':'draft',review_required:complete,entered_by:user.id}
-     if(!recordId&&['daily_metric','provider_day'].includes(grain)){
+     const clinicName=String(formData['Klinik']??'').trim()
+     const doctorName=String(formData['Dokter']??'').trim()
+     const providerKeyReady=grain==='provider_day'&&!!recordDate&&!!clinicName&&!!doctorName
+     const dailyKeyReady=grain==='daily_metric'&&!!recordDate&&!!serviceStream
+     const subjectKey=providerKeyReady?`${selected.roomId}:${String(recordDate).slice(0,10)}:${clinicName}:${doctorName}`:dailyKeyReady?`${selected.roomId}:${String(recordDate).slice(0,10)}:${serviceStream}`:normalizedRm||`${selected.roomId}:draft:${selected.recordId??selected.id}`
+     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:payloadStatus,review_required:mode==='report',entered_by:user.id}
+     if(!recordId&&((grain==='provider_day'&&providerKeyReady)||(grain==='daily_metric'&&dailyKeyReady))){
        const {data:existing,error:lookupError}=await q().from('quality_records').select('id').eq('room_id',selected.roomId).eq('profile_year',year).eq('measurement_grain',grain).eq('subject_key',subjectKey).neq('status','archived').limit(1).maybeSingle()
        if(lookupError)throw lookupError
        if(existing?.id){setBusy(false);setMessage(grain==='provider_day'?'Catatan untuk dokter, klinik, dan tanggal tersebut sudah ada. Buka catatan yang ada untuk memperbaruinya.':'Catatan harian untuk tanggal dan alur layanan tersebut sudah ada. Buka catatan yang ada untuk memperbaruinya.');return}
@@ -747,9 +753,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setBusy(false)
      return
    }
-    const saved:Patient={...selected,id:recordId??selected.id,enteredBy:savedEnteredBy,databaseStatus:complete?'ready':'draft',name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
+    const saved:Patient={...selected,id:recordId??selected.id,enteredBy:savedEnteredBy,databaseStatus:payloadStatus,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
    setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
-   setSelected(saved);setPatientOpen(false);setMessage('Logbook berhasil disimpan ke server.');setBusy(false)
+   setSelected(saved);setPatientOpen(false);setMessage(mode==='temporary'?'Draf sementara berhasil disimpan. Data belum dikirim ke validator.':'Laporan berhasil dikirim dan masuk ke antrean siap ditinjau.');setBusy(false)
  }
 
  const archivePatient=async(p:Patient)=>{
@@ -902,13 +908,13 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    </label>
  }
 
-   const renderPatientEditor=()=>selected&&patientOpen?<section className="glass aqInlineEditor" role="region" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" onClick={()=>!busy&&setPatientOpen(false)}>×</button></div><div className="aqBody">
+   const renderPatientEditor=()=>selected&&patientOpen?<section className="glass aqInlineEditor" role="region" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" type="button" aria-label="Batal" title="Batal" onClick={()=>!busy&&setPatientOpen(false)}>×</button></div><div className="aqBody">
       <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map(renderLogbookField)}</div>
       <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'—'}</strong></div><div><span>Kelengkapan indikator hijau</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
       <div className="aqSection"><h5>Indikator mutu (header hijau)</h5><span>{filledN} dari {applicable.length} terisi</span></div>
       {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Layout Excel untuk unit ini belum mencantumkan header indikator berwarna hijau.</div>}
       {applicable.map(indicatorEditor)}{selectedUnmatchedHeaders.map((header,i)=><article className="aqInd" key={`unmapped-${selected.roomId}-${i}-${header}`}><div className="aqIHead"><div><strong>{header}</strong><div className="aqMetaText">Header hijau dari Header Aureka.xlsx · indikator belum terpetakan ke master aktif</div></div></div><div className="aqIBody"><div className="aqNotice">Profil ini belum memiliki pasangan aktif dengan target dan definisi operasional yang tervalidasi. Isian angka/hasil indikator belum diaktifkan agar tidak menghasilkan perhitungan mutu yang keliru.</div></div></article>)}{!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator hijau pada layout unit ini.</div>}
-    </div><div className="aqFoot"><span style={{fontSize:11,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Validasi dilakukan dari daftar logbook setelah memeriksa data.':`${source} · seluruh field logbook dan respons indikator disimpan sebagai satu catatan.`}</span><div style={{display:'flex',gap:8}}><button className="aqBtn" onClick={()=>!busy&&setPatientOpen(false)}>Tutup</button>{!isValidator&&<button className="aqBtn primary" onClick={save} disabled={busy}>{busy?'Menyimpan…':'Simpan logbook'}</button>}</div></div></section>:null
+    </div><div className="aqFoot"><span style={{fontSize:11,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Validasi dilakukan dari daftar logbook setelah memeriksa data.':`${source} · Simpan Sementara menyimpan draf tanpa mengirim ke validator; Laporkan mengirim catatan lengkap untuk ditinjau.`}</span><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="aqBtn" disabled={busy} onClick={()=>setPatientOpen(false)}>Batal</button>{!isValidator&&<><button type="button" className="aqBtn" onClick={()=>void save('temporary')} disabled={busy}>{busy?'Menyimpan…':'Simpan Sementara'}</button><button type="button" className="aqBtn primary" onClick={()=>void save('report')} disabled={busy}>{busy?'Melaporkan…':'Laporkan'}</button></>}</div></div></section>:null
 
   return <div className="aq">
    <style dangerouslySetInnerHTML={{__html:CSS}}/>
