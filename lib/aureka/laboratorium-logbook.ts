@@ -36,16 +36,18 @@ export function normalizeLaboratoryDateTime(value: unknown): string | null {
 
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) return null
+    const rounded = new Date(Math.round(value.getTime() / 1000) * 1000)
     return dateParts(
-      value.getUTCFullYear(), value.getUTCMonth() + 1, value.getUTCDate(),
-      value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds(),
+      rounded.getUTCFullYear(), rounded.getUTCMonth() + 1, rounded.getUTCDate(),
+      rounded.getUTCHours(), rounded.getUTCMinutes(), rounded.getUTCSeconds(),
     )
   }
 
   if (typeof value === 'number' || /^\d{5,6}(?:\.\d+)?$/.test(String(value).trim())) {
     const serial = Number(value)
     if (!Number.isFinite(serial) || serial < 20000 || serial > 80000) return null
-    const date = new Date(Date.UTC(1899, 11, 30) + Math.round(serial * 86400000))
+    const timestamp = Date.UTC(1899, 11, 30) + serial * 86400000
+    const date = new Date(Math.round(timestamp / 1000) * 1000)
     if (Number.isNaN(date.getTime())) return null
     return dateParts(
       date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(),
