@@ -237,7 +237,7 @@ export function calculateIndicatorResult(
     if (!observation) continue
     const bucket = accumulators[observation.month - 1]
     bucket.observations += 1
-    if (status === 'validated') {
+    if (status === 'validated' || status === 'ready') {
       bucket.validatedRecords += 1
       validatedRecords += 1
       bucket.numerator += observation.numerator
@@ -463,7 +463,7 @@ export function aggregateClinicalPathwayRows(rows: ClinicalPathwayRow[]) {
     if (status === 'archived') continue
     if (status in statusCounts) statusCounts[status as keyof typeof statusCounts] += 1
     else statusCounts.other += 1
-    if (status === 'validated') validated.push({ row, metrics: calculatePathwayAuditMetrics(row) })
+    if (status === 'validated' || status === 'submitted' || status === 'ready') validated.push({ row, metrics: calculatePathwayAuditMetrics(row) })
   }
 
   const expected = validated.reduce((sum, item) => sum + item.metrics.expected, 0)
@@ -511,7 +511,7 @@ export function aggregatePathwayByMonth(rows: ClinicalPathwayRow[], year: number
     const selected = rows.filter((row) => {
       const date = safeDate(row.admission_date)
       const status = String(row.status ?? '').toLowerCase()
-      return status === 'validated' && date != null &&
+      return (status === 'validated' || status === 'submitted' || status === 'ready') && date != null &&
         Number(date.slice(0, 4)) === year && Number(date.slice(5, 7)) === month
     }).map(calculatePathwayAuditMetrics)
     const expected = selected.reduce((sum, item) => sum + item.expected, 0)
@@ -577,7 +577,7 @@ export function aggregateClinicalDeathAudits(rows: ClinicalDeathAuditResultRow[]
     if (status === 'validated' || status === 'submitted' || status === 'draft' || status === 'reopened') statusCounts[status] += 1
     else statusCounts.other += 1
   })
-  const validated = scoped.filter((row) => String(row.status ?? '').toLowerCase() === 'validated')
+  const validated = scoped.filter((row) => ['validated','submitted','ready'].includes(String(row.status ?? '').toLowerCase()))
   const phaseIds = ['admission', 'ongoing', 'procedure', 'perioperative', 'end_of_life']
   const phaseLabels = ['Admisi dan perawatan awal', 'Perawatan lanjutan', 'Perawatan selama prosedur', 'Perioperatif / perawatan prosedural', 'Akhir hayat / pemulangan']
   const phases = phaseIds.map((id, index) => {
@@ -625,8 +625,8 @@ export function aggregateClinicalDeathByValidationMonth(rows: ClinicalDeathAudit
   return Array.from({ length: 12 }, (_, index) => {
     const month = index + 1
     const selected = rows.filter((row) => {
-      if (String(row.audit_type ?? '') !== auditType || String(row.status ?? '').toLowerCase() !== 'validated') return false
-      const date = safeDate(row.validated_at)
+      if (String(row.audit_type ?? '') !== auditType || !['validated','submitted','ready'].includes(String(row.status ?? '').toLowerCase())) return false
+      const date = safeDate(row.validated_at ?? row.created_at)
       return date != null && Number(date.slice(0, 4)) === year && Number(date.slice(5, 7)) === month
     })
     return { month, validated: selected.length }

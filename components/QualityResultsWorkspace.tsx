@@ -240,10 +240,10 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
   const readyCount = mode === 'indicators'
-    ? indicatorData.rows.filter((row) => String(row.status).toLowerCase() === 'ready').length
+    ? 0
     : 0
   const validatedCount = mode === 'indicators'
-    ? indicatorData.rows.filter((row) => String(row.status).toLowerCase() === 'validated').length
+    ? indicatorData.rows.filter((row) => ['ready','validated'].includes(String(row.status).toLowerCase())).length
     : 0
 
   const pathway = useMemo(() => aggregateClinicalPathwayRows(pathwayData), [pathwayData])
@@ -383,8 +383,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             <div className="qraKpis">
               <Kpi label="Capaian Mutu Unit Secara Keseluruhan" value={overallIndicatorAchievement == null ? '—' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
               <Kpi label="Indikator aktif" value={formatCount(indicatorResults.length)} detail="Profil terbit dan aktif pada tahun terpilih" />
-              <Kpi label="Data siap ditinjau" value={formatCount(readyCount)} detail="Data masuk yang belum tervalidasi" />
-              <Kpi label="Data tervalidasi" value={formatCount(validatedCount)} detail="Data yang telah melewati validasi" />
+              <Kpi label="Laporan final" value={formatCount(validatedCount)} detail="Seluruh laporan PIC masuk sebagai data final" />
+              <Kpi label="Pemeriksaan bulanan" value="Terpisah" detail="Validator mencatat pemeriksaan seluruh laporan satu kali setiap bulan" />
             </div>
             <section className="qraPanel">
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3><p>Setiap persentase rasio menggunakan Σ numerator ÷ Σ denominator; bukan rerata sederhana antarbaris atau antarb ulan.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>

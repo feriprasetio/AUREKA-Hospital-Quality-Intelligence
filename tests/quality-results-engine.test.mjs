@@ -43,17 +43,17 @@ test('indicator results pool numerators and denominators instead of averaging mo
   const result = calculateIndicatorResult(profile, rows, 2026)
 
   assert.equal(result.observations, 2)
-  assert.equal(result.annualNumerator, 8)
-  assert.equal(result.annualDenominator, 10)
-  assert.equal(result.annualRate, 80)
-  assert.equal(result.monthlyMeanRate, 80)
-  assert.equal(result.readyRecords, 1)
-  assert.equal(result.validatedRecords, 1)
+  assert.equal(result.annualNumerator, 9)
+  assert.equal(result.annualDenominator, 12)
+  assert.equal(result.annualRate, 75)
+  assert.equal(result.monthlyMeanRate, 65)
+  assert.equal(result.readyRecords, 0)
+  assert.equal(result.validatedRecords, 2)
   assert.equal(result.observations, 2)
   assert.equal(result.targetMet, true)
   assert.equal(result.latestInputAt, '2026-02-05T08:00:00Z')
-  assert.equal(result.monthly[0].rate, null)
-  assert.equal(result.monthly[0].readyRecords, 1)
+  assert.equal(result.monthly[0].rate, 50)
+  assert.equal(result.monthly[0].readyRecords, 0)
   assert.equal(result.monthly[1].validatedRecords, 1)
   assert.equal(result.monthly[2].rate, null)
 })
@@ -127,11 +127,12 @@ function cpRow(status, admissionDate, dayOne, dayTwo) {
   }
 }
 
-test('Clinical Pathway calculates pooled compliance with N/A excluded and validates only completed status', () => {
+test('Clinical Pathway calculates pooled compliance with N/A excluded and includes all PIC-submitted final reports', () => {
   const rows = [
     cpRow('validated', '2026-01-01', 'done', 'not_done'),
     cpRow('validated', '2026-02-01', 'done', 'not_applicable'),
-    cpRow('draft', '2026-03-01', 'done', 'done'),
+    cpRow('submitted', '2026-03-01', 'done', 'done'),
+    cpRow('draft', '2026-04-01', 'done', 'done'),
   ]
   const one = calculatePathwayAuditMetrics(rows[1])
   assert.equal(one.expected, 2)
@@ -142,26 +143,26 @@ test('Clinical Pathway calculates pooled compliance with N/A excluded and valida
   assert.equal(one.targetMet, true)
 
   const aggregate = aggregateClinicalPathwayRows(rows)
-  assert.equal(aggregate.overall.totalRecords, 3)
-  assert.equal(aggregate.overall.validatedRecords, 2)
-  assert.equal(aggregate.overall.expected, 4)
-  assert.equal(aggregate.overall.filled, 4)
-  assert.equal(aggregate.overall.done, 2)
+  assert.equal(aggregate.overall.totalRecords, 4)
+  assert.equal(aggregate.overall.validatedRecords, 3)
+  assert.equal(aggregate.overall.expected, 6)
+  assert.equal(aggregate.overall.filled, 6)
+  assert.equal(aggregate.overall.done, 4)
   assert.equal(aggregate.overall.notDone, 1)
-  assert.equal(aggregate.overall.compliancePct, 66.67)
-  assert.equal(aggregate.overall.episodeTargetMetPct, 50)
-  assert.equal(aggregate.overall.sectionDPassPct, 50)
+  assert.equal(aggregate.overall.compliancePct, 80)
+  assert.equal(aggregate.overall.episodeTargetMetPct, 66.67)
+  assert.equal(aggregate.overall.sectionDPassPct, 66.67)
 
   const monthly = aggregatePathwayByMonth(rows, 2026)
   assert.equal(monthly[0].cases, 1)
   assert.equal(monthly[0].compliancePct, 50)
   assert.equal(monthly[1].cases, 1)
   assert.equal(monthly[1].compliancePct, 100)
-  assert.equal(monthly[2].cases, 0)
-  assert.equal(monthly[2].compliancePct, null)
+  assert.equal(monthly[2].cases, 1)
+  assert.equal(monthly[2].compliancePct, 100)
 })
 
-test('Clinical death results retain ordinal distributions and exclude submitted reviews from scores', () => {
+test('Clinical death results include PIC-submitted final reports in ordinal distributions', () => {
   const rows = [
     {
       audit_type: 'clinical',
@@ -193,12 +194,13 @@ test('Clinical death results retain ordinal distributions and exclude submitted 
 
   const clinical = aggregateClinicalDeathAudits(rows, 'clinical')
   assert.equal(clinical.totalRecords, 2)
-  assert.equal(clinical.validatedRecords, 1)
-  assert.equal(clinical.overallScore.median, 5)
-  assert.equal(clinical.overallScore.n, 1)
-  assert.equal(clinical.phases[0].summary.median, 4)
+  assert.equal(clinical.validatedRecords, 2)
+  assert.equal(clinical.overallScore.median, 3)
+  assert.equal(clinical.overallScore.n, 2)
+  assert.equal(clinical.phases[0].summary.median, 2.5)
   assert.equal(clinical.phases[2].summary.n, 0)
   assert.equal(clinical.careIssue.yes, 1)
+  assert.equal(clinical.careIssue.no, 1)
   assert.equal(clinical.createdActions, 1)
   assert.equal(clinical.learningDocumented, 1)
 
