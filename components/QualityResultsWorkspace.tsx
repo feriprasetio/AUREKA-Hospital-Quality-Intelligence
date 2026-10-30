@@ -455,7 +455,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                       ['Tidak teridentifikasi', selectedClinical.careIssue.no],
                       ['Belum pasti', selectedClinical.careIssue.uncertain],
                       ['Belum diisi', selectedClinical.careIssue.missing],
-                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} suffix="" sublabel={formatCount(count) + ' dari ' + formatCount(selectedClinical.validatedRecords)} />)}</div>}
+                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} suffix="" sublabel={formatCount(Number(count)) + ' dari ' + formatCount(selectedClinical.validatedRecords)} />)}</div>}
                 </section>
               </div>
               {clinicalTab === 'death' && <div className="qraSplit">
@@ -467,7 +467,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                       ['Tidak', selectedClinical.contribution.no],
                       ['Belum pasti', selectedClinical.contribution.uncertain],
                       ['Belum diisi', selectedClinical.contribution.missing],
-                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} suffix="" sublabel={formatCount(count) + ' kasus'} />)}</div>}
+                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} suffix="" sublabel={formatCount(Number(count)) + ' kasus'} />)}</div>}
                 </section>
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor ketercegahan kematian</h3><p>Skala ordinal 1–6; laporkan distribusi, median dan IQR tanpa menyamakan skor sebagai probabilitas kausal.</p></div></div>
                   {selectedClinical.avoidability.n === 0
