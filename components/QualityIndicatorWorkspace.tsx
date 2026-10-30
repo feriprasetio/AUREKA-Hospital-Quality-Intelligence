@@ -843,7 +843,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
     if(error){setMonthlyReview(null);setMessage(`Ringkasan pemeriksaan bulanan belum dapat dimuat: ${error.message}`);return}
     setMonthlyReview(data??null)
   },[isValidator,roomId,year,reviewMonth])
-  useEffect(()=>{void loadMonthlyReview()},[loadMonthlyReview])
+  useEffect(()=>{void loadMonthlyReview()},[loadMonthlyReview,patients])
   const confirmMonthlyReview=async()=>{
     if(!isValidator||roomId==null||monthlyReviewBusy)return
     setMonthlyReviewBusy(true);setMessage('')
