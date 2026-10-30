@@ -608,3 +608,28 @@ html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table th,.aqData th,.p
 html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){background:#191b35!important;color:#dddaf4!important;border-color:#303151!important}
 html[data-theme="amoled"] .workspaceRoot .workspaceNotificationPanel,
 html[data-theme="amoled"] .workspaceRoot .workspaceSupportPanel{background:rgba(22,24,46,.97)!important;border-color:#38375c!important;color:#ecebff!important}
+
+/* Dashboard micro-details */
+.workspaceRoot .moduleEnter .ovHeroMeta{display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important}
+.workspaceRoot .moduleEnter .ovHeroDate{
+  display:inline-flex!important;align-items:center!important;min-height:35px!important;padding:7px 11px!important;
+  border:1px solid rgba(255,255,255,.28)!important;border-radius:10px!important;background:rgba(255,255,255,.13)!important;
+  color:rgba(255,255,255,.9)!important;font-size:9px!important;font-weight:700!important;white-space:nowrap!important;
+}
+.workspaceRoot .moduleEnter .ovKpiHeader{position:relative!important;z-index:1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important}
+.workspaceRoot .moduleEnter .ovKpiIcon{
+  display:grid!important;place-items:center!important;width:32px!important;height:32px!important;flex:0 0 32px!important;
+  border-radius:10px!important;background:#eeecff!important;color:#7769df!important;
+}
+.workspaceRoot .moduleEnter .ovKpiIcon svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.7!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+.workspaceRoot .moduleEnter .ovKpiIcon.safety{background:#e9f3ff!important;color:#5d92df!important}
+.workspaceRoot .moduleEnter .ovKpiIcon.risk{background:#fff1f3!important;color:#dd7890!important}
+.workspaceRoot .moduleEnter .ovKpiIcon.audit{background:#fff7e9!important;color:#d8a64f!important}
+.workspaceRoot .moduleEnter .ovKpi:hover{transform:translateY(-2px)!important;box-shadow:var(--md-shadow-hover)!important}
+.workspaceRoot .moduleEnter .ovPanel:hover{box-shadow:var(--md-shadow-hover)!important}
+@media(max-width:760px){
+  .workspaceRoot .moduleEnter .ovHeroMeta{width:100%!important;justify-content:space-between!important}
+  .workspaceRoot .moduleEnter .ovHeroDate{font-size:8px!important}
+  .workspaceRoot .moduleEnter .ovKpiIcon{width:27px!important;height:27px!important;flex-basis:27px!important}
+  .workspaceRoot .moduleEnter .ovKpiIcon svg{width:15px!important;height:15px!important}
+}
