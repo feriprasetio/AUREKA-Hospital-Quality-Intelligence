@@ -55,11 +55,23 @@ function useCountUp(target: number, run: boolean) {
   return value
 }
 
+function KpiIcon({ kind }: { kind: 'quality' | 'safety' | 'risk' | 'audit' }) {
+  if (kind === 'quality') return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.8h7l4 4v12.4H7z"/><path d="M14 3.8v4h4M9.5 13h6M9.5 16.5h4"/><path d="m4 7.8 1.5 1.5"/></svg>
+  if (kind === 'safety') return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 19 6v5.1c0 4.5-2.8 7.9-7 9.7-4.2-1.8-7-5.2-7-9.7V6z"/><path d="m8.7 12.1 2.1 2.1 4.6-4.7"/></svg>
+  if (kind === 'risk') return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.5 9 16H3z"/><path d="M12 9v4.5M12 17h.01"/></svg>
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="17" rx="2"/><path d="M9 4.5v-2h6v2M8.5 10h7M8.5 14h7M8.5 18h4"/></svg>
+}
+
 function Kpi({ label, value, sub, tone, loading, onClick, delay, formatted }: { label: string; value: number | null; sub?: string; tone?: string; loading: boolean; onClick?: () => void; delay: number; formatted?: string }) {
   const shown = useCountUp(value ?? 0, !loading && value !== null)
+  const normalized = label.toLowerCase()
+  const kind: 'quality' | 'safety' | 'risk' | 'audit' =
+    normalized.includes('ikp') ? 'safety' :
+    normalized.includes('risiko') ? 'risk' :
+    normalized.includes('audit') ? 'audit' : 'quality'
   return (
     <button type="button" className={`ovKpi ${tone || ''}`} style={{ animationDelay: `${delay}ms` }} onClick={onClick} disabled={!onClick}>
-      <span className="ovKpiLabel">{label}</span>
+      <span className="ovKpiHeader"><span className="ovKpiLabel">{label}</span><span className={`ovKpiIcon ${kind}`}><KpiIcon kind={kind}/></span></span>
       {loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value === null ? '—' : formatted || shown.toLocaleString('id-ID')}</b>}
       {sub && !loading && <small>{sub}</small>}
     </button>
@@ -83,7 +95,7 @@ const SectionError = ({ error }: { error: string }) => (
 )
 
 export default function OverviewDashboard({
-  supabase, role, roomId, roomName, manager, userName, onNavigate,
+  supabase, role, roomId, roomName, manager, userName, dashboardView, onDashboardViewChange, onNavigate,
 }: {
   supabase: SupabaseClient
   role: string | null
@@ -91,6 +103,8 @@ export default function OverviewDashboard({
   roomName: string | null
   manager: boolean
   userName: string
+  dashboardView: 'operational' | 'executive'
+  onDashboardViewChange: (view: 'operational' | 'executive') => void
   onNavigate: NavigateFn
 }) {
   const [loading, setLoading] = useState(true)
@@ -204,14 +218,19 @@ export default function OverviewDashboard({
   return (
     <div className="ovRoot">
       <section className="ovHero">
-        <div>
-          <span className="ovEyebrow">DASHBOARD OPERASIONAL</span>
-          <h3>Ikhtisar mutu, keselamatan pasien, dan risiko</h3>
-          <p>{manager ? 'Pemantauan agregat lintas unit untuk membantu penentuan prioritas perbaikan.' : `Pemantauan data unit ${roomName || 'Anda'} sesuai hak akses akun.`}</p>
+        <div className="ovHeroCopy">
+          <span className="ovEyebrow">{dashboardView === 'executive' ? 'HOSPITAL QUALITY INTELLIGENCE' : 'AUREKA · PMKP WORKSPACE'}</span>
+          <h3>{dashboardView === 'executive' ? 'Executive Hospital Dashboard' : `Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}</h3>
+          <p>{dashboardView === 'executive'
+            ? 'Ikhtisar eksekutif mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
+            : manager
+              ? 'Pantau indikator mutu, keselamatan pasien, Clinical Pathway, serta risiko prioritas dalam satu ruang kendali.'
+              : `Ruang kerja mutu untuk ${roomName || 'unit Anda'} · input dan tindak lanjut sesuai hak akses.`}</p>
         </div>
         <div className="ovHeroMeta">
+          <span className="ovHeroDate">{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Pontianak' }).format(new Date())}</span>
           <button type="button" className="ovRefresh" onClick={() => setReloadKey(k => k + 1)} disabled={loading} aria-label="Muat ulang data">
-            <span className={loading ? 'ovSpin' : ''}>↻</span> {loading ? 'Memuat…' : 'Muat ulang data'}
+            <span className={loading ? 'ovSpin' : ''}>↻</span> {loading ? 'Memuat…' : 'Perbarui'}
           </button>
         </div>
       </section>
@@ -226,6 +245,16 @@ export default function OverviewDashboard({
       </section>
       <p className="ovScopeNote">Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan; risiko dihitung dari register yang dapat diakses; IKP perlu tindak lanjut menghitung laporan yang belum ditutup tanpa batasan tahun. Ini bukan satu periode filter yang diterapkan ke seluruh modul.</p>
 
+      {manager && <div className="ovDashboardTabs" role="tablist" aria-label="Pilihan dashboard">
+        <button type="button" role="tab" aria-selected={dashboardView === 'operational'} className={dashboardView === 'operational' ? 'active' : ''} onClick={() => onDashboardViewChange('operational')}>
+          <span className="ovDashboardTabIcon" aria-hidden="true">▦</span><span><b>Dashboard 1</b><small>Operasional PMKP</small></span>
+        </button>
+        <button type="button" role="tab" aria-selected={dashboardView === 'executive'} className={dashboardView === 'executive' ? 'active' : ''} onClick={() => onDashboardViewChange('executive')}>
+          <span className="ovDashboardTabIcon" aria-hidden="true">▥</span><span><b>Dashboard 2</b><small>Eksekutif rumah sakit</small></span>
+        </button>
+      </div>}
+
+      {dashboardView === 'operational' ? <>
       <div className="ovKpis">
         <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
         <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
@@ -331,6 +360,66 @@ export default function OverviewDashboard({
         </Panel>}
       </div>
       <p className="ovFoot">Angka dihitung langsung dari database AUREKA sesuai hak akses {role === 'ADMIN' ? 'Super Admin' : 'akun Anda'}. Klik kartu, baris, atau sel peta untuk langsung membuka datanya.</p>
+      </> : <section className="ovExecutive" aria-label="Dashboard eksekutif rumah sakit">
+        <div className="ovKpis ovExecutiveKpis">
+          <Kpi delay={0} loading={loading} label="Episode indikator mutu" value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Sumber tidak tersedia' : stats.qualityReview + ' memerlukan review'} onClick={() => onNavigate('quality')} />
+          <Kpi delay={60} loading={loading} label="Audit Clinical Pathway" value={clinicalPathway.error ? null : stats.cpAuditTotal} sub={clinicalPathway.error ? 'Sumber tidak tersedia' : stats.cpReviewedTotal + ' sudah disubmit / divalidasi'} onClick={() => onNavigate('quality')} />
+          <Kpi delay={120} loading={loading} tone="warn" label="IKP belum ditutup" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.error ? 'Sumber tidak tersedia' : 'Memerlukan pemantauan tindak lanjut'} onClick={() => onNavigate('safety')} />
+          <Kpi delay={180} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.error ? 'Sumber tidak tersedia' : stats.overdueHigh + ' melewati target RTP'} onClick={() => onNavigate('risk')} />
+        </div>
+        <div className="ovExecGrid">
+          <Panel delay={120} eyebrow="EARLY WARNING" title="Peringatan prioritas manajemen">
+            <div className="ovExecutiveAlerts">
+              {sourceError && <div className="ovExecutiveAlert danger"><b>Data belum lengkap</b><span>Satu atau lebih sumber data gagal dimuat. Periksa status sumber sebelum menggunakan ringkasan ini.</span></div>}
+              {!risks.error && stats.overdueHigh > 0 && <button type="button" className="ovExecutiveAlert danger" onClick={() => onNavigate('risk')}><b>{stats.overdueHigh} risiko tinggi terlambat</b><span>Target pengendalian telah terlewati dan perlu perhatian manajemen.</span></button>}
+              {!incidents.error && stats.incidentsOpen > 0 && <button type="button" className="ovExecutiveAlert warning" onClick={() => onNavigate('safety')}><b>{stats.incidentsOpen} laporan IKP belum ditutup</b><span>Pantau investigasi, rekomendasi, dan penyelesaian tindak lanjut.</span></button>}
+              {!quality.error && !clinicalPathway.error && stats.auditPending > 0 && <button type="button" className="ovExecutiveAlert warning" onClick={() => onNavigate('quality')}><b>{stats.auditPending} audit menunggu validasi</b><span>Logbook indikator dan Clinical Pathway memerlukan telaah.</span></button>}
+              {!sourceError && stats.overdueHigh === 0 && stats.incidentsOpen === 0 && stats.auditPending === 0 && <div className="ovExecutiveAlert success"><b>Tidak ada prioritas terbuka pada sumber yang dibaca</b><span>Ini bukan pernyataan bahwa seluruh risiko atau insiden rumah sakit telah terkendali.</span></div>}
+            </div>
+          </Panel>
+          <Panel delay={180} eyebrow="KESELAMATAN PASIEN" title="Tren laporan insiden · 6 bulan">
+            {incidents.error ? <SectionError error={incidents.error} /> : loading ? <div className="ovSkeletonBlock" /> :
+              <div className="ovColumns" role="list">
+                {stats.months.map((m, idx) => <div key={m.key} className="ovColumn" role="listitem" title={m.label + ': ' + m.count + ' insiden'}>
+                  <span className="ovColumnValue">{m.count || ''}</span>
+                  <div className="ovColumnTrack"><div className="ovColumnFill" style={{ height: ((m.count / stats.maxMonth) * 100) + '%', animationDelay: (180 + idx * 50) + 'ms' }} /></div>
+                  <span className="ovColumnLabel">{m.label}</span>
+                </div>)}
+              </div>}
+          </Panel>
+          <Panel delay={240} eyebrow="AUDIT KLINIS" title="Kinerja Clinical Pathway">
+            {clinicalPathway.error ? <SectionError error={clinicalPathway.error} /> : loading ? <div className="ovSkeletonBlock" /> :
+              <div className="ovExecPerformance">
+                <div className="ovExecHeadline"><strong>{stats.cpAverageCompliance === null ? '—' : stats.cpAverageCompliance.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'}</strong><span>Rerata kepatuhan pada episode eligible yang memiliki nilai kepatuhan numerik.</span></div>
+                <div className="ovExecMetric"><span>Episode audit</span><b>{stats.cpAuditTotal.toLocaleString('id-ID')}</b></div>
+                <div className="ovExecMetric"><span>Episode masuk perhitungan</span><b>{stats.cpEligibleTotal.toLocaleString('id-ID')}</b></div>
+                <div className="ovExecMetric"><span>Lulus komponen Section D</span><b>{stats.cpEligibleTotal ? stats.cpSectionDPass.toLocaleString('id-ID') + ' / ' + stats.cpEligibleTotal.toLocaleString('id-ID') : '—'}</b></div>
+              </div>}
+          </Panel>
+          <Panel delay={300} eyebrow="MANAJEMEN RISIKO" title="Distribusi level risiko">
+            {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> :
+              <div className="ovBars" role="list">
+                {LEVELS.map((level, idx) => { const count = stats.byLevel[level] || 0; return <button type="button" key={level} className={'ovBarRow ovClickable'} role="listitem" disabled={!count} onClick={() => onNavigate('risk', { level })}>
+                  <span className={'rmBadge ' + LEVEL_CLASS[level]}>{level}</span><div className="ovBarTrack"><div className={'ovBarFill lvl-' + LEVEL_CLASS[level]} style={{ width: ((count / maxLevel) * 100) + '%' }}/></div><b>{count.toLocaleString('id-ID')}</b>
+                </button>})}
+              </div>}
+          </Panel>
+          <Panel delay={360} eyebrow="PENGENDALIAN" title="Status rencana tindak pengendalian">
+            {plans.error ? <SectionError error={plans.error} /> : loading ? <div className="ovSkeletonBlock" /> :
+              <div className="ovExecRtp">
+                <div><span>Aktif / berjalan / dievaluasi</span><b>{stats.plansActive.toLocaleString('id-ID')}</b></div>
+                <div><span>Menunggu persetujuan</span><b>{stats.plansPending.toLocaleString('id-ID')}</b></div>
+                <div><span>Lewat target (semua level)</span><b>{stats.overdue.toLocaleString('id-ID')}</b></div>
+                <button type="button" className="ovLink" onClick={() => onNavigate('risk')}>Buka RTP →</button>
+              </div>}
+          </Panel>
+          <Panel delay={420} eyebrow="UNIT KERJA" title="Unit dengan risiko tinggi terbanyak">
+            {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> : !stats.topUnits.length ? <div className="ovEmpty"><b>Tidak ada data risiko tinggi</b></div> :
+              <div className="ovBars" role="list">{stats.topUnits.map(([unit, count]) => <button type="button" key={unit} className="ovBarRow ovClickable" role="listitem" onClick={() => onNavigate('risk', { unitName: unit })}><span className="ovUnitName">{unit}</span><div className="ovBarTrack"><div className="ovBarFill lvl-accent" style={{ width: ((count / stats.topUnits[0][1]) * 100) + '%' }}/></div><b>{count}</b></button>)}</div>}
+          </Panel>
+        </div>
+        <p className="ovFoot">Dashboard eksekutif menyajikan agregat dari sumber yang berhasil dibaca. Angka lintas-modul tidak boleh ditafsirkan sebagai satu skor mutu rumah sakit atau sebagai indikator nasional yang telah tervalidasi.</p>
+      </section>}
     </div>
   )
 }
