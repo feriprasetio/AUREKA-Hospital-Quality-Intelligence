@@ -609,7 +609,6 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const filtered=useMemo(()=>patients.filter(p=>{
    const roomOk=roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId))
    const monthOk=!monthFilter||mon(p.admit)===monthFilter
-   const hasStay=!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')
    const validatorVisible=!isValidator||String(p.databaseStatus??'').toLowerCase()!=='draft'
    const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit} ${JSON.stringify(p.formData??{})}`.toLowerCase()
    return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&validatorVisible&&hay.includes(search.toLowerCase().trim())
