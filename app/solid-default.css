@@ -383,9 +383,6 @@ html:has(.workspaceRoot),body:has(.workspaceRoot){
 }
 .workspaceRoot .moduleEnter svg{color:inherit}
 .workspaceRoot .moduleEnter svg :is(path,line,polyline,polygon,circle,rect){vector-effect:non-scaling-stroke}
-.workspaceRoot .moduleEnter :is(.text-white,.text-light,.text-muted-foreground){
-  color:#374151!important;
-}
 .workspaceRoot .moduleEnter :is(.bg-primary,.bg-blue-600,.bg-indigo-600,.bg-green-600,.bg-red-600,.bg-emerald-600,.bg-rose-600) :is(span,strong,b,small){
   color:#fff!important;
 }
