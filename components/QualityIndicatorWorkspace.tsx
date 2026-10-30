@@ -6,10 +6,11 @@ import IbsExcelImportDialog from '@/components/IbsExcelImportDialog'
 import PharmacyExcelImportDialog from '@/components/PharmacyExcelImportDialog'
 import GiziExcelImportDialog from '@/components/GiziExcelImportDialog'
 import LaboratoryExcelImportDialog from '@/components/LaboratoryExcelImportDialog'
+import OutpatientExcelImportDialog from '@/components/OutpatientExcelImportDialog'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind } from '@/lib/aureka/indicator-engine'
 import { buildIndicatorDropdownOptions, findIndicatorDropdownSelection, shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
-import { getOutpatientDoctorsForClinic, summarizeOutpatientClinics } from '@/lib/aureka/outpatient-logbook'
+import { getOutpatientDoctorsForClinic, summarizeOutpatientClinics, summarizeOutpatientPerformance } from '@/lib/aureka/outpatient-logbook'
 import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '@/lib/aureka/complaint-logbook'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
@@ -20,8 +21,7 @@ import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'] as const
-const STATUS=['Semua','Aktif','Draft','Ready for Review','Validated','Reopened']
+const CONTAINERS=['Audit Indikator Mutu','Hasil Audit','Audit Clinical Pathway','Audit Klinis dan Kematian'] as const
 const YEARS=[2025,2026,2027,2028,2029]
 
 type Room={id:number;name:string};type Profile=Record<string,any>;type TeamStaffOption={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;directory_status:'available';room_id:number};type AuditLayout={roomId:number;fields:string[];indicators:string[];measurementGrain?:string;providerGroups?:{clinic:string;doctors:string[]}[];fieldOptions?:Record<string,string[]>;indicatorOptions?:Record<string,string[]>;fieldTypes?:Record<string,'select'|'date'|'datetime-local'|'time'|'number'|'textarea'|'text'>;indicatorControl?:'select'|'radio'};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;numerator?:number|null;denominator?:number|null;noncompliant?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null;source_value?:string;source_label?:string;source_option?:boolean;review_required?:boolean};type Patient=Record<string,any>
@@ -350,8 +350,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    if(initial!=null)setRoomId(initial)
   }
  },[roomId,rooms,initialRoomId,isAdmin])
- const [monthFilter,setMonthFilter]=useState(0)
- const [status,setStatus]=useState('Semua')
+ const [monthFilter,setMonthFilter]=useState(()=>isValidator?(new Date().getMonth()===0?12:new Date().getMonth()):0)
+ const [monthlyReviews,setMonthlyReviews]=useState<Patient[]>([])
  const [search,setSearch]=useState('')
  useEffect(()=>{const receive=(event:Event)=>{const detail=(event as CustomEvent<{query?:string}>).detail;setSearch(String(detail?.query??''))};window.addEventListener('aureka:workspace-search',receive);return()=>window.removeEventListener('aureka:workspace-search',receive)},[])
  const [currentUserId,setCurrentUserId]=useState('')
@@ -370,12 +370,21 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [busy,setBusy]=useState(false)
  const [source,setSource]=useState('Memuat…')
  const [patientOpen,setPatientOpen]=useState(false),[pendingArchive,setPendingArchive]=useState<Patient|null>(null)
+ useEffect(()=>{
+   if(!patientOpen)return
+   const previousOverflow=document.body.style.overflow
+   document.body.style.overflow='hidden'
+   const closeOnEscape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!busy)setPatientOpen(false)}
+   document.addEventListener('keydown',closeOnEscape)
+   return()=>{document.body.style.overflow=previousOverflow;document.removeEventListener('keydown',closeOnEscape)}
+ },[patientOpen,busy])
  const [complaintImportOpen,setComplaintImportOpen]=useState(false)
  const [ambulanceImportOpen,setAmbulanceImportOpen]=useState(false)
  const [ibsImportOpen,setIbsImportOpen]=useState(false)
  const [pharmacyImportOpen,setPharmacyImportOpen]=useState(false)
  const [giziImportOpen,setGiziImportOpen]=useState(false)
  const [laboratoryImportOpen,setLaboratoryImportOpen]=useState(false)
+ const [outpatientImportOpen,setOutpatientImportOpen]=useState(false)
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
 
@@ -427,21 +436,50 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  },[activeLayout,roomId,patients,year,monthFilter,profiles])
  const outpatientClinicSummary=useMemo(()=>{
    if(Number(activeLayout?.roomId)!==11||Number(roomId)!==11)return null
-   const metrics=summarizeOutpatientClinics(
-     patients.filter(p=>Number(p.roomId)===11&&!p.excludeFromYearMetrics),
-     activeLayout?.providerGroups??[],
-     year,
-     monthFilter,
-     'Waktu Tunggu Rawat Jalan (Menit)',
-   )
+   const records=patients.filter(p=>Number(p.roomId)===11&&!p.excludeFromYearMetrics)
+   const groups=activeLayout?.providerGroups??[]
+   const metrics=summarizeOutpatientClinics(records,groups,year,monthFilter,'Waktu Tunggu Rawat Jalan (Menit)')
+   const performance=summarizeOutpatientPerformance(records,groups,year,monthFilter,'Waktu Tunggu Rawat Jalan (Menit)')
    return {
      metrics,
+     performance,
      totalRecords:metrics.reduce((total,item)=>total+item.recordCount,0),
      recordsWithMinutes:metrics.reduce((total,item)=>total+item.measurementCount,0),
      periodLabel:monthFilter?MONTHS[monthFilter-1]+' '+year:String(year),
    }
  },[activeLayout,roomId,patients,year,monthFilter])
+ const monthlyReviewForSelectedMonth=useMemo(
+   ()=>monthlyReviews.find(review=>Number(review.report_month)===monthFilter)??null,
+   [monthlyReviews,monthFilter],
+ )
+ const monthlyReportCount=useMemo(()=>patients.filter(p=>
+   Number(p.roomId)===Number(roomId)&&
+   ymd(String(p.admit??''))===year&&
+   mon(String(p.admit??''))===monthFilter&&
+   ['ready','validated','reopened'].includes(String(p.databaseStatus??'').toLowerCase())
+ ).length,[patients,roomId,year,monthFilter])
+ const markMonthlyReviewed=async()=>{
+   if(!isValidator||roomId==null||monthFilter<1||monthFilter>12)return
+   if(monthlyReportCount<1){setMessage('Belum ada laporan final pada bulan ini; pemeriksaan bulanan belum dapat dicatat.');return}
+   if(monthlyReviewForSelectedMonth){setMessage('Laporan bulan ini sudah diperiksa. Perubahan data akan membuka kembali validasi secara otomatis.');return}
+   setBusy(true);setMessage('')
+   try{
+     const {data,error}=await sb.rpc('aureka_validator_mark_month_reviewed',{
+       p_room_id:roomId,p_profile_year:year,p_report_month:monthFilter,
+     })
+     if(error)throw error
+     await load()
+     const review=data as Record<string,any>
+     setMessage(review?.reviewed_on_time
+       ?'Pemeriksaan laporan '+MONTHS[monthFilter-1]+' '+year+' tercatat tepat waktu.'
+       :'Pemeriksaan laporan '+MONTHS[monthFilter-1]+' '+year+' tercatat, tetapi melewati batas tanggal 10.')
+   }catch(error){
+     const detail=error instanceof Error?error.message:'Kesalahan tidak diketahui.'
+     setMessage('Pemeriksaan bulanan belum tersimpan: '+detail)
+   }finally{setBusy(false)}
+ } 
  const summaryFields=useMemo(()=>{
+   if(Number(activeLayout?.roomId)===11)return ['Tanggal pengamatan','Klinik','Dokter','Waktu Tunggu Rawat Jalan (Menit)']
    if(Number(activeLayout?.roomId)===5)return [
      'Tanggal pengamatan',
      'Alur layanan',
@@ -553,6 +591,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        return {id:String(r.id),recordId:String(r.id),enteredBy:String(r.entered_by??''),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,allowCrossYear:c.source_import?.allow_cross_year===true,excludeFromYearMetrics:c.source_import?.exclude_from_profile_year_metrics===true,staffIdByField:attributionByRecord.get(String(r.id))??{},measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
      })
      setPatients(db.filter((row:Patient)=>String(row.databaseStatus??'')!=='archived'))
+     const {data:reviewRows,error:reviewError}=await q().from('quality_monthly_reviews')
+       .select('*').eq('room_id',roomId).eq('profile_year',year)
+     if(reviewError)throw reviewError
+     setMonthlyReviews((reviewRows??[]) as Patient[])
      setSource('Supabase')
    }catch(e){
      setPatients([])
@@ -568,10 +610,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const roomOk=roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId))
    const monthOk=!monthFilter||mon(p.admit)===monthFilter
    const hasStay=!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')
-   const statusOk=status==='Semua'||(status==='Aktif'?(hasStay?!p.discharge:!['Ready for Review','Validated','Reopened'].includes(String(p.status))):p.status===status)
+   const validatorVisible=!isValidator||String(p.databaseStatus??'').toLowerCase()!=='draft'
    const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit} ${JSON.stringify(p.formData??{})}`.toLowerCase()
-   return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&statusOk&&hay.includes(search.toLowerCase().trim())
- }),[patients,year,roomId,roomMap,monthFilter,status,search,activeLayout])
+   return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&validatorVisible&&hay.includes(search.toLowerCase().trim())
+ }),[patients,year,roomId,roomMap,monthFilter,search,activeLayout,isValidator])
  const yearPatients=useMemo(()=>patients.filter(p=>!p.excludeFromYearMetrics&&(ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
  const unmatchedIndicatorHeaders=useMemo(()=>unmatchedHeaders(profiles,activeLayout),[profiles,activeLayout])
  const selectedUnmatchedHeaders=useMemo(()=>unmatchedHeaders(profiles,selectedLayout),[profiles,selectedLayout])
@@ -660,7 +702,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   }
   const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
 
- const save=async()=>{
+ const save=async(mode:'draft'|'reported')=>{
    if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Gunakan tindakan validasi pada daftar logbook.');return}
    if(!selected)return
    const layout=(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??''))??activeLayout
@@ -687,9 +729,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const discharge=String(formData['Tanggal Keluar']??selected.discharge??'')
    const values:any={}
    applicable.forEach(p=>{const r=draft[p.id??p.code];if(r)values[p.code]=r})
-   const complete=applicable.length>0&&applicable.every(p=>responseComplete(p,draft[p.id??p.code]))
-   const stayLayout=!!layout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!layout?.fields.some(f=>normHeader(f)==='tanggal keluar')
-   const finalStatus=complete?'Ready for Review':(stayLayout&&!discharge?'Aktif':'Draft')
+   const finalStatus=mode==='reported'?'Dilaporkan':'Simpan Sementara'
+   const databaseStatus=mode==='reported'?'ready':'draft'
    const now=new Date().toISOString()
    const grain=String(selected.measurementGrain??dominantGrain(profiles,layout))
    const serviceStream=String(formData['Alur layanan']??'').trim()
@@ -708,7 +749,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      if(!user) throw new Error('Sesi login tidak ditemukan.')
      savedEnteredBy=savedEnteredBy||String(user.id)
      const subjectKey=grain==='provider_day'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${String(formData['Klinik']??'').trim()}:${String(formData['Dokter']??'').trim()}`:grain==='daily_metric'?`${selected.roomId}:${String(recordDate??'').slice(0,10)}:${serviceStream||'semua-alur'}`:normalizedRm||`${selected.roomId}:${recordDate||now}:${selected.id}`
-     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:complete?'ready':'draft',review_required:complete,entered_by:user.id}
+     const payload={room_id:selected.roomId,profile_year:year,measurement_grain:grain,record_date:recordDate?String(recordDate).slice(0,10):null,subject_key:subjectKey,subject_json:core,core_data:core,status:databaseStatus,review_required:false,entered_by:user.id}
      if(!recordId&&['daily_metric','provider_day'].includes(grain)){
        const {data:existing,error:lookupError}=await q().from('quality_records').select('id').eq('room_id',selected.roomId).eq('profile_year',year).eq('measurement_grain',grain).eq('subject_key',subjectKey).neq('status','archived').limit(1).maybeSingle()
        if(lookupError)throw lookupError
@@ -729,9 +770,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setBusy(false)
      return
    }
-    const saved:Patient={...selected,id:recordId??selected.id,enteredBy:savedEnteredBy,databaseStatus:complete?'ready':'draft',name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
-   setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
-   setSelected(saved);setPatientOpen(false);setMessage('Logbook berhasil disimpan ke server.');setBusy(false)
+    const saved:Patient={...selected,id:recordId??selected.id,enteredBy:savedEnteredBy,databaseStatus,status:finalStatus,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
+   setPatients(p=>[saved,...p.filter(x=>String(x.id)!==String(selected.id))])
+   setSelected(saved);setPatientOpen(false);setMessage(mode==='reported'?'Laporan berhasil dikirim dan ditandai final. Data tetap dapat diedit.':'Catatan berhasil disimpan sementara.');setBusy(false)
  }
 
  const archivePatient=async(p:Patient)=>{
@@ -813,17 +854,6 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    </div></article>
  }
 
- const reviewRecord=async(p:Patient,decision:'validated'|'reopened')=>{
-   if(!isValidator){setMessage('Hanya akun validator yang dapat melakukan validasi unit.');return}
-   const id=String(p.recordId??p.id??'')
-   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){setMessage('Catatan ini belum tersimpan di server sehingga tidak dapat divalidasi.');return}
-   if(!['Ready for Review','Reopened'].includes(String(p.status))){setMessage('Hanya catatan siap ditinjau atau yang dikembalikan yang dapat diproses.');return}
-   setBusy(true);setMessage('')
-   const {error}=await q().rpc('aureka_validator_review_quality_record',{p_record_id:id,p_decision:decision,p_note:decision==='reopened'?'Dikembalikan oleh validator untuk perbaikan.':null})
-   if(error){setBusy(false);setMessage(/FORBIDDEN/i.test(error.message)?'Akses validasi ditolak. Pastikan akun memiliki role Validator dan unit yang sesuai.':`Gagal memproses validasi: ${error.message}`);return}
-   await load()
-   setMessage(decision==='validated'?'Catatan mutu berhasil divalidasi.':'Catatan dikembalikan untuk perbaikan oleh PIC.')
- }
  const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penanggung jawab|radiografer|analis|atlm|terapis|apoteker|nutrisionis|dietisien|pemeriksa|pelaksana)/i.test(field)
  const staffOptionsForField=(field:string,targetRoomId:number|null|undefined=selected?.roomId)=>{
    const options=staffOptions.filter((staff)=>Number(staff.room_id)===Number(targetRoomId))
@@ -884,36 +914,111 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    </label>
  }
 
-   const renderPatientEditor=()=>selected&&patientOpen?<section className="glass aqInlineEditor" role="region" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" onClick={()=>!busy&&setPatientOpen(false)}>×</button></div><div className="aqBody">
-      <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map(renderLogbookField)}</div>
-      <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'—'}</strong></div><div><span>Kelengkapan indikator hijau</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
-      <div className="aqSection"><h5>Indikator mutu (header hijau)</h5><span>{filledN} dari {applicable.length} terisi</span></div>
-      {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Layout Excel untuk unit ini belum mencantumkan header indikator berwarna hijau.</div>}
-      {applicable.map(indicatorEditor)}{selectedUnmatchedHeaders.map((header,i)=><article className="aqInd" key={`unmapped-${selected.roomId}-${i}-${header}`}><div className="aqIHead"><div><strong>{header}</strong><div className="aqMetaText">Header hijau dari Header Aureka.xlsx · indikator belum terpetakan ke master aktif</div></div></div><div className="aqIBody"><div className="aqNotice">Profil ini belum memiliki pasangan aktif dengan target dan definisi operasional yang tervalidasi. Isian angka/hasil indikator belum diaktifkan agar tidak menghasilkan perhitungan mutu yang keliru.</div></div></article>)}{!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator hijau pada layout unit ini.</div>}
-    </div><div className="aqFoot"><span style={{fontSize:11,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Validasi dilakukan dari daftar logbook setelah memeriksa data.':`${source} · seluruh field logbook dan respons indikator disimpan sebagai satu catatan.`}</span><div style={{display:'flex',gap:8}}><button className="aqBtn" onClick={()=>!busy&&setPatientOpen(false)}>Tutup</button>{!isValidator&&<button className="aqBtn primary" onClick={save} disabled={busy}>{busy?'Menyimpan…':'Simpan logbook'}</button>}</div></div></section>:null
+   const renderPatientEditor=()=>selected&&patientOpen?<div className="aqFormModalBackdrop" role="presentation" onMouseDown={(event:any)=>{if(event.target===event.currentTarget&&!busy)setPatientOpen(false)}}>
+    <style>{[
+      ".aqFormModalBackdrop{position:fixed;inset:0;z-index:12000;display:flex;align-items:center;justify-content:center;padding:clamp(8px,2vw,26px);background:rgba(10,23,17,.48);backdrop-filter:blur(7px);overflow-y:auto}",
+      ".aqFormModal{width:min(1020px,100%);max-height:94dvh;display:flex;flex-direction:column;min-width:0;background:#fff;border:1px solid #e0e8e3;border-radius:18px;box-shadow:0 24px 80px rgba(8,29,19,.24);overflow:hidden}",
+      ".aqFormModal .aqDHead{padding:16px 20px;border-bottom:1px solid #e7ede9;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;background:#fbfcfb}",
+      ".aqFormModal .aqDHead h4{font-size:18px;letter-spacing:-.03em;margin:4px 0;color:#19392b}",
+      ".aqFormModal .aqDHead p{font-size:10px;color:#718078;margin:0}",
+      ".aqFormModal .aqBody{padding:17px 20px;max-height:none;overflow:auto;display:grid;gap:14px;align-content:start}",
+      ".aqFormModal .aqEpisode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}",
+      ".aqFormModal .aqFoot{padding:12px 20px;border-top:1px solid #e7ede9;background:#fafcfb;display:flex;justify-content:space-between;align-items:center;gap:10px}",
+      ".aqFormModal .aqFootActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}",
+      ".aqFormModal .aqBtn{min-height:38px;padding:8px 12px}",
+      ".aqFormModal .aqBtn.primary{background:#236746;border-color:#236746}",
+      ".aqFormModal .aqFormNote{font-size:10px;line-height:1.5;color:#64746b;background:#f5f8f6;border:1px solid #e3ebe6;padding:11px 13px;border-radius:11px}",
+      "@media(max-width:680px){.aqFormModalBackdrop{padding:6px}.aqFormModal{max-height:97dvh;border-radius:12px}.aqFormModal .aqDHead,.aqFormModal .aqBody,.aqFormModal .aqFoot{padding-left:13px;padding-right:13px}.aqFormModal .aqEpisode{grid-template-columns:1fr}.aqFormModal .aqFoot{align-items:stretch;flex-direction:column}.aqFormModal .aqFootActions{display:grid;grid-template-columns:1fr 1fr}.aqFormModal .aqFootActions .primary{grid-column:1/-1}}"
+    ].join('')}</style>
+    <section className="aqFormModal" role="dialog" aria-modal="true" aria-labelledby="aqLogbookModalTitle">
+      <div className="aqDHead"><div><div className="eyebrow">Logbook mutu · {selected.unit??''}</div><h4 id="aqLogbookModalTitle">{recordTitle(selected)}</h4><p>{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis?' · '+selected.diagnosis:''}</p></div><button type="button" className="aqClose" disabled={busy} aria-label="Tutup formulir" onClick={()=>setPatientOpen(false)}>×</button></div>
+      <div className="aqBody">
+        <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map(renderLogbookField)}</div>
+        {Number(selected.roomId)===11
+          ? <div className="aqFormNote">Waktu tunggu per dokter dan tanggal adalah satu-satunya nilai operasional yang perlu diisi. Rata-rata per klinik, rata-rata keseluruhan, jumlah klinik di bawah 60 menit, dan persentase capaian dihitung otomatis pada kontainer Hasil Audit. Pembilang dan penyebut tidak diinput manual.</div>
+          : <>
+              <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')))):'—'}</strong></div><div><span>Kelengkapan indikator</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
+              <div className="aqSection"><h5>Indikator mutu</h5><span>{filledN} dari {applicable.length} terisi</span></div>
+              {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Layout Excel untuk unit ini belum mencantumkan header indikator.</div>}
+              {applicable.map(indicatorEditor)}
+              {selectedUnmatchedHeaders.map((header,i)=><article className="aqInd" key={'unmapped-'+selected.roomId+'-'+i+'-'+header}><div className="aqIHead"><div><strong>{header}</strong><div className="aqMetaText">Header indikator belum terpetakan ke master aktif</div></div></div><div className="aqIBody"><div className="aqNotice">Profil ini belum memiliki pasangan aktif dengan target dan definisi operasional yang tervalidasi.</div></div></article>)}
+              {!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator aktif pada unit ini.</div>}
+            </>}
+      </div>
+      <div className="aqFoot">
+        <span style={{fontSize:10,color:'var(--muted)'}}>{isValidator?'Mode baca saja · pemeriksaan dilakukan satu kali untuk seluruh bulan laporan.':source+' · laporan final tetap dapat diedit oleh PIC berwenang.'}</span>
+        <div className="aqFootActions">
+          <button type="button" className="aqBtn" disabled={busy} onClick={()=>setPatientOpen(false)}>Batal</button>
+          {!isValidator&&<><button type="button" className="aqBtn" disabled={busy} onClick={()=>void save('draft')}>{busy?'Menyimpan…':'Simpan Sementara'}</button><button type="button" className="aqBtn primary" disabled={busy} onClick={()=>void save('reported')}>{busy?'Mengirim…':'Laporkan'}</button></>}
+        </div>
+      </div>
+    </section>
+   </div>:null
 
   return <div className="aq">
    <style dangerouslySetInnerHTML={{__html:CSS}}/>
-   {showContainerTabs&&<nav className="glass aqTabs">{CONTAINERS.map(x=><button key={x} className={`aqTab ${container===x?'active':''}`} onClick={()=>setContainer(x)}>{x}</button>)}</nav>}
-   {container==='Audit Klinis dan Kematian'?<ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator}/>:<>
-     <section className="glass aqFilters"><div className="aqGrid"><label className="aqField"><span>Unit</span><select aria-label="Unit" title="Unit" value={roomId??''} disabled={!isAdmin||!rooms.length} onChange={(e:any)=>{const next=normalizeRoomIdValue(e.target.value);if(next!=null)setRoomId(next)}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><label className="aqField"><span>Tahun</span><select aria-label="Tahun" title="Tahun" value={year} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label><label className="aqField"><span>Status</span><select aria-label="Status" title="Status catatan" value={status} onChange={(e:any)=>setStatus(e.target.value)}>{STATUS.map(s=><option key={s} value={s}>{s==='Aktif'?(activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Aktif (belum pulang)':'Aktif / belum selesai'):s==='Draft'?'Draf':s==='Ready for Review'?'Siap ditinjau':s==='Validated'?'Tervalidasi':s}</option>)}</select></label><label className="aqField aqLocalSearch"><span>Pencarian</span><input value={search} onChange={(e:any)=>setSearch(e.target.value)} placeholder="Nama / No. RM / diagnosis / DPJP…"/></label><label className="aqField aqMonthSelect"><span>Bulan Pengamatan</span><select aria-label="Bulan pengamatan" title="Bulan pengamatan" value={monthFilter} onChange={(e:any)=>setMonthFilter(Number(e.target.value))}><option value={0}>Semua bulan</option>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select></label></div></section>
-      {complaintMetricSummary&&<><style>{`.aqComplaintKpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.aqComplaintKpi .glass{padding:14px 16px;min-width:0}.aqComplaintKpi span{font-size:10px;color:#6c7a73;font-weight:900}.aqComplaintKpi strong{display:block;font-size:23px;margin-top:5px;overflow-wrap:anywhere}.aqComplaintKpi small{font-size:10px;color:var(--muted)}@media(max-width:850px){.aqComplaintKpi{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.aqComplaintKpi{grid-template-columns:1fr}}`}</style><section className="aqComplaintKpi" aria-label="Ringkasan indikator pengaduan"><div className="glass"><span>Total aduan</span><strong>{complaintMetricSummary.records}</strong><small>{monthFilter?MONTHS[monthFilter-1]+' ':''}tahun {year}</small></div><div className="glass"><span>Respon tepat waktu</span><strong>{complaintMetricSummary.response.rate==null?'—':complaintMetricSummary.response.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.response.numerator}/{complaintMetricSummary.response.denominator} · target ≥ 75%; denominator tahun {year}</small></div><div className="glass"><span>Pasien tidak mengerti informasi</span><strong>{complaintMetricSummary.comprehension.rate==null?'—':complaintMetricSummary.comprehension.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.comprehension.numerator}/{complaintMetricSummary.comprehension.denominator} · target ≤ 5%; denominator tahun {year}</small></div><div className="glass"><span>Rata-rata tindak lanjut</span><strong>{complaintMetricSummary.avgDuration==null?'—':complaintMetricSummary.avgDuration.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+' hari'}</strong><small>{complaintMetricSummary.durationN} aduan bertanggal lengkap</small></div></section></>}
-      {pharmacyMetricSummary&&<><style>{'.aqPharmacySummary{margin-bottom:10px}.aqPharmacySummary .aqTableHead{padding:12px 16px}.aqPharmacySummary .aqWrap{max-height:none}.aqPharmacySummary table{min-width:1050px}.aqPharmacySummary td strong{display:block;font-size:11px}.aqPharmacySummary td small{display:block;font-size:9px;color:var(--muted);margin-top:3px}.aqPharmacySummary .aqStatus{display:inline-block;white-space:nowrap}@media(max-width:850px){.aqPharmacySummary table{min-width:950px}}'}</style><section className="glass aqTable aqPharmacySummary"><div className="aqTableHead"><div><h4>Rekap harian Instalasi Farmasi</h4><p>{pharmacyMetricSummary.periodLabel} · Gabungan Rawat Jalan + Rawat Inap · {pharmacyMetricSummary.records} catatan terkirim ({pharmacyMetricSummary.ready} siap ditinjau, {pharmacyMetricSummary.validated} tervalidasi)</p></div><span className="aqPill green">Σ N / Σ D</span></div><div className="aqWrap"><table className="aqData"><thead><tr><th>Indikator</th><th>Rawat Jalan · Data sumber (N/D)</th><th>Hasil</th><th>Rawat Inap · Data sumber (N/D)</th><th>Hasil</th><th>Gabungan · Data sumber (N/D)</th><th>Hasil gabungan</th><th>Target master</th><th>Interpretasi</th></tr></thead><tbody>{pharmacyMetricSummary.metrics.map(item=>{const showCounts=(aggregate:any)=>{if(aggregate.denominator<=0)return'—';const sourceN=item.code==='5.3'?aggregate.noncompliant:aggregate.numerator;return Number(sourceN).toLocaleString('id-ID')+' / '+Number(aggregate.denominator).toLocaleString('id-ID')};const showRate=(aggregate:any)=>aggregate.rate==null?'—':aggregate.rate.toFixed(2)+'%';const statusText=item.combined.rate==null?'Belum ada data':item.meets==null?'Target belum dapat dinilai':item.meets?'Memenuhi target':'Belum memenuhi target';return <tr key={item.code}><td><strong>{item.title}</strong><small>{item.code==='5.3'?'Data sumber: jumlah obat tidak berlabel; hasil adalah kepatuhan terkonversi.':''}</small></td><td>{showCounts(item.outpatient)}</td><td>{showRate(item.outpatient)}</td><td>{showCounts(item.inpatient)}</td><td>{showRate(item.inpatient)}</td><td><strong>{showCounts(item.combined)}</strong></td><td><strong>{showRate(item.combined)}</strong></td><td>{item.profile?.target_text??'—'}{item.code==='5.2'&&<small>Workbook: ≤ 5%</small>}</td><td><span className={'aqStatus '+(item.combined.rate==null?'':item.meets?'validated':'ready-for-review')}>{statusText}</span></td></tr>})}</tbody></table></div><div className="aqNotice">Rasio gabungan dihitung dari (N Rawat Jalan + N Rawat Inap) ÷ (D Rawat Jalan + D Rawat Inap) × 100%, bukan rata-rata dua persentase. Untuk 5.3, hasil kepatuhan dihitung sebagai (total sampel − obat tidak berlabel) ÷ total sampel; sumber workbook belum mencatat sampel LASA.</div><div className="aqNotice">Perbedaan target 5.2 perlu keputusan pemilik indikator: workbook menetapkan ≤ 5%, sedangkan master AUREKA aktif saat ini menetapkan ≤ 20%. Sistem tetap memakai target master ≤ 20% dan tidak mengubah target tanpa persetujuan.</div><div className="aqNotice">Indikator 5.1 Dead Stock/Stagnan tidak dimasukkan ke dua alur harian ini karena merupakan pengukuran stock opname gudang; perlu logbook stok terpisah dengan periode dan denominator stok yang sesuai.</div></section></>}
-      {outpatientClinicSummary&&<><style>{'.aqOutpatientSummary{margin-bottom:10px}.aqOutpatientSummary .aqTableHead{padding:12px 16px}.aqOutpatientSummary .aqWrap{max-height:none}.aqOutpatientSummary table{min-width:980px}.aqOutpatientSummary td strong{display:block;font-size:11px}.aqOutpatientSummary td small{display:block;font-size:9px;color:var(--muted);margin-top:3px}.aqOutpatientSummary details summary{cursor:pointer;color:var(--accent2);font-weight:800;font-size:10px}.aqOutpatientSummary .aqDoctorBreakdown{margin-top:8px;padding:8px;background:#f7faf8;border-radius:10px}.aqOutpatientSummary .aqDoctorBreakdown table{min-width:560px}.aqOutpatientSummary .aqDoctorBreakdown td,.aqOutpatientSummary .aqDoctorBreakdown th{font-size:9px;padding:6px}@media(max-width:850px){.aqOutpatientSummary table{min-width:900px}}'}</style><section className="glass aqTable aqOutpatientSummary"><div className="aqTableHead"><div><h4>Rekap waktu tunggu per klinik</h4><p>{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.totalRecords} catatan dokter-hari · {outpatientClinicSummary.recordsWithMinutes} catatan memiliki nilai menit</p></div><span className="aqPill green">Per klinik</span></div><div className="aqWrap"><table className="aqData"><thead><tr><th>Klinik</th><th>Dokter dengan data</th><th>Catatan dokter-hari</th><th>Hari tercatat</th><th>Rata-rata waktu tunggu</th><th>Terakhir dicatat</th><th>Rincian</th></tr></thead><tbody>{outpatientClinicSummary.metrics.map(item=><tr key={item.clinic}><td><strong>{item.clinic}</strong><small>{item.rosterDoctorCount} dokter pada daftar klinik</small></td><td>{item.doctorsWithData} / {item.rosterDoctorCount}</td><td>{item.recordCount}</td><td>{item.daysCount}</td><td><strong>{item.averageMinutes==null?'—':item.averageMinutes.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})+' menit'}</strong></td><td>{fmt(item.lastObserved??'')}</td><td><details><summary>Rincian dokter ({item.doctorSummaries.length})</summary><div className="aqDoctorBreakdown"><table className="aqData"><thead><tr><th>Dokter</th><th>Catatan berangka</th><th>Rata-rata (menit)</th><th>Terakhir dicatat</th></tr></thead><tbody>{item.doctorSummaries.map(doctor=><tr key={doctor.doctor}><td>{doctor.doctor}</td><td>{doctor.measurementCount}</td><td>{doctor.averageMinutes==null?'—':doctor.averageMinutes.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})}</td><td>{fmt(doctor.lastObserved??'')}</td></tr>)}</tbody></table></div></details></td></tr>)}</tbody></table></div><div className="aqNotice">Rata-rata klinik dihitung dari rata-rata masing-masing dokter pada periode terpilih, kemudian dirata-ratakan antar-dokter yang memiliki data; ini mengikuti metode rekap Dashboard pada workbook. Dokter tanpa angka waktu tunggu tidak dimasukkan ke rerata klinik.</div><div className="aqNotice">Nilai waktu tunggu dalam menit merupakan data operasional dokter-hari. Nilai ini tidak menggantikan numerator dan denominator resmi indikator 11.1, yaitu jumlah pasien dengan waktu tunggu kurang dari 60 menit dibandingkan jumlah pasien yang diobservasi.</div></section></>}
-      <div className="aqDataBar" aria-label="Ringkasan logbook">
-       <div><span>{activeGrain==='patient_episode'?'Total episode':activeGrain==='provider_day'?'Catatan dokter/hari':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='event'?'Kejadian':activeGrain==='activity'?'Aktivitas':'Total catatan'}</span><strong>{yearPatients.length}</strong></div>
-       <div><span>Dengan data</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed|ready for review|validated)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong></div>
-       <div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div>
-       <div><span>Indikator terisi</span><strong>{yearPatients.filter(p=>(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length}</strong></div>
-       <div><span>Ditampilkan</span><strong>{filtered.length}</strong></div>
-       {!isValidator&&roomId===1&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setComplaintImportOpen(true)} title={canImportWorkbook?"Unggah workbook Excel resmi unit Informasi dan Pengaduan":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>Unggah workbook .xlsx</button>}
-       {!isValidator&&roomId===3&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setAmbulanceImportOpen(true)} title={canImportWorkbook?"Unggah workbook Excel resmi unit Ambulance":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>Unggah workbook .xlsx</button>}
-       {!isValidator&&roomId===4&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setIbsImportOpen(true)} title={canImportWorkbook?"Unggah workbook Excel resmi Instalasi Bedah Sentral":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>Unggah workbook .xlsx</button>}
-       {!isValidator&&roomId===9&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setLaboratoryImportOpen(true)} title={canImportWorkbook?"Unggah workbook Excel resmi Instalasi Laboratorium":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>Unggah workbook .xlsx</button>}
-       {!isValidator&&roomId===7&&year===2026?<><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button><button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setGiziImportOpen(true)} title={canImportWorkbook?"Unggah workbook Excel resmi Instalasi Gizi":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>Unggah workbook .xlsx</button></>:!isValidator&&roomId===5&&year===2026?<><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Jalan'})}>＋ Input Rawat Jalan</button><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Inap'})}>＋ Input Rawat Inap</button><button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setPharmacyImportOpen(true)} title={canImportWorkbook?"Unggah workbook Excel resmi Instalasi Farmasi":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>Unggah workbook .xlsx</button></>:!isValidator&&<button type="button" className="aqBtn primary aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button>}
-      </div>
-      <section className="glass aqTable"><div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>Indikator terisi</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)),total=rowProfiles.length,count=rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=><td key={field+'-'+j}>{String(summaryCellValue(p,field)??'')||'—'}</td>)}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase()))?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.preventDefault();e.stopPropagation();setPendingArchive(p)}}>Hapus</button>:<span className="aqMetaText">—</span>)}</div></td></tr>{patientOpen&&selected&&String(selected.id)===String(p.id)&&<tr className="aqInlineEditorRow" onClick={(event:any)=>event.stopPropagation()}><td colSpan={summaryFields.length+4}>{renderPatientEditor()}</td></tr>}</Fragment>})}{!filtered.length&&<tr><td colSpan={summaryFields.length+4}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada periode ini.'}</div></td></tr>}</tbody></table></div></section></>}
+   {showContainerTabs&&<nav className="glass aqTabs">{CONTAINERS.map(x=><button key={x} className={'aqTab '+(container===x?'active':'')} onClick={()=>setContainer(x)}>{x}</button>)}</nav>}
+   {container==='Audit Klinis dan Kematian'
+     ? <ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator}/>
+     : <>
+       <section className="glass aqFilters">
+         <div className="aqGrid">
+           <label className="aqField"><span>Unit</span><select aria-label="Unit" title="Unit" value={roomId??''} disabled={!isAdmin||!rooms.length} onChange={(e:any)=>{const next=normalizeRoomIdValue(e.target.value);if(next!=null)setRoomId(next)}}>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
+           <label className="aqField"><span>Tahun</span><select aria-label="Tahun" title="Tahun" value={year} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label>
+           <label className="aqField aqLocalSearch"><span>Pencarian</span><input value={search} onChange={(e:any)=>setSearch(e.target.value)} placeholder="Nama / No. RM / klinik / dokter…"/></label>
+           <label className="aqField aqMonthSelect"><span>{isValidator?'Bulan laporan':'Bulan pengamatan'}</span><select aria-label="Bulan pengamatan" title="Bulan pengamatan" value={monthFilter} onChange={(e:any)=>setMonthFilter(Number(e.target.value))}>{!isValidator&&<option value={0}>Semua bulan</option>}{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select></label>
+         </div>
+       </section>
 
+       {container==='Hasil Audit'&&<>
+         {complaintMetricSummary&&<><style>{".aqComplaintKpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.aqComplaintKpi .glass{padding:14px 16px;min-width:0}.aqComplaintKpi span{font-size:10px;color:#6c7a73;font-weight:900}.aqComplaintKpi strong{display:block;font-size:23px;margin-top:5px;overflow-wrap:anywhere}.aqComplaintKpi small{font-size:10px;color:var(--muted)}@media(max-width:850px){.aqComplaintKpi{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.aqComplaintKpi{grid-template-columns:1fr}}"} </style><section className="aqComplaintKpi" aria-label="Ringkasan indikator pengaduan"><div className="glass"><span>Total aduan</span><strong>{complaintMetricSummary.records}</strong><small>{monthFilter?MONTHS[monthFilter-1]+' ':''}tahun {year}</small></div><div className="glass"><span>Respon tepat waktu</span><strong>{complaintMetricSummary.response.rate==null?'—':complaintMetricSummary.response.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.response.numerator}/{complaintMetricSummary.response.denominator} · target ≥ 75%</small></div><div className="glass"><span>Pasien tidak mengerti informasi</span><strong>{complaintMetricSummary.comprehension.rate==null?'—':complaintMetricSummary.comprehension.rate.toFixed(2)+'%'}</strong><small>{complaintMetricSummary.comprehension.numerator}/{complaintMetricSummary.comprehension.denominator} · target ≤ 5%</small></div><div className="glass"><span>Rata-rata tindak lanjut</span><strong>{complaintMetricSummary.avgDuration==null?'—':complaintMetricSummary.avgDuration.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+' hari'}</strong><small>{complaintMetricSummary.durationN} aduan bertanggal lengkap</small></div></section></>}
+         {pharmacyMetricSummary&&<><style>{'.aqPharmacySummary{margin-bottom:10px}.aqPharmacySummary .aqTableHead{padding:12px 16px}.aqPharmacySummary .aqWrap{max-height:none}.aqPharmacySummary table{min-width:1050px}.aqPharmacySummary td strong{display:block;font-size:11px}.aqPharmacySummary td small{display:block;font-size:9px;color:var(--muted);margin-top:3px}@media(max-width:850px){.aqPharmacySummary table{min-width:950px}}'}</style><section className="glass aqTable aqPharmacySummary"><div className="aqTableHead"><div><h4>Rekap harian Instalasi Farmasi</h4><p>{pharmacyMetricSummary.periodLabel} · gabungan Rawat Jalan dan Rawat Inap · {pharmacyMetricSummary.records} catatan terkirim</p></div><span className="aqPill green">Σ N / Σ D</span></div><div className="aqWrap"><table className="aqData"><thead><tr><th>Indikator</th><th>Rawat Jalan · N/D</th><th>Hasil</th><th>Rawat Inap · N/D</th><th>Hasil</th><th>Gabungan · N/D</th><th>Hasil gabungan</th><th>Target</th><th>Interpretasi</th></tr></thead><tbody>{pharmacyMetricSummary.metrics.map(item=>{const showCounts=(aggregate:any)=>{if(aggregate.denominator<=0)return'—';const sourceN=item.code==='5.3'?aggregate.noncompliant:aggregate.numerator;return Number(sourceN).toLocaleString('id-ID')+' / '+Number(aggregate.denominator).toLocaleString('id-ID')};const showRate=(aggregate:any)=>aggregate.rate==null?'—':aggregate.rate.toFixed(2)+'%';const statusText=item.combined.rate==null?'Belum ada data':item.meets==null?'Target belum dapat dinilai':item.meets?'Memenuhi target':'Belum memenuhi target';return <tr key={item.code}><td><strong>{item.title}</strong></td><td>{showCounts(item.outpatient)}</td><td>{showRate(item.outpatient)}</td><td>{showCounts(item.inpatient)}</td><td>{showRate(item.inpatient)}</td><td><strong>{showCounts(item.combined)}</strong></td><td><strong>{showRate(item.combined)}</strong></td><td>{item.profile?.target_text??'—'}</td><td>{statusText}</td></tr>})}</tbody></table></div><div className="aqNotice">Rasio gabungan dihitung dari jumlah numerator dibagi jumlah denominator, bukan rata-rata dua persentase.</div></section></>}
+         {outpatientClinicSummary&&<><style>{".aqOutpatientSummary{margin-bottom:10px}.aqOutpatientSummary .aqTableHead{padding:12px 16px}.aqOutpatientSummary .aqWrap{max-height:none}.aqOutpatientSummary table{min-width:850px}.aqOutpatientSummary td strong{display:block;font-size:11px}.aqOutpatientSummary td small{display:block;font-size:9px;color:var(--muted);margin-top:3px}.aqOutpatientSummary details summary{cursor:pointer;color:var(--accent2);font-weight:800;font-size:10px}.aqOutpatientSummary .aqDoctorBreakdown{margin-top:8px;padding:8px;background:#f7faf8;border-radius:10px}.aqOutpatientSummary .aqDoctorBreakdown table{min-width:520px}.aqOutpatientSummary .aqDoctorBreakdown td,.aqOutpatientSummary .aqDoctorBreakdown th{font-size:9px;padding:6px}@media(max-width:850px){.aqOutpatientSummary table{min-width:780px}}.aqOutpatientKpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:12px 14px}.aqOutpatientKpi .glass{padding:12px 14px}.aqOutpatientKpi span{display:block;font-size:10px;color:#718078;font-weight:800}.aqOutpatientKpi strong{display:block;margin-top:5px;font-size:21px;color:#1d4634}.aqOutpatientKpi small{font-size:10px;color:#75837b}@media(max-width:760px){.aqOutpatientKpi{grid-template-columns:repeat(2,minmax(0,1fr))}}"} </style><section className="glass aqTable aqOutpatientSummary"><div className="aqTableHead"><div><h4>Hasil audit waktu tunggu rawat jalan</h4><p>{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.totalRecords.toLocaleString('id-ID')} catatan dokter-hari · {outpatientClinicSummary.recordsWithMinutes.toLocaleString('id-ID')} nilai menit valid</p></div><span className="aqPill green">Otomatis</span></div>
+           <div className="aqOutpatientKpi"><div className="glass"><span>Rata-rata waktu tunggu keseluruhan</span><strong>{outpatientClinicSummary.performance.overallAverageMinutes==null?'—':outpatientClinicSummary.performance.overallAverageMinutes.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})+' menit'}</strong><small>Rata-rata antar-klinik yang memiliki data</small></div><div className="glass"><span>Klinik dengan rata-rata &lt; 60 menit</span><strong>{outpatientClinicSummary.performance.clinicsBelow60} / {outpatientClinicSummary.performance.operatingClinics}</strong><small>Klinik dalam daftar operasional</small></div><div className="glass"><span>Capaian klinik memenuhi target</span><strong>{outpatientClinicSummary.performance.performanceRate==null?'—':outpatientClinicSummary.performance.performanceRate.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'}</strong><small>Jumlah klinik &lt; 60 menit ÷ seluruh klinik operasional</small></div><div className="glass"><span>Klinik belum memiliki data</span><strong>{outpatientClinicSummary.performance.clinicsWithoutData}</strong><small>Tetap masuk denominator agar tidak dianggap memenuhi target</small></div></div>
+           <div className="aqWrap"><table className="aqData"><thead><tr><th>Klinik</th><th>Rata-rata (menit)</th><th>Dokter dengan data</th><th>Catatan</th><th>Target &lt; 60</th><th>Rincian</th></tr></thead><tbody>{outpatientClinicSummary.metrics.map(item=><tr key={item.clinic}><td><strong>{item.clinic}</strong><small>{item.rosterDoctorCount} dokter pada roster</small></td><td><strong>{item.averageMinutes==null?'—':item.averageMinutes.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})}</strong></td><td>{item.doctorsWithData} / {item.rosterDoctorCount}</td><td>{item.recordCount}</td><td>{item.averageMinutes==null?'Belum ada data':item.averageMinutes<60?'Memenuhi':'Belum memenuhi'}</td><td><details><summary>Dokter ({item.doctorSummaries.length})</summary><div className="aqDoctorBreakdown"><table className="aqData"><thead><tr><th>Dokter</th><th>Observasi</th><th>Rata-rata menit</th><th>Terakhir dicatat</th></tr></thead><tbody>{item.doctorSummaries.map(doctor=><tr key={doctor.doctor}><td>{doctor.doctor}</td><td>{doctor.measurementCount}</td><td>{doctor.averageMinutes==null?'—':doctor.averageMinutes.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})}</td><td>{fmt(doctor.lastObserved??'')}</td></tr>)}</tbody></table></div></details></td></tr>)}</tbody></table></div>
+           <div className="aqNotice">Rata-rata klinik dihitung dari rerata observasi tiap dokter, lalu dirata-ratakan antar-dokter. Rata-rata keseluruhan adalah rerata antar-klinik yang memiliki data. Klinik tanpa data tetap dihitung dalam denominator sebagai belum memenuhi sampai PIC melengkapi pengamatan. Nilai tepat 60 menit tidak memenuhi batas “di bawah 60 menit”.</div>
+         </section></>}
+         {roomId!=null&&monthFilter>0&&<section className="glass" style={{padding:16,display:'grid',gap:10}}>
+           <div><div className="eyebrow">Validasi bulanan</div><h4 style={{margin:'4px 0',fontSize:16}}>{MONTHS[monthFilter-1]} {year}</h4><p style={{margin:0,fontSize:11,color:'var(--muted)'}}>{monthlyReportCount.toLocaleString('id-ID')} laporan final pada periode ini · batas pemeriksaan tanggal 10 bulan berikutnya.</p></div>
+           {monthlyReviewForSelectedMonth
+             ? <div className="aqNotice">Sudah diperiksa pada {new Date(String(monthlyReviewForSelectedMonth.reviewed_at)).toLocaleString('id-ID')} oleh validator. {monthlyReviewForSelectedMonth.reviewed_on_time?'Pemeriksaan tepat waktu.':'Pemeriksaan terlambat dari batas tanggal 10.'} Setiap perubahan logbook sesudah pemeriksaan akan membuka kembali periode untuk diperiksa ulang.</div>
+             : isValidator
+               ? <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}><span className="aqMetaText">{monthlyReportCount>0?'Periksa seluruh laporan bulan ini dalam satu tindakan.':'Belum ada laporan final untuk diperiksa.'}</span><button type="button" className="aqBtn primary" disabled={busy||monthlyReportCount<1} onClick={()=>void markMonthlyReviewed()}>Sudah diperiksa</button></div>
+               : <div className="aqNotice">Pemeriksaan validator belum tercatat untuk periode ini.</div>}
+         </section>}
+       </>}
+
+       {container==='Audit Indikator Mutu'&&<>
+         <div className="aqDataBar" aria-label="Ringkasan logbook">
+           <div><span>{activeGrain==='patient_episode'?'Total episode':activeGrain==='provider_day'?'Catatan dokter/hari':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='event'?'Kejadian':activeGrain==='activity'?'Aktivitas':'Total catatan'}</span><strong>{yearPatients.length}</strong></div>
+           <div><span>Dengan data</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong></div>
+           <div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div>
+           <div><span>Indikator terisi</span><strong>{yearPatients.filter(p=>(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length}</strong></div>
+           <div><span>Ditampilkan</span><strong>{filtered.length}</strong></div>
+           {!isValidator&&roomId===1&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setComplaintImportOpen(true)}>Unggah workbook .xlsx</button>}
+           {!isValidator&&roomId===3&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setAmbulanceImportOpen(true)}>Unggah workbook .xlsx</button>}
+           {!isValidator&&roomId===4&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setIbsImportOpen(true)}>Unggah workbook .xlsx</button>}
+           {!isValidator&&roomId===9&&year===2026&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setLaboratoryImportOpen(true)}>Unggah workbook .xlsx</button>}
+           {!isValidator&&roomId===7&&year===2026?<><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button><button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setGiziImportOpen(true)}>Unggah workbook .xlsx</button></>:!isValidator&&roomId===5&&year===2026?<><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Jalan'})}>＋ Input Rawat Jalan</button><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Inap'})}>＋ Input Rawat Inap</button><button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setPharmacyImportOpen(true)}>Unggah workbook .xlsx</button></>:!isValidator&&roomId!==1&&roomId!==3&&roomId!==4&&roomId!==5&&roomId!==7&&roomId!==9&&roomId!==11&&<button type="button" className="aqBtn primary aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button>}
+           {!isValidator&&roomId===11&&year===2026&&<><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah data dokter-hari</button><button type="button" className="aqBtn aqImportButton" disabled={busy||!canImportWorkbook} onClick={()=>setOutpatientImportOpen(true)}>Unggah workbook .xlsx</button></>}
+         </div>
+         <section className="glass aqTable"><div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>Tindakan</th></tr></thead><tbody>
+           {filtered.map((p:any,i:number)=><tr key={p.id??p.recordId??i} tabIndex={0} onClick={()=>openPatient(p)} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPatient(p)}}}>
+             <td>{i+1}</td>{summaryFields.map((field,j)=><td key={field+'-'+j}>{String(summaryCellValue(p,field)??'')||'—'}</td>)}
+             <td><div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>{isValidator
+               ? <button type="button" className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();openPatient(p)}}>Lihat</button>
+               : <>
+                   <button type="button" className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();openPatient(p)}}>Edit</button>
+                   {((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&String(p.databaseStatus??'').toLowerCase()!=='archived'))&&<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.preventDefault();e.stopPropagation();setPendingArchive(p)}}>Hapus</button>}
+                 </>}
+             </div></td>
+           </tr>)}
+           {!filtered.length&&<tr><td colSpan={summaryFields.length+2}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada periode ini.'}</div></td></tr>}
+         </tbody></table></div></section>
+       </>}
+     </>}
+   {patientOpen&&selected&&renderPatientEditor()}
+   <OutpatientExcelImportDialog open={outpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} onClose={()=>setOutpatientImportOpen(false)} onImported={async()=>{await load()}}/>
    <ComplaintExcelImportDialog open={complaintImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setComplaintImportOpen(false)} onImported={async()=>{await load()}}/>
    <AmbulanceExcelImportDialog open={ambulanceImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setAmbulanceImportOpen(false)} onImported={async()=>{await load()}}/>
    <IbsExcelImportDialog open={ibsImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setIbsImportOpen(false)} onImported={async()=>{await load()}}/>
