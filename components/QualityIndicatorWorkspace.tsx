@@ -330,15 +330,6 @@ function defaultAuditRoomId(rooms:Room[],initialRoomId:number|null,isAdmin:boole
  }
  return normalizeRoomIdValue(initialRoomId)??normalizeRoomIdValue(rooms[0]?.id)
 }
-function statusLabel(status:unknown){
- const s=String(status??'')
- if(s==='ready'||s==='Ready for Review')return'Siap ditinjau'
- if(s==='validated'||s==='Validated')return'Tervalidasi'
- if(s==='reopened'||s==='Reopened')return'Perlu perbaikan'
- if(s==='draft'||s==='Draft')return'Draf'
- if(s==='Aktif')return'Aktif'
- return s||'Draf'
-}
 export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,isValidator=false,canViewAllRooms=false,initialContainer,showContainerTabs=true}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean;isValidator?:boolean;canViewAllRooms?:boolean;initialContainer?:(typeof CONTAINERS)[number];showContainerTabs?:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(initialContainer&&CONTAINERS.includes(initialContainer)?initialContainer:CONTAINERS[0])
  const [year,setYear]=useState(2026)
@@ -364,7 +355,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [message,setMessage]=useState('')
  useEffect(()=>{
   if(!message||typeof window==='undefined')return
-  const type= /^(Gagal|Belum|Data tidak dapat|Catatan belum|Kolom|Tanggal|Pilih|Akun validator)/i.test(message)?'error':/berhasil disimpan|berhasil dihapus/i.test(message)?'success':'info'
+  const type= /^(Gagal|Belum|Data tidak dapat|Catatan belum|Kolom|Tanggal|Pilih|Akun validator|Pemeriksaan bulanan belum)/i.test(message)?'error':/berhasil disimpan|berhasil dihapus|berhasil dikirim|tercatat tepat waktu/i.test(message)?'success':'info'
   window.dispatchEvent(new CustomEvent('aureka:notification',{detail:{message,type,module:'Audit Indikator Mutu'}}))
  },[message])
  const [busy,setBusy]=useState(false)
@@ -521,7 +512,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    // Remove legacy PHI caches without reading or restoring their contents.
    if(typeof window!=='undefined'){try{window.localStorage.removeItem('aureka-quality-episode-cache-v3');window.localStorage.removeItem('aureka-quality-audit-v3')}catch{}}
    try{
-     if(roomId==null){setProfiles([]);setStaffOptions([]);setPatients([]);setSource('Unit belum dipilih');setMessage('Unit kerja belum tersedia. Pilih unit pertama yang tersedia sebelum membuka logbook.');return}
+     if(roomId==null){setProfiles([]);setStaffOptions([]);setPatients([]);setMonthlyReviews([]);setSource('Unit belum dipilih');setMessage('Unit kerja belum tersedia. Pilih unit pertama yang tersedia sebelum membuka logbook.');return}
      let pq=q().from('indicator_profiles').select('*').eq('room_id',roomId).eq('profile_year',year).eq('status','published').eq('is_active',true).order('code')
      const {data:pd,error:pe}=await pq
      if(pe) throw pe
@@ -599,6 +590,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    }catch(e){
      setPatients([])
      setProfiles([])
+     setMonthlyReviews([])
      setSource('Supabase tidak tersedia')
      setMessage(`Data tidak dapat dimuat dari server. Tidak ada draf pasien yang dipulihkan dari browser. ${e instanceof Error?e.message:''}`.trim())
    }finally{setBusy(false)}
@@ -702,7 +694,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
 
  const save=async(mode:'draft'|'reported')=>{
-   if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Gunakan tindakan validasi pada daftar logbook.');return}
+   if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Pemeriksaan dilakukan satu kali pada kontainer Hasil Audit.');return}
    if(!selected)return
    const layout=(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??''))??activeLayout
    const formData:Record<string,any>={...(selected.formData??{})}
