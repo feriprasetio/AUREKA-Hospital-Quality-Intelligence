@@ -82,3 +82,33 @@ test('clinic target is inclusive at 60 minutes and denominator only counts clini
   assert.equal(withData.filter(item => item.averageMinutes <= 60).length, 1)
   assert.equal(withData.length, 2)
 })
+
+
+test('indicator 11.1 uses a strict <60-minute threshold and the full operational roster as denominator', async () => {
+  const { summarizeOutpatientIndicator } = await import('../lib/aureka/outpatient-logbook.ts')
+  const metrics = [
+    { clinic: 'Klinik Anak', rosterDoctorCount: 2, doctorsWithData: 1, recordCount: 1, measurementCount: 1, daysCount: 1, averageMinutes: 59.9, lastObserved: '2026-06-01', doctorSummaries: [] },
+    { clinic: 'Klinik Mata', rosterDoctorCount: 1, doctorsWithData: 1, recordCount: 1, measurementCount: 1, daysCount: 1, averageMinutes: 60, lastObserved: '2026-06-01', doctorSummaries: [] },
+    { clinic: 'Klinik Baru di luar roster', rosterDoctorCount: 0, doctorsWithData: 1, recordCount: 1, measurementCount: 1, daysCount: 1, averageMinutes: 10, lastObserved: '2026-06-01', doctorSummaries: [] },
+  ]
+  const summary = summarizeOutpatientIndicator(metrics, groups, 60)
+  assert.equal(summary.operationalClinicCount, 2)
+  assert.equal(summary.clinicsWithData, 2)
+  assert.equal(summary.clinicsWithoutData, 0)
+  assert.equal(summary.clinicsBelowThreshold, 1)
+  assert.equal(summary.compliancePercent, 50)
+  assert.equal(summary.meetsTarget, false)
+  assert.equal(summary.averageClinicMinutes, 59.95)
+})
+
+test('clinic without a valid observation remains in denominator and cannot be compliant', async () => {
+  const { summarizeOutpatientIndicator } = await import('../lib/aureka/outpatient-logbook.ts')
+  const summary = summarizeOutpatientIndicator([
+    { clinic: 'Klinik Anak', rosterDoctorCount: 2, doctorsWithData: 1, recordCount: 1, measurementCount: 1, daysCount: 1, averageMinutes: 45, lastObserved: '2026-07-01', doctorSummaries: [] },
+  ], groups, 60)
+  assert.equal(summary.operationalClinicCount, 2)
+  assert.equal(summary.clinicsWithData, 1)
+  assert.equal(summary.clinicsWithoutData, 1)
+  assert.equal(summary.clinicsBelowThreshold, 1)
+  assert.equal(summary.compliancePercent, 50)
+})

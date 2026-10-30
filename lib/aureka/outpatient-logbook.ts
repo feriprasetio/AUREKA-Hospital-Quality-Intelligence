@@ -209,3 +209,58 @@ export function summarizeOutpatientClinics(
     return a.clinic.localeCompare(b.clinic, 'id')
   })
 }
+
+
+export type OutpatientIndicatorSummary = {
+  thresholdMinutes: number
+  operationalClinicCount: number
+  clinicsWithData: number
+  clinicsWithoutData: number
+  clinicsBelowThreshold: number
+  compliancePercent: number | null
+  averageClinicMinutes: number | null
+  meetsTarget: boolean | null
+}
+
+/**
+ * Calculates indicator 11.1 against the operational clinic roster.
+ * The denominator is the complete configured roster, not only clinics
+ * that submitted data. A clinic without a valid observation cannot count
+ * as compliant. The target is strictly below 60 minutes.
+ */
+export function summarizeOutpatientIndicator(
+  metrics: readonly OutpatientClinicSummary[],
+  groups: readonly OutpatientProviderGroup[],
+  thresholdMinutes = 60,
+): OutpatientIndicatorSummary {
+  const roster = new Map<string, string>()
+  groups.forEach(group => {
+    const key = normalizeProviderName(group.clinic)
+    if (key && !roster.has(key)) roster.set(key, group.clinic)
+  })
+
+  const metricsByClinic = new Map<string, OutpatientClinicSummary>()
+  metrics.forEach(metric => {
+    const key = normalizeProviderName(metric.clinic)
+    if (key && roster.has(key)) metricsByClinic.set(key, metric)
+  })
+
+  const clinicAverages = [...roster.keys()].map(key => metricsByClinic.get(key)?.averageMinutes ?? null)
+  const measured = clinicAverages.filter((value): value is number => value !== null && Number.isFinite(value))
+  const clinicsBelowThreshold = measured.filter(value => value < thresholdMinutes).length
+  const operationalClinicCount = roster.size
+  const compliancePercent = operationalClinicCount > 0
+    ? clinicsBelowThreshold / operationalClinicCount * 100
+    : null
+
+  return {
+    thresholdMinutes,
+    operationalClinicCount,
+    clinicsWithData: measured.length,
+    clinicsWithoutData: operationalClinicCount - measured.length,
+    clinicsBelowThreshold,
+    compliancePercent,
+    averageClinicMinutes: mean(measured),
+    meetsTarget: compliancePercent === null ? null : clinicsBelowThreshold === operationalClinicCount,
+  }
+}
