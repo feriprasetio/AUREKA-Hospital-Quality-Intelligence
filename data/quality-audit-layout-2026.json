@@ -107,7 +107,13 @@
       "Batal Operasi Elektif",
       "Lokasi/Prosedur Tepat",
       "Unplanned ICU Transfer"
-    ]
+    ],
+    "fieldOptions": {
+      "Jenis Tindakan": [
+        "Elektif",
+        "Cyto"
+      ]
+    }
   },
   {
     "roomId": 5,
@@ -208,7 +214,143 @@
       "Lapor Tes Kritis",
       "Darah Terbuang",
       "Histopatologi"
-    ]
+    ],
+    "fieldOptions": {
+      "Asal Ruangan": [
+        "Instalasi Gawat Darurat",
+        "Instalasi Rawat Jalan",
+        "Instalasi Rawat Inap"
+      ],
+      "Dokter Pengirim": [
+        "dr. Abdullah",
+        "dr. Andika Ponco Wibowo",
+        "dr. Charina Geofhany Debora",
+        "dr. Gita Risti Novianti",
+        "dr. Ika Belinda Permatasari",
+        "dr. Indah Widyasmara, MMR",
+        "dr. Muhammad Fathur Arief Kurniawan",
+        "dr. Ratih Kumalasari",
+        "dr. Shella Suristia",
+        "dr. Theresia Cesa Puteri Wongkar",
+        "dr. Achmad Faqih, Sp.N",
+        "dr. Aditya Pradhana, Sp.JP",
+        "dr. Amanda Trixie Hardigaloeh, Sp.PD, (K)",
+        "dr. Anjangsari Wijayanti, Sp.An",
+        "dr. Anton Suwito, Sp.OG",
+        "dr. Arie Rakhmini, Sp.KK",
+        "dr. Boby Eko Nugroho, Sp.B",
+        "dr. Christina Chandra, Sp.JP (K)",
+        "dr. Ditha Praritama Sebayang, Sp.N. ",
+        "dr. Eko R. Suhardiman, M.Si,Med, Sp.B (K) - Onk",
+        "dr. Eva Nurfarihah, M.Kes, Sp.THT-KL",
+        "dr. Herni, Sp.KK",
+        "dr. I Ketut Sujana, Sp.PD",
+        "dr. Johnson Luke, Sp.N, M.Kes",
+        "dr. Lilie Fransiska, Sp.B",
+        "dr. Mitsu Dapot Parlindungan Sijabat, Sp.BS",
+        "dr. Neny Dwi Anggraeni, Sp.OG",
+        "dr. Nur Annisa, Sp.P",
+        "dr. Raden Yutta Inten, Sp.A, M.Kes",
+        "dr. Rista Lestari, M.Sc, Sp.A",
+        "dr. Romadhon Apdani, Sp.KJ",
+        "dr. Rosyadi Akbarri, M.Sc, Sp.A",
+        "dr. Sampan Berlian Dwi Kencana, Sp.An",
+        "dr. Sri Yuliani Elida, Sp.M",
+        "dr. Susy Melanie, Sp.An",
+        "dr. Tommy Alexander, Sp.JP",
+        "dr. Vidia Sari, Sp.OG, F.E.R",
+        "dr. Vidiatma Agbari, Sp.OG",
+        "dr. Widy Setiawan, Sp.A, M.Kes",
+        "dr. Wirdasari, Sp.PD",
+        "drg. Desy Marlin P. Br. S., Sp.Perio",
+        "drg. Luluk Yulianani, Sp.BM, M.Ked.Klim",
+        "drg. Putra Qadri Fath, Sp.KG",
+        "drg. Trieska Annisa, Sp.KGA"
+      ],
+      "Tindakan": [
+        "Hematologi & Koagulasi",
+        "Kimia Klinik",
+        "Imunologi & Serologi",
+        "Mikrobiologi & Parasitologi",
+        "Urinalisis, Feses & Cairan Tubuh Lain",
+        "Patologi Anatomi (PA)",
+        "Pelayanan Darah / BDRS",
+        "Biologi Molekuler / PCR",
+        "Toksikologi / Narkoba"
+      ],
+      "Analis Penerima": [
+        "Widya,A.Md.Kes",
+        "Siti Rohani,A.Md.AK",
+        "Dwi Rahayu,SST",
+        "Lisnasari,A.Md.AK",
+        "Dewi Cahyani,A.Md.AK",
+        "Asmi Martini,S.Tr.Kes",
+        "Didik Wicaksono,S.Tr.Kes",
+        "Andi Tenri Silfa Sari Atma,S.Si",
+        "Dyah Yuana Putri, S.Tr.Kes",
+        "Erika Kusuma Daru,A.Md.TLM",
+        "Decy Iskandar,A.Md.AK",
+        "Yuni Sapristi,A.Md.AK",
+        "Novi Helianti,A.Md.AK",
+        "Rudi Saputra,S.Tr.Kes",
+        "Parwati,A.Md,AK",
+        "Erna Andira,S.Tr.Kes",
+        "Ilham Gunawan,A.Md.Kes",
+        "Ayu Rahmadani Safitri, A.Md.AK",
+        "Dodo Wilovo,A.Md.Kes",
+        "Nyoman Astawe,A.Md.Kes"
+      ]
+    },
+    "indicatorOptions": {
+      "Unordered Specimen": [
+        "Sampel Diterima dengan Order Valid (Code 1)",
+        "Tanpa Order di Awal (Kasus Code Blue / Resusitasi Cito / IGD Darurat - Order menyusul) (Code 2)",
+        "Tanpa Order di Awal (SIMRS/Jaringan Down - Sampel dikirim darurat sebelum form manual siap) (Code 2)",
+        "Tanpa Order (Kelalaian Petugas Ruangan / Lupa Menginput di SIMRS sebelum sampel dikirim) (Code 3)",
+        "Tanpa Order (Hanya berdasarkan instruksi lisan dokter tanpa bukti tertulis/input sistem) (Code 3)",
+        "Tanpa Order (Miskomunikasi Ruangan: Sampel dikirim padahal rencana lab sudah dibatalkan DPJP) (Code 3)",
+        "Order Diterima namun Sampling Gagal (Pasien Menolak/Meninggal) (Code 2)",
+        "Order Diterima namun Gagal Sampling (Kondisi Pasien dengan Penyulit) (Code 2)",
+        "Input Order Lebih Awal sebelum pasien atau sampel tiba di Laboratorium",
+        "Order Diawal namun SIMRS/Jaringan Down (Orderan tidak dapat diterima, sampel sudah di antar ke Laboratorium)"
+      ],
+      "Delay Sampling": [
+        "Pengambilan Sampel Tepat Waktu (Sesuai Standar) (Code 1)",
+        "Terlambat (Kesulitan Akses Vena/Hard Stick/Vena Kolaps - Butuh waktu lama) (Code 2)",
+        "Terlambat (Pasien Agitatif/Perlu restrain/Situasi Crowded Bencana Massal) (Code 2)",
+        "Terlambat (Petugas kurang responsif/Menumpuk order tanpa alasan) (Code 3)",
+        "Terlambat (Lupa membawa peralatan/Salah tabung sehingga harus bolak-balik) (Code 3)",
+        "Bukan Sampling Plebotomi",
+        "Terlambat (pasien sedang dilakukan tindakan di luar IGD, sehingga terjadi keterlambatan tindakan plebotomi)",
+        "Terlambat (sampel yg di antar / diambil kurang/rusak, sehingga dilakukan pengambilan ulang)",
+        "Terlambat (Petugas Plebotomi sedang keliling sampling ke ruangan rawat inap)"
+      ],
+      "Lapor Tes Kritis": [
+        "Lapor < 30 Menit & Terdokumentasi (TBaK) (Code 1)",
+        "Lapor > 30 Menit (Dokter/Ruangan Sulit Dihubungi) (Code 2)",
+        "Lapor > 30 Menit (Gangguan Sistem Komunikasi/Telpon RS Rusak) (Code 2)",
+        "Lapor > 30 Menit (Petugas lupa lapor/Tidak menyadari ada nilai kritis) (Code 3)",
+        "Tidak Lapor Nilai Kritis (Code 3)",
+        "Bukan Lab Kritis"
+      ],
+      "Darah Terbuang": [
+        "Darah Terpakai (Code 1)",
+        "Darah Dikembalikan ke Stok dalam kondisi baik (Code 1)",
+        "Darah Terbuang (Pasien Meninggal Dunia sebelum transfusi) (Code 2)",
+        "Darah Terbuang (Batal Transfusi karena perbaikan klinis mendadak/Kontraindikasi medis) (Code 2)",
+        "Darah Terbuang (Darah Expired karena lupa dikembalikan/Disimpan di suhu ruang terlalu lama di ruangan) (Code 3)",
+        "Darah Terbuang (Salah identitas pasien/Salah golongan darah saat permintaan) (Code 3)",
+        "Hasil Terlambat (Masalah administrasi/Sampel terselip) (Code 3)",
+        "Input Order Lebih Awal sebelum kantong darah tersedia"
+      ],
+      "Histopatologi": [
+        "Hasil Selesai Tepat Waktu (Code 1)",
+        "Hasil Terlambat (Jaringan Keras/Tulang butuh Dekalsifikasi lama) (Code 2)",
+        "Hasil Terlambat (Perlu Pemrosesan Tambahan/Pewarnaan Khusus/Imunohistokimia) (Code 2)",
+        "Hasil Terlambat (Irisan jaringan tidak layak/Perlu potong ulang blok parafin) (Code 2)",
+        "Hasil Terlambat (Antrian pembacaan menumpuk/Dokter PA Cuti tanpa pengganti) (Code 3)"
+      ]
+    }
   },
   {
     "roomId": 10,
