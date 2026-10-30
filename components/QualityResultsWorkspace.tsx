@@ -192,7 +192,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         const start = String(year) + '-01-01'
         const end = String(year + 1) + '-01-01'
         const result = await readPaged<ClinicalPathwayRow>((from, to) => q().from('clinical_pathway_audits')
-          .select('room_id,template_code,template_name,admission_date,status,template_snapshot,selected_items_json,additional_phases_json,inclusion_json,answers_json,variations_json,calculation_json')
+          .select('room_id,template_code,template_name,admission_date,created_at,updated_at,status,template_snapshot,selected_items_json,additional_phases_json,inclusion_json,answers_json,variations_json,calculation_json')
           .eq('room_id', selectedRoom)
           .gte('admission_date', start)
           .lt('admission_date', end)
@@ -265,7 +265,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     const candidates = mode === 'indicators'
       ? indicatorResults.map((result) => result.latestInputAt)
       : mode === 'pathway'
-        ? pathwayData.map((row) => String((row as any).updated_at ?? (row as any).created_at ?? '') || null)
+        ? pathwayData.map((row) => row.updated_at ?? row.created_at ?? null)
         : clinicalData.map((row) => String(row.updated_at ?? row.created_at ?? '') || null)
     return candidates.filter((value): value is string => !!value).sort().at(-1) ?? null
   }, [mode, indicatorResults, pathwayData, clinicalData])
@@ -419,8 +419,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 <div className="qraPanelHead"><div><h3>Hasil menurut Clinical Pathway</h3><p>Rekap per template; denominator kepatuhan mengecualikan sel N/A dan sel yang tidak dijadwalkan.</p></div></div>
                 {pathwayTemplates.length === 0
                   ? <EmptyState title="Belum ada template dengan catatan audit" detail="Daftar akan terbentuk otomatis berdasarkan template yang dipakai pada audit." />
-                  : <div className="qraTableWrap"><table className="qraTable"><thead><tr><th>Clinical Pathway</th><th>Jumlah audit</th><th>Tervalidasi</th><th>Keterisian tertimbang</th><th>Kepatuhan tertimbang</th><th>Episode memenuhi target</th><th>Bagian D lulus</th></tr></thead><tbody>{pathwayTemplates.map((item) => <tr key={item.code}>
-                    <td><strong>{item.name}</strong><small>{item.code}</small></td><td>{formatCount(item.result.totalRecords)}</td><td>{formatCount(item.result.validatedRecords)}</td><td>{formatPct(item.result.completionPct)}</td><td>{formatPct(item.result.compliancePct)}</td><td>{formatPct(item.result.episodeTargetMetPct)}</td><td>{formatPct(item.result.sectionDPassPct)}</td>
+                  : <div className="qraTableWrap"><table className="qraTable"><thead><tr><th>Clinical Pathway</th><th>Jumlah audit</th><th>Tervalidasi</th><th>Keterisian tertimbang</th><th>Kepatuhan tertimbang</th><th>Rata-rata per episode</th><th>Episode memenuhi target</th><th>Bagian D lulus</th></tr></thead><tbody>{pathwayTemplates.map((item) => <tr key={item.code}>
+                    <td><strong>{item.name}</strong><small>{item.code}</small></td><td>{formatCount(item.result.totalRecords)}</td><td>{formatCount(item.result.validatedRecords)}</td><td>{formatPct(item.result.completionPct)}</td><td>{formatPct(item.result.compliancePct)}</td><td>{formatPct(item.result.meanEpisodeCompliancePct)}</td><td>{formatPct(item.result.episodeTargetMetPct)}</td><td>{formatPct(item.result.sectionDPassPct)}</td>
                   </tr>)}</tbody></table></div>}
               </section>
               <section className="qraPanel"><div className="qraPanelHead"><div><h3>Alur review data</h3><p>Audit tercatat seluruh status; capaian hanya dari status tervalidasi.</p></div></div><div className="qraStatusGrid">
