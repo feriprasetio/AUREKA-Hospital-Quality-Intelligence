@@ -692,7 +692,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        if(lookupError)throw lookupError
        if(existing?.id){setBusy(false);setMessage(grain==='provider_day'?'Catatan untuk dokter, klinik, dan tanggal tersebut sudah ada. Buka catatan yang ada untuk memperbaruinya.':'Catatan harian untuk tanggal dan alur layanan tersebut sudah ada. Buka catatan yang ada untuk memperbaruinya.');return}
      }
-     const obs=applicable.map(p=>{const r=values[p.code];if(!r||!p.id)return null;const code=Number(r.code);return{indicator_id:p.id,response_label:r.answer??r.occurrence??null,response_code:Number.isInteger(code)&&code>=1&&code<=3?code:null,raw_value:r,other_text:r.evidence??r.notes??null,review_status:r.answer==='Exception'?'pending':'not_required'}}).filter(Boolean)
+     const obs=applicable.map(p=>{const r=values[p.code];if(!r||!p.id)return null;const code=Number(r.code);return{indicator_id:p.id,response_label:r.answer??r.occurrence??null,response_code:r.source_option===true?null:Number.isInteger(code)&&code>=1&&code<=3?code:null,raw_value:r,other_text:r.source_option===true?(r.source_label??r.answer??null):r.evidence??r.notes??null,review_status:r.source_option===true||r.review_required===true||r.answer==='Exception'?'pending':'not_required'}}).filter(Boolean)
      const attributionRows=Object.entries(selected.staffIdByField??{})
        .filter(([field,staffId])=>!!field&&!!staffId&&staffOptions.some((staff)=>staff.id===staffId&&Number(staff.room_id)===Number(selected.roomId)))
        .map(([field,staffId])=>({staff_id:staffId,field_key:field,attribution_type:/dpjp|dokter/i.test(field)?'responsible_provider':'related_provider'}))
