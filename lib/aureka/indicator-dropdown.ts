@@ -1,4 +1,4 @@
-import { resolveMeasurementKind, type IndicatorProfile } from '@/lib/aureka/indicator-engine'
+import { resolveMeasurementKind, type IndicatorProfile } from './indicator-engine.ts'
 
 export type IndicatorDropdownMasterOption = {
   label: string
