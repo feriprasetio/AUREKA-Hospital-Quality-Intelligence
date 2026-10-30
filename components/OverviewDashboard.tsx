@@ -220,7 +220,7 @@ export default function OverviewDashboard({
       <section className="ovHero">
         <div className="ovHeroCopy">
           <span className="ovEyebrow">{dashboardView === 'executive' ? 'HOSPITAL QUALITY INTELLIGENCE' : 'AUREKA · PMKP WORKSPACE'}</span>
-          <h3>{dashboardView === 'executive' ? 'Executive Hospital Dashboard' : `Selamat datang, ${userName.trim().split(/\\s+/)[0] || 'Pengguna'}`}</h3>
+          <h3>{dashboardView === 'executive' ? 'Executive Hospital Dashboard' : `Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}</h3>
           <p>{dashboardView === 'executive'
             ? 'Ikhtisar eksekutif mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
             : manager
