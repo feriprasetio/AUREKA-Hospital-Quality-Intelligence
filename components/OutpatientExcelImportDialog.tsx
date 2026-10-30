@@ -77,6 +77,69 @@ function findHeaderRow(sheet:any):{rowNumber:number;columns:Map<string,number[]>
   }
   return null
 }
+function parseMatrixSheet(sheet:any,year:number,groups:OutpatientProviderGroup[],seen:Set<string>):{matched:boolean;rows:PreparedRow[];errors:string[]}{
+ const rows:PreparedRow[]=[],errors:string[]=[]
+ const firstLabel=cellText(sheet.getRow(1).getCell(1)).toLocaleLowerCase('id-ID')
+ const sheetName=String(sheet.name??'').toLocaleLowerCase('id-ID')
+ if(!/poliklinik|klinik/.test(firstLabel)&&!/(^|\\s)logbook(\\s|$)/.test(sheetName))return {matched:false,rows,errors}
+ let headerRow=0,firstDateColumn=0,dateColumns:Array<{column:number;date:string}>=[]
+ // Official PMKP logbook: first column contains clinic group labels and
+ // each following column is a calendar date. Date formulas may have no
+ // cached result in some Excel readers, so continue a sequential date series
+ // only when the cell is an Excel formula.
+ for(let r=1;r<=Math.min(15,sheet.rowCount);r++){
+  for(let c=1;c<=Math.min(Number(sheet.columnCount??500),500);c++){
+   const cell=sheet.getRow(r).getCell(c)
+   const value=readCell(cell)
+   const date=normalizeOutpatientImportDate(value)
+   if(date&&Number(date.slice(0,4))===year){headerRow=r;firstDateColumn=c;break}
+  }
+  if(headerRow)break
+ }
+ if(!headerRow)return {matched:false,rows,errors}
+ let currentDate=normalizeOutpatientImportDate(readCell(sheet.getRow(headerRow).getCell(firstDateColumn)))!
+ for(let c=firstDateColumn;c<=Math.min(Number(sheet.columnCount??500),500);c++){
+  const cell=sheet.getRow(headerRow).getCell(c)
+  const raw=readCell(cell)
+  const parsed=normalizeOutpatientImportDate(raw)
+  if(parsed&&Number(parsed.slice(0,4))===year){currentDate=parsed;dateColumns.push({column:c,date:parsed});continue}
+  const original=cell?.value
+  const formula=original&&typeof original==='object'?String(original.formula??''):(typeof original==='string'?original:'')
+  if(c>firstDateColumn&&/^=/.test(formula)){
+   const next=new Date(currentDate+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);currentDate=next.toISOString().slice(0,10)
+   if(Number(currentDate.slice(0,4))===year)dateColumns.push({column:c,date:currentDate})
+   continue
+  }
+  if(c>firstDateColumn)break
+ }
+ if(!dateColumns.length)return {matched:false,rows,errors}
+ const clinicByKey=new Map(groups.map(group=>[normalizeProviderName(group.clinic),group]))
+ let activeClinic:OutpatientProviderGroup|null=null
+ for(let r=headerRow+1;r<=Math.min(sheet.rowCount,headerRow+5000);r++){
+  const source=sheet.getRow(r),label=cellText(source.getCell(1))
+  if(!label)continue
+  const clinic=clinicByKey.get(normalizeProviderName(label))
+  if(clinic){activeClinic=clinic;continue}
+  const doctor=activeClinic?.doctors.find(name=>normalizeProviderName(name)===normalizeProviderName(label))
+  if(!doctor){
+   const hasValues=dateColumns.some(({column})=>{const value=readCell(source.getCell(column));return value!==''&&value!=null})
+   if(hasValues)errors.push('Sheet "'+String(sheet.name??'Logbook')+'" · baris '+r+': dokter "'+label+'" tidak ditemukan pada roster klinik '+(activeClinic?.clinic??'Rawat Jalan')+'.')
+   continue
+  }
+  for(const {column,date} of dateColumns){
+   const raw=readCell(source.getCell(column))
+   if(raw===''||raw==null)continue
+   const waitingMinutes=parseOutpatientWaitingMinutes(raw)
+   if(waitingMinutes==null)throw new Error('Sheet "'+String(sheet.name??'Logbook')+'" · baris '+r+', kolom '+column+': waktu tunggu harus berupa angka 0–1.440 menit.')
+   const row:PreparedRow={sourceRow:r,sourceSheet:String(sheet.name??'Logbook'),date,clinic:activeClinic!.clinic,doctor,waitingMinutes}
+   const key=makeOutpatientProviderDaySubjectKey(row.date,row.clinic,row.doctor)
+   if(seen.has(key)){errors.push('Sheet "'+row.sourceSheet+'" · baris '+r+': duplikasi tanggal, klinik, dan dokter.');continue}
+   seen.add(key);rows.push(row)
+   if(rows.length>MAX_DATA_ROWS)throw new Error('Workbook melebihi batas '+MAX_DATA_ROWS+' baris data.')
+  }
+ }
+ return {matched:true,rows,errors}
+}
 function payloadFor(row:PreparedRow,fileName:string,year:number){
   const formFields={'Tanggal pengamatan':row.date,'Klinik':row.clinic,'Dokter':row.doctor,'Waktu Tunggu Rawat Jalan (Menit)':row.waitingMinutes}
   const sourceImport={source_workbook:fileName,source_sheet:row.sourceSheet,source_excel_row:row.sourceRow,import_scope:'outpatient_provider_day_waiting_time',idempotency_basis:'date_clinic_doctor'}
@@ -113,7 +176,16 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
    let matchedSheets=0
    for(const sheet of candidateSheets){
     const header=findHeaderRow(sheet)
-    if(!header)continue
+    if(!header){
+     const matrix=parseMatrixSheet(sheet,year,groups,seen)
+     if(matrix.matched){
+      matchedSheets++
+      prepared.push(...matrix.rows)
+      rowErrors.push(...matrix.errors)
+      continue
+     }
+     continue
+    }
     matchedSheets++
     if(sheet.rowCount>MAX_DATA_ROWS+15)throw new Error('Sheet "'+sheet.name+'" melebihi batas '+MAX_DATA_ROWS+' baris data.')
     for(let excelRow=header.rowNumber+1;excelRow<=sheet.rowCount;excelRow++){
