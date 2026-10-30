@@ -413,7 +413,8 @@ export default function PharmacyExcelImportDialog({
           throw new Error('Batch ' + batchNumber + ' (' + batch.length + ' baris) gagal: ' + error.message + (isStatementTimeout(error) ? ' Server masih timeout pada ukuran minimum; periksa beban basis data dan ulangi impor.' : ''))
         }
 
-                const received
+        setErrorMessage('')
+        const summary = (data ?? {}) as ImportResponse
         const received = Number(summary.received_count ?? batch.length)
         const imported = Number(summary.imported_count ?? 0)
         const skipped = Number(summary.skipped_existing_count ?? 0)
