@@ -70,3 +70,15 @@ test('preserves clinics found in logbook even when they are missing from the con
   assert.equal(extra?.doctorsWithData, 1)
   assert.equal(extra?.averageMinutes, 25)
 })
+
+ 
+test('clinic target is inclusive at 60 minutes and denominator only counts clinics with valid measurement data', () => {
+  const records = [
+    { admit: '2026-06-01', formData: { Klinik: 'Klinik Anak', Dokter: 'dr. A', 'Waktu Tunggu Rawat Jalan (Menit)': 60 } },
+    { admit: '2026-06-01', formData: { Klinik: 'Klinik Mata', Dokter: 'dr. C', 'Waktu Tunggu Rawat Jalan (Menit)': 60.1 } },
+  ]
+  const result = summarizeOutpatientClinics(records, groups, 2026, 6)
+  const withData = result.filter(item => item.averageMinutes !== null)
+  assert.equal(withData.filter(item => item.averageMinutes <= 60).length, 1)
+  assert.equal(withData.length, 2)
+})
