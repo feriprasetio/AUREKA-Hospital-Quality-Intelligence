@@ -320,6 +320,8 @@ function quantileNearestRank(values: number[], probability: number): number | nu
 export type ClinicalPathwayRow = {
   room_id?: number | null
   admission_date?: string | null
+  created_at?: string | null
+  updated_at?: string | null
   status?: string | null
   template_code?: string | null
   template_name?: string | null
