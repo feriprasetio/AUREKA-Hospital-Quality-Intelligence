@@ -94,6 +94,9 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
   if(!eligible){setErrorMessage('Pilih Instalasi Rawat Jalan dan tahun profil 2026–2100 sebelum mengimpor.');return}
   if(!/\.xlsx$/i.test(selected.name)){setErrorMessage('Hanya workbook .xlsx yang didukung.');return}
   if(selected.size<=0||selected.size>MAX_FILE_BYTES){setErrorMessage('Ukuran file harus lebih dari 0 dan maksimal 15 MB.');return}
+  // Match the established Excel import dialogs: never resolve the NodeJS ExcelJS
+  // reader during server-side rendering of this client-only file workflow.
+  if(typeof window==='undefined')return
   setParsing(true)
   try{
    const module=await import('exceljs-hardened')
