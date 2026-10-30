@@ -389,3 +389,21 @@ html:has(.workspaceRoot),body:has(.workspaceRoot){
 @media(forced-colors:active){
   .workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5,h6,p,span,label,strong,b,small,td,th){forced-color-adjust:auto}
 }
+
+/* Aptos typography and explicit contrast fix for the white Ringkasan hero.
+   Aptos is preferred when installed; system fonts remain available as fallbacks. */
+html, body, body *{
+  font-family:"Aptos","Aptos Display","Segoe UI",Arial,sans-serif!important;
+}
+.workspaceRoot .moduleEnter .ovHero .ovHeroCopy h3{
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+.workspaceRoot .moduleEnter .ovHero .ovHeroCopy p{
+  color:#4b5563!important;
+  -webkit-text-fill-color:#4b5563!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
