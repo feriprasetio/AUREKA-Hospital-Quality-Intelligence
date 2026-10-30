@@ -129,7 +129,7 @@ function findHeader(columns: Map<string, number>, candidates: string[]): number 
   return null
 }
 
-function rowHasData(row: any, columns: Map<string, number>): boolean {
+function rowHasData(row: any): boolean {
   // Column A is an auto-filled sequence through the template's blank rows.
   // Only source columns B:N can make an Excel row operational.
   for (let column = 2; column <= 14; column++) {
@@ -363,7 +363,6 @@ export default function LaboratoryExcelImportDialog({
         foundColumns[key] = index
       }
 
-      const byCode: Record<LaboratoryIndicatorCode, IndicatorProfile> = {} as Record<LaboratoryIndicatorCode, IndicatorProfile>
       for (const indicator of LABORATORY_INDICATORS) {
         const matches = profiles.filter(item =>
           Number(item.room_id) === 9 &&
@@ -379,7 +378,6 @@ export default function LaboratoryExcelImportDialog({
         if (headerLabel !== indicator.header) {
           throw new Error('Header indikator ' + indicator.code + ' pada master harus "' + indicator.header + '", ditemukan "' + (headerLabel || 'kosong') + '". Pemetaan dihentikan agar respons tidak tertukar.')
         }
-        byCode[indicator.code] = matches[0]
       }
 
       const parsed: PreparedRow[] = []
@@ -393,7 +391,7 @@ export default function LaboratoryExcelImportDialog({
 
       for (let excelRow = 3; excelRow <= Math.min(worksheet.rowCount, MAX_WORKSHEET_ROWS); excelRow++) {
         const sourceRow = worksheet.getRow(excelRow)
-        if (!rowHasData(sourceRow, columns)) continue
+        if (!rowHasData(sourceRow)) continue
         actualSourceRows += 1
         if (actualSourceRows > MAX_DATA_ROWS) throw new Error('Workbook melebihi batas ' + MAX_DATA_ROWS + ' baris operasional.')
 
