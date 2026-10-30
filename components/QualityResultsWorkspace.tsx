@@ -8,7 +8,6 @@ import {
   aggregateClinicalPathwayRows,
   aggregatePathwayByMonth,
   calculateIndicatorResult,
-  summarizeOrdinal,
   type ClinicalDeathAuditResultRow,
   type ClinicalPathwayRow,
   type IndicatorProfileForResults,
@@ -262,6 +261,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const selectedClinical = clinicalTab === 'clinical' ? clinical : death
   const selectedValidationMonthly = clinicalTab === 'clinical' ? clinicalValidationMonthly : deathValidationMonthly
 
+  const latestDataInputAt = useMemo(() => {
+    const candidates = mode === 'indicators'
+      ? indicatorResults.map((result) => result.latestInputAt)
+      : mode === 'pathway'
+        ? pathwayData.map((row) => String((row as any).updated_at ?? (row as any).created_at ?? '') || null)
+        : clinicalData.map((row) => String(row.updated_at ?? row.created_at ?? '') || null)
+    return candidates.filter((value): value is string => !!value).sort().at(-1) ?? null
+  }, [mode, indicatorResults, pathwayData, clinicalData])
+
   const selectedRoomName = rooms.find((room) => Number(room.id) === Number(roomId))?.name ?? 'Unit tidak diketahui'
 
   const pageCss = `
@@ -491,6 +499,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               <div className="qraInfo">Semua skor dan distribusi pada halaman ini dihitung dari telaah tervalidasi untuk unit dan periode yang dipilih. Skor 1–5 dan 1–6 diperlakukan sebagai data ordinal; median, IQR, dan distribusi diprioritaskan dibanding rerata aritmetika. Audit kematian tidak secara otomatis menyimpulkan bahwa kematian dapat dicegah atau bahwa masalah pelayanan menyebabkan kematian.</div>
             </>}
 
-    <div className="qraFoot"><span>Sumber: Supabase AUREKA · {selectedRoomName} · {year} · {formatCount(totalRows)} catatan terbaca</span><span>Dimutakhirkan: {formatDateTime(new Date().toISOString())}</span></div>
+    <div className="qraFoot"><span>Sumber: Supabase AUREKA · {selectedRoomName} · {year} · {formatCount(totalRows)} catatan terbaca</span><span>Data terakhir diperbarui: {formatDateTime(latestDataInputAt)}</span></div>
   </div>
 }
