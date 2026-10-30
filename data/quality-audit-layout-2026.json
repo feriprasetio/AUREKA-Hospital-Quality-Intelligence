@@ -117,13 +117,23 @@
       "Catatan harian"
     ],
     "indicators": [
-      "Item Obat Dead Stock (Stagnan) > 3 Bulan",
       "Angka Copy Resep",
-      "Kepatuhan Pelabelan Obat High Alert & LASA",
+      "Angka Ketidakpatuhan Penggunaan Label High Alert",
       "Kepatuhan Penggunaan Formularium Nasional",
       "Kepatuhan Penggunaan Formularium Rumah Sakit"
     ],
-    "measurementGrain": "daily_metric"
+    "measurementGrain": "daily_metric",
+    "fieldOptions": {
+      "Alur layanan": [
+        "Rawat Jalan",
+        "Rawat Inap"
+      ]
+    },
+    "fieldTypes": {
+      "Tanggal pengamatan": "date",
+      "Alur layanan": "select",
+      "Catatan harian": "textarea"
+    }
   },
   {
     "roomId": 6,
