@@ -754,7 +754,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const selectedChoice=selectedChoiceIndex>=0?choices[selectedChoiceIndex]:undefined
    const option=opts.find((x:any)=>String(x.label)===String(r.answer))
    const resultCode=r.source_option===true?null:(r.code??option?.code??null)
-   const needsSourceReview=r.source_option===true||r.review_required===true||!!selectedChoice?.source_only
+   const needsSourceReview=r.source_option===true||r.review_required===true||!!selectedChoice?.source_only||!!selectedChoice?.review_required||option?.review_required===true
    const rateNow=r.denominator!=null&&Number(r.denominator)>0&&r.numerator!=null?Number(r.numerator)/Number(r.denominator)*100:null
    const metricMet=targetMet(p,r)
    const targetKinds=['ratio','visit','door','minutes','numeric'].includes(kindNow)
