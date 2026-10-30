@@ -382,7 +382,8 @@
     "fields": [
       "Tanggal pengamatan",
       "Klinik",
-      "Dokter"
+      "Dokter",
+      "Waktu Tunggu Rawat Jalan (Menit)"
     ],
     "indicators": [
       "Waktu Tunggu Rawat Jalan"
@@ -514,8 +515,25 @@
         "doctors": [
           "dr. Eva Nurfarihah, M.Kes, Sp.THT-BKL"
         ]
+      },
+      {
+        "clinic": "Klinik Anestesiologi dan Terapi Intensif",
+        "doctors": [
+          "dr. Anjangsari Wijayanti, Sp.An",
+          "dr. Sampan Berlian Dwi Kencana, Sp.An",
+          "dr. Susy Melanie, Sp.An"
+        ]
+      },
+      {
+        "clinic": "Klinik Tumbuh Kembang Anak",
+        "doctors": [
+          "dr. Rosyadi Akbarri, M.Sc, Sp.A (Tumbang)"
+        ]
       }
-    ]
+    ],
+    "fieldTypes": {
+      "Waktu Tunggu Rawat Jalan (Menit)": "number"
+    }
   },
   {
     "roomId": 12,
