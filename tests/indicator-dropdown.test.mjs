@@ -85,7 +85,7 @@ test('restores an imported unmatched source value into the visible dropdown sele
     match_status: 'unmatched',
   }), 1)
   assert.equal(findIndicatorDropdownSelection(options, {
-    answer: 'Sesuai standar (Code 1)',
+    answer: 'Sesuai standar',
     code: 1,
   }), 0)
 })
