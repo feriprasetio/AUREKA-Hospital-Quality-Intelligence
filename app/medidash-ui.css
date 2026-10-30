@@ -1,239 +1,512 @@
-/* AUREKA MedDash-inspired application chrome and dashboard system.
-   Original AUREKA components and domain behavior are preserved. */
+/*
+ * AUREKA Glass Minimal — MediDash-inspired workspace skin
+ * Visual language adapted for PMKP and patient-safety workflows.
+ * No external template assets, patient demos, or fabricated operational metrics.
+ */
 :root{
-  --aureka-canvas:#f5f6f7;--aureka-surface:#fff;--aureka-border:#e7eaee;
-  --aureka-ink:#17221d;--aureka-muted:#748078;--aureka-brand:#16815b;
-  --aureka-brand-dark:#0c6546;--aureka-brand-soft:#e9f6ef;
-  --aureka-shadow:0 2px 7px rgba(22,35,28,.055);
+  --md-bg:#e9eafd;
+  --md-bg2:#f1efff;
+  --md-surface:rgba(255,255,255,.78);
+  --md-surface-strong:#fff;
+  --md-border:rgba(159,157,222,.22);
+  --md-ink:#28294f;
+  --md-muted:#77799c;
+  --md-primary:#6657dc;
+  --md-primary-2:#8b75ef;
+  --md-primary-soft:#efedff;
+  --md-blue:#5c88eb;
+  --md-mint:#58b9a0;
+  --md-rose:#e58bb9;
+  --md-amber:#e7b65e;
+  --md-danger:#df7185;
+  --md-shadow:0 10px 28px rgba(83,78,161,.09),0 2px 6px rgba(83,78,161,.035);
+  --md-shadow-hover:0 15px 34px rgba(83,78,161,.14),0 4px 10px rgba(83,78,161,.06);
+  --md-radius:18px;
 }
 .workspaceRoot{
-  grid-template-columns:256px minmax(0,1fr)!important;min-height:100vh!important;
-  background:var(--aureka-canvas)!important;color:var(--aureka-ink)!important;
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  display:grid!important;
+  grid-template-columns:258px minmax(0,1fr)!important;
+  gap:0!important;
+  min-height:100vh!important;
+  padding:0!important;
+  margin:0!important;
+  color:var(--md-ink)!important;
+  background:
+    radial-gradient(ellipse at 87% 7%,rgba(197,190,255,.52),transparent 32%),
+    radial-gradient(ellipse at 7% 96%,rgba(177,211,255,.38),transparent 33%),
+    linear-gradient(135deg,#eef0ff 0%,#e8e9fd 48%,#f1eaff 100%)!important;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;
+  font-size:13px!important;
 }
+.workspaceRoot,.workspaceRoot *{box-sizing:border-box}
+.workspaceRoot button{font-family:inherit}
+.workspaceRoot button:focus-visible,
+.workspaceRoot input:focus-visible,
+.workspaceRoot select:focus-visible,
+.workspaceRoot textarea:focus-visible{
+  outline:3px solid rgba(102,87,220,.28)!important;
+  outline-offset:2px!important;
+}
+/* Sidebar */
 .workspaceRoot .sidebar{
-  position:sticky!important;top:0!important;width:256px!important;min-width:256px!important;
-  height:100vh!important;min-height:100vh!important;max-height:100vh!important;
-  padding:16px 12px 14px!important;background:#fff!important;color:#34423a!important;
-  border-right:1px solid #e9edf0!important;overflow-x:hidden!important;overflow-y:auto!important;
+  position:sticky!important;
+  inset:0 auto auto 0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:258px!important;
+  min-width:258px!important;
+  height:100vh!important;
+  min-height:100vh!important;
+  max-height:100vh!important;
+  padding:20px 14px 14px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  background:linear-gradient(180deg,rgba(249,249,255,.92),rgba(239,239,255,.86))!important;
+  border:0!important;
+  border-right:1px solid rgba(165,164,224,.28)!important;
+  border-radius:0 22px 22px 0!important;
+  box-shadow:8px 0 32px rgba(99,91,181,.055)!important;
+  backdrop-filter:blur(24px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(160%)!important;
+  z-index:40!important;
 }
 .workspaceRoot .sideHeader{
-  min-height:58px!important;margin:0 0 20px!important;padding:0 7px 13px!important;
-  border-bottom:1px solid #edf0f2!important;gap:8px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  min-height:58px!important;
+  margin:0 0 23px!important;
+  padding:0 7px 15px!important;
+  border-bottom:1px solid rgba(155,153,218,.22)!important;
 }
-.workspaceRoot .sideBrand{gap:10px!important;min-width:0!important}
-.workspaceRoot .sideBrand .workspaceLogo,.workspaceRoot .sideBrand .brandLogoWrap{width:38px!important;height:38px!important;flex:0 0 38px!important}
-.workspaceRoot .sideBrand b{color:#17221d!important;font-size:19px!important;letter-spacing:.02em!important;font-weight:850!important}
-.workspaceRoot .sideBrand small{color:#89938d!important;font-size:10px!important;letter-spacing:.025em!important}
-.workspaceRoot .sideBrand .brandLogoImage{max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+.workspaceRoot .sideBrand{display:flex!important;align-items:center!important;gap:11px!important;min-width:0!important}
+.workspaceRoot .sideBrand .brandLogoWrap,
+.workspaceRoot .sideBrand .workspaceLogo{
+  display:grid!important;place-items:center!important;
+  width:42px!important;height:42px!important;flex:0 0 42px!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,#fff,#e8e5ff)!important;
+  border:1px solid rgba(255,255,255,.94)!important;
+  box-shadow:0 5px 14px rgba(101,87,218,.14)!important;
+}
+.workspaceRoot .sideBrand .brandLogoImage{width:100%!important;height:100%!important;object-fit:contain!important;padding:3px!important}
+.workspaceRoot .sideBrand b{font-size:19px!important;line-height:1.12!important;font-weight:850!important;letter-spacing:-.035em!important;color:#343064!important}
+.workspaceRoot .sideBrand small{margin-top:3px!important;font-size:9px!important;line-height:1.2!important;color:#8582aa!important;letter-spacing:.025em!important}
 .workspaceRoot .sidebarToggle{
-  display:grid!important;place-items:center!important;flex:0 0 30px!important;width:30px!important;height:30px!important;
-  border:1px solid #e8ecef!important;border-radius:8px!important;background:#fff!important;color:#68756e!important;
+  position:static!important;display:grid!important;place-items:center!important;
+  flex:0 0 30px!important;width:30px!important;height:30px!important;min-width:30px!important;
+  margin:0!important;padding:0!important;
+  border:1px solid rgba(151,145,222,.22)!important;border-radius:9px!important;
+  background:rgba(255,255,255,.62)!important;color:#7770bd!important;
+  box-shadow:none!important;
 }
-.workspaceRoot .sidebarToggle svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important}
-.workspaceRoot .navLabel{margin:0 0 8px!important;padding:0 10px!important;color:#929b95!important;font-size:10px!important;font-weight:800!important;letter-spacing:.12em!important}
-.workspaceRoot .sidebarNav{display:grid!important;gap:4px!important}
-.workspaceRoot .sidebarNav>button,.workspaceRoot .sidebarNavGroup>button{
-  min-height:42px!important;width:100%!important;margin:0!important;padding:9px 11px!important;
-  display:flex!important;align-items:center!important;gap:11px!important;border:1px solid transparent!important;
-  border-radius:9px!important;background:transparent!important;color:#56635c!important;
-  text-align:left!important;font-size:13px!important;font-weight:620!important;
-  transition:background .15s ease,border-color .15s ease,color .15s ease!important;
+.workspaceRoot .sidebarToggle:hover{background:#fff!important;color:var(--md-primary)!important;transform:translateY(-1px)!important}
+.workspaceRoot .sidebarToggle svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important}
+.workspaceRoot .navLabel{
+  margin:0 0 9px!important;padding:0 10px!important;
+  color:#aaa7c8!important;font-size:9px!important;font-weight:850!important;
+  letter-spacing:.15em!important;text-transform:uppercase!important;
 }
-.workspaceRoot .sidebarNav>button:hover,.workspaceRoot .sidebarNavGroup>button:hover{background:#f6f8f7!important;color:#24372d!important}
-.workspaceRoot .sidebarNav>button.navActive,.workspaceRoot .sidebarNavGroup>button.navActive{
-  background:#edf6f0!important;border-color:#e2efe6!important;color:#11734f!important;font-weight:760!important;
+.workspaceRoot .sidebarNav{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;gap:5px!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;padding:0 1px 10px!important}
+.workspaceRoot .sidebarNavGroup{display:grid!important;gap:3px!important;min-width:0!important}
+.workspaceRoot .sidebarNav>button,
+.workspaceRoot .sidebarNavGroup>button{
+  display:flex!important;align-items:center!important;gap:11px!important;
+  width:100%!important;min-height:43px!important;margin:0!important;padding:9px 11px!important;
+  border:1px solid transparent!important;border-radius:12px!important;
+  background:transparent!important;color:#777696!important;
+  text-align:left!important;font-size:12px!important;font-weight:650!important;line-height:1.25!important;
+  box-shadow:none!important;transform:none!important;
+  transition:background .16s ease,color .16s ease,border-color .16s ease,box-shadow .16s ease!important;
 }
-.workspaceRoot .sidebarNav>button svg,.workspaceRoot .sidebarNavGroup>button svg{
-  display:block!important;width:17px!important;height:17px!important;flex:0 0 17px!important;
+.workspaceRoot .sidebarNav>button:hover,
+.workspaceRoot .sidebarNavGroup>button:hover{
+  color:#5149a3!important;background:rgba(255,255,255,.72)!important;
+  border-color:rgba(255,255,255,.92)!important;box-shadow:0 3px 10px rgba(87,79,169,.055)!important;
+}
+.workspaceRoot .sidebarNav>button.navActive,
+.workspaceRoot .sidebarNavGroup>button.navActive{
+  color:#5e50ca!important;
+  background:linear-gradient(105deg,rgba(222,218,255,.95),rgba(241,239,255,.92))!important;
+  border-color:rgba(155,146,230,.16)!important;
+  box-shadow:inset 3px 0 0 #7766e6,0 4px 12px rgba(104,91,202,.08)!important;
+  font-weight:800!important;
+}
+.workspaceRoot .sidebarNav>button svg,
+.workspaceRoot .sidebarNavGroup>button svg{
+  display:block!important;width:18px!important;height:18px!important;flex:0 0 18px!important;
   fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
 }
-.workspaceRoot .sidebarChevron{margin-left:auto!important;color:#89948d!important;font-size:17px!important}
+.workspaceRoot .sidebarNavGroup>button>span:nth-child(2){min-width:0!important;flex:1 1 auto!important}
+.workspaceRoot .sidebarChevron{flex:0 0 auto!important;margin-left:auto!important;color:inherit!important;font-size:15px!important}
 .workspaceRoot .sidebarTreeChildren{
-  display:grid!important;gap:2px!important;margin:3px 0 7px 19px!important;padding:3px 0 3px 10px!important;
-  border-left:1px solid #e7ece8!important;
+  display:grid!important;gap:3px!important;
+  margin:3px 0 8px 20px!important;padding:4px 0 4px 11px!important;
+  border-left:1px solid rgba(145,139,212,.28)!important;
 }
 .workspaceRoot .sidebarTreeNestedChildren{margin:2px 0 4px 10px!important;padding-left:9px!important}
 .workspaceRoot .sidebarChild{
-  min-height:32px!important;padding:6px 8px!important;border:0!important;border-radius:7px!important;
-  background:transparent!important;color:#68756e!important;font-size:12px!important;font-weight:520!important;text-align:left!important;
+  display:flex!important;align-items:center!important;gap:8px!important;
+  width:100%!important;min-width:0!important;min-height:32px!important;
+  padding:6px 8px!important;border:1px solid transparent!important;border-radius:9px!important;
+  background:transparent!important;color:#8280a1!important;text-align:left!important;
+  font-size:10px!important;font-weight:580!important;line-height:1.3!important;white-space:normal!important;
+  box-shadow:none!important;
 }
-.workspaceRoot .sidebarChild:hover{background:#f5f8f6!important;color:#275a40!important}
-.workspaceRoot .sidebarChild.active{background:#f0f7f2!important;color:#0f7656!important;font-weight:740!important}
-.workspaceRoot .sidebarChildMark{width:5px!important;height:5px!important;flex:0 0 5px!important;border-radius:50%!important;background:#a9b5ad!important}
-.workspaceRoot .sidebarChild.active .sidebarChildMark{background:#16815b!important}
+.workspaceRoot .sidebarChild:hover{background:rgba(255,255,255,.76)!important;color:#574bb4!important}
+.workspaceRoot .sidebarChild.active{
+  color:#5c4fc3!important;background:rgba(255,255,255,.88)!important;
+  border-color:rgba(157,148,226,.18)!important;font-weight:800!important;
+}
+.workspaceRoot .sidebarChildMark{width:5px!important;height:5px!important;flex:0 0 5px!important;border-radius:50%!important;background:currentColor!important;opacity:.7!important}
 .workspaceRoot .sidebarFooter{
-  display:grid!important;gap:8px!important;margin-top:auto!important;padding-top:12px!important;border-top:1px solid #edf0f2!important;
+  display:grid!important;gap:8px!important;margin-top:auto!important;padding-top:12px!important;
+  border-top:1px solid rgba(155,153,218,.22)!important;
 }
 .workspaceRoot .sidebarFooter .profileChipBtn{
   display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-width:0!important;
-  margin:0!important;padding:8px!important;border:0!important;border-radius:9px!important;background:#fff!important;
-  color:#27362e!important;text-align:left!important;
+  margin:0!important;padding:9px!important;border:1px solid transparent!important;border-radius:12px!important;
+  background:rgba(255,255,255,.48)!important;color:#37335f!important;box-shadow:none!important;text-align:left!important;
 }
-.workspaceRoot .sidebarFooter .profileChipBtn:hover{background:#f5f8f6!important}
-.workspaceRoot .profileAvatar{
+.workspaceRoot .sidebarFooter .profileChipBtn:hover{background:#fff!important;border-color:rgba(158,149,225,.2)!important}
+.workspaceRoot .profileAvatar,
+.workspaceRoot .sidebarFooter .profileAvatar{
   display:grid!important;place-items:center!important;width:36px!important;height:36px!important;flex:0 0 36px!important;
-  border:1px solid #dcebe1!important;border-radius:50%!important;background:#eaf5ee!important;color:#16734f!important;
-  font-size:12px!important;font-weight:800!important;
+  border:1px solid rgba(255,255,255,.94)!important;border-radius:12px!important;
+  background:linear-gradient(145deg,#a99df7,#6d63df)!important;color:#fff!important;font-size:11px!important;font-weight:850!important;
 }
 .workspaceRoot .profileText{display:grid!important;gap:2px!important;min-width:0!important}
-.workspaceRoot .profileText b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#26352d!important;font-size:12px!important}
-.workspaceRoot .profileText span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#859089!important;font-size:10px!important}
-.workspaceRoot .profileChipHint{color:#16815b!important;font-size:10px!important}
-.workspaceRoot .sidebarFooter>.liquidButton{width:100%!important;margin:0!important}
+.workspaceRoot .profileText b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#393566!important;font-size:11px!important}
+.workspaceRoot .profileText span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#9290ae!important;font-size:9px!important}
+.workspaceRoot .profileChipHint{color:#7164d4!important;font-size:9px!important}
+.workspaceRoot .sidebarFooter>.liquidButton{display:block!important;width:100%!important;margin:0!important;padding:0!important}
 .workspaceRoot .sidebarFooter>.liquidButton button{
-  width:100%!important;min-height:36px!important;padding:7px 10px!important;border:1px solid #e8ece9!important;
-  border-radius:8px!important;background:#fff!important;color:#5c6962!important;box-shadow:none!important;font-size:12px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;
+  width:100%!important;min-height:37px!important;padding:8px 11px!important;
+  border:1px solid rgba(147,139,217,.19)!important;border-radius:10px!important;
+  background:rgba(255,255,255,.62)!important;color:#7771a5!important;
+  box-shadow:none!important;font-size:11px!important;font-weight:700!important;
 }
-.workspaceRoot .sidebarFooter>.liquidButton button:hover{background:#f7f9f8!important}
-.workspaceRoot .workspaceContent{min-width:0!important;padding:0 24px 28px!important;background:var(--aureka-canvas)!important}
+.workspaceRoot .sidebarFooter>.liquidButton button:hover{background:#fff!important;color:#5c50c2!important}
+/* Main canvas and glass topbar */
+.workspaceRoot .workspaceContent{min-width:0!important;padding:0 27px 32px!important;background:transparent!important}
 .workspaceRoot .workspaceHeaderBar{
-  position:sticky!important;top:0!important;z-index:30!important;display:flex!important;align-items:center!important;gap:15px!important;
-  min-height:70px!important;margin:0 -24px 22px!important;padding:12px 24px!important;
-  background:#fff!important;border:0!important;border-bottom:1px solid #e8ecef!important;border-radius:0!important;box-shadow:none!important;
+  position:sticky!important;top:0!important;z-index:30!important;
+  display:flex!important;align-items:center!important;gap:13px!important;
+  min-height:76px!important;margin:0 -27px 25px!important;padding:12px 27px!important;
+  border:0!important;border-bottom:1px solid rgba(255,255,255,.72)!important;border-radius:0!important;
+  background:rgba(249,249,255,.68)!important;
+  box-shadow:0 5px 20px rgba(96,89,170,.045)!important;
+  backdrop-filter:blur(24px) saturate(165%)!important;-webkit-backdrop-filter:blur(24px) saturate(165%)!important;
 }
-.workspaceRoot .workspaceContext{display:grid!important;gap:1px!important;min-width:155px!important;max-width:230px!important}
-.workspaceRoot .workspaceContext strong{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#26352d!important;font-size:12px!important;font-weight:760!important}
-.workspaceRoot .workspaceContext span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#8a948e!important;font-size:10px!important}
+.workspaceRoot .workspaceContext{display:grid!important;gap:2px!important;min-width:165px!important;max-width:230px!important}
+.workspaceRoot .workspaceContext strong{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#3d396f!important;font-size:12px!important;font-weight:800!important}
+.workspaceRoot .workspaceContext span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#9996b6!important;font-size:9px!important}
 .workspaceRoot .workspaceGlobalSearch{
-  position:relative!important;display:flex!important;align-items:center!important;gap:9px!important;
-  width:min(360px,38vw)!important;min-height:40px!important;margin-right:auto!important;padding:0 12px!important;
-  border:1px solid #edf0f2!important;border-radius:9px!important;background:#f5f6f7!important;box-shadow:none!important;
+  display:flex!important;align-items:center!important;gap:9px!important;
+  width:min(390px,36vw)!important;min-width:120px!important;min-height:41px!important;
+  margin-right:auto!important;padding:0 13px!important;
+  border:1px solid rgba(160,155,220,.18)!important;border-radius:12px!important;
+  background:rgba(255,255,255,.78)!important;box-shadow:0 4px 13px rgba(90,83,165,.045)!important;
 }
-.workspaceRoot .workspaceGlobalSearch svg{width:16px!important;height:16px!important;flex:0 0 16px!important;stroke:#6b7770!important;fill:none!important}
-.workspaceRoot .workspaceGlobalSearch input{width:100%!important;min-width:0!important;min-height:36px!important;padding:6px 0!important;border:0!important;background:transparent!important;color:#26352d!important;font-size:12px!important;box-shadow:none!important;outline:none!important}
-.workspaceRoot .workspaceGlobalSearch input::placeholder{color:#89938d!important;opacity:1!important}
-.workspaceRoot .workspaceGlobalSearch kbd{flex:0 0 auto!important;padding:2px 5px!important;border:1px solid #e1e6e2!important;border-radius:4px!important;background:#fff!important;color:#77837b!important;font-size:10px!important}
-.workspaceRoot .workspaceHeaderIcon,.workspaceRoot .workspaceHeaderBar .themeModeSwitch{
-  position:relative!important;display:grid!important;place-items:center!important;flex:0 0 36px!important;width:36px!important;height:36px!important;
-  padding:0!important;border:1px solid transparent!important;border-radius:8px!important;background:transparent!important;color:#66736c!important;box-shadow:none!important;
+.workspaceRoot .workspaceGlobalSearch svg{width:16px!important;height:16px!important;flex:0 0 16px!important;fill:none!important;stroke:#827db4!important;stroke-width:1.8!important}
+.workspaceRoot .workspaceGlobalSearch input{
+  width:100%!important;min-width:0!important;min-height:37px!important;padding:5px 0!important;
+  border:0!important;outline:0!important;background:transparent!important;color:#3d396f!important;
+  font-size:11px!important;box-shadow:none!important;
 }
-.workspaceRoot .workspaceHeaderIcon:hover,.workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{background:#f4f7f5!important;color:#16815b!important}
-.workspaceRoot .workspaceHeaderIcon svg,.workspaceRoot .workspaceHeaderBar .themeModeSwitch svg{width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important}
-.workspaceRoot .workspaceHeaderBadge{top:2px!important;right:0!important;min-width:15px!important;height:15px!important;padding:0 3px!important;border:2px solid #fff!important;background:#e35d55!important;font-size:9px!important}
-.workspaceRoot .workspaceHeaderProfile{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;padding:3px 0 3px 5px!important;border:0!important;background:transparent!important;color:#334139!important;text-align:left!important}
+.workspaceRoot .workspaceGlobalSearch input::placeholder{color:#a3a0bd!important;opacity:1!important}
+.workspaceRoot .workspaceGlobalSearch kbd{
+  flex:0 0 auto!important;padding:3px 6px!important;border:1px solid #e9e7f7!important;
+  border-radius:6px!important;background:#f7f6ff!important;color:#9692b5!important;font-size:9px!important;
+}
+.workspaceRoot .workspaceHeaderIcon,
+.workspaceRoot .workspaceHeaderBar .themeModeSwitch{
+  position:relative!important;display:grid!important;place-items:center!important;
+  flex:0 0 37px!important;width:37px!important;height:37px!important;padding:0!important;
+  border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;
+  color:#7d79aa!important;box-shadow:none!important;
+}
+.workspaceRoot .workspaceHeaderIcon:hover,
+.workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{
+  background:rgba(255,255,255,.8)!important;color:#6053ca!important;border-color:rgba(162,152,235,.19)!important;
+}
+.workspaceRoot .workspaceHeaderIcon svg,
+.workspaceRoot .workspaceHeaderBar .themeModeSwitch svg{
+  width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;
+}
+.workspaceRoot .workspaceHeaderBadge{
+  top:1px!important;right:0!important;min-width:15px!important;height:15px!important;
+  padding:0 3px!important;border:2px solid #faf9ff!important;border-radius:9px!important;
+  background:#e7779b!important;font-size:8px!important;
+}
+.workspaceRoot .workspaceHeaderProfile{
+  display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;padding:3px 0 3px 5px!important;
+  border:0!important;background:transparent!important;color:#3d396f!important;text-align:left!important;
+}
 .workspaceRoot .workspaceHeaderAvatar{
-  display:grid!important;place-items:center!important;width:34px!important;height:34px!important;flex:0 0 34px!important;
-  border:1px solid #dcebe1!important;border-radius:50%!important;background:#eaf5ee!important;color:#16734f!important;font-size:11px!important;font-weight:800!important;
+  display:grid!important;place-items:center!important;width:36px!important;height:36px!important;flex:0 0 36px!important;
+  border:2px solid rgba(255,255,255,.94)!important;border-radius:50%!important;
+  background:linear-gradient(145deg,#b7aafa,#776be2)!important;color:#fff!important;font-size:10px!important;font-weight:850!important;
+  box-shadow:0 3px 10px rgba(102,87,220,.16)!important;
 }
 .workspaceRoot .workspaceHeaderProfileText{display:grid!important;gap:1px!important;min-width:0!important}
-.workspaceRoot .workspaceHeaderProfileText b{max-width:130px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:11px!important;color:#334139!important}
-.workspaceRoot .workspaceHeaderProfileText small{font-size:10px!important;color:#8b958e!important}
-.workspaceRoot .mobileMenuButton{display:none!important}
-.workspaceRoot .moduleEnter{min-width:0!important;font-size:13px!important;color:#25352c!important}
-.workspaceRoot .moduleEnter :is(h2,h3){letter-spacing:-.025em!important}
-.workspaceRoot .moduleEnter :is(input,select,textarea){min-height:38px!important;border-radius:8px!important;font-size:13px!important}
-.workspaceRoot .moduleEnter :is(button){font-size:12px!important}
-.workspaceRoot .moduleEnter :is(.ovPanel,.aqTable,.aqFilters,.psPanel,.psHead,.rmPanel,.rmHero,.cpPanel,.cpGlass,.oppePanel,.oppeHeader,.oppeFilters,.sdPanel,.stPanel,.mswHeader,.qhCard){
-  border:1px solid var(--aureka-border)!important;border-radius:12px!important;background:#fff!important;box-shadow:var(--aureka-shadow)!important;
+.workspaceRoot .workspaceHeaderProfileText b{max-width:130px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#413b78!important;font-size:10px!important}
+.workspaceRoot .workspaceHeaderProfileText small{font-size:9px!important;color:#9995b4!important}
+.workspaceRoot .mobileMenuButton{
+  display:none!important;place-items:center!important;width:37px!important;height:37px!important;flex:0 0 37px!important;
+  border:1px solid rgba(157,150,220,.2)!important;border-radius:11px!important;background:rgba(255,255,255,.78)!important;color:#746cb0!important;
 }
-.workspaceRoot .moduleEnter :is(.ovPanel){padding:17px!important}
-.workspaceRoot .moduleEnter .ovPanelHead{margin-bottom:13px!important}
-.workspaceRoot .moduleEnter .ovPanelHead h4{font-size:15px!important;font-weight:750!important}
-.workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
-.workspaceRoot .moduleEnter .ovKpi{
-  position:relative!important;min-height:106px!important;padding:15px 16px!important;gap:6px!important;
-  border:1px solid var(--aureka-border)!important;border-radius:12px!important;background:#fff!important;box-shadow:var(--aureka-shadow)!important;text-align:left!important;
+/* Shared surfaces and typography across AUREKA modules */
+.workspaceRoot .moduleEnter{min-width:0!important;color:#393761!important;font-size:12px!important;line-height:1.5!important}
+.workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5){color:#302d5a!important;letter-spacing:-.035em!important}
+.workspaceRoot .moduleEnter :is(p,small,.fieldHint,.aqSub,.aqMetaText,.ovScopeNote,.ovFoot){color:#8582a4!important}
+.workspaceRoot .moduleEnter :is(input,select,textarea){
+  min-height:39px!important;border:1px solid rgba(153,149,211,.22)!important;border-radius:10px!important;
+  background:rgba(255,255,255,.82)!important;color:#36345f!important;box-shadow:0 2px 6px rgba(80,74,147,.025)!important;
+  font-size:12px!important;
 }
-.workspaceRoot .moduleEnter .ovKpi:before{width:4px!important;border-radius:12px 0 0 12px!important}
-.workspaceRoot .moduleEnter .ovKpi b{font-size:25px!important;color:#1c2b23!important}
-.workspaceRoot .moduleEnter .ovKpiLabel{font-size:12px!important;color:#758179!important}
-.workspaceRoot .moduleEnter .ovKpi small{font-size:11px!important;color:#88928b!important}
-.workspaceRoot .moduleEnter .ovGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
-.workspaceRoot .moduleEnter .ovHero{align-items:center!important;margin:0 0 14px!important}
-.workspaceRoot .moduleEnter .ovHero h3{font-size:22px!important;color:#1c2b23!important}
-.workspaceRoot .moduleEnter .ovHero p{font-size:12px!important;color:#758179!important}
-.workspaceRoot .moduleEnter .ovEyebrow{font-size:10px!important;letter-spacing:.09em!important;color:#89968e!important}
-.workspaceRoot .moduleEnter .ovRefresh{min-height:36px!important;padding:7px 11px!important;border:1px solid #e1e8e3!important;border-radius:8px!important;background:#fff!important;color:#4e6256!important;font-size:11px!important}
-.workspaceRoot .moduleEnter .ovContextBar{gap:12px!important;padding:11px 14px!important;border:1px solid #e7ece8!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important}
-.workspaceRoot .moduleEnter .ovContextBar span{font-size:9px!important;letter-spacing:.08em!important}
-.workspaceRoot .moduleEnter .ovContextBar b{font-size:11px!important}
-.workspaceRoot .moduleEnter .ovScopeNote{font-size:10px!important;color:#849088!important}
-.workspaceRoot .moduleEnter .ovBars{gap:8px!important}
-.workspaceRoot .moduleEnter .ovBarRow{font-size:11px!important;grid-template-columns:minmax(85px,1.05fr) 1fr 28px!important}
-.workspaceRoot .moduleEnter .ovBarTrack,.workspaceRoot .moduleEnter .ovColumnTrack{background:#eef1ef!important}
-.workspaceRoot .moduleEnter .ovPanelHead h4{font-size:15px!important}
-.workspaceRoot .moduleEnter :is(.ovFoot,.ovEmpty,.ovNotice){font-size:11px!important}
+.workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder{color:#aaa7c2!important}
+.workspaceRoot .moduleEnter :is(input,select,textarea):focus{border-color:rgba(108,94,220,.55)!important;box-shadow:0 0 0 3px rgba(108,94,220,.10)!important;outline:none!important}
+.workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton){
+  font-size:11px!important;line-height:1.35!important;
+}
+.workspaceRoot .moduleEnter :is(
+  .liquidGlass,.glassPanel,.glass,.ovPanel,.ovKpi,.qhCard,.aqTable,.aqInd,.aqFilters,
+  .stPanel,.mswHeader,.sdPanel,.cpGlass,.cpPanel,.oppeScorePanel,.oppePanel,.rmPanel,
+  .psPanel,.psHead,.rmHero,.oppeHeader,.oppeFilters
+){
+  border:1px solid rgba(255,255,255,.86)!important;
+  border-radius:var(--md-radius)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.86),rgba(248,247,255,.68))!important;
+  box-shadow:var(--md-shadow)!important;
+  backdrop-filter:blur(18px) saturate(155%)!important;-webkit-backdrop-filter:blur(18px) saturate(155%)!important;
+}
+.workspaceRoot .moduleEnter :is(.liquidGlassEdge,.liquidGlassSheen){display:none!important}
+.workspaceRoot .moduleEnter .liquidGlassContent{position:relative!important;z-index:1!important;width:100%!important}
+.workspaceRoot .moduleEnter :is(.ovPanel,.ovExecutive .ovPanel){padding:18px!important}
+.workspaceRoot .moduleEnter :is(.aqHead,.rmHero,.psHead,.oppeHeader,.cwHeader,.mswHeader){padding:18px!important}
+.workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){
+  gap:5px!important;padding:5px!important;border:1px solid rgba(153,148,211,.18)!important;
+  border-radius:12px!important;background:rgba(227,225,250,.54)!important;
+}
+.workspaceRoot .moduleEnter :is(.aqTab,.cwTab,.mswTab){
+  min-height:36px!important;padding:8px 12px!important;border:1px solid transparent!important;
+  border-radius:9px!important;background:transparent!important;color:#817da7!important;font-size:11px!important;font-weight:650!important;
+}
+.workspaceRoot .moduleEnter :is(.aqTab.active,.cwTab.active,.mswTab.active){
+  background:#fff!important;border-color:rgba(158,149,224,.18)!important;color:#6455d0!important;
+  box-shadow:0 3px 9px rgba(94,84,183,.08)!important;
+}
+.workspaceRoot .moduleEnter :is(.aqBtn,.psBtn,.rmButton,.cpBtn,.cpButton,.oppeBtn,.oppeButton,.sdBtn,.stBtn){
+  min-height:36px!important;padding:8px 12px!important;border:1px solid rgba(143,135,216,.20)!important;
+  border-radius:9px!important;background:rgba(255,255,255,.82)!important;color:#6259aa!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;
+}
+.workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary){
+  background:linear-gradient(130deg,#7669e4,#9a86f1)!important;border-color:transparent!important;color:#fff!important;
+  box-shadow:0 6px 14px rgba(113,98,220,.2)!important;
+}
+.workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary):hover{filter:brightness(1.04)!important;transform:translateY(-1px)!important}
+.workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){
+  padding:10px 11px!important;background:#eeedff!important;color:#68638f!important;
+  border-color:rgba(159,154,215,.16)!important;font-size:10px!important;font-weight:800!important;
+}
+.workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){
+  padding:10px 11px!important;background:rgba(255,255,255,.68)!important;color:#4c4a70!important;
+  border-color:rgba(159,154,215,.13)!important;font-size:11px!important;
+}
+.workspaceRoot .moduleEnter :is(.aqTable,.psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap){overflow:hidden!important;border-radius:13px!important}
+.workspaceRoot .moduleEnter :is(.aqStatus,.rmBadge,.psBadge,.cpBadge,.oppeBadge){
+  border-radius:20px!important;font-size:9px!important;font-weight:800!important;
+}
+.workspaceRoot .moduleEnter :is(.aqNotice,.psAlert,.rmNotice,.cpNotice,.oppeNotice,.sdNotice,.stNotice){
+  padding:11px 13px!important;border-radius:11px!important;font-size:11px!important;
+}
+/* Dashboard title, cards and charts */
+.workspaceRoot .moduleEnter .ovRoot{display:grid!important;gap:16px!important}
+.workspaceRoot .moduleEnter .ovHero{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;
+  margin:0 0 2px!important;padding:22px 24px!important;border:1px solid rgba(255,255,255,.66)!important;
+  border-radius:20px!important;
+  background:linear-gradient(112deg,rgba(105,91,221,.94),rgba(132,116,234,.88) 57%,rgba(166,148,246,.84))!important;
+  box-shadow:0 12px 26px rgba(100,88,208,.18)!important;color:#fff!important;
+}
+.workspaceRoot .moduleEnter .ovHero :is(h3,p,.ovEyebrow){color:#fff!important}
+.workspaceRoot .moduleEnter .ovHero .ovEyebrow{font-size:9px!important;letter-spacing:.14em!important;opacity:.82!important}
+.workspaceRoot .moduleEnter .ovHero h3{margin:5px 0 4px!important;font-size:23px!important;font-weight:820!important;line-height:1.2!important}
+.workspaceRoot .moduleEnter .ovHero p{max-width:760px!important;margin:0!important;font-size:11px!important;line-height:1.5!important;opacity:.88!important}
+.workspaceRoot .moduleEnter .ovRefresh{
+  min-height:37px!important;padding:8px 13px!important;border:1px solid rgba(255,255,255,.4)!important;border-radius:10px!important;
+  background:rgba(255,255,255,.18)!important;color:#fff!important;box-shadow:none!important;font-size:10px!important;font-weight:750!important;
+  backdrop-filter:blur(8px)!important;
+}
+.workspaceRoot .moduleEnter .ovRefresh:hover{background:rgba(255,255,255,.28)!important}
+.workspaceRoot .moduleEnter .ovContextBar{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;
+  padding:13px 16px!important;border:1px solid rgba(255,255,255,.9)!important;border-radius:14px!important;
+  background:rgba(255,255,255,.67)!important;box-shadow:0 4px 13px rgba(91,84,165,.045)!important;
+}
+.workspaceRoot .moduleEnter .ovContextBar>div{display:grid!important;gap:3px!important;min-width:0!important}
+.workspaceRoot .moduleEnter .ovContextBar span{color:#aaa6c5!important;font-size:8px!important;font-weight:850!important;letter-spacing:.11em!important}
+.workspaceRoot .moduleEnter .ovContextBar b{color:#625e8e!important;font-size:10px!important;font-weight:800!important;overflow-wrap:anywhere!important}
+.workspaceRoot .moduleEnter .ovContextStatus b.ok{color:#269b7d!important}
+.workspaceRoot .moduleEnter .ovContextStatus b.error{color:#d46c82!important}
+.workspaceRoot .moduleEnter .ovScopeNote{margin:0!important;padding:0 2px!important;color:#8582a5!important;font-size:9px!important;line-height:1.45!important}
 .workspaceRoot .moduleEnter .ovDashboardTabs{
   display:flex!important;align-items:center!important;gap:6px!important;width:max-content!important;max-width:100%!important;
-  padding:4px!important;border:1px solid #e5ebe7!important;border-radius:10px!important;background:#eef2ef!important;
+  padding:5px!important;border:1px solid rgba(255,255,255,.86)!important;border-radius:13px!important;
+  background:rgba(221,219,250,.62)!important;
 }
 .workspaceRoot .moduleEnter .ovDashboardTabs>button{
-  display:flex!important;align-items:center!important;gap:8px!important;min-height:42px!important;padding:6px 12px!important;
-  border:1px solid transparent!important;border-radius:8px!important;background:transparent!important;color:#647169!important;text-align:left!important;
+  display:flex!important;align-items:center!important;gap:9px!important;min-height:43px!important;padding:7px 14px!important;
+  border:1px solid transparent!important;border-radius:10px!important;background:transparent!important;color:#77739f!important;text-align:left!important;
 }
-.workspaceRoot .moduleEnter .ovDashboardTabs>button.active{border-color:#e0e9e2!important;background:#fff!important;color:#166d4b!important;box-shadow:0 1px 3px rgba(20,44,30,.06)!important}
-.workspaceRoot .moduleEnter .ovDashboardTabIcon{display:grid!important;place-items:center!important;width:29px!important;height:29px!important;border-radius:7px!important;background:#eaf5ee!important;color:#16815b!important;font-size:16px!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs>button span:last-child{display:grid!important;gap:0!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs b{font-size:11px!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:9px!important;color:#88948c!important}
+.workspaceRoot .moduleEnter .ovDashboardTabs>button.active{
+  background:#fff!important;border-color:rgba(255,255,255,.96)!important;color:#6557d0!important;
+  box-shadow:0 3px 10px rgba(94,84,183,.08)!important;
+}
+.workspaceRoot .moduleEnter .ovDashboardTabIcon{
+  display:grid!important;place-items:center!important;width:29px!important;height:29px!important;border-radius:9px!important;
+  background:#eeecff!important;color:#7467df!important;font-size:15px!important;
+}
+.workspaceRoot .moduleEnter .ovDashboardTabs>button span:last-child{display:grid!important;gap:1px!important}
+.workspaceRoot .moduleEnter .ovDashboardTabs b{font-size:10px!important;font-weight:800!important}
+.workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:8px!important;color:#aaa6c2!important}
+.workspaceRoot .moduleEnter .ovKpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important}
+.workspaceRoot .moduleEnter .ovKpi{
+  position:relative!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
+  gap:6px!important;min-width:0!important;min-height:125px!important;padding:17px 18px!important;overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.94)!important;border-radius:17px!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(245,243,255,.75))!important;
+  box-shadow:var(--md-shadow)!important;text-align:left!important;
+}
+.workspaceRoot .moduleEnter .ovKpi:after{
+  content:"";position:absolute;top:-31px;right:-25px;width:92px;height:92px;border-radius:50%;
+  background:rgba(135,120,238,.09);pointer-events:none;
+}
+.workspaceRoot .moduleEnter .ovKpi:before{
+  position:absolute!important;left:0!important;top:18px!important;bottom:18px!important;width:4px!important;
+  border-radius:0 5px 5px 0!important;background:linear-gradient(180deg,#9e8ef3,#6c5fe0)!important;opacity:1!important;
+}
+.workspaceRoot .moduleEnter .ovKpi:nth-child(2):before{background:linear-gradient(180deg,#8bc8ed,#548de1)!important}
+.workspaceRoot .moduleEnter .ovKpi:nth-child(3):before{background:linear-gradient(180deg,#efb8d5,#df7fb5)!important}
+.workspaceRoot .moduleEnter .ovKpi:nth-child(4):before{background:linear-gradient(180deg,#f0cf88,#dca64b)!important}
+.workspaceRoot .moduleEnter .ovKpi.warn:before{background:linear-gradient(180deg,#efcf83,#dba34d)!important}
+.workspaceRoot .moduleEnter .ovKpi.danger:before{background:linear-gradient(180deg,#ef9faf,#d9637e)!important}
+.workspaceRoot .moduleEnter .ovKpiLabel{position:relative;z-index:1;color:#8884a8!important;font-size:10px!important;font-weight:750!important}
+.workspaceRoot .moduleEnter .ovKpi b{position:relative;z-index:1;color:#343064!important;font-size:29px!important;font-weight:850!important;line-height:1.05!important;letter-spacing:-.045em!important}
+.workspaceRoot .moduleEnter .ovKpi small{position:relative;z-index:1;color:#a09dbc!important;font-size:9px!important;line-height:1.3!important}
+.workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;
+}
+.workspaceRoot .moduleEnter .ovPanel{
+  min-width:0!important;padding:18px!important;border:1px solid rgba(255,255,255,.92)!important;border-radius:17px!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.89),rgba(248,247,255,.76))!important;
+  box-shadow:var(--md-shadow)!important;
+}
+.workspaceRoot .moduleEnter .ovPanelHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin-bottom:14px!important}
+.workspaceRoot .moduleEnter .ovPanelHead h4{margin:3px 0 0!important;color:#393466!important;font-size:14px!important;font-weight:820!important;line-height:1.25!important}
+.workspaceRoot .moduleEnter .ovPanelHead .ovEyebrow{color:#aaa6c4!important;font-size:8px!important;font-weight:850!important;letter-spacing:.12em!important}
+.workspaceRoot .moduleEnter .ovLink{padding:5px 2px!important;border:0!important;background:transparent!important;color:#7165d2!important;font-size:9px!important;font-weight:800!important}
+.workspaceRoot .moduleEnter .ovBars{display:grid!important;gap:10px!important}
+.workspaceRoot .moduleEnter .ovBarRow{display:grid!important;grid-template-columns:minmax(94px,1fr) minmax(60px,2fr) 30px!important;align-items:center!important;gap:9px!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovBarTrack,.workspaceRoot .moduleEnter .ovColumnTrack{
+  overflow:hidden!important;border-radius:20px!important;background:#efedfb!important;
+}
+.workspaceRoot .moduleEnter .ovBarTrack{height:9px!important}
+.workspaceRoot .moduleEnter .ovBarFill{border-radius:20px!important;background:linear-gradient(90deg,#9e90f2,#6d60dd)!important}
+.workspaceRoot .moduleEnter .ovBarFill.lvl-high{background:linear-gradient(90deg,#e98fa8,#d85f7d)!important}
+.workspaceRoot .moduleEnter .ovBarFill.lvl-moderate{background:linear-gradient(90deg,#f2c984,#dfa74b)!important}
+.workspaceRoot .moduleEnter .ovBarFill.lvl-low{background:linear-gradient(90deg,#89c7e9,#5b98dc)!important}
+.workspaceRoot .moduleEnter .ovBarFill.lvl-very-low{background:linear-gradient(90deg,#8ed6c0,#42a98b)!important}
+.workspaceRoot .moduleEnter .ovBarFill.lvl-very-high{background:linear-gradient(90deg,#ea7f9a,#c94e72)!important}
+.workspaceRoot .moduleEnter .ovUnitName{color:#6c688f!important;font-size:9px!important}
+.workspaceRoot .moduleEnter .ovMatrix{gap:4px!important}
+.workspaceRoot .moduleEnter .ovCell{min-height:36px!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:7px!important;color:#46416f!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovColumns{min-height:150px!important;padding-top:8px!important}
+.workspaceRoot .moduleEnter .ovColumnTrack{width:23px!important;background:#eeecfa!important}
+.workspaceRoot .moduleEnter .ovColumnFill{border-radius:7px 7px 2px 2px!important;background:linear-gradient(180deg,#ad9cf5,#7064df)!important}
+.workspaceRoot .moduleEnter .ovColumnLabel{color:#9995b4!important;font-size:8px!important}
+.workspaceRoot .moduleEnter .ovColumnValue{color:#6b65a1!important;font-size:9px!important}
+.workspaceRoot .moduleEnter .ovList{display:grid!important;gap:3px!important;padding:0!important;margin:0!important;list-style:none!important}
+.workspaceRoot .moduleEnter .ovList li button{
+  display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:57px!important;padding:9px 7px!important;
+  border:0!important;border-bottom:1px solid rgba(158,153,213,.13)!important;border-radius:0!important;background:transparent!important;text-align:left!important;
+}
+.workspaceRoot .moduleEnter .ovScore{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;flex:0 0 34px!important;border-radius:11px!important;background:#efedff!important;color:#6559ce!important;font-size:12px!important}
+.workspaceRoot .moduleEnter .ovListText{display:grid!important;gap:3px!important;min-width:0!important;flex:1!important}
+.workspaceRoot .moduleEnter .ovListText b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#494570!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovListText small{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#a09db8!important;font-size:8px!important}
+.workspaceRoot .moduleEnter .ovStatus{color:#7e79a2!important;font-size:9px!important}
+.workspaceRoot .moduleEnter .ovEmpty{display:grid!important;gap:4px!important;padding:17px!important;border:1px dashed rgba(147,140,208,.3)!important;border-radius:12px!important;background:rgba(244,242,255,.45)!important;color:#77739c!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovEmpty b{color:#5a548b!important;font-size:11px!important}
+.workspaceRoot .moduleEnter .ovNotice{padding:12px 14px!important;border:1px solid rgba(227,181,101,.35)!important;border-radius:11px!important;background:rgba(255,247,229,.8)!important;color:#95702b!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovFoot{margin:0!important;padding:0 2px!important;color:#a09db9!important;font-size:9px!important;line-height:1.5!important}
 .workspaceRoot .moduleEnter .ovExecutive{display:grid!important;gap:14px!important}
-.workspaceRoot .moduleEnter .ovExecGrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
 .workspaceRoot .moduleEnter .ovExecutiveAlerts{display:grid!important;gap:9px!important}
 .workspaceRoot .moduleEnter .ovExecutiveAlert{
-  display:grid!important;gap:3px!important;width:100%!important;padding:12px 13px!important;
-  border:1px solid transparent!important;border-radius:9px!important;text-align:left!important;background:#fff!important;color:#34423a!important;box-shadow:none!important;
+  display:grid!important;gap:3px!important;width:100%!important;padding:13px!important;
+  border:1px solid transparent!important;border-radius:12px!important;background:#fff!important;color:#4b4774!important;text-align:left!important;box-shadow:none!important;
 }
-.workspaceRoot .moduleEnter .ovExecutiveAlert b{font-size:12px!important;font-weight:760!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert span{font-size:11px!important;line-height:1.45!important;color:#647169!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert.danger{border-color:#f2d5d2!important;background:#fff2f0!important;color:#a43730!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert.warning{border-color:#f0e1bd!important;background:#fff9eb!important;color:#805b16!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert.success{border-color:#d8eadf!important;background:#eff8f2!important;color:#176644!important}
-.workspaceRoot .moduleEnter .ovExecPerformance{display:grid!important;gap:9px!important}
-.workspaceRoot .moduleEnter .ovExecHeadline{display:grid!important;gap:4px!important;padding:12px!important;border-radius:9px!important;background:#f3f8f5!important}
-.workspaceRoot .moduleEnter .ovExecHeadline strong{font-size:27px!important;line-height:1.1!important;color:#176d4b!important}
-.workspaceRoot .moduleEnter .ovExecHeadline span{font-size:11px!important;color:#6f7d74!important;line-height:1.45!important}
+.workspaceRoot .moduleEnter .ovExecutiveAlert b{font-size:10px!important;font-weight:820!important}
+.workspaceRoot .moduleEnter .ovExecutiveAlert span{font-size:9px!important;line-height:1.45!important;color:#8b88a7!important}
+.workspaceRoot .moduleEnter .ovExecutiveAlert.danger{background:linear-gradient(120deg,#fff2f5,#fff)!important;border-color:#f4d7e0!important;color:#c75e79!important}
+.workspaceRoot .moduleEnter .ovExecutiveAlert.warning{background:linear-gradient(120deg,#fff8e9,#fff)!important;border-color:#f4e4c4!important;color:#b18132!important}
+.workspaceRoot .moduleEnter .ovExecutiveAlert.success{background:linear-gradient(120deg,#edf9f4,#fff)!important;border-color:#d7eee4!important;color:#39957c!important}
+.workspaceRoot .moduleEnter .ovExecPerformance{display:grid!important;gap:8px!important}
+.workspaceRoot .moduleEnter .ovExecHeadline{display:grid!important;gap:4px!important;padding:14px!important;border-radius:12px!important;background:linear-gradient(120deg,#f0edff,#f8f7ff)!important}
+.workspaceRoot .moduleEnter .ovExecHeadline strong{font-size:27px!important;color:#6b5fda!important;line-height:1.05!important}
+.workspaceRoot .moduleEnter .ovExecHeadline span{font-size:9px!important;color:#8985aa!important;line-height:1.45!important}
 .workspaceRoot .moduleEnter .ovExecMetric,.workspaceRoot .moduleEnter .ovExecRtp>div{
-  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:9px 2px!important;border-bottom:1px solid #edf1ee!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;
+  padding:9px 2px!important;border-bottom:1px solid rgba(158,153,213,.14)!important;
 }
-.workspaceRoot .moduleEnter .ovExecMetric span,.workspaceRoot .moduleEnter .ovExecRtp span{font-size:11px!important;color:#76837a!important}
-.workspaceRoot .moduleEnter .ovExecMetric b,.workspaceRoot .moduleEnter .ovExecRtp b{font-size:13px!important;color:#26372e!important}
-.workspaceRoot .moduleEnter .ovExecRtp{display:grid!important;gap:4px!important}
-.workspaceRoot .moduleEnter .ovExecRtp .ovLink{justify-self:start!important;padding:7px 0!important}
-.workspaceRoot .moduleEnter .ovColumns{min-height:154px!important;padding-top:8px!important}
-.workspaceRoot .moduleEnter .ovColumnFill{background:linear-gradient(180deg,#38a875,#16815b)!important}
-.workspaceRoot .moduleEnter .ovList li button{min-height:54px!important}
-.workspaceRoot .moduleEnter :is(.aqHead,.rmHero,.psHead,.oppeHeader,.cwHeader,.mswHeader){padding:17px!important}
-.workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){
-  padding:4px!important;gap:5px!important;border:1px solid #e5ebe7!important;border-radius:9px!important;background:#f0f4f1!important;
+.workspaceRoot .moduleEnter .ovExecMetric span,.workspaceRoot .moduleEnter .ovExecRtp span{font-size:9px!important;color:#9290ad!important}
+.workspaceRoot .moduleEnter .ovExecMetric b,.workspaceRoot .moduleEnter .ovExecRtp b{font-size:11px!important;color:#4c4777!important}
+.workspaceRoot .moduleEnter .ovExecRtp{display:grid!important;gap:3px!important}
+.workspaceRoot .moduleEnter .ovSkeletonBlock{border-radius:12px!important;background:linear-gradient(90deg,#f0effb,#fff,#f0effb)!important}
+.workspaceRoot .moduleEnter :is(.ovRefresh,.aqBtn,.psBtn,.rmButton,.cpBtn,.oppeBtn,.sdBtn,.stBtn){transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important}
+.workspaceRoot .moduleEnter :is(.ovRefresh,.aqBtn,.psBtn,.rmButton,.cpBtn,.oppeBtn,.sdBtn,.stBtn):hover{transform:translateY(-1px)!important;box-shadow:0 5px 12px rgba(92,82,181,.09)!important}
+/* Popovers, notifications and chat */
+.workspaceRoot .workspaceNotificationPanel,
+.workspaceRoot .workspaceSupportPanel{
+  border:1px solid rgba(255,255,255,.94)!important;border-radius:17px!important;
+  background:rgba(250,249,255,.94)!important;box-shadow:0 18px 44px rgba(70,65,142,.18)!important;
+  backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;
+  color:#484474!important;
 }
-.workspaceRoot .moduleEnter :is(.aqTab,.cwTab,.mswTab){min-height:36px!important;padding:7px 11px!important;border-radius:7px!important;font-size:11px!important}
-.workspaceRoot .moduleEnter :is(.aqTable,.psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap){border-radius:10px!important}
-.workspaceRoot .moduleEnter :is(.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){padding:9px 10px!important;background:#f0f5f1!important;color:#53665a!important;font-size:11px!important}
-.workspaceRoot .moduleEnter :is(.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){padding:9px 10px!important;font-size:12px!important}
-.workspaceRoot .moduleEnter :is(.aqBtn,.psBtn,.rmButton,.cpBtn,.cpButton,.oppeBtn,.oppeButton,.sdBtn,.stBtn){min-height:35px!important;padding:7px 10px!important;border-radius:7px!important;font-size:11px!important}
-.workspaceRoot .moduleEnter :is(.aqField span,.aqLabel,.psField label,.rmWorkspace label,.oppeRoot label,.stField){font-size:11px!important}
-.workspaceRoot .moduleEnter :is(.aqNotice,.psAlert,.rmNotice,.cpNotice,.oppeNotice,.sdNotice,.stNotice){font-size:11px!important;padding:10px 12px!important}
-.workspaceRoot .moduleEnter .qhGrid{gap:11px!important}
-.workspaceRoot .moduleEnter .qhCard{min-height:180px!important;padding:15px!important}
-.workspaceRoot .moduleEnter .qhCard>b{font-size:15px!important}
-.workspaceRoot .moduleEnter .qhSummary{font-size:11px!important}
-.workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi){min-height:88px!important;padding:12px!important}
-.workspaceRoot .moduleEnter :is(.psKpi b,.rmKpi b,.sdKpi b,.stKpi b){font-size:22px!important}
-.workspaceRoot .moduleEnter :is(.psModalSheet,.rmModalSheet,.oppeModal,.sdEditDialog){border-radius:12px!important}
-.workspaceRoot :focus-visible{outline:3px solid #60a985!important;outline-offset:2px!important}
-.workspaceRoot button{cursor:pointer}
-.workspaceRoot button:disabled{cursor:not-allowed}
-.workspaceRoot.sidebarIsCollapsed{grid-template-columns:76px minmax(0,1fr)!important}
-.workspaceRoot.sidebarIsCollapsed .sidebar{width:76px!important;min-width:76px!important;padding:16px 8px 12px!important}
-.workspaceRoot.sidebarIsCollapsed .sideHeader{justify-content:center!important;padding:0 0 13px!important}
+.workspaceRoot .workspacePopoverHead{border-bottom:1px solid rgba(156,150,213,.18)!important}
+.workspaceRoot .workspacePopoverHead strong{color:#413c73!important}
+.workspaceRoot .workspacePopoverHead span{color:#a09cba!important}
+.workspaceRoot .workspaceSupportComposer textarea{border:1px solid rgba(153,147,216,.24)!important;border-radius:10px!important;background:#fff!important}
+.workspaceRoot .workspaceSupportComposer button{border-radius:9px!important;background:linear-gradient(130deg,#7669e4,#9a86f1)!important;color:#fff!important}
+/* Mobile and tablet */
+.workspaceRoot.sidebarIsCollapsed{grid-template-columns:78px minmax(0,1fr)!important}
+.workspaceRoot.sidebarIsCollapsed .sidebar{width:78px!important;min-width:78px!important;padding:18px 8px 12px!important}
+.workspaceRoot.sidebarIsCollapsed .sideHeader{justify-content:center!important;padding:0 0 14px!important}
 .workspaceRoot.sidebarIsCollapsed .sideBrand{gap:0!important}
-.workspaceRoot.sidebarIsCollapsed .sideBrand>div,.workspaceRoot.sidebarIsCollapsed .navLabel,
-.workspaceRoot.sidebarIsCollapsed .sidebarNav>button span,.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup>button span,
-.workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren,.workspaceRoot.sidebarIsCollapsed .profileText,
+.workspaceRoot.sidebarIsCollapsed .sideBrand>div,
+.workspaceRoot.sidebarIsCollapsed .navLabel,
+.workspaceRoot.sidebarIsCollapsed .sidebarNav>button span,
+.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup>button span,
+.workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren,
+.workspaceRoot.sidebarIsCollapsed .profileText,
 .workspaceRoot.sidebarIsCollapsed .logoutLabel{display:none!important}
-.workspaceRoot.sidebarIsCollapsed .sidebarToggle{position:absolute!important;right:5px!important;top:49px!important;width:24px!important;height:24px!important}
-.workspaceRoot.sidebarIsCollapsed .sidebarNav>button,.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup>button{justify-content:center!important;padding:10px 8px!important}
+.workspaceRoot.sidebarIsCollapsed .sidebarToggle{position:absolute!important;right:3px!important;top:49px!important;width:22px!important;height:22px!important}
+.workspaceRoot.sidebarIsCollapsed .sidebarNav>button,
+.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup>button{justify-content:center!important;padding:10px 6px!important}
 .workspaceRoot.sidebarIsCollapsed .sidebarFooter .profileChipBtn{justify-content:center!important;padding:8px 0!important}
 .workspaceRoot.sidebarIsCollapsed .sidebarFooter>.liquidButton button{justify-content:center!important;padding:6px!important}
 .workspaceRoot.sidebarIsCollapsed .sidebarFooter>.liquidButton .logoutLabel{display:none!important}
-@media(max-width:1150px){
-  .workspaceRoot{grid-template-columns:235px minmax(0,1fr)!important}
-  .workspaceRoot .sidebar{width:235px!important;min-width:235px!important}
-  .workspaceRoot .workspaceContent{padding:0 18px 24px!important}
-  .workspaceRoot .workspaceHeaderBar{margin:0 -18px 18px!important;padding:11px 18px!important}
+@media(max-width:1180px){
+  .workspaceRoot{grid-template-columns:232px minmax(0,1fr)!important}
+  .workspaceRoot .sidebar{width:232px!important;min-width:232px!important}
+  .workspaceRoot .workspaceContent{padding:0 19px 26px!important}
+  .workspaceRoot .workspaceHeaderBar{margin:0 -19px 20px!important;padding:11px 19px!important}
   .workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .workspaceRoot .workspaceHeaderProfileText{display:none!important}
 }
 @media(max-width:760px){
@@ -241,136 +514,97 @@
   .workspaceRoot .sidebar,.workspaceRoot.sidebarIsCollapsed .sidebar{
     position:fixed!important;left:-300px!important;top:0!important;z-index:45!important;
     width:286px!important;min-width:286px!important;height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;
-    padding:calc(15px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom))!important;transition:left .2s ease!important;
+    padding:calc(15px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom))!important;
+    border-radius:0 18px 18px 0!important;transition:left .22s ease!important;
   }
   .workspaceRoot .sidebar.mobileOpen{left:0!important}
   .workspaceRoot.sidebarIsCollapsed .sideBrand>div{display:grid!important}
   .workspaceRoot.sidebarIsCollapsed .navLabel{display:block!important}
-  .workspaceRoot.sidebarIsCollapsed .sidebarNav>button span,.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup>button span{display:inline!important}
+  .workspaceRoot.sidebarIsCollapsed .sidebarNav>button span,
+  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup>button span{display:inline!important}
   .workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren{display:grid!important}
   .workspaceRoot.sidebarIsCollapsed .profileText{display:grid!important}
   .workspaceRoot.sidebarIsCollapsed .sidebarToggle{position:static!important;width:30px!important;height:30px!important}
   .workspaceRoot .workspaceContent{padding:0 12px 20px!important}
-  .workspaceRoot .workspaceHeaderBar{min-height:62px!important;gap:7px!important;margin:0 -12px 15px!important;padding:9px 11px!important}
-  .workspaceRoot .mobileMenuButton{display:grid!important;place-items:center!important;flex:0 0 34px!important;width:34px!important;height:34px!important;border:1px solid #e7ece8!important;border-radius:8px!important;background:#fff!important;color:#53635a!important}
+  .workspaceRoot .workspaceHeaderBar{min-height:62px!important;gap:6px!important;margin:0 -12px 15px!important;padding:8px 10px!important}
+  .workspaceRoot .mobileMenuButton{display:grid!important;place-items:center!important}
   .workspaceRoot .workspaceContext{display:none!important}
-  .workspaceRoot .workspaceGlobalSearch{width:auto!important;flex:1 1 auto!important;max-width:none!important;min-width:70px!important;min-height:36px!important;padding:0 8px!important}
-  .workspaceRoot .workspaceGlobalSearch input{font-size:11px!important}
+  .workspaceRoot .workspaceGlobalSearch{width:auto!important;flex:1 1 auto!important;max-width:none!important;min-width:65px!important;min-height:35px!important;padding:0 8px!important}
+  .workspaceRoot .workspaceGlobalSearch input{font-size:10px!important}
   .workspaceRoot .workspaceHeaderIcon,.workspaceRoot .workspaceHeaderBar .themeModeSwitch{width:30px!important;height:30px!important;flex-basis:30px!important}
   .workspaceRoot .workspaceHeaderProfile{display:none!important}
-  .workspaceRoot .moduleEnter .ovHero{align-items:flex-start!important;flex-direction:column!important;gap:10px!important}
+  .workspaceRoot .moduleEnter .ovHero{align-items:flex-start!important;flex-direction:column!important;gap:11px!important;padding:17px!important}
+  .workspaceRoot .moduleEnter .ovHero h3{font-size:20px!important}
   .workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
-  .workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{grid-template-columns:1fr!important;gap:11px!important}
+  .workspaceRoot .moduleEnter .ovKpi{min-height:104px!important;padding:13px!important}
+  .workspaceRoot .moduleEnter .ovKpi b{font-size:23px!important}
+  .workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{grid-template-columns:1fr!important;gap:10px!important}
   .workspaceRoot .moduleEnter .ovDashboardTabs{width:100%!important}
   .workspaceRoot .moduleEnter .ovDashboardTabs>button{flex:1 1 0!important;padding:6px 8px!important}
-  .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:8px!important}
+  .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:10px!important}
+  .workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){display:flex!important;overflow-x:auto!important;flex-wrap:nowrap!important}
+  .workspaceRoot .moduleEnter :is(.aqTable,.psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap){max-width:100%!important;overflow-x:auto!important}
 }
 @media(max-width:390px){
-  .workspaceRoot .workspaceHeaderBar{gap:5px!important;padding:8px!important}
+  .workspaceRoot .workspaceHeaderBar{gap:4px!important;padding:7px!important}
   .workspaceRoot .workspaceGlobalSearch kbd{display:none!important}
-  .workspaceRoot .workspaceHeaderIcon,.workspaceRoot .workspaceHeaderBar .themeModeSwitch{width:28px!important;height:28px!important;flex-basis:28px!important}
-  .workspaceRoot .moduleEnter .ovKpi{padding:12px 11px!important;min-height:92px!important}
+  .workspaceRoot .workspaceHeaderIcon,.workspaceRoot .workspaceHeaderBar .themeModeSwitch{width:27px!important;height:27px!important;flex-basis:27px!important}
+  .workspaceRoot .moduleEnter .ovKpi{min-height:93px!important;padding:11px!important}
   .workspaceRoot .moduleEnter .ovKpi b{font-size:21px!important}
 }
 @media(prefers-reduced-motion:reduce){
   .workspaceRoot *,.workspaceRoot *::before,.workspaceRoot *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
-
-
-/* AMOLED theme compatibility: retain the user's existing theme preference. */
+/* AMOLED theme: retain a deliberate dark variant rather than forcing the light glass palette. */
 html[data-theme="amoled"] .workspaceRoot{
-  --aureka-canvas:#090d0b;--aureka-surface:#111916;--aureka-border:#27352e;
-  --aureka-ink:#e6eee9;--aureka-muted:#9eada4;--aureka-brand:#42bd88;
-  --aureka-brand-dark:#1c8a5d;--aureka-brand-soft:#163528;
-  --aureka-shadow:0 2px 8px rgba(0,0,0,.24);
-  color-scheme:dark!important;background:#090d0b!important;color:#e6eee9!important;
+  --md-bg:#090b16;--md-bg2:#12152b;--md-surface:rgba(24,26,48,.88);--md-surface-strong:#171a30;
+  --md-border:rgba(133,125,224,.2);--md-ink:#ecebff;--md-muted:#a19fc4;
+  --md-shadow:0 8px 26px rgba(0,0,0,.28);--md-shadow-hover:0 14px 32px rgba(0,0,0,.38);
+  background:radial-gradient(ellipse at 85% 5%,rgba(82,68,165,.22),transparent 36%),linear-gradient(140deg,#090b16,#11142a 56%,#151229)!important;
+  color:#ecebff!important;
 }
-html[data-theme="amoled"] .workspaceRoot .sidebar,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar,
-html[data-theme="amoled"] .workspaceRoot .workspaceContent,
-html[data-theme="amoled"] .workspaceRoot .sidebarFooter .profileChipBtn{
-  background:#0d1410!important;color:#e6eee9!important;border-color:#27352e!important;
-}
+html[data-theme="amoled"] .workspaceRoot .sidebar{background:linear-gradient(180deg,rgba(17,19,39,.97),rgba(20,21,43,.94))!important;border-color:#2a2b4b!important}
 html[data-theme="amoled"] .workspaceRoot .sideHeader,
-html[data-theme="amoled"] .workspaceRoot .sidebarFooter{border-color:#27352e!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarFooter{border-color:#2a2b4b!important}
 html[data-theme="amoled"] .workspaceRoot .sideBrand b,
 html[data-theme="amoled"] .workspaceRoot .workspaceContext strong,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfileText b,
-html[data-theme="amoled"] .workspaceRoot .profileText b{color:#e6eee9!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfileText b{color:#efedff!important}
 html[data-theme="amoled"] .workspaceRoot .sideBrand small,
 html[data-theme="amoled"] .workspaceRoot .workspaceContext span,
 html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfileText small,
-html[data-theme="amoled"] .workspaceRoot .profileText span,
-html[data-theme="amoled"] .workspaceRoot .profileChipHint{color:#a2b1a8!important}
-html[data-theme="amoled"] .workspaceRoot .navLabel{color:#81998b!important}
+html[data-theme="amoled"] .workspaceRoot .profileText span{color:#aaa8cb!important}
 html[data-theme="amoled"] .workspaceRoot .sidebarNav>button,
-html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button{color:#c0cec5!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button,
+html[data-theme="amoled"] .workspaceRoot .sidebarChild{color:#b5b2d8!important}
 html[data-theme="amoled"] .workspaceRoot .sidebarNav>button:hover,
 html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button:hover,
-html[data-theme="amoled"] .workspaceRoot .sidebarFooter .profileChipBtn:hover{background:#18231d!important;color:#e8f3ec!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarChild:hover{background:#222344!important;color:#e9e6ff!important}
 html[data-theme="amoled"] .workspaceRoot .sidebarNav>button.navActive,
 html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button.navActive,
-html[data-theme="amoled"] .workspaceRoot .sidebarChild.active{background:#173a2a!important;border-color:#285a40!important;color:#78d5a8!important}
-html[data-theme="amoled"] .workspaceRoot .sidebarChild{color:#aab9b0!important}
-html[data-theme="amoled"] .workspaceRoot .sidebarChild:hover{background:#17251d!important;color:#8bddb4!important}
-html[data-theme="amoled"] .workspaceRoot .sidebarTreeChildren{border-color:#2b3c32!important}
-html[data-theme="amoled"] .workspaceRoot .sidebarToggle,
-html[data-theme="amoled"] .workspaceRoot .sidebarFooter>.liquidButton button,
+html[data-theme="amoled"] .workspaceRoot .sidebarChild.active{background:#282650!important;border-color:#39346c!important;color:#c5bbff!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar{background:rgba(16,18,36,.86)!important;border-color:#292a49!important}
 html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch,
-html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch kbd,
 html[data-theme="amoled"] .workspaceRoot .workspaceHeaderIcon,
 html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar .themeModeSwitch,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfile{
-  background:#111a15!important;border-color:#29382f!important;color:#bdcbc2!important;
+html[data-theme="amoled"] .workspaceRoot .sidebarToggle{background:#1b1e3a!important;border-color:#34345c!important;color:#c2bcff!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input{background:transparent!important;color:#efeefe!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input::placeholder{color:#8684aa!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5){color:#f0efff!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(p,small,.fieldHint,.aqSub,.aqMetaText,.ovScopeNote,.ovFoot){color:#a5a3c5!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.ovPanel,.ovKpi,.qhCard,.aqTable,.aqInd,.aqFilters,.stPanel,.mswHeader,.sdPanel,.cpGlass,.cpPanel,.oppeScorePanel,.oppePanel,.rmPanel,.psPanel,.psHead,.rmHero,.oppeHeader,.oppeFilters){
+  border-color:#343452!important;background:linear-gradient(145deg,rgba(27,29,54,.96),rgba(22,24,45,.92))!important;box-shadow:var(--md-shadow)!important;
 }
-html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input{background:transparent!important;color:#e6eee9!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input::placeholder{color:#84958a!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderIcon:hover,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{background:#1b2b21!important;color:#83d9ae!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderAvatar,
-html[data-theme="amoled"] .workspaceRoot .profileAvatar{background:#173a2a!important;border-color:#2d6046!important;color:#83d9ae!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(
-  .ovPanel,.ovKpi,.aqTable,.aqFilters,.aqHead,.aqInlineEditor,.psPanel,.psHead,.rmPanel,.rmHero,
-  .cpPanel,.cpGlass,.oppePanel,.oppeHeader,.oppeFilters,.sdPanel,.stPanel,.mswHeader,.qhCard,
-  .psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap,.ovExecutiveAlert
-){
-  background:#111916!important;background-image:none!important;border-color:#2a3930!important;
-  color:#e1ebe4!important;box-shadow:0 2px 8px rgba(0,0,0,.2)!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(h2,h3,h4,h5,b,strong){color:#e6eee9}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(p,small,.ovEyebrow,.ovKpiLabel,.ovKpi small,.ovScopeNote,.ovFoot,.ovEmpty,.ovExecMetric span,.ovExecRtp span){color:#a4b2a9!important}
 html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovKpi b,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecMetric b,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecRtp b{color:#e6eee9!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovPanelHead h4{color:#f0efff!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovKpiLabel,
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovKpi small{color:#aaa8cc!important}
 html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovContextBar,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){
-  background:#151f19!important;border-color:#2a3930!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs>button.active,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqTab.active,.cwTab[aria-selected="true"],.mswTab[aria-selected="true"]){
-  background:#1b3023!important;border-color:#345b42!important;color:#83d9ae!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabIcon,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecHeadline{background:#173326!important;color:#83d9ae!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecHeadline strong{color:#83d9ae!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecutiveAlert.danger{background:#3a1d1b!important;border-color:#61302c!important;color:#ffb0a8!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecutiveAlert.warning{background:#342a17!important;border-color:#5d4821!important;color:#f5d18a!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecutiveAlert.success{background:#173326!important;border-color:#2d5b42!important;color:#98e0b8!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.ovBarTrack,.ovColumnTrack,.aqWrap,.aqCatWrap){background:#202b24!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){
-  background:#1a2820!important;color:#bdcfc3!important;border-color:#2c3b32!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){
-  background:#111916!important;color:#dce7df!important;border-color:#29382f!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(input,select,textarea){
-  background:#0d1510!important;color:#e6eee9!important;border-color:#34453a!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder{color:#7f9085!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqBtn,.psBtn,.rmButton,.cpBtn,.cpButton,.oppeBtn,.oppeButton,.sdBtn,.stBtn){
-  background:#17241c!important;color:#cde2d4!important;border-color:#34483b!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary){
-  background:#176d4b!important;color:#fff!important;border-color:#25865e!important;
-}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs{background:rgba(29,29,57,.9)!important;border-color:#353455!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs>button.active{background:#242447!important;border-color:#403d70!important;color:#c8bfff!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabIcon{background:#32305b!important;color:#c2b9ff!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(input,select,textarea){background:#15172c!important;color:#f0efff!important;border-color:#39395e!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){background:#29284b!important;color:#c7c3e8!important;border-color:#3a395f!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){background:#191b35!important;color:#dddaf4!important;border-color:#303151!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceNotificationPanel,
+html[data-theme="amoled"] .workspaceRoot .workspaceSupportPanel{background:rgba(22,24,46,.97)!important;border-color:#38375c!important;color:#ecebff!important}
