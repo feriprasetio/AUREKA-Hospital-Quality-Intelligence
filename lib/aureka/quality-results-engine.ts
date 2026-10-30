@@ -149,7 +149,7 @@ function extractObservation(
   if (!response || typeof response !== 'object') return null
 
   const kind = resolveMeasurementKind(profile)
-  const inputAt = row.updated_at ?? row.created_at ?? null
+  const inputAt = row.created_at ?? row.updated_at ?? null
   const numerator = finiteNumber(response.numerator)
   const denominator = finiteNumber(response.denominator)
 
