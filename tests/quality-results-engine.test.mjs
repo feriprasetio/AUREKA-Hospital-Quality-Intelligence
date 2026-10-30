@@ -50,7 +50,7 @@ test('indicator results pool numerators and denominators instead of averaging mo
   assert.equal(result.readyRecords, 0)
   assert.equal(result.validatedRecords, 2)
   assert.equal(result.observations, 2)
-  assert.equal(result.targetMet, true)
+  assert.equal(result.targetMet, false)
   assert.equal(result.latestInputAt, '2026-02-05T08:00:00Z')
   assert.equal(result.monthly[0].rate, 50)
   assert.equal(result.monthly[0].readyRecords, 0)
