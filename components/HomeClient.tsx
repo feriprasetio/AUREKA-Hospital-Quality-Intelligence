@@ -59,14 +59,6 @@ function NavIcon({id}:{id:string}){
  if(id==='analytics')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-8"/><path d="M3 19.5h18"/></svg>
  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 13.7 5l2.3-.2.9 2.1 2 1.2-.7 2.2 1.1 2-1.5 1.8.2 2.3-2.1.9-1.2 2-2.2-.7-2 1.1-1.8-1.5-2.3.2-.9-2.1-2-1.2.7-2.2-1.1-2 1.5-1.8-.2-2.3 2.1-.9 1.2-2 2.2.7 2-1.1Z"/><circle cx="12" cy="12" r="3"/></svg>
 }
-function ThemeModeToggle({mode,onChange,variant=''}:{mode:'light'|'amoled';onChange:(mode:'light'|'amoled')=>void;variant?:string}){
- const nextMode=mode==='light'?'amoled':'light'
- return <button type="button" className={'themeModeSwitch themeModeIconOnly '+variant} aria-label={mode==='light'?'Aktifkan mode AMOLED':'Aktifkan mode terang'} title={mode==='light'?'Aktifkan mode AMOLED':'Aktifkan mode terang'} aria-pressed={mode==='amoled'} onClick={()=>onChange(nextMode)}>
-  {mode==='light'
-   ?<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
-   :<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.7 8.7 0 0 1 8.8 3.5 8.8 8.8 0 1 0 20.5 15.2Z"/></svg>}
- </button>
-}
 const CHILD:any={quality:['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'],safety:['Insiden Keselamatan Pasien','Investigasi / Root Cause Analysis (RCA)','Survey Budaya Keselamatan Pasien'],risk:['Risk Register','RTP','FMEA / HFMEA'],staff:['Direktori Tenaga','Tim & Penugasan','OPPE / FPPE'],analytics:['Dashboard Statistik','Kelengkapan Data','Ekspor Agregat','Laporan Individu'],settings:['Pengguna & Role','Unit','Kamus Indikator / CP','Versi Aturan','Konfigurasi']}
 type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
 type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'
@@ -119,14 +111,16 @@ export default function HomeClient(){
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
   const applyHash=(raw:string)=>{
    const path=raw.replace(/^#\/?/,'').toLowerCase()
-   if(path.startsWith('mutu-klinis/clinical-pathway')){
-    setActive('quality');setQualityOpen(false);setClinicalPathwayOpen(true);return
-   }
-   if(path.startsWith('mutu-klinis/audit-klinis-dan-kematian')){
-    setActive('quality');setQualityOpen(true);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Klinis dan Kematian');return
-   }
-   if(path.startsWith('mutu-klinis/audit-indikator')){
-    setActive('quality');setQualityOpen(true);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Indikator Mutu');return
+   const auditMatch=/^mutu-klinis\/(audit-indikator|clinical-pathway|audit-klinis-dan-kematian)(?:\/(hasil-capaian|form-logbook))?$/.exec(path)
+   if(auditMatch){
+    const audit=auditMatch[1]
+    const tab=auditMatch[2]||'form-logbook'
+    setActive('quality')
+    setQualityInitialContainer(audit==='audit-klinis-dan-kematian'?'Audit Klinis dan Kematian':'Audit Indikator Mutu')
+    setClinicalPathwayOpen(audit==='clinical-pathway'&&tab==='form-logbook')
+    setQualityOpen(audit!=='clinical-pathway'&&tab==='form-logbook')
+    setQualityResultsView(tab==='hasil-capaian'?(audit==='audit-indikator'?'indicators':audit==='clinical-pathway'?'pathway':'clinical-death'):null)
+    return
    }
    const routes:Record<string,string>={'ringkasan':'home','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','analitik-laporan':'analytics','administrasi':'settings'}
    let next=routes[path]||'home'
@@ -134,6 +128,7 @@ export default function HomeClient(){
    setActive(next)
    setQualityOpen(false)
    setClinicalPathwayOpen(false)
+   setQualityResultsView(null)
   }
   applyHash(window.location.hash)
   const onHashChange=()=>applyHash(window.location.hash)
@@ -145,13 +140,16 @@ export default function HomeClient(){
   if(view!=='workspace'||!routeReady||typeof window==='undefined')return
   let hash='#ringkasan'
   if(active==='quality'){
-   hash=clinicalPathwayOpen?'#mutu-klinis/clinical-pathway':qualityOpen&&qualityInitialContainer==='Audit Klinis dan Kematian'?'#mutu-klinis/audit-klinis-dan-kematian':qualityOpen?'#mutu-klinis/audit-indikator':'#mutu-klinis'
+   const audit=qualityResultsView==='pathway'||clinicalPathwayOpen?'clinical-pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'audit-klinis-dan-kematian':'audit-indikator'
+   const tab=qualityResultsView?'hasil-capaian':'form-logbook'
+   hash='#mutu-klinis/'+audit+'/'+tab
   }else{
    const routes:Record<string,string>={home:'#ringkasan',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',staff:'#tenaga-klinis',analytics:'#analitik-laporan',settings:'#administrasi'}
    hash=routes[active]||'#ringkasan'
   }
   if(window.location.hash!==hash)window.location.hash=hash
- },[view,routeReady,active,qualityOpen,clinicalPathwayOpen,qualityInitialContainer])
+ },[view,routeReady,active,qualityOpen,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView])
+
  const resolveLoginEmail=async(input:string)=>{const v=input.trim();if(!v)throw new Error('Isi username atau email.');if(v.includes('@'))return v;const {data,error}=await sb.rpc('aureka_login_email',{p_username:v});if(error){if(error.code==='PGRST202'||/Could not find the function|schema cache/i.test(error.message))throw new Error('Login dengan username belum aktif. Silakan masuk memakai email.');throw error}if(!data)throw new Error('Username tidak ditemukan. Periksa ejaan atau masuk memakai email.');return String(data)}
  const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return m||'Terjadi kesalahan'}
  const resendVerify=async()=>{if(busy||!needVerify)return;setBusy(true);const {error}=await sb.auth.resend({type:'signup',email:needVerify,options:{emailRedirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`}});setBusy(false);setAuthInfo('');setMessage(error?authError(error):`Email verifikasi dikirim ulang ke ${needVerify}. Cek juga folder Spam.`)}
@@ -417,8 +415,8 @@ export default function HomeClient(){
 
  useEffect(()=>{if(!manager&&MANAGER_ONLY_MODULES.includes(active))setActive('home')},[manager,active])
  const title=useMemo(()=>MODS.find(([id])=>id===active)?.[1]||(active==='home'?'Ringkasan':'Workspace'),[active])
- if(view==='force-password')return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div><ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="authThemeToggle"/></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||'unit yang ditetapkan'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack" style={{position:'static',marginTop:16}} onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
- if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div><ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="authThemeToggle"/></header>
+ if(view==='force-password')return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||'unit yang ditetapkan'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack" style={{position:'static',marginTop:16}} onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
+ if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   {!rec&&<button type="button" className="authBack" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('normal')}}><span aria-hidden="true">←</span> Kembali ke login</button>}
   <div className="authShell authShellSingle">
@@ -449,7 +447,7 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='login'||view==='signup'){const l=view==='login';const submit=(e:any)=>{e.preventDefault();l?login():signup()};return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div><ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="authThemeToggle"/></header>
+ if(view==='login'||view==='signup'){const l=view==='login';const submit=(e:any)=>{e.preventDefault();l?login():signup()};return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}><span aria-hidden="true">←</span> Kembali ke beranda</button>
   <div className="authShell">
@@ -591,7 +589,7 @@ export default function HomeClient(){
   <div key={active+'-'+qualityOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView} mode={qualityResultsView} initialRoomId={room?.id??null} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'}/>
-   :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>openMainModule('quality')}/>
+   :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>selectSidebarChild('quality','logbook-pathway')}/>
    :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={qualityInitialContainer} initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} initialContainer={qualityInitialContainer} showContainerTabs={false}/>
    :active==='quality'?<QualityHub onOpen={()=>selectSidebarChild('quality','indicators')} onOpenClinicalPathway={()=>selectSidebarChild('quality','clinical-pathway')} onOpenClinicalDeathReview={()=>selectSidebarChild('quality','clinical-death')}/>
    :active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false}/>
@@ -608,7 +606,7 @@ export default function HomeClient(){
   <header className="topbar glassPanel landingTopbar">
    <div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
    <div className="landingTopActions">
-    <ThemeModeToggle mode={themeMode} onChange={applyTheme} variant="themeModeSwitchPublic"/>
+    
     <button type="button" className="landingGhost" onClick={()=>{setMessage('');setView('signup')}}>Daftar akun unit</button>
     <button type="button" className="landingCta" onClick={()=>{setMessage('');setView('login')}}>Masuk Workspace <span aria-hidden="true">→</span></button>
    </div>
