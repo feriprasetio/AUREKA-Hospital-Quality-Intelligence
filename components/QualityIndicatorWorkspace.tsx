@@ -843,7 +843,6 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const selectedStaffId=String(selected?.staffIdByField?.[field]??'')
    const workbookStaffChoices=selectedLayout?.fieldOptions?.[field]??[]
    const nameKey=(value:string)=>value.normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase('id-ID')
-   const clinicProviderGroup=groups.find(group=>group.clinic===currentClinic)
    const isProviderDayDoctor=normHeader(field)==='dokter'&&groups.length>0
    const clinicDoctorNames=isProviderDayDoctor?getOutpatientDoctorsForClinic(groups,currentClinic):[]
    const staffSelectChoices=staffField?(isProviderDayDoctor
