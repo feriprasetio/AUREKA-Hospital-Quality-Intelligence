@@ -373,7 +373,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         : mode === 'indicators'
           ? <>
             <div className="qraKpis">
-              <Kpi label="Capaian mutu unit" value={overallIndicatorAchievement == null ? '—' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
+              <Kpi label="Capaian Mutu Unit Secara Keseluruhan" value={overallIndicatorAchievement == null ? '—' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
               <Kpi label="Indikator aktif" value={formatCount(indicatorResults.length)} detail="Profil terbit dan aktif pada tahun terpilih" />
               <Kpi label="Data siap ditinjau" value={formatCount(readyCount)} detail="Data masuk yang belum tervalidasi" />
               <Kpi label="Data tervalidasi" value={formatCount(validatedCount)} detail="Data yang telah melewati validasi" />
@@ -386,14 +386,14 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <thead><tr><th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{indicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
-                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.observations ? 'n=' + formatCount(month.observations) + (result.continuous ? '' : ' · ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) : '—'}</small></td>)}
-                    <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{result.continuous ? attainmentCaption(result) : attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}</small></td>
+                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '—'}</small></td>)}
+                    <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
                     <td>{formatDateTime(result.latestInputAt)}</td>
                     <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small></td>
                   </tr>)}</tbody>
                 </table></div>}
-              <div className="qraNotice">Capaian mutu unit merupakan proporsi indikator yang targetnya dapat dinilai dan memenuhi target, bukan rata-rata persentase indikator yang berbeda definisi. Data Ready for Review ditampilkan sebagai capaian sementara; jumlah data tervalidasi dipisahkan. Untuk rasio, capaian tahunan menggunakan penggabungan numerator dan denominator. Untuk durasi/nilai kontinu, ditampilkan rerata dan proporsi observasi yang memenuhi target.</div>
+              <div className="qraNotice">Capaian mutu unit merupakan proporsi indikator yang targetnya dapat dinilai dan memenuhi target, bukan rata-rata persentase indikator yang berbeda definisi. Data Ready for Review tetap ditampilkan sebagai antrean peninjauan dan tidak masuk perhitungan capaian resmi; hanya catatan tervalidasi yang dihitung sebagai hasil. Untuk rasio, capaian tahunan menggunakan penggabungan numerator dan denominator. Untuk durasi/nilai kontinu, ditampilkan rerata dan proporsi observasi yang memenuhi target.</div>
             </section>
           </>
           : mode === 'pathway'
