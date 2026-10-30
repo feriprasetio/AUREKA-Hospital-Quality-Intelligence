@@ -180,7 +180,7 @@ export function summarizeOutpatientClinics(
         doctor,
         measurementCount: values.length,
         averageMinutes: mean(values),
-        lastObserved: observedDates.at(-1) ?? null,
+        lastObserved: observedDates[observedDates.length - 1] ?? null,
       }
     })
 
@@ -197,7 +197,7 @@ export function summarizeOutpatientClinics(
       measurementCount,
       daysCount,
       averageMinutes: mean(measuredDoctors.map(doctor => doctor.averageMinutes as number)),
-      lastObserved: clinicRowsDates.at(-1) ?? null,
+      lastObserved: clinicRowsDates[clinicRowsDates.length - 1] ?? null,
       doctorSummaries,
     }
   }).sort((a, b) => {
