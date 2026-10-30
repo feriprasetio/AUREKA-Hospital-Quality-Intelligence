@@ -320,7 +320,7 @@ function normalizeRoomIdValue(value:unknown):number|null{
 }
 function defaultAuditRoomId(rooms:Room[],initialRoomId:number|null,isAdmin:boolean):number|null{
  if(isAdmin){
-  const firstQualityRoom=rooms.find(room=>/informasi\\s+dan\\s+pengaduan/i.test(String(room.name??'')))
+  const firstQualityRoom=rooms.find(room=>/informasi\s+dan\s+pengaduan/i.test(String(room.name??'')))
   return normalizeRoomIdValue(firstQualityRoom?.id)??normalizeRoomIdValue(rooms[0]?.id)
  }
  return normalizeRoomIdValue(initialRoomId)??normalizeRoomIdValue(rooms[0]?.id)
