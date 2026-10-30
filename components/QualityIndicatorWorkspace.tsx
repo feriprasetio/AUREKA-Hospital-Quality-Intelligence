@@ -38,7 +38,7 @@ function diff(a:string,b:string){const x=tm(a),y=tm(b);return x==null||y==null?n
 function hit(p:Profile,dx:string){const h=`${p.indicator_type} ${p.title}`.toLowerCase(),d=dx.toLowerCase();if(!h.includes('audit medis'))return false;const rules=[[/stroke|iskemik/,/stroke/],[/stemi|infark/,/stemi|killip|ekg/],[/tuberkulosis|tbc/,/tuberkulosis|sitb|oat/],[/sirosis/,/sirosis|varises/],[/ginjal|ckd|gagal ginjal/,/ginjal|dialisis|kt\/v/],[/diabetes|dm /,/diabetes|pedis|ankle|kaki/],[/carcinoma|kanker|mammae/,/mammae|mastektomi|imunohistokimia|tnm/],[/asfiksia|neonatus/,/asfiksia|apgar|vtp/],[/sectio|seksio|persalinan/,/sectio|menyusui|hemostasis/]];return rules.some(([a,b])=>(a as RegExp).test(d)&&(b as RegExp).test(h))}
 function kind(p:Profile){return resolveMeasurementKind(p)}
 function optionsFor(p:Profile){return Array.isArray(p.options_json)?p.options_json.filter((x:any)=>x&&x.label):[]}
-function indicatorChoicesFor(p:Profile,layout:AuditLayout|undefined){const header=String(p.schema_json?.header_label??'').trim()||String(p.title??'').trim();return buildIndicatorDropdownOptions(p,layout?.indicatorOptions?.[header]??[])}
+function indicatorChoicesFor(p:Profile,layout:AuditLayout|undefined,response?:Resp){const header=String(p.schema_json?.header_label??'').trim()||String(p.title??'').trim();const sourceLabels=[...(layout?.indicatorOptions?.[header]??[])];const sourceValue=String(response?.source_value??response?.source_label??'').trim();const canonical=(value:string)=>value.replace(/\s*\(code\s*\d+\)\s*$/i,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('id-ID');if(sourceValue&&!sourceLabels.some(value=>canonical(value)===canonical(sourceValue))&&!optionsFor(p).some((value:any)=>canonical(String(value.label))===canonical(sourceValue)))sourceLabels.push(sourceValue);return buildIndicatorDropdownOptions(p,sourceLabels)}
 function responseComplete(p:Profile,r:Resp|undefined){
  if(!r)return false
  const k=kind(p),opts=optionsFor(p)
@@ -604,6 +604,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      if(!p)return p
      const layout=(p.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(p.roomId),String(p.unit??''))
      const formData={...(p.formData??{}),[field]:value}
+     const staffIdByField={...(p.staffIdByField??{})};delete staffIdByField[field]
      if(normHeader(field)==='klinik'&&layout?.providerGroups?.length){const selectedClinic=layout.providerGroups.find(g=>g.clinic===String(value));if(!selectedClinic?.doctors.includes(String(formData['Dokter']??'')))formData['Dokter']=''}
      const name=String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??formData['Gangguan IT']??formData['Insiden yang Terjadi']??formData['Nama Pertemuan Ilmiah']??formData['Nama MPP']??p.name??'')
      const rm=String(formData['No. Rekam Medis']??formData['No. RM']??p.rm??'')
@@ -613,7 +614,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      const dpjp=String(formData['DPJP']??formData['Dpjp']??p.dpjp??'')
      const ageField=layout?.fields.find(x=>normHeader(x)==='umur'||normHeader(x)==='usia')
      const ageValue=ageField&&isComputedField(ageField,layout)?computedField(ageField,formData,layout):formData['Umur']??formData['Usia']??p.age
-     return {...p,formData,name,rm,admit,discharge,diagnosis,dpjp,age:ageValue===''||ageValue==null?null:Number(ageValue)}
+     return {...p,formData,staffIdByField,name,rm,admit,discharge,diagnosis,dpjp,age:ageValue===''||ageValue==null?null:Number(ageValue)}
    })
  }
  const setStaffField=(field:string,staffId:string)=>{
@@ -627,7 +628,19 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      return {...p,formData,staffIdByField,dpjp:/dpjp|dokter/i.test(field)?(staff?.display_name??''):p.dpjp}
    })
  }
- const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
+ const setStaffNameValue=(field:string,name:string)=>{
+    const normalized=String(name??'').trim()
+    const staff=staffOptionsForField(field).find(item=>item.display_name.trim()===normalized)
+    setSelected((p:any)=>{
+      if(!p)return p
+      const formData={...(p.formData??{}),[field]:staff?.display_name??normalized}
+      const staffIdByField={...(p.staffIdByField??{})}
+      if(staff)staffIdByField[field]=staff.id
+      else delete staffIdByField[field]
+      return {...p,formData,staffIdByField,dpjp:/dpjp|dokter/i.test(field)?(staff?.display_name??normalized):p.dpjp}
+    })
+  }
+  const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
 
  const save=async()=>{
    if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Gunakan tindakan validasi pada daftar logbook.');return}
