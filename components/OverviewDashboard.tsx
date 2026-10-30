@@ -358,16 +358,7 @@ export default function OverviewDashboard({
               {!sourceError && stats.overdueHigh === 0 && stats.incidentsOpen === 0 && stats.auditPending === 0 && <div className="ovExecutiveAlert success"><b>Tidak ada prioritas terbuka pada sumber yang dibaca</b><span>Ini bukan pernyataan bahwa seluruh risiko atau insiden rumah sakit telah terkendali.</span></div>}
             </div>
           </Panel>
-          <Panel delay={180} eyebrow="KESELAMATAN PASIEN" title="Tren laporan insiden · 6 bulan">
-            {incidents.error ? <SectionError error={incidents.error} /> : loading ? <div className="ovSkeletonBlock" /> :
-              <div className="ovColumns" role="list">
-                {stats.months.map((m, idx) => <div key={m.key} className="ovColumn" role="listitem" title={m.label + ': ' + m.count + ' insiden'}>
-                  <span className="ovColumnValue">{m.count || ''}</span>
-                  <div className="ovColumnTrack"><div className="ovColumnFill" style={{ height: ((m.count / stats.maxMonth) * 100) + '%', animationDelay: (180 + idx * 50) + 'ms' }} /></div>
-                  <span className="ovColumnLabel">{m.label}</span>
-                </div>)}
-              </div>}
-          </Panel>
+          
           <Panel delay={240} eyebrow="AUDIT KLINIS" title="Kinerja Clinical Pathway">
             {clinicalPathway.error ? <SectionError error={clinicalPathway.error} /> : loading ? <div className="ovSkeletonBlock" /> :
               <div className="ovExecPerformance">
@@ -386,10 +377,7 @@ export default function OverviewDashboard({
                 <button type="button" className="ovLink" onClick={() => onNavigate('risk')}>Buka RTP →</button>
               </div>}
           </Panel>
-          <Panel delay={420} eyebrow="UNIT KERJA" title="Unit dengan risiko tinggi terbanyak">
-            {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> : !stats.topUnits.length ? <div className="ovEmpty"><b>Tidak ada data risiko tinggi</b></div> :
-              <div className="ovBars" role="list">{stats.topUnits.map(([unit, count]) => <button type="button" key={unit} className="ovBarRow ovClickable" role="listitem" onClick={() => onNavigate('risk', { unitName: unit })}><span className="ovUnitName">{unit}</span><div className="ovBarTrack"><div className="ovBarFill lvl-accent" style={{ width: ((count / stats.topUnits[0][1]) * 100) + '%' }}/></div><b>{count}</b></button>)}</div>}
-          </Panel>
+          
         </div>
         <p className="ovFoot">Bagian ringkasan manajemen melengkapi panel operasional pada halaman yang sama; setiap angka tetap mengikuti cakupan sumber dan hak akses. Angka lintas-modul tidak boleh ditafsirkan sebagai satu skor mutu rumah sakit atau sebagai indikator nasional yang telah tervalidasi.</p>
       </section>}
