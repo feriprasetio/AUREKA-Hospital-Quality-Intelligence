@@ -18,11 +18,11 @@ export function normalizeOutpatientImportDate(value: unknown): string | null {
 
   const raw = String(value ?? '').trim()
   if (!raw) return null
-  const iso = raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})/)
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (iso) return valid(Number(iso[1]), Number(iso[2]), Number(iso[3]))
-  const dmy = raw.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})/)
+  const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/)
   if (dmy) return valid(Number(dmy[3]), Number(dmy[2]), Number(dmy[1]))
-  if (/^\\d+(?:[.,]\\d+)?$/.test(raw)) {
+  if (/^\d+(?:[.,]\d+)?$/.test(raw)) {
     const serial = Number(raw.replace(',', '.'))
     if (serial < 20000 || serial > 80000) return null
     const date = new Date(Date.UTC(1899, 11, 30) + Math.floor(serial) * 86400000)
@@ -37,23 +37,23 @@ export function parseOutpatientWaitingMinutes(value: unknown): number | null {
   }
   let raw = String(value ?? '').trim().toLocaleLowerCase('id-ID')
   if (!raw) return null
-  raw = raw.replace(/\\s*menit(?:s)?\\s*$/i, '').replace(/\\s/g, '')
+  raw = raw.replace(/\s*menit(?:s)?\s*$/i, '').replace(/\s/g, '')
   if (!/^[+]?[0-9][0-9.,]*$/.test(raw)) return null
 
-  let normalized = raw.replace(/^\\+/, '')
+  let normalized = raw.replace(/^\+/, '')
   const comma = normalized.lastIndexOf(',')
   const dot = normalized.lastIndexOf('.')
   if (comma >= 0 && dot >= 0) {
     // The last punctuation mark is the decimal separator.
     normalized = comma > dot
-      ? normalized.replace(/\\./g, '').replace(',', '.')
+      ? normalized.replace(/\./g, '').replace(',', '.')
       : normalized.replace(/,/g, '')
   } else if (comma >= 0) {
-    normalized = /^\\d{1,3}(,\\d{3})+$/.test(normalized)
+    normalized = /^\d{1,3}(,\d{3})+$/.test(normalized)
       ? normalized.replace(/,/g, '')
       : normalized.replace(',', '.')
-  } else if (dot >= 0 && /^\\d{1,3}(\\.\\d{3})+$/.test(normalized)) {
-    normalized = normalized.replace(/\\./g, '')
+  } else if (dot >= 0 && /^\d{1,3}(\.\d{3})+$/.test(normalized)) {
+    normalized = normalized.replace(/\./g, '')
   }
 
   const parsed = Number(normalized)

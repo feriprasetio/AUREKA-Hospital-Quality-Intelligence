@@ -92,7 +92,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
  const parseWorkbook=async(selected:File)=>{
   setFile(selected);setRows([]);setErrors([]);setResult(null);setErrorMessage('')
   if(!eligible){setErrorMessage('Pilih Instalasi Rawat Jalan dan tahun profil 2026–2100 sebelum mengimpor.');return}
-  if(!/\\.xlsx$/i.test(selected.name)){setErrorMessage('Hanya workbook .xlsx yang didukung.');return}
+  if(!/\.xlsx$/i.test(selected.name)){setErrorMessage('Hanya workbook .xlsx yang didukung.');return}
   if(selected.size<=0||selected.size>MAX_FILE_BYTES){setErrorMessage('Ukuran file harus lebih dari 0 dan maksimal 15 MB.');return}
   setParsing(true)
   try{
@@ -144,7 +144,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
    if(!matchedSheets)throw new Error('Sheet sumber tidak ditemukan. Workbook harus memuat kolom tanggal pengamatan, klinik, dokter, dan waktu tunggu pada salah satu dari 15 baris pertama.')
    if(!prepared.length&&!rowErrors.length)throw new Error('Tidak ditemukan baris pengukuran waktu tunggu yang dapat diimpor.')
    setRows(prepared);setErrors(rowErrors)
-   if(!prepared.length)setErrorMessage(rowErrors.slice(0,40).join('\\n'))
+   if(!prepared.length)setErrorMessage(rowErrors.slice(0,40).join('\n'))
   }catch(error){setRows([]);setErrors([]);setErrorMessage(error instanceof Error?error.message:'Workbook tidak dapat dibaca.')}
   finally{setParsing(false)}
  }
