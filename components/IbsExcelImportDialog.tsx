@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
+import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
 import {
   ibsSourceWarnings,
   maskIbsMedicalRecord,
@@ -16,7 +17,8 @@ const sb = aurekaSupabase
 const quality = () => sb.schema('aureka_quality')
 const MAX_FILE_BYTES = 15 * 1024 * 1024
 const MAX_ROWS = 5000
-const BATCH_SIZE = 500
+const BATCH_SIZE = DEFAULT_IMPORT_BATCH_SIZE
+const MIN_BATCH_SIZE = MIN_IMPORT_BATCH_SIZE
 const INDICATORS = [
   { code: '4.1', header: 'Kekosongan BHP/Linen' },
   { code: '4.2', header: 'Laporan Operasi <24h' },
@@ -414,19 +416,30 @@ export default function IbsExcelImportDialog({
 
       const allItems = rows.map(row => makePayload(row, file.name, userId, profiles))
       const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0 }
-      const totalBatches = Math.ceil(allItems.length / BATCH_SIZE)
+      let start = 0
+      let batchSize = BATCH_SIZE
+      let batchNumber = 0
 
-      for (let start = 0; start < allItems.length; start += BATCH_SIZE) {
-        const batch = allItems.slice(start, start + BATCH_SIZE)
-        const batchNumber = Math.floor(start / BATCH_SIZE) + 1
+      while (start < allItems.length) {
+        const batch = allItems.slice(start, start + batchSize)
+        batchNumber += 1
         const { data, error } = await quality().rpc('import_ibs_logbook_batch', { p_rows: batch })
+
         if (error) {
           if (/function .*import_ibs_logbook_batch.*not found|schema cache/i.test(error.message)) {
             throw new Error('Fungsi impor IBS belum tersedia di Supabase. Pastikan migrasi secure_ibs_logbook_excel_import telah diterapkan.')
           }
-          throw new Error('Batch ' + batchNumber + '/' + totalBatches + ' gagal: ' + error.message)
+          const smaller = nextBatchSizeAfterTimeout(error, batchSize, MIN_BATCH_SIZE)
+          if (smaller != null) {
+            batchSize = smaller
+            batchNumber -= 1
+            setErrorMessage('Server membatasi waktu transaksi. Sistem mengecilkan batch menjadi ' + batchSize + ' baris dan mengulangi batch yang sama secara aman…')
+            continue
+          }
+          throw new Error('Batch ' + batchNumber + ' (' + batch.length + ' baris) gagal: ' + error.message + (isStatementTimeout(error) ? ' Server masih timeout pada ukuran minimum; periksa beban basis data dan ulangi impor.' : ''))
         }
 
+        setErrorMessage('')
         const summary = (data ?? {}) as ImportResponse
         const received = Number(summary.received_count ?? batch.length)
         const imported = Number(summary.imported_count ?? 0)
@@ -439,6 +452,7 @@ export default function IbsExcelImportDialog({
         counts.imported += imported
         counts.skipped += skipped
         counts.completedBatches += 1
+        start += batch.length
         setPartial({ ...counts })
         setProgress(Math.round((counts.received / allItems.length) * 100))
       }
@@ -482,7 +496,7 @@ export default function IbsExcelImportDialog({
               }}/>
             </label>
             {file && <div className="ciPrivacy">Berkas dipilih: {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB · data identitas disamarkan di pratinjau.</div>}
-            <div className="ciPrivacy">Impor memakai sesi AUREKA terautentikasi dan kunci sumber Excel yang stabil. Semua catatan baru disimpan sebagai Ready for Review, tidak tervalidasi otomatis. Batch berukuran maksimal 500 baris.</div>
+            <div className="ciPrivacy">Impor memakai sesi AUREKA terautentikasi dan kunci sumber Excel yang stabil. Semua catatan baru disimpan sebagai Ready for Review, tidak tervalidasi otomatis. Batch awal 20 baris. Jika terjadi timeout, sistem otomatis mengecilkan ukuran transaksi sampai 5 baris dan mengulangi batch yang sama secara aman.</div>
           </div>
           {parsing && <div className="ciMessage">Membaca workbook dan memeriksa baris logbook IBS…</div>}
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
