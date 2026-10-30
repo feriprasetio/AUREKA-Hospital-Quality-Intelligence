@@ -622,7 +622,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      const layout=(p.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(p.roomId),String(p.unit??''))
      const formData={...(p.formData??{}),[field]:value}
      const staffIdByField={...(p.staffIdByField??{})};delete staffIdByField[field]
-     if(normHeader(field)==='klinik'&&layout?.providerGroups?.length){const selectedClinic=layout.providerGroups.find(g=>g.clinic===String(value));if(!selectedClinic?.doctors.includes(String(formData['Dokter']??'')))formData['Dokter']=''}
+     if(normHeader(field)==='klinik'&&layout?.providerGroups?.length){const selectedClinic=layout.providerGroups.find(g=>g.clinic===String(value));if(!selectedClinic?.doctors.includes(String(formData['Dokter']??''))){formData['Dokter']='';delete staffIdByField['Dokter']}}
      const name=String(formData['Nama Pasien']??formData['Nama Mahasiswa']??formData['Nama MPP']??formData['Gangguan IT']??formData['Insiden yang Terjadi']??formData['Nama Pertemuan Ilmiah']??formData['Nama MPP']??p.name??'')
      const rm=String(formData['No. Rekam Medis']??formData['No. RM']??p.rm??'')
      const admit=recordDateFrom(formData,layout,String(p.admit??''))
@@ -695,6 +695,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const serviceStream=String(formData['Alur layanan']??'').trim()
    if(Number(selected.roomId)===5&&grain==='daily_metric'&&!['Rawat Jalan','Rawat Inap'].includes(serviceStream)){setMessage('Pilih alur layanan Rawat Jalan atau Rawat Inap sebelum menyimpan catatan harian Farmasi.');return}
    if(grain==='provider_day'&&(!String(formData['Klinik']??'').trim()||!String(formData['Dokter']??'').trim())){setMessage('Pilih klinik dan dokter untuk catatan harian rawat jalan.');return}
+   if(Number(selected.roomId)===11&&grain==='provider_day'){
+     const waitingMinutes=formData['Waktu Tunggu Rawat Jalan (Menit)']
+     if(waitingMinutes==null||String(waitingMinutes).trim()===''||!Number.isFinite(Number(waitingMinutes))||Number(waitingMinutes)<0){setMessage('Isi waktu tunggu rawat jalan dalam menit (angka 0 atau lebih) sebelum menyimpan.');return}
+   }
    if(grain==='provider_day'&&!recordDate){setMessage('Tanggal pengamatan wajib diisi.');return}
    const core={patient_name:normalizedName,medical_record_no:normalizedRm,sex:String(formData['Jenis Kelamin']??selected.sex??''),age:formData['Umur']??formData['Usia']??selected.age,admission_at:formData['Tanggal Masuk']??recordDate,discharge_at:discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,unit_name:selected.unit,room_id:selected.roomId,status:finalStatus,workflow_status:finalStatus,form_fields:formData,calculated_fields:calc,indicator_values:values,measurement_grain:grain,los_days:calc['Lenght of Stay']??calc['Length of Stay']??(stayLayout?los(String(formData['Tanggal Masuk']??''),discharge):null)}
    setBusy(true)
