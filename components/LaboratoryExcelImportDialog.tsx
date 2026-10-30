@@ -380,6 +380,16 @@ export default function LaboratoryExcelImportDialog({
         }
       }
 
+      const byCode: Record<LaboratoryIndicatorCode, IndicatorProfile> = {} as Record<LaboratoryIndicatorCode, IndicatorProfile>
+      for (const indicator of LABORATORY_INDICATORS) {
+        const profile = profiles.find(item =>
+          Number(item.room_id) === 9 && Number(item.profile_year) === 2026 &&
+          String(item.code) === indicator.code && item.is_active === true && item.status === 'published'
+        )
+        if (!profile) throw new Error('Master indikator ' + indicator.code + ' tidak ditemukan saat memetakan opsi.')
+        byCode[indicator.code] = profile
+      }
+
       const parsed: PreparedRow[] = []
       const excluded: ExcludedRow[] = []
       const sourceNoValues: string[] = []
