@@ -147,7 +147,7 @@ function extractObservation(
   if (!response || typeof response !== 'object') return null
 
   const kind = resolveMeasurementKind(profile)
-  const inputAt = row.created_at ?? row.updated_at ?? null
+  const inputAt = row.updated_at ?? row.created_at ?? null
   const numerator = finiteNumber(response.numerator)
   const denominator = finiteNumber(response.denominator)
 
@@ -286,9 +286,10 @@ export function calculateIndicatorResult(
     annualRate: round2(annualRate),
     annualMean: round2(annualMean),
     annualTargetAttainment: targetDenominator ? round2((targetCount / targetDenominator) * 100) : null,
-    monthlyMeanRate: round2(
-      monthly.map((item) => item.rate).filter((value): value is number => value != null).reduce((sum, value, _, arr) => sum + value / arr.length, 0),
-    ),
+    monthlyMeanRate: (() => {
+      const rates = monthly.map((item) => item.rate).filter((value): value is number => value != null)
+      return rates.length ? round2(rates.reduce((sum, value) => sum + value, 0) / rates.length) : null
+    })(),
     observations: accumulators.reduce((sum, bucket) => sum + bucket.observations, 0),
     readyRecords,
     validatedRecords,
@@ -477,7 +478,6 @@ export function aggregateClinicalPathwayRows(rows: ClinicalPathwayRow[]) {
       expected, filled, done, notDone, targetMetRecords, assessedRecords,
     } as ClinicalPathwayAggregate,
     validatedRows: validated,
-    statusCounts,
   }
 }
 
