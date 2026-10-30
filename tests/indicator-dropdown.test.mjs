@@ -7,9 +7,9 @@ import {
 } from '../lib/aureka/indicator-dropdown.ts'
 
 const choices = [
-  { label: 'Sesuai standar (Code 1)', code: 1, numerator: true, denominator: true },
-  { label: 'Pengecualian klinis (Code 2)', code: 2, numerator: false, denominator: true },
-  { label: 'Tidak sesuai (Code 3)', code: 3, numerator: false, denominator: true },
+  { label: 'Sesuai standar', code: 1, numerator: true, denominator: true },
+  { label: 'Pengecualian klinis', code: 2, numerator: false, denominator: true },
+  { label: 'Tidak sesuai', code: 3, numerator: false, denominator: true },
 ]
 
 test('uses dropdown for categorical master options, including multi-choice occurrence indicators', () => {
@@ -46,7 +46,7 @@ test('maps source Excel choices with an explicit Code suffix to the canonical ma
     { title: 'Test', options_json: choices },
     ['Sesuai standar (Code 1)', 'Pengecualian klinis (Code 2)'],
   )
-  assert.equal(options[0].answer, 'Sesuai standar (Code 1)')
+  assert.equal(options[0].answer, 'Sesuai standar')
   assert.equal(options[0].code, 1)
   assert.equal(options[0].source_only, false)
   assert.equal(options[1].code, 2)
