@@ -37,6 +37,8 @@ export type MonthlyIndicatorResult = {
   mean: number | null
   targetAttainment: number | null
   observations: number
+  readyRecords: number
+  validatedRecords: number
 }
 
 export type IndicatorResult = {
@@ -201,7 +203,7 @@ function extractObservation(
 }
 
 function emptyMonthly(month: number): MonthlyIndicatorResult {
-  return { month, numerator: 0, denominator: 0, rate: null, mean: null, targetAttainment: null, observations: 0 }
+  return { month, numerator: 0, denominator: 0, rate: null, mean: null, targetAttainment: null, observations: 0, readyRecords: 0, validatedRecords: 0 }
 }
 
 export function calculateIndicatorResult(
@@ -219,6 +221,8 @@ export function calculateIndicatorResult(
     targetMet: 0,
     targetDenominator: 0,
     observations: 0,
+    readyRecords: 0,
+    validatedRecords: 0,
   }))
   let readyRecords = 0
   let validatedRecords = 0
@@ -232,16 +236,21 @@ export function calculateIndicatorResult(
     const observation = extractObservation(profile, row, Number(date.slice(5, 7)))
     if (!observation) continue
     const bucket = accumulators[observation.month - 1]
-    bucket.numerator += observation.numerator
-    bucket.denominator += observation.denominator
-    if (observation.value != null) bucket.values.push(observation.value)
-    if (observation.targetMet != null) {
-      bucket.targetDenominator += 1
-      if (observation.targetMet) bucket.targetMet += 1
-    }
     bucket.observations += 1
-    if (status === 'validated') validatedRecords += 1
-    else readyRecords += 1
+    if (status === 'validated') {
+      bucket.validatedRecords += 1
+      validatedRecords += 1
+      bucket.numerator += observation.numerator
+      bucket.denominator += observation.denominator
+      if (observation.value != null) bucket.values.push(observation.value)
+      if (observation.targetMet != null) {
+        bucket.targetDenominator += 1
+        if (observation.targetMet) bucket.targetMet += 1
+      }
+    } else {
+      bucket.readyRecords += 1
+      readyRecords += 1
+    }
     if (observation.inputAt && (!latestInputAt || observation.inputAt > latestInputAt)) latestInputAt = observation.inputAt
   }
 
@@ -259,6 +268,8 @@ export function calculateIndicatorResult(
       mean: round2(mean),
       targetAttainment: round2(targetAttainment),
       observations: bucket.observations,
+      readyRecords: bucket.readyRecords,
+      validatedRecords: bucket.validatedRecords,
     }
   })
 
