@@ -3,7 +3,7 @@ import {
   isWithinVisitWindow,
   resolveMeasurementKind,
   type MeasurementKind,
-} from './indicator-engine'
+} from './indicator-engine.ts'
 
 export type ResultRecord = {
   id?: string
