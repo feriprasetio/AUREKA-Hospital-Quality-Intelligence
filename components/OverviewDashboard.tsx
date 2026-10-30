@@ -55,11 +55,23 @@ function useCountUp(target: number, run: boolean) {
   return value
 }
 
+function KpiIcon({ kind }: { kind: 'quality' | 'safety' | 'risk' | 'audit' }) {
+  if (kind === 'quality') return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.8h7l4 4v12.4H7z"/><path d="M14 3.8v4h4M9.5 13h6M9.5 16.5h4"/><path d="m4 7.8 1.5 1.5"/></svg>
+  if (kind === 'safety') return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 19 6v5.1c0 4.5-2.8 7.9-7 9.7-4.2-1.8-7-5.2-7-9.7V6z"/><path d="m8.7 12.1 2.1 2.1 4.6-4.7"/></svg>
+  if (kind === 'risk') return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.5 9 16H3z"/><path d="M12 9v4.5M12 17h.01"/></svg>
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="17" rx="2"/><path d="M9 4.5v-2h6v2M8.5 10h7M8.5 14h7M8.5 18h4"/></svg>
+}
+
 function Kpi({ label, value, sub, tone, loading, onClick, delay, formatted }: { label: string; value: number | null; sub?: string; tone?: string; loading: boolean; onClick?: () => void; delay: number; formatted?: string }) {
   const shown = useCountUp(value ?? 0, !loading && value !== null)
+  const normalized = label.toLowerCase()
+  const kind: 'quality' | 'safety' | 'risk' | 'audit' =
+    normalized.includes('ikp') ? 'safety' :
+    normalized.includes('risiko') ? 'risk' :
+    normalized.includes('audit') ? 'audit' : 'quality'
   return (
     <button type="button" className={`ovKpi ${tone || ''}`} style={{ animationDelay: `${delay}ms` }} onClick={onClick} disabled={!onClick}>
-      <span className="ovKpiLabel">{label}</span>
+      <span className="ovKpiHeader"><span className="ovKpiLabel">{label}</span><span className={`ovKpiIcon ${kind}`}><KpiIcon kind={kind}/></span></span>
       {loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value === null ? '—' : formatted || shown.toLocaleString('id-ID')}</b>}
       {sub && !loading && <small>{sub}</small>}
     </button>
@@ -206,14 +218,19 @@ export default function OverviewDashboard({
   return (
     <div className="ovRoot">
       <section className="ovHero">
-        <div>
-          <span className="ovEyebrow">DASHBOARD OPERASIONAL</span>
-          <h3>Ikhtisar mutu, keselamatan pasien, dan risiko</h3>
-          <p>{manager ? 'Pemantauan agregat lintas unit untuk membantu penentuan prioritas perbaikan.' : `Pemantauan data unit ${roomName || 'Anda'} sesuai hak akses akun.`}</p>
+        <div className="ovHeroCopy">
+          <span className="ovEyebrow">{dashboardView === 'executive' ? 'HOSPITAL QUALITY INTELLIGENCE' : 'AUREKA · PMKP WORKSPACE'}</span>
+          <h3>{dashboardView === 'executive' ? 'Executive Hospital Dashboard' : `Selamat datang, ${userName.trim().split(/\\s+/)[0] || 'Pengguna'}`}</h3>
+          <p>{dashboardView === 'executive'
+            ? 'Ikhtisar eksekutif mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
+            : manager
+              ? 'Pantau indikator mutu, keselamatan pasien, Clinical Pathway, serta risiko prioritas dalam satu ruang kendali.'
+              : `Ruang kerja mutu untuk ${roomName || 'unit Anda'} · input dan tindak lanjut sesuai hak akses.`}</p>
         </div>
         <div className="ovHeroMeta">
+          <span className="ovHeroDate">{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Pontianak' }).format(new Date())}</span>
           <button type="button" className="ovRefresh" onClick={() => setReloadKey(k => k + 1)} disabled={loading} aria-label="Muat ulang data">
-            <span className={loading ? 'ovSpin' : ''}>↻</span> {loading ? 'Memuat…' : 'Muat ulang data'}
+            <span className={loading ? 'ovSpin' : ''}>↻</span> {loading ? 'Memuat…' : 'Perbarui'}
           </button>
         </div>
       </section>
