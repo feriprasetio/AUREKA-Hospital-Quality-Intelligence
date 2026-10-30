@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   getOutpatientDoctorsForClinic,
   summarizeOutpatientClinics,
+  summarizeOutpatientPerformance,
 } from '../lib/aureka/outpatient-logbook.ts'
 
 const groups = [
@@ -69,4 +70,44 @@ test('preserves clinics found in logbook even when they are missing from the con
   assert.equal(extra?.rosterDoctorCount, 0)
   assert.equal(extra?.doctorsWithData, 1)
   assert.equal(extra?.averageMinutes, 25)
+})
+
+
+test('derives overall waiting time and the below-60-minute clinic rate from clinic means', () => {
+  const records = [
+    { admit: '2026-06-01', formData: { Klinik: 'Klinik Anak', Dokter: 'dr. A', 'Waktu Tunggu Rawat Jalan (Menit)': 20 } },
+    { admit: '2026-06-01', formData: { Klinik: 'Klinik Mata', Dokter: 'dr. C', 'Waktu Tunggu Rawat Jalan (Menit)': 70 } },
+  ]
+  const result = summarizeOutpatientPerformance(records, groups, 2026, 6)
+
+  assert.equal(result.operatingClinics, 2)
+  assert.equal(result.clinicsWithData, 2)
+  assert.equal(result.clinicsBelow60, 1)
+  assert.equal(result.clinicsWithoutData, 0)
+  assert.equal(result.performanceRate, 50)
+  assert.equal(result.overallAverageMinutes, 45)
+})
+
+test('clinics with no observations remain in the operating-clinic denominator', () => {
+  const records = [
+    { admit: '2026-07-01', formData: { Klinik: 'Klinik Anak', Dokter: 'dr. A', 'Waktu Tunggu Rawat Jalan (Menit)': 59.9 } },
+  ]
+  const result = summarizeOutpatientPerformance(records, groups, 2026, 7)
+
+  assert.equal(result.operatingClinics, 2)
+  assert.equal(result.clinicsWithData, 1)
+  assert.equal(result.clinicsBelow60, 1)
+  assert.equal(result.clinicsWithoutData, 1)
+  assert.equal(result.performanceRate, 50)
+  assert.equal(result.overallAverageMinutes, 59.9)
+})
+
+test('exactly 60 minutes does not meet the strict below-60-minute threshold', () => {
+  const records = [
+    { admit: '2026-08-01', formData: { Klinik: 'Klinik Anak', Dokter: 'dr. A', 'Waktu Tunggu Rawat Jalan (Menit)': 60 } },
+    { admit: '2026-08-01', formData: { Klinik: 'Klinik Mata', Dokter: 'dr. C', 'Waktu Tunggu Rawat Jalan (Menit)': 55 } },
+  ]
+  const result = summarizeOutpatientPerformance(records, groups, 2026, 8)
+  assert.equal(result.clinicsBelow60, 1)
+  assert.equal(result.performanceRate, 50)
 })

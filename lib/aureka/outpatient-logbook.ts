@@ -209,3 +209,42 @@ export function summarizeOutpatientClinics(
     return a.clinic.localeCompare(b.clinic, 'id')
   })
 }
+
+
+export type OutpatientPerformanceSummary = {
+  operatingClinics: number
+  clinicsWithData: number
+  clinicsBelow60: number
+  clinicsWithoutData: number
+  performanceRate: number | null
+  overallAverageMinutes: number | null
+}
+
+/**
+ * The operating-clinic denominator is the configured clinic roster plus any
+ * additional clinics explicitly present in the logbook. A clinic without a
+ * valid observation remains in the denominator and is reported as missing.
+ * Overall waiting time is the unweighted mean of clinic means, following the
+ * clinic-level aggregation used by the source workbook dashboard.
+ */
+export function summarizeOutpatientPerformance(
+  records: readonly OutpatientRecord[],
+  groups: readonly OutpatientProviderGroup[],
+  year: number,
+  month = 0,
+  valueField = 'Waktu Tunggu Rawat Jalan (Menit)',
+): OutpatientPerformanceSummary {
+  const clinicSummaries = summarizeOutpatientClinics(records, groups, year, month, valueField)
+  const clinicsWithData = clinicSummaries.filter(item => item.averageMinutes !== null)
+  const clinicsBelow60 = clinicsWithData.filter(item => (item.averageMinutes as number) < 60).length
+  const operatingClinics = clinicSummaries.length
+
+  return {
+    operatingClinics,
+    clinicsWithData: clinicsWithData.length,
+    clinicsBelow60,
+    clinicsWithoutData: Math.max(0, operatingClinics - clinicsWithData.length),
+    performanceRate: operatingClinics ? clinicsBelow60 / operatingClinics * 100 : null,
+    overallAverageMinutes: mean(clinicsWithData.map(item => item.averageMinutes as number)),
+  }
+}
