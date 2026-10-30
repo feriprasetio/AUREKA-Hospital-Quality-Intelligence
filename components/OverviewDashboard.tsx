@@ -392,7 +392,7 @@ export default function OverviewDashboard({
                 <div><span>Aktif / berjalan / dievaluasi</span><b>{stats.plansActive.toLocaleString('id-ID')}</b></div>
                 <div><span>Menunggu persetujuan</span><b>{stats.plansPending.toLocaleString('id-ID')}</b></div>
                 <div><span>Lewat target (semua level)</span><b>{stats.overdue.toLocaleString('id-ID')}</b></div>
-                <button type="button" className="ovLink" onClick={() => onNavigate('risk', { tab: 'mitigation' })}>Buka RTP →</button>
+                <button type="button" className="ovLink" onClick={() => onNavigate('risk')}>Buka RTP →</button>
               </div>}
           </Panel>
           <Panel delay={420} eyebrow="UNIT KERJA" title="Unit dengan risiko tinggi terbanyak">
