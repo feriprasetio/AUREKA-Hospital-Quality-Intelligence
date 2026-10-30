@@ -496,7 +496,7 @@ export default function IbsExcelImportDialog({
               }}/>
             </label>
             {file && <div className="ciPrivacy">Berkas dipilih: {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB · data identitas disamarkan di pratinjau.</div>}
-            <div className="ciPrivacy">Impor memakai sesi AUREKA terautentikasi dan kunci sumber Excel yang stabil. Semua catatan baru disimpan sebagai Ready for Review, tidak tervalidasi otomatis. Batch awal 20 baris. Jika terjadi timeout, sistem otomatis mengecilkan ukuran transaksi sampai 5 baris dan mengulangi batch yang sama secara aman.</div>
+            <div className="ciPrivacy">Impor memakai sesi AUREKA terautentikasi dan kunci sumber Excel yang stabil. Semua catatan baru disimpan sebagai Ready for Review, tidak tervalidasi otomatis. Batch awal 20 baris. Jika terjadi timeout, sistem otomatis mengecilkan ukuran transaksi secara bertahap hingga 1 baris dan mengulangi batch yang sama secara idempoten.</div>
           </div>
           {parsing && <div className="ciMessage">Membaca workbook dan memeriksa baris logbook IBS…</div>}
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
