@@ -275,3 +275,102 @@
 @media(prefers-reduced-motion:reduce){
   .workspaceRoot *,.workspaceRoot *::before,.workspaceRoot *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+
+/* AMOLED theme compatibility: retain the user's existing theme preference. */
+html[data-theme="amoled"] .workspaceRoot{
+  --aureka-canvas:#090d0b;--aureka-surface:#111916;--aureka-border:#27352e;
+  --aureka-ink:#e6eee9;--aureka-muted:#9eada4;--aureka-brand:#42bd88;
+  --aureka-brand-dark:#1c8a5d;--aureka-brand-soft:#163528;
+  --aureka-shadow:0 2px 8px rgba(0,0,0,.24);
+  color-scheme:dark!important;background:#090d0b!important;color:#e6eee9!important;
+}
+html[data-theme="amoled"] .workspaceRoot .sidebar,
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar,
+html[data-theme="amoled"] .workspaceRoot .workspaceContent,
+html[data-theme="amoled"] .workspaceRoot .sidebarFooter .profileChipBtn{
+  background:#0d1410!important;color:#e6eee9!important;border-color:#27352e!important;
+}
+html[data-theme="amoled"] .workspaceRoot .sideHeader,
+html[data-theme="amoled"] .workspaceRoot .sidebarFooter{border-color:#27352e!important}
+html[data-theme="amoled"] .workspaceRoot .sideBrand b,
+html[data-theme="amoled"] .workspaceRoot .workspaceContext strong,
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfileText b,
+html[data-theme="amoled"] .workspaceRoot .profileText b{color:#e6eee9!important}
+html[data-theme="amoled"] .workspaceRoot .sideBrand small,
+html[data-theme="amoled"] .workspaceRoot .workspaceContext span,
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfileText small,
+html[data-theme="amoled"] .workspaceRoot .profileText span,
+html[data-theme="amoled"] .workspaceRoot .profileChipHint{color:#a2b1a8!important}
+html[data-theme="amoled"] .workspaceRoot .navLabel{color:#81998b!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarNav>button,
+html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button{color:#c0cec5!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarNav>button:hover,
+html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button:hover,
+html[data-theme="amoled"] .workspaceRoot .sidebarFooter .profileChipBtn:hover{background:#18231d!important;color:#e8f3ec!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarNav>button.navActive,
+html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button.navActive,
+html[data-theme="amoled"] .workspaceRoot .sidebarChild.active{background:#173a2a!important;border-color:#285a40!important;color:#78d5a8!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarChild{color:#aab9b0!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarChild:hover{background:#17251d!important;color:#8bddb4!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarTreeChildren{border-color:#2b3c32!important}
+html[data-theme="amoled"] .workspaceRoot .sidebarToggle,
+html[data-theme="amoled"] .workspaceRoot .sidebarFooter>.liquidButton button,
+html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch,
+html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch kbd,
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderIcon,
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar .themeModeSwitch,
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfile{
+  background:#111a15!important;border-color:#29382f!important;color:#bdcbc2!important;
+}
+html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input{background:transparent!important;color:#e6eee9!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input::placeholder{color:#84958a!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderIcon:hover,
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{background:#1b2b21!important;color:#83d9ae!important}
+html[data-theme="amoled"] .workspaceRoot .workspaceHeaderAvatar,
+html[data-theme="amoled"] .workspaceRoot .profileAvatar{background:#173a2a!important;border-color:#2d6046!important;color:#83d9ae!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(
+  .ovPanel,.ovKpi,.aqTable,.aqFilters,.aqHead,.aqInlineEditor,.psPanel,.psHead,.rmPanel,.rmHero,
+  .cpPanel,.cpGlass,.oppePanel,.oppeHeader,.oppeFilters,.sdPanel,.stPanel,.mswHeader,.qhCard,
+  .psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap,.ovExecutiveAlert
+){
+  background:#111916!important;background-image:none!important;border-color:#2a3930!important;
+  color:#e1ebe4!important;box-shadow:0 2px 8px rgba(0,0,0,.2)!important;
+}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(h2,h3,h4,h5,b,strong){color:#e6eee9}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(p,small,.ovEyebrow,.ovKpiLabel,.ovKpi small,.ovScopeNote,.ovFoot,.ovEmpty,.ovExecMetric span,.ovExecRtp span){color:#a4b2a9!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovKpi b,
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecMetric b,
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecRtp b{color:#e6eee9!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovContextBar,
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs,
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){
+  background:#151f19!important;border-color:#2a3930!important;
+}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs>button.active,
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqTab.active,.cwTab[aria-selected="true"],.mswTab[aria-selected="true"]){
+  background:#1b3023!important;border-color:#345b42!important;color:#83d9ae!important;
+}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabIcon,
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecHeadline{background:#173326!important;color:#83d9ae!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecHeadline strong{color:#83d9ae!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecutiveAlert.danger{background:#3a1d1b!important;border-color:#61302c!important;color:#ffb0a8!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecutiveAlert.warning{background:#342a17!important;border-color:#5d4821!important;color:#f5d18a!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovExecutiveAlert.success{background:#173326!important;border-color:#2d5b42!important;color:#98e0b8!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.ovBarTrack,.ovColumnTrack,.aqWrap,.aqCatWrap){background:#202b24!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){
+  background:#1a2820!important;color:#bdcfc3!important;border-color:#2c3b32!important;
+}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){
+  background:#111916!important;color:#dce7df!important;border-color:#29382f!important;
+}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(input,select,textarea){
+  background:#0d1510!important;color:#e6eee9!important;border-color:#34453a!important;
+}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder{color:#7f9085!important}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqBtn,.psBtn,.rmButton,.cpBtn,.cpButton,.oppeBtn,.oppeButton,.sdBtn,.stBtn){
+  background:#17241c!important;color:#cde2d4!important;border-color:#34483b!important;
+}
+html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary){
+  background:#176d4b!important;color:#fff!important;border-color:#25865e!important;
+}
