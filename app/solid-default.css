@@ -295,3 +295,100 @@
 @media(prefers-reduced-motion:reduce){
   .workspaceRoot *,.workspaceRoot *::before,.workspaceRoot *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+
+/* Typography and contrast normalization — applied after every legacy module skin. */
+:root{color-scheme:light}
+html:has(.workspaceRoot),body:has(.workspaceRoot){
+  color-scheme:light!important;
+  background:#fff!important;
+}
+.workspaceRoot,
+.workspaceRoot .workspaceContent,
+.workspaceRoot .moduleEnter{
+  color:#1f2937!important;
+  background-color:#fff!important;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;
+}
+.workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5,h6,p,span,label,strong,b,small,em,i,li,dt,dd,legend,caption,figcaption,blockquote,td,th,a,code,pre){
+  color:#374151!important;
+  text-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5,h6,strong,b){color:#111827!important}
+.workspaceRoot .moduleEnter :is(p,small,.muted,.subtle,.hint,.helper,.description,.subtitle,.eyebrow,.fieldHint,.aqSub,.aqMetaText,.ovScopeNote,.ovFoot){
+  color:#6b7280!important;
+}
+.workspaceRoot .moduleEnter a:not([class*="button"]):not([class*="btn"]){
+  color:#1d4ed8!important;
+  text-decoration-color:#bfdbfe;
+}
+.workspaceRoot .moduleEnter :is(input,select,textarea,option){
+  color:#111827!important;
+  background-color:#fff!important;
+  -webkit-text-fill-color:#111827!important;
+  caret-color:#2563eb!important;
+}
+.workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder{
+  color:#9ca3af!important;
+  -webkit-text-fill-color:#9ca3af!important;
+  opacity:1!important;
+}
+.workspaceRoot .moduleEnter :is(button,[role="button"],[role="tab"],summary){
+  color:#374151;
+  text-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton,.primary,.btn-primary,[data-variant="primary"]){
+  color:#fff!important;
+}
+.workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton):not(:disabled){
+  -webkit-text-fill-color:currentColor;
+}
+.workspaceRoot .moduleEnter :is(.aqBtn:not(.primary),.rmButton:not(.primary),.psBtn:not(.primary),.cpBtn:not(.primary),.oppeBtn:not(.primary),.sdBtn:not(.primary),.stButton:not(.primary)){
+  color:#374151!important;
+  background:#fff!important;
+  border-color:#d1d5db!important;
+}
+.workspaceRoot .moduleEnter :is([role="tab"],.aqTab,.cwTab,.mswTab){
+  color:#4b5563!important;
+  -webkit-text-fill-color:currentColor!important;
+}
+.workspaceRoot .moduleEnter :is([role="tab"][aria-selected="true"],.aqTab.active,.cwTab.active,.mswTab.active){
+  color:#1d4ed8!important;
+  background:#eff6ff!important;
+}
+.workspaceRoot .moduleEnter :is(th,thead th){
+  color:#374151!important;
+  background:#f9fafb!important;
+}
+.workspaceRoot .moduleEnter :is(td,tbody td){color:#374151!important}
+.workspaceRoot .moduleEnter :is(.badge,.statusBadge,.status-badge,.statusPill,.status-pill,.tag,.chip,.pill,[class*="Badge"],[class*="badge"],[class*="status"]){
+  text-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(.badge,.statusBadge,.status-badge,.statusPill,.status-pill,.tag,.chip,.pill,[class*="Badge"],[class*="badge"]):not(button){
+  -webkit-text-fill-color:currentColor!important;
+}
+.workspaceRoot .moduleEnter :is(.alert,.notice,.callout,.validationMessage,.errorMessage,.successMessage,.warningMessage){
+  color:#374151!important;
+}
+.workspaceRoot .moduleEnter :is(.alert,.notice,.callout,.validationMessage,.errorMessage,.successMessage,.warningMessage) :is(p,span,strong,b,small){
+  color:inherit!important;
+}
+.workspaceRoot .moduleEnter :is(.modal,.dialog,.popover,.dropdownMenu,.menuPanel,.tooltip,[role="dialog"],[role="menu"],[role="listbox"]){
+  color:#374151!important;
+  background:#fff!important;
+  border-color:#e5e7eb!important;
+}
+.workspaceRoot .moduleEnter :is(.modal,.dialog,.popover,.dropdownMenu,.menuPanel,.tooltip,[role="dialog"],[role="menu"],[role="listbox"]) :is(h1,h2,h3,h4,p,span,label,strong,small,li){
+  color:inherit!important;
+}
+.workspaceRoot .moduleEnter svg{color:inherit}
+.workspaceRoot .moduleEnter svg :is(path,line,polyline,polygon,circle,rect){vector-effect:non-scaling-stroke}
+.workspaceRoot .moduleEnter :is(.text-white,.text-light,.text-muted-foreground){
+  color:#374151!important;
+}
+.workspaceRoot .moduleEnter :is(.bg-primary,.bg-blue-600,.bg-indigo-600,.bg-green-600,.bg-red-600,.bg-emerald-600,.bg-rose-600) :is(span,strong,b,small){
+  color:#fff!important;
+}
+@media(forced-colors:active){
+  .workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5,h6,p,span,label,strong,b,small,td,th){forced-color-adjust:auto}
+}
