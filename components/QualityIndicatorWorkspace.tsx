@@ -667,7 +667,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   }
   const setResp=(p:Profile,patch:Resp)=>{const k=String(p.id??p.code);setDraft(x=>({...x,[k]:{...(x[k]??empty(p)),...patch}}))}
 
- const save=async(mode:'temporary'|'report')=>{
+ const save=async()=>{
    if(isValidator){setMessage('Akun validator tidak dapat mengubah data sumber. Gunakan tindakan validasi pada daftar logbook.');return}
    if(!selected)return
    const layout=(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??''))??activeLayout
@@ -707,9 +707,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      &&Number(formData['Waktu Tunggu Rawat Jalan (Menit)'])<=1440
    const complete=outpatientProviderDay?outpatientMeasurementComplete:(applicable.length>0&&applicable.every(p=>responseComplete(p,draft[p.id??p.code])))
    const stayLayout=!!layout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!layout?.fields.some(f=>normHeader(f)==='tanggal keluar')
-   if(mode==='report'&&!complete){setMessage('Indikator atau pengukuran belum lengkap. Lengkapi seluruh isian wajib, atau pilih Simpan Laporan untuk menyimpan sebagai draf.');return}
-   const finalStatus=mode==='report'?'Ready for Review':(stayLayout&&!discharge?'Aktif':'Draft')
-   const payloadStatus=mode==='report'?'ready':'draft'
+   if(!complete){setMessage('Indikator atau pengukuran belum lengkap. Lengkapi seluruh isian wajib sebelum menyimpan laporan final.');return}
+   const finalStatus='Final'
+   const payloadStatus='ready'
    const now=new Date().toISOString()
    const serviceStream=String(formData['Alur layanan']??'').trim()
    if(Number(selected.roomId)===5&&grain==='daily_metric'&&!['Rawat Jalan','Rawat Inap'].includes(serviceStream)){setMessage('Pilih alur layanan Rawat Jalan atau Rawat Inap sebelum melaporkan catatan harian Farmasi.');return}
