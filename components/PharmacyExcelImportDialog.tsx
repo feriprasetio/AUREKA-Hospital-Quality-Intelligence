@@ -250,6 +250,7 @@ export default function PharmacyExcelImportDialog({
       setErrorMessage('Ukuran workbook harus lebih besar dari 0 dan tidak melebihi 15 MB.')
       return
     }
+    if (typeof window === 'undefined') return
 
     setParsing(true)
     try {
