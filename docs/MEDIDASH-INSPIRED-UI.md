@@ -9,6 +9,7 @@ This is an original AUREKA implementation inspired by the reference layout. It d
 ## User interface changes
 
 - White, fixed-height, collapsible sidebar with nested module navigation and compact active states.
+- Expandable Ringkasan tree with Dashboard 1 and management-only Dashboard 2; sidebar selection and dashboard tabs share the same state.
 - Sticky topbar with module-scoped search, fullscreen action, notification history, Super Admin chat, theme selection, and profile shortcut.
 - Shared spacing, card, panel, form, button, table, and alert treatments for existing workspaces.
 - Responsive layout for compact/mobile screens and reduced-motion preference.
