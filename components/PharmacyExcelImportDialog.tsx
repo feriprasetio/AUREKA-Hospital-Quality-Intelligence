@@ -469,7 +469,7 @@ export default function PharmacyExcelImportDialog({
               }}/>
             </label>
             {file && <div className="ciPrivacy">Berkas dipilih: {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB. Data sumber Farmasi tidak memuat identitas pasien.</div>}
-            <div className="ciPrivacy">Sistem menggabungkan empat indikator pada tanggal dan alur layanan yang sama. Baris 0/0 pada seluruh indikator dilewati; numerator yang melebihi denominator dikecualikan tanpa koreksi otomatis. Semua catatan baru berstatus Ready for Review, tidak tervalidasi otomatis. Batch awal 20 baris dan menyusut otomatis hingga 5 bila terjadi timeout.</div>
+            <div className="ciPrivacy">Sistem menggabungkan empat indikator pada tanggal dan alur layanan yang sama. Baris 0/0 pada seluruh indikator dilewati; numerator yang melebihi denominator dikecualikan tanpa koreksi otomatis. Semua catatan baru berstatus Ready for Review, tidak tervalidasi otomatis. Batch awal 20 baris dan menyusut otomatis secara bertahap hingga 1 baris bila terjadi timeout.</div>
           </div>
           {parsing && <div className="ciMessage">Membaca delapan sheet dan memvalidasi data harian Farmasi…</div>}
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
