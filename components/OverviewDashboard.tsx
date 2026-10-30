@@ -83,7 +83,7 @@ const SectionError = ({ error }: { error: string }) => (
 )
 
 export default function OverviewDashboard({
-  supabase, role, roomId, roomName, manager, userName, onNavigate,
+  supabase, role, roomId, roomName, manager, userName, dashboardView, onDashboardViewChange, onNavigate,
 }: {
   supabase: SupabaseClient
   role: string | null
@@ -91,6 +91,8 @@ export default function OverviewDashboard({
   roomName: string | null
   manager: boolean
   userName: string
+  dashboardView: 'operational' | 'executive'
+  onDashboardViewChange: (view: 'operational' | 'executive') => void
   onNavigate: NavigateFn
 }) {
   const [loading, setLoading] = useState(true)
@@ -101,7 +103,6 @@ export default function OverviewDashboard({
   const [clinicalPathway, setClinicalPathway] = useState<Section<ClinicalPathwayAudit>>({ rows: [], error: null })
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  const [dashboardView, setDashboardView] = useState<'operational' | 'executive'>('operational')
   const year = new Date().getFullYear()
 
   useEffect(() => {
@@ -228,10 +229,10 @@ export default function OverviewDashboard({
       <p className="ovScopeNote">Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan; risiko dihitung dari register yang dapat diakses; IKP perlu tindak lanjut menghitung laporan yang belum ditutup tanpa batasan tahun. Ini bukan satu periode filter yang diterapkan ke seluruh modul.</p>
 
       {manager && <div className="ovDashboardTabs" role="tablist" aria-label="Pilihan dashboard">
-        <button type="button" role="tab" aria-selected={dashboardView === 'operational'} className={dashboardView === 'operational' ? 'active' : ''} onClick={() => setDashboardView('operational')}>
+        <button type="button" role="tab" aria-selected={dashboardView === 'operational'} className={dashboardView === 'operational' ? 'active' : ''} onClick={() => onDashboardViewChange('operational')}>
           <span className="ovDashboardTabIcon" aria-hidden="true">▦</span><span><b>Dashboard 1</b><small>Operasional PMKP</small></span>
         </button>
-        <button type="button" role="tab" aria-selected={dashboardView === 'executive'} className={dashboardView === 'executive' ? 'active' : ''} onClick={() => setDashboardView('executive')}>
+        <button type="button" role="tab" aria-selected={dashboardView === 'executive'} className={dashboardView === 'executive' ? 'active' : ''} onClick={() => onDashboardViewChange('executive')}>
           <span className="ovDashboardTabIcon" aria-hidden="true">▥</span><span><b>Dashboard 2</b><small>Eksekutif rumah sakit</small></span>
         </button>
       </div>}
