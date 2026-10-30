@@ -39,12 +39,12 @@ function normalizeRoom(value: unknown): number | null {
 }
 
 function defaultRoom(rooms: Room[], initialRoomId: number | null, canViewAllRooms: boolean): number | null {
-  const initial = normalizeRoom(initialRoomId)
-  if (initial != null) return initial
   if (canViewAllRooms) {
     const firstUnit = rooms.find((room) => /informasi\s+dan\s+pengaduan/i.test(room.name))
-    if (firstUnit) return Number(firstUnit.id)
+    if (firstUnit) return normalizeRoom(firstUnit.id)
   }
+  const initial = normalizeRoom(initialRoomId)
+  if (initial != null) return initial
   return normalizeRoom(rooms[0]?.id)
 }
 
@@ -107,9 +107,10 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
   return <div className="qraEmpty"><div className="qraEmptyIcon" aria-hidden="true">▤</div><strong>{title}</strong><p>{detail}</p></div>
 }
 
-function Bar({ value, max = 100, label, sublabel }: { value: number | null; max?: number; label: string; sublabel?: string }) {
-  const width = value == null || !Number.isFinite(value) ? 0 : Math.max(0, Math.min(100, (value / max) * 100))
-  return <div className="qraBarRow"><div className="qraBarLabel"><span>{label}</span><strong>{value == null ? '—' : value.toFixed(1).replace('.', ',') + '%'}</strong></div><div className="qraBarTrack"><span style={{ width: width + '%' }} /></div>{sublabel && <small>{sublabel}</small>}</div>
+function Bar({ value, max = 100, label, sublabel, suffix = '%' }: { value: number | null; max?: number; label: string; sublabel?: string; suffix?: string }) {
+  const width = value == null || !Number.isFinite(value) || max <= 0 ? 0 : Math.max(0, Math.min(100, (value / max) * 100))
+  const display = value == null || !Number.isFinite(value) ? '—' : Number(value).toFixed(suffix === '%' ? 1 : 0).replace('.', ',') + suffix
+  return <div className="qraBarRow"><div className="qraBarLabel"><span>{label}</span><strong>{display}</strong></div><div className="qraBarTrack"><span style={{ width: width + '%' }} /></div>{sublabel && <small>{sublabel}</small>}</div>
 }
 
 function Distribution({ summary, minimum, maximum }: { summary: { n: number; distribution: Record<number, number> }; minimum: number; maximum: number }) {
@@ -298,7 +299,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qraMonthCell strong{display:block;font-size:9px}.qraMonthCell small{display:block;color:var(--muted);font-size:7px;margin-top:3px}
     .qraMonthCell.empty{color:#a2ada6;background:#f4f6f5}
     .qraEmpty{display:grid;place-items:center;text-align:center;min-height:145px;padding:24px;color:var(--muted)}
-    .qraEmptyIcon{font-size:24px;color:#9aa9a0}.qraEmpty strong{font-size:12px;color:var(--ink);margin-top:8px}.qraEmpty p{max-width:520px;margin:5px 0 0;font-size:10px;line-height:1.55}
+    .qraEmptyIcon{font-size:24px;color:#9aa9a0}.qraDim{opacity:.48}.qraEmpty strong{font-size:12px;color:var(--ink);margin-top:8px}.qraEmpty p{max-width:520px;margin:5px 0 0;font-size:10px;line-height:1.55}
     .qraBars{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end;padding:15px}
     .qraBarsItem{display:grid;gap:5px;text-align:center;min-width:0}.qraBarsTrack{height:112px;border-radius:8px;background:#eef2ef;display:flex;align-items:flex-end;overflow:hidden}
     .qraBarsTrack span{display:block;width:100%;border-radius:7px 7px 0 0;background:linear-gradient(180deg,#54a783,#197653);min-height:0}
@@ -436,7 +437,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor per fase perawatan</h3><p>Median dan IQR skala ordinal 1–5; fase N/A tidak dihitung.</p></div></div>
                   {selectedClinical.validatedRecords === 0
                     ? <EmptyState title="Belum ada telaah tervalidasi" detail="Skor fase akan dihitung setelah reviewer memvalidasi telaah. Draf dan telaah yang belum disetujui tidak dimasukkan." />
-                    : <div className="qraContent">{selectedClinical.phases.map((phase) => <Bar key={phase.id} label={phase.label} value={phase.summary.median == null ? null : phase.summary.median * 20} max={100} sublabel={'Median ' + (phase.summary.median ?? '—') + ' / 5 · IQR ' + (phase.summary.q1 ?? '—') + '–' + (phase.summary.q3 ?? '—') + ' · n=' + phase.summary.n} />)}</div>}
+                    : <div className="qraContent">{selectedClinical.phases.map((phase) => <Bar key={phase.id} label={phase.label} value={phase.summary.median} max={5} suffix=" / 5" sublabel={'Median ordinal · IQR ' + (phase.summary.q1 ?? '—') + '–' + (phase.summary.q3 ?? '—') + ' · n=' + phase.summary.n} />)}</div>}
                 </section>
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Masalah mutu pelayanan</h3><p>Distribusi penilaian reviewer pada telaah tervalidasi.</p></div></div>
                   {selectedClinical.validatedRecords === 0
@@ -446,7 +447,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                       ['Tidak teridentifikasi', selectedClinical.careIssue.no],
                       ['Belum pasti', selectedClinical.careIssue.uncertain],
                       ['Belum diisi', selectedClinical.careIssue.missing],
-                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} sublabel={formatCount(count) + ' dari ' + formatCount(selectedClinical.validatedRecords)} />)}</div>}
+                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} suffix="" sublabel={formatCount(count) + ' dari ' + formatCount(selectedClinical.validatedRecords)} />)}</div>}
                 </section>
               </div>
               {clinicalTab === 'death' && <div className="qraSplit">
@@ -458,7 +459,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                       ['Tidak', selectedClinical.contribution.no],
                       ['Belum pasti', selectedClinical.contribution.uncertain],
                       ['Belum diisi', selectedClinical.contribution.missing],
-                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} sublabel={formatCount(count) + ' kasus'} />)}</div>}
+                    ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} suffix="" sublabel={formatCount(count) + ' kasus'} />)}</div>}
                 </section>
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor ketercegahan kematian</h3><p>Skala ordinal 1–6; laporkan distribusi, median dan IQR tanpa menyamakan skor sebagai probabilitas kausal.</p></div></div>
                   {selectedClinical.avoidability.n === 0
