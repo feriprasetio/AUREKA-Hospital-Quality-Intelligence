@@ -246,7 +246,7 @@ export default function ComplaintExcelImportDialog({
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<ImportResponse | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
-  const eligible = useMemo(() => open && authorized && roomId === 1 && year === 2026, [open, authorized, roomId, year])
+  const eligible = useMemo(() => open && authorized && roomId === 1 && year >= 2026, [open, authorized, roomId, year])
 
   const reset = useCallback(() => {
     setFile(null)

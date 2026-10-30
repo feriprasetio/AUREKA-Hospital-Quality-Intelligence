@@ -272,7 +272,7 @@ export default function LaboratoryExcelImportDialog({
   const [progress, setProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
   const [fileInputKey, setFileInputKey] = useState(0)
-  const eligible = useMemo(() => open && authorized && roomId === 9 && year === 2026, [open, authorized, roomId, year])
+  const eligible = useMemo(() => open && authorized && roomId === 9 && year >= 2026, [open, authorized, roomId, year])
   const warningRows = useMemo(() => rows.filter(row => row.warnings.length > 0), [rows])
 
   const reset = useCallback(() => {

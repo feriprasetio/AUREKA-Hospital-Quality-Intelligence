@@ -224,7 +224,7 @@ export default function IbsExcelImportDialog({
   const [partial, setPartial] = useState<ImportCounts | null>(null)
   const [progress, setProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
-  const eligible = useMemo(() => open && authorized && roomId === 4 && year === 2026, [open, authorized, roomId, year])
+  const eligible = useMemo(() => open && authorized && roomId === 4 && year >= 2026, [open, authorized, roomId, year])
   const warningRows = useMemo(() => rows.filter(row => row.warnings.length > 0), [rows])
   const historicalRows = useMemo(() => rows.filter(row => row.date.slice(0, 4) !== '2026').length, [rows])
 

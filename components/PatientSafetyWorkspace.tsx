@@ -1025,7 +1025,7 @@ export default function PatientSafetyWorkspace({
           'Saya mulai mengalami burnout. Saya memiliki satu atau lebih gejala, seperti kelelahan fisik/emosional, namun masih bisa mengatasinya.',
           'Gejala burnout yang saya alami sudah mulai mengganggu, sehingga sulit bagi saya untuk tidak memikirkannya bahkan saat sedang tidak bekerja.',
           'Saya merasa sepenuhnya kehabisan tenaga (burnout berat) dan sering berpikir bahwa saya tidak sanggup lagi melakukan pekerjaan ini.',
-        ].map((text, index) => <button type="button" key={index} className={surveyAnswers.D1 === String(index + 1) ? 'selected' : ''} onClick={() => setSurveyAnswer('D1', String(index + 1))}><b>Skor {index + 1}</b><span>{text}</span></button>)}</div>
+        ].map((text, index) => <button type="button" key={`burnout-score-${index}`} className={surveyAnswers.D1 === String(index + 1) ? 'selected' : ''} onClick={() => setSurveyAnswer('D1', String(index + 1))}><b>Skor {index + 1}</b><span>{text}</span></button>)}</div>
       </LiquidGlass>
 
       <LiquidGlass className="psDim">

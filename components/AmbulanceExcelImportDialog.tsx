@@ -223,7 +223,7 @@ export default function AmbulanceExcelImportDialog({
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<ImportResponse | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
-  const eligible = useMemo(() => open && authorized && roomId === 3 && year === 2026, [open, authorized, roomId, year])
+  const eligible = useMemo(() => open && authorized && roomId === 3 && year >= 2026, [open, authorized, roomId, year])
 
   const reset = useCallback(() => {
     setFile(null)

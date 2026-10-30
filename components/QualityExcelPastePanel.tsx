@@ -62,13 +62,13 @@ export default function QualityExcelPastePanel({ headers, disabledReason, onUseR
           {parsed.unknownHeaders.length > 0 && <span className="aepBadge warn">{parsed.unknownHeaders.length} header tidak dikenali</span>}
           {parsed.duplicateHeaders.length > 0 && <span className="aepBadge warn">Header ganda</span>}
         </div>
-        {parsed.errors.length > 0 && <ul className="aepErrors">{parsed.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
+        {parsed.errors.length > 0 && <ul className="aepErrors">{parsed.errors.map((error, index) => <li key={`err-${index}-${error.slice(0,20)}`}>{error}</li>)}</ul>}
         {parsed.headers.length > 0 && <div className="aepTableWrap">
           <table className="aepTable">
             <thead><tr><th>Baris Excel</th>{previewHeaders.map((header) => <th key={header}>{header}</th>)}<th>Tindakan</th></tr></thead>
             <tbody>{parsed.rows.slice(0, 10).map((row: ExcelPasteRow) => <tr key={row.sourceRow}>
               <td>{row.sourceRow}</td>
-              {previewIndexes.map((index) => <td key={index} title={row.cells[index] ?? ''}>{row.cells[index] || '—'}</td>)}
+              {previewIndexes.map((index) => <td key={`col-${index}`} title={row.cells[index] ?? ''}>{row.cells[index] || '—'}</td>)}
               <td><button type="button" className="aepButton primary" disabled={blocked} onClick={() => onUseRow(row.values, row.sourceRow)}>Gunakan baris</button></td>
             </tr>)}</tbody>
           </table>

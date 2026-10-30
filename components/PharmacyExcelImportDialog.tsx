@@ -205,7 +205,7 @@ export default function PharmacyExcelImportDialog({
   const [progress, setProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
   const [fileInputKey, setFileInputKey] = useState(0)
-  const eligible = useMemo(() => open && authorized && roomId === 5 && year === 2026, [open, authorized, roomId, year])
+  const eligible = useMemo(() => open && authorized && roomId === 5 && year >= 2026, [open, authorized, roomId, year])
   const outpatientCount = rows.filter(row => row.serviceStream === 'Rawat Jalan').length
   const inpatientCount = rows.filter(row => row.serviceStream === 'Rawat Inap').length
 
