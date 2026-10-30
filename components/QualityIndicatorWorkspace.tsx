@@ -706,7 +706,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      &&Number.isFinite(Number(formData['Waktu Tunggu Rawat Jalan (Menit)']))
      &&Number(formData['Waktu Tunggu Rawat Jalan (Menit)'])>=0
      &&Number(formData['Waktu Tunggu Rawat Jalan (Menit)'])<=1440
-   const complete=outpatientProviderDay?outpatientMeasurementComplete:(applicable.length===0||applicable.every(p=>responseComplete(p,draft[p.id??p.code])))
+   const complete=outpatientProviderDay?outpatientMeasurementComplete:(applicable.length>0&&applicable.every(p=>responseComplete(p,draft[p.id??p.code])))
    const stayLayout=!!layout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!layout?.fields.some(f=>normHeader(f)==='tanggal keluar')
    if(mode==='report'&&!complete){setMessage('Indikator atau pengukuran belum lengkap. Lengkapi seluruh isian wajib, atau pilih Simpan Sementara untuk menyimpan sebagai draf.');return}
    const finalStatus=mode==='report'?'Ready for Review':(stayLayout&&!discharge?'Aktif':'Draft')
