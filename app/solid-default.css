@@ -1,0 +1,297 @@
+/*
+ * AUREKA Solid Default — clean white workspace skin.
+ * Uses the existing MediDash-inspired layout geometry but removes glass, blur,
+ * translucent layers and gradient surfaces for a restrained hospital-workflow UI.
+ */
+:root{
+  --md-bg:#ffffff;
+  --md-bg2:#ffffff;
+  --md-surface:#ffffff;
+  --md-surface-strong:#ffffff;
+  --md-border:#e5e7eb;
+  --md-ink:#1f2937;
+  --md-muted:#6b7280;
+  --md-primary:#2563eb;
+  --md-primary-2:#3b82f6;
+  --md-primary-soft:#eff6ff;
+  --md-blue:#2563eb;
+  --md-mint:#059669;
+  --md-rose:#db2777;
+  --md-amber:#d97706;
+  --md-danger:#dc2626;
+  --md-shadow:0 1px 2px rgba(15,23,42,.045);
+  --md-shadow-hover:0 3px 10px rgba(15,23,42,.075);
+  --md-radius:12px;
+}
+.workspaceRoot{
+  background:#fff!important;
+  color:#1f2937!important;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;
+}
+.workspaceRoot .sidebar{
+  background:#fff!important;
+  border-right:1px solid #e5e7eb!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.workspaceRoot .sideHeader,
+.workspaceRoot .sidebarFooter{border-color:#e5e7eb!important}
+.workspaceRoot .sideBrand .brandLogoWrap,
+.workspaceRoot .sideBrand .workspaceLogo{
+  background:#fff!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:10px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .sideBrand b{color:#111827!important}
+.workspaceRoot .sideBrand small{color:#6b7280!important}
+.workspaceRoot .sidebarToggle{
+  background:#fff!important;
+  color:#6b7280!important;
+  border-color:#e5e7eb!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .navLabel{color:#9ca3af!important}
+.workspaceRoot .sidebarNav>button,
+.workspaceRoot .sidebarNavGroup>button{
+  color:#4b5563!important;
+  background:#fff!important;
+  border:1px solid transparent!important;
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .sidebarNav>button:hover,
+.workspaceRoot .sidebarNavGroup>button:hover{
+  background:#f9fafb!important;
+  color:#1f2937!important;
+  border-color:#f3f4f6!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .sidebarNav>button.navActive,
+.workspaceRoot .sidebarNavGroup>button.navActive{
+  background:#eff6ff!important;
+  color:#1d4ed8!important;
+  border-color:#dbeafe!important;
+  box-shadow:inset 3px 0 0 #2563eb!important;
+  font-weight:750!important;
+}
+.workspaceRoot .sidebarTreeChildren{border-left-color:#e5e7eb!important}
+.workspaceRoot .sidebarChild{
+  background:transparent!important;
+  color:#6b7280!important;
+  border-color:transparent!important;
+  border-radius:7px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .sidebarChild:hover{
+  background:#f9fafb!important;
+  color:#1f2937!important;
+}
+.workspaceRoot .sidebarChild.active{
+  background:#eff6ff!important;
+  color:#1d4ed8!important;
+  border-color:#dbeafe!important;
+  font-weight:700!important;
+}
+.workspaceRoot .sidebarFooter>.liquidButton button{
+  background:#fff!important;
+  color:#4b5563!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .sidebarFooter>.liquidButton button:hover{
+  background:#f9fafb!important;
+  color:#111827!important;
+}
+.workspaceRoot .workspaceContent{
+  background:#fff!important;
+  color:#1f2937!important;
+}
+.workspaceRoot .workspaceHeaderBar{
+  background:#fff!important;
+  border:0!important;
+  border-bottom:1px solid #e5e7eb!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.workspaceRoot .workspaceContext strong{color:#111827!important}
+.workspaceRoot .workspaceContext span{color:#6b7280!important}
+.workspaceRoot .workspaceGlobalSearch{
+  background:#fff!important;
+  border:1px solid #d1d5db!important;
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .workspaceGlobalSearch input{color:#111827!important}
+.workspaceRoot .workspaceGlobalSearch input::placeholder{color:#9ca3af!important}
+.workspaceRoot .workspaceGlobalSearch kbd{
+  background:#f9fafb!important;
+  color:#6b7280!important;
+  border-color:#e5e7eb!important;
+}
+.workspaceRoot .workspaceHeaderIcon,
+.workspaceRoot .workspaceHeaderBar .themeModeSwitch{
+  color:#4b5563!important;
+  background:#fff!important;
+  border:1px solid transparent!important;
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .workspaceHeaderIcon:hover,
+.workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{
+  color:#1d4ed8!important;
+  background:#f9fafb!important;
+  border-color:#e5e7eb!important;
+}
+.workspaceRoot .workspaceHeaderProfile{color:#1f2937!important}
+.workspaceRoot .workspaceHeaderAvatar{
+  background:#2563eb!important;
+  color:#fff!important;
+  border:2px solid #fff!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .workspaceHeaderProfileText b{color:#111827!important}
+.workspaceRoot .workspaceHeaderProfileText small{color:#6b7280!important}
+.workspaceRoot .moduleEnter{color:#1f2937!important}
+.workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5){color:#111827!important}
+.workspaceRoot .moduleEnter :is(p,small,.fieldHint,.aqSub,.aqMetaText,.ovScopeNote,.ovFoot){color:#6b7280!important}
+.workspaceRoot .moduleEnter :is(.liquidGlass,.glass,.glassPanel,.glassCard,.glassSurface,.glassContainer,[class*="glass"],.ovPanel,.ovKpi,.qhCard,.aqTable,.aqInd,.aqFilters,.stPanel,.mswHeader,.sdPanel,.cpGlass,.cpPanel,.oppeScorePanel,.oppePanel,.rmPanel,.psPanel,.psHead,.rmHero,.oppeHeader,.oppeFilters){
+  background:#fff!important;
+  background-image:none!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:12px!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.045)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.workspaceRoot .moduleEnter :is(.liquidGlassEdge,.liquidGlassSheen){display:none!important}
+.workspaceRoot .moduleEnter .liquidGlassContent{background:transparent!important}
+.workspaceRoot .moduleEnter :is(input,select,textarea){
+  background:#fff!important;
+  color:#111827!important;
+  border:1px solid #d1d5db!important;
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder{color:#9ca3af!important}
+.workspaceRoot .moduleEnter :is(input,select,textarea):focus{
+  border-color:#60a5fa!important;
+  box-shadow:0 0 0 3px rgba(37,99,235,.12)!important;
+}
+.workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton){
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary){
+  background:#2563eb!important;
+  border-color:#2563eb!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary):hover{
+  background:#1d4ed8!important;
+  border-color:#1d4ed8!important;
+  transform:none!important;
+  filter:none!important;
+}
+.workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){
+  background:#f9fafb!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:9px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(.aqTab,.cwTab,.mswTab){
+  color:#4b5563!important;
+  background:transparent!important;
+  border-color:transparent!important;
+  border-radius:7px!important;
+}
+.workspaceRoot .moduleEnter :is(.aqTab.active,.cwTab.active,.mswTab.active){
+  color:#1d4ed8!important;
+  background:#fff!important;
+  border:1px solid #dbeafe!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){
+  background:#f9fafb!important;
+  color:#374151!important;
+  border-color:#e5e7eb!important;
+}
+.workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){
+  background:#fff!important;
+  color:#374151!important;
+  border-color:#e5e7eb!important;
+}
+.workspaceRoot .moduleEnter .ovHero{
+  background:#fff!important;
+  background-image:none!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+  color:#1f2937!important;
+}
+.workspaceRoot .moduleEnter .ovHero :is(h1,h2,h3,h4,p,span){color:#1f2937!important}
+.workspaceRoot .moduleEnter .ovHero .ovEyebrow{color:#2563eb!important}
+.workspaceRoot .moduleEnter .ovHeroDate{
+  background:#f9fafb!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:8px!important;
+  color:#4b5563!important;
+}
+.workspaceRoot .moduleEnter .ovRefresh{
+  background:#2563eb!important;
+  border:1px solid #2563eb!important;
+  color:#fff!important;
+  border-radius:8px!important;
+}
+.workspaceRoot .moduleEnter .ovKpi{
+  background:#fff!important;
+  border:1px solid #e5e7eb!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.045)!important;
+}
+.workspaceRoot .moduleEnter .ovKpi:hover,
+.workspaceRoot .moduleEnter .ovPanel:hover{
+  transform:none!important;
+  box-shadow:0 2px 7px rgba(15,23,42,.065)!important;
+}
+.workspaceRoot .moduleEnter .ovKpi b,
+.workspaceRoot .moduleEnter .ovPanelHead h4{color:#111827!important}
+.workspaceRoot .moduleEnter .ovKpiLabel,
+.workspaceRoot .moduleEnter .ovKpi small{color:#6b7280!important}
+.workspaceRoot .moduleEnter .ovContextBar,
+.workspaceRoot .moduleEnter .ovDashboardTabs{
+  background:#fff!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:10px!important;
+  box-shadow:none!important;
+}
+.workspaceRoot .moduleEnter .ovKpiIcon{
+  background:#eff6ff!important;
+  color:#2563eb!important;
+}
+.workspaceRoot .moduleEnter .ovKpiIcon.safety{background:#ecfdf5!important;color:#059669!important}
+.workspaceRoot .moduleEnter .ovKpiIcon.risk{background:#fef2f2!important;color:#dc2626!important}
+.workspaceRoot .moduleEnter .ovKpiIcon.audit{background:#fffbeb!important;color:#d97706!important}
+.workspaceRoot .moduleEnter :is(.ovExecutive,.ovExecGrid,.ovGrid){background:transparent!important}
+.workspaceRoot .moduleEnter .ovExecutive{border:0!important;box-shadow:none!important}
+.workspaceRoot .workspaceNotificationPanel,
+.workspaceRoot .workspaceSupportPanel{
+  background:#fff!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:12px!important;
+  box-shadow:0 8px 24px rgba(15,23,42,.12)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.workspaceRoot :is(button,input,select,textarea):focus-visible{
+  outline:3px solid rgba(37,99,235,.2)!important;
+  outline-offset:2px!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .workspaceRoot *,.workspaceRoot *::before,.workspaceRoot *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
