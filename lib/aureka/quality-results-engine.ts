@@ -531,6 +531,9 @@ export type ClinicalDeathAuditResultRow = {
   audit_type?: 'clinical' | 'death' | string
   review_period?: string | null
   review_json?: Record<string, any> | null
+  review_phases?: Record<string, any> | null
+  review_recommended_actions?: string | null
+  review_learning_points?: string | null
   overall_care_score?: number | null
   care_issue_identified?: string | null
   contribution_to_outcome?: string | null
