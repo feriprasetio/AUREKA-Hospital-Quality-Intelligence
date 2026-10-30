@@ -256,7 +256,7 @@ export default function HomeClient(){
     setQualityInitialContainer(selectedAudit==='clinical-death'?'Audit Klinis dan Kematian':'Audit Indikator Mutu')
     return
    }
-   const selectedAudit=childId.replace(/^(audit-|logbook-)/,'')
+   const selectedAudit=childId==='clinical-pathway'?'pathway':childId.replace(/^(audit-|logbook-)/,'')
    if(!['indicators','pathway','clinical-death'].includes(selectedAudit))return
    setQualityResultsView(null)
    setClinicalPathwayOpen(selectedAudit==='pathway')
