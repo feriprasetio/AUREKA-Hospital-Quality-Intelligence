@@ -5,7 +5,7 @@ import {
   isPerinatologyFormulaError,
   makePerinatologySubjectKey,
   normalizePerinatologyDate,
-  normalizePerinatologyCellValue,
+  readPerinatologyCellValue,
   normalizePerinatologyOptionLabel,
   parsePerinatologySourceAnswer,
 } from '../lib/aureka/perinatology-logbook.ts'
