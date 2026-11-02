@@ -137,6 +137,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       }
       for (const item of INDICATORS) {
         const column = findHeader(columns, [...item.aliases])
+        if (column == null) throw new Error('Header indikator ' + item.header + ' tidak ditemukan.')
         indexes['indicator:' + item.code] = column
       }
       const required = [
