@@ -260,7 +260,7 @@ export default function RiskManagementWorkspace({
   const loadData = useCallback(async () => {
     const cacheKey = userId + '|' + (scopedToUnit ? 'unit:' + String(initialRoomId) : 'all')
     const cached = rmQueryCache.get(cacheKey)
-    if (cached) applyQueries(cached)
+    if (cached) { applyQueries(cached); setLoading(false) }
     else setLoading(true)
     const queries = await Promise.all([
       fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).order('id', { ascending: true }).range(from, to)),
