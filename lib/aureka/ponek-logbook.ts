@@ -89,12 +89,18 @@ export function mapPonekLogbookHeaders(headerValues: unknown[]): PonekHeaderMap 
 
 /** Do not mistake formula-filled No. cells below the dataset for patient episodes. */
 export function hasPonekLogbookData(values: Record<string, unknown>): boolean {
-  const keys = [
+  const identityKeys = [
     'patientName', 'medicalRecordNo', 'admissionDate', 'patientCategory',
     'diagnosis', 'arrivalOrigin', 'admissionCondition',
-    ...PONEK_SOURCE_INDICATORS.map(item => 'indicator:' + item.code),
   ]
-  return keys.some(key => String(values[key] ?? '').trim() !== '')
+  const identityPresent = identityKeys.some(key => String(values[key] ?? '').trim() !== '')
+  const sequencePresent = String(values.sourceNo ?? '').trim() !== ''
+  const indicatorPresent = PONEK_SOURCE_INDICATORS.some(
+    item => String(values['indicator:' + item.code] ?? '').trim() !== '',
+  )
+
+  // Ignore stray/preformatted indicator cells unless a physical source sequence or patient identity exists.
+  return identityPresent || (sequencePresent && indicatorPresent)
 }
 
 function validDate(year: number, month: number, day: number): string | null {
