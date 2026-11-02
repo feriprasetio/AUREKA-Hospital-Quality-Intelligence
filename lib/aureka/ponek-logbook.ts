@@ -69,7 +69,7 @@ export function mapPonekLogbookHeaders(headerValues: unknown[]): PonekHeaderMap 
   const duplicateHeaders: string[] = []
 
   const resolve = (key: string, aliases: string[]) => {
-    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? [])]
+    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
       return
