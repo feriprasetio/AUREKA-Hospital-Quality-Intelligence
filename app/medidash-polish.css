@@ -307,3 +307,39 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNestedGroup.open>button .sideba
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover .sidebarChevron,
 html[data-theme] .workspaceRoot .sidebar .sidebarTreeParent:hover .sidebarChevron{background:rgba(37,99,235,.08)}
 html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup{padding:2px!important}
+
+/* ---------- Sidebar glass, round 2: glossy frosted boxes on a soft colour wash ---------- */
+html[data-theme] .workspaceRoot .sidebar{
+  background:
+    radial-gradient(120% 40% at 0% 18%,rgba(37,99,235,.13),transparent 60%),
+    radial-gradient(90% 35% at 100% 62%,rgba(15,118,86,.11),transparent 60%),
+    radial-gradient(80% 30% at 10% 100%,rgba(99,102,241,.10),transparent 60%),
+    linear-gradient(180deg,#f6f8fd 0%,#eef2fa 100%)!important
+}
+html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile){
+  position:relative!important;overflow:hidden!important;
+  background:linear-gradient(140deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.5) 100%)!important;
+  border:1px solid rgba(255,255,255,.85)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -1px 0 rgba(148,163,184,.12),
+    0 1px 2px rgba(15,23,42,.04),
+    0 8px 22px -8px rgba(30,64,175,.14)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%)
+}
+html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile)::before{
+  content:'';position:absolute;inset:0 0 auto 0;height:48%;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0))
+}
+html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile)>*{position:relative;z-index:1}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup:hover{
+  background:linear-gradient(140deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.62) 100%)!important;
+  transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff,0 2px 4px rgba(15,23,42,.05),0 12px 26px -10px rgba(30,64,175,.22)!important
+}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup{transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{
+  background:linear-gradient(140deg,rgba(255,255,255,.96) 0%,rgba(234,241,255,.78) 100%)!important;
+  border-color:rgba(147,180,247,.6)!important;
+  box-shadow:inset 0 1px 0 #fff,0 0 0 3px rgba(37,99,235,.06),0 14px 30px -12px rgba(37,99,235,.32)!important
+}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:linear-gradient(90deg,rgba(37,99,235,.12),rgba(37,99,235,.03))!important}
