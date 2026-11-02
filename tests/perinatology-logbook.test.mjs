@@ -71,7 +71,7 @@ test('still accepts the legacy combined Kekosongan BHP/Linen header and reports 
     'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Berat Badan',
     'Perawat Penerima', 'DPJP', 'Kekosongan BHP/Linen', 'Visite Spesialis',
     'Validitas Asesmen Keperawatan', 'Transfer IGD', 'Stabilitas Bayi Transfer',
-    'Asfiksia Tidak Ada', 'Ventilator Bayi', 'Usaha Nafas Bayi', 'VTP <1 Menit',
+    'Asfiksia Tidak Ada', 'Ventilator Bayi', 'APGAR Score', 'Usaha Nafas Bayi', 'VTP <1 Menit',
     'HIE Tidak Ada',
   ]
   const mapped = mapPerinatologyLogbookHeaders(headers)
