@@ -248,3 +248,20 @@ html .authPage .authBack{color:#1d4ed8!important}
   html[data-theme] .workspaceRoot .moduleEnter .ovKpi b{font-size:24px!important}
   html[data-theme] .workspaceRoot .moduleEnter .ovKpi small{font-size:11.5px!important}
 }
+
+/* ---------- Module hero: title left, role + actions right on one line ---------- */
+html[data-theme] .workspaceRoot .moduleEnter :is(.rmHero,.psHead)>.liquidGlassContent{
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;flex-wrap:wrap!important;width:100%!important
+}
+html[data-theme] .workspaceRoot .moduleEnter :is(.rmHero,.psHead){padding:18px 22px!important}
+html[data-theme] .workspaceRoot .moduleEnter :is(.rmHeroActions,.psActions){display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:nowrap!important;margin:0!important;width:auto!important}
+html[data-theme] .workspaceRoot .moduleEnter :is(.rmRoleChip,.psActions .psPill){
+  display:inline-flex!important;align-items:center!important;gap:6px!important;height:36px!important;padding:0 12px!important;
+  border-radius:10px!important;border:0!important;background:#f3f5f9!important;color:#475569!important;
+  font-size:12.5px!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important;box-shadow:none!important;white-space:nowrap!important
+}
+html[data-theme] .workspaceRoot .moduleEnter :is(.rmRoleChip,.psActions .psPill):before{content:'';width:7px;height:7px;border-radius:50%;background:#22a06b}
+html[data-theme] .workspaceRoot .moduleEnter :is(.rmHeroActions .rmButton,.psActions .psBtn){height:36px!important;min-height:36px!important;padding:0 16px!important;border-radius:10px!important;font-size:13px!important;font-weight:700!important;white-space:nowrap!important}
+@media(max-width:620px){
+  html[data-theme] .workspaceRoot .moduleEnter :is(.rmHeroActions,.psActions){width:100%!important;justify-content:space-between!important}
+}

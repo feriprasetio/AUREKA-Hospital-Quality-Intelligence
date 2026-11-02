@@ -89,19 +89,30 @@ const sourceUnitLabel = (risk: Pick<RiskRow, 'unit_name'>) => risk.unit_name?.tr
 const CONNECTOR_STOP_WORDS = new Set(['adalah', 'agar', 'akan', 'atau', 'bahwa', 'belum', 'bisa', 'dalam', 'dan', 'dapat', 'dari', 'dengan', 'dilakukan', 'diperlukan', 'guna', 'hingga', 'hanya', 'harus', 'jika', 'juga', 'karena', 'kedua', 'ketika', 'kondisi', 'kurang', 'lebih', 'melalui', 'menjadi', 'menyebabkan', 'meningkat', 'mungkin', 'pada', 'paling', 'para', 'perlu', 'saat', 'salah', 'sama', 'sebagai', 'sehingga', 'selama', 'sering', 'setiap', 'sudah', 'tanpa', 'terhadap', 'terjadi', 'terkait', 'terlalu', 'tidak', 'untuk', 'yang', 'unit', 'rumah', 'sakit', 'pelayanan', 'risiko', 'resiko', 'pasien', 'petugas', 'pegawai', 'tenaga'])
 const riskTokens = (value: unknown) => new Set(String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter(token => token.length >= 4 && !CONNECTOR_STOP_WORDS.has(token)))
 const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
-  const allRows: any[] = []
+  // Halaman pertama dulu; bila penuh, halaman berikutnya diambil paralel (4 sekaligus)
+  // supaya register besar tidak menunggu satu per satu.
   const batchSize = 1000
-  let from = 0
+  const first = await buildQuery(0, batchSize - 1)
+  if (first.error) return { data: null, error: first.error }
+  const allRows: any[] = [...((first.data || []) as any[])]
+  if (allRows.length < batchSize) return { data: allRows, error: null }
+  let page = 1
   while (true) {
-    const { data, error } = await buildQuery(from, from + batchSize - 1)
-    if (error) return { data: null, error }
-    const batch = (data || []) as any[]
-    allRows.push(...batch)
-    if (batch.length < batchSize) break
-    from += batchSize
+    const wave = await Promise.all([0, 1, 2, 3].map(i => buildQuery((page + i) * batchSize, (page + i + 1) * batchSize - 1)))
+    for (const result of wave) if (result.error) return { data: null, error: result.error }
+    let done = false
+    for (const result of wave) {
+      const batch = (result.data || []) as any[]
+      allRows.push(...batch)
+      if (batch.length < batchSize) { done = true; break }
+    }
+    if (done) break
+    page += 4
   }
   return { data: allRows, error: null }
 }
+// Cache di memori: saat modul dibuka lagi, data terakhir langsung tampil sambil diperbarui di latar.
+const rmQueryCache = new Map<string, { data: any[] | null; error: any }[]>()
 const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"'
 // Form ditampilkan sebagai jendela di atas halaman agar tidak perlu scroll ke bawah tabel.
 // Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
@@ -206,17 +217,8 @@ export default function RiskManagementWorkspace({
   const unitOptions = useMemo(() => rooms.length ? rooms : [], [rooms])
   const sourceUnitOptions = useMemo(() => Array.from(new Set(risks.map(sourceUnitLabel))).sort((a, b) => a.localeCompare(b, 'id')), [risks])
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
+  const applyQueries = useCallback((queries: { data: any[] | null; error: any }[]) => {
     setError('')
-    const queries = await Promise.all([
-      fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('mitigation_plan_risks').select('*').order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('risk_relationships').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-    ])
     const firstError = queries.find(q => q.error)
     if (firstError?.error) {
       setError('Data Manajemen Risiko belum dapat dimuat. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase. Detail: ' + firstError.error.message)
@@ -254,8 +256,25 @@ export default function RiskManagementWorkspace({
       setSelectedRiskId(current => incomingRisks.some(r => r.id === current) ? current : (incomingRisks[0]?.id || ''))
       setSelectedPlanId(current => incomingPlans.some(p => p.id === current) ? current : (incomingPlans[0]?.id || ''))
     }
+  }, [currentRoom?.name, scopedToUnit, belongsToMyUnit, initialRoomId])
+  const loadData = useCallback(async () => {
+    const cacheKey = userId + '|' + (scopedToUnit ? 'unit:' + String(initialRoomId) : 'all')
+    const cached = rmQueryCache.get(cacheKey)
+    if (cached) applyQueries(cached)
+    else setLoading(true)
+    const queries = await Promise.all([
+      fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plan_risks').select('*').order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_relationships').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+    ])
+    if (!queries.some(q => q.error)) rmQueryCache.set(cacheKey, queries)
+    applyQueries(queries)
     setLoading(false)
-  }, [db, currentRoom?.name, scopedToUnit, belongsToMyUnit, initialRoomId])
+  }, [db, scopedToUnit, initialRoomId, applyQueries, userId])
+
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {

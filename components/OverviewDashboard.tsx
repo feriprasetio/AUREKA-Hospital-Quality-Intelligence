@@ -27,13 +27,19 @@ const PLAN_ACTIVE = ['approved', 'in_progress', 'evaluated']
 const PLAN_PENDING = ['pending_kabid', 'pending_director', 'pending_board']
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 
+// Cache di memori agar Ringkasan langsung tampil saat dibuka lagi, lalu diperbarui di latar.
+const ovCache = new Map<string, any[]>()
 async function fetchAll<T>(build: (from: number, to: number) => any, cap = 5000): Promise<Section<T>> {
-  const rows: T[] = []
-  for (let from = 0; from < cap; from += 1000) {
-    const { data, error } = await build(from, from + 999)
-    if (error) return { rows, error: error.message || 'Gagal memuat data' }
-    rows.push(...((data || []) as T[]))
-    if (!data || data.length < 1000) break
+  // Halaman pertama dulu; bila penuh, sisa halaman (sampai batas cap) diambil paralel.
+  const first = await build(0, 999)
+  if (first.error) return { rows: [], error: first.error.message || 'Gagal memuat data' }
+  const rows: T[] = [...((first.data || []) as T[])]
+  if (rows.length < 1000) return { rows, error: null }
+  const rest = await Promise.all(Array.from({ length: Math.ceil(cap / 1000) - 1 }, (_, k) => build((k + 1) * 1000, (k + 2) * 1000 - 1)))
+  for (const page of rest) {
+    if (page.error) return { rows, error: page.error.message || 'Gagal memuat data' }
+    rows.push(...((page.data || []) as T[]))
+    if (!page.data || page.data.length < 1000) break
   }
   return { rows, error: null }
 }
@@ -120,7 +126,24 @@ export default function OverviewDashboard({
   useEffect(() => {
     let cancelled = false
     const sb = supabase as any
-    setLoading(true)
+    const cacheKey = [userName, manager, roomId, roomName, year].join('|')
+    const apply = ([r, p, i, q, cp]: any[]) => {
+      if (cancelled) return
+      // Role unit (PIC) melihat data unitnya saja, selaras dengan modul Manajemen Risiko.
+      const norm = (v?: string | null) => String(v || '').trim().toLowerCase()
+      const mine = (unitId: number | null, unitName?: string | null) =>
+        manager || (roomId != null && (unitId === roomId || (unitId == null && !!roomName && norm(unitName) === norm(roomName))))
+      setRisks({ ...r, rows: (r.rows as Risk[]).filter(x => mine(x.unit_id, x.unit_name)) })
+      setPlans({ ...p, rows: (p.rows as Plan[]).filter(x => manager || (roomId != null && x.owner_room_id === roomId)) })
+      setIncidents(i)
+      setQuality({ ...q, rows: (q.rows as QualityRecord[]).filter(x => manager || (roomId != null && x.room_id === roomId)) })
+      setClinicalPathway({ ...cp, rows: (cp.rows as ClinicalPathwayAudit[]).filter(x => manager || (roomId != null && x.room_id === roomId)) })
+      setRefreshedAt(new Date())
+      setLoading(false)
+    }
+    const cached = ovCache.get(cacheKey)
+    if (cached) apply(cached)
+    else setLoading(true)
     Promise.all([
       fetchAll<Risk>((f, t) => sb.schema('aureka_risk').from('risk_register')
         .select('id,risk_code,unit_id,unit_name,risk_event,likelihood,impact,risk_score,risk_level,status,due_date')
@@ -138,22 +161,12 @@ export default function OverviewDashboard({
         .gte('created_at', String(year) + '-01-01T00:00:00.000Z')
         .lt('created_at', String(year + 1) + '-01-01T00:00:00.000Z')
         .neq('status', 'archived').order('created_at', { ascending: false }).range(f, t)),
-    ]).then(([r, p, i, q, cp]) => {
-      if (cancelled) return
-      // Role unit (PIC) melihat data unitnya saja, selaras dengan modul Manajemen Risiko.
-      const norm = (v?: string | null) => String(v || '').trim().toLowerCase()
-      const mine = (unitId: number | null, unitName?: string | null) =>
-        manager || (roomId != null && (unitId === roomId || (unitId == null && !!roomName && norm(unitName) === norm(roomName))))
-      setRisks({ ...r, rows: r.rows.filter(x => mine(x.unit_id, x.unit_name)) })
-      setPlans({ ...p, rows: p.rows.filter(x => manager || (roomId != null && x.owner_room_id === roomId)) })
-      setIncidents(i)
-      setQuality({ ...q, rows: q.rows.filter(x => manager || (roomId != null && x.room_id === roomId)) })
-      setClinicalPathway({ ...cp, rows: cp.rows.filter(x => manager || (roomId != null && x.room_id === roomId)) })
-      setRefreshedAt(new Date())
-      setLoading(false)
+    ]).then(results => {
+      if (!results.some((x: any) => x.error)) ovCache.set(cacheKey, results)
+      apply(results)
     })
     return () => { cancelled = true }
-  }, [supabase, manager, roomId, roomName, year, reloadKey])
+  }, [supabase, manager, roomId, roomName, year, reloadKey, userName])
 
   const stats = useMemo(() => {
     const now = new Date()
