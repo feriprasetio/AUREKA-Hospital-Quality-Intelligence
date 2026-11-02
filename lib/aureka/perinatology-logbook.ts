@@ -1,3 +1,5 @@
+import { normalizeExactHeader } from './excel-paste.ts'
+
 export type PerinatologyIndicatorOption = {
   code: number | null
   label: string
@@ -37,6 +39,76 @@ export const PERINATOLOGY_SOURCE_INDICATORS = [
   { sourceSequence: 10, code: '20.5', header: 'VTP <1 Menit', sourceHeader: 'VTP <1 Menit' },
   { sourceSequence: 11, code: '20.10', header: 'HIE Tidak Ada', sourceHeader: 'HIE Tidak Ada' },
 ] as const
+
+export type PerinatologyLogbookHeaderMap = {
+  indexes: Record<string, number>
+  missingHeaders: string[]
+  duplicateHeaders: string[]
+}
+
+const PERINATOLOGY_LOGBOOK_HEADER_ALIASES: Record<string, string[]> = {
+  sourceNo: ['No.', 'No'],
+  patientName: ['Nama Pasien'],
+  medicalRecordNo: ['No. Rekam Medis', 'No RM', 'No. RM.'],
+  admissionDate: ['Tanggal Masuk'],
+  dischargeDate: ['Tanggal Keluar'],
+  diagnosis: ['Diagnosa Tegak', 'Diagnosis Tegak'],
+  patientCategory: ['Kategori Pasien'],
+  dischargeStatus: ['Status Pulang'],
+  weight: ['Berat Badan'],
+  height: ['Tinggi Badan'],
+  sourceLos: ['Lenght of Stay', 'Length of Stay'],
+  receivingNurse: ['Perawat Penerima'],
+  dpjp: ['DPJP'],
+  // The source workbook labels the combined BHP/Linen indicator as "Kekosongan Linen".
+  unmappedBhpLinen: ['Kekosongan BHP/Linen', 'Kekosongan Linen'],
+}
+
+const OPTIONAL_PERINATOLOGY_HEADERS = new Set(['height', 'sourceLos'])
+
+/**
+ * Maps the physical Logbook header row to importer fields.
+ * "Kekosongan Linen" is retained as an alias for the legacy combined BHP/Linen
+ * source indicator; it is not one of the ten indicators mapped to active profiles.
+ */
+export function mapPerinatologyLogbookHeaders(headerValues: unknown[]): PerinatologyLogbookHeaderMap {
+  const columns = new Map<string, number[]>()
+
+  headerValues.forEach((value, index) => {
+    const key = normalizeExactHeader(value)
+    if (!key) return
+    const matches = columns.get(key) ?? []
+    matches.push(index + 1)
+    columns.set(key, matches)
+  })
+
+  const indexes: Record<string, number> = {}
+  const missingHeaders: string[] = []
+  const duplicateHeaders: string[] = []
+
+  const resolve = (key: string, aliases: string[], optional = false) => {
+    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
+    if (matches.length > 1) {
+      duplicateHeaders.push(aliases[0])
+      return
+    }
+    if (matches.length === 1) {
+      indexes[key] = matches[0]
+      return
+    }
+    if (!optional) missingHeaders.push(aliases[0])
+  }
+
+  for (const [key, aliases] of Object.entries(PERINATOLOGY_LOGBOOK_HEADER_ALIASES)) {
+    resolve(key, aliases, OPTIONAL_PERINATOLOGY_HEADERS.has(key))
+  }
+
+  for (const item of PERINATOLOGY_SOURCE_INDICATORS) {
+    resolve('indicator:' + item.code, [item.sourceHeader])
+  }
+
+  return { indexes, missingHeaders, duplicateHeaders }
+}
 
 const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?'])
 

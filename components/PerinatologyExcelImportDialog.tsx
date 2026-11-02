@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
 import {
   calculatePerinatologyStayDays,
@@ -10,6 +9,7 @@ import {
   makePerinatologySubjectKey,
   normalizePerinatologyDate,
   readPerinatologyCellValue,
+  mapPerinatologyLogbookHeaders,
   parsePerinatologySourceAnswer,
   PERINATOLOGY_SOURCE_INDICATORS,
   type PerinatologyIndicatorProfile,
@@ -22,25 +22,6 @@ const MAX_FILE_BYTES = 15 * 1024 * 1024
 const MAX_DATA_ROWS = 5000
 const BATCH_SIZE = Math.min(DEFAULT_IMPORT_BATCH_SIZE, 20)
 const MIN_BATCH_SIZE = MIN_IMPORT_BATCH_SIZE
-const UNMAPPED_SOURCE_HEADER = 'Kekosongan BHP/Linen'
-
-const REQUIRED_HEADERS: Record<string, string[]> = {
-  sourceNo: ['No.', 'No'],
-  patientName: ['Nama Pasien'],
-  medicalRecordNo: ['No. Rekam Medis', 'No RM', 'No. RM.'],
-  admissionDate: ['Tanggal Masuk'],
-  dischargeDate: ['Tanggal Keluar'],
-  diagnosis: ['Diagnosa Tegak', 'Diagnosis Tegak'],
-  patientCategory: ['Kategori Pasien'],
-  dischargeStatus: ['Status Pulang'],
-  weight: ['Berat Badan'],
-  height: ['Tinggi Badan'],
-  sourceLos: ['Lenght of Stay', 'Length of Stay'],
-  receivingNurse: ['Perawat Penerima'],
-  dpjp: ['DPJP'],
-  unmappedBhpLinen: ['Kekosongan BHP/Linen'],
-}
-
 type PreparedRow = {
   sourceRow: number
   sourceNo: string
@@ -58,6 +39,7 @@ type PreparedRow = {
   receivingNurse: string
   dpjp: string
   unmappedBhpLinen: string
+  unmappedBhpLinenHeader: string
   indicators: Record<string, PerinatologySourceAnswer>
   warnings: string[]
 }
@@ -106,54 +88,31 @@ function sourceNumber(cell: any): string {
   return String(value).trim()
 }
 
-function headerColumns(row: any): Map<string, number[]> {
-  const result = new Map<string, number[]>()
-  const count = Math.min(Number(row.cellCount ?? row.actualCellCount ?? 100), 100)
-  for (let column = 1; column <= count; column++) {
-    const label = cellText(row.getCell(column))
-    if (!label) continue
-    const key = normalizeExactHeader(label)
-    const matches = result.get(key) ?? []
-    matches.push(column)
-    result.set(key, matches)
-  }
-  return result
-}
-
-function findHeader(columns: Map<string, number[]>, aliases: string[], required: boolean): number | null {
-  for (const alias of aliases) {
-    const matches = columns.get(normalizeExactHeader(alias))
-    if (matches?.length) {
-      if (matches.length > 1) throw new Error('Header "' + alias + '" muncul lebih dari satu kali.')
-      return matches[0]
-    }
-  }
-  if (required) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada sheet Logbook.')
-  return null
-}
-
 function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string, number> } {
+  let bestMissingHeaders: string[] = []
+  let bestDuplicateHeaders: string[] = []
+
   for (let rowNumber = 1; rowNumber <= Math.min(10, sheet.rowCount); rowNumber++) {
-    try {
-      const columns = headerColumns(sheet.getRow(rowNumber))
-      const indexes: Record<string, number> = {}
-      for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
-        const optional = ['height', 'sourceLos'].includes(key)
-        const column = findHeader(columns, aliases, !optional)
-        if (column != null) indexes[key] = column
-      }
-      for (const item of PERINATOLOGY_SOURCE_INDICATORS) {
-        const column = findHeader(columns, [item.sourceHeader], true)
-        if (column == null) throw new Error('Header indikator ' + item.sourceHeader + ' tidak ditemukan.')
-        indexes['indicator:' + item.code] = column
-      }
-      const required = ['sourceNo', 'patientName', 'medicalRecordNo', 'admissionDate', 'diagnosis', 'receivingNurse', 'dpjp']
-      if (required.every(key => indexes[key] != null)) return { rowNumber, indexes }
-    } catch {
-      // Continue past merged title rows before the actual header.
+    const row = sheet.getRow(rowNumber)
+    const count = Math.min(Number(row.cellCount ?? row.actualCellCount ?? 100), 100)
+    const headerValues = Array.from({ length: count }, (_, index) => cellText(row.getCell(index + 1)))
+    const mapped = mapPerinatologyLogbookHeaders(headerValues)
+
+    if (mapped.missingHeaders.length === 0 && mapped.duplicateHeaders.length === 0) {
+      return { rowNumber, indexes: mapped.indexes }
+    }
+
+    if (!bestMissingHeaders.length || mapped.missingHeaders.length < bestMissingHeaders.length) {
+      bestMissingHeaders = mapped.missingHeaders
+      bestDuplicateHeaders = mapped.duplicateHeaders
     }
   }
-  throw new Error('Header Logbook Perinatologi tidak lengkap. Periksa kolom identitas, Tanggal Masuk, diagnosis, perawat, DPJP, dan 10 indikator yang dipetakan.')
+
+  const details = [
+    bestMissingHeaders.length ? 'Header wajib belum ditemukan: ' + bestMissingHeaders.join(', ') + '.' : '',
+    bestDuplicateHeaders.length ? 'Header ganda: ' + bestDuplicateHeaders.join(', ') + '.' : '',
+  ].filter(Boolean).join(' ')
+  throw new Error('Header Logbook Perinatologi tidak lengkap.' + (details ? ' ' + details : ' Periksa baris header Logbook.'))
 }
 
 function formulaValue(cell: any): unknown {
@@ -225,10 +184,10 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     source_excel_no: row.sourceNo,
     source_indicator_values: sourceIndicatorValues,
     unmapped_source_indicator: {
-      source_header: UNMAPPED_SOURCE_HEADER,
+      source_header: row.unmappedBhpLinenHeader,
       source_value: row.unmappedBhpLinen,
       mapping_status: 'combined_bhp_linen_source_not_mapped',
-      reason: 'Workbook menggabungkan BHP dan Linen; master aktif memisahkan Kekosongan Linen (20.6) dan Kekosongan Obat (20.12).',
+      reason: 'Pilihan sumber memuat gabungan BHP/Linen/barang penunjang; data disimpan sebagai provenance dan tidak dipaksakan ke indikator terpisah.',
       target_profiles: ['20.6 Kekosongan Linen', '20.12 Kekosongan Obat'],
     },
     source_cached_los: row.sourceLos,
@@ -250,7 +209,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
     'DPJP': row.dpjp,
-    'Kekosongan BHP/Linen (sumber belum dipetakan)': row.unmappedBhpLinen,
+    [row.unmappedBhpLinenHeader + ' (sumber belum dipetakan)']: row.unmappedBhpLinen,
   }
 
   const core = {
@@ -382,6 +341,7 @@ export default function PerinatologyExcelImportDialog({
         }
       }
 
+      const unmappedBhpLinenHeader = cellText(sheet.getRow(header.rowNumber).getCell(header.indexes.unmappedBhpLinen))
       const prepared: PreparedRow[] = []
       const rowErrors: string[] = []
       const sequenceCounts = new Map<string, number>()
@@ -428,7 +388,6 @@ export default function PerinatologyExcelImportDialog({
           if (!receivingNurse) throw new Error('Perawat Penerima kosong.')
           if (!dpjp) throw new Error('DPJP kosong.')
           if (!weight) throw new Error('Berat Badan kosong.')
-          if (!unmappedBhpLinen) throw new Error('Nilai sumber Kekosongan BHP/Linen kosong; periksa workbook.')
 
           const computedLos = calculatePerinatologyStayDays(admissionDate, dischargeDate)
           const warnings: string[] = []
@@ -458,13 +417,13 @@ export default function PerinatologyExcelImportDialog({
           }
 
           if (unmappedBhpLinen.trim()) {
-            warnings.push('Kekosongan BHP/Linen tetap disimpan sebagai data sumber; tidak dipetakan ke 20.6 Linen atau 20.12 Obat.')
+            warnings.push(unmappedBhpLinenHeader + ' memuat pilihan gabungan BHP/Linen; nilai dipertahankan sebagai data sumber dan tidak dipetakan otomatis.')
           }
 
           const row: PreparedRow = {
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo, admissionDate,
             dischargeDate, diagnosis, patientCategory, dischargeStatus, weight, height,
-            sourceLos, computedLos, receivingNurse, dpjp, unmappedBhpLinen, indicators, warnings,
+            sourceLos, computedLos, receivingNurse, dpjp, unmappedBhpLinen, unmappedBhpLinenHeader, indicators, warnings,
           }
           sequenceCounts.set(sourceNo, (sequenceCounts.get(sourceNo) ?? 0) + 1)
           prepared.push(row)
