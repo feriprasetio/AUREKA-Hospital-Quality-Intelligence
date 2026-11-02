@@ -77,6 +77,8 @@ async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
  const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false)
+ const [closedNav,setClosedNav]=useState<string[]>([])
+ const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
  useEffect(()=>{
   if(typeof document==='undefined')return
   window.localStorage.removeItem('aureka-theme-mode')
@@ -510,27 +512,27 @@ export default function HomeClient(){
      <NavIcon id="home"/><span>Ringkasan</span>
     </button>
    </div>
-   {visibleMods.map(([id,n])=><div className={'sidebarNavGroup '+(active===id?'expanded':'')} key={id}>
-    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={active===id} onClick={()=>openMainModule(id,Boolean(sidebarChildGroups[id]?.length))}>
+   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=active===id&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(active===id?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
+    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} onClick={()=>{if(hasKids&&active===id){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
      <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
     </button>
-    {active===id&&sidebarChildGroups[id]?.length?<div className="sidebarTreeChildren">
+    {groupOpen&&hasKids?<div className="sidebarTreeChildren">
      {sidebarChildGroups[id].map(child=>child.children?.length
-      ? <div className="sidebarNestedGroup" key={child.id}>
-         <button type="button" className={'sidebarChild sidebarTreeParent '+(qualityResultsView===child.id.replace('audit-','')||(clinicalPathwayOpen&&child.id==='audit-pathway')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer==='Audit Klinis dan Kematian'&&child.id==='audit-clinical-death')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer!=='Audit Klinis dan Kematian'&&child.id==='audit-indicators')?'active':'')} aria-expanded={true} onClick={()=>selectSidebarChild(id,child.id)}>
+      ? (()=>{const pActive=Boolean(qualityResultsView===child.id.replace('audit-','')||(clinicalPathwayOpen&&child.id==='audit-pathway')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer==='Audit Klinis dan Kematian'&&child.id==='audit-clinical-death')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer!=='Audit Klinis dan Kematian'&&child.id==='audit-indicators'));const nKey='n:'+child.id;const nOpen=!closedNav.includes(nKey);return <div className={'sidebarNestedGroup '+(nOpen?'open':'closed')} key={child.id}>
+         <button type="button" className={'sidebarChild sidebarTreeParent '+(pActive?'active':'')} aria-expanded={nOpen} onClick={()=>{if(pActive){toggleNav(nKey);return}toggleNav(nKey,true);selectSidebarChild(id,child.id)}}>
           <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
          </button>
-         <div className="sidebarTreeChildren sidebarTreeNestedChildren">
+         {nOpen&&<div className="sidebarTreeChildren sidebarTreeNestedChildren">
           {child.children.map(nested=><button type="button" key={nested.id} className={selectedSidebarChild(id)===nested.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===nested.id?'page':undefined} onClick={()=>selectSidebarChild(id,nested.id)}>
            <span className="sidebarChildMark" aria-hidden="true"/><span>{nested.label}</span>
           </button>)}
-         </div>
-        </div>
+         </div>}
+        </div>})()
       : <button type="button" key={child.id} className={selectedSidebarChild(id)===child.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===child.id?'page':undefined} onClick={()=>selectSidebarChild(id,child.id)}>
          <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span>
         </button>)}
     </div>:null}
-   </div>)}
+   </div>})}
   </nav>
   <div className="sidebarFooter">
    <LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton>

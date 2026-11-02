@@ -283,3 +283,27 @@ html[data-theme] .workspaceRoot .moduleEnter .rmIconButton:hover:not(:disabled){
 html[data-theme] .workspaceRoot .moduleEnter .rmIconButton:disabled{color:#94a3b8!important;border-color:#e2e8f0!important;background:#f8fafc!important}
 html[data-theme] .workspaceRoot .moduleEnter .rmIconButton.dangerText{color:#dc2626!important;border-color:#fecaca!important}
 html[data-theme] .workspaceRoot .moduleEnter .rmTable .rmActions{flex-wrap:nowrap!important;gap:6px!important}
+
+/* ---------- Sidebar: each menu group in its own soft glass box ---------- */
+html[data-theme] .workspaceRoot .sidebar{background:linear-gradient(180deg,#f7f9fd 0%,#eef2f9 100%)!important}
+html[data-theme] .workspaceRoot .sidebar .sideProfile{background:rgba(255,255,255,.7)!important;border:1px solid rgba(255,255,255,.9)!important;box-shadow:0 1px 2px rgba(15,23,42,.04),0 4px 14px rgba(15,23,42,.05)!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNav{display:flex!important;flex-direction:column!important;gap:7px!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup{
+  margin:0!important;padding:3px!important;border-radius:13px!important;
+  background:rgba(255,255,255,.62)!important;border:1px solid rgba(255,255,255,.95)!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.035),0 3px 10px rgba(15,23,42,.04),inset 0 1px 0 rgba(255,255,255,.9)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%);
+  transition:box-shadow .18s ease,border-color .18s ease,background .18s ease
+}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup:hover{background:rgba(255,255,255,.85)!important;box-shadow:0 2px 4px rgba(15,23,42,.05),0 6px 16px rgba(15,23,42,.06)!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{background:rgba(255,255,255,.92)!important;border-color:#dbe6fb!important;box-shadow:0 2px 6px rgba(37,99,235,.06),0 8px 22px rgba(37,99,235,.08)!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button{background:transparent!important;margin:0!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#eef3fe!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup .sidebarTreeChildren{padding-bottom:4px!important}
+/* Chevron: down when closed, up when open — both clickable through the menu button */
+html[data-theme] .workspaceRoot .sidebar .sidebarChevron{display:inline-grid!important;place-items:center;width:22px;height:22px;border-radius:7px;transition:transform .2s ease,background .15s;transform:none!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.expanded>button .sidebarChevron,
+html[data-theme] .workspaceRoot .sidebar .sidebarNestedGroup.open>button .sidebarChevron{transform:rotate(180deg)!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover .sidebarChevron,
+html[data-theme] .workspaceRoot .sidebar .sidebarTreeParent:hover .sidebarChevron{background:rgba(37,99,235,.08)}
+html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup{padding:2px!important}
