@@ -320,7 +320,7 @@ BEGIN
       SELECT count(*) FROM jsonb_object_keys(v_values)
     ) <> jsonb_array_length(v_responses)
        OR (
-      SELECT count(*) FROM jsonb_object_keys(v_source_cells) AS cells(code)
+      SELECT count(*) FROM jsonb_object_keys(v_source_cells) AS cells(code, value)
        WHERE coalesce(v_source_cells->>code, '') <> ''
     ) <> jsonb_array_length(v_responses) THEN
       RAISE EXCEPTION 'Jumlah sel sumber, sumber indikator, nilai inti, dan respons tidak sama pada baris Excel %.', v_source_row USING ERRCODE = '22023';
