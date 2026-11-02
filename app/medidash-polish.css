@@ -8,14 +8,14 @@
  * No layout logic, data, permissions or Supabase behaviour is touched here.
  */
 html[data-theme] .workspaceRoot{
-  --accent:#2563eb;
-  --accent2:#1d4ed8;
-  --accent-rgb:37,99,235;
-  --accent-soft:#eff6ff;
-  --md-primary:#2563eb;
-  --md-primary-2:#3b82f6;
-  --md-primary-soft:#eff6ff;
-  --aur-canvas:#f4f6fb;
+  --accent:#0f7656;
+  --accent2:#0b5d44;
+  --accent-rgb:15,118,86;
+  --accent-soft:#ecf7f1;
+  --md-primary:#0f7656;
+  --md-primary-2:#16a37a;
+  --md-primary-soft:#ecf7f1;
+  --aur-canvas:#f3f6f4;
   --aur-card-border:#e8ecf3;
   --aur-card-shadow:0 1px 2px rgba(16,24,40,.04),0 2px 10px rgba(16,24,40,.045);
   --aur-ink:#1e293b;
@@ -28,7 +28,7 @@ html[data-theme] .workspaceRoot{
 }
 
 /* ---------- Canvas & cards ---------- */
-html:has(.workspaceRoot),body:has(.workspaceRoot){background:#f4f6fb!important}
+html:has(.workspaceRoot),body:has(.workspaceRoot){background:#f3f6f4!important}
 html[data-theme] .workspaceRoot,
 html[data-theme] .workspaceRoot .workspaceContent,
 html[data-theme] .workspaceRoot .moduleEnter{background-color:var(--aur-canvas)!important}
@@ -46,9 +46,9 @@ html[data-theme] .workspaceRoot .moduleEnter .liquidGlass{
 }
 
 /* ---------- One primary colour ---------- */
-html[data-theme] .workspaceRoot .moduleEnter :is([class$="Eyebrow"],[class*="Eyebrow "]):not(.ovPanelHead .ovEyebrow){color:#2563eb!important}
+html[data-theme] .workspaceRoot .moduleEnter :is([class$="Eyebrow"],[class*="Eyebrow "]):not(.ovPanelHead .ovEyebrow){color:#0f7656!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovPanelHead .ovEyebrow{color:#94a3b8!important;font-size:11px!important;letter-spacing:.1em!important}
-html[data-theme] .workspaceRoot .moduleEnter .rmPlanCard.selected{border-color:rgba(37,99,235,.45)!important;box-shadow:0 0 0 3px rgba(37,99,235,.12)!important}
+html[data-theme] .workspaceRoot .moduleEnter .rmPlanCard.selected{border-color:rgba(15,118,86,.45)!important;box-shadow:0 0 0 3px rgba(15,118,86,.12)!important}
 
 /* ---------- Ringkasan dashboard ---------- */
 html[data-theme] .workspaceRoot .moduleEnter .ovContextBar b{color:var(--aur-ink)!important;font-size:13px!important}
@@ -59,10 +59,10 @@ html[data-theme] .workspaceRoot .moduleEnter .ovStatus{color:var(--aur-muted)!im
 html[data-theme] .workspaceRoot .moduleEnter .ovUnitName{color:#334155!important;font-size:12.5px!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovColumnValue{color:#334155!important;font-size:12px!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovColumnLabel{font-size:12px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovColumnFill{background:linear-gradient(180deg,#60a5fa,#2563eb)!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovBarFill{background:linear-gradient(90deg,#60a5fa,#2563eb)!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovScore{background:#eff6ff!important;color:#1d4ed8!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovExecHeadline strong{color:#1d4ed8!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovColumnFill{background:linear-gradient(180deg,#3fb98f,#0f7656)!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovBarFill{background:linear-gradient(90deg,#3fb98f,#0f7656)!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovScore{background:#ecf7f1!important;color:#0b5d44!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovExecHeadline strong{color:#0b5d44!important}
 html[data-theme] .workspaceRoot .moduleEnter :is(.ovExecMetric b,.ovExecRtp b){color:var(--aur-ink)!important;font-size:13px!important}
 
 /* Risk-level bars use the same colours as the risk badges / risk matrix */
@@ -114,7 +114,7 @@ html[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi) sm
   html[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi) :is(strong,b){font-size:22px!important}
 }
 /* Ringkasan KPI accent stripe follows the card tone instead of purple */
-html[data-theme] .workspaceRoot .moduleEnter .ovKpi:not(.warn):not(.danger):before{background:#2563eb!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi:not(.warn):not(.danger):before{background:#0f7656!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi.warn:before{background:#f59e0b!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi.danger:before{background:#ef4444!important}
 html[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi)>.liquidGlassContent{
@@ -137,13 +137,13 @@ html[data-theme] .workspaceRoot .moduleEnter .liquidGlass{border-color:transpare
 /* ---------- Sidebar ---------- */
 html[data-theme] .workspaceRoot .sidebar .sideProfile{
   display:flex;align-items:center;gap:11px;width:100%;margin:2px 0 6px;padding:12px;border:0;border-radius:14px;
-  background:#f6f8fc;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:background .15s
+  background:#f4f8f5;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:background .15s
 }
-html[data-theme] .workspaceRoot .sidebar .sideProfile:hover{background:#eef2fa}
+html[data-theme] .workspaceRoot .sidebar .sideProfile:hover{background:#eaf1ed}
 html[data-theme] .workspaceRoot .sidebar .sideProfileAvatar{
   flex:0 0 40px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
-  background:linear-gradient(135deg,#2563eb,var(--aur-brand));color:#fff;font-weight:800;font-size:14px;letter-spacing:.02em;
-  box-shadow:0 0 0 3px #fff,0 0 0 4px #dbe4f3
+  background:linear-gradient(135deg,#13906a,#0b5d44);color:#fff;font-weight:800;font-size:14px;letter-spacing:.02em;
+  box-shadow:0 0 0 3px #fff,0 0 0 4px #d6e7de
 }
 html[data-theme] .workspaceRoot .sidebar .sideProfileText{display:flex;flex-direction:column;min-width:0}
 html[data-theme] .workspaceRoot .sidebar .sideProfileText b{font-size:13.5px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -158,34 +158,34 @@ html[data-theme] .workspaceRoot .sidebar .navLabel:before{content:'';width:14px;
 html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .navLabel{display:none!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button{border:0!important;border-radius:10px!important;box-shadow:none!important;color:#475569!important;font-weight:600!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover{background:#f3f6fb!important;color:#1e293b!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#eef3fe!important;color:#1d4ed8!important;font-weight:750!important;box-shadow:none!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive svg{color:#2563eb!important;stroke:#2563eb!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#e8f5ee!important;color:#0b5d44!important;font-weight:750!important;box-shadow:none!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive svg{color:#0f7656!important;stroke:#0f7656!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChevron{color:#94a3b8!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{border-left:0!important;margin-left:22px!important;padding-left:8px!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChild{border:0!important;background:transparent!important;color:#64748b!important;font-weight:550!important;box-shadow:none!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChild:hover{color:#1e293b!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarChild.active{color:#1d4ed8!important;font-weight:750!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChild.active{color:#0b5d44!important;font-weight:750!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChildMark{width:6px!important;height:6px!important;border-radius:50%!important;background:#cbd5e1!important;border:0!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark{background:#2563eb!important;box-shadow:0 0 0 3px #dbeafe!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark{background:#0f7656!important;box-shadow:0 0 0 3px #d3ecdf!important}
 
 /* ---------- Top bar ---------- */
 html[data-theme] .workspaceRoot .workspaceHeaderBar{border-bottom:0!important;box-shadow:0 1px 0 #eef1f6!important}
 html[data-theme] .workspaceRoot .workspaceGlobalSearch{background:#f3f5f9!important;border:1px solid transparent!important;border-radius:12px!important;box-shadow:none!important}
-html[data-theme] .workspaceRoot .workspaceGlobalSearch:focus-within{background:#fff!important;border-color:#bfdbfe!important;box-shadow:0 0 0 3px rgba(37,99,235,.1)!important}
+html[data-theme] .workspaceRoot .workspaceGlobalSearch:focus-within{background:#fff!important;border-color:#bfe3d1!important;box-shadow:0 0 0 3px rgba(15,118,86,.1)!important}
 html[data-theme] .workspaceRoot .workspaceGlobalSearch input{background:transparent!important}
 html[data-theme] .workspaceRoot .workspaceGlobalSearch kbd{background:#fff!important;border-color:#e2e8f0!important}
 html[data-theme] .workspaceRoot .workspaceHeaderIcon{border:0!important;background:transparent!important;border-radius:10px!important;color:#64748b!important}
 html[data-theme] .workspaceRoot .workspaceHeaderIcon:hover{background:#f3f5f9!important;color:#1e293b!important}
-html[data-theme] .workspaceRoot .workspaceHeaderAvatar{background:linear-gradient(135deg,#2563eb,var(--aur-brand))!important;color:#fff!important}
+html[data-theme] .workspaceRoot .workspaceHeaderAvatar{background:linear-gradient(135deg,#13906a,#0b5d44)!important;color:#fff!important}
 
 /* ---------- Page title + breadcrumb ---------- */
 html[data-theme] .workspaceRoot .workspacePageHead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 2px;padding:0 2px}
 html[data-theme] .workspaceRoot .workspacePageHead h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;color:#1e293b}
 html[data-theme] .workspaceRoot .workspaceCrumbs{display:flex;align-items:center;gap:8px;font-size:13px;color:#94a3b8;min-width:0}
-html[data-theme] .workspaceRoot .workspaceCrumbs b{color:#2563eb;font-weight:650}
+html[data-theme] .workspaceRoot .workspaceCrumbs b{color:#0f7656;font-weight:650}
 html[data-theme] .workspaceRoot .workspaceCrumbs span:not([aria-hidden]){color:#64748b}
 html[data-theme] .workspaceRoot .workspaceCrumbs button{display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:8px;background:transparent;color:#64748b;cursor:pointer}
-html[data-theme] .workspaceRoot .workspaceCrumbs button:hover{background:#eef3fe;color:#2563eb}
+html[data-theme] .workspaceRoot .workspaceCrumbs button:hover{background:#e8f5ee;color:#0f7656}
 html[data-theme] .workspaceRoot .workspaceCrumbs svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:760px){
   html[data-theme] .workspaceRoot .workspacePageHead{margin:8px 0 0}
@@ -201,7 +201,7 @@ html[data-theme] .workspaceRoot .moduleEnter .ovKpiHeader{display:flex!important
 html[data-theme] .workspaceRoot .moduleEnter .ovKpiLabel{font-size:14px!important;font-weight:650!important;color:#334155!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon{
   position:static!important;flex:0 0 44px!important;width:44px!important;height:44px!important;border-radius:12px!important;
-  display:grid!important;place-items:center!important;background:#eef3fe!important;color:#2563eb!important;box-shadow:none!important;transform:none!important
+  display:grid!important;place-items:center!important;background:#e8f5ee!important;color:#0f7656!important;box-shadow:none!important;transform:none!important
 }
 html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon:before,html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon:after{display:none!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi.warn .ovKpiIcon{background:#fff7e8!important;color:#d97706!important}
@@ -212,7 +212,8 @@ html[data-theme] .workspaceRoot .moduleEnter .ovKpi b{font-size:30px!important;c
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi small{font-size:12.5px!important;color:#64748b!important}
 
 /* ---------- Login / sign-up: split card, AUREKA gradient panel ---------- */
-html .authPage{background:#f4f6fb!important}
+html .authPage{background:#f3f6f4!important}
+html .authPage .authCard .field :is(input,select){background:#fff!important}
 html .authPage .landingAura{opacity:.35}
 html .authPage .authShell{border-radius:22px!important;border:0!important;background:#fff!important;box-shadow:0 10px 40px rgba(15,23,42,.08)!important}
 html .authPage .authAside{
@@ -220,7 +221,7 @@ html .authPage .authAside{
     radial-gradient(circle at 85% 12%,rgba(255,255,255,.16) 0 70px,transparent 71px),
     radial-gradient(circle at 10% 92%,rgba(255,255,255,.10) 0 120px,transparent 121px),
     repeating-linear-gradient(135deg,rgba(255,255,255,.04) 0 2px,transparent 2px 14px),
-    linear-gradient(150deg,#1d4ed8 0%,#2563eb 45%,#0f7656 100%)!important;
+    linear-gradient(150deg,#0a4f3a 0%,#0f7656 55%,#169a70 100%)!important;
   color:#fff!important
 }
 html .authPage .authAside h2{font-size:32px!important;letter-spacing:-.02em!important;color:#fff!important}
@@ -229,17 +230,17 @@ html .authPage .authAside li span{background:rgba(255,255,255,.18)!important;col
 html .authPage .authShell .authCard{background:#fff!important;border:0!important;box-shadow:none!important}
 html .authPage .authCard .liquidGlassEdge,html .authPage .authCard .liquidGlassSheen{display:none!important}
 html .authPage .authCard h1{color:#1e293b!important}
-html .authPage .authCard .authEyebrow{color:#2563eb!important}
+html .authPage .authCard .authEyebrow{color:#0f7656!important}
 html .authPage .authCard .field label{font-size:13px!important;font-weight:650!important;color:#334155!important}
 html .authPage .authCard .field :is(input,select){background:#fff!important;border:1px solid #e2e8f0!important;border-radius:10px!important;min-height:44px!important}
-html .authPage .authCard .field :is(input,select):focus{border-color:#93c5fd!important;box-shadow:0 0 0 3px rgba(37,99,235,.12)!important;outline:0!important}
-html .authPage .authCard .authWide{background:linear-gradient(90deg,#2563eb,#1d4ed8 55%,#0f7656)!important;color:#fff!important;border:0!important;border-radius:10px!important;box-shadow:0 8px 20px rgba(37,99,235,.25)!important}
+html .authPage .authCard .field :is(input,select):focus{border-color:#8fd0b3!important;box-shadow:0 0 0 3px rgba(15,118,86,.12)!important;outline:0!important}
+html .authPage .authCard .authWide{background:linear-gradient(90deg,#0f7656,#0b5d44)!important;color:#fff!important;border:0!important;border-radius:10px!important;box-shadow:0 8px 20px rgba(15,118,86,.25)!important}
 html .authPage .authCard .authWide:hover{filter:brightness(1.05)}
-html .authPage .authCard .authSwitch button,html .authPage .authCard .authForgot{color:#2563eb!important}
+html .authPage .authCard .authSwitch button,html .authPage .authCard .authForgot{color:#0f7656!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChild{font-size:13px!important;min-height:34px!important}
 html[data-theme] .workspaceRoot .workspacePageHead{margin-bottom:12px}
-html .authPage .pwToggle{background:#eef3fe!important;color:#1d4ed8!important;border:0!important}
-html .authPage .authBack{color:#1d4ed8!important}
+html .authPage .pwToggle{background:#e8f5ee!important;color:#0b5d44!important;border:0!important}
+html .authPage .authBack{color:#0b5d44!important}
 @media(max-width:760px){
   html[data-theme] .workspaceRoot .moduleEnter .ovKpi{padding:14px!important}
   html[data-theme] .workspaceRoot .moduleEnter .ovKpiLabel{font-size:12.5px!important;line-height:1.3!important}
@@ -276,10 +277,10 @@ html[data-theme] .workspaceRoot .moduleEnter .roomCard .roomCardActions .uBtn{wi
 /* Table action buttons: text labels instead of bare symbols, so the action is obvious */
 html[data-theme] .workspaceRoot .moduleEnter .rmIconButton{
   width:auto!important;min-width:0!important;height:30px!important;min-height:30px!important;padding:0 11px!important;
-  border:1px solid #dbe4f3!important;border-radius:8px!important;background:#fff!important;color:#1d4ed8!important;
+  border:1px solid #d6e7de!important;border-radius:8px!important;background:#fff!important;color:#0b5d44!important;
   font-size:12px!important;font-weight:700!important;white-space:nowrap!important;line-height:1!important
 }
-html[data-theme] .workspaceRoot .moduleEnter .rmIconButton:hover:not(:disabled){background:#eef3fe!important}
+html[data-theme] .workspaceRoot .moduleEnter .rmIconButton:hover:not(:disabled){background:#e8f5ee!important}
 html[data-theme] .workspaceRoot .moduleEnter .rmIconButton:disabled{color:#94a3b8!important;border-color:#e2e8f0!important;background:#f8fafc!important}
 html[data-theme] .workspaceRoot .moduleEnter .rmIconButton.dangerText{color:#dc2626!important;border-color:#fecaca!important}
 html[data-theme] .workspaceRoot .moduleEnter .rmTable .rmActions{flex-wrap:nowrap!important;gap:6px!important}
@@ -296,25 +297,25 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup{
   transition:box-shadow .18s ease,border-color .18s ease,background .18s ease
 }
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup:hover{background:rgba(255,255,255,.85)!important;box-shadow:0 2px 4px rgba(15,23,42,.05),0 6px 16px rgba(15,23,42,.06)!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{background:rgba(255,255,255,.92)!important;border-color:#dbe6fb!important;box-shadow:0 2px 6px rgba(37,99,235,.06),0 8px 22px rgba(37,99,235,.08)!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{background:rgba(255,255,255,.92)!important;border-color:#cde8da!important;box-shadow:0 2px 6px rgba(15,118,86,.06),0 8px 22px rgba(15,118,86,.08)!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button{background:transparent!important;margin:0!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#eef3fe!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#e8f5ee!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup .sidebarTreeChildren{padding-bottom:4px!important}
 /* Chevron: down when closed, up when open — both clickable through the menu button */
 html[data-theme] .workspaceRoot .sidebar .sidebarChevron{display:inline-grid!important;place-items:center;width:22px;height:22px;border-radius:7px;transition:transform .2s ease,background .15s;transform:none!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.expanded>button .sidebarChevron,
 html[data-theme] .workspaceRoot .sidebar .sidebarNestedGroup.open>button .sidebarChevron{transform:rotate(180deg)!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover .sidebarChevron,
-html[data-theme] .workspaceRoot .sidebar .sidebarTreeParent:hover .sidebarChevron{background:rgba(37,99,235,.08)}
+html[data-theme] .workspaceRoot .sidebar .sidebarTreeParent:hover .sidebarChevron{background:rgba(15,118,86,.08)}
 html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup{padding:2px!important}
 
 /* ---------- Sidebar glass, round 2: glossy frosted boxes on a soft colour wash ---------- */
 html[data-theme] .workspaceRoot .sidebar{
   background:
-    radial-gradient(120% 40% at 0% 18%,rgba(37,99,235,.13),transparent 60%),
+    radial-gradient(120% 40% at 0% 18%,rgba(15,118,86,.13),transparent 60%),
     radial-gradient(90% 35% at 100% 62%,rgba(15,118,86,.11),transparent 60%),
-    radial-gradient(80% 30% at 10% 100%,rgba(99,102,241,.10),transparent 60%),
-    linear-gradient(180deg,#f6f8fd 0%,#eef2fa 100%)!important
+    radial-gradient(80% 30% at 10% 100%,rgba(52,179,138,.10),transparent 60%),
+    linear-gradient(180deg,#f5f8f6 0%,#eaf1ed 100%)!important
 }
 html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile){
   position:relative!important;overflow:hidden!important;
@@ -324,7 +325,7 @@ html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile){
     inset 0 1px 0 rgba(255,255,255,.95),
     inset 0 -1px 0 rgba(148,163,184,.12),
     0 1px 2px rgba(15,23,42,.04),
-    0 8px 22px -8px rgba(30,64,175,.14)!important;
+    0 8px 22px -8px rgba(11,77,57,.14)!important;
   -webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%)
 }
 html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile)::before{
@@ -334,12 +335,12 @@ html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile)::bef
 html[data-theme] .workspaceRoot .sidebar :is(.sidebarNavGroup,.sideProfile)>*{position:relative;z-index:1}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup:hover{
   background:linear-gradient(140deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.62) 100%)!important;
-  transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff,0 2px 4px rgba(15,23,42,.05),0 12px 26px -10px rgba(30,64,175,.22)!important
+  transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff,0 2px 4px rgba(15,23,42,.05),0 12px 26px -10px rgba(11,77,57,.22)!important
 }
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup{transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{
   background:linear-gradient(140deg,rgba(255,255,255,.96) 0%,rgba(234,241,255,.78) 100%)!important;
-  border-color:rgba(147,180,247,.6)!important;
-  box-shadow:inset 0 1px 0 #fff,0 0 0 3px rgba(37,99,235,.06),0 14px 30px -12px rgba(37,99,235,.32)!important
+  border-color:rgba(120,190,155,.6)!important;
+  box-shadow:inset 0 1px 0 #fff,0 0 0 3px rgba(15,118,86,.06),0 14px 30px -12px rgba(15,118,86,.32)!important
 }
-html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:linear-gradient(90deg,rgba(37,99,235,.12),rgba(37,99,235,.03))!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:linear-gradient(90deg,rgba(15,118,86,.12),rgba(15,118,86,.03))!important}
