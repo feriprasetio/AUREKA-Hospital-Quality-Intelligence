@@ -499,7 +499,11 @@ export default function HomeClient(){
     <svg viewBox="0 0 24 24" aria-hidden="true">{sidebarCollapsed?<path d="m9 5 7 7-7 7"/>:<path d="m15 5-7 7 7 7"/>}</svg>
    </button>
   </div>
-  <div className="navLabel">Workspace</div>
+  <button type="button" className="sideProfile" title="Buka profil" onClick={()=>{openMainModule('settings');setProfileFocus(Date.now())}}>
+   <span className="sideProfileAvatar">{initials(profile?.full_name||user?.email)}</span>
+   <span className="sideProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
+  </button>
+  <div className="navLabel">Menu utama</div>
   <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'expanded':'')} key="home">
     <button type="button" title="Ringkasan" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
@@ -587,6 +591,15 @@ export default function HomeClient(){
     <button type="submit" disabled={supportSending||!supportDraft.trim()||(admin&&!supportConversationId)}>{supportSending?'Mengirim…':'Kirim'}</button>
    </form>
   </section>}
+  <div className="workspacePageHead">
+   <h1>{active==='home'?'Ringkasan':currentContainer.split(' · ')[0]}</h1>
+   <nav className="workspaceCrumbs" aria-label="Breadcrumb">
+    <button type="button" onClick={()=>openMainModule('home')} aria-label="Ringkasan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
+    {active!=='home'&&<><span aria-hidden="true">/</span><span>{active==='settings'?'Administrasi':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
+    {active!=='home'&&active!=='settings'&&<><span aria-hidden="true">/</span><b>{currentContainer.split(' · ')[0]}</b></>}
+    {active==='home'&&<><span aria-hidden="true">/</span><b>Dashboard</b></>}
+   </nav>
+  </div>
   <div key={active+'-'+qualityOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView} mode={qualityResultsView} initialRoomId={room?.id??null} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'}/>
