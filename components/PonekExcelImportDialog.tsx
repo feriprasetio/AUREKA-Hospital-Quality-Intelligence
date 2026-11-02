@@ -180,7 +180,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
 function rowHasData(source: any, indexes: Record<string, number>): boolean {
   const values: Record<string, unknown> = {}
   const keys = [
-    'patientName', 'medicalRecordNo', 'admissionDate', 'patientCategory',
+    'sourceNo', 'patientName', 'medicalRecordNo', 'admissionDate', 'patientCategory',
     'diagnosis', 'arrivalOrigin', 'admissionCondition',
     ...PONEK_SOURCE_INDICATORS.map(item => 'indicator:' + item.code),
   ]
