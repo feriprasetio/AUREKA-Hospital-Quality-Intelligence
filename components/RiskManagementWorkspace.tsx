@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import type { RiskFocus } from '@/lib/aureka/focus'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
@@ -122,7 +123,7 @@ function RmModal({ label, error, children }: { label: string; error?: string; ch
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prev }
   }, [])
-  return (
+  const content = (
     <div className="rmModalBackdrop" role="dialog" aria-modal="true" aria-label={label}>
       <div className="rmModalSheet">
         {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
@@ -130,6 +131,11 @@ function RmModal({ label, error, children }: { label: string; error?: string; ch
       </div>
     </div>
   )
+  // Dirender di lapisan teratas (di atas sidebar & bar atas) agar jendela tampil utuh di tengah layar.
+  // Wrapper memakai kelas moduleEnter + rmWorkspace supaya gaya formulir modul tetap berlaku.
+  if (typeof document === 'undefined') return content
+  const host = document.querySelector('.workspaceRoot') || document.body
+  return createPortal(<div className="moduleEnter rmWorkspace aurModalLayer">{content}</div>, host)
 }
 
 const roleLabel = (role: string | null) => ({

@@ -391,3 +391,22 @@ html[data-theme] .workspaceRoot .moduleEnter .aqData tbody tr[tabindex]:hover td
 .aqPortal .aqDeleteConfirm p{margin:0;font-size:13px;line-height:1.5;color:#475569}
 .aqPortal .aqDeleteConfirmActions{margin-top:10px!important;gap:8px!important;flex-wrap:wrap}
 .aqPortal .aqDeleteConfirmIcon{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff4e5;color:#b45309;font-weight:800;font-size:16px}
+
+/* ---------- Manajemen Risiko pop-up (Tambah/Edit risiko, FMEA, RTP): centred card on blurred backdrop ---------- */
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer{position:fixed!important;inset:0!important;z-index:1000!important;display:block!important;width:auto!important;min-height:0!important;max-height:none!important;
+  padding:0!important;margin:0!important;background:transparent!important;background-color:transparent!important;animation:none!important;overflow:visible!important;gap:0!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalBackdrop{position:fixed!important;inset:0!important;z-index:1000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:28px!important;overflow:hidden!important;
+  background:radial-gradient(circle at 30% 20%,rgba(15,118,86,.16),transparent 55%),rgba(12,28,22,.34)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(120%)!important;backdrop-filter:blur(10px) saturate(120%)!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet{width:min(900px,100%)!important;max-height:min(88vh,940px)!important;overflow-y:auto!important;overscroll-behavior:contain;
+  border-radius:20px!important;background:#fff!important;box-shadow:0 30px 80px -10px rgba(6,40,28,.38)!important;animation:aqPop .2s ease both!important;display:grid!important;gap:0!important;padding:0!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.rmPanel,
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.liquidGlass{border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;margin:0!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet .rmSectionHead{position:sticky;top:0;z-index:5;margin:-1px -1px 12px!important;padding:16px 4px 12px!important;background:linear-gradient(180deg,#eef8f3 0%,#fff 100%)!important;border-bottom:1px solid #e2ebe6!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet .rmSectionHead h4{color:#0b5d44!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet .rmFormFooter{position:sticky!important;bottom:0!important;z-index:5;margin:10px -1px 0!important;padding:12px 4px!important;background:#f7fbf9!important;border-top:1px solid #e2ebe6!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.rmNotice{margin:14px 18px 0!important}
+@media(max-width:760px){
+  html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalBackdrop{padding:12px!important}
+  html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet{max-height:calc(100dvh - 24px)!important;border-radius:16px!important}
+}
