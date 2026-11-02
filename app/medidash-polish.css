@@ -272,3 +272,14 @@ html[data-theme] .workspaceRoot .moduleEnter .roomCard .roomCardText b{font-size
 html[data-theme] .workspaceRoot .moduleEnter .roomCard .roomCardText span{font-size:12px!important;color:#64748b!important}
 html[data-theme] .workspaceRoot .moduleEnter .roomCard .roomCardActions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;width:100%!important}
 html[data-theme] .workspaceRoot .moduleEnter .roomCard .roomCardActions .uBtn{width:100%!important;justify-content:center!important;min-height:34px!important}
+
+/* Table action buttons: text labels instead of bare symbols, so the action is obvious */
+html[data-theme] .workspaceRoot .moduleEnter .rmIconButton{
+  width:auto!important;min-width:0!important;height:30px!important;min-height:30px!important;padding:0 11px!important;
+  border:1px solid #dbe4f3!important;border-radius:8px!important;background:#fff!important;color:#1d4ed8!important;
+  font-size:12px!important;font-weight:700!important;white-space:nowrap!important;line-height:1!important
+}
+html[data-theme] .workspaceRoot .moduleEnter .rmIconButton:hover:not(:disabled){background:#eef3fe!important}
+html[data-theme] .workspaceRoot .moduleEnter .rmIconButton:disabled{color:#94a3b8!important;border-color:#e2e8f0!important;background:#f8fafc!important}
+html[data-theme] .workspaceRoot .moduleEnter .rmIconButton.dangerText{color:#dc2626!important;border-color:#fecaca!important}
+html[data-theme] .workspaceRoot .moduleEnter .rmTable .rmActions{flex-wrap:nowrap!important;gap:6px!important}
