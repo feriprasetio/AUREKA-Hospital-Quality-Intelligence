@@ -345,3 +345,11 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{
 }
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:linear-gradient(90deg,rgba(15,118,86,.12),rgba(15,118,86,.03))!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovLink{color:#0f7656!important;background:transparent!important;font-weight:700!important}
+
+/* Sidebar: groups must not shrink (an open Mutu Klinis was squeezed and cut off); the menu list scrolls instead,
+   with a thin visible scrollbar so it is obvious there is more below. */
+html[data-theme] .workspaceRoot .sidebar .sidebarNav>*{flex:0 0 auto!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNav{overflow-y:auto!important;min-height:0!important;scrollbar-width:thin!important;scrollbar-color:rgba(15,118,86,.35) transparent;padding-right:4px!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar{display:block!important;width:6px}
+html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar-thumb{background:rgba(15,118,86,.3);border-radius:6px}
+html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{max-height:none!important;overflow:visible!important}
