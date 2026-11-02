@@ -5,6 +5,7 @@ import {
   isPerinatologyFormulaError,
   makePerinatologySubjectKey,
   normalizePerinatologyDate,
+  normalizePerinatologyCellValue,
   normalizePerinatologyOptionLabel,
   parsePerinatologySourceAnswer,
 } from '../lib/aureka/perinatology-logbook.ts'
@@ -24,6 +25,20 @@ test('normalizes Excel serial, ISO, DMY, Date and invalid admission/discharge da
   assert.equal(normalizePerinatologyDate(new Date(Date.UTC(2026, 9, 30))), '2026-10-30')
   assert.equal(normalizePerinatologyDate('31/02/2026'), null)
   assert.equal(normalizePerinatologyDate(''), null)
+})
+
+test('preserves ExcelJS Date objects and unwraps cached formula Date results', () => {
+  const admissionDate = new Date(Date.UTC(2026, 0, 1))
+  const dischargeDate = new Date(Date.UTC(2026, 0, 4))
+
+  assert.equal(readPerinatologyCellValue(admissionDate), admissionDate)
+  assert.equal(normalizePerinatologyDate(readPerinatologyCellValue(admissionDate)), '2026-01-01')
+  assert.equal(
+    normalizePerinatologyDate(readPerinatologyCellValue({ formula: 'DATE(2026,1,4)', result: dischargeDate })),
+    '2026-01-04',
+  )
+  assert.equal(readPerinatologyCellValue(46023), 46023)
+  assert.equal(readPerinatologyCellValue({ richText: [{ text: 'Tanggal' }, { text: ' masuk' }] }), 'Tanggal masuk')
 })
 
 test('normalizes source labels while preserving clinically meaningful wording', () => {
