@@ -236,3 +236,15 @@ html .authPage .authCard .field :is(input,select):focus{border-color:#93c5fd!imp
 html .authPage .authCard .authWide{background:linear-gradient(90deg,#2563eb,#1d4ed8 55%,#0f7656)!important;color:#fff!important;border:0!important;border-radius:10px!important;box-shadow:0 8px 20px rgba(37,99,235,.25)!important}
 html .authPage .authCard .authWide:hover{filter:brightness(1.05)}
 html .authPage .authCard .authSwitch button,html .authPage .authCard .authForgot{color:#2563eb!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChild{font-size:13px!important;min-height:34px!important}
+html[data-theme] .workspaceRoot .workspacePageHead{margin-bottom:12px}
+html .authPage .pwToggle{background:#eef3fe!important;color:#1d4ed8!important;border:0!important}
+html .authPage .authBack{color:#1d4ed8!important}
+@media(max-width:760px){
+  html[data-theme] .workspaceRoot .moduleEnter .ovKpi{padding:14px!important}
+  html[data-theme] .workspaceRoot .moduleEnter .ovKpiLabel{font-size:12.5px!important;line-height:1.3!important}
+  html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon{flex-basis:32px!important;width:32px!important;height:32px!important;border-radius:9px!important}
+  html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon svg{width:17px!important;height:17px!important}
+  html[data-theme] .workspaceRoot .moduleEnter .ovKpi b{font-size:24px!important}
+  html[data-theme] .workspaceRoot .moduleEnter .ovKpi small{font-size:11.5px!important}
+}
