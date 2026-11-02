@@ -390,3 +390,4 @@ html[data-theme] .workspaceRoot .moduleEnter .aqData tbody tr[tabindex]:hover td
 .aqPortal .aqDeleteConfirm h4{margin:4px 0 0;font-size:17px;color:#1e293b}
 .aqPortal .aqDeleteConfirm p{margin:0;font-size:13px;line-height:1.5;color:#475569}
 .aqPortal .aqDeleteConfirmActions{margin-top:10px!important;gap:8px!important;flex-wrap:wrap}
+.aqPortal .aqDeleteConfirmIcon{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff4e5;color:#b45309;font-weight:800;font-size:16px}
