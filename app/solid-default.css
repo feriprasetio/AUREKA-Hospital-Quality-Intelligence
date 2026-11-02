@@ -11,10 +11,10 @@
   --md-border:#e5e7eb;
   --md-ink:#1f2937;
   --md-muted:#6b7280;
-  --md-primary:#2563eb;
-  --md-primary-2:#3b82f6;
+  --md-primary:#0f7656;
+  --md-primary-2:#16a37a;
   --md-primary-soft:#eff6ff;
-  --md-blue:#2563eb;
+  --md-blue:#0f7656;
   --md-mint:#059669;
   --md-rose:#db2777;
   --md-amber:#d97706;
@@ -72,9 +72,9 @@
 .workspaceRoot .sidebarNav>button.navActive,
 .workspaceRoot .sidebarNavGroup>button.navActive{
   background:#eff6ff!important;
-  color:#1d4ed8!important;
+  color:#0b5d44!important;
   border-color:#dbeafe!important;
-  box-shadow:inset 3px 0 0 #2563eb!important;
+  box-shadow:inset 3px 0 0 #0f7656!important;
   font-weight:750!important;
 }
 .workspaceRoot .sidebarTreeChildren{border-left-color:#e5e7eb!important}
@@ -91,7 +91,7 @@
 }
 .workspaceRoot .sidebarChild.active{
   background:#eff6ff!important;
-  color:#1d4ed8!important;
+  color:#0b5d44!important;
   border-color:#dbeafe!important;
   font-weight:700!important;
 }
@@ -144,13 +144,13 @@
 }
 .workspaceRoot .workspaceHeaderIcon:hover,
 .workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{
-  color:#1d4ed8!important;
+  color:#0b5d44!important;
   background:#f9fafb!important;
   border-color:#e5e7eb!important;
 }
 .workspaceRoot .workspaceHeaderProfile{color:#1f2937!important}
 .workspaceRoot .workspaceHeaderAvatar{
-  background:#2563eb!important;
+  background:#0f7656!important;
   color:#fff!important;
   border:2px solid #fff!important;
   box-shadow:none!important;
@@ -180,22 +180,22 @@
 }
 .workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder{color:#9ca3af!important}
 .workspaceRoot .moduleEnter :is(input,select,textarea):focus{
-  border-color:#60a5fa!important;
-  box-shadow:0 0 0 3px rgba(37,99,235,.12)!important;
+  border-color:#3fb98f!important;
+  box-shadow:0 0 0 3px rgba(15,118,86,.12)!important;
 }
 .workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton){
   border-radius:8px!important;
   box-shadow:none!important;
 }
 .workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary){
-  background:#2563eb!important;
-  border-color:#2563eb!important;
+  background:#0f7656!important;
+  border-color:#0f7656!important;
   color:#fff!important;
   box-shadow:none!important;
 }
 .workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary):hover{
-  background:#1d4ed8!important;
-  border-color:#1d4ed8!important;
+  background:#0b5d44!important;
+  border-color:#0b5d44!important;
   transform:none!important;
   filter:none!important;
 }
@@ -212,7 +212,7 @@
   border-radius:7px!important;
 }
 .workspaceRoot .moduleEnter :is(.aqTab.active,.cwTab.active,.mswTab.active){
-  color:#1d4ed8!important;
+  color:#0b5d44!important;
   background:#fff!important;
   border:1px solid #dbeafe!important;
   box-shadow:none!important;
@@ -236,7 +236,7 @@
   color:#1f2937!important;
 }
 .workspaceRoot .moduleEnter .ovHero :is(h1,h2,h3,h4,p,span){color:#1f2937!important}
-.workspaceRoot .moduleEnter .ovHero .ovEyebrow{color:#2563eb!important}
+.workspaceRoot .moduleEnter .ovHero .ovEyebrow{color:#0f7656!important}
 .workspaceRoot .moduleEnter .ovHeroDate{
   background:#f9fafb!important;
   border:1px solid #e5e7eb!important;
@@ -244,8 +244,8 @@
   color:#4b5563!important;
 }
 .workspaceRoot .moduleEnter .ovRefresh{
-  background:#2563eb!important;
-  border:1px solid #2563eb!important;
+  background:#0f7656!important;
+  border:1px solid #0f7656!important;
   color:#fff!important;
   border-radius:8px!important;
 }
@@ -272,7 +272,7 @@
 }
 .workspaceRoot .moduleEnter .ovKpiIcon{
   background:#eff6ff!important;
-  color:#2563eb!important;
+  color:#0f7656!important;
 }
 .workspaceRoot .moduleEnter .ovKpiIcon.safety{background:#ecfdf5!important;color:#059669!important}
 .workspaceRoot .moduleEnter .ovKpiIcon.risk{background:#fef2f2!important;color:#dc2626!important}
@@ -289,7 +289,7 @@
   -webkit-backdrop-filter:none!important;
 }
 .workspaceRoot :is(button,input,select,textarea):focus-visible{
-  outline:3px solid rgba(37,99,235,.2)!important;
+  outline:3px solid rgba(15,118,86,.2)!important;
   outline-offset:2px!important;
 }
 @media(prefers-reduced-motion:reduce){
@@ -319,14 +319,14 @@ html:has(.workspaceRoot),body:has(.workspaceRoot){
   color:#6b7280!important;
 }
 .workspaceRoot .moduleEnter a:not([class*="button"]):not([class*="btn"]){
-  color:#1d4ed8!important;
+  color:#0b5d44!important;
   text-decoration-color:#bfdbfe;
 }
 .workspaceRoot .moduleEnter :is(input,select,textarea,option){
   color:#111827!important;
   background-color:#fff!important;
   -webkit-text-fill-color:#111827!important;
-  caret-color:#2563eb!important;
+  caret-color:#0f7656!important;
 }
 .workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder{
   color:#9ca3af!important;
@@ -361,7 +361,7 @@ html:has(.workspaceRoot),body:has(.workspaceRoot){
   -webkit-text-fill-color:currentColor!important;
 }
 .workspaceRoot .moduleEnter :is([role="tab"][aria-selected="true"],.aqTab.active,.cwTab.active,.mswTab.active){
-  color:#1d4ed8!important;
+  color:#0b5d44!important;
   background:#eff6ff!important;
 }
 .workspaceRoot .moduleEnter :is(th,thead th){
