@@ -1,4 +1,4 @@
-import { normalizeExactHeader } from './excel-paste'
+import { normalizeExactHeader } from './excel-paste.ts'
 
 export type PerinatologyIndicatorOption = {
   code: number | null
