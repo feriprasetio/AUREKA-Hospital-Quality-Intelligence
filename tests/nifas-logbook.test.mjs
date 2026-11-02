@@ -103,6 +103,46 @@ test('maps source options but keeps source-code classifications pending for N/D 
   assert.equal(noCode?.mappingStatus, 'mapped_pending_classification')
 })
 
+test('maps source labels from the uploaded Nifas Profil sheet for all nine active indicators', () => {
+  const cases = [
+    ['19.8', 'Visite Hari Kerja (06.00-14.00) (Code 1)', [
+      { code: 1, label: 'Visite Hari Kerja (06.00-14.00)', numerator: null, denominator: true, review_required: true },
+    ], 1],
+    ['19.9', 'Seluruh Data Pasien Baru Akurat (Code 1)', [
+      { code: 1, label: 'Seluruh Data Pasien Baru Akurat', numerator: null, denominator: true, review_required: true },
+    ], 1],
+    ['19.7', 'Formulir Transfer Terisi Lengkap (SBAR, TTV, Terapi, Tindakan) (Code 1)', [
+      { code: 1, label: 'Formulir Transfer Terisi Lengkap (SBAR, TTV, Terapi, Tindakan)', numerator: null, denominator: true, review_required: true },
+    ], 1],
+    ['19.1', 'Diberikan Sefazolin 2 gr (30-60 menit sebelum insisi) (Code 1)', [
+      { code: 1, label: 'Diberikan Sefazolin 2 gr (30-60 menit sebelum insisi)', numerator: null, denominator: true, review_required: true },
+    ], 1],
+    ['19.2', 'Dilakukan IMD (Ibu dan Bayi kontak kulit minimal 1 jam) (Code 1)', [
+      { code: 1, label: 'Dilakukan IMD (Ibu dan Bayi kontak kulit minimal 1 jam)', numerator: null, denominator: true, review_required: true },
+    ], 1],
+    ['19.3', 'Dilakukan Anestesi Regional (Spinal/Epidural) (Code 1)', [
+      { code: 1, label: 'Dilakukan Anestesi Regional (Spinal/Epidural)', numerator: null, denominator: true, review_required: true },
+    ], 1],
+    ['19.4', 'Dilakukan Pemeriksaan Hemostasis (Code 1)', [
+      { code: 1, label: 'Dilakukan Pemeriksaan Hemostasis', numerator: null, denominator: true, review_required: true },
+    ], 1],
+    ['19.5', 'Tidak Sesuai Pedoman (Atas Permintaan Sendiri tanpa indikasi medis - Disetujui DPJP) (Code 2)', [
+      { code: 2, label: 'Tidak Sesuai Pedoman (Atas Permintaan Sendiri tanpa indikasi medis - Disetujui DPJP)', numerator: null, denominator: true, review_required: true },
+    ], 2],
+    ['19.10', 'Lama Rawat >3 Hari (Sudah Atas Persetujuan Dokter) (Code 3)', [
+      { code: 3, label: 'Lama Rawat >3 Hari (Sudah Atas Persetujuan Dokter)', numerator: null, denominator: true, review_required: true },
+    ], 3],
+  ] as const
+
+  for (const [code, source, options, expectedCode] of cases) {
+    const answer = parseNifasSourceAnswer(source, [...options])
+    assert.equal(answer?.mappingStatus, 'mapped_pending_classification', code)
+    assert.equal(answer?.code, expectedCode, code)
+    assert.equal(answer?.sourceLabel, source, code)
+    assert.equal(answer?.reviewRequired, true, code)
+  }
+})
+
 test('flags source-code conflicts and unrecognized or ambiguous labels without guessing', () => {
   const options = [
     { code: 1, label: 'Pilihan A', numerator: null, denominator: true, review_required: true },
