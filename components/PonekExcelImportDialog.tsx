@@ -204,7 +204,7 @@ function profileMapForRoom(profiles: PonekIndicatorProfile[]): Map<string, Ponek
   )
 }
 
-function preparePayload(row: PreparedRow, fileName: string, userId: string, profiles: PonekIndicatorProfile[]) {
+function preparePayload(row: PreparedRow, fileName: string, userId: string, profiles: PonekIndicatorProfile[], dashboardCount: number | null) {
   const profileByCode = profileMapForRoom(profiles)
   const indicatorValues: Record<string, Record<string, unknown>> = {}
   const sourceIndicatorValues: Record<string, string> = {}
@@ -242,7 +242,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     source_sheet: 'Logbook',
     source_excel_row: row.sourceRow,
     source_excel_no: row.sourceNo,
-    dashboard_declared_count: 214,
+    dashboard_declared_count: dashboardCount,
     source_indicator_values: sourceIndicatorValues,
     source_indicator_cells: row.sourceIndicatorCells,
     source_warnings: row.warnings,
@@ -601,7 +601,7 @@ export default function PonekExcelImportDialog({
       const { data: { user }, error: userError } = await sb.auth.getUser()
       if (userError || !user) throw new Error('Sesi login tidak tersedia.')
 
-      const items = rows.map(row => preparePayload(row, file?.name ?? 'workbook.xlsx', user.id, profiles))
+      const items = rows.map(row => preparePayload(row, file?.name ?? 'workbook.xlsx', user.id, profiles, findings?.dashboardCount ?? null))
       const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0 }
       let start = 0
       let batchSize = BATCH_SIZE
