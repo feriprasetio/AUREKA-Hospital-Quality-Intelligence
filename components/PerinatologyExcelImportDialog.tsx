@@ -9,6 +9,7 @@ import {
   isPerinatologyFormulaError,
   makePerinatologySubjectKey,
   normalizePerinatologyDate,
+  readPerinatologyCellValue,
   parsePerinatologySourceAnswer,
   PERINATOLOGY_SOURCE_INDICATORS,
   type PerinatologyIndicatorProfile,
@@ -82,17 +83,7 @@ type Props = {
 }
 
 function readCellValue(cell: any): unknown {
-  const value = cell?.value
-  if (value == null) return ''
-  if (typeof value === 'object') {
-    if ('result' in value) return value.result ?? ''
-    if (Array.isArray(value.richText)) return value.richText.map((part: any) => String(part?.text ?? '')).join('')
-    if (typeof value.text === 'string') return value.text
-    if (typeof value.hyperlink === 'string') return value.text ?? value.hyperlink
-    if (typeof value.error === 'string') return value.error
-    return ''
-  }
-  return value
+  return readPerinatologyCellValue(cell?.value)
 }
 
 function cellText(cell: any): string {

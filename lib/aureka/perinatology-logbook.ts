@@ -40,6 +40,31 @@ export const PERINATOLOGY_SOURCE_INDICATORS = [
 
 const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?'])
 
+/**
+ * Unwraps the value shape returned by ExcelJS for a cell.
+ * Date-formatted XLSX cells are exposed as JavaScript Date objects; these
+ * must be preserved rather than treated as an unknown object/blank cell.
+ * Formula cached results are recursively unwrapped for the same reason.
+ */
+export function readPerinatologyCellValue(value: unknown): unknown {
+  if (value == null) return ''
+  if (value instanceof Date) return value
+
+  if (typeof value === 'object') {
+    const cellValue = value as Record<string, unknown>
+    if ('result' in cellValue) return readPerinatologyCellValue(cellValue.result)
+    if (Array.isArray(cellValue.richText)) {
+      return cellValue.richText.map((part: any) => String(part?.text ?? '')).join('')
+    }
+    if (typeof cellValue.text === 'string') return cellValue.text
+    if (typeof cellValue.hyperlink === 'string') return cellValue.text ?? cellValue.hyperlink
+    if (typeof cellValue.error === 'string') return cellValue.error
+    return ''
+  }
+
+  return value
+}
+
 export function normalizePerinatologyDate(value: unknown): string | null {
   const valid = (year: number, month: number, day: number): string | null => {
     const date = new Date(Date.UTC(year, month - 1, day))
