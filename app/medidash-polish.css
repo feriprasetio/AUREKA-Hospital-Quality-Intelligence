@@ -353,3 +353,28 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNav{overflow-y:auto!important;m
 html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar{display:block!important;width:6px}
 html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar-thumb{background:rgba(15,118,86,.3);border-radius:6px}
 html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{max-height:none!important;overflow:visible!important}
+
+/* ---------- Form Logbook (Mutu Klinis) as a pop-up window ---------- */
+.aqBack.aqEditorBack{justify-content:center!important;align-items:center!important;padding:24px!important;background:rgba(10,30,22,.36)!important;z-index:120!important}
+.aqEditorDialog{width:min(1040px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 30px 80px rgba(6,30,20,.28);animation:aqPop .18s ease both}
+@keyframes aqPop{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.aqEditorDialog .aqInlineEditor{display:flex!important;flex-direction:column!important;min-height:0;max-height:100%;border-radius:0!important;box-shadow:none!important;background:#fff!important;border:0!important}
+.aqEditorDialog .aqInlineEditor>.aqDHead{flex:0 0 auto;background:linear-gradient(180deg,#f4faf7,#fff);padding:18px 22px!important}
+.aqEditorDialog .aqInlineEditor>.aqDHead h4{font-size:20px!important;color:#0b5d44!important}
+.aqEditorDialog .aqInlineEditor>.aqBody{flex:1 1 auto;min-height:0;overflow-y:auto!important;padding:18px 22px!important;overscroll-behavior:contain}
+.aqEditorDialog .aqInlineEditor>.aqFoot{flex:0 0 auto;position:static!important;border-radius:0!important;padding:12px 22px!important;display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;background:#f8fbf9!important}
+.aqEditorDialog .aqClose{width:36px;height:36px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-size:20px;line-height:1;cursor:pointer;color:#475569}
+.aqEditorDialog .aqClose:hover{background:#f1f5f3}
+.aqEditorDialog .aqFoot .aqBtn{min-height:40px!important;padding:0 18px!important;font-size:13px!important;border-radius:10px!important}
+.aqEditorDialog .aqFoot .aqBtn.primary{background:#0f7656!important;color:#fff!important;border-color:#0f7656!important}
+.aqEditorDialog .aqInd{border-radius:12px!important}
+@media(max-width:760px){
+  .aqBack.aqEditorBack{padding:0!important;align-items:stretch!important}
+  .aqEditorDialog{max-height:100vh;height:100%;border-radius:0}
+  .aqEditorDialog .aqInlineEditor>.aqDHead,.aqEditorDialog .aqInlineEditor>.aqBody,.aqEditorDialog .aqInlineEditor>.aqFoot{padding-left:14px!important;padding-right:14px!important}
+  .aqEditorDialog .aqFoot>div{width:100%}
+  .aqEditorDialog .aqFoot .aqBtn{flex:1}
+}
+/* Rows open the pop-up: show they are clickable */
+html[data-theme] .workspaceRoot .moduleEnter .aqData tbody tr[tabindex]{cursor:pointer}
+html[data-theme] .workspaceRoot .moduleEnter .aqData tbody tr[tabindex]:hover td{background:#f3faf6!important}
