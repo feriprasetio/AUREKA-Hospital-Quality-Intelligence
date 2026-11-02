@@ -6,6 +6,7 @@ import {
   makePerinatologySubjectKey,
   normalizePerinatologyDate,
   readPerinatologyCellValue,
+  mapPerinatologyLogbookHeaders,
   normalizePerinatologyOptionLabel,
   parsePerinatologySourceAnswer,
 } from '../lib/aureka/perinatology-logbook.ts'
@@ -39,6 +40,46 @@ test('preserves ExcelJS Date objects and unwraps cached formula Date results', (
   )
   assert.equal(readPerinatologyCellValue(46023), 46023)
   assert.equal(readPerinatologyCellValue({ richText: [{ text: 'Tanggal' }, { text: ' masuk' }] }), 'Tanggal masuk')
+})
+
+
+test('maps the current Perinatology Logbook headers including the Kekosongan Linen alias', () => {
+  const headers = [
+    'No.', 'Nama Pasien', 'No. Rekam Medis', 'Tanggal Masuk', 'Tanggal Keluar',
+    'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Berat Badan', 'Tinggi Badan',
+    'Lenght of Stay', 'Perawat Penerima', 'DPJP', 'Visite Spesialis',
+    'Validitas Asesmen Keperawatan', 'Transfer IGD', 'Stabilitas Bayi Transfer',
+    'Kekosongan Linen', 'Asfiksia Tidak Ada', 'Ventilator Bayi', 'APGAR Score',
+    'Usaha Nafas Bayi', 'VTP <1 Menit', 'HIE Tidak Ada', 'Kekosongan Obat',
+  ]
+  const mapped = mapPerinatologyLogbookHeaders(headers)
+
+  assert.deepEqual(mapped.missingHeaders, [])
+  assert.deepEqual(mapped.duplicateHeaders, [])
+  assert.equal(mapped.indexes.admissionDate, 4)
+  assert.equal(mapped.indexes.diagnosis, 6)
+  assert.equal(mapped.indexes.receivingNurse, 12)
+  assert.equal(mapped.indexes.dpjp, 13)
+  assert.equal(mapped.indexes.unmappedBhpLinen, 18)
+  assert.equal(mapped.indexes['indicator:20.8'], 14)
+  assert.equal(mapped.indexes['indicator:20.10'], 24)
+})
+
+test('still accepts the legacy combined Kekosongan BHP/Linen header and reports missing mapped indicators', () => {
+  const headers = [
+    'No.', 'Nama Pasien', 'No. Rekam Medis', 'Tanggal Masuk', 'Tanggal Keluar',
+    'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Berat Badan',
+    'Perawat Penerima', 'DPJP', 'Kekosongan BHP/Linen', 'Visite Spesialis',
+    'Validitas Asesmen Keperawatan', 'Transfer IGD', 'Stabilitas Bayi Transfer',
+    'Asfiksia Tidak Ada', 'Ventilator Bayi', 'Usaha Nafas Bayi', 'VTP <1 Menit',
+    'HIE Tidak Ada',
+  ]
+  const mapped = mapPerinatologyLogbookHeaders(headers)
+  assert.deepEqual(mapped.missingHeaders, [])
+  assert.equal(mapped.indexes.unmappedBhpLinen, 12)
+
+  const incomplete = mapPerinatologyLogbookHeaders(headers.filter(header => header !== 'APGAR Score'))
+  assert.ok(incomplete.missingHeaders.includes('APGAR Score'))
 })
 
 test('normalizes source labels while preserving clinically meaningful wording', () => {
