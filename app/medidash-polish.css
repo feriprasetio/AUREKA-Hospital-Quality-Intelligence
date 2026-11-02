@@ -385,3 +385,8 @@ html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{max-height:none!im
 /* Rows open the pop-up: show they are clickable */
 html[data-theme] .workspaceRoot .moduleEnter .aqData tbody tr[tabindex]{cursor:pointer}
 html[data-theme] .workspaceRoot .moduleEnter .aqData tbody tr[tabindex]:hover td{background:#f3faf6!important}
+.aqPortal .aqDeleteConfirmBack{position:fixed!important;inset:0!important;background:rgba(12,28,22,.28)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:16px}
+.aqPortal .aqDeleteConfirm{width:min(400px,100%);display:grid;gap:8px;padding:20px 22px!important;border-radius:16px!important;background:#fff!important;color:#1e293b!important;border:1px solid #e2e8f0!important;box-shadow:0 24px 60px rgba(6,40,28,.3)!important;animation:aqPop .16s ease both}
+.aqPortal .aqDeleteConfirm h4{margin:4px 0 0;font-size:17px;color:#1e293b}
+.aqPortal .aqDeleteConfirm p{margin:0;font-size:13px;line-height:1.5;color:#475569}
+.aqPortal .aqDeleteConfirmActions{margin-top:10px!important;gap:8px!important;flex-wrap:wrap}
