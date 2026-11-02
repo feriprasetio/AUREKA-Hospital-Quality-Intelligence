@@ -122,3 +122,117 @@ html[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi)>.l
 }
 html[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi) :is(span,strong,b,small){display:block!important}
 html[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi) :is(.liquidGlassEdge,.liquidGlassSheen){display:none!important}
+
+/* =====================================================================
+   Round 2 — cleaner admin-dashboard structure, AUREKA identity kept
+   (blue primary + RS green as the brand touch). Visual only.
+   ===================================================================== */
+html[data-theme] .workspaceRoot{--aur-brand:#0f7656;--aur-soft-shadow:0 1px 2px rgba(15,23,42,.03),0 6px 20px rgba(15,23,42,.05)}
+
+/* Borderless cards with a soft shadow */
+html[data-theme] .workspaceRoot .moduleEnter :is(.ovHero,.ovContextBar,.ovKpi,.ovPanel),
+html[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi),
+html[data-theme] .workspaceRoot .moduleEnter .liquidGlass{border-color:transparent!important;box-shadow:var(--aur-soft-shadow)!important;border-radius:16px!important}
+
+/* ---------- Sidebar ---------- */
+html[data-theme] .workspaceRoot .sidebar .sideProfile{
+  display:flex;align-items:center;gap:11px;width:100%;margin:2px 0 6px;padding:12px;border:0;border-radius:14px;
+  background:#f6f8fc;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:background .15s
+}
+html[data-theme] .workspaceRoot .sidebar .sideProfile:hover{background:#eef2fa}
+html[data-theme] .workspaceRoot .sidebar .sideProfileAvatar{
+  flex:0 0 40px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,#2563eb,var(--aur-brand));color:#fff;font-weight:800;font-size:14px;letter-spacing:.02em;
+  box-shadow:0 0 0 3px #fff,0 0 0 4px #dbe4f3
+}
+html[data-theme] .workspaceRoot .sidebar .sideProfileText{display:flex;flex-direction:column;min-width:0}
+html[data-theme] .workspaceRoot .sidebar .sideProfileText b{font-size:13.5px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-theme] .workspaceRoot .sidebar .sideProfileText small{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--aur-brand)}
+html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sideProfile{justify-content:center;padding:8px;background:transparent}
+html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sideProfileText{display:none}
+html[data-theme] .workspaceRoot .sidebar .navLabel{
+  display:flex!important;align-items:center;gap:8px;margin:14px 10px 8px!important;padding:0!important;
+  color:#94a3b8!important;font-size:11px!important;font-weight:800!important;letter-spacing:.1em!important;text-transform:uppercase
+}
+html[data-theme] .workspaceRoot .sidebar .navLabel:before{content:'';width:14px;height:2px;border-radius:2px;background:#cbd5e1}
+html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .navLabel{display:none!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button{border:0!important;border-radius:10px!important;box-shadow:none!important;color:#475569!important;font-weight:600!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover{background:#f3f6fb!important;color:#1e293b!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#eef3fe!important;color:#1d4ed8!important;font-weight:750!important;box-shadow:none!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive svg{color:#2563eb!important;stroke:#2563eb!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChevron{color:#94a3b8!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{border-left:0!important;margin-left:22px!important;padding-left:8px!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChild{border:0!important;background:transparent!important;color:#64748b!important;font-weight:550!important;box-shadow:none!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChild:hover{color:#1e293b!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChild.active{color:#1d4ed8!important;font-weight:750!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChildMark{width:6px!important;height:6px!important;border-radius:50%!important;background:#cbd5e1!important;border:0!important}
+html[data-theme] .workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark{background:#2563eb!important;box-shadow:0 0 0 3px #dbeafe!important}
+
+/* ---------- Top bar ---------- */
+html[data-theme] .workspaceRoot .workspaceHeaderBar{border-bottom:0!important;box-shadow:0 1px 0 #eef1f6!important}
+html[data-theme] .workspaceRoot .workspaceGlobalSearch{background:#f3f5f9!important;border:1px solid transparent!important;border-radius:12px!important;box-shadow:none!important}
+html[data-theme] .workspaceRoot .workspaceGlobalSearch:focus-within{background:#fff!important;border-color:#bfdbfe!important;box-shadow:0 0 0 3px rgba(37,99,235,.1)!important}
+html[data-theme] .workspaceRoot .workspaceGlobalSearch input{background:transparent!important}
+html[data-theme] .workspaceRoot .workspaceGlobalSearch kbd{background:#fff!important;border-color:#e2e8f0!important}
+html[data-theme] .workspaceRoot .workspaceHeaderIcon{border:0!important;background:transparent!important;border-radius:10px!important;color:#64748b!important}
+html[data-theme] .workspaceRoot .workspaceHeaderIcon:hover{background:#f3f5f9!important;color:#1e293b!important}
+html[data-theme] .workspaceRoot .workspaceHeaderAvatar{background:linear-gradient(135deg,#2563eb,var(--aur-brand))!important;color:#fff!important}
+
+/* ---------- Page title + breadcrumb ---------- */
+html[data-theme] .workspaceRoot .workspacePageHead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 2px;padding:0 2px}
+html[data-theme] .workspaceRoot .workspacePageHead h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;color:#1e293b}
+html[data-theme] .workspaceRoot .workspaceCrumbs{display:flex;align-items:center;gap:8px;font-size:13px;color:#94a3b8;min-width:0}
+html[data-theme] .workspaceRoot .workspaceCrumbs b{color:#2563eb;font-weight:650}
+html[data-theme] .workspaceRoot .workspaceCrumbs span:not([aria-hidden]){color:#64748b}
+html[data-theme] .workspaceRoot .workspaceCrumbs button{display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:8px;background:transparent;color:#64748b;cursor:pointer}
+html[data-theme] .workspaceRoot .workspaceCrumbs button:hover{background:#eef3fe;color:#2563eb}
+html[data-theme] .workspaceRoot .workspaceCrumbs svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:760px){
+  html[data-theme] .workspaceRoot .workspacePageHead{margin:8px 0 0}
+  html[data-theme] .workspaceRoot .workspacePageHead h1{font-size:17px}
+  html[data-theme] .workspaceRoot .workspaceCrumbs{font-size:12px}
+}
+
+/* ---------- Ringkasan KPI cards: clean stat card with icon chip ---------- */
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi{overflow:hidden!important;padding:18px 20px!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi:before{display:none!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi:after{display:none!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpiHeader{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:10px!important;width:100%!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpiLabel{font-size:14px!important;font-weight:650!important;color:#334155!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon{
+  position:static!important;flex:0 0 44px!important;width:44px!important;height:44px!important;border-radius:12px!important;
+  display:grid!important;place-items:center!important;background:#eef3fe!important;color:#2563eb!important;box-shadow:none!important;transform:none!important
+}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon:before,html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon:after{display:none!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi.warn .ovKpiIcon{background:#fff7e8!important;color:#d97706!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi.danger .ovKpiIcon{background:#fef0f0!important;color:#dc2626!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi:nth-child(2):not(.warn):not(.danger) .ovKpiIcon{background:#eaf7f1!important;color:var(--aur-brand)!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon svg{width:22px!important;height:22px!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi b{font-size:30px!important;color:#1e293b!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovKpi small{font-size:12.5px!important;color:#64748b!important}
+
+/* ---------- Login / sign-up: split card, AUREKA gradient panel ---------- */
+html .authPage{background:#f4f6fb!important}
+html .authPage .landingAura{opacity:.35}
+html .authPage .authShell{border-radius:22px!important;border:0!important;background:#fff!important;box-shadow:0 10px 40px rgba(15,23,42,.08)!important}
+html .authPage .authAside{
+  background:
+    radial-gradient(circle at 85% 12%,rgba(255,255,255,.16) 0 70px,transparent 71px),
+    radial-gradient(circle at 10% 92%,rgba(255,255,255,.10) 0 120px,transparent 121px),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.04) 0 2px,transparent 2px 14px),
+    linear-gradient(150deg,#1d4ed8 0%,#2563eb 45%,#0f7656 100%)!important;
+  color:#fff!important
+}
+html .authPage .authAside h2{font-size:32px!important;letter-spacing:-.02em!important;color:#fff!important}
+html .authPage .authAside p{color:rgba(255,255,255,.86)!important}
+html .authPage .authAside li span{background:rgba(255,255,255,.18)!important;color:#fff!important}
+html .authPage .authShell .authCard{background:#fff!important;border:0!important;box-shadow:none!important}
+html .authPage .authCard .liquidGlassEdge,html .authPage .authCard .liquidGlassSheen{display:none!important}
+html .authPage .authCard h1{color:#1e293b!important}
+html .authPage .authCard .authEyebrow{color:#2563eb!important}
+html .authPage .authCard .field label{font-size:13px!important;font-weight:650!important;color:#334155!important}
+html .authPage .authCard .field :is(input,select){background:#fff!important;border:1px solid #e2e8f0!important;border-radius:10px!important;min-height:44px!important}
+html .authPage .authCard .field :is(input,select):focus{border-color:#93c5fd!important;box-shadow:0 0 0 3px rgba(37,99,235,.12)!important;outline:0!important}
+html .authPage .authCard .authWide{background:linear-gradient(90deg,#2563eb,#1d4ed8 55%,#0f7656)!important;color:#fff!important;border:0!important;border-radius:10px!important;box-shadow:0 8px 20px rgba(37,99,235,.25)!important}
+html .authPage .authCard .authWide:hover{filter:brightness(1.05)}
+html .authPage .authCard .authSwitch button,html .authPage .authCard .authForgot{color:#2563eb!important}
