@@ -137,11 +137,14 @@ export default function OverviewDashboard({
       setPlans({ ...p, rows: (p.rows as Plan[]).filter(x => manager || (roomId != null && x.owner_room_id === roomId)) })
       setIncidents(i)
       setQuality({ ...q, rows: (q.rows as QualityRecord[]).filter(x => manager || (roomId != null && x.room_id === roomId)) })
-      setClinicalPathway({ ...cp, rows: (cp.rows as ClinicalPathwayAudit[]).filter(x => manager || (roomId != null && x.room_id === roomId)) })
+      // Hanya 3 nilai ringkas dari calculation_json yang diambil (bukan seluruh isi audit) agar Ringkasan cepat.
+      const cpRows = (cp.rows as any[]).map(x => x.calculation_json ? x : { ...x, calculation_json: { included: x.cj_included, section_d_pass: x.cj_section_d, compliance_pct: x.cj_compliance } }) as ClinicalPathwayAudit[]
+      setClinicalPathway({ ...cp, rows: cpRows.filter(x => manager || (roomId != null && x.room_id === roomId)) })
       setRefreshedAt(new Date())
       setLoading(false)
     }
-    const cached = ovCache.get(cacheKey)
+    let cached = ovCache.get(cacheKey)
+    if (!cached) { try { const raw = sessionStorage.getItem('aureka-ov:' + cacheKey); if (raw) cached = JSON.parse(raw) } catch { /* abaikan */ } }
     if (cached) apply(cached)
     else setLoading(true)
     Promise.all([
@@ -157,12 +160,15 @@ export default function OverviewDashboard({
         .select('id,room_id,status,review_required,created_at').eq('profile_year', year)
         .order('created_at', { ascending: false }).range(f, t)),
       fetchAll<ClinicalPathwayAudit>((f, t) => sb.schema('aureka_quality').from('clinical_pathway_audits')
-        .select('id,room_id,template_code,template_name,patient_name,status,calculation_json,created_at')
+        .select('id,room_id,status,created_at,cj_included:calculation_json->included,cj_section_d:calculation_json->section_d_pass,cj_compliance:calculation_json->compliance_pct')
         .gte('created_at', String(year) + '-01-01T00:00:00.000Z')
         .lt('created_at', String(year + 1) + '-01-01T00:00:00.000Z')
         .neq('status', 'archived').order('created_at', { ascending: false }).range(f, t)),
     ]).then(results => {
-      if (!results.some((x: any) => x.error)) ovCache.set(cacheKey, results)
+      if (!results.some((x: any) => x.error)) {
+        ovCache.set(cacheKey, results)
+        try { sessionStorage.setItem('aureka-ov:' + cacheKey, JSON.stringify(results)) } catch { /* penyimpanan penuh: abaikan */ }
+      }
       apply(results)
     })
     return () => { cancelled = true }
