@@ -581,7 +581,7 @@ export default function IcuExcelImportDialog({
         </div>
 
         {findings && <div className="iiBox">
-          **Pemeriksaan workbook:** {findings.sheetCount} worksheet; formula error pada Logbook: {findings.sourceFormulaErrors}; formula error pada worksheet rekap yang tidak diimpor: {findings.reportFormulaErrors}.
+          <strong>Pemeriksaan workbook:</strong> {findings.sheetCount} worksheet; formula error pada Logbook: {findings.sourceFormulaErrors}; formula error pada worksheet rekap yang tidak diimpor: {findings.reportFormulaErrors}.
           <div className="aqSub">Hanya sheet Logbook diproses. Dashboard, Profil, dan sheet laporan 1–20 tidak menjadi sumber episode.</div>
         </div>}
 
