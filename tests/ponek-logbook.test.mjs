@@ -56,6 +56,8 @@ test('detects missing or duplicate PONEK headers without accepting placeholder c
 test('ignores formula-filled sequence-only rows but recognizes an episode with missing date', () => {
   assert.equal(hasPonekLogbookData({ sourceNo: '215' }), false)
   assert.equal(hasPonekLogbookData({ sourceNo: '215', patientName: 'Nama' }), true)
+  assert.equal(hasPonekLogbookData({ 'indicator:33.1': 'Tim Lengkap' }), false)
+  assert.equal(hasPonekLogbookData({ sourceNo: '216', 'indicator:33.1': 'Tim Lengkap' }), true)
   assert.equal(hasPonekLogbookData({ diagnosis: 'Diagnosis', 'indicator:33.1': 'Tim Lengkap' }), true)
 })
 
