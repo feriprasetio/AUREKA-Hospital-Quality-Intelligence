@@ -132,7 +132,7 @@ test('maps source labels from the uploaded Nifas Profil sheet for all nine activ
     ['19.10', 'Lama Rawat >3 Hari (Sudah Atas Persetujuan Dokter) (Code 3)', [
       { code: 3, label: 'Lama Rawat >3 Hari (Sudah Atas Persetujuan Dokter)', numerator: null, denominator: true, review_required: true },
     ], 3],
-  ] as const
+  ]
 
   for (const [code, source, options, expectedCode] of cases) {
     const answer = parseNifasSourceAnswer(source, [...options])
