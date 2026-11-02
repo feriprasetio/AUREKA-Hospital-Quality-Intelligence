@@ -147,7 +147,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       const columns = headerColumns(sheet.getRow(rowNumber))
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
-        const optional = ['dischargeDate', 'patientCategory', 'dischargeStatus', 'weight', 'height', 'sourceLos', 'unmappedBhpLinen'].includes(key)
+        const optional = ['height', 'sourceLos'].includes(key)
         const column = findHeader(columns, aliases, !optional)
         if (column != null) indexes[key] = column
       }
@@ -460,10 +460,10 @@ export default function PerinatologyExcelImportDialog({
               Array.isArray(profile.options_json) ? profile.options_json : [],
             )
             if (!answer) continue
-            indicators[item.code] = answer
             if (answer.mappingStatus !== 'mapped_pending_classification') {
-              warnings.push(item.code + ' ' + item.header + ': ' + answer.mappingStatus + '; respons disimpan sebagai pending.')
+              throw new Error(item.code + ' ' + item.header + ': pilihan sumber tidak cocok secara unik dengan master (' + answer.mappingStatus + '). Koreksi pilihan sumber sebelum impor.')
             }
+            indicators[item.code] = answer
           }
 
           if (unmappedBhpLinen.trim()) {
