@@ -264,7 +264,7 @@ html[data-theme] .workspaceRoot .moduleEnter :is(.rmRoleChip,.psActions .psPill)
 html[data-theme] .workspaceRoot .moduleEnter :is(.rmRoleChip,.psActions .psPill):before{content:'';width:7px;height:7px;border-radius:50%;background:#22a06b}
 html[data-theme] .workspaceRoot .moduleEnter :is(.rmHeroActions .rmButton,.psActions .psBtn){height:36px!important;min-height:36px!important;padding:0 16px!important;border-radius:10px!important;font-size:13px!important;font-weight:700!important;white-space:nowrap!important}
 @media(max-width:620px){
-  html[data-theme] .workspaceRoot .moduleEnter :is(.rmHeroActions,.psActions){width:100%!important;justify-content:space-between!important}
+  html[data-theme] .workspaceRoot .moduleEnter :is(.rmHeroActions,.psActions){width:100%!important;justify-content:space-between!important;flex-wrap:wrap!important}
 }
 
 /* ---------- Administrasi: unit cards — name on top, clear actions below ---------- */
@@ -432,7 +432,7 @@ html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.rmNoti
   html[data-theme] .workspaceRoot .moduleEnter :is(.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap,.aqWrap,.psTableWrap,[class*="TableWrap"],[class*="tableWrap"]){
     overflow-x:auto!important;-webkit-overflow-scrolling:touch;max-width:100%!important
   }
-  html[data-theme] .workspaceRoot .moduleEnter .rmTable{min-width:680px!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable:not(:has(tr[data-risk-id])){min-width:680px!important}
   html[data-theme] .workspaceRoot .moduleEnter .rmTable td,html[data-theme] .workspaceRoot .moduleEnter .rmTable th{font-size:12.5px!important}
   html[data-theme] .workspaceRoot .moduleEnter .rmTable td b{font-size:13px!important}
   /* Tab rows (OPPE, etc.) scroll sideways instead of cutting the last tab */
@@ -443,4 +443,20 @@ html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.rmNoti
   /* Section heads: title on its own line, buttons wrap neatly below */
   html[data-theme] .workspaceRoot .moduleEnter .rmSectionHead{flex-wrap:wrap!important;gap:10px!important}
   html[data-theme] .workspaceRoot .moduleEnter .workspacePageHead{flex-direction:column;align-items:flex-start;gap:4px}
+}
+
+/* Risk Register on phones: each risk as a compact card instead of a wide table */
+@media (max-width:760px){
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable:has(tr[data-risk-id]){min-width:0!important;width:100%!important;display:block!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable:has(tr[data-risk-id]) thead{display:none!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable:has(tr[data-risk-id]) tbody{display:block!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px 10px!important;padding:12px 12px 14px!important;border-bottom:1px solid #e8eee9!important;outline:0!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id].selected{background:#f1f9f5!important;box-shadow:inset 3px 0 0 #0f7656!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td{display:block!important;border:0!important;padding:0!important;background:transparent!important;width:auto!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:nth-child(1){flex:0 0 26px!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:nth-child(2){flex:1 1 calc(100% - 40px)!important;min-width:0}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:nth-child(2) .rmRiskName{text-align:left;white-space:normal!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:nth-child(3){flex:1 1 100%!important;padding-left:36px!important;font-size:12px!important;color:#64748b!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:nth-child(4){margin-left:36px!important}
+  html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:last-child{margin-left:auto!important}
 }
