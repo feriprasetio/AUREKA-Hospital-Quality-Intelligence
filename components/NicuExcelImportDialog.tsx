@@ -110,8 +110,8 @@ function sourceNumber(cell: any): string {
   const value = readCellValue(cell)
   if (value == null || value === '') return ''
   if (typeof value === 'number' && Number.isFinite(value)) {
-    const display = String(cell?.text ?? '').trim()
-    return display && !/[Ee][+-]?\d+/.test(display) ? display : String(Math.trunc(value))
+    // Excel source sequence cells are formatted as decimal (e.g. 1.0) but are integer identities.
+    return Number.isInteger(value) ? String(value) : String(value)
   }
   return String(value).trim()
 }
