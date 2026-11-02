@@ -333,11 +333,19 @@ html:has(.workspaceRoot),body:has(.workspaceRoot){
   -webkit-text-fill-color:#9ca3af!important;
   opacity:1!important;
 }
-.workspaceRoot .moduleEnter :is(button,[role="button"],[role="tab"],summary){
+/* Default button text is dark with zero specificity so each component's own colours win.
+   (Previously every button was forced to white text, which made outline/white buttons unreadable.) */
+:where(.workspaceRoot .moduleEnter) :where(button,[role="button"],[role="tab"],summary){
   color:#374151;
+}
+.workspaceRoot .moduleEnter :is(button,[role="button"],[role="tab"],summary){
   text-shadow:none!important;
 }
-.workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton,.primary,.btn-primary,[data-variant="primary"]){
+/* Ditulis terpisah: minifier CSS menggabungkan ":is(A):is(B)" menjadi ":is(A,B)" sehingga SEMUA tombol
+   ikut berteks putih (tombol putih jadi tak terbaca). */
+.workspaceRoot .moduleEnter :is(.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton,button).primary,
+.workspaceRoot .moduleEnter :is(.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton,button).btn-primary,
+.workspaceRoot .moduleEnter :is(.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton,button)[data-variant="primary"]{
   color:#fff!important;
 }
 .workspaceRoot .moduleEnter :is(button,.aqBtn,.rmButton,.psBtn,.cpBtn,.oppeBtn,.sdBtn,.stButton):not(:disabled){

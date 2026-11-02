@@ -545,7 +545,7 @@ export default function GeneralSettings({
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
                 <div className="eyebrow">PENGATURAN UMUM</div>
-                <h3 style={{ margin: '5px 0 4px', fontSize: 24, letterSpacing: '-.04em' }}>AUREKA Settings</h3>
+                <h3 style={{ margin: '5px 0 4px', fontSize: 24, letterSpacing: '-.04em' }}>Pengaturan AUREKA</h3>
                 <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>
                   {me?.email || 'Akun AUREKA'} · {roleLabel}
                 </p>

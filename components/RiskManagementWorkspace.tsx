@@ -89,19 +89,30 @@ const sourceUnitLabel = (risk: Pick<RiskRow, 'unit_name'>) => risk.unit_name?.tr
 const CONNECTOR_STOP_WORDS = new Set(['adalah', 'agar', 'akan', 'atau', 'bahwa', 'belum', 'bisa', 'dalam', 'dan', 'dapat', 'dari', 'dengan', 'dilakukan', 'diperlukan', 'guna', 'hingga', 'hanya', 'harus', 'jika', 'juga', 'karena', 'kedua', 'ketika', 'kondisi', 'kurang', 'lebih', 'melalui', 'menjadi', 'menyebabkan', 'meningkat', 'mungkin', 'pada', 'paling', 'para', 'perlu', 'saat', 'salah', 'sama', 'sebagai', 'sehingga', 'selama', 'sering', 'setiap', 'sudah', 'tanpa', 'terhadap', 'terjadi', 'terkait', 'terlalu', 'tidak', 'untuk', 'yang', 'unit', 'rumah', 'sakit', 'pelayanan', 'risiko', 'resiko', 'pasien', 'petugas', 'pegawai', 'tenaga'])
 const riskTokens = (value: unknown) => new Set(String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter(token => token.length >= 4 && !CONNECTOR_STOP_WORDS.has(token)))
 const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
-  const allRows: any[] = []
+  // Halaman pertama dulu; bila penuh, halaman berikutnya diambil paralel (4 sekaligus)
+  // supaya register besar tidak menunggu satu per satu.
   const batchSize = 1000
-  let from = 0
+  const first = await buildQuery(0, batchSize - 1)
+  if (first.error) return { data: null, error: first.error }
+  const allRows: any[] = [...((first.data || []) as any[])]
+  if (allRows.length < batchSize) return { data: allRows, error: null }
+  let page = 1
   while (true) {
-    const { data, error } = await buildQuery(from, from + batchSize - 1)
-    if (error) return { data: null, error }
-    const batch = (data || []) as any[]
-    allRows.push(...batch)
-    if (batch.length < batchSize) break
-    from += batchSize
+    const wave = await Promise.all([0, 1, 2, 3].map(i => buildQuery((page + i) * batchSize, (page + i + 1) * batchSize - 1)))
+    for (const result of wave) if (result.error) return { data: null, error: result.error }
+    let done = false
+    for (const result of wave) {
+      const batch = (result.data || []) as any[]
+      allRows.push(...batch)
+      if (batch.length < batchSize) { done = true; break }
+    }
+    if (done) break
+    page += 4
   }
   return { data: allRows, error: null }
 }
+// Cache di memori: saat modul dibuka lagi, data terakhir langsung tampil sambil diperbarui di latar.
+const rmQueryCache = new Map<string, { data: any[] | null; error: any }[]>()
 const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"'
 // Form ditampilkan sebagai jendela di atas halaman agar tidak perlu scroll ke bawah tabel.
 // Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
@@ -206,17 +217,8 @@ export default function RiskManagementWorkspace({
   const unitOptions = useMemo(() => rooms.length ? rooms : [], [rooms])
   const sourceUnitOptions = useMemo(() => Array.from(new Set(risks.map(sourceUnitLabel))).sort((a, b) => a.localeCompare(b, 'id')), [risks])
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
+  const applyQueries = useCallback((queries: { data: any[] | null; error: any }[]) => {
     setError('')
-    const queries = await Promise.all([
-      fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('mitigation_plan_risks').select('*').order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('risk_relationships').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-      fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
-    ])
     const firstError = queries.find(q => q.error)
     if (firstError?.error) {
       setError('Data Manajemen Risiko belum dapat dimuat. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase. Detail: ' + firstError.error.message)
@@ -254,8 +256,25 @@ export default function RiskManagementWorkspace({
       setSelectedRiskId(current => incomingRisks.some(r => r.id === current) ? current : (incomingRisks[0]?.id || ''))
       setSelectedPlanId(current => incomingPlans.some(p => p.id === current) ? current : (incomingPlans[0]?.id || ''))
     }
+  }, [currentRoom?.name, scopedToUnit, belongsToMyUnit, initialRoomId])
+  const loadData = useCallback(async () => {
+    const cacheKey = userId + '|' + (scopedToUnit ? 'unit:' + String(initialRoomId) : 'all')
+    const cached = rmQueryCache.get(cacheKey)
+    if (cached) { applyQueries(cached); setLoading(false) }
+    else setLoading(true)
+    const queries = await Promise.all([
+      fetchAllPages((from, to) => db.from('risk_register').select('*').order('risk_score', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plans').select('*').order('updated_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('mitigation_plan_risks').select('*').order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_relationships').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+      fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
+    ])
+    if (!queries.some(q => q.error)) rmQueryCache.set(cacheKey, queries)
+    applyQueries(queries)
     setLoading(false)
-  }, [db, currentRoom?.name, scopedToUnit, belongsToMyUnit, initialRoomId])
+  }, [db, scopedToUnit, initialRoomId, applyQueries, userId])
+
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {
@@ -785,7 +804,7 @@ export default function RiskManagementWorkspace({
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih ' + risk.risk_code} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
                 <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small>{risk.risk_code} · {risk.category}{risk.is_priority ? ' · PRIORITAS #' + (risk.priority_rank ?? '—') : ''}{risk.source_sheet ? ' · Sumber: ' + risk.source_sheet + (risk.source_row_number ? ' baris ' + risk.source_row_number : '') : ''}</small></button></td>
                 <td>{risk.unit_name || '—'}</td><td><strong className="rmScore">{risk.risk_score}</strong></td><td>{renderRiskBadge(risk.risk_level)}</td><td>{renderStatus(risk.status)}</td>
-                <td><div className="rmActions"><button type="button" className="rmIconButton" aria-label="Lihat detail" title="Lihat detail" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(v => !v); }}>↗</button><button type="button" className="rmIconButton" disabled={!canEditRisk(risk)} aria-label="Edit risiko" title={canEditRisk(risk) ? 'Edit risiko' : 'Hanya unit terkait atau role pengelola yang dapat mengubah'} onClick={() => openRiskEditor(risk)}>✎</button></div></td>
+                <td><div className="rmActions"><button type="button" className="rmIconButton" aria-label="Lihat detail" title="Lihat detail" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(v => !v); }}>Detail</button><button type="button" className="rmIconButton" disabled={!canEditRisk(risk)} aria-label="Edit risiko" title={canEditRisk(risk) ? 'Edit risiko' : 'Hanya unit terkait atau role pengelola yang dapat mengubah'} onClick={() => openRiskEditor(risk)}>✎ Edit</button></div></td>
               </tr>)}
                 {!pageRisks.length && <tr><td colSpan={7}><div className="rmEmptySmall">Tidak ada risiko yang sesuai filter. Ubah filter atau tambahkan risiko baru.</div></td></tr>}
               </tbody></table></div>
@@ -942,7 +961,7 @@ export default function RiskManagementWorkspace({
               <button type="button" className="rmGraphNode" onClick={() => { if (a) { setUnitFilter(sourceUnitLabel(a)); setSelectedRiskId(a.id); setTab('register'); setRegisterDetailExpanded(true); } }}><span>{a?.risk_code || 'Risiko sumber'}</span><b>{a?.risk_event || 'Tidak ditemukan'}</b><small>{a?.unit_name} · Sangat Tinggi</small></button>
               <div className="rmConnector"><span>{RELATION_TYPES.find(t => t.value === link.relationship_type)?.label || link.relationship_type}</span><i>⟷</i><small>{link.description || 'Relasi belum dijelaskan'}</small></div>
               <button type="button" className="rmGraphNode" onClick={() => { if (b) { setUnitFilter(sourceUnitLabel(b)); setSelectedRiskId(b.id); setTab('register'); setRegisterDetailExpanded(true); } }}><span>{b?.risk_code || 'Risiko terkait'}</span><b>{b?.risk_event || 'Tidak ditemukan'}</b><small>{b?.unit_name} · {b?.risk_level}</small></button>
-              <button type="button" className="rmIconButton dangerText" aria-label="Hapus konektor" onClick={() => setPendingAction({ kind: 'delete-link', id: link.id })}>×</button>
+              <button type="button" className="rmIconButton dangerText" aria-label="Hapus konektor" onClick={() => setPendingAction({ kind: 'delete-link', id: link.id })}>Hapus</button>
             </div>
           })}{!visibleLinks.length && <div className="rmEmptySmall">Belum ada konektor aktif pada kelompok sumber ini. Pilih kandidat, verifikasi dasarnya, lalu aktifkan konektor.</div>}</div>
           {pendingAction?.kind === 'delete-link' && <div className="rmInlineConfirm"><div><b>Konfirmasi penghapusan konektor</b><p>Data risiko tetap dipertahankan; hanya relasi yang dihapus.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteLink(pendingAction.id)}>Hapus konektor</button></div></div>}
@@ -952,7 +971,7 @@ export default function RiskManagementWorkspace({
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'fmea' && <>
         <div className="rmKpis compact"><LiquidGlass className="rmKpi"><span>Analisis FMEA</span><strong>{fmeas.length}</strong><small>Modus kegagalan terdaftar</small></LiquidGlass><LiquidGlass className="rmKpi"><span>RPN ≥ 30 atau S ≥ 4</span><strong>{fmeas.filter(f => f.rpn >= 30 || f.severity >= 4).length}</strong><small>Prioritas penanganan tinggi</small></LiquidGlass><LiquidGlass className="rmKpi"><span>RPN maksimum</span><strong>{fmeas.length ? Math.max(...fmeas.map(f => f.rpn)) : '—'}</strong><small>Skor S × O × D</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Target tindakan belum lewat</span><strong>{fmeas.filter(f => f.target_date && new Date(f.target_date + 'T23:59:59') < new Date() && f.status !== 'Closed').length}</strong><small>Perlu tindak lanjut pemilik</small></LiquidGlass></div>
         <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">ANALISIS MODUS KEGAGALAN</span><h4>FMEA / HFMEA</h4><p>Engine FMEA dipisahkan dari baseline risk scoring. RPN = Severity × Occurrence × Detection; RPN bukan skor matriks kemungkinan–dampak.</p></div><button type="button" className="rmButton primary" onClick={() => openFmea()}>＋ Analisis FMEA</button></div>
-          <div className="rmTableWrap"><table className="rmTable"><thead><tr><th>Kode FMEA</th><th>Unit / Proses</th><th>Modus kegagalan</th><th>S–O–D</th><th>RPN</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{fmeas.map(f => <tr key={f.id}><td><b>{f.fmea_code}</b></td><td>{f.unit_name}<small className="rmCellSmall">{f.process_name}</small></td><td><b>{f.failure_mode}</b><small className="rmCellSmall">{f.risk_register_id ? risks.find(r => r.id === f.risk_register_id)?.risk_code || 'Risiko tertaut' : 'Belum ditautkan ke register'}</small></td><td>{f.severity}–{f.occurrence}–{f.detection}</td><td><strong className="rmScore">{f.rpn}</strong></td><td><span className={'rmBadge ' + (f.priority === 'Tinggi' ? 'very-high' : f.priority === 'Sedang' ? 'moderate' : 'low')}>{f.priority}</span></td><td>{renderStatus(f.status)}</td><td><button type="button" className="rmIconButton" onClick={() => openFmea(f)} disabled={!canManageAll && !risks.some(r => r.id === f.risk_register_id && canEditRisk(r))} aria-label="Edit FMEA">✎</button></td></tr>)}{!fmeas.length && <tr><td colSpan={8}><div className="rmEmptySmall">Belum ada analisis FMEA. Tambahkan analisis dan tautkan ke risk register bila relevan.</div></td></tr>}</tbody></table></div>
+          <div className="rmTableWrap"><table className="rmTable"><thead><tr><th>Kode FMEA</th><th>Unit / Proses</th><th>Modus kegagalan</th><th>S–O–D</th><th>RPN</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{fmeas.map(f => <tr key={f.id}><td><b>{f.fmea_code}</b></td><td>{f.unit_name}<small className="rmCellSmall">{f.process_name}</small></td><td><b>{f.failure_mode}</b><small className="rmCellSmall">{f.risk_register_id ? risks.find(r => r.id === f.risk_register_id)?.risk_code || 'Risiko tertaut' : 'Belum ditautkan ke register'}</small></td><td>{f.severity}–{f.occurrence}–{f.detection}</td><td><strong className="rmScore">{f.rpn}</strong></td><td><span className={'rmBadge ' + (f.priority === 'Tinggi' ? 'very-high' : f.priority === 'Sedang' ? 'moderate' : 'low')}>{f.priority}</span></td><td>{renderStatus(f.status)}</td><td><button type="button" className="rmIconButton" onClick={() => openFmea(f)} disabled={!canManageAll && !risks.some(r => r.id === f.risk_register_id && canEditRisk(r))} aria-label="Edit FMEA">✎ Edit</button></td></tr>)}{!fmeas.length && <tr><td colSpan={8}><div className="rmEmptySmall">Belum ada analisis FMEA. Tambahkan analisis dan tautkan ke risk register bila relevan.</div></td></tr>}</tbody></table></div>
         </LiquidGlass>
         {fmeaEditorOpen && <RmModal label="Analisis FMEA" error={error}><LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4><p>Definisikan proses, failure mode, efek, penyebab, kontrol, dan tindakan pengurangan risiko.</p></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
