@@ -354,6 +354,29 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar{display:
 html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar-thumb{background:rgba(15,118,86,.3);border-radius:6px}
 html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{max-height:none!important;overflow:visible!important}
 
+/* Stable indicator rendering inside the logbook portal.
+   The editor is rendered with createPortal under document.body, so keep its
+   indicator stack self-contained instead of depending on .moduleEnter grid rules. */
+.aqEditorDialog .aqInlineEditor>.aqBody{display:block!important;min-width:0!important}
+.aqEditorDialog .aqInlineEditor .aqEpisode{margin-bottom:12px}
+.aqEditorDialog .aqInlineEditor .aqDerived{margin:12px 0}
+.aqEditorDialog .aqIndicatorSection{display:block!important;width:100%!important;min-width:0!important;visibility:visible!important}
+.aqEditorDialog .aqIndicatorList{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;width:100%!important;min-width:0!important;visibility:visible!important}
+.aqEditorDialog .aqIndicatorList>.aqInd{display:block!important;position:relative!important;flex:0 0 auto!important;width:100%!important;min-width:0!important;height:auto!important;min-height:112px!important;margin:0!important;padding:0!important;overflow:visible!important;visibility:visible!important;background:#fff!important;border:1px solid #d9e6de!important;border-radius:13px!important;box-shadow:0 1px 3px rgba(23,40,32,.05)!important}
+.aqEditorDialog .aqIndicatorList .aqIHead{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;min-height:38px!important;padding:10px 12px!important;background:#f2f8f4!important;border-bottom:1px solid #e1ebe4!important;visibility:visible!important}
+.aqEditorDialog .aqIndicatorList .aqIHead>div{display:block!important;flex:1 1 auto!important;min-width:0!important;visibility:visible!important}
+.aqEditorDialog .aqIndicatorList .aqIHead strong{display:block!important;visibility:visible!important;color:#172820!important;font-size:13px!important;line-height:1.35!important;font-weight:800!important;opacity:1!important}
+.aqEditorDialog .aqIndicatorList .aqIBody{display:block!important;min-height:62px!important;padding:11px 12px!important;visibility:visible!important;color:#172820!important;opacity:1!important}
+.aqEditorDialog .aqIndicatorList .aqQ{display:block!important;visibility:visible!important;margin:0 0 9px!important;color:#172820!important;font-size:13px!important;line-height:1.45!important;font-weight:750!important;opacity:1!important}
+.aqEditorDialog .aqIndicatorList .aqField{display:block!important;min-width:0!important;visibility:visible!important}
+.aqEditorDialog .aqIndicatorList .aqField>span{display:block!important;visibility:visible!important;color:#53665b!important;font-size:11px!important;line-height:1.35!important}
+.aqEditorDialog .aqIndicatorList .aqField :is(input,select,textarea){display:block!important;width:100%!important;min-height:40px!important;height:auto!important;padding:8px 11px!important;border:1px solid #d4e0d8!important;border-radius:9px!important;background:#fff!important;color:#172820!important;font-size:13px!important;line-height:1.35!important;opacity:1!important}
+.aqEditorDialog .aqIndicatorList .aqRadio{display:flex!important;flex-wrap:wrap!important;gap:8px!important;visibility:visible!important}
+.aqEditorDialog .aqIndicatorList .aqRadio label{display:inline-flex!important;align-items:center!important;gap:7px!important;padding:8px 10px!important;border:1px solid #d7e2db!important;border-radius:9px!important;background:#fff!important;color:#263b30!important;font-size:12px!important;line-height:1.35!important;visibility:visible!important}
+.aqEditorDialog .aqIndicatorList .aqAuto{display:block!important;visibility:visible!important;color:#172820!important}
+.aqEditorDialog .aqIndicatorList .aqEvidence{display:block!important;visibility:visible!important;color:#344b3e!important}
+.aqEditorDialog .aqIndicatorList .aqNotice{display:block!important;visibility:visible!important}
+
 /* ---------- Form Logbook (Mutu Klinis) as a centred pop-up window on a blurred backdrop ---------- */
 .aqPortal{display:contents}
 .aqBack.aqEditorBack{position:fixed!important;inset:0!important;z-index:1000!important;display:flex!important;justify-content:center!important;align-items:center!important;padding:28px!important;
