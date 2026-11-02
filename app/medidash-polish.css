@@ -354,23 +354,30 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar{display:
 html[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar-thumb{background:rgba(15,118,86,.3);border-radius:6px}
 html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{max-height:none!important;overflow:visible!important}
 
-/* ---------- Form Logbook (Mutu Klinis) as a pop-up window ---------- */
-.aqBack.aqEditorBack{justify-content:center!important;align-items:center!important;padding:24px!important;background:rgba(10,30,22,.36)!important;z-index:120!important}
-.aqEditorDialog{width:min(1040px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 30px 80px rgba(6,30,20,.28);animation:aqPop .18s ease both}
-@keyframes aqPop{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
-.aqEditorDialog .aqInlineEditor{display:flex!important;flex-direction:column!important;min-height:0;max-height:100%;border-radius:0!important;box-shadow:none!important;background:#fff!important;border:0!important}
-.aqEditorDialog .aqInlineEditor>.aqDHead{flex:0 0 auto;background:linear-gradient(180deg,#f4faf7,#fff);padding:18px 22px!important}
-.aqEditorDialog .aqInlineEditor>.aqDHead h4{font-size:20px!important;color:#0b5d44!important}
-.aqEditorDialog .aqInlineEditor>.aqBody{flex:1 1 auto;min-height:0;overflow-y:auto!important;padding:18px 22px!important;overscroll-behavior:contain}
-.aqEditorDialog .aqInlineEditor>.aqFoot{flex:0 0 auto;position:static!important;border-radius:0!important;padding:12px 22px!important;display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;background:#f8fbf9!important}
-.aqEditorDialog .aqClose{width:36px;height:36px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-size:20px;line-height:1;cursor:pointer;color:#475569}
+/* ---------- Form Logbook (Mutu Klinis) as a centred pop-up window on a blurred backdrop ---------- */
+.aqPortal{display:contents}
+.aqBack.aqEditorBack{position:fixed!important;inset:0!important;z-index:1000!important;display:flex!important;justify-content:center!important;align-items:center!important;padding:28px!important;
+  background:radial-gradient(circle at 30% 20%,rgba(15,118,86,.16),transparent 55%),rgba(12,28,22,.34)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(120%)!important;backdrop-filter:blur(10px) saturate(120%)!important}
+.aqEditorDialog{--line:#e2ebe6;--muted:#64748b;width:min(880px,100%);max-height:min(86vh,900px);display:flex;flex-direction:column;border-radius:20px;overflow:hidden;
+  background:rgba(255,255,255,.97);border:1px solid rgba(255,255,255,.9);box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 30px 80px -10px rgba(6,40,28,.38);animation:aqPop .2s ease both}
+@keyframes aqPop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.aqEditorDialog .aqInlineEditor{display:flex!important;flex-direction:column!important;min-height:0;max-height:100%;border-radius:0!important;box-shadow:none!important;background:transparent!important;border:0!important}
+.aqEditorDialog .aqInlineEditor>.aqDHead{flex:0 0 auto;display:flex!important;justify-content:space-between!important;align-items:flex-start!important;gap:12px!important;background:linear-gradient(180deg,#eef8f3,#fff)!important;padding:18px 22px!important;border-bottom:1px solid var(--line)!important}
+.aqEditorDialog .aqInlineEditor>.aqDHead h4{font-size:20px!important;margin:0 0 4px!important;color:#0b5d44!important;letter-spacing:-.01em!important}
+.aqEditorDialog .aqInlineEditor>.aqDHead p{margin:0!important;font-size:12.5px!important;color:#64748b!important}
+.aqEditorDialog .aqInlineEditor>.aqBody{flex:1 1 auto;min-height:0;overflow-y:auto!important;padding:18px 22px!important;overscroll-behavior:contain;display:grid;gap:12px}
+.aqEditorDialog .aqInlineEditor>.aqFoot{flex:0 0 auto;position:static!important;border-radius:0!important;padding:12px 22px!important;display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;background:#f7fbf9!important;border-top:1px solid var(--line)!important}
+.aqEditorDialog .aqClose{flex:0 0 auto;width:36px;height:36px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-size:20px;line-height:1;cursor:pointer;color:#475569}
 .aqEditorDialog .aqClose:hover{background:#f1f5f3}
-.aqEditorDialog .aqFoot .aqBtn{min-height:40px!important;padding:0 18px!important;font-size:13px!important;border-radius:10px!important}
+.aqEditorDialog .aqFoot .aqBtn{min-height:40px!important;padding:0 18px!important;font-size:13px!important;font-weight:700!important;border-radius:10px!important;border:1px solid #d6e2dc!important;background:#fff!important;color:#1e293b!important;cursor:pointer}
 .aqEditorDialog .aqFoot .aqBtn.primary{background:#0f7656!important;color:#fff!important;border-color:#0f7656!important}
-.aqEditorDialog .aqInd{border-radius:12px!important}
+.aqPortal .aqDeleteConfirmBack{z-index:1010!important;display:flex!important;align-items:center!important;justify-content:center!important}
+.aqPortal .aqDeleteConfirm .aqBtn{min-height:40px;padding:0 16px;border-radius:10px;border:1px solid #d6e2dc;background:#fff;color:#1e293b;font-weight:700;cursor:pointer}
+.aqPortal .aqDeleteConfirm .aqBtn.danger{background:#dc2626;border-color:#dc2626;color:#fff}
 @media(max-width:760px){
-  .aqBack.aqEditorBack{padding:0!important;align-items:stretch!important}
-  .aqEditorDialog{max-height:100vh;height:100%;border-radius:0}
+  .aqBack.aqEditorBack{padding:12px!important}
+  .aqEditorDialog{max-height:calc(100vh - 24px);border-radius:16px}
   .aqEditorDialog .aqInlineEditor>.aqDHead,.aqEditorDialog .aqInlineEditor>.aqBody,.aqEditorDialog .aqInlineEditor>.aqFoot{padding-left:14px!important;padding-right:14px!important}
   .aqEditorDialog .aqFoot>div{width:100%}
   .aqEditorDialog .aqFoot .aqBtn{flex:1}
