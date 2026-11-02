@@ -15,6 +15,8 @@ type ClinicalPathwayAudit = { id: string; room_id: number; template_code: string
 type Section<T> = { rows: T[]; error: string | null }
 
 const LEVELS = ['Sangat Tinggi', 'Tinggi', 'Sedang', 'Rendah', 'Sangat Rendah'] as const
+// Same bands as Manajemen Risiko (skor = kemungkinan × dampak).
+const matrixBand = (score: number) => score >= 20 ? 'very-high' : score >= 15 ? 'high' : score >= 10 ? 'moderate' : score >= 5 ? 'low' : 'very-low'
 const LEVEL_CLASS: Record<string, string> = {
   'Sangat Tinggi': 'very-high', Tinggi: 'high', Sedang: 'moderate', Rendah: 'low', 'Sangat Rendah': 'very-low',
 }
@@ -217,7 +219,7 @@ export default function OverviewDashboard({
     <div className="ovRoot">
       <section className="ovHero">
         <div className="ovHeroCopy">
-          <span className="ovEyebrow">'AUREKA · PMKP WORKSPACE'</span>
+          <span className="ovEyebrow">AUREKA · PMKP WORKSPACE</span>
           <h3>{`Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}</h3>
           <p>{manager
             ? 'Ringkasan terpadu indikator mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
@@ -270,7 +272,7 @@ export default function OverviewDashboard({
               <span className="ovAxisY">Kemungkinan</span>
               <div className="ovMatrix" role="table" aria-label="Jumlah risiko per kemungkinan dan dampak">
                 {stats.matrix.map((row, ri) => row.map((count, ci) => (
-                  <button type="button" key={`${ri}-${ci}`} role="cell" className="ovCell" disabled={!count}
+                  <button type="button" key={`${ri}-${ci}`} role="cell" className="ovCell" disabled={!count} data-band={matrixBand((5 - ri) * (ci + 1))}
                     onClick={() => onNavigate('risk', { likelihood: 5 - ri, impact: ci + 1 })}
                     title={`Kemungkinan ${5 - ri} × Dampak ${ci + 1}: ${count} risiko${count ? ' — klik untuk melihat daftarnya' : ''}`}
                     style={{ ['--heat' as any]: count ? 0.18 + 0.82 * (count / stats.maxMatrix) : 0 }}>
@@ -279,6 +281,9 @@ export default function OverviewDashboard({
                 )))}
               </div>
               <span className="ovAxisX">Dampak →</span>
+              <div className="ovMatrixLegend" aria-label="Keterangan warna level risiko">
+                {LEVELS.map(l => <span key={l}><i style={{ background: `rgb(var(--risk-${LEVEL_CLASS[l]}))` }} />{l}</span>)}
+              </div>
             </div>}
         </Panel>
 
