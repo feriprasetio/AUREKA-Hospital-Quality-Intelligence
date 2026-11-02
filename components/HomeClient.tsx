@@ -235,8 +235,9 @@ export default function HomeClient(){
   if(active==='settings')return 'Administrasi'
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,staffArea,analyticsTab])
- const openMainModule=(id:string)=>{
-  setProfileFocus(0);setMobile(false);setGlobalSearch('');setActive(id)
+ const openMainModule=(id:string,keepMenuOpen=false)=>{
+  // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
+  setProfileFocus(0);if(!keepMenuOpen)setMobile(false);setGlobalSearch('');setActive(id)
   if(id==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);setQualityResultsView(null);setQualityOpen(true)}
   else {setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null)}
   if(id==='safety')setSafetyTab('overview')
@@ -506,7 +507,7 @@ export default function HomeClient(){
     </button>
    </div>
    {visibleMods.map(([id,n])=><div className={'sidebarNavGroup '+(active===id?'expanded':'')} key={id}>
-    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={active===id} onClick={()=>openMainModule(id)}>
+    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={active===id} onClick={()=>openMainModule(id,Boolean(sidebarChildGroups[id]?.length))}>
      <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
     </button>
     {active===id&&sidebarChildGroups[id]?.length?<div className="sidebarTreeChildren">
