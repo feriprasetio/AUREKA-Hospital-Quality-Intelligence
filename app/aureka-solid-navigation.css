@@ -602,3 +602,268 @@
   .workspaceRoot .qualityWorkspaceTabs { width: 100%; }
   .workspaceRoot .qualityWorkspaceTabs button { flex: 1 1 0; padding: 0 10px; }
 }
+
+
+/* Medidash Solid Default White — final workspace chrome and unified sidebar control. */
+.workspaceRoot:not(.sidebarIsCollapsed) {
+  grid-template-columns: 256px minmax(0, 1fr) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+.workspaceRoot:not(.sidebarIsCollapsed) > .sidebar {
+  width: 256px !important;
+  min-width: 256px !important;
+  max-width: 256px !important;
+}
+.workspaceRoot.sidebarIsCollapsed {
+  grid-template-columns: 72px minmax(0, 1fr) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+.workspaceRoot.sidebarIsCollapsed > .sidebar {
+  width: 72px !important;
+  min-width: 72px !important;
+  max-width: 72px !important;
+  padding: 12px 8px !important;
+}
+.workspaceRoot .sidebar,
+.workspaceRoot .sidebar.glassPanel {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  position: sticky !important;
+  top: 0 !important;
+  padding: 0 12px !important;
+  overflow: hidden !important;
+  background: #fff !important;
+  border: 0 !important;
+  border-right: 1px solid #e7ece8 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.workspaceRoot .sidebar .sideHeader {
+  min-height: 76px !important;
+  height: 76px !important;
+  flex: 0 0 76px !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 0 8px !important;
+  border-bottom: 1px solid #edf1ee !important;
+}
+.workspaceRoot .sidebar .sideBrand {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  gap: 10px !important;
+}
+.workspaceRoot .sidebar .sideBrand .brandLogoWrap,
+.workspaceRoot .sidebar .sideBrand img {
+  width: 38px !important;
+  height: 38px !important;
+  flex: 0 0 38px !important;
+}
+.workspaceRoot .sidebar .sideBrand b {
+  color: #26392f !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.02em !important;
+}
+.workspaceRoot .sidebar .sideBrand small {
+  color: #87948c !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+}
+.workspaceRoot .sidebar .sideProfile { display: none !important; }
+.workspaceRoot .sidebar .navLabel {
+  margin: 18px 10px 9px !important;
+  color: #9aa69f !important;
+  font-size: 9px !important;
+  letter-spacing: .1em !important;
+}
+.workspaceRoot .sidebar .navLabel::before { display: none !important; }
+.workspaceRoot .sidebar .sidebarNav {
+  padding: 0 2px 12px !important;
+  gap: 3px !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button {
+  min-height: 42px !important;
+  padding: 0 11px !important;
+  gap: 11px !important;
+  border-radius: 8px !important;
+  color: #596a60 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button > svg {
+  width: 18px !important;
+  height: 18px !important;
+  color: #839188 !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button.navActive {
+  color: #0b6548 !important;
+  background: #eaf5ee !important;
+  border-color: transparent !important;
+  box-shadow: inset 3px 0 0 #13845f !important;
+  font-weight: 750 !important;
+}
+.workspaceRoot .sidebar .sidebarTreeChildren {
+  margin: 2px 0 7px 16px !important;
+  padding: 3px 0 3px 10px !important;
+  border-left: 1px solid #e7eee9 !important;
+}
+.workspaceRoot .sidebar .sidebarChild {
+  min-height: 32px !important;
+  padding: 6px 8px !important;
+  border-radius: 7px !important;
+  color: #718077 !important;
+  font-size: 11px !important;
+  font-weight: 550 !important;
+}
+.workspaceRoot .sidebar .sidebarChild.active {
+  color: #0b6548 !important;
+  background: #f0f7f2 !important;
+  border-color: transparent !important;
+  font-weight: 700 !important;
+}
+.workspaceRoot .sidebar .sidebarFooter {
+  padding: 10px 2px 14px !important;
+  border-top: 1px solid #edf1ee !important;
+}
+.workspaceRoot .sidebar .sidebarFooter > .liquidButton { width: 100% !important; }
+.workspaceRoot .sidebar .sidebarFooter > .liquidButton button {
+  width: 100% !important;
+  min-height: 38px !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideHeader {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideBrand {
+  justify-content: center !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideBrand > div,
+.workspaceRoot.sidebarIsCollapsed .sidebar .navLabel,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button > span,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter .logoutLabel {
+  display: none !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron {
+  display: none !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter > .liquidButton button {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+.workspaceRoot .workspaceHeaderBar {
+  min-height: 66px !important;
+  padding: 0 22px !important;
+  gap: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  background: #fff !important;
+  border-bottom: 1px solid #e7ece8 !important;
+  box-shadow: 0 1px 2px rgba(20,42,30,.025) !important;
+}
+.workspaceRoot .workspaceGlobalSearch {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 1 420px !important;
+  min-width: 180px !important;
+  max-width: 640px !important;
+  min-height: 40px !important;
+  padding: 0 10px !important;
+  gap: 9px !important;
+  border: 1px solid #e8eeea !important;
+  border-radius: 9px !important;
+  background: #f7f9f8 !important;
+}
+.workspaceRoot .workspaceGlobalSearch .workspaceSidebarMenuButton {
+  display: inline-grid !important;
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 !important;
+  place-items: center !important;
+  color: #65766c !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-right: 1px solid #e5ebe7 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.workspaceRoot .workspaceGlobalSearch .workspaceSidebarMenuButton svg {
+  width: 18px !important;
+  height: 18px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+  stroke-linecap: round !important;
+}
+.workspaceRoot .workspaceGlobalSearch .workspaceSidebarMenuButton:hover {
+  color: #0b7654 !important;
+  background: #eef6f1 !important;
+}
+.workspaceRoot .workspaceGlobalSearch > svg {
+  flex: 0 0 17px !important;
+  width: 17px !important;
+  height: 17px !important;
+}
+.workspaceRoot .workspaceGlobalSearch input { flex: 1 1 auto !important; min-width: 0 !important; }
+.workspaceRoot .mobileMenuButton:not(.workspaceSidebarMenuButton) { display: none !important; }
+
+@media (max-width: 760px) {
+  .workspaceRoot:not(.sidebarIsCollapsed),
+  .workspaceRoot.sidebarIsCollapsed {
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding: 0 !important;
+  }
+  .workspaceRoot .sidebar,
+  .workspaceRoot .sidebar.glassPanel {
+    position: fixed !important;
+    top: 8px !important;
+    left: -320px !important;
+    width: min(304px, 88vw) !important;
+    min-width: min(304px, 88vw) !important;
+    max-width: 88vw !important;
+    height: calc(100vh - 16px) !important;
+    min-height: 0 !important;
+    padding: 0 12px !important;
+    z-index: 50 !important;
+    transition: left .22s ease !important;
+    box-shadow: 18px 0 48px rgba(20,42,30,.16) !important;
+  }
+  .workspaceRoot .sidebar.mobileOpen { left: 8px !important; }
+  .workspaceRoot .workspaceHeaderBar {
+    min-height: 60px !important;
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+  .workspaceRoot .workspaceContext { display: none !important; }
+  .workspaceRoot .workspaceGlobalSearch {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  .workspaceRoot .workspaceGlobalSearch .workspaceSidebarMenuButton {
+    display: inline-grid !important;
+  }
+  .workspaceRoot.sidebarIsCollapsed .sidebar .sideBrand > div,
+  .workspaceRoot.sidebarIsCollapsed .sidebar .navLabel,
+  .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button > span,
+  .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter .logoutLabel {
+    display: initial !important;
+  }
+  .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button {
+    justify-content: flex-start !important;
+    padding: 0 11px !important;
+  }
+  .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren { display: flex !important; }
+}
