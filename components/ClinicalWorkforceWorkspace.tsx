@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import StaffDirectoryWorkspace from '@/components/StaffDirectoryWorkspace'
-import StaffTeamWorkspace from '@/components/StaffTeamWorkspace'
-import OppeAuditWorkspace from '@/components/OppeAuditWorkspace'
+import dynamic from 'next/dynamic'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
+const StaffDirectoryWorkspace=dynamic(()=>import('@/components/StaffDirectoryWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Direktori Tenaga" compact/>})
+const StaffTeamWorkspace=dynamic(()=>import('@/components/StaffTeamWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Tim dan Penugasan" compact/>})
+const OppeAuditWorkspace=dynamic(()=>import('@/components/OppeAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat OPPE / FPPE" compact/>})
 
 type WorkforceArea = 'directory' | 'team' | 'oppe'
 type LocalRoom = { id: number; name: string }
