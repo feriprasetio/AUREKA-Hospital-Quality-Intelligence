@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { sanitizeNotificationText, toUserFacingError } from '@/lib/aureka/error-feedback'
+import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
 const sb = aurekaSupabase
