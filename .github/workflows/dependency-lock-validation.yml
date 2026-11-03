@@ -1,0 +1,114 @@
+name: Dependency Lock Validation
+
+on:
+  push:
+    branches:
+      - 'feat/**'
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tests/minimatch-compat.test.mjs'
+      - '.github/workflows/dependency-lock-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Resolve lockfile from explicit security overrides
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Reinstall exact generated lockfile
+        run: npm ci
+
+      - name: Verify all Minimatch installations are patched
+        run: |
+          npm ls minimatch --all --json > /tmp/minimatch-tree.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const tree = JSON.parse(fs.readFileSync('/tmp/minimatch-tree.json', 'utf8'));
+          const found = [];
+          function visit(dependencies, parent = '<root>') {
+            for (const [name, item] of Object.entries(dependencies ?? {})) {
+              const location = `${parent} > ${name}`;
+              if (name === 'minimatch') {
+                found.push({ location, version: item.version, overridden: item.overridden ?? false });
+              }
+              visit(item.dependencies, location);
+            }
+          }
+          visit(tree.dependencies);
+          console.log('Resolved Minimatch packages:', JSON.stringify(found, null, 2));
+          if (found.length === 0 || found.some(item => item.version !== '11.0.1')) {
+            throw new Error('Every Minimatch instance must resolve to patched version 11.0.1.');
+          }
+          NODE
+
+      - name: Fail on moderate or higher dependency advisories
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > /tmp/audit.json
+          audit_exit=$?
+          set -e
+          AUDIT_EXIT="$audit_exit" node <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('/tmp/audit.json', 'utf8'));
+          if (report.error) {
+            throw new Error(`npm audit could not complete: ${report.error.summary ?? report.error.code ?? 'unknown error'}`);
+          }
+          const items = Object.entries(report.vulnerabilities ?? {});
+          const levels = ['critical', 'high', 'moderate', 'low', 'info'];
+          const counts = Object.fromEntries(levels.map(level => [
+            level,
+            items.filter(([, item]) => item.severity === level).length,
+          ]));
+          console.log('Dependency audit summary:', JSON.stringify(counts));
+          for (const [name, item] of items) {
+            console.log(`[${item.severity}] ${name} | range=${item.range} | fix=${JSON.stringify(item.fixAvailable ?? false)}`);
+            for (const advisory of (item.via ?? []).filter(value => typeof value === 'object')) {
+              console.log(`  advisory: ${advisory.title ?? advisory.name ?? 'unnamed'} | ${advisory.url ?? 'URL unavailable'}`);
+            }
+          }
+          const blocking = items.filter(([, item]) =>
+            ['moderate', 'high', 'critical'].includes(item.severity)
+          );
+          if (blocking.length > 0) {
+            throw new Error(`Dependency audit blocked by ${blocking.length} moderate-or-higher package finding(s).`);
+          }
+          if (Number(process.env.AUDIT_EXIT ?? 0) !== 0 && items.length === 0) {
+            throw new Error('npm audit exited unsuccessfully without a vulnerability report.');
+          }
+          console.log('Dependency audit passed: no moderate-or-higher findings.');
+          NODE
+
+      - name: Run unit and compatibility tests
+        run: npm run test:unit
+
+      - name: Run AUREKA data validation
+        run: npm run test:data
+
+      - name: Run TypeScript validation
+        run: npm run typecheck
+
+      - name: Prepare reviewed lockfile artifact
+        run: |
+          mkdir -p dependency-validation-output
+          cp package-lock.json dependency-validation-output/package-lock.json
+          cp /tmp/audit.json dependency-validation-output/npm-audit.json
+          cp /tmp/minimatch-tree.json dependency-validation-output/minimatch-tree.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aureka-security-lock-review
+          path: dependency-validation-output/
+          retention-days: 3
