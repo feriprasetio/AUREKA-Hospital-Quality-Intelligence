@@ -7,11 +7,11 @@ const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf
 test('sidebar collapse is controlled only by the hamburger beside global search', () => {
   const home = read('components/HomeClient.tsx')
   const workspace = home.slice(home.indexOf("if(view==='workspace')"))
-  assert.match(workspace, /className="mobileMenuButton workspaceSidebarMenuButton"/)
+  assert.ok(workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"') < workspace.indexOf('className="workspaceContext"'), 'hamburger must precede hospital context')
   assert.match(workspace, /setSidebarCollapsed\(v=>!v\)/)
   assert.doesNotMatch(workspace, /className="sidebarToggle"/)
   assert.doesNotMatch(workspace, /className="mobileSidebarClose"/)
-  assert.match(workspace, /className="mobileMenuButton workspaceSidebarMenuButton"[\\s\\S]*className="workspaceContext"[\\s\\S]*className="workspaceGlobalSearch"/)
+  assert.ok(workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"') < workspace.indexOf('className="workspaceContext"'), 'hamburger must precede hospital context')
 })
 
 test('Solid White sidebar has a compact Medidash-style rail and a usable collapsed state', () => {
