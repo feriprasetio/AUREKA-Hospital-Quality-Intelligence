@@ -72,7 +72,7 @@ test('ignores formula-only template rows but keeps open inpatient episodes with 
 })
 
 test('normalizes Excel serials, native Dates, ISO, Indonesian D/M/Y and two-digit years', () => {
-  assert.equal(normalizePediatricDate(46082), '2026-02-01')
+  assert.equal(normalizePediatricDate(46082), '2026-03-01')
   assert.equal(normalizePediatricDate(new Date('2026-02-01T00:00:00.000Z')), '2026-02-01')
   assert.equal(normalizePediatricDate('2026-02-01'), '2026-02-01')
   assert.equal(normalizePediatricDate('01/02/2026'), '2026-02-01')
@@ -112,8 +112,11 @@ test('maps Visite Spesialis with and without Code suffix', () => {
 test('maps Validitas Asesmen Keperawatan options without inferring numerator', () => {
   const options = [
     pending(1, 'Seluruh Data Pasien Baru Akurat'),
+    pending(3, 'Tanda Vital dan Tingkat Kesadaran Tidak Sesuai Fisik'),
+    pending(3, 'Tanda Vital atau Tingkat Kesadaran Tidak Sesuai Fisik'),
     pending(3, 'Skor Risiko Jatuh Tidak Akurat'),
     pending(3, 'Skrining Nyeri Tidak Sesuai'),
+    pending(3, 'Riwayat Alergi Tidak Tercatat'),
   ]
   const answer = parsePediatricSourceAnswer('Skor Risiko Jatuh Tidak Akurat (Code 3)', options)
   assert.equal(answer?.code, 3)
@@ -124,7 +127,10 @@ test('maps Validitas Asesmen Keperawatan options without inferring numerator', (
 test('maps Transfer IGD and preserves a cross-indicator source label as not-in-master', () => {
   const options = [
     pending(1, 'Formulir Transfer Terisi Lengkap (SBAR, TTV, Terapi, Tindakan)'),
+    pending(2, 'Tidak Lengkap (Situasi Life Saving/Cito - Transfer dipercepat demi keselamatan, admin menyusul)'),
+    pending(2, 'Tidak Lengkap (Gangguan Sistem E-RM/Jaringan)'),
     pending(3, 'Tidak Lengkap (Dokter/Perawat Lupa mengisi item penting)'),
+    pending(3, 'Tidak Ada Formulir Transfer'),
   ]
   const matched = parsePediatricSourceAnswer('Formulir Transfer Terisi Lengkap (SBAR, TTV, Terapi, Tindakan) (Code 1)', options)
   assert.equal(matched?.mappingStatus, 'mapped_pending_classification')
@@ -191,7 +197,7 @@ test('flags conflicting source codes and duplicate master labels without guessin
   assert.equal(ambiguous?.code, null)
 })
 
-test('keeps free-text drug and linen source fields separate from formal indicator responses', () => {
+test('keeps free-text drug and distinct linen source fields outside formal indicator mapping', () => {
   assert.deepEqual(
     PEDIATRIC_SOURCE_ONLY_FIELDS.map(item => [item.code, item.header, item.mappingStatus]),
     [
@@ -201,7 +207,7 @@ test('keeps free-text drug and linen source fields separate from formal indicato
   )
 })
 
-test('normalizes option labels but preserves source labels verbatim', () => {
+test('normalizes option labels but preserves source labels', () => {
   assert.equal(normalizePediatricOptionLabel('Visite Hari Kerja (06.00-14.00) (Code 1)'), 'visite hari kerja (06.00-14.00)')
   const source = 'Pasien APS Tidak Sempat Visite'
   const answer = parsePediatricSourceAnswer(source, [pending(null, source)])
@@ -209,11 +215,11 @@ test('normalizes option labels but preserves source labels verbatim', () => {
 })
 
 test('computes length of stay from dates and preserves open episodes as null', () => {
-  assert.equal(calculatePediatricStayDays('2026-02-01', '2026-02-06'), 5)
-  assert.equal(calculatePediatricStayDays('2026-02-01', '2026-02-01'), 0)
-  assert.equal(calculatePediatricStayDays('2026-02-02', '2026-02-01'), null)
-  assert.equal(calculatePediatricStayDays('invalid', '2026-02-06'), null)
-  assert.equal(calculatePediatricStayDays('2026-02-01', null), null)
+  assert.equal(calculatePediatricStayDays('2026-03-01', '2026-03-06'), 5)
+  assert.equal(calculatePediatricStayDays('2026-03-01', '2026-03-01'), 0)
+  assert.equal(calculatePediatricStayDays('2026-03-02', '2026-03-01'), null)
+  assert.equal(calculatePediatricStayDays('invalid', '2026-03-06'), null)
+  assert.equal(calculatePediatricStayDays('2026-03-01', null), null)
 })
 
 test('builds physical-row idempotency keys only for Rawat Inap Anak 2026', () => {
