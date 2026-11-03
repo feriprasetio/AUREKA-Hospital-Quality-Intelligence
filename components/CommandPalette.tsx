@@ -131,7 +131,7 @@ export default function CommandPalette({
         className="commandPaletteTrigger"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-controls="aureka-command-dialog"
+        aria-controls={open ? "aureka-command-dialog" : undefined}
         aria-label="Buka Command Palette"
         aria-keyshortcuts="Control+K Meta+K"
         onClick={openPalette}
@@ -240,7 +240,7 @@ export default function CommandPalette({
           gap: 9px;
           flex: 0 0 auto;
           min-width: 0;
-          min-height: 42px;
+          min-height: 44px;
           padding: 0 12px;
           border: 1px solid var(--aureka-color-border, #e5e7eb);
           border-radius: 12px;
@@ -463,7 +463,7 @@ export default function CommandPalette({
         }
         .commandPaletteFooter span { display: inline-flex; align-items: center; gap: 5px; }
         @media (max-width: 640px) {
-          .commandPaletteTrigger { width: 42px; min-width: 42px; padding: 0; }
+          .commandPaletteTrigger { width: 44px; min-width: 44px; min-height: 44px; padding: 0; }
           .commandPaletteTrigger > span,
           .commandPaletteTrigger > kbd { display: none; }
           .commandPaletteBackdrop { align-items: flex-start; padding: 12px 8px; }
