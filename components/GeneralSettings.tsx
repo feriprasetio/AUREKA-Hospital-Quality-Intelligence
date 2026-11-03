@@ -481,7 +481,7 @@ export default function GeneralSettings({
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       {msg && (
-        <div className={`aurToast ${msgIsError ? 'error' : 'ok'}`} role="status" aria-live="polite">
+        <div className={`aurToast ${msgIsError ? 'error' : 'ok'}`} role={msgIsError ? 'alert' : 'status'} aria-live={msgIsError ? 'assertive' : 'polite'}>
           <span className="aurToastIcon" aria-hidden="true">{msgIsError ? '!' : '✓'}</span>
           <span className="aurToastText">{msg}</span>
           <button type="button" onClick={() => setMsg('')} aria-label="Tutup notifikasi">×</button>
@@ -681,7 +681,7 @@ export default function GeneralSettings({
               )}
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
-                <input className="adminLocalSearch" placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
+                <input className="adminLocalSearch" aria-label="Cari unit kerja" placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
                 {isAdmin && adminRooms && <>
                   <span className="filterCount">{adminRooms.filter((r) => r.is_active !== false).length} aktif · {adminRooms.filter((r) => r.is_active === false).length} nonaktif</span>
                   <button type="button" className={showInactiveRooms ? 'filterChip active' : 'filterChip'} onClick={() => setShowInactiveRooms((v) => !v)}>{showInactiveRooms ? 'Sembunyikan unit nonaktif' : 'Tampilkan unit nonaktif'}</button>
@@ -718,7 +718,7 @@ export default function GeneralSettings({
                 <label className="field"><span>Password baru (min. 8 karakter)</span><input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
                 <label className="field"><span>Ulangi password baru</span><input type="password" autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
               </div>
-              {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role="status">{pwMsg.text}</p>}
+              {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role={pwMsg.ok ? 'status' : 'alert'} aria-live={pwMsg.ok ? 'polite' : 'assertive'}>{pwMsg.text}</p>}
               <div style={{ marginTop: 10, marginBottom: 18 }}>
                 <LiquidGlassButton onClick={changePassword} disabled={busy || !pw.current || !pw.next || !pw.confirm}>{busy ? 'Memproses…' : 'Simpan password baru'}</LiquidGlassButton>
               </div>
@@ -806,7 +806,7 @@ export default function GeneralSettings({
                   {provisioning ? 'Menyiapkan akun…' : 'Buat 74 akun unit'}
                 </button>
               </div>
-              {provisionMessage && <div role="status" style={{ marginTop: 10, fontSize: 11, color: /Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? '#9a4b32' : 'var(--accent2)' }}>{provisionMessage}</div>}
+              {provisionMessage && <div role={/Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? 'alert' : 'status'} aria-live={/Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? 'assertive' : 'polite'} style={{ marginTop: 10, fontSize: 11, color: /Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? '#9a4b32' : 'var(--accent2)' }}>{provisionMessage}</div>}
               {provisionedCredentials?.length === 74 && <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <button type="button" className="uBtn primary" onClick={downloadProvisionedCredentials}>Unduh kredensial awal (.csv)</button>
                 <button type="button" className="uBtn outline" onClick={() => { setProvisionedCredentials(null); setProvisionMessage('Daftar password awal dihapus dari memori panel ini.'); }}>Hapus daftar password</button>
@@ -814,7 +814,7 @@ export default function GeneralSettings({
               </div>}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
-              <input className="adminLocalSearch" placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
+              <input className="adminLocalSearch" aria-label="Cari pengguna berdasarkan nama, username, email, atau unit" placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
               {([
                 ['all', `Semua (${users.length - inactiveCount})`],
                 ['pending', `Menunggu aktivasi (${pendingCount})`],
@@ -844,6 +844,7 @@ export default function GeneralSettings({
                     </div>
 
                     <select
+                      aria-label={`Unit utama untuk ${u.full_name || u.email || 'pengguna'}`}
                       value={u.primary_room_id || ''}
                       onChange={(e) => updateUser(u, { primary_room_id: e.target.value ? Number(e.target.value) : null })}
                     >
@@ -851,7 +852,7 @@ export default function GeneralSettings({
                       {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                     </select>
 
-                    <select value={u.role_id || ''} onChange={(e) => updateUser(u, { role_id: e.target.value || null })}>
+                    <select aria-label={`Role untuk ${u.full_name || u.email || 'pengguna'}`} value={u.role_id || ''} onChange={(e) => updateUser(u, { role_id: e.target.value || null })}>
                       <option value="">Role belum dipetakan</option>
                       {roles.map((r) => <option key={r.id} value={r.id}>{friendlyRole(r)}</option>)}
                     </select>
@@ -922,7 +923,7 @@ export default function GeneralSettings({
                         <h5>Reset password <span>untuk user yang lupa password</span></h5>
                         <p className="userDetailHint" style={{ marginTop: 0 }}><b>Cara 1 — Password sementara.</b> Buat password baru, lalu sampaikan ke user (WA/langsung). Akun dan datanya tetap utuh.</p>
                         <div className="userDetailInline">
-                          <input placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
+                          <input aria-label={`Password sementara untuk ${u.full_name || u.email || 'pengguna'}`} placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
                           <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">🎲 Buat acak</button>
                         </div>
                         <button type="button" className="uBtn primary" style={{ marginTop: 8 }} disabled={busy || tempPw.trim().length < 12} onClick={() => setUserPassword(u)}>
