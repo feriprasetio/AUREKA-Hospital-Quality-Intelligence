@@ -1,6 +1,7 @@
 'use client'
 import {useEffect,useMemo,useState} from 'react'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
+import CommandPalette, {type CommandPaletteItem} from '@/components/CommandPalette'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import {sanitizeNotificationText,toUserFacingError} from '@/lib/aureka/error-feedback'
 import {type SupabaseClient} from '@supabase/supabase-js'
@@ -79,7 +80,7 @@ async function rooms(){const {data,error}=await sb.from('master_rooms').select('
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const mobileSidebar=useAccessibleSidebar()
  const [closedNav,setClosedNav]=useState<string[]>([])
  const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
@@ -291,19 +292,21 @@ export default function HomeClient(){
   if(typeof window==='undefined'||view!=='workspace')return
   window.dispatchEvent(new CustomEvent('aureka:workspace-search',{detail:{query:globalSearch,module:active,container:currentContainer}}))
  },[globalSearch,active,currentContainer,view])
- useEffect(()=>{if(typeof window==='undefined')return;const onKeyDown=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&view==='workspace'){event.preventDefault();document.getElementById('workspaceGlobalSearchInput')?.focus()}};window.addEventListener('keydown',onKeyDown);return()=>window.removeEventListener('keydown',onKeyDown)},[view])
+
  useEffect(()=>{
   if(typeof window==='undefined'||view!=='workspace'||!globalSearch.trim()){
    setSearchResults([])
+   setSearchResultsQuery('')
    return
   }
-  let delay=0
-  delay=window.setTimeout(()=>{
+  const query=globalSearch.trim()
+  const delay=window.setTimeout(()=>{
    const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
-   if(!root){setSearchResults([]);return}
-   const tokens=globalSearch.toLowerCase().trim().split(/\s+/).filter(Boolean)
-   if(!tokens.length){setSearchResults([]);return}
-   // Search only record-like content, never headings, labels, buttons or helper text.
+   if(!root){setSearchResults([]);setSearchResultsQuery(query);return}
+   const tokens=query.toLowerCase().split(/\s+/).filter(Boolean)
+   if(!tokens.length){setSearchResults([]);setSearchResultsQuery(query);return}
+   // Search only record-like content already rendered in the active, authorized workspace.
+   // This intentionally does not issue a new cross-module/database query.
    const candidates=Array.from(root.querySelectorAll<HTMLElement>(
     'table tbody tr:not(.aqInlineEditorRow),[data-searchable="true"],.rmTable tbody tr,.psTable tbody tr,.cpTable tbody tr,.stTable tbody tr,.cwTable tbody tr'
    )).filter(node=>{
@@ -322,14 +325,92 @@ export default function HomeClient(){
     if(unique.length>=8)break
    }
    setSearchResults(unique)
+   setSearchResultsQuery(query)
   },120)
   return ()=>window.clearTimeout(delay)
  },[globalSearch,view,active,currentContainer,qualityOpen,clinicalPathwayOpen,safetyTab,riskTab,staffArea,analyticsTab])
  const jumpToSearchResult=(result:WorkspaceSearchResult)=>{
   result.node.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})
+  dispatchWorkspaceSearch('')
  }
 
 
+ const triggerWorkspaceExport=()=>{
+  const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
+  const candidates=Array.from(root?.querySelectorAll<HTMLButtonElement>('button:not([disabled])')??[]).filter(button=>{
+   if(!button.getClientRects().length||button.closest('[aria-hidden="true"]'))return false
+   const label=[button.innerText,button.getAttribute('aria-label'),button.getAttribute('title')].filter(Boolean).join(' ')
+   return /\b(export|ekspor|download|unduh)\b/i.test(label)
+  })
+  const target=candidates.sort((a,b)=>{
+   const rank=(button:HTMLButtonElement)=>/ekspor data|export data|unduh data/i.test(button.innerText+' '+button.getAttribute('aria-label'))?0:1
+   return rank(a)-rank(b)
+  })[0]
+  if(!target){
+   pushWorkspaceNotification('Belum ada tombol ekspor yang tersedia pada modul aktif. Buka Statistik & Laporan atau ekspor dari workspace terkait.','info',currentContainer)
+   return
+  }
+  target.click()
+ }
+ const focusWorkspaceUnitSelector=()=>{
+  const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
+  const candidates=Array.from(root?.querySelectorAll<HTMLSelectElement>('select:not([disabled])')??[]).filter(select=>{
+   if(!select.getClientRects().length||select.closest('[aria-hidden="true"]'))return false
+   const labels=Array.from(select.labels??[]).map(label=>label.innerText)
+   const text=[select.getAttribute('aria-label'),select.getAttribute('name'),select.id,select.closest('label')?.innerText,...labels].filter(Boolean).join(' ')
+   return /\b(unit|ruang|ruangan|room)\b/i.test(text)
+  })
+  const target=candidates[0]
+  if(!target){
+   pushWorkspaceNotification('Modul aktif tidak menyediakan pemilih unit. Pilihan unit hanya muncul pada workspace yang mendukung filter unit.','info',currentContainer)
+   return
+  }
+  target.focus()
+  pushWorkspaceNotification('Pemilih unit difokuskan. Gunakan daftar pilihan untuk mengganti cakupan tampilan modul ini. Unit utama akun dan hak akses tidak diubah.','info',currentContainer)
+ }
+ const commandItems=useMemo<CommandPaletteItem[]>(()=>{
+  const items:CommandPaletteItem[]=[
+   {id:'nav-home',label:'Ringkasan',description:'Dashboard mutu, keselamatan pasien, dan risiko.',group:'Navigasi',keywords:['dashboard','home','beranda'],onSelect:()=>openMainModule('home')},
+   ...visibleMods.map(([id,label])=>({
+    id:'nav-'+id,label,description:AUREKA_PRIMARY_NAV.find(module=>module.id===id)?.description||'Buka workspace '+label+'.',
+    group:'Navigasi',keywords:[id,label],onSelect:()=>openMainModule(id),
+   })),
+  ]
+  const addChildren=(moduleId:string,moduleLabel:string,children:SidebarChild[],parents:string[]=[]):void=>{
+   for(const child of children){
+    const nextPath=[...parents,child.label]
+    if(child.children?.length)addChildren(moduleId,moduleLabel,child.children,nextPath)
+    else items.push({
+     id:'nav-child-'+moduleId+'-'+child.id,
+     label:child.label,
+     description:moduleLabel+' · '+nextPath.join(' / '),
+     group:'Navigasi',
+     keywords:[moduleId,moduleLabel,...nextPath],
+     onSelect:()=>selectSidebarChild(moduleId,child.id),
+    })
+   }
+  }
+  for(const [moduleId,moduleLabel] of visibleMods){
+   const children=sidebarChildGroups[moduleId]
+   if(children?.length)addChildren(moduleId,moduleLabel,children)
+  }
+  items.push(
+   {id:'action-export',label:'Ekspor data pada modul aktif',description:'Jalankan kontrol ekspor yang tersedia pada workspace saat ini.',group:'Aksi Cepat',keywords:['export','ekspor','download','unduh','excel','csv'],onSelect:triggerWorkspaceExport},
+   {id:'action-unit',label:'Pilih unit pada modul aktif',description:'Fokuskan filter unit yang disediakan workspace; tidak mengubah unit utama akun.',group:'Aksi Cepat',keywords:['ganti unit','pilih unit','ruangan','room','filter'],onSelect:focusWorkspaceUnitSelector},
+  )
+  return items
+ },[visibleMods,sidebarChildGroups,openMainModule,selectSidebarChild,triggerWorkspaceExport,focusWorkspaceUnitSelector])
+ const commandSearchItems=useMemo<CommandPaletteItem[]>(()=>{
+  if(globalSearch.trim().length<2||searchResultsQuery!==globalSearch.trim())return []
+  return searchResults.map((result,index)=>({
+   id:'data-'+index+'-'+result.tag,
+   label:result.tag+': '+result.text,
+   description:'Catatan dari '+currentContainer+' · data yang sudah dimuat dan dapat diakses.',
+   group:'Data di Modul Aktif',
+   keywords:['pasien','dokter','indikator','catatan','data','rekam medis',result.tag],
+   onSelect:()=>jumpToSearchResult(result),
+  }))
+ },[globalSearch,searchResultsQuery,searchResults,currentContainer,jumpToSearchResult])
  const pushWorkspaceNotification=(message:string,kind:'success'|'error'|'info'='info',module?:string)=>{
   const text=String(message||'').trim()
   if(!text)return
@@ -565,7 +646,7 @@ export default function HomeClient(){
    <div className="workspaceGlobalSearch">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
     <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder="Cari data dalam modul ini…" aria-label="Cari catatan atau data yang sudah diinput"/>
-    {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:<kbd>Ctrl K</kbd>}
+    {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:null}
     {globalSearch.trim()&&<div className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
      <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResults.length?searchResults.length+' hasil':'Mencari…'}</span></div>
      {searchResults.length?searchResults.map((result,index)=><button type="button" role="option" aria-selected="false" key={index+'-'+result.text} onClick={()=>jumpToSearchResult(result)}>
@@ -573,6 +654,7 @@ export default function HomeClient(){
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
    </div>
+   <CommandPalette items={commandItems} searchResults={commandSearchItems} contextLabel={currentContainer} onSearchChange={dispatchWorkspaceSearch}/>
    <button type="button" className="workspaceHeaderIcon workspaceFullscreenButton" title="Layar penuh" aria-label="Aktifkan atau keluar dari layar penuh" onClick={()=>{if(typeof document==='undefined')return;if(document.fullscreenElement){void document.exitFullscreen().catch(()=>undefined)}else if(document.documentElement.requestFullscreen){void document.documentElement.requestFullscreen().catch(()=>undefined)}}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
    </button>
