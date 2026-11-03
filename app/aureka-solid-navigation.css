@@ -602,3 +602,158 @@
   .workspaceRoot .qualityWorkspaceTabs { width: 100%; }
   .workspaceRoot .qualityWorkspaceTabs button { flex: 1 1 0; padding: 0 10px; }
 }
+
+
+/* Medidash-inspired Solid White navigation refinement */
+.workspaceRoot .sideHeader {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-height: 76px !important;
+  padding: 0 20px !important;
+}
+.workspaceRoot .sideBrand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+.workspaceRoot .sideBrand > div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+.workspaceRoot .sidebar .sidebarToggle,
+.workspaceRoot .sidebar .mobileSidebarClose {
+  display: none !important;
+}
+.workspaceRoot .sidebar .sidebarNav {
+  padding: 12px 12px 18px !important;
+  gap: 5px !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 44px !important;
+  width: 100% !important;
+  padding: 0 13px !important;
+  gap: 12px !important;
+  color: #65766c !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  font-size: 12.5px !important;
+  font-weight: 620 !important;
+  text-align: left !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button:hover {
+  color: #234535 !important;
+  background: #f5f8f6 !important;
+  border-color: #edf2ee !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button.navActive {
+  color: #0b684b !important;
+  background: #eaf4ee !important;
+  border-color: #deebe2 !important;
+  box-shadow: inset 3px 0 0 #16805c !important;
+  font-weight: 740 !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button > svg {
+  flex: 0 0 19px !important;
+  width: 19px !important;
+  height: 19px !important;
+  color: currentColor !important;
+}
+.workspaceRoot .sidebar .sidebarTreeChildren {
+  margin: 4px 0 9px 17px !important;
+  padding: 3px 0 3px 12px !important;
+  border-left: 1px solid #e5ece7 !important;
+}
+.workspaceRoot .workspaceSidebarMenuButton {
+  display: grid !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  place-items: center !important;
+  padding: 0 !important;
+  color: #52665a !important;
+  background: #ffffff !important;
+  border: 1px solid #e5ebe7 !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+.workspaceRoot .workspaceSidebarMenuButton svg {
+  display: block !important;
+  width: 19px !important;
+  height: 19px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+  stroke-linecap: round !important;
+}
+.workspaceRoot .workspaceSidebarMenuButton:hover {
+  color: #0b684b !important;
+  background: #f3f8f5 !important;
+  border-color: #dce9e0 !important;
+}
+.workspaceRoot.sidebarIsCollapsed {
+  grid-template-columns: 76px minmax(0, 1fr) !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar {
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideHeader {
+  justify-content: center !important;
+  padding: 0 8px !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideBrand {
+  justify-content: center !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideBrand > div,
+.workspaceRoot.sidebarIsCollapsed .sidebar .navLabel,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button > span,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter .logoutLabel {
+  display: none !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNav {
+  padding: 12px 8px !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron {
+  display: none !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter > .liquidButton button {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+@media (max-width: 720px) {
+  .workspaceRoot.sidebarIsCollapsed {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .workspaceRoot.sidebarIsCollapsed .sidebar {
+    width: min(304px, 88vw) !important;
+    min-width: min(304px, 88vw) !important;
+    max-width: 88vw !important;
+  }
+  .workspaceRoot .workspaceSidebarMenuButton {
+    flex: 0 0 34px !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+}
