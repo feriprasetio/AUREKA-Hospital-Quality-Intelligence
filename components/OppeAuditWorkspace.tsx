@@ -1125,7 +1125,7 @@ export default function OppeAuditWorkspace({
       </header>
 
       {error && <div className="oppeNotice oppeError" role="alert">{error}</div>}
-      {notice && <div className="oppeNotice oppeSuccess" role="status">{notice}</div>}
+      {notice && <div className="oppeNotice oppeSuccess" role="status" aria-live="polite">{notice}</div>}
 
       <section className="oppeGlass oppeFilters">
         <label className="oppeField"><span>Tahun</span><select value={year} onChange={(e) => changeScope(Number(e.target.value), quarter, roomFilter)}>{years.map((item) => <option key={item}>{item}</option>)}</select></label>
