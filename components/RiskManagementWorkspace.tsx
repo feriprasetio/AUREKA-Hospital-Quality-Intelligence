@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import type { RiskFocus } from '@/lib/aureka/focus'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 type Room = { id: number; name: string }
 type RiskLevel = 'Sangat Rendah' | 'Rendah' | 'Sedang' | 'Tinggi' | 'Sangat Tinggi'
@@ -118,17 +119,18 @@ const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '"
 // Form ditampilkan sebagai jendela di atas halaman agar tidak perlu scroll ke bawah tabel.
 // Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
 function RmModal({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+  const modalRef = useAccessibleDialog<HTMLElement>({ open: true, closeOnEscape: false })
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prev }
   }, [])
   const content = (
-    <div className="rmModalBackdrop" role="dialog" aria-modal="true" aria-label={label}>
-      <div className="rmModalSheet">
+    <div className="rmModalBackdrop" role="presentation">
+      <section ref={modalRef} className="rmModalSheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
         {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
         {children}
-      </div>
+      </section>
     </div>
   )
   // Dirender di lapisan teratas (di atas sidebar & bar atas) agar jendela tampil utuh di tengah layar.
