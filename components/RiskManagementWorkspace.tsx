@@ -6,7 +6,7 @@ import type { RiskFocus } from '@/lib/aureka/focus'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
-import { toUserFacingError } from '@/lib/aureka/error-feedback'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Room = { id: number; name: string }
 type RiskLevel = 'Sangat Rendah' | 'Rendah' | 'Sedang' | 'Tinggi' | 'Sangat Tinggi'
