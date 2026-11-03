@@ -170,6 +170,16 @@ export default function OverviewDashboard({
         try { sessionStorage.setItem('aureka-ov:' + cacheKey, JSON.stringify(results)) } catch { /* penyimpanan penuh: abaikan */ }
       }
       apply(results)
+    }).catch(() => {
+      if (cancelled) return
+      // Preserve cached rows but mark every affected source as stale/unavailable after a rejected request.
+      const safeFailure = 'Data belum dapat diperbarui. Periksa koneksi lalu coba muat ulang.'
+      setRisks(current => ({ ...current, error: current.error || safeFailure }))
+      setPlans(current => ({ ...current, error: current.error || safeFailure }))
+      setIncidents(current => ({ ...current, error: current.error || safeFailure }))
+      setQuality(current => ({ ...current, error: current.error || safeFailure }))
+      setClinicalPathway(current => ({ ...current, error: current.error || safeFailure }))
+      setLoading(false)
     })
     return () => { cancelled = true }
   }, [supabase, manager, roomId, roomName, year, reloadKey, userName])

@@ -7,6 +7,7 @@ import './medidash-polish.css'
 import './design-tokens.css'
 import './layout-responsive.css'
 import './aureka-solid-enterprise.css'
+import './aureka-solid-navigation.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',
