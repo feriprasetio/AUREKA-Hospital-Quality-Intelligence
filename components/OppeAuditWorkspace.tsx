@@ -1151,7 +1151,7 @@ export default function OppeAuditWorkspace({
                   {currentReadOnly ? (
                     <input value={form.staffName} disabled aria-label="Nama staf yang dinilai" />
                   ) : (
-                    <select value={form.staffId} onChange={(e) => {
+                    <select aria-label="Nama staf yang dinilai" value={form.staffId} onChange={(e) => {
                       const staff = assignableStaff.find((item) => item.id === e.target.value)
                       setForm((current) => ({
                         ...current,
