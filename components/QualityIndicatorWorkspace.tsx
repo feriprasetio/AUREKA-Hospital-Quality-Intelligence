@@ -915,18 +915,18 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
      {kindNow==='computed'
        ? <div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?String(raw)+' hari':normHeader(field)==='lamanya tindak lanjut'?String(raw)+' hari':normHeader(field)==='kecepatan respon menit'?String(raw)+' menit':String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>
        : staffField
-         ? <><select disabled={isValidator||(isProviderDayDoctor&&!currentClinic)} value={activeStaffChoice} onChange={(e:any)=>{const choice=staffSelectChoices.find(item=>item.key===e.target.value);if(!choice){setStaffNameValue(field,'');return}if(choice.staffId)setStaffField(field,choice.staffId);else setStaffNameValue(field,choice.name)}}>
+         ? <><select aria-label={field + ' · tenaga penanggung jawab'} disabled={isValidator||(isProviderDayDoctor&&!currentClinic)} value={activeStaffChoice} onChange={(e:any)=>{const choice=staffSelectChoices.find(item=>item.key===e.target.value);if(!choice){setStaffNameValue(field,'');return}if(choice.staffId)setStaffField(field,choice.staffId);else setStaffNameValue(field,choice.name)}}>
              <option value="">{isProviderDayDoctor?'Pilih dokter sesuai klinik…':'Pilih tenaga atau nilai dari workbook…'}</option>
              {staffSelectChoices.map(choice=><option key={choice.key} value={choice.key}>{choice.label}</option>)}
            </select>
            <small className="aqMetaText">{isProviderDayDoctor?(currentClinic?'Daftar dokter dibatasi pada klinik yang dipilih. Identitas akan ditautkan ke staff_id jika cocok dengan roster aktif.':'Pilih klinik terlebih dahulu untuk menampilkan dokter yang sesuai.'):selectedStaffId&&staffCandidates.some(staff=>staff.id===selectedStaffId)?'Identitas terhubung ke staff_id AUREKA.':workbookStaffChoices.length?'Daftar mencakup pilihan asli workbook; nama yang cocok dengan roster unit akan dihubungkan ke direktori AUREKA.':'Nama dapat dipilih dari roster tenaga klinis unit.'}</small></>
          : kindNow==='textarea'
-           ? <textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+           ? <textarea aria-label={field} disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
            : kindNow==='select'&&normHeader(field)==='klinik'
-             ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>
+             ? <select aria-label="Klinik" disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>
              : kindNow==='select'&&selectedLayout?.fieldOptions?.[field]
-       ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih {field.toLowerCase()}…</option>{[...new Set([...(String(raw??'')&&!selectedLayout.fieldOptions[field].includes(String(raw))?[String(raw)]:[]),...selectedLayout.fieldOptions[field]])].map((option:string)=><option key={option} value={option}>{option}</option>)}</select>
-       : <input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='datetime-local'?'datetime-local':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+       ? <select aria-label={field} disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih {field.toLowerCase()}…</option>{[...new Set([...(String(raw??'')&&!selectedLayout.fieldOptions[field].includes(String(raw))?[String(raw)]:[]),...selectedLayout.fieldOptions[field]])].map((option:string)=><option key={option} value={option}>{option}</option>)}</select>
+       : <input aria-label={field} disabled={isValidator} type={kindNow==='date'?'date':kindNow==='datetime-local'?'datetime-local':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
      }
    </label>
  }
