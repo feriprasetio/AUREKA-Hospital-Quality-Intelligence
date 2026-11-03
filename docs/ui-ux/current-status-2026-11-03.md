@@ -6,99 +6,70 @@
 
 ## Executive status
 
-Implementation for phases 0–5 is present on the feature branch, and the Solid Enterprise visual theme is now actually applied across the public landing page, authentication, dashboard, and operational workspaces through `app/aureka-solid-enterprise.css`, loaded after the existing stylesheets. The Solid Enterprise layer covers the app shell, authentication, dashboard, quality indicators, patient safety, risk, clinical pathway, OPPE/FPPE, quality results, clinical death audit, workforce/settings, tables, forms, and dialogs. Phase 6 deployment/release safeguards are implemented, but isolated staging and full browser acceptance remain incomplete. Do not describe the redesign as fully accepted or production-ready.
+The Solid Enterprise visual redesign and phases 0–5 implementation are present on the feature branch. The UI layer is applied to the public landing page, authentication, dashboard, and operational workspaces. The latest integration also preserves the Rawat Inap Anak and Rawat Inap Bedah 2026 workbook importers from `main`, while keeping their dialogs lazy-loaded and permission-gated.
 
-## GitHub state
+**Automated code verification passed on the latest integration checkpoint:** 236 unit/regression tests, AUREKA layout/data validation (35 layouts and 35 unique units), TypeScript, and Next.js production build. The preview workflow intentionally remains blocked at the Supabase environment validation step because the two staging values are not valid Supabase project credentials. No preview artifact was produced.
 
-- PR #94 is open, unmerged, and not deployed to production.
-- PR head is tracked live in [#94](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/pull/94); the latest code-bearing checkpoint is listed below.
-- Last observed PR base: `6d3dbf6ae42a4bc1a35703269c33b280df16daf3`.
-- The feature branch remains ahead of `main` with no base divergence; consult the live PR for current commit and changed-file totals.
-- Latest verified code-bearing checkpoint: `36ce0b7ac37e91e784f44578ef16f1c12f1d6df7`.
-- Latest code checkpoint CI: [AUREKA unit/data/build 41589754132](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589754132) and [Patient Safety Build Check 41589754155](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589754155), both success. The AUREKA run passed 191/191 unit/regression tests, data validation, TypeScript, and Next.js build. The code checkpoint adds final styling and test coverage for the public landing page and aggregate-data modal.
-- Subsequent visual implementation commits add the final cascade stylesheet and regression coverage. The current diff still has no paths under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`.
-- The current PR diff was checked: no changed files under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`.
-- PR reviews/approvals had not been submitted at the last check. Functional review of the full 46-file diff is still required.
+This is not equivalent to browser acceptance. The redesign must not be described as fully accepted or production-ready until manual browser, accessibility, role-based, importer, staging, backup, and restore checks are completed.
 
-## Work completed in the continuation session
+## Latest GitHub state
 
-1. Fixed Command Palette Escape cleanup: closing with Escape now clears query, active index, and active-workspace search callback. Added regression assertion.
-2. Relocated the user-facing error helper from the protected `lib/aureka/` namespace to `lib/ui/error-feedback.ts`; updated all component/test imports. An intermediate CI correctly detected seven stale imports; all were corrected. Latest code-bearing CI passed.
-3. Reconciled Phase 0 acceptance documentation with verified CI and preserved manual/browser/backup checks as open.
-4. Added current Supabase inventory and branch/CI state to Phase 6 acceptance documentation.
-5. Updated PR #94 title and body to accurately describe implementation, automated evidence, remaining blockers, and protected release conditions.
-6. Implemented the actual Solid Enterprise visual layer in `app/aureka-solid-enterprise.css` and loaded it last in `app/layout.tsx`, rather than leaving the design as unused tokens. Includes Aptos typography, white/solid surfaces, green interaction states, cleaner navigation/topbar, dashboard cards, consistent specialty-workspace panels/actions/tabs, form controls, tables, modals, and responsive finishing.
-7. Added `tests/solid-enterprise-theme.test.mjs` to guard cascade order, cross-workspace styling families, risk-scale token retention, and presentation-only scope.
-6. Prepared a Windows PowerShell backup kit locally. It is not committed to GitHub and has not been run on the owner’s PC.
+- Working branch: `feat/ui-ux-redesign`.
+- Latest integration commit: `2d3dc3e6eee664599dc2cfceb190453ab92806cf`.
+- PR #94 remains open and unmerged.
+- Latest successful AUREKA CI: [run 41612455650](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41612455650).
+- Latest successful Patient Safety build: [run 41612455672](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41612455672).
+- Latest preview attempt: [run 41612447977](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41612447977). Unit tests, data validation, and TypeScript passed; the Supabase configuration gate failed, so static export and artifact upload were skipped.
+- The latest CI log reports 236/236 tests passed, zero failures, and a successful Next.js production build.
+- The branch integrates the latest mainline Rawat Inap Anak/Bedah workbook importer files and migrations without changing those database migrations in this UI branch. The workspace now routes room IDs 22 and 23 to their lazy-loaded dialogs.
+- PR mergeability must be refreshed from GitHub before any merge. No production deployment has been performed.
+
+## UI implementation status
+
+1. Solid Enterprise white/solid visual layer applied last in the stylesheet cascade.
+2. Aptos-first typography, restrained green interaction palette, consistent surfaces, controls, tables, forms, dialogs, and responsive rules.
+3. Responsive navigation, accessible sidebar drawer behavior, focus restoration, Escape handling, and body-scroll lock.
+4. Shared accessible dialog focus management and accessible labels/live-region feedback for audited workspaces.
+5. Command Palette with keyboard shortcut, normalized search, grouped actions, keyboard navigation, modal focus handling, and Escape cleanup.
+6. Heavy workspaces and the 15 workbook-import dialogs are lazy-loaded; import dialogs remain mounted after first use to avoid losing their state.
+7. Rawat Inap Anak and Rawat Inap Bedah importers are included in regression coverage for lazy loading, room routing, and authorization guards.
+8. Error feedback helpers are isolated under `lib/ui/`; clinical/Supabase engines remain outside the UI styling scope.
 
 ## Phase status
 
-| Phase | Implementation | Automated verification | Manual acceptance |
+| Phase | Code implementation | Automated evidence | Remaining acceptance |
 |---|---|---|---|
-| 0 — design system | Tokens and applied Solid Enterprise theme present | 191/191 tests, data, TypeScript and Next.js build pass | Browser/native controls, visual checks and backup remain |
-| 1 — layout/responsive | Present | CI pass | Desktop/tablet/mobile, keyboard, role and route checks pending |
-| 2 — accessibility | Present | Regression tests pass | Keyboard-only, NVDA/screen reader, focus behavior and dialog audit pending |
-| 3 — error handling | Present | Regression tests pass | Failure simulation, session expiry, save safety and permissions pending |
-| 4 — Command Palette | Present | Regression test added; CI pass | Keyboard, role scope, privacy and screen-reader acceptance pending |
-| 5 — performance | Present | Static bundle comparison and tests pass | Browser network waterfall and LCP/INP/CLS on staging pending |
-| 6 — staging/integration | Safeguards present | Staging workflow guard correctly blocks missing environment | Staging, browser acceptance, backup and restore pending |
-
-## Current Supabase read-only inventory
-
-Project `ktukmjscopggkzrkgnzp`, region `ap-southeast-1`, state `ACTIVE_HEALTHY`, PostgreSQL 17.6.
-
-- 40 application tables across AUREKA application schemas and public.
-- 82 migration records (older handover count of 74 is stale).
-- 77 Auth users and 6 Auth sessions at inventory time.
-- Two private Storage buckets: `aureka-documents` and `aureka-exports`.
-- `storage.objects` had 0 rows at inventory time; re-enumerate during backup.
-- Two active Edge Functions: `aureka-provision-unit-accounts` (`verify_jwt=false`, v2) and `aureka-admin-reset-unit-password` (`verify_jwt=true`, v1).
-- Organization is Free Plan with two active projects and no separate AUREKA staging project. The existing Supabase development branch named `main` reports `MIGRATIONS_FAILED` and `with_data=false`; it was not modified.
-
-All counts are read-only snapshots and must be rechecked at backup time.
-
-## Backup status — NOT COMPLETE
-
-No full independent backup or restore test has been performed from this assistant environment. Supabase Free Plan does not include automatic daily database backups. Standard `supabase db dump` excludes managed `auth` and `storage` schemas and extension-managed schemas; default dump also omits data and custom roles unless requested explicitly. Storage object bytes must be exported separately.
-
-A local kit was created for Windows:
-- `AUREKA-Full-Backup-Kit-Windows.zip` (provided separately in the conversation).
-- It creates a Git mirror and bundle; exports roles/schema/data; attempts supplementary Auth/Storage schema dump via pg_dump; enumerates/downloads all Storage object bytes; downloads all Edge Functions; creates SHA-256 manifest.
-- It prompts for passwords/secret keys only in local terminal. Never send credentials to chat or commit the backup.
-- The kit is unexecuted and unvalidated on Windows. Any failed component means backup remains incomplete. Even successful exports still require project configuration capture and an isolated restore test.
-
-## Staging blocker
-
-The latest preview workflow [41589030215](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589030215) correctly stopped at the staging configuration gate because `AUREKA_STAGING_SUPABASE_URL` is not set (and the publishable key is also not supplied). The workflow expects these GitHub Actions variables/secrets to point to an isolated non-production Supabase project:
-- `AUREKA_STAGING_SUPABASE_URL`
-- `AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY`
-
-No separate staging project exists, and the organization is at its two active Free project limit. Do not pause a live hospital project or use the empty failed Supabase development branch. Decide on a dedicated isolated project/organization or an approved plan change first. No environment variables or credentials were created in this session.
+| 0 — design system | Implemented | 236 tests, data, TypeScript, build pass | Browser visual review and native controls |
+| 1 — layout/responsive | Implemented | Regression tests and build pass | 1366/1024/768/390/375 px viewport checks |
+| 2 — accessibility | Implemented for audited components | Focus, labels, dialog and live-region regression tests | Keyboard-only and screen-reader acceptance |
+| 3 — error handling | Implemented for audited flows | Error-feedback regression tests | Failure simulation, session expiry, save/permission checks |
+| 4 — Command Palette | Implemented | Keyboard/search/cleanup regression tests | Manual keyboard, privacy and screen-reader checks |
+| 5 — performance | Lazy loading and chunk separation implemented | Static code assertions and successful build | Browser waterfall and LCP/INP/CLS on staging |
+| 6 — staging/integration | Workflow guards implemented | Missing/invalid credentials are rejected before build | Valid isolated staging project and browser acceptance |
 
 ## Manual acceptance still required
 
-- Windows/browser verification for `color-scheme: light` and native select/input controls.
-- Visual smoke/regression at 1366, 1024, 768, 390, and 375 px.
-- Browser console/hydration, routes/hash, back/forward, responsive layout, and no clipping/overflow.
-- Keyboard-only and NVDA/screen-reader checks for sidebar, dialogs, fields, Command Palette.
-- Role/unit tests for ADMIN, PMKP, PIC, VALIDATOR, and relevant management roles.
-- All 13 workbook-import dialogs using synthetic or approved de-identified workbooks; verify validation/duplicates/failed-import safety/reload.
-- Network waterfall and real LCP, INP, CLS on browser-accessible isolated staging.
-- Full off-site database/Auth/Storage/Edge Function/repository backup; checksums; isolated restore and recovery acceptance.
+- Browser smoke test at 1366, 1024, 768, 390, and 375 px; inspect horizontal overflow, clipping, dialogs, and native controls.
+- Keyboard-only and NVDA/screen-reader checks for sidebar, dialogs, forms, and Command Palette.
+- Role/unit regression for ADMIN, PMKP, PIC, VALIDATOR, and relevant management roles.
+- Test all 15 workbook import dialogs with synthetic or approved de-identified workbooks: template mismatch, required fields, duplicate rows, invalid data, failed transaction safety, reload, and permission boundaries. Do not use identifiable patient data for acceptance.
+- Validate real network waterfall and LCP/INP/CLS on browser-accessible isolated staging.
+- Complete an independent off-site database/Auth/Storage/Edge Function/repository backup, checksum verification, and isolated restore test.
+- Review the full PR diff and resolve any live merge conflicts before release.
 
-No production patient data, Supabase schema, Auth, Storage, RPC, RLS, or Edge Function has been changed as part of this continuation.
+## Supabase and release safeguards
 
-## Security Advisor findings
+The active AUREKA project is production and contains operational data. No separate isolated AUREKA staging project is currently available in the connected organization; the existing development branch is not a safe substitute. Do not point preview at production, do not use service-role/secret keys in browser builds, and do not modify production schema, Auth, Storage, RPC, RLS, or Edge Functions as part of UI work.
 
-Read-only Security Advisor returned existing warnings involving mutable function search paths, grants on SECURITY DEFINER functions, and an RLS/policy state for a system gate table. Do not fix these inside the UI redesign. Create a separately reviewed security workstream with impact analysis and tests before any production changes.
+The preview validator requires a real isolated project URL and an `sb_publishable_` key or legacy anon JWT. The values currently configured in GitHub do not pass URL/key validation. A dedicated staging project or an approved isolated environment is required before a preview build can run.
 
 ## Release rule
 
-Do not merge PR #94 to `main` and do not deploy production until:
-1. full backup and isolated restore are evidenced;
-2. an isolated browser-accessible staging environment is configured;
-3. manual visual, role, accessibility, and 13-importer tests pass;
-4. complete PR diff is functionally reviewed; and
-5. the owner explicitly authorizes the release.
+Do not merge PR #94 to `main` or deploy production until:
+1. isolated staging is configured and preview build succeeds;
+2. browser, responsive, role, accessibility, and all 15 importer checks pass;
+3. full backup and isolated restore are evidenced;
+4. the complete diff and live merge state are reviewed; and
+5. the owner explicitly authorizes release.
 
-The feature branch remains the sole working target.
+No production patient data, Supabase schema, Auth, Storage, RPC, RLS, or Edge Function was changed during this UI integration.

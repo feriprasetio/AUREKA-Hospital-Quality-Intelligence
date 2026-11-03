@@ -64,6 +64,8 @@ test('Excel import dialogs are split into on-demand chunks and remain mounted af
     ['NicuExcelImportDialog', 'nicu'],
     ['NifasExcelImportDialog', 'nifas'],
     ['PonekExcelImportDialog', 'ponek'],
+    ['PediatricInpatientExcelImportDialog', 'pediatric-inpatient'],
+    ['SurgicalInpatientExcelImportDialog', 'surgical-inpatient'],
   ]
   for (const [component, key] of dialogs) {
     assert.match(source, new RegExp(`const ${component}=dynamic\\(\\(\\)=>import\\('`))
@@ -90,4 +92,21 @@ test('performance refactor does not add bundle tooling or change Supabase and cl
   assert.equal(pkg.dependencies['@next/bundle-analyzer'], undefined)
   assert.equal(pkg.devDependencies['@next/bundle-analyzer'], undefined)
   assert.match(read('next.config.mjs'), /output: 'export'/)
+})
+
+test('Rawat Inap Anak and Rawat Inap Bedah workbook importers are room-scoped, lazy-loaded, and retain authorization guards', () => {
+  const source = read('components/QualityIndicatorWorkspace.tsx')
+  for (const [component, key] of [
+    ['PediatricInpatientExcelImportDialog', 'pediatric-inpatient'],
+    ['SurgicalInpatientExcelImportDialog', 'surgical-inpatient'],
+  ]) {
+    assert.match(source, new RegExp(`const ${component}=dynamic\\(\\(\\)=>import\\('`))
+    assert.match(source, new RegExp(`loadedImportDialogs\\.has\\('${key}'\\)&&<${component}`))
+    assert.doesNotMatch(source, new RegExp(`^import ${component} from `, 'm'))
+  }
+  assert.match(source, /else if\(id===22\)openImportDialog\('pediatric-inpatient'\)/)
+  assert.match(source, /else if\(id===23\)openImportDialog\('surgical-inpatient'\)/)
+  assert.match(source, /setPediatricInpatientImportOpen\(true\)/)
+  assert.match(source, /setSurgicalInpatientImportOpen\(true\)/)
+  assert.match(source, /authorized=\{canImportWorkbook\}/)
 })
