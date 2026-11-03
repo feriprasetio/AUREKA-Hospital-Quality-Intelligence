@@ -63,7 +63,24 @@ jobs:
       - run: node --experimental-strip-types --test tests/*.test.mjs
       - run: npm run test:data
       - run: npx tsc --noEmit
-      - run: npm run build
+      - name: Validate Supabase build configuration
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "${NEXT_PUBLIC_SUPABASE_URL:-}" ]; then
+            echo "::error::Set NEXT_PUBLIC_SUPABASE_URL in GitHub Actions Variables or Secrets."
+            exit 1
+          fi
+          if [ -z "${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:-}" ]; then
+            echo "::error::Set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in GitHub Actions Variables or Secrets."
+            exit 1
+          fi
+      - name: Build static export
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: npm run build
       - uses: actions/upload-artifact@v4
         with:
           name: aureka-static-export
