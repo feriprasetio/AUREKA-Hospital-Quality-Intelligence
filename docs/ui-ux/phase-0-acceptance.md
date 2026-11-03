@@ -1,6 +1,6 @@
 # AUREKA UI/UX — Phase 0 Acceptance Checklist
 
-**Status:** Implementation candidate — local verification pending
+**Status:** Automated code checks passed on 3 November 2026; manual browser, visual, and backup acceptance remain pending
 
 ## Scope and safety
 
@@ -43,4 +43,4 @@ Automated CI is evidence for unit/data/type/build correctness at this specific c
 
 ## Release decision
 
-Phase 0 may be considered technically complete only after the unchecked code-verification items are executed in CI or a local clone and the resulting statuses are reviewed. Do not merge to `main` based only on successful file creation.
+The automated test/data/type/build gate has passed on the recorded commit. Phase 0 is not fully accepted until the remaining visual/browser checks, `color-scheme: light` review, off-site repository and Supabase backup, and isolated restore are completed. Do not merge to `main` based only on CI success.
