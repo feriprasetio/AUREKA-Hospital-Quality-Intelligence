@@ -25,6 +25,13 @@ test('Solid White final layer loads after every legacy visual layer', () => {
   }
 })
 
+test('Solid White is applied without depending on client data-theme hydration', () => {
+  const navigation = read('app/aureka-solid-navigation.css')
+  const home = read('components/HomeClient.tsx')
+  assert.ok(home.includes('data-aureka-theme="solid-white"'))
+  assert.doesNotMatch(navigation, /html\\[data-theme\\]/)
+})
+
 test('primary navigation uses one white surface rather than glossy menu cards', () => {
   const css = read('app/aureka-solid-navigation.css')
   for (const selector of [

@@ -597,7 +597,7 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='workspace')return <main className={'workspaceRoot '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
+ if(view==='workspace')return <main data-aureka-theme="solid-white" className={'workspaceRoot '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
   <div className="sideHeader">
