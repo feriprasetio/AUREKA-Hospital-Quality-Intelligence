@@ -11,7 +11,9 @@ test('sidebar collapse is controlled only by the hamburger beside global search'
   assert.match(workspace, /setSidebarCollapsed\(v=>!v\)/)
   assert.doesNotMatch(workspace, /className="sidebarToggle"/)
   assert.doesNotMatch(workspace, /className="mobileSidebarClose"/)
-  assert.match(workspace, /className="mobileMenuButton workspaceSidebarMenuButton"[\\s\\S]*className="workspaceContext"[\\s\\S]*className="workspaceGlobalSearch"/)
+  assert.match(workspace, /className="mobileMenuButton workspaceSidebarMenuButton"[\s\S]*className="workspaceContext"[\s\S]*className="workspaceGlobalSearch"/)
+  assert.match(workspace, /className="workspaceGlobalSearch"[\s\S]*<\\/div>\\s*<CommandPalette/)
+  assert.doesNotMatch(workspace, /className="workspaceGlobalSearch"[\s\S]*<CommandPalette[\s\S]*<\\/div>/)
 })
 
 test('Solid White sidebar has a compact Medidash-style rail and a usable collapsed state', () => {
