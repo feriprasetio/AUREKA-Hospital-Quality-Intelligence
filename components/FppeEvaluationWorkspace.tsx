@@ -523,7 +523,7 @@ export default function FppeEvaluationWorkspace({
         <div className="fppeHeaderActions"><button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}>＋ FPPE baru</button></div>
       </div>
       {error && <div className="fppeAlert fppeError" role="alert">{error}</div>}
-      {notice && <div className="fppeAlert fppeSuccess" role="status">{notice}</div>}
+      {notice && <div className="fppeAlert fppeSuccess" role="status" aria-live="polite">{notice}</div>}
       <div className="fppePanel fppeToolbar">
         <label><span>Unit FPPE</span><select value={roomId} disabled={busy} onChange={(e) => startNew(Number(e.target.value))}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
         <div className="fppeHelper"><strong>{roster.length}</strong> tenaga tersedia pada roster unit · <strong>{filtered.length}</strong> rekaman FPPE pada unit ini.</div>
