@@ -30,7 +30,7 @@ test('maps Rawat Inap Bedah Logbook headers, including generic Column1 MRN and D
     'Nyeri Terkontrol', 'Kekosongan Linen', 'Kekosongan Obat',
     'Column8', 'Column9', 'Column10', 'Column11', 'Column12',
     'Column13', 'Column14', 'Column15', 'Column16', 'Column17',
-    'Column18', 'Column19', 'Column20', 'Dx',
+    'Column18', 'Column19', 'Column20', '', 'Dx',
   ]
   const result = mapSurgicalLogbookHeaders(headers)
   assert.deepEqual(result.missingHeaders, [])
@@ -61,7 +61,7 @@ test('detects missing and duplicate Rawat Inap Bedah headers', () => {
   ]
   const missing = mapSurgicalLogbookHeaders(headers)
   assert.deepEqual(missing.missingHeaders, ['Dx'])
-  const duplicate = mapSurgicalLogbookHeaders([...headers, 'Dx', 'DPJP'])
+  const duplicate = mapSurgicalLogbookHeaders([...headers, '', 'Dx', 'DPJP'])
   assert.deepEqual(duplicate.missingHeaders, [])
   assert.deepEqual(duplicate.duplicateHeaders, ['DPJP'])
 })
