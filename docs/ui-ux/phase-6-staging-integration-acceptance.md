@@ -70,6 +70,10 @@ The hardened preview workflow uses:
 
 The production Pages workflow uses the same reproducible install, the stricter dependency gate, and the explicit production Supabase configuration check before build/deploy.
 
+The feature-branch CI run [41570910956](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41570910956) verified **184/184 tests passed**, the 35-layout/35-unit data validation passed, and TypeScript passed. The run then stopped at the intended staging configuration gate because the required staging URL/key were not configured; static build and artifact upload were skipped. This is an environment-configuration blocker, not a failing unit test or type check.
+
+Seven additional tests in `tests/release-workflows.test.mjs` now protect the staging/production variable separation, lockfile install, audit thresholds, and validation-before-build ordering.
+
 
 ## 5. Current Supabase staging and backup findings
 
@@ -106,7 +110,7 @@ Use no live patient identifiers, incident narratives, or production workbook rec
 
 ## 7. Release decision
 
-The branch contains deployment-safety hardening, but full staging/integration acceptance is not complete because no browser-accessible staging deployment and no independently verified Supabase backup were available during this validation.
+The branch contains deployment-safety hardening, but full staging/integration acceptance is not complete because no browser-accessible staging deployment and no independently verified Supabase backup were available during this validation. The latest preview build did not emit a deployable artifact because the dedicated staging Supabase values are not configured.
 
 Do not merge to `main` or deploy production until:
 1. Staging configuration is provided and isolated from production;
