@@ -1,6 +1,6 @@
 # AUREKA UI/UX — Phase 0 Acceptance Checklist
 
-**Status:** Solid Enterprise visual layer implemented and automated code checks passed on 3 November 2026; manual browser, visual, staging, and backup acceptance remain pending
+**Status:** Solid Enterprise visual layer implemented on both public and authenticated experiences; automated code checks passed on 3 November 2026. Manual browser, visual, staging, and backup acceptance remain pending
 
 ## Scope and safety
 
@@ -33,7 +33,7 @@
 
 ## Applied visual implementation — 3 November 2026
 
-- [x] `app/aureka-solid-enterprise.css` is imported last in `app/layout.tsx`, so visual rules run after the legacy module skins and responsive shell styles.
+- [x] `app/aureka-solid-enterprise.css` is imported last in `app/layout.tsx`, so visual rules run after legacy module skins and responsive shell styles. It includes the public landing page and public aggregate graph modal as well as authenticated workspaces.
 - [x] Solid white enterprise surfaces, institutional green states, Aptos typography, navigation/topbar, dashboard, forms, tables, tabs, dialogs and notifications are styled consistently.
 - [x] Explicit component-family coverage added for Quality Indicators, Patient Safety, Risk Management, Clinical Pathway, OPPE/FPPE, Quality Results, Clinical Death Audit, workforce, and settings.
 - [x] Theme integration regression tests cover stylesheet order, workspace families, and retained clinical risk-scale tokens.
@@ -41,8 +41,8 @@
 
 ## Latest automated verification — 3 November 2026
 
-- [x] Latest code-bearing checkpoint `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`: 191/191 unit/regression tests, data validation, TypeScript, and Next.js build all passed in GitHub Actions run [41589035952](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589035952).
-- [x] Patient Safety Build Check passed in run [41589036002](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589036002).
+- [x] Latest code-bearing checkpoint `36ce0b7ac37e91e784f44578ef16f1c12f1d6df7`: 191/191 unit/regression tests, data validation, TypeScript, and Next.js build all passed in GitHub Actions run [41589754132](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589754132).
+- [x] Patient Safety Build Check passed in run [41589754155](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589754155).
 - [x] The current PR diff has no paths under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`. UI feedback helper is isolated under `lib/ui/`.
 - [ ] Lint is not configured as a package script and has not been run.
 - [ ] Preview workflow [41589030215](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589030215) remains blocked by missing isolated staging URL/publishable-key configuration.

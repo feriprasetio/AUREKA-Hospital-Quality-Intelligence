@@ -6,7 +6,7 @@
 
 ## Executive status
 
-Implementation for phases 0–5 is present on the feature branch, and the visual theme is now actually applied through `app/aureka-solid-enterprise.css`, loaded after the existing stylesheets. The Solid Enterprise layer covers the app shell, authentication, dashboard, quality indicators, patient safety, risk, clinical pathway, OPPE/FPPE, quality results, clinical death audit, workforce/settings, tables, forms, and dialogs. Phase 6 deployment/release safeguards are implemented, but isolated staging and full browser acceptance remain incomplete. Do not describe the redesign as fully accepted or production-ready.
+Implementation for phases 0–5 is present on the feature branch, and the Solid Enterprise visual theme is now actually applied across the public landing page, authentication, dashboard, and operational workspaces through `app/aureka-solid-enterprise.css`, loaded after the existing stylesheets. The Solid Enterprise layer covers the app shell, authentication, dashboard, quality indicators, patient safety, risk, clinical pathway, OPPE/FPPE, quality results, clinical death audit, workforce/settings, tables, forms, and dialogs. Phase 6 deployment/release safeguards are implemented, but isolated staging and full browser acceptance remain incomplete. Do not describe the redesign as fully accepted or production-ready.
 
 ## GitHub state
 
@@ -14,8 +14,8 @@ Implementation for phases 0–5 is present on the feature branch, and the visual
 - PR head is tracked live in [#94](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/pull/94); the latest code-bearing checkpoint is listed below.
 - Last observed PR base: `6d3dbf6ae42a4bc1a35703269c33b280df16daf3`.
 - The feature branch remains ahead of `main` with no base divergence; consult the live PR for current commit and changed-file totals.
-- Latest verified code-bearing checkpoint: `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`.
-- Latest code checkpoint CI: [AUREKA unit/data/build 41589035952](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589035952) and [Patient Safety Build Check 41589036002](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589036002), both success. The AUREKA run passed 191/191 unit/regression tests, data validation, TypeScript, and Next.js build.
+- Latest verified code-bearing checkpoint: `36ce0b7ac37e91e784f44578ef16f1c12f1d6df7`.
+- Latest code checkpoint CI: [AUREKA unit/data/build 41589754132](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589754132) and [Patient Safety Build Check 41589754155](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589754155), both success. The AUREKA run passed 191/191 unit/regression tests, data validation, TypeScript, and Next.js build. The code checkpoint adds final styling and test coverage for the public landing page and aggregate-data modal.
 - Subsequent visual implementation commits add the final cascade stylesheet and regression coverage. The current diff still has no paths under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`.
 - The current PR diff was checked: no changed files under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`.
 - PR reviews/approvals had not been submitted at the last check. Functional review of the full 46-file diff is still required.
