@@ -29,8 +29,9 @@ test('maps connectivity, timeout and authentication failures', () => {
   assert.match(toUserFacingError(new Error('Email not confirmed')), /belum diverifikasi/i)
 })
 
-test('uses the supplied fallback for unknown service objects', () => {
+test('uses the supplied fallback for unknown service objects and English diagnostics', () => {
   assert.equal(toUserFacingError({ message: 'unexpected database failure' }, { fallback: 'Belum berhasil.' }), 'Belum berhasil.')
+  assert.equal(toUserFacingError(new Error('Internal server error'), { fallback: 'Belum berhasil.' }), 'Belum berhasil.')
 })
 
 test('async state panel exposes loading, empty, and error semantics with retry', () => {
@@ -50,4 +51,13 @@ test('sanitizes legacy notification text without changing safe operator guidance
     sanitizeNotificationText('Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.', 'Operasi belum berhasil.'),
     'Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.',
   )
+})
+test('workspace chat and public metrics expose explicit async retry states', () => {
+  const source = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
+  assert.match(source, /supportLoadError/)
+  assert.match(source, /title="Percakapan belum dapat dimuat"/)
+  assert.match(source, /onRetry=\{\(\)=>void loadSupportConversations\(\)\}/)
+  assert.match(source, /title="Pesan belum dapat dimuat"/)
+  assert.match(source, /publicMetricsAttempt/)
+  assert.match(source, /sanitizeNotificationText\(text,technicalFallback\)/)
 })
