@@ -180,7 +180,7 @@ export default function HomeClient(){
    if(!next||next.must_change_password)throw new Error('Status wajib ganti password belum terkonfirmasi.')
    setProfile(next);setPassword('');setPassword2('');setBusy(false);setMessage('');setView('workspace')
   }catch(e){
-   setBusy(false);setMessage(e instanceof Error?e.message:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.')
+   setBusy(false);setMessage(toUserFacingError(e,{fallback:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.'}))
   }
  }
  const logout=async()=>{try{Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut();setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);}
