@@ -568,7 +568,7 @@ export default function FppeEvaluationWorkspace({
         </div>
         <aside className="fppePanel fppeHistory">
           <div className="fppeHistoryHead"><div><div className="fppeEyebrow">ARSIP FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
-          <input className="fppeLocalSearch" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
+          <input className="fppeLocalSearch" aria-label="Cari arsip FPPE berdasarkan nama, kode, jabatan, atau trigger" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
           {loading ? <p className="fppeMuted">Memuat riwayat…</p> : <div className="fppeHistoryList">
             {filtered.map((record) => {
               const staff = staffForRecord(record)
