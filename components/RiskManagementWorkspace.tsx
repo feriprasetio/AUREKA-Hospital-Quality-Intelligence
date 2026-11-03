@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom'
 import type { RiskFocus } from '@/lib/aureka/focus'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Room = { id: number; name: string }
 type RiskLevel = 'Sangat Rendah' | 'Rendah' | 'Sedang' | 'Tinggi' | 'Sangat Tinggi'
@@ -118,17 +120,18 @@ const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '"
 // Form ditampilkan sebagai jendela di atas halaman agar tidak perlu scroll ke bawah tabel.
 // Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
 function RmModal({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+  const modalRef = useAccessibleDialog<HTMLElement>({ open: true, closeOnEscape: false })
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prev }
   }, [])
   const content = (
-    <div className="rmModalBackdrop" role="dialog" aria-modal="true" aria-label={label}>
-      <div className="rmModalSheet">
+    <div className="rmModalBackdrop" role="presentation">
+      <section ref={modalRef} className="rmModalSheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
         {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
         {children}
-      </div>
+      </section>
     </div>
   )
   // Dirender di lapisan teratas (di atas sidebar & bar atas) agar jendela tampil utuh di tengah layar.
@@ -218,6 +221,9 @@ export default function RiskManagementWorkspace({
   const activePlan = plans.find(p => p.id === selectedPlanId) || null
   const activeFmea = fmeas.find(f => f.id === editingFmeaId) || null
   const canEditRisk = (risk: RiskRow) => canManageAll || risk.unit_id === initialRoomId
+  const hasRiskReferences = (riskId: string) =>
+    fmeas.some(fmea => fmea.risk_register_id === riskId) || planRisks.some(item => item.risk_id === riskId)
+  const canDeleteRisk = (risk: RiskRow) => canEditRisk(risk) && !hasRiskReferences(risk.id)
   const canEditPlan = (plan: PlanRow) => plan.created_by === undefined ? false : plan.created_by.length > 0 && (plan.owner_room_id === initialRoomId || canManageAll)
   const isWorkflowOwner = (plan: PlanRow) => plan.created_by !== '' && (plan.created_by === undefined ? false : plan.owner_room_id === initialRoomId || canManageAll)
   const unitOptions = useMemo(() => rooms.length ? rooms : [], [rooms])
@@ -227,7 +233,7 @@ export default function RiskManagementWorkspace({
     setError('')
     const firstError = queries.find(q => q.error)
     if (firstError?.error) {
-      setError('Data Manajemen Risiko belum dapat dimuat. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase. Detail: ' + firstError.error.message)
+      setError('Data Manajemen Risiko belum dapat dimuat. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase. ' + toUserFacingError(firstError.error, { fallback: 'Periksa koneksi dan hak akses, lalu muat ulang.' }))
     } else {
       let incomingRisks = (queries[0].data || []) as RiskRow[]
       let incomingPlans = (queries[1].data || []) as PlanRow[]
@@ -472,7 +478,7 @@ export default function RiskManagementWorkspace({
       setRiskEditorOpen(false)
       await loadData()
     } catch (e) {
-      setError('Risiko belum tersimpan. Periksa hak akses, koneksi, dan kelengkapan data. ' + (e instanceof Error ? e.message : 'Kesalahan tidak diketahui.'))
+      setError('Risiko belum tersimpan. Periksa hak akses, koneksi, dan kelengkapan data. ' + toUserFacingError(e, { fallback: 'Risiko belum dapat disimpan. Periksa koneksi, hak akses, dan kelengkapan data.' }))
     } finally { setSaving(false) }
   }
   const deleteRisk = async (id: string) => {
@@ -485,7 +491,7 @@ export default function RiskManagementWorkspace({
       setSelectedRiskIds(current => current.filter(x => x !== id))
       if (selectedRiskId === id) setSelectedRiskId('')
       await loadData()
-    } catch (e) { setError('Risiko tidak dapat dihapus. Risiko yang telah terhubung dengan FMEA atau mitigasi harus dipertahankan untuk jejak audit. ' + (e instanceof Error ? e.message : '')) }
+    } catch (e) { setError('Risiko tidak dapat dihapus. Risiko yang telah terhubung dengan FMEA atau mitigasi harus dipertahankan untuk jejak audit. ' + toUserFacingError(e, { fallback: 'Operasi belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.' })) }
     finally { setSaving(false) }
   }
 
@@ -532,7 +538,7 @@ export default function RiskManagementWorkspace({
       setFmeaEditorOpen(false)
       setEditingFmeaId('')
       await loadData()
-    } catch (e) { setError('FMEA tidak dapat disimpan. Pastikan Anda memiliki akses pada unit terkait. ' + (e instanceof Error ? e.message : '')) }
+    } catch (e) { setError('FMEA tidak dapat disimpan. Pastikan Anda memiliki akses pada unit terkait. ' + toUserFacingError(e, { fallback: 'Operasi belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.' })) }
     finally { setSaving(false) }
   }
 
@@ -578,7 +584,7 @@ export default function RiskManagementWorkspace({
       setDecisionNote('')
       await loadData()
     } catch (e) {
-      setError('Rencana mitigasi belum tersimpan. Periksa akses dan pastikan seluruh risiko masih tersedia. ' + (e instanceof Error ? e.message : ''))
+      setError('Rencana mitigasi belum tersimpan. Periksa akses dan pastikan seluruh risiko masih tersedia. ' + toUserFacingError(e, { fallback: 'Operasi belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.' }))
     } finally { setSaving(false) }
   }
 
@@ -598,7 +604,7 @@ export default function RiskManagementWorkspace({
       setDecisionNote('')
       await loadData()
     } catch (e) {
-      setError('Perubahan tahap tidak berhasil. Hak akses dan urutan persetujuan divalidasi di server. ' + (e instanceof Error ? e.message : ''))
+      setError('Perubahan tahap tidak berhasil. Hak akses dan urutan persetujuan divalidasi di server. ' + toUserFacingError(e, { fallback: 'Operasi belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.' }))
     } finally { setSaving(false) }
   }
 
@@ -627,7 +633,7 @@ export default function RiskManagementWorkspace({
       setMessage('Konektor risiko berhasil dicatat.')
       setLinkForm(current => ({ ...current, description: '' }))
       await loadData()
-    } catch (e) { setError('Hubungan risiko tidak tersimpan. Periksa izin dan pastikan pasangan ini belum tercatat. ' + (e instanceof Error ? e.message : '')) }
+    } catch (e) { setError('Hubungan risiko tidak tersimpan. Periksa izin dan pastikan pasangan ini belum tercatat. ' + toUserFacingError(e, { fallback: 'Operasi belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.' })) }
     finally { setSaving(false) }
   }
   const prepareIntegratedPlan = () => {
@@ -648,7 +654,7 @@ export default function RiskManagementWorkspace({
       const result = await db.from('risk_relationships').delete().eq('id', id)
       if (result.error) throw result.error
       setPendingAction(null); setMessage('Konektor dihapus.'); await loadData()
-    } catch (e) { setError('Konektor tidak dapat dihapus. ' + (e instanceof Error ? e.message : '')) }
+    } catch (e) { setError('Konektor tidak dapat dihapus. ' + toUserFacingError(e, { fallback: 'Operasi belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.' })) }
     finally { setSaving(false) }
   }
 
@@ -857,7 +863,7 @@ export default function RiskManagementWorkspace({
             <div className="wide"><span>Sasaran</span><p>{activeRisk.objective || 'Belum diuraikan'}</p></div><div className="wide"><span>Penyebab</span><p>{activeRisk.causes || 'Belum diuraikan'}</p></div><div className="wide"><span>Dampak</span><p>{activeRisk.impacts || 'Belum diuraikan'}</p></div><div className="wide"><span>Pengendalian saat ini</span><p>{activeRisk.existing_controls || 'Belum diuraikan'}</p></div>
           </div>
           {activeLinks.length > 0 && <div className="rmRelated"><b>Terhubung dengan {activeLinks.length} relasi</b>{activeLinks.map(link => { const other = risks.find(r => r.id === (link.source_risk_id === activeRisk.id ? link.target_risk_id : link.source_risk_id)); return <button type="button" key={link.id} onClick={() => { if (other) setSelectedRiskId(other.id); }}><span>{RELATION_TYPES.find(x => x.value === link.relationship_type)?.label || link.relationship_type}</span><b>{other?.risk_code || 'Risiko terkait'} · {other?.risk_event || ''}</b></button> })}</div>}
-          <div className="rmActions rmBottomActions"><button type="button" className="rmButton subtle" onClick={() => openFmea()}>＋ Tambahkan FMEA</button><button type="button" className="rmButton subtle" onClick={() => { setLinkForm(f => ({ ...f, source: activeRisk.id })); setTab('connections'); }}>Hubungkan risiko ↗</button><button type="button" className="rmButton subtle" onClick={() => { setSelectedRiskIds(current => current.includes(activeRisk.id) ? current : [...current, activeRisk.id]); setTab('mitigation'); setPlanFormOpen(true); }}>Masukkan ke RTP gabungan</button><button type="button" className="rmButton danger" disabled={!canEditRisk(activeRisk)} onClick={() => setPendingAction({ kind: 'delete-risk', id: activeRisk.id })}>Hapus</button></div>
+          <div className="rmActions rmBottomActions"><button type="button" className="rmButton subtle" onClick={() => openFmea()}>＋ Tambahkan FMEA</button><button type="button" className="rmButton subtle" onClick={() => { setLinkForm(f => ({ ...f, source: activeRisk.id })); setTab('connections'); }}>Hubungkan risiko ↗</button><button type="button" className="rmButton subtle" onClick={() => { setSelectedRiskIds(current => current.includes(activeRisk.id) ? current : [...current, activeRisk.id]); setTab('mitigation'); setPlanFormOpen(true); }}>Masukkan ke RTP gabungan</button><button type="button" className="rmButton danger" disabled={!canDeleteRisk(activeRisk)} title={hasRiskReferences(activeRisk.id) ? 'Tidak dapat dihapus karena masih menjadi referensi FMEA atau rencana mitigasi.' : 'Hapus risiko yang belum memiliki referensi FMEA atau RTP.'} onClick={() => setPendingAction({ kind: 'delete-risk', id: activeRisk.id })}>Hapus</button></div>
         </LiquidGlass>}
         {pendingAction?.kind === 'delete-risk' && <div className="rmInlineConfirm"><div><b>Konfirmasi penghapusan risiko</b><p>Penghapusan akan ditolak apabila risiko memiliki referensi FMEA atau rencana mitigasi. Pertimbangkan mengubah status menjadi Controlled/Accepted agar jejak audit tetap terjaga.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteRisk(pendingAction.id)}>Lanjutkan penghapusan</button></div></div>}
       </>}
@@ -1000,7 +1006,7 @@ export default function RiskManagementWorkspace({
             <label>Status tindakan <select value={String(fmeaForm.status || 'Open')} onChange={e => setFmeaForm(f => ({ ...f, status: e.target.value }))}>{['Open', 'In Progress', 'Evaluated', 'Closed'].map(s => <option key={s}>{s}</option>)}</select></label>
           </div>
           <div className="rmFormFooter"><span className="rmFormNote">RPN tinggi atau Severity ≥ 4 memerlukan evaluasi prioritas dan pertimbangan RCA/redesign; keputusan klinis tetap memerlukan telaah tim terkait.</span><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}>Batal</button><button type="button" className="rmButton primary" disabled={saving} onClick={() => void saveFmea()}>{saving ? 'Menyimpan…' : 'Simpan FMEA'}</button></div></div>
-          {pendingAction?.kind === 'delete-fmea' && <div className="rmInlineConfirm"><b>Hapus FMEA terpilih?</b><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" onClick={async () => { if (!pendingAction) return; const result = await db.from('fmea_analyses').delete().eq('id', pendingAction.id); if (result.error) setError(result.error.message); else { setMessage('FMEA dihapus.'); setPendingAction(null); await loadData(); } }}>Hapus</button></div></div>}
+          {pendingAction?.kind === 'delete-fmea' && <div className="rmInlineConfirm"><b>Hapus FMEA terpilih?</b><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" onClick={async () => { if (!pendingAction) return; const result = await db.from('fmea_analyses').delete().eq('id', pendingAction.id); if (result.error) setError(toUserFacingError(result.error, { fallback: 'FMEA belum dapat dihapus. Periksa hak akses dan coba kembali.' })); else { setMessage('FMEA dihapus.'); setPendingAction(null); await loadData(); } }}>Hapus</button></div></div>}
         </LiquidGlass></RmModal>}
       </>}
 

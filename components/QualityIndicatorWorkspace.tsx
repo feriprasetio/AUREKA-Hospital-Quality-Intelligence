@@ -1,22 +1,22 @@
 'use client'
 import {Fragment,useCallback,useEffect,useMemo,useRef,useState} from 'react'
+import dynamic from 'next/dynamic'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
 import {createPortal} from 'react-dom'
-import ComplaintExcelImportDialog from '@/components/ComplaintExcelImportDialog'
-import AmbulanceExcelImportDialog from '@/components/AmbulanceExcelImportDialog'
-import IbsExcelImportDialog from '@/components/IbsExcelImportDialog'
-import PharmacyExcelImportDialog from '@/components/PharmacyExcelImportDialog'
-import GiziExcelImportDialog from '@/components/GiziExcelImportDialog'
-import LaboratoryExcelImportDialog from '@/components/LaboratoryExcelImportDialog'
-import OutpatientExcelImportDialog from '@/components/OutpatientExcelImportDialog'
-import RehabMedikExcelImportDialog from '@/components/RehabMedikExcelImportDialog'
-import IcuExcelImportDialog from '@/components/IcuExcelImportDialog'
-import PerinatologyExcelImportDialog from '@/components/PerinatologyExcelImportDialog'
-import NicuExcelImportDialog from '@/components/NicuExcelImportDialog'
-import NifasExcelImportDialog from '@/components/NifasExcelImportDialog'
-import PonekExcelImportDialog from '@/components/PonekExcelImportDialog'
-import PediatricInpatientExcelImportDialog from '@/components/PediatricInpatientExcelImportDialog'
-import SurgicalInpatientExcelImportDialog from '@/components/SurgicalInpatientExcelImportDialog'
-import PenyakitDalamInpatientExcelImportDialog from '@/components/PenyakitDalamInpatientExcelImportDialog'
+import {useAccessibleDialog} from '@/components/layout/useAccessibleDialog'
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind } from '@/lib/aureka/indicator-engine'
 import { buildIndicatorDropdownOptions, findIndicatorDropdownSelection, shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
@@ -24,9 +24,27 @@ import { getOutpatientDoctorsForClinic, summarizeOutpatientClinics, summarizeOut
 import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '@/lib/aureka/complaint-logbook'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
+import {toUserFacingError} from '@/lib/ui/error-feedback'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
-import ClinicalDeathAuditWorkspace from '@/components/ClinicalDeathAuditWorkspace'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
+const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Audit Klinis dan Kematian" compact/>})
+
+const ComplaintExcelImportDialog=dynamic(()=>import('@/components/ComplaintExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Pengaduan" compact/>})
+const AmbulanceExcelImportDialog=dynamic(()=>import('@/components/AmbulanceExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Ambulans" compact/>})
+const IbsExcelImportDialog=dynamic(()=>import('@/components/IbsExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Bedah Sentral" compact/>})
+const PharmacyExcelImportDialog=dynamic(()=>import('@/components/PharmacyExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Farmasi" compact/>})
+const GiziExcelImportDialog=dynamic(()=>import('@/components/GiziExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Gizi" compact/>})
+const LaboratoryExcelImportDialog=dynamic(()=>import('@/components/LaboratoryExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Laboratorium" compact/>})
+const OutpatientExcelImportDialog=dynamic(()=>import('@/components/OutpatientExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Rawat Jalan" compact/>})
+const RehabMedikExcelImportDialog=dynamic(()=>import('@/components/RehabMedikExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Rehabilitasi Medik" compact/>})
+const IcuExcelImportDialog=dynamic(()=>import('@/components/IcuExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor ICU" compact/>})
+const PerinatologyExcelImportDialog=dynamic(()=>import('@/components/PerinatologyExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Perinatologi" compact/>})
+const NicuExcelImportDialog=dynamic(()=>import('@/components/NicuExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor NICU" compact/>})
+const NifasExcelImportDialog=dynamic(()=>import('@/components/NifasExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Nifas" compact/>})
+const PonekExcelImportDialog=dynamic(()=>import('@/components/PonekExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor PONEK" compact/>})
+const PediatricInpatientExcelImportDialog=dynamic(()=>import('@/components/PediatricInpatientExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Rawat Inap Anak" compact/>})
+const SurgicalInpatientExcelImportDialog=dynamic(()=>import('@/components/SurgicalInpatientExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Rawat Inap Bedah" compact/>})
+const PenyakitDalamInpatientExcelImportDialog=dynamic(()=>import('@/components/PenyakitDalamInpatientExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Rawat Inap Penyakit Dalam" compact/>})
 
 const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
@@ -34,6 +52,7 @@ const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus'
 const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'] as const
 const YEARS=[2025,2026,2027,2028,2029]
 
+type ImportDialogKey='complaint'|'ambulance'|'ibs'|'pharmacy'|'gizi'|'laboratory'|'outpatient'|'rehab'|'icu'|'perinatology'|'nicu'|'nifas'|'ponek'|'pediatric-inpatient'|'surgical-inpatient'|'penyakit-dalam-inpatient'
 type Room={id:number;name:string};type Profile=Record<string,any>;type TeamStaffOption={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;directory_status:'available';room_id:number};type AuditLayout={roomId:number;fields:string[];indicators:string[];measurementGrain?:string;providerGroups?:{clinic:string;doctors:string[]}[];fieldOptions?:Record<string,string[]>;indicatorOptions?:Record<string,string[]>;fieldTypes?:Record<string,'select'|'date'|'datetime-local'|'time'|'number'|'textarea'|'text'>;indicatorControl?:'select'|'radio'};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;numerator?:number|null;denominator?:number|null;noncompliant?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null;source_value?:string;source_label?:string;source_option?:boolean;review_required?:boolean};type Patient=Record<string,any>
 
 const CSS=`
@@ -387,6 +406,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [confirmCloseEditor,setConfirmCloseEditor]=useState(false)
  const editorSnapshot=useRef<{id:string,json:string}|null>(null)
  useEffect(()=>{if(!patientOpen||typeof document==='undefined')return;const prev=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=prev}},[patientOpen])
+ const [loadedImportDialogs,setLoadedImportDialogs]=useState<Set<ImportDialogKey>>(()=>new Set())
  const [complaintImportOpen,setComplaintImportOpen]=useState(false)
  const [ambulanceImportOpen,setAmbulanceImportOpen]=useState(false)
  const [ibsImportOpen,setIbsImportOpen]=useState(false)
@@ -396,12 +416,31 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [rehabImportOpen,setRehabImportOpen]=useState(false)
  const [icuImportOpen,setIcuImportOpen]=useState(false)
  const [perinatologyImportOpen,setPerinatologyImportOpen]=useState(false)
-  const [nicuImportOpen,setNicuImportOpen]=useState(false)
+ const [nicuImportOpen,setNicuImportOpen]=useState(false)
  const [nifasImportOpen,setNifasImportOpen]=useState(false)
  const [ponekImportOpen,setPonekImportOpen]=useState(false)
  const [pediatricInpatientImportOpen,setPediatricInpatientImportOpen]=useState(false)
  const [surgicalInpatientImportOpen,setSurgicalInpatientImportOpen]=useState(false)
  const [penyakitDalamInpatientImportOpen,setPenyakitDalamInpatientImportOpen]=useState(false)
+ const openImportDialog=(key:ImportDialogKey)=>{
+  setLoadedImportDialogs(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);return next})
+  if(key==='complaint')setComplaintImportOpen(true)
+  else if(key==='ambulance')setAmbulanceImportOpen(true)
+  else if(key==='ibs')setIbsImportOpen(true)
+  else if(key==='pharmacy')setPharmacyImportOpen(true)
+  else if(key==='gizi')setGiziImportOpen(true)
+  else if(key==='laboratory')setLaboratoryImportOpen(true)
+  else if(key==='outpatient')setOutpatientImportOpen(true)
+  else if(key==='rehab')setRehabImportOpen(true)
+  else if(key==='icu')setIcuImportOpen(true)
+  else if(key==='perinatology')setPerinatologyImportOpen(true)
+  else if(key==='nicu')setNicuImportOpen(true)
+  else if(key==='nifas')setNifasImportOpen(true)
+  else if(key==='ponek')setPonekImportOpen(true)
+  else if(key==='pediatric-inpatient')setPediatricInpatientImportOpen(true)
+  else if(key==='surgical-inpatient')setSurgicalInpatientImportOpen(true)
+  else if(key==='penyakit-dalam-inpatient')setPenyakitDalamInpatientImportOpen(true)
+ }
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
 
@@ -590,7 +629,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setPatients([])
      setProfiles([])
      setSource('Supabase tidak tersedia')
-     setMessage(`Data tidak dapat dimuat dari server. Tidak ada draf pasien yang dipulihkan dari browser. ${e instanceof Error?e.message:''}`.trim())
+     setMessage(`Data tidak dapat dimuat dari server. Tidak ada draf pasien yang dipulihkan dari browser. ${toUserFacingError(e,{fallback:'Periksa koneksi dan hak akses, lalu coba kembali.'})}`.trim())
    }finally{setBusy(false)}
  },[roomId,roomMap,year])
 
@@ -771,7 +810,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      backend=true
    }catch(e){
      setSource('Supabase')
-     setMessage(`Belum tersimpan ke server. Periksa koneksi dan isi formulir; draf tetap terbuka dan hanya berada di memori sampai penyimpanan berhasil. ${e instanceof Error?e.message:''}`.trim())
+     setMessage(`Belum tersimpan ke server. Periksa koneksi dan isi formulir; draf tetap terbuka dan hanya berada di memori sampai penyimpanan berhasil. ${toUserFacingError(e,{fallback:'Periksa koneksi dan hak akses, lalu coba kembali.'})}`.trim())
      setBusy(false)
      return
    }
@@ -863,7 +902,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   const loadMonthlyReview=useCallback(async()=>{
     if(!isValidator||roomId==null){setMonthlyReview(null);return}
     const {data,error}=await q().rpc('aureka_quality_month_review_status',{p_room_id:roomId,p_year:year,p_month:reviewMonth})
-    if(error){setMonthlyReview(null);setMessage(`Ringkasan pemeriksaan bulanan belum dapat dimuat: ${error.message}`);return}
+    if(error){setMonthlyReview(null);setMessage(`Ringkasan pemeriksaan bulanan belum dapat dimuat: ${toUserFacingError(error,{fallback:'Ringkasan pemeriksaan bulanan belum dapat dimuat.'})}`);return}
     setMonthlyReview(data??null)
   },[isValidator,roomId,year,reviewMonth])
   useEffect(()=>{void loadMonthlyReview()},[loadMonthlyReview,patients])
@@ -871,7 +910,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
     if(!isValidator||roomId==null||monthlyReviewBusy)return
     setMonthlyReviewBusy(true);setMessage('')
     const {data,error}=await q().rpc('aureka_validator_review_quality_month',{p_room_id:roomId,p_year:year,p_month:reviewMonth})
-    if(error){setMessage(`Pemeriksaan bulanan gagal disimpan: ${error.message}`);setMonthlyReviewBusy(false);return}
+    if(error){setMessage(`Pemeriksaan bulanan gagal disimpan: ${toUserFacingError(error,{fallback:'Pemeriksaan bulanan belum dapat disimpan.'})}`);setMonthlyReviewBusy(false);return}
     setMonthlyReview({...data,reviewed:true,is_current:true})
     setMessage('Pemeriksaan bulanan berhasil dicatat. Tanggal dan waktu validasi tersimpan.')
     setMonthlyReviewBusy(false)
@@ -920,18 +959,18 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
      {kindNow==='computed'
        ? <div className="aqAuto"><strong>{raw==null||raw===''?'Menunggu data':typeof raw==='number'&&/length of stay|lenght of stay|los/i.test(field)?String(raw)+' hari':normHeader(field)==='lamanya tindak lanjut'?String(raw)+' hari':normHeader(field)==='kecepatan respon menit'?String(raw)+' menit':String(raw)}</strong><small>Dihitung otomatis dari tanggal atau waktu terkait</small></div>
        : staffField
-         ? <><select disabled={isValidator||(isProviderDayDoctor&&!currentClinic)} value={activeStaffChoice} onChange={(e:any)=>{const choice=staffSelectChoices.find(item=>item.key===e.target.value);if(!choice){setStaffNameValue(field,'');return}if(choice.staffId)setStaffField(field,choice.staffId);else setStaffNameValue(field,choice.name)}}>
+         ? <><select aria-label={field + ' · tenaga penanggung jawab'} disabled={isValidator||(isProviderDayDoctor&&!currentClinic)} value={activeStaffChoice} onChange={(e:any)=>{const choice=staffSelectChoices.find(item=>item.key===e.target.value);if(!choice){setStaffNameValue(field,'');return}if(choice.staffId)setStaffField(field,choice.staffId);else setStaffNameValue(field,choice.name)}}>
              <option value="">{isProviderDayDoctor?'Pilih dokter sesuai klinik…':'Pilih tenaga atau nilai dari workbook…'}</option>
              {staffSelectChoices.map(choice=><option key={choice.key} value={choice.key}>{choice.label}</option>)}
            </select>
            <small className="aqMetaText">{isProviderDayDoctor?(currentClinic?'Daftar dokter dibatasi pada klinik yang dipilih. Identitas akan ditautkan ke staff_id jika cocok dengan roster aktif.':'Pilih klinik terlebih dahulu untuk menampilkan dokter yang sesuai.'):selectedStaffId&&staffCandidates.some(staff=>staff.id===selectedStaffId)?'Identitas terhubung ke staff_id AUREKA.':workbookStaffChoices.length?'Daftar mencakup pilihan asli workbook; nama yang cocok dengan roster unit akan dihubungkan ke direktori AUREKA.':'Nama dapat dipilih dari roster tenaga klinis unit.'}</small></>
          : kindNow==='textarea'
-           ? <textarea disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+           ? <textarea aria-label={field} disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
            : kindNow==='select'&&normHeader(field)==='klinik'
-             ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>
+             ? <select aria-label="Klinik" disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih klinik</option>{groups.map(g=><option key={g.clinic} value={g.clinic}>{g.clinic}</option>)}</select>
              : kindNow==='select'&&selectedLayout?.fieldOptions?.[field]
-       ? <select disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih {field.toLowerCase()}…</option>{[...new Set([...(String(raw??'')&&!selectedLayout.fieldOptions[field].includes(String(raw))?[String(raw)]:[]),...selectedLayout.fieldOptions[field]])].map((option:string)=><option key={option} value={option}>{option}</option>)}</select>
-       : <input disabled={isValidator} type={kindNow==='date'?'date':kindNow==='datetime-local'?'datetime-local':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
+       ? <select aria-label={field} disabled={isValidator} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)}><option value="">Pilih {field.toLowerCase()}…</option>{[...new Set([...(String(raw??'')&&!selectedLayout.fieldOptions[field].includes(String(raw))?[String(raw)]:[]),...selectedLayout.fieldOptions[field]])].map((option:string)=><option key={option} value={option}>{option}</option>)}</select>
+       : <input aria-label={field} disabled={isValidator} type={kindNow==='date'?'date':kindNow==='datetime-local'?'datetime-local':kindNow==='time'?'time':kindNow==='number'?'number':'text'} step={kindNow==='number'?'any':undefined} value={String(raw??'')} onChange={(e:any)=>setField(field,e.target.value)} placeholder={'Isi '+field.toLowerCase()+'…'}/>
      }
    </label>
  }
@@ -941,7 +980,11 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    if(!patientOpen&&editorSnapshot.current)editorSnapshot.current=null
    const editorDirty=()=>!isValidator&&!!selected&&(String(selected.id).startsWith('LOCAL-')||editorSnapshot.current?.json!==editorJson(selected))
    const requestCloseEditor=()=>{if(busy)return;if(editorDirty())setConfirmCloseEditor(true);else setPatientOpen(false)}
-   const renderPatientEditor=()=>selected&&patientOpen?<section className="glass aqInlineEditor" role="region" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" type="button" aria-label="Tutup formulir" title="Tutup" onClick={requestCloseEditor}>×</button></div><div className="aqBody">
+   const editorDialogRef=useAccessibleDialog<HTMLDivElement>({open:patientOpen&&!confirmCloseEditor,onClose:requestCloseEditor})
+   const closeConfirmDialogRef=useAccessibleDialog<HTMLElement>({open:confirmCloseEditor,onClose:()=>setConfirmCloseEditor(false)})
+   const archiveConfirmDialogRef=useAccessibleDialog<HTMLElement>({open:Boolean(pendingArchive),onClose:()=>{if(!busy)setPendingArchive(null)}})
+   const unitPickerDialogRef=useAccessibleDialog<HTMLElement>({open:unitPickerOpen,onClose:()=>setUnitPickerOpen(false)})
+   const renderPatientEditor=()=>selected&&patientOpen?<section className="glass aqInlineEditor" role="region" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" type="button" data-dialog-autofocus aria-label="Tutup formulir" title="Tutup" onClick={requestCloseEditor}>×</button></div><div className="aqBody">
       <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map(renderLogbookField)}</div>
       <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'—'}</strong></div><div><span>Kelengkapan indikator hijau</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
       <section className="aqIndicatorSection" aria-label="Daftar indikator mutu">
@@ -970,34 +1013,34 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
        <div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div>
        <div><span>Indikator terisi</span><strong>{yearPatients.filter(p=>(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length}</strong></div>
        <div><span>Ditampilkan</span><strong>{filtered.length}</strong></div>
-       {!isValidator&&year>=2026&&[1,3,4,5,7,9,11,12,14,18,19,20,22,23,25,33].includes(Number(roomId))&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!(Number(roomId)===11?canImportOutpatientWorkbook:canImportWorkbook)||((Number(roomId)===14||Number(roomId)===18||Number(roomId)===20||Number(roomId)===22||Number(roomId)===23||Number(roomId)===25||Number(roomId)===33)&&year!==2026)} onClick={()=>{const id=Number(roomId);if(id===1)setComplaintImportOpen(true);else if(id===3)setAmbulanceImportOpen(true);else if(id===4)setIbsImportOpen(true);else if(id===5)setPharmacyImportOpen(true);else if(id===7)setGiziImportOpen(true);else if(id===9)setLaboratoryImportOpen(true);else if(id===11)setOutpatientImportOpen(true);else if(id===12)setRehabImportOpen(true);else if(id===14)setIcuImportOpen(true);else if(id===18)setNicuImportOpen(true);else if(id===19)setNifasImportOpen(true);else if(id===20)setPerinatologyImportOpen(true);else if(id===22)setPediatricInpatientImportOpen(true);else if(id===23)setSurgicalInpatientImportOpen(true);else if(id===25)setPenyakitDalamInpatientImportOpen(true);else if(id===33)setPonekImportOpen(true)}} title={Number(roomId)===18?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx NICU 2026":"Impor NICU tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===19?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Nifas 2026":"Impor Nifas tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===20?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Perinatology & Neonatology":"Impor Perinatologi tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===22?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Anak 2026":"Impor Rawat Inap Anak tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===23?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Bedah 2026":"Impor Rawat Inap Bedah tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===25?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Penyakit Dalam 2026":"Impor Penyakit Dalam tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===33?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx PONEK 2026":"Impor PONEK tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===14?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx ICU/HCU 2026":"Impor ICU tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===11?(canImportOutpatientWorkbook?"Pilih workbook .xlsx Instalasi Rawat Jalan":"Akun ini belum memiliki kewenangan impor"):canImportWorkbook?"Pilih workbook .xlsx untuk unit terpilih":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>↥ Upload worksheet.xlsx</button>}
+       {!isValidator&&year>=2026&&[1,3,4,5,7,9,11,12,14,18,19,20,22,23,25,33].includes(Number(roomId))&&<button type="button" className="aqBtn aqImportButton" disabled={busy||!(Number(roomId)===11?canImportOutpatientWorkbook:canImportWorkbook)||((Number(roomId)===14||Number(roomId)===18||Number(roomId)===20||Number(roomId)===22||Number(roomId)===23||Number(roomId)===25||Number(roomId)===33)&&year!==2026)} onClick={()=>{const id=Number(roomId);if(id===1)openImportDialog('complaint');else if(id===3)openImportDialog('ambulance');else if(id===4)openImportDialog('ibs');else if(id===5)openImportDialog('pharmacy');else if(id===7)openImportDialog('gizi');else if(id===9)openImportDialog('laboratory');else if(id===11)openImportDialog('outpatient');else if(id===12)openImportDialog('rehab');else if(id===14)openImportDialog('icu');else if(id===18)openImportDialog('nicu');else if(id===19)openImportDialog('nifas');else if(id===20)openImportDialog('perinatology');else if(id===22)openImportDialog('pediatric-inpatient');else if(id===23)openImportDialog('surgical-inpatient');else if(id===25)openImportDialog('penyakit-dalam-inpatient');else if(id===33)openImportDialog('ponek')}} title={Number(roomId)===18?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx NICU 2026":"Impor NICU tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===19?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Nifas 2026":"Impor Nifas tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===20?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Perinatology & Neonatology":"Impor Perinatologi tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===22?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Anak 2026":"Impor Rawat Inap Anak tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===23?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Bedah 2026":"Impor Rawat Inap Bedah tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===25?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Penyakit Dalam 2026":"Impor Penyakit Dalam tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===33?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx PONEK 2026":"Impor PONEK tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===14?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx ICU/HCU 2026":"Impor ICU tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===11?(canImportOutpatientWorkbook?"Pilih workbook .xlsx Instalasi Rawat Jalan":"Akun ini belum memiliki kewenangan impor"):canImportWorkbook?"Pilih workbook .xlsx untuk unit terpilih":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>↥ Upload worksheet.xlsx</button>}
        {!isValidator&&roomId===5&&year>=2026?<><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Jalan'})}>＋ Input Rawat Jalan</button><button type="button" className="aqBtn aqAddButton" disabled={busy} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Inap'})}>＋ Input Rawat Inap</button></>:!isValidator&&!(roomId===7)&&!([1,3,4,9,11,12].includes(Number(roomId)))&&<button type="button" className="aqBtn primary aqAddButton" disabled={busy} onClick={()=>newPatient()}>＋ Tambah catatan</button>}
       </div>
       <section className={`glass aqTable aqHideStatus ${isValidator?"aqValidatorLogbook":""}`}><div className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>{Number(roomId)===11?'Pengukuran terisi':'Indikator terisi'}</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const isOutpatient=Number(p.roomId)===11,rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)&&!(isOutpatient&&/waktu tunggu rawat jalan/i.test(displayTitle(x)))),total=isOutpatient?1:rowProfiles.length,count=isOutpatient?(String(p.formData?.['Klinik']??'').trim()&&String(p.formData?.['Dokter']??'').trim()&&Number.isFinite(Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)']))&&Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)'])>=0&&Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)'])<=1440?1:0):rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=><td key={field+'-'+j}>{String(summaryCellValue(p,field)??'')||'—'}</td>)}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase()))?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.preventDefault();e.stopPropagation();setPendingArchive(p)}}>Hapus</button>:<span className="aqMetaText">—</span>)}</div></td></tr></Fragment>})}{!filtered.length&&<tr><td colSpan={summaryFields.length+4}><div className="aqEmpty">{busy?'Memuat data logbook…':'Belum ada catatan pada periode ini.'}</div></td></tr>}</tbody></table></div></section></>}
 
-   {patientOpen&&selected&&typeof document!=='undefined'&&createPortal(<div className="aq aqPortal"><div className="aqBack aqEditorBack" role="presentation" onKeyDown={(e:any)=>{if(e.key==='Escape'){e.stopPropagation();requestCloseEditor()}}}><div className="aqEditorDialog" role="dialog" aria-modal="true" aria-label={`Formulir logbook ${recordTitle(selected)}`}>{renderPatientEditor()}</div>
-    {confirmCloseEditor&&<div className="aqBack aqDeleteConfirmBack" role="presentation"><section className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqCloseConfirmTitle"><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span></div><h4 id="aqCloseConfirmTitle">Tutup tanpa menyimpan?</h4><p>Isian pada formulir ini belum disimpan. Jika ditutup sekarang, perubahan akan hilang.</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" onClick={()=>setConfirmCloseEditor(false)}>Lanjut mengisi</button><button type="button" className="aqBtn danger" onClick={()=>{setConfirmCloseEditor(false);setPatientOpen(false)}}>Tutup tanpa simpan</button></div></section></div>}
+   {patientOpen&&selected&&typeof document!=='undefined'&&createPortal(<div className="aq aqPortal"><div className="aqBack aqEditorBack" role="presentation"><div ref={editorDialogRef} className="aqEditorDialog" role="dialog" aria-modal="true" aria-label={`Formulir logbook ${recordTitle(selected)}`} tabIndex={-1}>{renderPatientEditor()}</div>
+    {confirmCloseEditor&&<div className="aqBack aqDeleteConfirmBack" role="presentation"><section ref={closeConfirmDialogRef} className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqCloseConfirmTitle" tabIndex={-1}><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span></div><h4 id="aqCloseConfirmTitle">Tutup tanpa menyimpan?</h4><p>Isian pada formulir ini belum disimpan. Jika ditutup sekarang, perubahan akan hilang.</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" data-dialog-autofocus onClick={()=>setConfirmCloseEditor(false)}>Lanjut mengisi</button><button type="button" className="aqBtn danger" onClick={()=>{setConfirmCloseEditor(false);setPatientOpen(false)}}>Tutup tanpa simpan</button></div></section></div>}
    </div></div>,document.body)}
-   <ComplaintExcelImportDialog open={complaintImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setComplaintImportOpen(false)} onImported={async()=>{await load()}}/>
-   <AmbulanceExcelImportDialog open={ambulanceImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setAmbulanceImportOpen(false)} onImported={async()=>{await load()}}/>
-   <IbsExcelImportDialog open={ibsImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setIbsImportOpen(false)} onImported={async()=>{await load()}}/>
-   <PharmacyExcelImportDialog open={pharmacyImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPharmacyImportOpen(false)} onImported={async()=>{await load()}}/>
-   <GiziExcelImportDialog open={giziImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setGiziImportOpen(false)} onImported={async()=>{await load()}}/>
-   <LaboratoryExcelImportDialog open={laboratoryImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setLaboratoryImportOpen(false)} onImported={async()=>{await load()}}/>
-   <OutpatientExcelImportDialog open={outpatientImportOpen} roomId={roomId} year={year} authorized={canImportOutpatientWorkbook} layout={getLayout(11)} onClose={()=>setOutpatientImportOpen(false)} onImported={async()=>{await load()}}/>
-   <RehabMedikExcelImportDialog open={rehabImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setRehabImportOpen(false)} onImported={async()=>{await load()}}/>
-   <IcuExcelImportDialog open={icuImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setIcuImportOpen(false)} onImported={async()=>{await load()}}/>
-   <PerinatologyExcelImportDialog open={perinatologyImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPerinatologyImportOpen(false)} onImported={async()=>{await load()}}/>
-    <NicuExcelImportDialog open={nicuImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setNicuImportOpen(false)} onImported={async()=>{await load()}}/>
-   <NifasExcelImportDialog open={nifasImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setNifasImportOpen(false)} onImported={async()=>{await load()}}/>
-   <PonekExcelImportDialog open={ponekImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPonekImportOpen(false)} onImported={async()=>{await load()}}/>
-   <PediatricInpatientExcelImportDialog open={pediatricInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPediatricInpatientImportOpen(false)} onImported={async()=>{await load()}}/>
-   <SurgicalInpatientExcelImportDialog open={surgicalInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setSurgicalInpatientImportOpen(false)} onImported={async()=>{await load()}}/>
-   <PenyakitDalamInpatientExcelImportDialog open={penyakitDalamInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPenyakitDalamInpatientImportOpen(false)} onImported={async()=>{await load()}}/>
+   {loadedImportDialogs.has('complaint')&&<ComplaintExcelImportDialog open={complaintImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setComplaintImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('ambulance')&&<AmbulanceExcelImportDialog open={ambulanceImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setAmbulanceImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('ibs')&&<IbsExcelImportDialog open={ibsImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setIbsImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('pharmacy')&&<PharmacyExcelImportDialog open={pharmacyImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPharmacyImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('gizi')&&<GiziExcelImportDialog open={giziImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setGiziImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('laboratory')&&<LaboratoryExcelImportDialog open={laboratoryImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setLaboratoryImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('outpatient')&&<OutpatientExcelImportDialog open={outpatientImportOpen} roomId={roomId} year={year} authorized={canImportOutpatientWorkbook} layout={getLayout(11)} onClose={()=>setOutpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('rehab')&&<RehabMedikExcelImportDialog open={rehabImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setRehabImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('icu')&&<IcuExcelImportDialog open={icuImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setIcuImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('perinatology')&&<PerinatologyExcelImportDialog open={perinatologyImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPerinatologyImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('nicu')&&<NicuExcelImportDialog open={nicuImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setNicuImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('nifas')&&<NifasExcelImportDialog open={nifasImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setNifasImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('ponek')&&<PonekExcelImportDialog open={ponekImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPonekImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('pediatric-inpatient')&&<PediatricInpatientExcelImportDialog open={pediatricInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPediatricInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('surgical-inpatient')&&<SurgicalInpatientExcelImportDialog open={surgicalInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setSurgicalInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
+   {loadedImportDialogs.has('penyakit-dalam-inpatient')&&<PenyakitDalamInpatientExcelImportDialog open={penyakitDalamInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPenyakitDalamInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
 
-   {pendingArchive&&<div className="aqBack aqDeleteConfirmBack" role="presentation" onClick={(e:any)=>{if(e.target===e.currentTarget&&!busy)setPendingArchive(null)}}><section className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqDeleteConfirmTitle" aria-describedby="aqDeleteConfirmText"><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span><button type="button" className="aqDeleteConfirmClose" aria-label="Tutup dialog" disabled={busy} onClick={()=>setPendingArchive(null)}>×</button></div><h4 id="aqDeleteConfirmTitle">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf catatan?':'Hapus catatan dari logbook aktif?'}</h4><p id="aqDeleteConfirmText">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Draf ini belum tersimpan ke server dan akan dibuang dari sesi ini.':'Catatan akan diarsipkan dan hilang dari daftar aktif. Jejak audit tetap dipertahankan.'}</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" disabled={busy} onClick={()=>setPendingArchive(null)}>Batal</button><button type="button" className="aqBtn danger" disabled={busy} onClick={()=>void archivePatient(pendingArchive)}>{busy?'Memproses…':pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf':'Ya, hapus'}</button></div></section></div>}
+   {pendingArchive&&<div className="aqBack aqDeleteConfirmBack" role="presentation" onClick={(e:any)=>{if(e.target===e.currentTarget&&!busy)setPendingArchive(null)}}><section ref={archiveConfirmDialogRef} className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqDeleteConfirmTitle" aria-describedby="aqDeleteConfirmText" tabIndex={-1}><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span><button type="button" className="aqDeleteConfirmClose" aria-label="Tutup dialog" disabled={busy} onClick={()=>setPendingArchive(null)}>×</button></div><h4 id="aqDeleteConfirmTitle">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf catatan?':'Hapus catatan dari logbook aktif?'}</h4><p id="aqDeleteConfirmText">{pendingArchive.source==='local'&&!pendingArchive.recordId?'Draf ini belum tersimpan ke server dan akan dibuang dari sesi ini.':'Catatan akan diarsipkan dan hilang dari daftar aktif. Jejak audit tetap dipertahankan.'}</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" data-dialog-autofocus disabled={busy} onClick={()=>setPendingArchive(null)}>Batal</button><button type="button" className="aqBtn danger" disabled={busy} onClick={()=>void archivePatient(pendingArchive)}>{busy?'Memproses…':pendingArchive.source==='local'&&!pendingArchive.recordId?'Buang draf':'Ya, hapus'}</button></div></section></div>}
 
-   {unitPickerOpen&&<div className="aqBack" onClick={(e:any)=>{if(e.target===e.currentTarget)setUnitPickerOpen(false)}}><section className="aqDrawer aqUnitPicker" role="dialog" aria-modal="true" aria-label="Pilih unit untuk catatan baru"><div className="aqDHead"><div><div className="eyebrow">Logbook mutu</div><h4>Pilih unit kerja</h4><p>Catatan baru harus terikat pada satu unit agar master indikator dan kewenangan tersaring dengan benar.</p></div><button className="aqClose" onClick={()=>setUnitPickerOpen(false)} aria-label="Tutup">×</button></div><div className="aqBody"><label className="aqField"><span>Unit kerja</span><select value={unitPickerRoomId} onChange={(e:any)=>setUnitPickerRoomId(e.target.value)}><option value="">Pilih unit…</option>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><div className="aqFoot" style={{margin:'18px -22px -18px'}}><span className="aqMetaText">Pilih unit terlebih dahulu untuk membuka formulir catatan.</span><button className="aqBtn primary" disabled={!unitPickerRoomId||busy} onClick={()=>{const id=Number(unitPickerRoomId);setUnitPickerOpen(false);if(Number.isFinite(id)&&id>0)newPatient(id)}}>Buat catatan</button></div></div></section></div>}
+   {unitPickerOpen&&<div className="aqBack" onClick={(e:any)=>{if(e.target===e.currentTarget)setUnitPickerOpen(false)}}><section ref={unitPickerDialogRef} className="aqDrawer aqUnitPicker" role="dialog" aria-modal="true" aria-label="Pilih unit untuk catatan baru" tabIndex={-1}><div className="aqDHead"><div><div className="eyebrow">Logbook mutu</div><h4>Pilih unit kerja</h4><p>Catatan baru harus terikat pada satu unit agar master indikator dan kewenangan tersaring dengan benar.</p></div><button className="aqClose" onClick={()=>setUnitPickerOpen(false)} aria-label="Tutup">×</button></div><div className="aqBody"><label className="aqField"><span>Unit kerja</span><select data-dialog-autofocus value={unitPickerRoomId} onChange={(e:any)=>setUnitPickerRoomId(e.target.value)}><option value="">Pilih unit…</option>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><div className="aqFoot" style={{margin:'18px -22px -18px'}}><span className="aqMetaText">Pilih unit terlebih dahulu untuk membuka formulir catatan.</span><button className="aqBtn primary" disabled={!unitPickerRoomId||busy} onClick={()=>{const id=Number(unitPickerRoomId);setUnitPickerOpen(false);if(Number.isFinite(id)&&id>0)newPatient(id)}}>Buat catatan</button></div></div></section></div>}
 
  </div>
 }

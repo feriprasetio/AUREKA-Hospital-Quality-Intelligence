@@ -1,0 +1,107 @@
+/*
+ * AUREKA Design Tokens — Phase 0 foundation
+ * Version: 1.0.0
+ *
+ * This file deliberately defines namespaced custom properties only.
+ * It does not apply global typography, surfaces, component styles, or resets.
+ * Existing UI remains visually unchanged until individual components migrate.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Brand */
+  --aureka-color-primary: #0f7656;
+  --aureka-color-primary-hover: #0b5d44;
+  --aureka-color-primary-active: #084f3a;
+  --aureka-color-primary-soft: #ecf7f1;
+  --aureka-color-sidebar: #084f3a;
+
+  /* Semantic surfaces */
+  --aureka-color-background: #f3f6f4;
+  --aureka-color-surface: #ffffff;
+  --aureka-color-surface-muted: #f8faf9;
+  --aureka-color-surface-raised: #ffffff;
+
+  /* Text and boundaries */
+  --aureka-color-foreground: #1e293b;
+  --aureka-color-foreground-secondary: #475569;
+  --aureka-color-muted: #64748b;
+  --aureka-color-border: #e5e7eb;
+  --aureka-color-border-strong: #cbd5e1;
+  --aureka-color-ring: rgba(15, 118, 86, 0.32);
+
+  /* Feedback */
+  --aureka-color-success: #15803d;
+  --aureka-color-success-soft: #f0fdf4;
+  --aureka-color-warning: #d97706;
+  --aureka-color-warning-soft: #fffbeb;
+  --aureka-color-danger: #dc2626;
+  --aureka-color-danger-soft: #fef2f2;
+  --aureka-color-information: #2563eb;
+  --aureka-color-information-soft: #eff6ff;
+
+  /* Clinical risk scale — preserve existing AUREKA semantics */
+  --aureka-risk-very-low: #23abd4;
+  --aureka-risk-low: #71c965;
+  --aureka-risk-moderate: #ecc93d;
+  --aureka-risk-high: #f59d3b;
+  --aureka-risk-very-high: #f05a5b;
+
+  /* Typography — opt-in per component during progressive migration */
+  --aureka-font-sans: "Aptos", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --aureka-font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --aureka-font-size-xs: 0.75rem;
+  --aureka-font-size-sm: 0.8125rem;
+  --aureka-font-size-base: 0.875rem;
+  --aureka-font-size-lg: 1rem;
+  --aureka-font-size-xl: 1.25rem;
+  --aureka-font-size-2xl: 1.75rem;
+
+  /* Spacing — 4 px base */
+  --aureka-space-1: 0.25rem;
+  --aureka-space-2: 0.5rem;
+  --aureka-space-3: 0.75rem;
+  --aureka-space-4: 1rem;
+  --aureka-space-5: 1.25rem;
+  --aureka-space-6: 1.5rem;
+  --aureka-space-8: 2rem;
+  --aureka-space-10: 2.5rem;
+  --aureka-space-12: 3rem;
+
+  /* Shape */
+  --aureka-radius-sm: 0.375rem;
+  --aureka-radius-md: 0.5rem;
+  --aureka-radius-lg: 0.75rem;
+  --aureka-radius-xl: 0.875rem;
+  --aureka-radius-2xl: 1rem;
+  --aureka-radius-full: 9999px;
+
+  /* Elevation — intentionally restrained for operational workspaces */
+  --aureka-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --aureka-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --aureka-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --aureka-shadow-dialog: 0 18px 48px rgba(15, 23, 42, 0.18);
+
+  /* Interaction */
+  --aureka-duration-fast: 120ms;
+  --aureka-duration-normal: 180ms;
+  --aureka-duration-slow: 240ms;
+  --aureka-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layering — use consistently when components migrate */
+  --aureka-z-sticky: 10;
+  --aureka-z-sidebar: 20;
+  --aureka-z-scrim: 30;
+  --aureka-z-drawer: 40;
+  --aureka-z-popover: 50;
+  --aureka-z-dialog: 60;
+  --aureka-z-toast: 70;
+}
+
+/*
+ * Responsive breakpoints are documented in
+ * docs/ui-ux/phase-0-design-system.md. CSS custom properties cannot be
+ * substituted into media-query conditions, so keep breakpoint values explicit.
+ */

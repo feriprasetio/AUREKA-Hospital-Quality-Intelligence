@@ -12,7 +12,7 @@ type Plan = { id: string; status: string; target_date: string | null; owner_room
 type Incident = { id: string; incident_code: string; incident_date: string | null; unit_name: string; incident_type: string; summary: string; status: string; created_at: string }
 type QualityRecord = { id: string; room_id: number | null; status: string | null; review_required: boolean | null; created_at: string }
 type ClinicalPathwayAudit = { id: string; room_id: number; template_code: string; template_name: string; patient_name: string; status: string; calculation_json: Record<string, any>; created_at: string }
-type Section<T> = { rows: T[]; error: string | null }
+type Section<T> = { rows: T[]; error: string | null; incomplete?: boolean }
 
 const LEVELS = ['Sangat Tinggi', 'Tinggi', 'Sedang', 'Rendah', 'Sangat Rendah'] as const
 // Same bands as Manajemen Risiko (skor = kemungkinan × dampak).
@@ -30,18 +30,34 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', '
 // Cache di memori agar Ringkasan langsung tampil saat dibuka lagi, lalu diperbarui di latar.
 const ovCache = new Map<string, any[]>()
 async function fetchAll<T>(build: (from: number, to: number) => any, cap = 5000): Promise<Section<T>> {
-  // Halaman pertama dulu; bila penuh, sisa halaman (sampai batas cap) diambil paralel.
-  const first = await build(0, 999)
+  const pageSize = 1000
+  const pageCount = Math.ceil(cap / pageSize)
+  const first = await build(0, Math.min(pageSize, cap) - 1)
   if (first.error) return { rows: [], error: first.error.message || 'Gagal memuat data' }
   const rows: T[] = [...((first.data || []) as T[])]
-  if (rows.length < 1000) return { rows, error: null }
-  const rest = await Promise.all(Array.from({ length: Math.ceil(cap / 1000) - 1 }, (_, k) => build((k + 1) * 1000, (k + 2) * 1000 - 1)))
-  for (const page of rest) {
-    if (page.error) return { rows, error: page.error.message || 'Gagal memuat data' }
-    rows.push(...((page.data || []) as T[]))
-    if (!page.data || page.data.length < 1000) break
+  if (rows.length < pageSize || rows.length >= cap) {
+    if (rows.length < cap) return { rows, error: null }
+  } else {
+    const rest = await Promise.all(Array.from({ length: pageCount - 1 }, (_, k) => {
+      const from = (k + 1) * pageSize
+      return build(from, Math.min(cap - 1, from + pageSize - 1))
+    }))
+    for (const page of rest) {
+      if (page.error) return { rows, error: page.error.message || 'Gagal memuat data' }
+      rows.push(...((page.data || []) as T[]))
+      if (!page.data || page.data.length < pageSize) break
+    }
+    if (rows.length < cap) return { rows, error: null }
   }
-  return { rows, error: null }
+
+  // Probe one record beyond the internal page window. Never present a capped
+  // partial result as a complete hospital-wide or unit-level aggregate.
+  const sentinel = await build(cap, cap)
+  if (sentinel.error) return { rows, error: sentinel.error.message || 'Gagal memverifikasi kelengkapan data' }
+  const incomplete = Boolean(sentinel.data && sentinel.data.length > 0)
+  return incomplete
+    ? { rows, error: 'Rekap belum lengkap. Buka modul terkait untuk melihat seluruh data.', incomplete: true }
+    : { rows, error: null, incomplete: false }
 }
 
 function useCountUp(target: number, run: boolean) {
@@ -99,7 +115,10 @@ function Panel({ title, eyebrow, children, delay, action }: { title: string; eye
 }
 
 const SectionError = ({ error }: { error: string }) => (
-  <div className="ovEmpty"><b>Data belum dapat dimuat</b><span>{error}</span></div>
+  <div className="ovEmpty">
+    <b>{error.startsWith('Rekap belum lengkap') ? 'Rekap belum lengkap' : 'Data belum dapat dimuat'}</b>
+    <span>{error}</span>
+  </div>
 )
 
 export default function OverviewDashboard({
@@ -126,7 +145,7 @@ export default function OverviewDashboard({
   useEffect(() => {
     let cancelled = false
     const sb = supabase as any
-    const cacheKey = [userName, manager, roomId, roomName, year].join('|')
+    const cacheKey = ['overview-v2', userName, manager, roomId, roomName, year].join('|')
     const apply = ([r, p, i, q, cp]: any[]) => {
       if (cancelled) return
       // Role unit (PIC) melihat data unitnya saja, selaras dengan modul Manajemen Risiko.
@@ -170,6 +189,16 @@ export default function OverviewDashboard({
         try { sessionStorage.setItem('aureka-ov:' + cacheKey, JSON.stringify(results)) } catch { /* penyimpanan penuh: abaikan */ }
       }
       apply(results)
+    }).catch(() => {
+      if (cancelled) return
+      // Preserve cached rows but mark every affected source as stale/unavailable after a rejected request.
+      const safeFailure = 'Data belum dapat diperbarui. Periksa koneksi lalu coba muat ulang.'
+      setRisks(current => ({ ...current, error: current.error || safeFailure }))
+      setPlans(current => ({ ...current, error: current.error || safeFailure }))
+      setIncidents(current => ({ ...current, error: current.error || safeFailure }))
+      setQuality(current => ({ ...current, error: current.error || safeFailure }))
+      setClinicalPathway(current => ({ ...current, error: current.error || safeFailure }))
+      setLoading(false)
     })
     return () => { cancelled = true }
   }, [supabase, manager, roomId, roomName, year, reloadKey, userName])
@@ -255,7 +284,7 @@ export default function OverviewDashboard({
       {!manager && roomId == null && <div className="ovNotice">Akun Anda belum terhubung ke ruangan/unit kerja, sehingga data unit belum dapat ditampilkan. Hubungi Super Admin untuk memetakan unit utama akun Anda.</div>}
 
       <section className="ovContextBar" aria-label="Periode dan status data">
-        <div><span>TAHUN PELAPORAN</span><b>Jan–{new Date().toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Pontianak' })} {year} · YTD</b></div>
+        <div><span>PERIODE PELAPORAN</span><b>{`1 Jan–${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', timeZone: 'Asia/Pontianak' })} ${year} · Tahun berjalan`}</b></div>
         <div><span>UNIT</span><b>{manager ? 'Seluruh rumah sakit' : roomName || 'Unit belum dipetakan'}</b></div>
         <div><span>PEMUTAKHIRAN DATA</span><b>{loading ? 'Memuat data…' : refreshedAt ? `Dicek ${refreshedAt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Pontianak' })}, ${refreshedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Pontianak' })} WIB` : 'Belum diperbarui'}</b></div>
         <div className="ovContextStatus"><span>STATUS SUMBER</span><b className={sourceError ? 'error' : loading ? 'loading' : 'ok'}>{loading ? 'Memuat' : sourceError ? 'Perlu pemeriksaan' : 'Pembacaan selesai'}</b></div>
@@ -264,10 +293,10 @@ export default function OverviewDashboard({
 
       <>
       <div className="ovKpis">
-        <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
-        <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
-        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
-        <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
+        <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.incomplete ? 'Rekap belum lengkap' : quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
+        <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.incomplete ? 'Rekap belum lengkap' : incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
+        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.incomplete ? 'Rekap belum lengkap' : risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
+        <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.incomplete || clinicalPathway.incomplete ? 'Rekap belum lengkap' : quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
       </div>
 
       <div className="ovGrid">

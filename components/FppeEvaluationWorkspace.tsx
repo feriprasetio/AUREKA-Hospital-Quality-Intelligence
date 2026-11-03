@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 
 type Room = { id: number; name: string }
@@ -121,7 +122,7 @@ export default function FppeEvaluationWorkspace({
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Riwayat FPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Riwayat FPPE gagal dimuat. Coba muat ulang.' }))
     } finally {
       setLoading(false)
     }
@@ -136,7 +137,7 @@ export default function FppeEvaluationWorkspace({
       if (queryError) throw queryError
       setEvents((data || []) as FppeEvent[])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Riwayat proses FPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Riwayat proses FPPE gagal dimuat.' }))
     }
   }, [])
 
@@ -413,7 +414,7 @@ export default function FppeEvaluationWorkspace({
       })
       setNotice(action === 'submitted' ? 'FPPE diajukan untuk validasi independen.' : 'Draf FPPE tersimpan di server.')
     } catch (err) {
-      const messageText = err instanceof Error ? err.message : 'FPPE gagal disimpan.'
+      const messageText = toUserFacingError(err, { fallback: 'Evaluasi FPPE belum dapat disimpan.' })
       setError(messageText)
       postToFrame({ type: 'AUREKA_FPPE_SAVE_RESULT', ok: false, message: messageText })
     } finally {
@@ -473,7 +474,7 @@ export default function FppeEvaluationWorkspace({
       postToFrame({ type: 'AUREKA_FPPE_LOAD', evaluation: validated })
       await loadEvaluations()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Validasi FPPE gagal.')
+      setError(toUserFacingError(err, { fallback: 'Validasi FPPE belum dapat diselesaikan.' }))
     } finally { setBusy(false) }
   }
 
@@ -499,7 +500,7 @@ export default function FppeEvaluationWorkspace({
       postToFrame({ type: 'AUREKA_FPPE_LOAD', evaluation: updated })
       await loadEvaluations()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'FPPE gagal dikembalikan untuk revisi.')
+      setError(toUserFacingError(err, { fallback: 'FPPE belum dapat dikembalikan untuk revisi.' }))
     } finally { setBusy(false) }
   }
 
@@ -523,7 +524,7 @@ export default function FppeEvaluationWorkspace({
         <div className="fppeHeaderActions"><button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}>＋ FPPE baru</button></div>
       </div>
       {error && <div className="fppeAlert fppeError" role="alert">{error}</div>}
-      {notice && <div className="fppeAlert fppeSuccess" role="status">{notice}</div>}
+      {notice && <div className="fppeAlert fppeSuccess" role="status" aria-live="polite">{notice}</div>}
       <div className="fppePanel fppeToolbar">
         <label><span>Unit FPPE</span><select value={roomId} disabled={busy} onChange={(e) => startNew(Number(e.target.value))}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
         <div className="fppeHelper"><strong>{roster.length}</strong> tenaga tersedia pada roster unit · <strong>{filtered.length}</strong> rekaman FPPE pada unit ini.</div>
@@ -568,7 +569,7 @@ export default function FppeEvaluationWorkspace({
         </div>
         <aside className="fppePanel fppeHistory">
           <div className="fppeHistoryHead"><div><div className="fppeEyebrow">ARSIP FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
-          <input className="fppeLocalSearch" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
+          <input className="fppeLocalSearch" aria-label="Cari arsip FPPE berdasarkan nama, kode, jabatan, atau trigger" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
           {loading ? <p className="fppeMuted">Memuat riwayat…</p> : <div className="fppeHistoryList">
             {filtered.map((record) => {
               const staff = staffForRecord(record)
