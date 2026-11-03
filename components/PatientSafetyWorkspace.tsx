@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { toUserFacingError } from '@/lib/aureka/error-feedback'
 
 type Room = { id: number; name: string }
 type StaffOption = {
@@ -334,7 +335,7 @@ export default function PatientSafetyWorkspace({
       const nextIncidents = (incidentResult.data || []) as IncidentRow[]
       setIncidents(nextIncidents)
       if (investigationResult.error) {
-        if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + investigationResult.error.message)
+        if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + toUserFacingError(investigationResult.error, { fallback: 'Daftar investigasi belum dapat dimuat. Coba muat ulang.' }))
       } else {
         setInvestigations((investigationResult.data || []) as InvestigationRow[])
       }
@@ -413,7 +414,7 @@ export default function PatientSafetyWorkspace({
         setResponses([])
       }
     } catch (e) {
-      setError('Backend Keselamatan Pasien belum siap atau akses ditolak. Pastikan migration patient safety sudah dijalankan di Supabase. ' + (e instanceof Error ? e.message : 'Kesalahan tidak diketahui.'))
+      setError('Layanan Keselamatan Pasien belum siap atau akses ditolak. Pastikan migration patient safety sudah dijalankan di Supabase. ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan hak akses, lalu coba kembali.' }))
     } finally {
       setLoading(false)
     }
@@ -558,14 +559,14 @@ export default function PatientSafetyWorkspace({
       try {
         attributionWarning = await syncStaffEntityAttributions('patient_safety_incident', String(result.data.id), 'E1', incidentStaffId ? [incidentStaffId] : [], 'reporter', incidentData.E2 || '')
       } catch (attributionError) {
-        attributionWarning = 'Laporan tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+        attributionWarning = 'Laporan tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + toUserFacingError(attributionError, { fallback: 'Tautan identitas belum berhasil diperbarui.' })
       }
       await loadData()
       if (nextStatus === 'submitted' && !canManageWorkflow) setFormOpen(false)
       const successMessage = nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code
       notify(attributionWarning || successMessage)
     } catch (e) {
-      setError('Gagal menyimpan laporan IKP: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
+      setError('Gagal menyimpan laporan IKP: ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan izin akses. Formulir tetap terbuka.' }))
     } finally { setSaving(false) }
   }
 
@@ -627,12 +628,12 @@ export default function PatientSafetyWorkspace({
       try {
         attributionWarning = await syncStaffEntityAttributions('patient_safety_investigation', String(result.data.id), '5', investigationStaffIds, 'involved_person', targetUnitName)
       } catch (attributionError) {
-        attributionWarning = 'Investigasi tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+        attributionWarning = 'Investigasi tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + toUserFacingError(attributionError, { fallback: 'Tautan identitas belum berhasil diperbarui.' })
       }
       await loadData()
       notify(attributionWarning || 'Hasil investigasi disimpan. Kode: ' + result.data.investigation_code)
     } catch (e) {
-      setError('Gagal menyimpan investigasi: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
+      setError('Gagal menyimpan investigasi: ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan izin akses, lalu coba kembali.' }))
     } finally { setSaving(false) }
   }
 
@@ -681,7 +682,7 @@ export default function PatientSafetyWorkspace({
       if (isSuperAdmin) await loadData()
       notify('Respons anonim tersimpan sebagai record baru: ' + identity.code + '. Form siap untuk responden berikutnya.')
     } catch (e) {
-      setError('Respons tidak tersimpan. Tidak ada data lama yang ditimpa. ' + (e instanceof Error ? e.message : 'periksa koneksi.'))
+      setError('Respons tidak tersimpan. Tidak ada data lama yang ditimpa. ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan coba kembali.' }))
     } finally { setSaving(false) }
   }
 
