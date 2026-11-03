@@ -97,7 +97,7 @@ Use no live patient identifiers, incident narratives, or production workbook rec
 
 ## 7. Release decision
 
-Pull request [#94 — Feat/UI ux redesign](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/pull/94) remains open and unmerged. At this checkpoint it contains 123 commits across 46 changed files (+3,730/-216) and is 0 commits behind `main`. The size of this change set means a green CI run should not be treated as a substitute for functional review or staged acceptance.
+Pull request [#94 — Feat/UI ux redesign](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/pull/94) remains open and unmerged. It spans 46 changed files and is a broad change set; a green CI run should not be treated as a substitute for functional review or staged acceptance.
 
 The dependency audit issue has been resolved and the automated unit/data/type/build checks now pass. Full staging/integration acceptance remains incomplete because no isolated browser-accessible staging environment is configured and Supabase backup/restore readiness has not been independently verified. The latest preview run therefore did not create a deployable artifact.
 
