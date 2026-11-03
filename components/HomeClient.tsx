@@ -1,5 +1,6 @@
 'use client'
 import {useEffect,useMemo,useState} from 'react'
+import dynamic from 'next/dynamic'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
 import CommandPalette, {type CommandPaletteItem} from '@/components/CommandPalette'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
@@ -8,17 +9,17 @@ import {type SupabaseClient} from '@supabase/supabase-js'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
-import QualityIndicatorWorkspace from '@/components/QualityIndicatorWorkspace'
-import QualityResultsWorkspace from '@/components/QualityResultsWorkspace'
-import ClinicalPathwayWorkspace from '@/components/ClinicalPathwayWorkspace'
-import PatientSafetyWorkspace from '@/components/PatientSafetyWorkspace'
-import RiskManagementWorkspace from '@/components/RiskManagementWorkspace'
-import QualitySettings from '@/components/QualitySettings'
-import QualityHub from '@/components/QualityHub'
-import GeneralSettings from '@/components/GeneralSettings'
-import OverviewDashboard from '@/components/OverviewDashboard'
-import MetadataStatisticsWorkspace from '@/components/MetadataStatisticsWorkspace'
-import ClinicalWorkforceWorkspace from '@/components/ClinicalWorkforceWorkspace'
+const workspaceChunkLoading=(label:string)=><AsyncStatePanel state="loading" title={`Memuat ${label}`} description="Menyiapkan ruang kerja." compact/>
+const QualityIndicatorWorkspace=dynamic(()=>import('@/components/QualityIndicatorWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Audit Indikator Mutu')})
+const QualityResultsWorkspace=dynamic(()=>import('@/components/QualityResultsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Hasil Capaian Mutu')})
+const ClinicalPathwayWorkspace=dynamic(()=>import('@/components/ClinicalPathwayWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Clinical Pathway')})
+const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Keselamatan Pasien')})
+const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Manajemen Risiko')})
+const QualityHub=dynamic(()=>import('@/components/QualityHub'),{ssr:false,loading:()=>workspaceChunkLoading('Menu Mutu Klinis')})
+const GeneralSettings=dynamic(()=>import('@/components/GeneralSettings'),{ssr:false,loading:()=>workspaceChunkLoading('Administrasi')})
+const OverviewDashboard=dynamic(()=>import('@/components/OverviewDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Ringkasan Rumah Sakit')})
+const MetadataStatisticsWorkspace=dynamic(()=>import('@/components/MetadataStatisticsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Analitik dan Laporan')})
+const ClinicalWorkforceWorkspace=dynamic(()=>import('@/components/ClinicalWorkforceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Tenaga Klinis')})
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
