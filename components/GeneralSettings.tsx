@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
 const sb = aurekaSupabase
@@ -123,13 +124,13 @@ export default function GeneralSettings({
     if (!v2.error) { setLifecycleSupported(true); setUsers((v2.data || []) as Profile[]); return }
     setLifecycleSupported(false)
     const { data, error } = await sb.rpc('aureka_admin_list_user_profiles')
-    if (error) setMsg(error.message)
+    if (error) setMsg(toUserFacingError(error, { fallback: 'Data belum dapat dimuat. Coba muat ulang.' }))
     else setUsers((data || []) as Profile[])
   }
 
   useEffect(() => {
     sb.rpc('aureka_list_active_roles').then(({ data, error }) => {
-      if (error) setMsg(error.message)
+      if (error) setMsg(toUserFacingError(error, { fallback: 'Data belum dapat dimuat. Coba muat ulang.' }))
       else setRoles((data || []) as Role[])
     })
     loadUsers()
@@ -150,7 +151,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.rpc('aureka_set_my_username', { p_username: un })
     setBusy(false)
-    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum aktif di database (migration 20261014095000_username_login.sql).' : `Gagal: ${error.message}` })
+    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum aktif di database (migration 20261014095000_username_login.sql).' : `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` })
     setAcctNote({ ok: true, text: `Username disimpan. Mulai sekarang Anda bisa login dengan “${un}”.` })
     loadMyAccount()
   }
@@ -162,7 +163,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.auth.updateUser({ email: em }, { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` })
     setBusy(false)
-    if (error) return setAcctNote({ ok: false, text: /rate limit|too many/i.test(error.message) ? 'Terlalu banyak permintaan email. Coba lagi beberapa menit lagi.' : /already|registered/i.test(error.message) ? 'Email sudah dipakai akun lain.' : `Gagal mengubah email: ${error.message}` })
+    if (error) return setAcctNote({ ok: false, text: /rate limit|too many/i.test(error.message) ? 'Terlalu banyak permintaan email. Coba lagi beberapa menit lagi.' : /already|registered/i.test(error.message) ? 'Email sudah dipakai akun lain.' : `Gagal mengubah email: ${toUserFacingError(error, { fallback: 'Email belum dapat diubah. Coba kembali.' })}` })
     setAcctNote({ ok: true, text: `Link konfirmasi dikirim ke ${em}. Email baru berlaku setelah Anda klik link tersebut (Supabase juga dapat mengirim konfirmasi ke email lama). Sampai saat itu, login tetap memakai email lama.` })
   }
 
@@ -178,7 +179,7 @@ export default function GeneralSettings({
         : (profile?.primary_room_id ?? null),
     })
     setBusy(false)
-    setMsg(error ? `Gagal: ${error.message}` : 'Profil berhasil disimpan.')
+    setMsg(error ? `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` : 'Profil berhasil disimpan.')
   }
 
   const filtered = useMemo(
@@ -223,7 +224,7 @@ export default function GeneralSettings({
       const t = error.message || ''
       setMsg(/DUPLICATE_ROOM/.test(t) ? 'Gagal: nama atau kode unit sudah dipakai unit lain.'
         : error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Gagal: fitur kelola unit belum aktif. Jalankan migration 20261014093000_user_lifecycle_and_room_admin.sql di Supabase.'
-        : `Gagal menyimpan unit: ${t}`)
+        : `Gagal menyimpan unit: ${toUserFacingError(error, { fallback: 'Unit belum dapat disimpan.' })}`)
       return
     }
     setMsg(roomEdit.id ? `Unit “${roomEdit.name.trim()}” diperbarui.` : `Unit “${roomEdit.name.trim()}” ditambahkan.`)
@@ -235,7 +236,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.rpc('aureka_admin_save_room', { p_id: r.id, p_name: r.name, p_code: r.code || null, p_is_active: !(r.is_active ?? true) })
     setBusy(false)
-    if (error) { setMsg(`Gagal mengubah status unit: ${error.message}`); return }
+    if (error) { setMsg(`Gagal mengubah status unit: ${toUserFacingError(error, { fallback: 'Status unit belum dapat diubah.' })}`); return }
     setMsg(r.is_active === false ? `Unit “${r.name}” diaktifkan kembali.` : `Unit “${r.name}” dinonaktifkan. Data lamanya tetap tersimpan.`)
     await loadRooms()
     onRoomsChanged?.()
@@ -256,8 +257,8 @@ export default function GeneralSettings({
     })
     setBusy(false)
     if (error) {
-      setMsg(`Gagal menyimpan: ${error.message}`)
-      setRowNote({ id: u.user_id, ok: false, text: error.message })
+      setMsg(`Gagal menyimpan: ${toUserFacingError(error, { fallback: 'Perubahan akun belum dapat disimpan.' })}`)
+      setRowNote({ id: u.user_id, ok: false, text: toUserFacingError(error, { fallback: 'Perubahan akun belum dapat disimpan.' }) })
     } else {
       const text = 'is_active' in patch ? (patch.is_active ? `${u.full_name} diaktifkan. Akun sudah bisa login.` : `${u.full_name} dinonaktifkan.`) : `Perubahan untuk ${u.full_name} disimpan.`
       setMsg(text)
@@ -274,7 +275,7 @@ export default function GeneralSettings({
     setConfirmDeleteId(null)
     if (error) {
       const text = error.message || ''
-      let note = `Gagal menghapus: ${text}`
+      let note = `Gagal menghapus: ${toUserFacingError(error, { fallback: 'Akun belum dapat dihapus.' })}`
       if (/USER_HAS_DATA/.test(text)) note = 'Akun ini sudah memiliki data (risiko/laporan/rekam mutu), sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.'
       else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014092000_admin_delete_user.sql di SQL Editor, lalu coba lagi.'
       setMsg(note)
@@ -314,7 +315,7 @@ export default function GeneralSettings({
     setBusy(false)
     if (error) {
       const t = error.message || ''
-      let note = `Gagal menyetel password: ${t}`
+      let note = `Gagal menyetel password: ${toUserFacingError(error, { fallback: 'Password sementara belum dapat disetel.' })}`
       if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t)) note = 'Fitur reset password belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014094000_admin_password_reset.sql di SQL Editor, lalu coba lagi.'
       else if (/PASSWORD_TOO_SHORT/.test(t)) note = 'Password sementara minimal 12 karakter.'
       setMsg(note)
@@ -341,10 +342,10 @@ export default function GeneralSettings({
       const { data, error } = await sb.functions.invoke('aureka-provision-unit-accounts', { body: { token } })
       if (error) {
         const ctx = (error as any).context
-        let detail = error.message || 'Permintaan provisioning gagal.'
+        let detail = toUserFacingError(error, { fallback: 'Permintaan provisioning gagal.' })
         try {
           const body = ctx?.json ? await ctx.json() : null
-          if (body?.error) detail = body.error
+          if (body?.error) detail = sanitizeNotificationText(String(body.error), 'Permintaan provisioning gagal.')
         } catch {}
         throw new Error(detail)
       }
@@ -355,7 +356,7 @@ export default function GeneralSettings({
       setProvisionMessage(`${data.accounts_created_or_reset} akun siap: ${data.active_units} unit, masing-masing satu PIC dan satu Validator. Unduh kredensial satu kali sebelum menutup panel ini.`)
       await loadUsers()
     } catch (e) {
-      setProvisionMessage(`Gagal membuat akun: ${e instanceof Error ? e.message : 'Kesalahan yang tidak diketahui'}`)
+      setProvisionMessage(`Gagal membuat akun: ${toUserFacingError(e, { fallback: 'Provisioning akun belum berhasil. Periksa koneksi dan hak akses.' })}`)
     } finally {
       setProvisioning(false)
     }
@@ -388,7 +389,7 @@ export default function GeneralSettings({
     const { error } = await sb.auth.resetPasswordForEmail(u.email, { redirectTo })
     setBusy(false)
     const text = error
-      ? `Gagal mengirim email reset: ${/rate limit|too many/i.test(error.message) ? 'terlalu banyak permintaan, coba lagi beberapa menit lagi.' : error.message}`
+      ? `Gagal mengirim email reset: ${/rate limit|too many/i.test(error.message) ? 'terlalu banyak permintaan, coba lagi beberapa menit lagi.' : toUserFacingError(error, { fallback: 'Email reset belum dapat dikirim.' })}`
       : `Email reset password dikirim ke ${u.email}. Minta ${u.full_name} membuka tautan di email tersebut (cek juga folder Spam).`
     setMsg(text)
     setRowNote({ id: u.user_id, ok: !error, text })
@@ -406,14 +407,14 @@ export default function GeneralSettings({
       setBusy(false)
       const t = error.message || ''
       const note = error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Fitur ubah username/email belum aktif di database. Minta pemilik Supabase menjalankan supabase/migrations/20261014095000_username_login.sql.'
-        : /USERNAME_TAKEN/.test(t) ? 'Username sudah dipakai akun lain.' : /EMAIL_TAKEN/.test(t) ? 'Email sudah dipakai akun lain.' : /USERNAME_INVALID/.test(t) ? 'Username tidak valid.' : /EMAIL_INVALID/.test(t) ? 'Format email tidak valid.' : `Gagal menyimpan: ${t}`
+        : /USERNAME_TAKEN/.test(t) ? 'Username sudah dipakai akun lain.' : /EMAIL_TAKEN/.test(t) ? 'Email sudah dipakai akun lain.' : /USERNAME_INVALID/.test(t) ? 'Username tidak valid.' : /EMAIL_INVALID/.test(t) ? 'Format email tidak valid.' : `Gagal menyimpan: ${toUserFacingError(error, { fallback: 'Identitas akun belum dapat disimpan.' })}`
       setMsg(note); setRowNote({ id: u.user_id, ok: false, text: note }); return
     }
     let text = 'Username & email disimpan.'
     if (data === 'verify') {
       const r = await sb.auth.resend({ type: 'signup', email: em, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
       text = r.error
-        ? `Email diubah ke ${em}, tetapi email verifikasi gagal dikirim (${/rate limit|too many/i.test(r.error.message) ? 'batas pengiriman email, coba “Kirim ulang” nanti' : r.error.message}).`
+        ? `Email diubah ke ${em}, tetapi email verifikasi gagal dikirim (${/rate limit|too many/i.test(r.error.message) ? 'batas pengiriman email, coba “Kirim ulang” nanti' : toUserFacingError(r.error, { fallback: 'Email verifikasi belum dapat dikirim.' })}).`
         : `Email diubah ke ${em}. Link verifikasi dikirim; ${u.full_name} perlu klik link tersebut sebelum bisa login.`
     } else if (data === 'changed') text = `Email diubah ke ${em} tanpa verifikasi.`
     setBusy(false)
@@ -426,7 +427,7 @@ export default function GeneralSettings({
     setBusy(true)
     const r = await sb.auth.resend({ type: 'signup', email: u.email, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
     setBusy(false)
-    const text = r.error ? (/already|confirmed/i.test(r.error.message) ? 'Email akun ini sudah terverifikasi.' : `Gagal mengirim: ${r.error.message}`) : `Email verifikasi dikirim ulang ke ${u.email}.`
+    const text = r.error ? (/already|confirmed/i.test(r.error.message) ? 'Email akun ini sudah terverifikasi.' : `Gagal mengirim: ${toUserFacingError(r.error, { fallback: 'Email verifikasi belum dapat dikirim.' })}`) : `Email verifikasi dikirim ulang ke ${u.email}.`
     setRowNote({ id: u.user_id, ok: !r.error, text })
   }
 
@@ -449,7 +450,7 @@ export default function GeneralSettings({
     if (check.error) { setBusy(false); return setPwMsg({ ok: false, text: 'Password saat ini salah.' }) }
     const { error } = await sb.auth.updateUser({ password: pw.next })
     setBusy(false)
-    if (error) return setPwMsg({ ok: false, text: `Gagal mengganti password: ${error.message}` })
+    if (error) return setPwMsg({ ok: false, text: `Gagal mengganti password: ${toUserFacingError(error, { fallback: 'Password belum dapat diperbarui.' })}` })
     setPw({ current: '', next: '', confirm: '' })
     setPwMsg({ ok: true, text: 'Password berhasil diganti. Gunakan password baru saat login berikutnya.' })
   }
@@ -481,7 +482,7 @@ export default function GeneralSettings({
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       {msg && (
-        <div className={`aurToast ${msgIsError ? 'error' : 'ok'}`} role="status" aria-live="polite">
+        <div className={`aurToast ${msgIsError ? 'error' : 'ok'}`} role={msgIsError ? 'alert' : 'status'} aria-live={msgIsError ? 'assertive' : 'polite'}>
           <span className="aurToastIcon" aria-hidden="true">{msgIsError ? '!' : '✓'}</span>
           <span className="aurToastText">{msg}</span>
           <button type="button" onClick={() => setMsg('')} aria-label="Tutup notifikasi">×</button>
@@ -648,7 +649,7 @@ export default function GeneralSettings({
                   <p className="userDetailHint">Email baru berlaku setelah Anda klik link konfirmasi yang dikirim ke email tersebut.</p>
                 </div>
               </div>
-              {acctNote && <div className={`userRowNote ${acctNote.ok ? 'ok' : 'error'}`} style={{ marginTop: 10 }}>{acctNote.text}</div>}
+              {acctNote && <div className={`userRowNote ${acctNote.ok ? 'ok' : 'error'}`} role={acctNote.ok ? 'status' : 'alert'} aria-live={acctNote.ok ? 'polite' : 'assertive'} style={{ marginTop: 10 }}>{acctNote.text}</div>}
             </LiquidGlass>
           )}
 
@@ -681,7 +682,7 @@ export default function GeneralSettings({
               )}
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
-                <input className="adminLocalSearch" placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
+                <input className="adminLocalSearch" aria-label="Cari unit kerja" placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
                 {isAdmin && adminRooms && <>
                   <span className="filterCount">{adminRooms.filter((r) => r.is_active !== false).length} aktif · {adminRooms.filter((r) => r.is_active === false).length} nonaktif</span>
                   <button type="button" className={showInactiveRooms ? 'filterChip active' : 'filterChip'} onClick={() => setShowInactiveRooms((v) => !v)}>{showInactiveRooms ? 'Sembunyikan unit nonaktif' : 'Tampilkan unit nonaktif'}</button>
@@ -718,7 +719,7 @@ export default function GeneralSettings({
                 <label className="field"><span>Password baru (min. 8 karakter)</span><input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
                 <label className="field"><span>Ulangi password baru</span><input type="password" autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
               </div>
-              {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role="status">{pwMsg.text}</p>}
+              {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role={pwMsg.ok ? 'status' : 'alert'} aria-live={pwMsg.ok ? 'polite' : 'assertive'}>{pwMsg.text}</p>}
               <div style={{ marginTop: 10, marginBottom: 18 }}>
                 <LiquidGlassButton onClick={changePassword} disabled={busy || !pw.current || !pw.next || !pw.confirm}>{busy ? 'Memproses…' : 'Simpan password baru'}</LiquidGlassButton>
               </div>
@@ -806,7 +807,7 @@ export default function GeneralSettings({
                   {provisioning ? 'Menyiapkan akun…' : 'Buat 74 akun unit'}
                 </button>
               </div>
-              {provisionMessage && <div role="status" style={{ marginTop: 10, fontSize: 11, color: /Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? '#9a4b32' : 'var(--accent2)' }}>{provisionMessage}</div>}
+              {provisionMessage && <div role={/Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? 'alert' : 'status'} aria-live={/Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? 'assertive' : 'polite'} style={{ marginTop: 10, fontSize: 11, color: /Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? '#9a4b32' : 'var(--accent2)' }}>{provisionMessage}</div>}
               {provisionedCredentials?.length === 74 && <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <button type="button" className="uBtn primary" onClick={downloadProvisionedCredentials}>Unduh kredensial awal (.csv)</button>
                 <button type="button" className="uBtn outline" onClick={() => { setProvisionedCredentials(null); setProvisionMessage('Daftar password awal dihapus dari memori panel ini.'); }}>Hapus daftar password</button>
@@ -814,7 +815,7 @@ export default function GeneralSettings({
               </div>}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
-              <input className="adminLocalSearch" placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
+              <input className="adminLocalSearch" aria-label="Cari pengguna berdasarkan nama, username, email, atau unit" placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
               {([
                 ['all', `Semua (${users.length - inactiveCount})`],
                 ['pending', `Menunggu aktivasi (${pendingCount})`],
@@ -844,6 +845,7 @@ export default function GeneralSettings({
                     </div>
 
                     <select
+                      aria-label={`Unit utama untuk ${u.full_name || u.email || 'pengguna'}`}
                       value={u.primary_room_id || ''}
                       onChange={(e) => updateUser(u, { primary_room_id: e.target.value ? Number(e.target.value) : null })}
                     >
@@ -851,7 +853,7 @@ export default function GeneralSettings({
                       {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                     </select>
 
-                    <select value={u.role_id || ''} onChange={(e) => updateUser(u, { role_id: e.target.value || null })}>
+                    <select aria-label={`Role untuk ${u.full_name || u.email || 'pengguna'}`} value={u.role_id || ''} onChange={(e) => updateUser(u, { role_id: e.target.value || null })}>
                       <option value="">Role belum dipetakan</option>
                       {roles.map((r) => <option key={r.id} value={r.id}>{friendlyRole(r)}</option>)}
                     </select>
@@ -887,7 +889,7 @@ export default function GeneralSettings({
                     ))}
                     </div>
                   </div>
-                  {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`}>{rowNote.text}</div>}
+                  {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'} aria-live={rowNote.ok ? 'polite' : 'assertive'}>{rowNote.text}</div>}
                   {detailId === u.user_id && (
                     <div className="userDetail">
                       <div className="userDetailCol">
@@ -922,7 +924,7 @@ export default function GeneralSettings({
                         <h5>Reset password <span>untuk user yang lupa password</span></h5>
                         <p className="userDetailHint" style={{ marginTop: 0 }}><b>Cara 1 — Password sementara.</b> Buat password baru, lalu sampaikan ke user (WA/langsung). Akun dan datanya tetap utuh.</p>
                         <div className="userDetailInline">
-                          <input placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
+                          <input aria-label={`Password sementara untuk ${u.full_name || u.email || 'pengguna'}`} placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
                           <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">🎲 Buat acak</button>
                         </div>
                         <button type="button" className="uBtn primary" style={{ marginTop: 8 }} disabled={busy || tempPw.trim().length < 12} onClick={() => setUserPassword(u)}>

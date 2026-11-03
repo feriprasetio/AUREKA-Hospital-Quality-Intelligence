@@ -1,0 +1,285 @@
+/*
+ * AUREKA workspace layout — Phase 1
+ * Scoped to the existing application shell. Module interiors are intentionally untouched.
+ */
+
+/* Desktop sidebar controls and the real collapsed rail state. */
+.workspaceRoot .sidebarToggle {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border: 1px solid var(--aureka-color-border) !important;
+  border-radius: var(--aureka-radius-md) !important;
+  background: var(--aureka-color-surface) !important;
+  color: var(--aureka-color-foreground-secondary) !important;
+  box-shadow: none !important;
+}
+
+.workspaceRoot .sidebarToggle:hover {
+  border-color: var(--aureka-color-primary) !important;
+  background: var(--aureka-color-primary-soft) !important;
+  color: var(--aureka-color-primary-active) !important;
+}
+
+.workspaceRoot .sidebarToggle:focus-visible,
+.workspaceRoot .mobileMenuButton:focus-visible,
+.workspaceRoot .mobileSidebarClose:focus-visible {
+  outline: 3px solid var(--aureka-color-ring) !important;
+  outline-offset: 2px !important;
+}
+
+.workspaceRoot .sidebarToggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.workspaceRoot .mobileSidebarClose {
+  display: none;
+}
+
+.workspaceRoot.sidebarIsCollapsed {
+  grid-template-columns: 80px minmax(0, 1fr) !important;
+}
+
+.workspaceRoot.sidebarIsCollapsed .sidebar {
+  width: 80px !important;
+  min-width: 80px !important;
+  padding-right: 8px !important;
+  padding-left: 8px !important;
+}
+
+.workspaceRoot.sidebarIsCollapsed .sideHeader {
+  justify-content: center !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.workspaceRoot.sidebarIsCollapsed .sideBrand {
+  justify-content: center !important;
+}
+
+.workspaceRoot.sidebarIsCollapsed .sideBrand > div,
+.workspaceRoot.sidebarIsCollapsed .navLabel,
+.workspaceRoot.sidebarIsCollapsed .sideProfileText,
+.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button > span:not(.sidebarChevron),
+.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button .sidebarChevron,
+.workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren,
+.workspaceRoot.sidebarIsCollapsed .logoutLabel {
+  display: none !important;
+}
+
+.workspaceRoot.sidebarIsCollapsed .sideProfile {
+  justify-content: center !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button {
+  justify-content: center !important;
+  padding-right: 8px !important;
+  padding-left: 8px !important;
+}
+
+.workspaceRoot.sidebarIsCollapsed .sidebarFooter > .liquidButton button {
+  justify-content: center !important;
+  padding-right: 6px !important;
+  padding-left: 6px !important;
+}
+
+/* Tablet keeps the full navigation labels while using the existing compact width. */
+@media (min-width: 761px) and (max-width: 900px) {
+  .workspaceRoot.sidebarIsCollapsed {
+    grid-template-columns: 80px minmax(0, 1fr) !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebar {
+    width: 80px !important;
+    min-width: 80px !important;
+  }
+}
+
+/* Mobile: the sidebar becomes a modal drawer; it is not a second page column. */
+@media (max-width: 760px) {
+  .workspaceRoot {
+    display: block !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .workspaceRoot .sidebar,
+  .workspaceRoot.sidebarIsCollapsed .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 60 !important;
+    width: min(286px, calc(100vw - 48px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 48px) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: calc(12px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom)) !important;
+    overflow: hidden !important;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-102%);
+    transition:
+      transform 220ms cubic-bezier(0.2, 0, 0, 1),
+      visibility 0s linear 220ms !important;
+    box-shadow: 18px 0 48px rgba(15, 23, 42, 0.16) !important;
+  }
+
+  .workspaceRoot .sidebar.mobileOpen {
+    left: 0 !important;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+    transition:
+      transform 220ms cubic-bezier(0.2, 0, 0, 1),
+      visibility 0s !important;
+  }
+
+  .workspaceRoot .sideHeader {
+    align-items: center !important;
+    min-height: 56px !important;
+    margin-bottom: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .workspaceRoot .sidebarToggle {
+    display: none !important;
+  }
+
+  .workspaceRoot .mobileSidebarClose {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    border: 1px solid var(--aureka-color-border) !important;
+    border-radius: var(--aureka-radius-md) !important;
+    background: var(--aureka-color-surface) !important;
+    color: var(--aureka-color-foreground) !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+    cursor: pointer;
+  }
+
+  .workspaceRoot .mobileMenuButton {
+    display: grid !important;
+    place-items: center !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    flex: 0 0 44px !important;
+    border: 1px solid var(--aureka-color-border) !important;
+    border-radius: var(--aureka-radius-md) !important;
+    background: var(--aureka-color-surface) !important;
+    color: var(--aureka-color-primary-active) !important;
+    font-size: 0 !important;
+  }
+
+  .workspaceRoot .mobileMenuButton svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .workspaceRoot .workspaceHeaderBar {
+    grid-template-columns: 44px minmax(0, 1fr) auto !important;
+  }
+
+  .workspaceRoot .workspaceScrim {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 50 !important;
+    display: block;
+    border: 0 !important;
+    background: rgba(15, 23, 42, 0.42) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    cursor: pointer;
+  }
+
+  .workspaceRoot .workspaceScrim[data-open='false'] {
+    display: none !important;
+  }
+
+  .workspaceRoot .workspaceScrim[data-open='true'] {
+    display: block !important;
+  }
+
+  /* A collapsed desktop rail must always expand to a full mobile drawer. */
+  .workspaceRoot.sidebarIsCollapsed .sideBrand > div {
+    display: grid !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .navLabel {
+    display: flex !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sideProfileText {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button > span:not(.sidebarChevron) {
+    display: inline !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button .sidebarChevron {
+    display: inline-grid !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren {
+    display: grid !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .logoutLabel {
+    display: inline !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sideProfile {
+    justify-content: flex-start !important;
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button {
+    justify-content: flex-start !important;
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+
+  .workspaceRoot .sidebar .sidebarNavGroup > button,
+  .workspaceRoot .sidebar .sidebarChild {
+    min-height: 44px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .workspaceRoot .sidebar .sidebarNavGroup > button,
+  .workspaceRoot .sidebar .sidebarChild,
+  .workspaceRoot .sidebar .mobileSidebarClose {
+    touch-action: manipulation;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspaceRoot .sidebar,
+  .workspaceRoot .sidebar.mobileOpen {
+    transition: none !important;
+  }
+}

@@ -874,7 +874,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>
     </section>
 
-    {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role="status">{message}</div>}
+    {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'} aria-live={messageKind === 'error' ? 'assertive' : 'polite'}>{message}</div>}
     {!masterReady && screen !== 'library' && <div className="cpNotice error">Master CP belum lengkap di Supabase. Audit tidak dapat disimpan sampai Super Admin membuka modul dan menyinkronkan format.</div>}
 
     {screen === 'library' && <>

@@ -6,6 +6,8 @@ import type React from 'react'
 import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Room = { id: number; name: string }
 type StaffOption = {
@@ -229,14 +231,22 @@ function makeResponseIdentity() {
 
 // Formulir laporan tampil sebagai jendela di atas daftar agar tidak perlu scroll ke bawah,
 // dengan tombol kembali yang selalu terlihat di bagian atas.
-function PsFormModal({ label, children }: { label: string; children: React.ReactNode }) {
+function PsFormModal({ label, children, onClose }: { label: string; children: React.ReactNode; onClose: () => void }) {
+  const dialogRef = useAccessibleDialog<HTMLElement>({ open: true, onClose })
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prev }
   }, [])
   // Dirender ke <body> agar latar menutup seluruh layar termasuk sidebar.
-  return createPortal(<div className="psModalBackdrop" role="dialog" aria-modal="true" aria-label={label}><div className="psModalSheet">{children}</div></div>, document.body)
+  return createPortal(
+    <div className="psModalBackdrop" role="presentation">
+      <section ref={dialogRef} className="psModalSheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
+        {children}
+      </section>
+    </div>,
+    document.body,
+  )
 }
 
 export default function PatientSafetyWorkspace({
@@ -325,7 +335,7 @@ export default function PatientSafetyWorkspace({
       const nextIncidents = (incidentResult.data || []) as IncidentRow[]
       setIncidents(nextIncidents)
       if (investigationResult.error) {
-        if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + investigationResult.error.message)
+        if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + toUserFacingError(investigationResult.error, { fallback: 'Daftar investigasi belum dapat dimuat. Coba muat ulang.' }))
       } else {
         setInvestigations((investigationResult.data || []) as InvestigationRow[])
       }
@@ -404,7 +414,7 @@ export default function PatientSafetyWorkspace({
         setResponses([])
       }
     } catch (e) {
-      setError('Backend Keselamatan Pasien belum siap atau akses ditolak. Pastikan migration patient safety sudah dijalankan di Supabase. ' + (e instanceof Error ? e.message : 'Kesalahan tidak diketahui.'))
+      setError('Layanan Keselamatan Pasien belum siap atau akses ditolak. Pastikan migration patient safety sudah dijalankan di Supabase. ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan hak akses, lalu coba kembali.' }))
     } finally {
       setLoading(false)
     }
@@ -549,14 +559,14 @@ export default function PatientSafetyWorkspace({
       try {
         attributionWarning = await syncStaffEntityAttributions('patient_safety_incident', String(result.data.id), 'E1', incidentStaffId ? [incidentStaffId] : [], 'reporter', incidentData.E2 || '')
       } catch (attributionError) {
-        attributionWarning = 'Laporan tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+        attributionWarning = 'Laporan tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + toUserFacingError(attributionError, { fallback: 'Tautan identitas belum berhasil diperbarui.' })
       }
       await loadData()
       if (nextStatus === 'submitted' && !canManageWorkflow) setFormOpen(false)
       const successMessage = nextStatus === 'submitted' ? 'Laporan berhasil dikirim untuk review. Kode: ' + result.data.incident_code : 'Draft laporan disimpan. Kode: ' + result.data.incident_code
       notify(attributionWarning || successMessage)
     } catch (e) {
-      setError('Gagal menyimpan laporan IKP: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
+      setError('Gagal menyimpan laporan IKP: ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan izin akses. Formulir tetap terbuka.' }))
     } finally { setSaving(false) }
   }
 
@@ -618,12 +628,12 @@ export default function PatientSafetyWorkspace({
       try {
         attributionWarning = await syncStaffEntityAttributions('patient_safety_investigation', String(result.data.id), '5', investigationStaffIds, 'involved_person', targetUnitName)
       } catch (attributionError) {
-        attributionWarning = 'Investigasi tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + (attributionError instanceof Error ? attributionError.message : 'kesalahan database')
+        attributionWarning = 'Investigasi tersimpan, tetapi atribusi tenaga belum berhasil diperbarui: ' + toUserFacingError(attributionError, { fallback: 'Tautan identitas belum berhasil diperbarui.' })
       }
       await loadData()
       notify(attributionWarning || 'Hasil investigasi disimpan. Kode: ' + result.data.investigation_code)
     } catch (e) {
-      setError('Gagal menyimpan investigasi: ' + (e instanceof Error ? e.message : 'periksa koneksi dan izin Supabase.'))
+      setError('Gagal menyimpan investigasi: ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan izin akses, lalu coba kembali.' }))
     } finally { setSaving(false) }
   }
 
@@ -672,7 +682,7 @@ export default function PatientSafetyWorkspace({
       if (isSuperAdmin) await loadData()
       notify('Respons anonim tersimpan sebagai record baru: ' + identity.code + '. Form siap untuk responden berikutnya.')
     } catch (e) {
-      setError('Respons tidak tersimpan. Tidak ada data lama yang ditimpa. ' + (e instanceof Error ? e.message : 'periksa koneksi.'))
+      setError('Respons tidak tersimpan. Tidak ada data lama yang ditimpa. ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan coba kembali.' }))
     } finally { setSaving(false) }
   }
 
@@ -710,12 +720,15 @@ export default function PatientSafetyWorkspace({
     const value = incidentData[field.code] || ''
     const disabled = incidentLocked || saving
     const wide = field.type === 'textarea' || field.type === 'radio'
+    const fieldInvalid = missingIncident.includes(field.code)
+    const fieldErrorId = `incident-field-${field.code}-error`
+    const fieldDescribedBy = [field.hint ? `incident-field-${field.code}-hint` : '', fieldInvalid ? fieldErrorId : ''].filter(Boolean).join(' ') || undefined
     const reporterOptions = staffOptions.filter(staff => staff.room_name === (incidentData.E2 || ''))
     const reporterSelectValue = incidentStaffId || (value ? '__unmapped__' : '')
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
-      <label className="psLabel">{field.code} · {field.label} <span className="psRequired">*</span></label>
-      {field.hint ? <div className="psHint">{field.hint}</div> : null}
-      {field.code === 'E1' ? <><select value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
+      <label className="psLabel" id={`incident-field-${field.code}-label`} htmlFor={`incident-field-${field.code}`}>{field.code} · {field.label} <span className="psRequired">*</span></label>
+      {field.hint ? <div className="psHint" id={`incident-field-${field.code}-hint`}>{field.hint}</div> : null}
+      {field.code === 'E1' ? <><select id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
         const value = event.target.value
         if (value === '__external__') {
           const currentStaff = reporterOptions.find(item => item.id === incidentStaffId)
@@ -733,22 +746,23 @@ export default function PatientSafetyWorkspace({
         {value && !incidentStaffId ? <option value="__unmapped__" disabled>Nama lama belum terhubung ke identitas AUREKA</option> : null}
         {reporterOptions.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
         <option value="__external__">Pelapor bukan tenaga AUREKA / identitas belum dapat dipetakan</option>
-      </select>{incidentReporterExternal ? <input value={value} disabled={disabled} onChange={event => setIncidentValue('E1', event.target.value)} placeholder="Nama pelapor dari luar direktori AUREKA" /> : null}<div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : incidentReporterExternal ? 'Pelapor non-tenaga AUREKA: nama disimpan sebagai teks dan tidak ditautkan sebagai pegawai internal.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
-      : field.type === 'radio' ? <div className="psRadioGrid">
+      </select>{incidentReporterExternal ? <input aria-label="Nama pelapor dari luar direktori AUREKA" aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue('E1', event.target.value)} placeholder="Nama pelapor dari luar direktori AUREKA" /> : null}<div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : incidentReporterExternal ? 'Pelapor non-tenaga AUREKA: nama disimpan sebagai teks dan tidak ditautkan sebagai pegawai internal.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
+      : field.type === 'radio' ? <div className="psRadioGrid" role="group" aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy}>
         {(field.options || []).map(option => <label className="psRadio" key={option}>
           <input type="radio" name={'incident-' + field.code} value={option} checked={value === option} disabled={disabled}
             onChange={() => setIncidentValue(field.code, option)} />
           <span>{option}</span>
         </label>)}
       </div> : field.type === 'textarea' ?
-        <textarea value={value} rows={field.code === 'B1' || field.code === 'A8' ? 5 : 3} disabled={disabled}
+        <textarea id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} rows={field.code === 'B1' || field.code === 'A8' ? 5 : 3} disabled={disabled}
           onChange={event => setIncidentValue(field.code, event.target.value)} placeholder="Masukkan informasi..." /> :
         field.type === 'select' ?
-          <select value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
+          <select id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
             <option value="">Pilih unit kerja</option>{roomOptions.map(name => <option key={name} value={name}>{name}</option>)}
           </select> :
-          <input type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
+          <input id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
       }
+      {fieldInvalid ? <small id={fieldErrorId} className="psHint" style={{ color: '#b42318', fontWeight: 700 }}>Field ini wajib diisi.</small> : null}
     </div>
   }
   const renderInvestigationField = (field: IncidentField) => {
@@ -757,8 +771,8 @@ export default function PatientSafetyWorkspace({
     const linkedIncident = incidents.find(row => row.id === investigationIncidentId)
     const unitStaff = staffOptions.filter(staff => staff.room_name === (linkedIncident?.unit_name || ''))
     if (field.code === '5') return <div className="psField full" key={field.code}>
-      <label className="psLabel">{field.code} · {field.label}</label>
-      <textarea rows={3} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Uraikan pihak yang terlibat; nama yang dipilih di bawah akan ditautkan ke ID AUREKA." />
+      <label className="psLabel" id={`investigation-field-${field.code}-label`} htmlFor={`investigation-field-${field.code}`}>{field.code} · {field.label}</label>
+      <textarea id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} rows={3} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Uraikan pihak yang terlibat; nama yang dipilih di bawah akan ditautkan ke ID AUREKA." />
       <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',gap:8,marginTop:9,alignItems:'end'}}>
         <label className="psField"><span className="psLabel">Tautkan tenaga yang terlibat</span>
           <select value={investigationStaffToAdd} disabled={!canManageWorkflow || saving || !unitStaff.length} onChange={event => setInvestigationStaffToAdd(event.target.value)}>
@@ -790,14 +804,14 @@ export default function PatientSafetyWorkspace({
       <div className="psHint">Nama yang dipilih akan disimpan sebagai staff_id terpisah dari catatan teks. Survei budaya tetap anonim dan tidak ditautkan ke direktori.</div>
     </div>
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
-      <label className="psLabel">{field.code} · {field.label}</label>
+      <label className="psLabel" id={`investigation-field-${field.code}-label`} htmlFor={`investigation-field-${field.code}`}>{field.code} · {field.label}</label>
       {field.type === 'textarea' ?
-        <textarea rows={3} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Masukkan hasil investigasi..." /> :
+        <textarea id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} rows={3} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Masukkan hasil investigasi..." /> :
         field.type === 'select' ?
-          <select value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)}>
+          <select id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)}>
             <option value="">Pilih grading</option>{(field.options || []).map(option => <option key={option}>{option}</option>)}
           </select> :
-          <input value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} />
+          <input id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} />
       }
     </div>
   }
@@ -902,10 +916,10 @@ export default function PatientSafetyWorkspace({
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '—'}</td><td>{row.unit_name || '—'}</td><td>{row.incident_type || '—'}</td><td>{row.summary || '—'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></div> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
       </LiquidGlass>
-      {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'}>
+      {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'} onClose={() => closeForm()}>
       <div className="psModalTop">
       <div className="psModalBar">
-        <button type="button" className="psBackBtn" onClick={() => closeForm()}><span aria-hidden="true">←</span> Kembali ke daftar laporan</button>
+        <button type="button" className="psBackBtn" data-dialog-autofocus onClick={() => closeForm()}><span aria-hidden="true">←</span> Kembali ke daftar laporan</button>
         <span className="psModalTitle">{incidentId ? incidentCode : 'Laporan IKP baru'}</span>
         <button type="button" className="psCloseBtn" aria-label="Tutup formulir" onClick={() => closeForm()}>✕</button>
       </div>

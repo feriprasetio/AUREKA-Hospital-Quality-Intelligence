@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
 
@@ -139,6 +141,8 @@ export default function StaffDirectoryWorkspace() {
     setDraft(null)
   }
 
+  const editDialogRef = useAccessibleDialog<HTMLElement>({ open: Boolean(editingStaff && draft), onClose: closeEdit })
+
   const saveEdit = async () => {
     if (busy || !editingStaff || !draft) return
     if (!draft.display_name.trim() || !draft.normalized_name.trim() || !draft.profession_group.trim()) {
@@ -169,7 +173,7 @@ export default function StaffDirectoryWorkspace() {
       setDraft(null)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Perubahan metadata tidak berhasil disimpan.')
+      setError(toUserFacingError(e, { fallback: 'Perubahan metadata belum dapat disimpan.' }))
     } finally {
       setBusy(false)
     }
@@ -276,7 +280,7 @@ export default function StaffDirectoryWorkspace() {
       setMessage(`Impor selesai: ${stableImported.length.toLocaleString('id-ID')} rekam diproses. UUID staf yang sudah memiliki penetapan tim/atribusi dipertahankan berdasarkan kode AUREKA.`)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'File CSV tidak dapat diproses.')
+      setError(toUserFacingError(e, { fallback: 'File CSV tidak dapat diproses. Periksa format file, lalu coba kembali.' }))
     } finally {
       setBusy(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -343,7 +347,7 @@ export default function StaffDirectoryWorkspace() {
             <p className="sdDesc">Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak digunakan sebagai identitas atau dasar penugasan AUREKA.</p>
           </div>
           <div className="sdActions">
-            <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => void importCsv(e.target.files?.[0])}/>
+            <input ref={fileRef} type="file" aria-label="Pilih file CSV direktori tenaga kerja" accept=".csv,text/csv" hidden onChange={(e) => void importCsv(e.target.files?.[0])}/>
             <button type="button" className="sdBtn" disabled={busy} onClick={() => fileRef.current?.click()}>Impor CSV</button>
             <button type="button" className="sdBtn" disabled={busy || loading} onClick={() => void load()}>↻ Segarkan</button>
           </div>
@@ -363,7 +367,7 @@ export default function StaffDirectoryWorkspace() {
             <option value="all">Semua kelompok profesi</option>{groups.map((group) => <option key={group} value={group}>{group}</option>)}
           </select>
         </div>
-        {message && <div className="sdNotice" role="status">{message}</div>}
+        {message && <div className="sdNotice" role="status" aria-live="polite">{message}</div>}
         {error && <div className="sdError" role="alert">{error}</div>}
       </div>
 
@@ -401,7 +405,7 @@ export default function StaffDirectoryWorkspace() {
 
       {editingStaff && draft && (
         <div className="sdEditBackdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEdit() }}>
-          <section className="sdEditDialog" role="dialog" aria-modal="true" aria-labelledby="sd-edit-title">
+          <section ref={editDialogRef} className="sdEditDialog" role="dialog" aria-modal="true" aria-labelledby="sd-edit-title" tabIndex={-1}>
             <div className="sdEditHeader">
               <div>
                 <div className="sdEyebrow">Metadata · Perubahan Terkendali</div>
@@ -411,7 +415,7 @@ export default function StaffDirectoryWorkspace() {
               <div className="sdCodeLock">{editingStaff.employee_code}<br/><span style={{fontSize:9,fontWeight:700}}>Kode identitas permanen</span></div>
             </div>
             <div className="sdEditGrid">
-              <label className="sdEditField full"><span>Nama lengkap untuk ditampilkan di AUREKA *</span><input value={draft.display_name} onChange={(e) => setDraft((current) => current ? {...current,display_name:e.target.value} : current)} /></label>
+              <label className="sdEditField full"><span>Nama lengkap untuk ditampilkan di AUREKA *</span><input data-dialog-autofocus value={draft.display_name} onChange={(e) => setDraft((current) => current ? {...current,display_name:e.target.value} : current)} /></label>
               <label className="sdEditField"><span>Nama dasar / kunci nama *</span><input value={draft.normalized_name} onChange={(e) => setDraft((current) => current ? {...current,normalized_name:e.target.value} : current)} /><p className="sdEditHelp">Isi nama dasar tanpa gelar. Kesamaan nama tidak otomatis berarti orang yang sama; gunakan kode AUREKA, profesi, dan sumber untuk membedakan identitas.</p></label>
               <label className="sdEditField"><span>Gelar / prefiks nama</span><input value={draft.name_prefix} onChange={(e) => setDraft((current) => current ? {...current,name_prefix:e.target.value} : current)} placeholder="Contoh: dr., Ns., Apt."/></label>
               <label className="sdEditField full"><span>Gelar / kualifikasi setelah nama</span><input value={draft.credentials} onChange={(e) => setDraft((current) => current ? {...current,credentials:e.target.value} : current)} placeholder="Contoh: S.Kep., Sp.P., M.Kes."/></label>

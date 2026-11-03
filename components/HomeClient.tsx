@@ -1,21 +1,27 @@
 'use client'
 import {useEffect,useMemo,useState} from 'react'
+import dynamic from 'next/dynamic'
+import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
+import type {CommandPaletteItem} from '@/components/CommandPalette'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
+import {sanitizeNotificationText,toUserFacingError} from '@/lib/ui/error-feedback'
 import {type SupabaseClient} from '@supabase/supabase-js'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
-import QualityIndicatorWorkspace from '@/components/QualityIndicatorWorkspace'
-import QualityResultsWorkspace from '@/components/QualityResultsWorkspace'
-import ClinicalPathwayWorkspace from '@/components/ClinicalPathwayWorkspace'
-import PatientSafetyWorkspace from '@/components/PatientSafetyWorkspace'
-import RiskManagementWorkspace from '@/components/RiskManagementWorkspace'
-import QualitySettings from '@/components/QualitySettings'
-import QualityHub from '@/components/QualityHub'
-import GeneralSettings from '@/components/GeneralSettings'
-import OverviewDashboard from '@/components/OverviewDashboard'
-import MetadataStatisticsWorkspace from '@/components/MetadataStatisticsWorkspace'
-import ClinicalWorkforceWorkspace from '@/components/ClinicalWorkforceWorkspace'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
+const CommandPalette=dynamic(()=>import('@/components/CommandPalette'),{ssr:false})
+const workspaceChunkLoading=(label:string)=><AsyncStatePanel state="loading" title={`Memuat ${label}`} description="Menyiapkan ruang kerja." compact/>
+const QualityIndicatorWorkspace=dynamic(()=>import('@/components/QualityIndicatorWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Audit Indikator Mutu')})
+const QualityResultsWorkspace=dynamic(()=>import('@/components/QualityResultsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Hasil Capaian Mutu')})
+const ClinicalPathwayWorkspace=dynamic(()=>import('@/components/ClinicalPathwayWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Clinical Pathway')})
+const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Keselamatan Pasien')})
+const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Manajemen Risiko')})
+const QualityHub=dynamic(()=>import('@/components/QualityHub'),{ssr:false,loading:()=>workspaceChunkLoading('Menu Mutu Klinis')})
+const GeneralSettings=dynamic(()=>import('@/components/GeneralSettings'),{ssr:false,loading:()=>workspaceChunkLoading('Administrasi')})
+const OverviewDashboard=dynamic(()=>import('@/components/OverviewDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Ringkasan Rumah Sakit')})
+const MetadataStatisticsWorkspace=dynamic(()=>import('@/components/MetadataStatisticsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Analitik dan Laporan')})
+const ClinicalWorkforceWorkspace=dynamic(()=>import('@/components/ClinicalWorkforceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Tenaga Klinis')})
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
 const LOGO='/AUREKA-Hospital-Quality-Intelligence/logo-rsudssma.svg'
@@ -76,7 +82,8 @@ async function rooms(){const {data,error}=await sb.from('master_rooms').select('
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[mobile,setMobile]=useState(false),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false)
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
+ const mobileSidebar=useAccessibleSidebar()
  const [closedNav,setClosedNav]=useState<string[]>([])
  const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
  useEffect(()=>{
@@ -89,6 +96,7 @@ export default function HomeClient(){
  const [publicMetrics,setPublicMetrics]=useState<PublicLandingMetrics|null>(null)
  const [publicMetricsLoading,setPublicMetricsLoading]=useState(false)
  const [publicMetricsError,setPublicMetricsError]=useState('')
+ const [publicMetricsAttempt,setPublicMetricsAttempt]=useState(0)
  useEffect(()=>{
   if(!overviewModule){setPublicMetrics(null);setPublicMetricsError('');setPublicMetricsLoading(false);return}
   let cancelled=false
@@ -107,7 +115,7 @@ export default function HomeClient(){
   }
   void load()
   return ()=>{cancelled=true}
- },[overviewModule])
+ },[overviewModule,publicMetricsAttempt])
  useEffect(()=>{rooms().then(setRoomsList);const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}sb.rpc('aureka_sync_my_email').then(()=>{},()=>{});if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setView(p.must_change_password?'force-password':'workspace')}})},[])
  useEffect(()=>{
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
@@ -153,13 +161,13 @@ export default function HomeClient(){
  },[view,routeReady,active,qualityOpen,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView])
 
  const resolveLoginEmail=async(input:string)=>{const v=input.trim();if(!v)throw new Error('Isi username atau email.');if(v.includes('@'))return v;const {data,error}=await sb.rpc('aureka_login_email',{p_username:v});if(error){if(error.code==='PGRST202'||/Could not find the function|schema cache/i.test(error.message))throw new Error('Login dengan username belum aktif. Silakan masuk memakai email.');throw error}if(!data)throw new Error('Username tidak ditemukan. Periksa ejaan atau masuk memakai email.');return String(data)}
- const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return m||'Terjadi kesalahan'}
+ const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return toUserFacingError(e,{fallback:'Autentikasi belum berhasil. Periksa informasi akun, lalu coba lagi.'})}
  const resendVerify=async()=>{if(busy||!needVerify)return;setBusy(true);const {error}=await sb.auth.resend({type:'signup',email:needVerify,options:{emailRedirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`}});setBusy(false);setAuthInfo('');setMessage(error?authError(error):`Email verifikasi dikirim ulang ke ${needVerify}. Cek juga folder Spam.`)}
  const login=async()=>{if(busy)return;setBusy(true);setMessage('');setNeedVerify('');setAuthInfo('');let em='';try{em=await resolveLoginEmail(email);const {data,error}=await sb.auth.signInWithPassword({email:em,password});if(error)throw error;sb.rpc('aureka_sync_my_email').then(()=>{},()=>{});const p=await prof(data.user.id);if(!p){await sb.auth.signOut();throw new Error('Profil AUREKA belum tersedia.')}if(!p.is_active){await sb.auth.signOut();throw new Error('Akun belum aktif. Hubungi Super Admin/Komite PMKP untuk aktivasi.')}setUser(data.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setClinicalPathwayOpen(false);if(p.must_change_password){setPassword('');setPassword2('');setView('force-password')}else{setView('workspace')}}catch(e){setMessage(authError(e,em))}finally{setBusy(false)}}
  const signup=async()=>{if(busy)return;setBusy(true);setMessage('');try{const un=username.trim().toLowerCase();if(!fullName.trim()||!signupRoom||password.length<8)throw new Error('Nama, unit utama, dan password minimal 8 karakter wajib diisi.');if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(un))throw new Error('Username 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau strip. Contoh: pic.isolasi');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()))throw new Error('Email wajib diisi dengan benar (dipakai untuk verifikasi dan reset password).');const av=await sb.rpc('aureka_username_available',{p_username:un});if(!av.error&&av.data===false)throw new Error(`Username “${un}” sudah dipakai. Coba yang lain, misalnya ${un}2.`);const {data:su,error}=await sb.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`,data:{full_name:fullName.trim(),primary_room_id:signupRoom,username:un}}});if(error)throw error;if(su?.user&&Array.isArray((su.user as any).identities)&&(su.user as any).identities.length===0)throw new Error('Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.');if(su?.session)await sb.auth.signOut();setUsername(un);setMessage('');setSignupDone(true)}catch(e){setMessage(authError(e))}finally{setBusy(false)}}
  useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){setAuthMode('recovery');setMessage('');setPassword('');setPassword2('');setView('login')}});if(typeof window!=='undefined'&&/type=recovery/.test(window.location.hash)){setAuthMode('recovery');setView('login')}return()=>{sub.subscription.unsubscribe()}},[])
- const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');let em='';try{em=await resolveLoginEmail(email)}catch(e){setBusy(false);setMessage(authError(e));return}if(!/^\S+@\S+\.\S+$/.test(em)){setBusy(false);setMessage('Masukkan username atau email akun yang valid.');return}if(em.toLowerCase().endsWith('@aureka.invalid')){setBusy(false);setMessage('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara; akun akan wajib menggantinya saat login berikutnya.');return}const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`});setBusy(false);if(error){setMessage(/rate limit|too many/i.test(error.message)?'Terlalu banyak permintaan. Coba lagi beberapa menit lagi, atau minta Super Admin menyetel password sementara.':`Gagal mengirim email: ${error.message}`);return}setResetSent(true)}
- const saveNewPassword=async()=>{if(busy)return;if(password.length<8){setMessage('Password baru minimal 8 karakter.');return}if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}setBusy(true);setMessage('');const {error}=await sb.auth.updateUser({password});if(error){setBusy(false);setMessage(`Gagal menyimpan password: ${error.message}`);return}await sb.auth.signOut();setBusy(false);if(typeof window!=='undefined'&&window.location.hash)history.replaceState(null,'',window.location.pathname+window.location.search);setPassword('');setPassword2('');setAuthMode('normal');setMessage('');setResetSent(false);setView('login');setMessage('Password baru tersimpan. Silakan masuk dengan password baru.')}
+ const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');let em='';try{em=await resolveLoginEmail(email)}catch(e){setBusy(false);setMessage(authError(e));return}if(!/^\S+@\S+\.\S+$/.test(em)){setBusy(false);setMessage('Masukkan username atau email akun yang valid.');return}if(em.toLowerCase().endsWith('@aureka.invalid')){setBusy(false);setMessage('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara; akun akan wajib menggantinya saat login berikutnya.');return}const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`});setBusy(false);if(error){setMessage(/rate limit|too many/i.test(error.message)?'Terlalu banyak permintaan. Coba lagi beberapa menit lagi, atau minta Super Admin menyetel password sementara.':`Gagal mengirim email: ${toUserFacingError(error,{fallback:'Email pemulihan belum dapat dikirim. Coba kembali beberapa saat lagi.'})}`);return}setResetSent(true)}
+ const saveNewPassword=async()=>{if(busy)return;if(password.length<8){setMessage('Password baru minimal 8 karakter.');return}if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}setBusy(true);setMessage('');const {error}=await sb.auth.updateUser({password});if(error){setBusy(false);setMessage(`Gagal menyimpan password: ${toUserFacingError(error,{fallback:'Password belum dapat diperbarui. Periksa koneksi dan coba kembali.'})}`);return}await sb.auth.signOut();setBusy(false);if(typeof window!=='undefined'&&window.location.hash)history.replaceState(null,'',window.location.pathname+window.location.search);setPassword('');setPassword2('');setAuthMode('normal');setMessage('');setResetSent(false);setView('login');setMessage('Password baru tersimpan. Silakan masuk dengan password baru.')}
  const saveFirstPassword=async()=>{
   if(busy)return
   if(!user?.id||!profile?.must_change_password){setView('workspace');return}
@@ -167,15 +175,15 @@ export default function HomeClient(){
   if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}
   setBusy(true);setMessage('')
   const {error}=await sb.auth.updateUser({password})
-  if(error){setBusy(false);setMessage(`Gagal mengganti password: ${error.message}`);return}
+  if(error){setBusy(false);setMessage(`Gagal mengganti password: ${toUserFacingError(error,{fallback:'Password belum dapat diperbarui. Periksa koneksi dan coba kembali.'})}`);return}
   const {error:flagError}=await sb.rpc('aureka_complete_first_login_password_change')
-  if(flagError){setBusy(false);setMessage(`Password sudah diperbarui, tetapi status wajib ganti password belum dapat diselesaikan. Klik Simpan kembali untuk menyelesaikan: ${flagError.message}`);return}
+  if(flagError){setBusy(false);setMessage(`Password sudah diperbarui, tetapi status wajib ganti password belum dapat diselesaikan. ${toUserFacingError(flagError,{fallback:'Klik Simpan kembali untuk menyelesaikan proses.'})}`);return}
   try{
    const next=await prof(user.id)
    if(!next||next.must_change_password)throw new Error('Status wajib ganti password belum terkonfirmasi.')
    setProfile(next);setPassword('');setPassword2('');setBusy(false);setMessage('');setView('workspace')
   }catch(e){
-   setBusy(false);setMessage(e instanceof Error?e.message:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.')
+   setBusy(false);setMessage(toUserFacingError(e,{fallback:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.'}))
   }
  }
  const logout=async()=>{try{Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut();setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);}
@@ -239,7 +247,7 @@ export default function HomeClient(){
  },[active,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,staffArea,analyticsTab])
  const openMainModule=(id:string,keepMenuOpen=false)=>{
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
-  setProfileFocus(0);if(!keepMenuOpen)setMobile(false);setGlobalSearch('');setActive(id)
+  setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id)
   if(id==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);setQualityResultsView(null);setQualityOpen(true)}
   else {setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null)}
   if(id==='safety')setSafetyTab('overview')
@@ -248,7 +256,7 @@ export default function HomeClient(){
   if(id==='analytics')setAnalyticsTab(admin?'metadata':'statistics')
  }
  const selectSidebarChild=(moduleId:string,childId:string)=>{
-  setProfileFocus(0);setMobile(false);setGlobalSearch('');setActive(moduleId)
+  setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId)
   if(moduleId==='quality'){
    const resultMatch=/^result-(indicators|pathway|clinical-death)$/.exec(childId)
    if(resultMatch){
@@ -286,19 +294,21 @@ export default function HomeClient(){
   if(typeof window==='undefined'||view!=='workspace')return
   window.dispatchEvent(new CustomEvent('aureka:workspace-search',{detail:{query:globalSearch,module:active,container:currentContainer}}))
  },[globalSearch,active,currentContainer,view])
- useEffect(()=>{if(typeof window==='undefined')return;const onKeyDown=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&view==='workspace'){event.preventDefault();document.getElementById('workspaceGlobalSearchInput')?.focus()}};window.addEventListener('keydown',onKeyDown);return()=>window.removeEventListener('keydown',onKeyDown)},[view])
+
  useEffect(()=>{
   if(typeof window==='undefined'||view!=='workspace'||!globalSearch.trim()){
    setSearchResults([])
+   setSearchResultsQuery('')
    return
   }
-  let delay=0
-  delay=window.setTimeout(()=>{
+  const query=globalSearch.trim()
+  const delay=window.setTimeout(()=>{
    const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
-   if(!root){setSearchResults([]);return}
-   const tokens=globalSearch.toLowerCase().trim().split(/\s+/).filter(Boolean)
-   if(!tokens.length){setSearchResults([]);return}
-   // Search only record-like content, never headings, labels, buttons or helper text.
+   if(!root){setSearchResults([]);setSearchResultsQuery(query);return}
+   const tokens=query.toLowerCase().split(/\s+/).filter(Boolean)
+   if(!tokens.length){setSearchResults([]);setSearchResultsQuery(query);return}
+   // Search only record-like content already rendered in the active, authorized workspace.
+   // This intentionally does not issue a new cross-module/database query.
    const candidates=Array.from(root.querySelectorAll<HTMLElement>(
     'table tbody tr:not(.aqInlineEditorRow),[data-searchable="true"],.rmTable tbody tr,.psTable tbody tr,.cpTable tbody tr,.stTable tbody tr,.cwTable tbody tr'
    )).filter(node=>{
@@ -317,14 +327,98 @@ export default function HomeClient(){
     if(unique.length>=8)break
    }
    setSearchResults(unique)
+   setSearchResultsQuery(query)
   },120)
   return ()=>window.clearTimeout(delay)
  },[globalSearch,view,active,currentContainer,qualityOpen,clinicalPathwayOpen,safetyTab,riskTab,staffArea,analyticsTab])
  const jumpToSearchResult=(result:WorkspaceSearchResult)=>{
   result.node.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})
+  dispatchWorkspaceSearch('')
  }
 
 
+ const triggerWorkspaceExport=()=>{
+  const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
+  const candidates=Array.from(root?.querySelectorAll<HTMLButtonElement>('button:not([disabled])')??[]).filter(button=>{
+   const style=window.getComputedStyle(button)
+   if(!button.getClientRects().length||style.display==='none'||style.visibility==='hidden'||button.closest('[aria-hidden="true"]'))return false
+   const label=[button.innerText,button.getAttribute('aria-label'),button.getAttribute('title')].filter(Boolean).join(' ')
+   return /\b(export|ekspor|download|unduh)\b/i.test(label)
+  })
+  if(candidates.length===0){
+   pushWorkspaceNotification('Belum ada tombol ekspor yang tersedia pada modul aktif. Buka Statistik & Laporan atau ekspor dari workspace terkait.','info',currentContainer)
+   return
+  }
+  if(candidates.length>1){
+   pushWorkspaceNotification('Terdapat beberapa pilihan ekspor pada modul ini. Gunakan kontrol ekspor yang sesuai pada workspace untuk memilih jenis dan cakupan data. Tidak ada ekspor yang dijalankan.','info',currentContainer)
+   return
+  }
+  candidates[0].click()
+ }
+ const focusWorkspaceUnitSelector=()=>{
+  const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
+  const candidates=Array.from(root?.querySelectorAll<HTMLSelectElement>('select:not([disabled])')??[]).filter(select=>{
+   const style=window.getComputedStyle(select)
+   if(!select.getClientRects().length||style.display==='none'||style.visibility==='hidden'||select.closest('[aria-hidden="true"]'))return false
+   const labels=Array.from(select.labels??[]).map(label=>label.innerText)
+   const text=[select.getAttribute('aria-label'),select.getAttribute('name'),select.id,select.closest('label')?.innerText,...labels].filter(Boolean).join(' ')
+   return /\b(unit|ruang|ruangan|room)\b/i.test(text)
+  })
+  if(candidates.length===0){
+   pushWorkspaceNotification('Modul aktif tidak menyediakan pemilih unit. Pilihan unit hanya muncul pada workspace yang mendukung filter unit.','info',currentContainer)
+   return
+  }
+  if(candidates.length>1){
+   pushWorkspaceNotification('Modul aktif memiliki beberapa pemilih unit. Gunakan kontrol unit yang sesuai pada workspace; palette tidak memilih secara otomatis.','info',currentContainer)
+   return
+  }
+  const target=candidates[0]
+  target.focus()
+  pushWorkspaceNotification('Pemilih unit difokuskan. Gunakan daftar pilihan untuk mengganti cakupan tampilan modul ini. Unit utama akun dan hak akses tidak diubah.','info',currentContainer)
+ }
+ const commandItems=useMemo<CommandPaletteItem[]>(()=>{
+  const items:CommandPaletteItem[]=[
+   {id:'nav-home',label:'Ringkasan',description:'Dashboard mutu, keselamatan pasien, dan risiko.',group:'Navigasi',keywords:['dashboard','home','beranda'],onSelect:()=>openMainModule('home')},
+   ...visibleMods.map(([id,label])=>({
+    id:'nav-'+id,label,description:AUREKA_PRIMARY_NAV.find(module=>module.id===id)?.description||'Buka workspace '+label+'.',
+    group:'Navigasi',keywords:[id,label],onSelect:()=>openMainModule(id),
+   })),
+  ]
+  const addChildren=(moduleId:string,moduleLabel:string,children:SidebarChild[],parents:string[]=[]):void=>{
+   for(const child of children){
+    const nextPath=[...parents,child.label]
+    if(child.children?.length)addChildren(moduleId,moduleLabel,child.children,nextPath)
+    else items.push({
+     id:'nav-child-'+moduleId+'-'+child.id,
+     label:child.label,
+     description:moduleLabel+' · '+nextPath.join(' / '),
+     group:'Navigasi',
+     keywords:[moduleId,moduleLabel,...nextPath],
+     onSelect:()=>selectSidebarChild(moduleId,child.id),
+    })
+   }
+  }
+  for(const [moduleId,moduleLabel] of visibleMods){
+   const children=sidebarChildGroups[moduleId]
+   if(children?.length)addChildren(moduleId,moduleLabel,children)
+  }
+  items.push(
+   {id:'action-export',label:'Ekspor data pada modul aktif',description:'Jalankan kontrol ekspor yang tersedia pada workspace saat ini.',group:'Aksi Cepat',keywords:['export','ekspor','download','unduh','excel','csv'],onSelect:triggerWorkspaceExport},
+   {id:'action-unit',label:'Pilih unit pada modul aktif',description:'Fokuskan filter unit yang disediakan workspace; tidak mengubah unit utama akun.',group:'Aksi Cepat',keywords:['ganti unit','pilih unit','ruangan','room','filter'],onSelect:focusWorkspaceUnitSelector},
+  )
+  return items
+ },[visibleMods,sidebarChildGroups,openMainModule,selectSidebarChild,triggerWorkspaceExport,focusWorkspaceUnitSelector])
+ const commandSearchItems=useMemo<CommandPaletteItem[]>(()=>{
+  if(globalSearch.trim().length<2||searchResultsQuery!==globalSearch.trim())return []
+  return searchResults.map((result,index)=>({
+   id:'data-'+index+'-'+result.tag,
+   label:result.tag+': '+result.text,
+   description:'Catatan dari '+currentContainer+' · data yang sudah dimuat dan dapat diakses.',
+   group:'Data di Modul Aktif',
+   keywords:['pasien','dokter','indikator','catatan','data','rekam medis',result.tag],
+   onSelect:()=>jumpToSearchResult(result),
+  }))
+ },[globalSearch,searchResultsQuery,searchResults,currentContainer,jumpToSearchResult])
  const pushWorkspaceNotification=(message:string,kind:'success'|'error'|'info'='info',module?:string)=>{
   const text=String(message||'').trim()
   if(!text)return
@@ -338,8 +432,12 @@ export default function HomeClient(){
    const text=String(detail?.message??'').trim()
    if(!text)return
    const rawKind=String(detail?.kind??detail?.type??'').toLowerCase()
-   const kind:WorkspaceNotification['kind']=rawKind==='error'||/\b(gagal|belum tersimpan|tidak dapat|kesalahan|wajib diisi|tidak diizinkan|periksa koneksi)\b/i.test(text)?'error':rawKind==='success'||/berhasil (disimpan|dihapus|diperbarui|dikirim)|tersimpan ke server/i.test(text)?'success':'info'
-   pushWorkspaceNotification(text,kind,detail?.module)
+   const technicalFallback=`Operasi pada ${detail?.module||'AUREKA'} belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.`
+   const sanitizedText=sanitizeNotificationText(text,technicalFallback)
+   const containsTechnicalDetail=sanitizedText!==text
+   const kind:WorkspaceNotification['kind']=rawKind==='error'||containsTechnicalDetail||/\b(gagal|belum tersimpan|tidak dapat|kesalahan|wajib diisi|tidak diizinkan|periksa koneksi|permission denied|failed to fetch|network error)\b/i.test(text)?'error':rawKind==='success'||/berhasil (disimpan|dihapus|diperbarui|dikirim)|tersimpan ke server/i.test(text)?'success':'info'
+   const safeText=kind==='error'?sanitizedText:text
+   pushWorkspaceNotification(safeText,kind,detail?.module)
   }
   window.addEventListener('aureka:notification',receive)
   return()=>window.removeEventListener('aureka:notification',receive)
@@ -354,6 +452,7 @@ export default function HomeClient(){
  },[message,view])
  const loadSupportConversations=async()=>{
   setSupportLoading(true)
+  setSupportLoadError('')
   try{
    const {data:{user:authUser},error:authError}=await sb.auth.getUser()
    if(authError||!authUser)throw authError||new Error('Sesi login tidak tersedia.')
@@ -363,20 +462,26 @@ export default function HomeClient(){
    if(error)throw error
    const list=(data??[]) as SupportConversation[]
    setSupportConversations(list)
-   setSupportConversationId(current=>current&&list.some(item=>item.id===current)?current:(admin?(list[0]?.id??''):(list[0]?.id??'')))
+   setSupportConversationId(current=>current&&list.some(item=>item.id===current)?current:(list[0]?.id??''))
   }catch(error){
-   pushWorkspaceNotification('Chat Super Admin belum dapat dimuat: '+(error instanceof Error?error.message:'Periksa koneksi.'),'error','Chat Super Admin')
+   const message=toUserFacingError(error,{fallback:'Daftar percakapan belum dapat dimuat. Periksa koneksi, lalu coba kembali.'})
+   setSupportLoadError(message)
+   pushWorkspaceNotification(message,'error','Chat Super Admin')
   }finally{setSupportLoading(false)}
  }
  const loadSupportMessages=async(conversationId:string)=>{
-  if(!conversationId){setSupportMessages([]);return}
+  if(!conversationId){setSupportMessages([]);setSupportMessagesError('');setSupportMessagesLoading(false);return}
+  setSupportMessagesLoading(true)
+  setSupportMessagesError('')
   try{
    const {data,error}=await sys().from('support_messages').select('id,conversation_id,sender_id,body,created_at').eq('conversation_id',conversationId).order('created_at',{ascending:true}).limit(300)
    if(error)throw error
    setSupportMessages((data??[]) as SupportMessage[])
   }catch(error){
-   pushWorkspaceNotification('Pesan chat tidak dapat dimuat: '+(error instanceof Error?error.message:'Periksa koneksi.'),'error','Chat Super Admin')
-  }
+   const message=toUserFacingError(error,{fallback:'Pesan percakapan belum dapat dimuat. Coba muat ulang.'})
+   setSupportMessagesError(message)
+   pushWorkspaceNotification(message,'error','Chat Super Admin')
+  }finally{setSupportMessagesLoading(false)}
  }
  const openSupportChat=()=>{
   setNotificationHistoryOpen(false)
@@ -408,7 +513,7 @@ export default function HomeClient(){
    await loadSupportConversations()
    pushWorkspaceNotification('Pesan berhasil dikirim ke Chat Super Admin.','success','Chat Super Admin')
   }catch(error){
-   pushWorkspaceNotification('Pesan belum terkirim: '+(error instanceof Error?error.message:'Periksa koneksi.'),'error','Chat Super Admin')
+   pushWorkspaceNotification(toUserFacingError(error,{fallback:'Pesan belum terkirim. Periksa koneksi, lalu coba kembali.'}),'error','Chat Super Admin')
   }finally{setSupportSending(false)}
  }
  useEffect(()=>{
@@ -492,14 +597,15 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='workspace')return <main className={'workspaceRoot '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
- <button className="workspaceScrim" onClick={()=>setMobile(false)} data-open={mobile} aria-label="Tutup navigasi"/>
- <aside className={'sidebar glassPanel '+(mobile?'mobileOpen':'')}>
+ if(view==='workspace')return <main data-aureka-theme="solid-white" className={'workspaceRoot '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
+ <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
+ <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
   <div className="sideHeader">
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
    <button type="button" className="sidebarToggle" aria-label={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} title={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} aria-expanded={!sidebarCollapsed} onClick={()=>setSidebarCollapsed(v=>!v)}>
     <svg viewBox="0 0 24 24" aria-hidden="true">{sidebarCollapsed?<path d="m9 5 7 7-7 7"/>:<path d="m15 5-7 7 7 7"/>}</svg>
    </button>
+   <button type="button" className="mobileSidebarClose" data-sidebar-autofocus onClick={mobileSidebar.close} aria-label="Tutup navigasi" aria-controls="aureka-primary-sidebar">×</button>
   </div>
   <button type="button" className="sideProfile" title="Buka profil" onClick={()=>{openMainModule('settings');setProfileFocus(Date.now())}}>
    <span className="sideProfileAvatar">{initials(profile?.full_name||user?.email)}</span>
@@ -513,20 +619,20 @@ export default function HomeClient(){
     </button>
    </div>
    {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=active===id&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(active===id?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
-    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} onClick={()=>{if(hasKids&&active===id){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
+    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={active===id?'page':undefined} onClick={()=>{if(hasKids&&active===id){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
      <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
     </button>
-    {groupOpen&&hasKids?<div className="sidebarTreeChildren">
+    {hasKids?<div className="sidebarTreeChildren" id={`sidebar-children-${id}`} hidden={!groupOpen}>
      {sidebarChildGroups[id].map(child=>child.children?.length
       ? (()=>{const pActive=Boolean(qualityResultsView===child.id.replace('audit-','')||(clinicalPathwayOpen&&child.id==='audit-pathway')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer==='Audit Klinis dan Kematian'&&child.id==='audit-clinical-death')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer!=='Audit Klinis dan Kematian'&&child.id==='audit-indicators'));const nKey='n:'+child.id;const nOpen=!closedNav.includes(nKey);return <div className={'sidebarNestedGroup '+(nOpen?'open':'closed')} key={child.id}>
-         <button type="button" className={'sidebarChild sidebarTreeParent '+(pActive?'active':'')} aria-expanded={nOpen} onClick={()=>{if(pActive){toggleNav(nKey);return}toggleNav(nKey,true);selectSidebarChild(id,child.id)}}>
+         <button type="button" className={'sidebarChild sidebarTreeParent '+(pActive?'active':'')} aria-expanded={nOpen} aria-controls={`sidebar-children-${id}-${child.id}`} aria-current={pActive?'page':undefined} onClick={()=>{if(pActive){toggleNav(nKey);return}toggleNav(nKey,true);selectSidebarChild(id,child.id)}}>
           <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
          </button>
-         {nOpen&&<div className="sidebarTreeChildren sidebarTreeNestedChildren">
+         <div className="sidebarTreeChildren sidebarTreeNestedChildren" id={`sidebar-children-${id}-${child.id}`} hidden={!nOpen}>
           {child.children.map(nested=><button type="button" key={nested.id} className={selectedSidebarChild(id)===nested.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===nested.id?'page':undefined} onClick={()=>selectSidebarChild(id,nested.id)}>
            <span className="sidebarChildMark" aria-hidden="true"/><span>{nested.label}</span>
           </button>)}
-         </div>}
+         </div>
         </div>})()
       : <button type="button" key={child.id} className={selectedSidebarChild(id)===child.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===child.id?'page':undefined} onClick={()=>selectSidebarChild(id,child.id)}>
          <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span>
@@ -540,7 +646,7 @@ export default function HomeClient(){
  </aside>
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
-   <button className="mobileMenuButton" onClick={()=>setMobile(true)} aria-label="Buka navigasi">☰</button>
+   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton" onClick={mobileSidebar.open} aria-label="Buka navigasi" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
    <div className="workspaceContext" title={(manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
     <strong>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>
     <span>{currentContainer}</span>
@@ -548,13 +654,14 @@ export default function HomeClient(){
    <div className="workspaceGlobalSearch">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
     <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder="Cari data dalam modul ini…" aria-label="Cari catatan atau data yang sudah diinput"/>
-    {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:<kbd>Ctrl K</kbd>}
+    {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:null}
     {globalSearch.trim()&&<div className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
      <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResults.length?searchResults.length+' hasil':'Mencari…'}</span></div>
      {searchResults.length?searchResults.map((result,index)=><button type="button" role="option" aria-selected="false" key={index+'-'+result.text} onClick={()=>jumpToSearchResult(result)}>
       <span className="workspaceSearchResultTag">{result.tag}</span><span>{result.text}</span><span className="workspaceSearchResultArrow" aria-hidden="true">↗</span>
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
+    <CommandPalette items={commandItems} searchResults={commandSearchItems} contextLabel={currentContainer} onSearchChange={dispatchWorkspaceSearch}/>
    </div>
    <button type="button" className="workspaceHeaderIcon workspaceFullscreenButton" title="Layar penuh" aria-label="Aktifkan atau keluar dari layar penuh" onClick={()=>{if(typeof document==='undefined')return;if(document.fullscreenElement){void document.exitFullscreen().catch(()=>undefined)}else if(document.documentElement.requestFullscreen){void document.documentElement.requestFullscreen().catch(()=>undefined)}}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
@@ -566,7 +673,7 @@ export default function HomeClient(){
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.9 8.9 0 0 1-4-.95L3 21l1.95-5.5a8.9 8.9 0 0 1-.95-4A8.5 8.5 0 0 1 12.5 3H13a8.5 8.5 0 0 1 8 8.5Z"/><path d="M8 10h8M8 14h5"/></svg>
    </button>
 
-   <button type="button" className="workspaceHeaderProfile" title="Buka profil dan pengaturan akun" aria-label="Buka profil dan pengaturan akun" onClick={()=>{setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);setMobile(false)}}>
+   <button type="button" className="workspaceHeaderProfile" title="Buka profil dan pengaturan akun" aria-label="Buka profil dan pengaturan akun" onClick={()=>{setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()}}>
     <span className="workspaceHeaderAvatar">{initials(profile?.full_name||user?.email)}</span>
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
@@ -583,11 +690,20 @@ export default function HomeClient(){
   </section>}
   {supportOpen&&<section className="workspaceSupportPanel" aria-label="Chat Super Admin">
    <div className="workspacePopoverHead"><div><strong>Chat Super Admin</strong><span>{admin?'Kotak masuk seluruh unit':(room?.name||'Unit belum dipetakan')}</span></div><div className="workspacePopoverActions"><button type="button" title="Muat ulang" aria-label="Muat ulang chat" onClick={()=>{void loadSupportConversations();if(supportConversationId)void loadSupportMessages(supportConversationId)}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5 9a7 7 0 0 1 12-2l3 5M4 12l3 5a7 7 0 0 0 12-2"/></svg></button><button type="button" aria-label="Tutup chat" onClick={()=>setSupportOpen(false)}>×</button></div></div>
-   {supportLoading&&<div className="workspacePopoverEmpty">Memuat percakapan…</div>}
-   {admin&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}</div>}
-   {!admin&&!supportConversationId&&<div className="workspacePopoverEmpty">Kirim pesan untuk memulai percakapan dengan Super Admin.</div>}
-   {admin&&!supportConversationId&&<div className="workspacePopoverEmpty">Belum ada pesan masuk dari unit.</div>}
-   {supportConversationId&&<div className="workspaceSupportMessages">{supportMessages.map(item=><div key={item.id} className={'workspaceSupportMessage '+(item.sender_id===user?.id?'mine':'theirs')}><span>{item.sender_id===user?.id?(admin?'Super Admin':'Anda'):(admin?'PIC Unit':'Super Admin')}</span><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>)}</div>}
+   {supportLoading&&<AsyncStatePanel state="loading" title="Memuat percakapan" description="Mengambil daftar percakapan Anda." compact/>}
+   {supportLoadError&&<AsyncStatePanel state="error" title="Percakapan belum dapat dimuat" description={supportLoadError} retrying={supportLoading} onRetry={()=>void loadSupportConversations()} compact/>}
+   {admin&&!supportLoading&&!supportLoadError&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}{supportConversations.length===0&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Pesan dari unit akan tampil di sini." compact/>}</div>}
+   {!admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Kirim pesan untuk memulai percakapan dengan Super Admin." compact/>}
+   {admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&supportConversations.length>0&&<div className="workspacePopoverEmpty">Pilih percakapan untuk membaca pesan masuk.</div>}
+   {supportConversationId&&<div className="workspaceSupportMessages">
+    {supportMessagesLoading
+     ? <AsyncStatePanel state="loading" title="Memuat pesan" description="Mengambil isi percakapan." compact/>
+     : supportMessagesError
+      ? <AsyncStatePanel state="error" title="Pesan belum dapat dimuat" description={supportMessagesError} retrying={supportMessagesLoading} onRetry={()=>void loadSupportMessages(supportConversationId)} compact/>
+      : supportMessages.length===0
+       ? <AsyncStatePanel state="empty" title="Belum ada pesan" description="Percakapan ini belum memiliki pesan." compact/>
+       : supportMessages.map(item=><div key={item.id} className={'workspaceSupportMessage '+(item.sender_id===user?.id?'mine':'theirs')}><span>{item.sender_id===user?.id?(admin?'Super Admin':'Anda'):(admin?'PIC Unit':'Super Admin')}</span><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>)}
+   </div>}
    <form className="workspaceSupportComposer" onSubmit={event=>{event.preventDefault();void sendSupportMessage()}}>
     <textarea value={supportDraft} onChange={event=>setSupportDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Tulis pesan kepada Super Admin…" aria-label="Pesan ke Super Admin" disabled={supportSending||(admin&&!supportConversationId)}/>
     <button type="submit" disabled={supportSending||!supportDraft.trim()||(admin&&!supportConversationId)}>{supportSending?'Mengirim…':'Kirim'}</button>
@@ -660,15 +776,15 @@ export default function HomeClient(){
      </div>
      <div className="publicMetricsPanel">
       {publicMetricsLoading
-       ? <div className="publicMetricsState"><span className="publicMetricSpinner" aria-hidden="true"/><b>Memuat grafik publik…</b><span>Menyiapkan ringkasan agregat dari data yang tersedia.</span></div>
+       ? <AsyncStatePanel state="loading" title="Memuat grafik publik" description="Menyiapkan ringkasan agregat dari data yang tersedia."/>
        : publicMetricsError
-        ? <div className="publicMetricsState"><b>Grafik belum tersedia</b><span>{publicMetricsError}</span></div>
+        ? <AsyncStatePanel state="error" title="Grafik belum tersedia" description={publicMetricsError} retrying={publicMetricsLoading} onRetry={()=>setPublicMetricsAttempt(value=>value+1)}/>
         : !publicMetrics || publicMetrics.domain!==selected.id
-         ? <div className="publicMetricsState"><b>Menyiapkan grafik</b><span>Data agregat akan muncul setelah tersedia.</span></div>
+         ? <AsyncStatePanel state="empty" title="Data agregat belum tersedia" description="Ringkasan akan muncul setelah data yang memenuhi syarat publikasi tersedia."/>
          : (() => {
             const visible=publicMetrics.points.filter(point=>point.value!==null&&Number.isFinite(Number(point.value))&&Number(point.value)>=publicMetrics.minimum_group_size)
             const maxValue=Math.max(1,...visible.map(point=>Number(point.value)))
-            if(!visible.length)return <div className="publicMetricsState"><div className="publicMetricsEmptyIcon" aria-hidden="true">▥</div><b>Belum ada data agregat yang cukup untuk publikasi</b><span>Grafik hanya memuat catatan tervalidasi atau laporan yang telah ditutup, dengan sedikitnya {publicMetrics.minimum_group_size} catatan per kelompok. Tidak ada data contoh.</span></div>
+            if(!visible.length)return <AsyncStatePanel state="empty" title="Belum ada data agregat yang cukup untuk publikasi" description={`Grafik hanya memuat catatan tervalidasi atau laporan yang telah ditutup, dengan sedikitnya ${publicMetrics.minimum_group_size} catatan per kelompok. Tidak ada data contoh.`}/>
             return <div className="publicMetricsContent">
              <div className="publicMetricsHeading"><div><span className="publicMetricKicker">RINGKASAN PUBLIK</span><h3>{publicMetrics.title}</h3></div><span className="publicAggregatePill">Agregat saja</span></div>
              {publicMetrics.kind==='monthly'

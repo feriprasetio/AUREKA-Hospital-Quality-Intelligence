@@ -1,9 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
-import FppeEvaluationWorkspace from '@/components/FppeEvaluationWorkspace'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
@@ -21,6 +24,7 @@ import {
   type OppeResponseRow,
   type OppeRule,
 } from '@/lib/aureka/oppe-engine'
+const FppeEvaluationWorkspace=dynamic(()=>import('@/components/FppeEvaluationWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat evaluasi FPPE" compact/>})
 
 type Room = { id: number; name: string }
 type SavedAssessment = Record<string, any>
@@ -228,6 +232,8 @@ export default function OppeAuditWorkspace({
   const [ruleProfile, setRuleProfile] = useState<any | null>(null)
   const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null)
   const [gapDraft, setGapDraft] = useState<GapDraft | null>(null)
+  const ruleDialogRef = useAccessibleDialog<HTMLElement>({ open: Boolean(ruleProfile && ruleDraft), onClose: () => { setRuleProfile(null); setRuleDraft(null) } })
+  const gapDialogRef = useAccessibleDialog<HTMLElement>({ open: Boolean(gapDraft), onClose: () => setGapDraft(null) })
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; const query = String(detail?.query ?? ''); setSearch(query); setHistorySearch(query) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [historySearch, setHistorySearch] = useState('')
@@ -344,7 +350,7 @@ export default function OppeAuditWorkspace({
       setTeamStaff(nextTeamStaff)
       setAssessments(nextAssessments)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Data OPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Data OPPE gagal dimuat. Coba muat ulang.' }))
     } finally {
       setLoading(false)
     }
@@ -362,7 +368,7 @@ export default function OppeAuditWorkspace({
       if (error) throw error
       setAssessmentEvents((data || []) as Record<string, any>[])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Riwayat proses OPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Riwayat proses OPPE gagal dimuat.' }))
     } finally {
       setEventsLoading(false)
     }
@@ -753,7 +759,7 @@ export default function OppeAuditWorkspace({
       await load()
       if (savedId) await loadAssessmentEvents(savedId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'OPPE gagal disimpan.')
+      setError(toUserFacingError(err, { fallback: 'Penilaian OPPE belum dapat disimpan.' }))
     } finally {
       setBusy(false)
     }
@@ -880,7 +886,7 @@ export default function OppeAuditWorkspace({
       setNotice('Pemetaan indikator OPPE berhasil disimpan. Skor hanya dihitung dari logbook tervalidasi yang memiliki atribusi sesuai aturan ini.')
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Pemetaan OPPE gagal disimpan.')
+      setError(toUserFacingError(err, { fallback: 'Pemetaan OPPE belum dapat disimpan.' }))
     } finally {
       setBusy(false)
     }
@@ -966,7 +972,7 @@ export default function OppeAuditWorkspace({
       setNotice('Draf indikator OPPE masuk ke master AUREKA dengan status draft/nonaktif. Setelah definisi ditelaah dan profil diterbitkan melalui Metadata, pemetaan dapat diaktifkan di tab Pemetaan indikator.')
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Draf indikator baru gagal dibuat.')
+      setError(toUserFacingError(err, { fallback: 'Draf indikator baru belum dapat dibuat.' }))
     } finally {
       setBusy(false)
     }
@@ -1122,7 +1128,7 @@ export default function OppeAuditWorkspace({
       </header>
 
       {error && <div className="oppeNotice oppeError" role="alert">{error}</div>}
-      {notice && <div className="oppeNotice oppeSuccess" role="status">{notice}</div>}
+      {notice && <div className="oppeNotice oppeSuccess" role="status" aria-live="polite">{notice}</div>}
 
       <section className="oppeGlass oppeFilters">
         <label className="oppeField"><span>Tahun</span><select value={year} onChange={(e) => changeScope(Number(e.target.value), quarter, roomFilter)}>{years.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -1148,7 +1154,7 @@ export default function OppeAuditWorkspace({
                   {currentReadOnly ? (
                     <input value={form.staffName} disabled aria-label="Nama staf yang dinilai" />
                   ) : (
-                    <select value={form.staffId} onChange={(e) => {
+                    <select aria-label="Nama staf yang dinilai" value={form.staffId} onChange={(e) => {
                       const staff = assignableStaff.find((item) => item.id === e.target.value)
                       setForm((current) => ({
                         ...current,
@@ -1282,7 +1288,7 @@ export default function OppeAuditWorkspace({
       {screen === 'rules' && (
         <section className="oppeGlass oppeSection">
           <div className="oppeSectionHead"><div><div className="oppeEyebrow">GOVERNANCE · MASTER MUTU AUREKA</div><h4>Pemetaan indikator ke OPPE individual</h4><p>Setiap indikator perlu ditetapkan apakah layak dinilai per individu, siapa profesi yang dinilai, field tanggung jawab dan metode hitung. Aturan baru tidak otomatis aktif.</p></div>{isSuperAdmin && <LiquidGlassButton onClick={() => { const roomId = roomFilter ?? initialRoom; setGapDraft({ title: '', professionLabel: '', roomId, measurementGrain: suggestedMeasurementGrain(profiles, roomId), targetText: '', targetOperator: '>=', targetValue: '', unitOfMeasure: 'Persentase (%)', numeratorDefinition: '', denominatorDefinition: '', responsibilityField: staffFieldOptions(roomId)[0] || '', notes: '' }); setError(''); setNotice('') }}>＋ Draf indikator yang belum ada</LiquidGlassButton>}</div>
-          <div className="oppeRuleToolbar"><input className="oppeLocalSearch" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari kode, indikator, unit, profesi…" /><span>{filteredProfiles.length} profil master · {rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length} aturan aktif pada hasil pemuatan</span></div>
+          <div className="oppeRuleToolbar"><input className="oppeLocalSearch" aria-label="Cari kode, indikator, unit, atau profesi pada aturan OPPE" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari kode, indikator, unit, profesi…" /><span>{filteredProfiles.length} profil master · {rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length} aturan aktif pada hasil pemuatan</span></div>
           <div className="oppeRuleList">{filteredProfiles.map((profile) => {
             const profileRules = rules.filter((item) => item.profile_id === String(profile.id))
               .sort((a, b) => a.profession_label.localeCompare(b.profession_label, 'id'))
@@ -1305,8 +1311,8 @@ export default function OppeAuditWorkspace({
               <div className="oppeRuleActions"><button type="button" className="oppeBtn" onClick={() => startRuleEdit(profile, null)}>＋ Tambah pemetaan</button></div>
             </article>
           })}{!filteredProfiles.length && <div className="oppeEmpty">Tidak ada profil pada filter ini.</div>}</div>
-          {ruleProfile && ruleDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) { setRuleProfile(null); setRuleDraft(null) } }}><section className="oppeModal" role="dialog" aria-modal="true" aria-label="Atur indikator OPPE">
-            <header className="oppeModalHeader"><div><div className="oppeEyebrow">ATURAN ATRIBUSI &amp; SKOR</div><h4>{ruleProfile.code} · {ruleProfile.title}</h4><p>{ruleDraft.ruleId ? 'Edit pemetaan profesi yang ada' : 'Tambah pemetaan profesi baru'} · {ruleProfile.unit_name} · target master: {ruleProfile.target_text || 'Belum ditentukan'}</p></div><button type="button" className="oppeClose" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>×</button></header>
+          {ruleProfile && ruleDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) { setRuleProfile(null); setRuleDraft(null) } }}><section ref={ruleDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-rule-dialog-title" tabIndex={-1}>
+            <header className="oppeModalHeader"><div><div className="oppeEyebrow">ATURAN ATRIBUSI &amp; SKOR</div><h4 id="oppe-rule-dialog-title">{ruleProfile.code} · {ruleProfile.title}</h4><p>{ruleDraft.ruleId ? 'Edit pemetaan profesi yang ada' : 'Tambah pemetaan profesi baru'} · {ruleProfile.unit_name} · target master: {ruleProfile.target_text || 'Belum ditentukan'}</p></div><button type="button" className="oppeClose" data-dialog-autofocus aria-label="Tutup pengaturan indikator OPPE" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>×</button></header>
             <div className="oppeModalBody">
               <label className="oppeCheck"><input type="checkbox" checked={ruleDraft.eligible} onChange={(e) => setRuleDraft((current) => current ? { ...current, eligible: e.target.checked } : current)} /><span><strong>Aktifkan untuk kalkulasi OPPE individual</strong><small>Centang hanya setelah memastikan bahwa indikator memang mengukur kinerja individu dan field tanggung jawab benar.</small></span></label>
               <div className="oppeFormGrid">
@@ -1321,8 +1327,8 @@ export default function OppeAuditWorkspace({
             </div>
             <footer className="oppeModalFooter"><button type="button" className="oppeBtn" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>Batal</button><LiquidGlassButton disabled={busy} onClick={() => void saveRule()}>{busy ? 'Menyimpan…' : 'Simpan pemetaan'}</LiquidGlassButton></footer>
           </section></div>}
-          {gapDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setGapDraft(null) }}><section className="oppeModal" role="dialog" aria-modal="true" aria-label="Tambah draf indikator OPPE">
-            <header className="oppeModalHeader"><div><div className="oppeEyebrow">MASTER INDIKATOR · DRAF KESENJANGAN</div><h4>Usulkan indikator profesional baru</h4><p>Draf tidak masuk kalkulasi sampai ditelaah, diterbitkan dan dipetakan.</p></div><button type="button" className="oppeClose" onClick={() => setGapDraft(null)}>×</button></header>
+          {gapDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setGapDraft(null) }}><section ref={gapDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-gap-dialog-title" tabIndex={-1}>
+            <header className="oppeModalHeader"><div><div className="oppeEyebrow">MASTER INDIKATOR · DRAF KESENJANGAN</div><h4 id="oppe-gap-dialog-title">Usulkan indikator profesional baru</h4><p>Draf tidak masuk kalkulasi sampai ditelaah, diterbitkan dan dipetakan.</p></div><button type="button" className="oppeClose" data-dialog-autofocus aria-label="Tutup draf indikator OPPE" onClick={() => setGapDraft(null)}>×</button></header>
             <div className="oppeModalBody"><div className="oppeFormGrid">
               <label className="oppeField"><span>Unit pemilik</span><select value={gapDraft.roomId} onChange={(e) => { const value = Number(e.target.value); setGapDraft((current) => current ? { ...current, roomId: value, measurementGrain: suggestedMeasurementGrain(profiles, value), responsibilityField: staffFieldOptions(value)[0] || '' } : current) }}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
               <label className="oppeField"><span>Profesi/SMF *</span><input value={gapDraft.professionLabel} onChange={(e) => setGapDraft((current) => current ? { ...current, professionLabel: e.target.value } : current)} placeholder="Contoh: Dokter Spesialis Anestesiologi" /></label>
@@ -1345,7 +1351,7 @@ export default function OppeAuditWorkspace({
       {screen === 'history' && (
         <section className="oppeGlass oppeSection">
           <div className="oppeSectionHead"><div><div className="oppeEyebrow">RIWAYAT &amp; OUTPUT</div><h4>Penilaian tersimpan</h4><p>Buka penilaian untuk melihat bukti, snapshot skor dan status validasi. Draf dapat dilanjutkan; penilaian tervalidasi hanya dapat dikoreksi melalui alur pembukaan kembali.</p></div></div>
-          <div className="oppeRuleToolbar"><input className="oppeLocalSearch" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="Cari nama, profesi, ID pegawai, evaluator…" /><span>{filteredAssessments.length} penilaian pada filter aktif</span><button type="button" className="oppeBtn" onClick={exportOppeListCsv} disabled={!filteredAssessments.length}>Ekspor daftar CSV</button></div>
+          <div className="oppeRuleToolbar"><input className="oppeLocalSearch" aria-label="Cari nama, profesi, atau evaluator pada riwayat OPPE" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="Cari nama, profesi, ID pegawai, evaluator…" /><span>{filteredAssessments.length} penilaian pada filter aktif</span><button type="button" className="oppeBtn" onClick={exportOppeListCsv} disabled={!filteredAssessments.length}>Ekspor daftar CSV</button></div>
           <div className="oppeRuleList">{filteredAssessments.map((assessment) => <article className="oppeRuleRow" key={assessment.id}><div className="oppeRuleTitle"><strong>{assessment.staff_name} · {assessment.profession}</strong><span>{roomMap.get(Number(assessment.room_id)) || 'Unit'} · {quarters.find((item) => item.value === Number(assessment.period_quarter))?.label} {assessment.period_year}</span><span className="oppeRuleDescription">Nilai: {fmtPct(asObject(assessment.score_json).overall)} · {asObject(assessment.score_json).category || 'Belum dinilai'} · Evaluator: {assessment.evaluator_name || '—'}</span></div><div className="oppeRuleActions"><span className={`oppeStatus ${statusTone[assessment.status] || 'oppeNeutral'}`}>{statusLabel[assessment.status] || assessment.status}</span><button type="button" className="oppeBtn" onClick={() => openSaved(assessment)}>Buka penilaian</button><button type="button" className="oppeBtn" onClick={() => exportOppePdf(assessment)}>Ekspor PDF</button><button type="button" className="oppeBtn" onClick={() => exportOppeJson(assessment)}>JSON</button></div></article>)}{!filteredAssessments.length && <div className="oppeEmpty">{loading ? 'Memuat riwayat…' : 'Belum ada penilaian tersimpan untuk periode ini. Gunakan Form & output OPPE untuk memulai draf.'}</div>}</div>
         </section>
       )}
