@@ -41,39 +41,25 @@ Only a Supabase publishable key (or legacy anon key where required) is allowed i
 
 ## 3. Dependency audit status
 
-Preview CI now uses `npm ci` and prints all dependency-audit findings with package, severity, range, fix status, and advisory metadata where available. Preview artifact generation is blocked by high or critical findings; moderate findings remain visible for triage.
+The first Phase 6 audit on the pre-remediation checkpoint reported four moderate package findings (`archiver`, `exceljs-hardened`, `minimatch`, and `readdir-glob`) and no high or critical findings. That is historical evidence, not the current dependency state.
 
-The audit output inspected on 3 November 2026 reported four moderate package nodes and zero high/critical nodes:
+The transitive `minimatch` finding (GHSA-g3hv-75wg-m249; affected versions below 11.0.1) was remediated in commit `f50bfa63f8186f9f1b2a5e3c166ad162956378c3`. The root `package.json` override now resolves the full path `exceljs-hardened > archiver > readdir-glob > minimatch` to `minimatch@11.0.1`. The generated lockfile is checked into the feature branch.
 
-- `archiver`
-- `exceljs-hardened`
-- `minimatch`
-- `readdir-glob`
+The new `.github/workflows/dependency-lock-validation.yml` workflow re-resolves the lockfile, runs `npm ci`, checks every resolved `minimatch` instance, and blocks moderate, high, or critical findings. It also runs unit/compatibility tests, data validation, and TypeScript checks. Run [41581882752](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41581882752) recorded **0 critical, 0 high, 0 moderate, 0 low, and 0 informational vulnerabilities**. The dependency tree showed the patched version on the actual transitive path.
 
-The identified `minimatch` advisory is GHSA-g3hv-75wg-m249, covering versions below 11.0.1. The installed lockfile resolves `minimatch` 10.2.6 and `readdir-glob` 3.0.0 declares `minimatch ^10.2.2`.
-
-No forced major-version override was applied: the existing parent dependency range and consuming API must be compatibility-tested before upgrading across a major version. This audit result does not by itself establish exploitability through AUREKA's actual application paths.
-
-The production Pages workflow now blocks on any moderate, high, or critical dependency-audit finding. This keeps a known moderate finding from passing into a future Pages release until it has been remediated or formally resolved and the lockfile is re-audited.
+`tests/minimatch-compat.test.mjs` checks the `Minimatch` options used by `readdir-glob` and verifies workbook-file enumeration using synthetic files. The production Pages workflow continues to block any moderate-or-higher audit finding. The earlier four moderate findings are therefore considered resolved in the currently validated lockfile; the audit must be rerun whenever dependencies change.
 
 ## 4. Automation executed
 
-The hardened preview workflow uses:
+The release workflows now use reproducible `npm ci` installation, explicit staging/production Supabase configuration, and severity-aware dependency gates. Preview builds block high/critical findings; the production Pages workflow blocks moderate/high/critical findings. The separate dependency-lock workflow blocks moderate-or-higher findings and is now guarded so it can run only on `feat/*` branches; this guard executes before checkout, preventing a manual dispatch on `main` from automatically writing a lockfile commit there.
 
-- `npm ci` for lockfile-based, reproducible dependency installation;
-- dependency audit output with severity-specific reporting;
-- all existing unit/regression tests;
-- AUREKA data/layout validation;
-- TypeScript type checking;
-- Next.js static export;
-- artifact upload with seven-day retention.
+Verified runs on 3 November 2026:
 
-The production Pages workflow uses the same reproducible install, the stricter dependency gate, and the explicit production Supabase configuration check before build/deploy.
+- [Dependency Lock Validation — 41581882752](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41581882752): patched `minimatch` path confirmed; **0 npm audit findings**; 187/187 tests passed; AUREKA data validation and TypeScript checks passed; the committed lockfile already matched the validated dependency tree.
+- [AUREKA unit, data & build validation — 41582031875](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41582031875): **188/188 tests passed**, 35 layouts and 35 unique units validated, TypeScript passed, and the Next.js optimized build/static page generation completed successfully.
+- [Preview Build Artifact — 41582027870](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41582027870): the 188 tests, data validation, and TypeScript checks passed. The run then stopped at the intended staging configuration gate because `AUREKA_STAGING_SUPABASE_URL` and `AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY` are not configured. Static artifact generation was skipped. This is an environment blocker, not a unit-test, data-validation, or type-check failure.
 
-The feature-branch CI run [41571392780](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41570910956) verified **185/185 tests passed**, the 35-layout/35-unit data validation passed, and TypeScript passed. The run then stopped at the intended staging configuration gate because the required staging URL/key were not configured; static build and artifact upload were skipped. This is an environment-configuration blocker, not a failing unit test or type check.
-
-Eight additional tests in `tests/release-workflows.test.mjs` now protect the staging/production variable separation, lockfile install, audit thresholds, validation-before-build ordering, and restriction of manual Pages deployment to `main`.
-
+The test suite now also includes a regression test that ensures dependency-lock automation rejects non-feature refs before checkout. No production deployment, Supabase data mutation, or browser-based staging acceptance has been performed.
 
 ## 5. Current Supabase staging and backup findings
 
@@ -111,10 +97,14 @@ Use no live patient identifiers, incident narratives, or production workbook rec
 
 ## 7. Release decision
 
-The branch contains deployment-safety hardening, but full staging/integration acceptance is not complete because no browser-accessible staging deployment and no independently verified Supabase backup were available during this validation. The latest preview build did not emit a deployable artifact because the dedicated staging Supabase values are not configured.
+Pull request [#94 — Feat/UI ux redesign](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/pull/94) remains open and unmerged. At this checkpoint it contains 123 commits across 46 changed files (+3,730/-216) and is 0 commits behind `main`. The size of this change set means a green CI run should not be treated as a substitute for functional review or staged acceptance.
+
+The dependency audit issue has been resolved and the automated unit/data/type/build checks now pass. Full staging/integration acceptance remains incomplete because no isolated browser-accessible staging environment is configured and Supabase backup/restore readiness has not been independently verified. The latest preview run therefore did not create a deployable artifact.
 
 Do not merge to `main` or deploy production until:
-1. Staging configuration is provided and isolated from production;
-2. Browser, role, and workbook import tests pass;
-3. The dependency findings are remediated and the production audit gate passes; and
-4. Supabase backup and restore readiness is independently verified.
+1. A dedicated staging Supabase environment and the two staging Actions values are configured and verified as non-production;
+2. A browser-accessible staging build is available and browser, role, route, and all 13 workbook-import acceptance checks pass;
+3. Supabase Database, Auth, and Storage backup/restore readiness is independently verified; and
+4. The full PR diff receives functional review, with no unintended changes to production data, permissions, or clinical workflows.
+
+No production data was changed, no Supabase branch was reset or rebased, no backup was claimed or verified, and no merge/deploy was performed.
