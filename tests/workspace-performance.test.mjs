@@ -110,3 +110,14 @@ test('Rawat Inap Anak and Rawat Inap Bedah workbook importers are room-scoped, l
   assert.match(source, /setSurgicalInpatientImportOpen\(true\)/)
   assert.match(source, /authorized=\{canImportWorkbook\}/)
 })
+
+test('Rawat Inap Penyakit Dalam workbook importer is room-scoped, lazy-loaded, and retains authorization guards', () => {
+  const source = read('components/QualityIndicatorWorkspace.tsx')
+  assert.match(source, /const PenyakitDalamInpatientExcelImportDialog=dynamic\(\(\)=>import\('@\/components\/PenyakitDalamInpatientExcelImportDialog'\)/)
+  assert.match(source, /loadedImportDialogs\.has\('penyakit-dalam-inpatient'\)&&<PenyakitDalamInpatientExcelImportDialog/)
+  assert.doesNotMatch(source, /^import PenyakitDalamInpatientExcelImportDialog from /m)
+  assert.match(source, /else if\(id===25\)openImportDialog\('penyakit-dalam-inpatient'\)/)
+  assert.match(source, /loadedImportDialogs\.has\('penyakit-dalam-inpatient'\)/)
+  assert.match(source, /authorized=\{canImportWorkbook\}/)
+  assert.match(source, /Number\(roomId\)===25/)
+})
