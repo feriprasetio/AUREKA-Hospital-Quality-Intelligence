@@ -1064,3 +1064,105 @@ body:has(.workspaceRoot) {
     transition-duration: .01ms !important;
   }
 }
+
+/* Public landing — final Solid Enterprise override for the unauthenticated experience. */
+.publicRoot.landing {
+  min-height:100vh;
+  color:var(--aureka-ink)!important;
+  background:var(--aureka-canvas)!important;
+  background-image:none!important;
+  font-family:"Aptos","Aptos Display","Segoe UI",Arial,sans-serif!important;
+}
+.publicRoot.landing *,
+.publicRoot.landing *::before,
+.publicRoot.landing *::after {font-family:inherit;text-shadow:none}
+.publicRoot .landingAura {display:none!important}
+.publicRoot .landingTopbar {
+  min-height:70px;color:var(--aureka-ink)!important;background:#fff!important;
+  border:0!important;border-bottom:1px solid var(--aureka-line)!important;
+  border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.publicRoot .brand b {color:var(--aureka-ink)!important;font-size:15px;font-weight:800!important;letter-spacing:.025em}
+.publicRoot .brand small {color:var(--aureka-muted)!important;font-size:10px}
+.publicRoot .landingGhost {
+  min-height:38px;padding:0 14px!important;color:#40584d!important;background:#fff!important;
+  border:1px solid var(--aureka-line-strong)!important;border-radius:8px!important;
+  box-shadow:none!important;font-size:12px!important;font-weight:650!important;
+}
+.publicRoot .landingGhost:hover {color:var(--aureka-green)!important;background:#f7faf8!important;border-color:#9dbfac!important;transform:none!important}
+.publicRoot .landingCta {
+  min-height:38px;padding:0 15px!important;color:#fff!important;background:var(--aureka-green)!important;
+  border:1px solid var(--aureka-green)!important;border-radius:8px!important;box-shadow:none!important;
+  font-size:12px!important;font-weight:700!important;
+}
+.publicRoot .landingCta:hover {color:#fff!important;background:var(--aureka-green-hover)!important;border-color:var(--aureka-green-hover)!important;transform:none!important;filter:none!important}
+.publicRoot .landingHero {
+  color:var(--aureka-ink)!important;background:#fff!important;background-image:none!important;
+  border:0!important;border-bottom:1px solid var(--aureka-line)!important;
+  border-radius:0!important;box-shadow:none!important;
+}
+.publicRoot .heroCopy h1 {color:var(--aureka-ink)!important;font-weight:820!important;letter-spacing:-.035em!important;line-height:1.08!important}
+.publicRoot .heroCopy h1 em {color:var(--aureka-green)!important;font-style:normal!important;font-weight:650!important}
+.publicRoot .heroCopy p {max-width:660px;color:var(--aureka-muted)!important;font-size:14px!important;line-height:1.7!important}
+.publicRoot .landingBadge {
+  display:inline-flex;align-items:center;gap:8px;color:#0d6848!important;
+  background:var(--aureka-green-soft)!important;border:1px solid #d8eade!important;
+  border-radius:999px!important;box-shadow:none!important;font-size:10px!important;font-weight:750!important;
+}
+.publicRoot .landingPulse {background:var(--aureka-green)!important;box-shadow:none!important}
+.publicRoot .landingModules {gap:12px!important}
+.publicRoot .landingModule {
+  min-width:0;color:var(--aureka-ink)!important;background:#fff!important;background-image:none!important;
+  border:1px solid var(--aureka-line)!important;border-radius:12px!important;box-shadow:var(--aureka-shadow-card)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  transition:border-color .14s ease,box-shadow .14s ease,transform .14s ease!important;
+}
+.publicRoot .landingModule:hover {
+  color:var(--aureka-ink)!important;background:#fff!important;border-color:#9dbfac!important;
+  box-shadow:0 7px 20px rgba(16,39,29,.08)!important;transform:translateY(-2px)!important;
+}
+.publicRoot .quickDockIcon {color:var(--aureka-green)!important;background:var(--aureka-green-soft)!important;border:1px solid #e0eee5!important;border-radius:10px!important;box-shadow:none!important}
+.publicRoot .landingModuleText b {color:var(--aureka-ink)!important;font-size:13px!important;font-weight:750!important}
+.publicRoot .landingModuleText small {color:var(--aureka-muted)!important;font-size:10px!important}
+.publicRoot .landingModuleArrow {color:#71847a!important}
+.publicRoot .overviewOverlay {background:rgba(17,33,25,.43)!important;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.publicRoot :is(.overviewModal,.landingModal,.publicMetricsPanel) {
+  color:var(--aureka-ink)!important;background:#fff!important;background-image:none!important;
+  border:1px solid var(--aureka-line)!important;border-radius:14px!important;
+  box-shadow:var(--aureka-shadow-float)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.publicRoot .landingModalHead {color:var(--aureka-ink)!important;border-bottom:1px solid var(--aureka-line)!important}
+.publicRoot .landingModalHead h2 {color:var(--aureka-ink)!important}
+.publicRoot .landingModalHead p {color:var(--aureka-muted)!important}
+.publicRoot .landingClose {color:#53675d!important;background:#fff!important;border:1px solid var(--aureka-line)!important;border-radius:8px!important;box-shadow:none!important}
+.publicRoot .landingClose:hover {color:var(--aureka-green)!important;background:#f5f9f6!important}
+.publicRoot .publicMetricsPanel {padding:18px!important;box-shadow:none!important}
+.publicRoot .publicMetricsHeading h3 {color:var(--aureka-ink)!important;font-size:17px!important;font-weight:750!important}
+.publicRoot .publicMetricKicker {color:var(--aureka-green)!important;font-size:9px!important;font-weight:850!important;letter-spacing:.095em!important}
+.publicRoot .publicAggregatePill {color:#0d6848!important;background:var(--aureka-green-soft)!important;border:1px solid #d8eade!important;border-radius:999px!important;font-size:10px!important;font-weight:700!important}
+.publicRoot .publicMonthlyChart {display:grid;align-items:end;gap:10px}
+.publicRoot .publicMonthlyPoint {min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px}
+.publicRoot :is(.publicChartValue,.publicChartLabel) {color:var(--aureka-muted)!important;font-size:10px!important}
+.publicRoot .publicChartTrack {width:min(100%,34px);height:138px;display:flex;align-items:flex-end;overflow:hidden;background:#edf3ef!important;border:1px solid #e4ece7!important;border-radius:999px!important}
+.publicRoot .publicChartBar {width:100%;min-height:0;background:var(--aureka-green)!important;border-radius:999px!important}
+.publicRoot .publicCategoryChart {display:grid;gap:12px}
+.publicRoot .publicCategoryPoint {min-width:0;display:grid;grid-template-columns:minmax(110px,.8fr) minmax(80px,2fr) auto;align-items:center;gap:12px}
+.publicRoot :is(.publicCategoryLabel,.publicCategoryPoint b) {color:var(--aureka-ink-2)!important;font-size:11px!important}
+.publicRoot .publicCategoryTrack {height:9px;overflow:hidden;background:#edf3ef!important;border-radius:999px!important}
+.publicRoot .publicCategoryBar {height:100%;background:var(--aureka-green)!important;border-radius:999px!important}
+.publicRoot .publicMetricsPrivacy {color:var(--aureka-muted)!important;background:#f8faf9!important;border:1px solid var(--aureka-line)!important;border-radius:8px!important;font-size:10px!important;line-height:1.55}
+.publicRoot .publicMetricsUpdated {color:#75857d!important;font-size:10px!important}
+.publicRoot .landingModalFoot {color:var(--aureka-muted)!important;border-top:1px solid var(--aureka-line)!important;font-size:10px!important;line-height:1.5}
+@media(max-width:720px) {
+  .publicRoot .landingTopbar {min-height:62px;padding:0 12px!important;gap:8px}
+  .publicRoot .landingTopActions {gap:7px!important}
+  .publicRoot .landingGhost,.publicRoot .landingCta {min-height:34px;padding:0 9px!important;font-size:10px!important}
+  .publicRoot .landingHero {padding:28px 16px!important}
+  .publicRoot .heroCopy h1 {font-size:clamp(28px,8vw,42px)!important}
+  .publicRoot .heroCopy p {font-size:12px!important}
+  .publicRoot .landingModules {grid-template-columns:minmax(0,1fr)!important}
+  .publicRoot .landingModule {width:100%;padding:12px!important}
+  .publicRoot .publicMetricsPanel {padding:12px!important}
+  .publicRoot .publicCategoryPoint {grid-template-columns:minmax(84px,.9fr) minmax(60px,1.5fr) auto;gap:8px}
+}

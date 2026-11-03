@@ -38,6 +38,11 @@ test('Solid Enterprise theme applies real shell, module, form, table and dialog 
     '.workspaceRoot .moduleEnter table',
     '.workspaceRoot :is(.workspaceNotificationPanel, .workspaceSupportPanel)',
     '.authPage .authCard',
+    '.publicRoot.landing',
+    '.publicRoot .landingTopbar',
+    '.publicRoot .landingHero',
+    '.publicRoot .landingModule',
+    '.publicRoot .publicMetricsPanel',
   ]
   for (const rule of requiredRules) {
     assert.ok(css.includes(rule), `Missing required visual rule: ${rule}`)
