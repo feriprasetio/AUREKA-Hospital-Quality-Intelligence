@@ -83,7 +83,7 @@ Added `tests/error-feedback.test.mjs` covering:
 
 ## 6. CI verification
 
-GitHub Actions run `41561367095` completed successfully for the implementation commit before this document was added.
+Final GitHub Actions run [`41561549537`](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41561549537) completed successfully for commit `8c2db6c699cd38299c9969b07d3936d68aff18c1`.
 
 | Automated check | Result |
 |---|---|
@@ -93,7 +93,7 @@ GitHub Actions run `41561367095` completed successfully for the implementation c
 | Next.js static production build | **Passed** |
 | Static export artifact | **Generated successfully** |
 
-Artifact: `aureka-static-export` (878,058 bytes).
+Artifact: `aureka-static-export` (878,067 bytes).
 
 This CI result verifies build and code-level contracts only. It does not prove that every runtime branch, screen-reader announcement, or retry interaction has been exercised in a real browser.
 
