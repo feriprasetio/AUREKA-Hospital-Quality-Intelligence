@@ -70,7 +70,22 @@ The hardened preview workflow uses:
 
 The production Pages workflow uses the same reproducible install, the stricter dependency gate, and the explicit production Supabase configuration check before build/deploy.
 
-## 5. Manual integration acceptance — still open
+
+## 5. Current Supabase staging and backup findings
+
+Read-only project inventory on 3 November 2026 found:
+
+- The AUREKA Supabase project is `ACTIVE_HEALTHY`.
+- The linked Supabase organization is on the **Free** plan.
+- No separate AUREKA staging project is listed.
+- The only listed development branch is named `main`, has `MIGRATIONS_FAILED`, and reports `with_data: false`; it is not an acceptable staging target and was not reset, rebased, or otherwise modified.
+- The preview workflow run for the feature branch stopped at the intended configuration guard because `AUREKA_STAGING_SUPABASE_URL` was not supplied. Tests, data validation, and TypeScript checks had already passed; the static build and artifact upload were skipped.
+
+Supabase's current documentation states that automatic daily database backups are provided for Pro, Team, and Enterprise plans, while Free projects should perform manual exports with the Supabase CLI and keep off-site backups. Database backups do **not** include objects stored through the Storage API. See [Supabase Database Backups](https://supabase.com/docs/guides/platform/backups) and [Free Plan Backups FAQ](https://supabase.com/kb/faqs/platform/free-plan-backups).
+
+No backup was initiated or verified from this environment. The available Supabase integration exposes project inventory and database/query operations but no backup listing/export or Storage object backup action. A successful database dump alone would still not prove that Storage objects and Auth recovery procedures are covered.
+
+## 6. Manual integration acceptance — still open
 
 Do not close these items based on CI alone:
 
@@ -89,7 +104,7 @@ Do not close these items based on CI alone:
 
 Use no live patient identifiers, incident narratives, or production workbook records in preview testing.
 
-## 6. Release decision
+## 7. Release decision
 
 The branch contains deployment-safety hardening, but full staging/integration acceptance is not complete because no browser-accessible staging deployment and no independently verified Supabase backup were available during this validation.
 
