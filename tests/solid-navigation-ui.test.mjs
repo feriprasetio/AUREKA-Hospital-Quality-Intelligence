@@ -90,3 +90,11 @@ test('Indonesian reporting period explains the calendar-to-date interval without
   assert.match(dashboard, /Tahun berjalan/)
   assert.doesNotMatch(dashboard, /· YTD/)
 })
+
+test('dashboard distinguishes an incomplete aggregate from unavailable source data', () => {
+  const dashboard = read('components/OverviewDashboard.tsx')
+  assert.match(dashboard, /error\.startsWith\('Rekap belum lengkap'\) \? 'Rekap belum lengkap'/)
+  assert.match(dashboard, /quality\.incomplete \? 'Rekap belum lengkap'/)
+  assert.match(dashboard, /incidents\.incomplete \? 'Rekap belum lengkap'/)
+  assert.match(dashboard, /risks\.incomplete \? 'Rekap belum lengkap'/)
+})

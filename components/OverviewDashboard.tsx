@@ -115,7 +115,10 @@ function Panel({ title, eyebrow, children, delay, action }: { title: string; eye
 }
 
 const SectionError = ({ error }: { error: string }) => (
-  <div className="ovEmpty"><b>Data belum dapat dimuat</b><span>{error}</span></div>
+  <div className="ovEmpty">
+    <b>{error.startsWith('Rekap belum lengkap') ? 'Rekap belum lengkap' : 'Data belum dapat dimuat'}</b>
+    <span>{error}</span>
+  </div>
 )
 
 export default function OverviewDashboard({
@@ -290,10 +293,10 @@ export default function OverviewDashboard({
 
       <>
       <div className="ovKpis">
-        <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
-        <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
-        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
-        <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
+        <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.incomplete ? 'Rekap belum lengkap' : quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
+        <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.incomplete ? 'Rekap belum lengkap' : incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
+        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.incomplete ? 'Rekap belum lengkap' : risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
+        <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.incomplete || clinicalPathway.incomplete ? 'Rekap belum lengkap' : quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
       </div>
 
       <div className="ovGrid">
