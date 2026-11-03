@@ -44,8 +44,11 @@ test('primary navigation uses one white surface rather than glossy menu cards', 
   assert.match(css, /scrollbar-width:\s*none/)
   assert.doesNotMatch(css, /backdrop-filter:\s*blur/)
   assert.doesNotMatch(css, /linear-gradient/)
-  assert.match(css, /sidebarNavGroup\\.isCurrent[\\s\\S]*?background: transparent !important/)
-  assert.match(css, /sidebarNavGroup:hover[\\s\\S]*?box-shadow: none !important/)
+  const legacyOverride = css.slice(css.indexOf('Defeat higher-specificity legacy hover/current cards'))
+  assert.ok(legacyOverride.includes('.sidebarNavGroup:hover,'))
+  assert.ok(legacyOverride.includes('.sidebarNavGroup.isCurrent {'))
+  assert.ok(legacyOverride.includes('background: transparent !important;'))
+  assert.ok(legacyOverride.includes('box-shadow: none !important;'))
 })
 
 test('nested sidebar menus expose expanded state and connected submenu controls', () => {
