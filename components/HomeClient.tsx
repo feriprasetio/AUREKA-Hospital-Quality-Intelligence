@@ -338,7 +338,8 @@ export default function HomeClient(){
  const triggerWorkspaceExport=()=>{
   const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
   const candidates=Array.from(root?.querySelectorAll<HTMLButtonElement>('button:not([disabled])')??[]).filter(button=>{
-   if(!button.getClientRects().length||button.closest('[aria-hidden="true"]'))return false
+   const style=window.getComputedStyle(button)
+   if(!button.getClientRects().length||style.display==='none'||style.visibility==='hidden'||button.closest('[aria-hidden="true"]'))return false
    const label=[button.innerText,button.getAttribute('aria-label'),button.getAttribute('title')].filter(Boolean).join(' ')
    return /\b(export|ekspor|download|unduh)\b/i.test(label)
   })
@@ -355,7 +356,8 @@ export default function HomeClient(){
  const focusWorkspaceUnitSelector=()=>{
   const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
   const candidates=Array.from(root?.querySelectorAll<HTMLSelectElement>('select:not([disabled])')??[]).filter(select=>{
-   if(!select.getClientRects().length||select.closest('[aria-hidden="true"]'))return false
+   const style=window.getComputedStyle(select)
+   if(!select.getClientRects().length||style.display==='none'||style.visibility==='hidden'||select.closest('[aria-hidden="true"]'))return false
    const labels=Array.from(select.labels??[]).map(label=>label.innerText)
    const text=[select.getAttribute('aria-label'),select.getAttribute('name'),select.id,select.closest('label')?.innerText,...labels].filter(Boolean).join(' ')
    return /\b(unit|ruang|ruangan|room)\b/i.test(text)
