@@ -594,10 +594,6 @@ export default function HomeClient(){
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
   <div className="sideHeader">
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
-   <button type="button" className="sidebarToggle" aria-label={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} title={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} aria-expanded={!sidebarCollapsed} onClick={()=>setSidebarCollapsed(v=>!v)}>
-    <svg viewBox="0 0 24 24" aria-hidden="true">{sidebarCollapsed?<path d="m9 5 7 7-7 7"/>:<path d="m15 5-7 7 7 7"/>}</svg>
-   </button>
-   <button type="button" className="mobileSidebarClose" data-sidebar-autofocus onClick={mobileSidebar.close} aria-label="Tutup navigasi" aria-controls="aureka-primary-sidebar">×</button>
   </div>
   <button type="button" className="sideProfile" title="Buka profil" onClick={()=>{openMainModule('settings');setProfileFocus(Date.now())}}>
    <span className="sideProfileAvatar">{initials(profile?.full_name||user?.email)}</span>
@@ -638,12 +634,12 @@ export default function HomeClient(){
  </aside>
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
-   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton" onClick={mobileSidebar.open} aria-label="Buka navigasi" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
    <div className="workspaceContext" title={(manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
     <strong>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>
     <span>{currentContainer}</span>
    </div>
    <div className="workspaceGlobalSearch">
+     <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={()=>{if(window.matchMedia('(max-width: 760px)').matches){mobileSidebar.open()}else{setSidebarCollapsed(value=>!value)}}} aria-label={mobileSidebar.isOpen?'Tutup navigasi':sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} title={mobileSidebar.isOpen?'Tutup navigasi':sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen||!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
     <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder="Cari data dalam modul ini…" aria-label="Cari catatan atau data yang sudah diinput"/>
     {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:null}
