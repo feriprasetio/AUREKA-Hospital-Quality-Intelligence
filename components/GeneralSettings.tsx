@@ -648,7 +648,7 @@ export default function GeneralSettings({
                   <p className="userDetailHint">Email baru berlaku setelah Anda klik link konfirmasi yang dikirim ke email tersebut.</p>
                 </div>
               </div>
-              {acctNote && <div className={`userRowNote ${acctNote.ok ? 'ok' : 'error'}`} style={{ marginTop: 10 }}>{acctNote.text}</div>}
+              {acctNote && <div className={`userRowNote ${acctNote.ok ? 'ok' : 'error'}`} role={acctNote.ok ? 'status' : 'alert'} aria-live={acctNote.ok ? 'polite' : 'assertive'} style={{ marginTop: 10 }}>{acctNote.text}</div>}
             </LiquidGlass>
           )}
 
@@ -888,7 +888,7 @@ export default function GeneralSettings({
                     ))}
                     </div>
                   </div>
-                  {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`}>{rowNote.text}</div>}
+                  {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'} aria-live={rowNote.ok ? 'polite' : 'assertive'}>{rowNote.text}</div>}
                   {detailId === u.user_id && (
                     <div className="userDetail">
                       <div className="userDetailCol">
