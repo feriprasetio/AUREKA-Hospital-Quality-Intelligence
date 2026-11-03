@@ -346,7 +346,7 @@ export default function StaffDirectoryWorkspace() {
             <p className="sdDesc">Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak digunakan sebagai identitas atau dasar penugasan AUREKA.</p>
           </div>
           <div className="sdActions">
-            <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => void importCsv(e.target.files?.[0])}/>
+            <input ref={fileRef} type="file" aria-label="Pilih file CSV direktori tenaga kerja" accept=".csv,text/csv" hidden onChange={(e) => void importCsv(e.target.files?.[0])}/>
             <button type="button" className="sdBtn" disabled={busy} onClick={() => fileRef.current?.click()}>Impor CSV</button>
             <button type="button" className="sdBtn" disabled={busy || loading} onClick={() => void load()}>↻ Segarkan</button>
           </div>
