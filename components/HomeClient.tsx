@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from 'react'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
-import {toUserFacingError} from '@/lib/aureka/error-feedback'
+import {sanitizeNotificationText,toUserFacingError} from '@/lib/aureka/error-feedback'
 import {type SupabaseClient} from '@supabase/supabase-js'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
@@ -344,7 +344,10 @@ export default function HomeClient(){
    if(!text)return
    const rawKind=String(detail?.kind??detail?.type??'').toLowerCase()
    const kind:WorkspaceNotification['kind']=rawKind==='error'||/\b(gagal|belum tersimpan|tidak dapat|kesalahan|wajib diisi|tidak diizinkan|periksa koneksi)\b/i.test(text)?'error':rawKind==='success'||/berhasil (disimpan|dihapus|diperbarui|dikirim)|tersimpan ke server/i.test(text)?'success':'info'
-   pushWorkspaceNotification(text,kind,detail?.module)
+   const safeText=kind==='error'
+    ? sanitizeNotificationText(text, `Operasi pada ${detail?.module||'AUREKA'} belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.`)
+    : text
+   pushWorkspaceNotification(safeText,kind,detail?.module)
   }
   window.addEventListener('aureka:notification',receive)
   return()=>window.removeEventListener('aureka:notification',receive)
