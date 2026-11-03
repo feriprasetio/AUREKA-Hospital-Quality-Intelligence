@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { toUserFacingError } from '@/lib/aureka/error-feedback'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
 
