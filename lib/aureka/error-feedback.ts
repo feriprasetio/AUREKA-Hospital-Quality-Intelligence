@@ -28,6 +28,7 @@ const TECHNICAL_OR_SENSITIVE = [
   /schema cache|postgrest|postgres(?:ql)?/i,
   /violates? (?:foreign key|unique|not[- ]null|check) constraint/i,
   /\b(?:insert into|update\s+\w+\s+set|select\s+.+\s+from|delete\s+from)\b/i,
+  /\baureka_[a-z0-9_]+\b/i,
   /https?:\/\/\S+/i,
   /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
 ]
