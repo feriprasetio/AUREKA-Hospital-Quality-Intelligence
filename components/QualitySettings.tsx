@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/aureka/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
 const sb = aurekaSupabase
@@ -88,7 +89,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       .order('code', { ascending: true })
     if (room) query = query.eq('room_id', Number(room))
     const { data, error } = await query
-    if (error) setMsg('Gagal memuat kamus indikator: ' + error.message)
+    if (error) setMsg('Gagal memuat kamus indikator: ' + toUserFacingError(error, { fallback: 'Kamus indikator belum dapat dimuat.' }))
     else setProfiles((data || []) as Model[])
 
     const { data: reviewData, error: reviewError } = await q()
@@ -155,7 +156,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
         throw new Error('Struktur instrumen harus berupa objek JSON.')
       }
     } catch (error) {
-      setMsg('Metadata belum tersimpan: ' + (error instanceof Error ? error.message : 'JSON tidak valid.'))
+      setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
       return
     }
     setSaving(true)
@@ -205,7 +206,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
         throw new Error('Struktur instrumen harus berupa objek JSON.')
       }
     } catch (error) {
-      setMsg('Metadata belum tersimpan: ' + (error instanceof Error ? error.message : 'JSON tidak valid.'))
+      setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
       return
     }
     setSaving(true)
@@ -238,7 +239,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       created_by: userResult.user.id,
       updated_by: userResult.user.id,
     })
-    if (error) setMsg('Indikator gagal ditambahkan: ' + error.message)
+    if (error) setMsg('Indikator gagal ditambahkan: ' + toUserFacingError(error, { fallback: 'Indikator belum dapat ditambahkan.' }))
     else {
       setNewOne(null)
       setMsg('Indikator berhasil ditambahkan ke kamus.')
@@ -260,7 +261,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
     const { error } = await q().from('indicator_profiles')
       .update({ status: 'retired', is_active: false, updated_by: userResult.user.id })
       .eq('id', profile.id)
-    if (error) setMsg('Indikator gagal dipensiunkan: ' + error.message)
+    if (error) setMsg('Indikator gagal dipensiunkan: ' + toUserFacingError(error, { fallback: 'Indikator belum dapat dipensiunkan.' }))
     else setMsg('Indikator dipensiunkan. Riwayat dan data capaian yang sudah ada tidak dihapus.')
     await load()
     setSaving(false)
@@ -279,7 +280,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       classified_at: new Date().toISOString(),
       classification_note: 'Diklasifikasikan oleh Superadmin',
     }).eq('id', id)
-    if (error) setMsg('Klasifikasi gagal disimpan: ' + error.message)
+    if (error) setMsg('Klasifikasi gagal disimpan: ' + toUserFacingError(error, { fallback: 'Klasifikasi belum dapat disimpan.' }))
     else {
       setMsg('Klasifikasi tersimpan.')
       await load()
