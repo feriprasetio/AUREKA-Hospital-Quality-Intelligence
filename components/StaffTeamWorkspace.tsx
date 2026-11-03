@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/aureka/error-feedback'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
 
@@ -84,7 +85,7 @@ export default function StaffTeamWorkspace({
       if (assignmentError) throw new Error('Daftar tim: ' + assignmentError.message)
       setAssignments((assignmentRows || []) as Assignment[])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal memuat daftar tim.')
+      setError(toUserFacingError(e, { fallback: 'Daftar tim belum dapat dimuat. Coba muat ulang.' }))
     } finally {
       setLoading(false)
     }
@@ -139,7 +140,7 @@ export default function StaffTeamWorkspace({
       setSelectedStaffId('')
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Penetapan tenaga ke tim gagal.')
+      setError(toUserFacingError(e, { fallback: 'Tenaga belum dapat ditetapkan ke tim.' }))
     } finally {
       setBusy(false)
     }
@@ -164,7 +165,7 @@ export default function StaffTeamWorkspace({
       setMessage(`${name} dilepaskan dari tim ${roomName}. Jejak perubahan tersimpan pada audit trail.`)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Pelepasan tenaga gagal.')
+      setError(toUserFacingError(e, { fallback: 'Tenaga belum dapat dilepaskan dari tim.' }))
     } finally {
       setBusy(false)
     }
