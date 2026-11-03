@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
 
@@ -138,6 +139,8 @@ export default function StaffDirectoryWorkspace() {
     setEditingStaff(null)
     setDraft(null)
   }
+
+  const editDialogRef = useAccessibleDialog<HTMLElement>({ open: Boolean(editingStaff && draft), onClose: closeEdit })
 
   const saveEdit = async () => {
     if (busy || !editingStaff || !draft) return
@@ -401,7 +404,7 @@ export default function StaffDirectoryWorkspace() {
 
       {editingStaff && draft && (
         <div className="sdEditBackdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEdit() }}>
-          <section className="sdEditDialog" role="dialog" aria-modal="true" aria-labelledby="sd-edit-title">
+          <section ref={editDialogRef} className="sdEditDialog" role="dialog" aria-modal="true" aria-labelledby="sd-edit-title" tabIndex={-1}>
             <div className="sdEditHeader">
               <div>
                 <div className="sdEyebrow">Metadata · Perubahan Terkendali</div>
@@ -411,7 +414,7 @@ export default function StaffDirectoryWorkspace() {
               <div className="sdCodeLock">{editingStaff.employee_code}<br/><span style={{fontSize:9,fontWeight:700}}>Kode identitas permanen</span></div>
             </div>
             <div className="sdEditGrid">
-              <label className="sdEditField full"><span>Nama lengkap untuk ditampilkan di AUREKA *</span><input value={draft.display_name} onChange={(e) => setDraft((current) => current ? {...current,display_name:e.target.value} : current)} /></label>
+              <label className="sdEditField full"><span>Nama lengkap untuk ditampilkan di AUREKA *</span><input data-dialog-autofocus value={draft.display_name} onChange={(e) => setDraft((current) => current ? {...current,display_name:e.target.value} : current)} /></label>
               <label className="sdEditField"><span>Nama dasar / kunci nama *</span><input value={draft.normalized_name} onChange={(e) => setDraft((current) => current ? {...current,normalized_name:e.target.value} : current)} /><p className="sdEditHelp">Isi nama dasar tanpa gelar. Kesamaan nama tidak otomatis berarti orang yang sama; gunakan kode AUREKA, profesi, dan sumber untuk membedakan identitas.</p></label>
               <label className="sdEditField"><span>Gelar / prefiks nama</span><input value={draft.name_prefix} onChange={(e) => setDraft((current) => current ? {...current,name_prefix:e.target.value} : current)} placeholder="Contoh: dr., Ns., Apt."/></label>
               <label className="sdEditField full"><span>Gelar / kualifikasi setelah nama</span><input value={draft.credentials} onChange={(e) => setDraft((current) => current ? {...current,credentials:e.target.value} : current)} placeholder="Contoh: S.Kep., Sp.P., M.Kes."/></label>
