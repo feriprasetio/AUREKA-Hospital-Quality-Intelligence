@@ -61,7 +61,7 @@ const CSS=`
 /* Audit Indikator Mutu — balanced enterprise workspace */
 .aqAuditWorkspace{gap:10px;min-width:0}
 .aqAuditWorkspace .aqFilters{padding:11px 13px;border-radius:13px;background:#fff;border-color:#e5ece7;box-shadow:0 1px 2px rgba(20,48,34,.035)}
-.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr) minmax(0,0fr);gap:10px;align-items:end}
+.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr);gap:10px;align-items:end}
 .aqAuditWorkspace .aqField.aqLocalSearch{display:none!important}
 .aqAuditWorkspace .aqField span{font-size:9px;font-weight:750;letter-spacing:.025em;color:#738178;margin-bottom:4px}
 .aqAuditWorkspace .aqField select,.aqAuditWorkspace .aqField input{height:38px;min-height:38px;padding:7px 10px;border:1px solid #e1e9e3;border-radius:9px;background:#fff;color:#26372d;font-size:12px;box-shadow:none}
@@ -127,6 +127,24 @@ const CSS=`
  .aqAuditWorkspace .aqEditorDialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}
  .aqAuditWorkspace .aqEditorDialog>.aqInlineEditor{max-height:calc(100dvh - 16px)}
 }
+
+
+/* Win against legacy workspace-wide density rules without changing other modules. */
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr)!important;gap:10px!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqField.aqLocalSearch{display:none!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:0!important;min-height:0!important;overflow:visible!important;white-space:normal!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div{display:flex!important;flex:0 1 auto!important;align-items:baseline!important;padding:3px 10px!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div span{display:inline!important;font-size:9px!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div strong{font-size:12px!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar .aqImportButton,.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar .aqAddButton{min-height:32px!important;font-size:10px!important;padding:6px 10px!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqTable .aqWrap{min-width:0!important;width:100%!important;overflow:auto!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqTable table.aqData{min-width:1050px!important;table-layout:auto!important}
+@media(max-width:760px){
+ .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar{flex-wrap:wrap!important;overflow:visible!important}
+ .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div{flex:1 1 28%!important}
+}
+@media(max-width:480px){.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:1fr!important}}
 
 `
 function ymd(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?0:d.getFullYear()}
