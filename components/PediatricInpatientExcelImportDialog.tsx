@@ -454,6 +454,7 @@ export default function PediatricInpatientExcelImportDialog({
       const sourceNoCounts = new Map<string, number>()
       const medicalRecordCounts = new Map<string, number>()
       const duplicateEpisodeCounts = new Map<string, number>()
+      let dataRows = 0
       let openEpisodes = 0
       let missingStuntingAnswers = 0
       let mappedResponsesCount = 0
@@ -462,6 +463,7 @@ export default function PediatricInpatientExcelImportDialog({
       for (let rowNumber = header.rowNumber + 1; rowNumber <= sheet.rowCount; rowNumber++) {
         const source = sheet.getRow(rowNumber)
         if (!rowHasData(source, header.indexes)) continue
+        dataRows++
 
         const value = (key: string) => {
           const index = header.indexes[key]
@@ -634,7 +636,7 @@ export default function PediatricInpatientExcelImportDialog({
 
       setFindings({
         sheetCount: workbook.worksheets.length,
-        dataRows: rows.length,
+        dataRows,
         validRows: prepared.length,
         dashboardCount,
         openEpisodes,
