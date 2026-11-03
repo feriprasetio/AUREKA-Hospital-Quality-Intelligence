@@ -18,6 +18,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Enforce production branch
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Production Pages deployment is restricted to refs/heads/main."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
 
