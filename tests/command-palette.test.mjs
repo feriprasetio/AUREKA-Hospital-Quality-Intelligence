@@ -31,7 +31,7 @@ test('Command Palette supports Ctrl+K and Command+K with arrow and Enter navigat
 test('Command Palette uses the shared dialog focus trap and Escape close behavior', () => {
   const palette = read('components/CommandPalette.tsx')
   const dialog = read('components/layout/useAccessibleDialog.ts')
-  assert.match(palette, /onClose: \(\) => setOpen\(false\)/)
+  assert.match(palette, /onClose: \(\) => \{[\s\S]*setOpen\(false\)[\s\S]*setQuery\(''\)[\s\S]*setActiveIndex\(0\)[\s\S]*onSearchChange\(''\)/)
   assert.match(dialog, /event\.key === 'Escape'/)
   assert.match(dialog, /event\.key !== 'Tab'/)
   assert.match(dialog, /previousFocus\?\.isConnected/)
