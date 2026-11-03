@@ -1,18 +1,20 @@
 # AUREKA UI/UX — Phase 1 Acceptance Checklist
 
 **Branch:** `feat/ui-ux-redesign`  
-**Status:** CI and manual testing pending / to be updated from verified results
+**Status:** Automated CI passed on 3 November 2026; manual browser/accessibility testing remains pending
 
 ## Automated validation
 
-- [ ] Unit and regression tests pass.
-- [ ] AUREKA master/layout data validation passes.
-- [ ] TypeScript check passes.
-- [ ] Next.js static export build passes.
-- [ ] Preview artifact is generated.
-- [ ] Git diff contains only the approved Phase 1 files and documentation.
-- [ ] `main` remains unchanged.
-- [ ] No changes to `lib/aureka/*.ts`, SQL migrations, RPC, Edge Functions, or Supabase data.
+- [x] Unit and regression tests pass.
+- [x] AUREKA master/layout data validation passes.
+- [x] TypeScript check passes.
+- [x] Next.js static export build passes.
+- [x] Preview artifact is generated.
+- [x] Git diff contains only the approved Phase 1 files and documentation.
+- [x] `main` remains unchanged.
+- [x] No changes to `lib/aureka/*.ts`, SQL migrations, RPC, Edge Functions, or Supabase data.
+
+Automated verification: GitHub Actions run `41557726436` completed successfully for commit `019e8e195e0caddcbd696dadb01367d5bd93b26c`. The preview artifact `aureka-static-export` was generated (870,515 bytes). This verifies tests, data validation, typecheck, and static export; it does not replace browser or screen-reader testing.
 
 ## Desktop and tablet
 
