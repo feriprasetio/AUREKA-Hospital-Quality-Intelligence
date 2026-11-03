@@ -24,7 +24,7 @@ import { getOutpatientDoctorsForClinic, summarizeOutpatientClinics, summarizeOut
 import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '@/lib/aureka/complaint-logbook'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
-import {toUserFacingError} from '@/lib/aureka/error-feedback'
+import {toUserFacingError} from '@/lib/ui/error-feedback'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Audit Klinis dan Kematian" compact/>})
