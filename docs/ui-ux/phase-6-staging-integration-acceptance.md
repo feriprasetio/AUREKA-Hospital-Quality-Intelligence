@@ -72,7 +72,7 @@ The production Pages workflow uses the same reproducible install, the stricter d
 
 The feature-branch CI run [41570910956](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41570910956) verified **184/184 tests passed**, the 35-layout/35-unit data validation passed, and TypeScript passed. The run then stopped at the intended staging configuration gate because the required staging URL/key were not configured; static build and artifact upload were skipped. This is an environment-configuration blocker, not a failing unit test or type check.
 
-Seven additional tests in `tests/release-workflows.test.mjs` now protect the staging/production variable separation, lockfile install, audit thresholds, and validation-before-build ordering.
+Eight additional tests in `tests/release-workflows.test.mjs` now protect the staging/production variable separation, lockfile install, audit thresholds, validation-before-build ordering, and restriction of manual Pages deployment to `main`.
 
 
 ## 5. Current Supabase staging and backup findings
