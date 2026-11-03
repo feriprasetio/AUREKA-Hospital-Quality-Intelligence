@@ -82,6 +82,7 @@ Read-only project inventory on 3 November 2026 found:
 - The AUREKA Supabase project is `ACTIVE_HEALTHY`.
 - The linked Supabase organization is on the **Free** plan.
 - No separate AUREKA staging project is listed.
+- The organization has two active Free-plan Supabase projects, which already reaches the Free plan's stated two-active-project limit. Creating a third isolated project therefore needs a plan/capacity decision; pausing an existing hospital project is not an acceptable shortcut. Supabase also lists database branching as unavailable on the Free plan ([current Supabase pricing](https://supabase.com/pricing)).
 - The only listed development branch is named `main`, has `MIGRATIONS_FAILED`, and reports `with_data: false`; it is not an acceptable staging target and was not reset, rebased, or otherwise modified.
 - The preview workflow run for the feature branch stopped at the intended configuration guard because `AUREKA_STAGING_SUPABASE_URL` was not supplied. Tests, data validation, and TypeScript checks had already passed; the static build and artifact upload were skipped.
 
