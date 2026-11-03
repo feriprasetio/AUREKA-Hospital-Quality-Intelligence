@@ -26,8 +26,8 @@ import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pha
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {toUserFacingError} from '@/lib/aureka/error-feedback'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
-const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Audit Klinis dan Kematian" compact/>})
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
+const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Audit Klinis dan Kematian" compact/>})
 
 const ComplaintExcelImportDialog=dynamic(()=>import('@/components/ComplaintExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Pengaduan" compact/>})
 const AmbulanceExcelImportDialog=dynamic(()=>import('@/components/AmbulanceExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Ambulans" compact/>})
