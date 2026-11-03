@@ -194,18 +194,9 @@ export default function HomeClient(){
  const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
   const groups:Record<string,SidebarChild[]> = {
    quality:[
-    {id:'audit-indicators',label:'Audit Indikator Mutu',children:[
-     {id:'result-indicators',label:'Hasil Capaian'},
-     {id:'logbook-indicators',label:'Form Logbook'},
-    ]},
-    {id:'audit-pathway',label:'Audit Clinical Pathway',children:[
-     {id:'result-pathway',label:'Hasil Capaian'},
-     {id:'logbook-pathway',label:'Form Logbook'},
-    ]},
-    {id:'audit-clinical-death',label:'Audit Klinis dan Kematian',children:[
-     {id:'result-clinical-death',label:'Hasil Capaian'},
-     {id:'logbook-clinical-death',label:'Form Logbook'},
-    ]},
+    {id:'audit-indicators',label:'Audit Indikator Mutu'},
+    {id:'audit-pathway',label:'Audit Clinical Pathway'},
+    {id:'audit-clinical-death',label:'Audit Klinis dan Kematian'},
    ],
    safety:[
     {id:'overview',label:'Ringkasan Keselamatan'},
@@ -245,6 +236,7 @@ export default function HomeClient(){
   if(active==='settings')return 'Administrasi'
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,staffArea,analyticsTab])
+ const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
  const openMainModule=(id:string,keepMenuOpen=false)=>{
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
   setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id)
@@ -280,7 +272,7 @@ export default function HomeClient(){
  }
  const selectedSidebarChild=(moduleId:string)=>{
   if(moduleId==='home')return ''
-  if(moduleId==='quality')return qualityResultsView?'result-'+qualityResultsView:clinicalPathwayOpen?'logbook-pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'logbook-clinical-death':'logbook-indicators'
+  if(moduleId==='quality')return qualityResultsView==='pathway'||clinicalPathwayOpen?'audit-pathway':qualityResultsView==='clinical-death'||qualityInitialContainer==='Audit Klinis dan Kematian'?'audit-clinical-death':'audit-indicators'
   if(moduleId==='safety')return safetyTab
   if(moduleId==='risk')return riskTab
   if(moduleId==='staff')return staffArea
@@ -719,6 +711,22 @@ export default function HomeClient(){
    </nav>
   </div>
   <div key={active+'-'+qualityOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
+   {active==='quality'&&<nav className="qualityWorkspaceTabs" aria-label="Tampilan audit mutu">
+    <button type="button" className={!qualityResultsView?'active':''} aria-pressed={!qualityResultsView} onClick={()=>{
+     const mode=selectedQualityMode
+     setQualityResultsView(null)
+     setClinicalPathwayOpen(mode==='pathway')
+     setQualityOpen(mode!=='pathway')
+     setQualityInitialContainer(mode==='clinical-death'?'Audit Klinis dan Kematian':'Audit Indikator Mutu')
+    }}>Form Logbook</button>
+    <button type="button" className={qualityResultsView?'active':''} aria-pressed={Boolean(qualityResultsView)} onClick={()=>{
+     const mode=selectedQualityMode
+     setQualityResultsView(mode)
+     setQualityOpen(false)
+     setClinicalPathwayOpen(false)
+     setQualityInitialContainer(mode==='clinical-death'?'Audit Klinis dan Kematian':'Audit Indikator Mutu')
+    }}>Hasil Capaian</button>
+   </nav>}
    {active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView} mode={qualityResultsView} initialRoomId={room?.id??null} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'}/>
    :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>selectSidebarChild('quality','logbook-pathway')}/>
