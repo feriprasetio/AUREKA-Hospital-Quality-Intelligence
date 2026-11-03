@@ -224,7 +224,7 @@ export default function StaffTeamWorkspace({
           <div className="stKpi"><span>Kandidat yang belum terkunci</span><strong>{directory.filter((row) => row.directory_status === 'available' && !row.already_locked_here).length.toLocaleString('id-ID')}</strong></div>
           <div className="stKpi"><span>Perlindungan identitas</span><strong>Aktif</strong></div>
         </div>
-        {message && <div className="stNotice" role="status">{message}</div>}
+        {message && <div className="stNotice" role="status" aria-live="polite">{message}</div>}
         {error && <div className="stError" role="alert">{error}</div>}
         {!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Metadata → Tenaga Kerja terlebih dahulu.</div>}
         {!loading && directory.length > 0 && availableToChoose.length === 0 && <div className="stNotice">Tidak ada kandidat yang cocok. Tenaga yang telah terkunci pada tim ini sudah tercatat di roster; tenaga yang terkunci pada unit lain sengaja tidak ditampilkan.</div>}
