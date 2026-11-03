@@ -936,7 +936,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    if(!patientOpen&&editorSnapshot.current)editorSnapshot.current=null
    const editorDirty=()=>!isValidator&&!!selected&&(String(selected.id).startsWith('LOCAL-')||editorSnapshot.current?.json!==editorJson(selected))
    const requestCloseEditor=()=>{if(busy)return;if(editorDirty())setConfirmCloseEditor(true);else setPatientOpen(false)}
-   const editorDialogRef=useAccessibleDialog<HTMLElement>({open:patientOpen&&!confirmCloseEditor,onClose:requestCloseEditor})
+   const editorDialogRef=useAccessibleDialog<HTMLDivElement>({open:patientOpen&&!confirmCloseEditor,onClose:requestCloseEditor})
    const closeConfirmDialogRef=useAccessibleDialog<HTMLElement>({open:confirmCloseEditor,onClose:()=>setConfirmCloseEditor(false)})
    const archiveConfirmDialogRef=useAccessibleDialog<HTMLElement>({open:Boolean(pendingArchive),onClose:()=>{if(!busy)setPendingArchive(null)}})
    const unitPickerDialogRef=useAccessibleDialog<HTMLElement>({open:unitPickerOpen,onClose:()=>setUnitPickerOpen(false)})
