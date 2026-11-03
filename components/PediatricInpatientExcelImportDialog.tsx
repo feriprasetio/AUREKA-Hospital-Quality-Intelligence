@@ -43,6 +43,7 @@ type PreparedRow = {
   weight: number | null
   height: number | null
   birthDate: string | null
+  sourceBirthDateText: string
   ageText: string
   sourceLos: string
   computedLos: number | null
@@ -163,12 +164,14 @@ function normalizedIdentity(value: string): string {
   return value.normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase('id-ID')
 }
 
-function duplicateEpisodeKey(row: PreparedRow): string {
+function duplicateEpisodeKey(row: PreparedRow): string | null {
+  // Do not call episodes exact duplicates when discharge date or diagnosis is missing.
+  if (!row.dischargeDate || !row.diagnosis?.trim()) return null
   return [
     normalizedIdentity(row.medicalRecordNo),
     row.admissionDate,
-    row.dischargeDate ?? '',
-    normalizedIdentity(row.diagnosis ?? ''),
+    row.dischargeDate,
+    normalizedIdentity(row.diagnosis),
   ].join('|')
 }
 
@@ -277,6 +280,7 @@ function preparePayload(
     source_only_fields: sourceOnlyFields,
     source_cached_los: row.sourceLos,
     source_age_text: row.ageText,
+    source_birth_date: row.sourceBirthDateText,
     source_warnings: row.warnings,
     idempotency_basis: 'room_year_source_excel_row',
   }
@@ -293,6 +297,7 @@ function preparePayload(
     'Berat Badan': row.weight,
     'Tinggi Badan': row.height,
     'Tanggal Lahir': row.birthDate,
+    'Tanggal Lahir Sumber': row.sourceBirthDateText,
     'Umur (Rumus)': row.ageText,
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
@@ -481,6 +486,7 @@ export default function PediatricInpatientExcelImportDialog({
         const rawDischarge = rawValue('dischargeDate')
         const dischargeDate = rawDischarge === '' || rawDischarge == null ? null : normalizePediatricDate(rawDischarge)
         const rawBirthDate = rawValue('birthDate')
+        const sourceBirthDateText = value('birthDate')
         const birthDate = rawBirthDate === '' || rawBirthDate == null ? null : normalizePediatricDate(rawBirthDate)
         const diagnosis = value('diagnosis') || null
         const patientCategory = value('patientCategory')
@@ -568,6 +574,7 @@ export default function PediatricInpatientExcelImportDialog({
           weight,
           height,
           birthDate,
+          sourceBirthDateText,
           ageText,
           sourceLos,
           computedLos,
@@ -612,18 +619,23 @@ export default function PediatricInpatientExcelImportDialog({
           }
           row.warnings.push('No. Rekam Medis muncul pada beberapa episode; baris tidak digabung dan perlu verifikasi.')
         }
-        duplicateEpisodeCounts.set(duplicateEpisodeKey(row), (duplicateEpisodeCounts.get(duplicateEpisodeKey(row)) ?? 0) + 1)
+        const episodeKey = duplicateEpisodeKey(row)
+        if (episodeKey) {
+          duplicateEpisodeCounts.set(episodeKey, (duplicateEpisodeCounts.get(episodeKey) ?? 0) + 1)
+        }
       }
 
       for (const row of prepared) {
-        const duplicateCount = duplicateEpisodeCounts.get(duplicateEpisodeKey(row)) ?? 0
+        const episodeKey = duplicateEpisodeKey(row)
+        if (!episodeKey) continue
+        const duplicateCount = duplicateEpisodeCounts.get(episodeKey) ?? 0
         if (duplicateCount > 1) {
-          const first = prepared.find(candidate => duplicateEpisodeKey(candidate) === duplicateEpisodeKey(row))
+          const first = prepared.find(candidate => duplicateEpisodeKey(candidate) === episodeKey)
           if (first?.sourceRow === row.sourceRow) {
             duplicateEpisodeGroups++
             duplicateEpisodeRows += duplicateCount
           }
-          row.warnings.push('No. RM, Tanggal Masuk, Tanggal Keluar, dan diagnosis identik dengan episode lain; baris dipertahankan untuk verifikasi.')
+          row.warnings.push('No. RM, Tanggal Masuk, Tanggal Keluar, dan diagnosis lengkap identik dengan episode lain; baris dipertahankan untuk verifikasi.')
         }
       }
 
