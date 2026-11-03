@@ -6,17 +6,17 @@
 
 ## Executive status
 
-Implementation for phases 0–5 is present on the feature branch. Phase 6 deployment/release safeguards are implemented, but staging and full acceptance remain incomplete. Do not describe the redesign as fully accepted or production-ready.
+Implementation for phases 0–5 is present on the feature branch, and the visual theme is now actually applied through `app/aureka-solid-enterprise.css`, loaded after the existing stylesheets. The Solid Enterprise layer covers the app shell, authentication, dashboard, quality indicators, patient safety, risk, clinical pathway, OPPE/FPPE, quality results, clinical death audit, workforce/settings, tables, forms, and dialogs. Phase 6 deployment/release safeguards are implemented, but isolated staging and full browser acceptance remain incomplete. Do not describe the redesign as fully accepted or production-ready.
 
 ## GitHub state
 
 - PR #94 is open, unmerged, and not deployed to production.
-- Last observed PR head: `c100f43e768af55a1f58fc19724f4c779925caa0`.
+- Last observed PR head: `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`.
 - Last observed PR base: `6d3dbf6ae42a4bc1a35703269c33b280df16daf3`.
-- Compare: 143 commits ahead, 0 behind; 46 changed files.
-- Last code-bearing checkpoint: `6304be2deff9a74afdd73745c0f1b87009695bd3`.
-- Code checkpoint CI: [AUREKA unit/data/build 41586465407](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41586465407) and [Patient Safety Build Check 41586465402](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41586465402), both success.
-- The later commits only reconcile acceptance/handover documentation and update this status file.
+- Compare: 149 commits ahead, 0 behind; 49 changed files.
+- Latest verified code-bearing checkpoint: `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`.
+- Latest code checkpoint CI: [AUREKA unit/data/build 41589035952](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589035952) and [Patient Safety Build Check 41589036002](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589036002), both success. The AUREKA run passed 191/191 unit/regression tests, data validation, TypeScript, and Next.js build.
+- Subsequent visual implementation commits add the final cascade stylesheet and regression coverage. The current diff still has no paths under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`.
 - The current PR diff was checked: no changed files under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`.
 - PR reviews/approvals had not been submitted at the last check. Functional review of the full 46-file diff is still required.
 
@@ -27,13 +27,15 @@ Implementation for phases 0–5 is present on the feature branch. Phase 6 deploy
 3. Reconciled Phase 0 acceptance documentation with verified CI and preserved manual/browser/backup checks as open.
 4. Added current Supabase inventory and branch/CI state to Phase 6 acceptance documentation.
 5. Updated PR #94 title and body to accurately describe implementation, automated evidence, remaining blockers, and protected release conditions.
+6. Implemented the actual Solid Enterprise visual layer in `app/aureka-solid-enterprise.css` and loaded it last in `app/layout.tsx`, rather than leaving the design as unused tokens. Includes Aptos typography, white/solid surfaces, green interaction states, cleaner navigation/topbar, dashboard cards, consistent specialty-workspace panels/actions/tabs, form controls, tables, modals, and responsive finishing.
+7. Added `tests/solid-enterprise-theme.test.mjs` to guard cascade order, cross-workspace styling families, risk-scale token retention, and presentation-only scope.
 6. Prepared a Windows PowerShell backup kit locally. It is not committed to GitHub and has not been run on the owner’s PC.
 
 ## Phase status
 
 | Phase | Implementation | Automated verification | Manual acceptance |
 |---|---|---|---|
-| 0 — design system | Present | Tests/type/data/build pass on code checkpoint | Browser/native controls, CSS cascade, visual checks and backup remain |
+| 0 — design system | Tokens and applied Solid Enterprise theme present | 191/191 tests, data, TypeScript and Next.js build pass | Browser/native controls, visual checks and backup remain |
 | 1 — layout/responsive | Present | CI pass | Desktop/tablet/mobile, keyboard, role and route checks pending |
 | 2 — accessibility | Present | Regression tests pass | Keyboard-only, NVDA/screen reader, focus behavior and dialog audit pending |
 | 3 — error handling | Present | Regression tests pass | Failure simulation, session expiry, save safety and permissions pending |
@@ -67,7 +69,7 @@ A local kit was created for Windows:
 
 ## Staging blocker
 
-The workflow expects these GitHub Actions variables/secrets to point to an isolated non-production Supabase project:
+The latest preview workflow [41589030215](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589030215) correctly stopped at the staging configuration gate because `AUREKA_STAGING_SUPABASE_URL` is not set (and the publishable key is also not supplied). The workflow expects these GitHub Actions variables/secrets to point to an isolated non-production Supabase project:
 - `AUREKA_STAGING_SUPABASE_URL`
 - `AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY`
 
