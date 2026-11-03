@@ -6,7 +6,7 @@ import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
-import { toUserFacingError } from '@/lib/aureka/error-feedback'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
