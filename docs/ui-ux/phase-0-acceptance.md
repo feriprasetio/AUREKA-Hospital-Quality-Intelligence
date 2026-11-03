@@ -41,7 +41,7 @@
 
 ## Latest automated verification — 3 November 2026
 
-- [x] PR #94 head `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`: 191/191 unit/regression tests, data validation, TypeScript, and Next.js build all passed in GitHub Actions run [41589035952](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589035952).
+- [x] Latest code-bearing checkpoint `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`: 191/191 unit/regression tests, data validation, TypeScript, and Next.js build all passed in GitHub Actions run [41589035952](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589035952).
 - [x] Patient Safety Build Check passed in run [41589036002](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589036002).
 - [x] The current PR diff has no paths under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`. UI feedback helper is isolated under `lib/ui/`.
 - [ ] Lint is not configured as a package script and has not been run.

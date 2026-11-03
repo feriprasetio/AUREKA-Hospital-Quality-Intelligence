@@ -11,9 +11,9 @@ Implementation for phases 0–5 is present on the feature branch, and the visual
 ## GitHub state
 
 - PR #94 is open, unmerged, and not deployed to production.
-- Last observed PR head: `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`.
+- PR head is tracked live in [#94](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/pull/94); the latest code-bearing checkpoint is listed below.
 - Last observed PR base: `6d3dbf6ae42a4bc1a35703269c33b280df16daf3`.
-- Compare: 149 commits ahead, 0 behind; 49 changed files.
+- The feature branch remains ahead of `main` with no base divergence; consult the live PR for current commit and changed-file totals.
 - Latest verified code-bearing checkpoint: `ea519993e4a8f19077fed6ebd750d1cfe08e8c59`.
 - Latest code checkpoint CI: [AUREKA unit/data/build 41589035952](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589035952) and [Patient Safety Build Check 41589036002](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41589036002), both success. The AUREKA run passed 191/191 unit/regression tests, data validation, TypeScript, and Next.js build.
 - Subsequent visual implementation commits add the final cascade stylesheet and regression coverage. The current diff still has no paths under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`.
