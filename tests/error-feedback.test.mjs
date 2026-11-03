@@ -48,6 +48,10 @@ test('sanitizes legacy notification text without changing safe operator guidance
     'Operasi belum berhasil.',
   )
   assert.equal(
+    sanitizeNotificationText('Gagal: invalid schema aureka_patient_safety', 'Operasi belum berhasil.'),
+    'Operasi belum berhasil.',
+  )
+  assert.equal(
     sanitizeNotificationText('Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.', 'Operasi belum berhasil.'),
     'Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.',
   )
