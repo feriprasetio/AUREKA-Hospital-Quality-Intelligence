@@ -366,7 +366,7 @@ export default function StaffDirectoryWorkspace() {
             <option value="all">Semua kelompok profesi</option>{groups.map((group) => <option key={group} value={group}>{group}</option>)}
           </select>
         </div>
-        {message && <div className="sdNotice" role="status">{message}</div>}
+        {message && <div className="sdNotice" role="status" aria-live="polite">{message}</div>}
         {error && <div className="sdError" role="alert">{error}</div>}
       </div>
 
