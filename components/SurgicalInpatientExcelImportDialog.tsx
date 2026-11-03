@@ -524,7 +524,7 @@ export default function SurgicalInpatientExcelImportDialog({
             mappedResponsesCount++
             if (answer.mappingStatus === 'mapped_existing_master') aliasMappedResponsesCount++
             if (answer.mappingStatus !== 'mapped_pending_classification' && answer.mappingStatus !== 'mapped_existing_master') {
-              rowWarnings.push(item.code + ' ' + item.header + ': nilai sumber perlu telaah (' + answer.mappingStatus + ').')
+              rowIssues.push(item.code + ' ' + item.header + ': nilai sumber tidak cocok secara unik dengan master (' + answer.mappingStatus + ').')
             }
           }
         }
