@@ -37,7 +37,12 @@ export default function CommandPalette({
   const listId = useId()
   const dialogRef = useAccessibleDialog<HTMLDivElement>({
     open,
-    onClose: () => setOpen(false),
+    onClose: () => {
+      setOpen(false)
+      setQuery('')
+      setActiveIndex(0)
+      onSearchChange('')
+    },
   })
 
   const openPalette = () => {
