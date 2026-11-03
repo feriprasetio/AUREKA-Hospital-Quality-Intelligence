@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { toUserFacingError } from '@/lib/aureka/error-feedback'
 import FppeEvaluationWorkspace from '@/components/FppeEvaluationWorkspace'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
@@ -347,7 +348,7 @@ export default function OppeAuditWorkspace({
       setTeamStaff(nextTeamStaff)
       setAssessments(nextAssessments)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Data OPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Data OPPE gagal dimuat. Coba muat ulang.' }))
     } finally {
       setLoading(false)
     }
@@ -365,7 +366,7 @@ export default function OppeAuditWorkspace({
       if (error) throw error
       setAssessmentEvents((data || []) as Record<string, any>[])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Riwayat proses OPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Riwayat proses OPPE gagal dimuat.' }))
     } finally {
       setEventsLoading(false)
     }
@@ -756,7 +757,7 @@ export default function OppeAuditWorkspace({
       await load()
       if (savedId) await loadAssessmentEvents(savedId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'OPPE gagal disimpan.')
+      setError(toUserFacingError(err, { fallback: 'Penilaian OPPE belum dapat disimpan.' }))
     } finally {
       setBusy(false)
     }
@@ -883,7 +884,7 @@ export default function OppeAuditWorkspace({
       setNotice('Pemetaan indikator OPPE berhasil disimpan. Skor hanya dihitung dari logbook tervalidasi yang memiliki atribusi sesuai aturan ini.')
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Pemetaan OPPE gagal disimpan.')
+      setError(toUserFacingError(err, { fallback: 'Pemetaan OPPE belum dapat disimpan.' }))
     } finally {
       setBusy(false)
     }
@@ -969,7 +970,7 @@ export default function OppeAuditWorkspace({
       setNotice('Draf indikator OPPE masuk ke master AUREKA dengan status draft/nonaktif. Setelah definisi ditelaah dan profil diterbitkan melalui Metadata, pemetaan dapat diaktifkan di tab Pemetaan indikator.')
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Draf indikator baru gagal dibuat.')
+      setError(toUserFacingError(err, { fallback: 'Draf indikator baru belum dapat dibuat.' }))
     } finally {
       setBusy(false)
     }
