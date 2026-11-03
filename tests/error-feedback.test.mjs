@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { toUserFacingError } from '../lib/aureka/error-feedback.ts'
+import { sanitizeNotificationText, toUserFacingError } from '../lib/aureka/error-feedback.ts'
 import { readFileSync } from 'node:fs'
 
 test('maps common Supabase/PostgreSQL codes to safe Indonesian guidance', () => {
@@ -40,4 +40,14 @@ test('async state panel exposes loading, empty, and error semantics with retry',
   assert.match(source, /aria-busy=\{isLoading \|\| retrying\}/)
   assert.match(source, /onClick=\{onRetry\}/)
   assert.match(source, /prefers-reduced-motion/)
+})
+test('sanitizes legacy notification text without changing safe operator guidance', () => {
+  assert.equal(
+    sanitizeNotificationText('Gagal menyimpan: permission denied for schema aureka_quality', 'Operasi belum berhasil.'),
+    'Operasi belum berhasil.',
+  )
+  assert.equal(
+    sanitizeNotificationText('Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.', 'Operasi belum berhasil.'),
+    'Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.',
+  )
 })
