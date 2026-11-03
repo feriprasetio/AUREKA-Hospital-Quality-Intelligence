@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { toUserFacingError } from '@/lib/aureka/error-feedback'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
 const sb = aurekaSupabase
