@@ -23,7 +23,7 @@ const CODE_MESSAGES: Record<string, string> = {
 const TECHNICAL_OR_SENSITIVE = [
   /\b(?:PGRST|SQLSTATE)[0-9A-Z]+\b/i,
   /row[- ]level security|\bRLS\b/i,
-  /permission denied for (?:schema|table|relation|function)/i,
+  /permission denied(?: for (?:schema|table|relation|function))?/i,
   /relation .+ does not exist|column .+ does not exist|function .+ does not exist/i,
   /schema cache|postgrest|postgres(?:ql)?/i,
   /violates? (?:foreign key|unique|not[- ]null|check) constraint/i,
