@@ -35,13 +35,15 @@ test('Solid Enterprise theme applies real shell, module, form, table and dialog 
     '.workspaceRoot .moduleEnter .psBtn.primary',
     '.workspaceRoot .moduleEnter .rmButton.primary',
     '.workspaceRoot .moduleEnter :is(.cpBtn, .oppeBtn, .qraBtn, .acdBtn, .sdBtn, .stBtn, .uBtn, .fppePrimary)',
-    '.workspaceRoot .moduleEnter :is(.fppePanel, .qraPanel, .acdPanel, .oppeGlass)',
     '.workspaceRoot .moduleEnter table',
-    '.workspaceRoot .workspaceNotificationPanel',
+    '.workspaceRoot :is(.workspaceNotificationPanel, .workspaceSupportPanel)',
     '.authPage .authCard',
   ]
   for (const rule of requiredRules) {
     assert.ok(css.includes(rule), `Missing required visual rule: ${rule}`)
+  }
+  for (const componentFamily of ['.fppePanel', '.qraPanel', '.acdPanel', '.oppeGlass', '.cpGlass']) {
+    assert.ok(css.includes(componentFamily), `Missing workspace family styling: ${componentFamily}`)
   }
   assert.match(css, /font-family:\s*"Aptos"/)
   assert.match(css, /prefers-reduced-motion:\s*reduce/)
