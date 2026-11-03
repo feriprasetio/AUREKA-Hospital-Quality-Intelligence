@@ -2,7 +2,8 @@
 import {useEffect,useMemo,useState} from 'react'
 import dynamic from 'next/dynamic'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
-import CommandPalette, {type CommandPaletteItem} from '@/components/CommandPalette'
+import type {CommandPaletteItem} from '@/components/CommandPalette'
+const CommandPalette=dynamic(()=>import('@/components/CommandPalette'),{ssr:false})
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import {sanitizeNotificationText,toUserFacingError} from '@/lib/aureka/error-feedback'
 import {type SupabaseClient} from '@supabase/supabase-js'
