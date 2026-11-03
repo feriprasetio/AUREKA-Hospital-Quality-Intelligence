@@ -22,6 +22,7 @@ import { getOutpatientDoctorsForClinic, summarizeOutpatientClinics, summarizeOut
 import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResponses } from '@/lib/aureka/complaint-logbook'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
+import {toUserFacingError} from '@/lib/aureka/error-feedback'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import ClinicalDeathAuditWorkspace from '@/components/ClinicalDeathAuditWorkspace'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
@@ -585,7 +586,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setPatients([])
      setProfiles([])
      setSource('Supabase tidak tersedia')
-     setMessage(`Data tidak dapat dimuat dari server. Tidak ada draf pasien yang dipulihkan dari browser. ${e instanceof Error?e.message:''}`.trim())
+     setMessage(`Data tidak dapat dimuat dari server. Tidak ada draf pasien yang dipulihkan dari browser. ${toUserFacingError(e,{fallback:'Periksa koneksi dan hak akses, lalu coba kembali.'})}`.trim())
    }finally{setBusy(false)}
  },[roomId,roomMap,year])
 
@@ -766,7 +767,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      backend=true
    }catch(e){
      setSource('Supabase')
-     setMessage(`Belum tersimpan ke server. Periksa koneksi dan isi formulir; draf tetap terbuka dan hanya berada di memori sampai penyimpanan berhasil. ${e instanceof Error?e.message:''}`.trim())
+     setMessage(`Belum tersimpan ke server. Periksa koneksi dan isi formulir; draf tetap terbuka dan hanya berada di memori sampai penyimpanan berhasil. ${toUserFacingError(e,{fallback:'Periksa koneksi dan hak akses, lalu coba kembali.'})}`.trim())
      setBusy(false)
      return
    }
@@ -858,7 +859,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   const loadMonthlyReview=useCallback(async()=>{
     if(!isValidator||roomId==null){setMonthlyReview(null);return}
     const {data,error}=await q().rpc('aureka_quality_month_review_status',{p_room_id:roomId,p_year:year,p_month:reviewMonth})
-    if(error){setMonthlyReview(null);setMessage(`Ringkasan pemeriksaan bulanan belum dapat dimuat: ${error.message}`);return}
+    if(error){setMonthlyReview(null);setMessage(`Ringkasan pemeriksaan bulanan belum dapat dimuat: ${toUserFacingError(error,{fallback:'Ringkasan pemeriksaan bulanan belum dapat dimuat.'})}`);return}
     setMonthlyReview(data??null)
   },[isValidator,roomId,year,reviewMonth])
   useEffect(()=>{void loadMonthlyReview()},[loadMonthlyReview,patients])
@@ -866,7 +867,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
     if(!isValidator||roomId==null||monthlyReviewBusy)return
     setMonthlyReviewBusy(true);setMessage('')
     const {data,error}=await q().rpc('aureka_validator_review_quality_month',{p_room_id:roomId,p_year:year,p_month:reviewMonth})
-    if(error){setMessage(`Pemeriksaan bulanan gagal disimpan: ${error.message}`);setMonthlyReviewBusy(false);return}
+    if(error){setMessage(`Pemeriksaan bulanan gagal disimpan: ${toUserFacingError(error,{fallback:'Pemeriksaan bulanan belum dapat disimpan.'})}`);setMonthlyReviewBusy(false);return}
     setMonthlyReview({...data,reviewed:true,is_current:true})
     setMessage('Pemeriksaan bulanan berhasil dicatat. Tanggal dan waktu validasi tersimpan.')
     setMonthlyReviewBusy(false)
