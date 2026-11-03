@@ -130,6 +130,8 @@ export default function CommandPalette({
         type="button"
         className="commandPaletteTrigger"
         aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls="aureka-command-dialog"
         aria-label="Buka Command Palette"
         aria-keyshortcuts="Control+K Meta+K"
         onClick={openPalette}
@@ -138,7 +140,7 @@ export default function CommandPalette({
           <path d="M9 6 5 12l4 6M15 6l4 6-4 6M13.5 4 10.5 20" />
         </svg>
         <span>Perintah &amp; navigasi</span>
-        <kbd>Ctrl K</kbd>
+        <kbd>Ctrl / ⌘ K</kbd>
       </button>
 
       {open ? (
@@ -146,6 +148,7 @@ export default function CommandPalette({
           <div
             ref={dialogRef}
             className="commandPaletteDialog"
+            id="aureka-command-dialog"
             role="dialog"
             aria-modal="true"
             aria-labelledby="aureka-command-title"
