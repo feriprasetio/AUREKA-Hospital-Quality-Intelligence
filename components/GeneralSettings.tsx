@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { toUserFacingError } from '@/lib/aureka/error-feedback'
+import { sanitizeNotificationText, toUserFacingError } from '@/lib/aureka/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
 const sb = aurekaSupabase
@@ -224,7 +224,7 @@ export default function GeneralSettings({
       const t = error.message || ''
       setMsg(/DUPLICATE_ROOM/.test(t) ? 'Gagal: nama atau kode unit sudah dipakai unit lain.'
         : error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Gagal: fitur kelola unit belum aktif. Jalankan migration 20261014093000_user_lifecycle_and_room_admin.sql di Supabase.'
-        : `Gagal menyimpan unit: ${t}`)
+        : `Gagal menyimpan unit: ${toUserFacingError(error, { fallback: 'Unit belum dapat disimpan.' })}`)
       return
     }
     setMsg(roomEdit.id ? `Unit “${roomEdit.name.trim()}” diperbarui.` : `Unit “${roomEdit.name.trim()}” ditambahkan.`)
@@ -275,7 +275,7 @@ export default function GeneralSettings({
     setConfirmDeleteId(null)
     if (error) {
       const text = error.message || ''
-      let note = `Gagal menghapus: ${text}`
+      let note = `Gagal menghapus: ${toUserFacingError(error, { fallback: 'Akun belum dapat dihapus.' })}`
       if (/USER_HAS_DATA/.test(text)) note = 'Akun ini sudah memiliki data (risiko/laporan/rekam mutu), sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.'
       else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014092000_admin_delete_user.sql di SQL Editor, lalu coba lagi.'
       setMsg(note)
@@ -315,7 +315,7 @@ export default function GeneralSettings({
     setBusy(false)
     if (error) {
       const t = error.message || ''
-      let note = `Gagal menyetel password: ${t}`
+      let note = `Gagal menyetel password: ${toUserFacingError(error, { fallback: 'Password sementara belum dapat disetel.' })}`
       if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t)) note = 'Fitur reset password belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014094000_admin_password_reset.sql di SQL Editor, lalu coba lagi.'
       else if (/PASSWORD_TOO_SHORT/.test(t)) note = 'Password sementara minimal 12 karakter.'
       setMsg(note)
@@ -342,10 +342,10 @@ export default function GeneralSettings({
       const { data, error } = await sb.functions.invoke('aureka-provision-unit-accounts', { body: { token } })
       if (error) {
         const ctx = (error as any).context
-        let detail = error.message || 'Permintaan provisioning gagal.'
+        let detail = toUserFacingError(error, { fallback: 'Permintaan provisioning gagal.' })
         try {
           const body = ctx?.json ? await ctx.json() : null
-          if (body?.error) detail = body.error
+          if (body?.error) detail = sanitizeNotificationText(String(body.error), 'Permintaan provisioning gagal.')
         } catch {}
         throw new Error(detail)
       }
