@@ -20,6 +20,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Restrict dependency lock automation to feature branches
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/feat/*) ;;
+            *)
+              echo "::error::Dependency lock automation may only run on refs/heads/feat/* branches."
+              exit 1
+              ;;
+          esac
+
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
