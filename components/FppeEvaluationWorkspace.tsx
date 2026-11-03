@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/aureka/error-feedback'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 
 type Room = { id: number; name: string }
@@ -121,7 +122,7 @@ export default function FppeEvaluationWorkspace({
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Riwayat FPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Riwayat FPPE gagal dimuat. Coba muat ulang.' }))
     } finally {
       setLoading(false)
     }
@@ -136,7 +137,7 @@ export default function FppeEvaluationWorkspace({
       if (queryError) throw queryError
       setEvents((data || []) as FppeEvent[])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Riwayat proses FPPE gagal dimuat.')
+      setError(toUserFacingError(err, { fallback: 'Riwayat proses FPPE gagal dimuat.' }))
     }
   }, [])
 
@@ -413,7 +414,7 @@ export default function FppeEvaluationWorkspace({
       })
       setNotice(action === 'submitted' ? 'FPPE diajukan untuk validasi independen.' : 'Draf FPPE tersimpan di server.')
     } catch (err) {
-      const messageText = err instanceof Error ? err.message : 'FPPE gagal disimpan.'
+      const messageText = toUserFacingError(err, { fallback: 'Evaluasi FPPE belum dapat disimpan.' })
       setError(messageText)
       postToFrame({ type: 'AUREKA_FPPE_SAVE_RESULT', ok: false, message: messageText })
     } finally {
@@ -473,7 +474,7 @@ export default function FppeEvaluationWorkspace({
       postToFrame({ type: 'AUREKA_FPPE_LOAD', evaluation: validated })
       await loadEvaluations()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Validasi FPPE gagal.')
+      setError(toUserFacingError(err, { fallback: 'Validasi FPPE belum dapat diselesaikan.' }))
     } finally { setBusy(false) }
   }
 
@@ -499,7 +500,7 @@ export default function FppeEvaluationWorkspace({
       postToFrame({ type: 'AUREKA_FPPE_LOAD', evaluation: updated })
       await loadEvaluations()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'FPPE gagal dikembalikan untuk revisi.')
+      setError(toUserFacingError(err, { fallback: 'FPPE belum dapat dikembalikan untuk revisi.' }))
     } finally { setBusy(false) }
   }
 
