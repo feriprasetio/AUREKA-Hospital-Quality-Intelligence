@@ -222,14 +222,33 @@
   }
 
   /* A collapsed desktop rail must always expand to a full mobile drawer. */
-  .workspaceRoot.sidebarIsCollapsed .sideBrand > div,
-  .workspaceRoot.sidebarIsCollapsed .navLabel,
-  .workspaceRoot.sidebarIsCollapsed .sideProfileText,
-  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button > span:not(.sidebarChevron),
-  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button .sidebarChevron,
-  .workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren,
+  .workspaceRoot.sidebarIsCollapsed .sideBrand > div {
+    display: grid !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .navLabel {
+    display: flex !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sideProfileText {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button > span:not(.sidebarChevron) {
+    display: inline !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button .sidebarChevron {
+    display: inline-grid !important;
+  }
+
+  .workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren {
+    display: grid !important;
+  }
+
   .workspaceRoot.sidebarIsCollapsed .logoutLabel {
-    display: revert !important;
+    display: inline !important;
   }
 
   .workspaceRoot.sidebarIsCollapsed .sideProfile {
