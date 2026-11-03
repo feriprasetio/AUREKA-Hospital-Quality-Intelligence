@@ -98,3 +98,15 @@ export function toUserFacingError(error: unknown, options: UserFacingErrorOption
 
   return message
 }
+/**
+ * Final safety filter for legacy notifications that already contain text.
+ * Safe Indonesian operator copy is retained; technical diagnostics and
+ * excessively long payloads are replaced with the caller's fallback.
+ */
+export function sanitizeNotificationText(message: string, fallback: string): string {
+  const text = String(message ?? '').trim()
+  if (!text || text.length > 500) return fallback
+  if (TECHNICAL_OR_SENSITIVE.some((pattern) => pattern.test(text))) return fallback
+  if (/failed to fetch|fetch failed|network error|network request failed|request timed out|statement timeout/i.test(text)) return fallback
+  return text
+}
