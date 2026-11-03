@@ -343,10 +343,11 @@ export default function HomeClient(){
    const text=String(detail?.message??'').trim()
    if(!text)return
    const rawKind=String(detail?.kind??detail?.type??'').toLowerCase()
-   const kind:WorkspaceNotification['kind']=rawKind==='error'||/\b(gagal|belum tersimpan|tidak dapat|kesalahan|wajib diisi|tidak diizinkan|periksa koneksi)\b/i.test(text)?'error':rawKind==='success'||/berhasil (disimpan|dihapus|diperbarui|dikirim)|tersimpan ke server/i.test(text)?'success':'info'
-   const safeText=kind==='error'
-    ? sanitizeNotificationText(text, `Operasi pada ${detail?.module||'AUREKA'} belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.`)
-    : text
+   const technicalFallback=`Operasi pada ${detail?.module||'AUREKA'} belum berhasil. Periksa koneksi dan hak akses, lalu coba kembali.`
+   const sanitizedText=sanitizeNotificationText(text,technicalFallback)
+   const containsTechnicalDetail=sanitizedText!==text
+   const kind:WorkspaceNotification['kind']=rawKind==='error'||containsTechnicalDetail||/\b(gagal|belum tersimpan|tidak dapat|kesalahan|wajib diisi|tidak diizinkan|periksa koneksi|permission denied|failed to fetch|network error)\b/i.test(text)?'error':rawKind==='success'||/berhasil (disimpan|dihapus|diperbarui|dikirim)|tersimpan ke server/i.test(text)?'success':'info'
+   const safeText=kind==='error'?sanitizedText:text
    pushWorkspaceNotification(safeText,kind,detail?.module)
   }
   window.addEventListener('aureka:notification',receive)
