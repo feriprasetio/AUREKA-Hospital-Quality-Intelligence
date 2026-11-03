@@ -340,6 +340,37 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qraInfo{padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#f7faf8;color:var(--muted);font-size:10px;line-height:1.55}
     @media(max-width:1050px){.qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qraSplit{grid-template-columns:1fr}.qraStatusGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:650px){.qraHero{display:grid}.qraActions{width:100%}.qraField{flex:1;min-width:120px}.qraKpis{grid-template-columns:1fr 1fr}.qraKpi strong{font-size:19px}.qraBars{gap:3px;padding:10px}.qraBarsTrack{height:80px}.qraStatusGrid{grid-template-columns:1fr 1fr}}
+
+    /* Compact, balanced presentation shared with the Audit Logbook workspace */
+    .qra{gap:10px}
+    .qraHero{padding:14px 16px;border-radius:13px;box-shadow:0 1px 2px rgba(18,47,34,.035)}
+    .qraHero h2{font-size:21px;margin:4px 0}
+    .qraHero p{font-size:10px;line-height:1.5}
+    .qraActions{gap:7px}
+    .qraField{min-width:135px}
+    .qraField select,.qraBtn{min-height:36px;border-radius:9px;font-size:10px}
+    .qraKpis{gap:8px}
+    .qraKpi{padding:11px 12px;border-radius:12px}
+    .qraKpi strong{font-size:20px;margin:4px 0 2px}
+    .qraKpi small{font-size:8px;line-height:1.4}
+    .qraPanel{border-radius:13px;box-shadow:0 1px 2px rgba(18,47,34,.035)}
+    .qraPanelHead{padding:11px 13px}
+    .qraPanelHead h3{font-size:13px}
+    .qraTableWrap{max-width:100%;overflow:auto}
+    .qraTable{min-width:1080px;font-size:9px}
+    .qraTable th,.qraTable td{padding:8px 7px}
+    .qraTable th{font-size:8px}
+    .qraNotice,.qraInfo{font-size:9px;line-height:1.45;padding:9px 12px}
+    @media(max-width:650px){
+      .qraHero{padding:12px}
+      .qraHero h2{font-size:18px}
+      .qraActions{display:grid;grid-template-columns:1fr 1fr;width:100%}
+      .qraActions .qraBtn{grid-column:1/-1}
+      .qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .qraKpi{padding:10px}
+      .qraKpi strong{font-size:18px}
+    }
+
   `
 
   const totalRows = mode === 'indicators'
