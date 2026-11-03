@@ -33,6 +33,7 @@ export default function CommandPalette({
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const listId = useId()
   const dialogRef = useAccessibleDialog<HTMLDivElement>({
     open,
@@ -99,6 +100,12 @@ export default function CommandPalette({
     if (activeIndex >= filteredItems.length) setActiveIndex(0)
   }, [activeIndex, filteredItems.length])
 
+  useEffect(() => {
+    if (!open || !filteredItems.length) return
+    const activeOption = document.getElementById(`${listId}-option-${activeIndex}`)
+    activeOption?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex, filteredItems.length, listId, open])
+
   const selectItem = (item: CommandPaletteItem) => {
     item.onSelect()
     closePalette()
@@ -146,6 +153,7 @@ export default function CommandPalette({
             tabIndex={-1}
             onClick={(event) => event.stopPropagation()}
           >
+            <h2 id="aureka-command-title" className="commandPaletteSrOnly">Command Palette AUREKA</h2>
             <div className="commandPaletteSearch">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="10.8" cy="10.8" r="6.2" />
@@ -177,9 +185,9 @@ export default function CommandPalette({
               Cari navigasi dan tindakan yang tersedia. Pencarian data dibatasi pada catatan yang sedang dimuat dan dapat Anda akses di <strong>{contextLabel}</strong>.
             </div>
 
-            <div className="commandPaletteResults" id={listId} role="listbox" aria-label="Perintah dan hasil pencarian">
+            <div ref={listRef} className="commandPaletteResults" id={listId} role="listbox" aria-label="Perintah dan hasil pencarian">
               {groupedItems.length ? groupedItems.map(([group, entries]) => (
-                <section className="commandPaletteGroup" key={group} aria-label={group}>
+                <section className="commandPaletteGroup" key={group} role="group" aria-label={group}>
                   <h3>{group}</h3>
                   {entries.map(({ item, index }) => (
                     <button
@@ -252,6 +260,17 @@ export default function CommandPalette({
           outline: 3px solid var(--aureka-color-ring, rgba(15,118,86,.32));
           outline-offset: 2px;
         }
+        .commandPaletteSrOnly {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
         .commandPaletteTrigger svg,
         .commandPaletteSearch svg {
           width: 17px;
@@ -273,7 +292,10 @@ export default function CommandPalette({
           border-radius: 6px;
           background: var(--aureka-color-surface-muted, #f8faf9);
           color: var(--aureka-color-muted, #64748b);
-          font: 650 9px/1.2 inherit;
+          font-family: inherit;
+          font-size: 9px;
+          font-weight: 650;
+          line-height: 1.2;
           white-space: nowrap;
         }
         .commandPaletteBackdrop {
