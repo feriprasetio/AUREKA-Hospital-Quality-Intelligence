@@ -502,7 +502,7 @@ export default function HomeClient(){
    <button type="button" className="sidebarToggle" aria-label={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} title={sidebarCollapsed?'Lebarkan workspace':'Ciutkan workspace'} aria-expanded={!sidebarCollapsed} onClick={()=>setSidebarCollapsed(v=>!v)}>
     <svg viewBox="0 0 24 24" aria-hidden="true">{sidebarCollapsed?<path d="m9 5 7 7-7 7"/>:<path d="m15 5-7 7 7 7"/>}</svg>
    </button>
-   <button type="button" className="mobileSidebarClose" onClick={mobileSidebar.close} aria-label="Tutup navigasi" aria-controls="aureka-primary-sidebar">×</button>
+   <button type="button" className="mobileSidebarClose" data-sidebar-autofocus onClick={mobileSidebar.close} aria-label="Tutup navigasi" aria-controls="aureka-primary-sidebar">×</button>
   </div>
   <button type="button" className="sideProfile" title="Buka profil" onClick={()=>{openMainModule('settings');setProfileFocus(Date.now())}}>
    <span className="sideProfileAvatar">{initials(profile?.full_name||user?.email)}</span>
