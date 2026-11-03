@@ -1,6 +1,8 @@
 'use client'
 import {useEffect,useMemo,useState} from 'react'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
+import {toUserFacingError} from '@/lib/aureka/error-feedback'
 import {type SupabaseClient} from '@supabase/supabase-js'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
@@ -77,7 +79,7 @@ async function rooms(){const {data,error}=await sb.from('master_rooms').select('
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false)
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const mobileSidebar=useAccessibleSidebar()
  const [closedNav,setClosedNav]=useState<string[]>([])
  const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
@@ -91,6 +93,7 @@ export default function HomeClient(){
  const [publicMetrics,setPublicMetrics]=useState<PublicLandingMetrics|null>(null)
  const [publicMetricsLoading,setPublicMetricsLoading]=useState(false)
  const [publicMetricsError,setPublicMetricsError]=useState('')
+ const [publicMetricsAttempt,setPublicMetricsAttempt]=useState(0)
  useEffect(()=>{
   if(!overviewModule){setPublicMetrics(null);setPublicMetricsError('');setPublicMetricsLoading(false);return}
   let cancelled=false
@@ -109,7 +112,7 @@ export default function HomeClient(){
   }
   void load()
   return ()=>{cancelled=true}
- },[overviewModule])
+ },[overviewModule,publicMetricsAttempt])
  useEffect(()=>{rooms().then(setRoomsList);const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}sb.rpc('aureka_sync_my_email').then(()=>{},()=>{});if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setView(p.must_change_password?'force-password':'workspace')}})},[])
  useEffect(()=>{
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
@@ -155,13 +158,13 @@ export default function HomeClient(){
  },[view,routeReady,active,qualityOpen,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView])
 
  const resolveLoginEmail=async(input:string)=>{const v=input.trim();if(!v)throw new Error('Isi username atau email.');if(v.includes('@'))return v;const {data,error}=await sb.rpc('aureka_login_email',{p_username:v});if(error){if(error.code==='PGRST202'||/Could not find the function|schema cache/i.test(error.message))throw new Error('Login dengan username belum aktif. Silakan masuk memakai email.');throw error}if(!data)throw new Error('Username tidak ditemukan. Periksa ejaan atau masuk memakai email.');return String(data)}
- const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return m||'Terjadi kesalahan'}
+ const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return toUserFacingError(e,{fallback:'Autentikasi belum berhasil. Periksa informasi akun, lalu coba lagi.'})}
  const resendVerify=async()=>{if(busy||!needVerify)return;setBusy(true);const {error}=await sb.auth.resend({type:'signup',email:needVerify,options:{emailRedirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`}});setBusy(false);setAuthInfo('');setMessage(error?authError(error):`Email verifikasi dikirim ulang ke ${needVerify}. Cek juga folder Spam.`)}
  const login=async()=>{if(busy)return;setBusy(true);setMessage('');setNeedVerify('');setAuthInfo('');let em='';try{em=await resolveLoginEmail(email);const {data,error}=await sb.auth.signInWithPassword({email:em,password});if(error)throw error;sb.rpc('aureka_sync_my_email').then(()=>{},()=>{});const p=await prof(data.user.id);if(!p){await sb.auth.signOut();throw new Error('Profil AUREKA belum tersedia.')}if(!p.is_active){await sb.auth.signOut();throw new Error('Akun belum aktif. Hubungi Super Admin/Komite PMKP untuk aktivasi.')}setUser(data.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setClinicalPathwayOpen(false);if(p.must_change_password){setPassword('');setPassword2('');setView('force-password')}else{setView('workspace')}}catch(e){setMessage(authError(e,em))}finally{setBusy(false)}}
  const signup=async()=>{if(busy)return;setBusy(true);setMessage('');try{const un=username.trim().toLowerCase();if(!fullName.trim()||!signupRoom||password.length<8)throw new Error('Nama, unit utama, dan password minimal 8 karakter wajib diisi.');if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(un))throw new Error('Username 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau strip. Contoh: pic.isolasi');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()))throw new Error('Email wajib diisi dengan benar (dipakai untuk verifikasi dan reset password).');const av=await sb.rpc('aureka_username_available',{p_username:un});if(!av.error&&av.data===false)throw new Error(`Username “${un}” sudah dipakai. Coba yang lain, misalnya ${un}2.`);const {data:su,error}=await sb.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`,data:{full_name:fullName.trim(),primary_room_id:signupRoom,username:un}}});if(error)throw error;if(su?.user&&Array.isArray((su.user as any).identities)&&(su.user as any).identities.length===0)throw new Error('Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.');if(su?.session)await sb.auth.signOut();setUsername(un);setMessage('');setSignupDone(true)}catch(e){setMessage(authError(e))}finally{setBusy(false)}}
  useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){setAuthMode('recovery');setMessage('');setPassword('');setPassword2('');setView('login')}});if(typeof window!=='undefined'&&/type=recovery/.test(window.location.hash)){setAuthMode('recovery');setView('login')}return()=>{sub.subscription.unsubscribe()}},[])
- const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');let em='';try{em=await resolveLoginEmail(email)}catch(e){setBusy(false);setMessage(authError(e));return}if(!/^\S+@\S+\.\S+$/.test(em)){setBusy(false);setMessage('Masukkan username atau email akun yang valid.');return}if(em.toLowerCase().endsWith('@aureka.invalid')){setBusy(false);setMessage('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara; akun akan wajib menggantinya saat login berikutnya.');return}const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`});setBusy(false);if(error){setMessage(/rate limit|too many/i.test(error.message)?'Terlalu banyak permintaan. Coba lagi beberapa menit lagi, atau minta Super Admin menyetel password sementara.':`Gagal mengirim email: ${error.message}`);return}setResetSent(true)}
- const saveNewPassword=async()=>{if(busy)return;if(password.length<8){setMessage('Password baru minimal 8 karakter.');return}if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}setBusy(true);setMessage('');const {error}=await sb.auth.updateUser({password});if(error){setBusy(false);setMessage(`Gagal menyimpan password: ${error.message}`);return}await sb.auth.signOut();setBusy(false);if(typeof window!=='undefined'&&window.location.hash)history.replaceState(null,'',window.location.pathname+window.location.search);setPassword('');setPassword2('');setAuthMode('normal');setMessage('');setResetSent(false);setView('login');setMessage('Password baru tersimpan. Silakan masuk dengan password baru.')}
+ const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');let em='';try{em=await resolveLoginEmail(email)}catch(e){setBusy(false);setMessage(authError(e));return}if(!/^\S+@\S+\.\S+$/.test(em)){setBusy(false);setMessage('Masukkan username atau email akun yang valid.');return}if(em.toLowerCase().endsWith('@aureka.invalid')){setBusy(false);setMessage('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara; akun akan wajib menggantinya saat login berikutnya.');return}const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`});setBusy(false);if(error){setMessage(/rate limit|too many/i.test(error.message)?'Terlalu banyak permintaan. Coba lagi beberapa menit lagi, atau minta Super Admin menyetel password sementara.':`Gagal mengirim email: ${toUserFacingError(error,{fallback:'Email pemulihan belum dapat dikirim. Coba kembali beberapa saat lagi.'})}`);return}setResetSent(true)}
+ const saveNewPassword=async()=>{if(busy)return;if(password.length<8){setMessage('Password baru minimal 8 karakter.');return}if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}setBusy(true);setMessage('');const {error}=await sb.auth.updateUser({password});if(error){setBusy(false);setMessage(`Gagal menyimpan password: ${toUserFacingError(error,{fallback:'Password belum dapat diperbarui. Periksa koneksi dan coba kembali.'})}`);return}await sb.auth.signOut();setBusy(false);if(typeof window!=='undefined'&&window.location.hash)history.replaceState(null,'',window.location.pathname+window.location.search);setPassword('');setPassword2('');setAuthMode('normal');setMessage('');setResetSent(false);setView('login');setMessage('Password baru tersimpan. Silakan masuk dengan password baru.')}
  const saveFirstPassword=async()=>{
   if(busy)return
   if(!user?.id||!profile?.must_change_password){setView('workspace');return}
@@ -169,9 +172,9 @@ export default function HomeClient(){
   if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}
   setBusy(true);setMessage('')
   const {error}=await sb.auth.updateUser({password})
-  if(error){setBusy(false);setMessage(`Gagal mengganti password: ${error.message}`);return}
+  if(error){setBusy(false);setMessage(`Gagal mengganti password: ${toUserFacingError(error,{fallback:'Password belum dapat diperbarui. Periksa koneksi dan coba kembali.'})}`);return}
   const {error:flagError}=await sb.rpc('aureka_complete_first_login_password_change')
-  if(flagError){setBusy(false);setMessage(`Password sudah diperbarui, tetapi status wajib ganti password belum dapat diselesaikan. Klik Simpan kembali untuk menyelesaikan: ${flagError.message}`);return}
+  if(flagError){setBusy(false);setMessage(`Password sudah diperbarui, tetapi status wajib ganti password belum dapat diselesaikan. ${toUserFacingError(flagError,{fallback:'Klik Simpan kembali untuk menyelesaikan proses.'})}`);return}
   try{
    const next=await prof(user.id)
    if(!next||next.must_change_password)throw new Error('Status wajib ganti password belum terkonfirmasi.')
@@ -356,6 +359,7 @@ export default function HomeClient(){
  },[message,view])
  const loadSupportConversations=async()=>{
   setSupportLoading(true)
+  setSupportLoadError('')
   try{
    const {data:{user:authUser},error:authError}=await sb.auth.getUser()
    if(authError||!authUser)throw authError||new Error('Sesi login tidak tersedia.')
@@ -365,20 +369,26 @@ export default function HomeClient(){
    if(error)throw error
    const list=(data??[]) as SupportConversation[]
    setSupportConversations(list)
-   setSupportConversationId(current=>current&&list.some(item=>item.id===current)?current:(admin?(list[0]?.id??''):(list[0]?.id??'')))
+   setSupportConversationId(current=>current&&list.some(item=>item.id===current)?current:(list[0]?.id??''))
   }catch(error){
-   pushWorkspaceNotification('Chat Super Admin belum dapat dimuat: '+(error instanceof Error?error.message:'Periksa koneksi.'),'error','Chat Super Admin')
+   const message=toUserFacingError(error,{fallback:'Daftar percakapan belum dapat dimuat. Periksa koneksi, lalu coba kembali.'})
+   setSupportLoadError(message)
+   pushWorkspaceNotification(message,'error','Chat Super Admin')
   }finally{setSupportLoading(false)}
  }
  const loadSupportMessages=async(conversationId:string)=>{
-  if(!conversationId){setSupportMessages([]);return}
+  if(!conversationId){setSupportMessages([]);setSupportMessagesError('');setSupportMessagesLoading(false);return}
+  setSupportMessagesLoading(true)
+  setSupportMessagesError('')
   try{
    const {data,error}=await sys().from('support_messages').select('id,conversation_id,sender_id,body,created_at').eq('conversation_id',conversationId).order('created_at',{ascending:true}).limit(300)
    if(error)throw error
    setSupportMessages((data??[]) as SupportMessage[])
   }catch(error){
-   pushWorkspaceNotification('Pesan chat tidak dapat dimuat: '+(error instanceof Error?error.message:'Periksa koneksi.'),'error','Chat Super Admin')
-  }
+   const message=toUserFacingError(error,{fallback:'Pesan percakapan belum dapat dimuat. Coba muat ulang.'})
+   setSupportMessagesError(message)
+   pushWorkspaceNotification(message,'error','Chat Super Admin')
+  }finally{setSupportMessagesLoading(false)}
  }
  const openSupportChat=()=>{
   setNotificationHistoryOpen(false)
@@ -410,7 +420,7 @@ export default function HomeClient(){
    await loadSupportConversations()
    pushWorkspaceNotification('Pesan berhasil dikirim ke Chat Super Admin.','success','Chat Super Admin')
   }catch(error){
-   pushWorkspaceNotification('Pesan belum terkirim: '+(error instanceof Error?error.message:'Periksa koneksi.'),'error','Chat Super Admin')
+   pushWorkspaceNotification(toUserFacingError(error,{fallback:'Pesan belum terkirim. Periksa koneksi, lalu coba kembali.'}),'error','Chat Super Admin')
   }finally{setSupportSending(false)}
  }
  useEffect(()=>{
@@ -586,11 +596,20 @@ export default function HomeClient(){
   </section>}
   {supportOpen&&<section className="workspaceSupportPanel" aria-label="Chat Super Admin">
    <div className="workspacePopoverHead"><div><strong>Chat Super Admin</strong><span>{admin?'Kotak masuk seluruh unit':(room?.name||'Unit belum dipetakan')}</span></div><div className="workspacePopoverActions"><button type="button" title="Muat ulang" aria-label="Muat ulang chat" onClick={()=>{void loadSupportConversations();if(supportConversationId)void loadSupportMessages(supportConversationId)}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5 9a7 7 0 0 1 12-2l3 5M4 12l3 5a7 7 0 0 0 12-2"/></svg></button><button type="button" aria-label="Tutup chat" onClick={()=>setSupportOpen(false)}>×</button></div></div>
-   {supportLoading&&<div className="workspacePopoverEmpty">Memuat percakapan…</div>}
-   {admin&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}</div>}
-   {!admin&&!supportConversationId&&<div className="workspacePopoverEmpty">Kirim pesan untuk memulai percakapan dengan Super Admin.</div>}
-   {admin&&!supportConversationId&&<div className="workspacePopoverEmpty">Belum ada pesan masuk dari unit.</div>}
-   {supportConversationId&&<div className="workspaceSupportMessages">{supportMessages.map(item=><div key={item.id} className={'workspaceSupportMessage '+(item.sender_id===user?.id?'mine':'theirs')}><span>{item.sender_id===user?.id?(admin?'Super Admin':'Anda'):(admin?'PIC Unit':'Super Admin')}</span><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>)}</div>}
+   {supportLoading&&<AsyncStatePanel state="loading" title="Memuat percakapan" description="Mengambil daftar percakapan Anda." compact/>}
+   {supportLoadError&&<AsyncStatePanel state="error" title="Percakapan belum dapat dimuat" description={supportLoadError} retrying={supportLoading} onRetry={()=>void loadSupportConversations()} compact/>}
+   {admin&&!supportLoading&&!supportLoadError&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}{supportConversations.length===0&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Pesan dari unit akan tampil di sini." compact/>}</div>}
+   {!admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Kirim pesan untuk memulai percakapan dengan Super Admin." compact/>}
+   {admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&supportConversations.length>0&&<div className="workspacePopoverEmpty">Pilih percakapan untuk membaca pesan masuk.</div>}
+   {supportConversationId&&<div className="workspaceSupportMessages">
+    {supportMessagesLoading
+     ? <AsyncStatePanel state="loading" title="Memuat pesan" description="Mengambil isi percakapan." compact/>
+     : supportMessagesError
+      ? <AsyncStatePanel state="error" title="Pesan belum dapat dimuat" description={supportMessagesError} retrying={supportMessagesLoading} onRetry={()=>void loadSupportMessages(supportConversationId)} compact/>
+      : supportMessages.length===0
+       ? <AsyncStatePanel state="empty" title="Belum ada pesan" description="Percakapan ini belum memiliki pesan." compact/>
+       : supportMessages.map(item=><div key={item.id} className={'workspaceSupportMessage '+(item.sender_id===user?.id?'mine':'theirs')}><span>{item.sender_id===user?.id?(admin?'Super Admin':'Anda'):(admin?'PIC Unit':'Super Admin')}</span><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>)}
+   </div>}
    <form className="workspaceSupportComposer" onSubmit={event=>{event.preventDefault();void sendSupportMessage()}}>
     <textarea value={supportDraft} onChange={event=>setSupportDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Tulis pesan kepada Super Admin…" aria-label="Pesan ke Super Admin" disabled={supportSending||(admin&&!supportConversationId)}/>
     <button type="submit" disabled={supportSending||!supportDraft.trim()||(admin&&!supportConversationId)}>{supportSending?'Mengirim…':'Kirim'}</button>
@@ -663,15 +682,15 @@ export default function HomeClient(){
      </div>
      <div className="publicMetricsPanel">
       {publicMetricsLoading
-       ? <div className="publicMetricsState"><span className="publicMetricSpinner" aria-hidden="true"/><b>Memuat grafik publik…</b><span>Menyiapkan ringkasan agregat dari data yang tersedia.</span></div>
+       ? <AsyncStatePanel state="loading" title="Memuat grafik publik" description="Menyiapkan ringkasan agregat dari data yang tersedia."/>
        : publicMetricsError
-        ? <div className="publicMetricsState"><b>Grafik belum tersedia</b><span>{publicMetricsError}</span></div>
+        ? <AsyncStatePanel state="error" title="Grafik belum tersedia" description={publicMetricsError} retrying={publicMetricsLoading} onRetry={()=>setPublicMetricsAttempt(value=>value+1)}/>
         : !publicMetrics || publicMetrics.domain!==selected.id
-         ? <div className="publicMetricsState"><b>Menyiapkan grafik</b><span>Data agregat akan muncul setelah tersedia.</span></div>
+         ? <AsyncStatePanel state="empty" title="Data agregat belum tersedia" description="Ringkasan akan muncul setelah data yang memenuhi syarat publikasi tersedia."/>
          : (() => {
             const visible=publicMetrics.points.filter(point=>point.value!==null&&Number.isFinite(Number(point.value))&&Number(point.value)>=publicMetrics.minimum_group_size)
             const maxValue=Math.max(1,...visible.map(point=>Number(point.value)))
-            if(!visible.length)return <div className="publicMetricsState"><div className="publicMetricsEmptyIcon" aria-hidden="true">▥</div><b>Belum ada data agregat yang cukup untuk publikasi</b><span>Grafik hanya memuat catatan tervalidasi atau laporan yang telah ditutup, dengan sedikitnya {publicMetrics.minimum_group_size} catatan per kelompok. Tidak ada data contoh.</span></div>
+            if(!visible.length)return <AsyncStatePanel state="empty" title="Belum ada data agregat yang cukup untuk publikasi" description={`Grafik hanya memuat catatan tervalidasi atau laporan yang telah ditutup, dengan sedikitnya ${publicMetrics.minimum_group_size} catatan per kelompok. Tidak ada data contoh.`}/>
             return <div className="publicMetricsContent">
              <div className="publicMetricsHeading"><div><span className="publicMetricKicker">RINGKASAN PUBLIK</span><h3>{publicMetrics.title}</h3></div><span className="publicAggregatePill">Agregat saja</span></div>
              {publicMetrics.kind==='monthly'
