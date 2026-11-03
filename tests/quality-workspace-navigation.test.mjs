@@ -29,3 +29,13 @@ test('Solid White sidebar is compact on desktop while mobile remains single-colu
   assert.match(css, /\.workspaceRoot:not\(\.sidebarIsCollapsed\)\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\) !important/)
   assert.match(css, /\.qualityWorkspaceTabs/)
 })
+
+test('sidebar collapse is controlled by one hamburger next to search, without header arrows or close buttons', () => {
+  const home = read('components/HomeClient.tsx')
+  const css = read('app/aureka-solid-navigation.css')
+  assert.match(home, /className="mobileMenuButton workspaceSidebarMenuButton"/)
+  assert.match(home, /setSidebarCollapsed\(v=>!v\)/)
+  assert.doesNotMatch(home, /className="sidebarToggle"|className="mobileSidebarClose"/)
+  assert.match(css, /\.workspaceRoot\.sidebarIsCollapsed\s*\{\s*grid-template-columns:76px minmax\(0,1fr\)!important/)
+  assert.match(css, /\.workspaceSidebarMenuButton/)
+})
