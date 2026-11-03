@@ -59,3 +59,13 @@ test('production validates its Supabase configuration before build and deploy', 
   assert.ok(build < deploy, 'deployment must remain downstream of a successful build job')
   assert.match(production, /needs: build/)
 })
+
+test('production Pages refuses manual dispatch from non-main refs before checkout', () => {
+  const guard = production.indexOf('name: Enforce production branch')
+  const checkout = production.indexOf('uses: actions/checkout@v4')
+  assert.notEqual(guard, -1)
+  assert.notEqual(checkout, -1)
+  assert.ok(guard < checkout, 'production ref guard must run before checkout and build steps')
+  assert.match(production, /GITHUB_REF.*refs\\/heads\\/main/)
+  assert.match(production, /restricted to refs\\/heads\\/main/)
+})
