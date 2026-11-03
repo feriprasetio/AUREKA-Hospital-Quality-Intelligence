@@ -98,7 +98,7 @@ test('computes length of stay only when discharge is on or after admission', () 
   assert.equal(calculateSurgicalStayDays('2026-04-17', '2026-04-23'), 6)
   assert.equal(calculateSurgicalStayDays('2026-04-17', '2026-04-17'), 0)
   assert.equal(calculateSurgicalStayDays('2026-05-18', '2026-04-22'), null)
-  assert.equal(calculateSurgicalStayDays('2026-04-17', '2029-09-03'), 1256)
+  assert.equal(calculateSurgicalStayDays('2026-04-17', '2029-09-03'), 1235)
   assert.equal(calculateSurgicalStayDays('invalid', '2026-04-23'), null)
 })
 
