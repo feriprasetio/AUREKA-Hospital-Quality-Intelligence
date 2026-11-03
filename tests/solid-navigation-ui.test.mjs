@@ -49,6 +49,8 @@ test('primary navigation uses one white surface rather than glossy menu cards', 
   assert.ok(legacyOverride.includes('.sidebarNavGroup.isCurrent {'))
   assert.ok(legacyOverride.includes('background: transparent !important;'))
   assert.ok(legacyOverride.includes('box-shadow: none !important;'))
+  assert.match(css, /sidebarTreeChildren\[hidden\][\s\S]*?display: none !important/)
+
 })
 
 test('nested sidebar menus expose expanded state and connected submenu controls', () => {
@@ -56,6 +58,9 @@ test('nested sidebar menus expose expanded state and connected submenu controls'
   assert.match(home, /aria-controls=.*sidebar-children-/)
   assert.match(home, /aria-current=\{active===id\?'page':undefined\}/)
   assert.match(home, /id=.*sidebar-children-/)
+  assert.match(home, /hidden=\{!groupOpen\}/)
+  assert.match(home, /hidden=\{!nOpen\}/)
+
 })
 
 test('dashboard network failures keep a visible state and do not remain loading forever', () => {

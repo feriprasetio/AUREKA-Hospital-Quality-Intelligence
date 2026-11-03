@@ -622,17 +622,17 @@ export default function HomeClient(){
     <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={active===id?'page':undefined} onClick={()=>{if(hasKids&&active===id){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
      <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
     </button>
-    {groupOpen&&hasKids?<div className="sidebarTreeChildren" id={`sidebar-children-${id}`}>
+    {hasKids?<div className="sidebarTreeChildren" id={`sidebar-children-${id}`} hidden={!groupOpen}>
      {sidebarChildGroups[id].map(child=>child.children?.length
       ? (()=>{const pActive=Boolean(qualityResultsView===child.id.replace('audit-','')||(clinicalPathwayOpen&&child.id==='audit-pathway')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer==='Audit Klinis dan Kematian'&&child.id==='audit-clinical-death')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer!=='Audit Klinis dan Kematian'&&child.id==='audit-indicators'));const nKey='n:'+child.id;const nOpen=!closedNav.includes(nKey);return <div className={'sidebarNestedGroup '+(nOpen?'open':'closed')} key={child.id}>
          <button type="button" className={'sidebarChild sidebarTreeParent '+(pActive?'active':'')} aria-expanded={nOpen} aria-controls={`sidebar-children-${id}-${child.id}`} aria-current={pActive?'page':undefined} onClick={()=>{if(pActive){toggleNav(nKey);return}toggleNav(nKey,true);selectSidebarChild(id,child.id)}}>
           <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
          </button>
-         {nOpen&&<div className="sidebarTreeChildren sidebarTreeNestedChildren" id={`sidebar-children-${id}-${child.id}`}>
+         <div className="sidebarTreeChildren sidebarTreeNestedChildren" id={`sidebar-children-${id}-${child.id}`} hidden={!nOpen}>
           {child.children.map(nested=><button type="button" key={nested.id} className={selectedSidebarChild(id)===nested.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===nested.id?'page':undefined} onClick={()=>selectSidebarChild(id,nested.id)}>
            <span className="sidebarChildMark" aria-hidden="true"/><span>{nested.label}</span>
           </button>)}
-         </div>}
+         </div>
         </div>})()
       : <button type="button" key={child.id} className={selectedSidebarChild(id)===child.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===child.id?'page':undefined} onClick={()=>selectSidebarChild(id,child.id)}>
          <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span>

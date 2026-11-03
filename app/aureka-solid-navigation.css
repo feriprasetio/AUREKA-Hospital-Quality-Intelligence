@@ -217,6 +217,9 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNestedGroup.open > button .side
   color: var(--aureka-ui-brand) !important;
   transform: rotate(180deg) !important;
 }
+html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren[hidden] {
+  display: none !important;
+}
 html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren {
   display: flex !important;
   flex-direction: column !important;
