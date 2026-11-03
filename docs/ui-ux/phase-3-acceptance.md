@@ -1,7 +1,7 @@
 # AUREKA UI/UX — Phase 3 Acceptance Checklist
 
 **Implementation branch:** `feat/ui-ux-redesign`  
-**CI run:** [41561367095](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41561367095)  
+**CI run:** [41561549537](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41561549537)  
 **Status:** Automated CI passed; manual verification remains open.
 
 ## Automated acceptance — passed
@@ -10,7 +10,7 @@
 - [x] 35 AUREKA layouts and 35 unique units passed data validation.
 - [x] TypeScript typecheck passed.
 - [x] Next.js static production build passed.
-- [x] Static export artifact generated (878,058 bytes).
+- [x] Static export artifact generated (878,067 bytes).
 - [x] Shared error normalizer added and unit-tested.
 - [x] Reusable loading/empty/error component added and statically checked.
 - [x] Legacy notification safety filter tested.
