@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/aureka/error-feedback'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
@@ -172,7 +173,7 @@ export default function StaffDirectoryWorkspace() {
       setDraft(null)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Perubahan metadata tidak berhasil disimpan.')
+      setError(toUserFacingError(e, { fallback: 'Perubahan metadata belum dapat disimpan.' }))
     } finally {
       setBusy(false)
     }
@@ -279,7 +280,7 @@ export default function StaffDirectoryWorkspace() {
       setMessage(`Impor selesai: ${stableImported.length.toLocaleString('id-ID')} rekam diproses. UUID staf yang sudah memiliki penetapan tim/atribusi dipertahankan berdasarkan kode AUREKA.`)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'File CSV tidak dapat diproses.')
+      setError(toUserFacingError(e, { fallback: 'File CSV tidak dapat diproses. Periksa format file, lalu coba kembali.' }))
     } finally {
       setBusy(false)
       if (fileRef.current) fileRef.current.value = ''
