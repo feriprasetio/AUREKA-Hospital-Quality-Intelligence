@@ -5,6 +5,15 @@
 **Production deployment:** not performed  
 **Main merge:** not performed
 
+## Latest handover supplement — 3 November 2026
+
+- PR #94 remains open/unmerged. Current documentation head: `8a02fcedfe060696598606d9c861b38ca05a7f37`; 142 commits ahead of `main`, 0 behind. The latest code-bearing checkpoint `6304be2deff9a74afdd73745c0f1b87009695bd3` passed AUREKA unit/data/type/build run [41586465407](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41586465407) and Patient Safety Build Check [41586465402](https://github.com/feriprasetio/AUREKA-Hospital-Quality-Intelligence/actions/runs/41586465402). The two later commits only reconcile this documentation/checklist.
+- The feature diff has 46 changed paths and no files under `lib/aureka/`, `supabase/migrations/`, or `supabase/functions/`. UI error feedback is located at `lib/ui/error-feedback.ts`.
+- Latest read-only Supabase inventory: project `ktukmjscopggkzrkgnzp`, `ACTIVE_HEALTHY`, PostgreSQL 17.6, 40 application tables, 82 migration records, 77 Auth users, 6 Auth sessions, two private Storage buckets (`aureka-documents`, `aureka-exports`), 0 rows in `storage.objects` at inventory time, and two active Edge Functions. These counts must be rechecked by the local backup run.
+- Organization remains Free Plan with two active projects; no dedicated staging project is available. The existing Supabase development branch `main` is `MIGRATIONS_FAILED` and `with_data=false`; it was not modified.
+- A Windows PowerShell backup runner has been prepared as a separate local kit. It has not been run on the owner’s PC, so no database, Auth, Storage object bytes, or repository off-site backup is claimed complete. Restore has not been tested.
+- A follow-up code correction clears active-workspace search state when Command Palette closes with Escape. Regression test was added; the code checkpoint CI is green.
+
 ## 1. Hosting and preview status
 
 The repository's `.github/workflows/preview-build.yml` builds feature branches and uploads a GitHub Actions artifact named `aureka-static-export`. It does not publish a browser-accessible preview URL.
