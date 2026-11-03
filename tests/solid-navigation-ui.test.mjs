@@ -35,12 +35,12 @@ test('Solid White is applied without depending on client data-theme hydration', 
 test('primary navigation uses one white surface rather than glossy menu cards', () => {
   const css = read('app/aureka-solid-navigation.css')
   for (const selector of [
-    'html[data-theme] .workspaceRoot .sidebar',
-    'html[data-theme] .workspaceRoot .sidebar .sidebarNav',
-    'html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup',
-    'html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup > button',
-    'html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren',
-    'html[data-theme] .workspaceRoot .sidebar .sidebarFooter',
+    '.workspaceRoot .sidebar',
+    '.workspaceRoot .sidebar .sidebarNav',
+    '.workspaceRoot .sidebar .sidebarNavGroup',
+    '.workspaceRoot .sidebar .sidebarNavGroup > button',
+    '.workspaceRoot .sidebar .sidebarTreeChildren',
+    '.workspaceRoot .sidebar .sidebarFooter'
   ]) {
     assert.ok(css.includes(selector), 'Missing final navigation rule: ' + selector)
   }
