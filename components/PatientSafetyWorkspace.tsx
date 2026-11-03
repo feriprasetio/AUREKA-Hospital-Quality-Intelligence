@@ -719,12 +719,15 @@ export default function PatientSafetyWorkspace({
     const value = incidentData[field.code] || ''
     const disabled = incidentLocked || saving
     const wide = field.type === 'textarea' || field.type === 'radio'
+    const fieldInvalid = missingIncident.includes(field.code)
+    const fieldErrorId = `incident-field-${field.code}-error`
+    const fieldDescribedBy = [field.hint ? `incident-field-${field.code}-hint` : '', fieldInvalid ? fieldErrorId : ''].filter(Boolean).join(' ') || undefined
     const reporterOptions = staffOptions.filter(staff => staff.room_name === (incidentData.E2 || ''))
     const reporterSelectValue = incidentStaffId || (value ? '__unmapped__' : '')
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel" id={`incident-field-${field.code}-label`} htmlFor={`incident-field-${field.code}`}>{field.code} · {field.label} <span className="psRequired">*</span></label>
       {field.hint ? <div className="psHint" id={`incident-field-${field.code}-hint`}>{field.hint}</div> : null}
-      {field.code === 'E1' ? <><select id={`incident-field-${field.code}`} aria-describedby={field.hint ? `incident-field-${field.code}-hint` : undefined} value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
+      {field.code === 'E1' ? <><select id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
         const value = event.target.value
         if (value === '__external__') {
           const currentStaff = reporterOptions.find(item => item.id === incidentStaffId)
@@ -742,22 +745,23 @@ export default function PatientSafetyWorkspace({
         {value && !incidentStaffId ? <option value="__unmapped__" disabled>Nama lama belum terhubung ke identitas AUREKA</option> : null}
         {reporterOptions.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
         <option value="__external__">Pelapor bukan tenaga AUREKA / identitas belum dapat dipetakan</option>
-      </select>{incidentReporterExternal ? <input aria-label="Nama pelapor dari luar direktori AUREKA" value={value} disabled={disabled} onChange={event => setIncidentValue('E1', event.target.value)} placeholder="Nama pelapor dari luar direktori AUREKA" /> : null}<div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : incidentReporterExternal ? 'Pelapor non-tenaga AUREKA: nama disimpan sebagai teks dan tidak ditautkan sebagai pegawai internal.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
-      : field.type === 'radio' ? <div className="psRadioGrid" role="group" aria-labelledby={`incident-field-${field.code}-label`}>
+      </select>{incidentReporterExternal ? <input aria-label="Nama pelapor dari luar direktori AUREKA" aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue('E1', event.target.value)} placeholder="Nama pelapor dari luar direktori AUREKA" /> : null}<div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : incidentReporterExternal ? 'Pelapor non-tenaga AUREKA: nama disimpan sebagai teks dan tidak ditautkan sebagai pegawai internal.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
+      : field.type === 'radio' ? <div className="psRadioGrid" role="group" aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy}>
         {(field.options || []).map(option => <label className="psRadio" key={option}>
           <input type="radio" name={'incident-' + field.code} value={option} checked={value === option} disabled={disabled}
             onChange={() => setIncidentValue(field.code, option)} />
           <span>{option}</span>
         </label>)}
       </div> : field.type === 'textarea' ?
-        <textarea id={`incident-field-${field.code}`} aria-describedby={field.hint ? `incident-field-${field.code}-hint` : undefined} value={value} rows={field.code === 'B1' || field.code === 'A8' ? 5 : 3} disabled={disabled}
+        <textarea id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} rows={field.code === 'B1' || field.code === 'A8' ? 5 : 3} disabled={disabled}
           onChange={event => setIncidentValue(field.code, event.target.value)} placeholder="Masukkan informasi..." /> :
         field.type === 'select' ?
-          <select id={`incident-field-${field.code}`} aria-describedby={field.hint ? `incident-field-${field.code}-hint` : undefined} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
+          <select id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
             <option value="">Pilih unit kerja</option>{roomOptions.map(name => <option key={name} value={name}>{name}</option>)}
           </select> :
-          <input id={`incident-field-${field.code}`} aria-describedby={field.hint ? `incident-field-${field.code}-hint` : undefined} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
+          <input id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
       }
+      {fieldInvalid ? <small id={fieldErrorId} className="psHint" style={{ color: '#b42318', fontWeight: 700 }}>Field ini wajib diisi.</small> : null}
     </div>
   }
   const renderInvestigationField = (field: IncidentField) => {
