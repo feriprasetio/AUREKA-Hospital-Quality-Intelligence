@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import QualitySettings from '@/components/QualitySettings'
-import StatisticsWorkspace from '@/components/StatisticsWorkspace'
-import StaffDirectoryWorkspace from '@/components/StaffDirectoryWorkspace'
+const QualitySettings=dynamic(()=>import('@/components/QualitySettings'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Kamus Indikator" compact/>})
+const StatisticsWorkspace=dynamic(()=>import('@/components/StatisticsWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Statistik" compact/>})
+const StaffDirectoryWorkspace=dynamic(()=>import('@/components/StaffDirectoryWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Direktori Tenaga" compact/>})
 
 type Room = { id: number; name: string }
 
