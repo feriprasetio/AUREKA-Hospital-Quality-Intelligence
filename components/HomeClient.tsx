@@ -343,15 +343,15 @@ export default function HomeClient(){
    const label=[button.innerText,button.getAttribute('aria-label'),button.getAttribute('title')].filter(Boolean).join(' ')
    return /\b(export|ekspor|download|unduh)\b/i.test(label)
   })
-  const target=candidates.sort((a,b)=>{
-   const rank=(button:HTMLButtonElement)=>/ekspor data|export data|unduh data/i.test(button.innerText+' '+button.getAttribute('aria-label'))?0:1
-   return rank(a)-rank(b)
-  })[0]
-  if(!target){
+  if(candidates.length===0){
    pushWorkspaceNotification('Belum ada tombol ekspor yang tersedia pada modul aktif. Buka Statistik & Laporan atau ekspor dari workspace terkait.','info',currentContainer)
    return
   }
-  target.click()
+  if(candidates.length>1){
+   pushWorkspaceNotification('Terdapat beberapa pilihan ekspor pada modul ini. Gunakan kontrol ekspor yang sesuai pada workspace untuk memilih jenis dan cakupan data. Tidak ada ekspor yang dijalankan.','info',currentContainer)
+   return
+  }
+  candidates[0].click()
  }
  const focusWorkspaceUnitSelector=()=>{
   const root=document.querySelector<HTMLElement>('.moduleEnter[data-workspace-container]')
@@ -362,11 +362,15 @@ export default function HomeClient(){
    const text=[select.getAttribute('aria-label'),select.getAttribute('name'),select.id,select.closest('label')?.innerText,...labels].filter(Boolean).join(' ')
    return /\b(unit|ruang|ruangan|room)\b/i.test(text)
   })
-  const target=candidates[0]
-  if(!target){
+  if(candidates.length===0){
    pushWorkspaceNotification('Modul aktif tidak menyediakan pemilih unit. Pilihan unit hanya muncul pada workspace yang mendukung filter unit.','info',currentContainer)
    return
   }
+  if(candidates.length>1){
+   pushWorkspaceNotification('Modul aktif memiliki beberapa pemilih unit. Gunakan kontrol unit yang sesuai pada workspace; palette tidak memilih secara otomatis.','info',currentContainer)
+   return
+  }
+  const target=candidates[0]
   target.focus()
   pushWorkspaceNotification('Pemilih unit difokuskan. Gunakan daftar pilihan untuk mengganti cakupan tampilan modul ini. Unit utama akun dan hak akses tidak diubah.','info',currentContainer)
  }
