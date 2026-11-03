@@ -385,8 +385,12 @@ body:has(.workspaceRoot) {
   .psHead, .psPanel, .psKpi, .psSurveyShell, .psQuestion, .psFormSection,
   .rmPanel, .rmHero, .rmKpi, .rmTableWrap, .rmPlanComposer,
   .cpPanel, .cpGlass, .cpCard, .cpSection,
-  .oppePanel, .oppeScorePanel, .oppeHeader, .oppeFilters,
+  .oppePanel, .oppeGlass, .oppeScorePanel, .oppeHeader, .oppeFilters, .oppeSection, .oppeManualCard, .oppeClinicalCard,
+  .fppePanel, .fppeFramePanel, .fppeReviewPanel, .fppeEvents, .fppeHistory,
+  .qraPanel, .qraHero, .qraKpi,
+  .acdPanel, .acdDrawer, .acdKpi,
   .stPanel, .sdPanel, .mswPanel, .qhCard,
+  .placeholderCard, .roomCard, .userDetail, .userDeleteConfirm, .userRow, .stSummary,
   .glass, .glassPanel, .glassCard, .glassSurface, .glassContainer, .liquidGlass
 ) {
   color: var(--aureka-ink) !important;
@@ -532,7 +536,7 @@ body:has(.workspaceRoot) {
 }
 
 /* Quality indicators — audit entry, data tables, tabs and editing surfaces */
-.workspaceRoot .moduleEnter :is(.aqTabs, .psTabs, .rmTabs, .cwTabs, .oppeTabs, .mswTabs, .aqFilters) {
+.workspaceRoot .moduleEnter :is(.aqTabs, .psTabs, .rmTabs, .cwTabs, .oppeTabs, .qraTabs, .settingsTabs, .mswTabs, .aqFilters) {
   color: var(--aureka-ink-2) !important;
   background: #f8faf9 !important;
   border: 1px solid var(--aureka-line) !important;
@@ -540,7 +544,7 @@ body:has(.workspaceRoot) {
   box-shadow: none !important;
 }
 
-.workspaceRoot .moduleEnter :is(.aqTab, .cwTab, .mswTab) {
+.workspaceRoot .moduleEnter :is(.aqTab, .cwTab, .mswTab, .qraTab, .settingsTab) {
   color: #586b61 !important;
   background: transparent !important;
   border: 1px solid transparent !important;
@@ -549,7 +553,7 @@ body:has(.workspaceRoot) {
   font-weight: 650 !important;
 }
 
-.workspaceRoot .moduleEnter :is(.aqTab.active, .cwTab.active, .mswTab.active) {
+.workspaceRoot .moduleEnter :is(.aqTab.active, .cwTab.active, .mswTab.active, .qraTab.active, .settingsTab.active, [role="tab"][aria-selected="true"]) {
   color: #0d6848 !important;
   background: #fff !important;
   border: 1px solid #d7e8dd !important;
@@ -690,8 +694,89 @@ body:has(.workspaceRoot) {
   outline-offset: 2px !important;
 }
 
+/* Remaining workspaces use the same action, tab and modal language. */
+.workspaceRoot .moduleEnter :is(.cpBtn, .oppeBtn, .qraBtn, .acdBtn, .sdBtn, .stBtn, .uBtn, .fppePrimary) {
+  min-height: 35px;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+.workspaceRoot .moduleEnter :is(
+  .cpBtn.primary, .oppeBtn.oppePrimary, .qraBtn.primary, .acdBtn.primary,
+  .sdBtn.primary, .stBtn.primary, .uBtn.primary, .fppePrimary
+) {
+  color: #fff !important;
+  background: var(--aureka-green) !important;
+  border-color: var(--aureka-green) !important;
+}
+.workspaceRoot .moduleEnter :is(
+  .cpBtn.primary, .oppeBtn.oppePrimary, .qraBtn.primary, .acdBtn.primary,
+  .sdBtn.primary, .stBtn.primary, .uBtn.primary, .fppePrimary
+):hover {
+  color: #fff !important;
+  background: var(--aureka-green-hover) !important;
+  border-color: var(--aureka-green-hover) !important;
+}
+.workspaceRoot .moduleEnter :is(.cpToolbar, .oppeToolbar, .fppeToolbar, .qraHero, .acdHero, .sdHead, .stHead, .qhHeader) {
+  color: var(--aureka-ink) !important;
+  background: #fff !important;
+  border-color: var(--aureka-line) !important;
+  box-shadow: none !important;
+}
+.workspaceRoot .moduleEnter :is(.oppeTabs, .qraTabs, .settingsTabs) {
+  padding: 4px !important;
+}
+.workspaceRoot .moduleEnter :is(.oppeModalBackdrop, .sdEditBackdrop, .acdDrawerBack) {
+  background: rgba(17, 33, 25, .42) !important;
+  backdrop-filter: blur(2px);
+}
+.workspaceRoot .moduleEnter :is(.oppeModal, .sdEditDialog, .acdDrawer) {
+  color: var(--aureka-ink) !important;
+  background: #fff !important;
+  border: 1px solid var(--aureka-line) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--aureka-shadow-float) !important;
+}
+.workspaceRoot .moduleEnter :is(.cpTable, .qraTable, .acdTable, .sdTable, .stTable) {
+  color: var(--aureka-ink-2) !important;
+  background: #fff !important;
+  border-color: var(--aureka-line) !important;
+}
+.workspaceRoot .moduleEnter :is(.cpTable th, .qraTable th, .acdTable th, .sdTable th, .stTable th) {
+  color: #52665c !important;
+  background: #f5f8f6 !important;
+}
+.workspaceRoot .moduleEnter :is(.cpTable td, .qraTable td, .acdTable td, .sdTable td, .stTable td) {
+  color: #354a40 !important;
+  background: #fff !important;
+  border-color: #e9efeb !important;
+}
+.workspaceRoot .moduleEnter :is(.fppeAlert, .oppeNotice, .qraNotice, .acdInfo, .sdNotice, .stNotice, .userRowNote) {
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+.workspaceRoot .moduleEnter :is(.fppePanel, .qraPanel, .acdPanel, .sdPanel, .stPanel, .oppeGlass, .cpGlass) {
+  border-radius: 12px !important;
+}
+.workspaceRoot .moduleEnter :is(.fppeWorkspace, .oppeRoot, .cpRoot, .qra, .acd, .staffDirectory, .staffTeam, .qhWrap) {
+  color: var(--aureka-ink) !important;
+}
+.workspaceRoot .moduleEnter .fppeBusyOverlay {
+  background: rgba(255,255,255,.82) !important;
+  backdrop-filter: blur(2px);
+}
+.workspaceRoot .moduleEnter :is(.settingsTab, .qraTab) {
+  border-radius: 7px !important;
+}
+.workspaceRoot .moduleEnter :is(.settingsTab.active, .qraTab.active) {
+  color: #0d6848 !important;
+  background: #fff !important;
+  border: 1px solid #d7e8dd !important;
+}
+
 /* Data grids and tables — stable, legible, operational */
-.workspaceRoot .moduleEnter :is(.aqTable, .psTableWrap, .rmTableWrap, .tableWrap, .dataTableWrap) {
+.workspaceRoot .moduleEnter :is(.aqTable, .psTableWrap, .rmTableWrap, .cpTableWrap, .qraTableWrap, .acdTableWrap, .sdTableWrap, .stTableWrap, .tableWrap, .dataTableWrap) {
   overflow: auto;
   border: 1px solid var(--aureka-line) !important;
   border-radius: 10px !important;
@@ -764,12 +849,12 @@ body:has(.workspaceRoot) {
   color: inherit;
 }
 
-.workspaceRoot :is(.aqPortal, .psModalBackdrop, .rmModalBackdrop) {
+.workspaceRoot :is(.aqPortal, .psModalBackdrop, .rmModalBackdrop, .oppeModalBackdrop, .sdEditBackdrop, .acdDrawerBack) {
   z-index: 1000 !important;
 }
 
 .workspaceRoot .aqPortal :is(.aqEditorDialog, .aqDeleteConfirm, .aqDrawer),
-.workspaceRoot :is(.psModalSheet, .rmModalSheet) {
+.workspaceRoot :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .acdDrawer) {
   color: var(--aureka-ink) !important;
   background: #fff !important;
   border: 1px solid var(--aureka-line) !important;
