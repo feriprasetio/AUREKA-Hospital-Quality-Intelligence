@@ -96,6 +96,11 @@ export function toUserFacingError(error: unknown, options: UserFacingErrorOption
   // application copy. Only curated Error instances may pass through.
   if (!isErrorInstance || message.length > 240) return fallback
 
+  // Keep only concise application copy written for Indonesian operators.
+  // Unknown English service diagnostics should not be echoed to the interface.
+  const hasOperatorLanguage = /\b(?:nama|unit|data|akun|password|email|sesi|wajib|belum|sudah|tidak|silakan|periksa|pastikan|lengkapi|pilih|isi|laporan|risiko|indikator|penilaian|formulir|koneksi|layanan|hubungi|akses|disimpan|diubah|dihapus|dikirim|tersedia|terverifikasi|tervalidasi|berhasil|gagal|mohon|coba|ulang|tunggu)\b/i.test(message)
+  if (!hasOperatorLanguage) return fallback
+
   return message
 }
 /**
