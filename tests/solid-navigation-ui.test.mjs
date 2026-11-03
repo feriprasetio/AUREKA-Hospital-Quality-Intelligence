@@ -74,3 +74,19 @@ test('dashboard does not present the internal page cap as a user-facing record l
   const dashboard = read('components/OverviewDashboard.tsx')
   assert.doesNotMatch(dashboard, /5\.000\s+record|5,000\s+record|maksimal\s+5\.000/i)
 })
+
+test('dashboard verifies completeness beyond its internal page window', () => {
+  const dashboard = read('components/OverviewDashboard.tsx')
+  assert.match(dashboard, /build\(cap, cap\)/)
+  assert.match(dashboard, /incomplete: true/)
+  assert.match(dashboard, /Rekap belum lengkap\. Buka modul terkait untuk melihat seluruh data\./)
+  assert.match(dashboard, /quality\.error \? null/)
+  assert.match(dashboard, /risks\.error \? null/)
+})
+
+test('Indonesian reporting period explains the calendar-to-date interval without YTD jargon', () => {
+  const dashboard = read('components/OverviewDashboard.tsx')
+  assert.match(dashboard, /PERIODE PELAPORAN/)
+  assert.match(dashboard, /Tahun berjalan/)
+  assert.doesNotMatch(dashboard, /· YTD/)
+})
