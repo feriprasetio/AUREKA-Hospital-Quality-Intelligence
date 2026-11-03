@@ -69,3 +69,16 @@ test('production Pages refuses manual dispatch from non-main refs before checkou
   assert.ok(production.includes('if [ "$GITHUB_REF" != "refs/heads/main" ]'))
   assert.ok(production.includes('restricted to refs/heads/main'))
 })
+
+const dependencyLockValidation = readFileSync('.github/workflows/dependency-lock-validation.yml', 'utf8')
+
+test('dependency lock automation is restricted to feature branches before checkout', () => {
+  const guard = dependencyLockValidation.indexOf('name: Restrict dependency lock automation to feature branches')
+  const checkout = dependencyLockValidation.indexOf('uses: actions/checkout@v4')
+  assert.notEqual(guard, -1)
+  assert.notEqual(checkout, -1)
+  assert.ok(guard < checkout, 'feature-branch guard must run before checkout or lockfile mutation')
+  assert.match(dependencyLockValidation, /case "\\$GITHUB_REF" in/)
+  assert.match(dependencyLockValidation, /refs\\/heads\\/feat\\/\\*/)
+  assert.match(dependencyLockValidation, /Dependency lock automation may only run on refs\\/heads\\/feat\\/\\*/)
+})
