@@ -1,11 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/aureka/error-feedback'
-import FppeEvaluationWorkspace from '@/components/FppeEvaluationWorkspace'
+const FppeEvaluationWorkspace=dynamic(()=>import('@/components/FppeEvaluationWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat evaluasi FPPE" compact/>})
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
