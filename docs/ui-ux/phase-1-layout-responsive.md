@@ -1,6 +1,6 @@
 # AUREKA UI/UX — Phase 1 Layout & Responsiveness
 
-**Status:** Implemented on feature branch; CI verification required  
+**Status:** Implemented on feature branch; automated CI passed, manual browser verification pending  
 **Branch:** `feat/ui-ux-redesign`  
 **Baseline:** Phase 0 approved Solid Enterprise Design  
 **Protected area:** module business logic, authorization, Supabase, and data contracts
@@ -71,6 +71,6 @@ The static export setup, GitHub Pages base path, and Supabase client architectur
 
 ## 7. Safety and release policy
 
-All Phase 1 commits are limited to `feat/ui-ux-redesign`. Do not merge to `main` or deploy production until the entire Phase 1 acceptance checklist is completed and reviewed.
+All Phase 1 commits are limited to `feat/ui-ux-redesign`. Automated CI passed on commit `019e8e195e0caddcbd696dadb01367d5bd93b26c` (workflow run `41557726436`). Do not merge to `main` or deploy production until the entire Phase 1 acceptance checklist, including manual browser and keyboard testing, is completed and reviewed.
 
 The GitHub backup branch is a source-control recovery point only. It is not a substitute for an independent Supabase database dump or Storage-object archive. No production database backup is claimed by this phase.
