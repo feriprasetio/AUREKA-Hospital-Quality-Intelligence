@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/aureka/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
 const sb = aurekaSupabase
@@ -123,13 +124,13 @@ export default function GeneralSettings({
     if (!v2.error) { setLifecycleSupported(true); setUsers((v2.data || []) as Profile[]); return }
     setLifecycleSupported(false)
     const { data, error } = await sb.rpc('aureka_admin_list_user_profiles')
-    if (error) setMsg(error.message)
+    if (error) setMsg(toUserFacingError(error, { fallback: 'Data belum dapat dimuat. Coba muat ulang.' }))
     else setUsers((data || []) as Profile[])
   }
 
   useEffect(() => {
     sb.rpc('aureka_list_active_roles').then(({ data, error }) => {
-      if (error) setMsg(error.message)
+      if (error) setMsg(toUserFacingError(error, { fallback: 'Data belum dapat dimuat. Coba muat ulang.' }))
       else setRoles((data || []) as Role[])
     })
     loadUsers()
@@ -150,7 +151,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.rpc('aureka_set_my_username', { p_username: un })
     setBusy(false)
-    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum aktif di database (migration 20261014095000_username_login.sql).' : `Gagal: ${error.message}` })
+    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum aktif di database (migration 20261014095000_username_login.sql).' : `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` })
     setAcctNote({ ok: true, text: `Username disimpan. Mulai sekarang Anda bisa login dengan “${un}”.` })
     loadMyAccount()
   }
@@ -162,7 +163,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.auth.updateUser({ email: em }, { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` })
     setBusy(false)
-    if (error) return setAcctNote({ ok: false, text: /rate limit|too many/i.test(error.message) ? 'Terlalu banyak permintaan email. Coba lagi beberapa menit lagi.' : /already|registered/i.test(error.message) ? 'Email sudah dipakai akun lain.' : `Gagal mengubah email: ${error.message}` })
+    if (error) return setAcctNote({ ok: false, text: /rate limit|too many/i.test(error.message) ? 'Terlalu banyak permintaan email. Coba lagi beberapa menit lagi.' : /already|registered/i.test(error.message) ? 'Email sudah dipakai akun lain.' : `Gagal mengubah email: ${toUserFacingError(error, { fallback: 'Email belum dapat diubah. Coba kembali.' })}` })
     setAcctNote({ ok: true, text: `Link konfirmasi dikirim ke ${em}. Email baru berlaku setelah Anda klik link tersebut (Supabase juga dapat mengirim konfirmasi ke email lama). Sampai saat itu, login tetap memakai email lama.` })
   }
 
@@ -178,7 +179,7 @@ export default function GeneralSettings({
         : (profile?.primary_room_id ?? null),
     })
     setBusy(false)
-    setMsg(error ? `Gagal: ${error.message}` : 'Profil berhasil disimpan.')
+    setMsg(error ? `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` : 'Profil berhasil disimpan.')
   }
 
   const filtered = useMemo(
@@ -235,7 +236,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.rpc('aureka_admin_save_room', { p_id: r.id, p_name: r.name, p_code: r.code || null, p_is_active: !(r.is_active ?? true) })
     setBusy(false)
-    if (error) { setMsg(`Gagal mengubah status unit: ${error.message}`); return }
+    if (error) { setMsg(`Gagal mengubah status unit: ${toUserFacingError(error, { fallback: 'Status unit belum dapat diubah.' })}`); return }
     setMsg(r.is_active === false ? `Unit “${r.name}” diaktifkan kembali.` : `Unit “${r.name}” dinonaktifkan. Data lamanya tetap tersimpan.`)
     await loadRooms()
     onRoomsChanged?.()
@@ -256,8 +257,8 @@ export default function GeneralSettings({
     })
     setBusy(false)
     if (error) {
-      setMsg(`Gagal menyimpan: ${error.message}`)
-      setRowNote({ id: u.user_id, ok: false, text: error.message })
+      setMsg(`Gagal menyimpan: ${toUserFacingError(error, { fallback: 'Perubahan akun belum dapat disimpan.' })}`)
+      setRowNote({ id: u.user_id, ok: false, text: toUserFacingError(error, { fallback: 'Perubahan akun belum dapat disimpan.' }) })
     } else {
       const text = 'is_active' in patch ? (patch.is_active ? `${u.full_name} diaktifkan. Akun sudah bisa login.` : `${u.full_name} dinonaktifkan.`) : `Perubahan untuk ${u.full_name} disimpan.`
       setMsg(text)
@@ -355,7 +356,7 @@ export default function GeneralSettings({
       setProvisionMessage(`${data.accounts_created_or_reset} akun siap: ${data.active_units} unit, masing-masing satu PIC dan satu Validator. Unduh kredensial satu kali sebelum menutup panel ini.`)
       await loadUsers()
     } catch (e) {
-      setProvisionMessage(`Gagal membuat akun: ${e instanceof Error ? e.message : 'Kesalahan yang tidak diketahui'}`)
+      setProvisionMessage(`Gagal membuat akun: ${toUserFacingError(e, { fallback: 'Provisioning akun belum berhasil. Periksa koneksi dan hak akses.' })}`)
     } finally {
       setProvisioning(false)
     }
@@ -388,7 +389,7 @@ export default function GeneralSettings({
     const { error } = await sb.auth.resetPasswordForEmail(u.email, { redirectTo })
     setBusy(false)
     const text = error
-      ? `Gagal mengirim email reset: ${/rate limit|too many/i.test(error.message) ? 'terlalu banyak permintaan, coba lagi beberapa menit lagi.' : error.message}`
+      ? `Gagal mengirim email reset: ${/rate limit|too many/i.test(error.message) ? 'terlalu banyak permintaan, coba lagi beberapa menit lagi.' : toUserFacingError(error, { fallback: 'Email reset belum dapat dikirim.' })}`
       : `Email reset password dikirim ke ${u.email}. Minta ${u.full_name} membuka tautan di email tersebut (cek juga folder Spam).`
     setMsg(text)
     setRowNote({ id: u.user_id, ok: !error, text })
@@ -406,14 +407,14 @@ export default function GeneralSettings({
       setBusy(false)
       const t = error.message || ''
       const note = error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Fitur ubah username/email belum aktif di database. Minta pemilik Supabase menjalankan supabase/migrations/20261014095000_username_login.sql.'
-        : /USERNAME_TAKEN/.test(t) ? 'Username sudah dipakai akun lain.' : /EMAIL_TAKEN/.test(t) ? 'Email sudah dipakai akun lain.' : /USERNAME_INVALID/.test(t) ? 'Username tidak valid.' : /EMAIL_INVALID/.test(t) ? 'Format email tidak valid.' : `Gagal menyimpan: ${t}`
+        : /USERNAME_TAKEN/.test(t) ? 'Username sudah dipakai akun lain.' : /EMAIL_TAKEN/.test(t) ? 'Email sudah dipakai akun lain.' : /USERNAME_INVALID/.test(t) ? 'Username tidak valid.' : /EMAIL_INVALID/.test(t) ? 'Format email tidak valid.' : `Gagal menyimpan: ${toUserFacingError(error, { fallback: 'Identitas akun belum dapat disimpan.' })}`
       setMsg(note); setRowNote({ id: u.user_id, ok: false, text: note }); return
     }
     let text = 'Username & email disimpan.'
     if (data === 'verify') {
       const r = await sb.auth.resend({ type: 'signup', email: em, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
       text = r.error
-        ? `Email diubah ke ${em}, tetapi email verifikasi gagal dikirim (${/rate limit|too many/i.test(r.error.message) ? 'batas pengiriman email, coba “Kirim ulang” nanti' : r.error.message}).`
+        ? `Email diubah ke ${em}, tetapi email verifikasi gagal dikirim (${/rate limit|too many/i.test(r.error.message) ? 'batas pengiriman email, coba “Kirim ulang” nanti' : toUserFacingError(r.error, { fallback: 'Email verifikasi belum dapat dikirim.' })}).`
         : `Email diubah ke ${em}. Link verifikasi dikirim; ${u.full_name} perlu klik link tersebut sebelum bisa login.`
     } else if (data === 'changed') text = `Email diubah ke ${em} tanpa verifikasi.`
     setBusy(false)
@@ -426,7 +427,7 @@ export default function GeneralSettings({
     setBusy(true)
     const r = await sb.auth.resend({ type: 'signup', email: u.email, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
     setBusy(false)
-    const text = r.error ? (/already|confirmed/i.test(r.error.message) ? 'Email akun ini sudah terverifikasi.' : `Gagal mengirim: ${r.error.message}`) : `Email verifikasi dikirim ulang ke ${u.email}.`
+    const text = r.error ? (/already|confirmed/i.test(r.error.message) ? 'Email akun ini sudah terverifikasi.' : `Gagal mengirim: ${toUserFacingError(r.error, { fallback: 'Email verifikasi belum dapat dikirim.' })}`) : `Email verifikasi dikirim ulang ke ${u.email}.`
     setRowNote({ id: u.user_id, ok: !r.error, text })
   }
 
@@ -449,7 +450,7 @@ export default function GeneralSettings({
     if (check.error) { setBusy(false); return setPwMsg({ ok: false, text: 'Password saat ini salah.' }) }
     const { error } = await sb.auth.updateUser({ password: pw.next })
     setBusy(false)
-    if (error) return setPwMsg({ ok: false, text: `Gagal mengganti password: ${error.message}` })
+    if (error) return setPwMsg({ ok: false, text: `Gagal mengganti password: ${toUserFacingError(error, { fallback: 'Password belum dapat diperbarui.' })}` })
     setPw({ current: '', next: '', confirm: '' })
     setPwMsg({ ok: true, text: 'Password berhasil diganti. Gunakan password baru saat login berikutnya.' })
   }
