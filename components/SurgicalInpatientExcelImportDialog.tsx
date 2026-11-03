@@ -465,6 +465,11 @@ export default function SurgicalInpatientExcelImportDialog({
         const rowIssues: string[] = []
         const rowWarnings: string[] = []
 
+        // Count sequence and MRN recurrence across every source episode, including rows held by validation.
+        sourceNoCounts.set(sourceNo, (sourceNoCounts.get(sourceNo) ?? 0) + 1)
+        const mrnKey = normalizedIdentity(medicalRecordNo)
+        medicalRecordCounts.set(mrnKey, (medicalRecordCounts.get(mrnKey) ?? 0) + 1)
+
         if (!sourceNo || !/^\d+$/.test(sourceNo)) rowIssues.push('Nomor urut sumber tidak valid.')
         if (!patientName) rowIssues.push('Nama Pasien kosong.')
         if (!medicalRecordNo) rowIssues.push('No. Rekam Medis (header sumber Column1) kosong.')
@@ -548,9 +553,6 @@ export default function SurgicalInpatientExcelImportDialog({
           indicators,
           warnings: rowWarnings,
         })
-        sourceNoCounts.set(sourceNo, (sourceNoCounts.get(sourceNo) ?? 0) + 1)
-        const mrnKey = normalizedIdentity(medicalRecordNo)
-        medicalRecordCounts.set(mrnKey, (medicalRecordCounts.get(mrnKey) ?? 0) + 1)
       }
 
       let repeatedSequenceGroups = 0
@@ -728,7 +730,7 @@ export default function SurgicalInpatientExcelImportDialog({
 
         {findings && <div className="suBox">
           <strong>Pemeriksaan workbook:</strong> {findings.sheetCount} worksheet; {findings.dataRows} episode sumber; {findings.validRows} episode lolos validasi inti; Dashboard menyatakan {findings.dashboardCount ?? 'tidak tersedia'} data.
-          <div className="aqSub">Formula error pada Logbook: {findings.sourceFormulaErrors}; formula error pada worksheet rekap: {findings.reportFormulaErrors}. Nomor urut berulang: {findings.repeatedSequenceGroups} kelompok ({findings.repeatedSequenceRows} baris); No. RM berulang: {findings.repeatedMrnGroups} kelompok ({findings.repeatedMrnRows} episode); kombinasi episode identik: {findings.duplicateEpisodeGroups} kelompok ({findings.duplicateEpisodeRows} baris.</div>
+          <div className="aqSub">Formula error pada Logbook: {findings.sourceFormulaErrors}; formula error pada worksheet rekap: {findings.reportFormulaErrors}. Nomor urut berulang: {findings.repeatedSequenceGroups} kelompok ({findings.repeatedSequenceRows} baris); No. RM berulang: {findings.repeatedMrnGroups} kelompok ({findings.repeatedMrnRows} episode); kombinasi episode identik: {findings.duplicateEpisodeGroups} kelompok ({findings.duplicateEpisodeRows} baris).</div>
         </div>}
 
         {rows.length > 0 && <div className="suStats">
