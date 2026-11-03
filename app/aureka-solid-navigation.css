@@ -757,3 +757,352 @@
     min-height: 34px !important;
   }
 }
+
+
+/* Final header + navigation pass: separated controls, Medidash Solid White hierarchy */
+.workspaceRoot .workspaceHeaderBar {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  padding: 0 20px !important;
+}
+.workspaceRoot .workspaceSidebarMenuButton {
+  order: 0 !important;
+  position: relative !important;
+  z-index: 2 !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  margin: 0 !important;
+}
+.workspaceRoot .workspaceContext {
+  order: 1 !important;
+  display: flex !important;
+  flex: 0 1 220px !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  min-width: 150px !important;
+  max-width: 240px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+.workspaceRoot .workspaceContext strong,
+.workspaceRoot .workspaceContext span {
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.workspaceRoot .workspaceGlobalSearch {
+  order: 2 !important;
+  position: relative !important;
+  display: flex !important;
+  flex: 1 1 280px !important;
+  min-width: 180px !important;
+  max-width: none !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+.workspaceRoot .workspaceGlobalSearch > input {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.workspaceRoot .workspaceHeaderBar > .commandPaletteTrigger {
+  order: 3 !important;
+  position: relative !important;
+  display: inline-flex !important;
+  flex: 0 0 40px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #e5ebe7 !important;
+  border-radius: 9px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+.workspaceRoot .workspaceHeaderBar > .commandPaletteTrigger > span,
+.workspaceRoot .workspaceHeaderBar > .commandPaletteTrigger > kbd {
+  display: none !important;
+}
+.workspaceRoot .workspaceHeaderBar > .commandPaletteTrigger svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+.workspaceRoot .workspaceHeaderBar > .workspaceHeaderIcon,
+.workspaceRoot .workspaceHeaderBar > .workspaceHeaderProfile {
+  flex: 0 0 auto !important;
+  order: 4 !important;
+}
+.workspaceRoot .workspaceHeaderBar > .workspaceFullscreenButton { order: 4 !important; }
+.workspaceRoot .workspaceHeaderBar > .workspaceHeaderProfile { order: 5 !important; }
+
+/* Sidebar geometry and visual hierarchy */
+.workspaceRoot:not(.sidebarIsCollapsed) {
+  grid-template-columns: 264px minmax(0, 1fr) !important;
+}
+.workspaceRoot:not(.sidebarIsCollapsed) .sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 264px !important;
+  min-width: 264px !important;
+  max-width: 264px !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  background: #ffffff !important;
+  border-right: 1px solid #e6ece8 !important;
+}
+.workspaceRoot .sidebar .sideHeader {
+  flex: 0 0 76px !important;
+  min-height: 76px !important;
+  padding: 0 20px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #edf1ee !important;
+}
+.workspaceRoot .sidebar .sideBrand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+.workspaceRoot .sidebar .sideBrand img,
+.workspaceRoot .sidebar .sideBrand .workspaceLogo {
+  flex: 0 0 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+}
+.workspaceRoot .sidebar .sideBrand b {
+  color: #1d3428 !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: .035em !important;
+}
+.workspaceRoot .sidebar .sideBrand small {
+  margin-top: 2px !important;
+  color: #829087 !important;
+  font-size: 10px !important;
+  font-weight: 550 !important;
+  line-height: 1.3 !important;
+}
+.workspaceRoot .sidebar .sideProfile {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 58px !important;
+  margin: 12px 14px 6px !important;
+  padding: 8px 10px !important;
+  color: #405449 !important;
+  background: #f7f9f8 !important;
+  border: 1px solid #edf1ee !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+.workspaceRoot .sidebar .sideProfileAvatar {
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  background: #e4f1e9 !important;
+  color: #176b4d !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+.workspaceRoot .sidebar .sideProfileText {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  gap: 2px !important;
+}
+.workspaceRoot .sidebar .sideProfileText b {
+  overflow: hidden !important;
+  color: #34483c !important;
+  font-size: 10.5px !important;
+  font-weight: 750 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.workspaceRoot .sidebar .sideProfileText small {
+  color: #87958d !important;
+  font-size: 9px !important;
+}
+.workspaceRoot .sidebar .navLabel {
+  margin: 18px 20px 9px !important;
+  color: #97a39b !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .13em !important;
+}
+.workspaceRoot .sidebar .navLabel::before {
+  width: 12px !important;
+  height: 2px !important;
+  background: #c8d9cf !important;
+}
+.workspaceRoot .sidebar .sidebarNav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  padding: 0 12px 18px !important;
+  gap: 4px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button {
+  min-height: 43px !important;
+  padding: 0 13px !important;
+  gap: 12px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  font-weight: 620 !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button.navActive {
+  color: #0c684a !important;
+  background: #edf6f0 !important;
+  border-color: #e1eee5 !important;
+  box-shadow: inset 3px 0 0 #16805c !important;
+}
+.workspaceRoot .sidebar .sidebarNavGroup > button.navActive > svg {
+  color: #16805c !important;
+}
+.workspaceRoot .sidebar .sidebarTreeChildren {
+  margin: 5px 0 10px 17px !important;
+  padding: 4px 0 4px 12px !important;
+  border-left: 1px solid #e5ece7 !important;
+}
+.workspaceRoot .sidebar .sidebarChild {
+  min-height: 35px !important;
+  padding: 7px 9px !important;
+  color: #718077 !important;
+  border-radius: 7px !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+.workspaceRoot .sidebar .sidebarChild.active {
+  color: #0d684b !important;
+  background: #f0f7f2 !important;
+  border-color: #e6f0e9 !important;
+  font-weight: 740 !important;
+}
+.workspaceRoot .sidebar .sidebarFooter {
+  flex: 0 0 auto !important;
+  padding: 12px 14px 16px !important;
+  background: #ffffff !important;
+  border-top: 1px solid #edf1ee !important;
+}
+
+/* Collapsed icon rail: retain brand mark and expose navigation icons */
+.workspaceRoot.sidebarIsCollapsed {
+  grid-template-columns: 76px minmax(0, 1fr) !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar {
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideProfile,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideBrand > div,
+.workspaceRoot.sidebarIsCollapsed .sidebar .navLabel,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button > span,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter .logoutLabel {
+  display: none !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideHeader {
+  justify-content: center !important;
+  padding: 0 8px !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sideBrand {
+  justify-content: center !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNav {
+  padding: 12px 8px !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren,
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron {
+  display: none !important;
+}
+
+@media (max-width: 1100px) {
+  .workspaceRoot .workspaceHeaderBar {
+    gap: 8px !important;
+    padding: 0 12px !important;
+  }
+  .workspaceRoot .workspaceContext {
+    flex: 0 1 175px !important;
+    min-width: 112px !important;
+  }
+  .workspaceRoot .workspaceHeaderProfileText { display: none !important; }
+}
+@media (max-width: 720px) {
+  .workspaceRoot .workspaceHeaderBar {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    min-height: 60px !important;
+    padding: 0 8px !important;
+  }
+  .workspaceRoot .workspaceSidebarMenuButton {
+    flex: 0 0 34px !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+  .workspaceRoot .workspaceContext {
+    flex: 0 1 118px !important;
+    min-width: 0 !important;
+    max-width: 118px !important;
+  }
+  .workspaceRoot .workspaceContext strong { font-size: 10px !important; }
+  .workspaceRoot .workspaceContext span { font-size: 9px !important; }
+  .workspaceRoot .workspaceGlobalSearch {
+    flex: 1 1 90px !important;
+    min-width: 72px !important;
+    max-width: none !important;
+  }
+  .workspaceRoot .workspaceGlobalSearch input {
+    min-width: 0 !important;
+    padding-right: 3px !important;
+    font-size: 10px !important;
+  }
+  .workspaceRoot .workspaceHeaderBar > .commandPaletteTrigger {
+    flex: 0 0 34px !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+  .workspaceRoot .workspaceHeaderBar > .workspaceFullscreenButton,
+  .workspaceRoot .workspaceHeaderBar > .workspaceHeaderIcon[title="Chat Super Admin"] {
+    display: none !important;
+  }
+  .workspaceRoot .workspaceHeaderBar > .workspaceHeaderIcon,
+  .workspaceRoot .workspaceHeaderBar > .workspaceHeaderProfile {
+    min-width: 30px !important;
+    width: 30px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+  }
+  .workspaceRoot:not(.sidebarIsCollapsed) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .workspaceRoot:not(.sidebarIsCollapsed) .sidebar,
+  .workspaceRoot.sidebarIsCollapsed .sidebar {
+    width: min(304px, 88vw) !important;
+    min-width: min(304px, 88vw) !important;
+    max-width: 88vw !important;
+  }
+}
