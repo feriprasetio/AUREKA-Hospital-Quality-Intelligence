@@ -727,7 +727,7 @@ export default function PatientSafetyWorkspace({
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel" id={`incident-field-${field.code}-label`} htmlFor={`incident-field-${field.code}`}>{field.code} · {field.label} <span className="psRequired">*</span></label>
       {field.hint ? <div className="psHint" id={`incident-field-${field.code}-hint`}>{field.hint}</div> : null}
-      {field.code === 'E1' ? <><select id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
+      {field.code === 'E1' ? <><select id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
         const value = event.target.value
         if (value === '__external__') {
           const currentStaff = reporterOptions.find(item => item.id === incidentStaffId)
@@ -753,13 +753,13 @@ export default function PatientSafetyWorkspace({
           <span>{option}</span>
         </label>)}
       </div> : field.type === 'textarea' ?
-        <textarea id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} rows={field.code === 'B1' || field.code === 'A8' ? 5 : 3} disabled={disabled}
+        <textarea id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} rows={field.code === 'B1' || field.code === 'A8' ? 5 : 3} disabled={disabled}
           onChange={event => setIncidentValue(field.code, event.target.value)} placeholder="Masukkan informasi..." /> :
         field.type === 'select' ?
-          <select id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
+          <select id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
             <option value="">Pilih unit kerja</option>{roomOptions.map(name => <option key={name} value={name}>{name}</option>)}
           </select> :
-          <input id={`incident-field-${field.code}`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
+          <input id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
       }
       {fieldInvalid ? <small id={fieldErrorId} className="psHint" style={{ color: '#b42318', fontWeight: 700 }}>Field ini wajib diisi.</small> : null}
     </div>
@@ -771,7 +771,7 @@ export default function PatientSafetyWorkspace({
     const unitStaff = staffOptions.filter(staff => staff.room_name === (linkedIncident?.unit_name || ''))
     if (field.code === '5') return <div className="psField full" key={field.code}>
       <label className="psLabel" id={`investigation-field-${field.code}-label`} htmlFor={`investigation-field-${field.code}`}>{field.code} · {field.label}</label>
-      <textarea id={`investigation-field-${field.code}`} value={value} rows={3} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Uraikan pihak yang terlibat; nama yang dipilih di bawah akan ditautkan ke ID AUREKA." />
+      <textarea id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} rows={3} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Uraikan pihak yang terlibat; nama yang dipilih di bawah akan ditautkan ke ID AUREKA." />
       <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',gap:8,marginTop:9,alignItems:'end'}}>
         <label className="psField"><span className="psLabel">Tautkan tenaga yang terlibat</span>
           <select value={investigationStaffToAdd} disabled={!canManageWorkflow || saving || !unitStaff.length} onChange={event => setInvestigationStaffToAdd(event.target.value)}>
@@ -805,12 +805,12 @@ export default function PatientSafetyWorkspace({
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel" id={`investigation-field-${field.code}-label`} htmlFor={`investigation-field-${field.code}`}>{field.code} · {field.label}</label>
       {field.type === 'textarea' ?
-        <textarea id={`investigation-field-${field.code}`} value={value} rows={3} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Masukkan hasil investigasi..." /> :
+        <textarea id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} rows={3} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} placeholder="Masukkan hasil investigasi..." /> :
         field.type === 'select' ?
-          <select id={`investigation-field-${field.code}`} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)}>
+          <select id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)}>
             <option value="">Pilih grading</option>{(field.options || []).map(option => <option key={option}>{option}</option>)}
           </select> :
-          <input id={`investigation-field-${field.code}`} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} />
+          <input id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} />
       }
     </div>
   }
