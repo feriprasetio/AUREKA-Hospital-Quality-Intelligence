@@ -51,6 +51,7 @@ const CORE_HEADER_ALIASES: Record<string, string[]> = {
   sourceLos: ['Lenght of Stay', 'Length of Stay'],
   receivingNurse: ['Perawat Penerima'],
   dpjp: ['DPJP'],
+  diagnosisSearchKey: ['Dx'],
 }
 
 const SOURCE_LABEL_ALIASES: Record<string, Record<string, string>> = {
