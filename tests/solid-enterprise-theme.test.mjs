@@ -34,6 +34,8 @@ test('Solid Enterprise theme applies real shell, module, form, table and dialog 
     '.workspaceRoot .moduleEnter .aqBtn.primary',
     '.workspaceRoot .moduleEnter .psBtn.primary',
     '.workspaceRoot .moduleEnter .rmButton.primary',
+    '.workspaceRoot .moduleEnter :is(.cpBtn, .oppeBtn, .qraBtn, .acdBtn, .sdBtn, .stBtn, .uBtn, .fppePrimary)',
+    '.workspaceRoot .moduleEnter :is(.fppePanel, .qraPanel, .acdPanel, .oppeGlass)',
     '.workspaceRoot .moduleEnter table',
     '.workspaceRoot .workspaceNotificationPanel',
     '.authPage .authCard',
