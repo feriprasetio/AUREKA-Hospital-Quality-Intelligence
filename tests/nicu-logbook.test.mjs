@@ -79,7 +79,8 @@ test('calculates LOS and preserves active episode with no discharge date', () =>
 test('uses physical Excel row, not display sequence or medical record number, for idempotency', () => {
   assert.equal(makeNicuSubjectKey(2026, 77), 'excel-pmkp-nicu-2026:row:77')
   assert.notEqual(makeNicuSubjectKey(2026, 77), makeNicuSubjectKey(2026, 78))
-  assert.throws(() => makeNicuSubjectKey(2025, 77), /harus 2026/)
+  assert.throws(() => makeNicuSubjectKey(2025, 77), /tidak valid/)
+  assert.equal(makeNicuSubjectKey(2027, 77), 'excel-pmkp-nicu-2027:row:77')
   assert.throws(() => makeNicuSubjectKey(2026, 5011), /baris Excel/)
 })
 
