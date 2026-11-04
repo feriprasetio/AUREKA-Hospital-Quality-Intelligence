@@ -182,6 +182,7 @@ test('builds physical-row idempotency keys only for Nifas 2026', () => {
   assert.equal(makeNifasSubjectKey(2026, 438), 'excel-pmkp-nifas-2026:row:438')
   assert.throws(() => makeNifasSubjectKey(2025, 3))
   assert.throws(() => makeNifasSubjectKey(2026, 2))
+  assert.equal(makeNifasSubjectKey(2027, 5), 'excel-pmkp-nifas-2027:row:5')
 })
 
 test('recognizes known formula errors in source LOS cells', () => {
