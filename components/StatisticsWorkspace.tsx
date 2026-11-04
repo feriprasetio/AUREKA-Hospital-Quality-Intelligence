@@ -52,13 +52,45 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
     ;(async () => {
       const all: Row[] = []
       let hitLimit = false
-      for (let from = 0; from < 20000; from += 1000) {
-        const { data, error } = await sb.schema(dataset.schema).from(dataset.table).select(dataset.select)
-          .order(dataset.orderBy, { ascending: false }).order('id', { ascending: true }).range(from, from + 999)
-        if (error) { if (!cancelled) setError(error.message); break }
-        all.push(...(data || []))
-        if (!data || data.length < 1000) break
-        if (from + 1000 >= 20000) { hitLimit = true; break }
+      const pageSize = 1000
+      const maxRows = 20000
+      const build = (from: number) => sb.schema(dataset.schema).from(dataset.table).select(dataset.select)
+        .order(dataset.orderBy, { ascending: false }).order('id', { ascending: true }).range(from, from + pageSize - 1)
+      // Halaman pertama dulu (dataset kecil selesai dalam satu request); halaman
+      // lanjutan diambil paralel per gelombang 4 halaman — sebelumnya 20 request
+      // berantai yang saling menunggu (hingga ~20x waktu round-trip).
+      let errored = false
+      const first = await build(0)
+      if (cancelled) return
+      if (first.error) {
+        if (!cancelled) setError(first.error.message)
+        errored = true
+      } else {
+        all.push(...((first.data || []) as Row[]))
+        if ((first.data || []).length === pageSize) {
+          for (let from = pageSize; from < maxRows && !errored; from += pageSize * 4) {
+            const starts: number[] = []
+            for (let i = 0; i < 4; i++) {
+              const start = from + i * pageSize
+              if (start < maxRows) starts.push(start)
+            }
+            const results = await Promise.all(starts.map((start) => build(start)))
+            if (cancelled) return
+            let done = false
+            for (const result of results) {
+              if (result.error) {
+                if (!cancelled) setError(result.error.message)
+                errored = true
+                break
+              }
+              const batch = (result.data || []) as Row[]
+              all.push(...batch)
+              if (batch.length < pageSize) done = true
+            }
+            if (errored || done) break
+            if (from + pageSize * 4 >= maxRows) { hitLimit = true; break }
+          }
+        }
       }
       if (!cancelled) { setRows(all); setTruncated(hitLimit); setLoading(false) }
     })()
