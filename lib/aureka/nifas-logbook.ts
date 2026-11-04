@@ -244,11 +244,11 @@ export function calculateNifasStayDays(admissionDate: string, dischargeDate: str
 }
 
 export function makeNifasSubjectKey(year: number, sourceExcelRow: number): string {
-  if (year !== 2026) throw new Error('Tahun profil Nifas harus 2026.')
+  if (!Number.isInteger(year) || year < 2026 || year > 2100) throw new Error('Tahun profil Nifas tidak valid.')
   if (!Number.isInteger(sourceExcelRow) || sourceExcelRow < 3 || sourceExcelRow > 5010) {
     throw new Error('Nomor baris Excel Nifas tidak valid.')
   }
-  return 'excel-pmkp-nifas-2026:row:' + sourceExcelRow
+  return 'excel-pmkp-nifas-' + year + ':row:' + sourceExcelRow
 }
 
 export function isNifasFormulaError(value: unknown): boolean {
