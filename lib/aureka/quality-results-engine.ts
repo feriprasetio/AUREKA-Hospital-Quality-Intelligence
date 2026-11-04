@@ -58,6 +58,8 @@ export type IndicatorResult = {
   validatedRecords: number
   latestInputAt: string | null
   targetMet: boolean | null
+  engineVersion: string
+  profileVersion: number | null
 }
 
 type MeasurementObservation = {
@@ -79,13 +81,79 @@ function round2(value: number | null): number | null {
   return value == null ? null : Math.round(value * 100) / 100
 }
 
+// Versi engine hasil — dicatat pada setiap hasil indikator agar snapshot hasil
+// dapat ditelusuri ke versi aturan yang menghasilkannya (syarat docs/ARCHITECTURE.md).
+export const RESULTS_ENGINE_VERSION = '2026.11.1'
+
+// Nama bulan Indonesia & Inggris untuk parsing tanggal bentuk bebas.
+const MONTH_NAMES: Record<string, number> = {
+  january: 1, jan: 1, februari: 2, february: 2, feb: 2, maret: 3, march: 3, mar: 3,
+  april: 4, apr: 4, mei: 5, may: 5, juni: 6, june: 6, jun: 6, juli: 7, july: 7, jul: 7,
+  agustus: 8, august: 8, augustus: 8, agu: 8, ags: 8, aug: 8, september: 9, sep: 9, sept: 9,
+  oktober: 10, october: 10, okt: 10, oct: 10, november: 11, nov: 11,
+  desember: 12, december: 12, dec: 12, des: 12,
+}
+
+function validIsoDate(year: number, month: number, day: number): string | null {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+  const date = new Date(Date.UTC(year, month - 1, day))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0')
+}
+
+// Semua parsing tanggal murni-UTC tanpa new Date(string): konversi zona waktu
+// browser (WIB/UTC+7) sebelumnya memotong tanggal non-ISO satu hari, dan format
+// Indonesia "15/03/2026" dibuang diam-diam sebagai Invalid Date.
+function parseDateText(text: string): string | null {
+  // ISO: 2026-03-15, 2026/03/15, atau berakhiran waktu " 10:30" / "T10:30…".
+  const iso = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s].*)?$/)
+  if (iso) return validIsoDate(Number(iso[1]), Number(iso[2]), Number(iso[3]))
+
+  // Format lokal Indonesia/Eropa: 15/03/2026, 15.03.2026, 15-03-26 (DD/MM/YYYY),
+  // dengan disambiguasi bila salah satu komponen > 12 (kebijakan oppe-engine).
+  const local = text.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2}|\d{4})(?:[T\s].*)?$/)
+  if (local) {
+    const rawYear = Number(local[3])
+    const year = rawYear < 100 ? 2000 + rawYear : rawYear
+    const first = Number(local[1])
+    const second = Number(local[2])
+    if (first > 12 && second <= 12) return validIsoDate(year, second, first)
+    if (second > 12 && first <= 12) return validIsoDate(year, first, second)
+    return validIsoDate(year, second, first)
+  }
+
+  // Nama bulan: "March 15, 2026", "15 Mar 2026", "15 Maret 2026".
+  const words = text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
+  let month = 0
+  let day = 0
+  let year = 0
+  for (const word of words) {
+    if (!month && MONTH_NAMES[word]) month = MONTH_NAMES[word]
+    else if (!year && /^\d{4}$/.test(word)) year = Number(word)
+    else if (!day && /^\d{1,2}$/.test(word)) day = Number(word)
+  }
+  if (month && day && year) return validIsoDate(year, month, day)
+  return null
+}
+
+// Cache memoization: string tanggal yang sama diurai sekali untuk seluruh agregasi
+// (cardinality tanggal rendah, sehingga cache kecil namun menghemat parsing berulang).
+const safeDateCache = new Map<string, string | null>()
+
 function safeDate(value: unknown): string | null {
   if (typeof value !== 'string') return null
   const text = value.trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
-  if (/^\d{4}-\d{2}-\d{2}T/.test(text)) return text.slice(0, 10)
-  const parsed = new Date(text)
-  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10)
+  if (!text) return null
+  const cached = safeDateCache.get(text)
+  if (cached !== undefined) return cached
+  let result: string | null = null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) result = text
+  else {
+    const parsed = parseDateText(text)
+    if (parsed && /^\d{4}-\d{2}-\d{2}$/.test(parsed)) result = parsed
+  }
+  if (safeDateCache.size < 5000) safeDateCache.set(text, result)
+  return result
 }
 
 function recordDate(row: ResultRecord): string | null {
@@ -202,10 +270,6 @@ function extractObservation(
   return null
 }
 
-function emptyMonthly(month: number): MonthlyIndicatorResult {
-  return { month, numerator: 0, denominator: 0, rate: null, mean: null, targetAttainment: null, observations: 0, readyRecords: 0, validatedRecords: 0 }
-}
-
 export function calculateIndicatorResult(
   profile: IndicatorProfileForResults,
   rows: ResultRecord[],
@@ -237,19 +301,18 @@ export function calculateIndicatorResult(
     if (!observation) continue
     const bucket = accumulators[observation.month - 1]
     bucket.observations += 1
-    if (status === 'validated' || status === 'ready') {
-      bucket.validatedRecords += 1
-      validatedRecords += 1
-      bucket.numerator += observation.numerator
-      bucket.denominator += observation.denominator
-      if (observation.value != null) bucket.values.push(observation.value)
-      if (observation.targetMet != null) {
-        bucket.targetDenominator += 1
-        if (observation.targetMet) bucket.targetMet += 1
-      }
-    } else {
-      bucket.readyRecords += 1
-      readyRecords += 1
+    // Keputusan alur kerja PMKP (dikunci test regresi): laporan PIC berstatus
+    // 'ready' dihitung sebagai laporan final bersama 'validated'. Field
+    // readyRecords dipertahankan demi kompatibilitas struktur hasil; cabang else
+    // lama adalah dead code karena filter status hanya meloloskan kedua status ini.
+    bucket.validatedRecords += 1
+    validatedRecords += 1
+    bucket.numerator += observation.numerator
+    bucket.denominator += observation.denominator
+    if (observation.value != null) bucket.values.push(observation.value)
+    if (observation.targetMet != null) {
+      bucket.targetDenominator += 1
+      if (observation.targetMet) bucket.targetMet += 1
     }
     if (observation.inputAt && (!latestInputAt || observation.inputAt > latestInputAt)) latestInputAt = observation.inputAt
   }
@@ -306,6 +369,8 @@ export function calculateIndicatorResult(
     validatedRecords,
     latestInputAt,
     targetMet: assessedValue == null ? null : compareToTarget(profile, assessedValue, kind === 'door' || kind === 'minutes' ? '<=' : '='),
+    engineVersion: RESULTS_ENGINE_VERSION,
+    profileVersion: finiteNumber(profile.version),
   }
 }
 
@@ -571,10 +636,13 @@ export function aggregateClinicalDeathAudits(rows: ClinicalDeathAuditResultRow[]
   const scoped = rows.filter((row) =>
     String(row.audit_type ?? '') === auditType && String(row.status ?? '').toLowerCase() !== 'archived',
   )
-  const statusCounts = { validated: 0, submitted: 0, draft: 0, reopened: 0, other: 0 }
+  // 'ready' (laporan final dari PIC) harus hadir di statusCounts agar tidak
+  // salah dikelompokkan sebagai 'other' — filter validated di bawah memang
+  // memasukkannya sebagai laporan final.
+  const statusCounts = { validated: 0, submitted: 0, ready: 0, draft: 0, reopened: 0, other: 0 }
   scoped.forEach((row) => {
     const status = String(row.status ?? '').toLowerCase()
-    if (status === 'validated' || status === 'submitted' || status === 'draft' || status === 'reopened') statusCounts[status] += 1
+    if (status === 'validated' || status === 'submitted' || status === 'ready' || status === 'draft' || status === 'reopened') statusCounts[status] += 1
     else statusCounts.other += 1
   })
   const validated = scoped.filter((row) => ['validated','submitted','ready'].includes(String(row.status ?? '').toLowerCase()))
