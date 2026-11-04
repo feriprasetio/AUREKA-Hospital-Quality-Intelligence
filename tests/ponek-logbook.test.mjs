@@ -158,6 +158,7 @@ test('uses the physical Excel row for idempotency, not the visible sequence valu
   assert.equal(makePonekSubjectKey(2026, 217), 'excel-pmkp-ponek-2026:row:217')
   assert.throws(() => makePonekSubjectKey(2025, 3))
   assert.throws(() => makePonekSubjectKey(2026, 2))
+  assert.equal(makePonekSubjectKey(2027, 5), 'excel-pmkp-ponek-2027:row:5')
 })
 
 test('recognizes formula errors without misclassifying ordinary source labels', () => {
