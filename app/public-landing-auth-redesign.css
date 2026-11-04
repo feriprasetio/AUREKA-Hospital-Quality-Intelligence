@@ -539,29 +539,6 @@
   font-size: 10px;
   line-height: 1.55;
 }
-.publicLandingRedesign .publicChartPlaceholder {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  height: 42px;
-  margin: 18px 0 0 47px;
-  padding: 0 4px;
-  opacity: .48;
-}
-.publicLandingRedesign .publicChartPlaceholder span {
-  display: block;
-  flex: 1 1 0;
-  height: 25%;
-  background: #dfeae2;
-  border-radius: 4px 4px 0 0;
-}
-.publicLandingRedesign .publicChartPlaceholder span:nth-child(2) { height: 56%; }
-.publicLandingRedesign .publicChartPlaceholder span:nth-child(3) { height: 38%; }
-.publicLandingRedesign .publicChartPlaceholder span:nth-child(4) { height: 74%; }
-.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(1) { height: 70%; }
-.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(2) { height: 43%; }
-.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(3) { height: 58%; }
-.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(4) { height: 28%; }
 .publicLandingRedesign .publicDashboardFoot {
   display: flex;
   align-items: flex-start;
@@ -938,8 +915,7 @@
   .publicLandingRedesign .publicMetricNumber { flex-basis: 29px; width: 29px; height: 29px; font-size: 9px; }
   .publicLandingRedesign .publicMetricTitle h4 { font-size: 13px; }
   .publicLandingRedesign .publicPeriodPill { max-width: 105px; white-space: normal; text-align: center; font-size: 8px; }
-  .publicLandingRedesign .publicMetricMetaRow,
-  .publicLandingRedesign .publicChartPlaceholder { margin-left: 38px; }
+  .publicLandingRedesign .publicMetricMetaRow { margin-left: 38px; }
   .publicLandingRedesign .publicMetricEmpty { align-items: flex-start; padding: 11px; gap: 9px; }
   .publicLandingRedesign .publicEmptyIcon { flex-basis: 31px; width: 31px; height: 31px; }
   .publicLandingRedesign .publicDashboardFoot { display: grid; gap: 8px; }
