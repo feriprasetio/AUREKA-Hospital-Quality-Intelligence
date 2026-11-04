@@ -81,14 +81,14 @@ jobs:
       - name: Validate Supabase build configuration
         env:
           AUREKA_BUILD_TARGET: production
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL || 'https://ktukmjscopggkzrkgnzp.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY }}
         run: node scripts/validate-supabase-build-env.mjs
 
       - name: Build static export
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL || 'https://ktukmjscopggkzrkgnzp.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY }}
         run: npm run build
 
       - name: Setup Pages
