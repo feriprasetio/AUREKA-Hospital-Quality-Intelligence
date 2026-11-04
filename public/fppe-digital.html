@@ -428,7 +428,11 @@ function saveState(show=true) {
   ["evidenceObservation","evidenceRecord","evidenceLogbook","evidenceOther","overallDecision","actionPlan","reassessmentDate","conclusion"]
     .forEach(id => state.evidence[id] = $(id).value);
 
-  if (!EMBEDDED) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (!EMBEDDED) {
+    // Jangan menahan PII staf (nama, NIP, verdict kompetensi) di localStorage
+    // halaman publik; draf hanya bertahan selama halaman terbuka (di memori).
+    window.__aurekaFppeDraft = state;
+  }
   if (show && !EMBEDDED) {
     const old = document.title; document.title = "✓ Tersimpan — " + old;
     setTimeout(() => document.title = old, 700);
@@ -437,7 +441,7 @@ function saveState(show=true) {
 
 function loadState() {
   if (EMBEDDED) return;
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = window.__aurekaFppeDraft ? JSON.stringify(window.__aurekaFppeDraft) : null;
   if (!saved) return;
   try {
     const x = JSON.parse(saved);
