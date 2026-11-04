@@ -266,8 +266,8 @@ export function calculatePerinatologyStayDays(admissionDate: string, dischargeDa
 }
 
 export function makePerinatologySubjectKey(year: number, sourceExcelRow: number): string {
-  if (!Number.isInteger(year) || year !== 2026) {
-    throw new Error('Tahun profil Perinatologi harus 2026.')
+  if (!Number.isInteger(year) || year < 2026 || year > 2100) {
+    throw new Error('Tahun profil Perinatologi tidak valid.')
   }
   if (!Number.isInteger(sourceExcelRow) || sourceExcelRow < 3 || sourceExcelRow > 5007) {
     throw new Error('Nomor baris Excel Perinatologi tidak valid.')
