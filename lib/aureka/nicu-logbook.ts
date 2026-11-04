@@ -146,8 +146,8 @@ export function calculateNicuStayDays(admissionDate: string, dischargeDate: stri
 }
 
 export function makeNicuSubjectKey(year: number, sourceExcelRow: number): string {
-  if (!Number.isInteger(year) || year !== 2026) {
-    throw new Error('Tahun profil NICU harus 2026.')
+  if (!Number.isInteger(year) || year < 2026 || year > 2100) {
+    throw new Error('Tahun profil NICU tidak valid.')
   }
   if (!Number.isInteger(sourceExcelRow) || sourceExcelRow < 3 || sourceExcelRow > 5010) {
     throw new Error('Nomor baris Excel NICU tidak valid.')
