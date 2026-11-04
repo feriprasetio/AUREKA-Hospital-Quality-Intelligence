@@ -710,7 +710,7 @@ export default function HomeClient(){
     <p>Platform Hospital Quality Intelligence untuk mengintegrasikan pemantauan indikator mutu, keselamatan pasien, dan manajemen risiko rumah sakit dalam satu workspace yang terstruktur.</p>
     <div className="landingActions">
      <button type="button" className="landingCta big" onClick={()=>{setMessage('');setView('login')}}>Masuk ke Workspace <span aria-hidden="true">→</span></button>
-     <button type="button" className="landingGhost big" onClick={()=>setPublicDashboardOpen(true)}>Lihat transparansi publik</button>
+     <button type="button" className="landingGhost big" onClick={()=>{setPublicDashboardOpen(true);document.getElementById("transparansi-capaian")?.scrollIntoView({behavior:"smooth",block:"start"})}}>Lihat transparansi publik</button>
     </div>
     <div className="landingStats" aria-label="Area utama AUREKA">
      <div><b>Mutu</b><span>Indikator dan hasil pengukuran</span></div>
@@ -796,7 +796,6 @@ export default function HomeClient(){
        </div>
        <span className="publicPeriodPill">YTD</span>
       </div>
-      <div className="publicChartPlaceholder" aria-hidden="true"><span/><span/><span/><span/></div>
       <div className="publicMetricEmpty compact">
        <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="M12 8v5m0 3h.01"/></svg></span>
        <div><strong>Belum ada data publik</strong><p>Grafik akan memuat jumlah laporan per jenis setelah snapshot disetujui dan ambang publikasi terpenuhi.</p></div>
@@ -813,7 +812,6 @@ export default function HomeClient(){
        </div>
        <span className="publicPeriodPill">Snapshot terakhir</span>
       </div>
-      <div className="publicChartPlaceholder risk" aria-hidden="true"><span/><span/><span/><span/></div>
       <div className="publicMetricEmpty compact">
        <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg></span>
        <div><strong>Belum ada data publik</strong><p>Grafik akan memuat jumlah risiko aktif per kategori dari snapshot register yang disetujui.</p></div>
