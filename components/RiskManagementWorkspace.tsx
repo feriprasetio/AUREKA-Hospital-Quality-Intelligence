@@ -116,7 +116,17 @@ const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
 }
 // Cache di memori: saat modul dibuka lagi, data terakhir langsung tampil sambil diperbarui di latar.
 const rmQueryCache = new Map<string, { data: any[] | null; error: any }[]>()
-const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"'
+// Netralkan awalan formula (=, +, -, @) agar CSV register risiko — yang berisi
+// teks bebas (peristiwa, penyebab, dampak, kontrol) — aman dibuka di Excel.
+// Angka tetap angka (tidak diawali apostrof) agar kolom skor tetap numerik.
+const escapeCsv = (value: unknown) => {
+  let text = value === null || value === undefined ? '' : String(value)
+  if (typeof value !== 'number') {
+    const first = text.trimStart()[0]
+    if (first === '=' || first === '+' || first === '-' || first === '@') text = "'" + text
+  }
+  return '"' + text.replace(/"/g, '""') + '"'
+}
 // Form ditampilkan sebagai jendela di atas halaman agar tidak perlu scroll ke bawah tabel.
 // Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
 function RmModal({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
@@ -663,7 +673,7 @@ export default function RiskManagementWorkspace({
       ['Kode Risiko', 'Unit', 'Kategori', 'Sasaran', 'Peristiwa Risiko', 'Penyebab', 'Dampak', 'Kontrol Saat Ini', 'Kemungkinan', 'Dampak Level', 'Skor', 'Level', 'Residual Kemungkinan', 'Residual Dampak', 'Skor Residual', 'Level Residual', 'PIC', 'Target', 'Status', 'Sheet Sumber', 'Baris Sumber', 'Kode Sumber', 'Skor Sumber'],
       ...filteredRisks.map(r => [r.risk_code, r.unit_name, r.category, r.objective, r.risk_event, r.causes, r.impacts, r.existing_controls, r.likelihood, r.impact, r.risk_score, r.risk_level, r.residual_likelihood, r.residual_impact, r.residual_score, r.residual_level, r.owner_name, r.due_date, r.status, r.source_sheet, r.source_row_number, r.source_risk_code, r.source_risk_score]),
     ]
-    const csv = '\ufeff' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n')
+    const csv = '\ufeff' + rows.map(row => row.map(escapeCsv).join(';')).join('\r\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
