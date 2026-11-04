@@ -1,3 +1,5 @@
+import { escapeSpreadsheetCell } from './csv-export.ts'
+
 export type IndividualReportSection = {
   title: string
   columns: string[]
@@ -25,12 +27,13 @@ export function downloadAssessmentJson(filename: string, data: unknown) {
 }
 
 export function downloadAssessmentCsv(filename: string, headers: string[], rows: unknown[][]) {
-  const csvCell = (value: unknown) => {
-    const text = value === null || value === undefined ? '' : String(value)
-    return `"${text.replace(/"/g, '""')}"`
-  }
-  const csv = [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')
-  const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' })
+  // Ekspor asesmen OPPE/FPPE berisi teks bebas staf: netralkan awalan formula
+  // spreadsheet (=, +, -, @) memakai util bersama csv-export, dan pakai delimiter
+  // ';' + BOM agar terbuka rapi di Excel locale id-ID (desimal koma).
+  const csv = ['\uFEFF' + headers.map((header) => escapeSpreadsheetCell(header)).join(';'),
+    ...rows.map((row) => row.map((value) => escapeSpreadsheetCell(value)).join(';')),
+  ].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   downloadBlob(filename.endsWith('.csv') ? filename : `${filename}.csv`, blob)
 }
 
