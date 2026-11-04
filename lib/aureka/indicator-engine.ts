@@ -42,6 +42,12 @@ export function resolveMeasurementKind(profile: IndicatorProfile): MeasurementKi
     if (['compliance', 'option_response', 'manual_review', 'binary', 'boolean'].includes(declared)) return 'compliance'
   }
 
+  // Profil lama yang mendeklarasikan pasangan kolom numerator/denominator pada
+  // schema_json.fields secara struktural adalah indikator rasio (N/D), sehingga
+  // respons {numerator, denominator} tidak lagi jatuh ke klasifikasi compliance.
+  const fields = Array.isArray(schema.fields) ? schema.fields.map((field) => normalize(field)) : []
+  if (fields.includes('numerator') && fields.includes('denominator')) return 'ratio'
+
   // Legacy profiles can be resolved from their declared N/D definitions, but not from grain alone.
   if (['daily_metric', 'provider_day'].includes(String(profile.measurement_grain ?? '')) &&
       readText(profile.numerator_definition) && readText(profile.denominator_definition)) return 'ratio'
@@ -58,11 +64,18 @@ export function resolveMeasurementKind(profile: IndicatorProfile): MeasurementKi
 
 function numericValue(value: unknown): number | null {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null
-  const text = String(value ?? '').trim().replace(',', '.')
+  const text = String(value ?? '').trim().replace(/\s+/g, '')
   if (!text) return null
-  const match = text.match(/-?\d+(?:\.\d+)?/)
-  if (!match) return null
-  const number = Number(match[0])
+  // Ambil token numerik pertama; target sering tertanam dalam teks bebas ("≥ 82,5%").
+  const token = text.match(/-?\d[\d.,]*/)
+  if (!token) return null
+  let candidate = token[0]
+  // Notasi Indonesia dengan grouping: 1.234,5 → 1234.5 (bukan 1.234 lalu salah baca).
+  if (/^-?\d{1,3}(?:\.\d{3})+,\d+$/.test(candidate)) candidate = candidate.replace(/\./g, '').replace(',', '.')
+  // Desimal koma tunggal: 82,5 → 82.5.
+  else if (/^-?\d+,\d+$/.test(candidate)) candidate = candidate.replace(',', '.')
+  // Angka ambigu seperti "1.234" tidak ditebak (kebijakan yang sama dengan oppe-engine).
+  const number = Number(candidate)
   return Number.isFinite(number) ? number : null
 }
 
@@ -90,11 +103,16 @@ export function compareToTarget(profile: IndicatorProfile, actual: number | null
   if (value == null) return null
   const op = operator || defaultOperator
   const n = Number(actual)
-  if (op === '<=') return n <= value + 1e-9
-  if (op === '>=') return n >= value - 1e-9
+  // Toleransi epsilon simetris untuk SEMUA operator: hasil agregat pecahan akibat
+  // aritmetika float (mis. rata-rata 89.99999999999999 yang bermaksud 90) tidak
+  // boleh gagal/ lolos hanya karena operatornya ketat (<, >). Nilai yang berada
+  // dalam epsilon dianggap SAMA dengan target.
+  if (Math.abs(n - value) < 1e-9) return op === '>=' || op === '<=' || op === '='
+  if (op === '<=') return n <= value
+  if (op === '>=') return n >= value
   if (op === '<') return n < value
   if (op === '>') return n > value
-  return Math.abs(n - value) < 1e-9
+  return false
 }
 
 function clockMinute(value: unknown): number | null {
