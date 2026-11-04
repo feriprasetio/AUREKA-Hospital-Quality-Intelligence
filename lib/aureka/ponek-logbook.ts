@@ -221,11 +221,11 @@ export function parsePonekSourceAnswer(
 }
 
 export function makePonekSubjectKey(year: number, sourceExcelRow: number): string {
-  if (year !== 2026) throw new Error('Tahun profil PONEK harus 2026.')
+  if (!Number.isInteger(year) || year < 2026 || year > 2100) throw new Error('Tahun profil PONEK tidak valid.')
   if (!Number.isInteger(sourceExcelRow) || sourceExcelRow < 3 || sourceExcelRow > 5300) {
     throw new Error('Nomor baris Excel PONEK tidak valid.')
   }
-  return 'excel-pmkp-ponek-2026:row:' + sourceExcelRow
+  return 'excel-pmkp-ponek-' + year + ':row:' + sourceExcelRow
 }
 
 export function isPonekFormulaError(value: unknown): boolean {
