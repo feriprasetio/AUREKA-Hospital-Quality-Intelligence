@@ -1,0 +1,988 @@
+/* AUREKA public landing and authentication refresh.
+   Scoped to public/auth pages: workspace styling and module behavior remain untouched. */
+
+.publicRoot.landing.publicLandingRedesign {
+  --aureka-green: #0f7656;
+  --aureka-green-dark: #0a563e;
+  --aureka-ink: #172820;
+  --aureka-muted: #65756c;
+  --aureka-line: #e1e9e3;
+  min-height: 100vh;
+  color: var(--aureka-ink);
+  background: #f5f8f6 !important;
+  background-image: none !important;
+  overflow: clip;
+}
+.publicLandingRedesign .landingAura { display: none !important; }
+.publicLandingRedesign .landingTopbar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: min(1180px, calc(100% - 48px));
+  margin: 22px auto 0;
+  padding: 13px 18px;
+  color: var(--aureka-ink);
+  background: #fff !important;
+  border: 1px solid var(--aureka-line) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 5px 20px rgba(18, 47, 32, .035) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.publicLandingRedesign .landingBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: inherit;
+}
+.publicLandingRedesign .landingBrand .brandLogoWrap {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #f2f7f3;
+  overflow: hidden;
+}
+.publicLandingRedesign .landingBrand .brandLogoImage {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.publicLandingRedesign .landingBrand b {
+  display: block;
+  color: var(--aureka-ink);
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: .03em;
+}
+.publicLandingRedesign .landingBrand small {
+  display: block;
+  margin-top: 3px;
+  color: var(--aureka-muted);
+  font-size: 10px;
+}
+.publicLandingRedesign .landingTopActions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.publicLandingRedesign .landingTopActions .landingGhost,
+.publicLandingRedesign .landingTopActions .landingCta,
+.publicLandingRedesign .landingActions .landingGhost,
+.publicLandingRedesign .landingActions .landingCta {
+  min-height: 42px;
+  padding: 0 16px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.publicLandingRedesign .landingTopActions .landingGhost,
+.publicLandingRedesign .landingActions .landingGhost {
+  color: #40584d !important;
+  background: #fff !important;
+  border: 1px solid #d9e4dc !important;
+}
+.publicLandingRedesign .landingTopActions .landingCta,
+.publicLandingRedesign .landingActions .landingCta {
+  color: #fff !important;
+  background: #0f7656 !important;
+  border: 1px solid #0f7656 !important;
+}
+.publicLandingRedesign .landingHero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr) !important;
+  align-items: center;
+  gap: clamp(34px, 5vw, 72px) !important;
+  width: min(1180px, calc(100% - 48px));
+  min-height: 560px !important;
+  margin: 0 auto !important;
+  padding: 76px 0 68px !important;
+  color: var(--aureka-ink) !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--aureka-line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.publicLandingRedesign .heroCopy { min-width: 0; }
+.publicLandingRedesign .landingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  color: #0b6849 !important;
+  background: #eaf4ed !important;
+  border: 1px solid #d8e9dc !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  line-height: 1.4;
+}
+.publicLandingRedesign .landingPulse {
+  width: 7px;
+  height: 7px;
+  background: #0f7656 !important;
+  box-shadow: none !important;
+}
+.publicLandingRedesign .heroCopy h1 {
+  margin: 20px 0 18px !important;
+  color: #172820 !important;
+  font-size: clamp(42px, 5.2vw, 66px) !important;
+  font-weight: 850 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.055em !important;
+}
+.publicLandingRedesign .heroCopy h1 em {
+  display: inline-block;
+  margin-top: 8px;
+  color: #0f7656 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  font-size: .49em;
+  font-style: normal !important;
+  font-weight: 750 !important;
+  line-height: 1.25;
+  letter-spacing: -.025em !important;
+}
+.publicLandingRedesign .heroCopy p {
+  max-width: 620px;
+  margin: 0;
+  color: #63736a !important;
+  font-size: 15px !important;
+  line-height: 1.8 !important;
+}
+.publicLandingRedesign .landingActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 27px;
+}
+.publicLandingRedesign .landingActions .landingCta.big,
+.publicLandingRedesign .landingActions .landingGhost.big {
+  min-height: 46px;
+  padding: 0 17px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+}
+.publicLandingRedesign .landingStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 38px;
+  padding-top: 20px;
+  border-top: 1px solid #e1e9e3;
+}
+.publicLandingRedesign .landingStats > div { min-width: 0; }
+.publicLandingRedesign .landingStats b {
+  display: block;
+  color: #172820;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+.publicLandingRedesign .landingStats span {
+  display: block;
+  margin-top: 4px;
+  color: #718078;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.publicLandingRedesign .landingHeroVisual {
+  min-width: 0;
+  padding: 26px;
+  background: #fff;
+  border: 1px solid #e0e9e2;
+  border-radius: 18px;
+  box-shadow: 0 16px 42px rgba(21, 58, 38, .07);
+}
+.publicLandingRedesign .heroVisualTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e8eee9;
+}
+.publicLandingRedesign .heroVisualTop > div { display: grid; gap: 6px; }
+.publicLandingRedesign .heroVisualKicker {
+  color: #0f7656;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .13em;
+}
+.publicLandingRedesign .heroVisualTop strong {
+  color: #172820;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+.publicLandingRedesign .heroVisualMark {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  color: #0f7656;
+  background: #eaf4ed;
+  border: 1px solid #d9eade;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 900;
+}
+.publicLandingRedesign .heroVisualList { display: grid; gap: 10px; padding: 20px 0; }
+.publicLandingRedesign .heroVisualItem {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px;
+  background: #fbfcfb;
+  border: 1px solid #edf1ee;
+  border-radius: 11px;
+}
+.publicLandingRedesign .heroVisualIcon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: #0f7656;
+  background: #edf5ef;
+  border-radius: 10px;
+}
+.publicLandingRedesign .heroVisualIcon svg,
+.publicLandingRedesign .heroVisualArrow svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.publicLandingRedesign .heroVisualItem b {
+  display: block;
+  color: #26382e;
+  font-size: 12px;
+  font-weight: 800;
+}
+.publicLandingRedesign .heroVisualItem small {
+  display: block;
+  margin-top: 4px;
+  color: #748279;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.publicLandingRedesign .heroVisualArrow {
+  display: grid;
+  place-items: center;
+  color: #92a39a;
+  font-size: 15px;
+}
+.publicLandingRedesign .heroVisualFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 15px;
+  color: #65756c;
+  border-top: 1px solid #e8eee9;
+  font-size: 10px;
+}
+.publicLandingRedesign .heroVisualDot {
+  width: 7px;
+  height: 7px;
+  background: #0f7656;
+  border-radius: 50%;
+}
+.publicLandingRedesign .publicDashboardSection {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 58px 0 56px;
+}
+.publicLandingRedesign .publicSectionIntro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 23px;
+}
+.publicLandingRedesign .publicSectionCopy { max-width: 720px; }
+.publicLandingRedesign .publicSectionEyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #0f7656;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .14em;
+}
+.publicLandingRedesign .publicSectionCopy h2 {
+  margin: 0;
+  color: #172820;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 850;
+  letter-spacing: -.045em;
+}
+.publicLandingRedesign .publicSectionCopy p {
+  max-width: 700px;
+  margin: 9px 0 0;
+  color: #68786f;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.publicLandingRedesign .publicDashboardToggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 15px;
+  color: #fff;
+  background: #0f7656;
+  border: 1px solid #0f7656;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  transition: background .16s ease, border-color .16s ease;
+}
+.publicLandingRedesign .publicDashboardToggle:hover { background: #0a6045; border-color: #0a6045; }
+.publicLandingRedesign .publicDashboardToggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .18s ease;
+}
+.publicLandingRedesign .publicDashboardToggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.publicLandingRedesign .publicDashboardPanel {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e0e9e2;
+  border-radius: 15px;
+  box-shadow: 0 10px 32px rgba(21, 58, 38, .055);
+  animation: aurekaPublicReveal .24s ease-out both;
+}
+.publicLandingRedesign .publicDashboardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e8eee9;
+}
+.publicLandingRedesign .publicDashboardKicker {
+  color: #0f7656;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+.publicLandingRedesign .publicDashboardHeader h3 {
+  margin: 6px 0 2px;
+  color: #172820;
+  font-size: 23px;
+  font-weight: 850;
+  letter-spacing: -.035em;
+}
+.publicLandingRedesign .publicDashboardHeader p {
+  margin: 0;
+  color: #6a7a71;
+  font-size: 11px;
+}
+.publicLandingRedesign .publicReadOnly {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  color: #0d6848;
+  background: #eaf4ed;
+  border: 1px solid #d9eade;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .04em;
+}
+.publicLandingRedesign .publicReadOnly > span {
+  width: 6px;
+  height: 6px;
+  background: #0f7656;
+  border-radius: 50%;
+}
+.publicLandingRedesign .publicDashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 18px;
+}
+.publicLandingRedesign .publicMetricCard {
+  min-width: 0;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e4ebe5;
+  border-radius: 12px;
+}
+.publicLandingRedesign .publicMetricCardWide { grid-column: 1 / -1; }
+.publicLandingRedesign .publicMetricCardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  min-width: 0;
+}
+.publicLandingRedesign .publicMetricNumber {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  color: #0f7656;
+  background: #eaf4ed;
+  border: 1px solid #d9eade;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 850;
+}
+.publicLandingRedesign .publicMetricTitle { min-width: 0; flex: 1 1 auto; }
+.publicLandingRedesign .publicMetricTitle > span {
+  color: #0f7656;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .11em;
+}
+.publicLandingRedesign .publicMetricTitle h4 {
+  margin: 4px 0 3px;
+  color: #203329;
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: -.02em;
+}
+.publicLandingRedesign .publicMetricTitle p {
+  margin: 0;
+  color: #6a7a71;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.publicLandingRedesign .publicPeriodPill {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  color: #52655a;
+  background: #f4f7f5;
+  border: 1px solid #e5ece7;
+  border-radius: 7px;
+  font-size: 9px;
+  font-weight: 750;
+}
+.publicLandingRedesign .publicMetricMetaRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 18px 0 0 47px;
+}
+.publicLandingRedesign .publicMetricMetaRow span {
+  padding: 6px 8px;
+  color: #68786f;
+  background: #f6f8f6;
+  border: 1px solid #edf1ee;
+  border-radius: 7px;
+  font-size: 9px;
+}
+.publicLandingRedesign .publicMetricEmpty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 15px;
+  background: #f8faf8;
+  border: 1px dashed #dce7df;
+  border-radius: 10px;
+}
+.publicLandingRedesign .publicMetricEmpty.compact { margin-top: 14px; }
+.publicLandingRedesign .publicEmptyIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  color: #718279;
+  background: #edf2ee;
+  border-radius: 9px;
+}
+.publicLandingRedesign .publicEmptyIcon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.publicLandingRedesign .publicMetricEmpty strong {
+  display: block;
+  color: #42564a;
+  font-size: 10px;
+  font-weight: 850;
+}
+.publicLandingRedesign .publicMetricEmpty p {
+  margin: 4px 0 0;
+  color: #708077;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.publicLandingRedesign .publicChartPlaceholder {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 42px;
+  margin: 18px 0 0 47px;
+  padding: 0 4px;
+  opacity: .48;
+}
+.publicLandingRedesign .publicChartPlaceholder span {
+  display: block;
+  flex: 1 1 0;
+  height: 25%;
+  background: #dfeae2;
+  border-radius: 4px 4px 0 0;
+}
+.publicLandingRedesign .publicChartPlaceholder span:nth-child(2) { height: 56%; }
+.publicLandingRedesign .publicChartPlaceholder span:nth-child(3) { height: 38%; }
+.publicLandingRedesign .publicChartPlaceholder span:nth-child(4) { height: 74%; }
+.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(1) { height: 70%; }
+.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(2) { height: 43%; }
+.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(3) { height: 58%; }
+.publicLandingRedesign .publicChartPlaceholder.risk span:nth-child(4) { height: 28%; }
+.publicLandingRedesign .publicDashboardFoot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 14px;
+  color: #748178;
+  border-top: 1px solid #e8eee9;
+  font-size: 9px;
+  line-height: 1.55;
+}
+.publicLandingRedesign .publicSource { flex: 0 0 auto; color: #53685b; font-weight: 750; }
+.publicLandingRedesign .landingFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 20px 0 28px;
+  color: #6d7b73;
+  border-top: 1px solid #e1e9e3;
+}
+.publicLandingRedesign .landingFooter > div { display: flex; align-items: baseline; gap: 8px; }
+.publicLandingRedesign .landingFooter b {
+  color: #23372b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+.publicLandingRedesign .landingFooter span,
+.publicLandingRedesign .landingFooter p { margin: 0; font-size: 9px; line-height: 1.5; }
+
+/* Authentication: solid, calm, accessible surfaces; auth logic is unchanged. */
+.authPage.authRedesigned {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0;
+  min-height: 100vh;
+  padding: 124px 24px 42px;
+  background: #f4f7f5 !important;
+  background-image: none !important;
+  color: #172820;
+}
+.authPage.authRedesigned .landingAura { display: none !important; }
+.authPage.authRedesigned .authTopbar {
+  position: absolute;
+  top: 22px;
+  left: max(24px, calc((100vw - 1120px) / 2));
+  right: max(24px, calc((100vw - 1120px) / 2));
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  padding: 8px 13px;
+  background: #fff;
+  border: 1px solid #e1e9e3;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(18, 47, 32, .035);
+}
+.authPage.authRedesigned .authTopbar .brand { display: inline-flex; align-items: center; gap: 10px; }
+.authPage.authRedesigned .authTopbar .brandLogoWrap {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: #f1f6f2;
+  border-radius: 9px;
+}
+.authPage.authRedesigned .authTopbar .brandLogoImage { width: 34px; height: 34px; object-fit: contain; }
+.authPage.authRedesigned .authTopbar .brand b { color: #172820 !important; font-size: 14px; font-weight: 900; letter-spacing: .03em; }
+.authPage.authRedesigned .authTopbar .brand small { color: #6b7a71 !important; font-size: 10px; }
+.authPage.authRedesigned .authBack {
+  position: absolute !important;
+  top: 94px;
+  left: max(24px, calc((100vw - 1120px) / 2));
+  color: #53675d !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+.authPage.authRedesigned .authShell {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  width: min(1000px, 100%);
+  overflow: hidden;
+  background: #fff !important;
+  border: 1px solid #e0e9e2 !important;
+  border-radius: 17px !important;
+  box-shadow: 0 16px 48px rgba(22, 51, 34, .09) !important;
+  animation: none !important;
+}
+.authPage.authRedesigned .authAside {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  min-height: 530px;
+  gap: 16px;
+  padding: 42px 38px;
+  overflow: hidden;
+  color: #fff !important;
+  background: #0d6045 !important;
+  background-image: none !important;
+}
+.authPage.authRedesigned .authAside::after {
+  right: -78px;
+  bottom: -94px;
+  width: 270px;
+  height: 270px;
+  background: rgba(255,255,255,.065);
+  border: 1px solid rgba(255,255,255,.1);
+}
+.authPage.authRedesigned .authAside::before {
+  content: "A";
+  position: absolute;
+  z-index: -1;
+  right: 12px;
+  bottom: -116px;
+  color: rgba(255,255,255,.055);
+  font-size: 360px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -.1em;
+  pointer-events: none;
+}
+.authPage.authRedesigned .authAsideBrand img {
+  width: 46px;
+  height: 46px;
+  padding: 5px;
+  background: #fff;
+  border-radius: 10px;
+}
+.authPage.authRedesigned .authAside h2 {
+  margin-top: 32px;
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+}
+.authPage.authRedesigned .authAside p {
+  max-width: 360px;
+  color: rgba(255,255,255,.87) !important;
+  font-size: 13px;
+  line-height: 1.75;
+}
+.authPage.authRedesigned .authAside ul { gap: 13px; margin-top: 12px; }
+.authPage.authRedesigned .authAside li { align-items: flex-start; color: rgba(255,255,255,.93) !important; font-size: 11px; line-height: 1.5; }
+.authPage.authRedesigned .authAside li span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 7px;
+}
+.authPage.authRedesigned .authAsideFoot {
+  position: relative;
+  margin-top: auto;
+  color: rgba(255,255,255,.74) !important;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.authPage.authRedesigned .authCard {
+  width: 100% !important;
+  min-width: 0;
+  padding: 46px 48px !important;
+  color: #172820 !important;
+  background: #fff !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.authPage.authRedesigned .authLogo { place-items: start; margin: 0 0 18px; }
+.authPage.authRedesigned .authLogo img { width: 46px; height: 46px; object-fit: contain; }
+.authPage.authRedesigned .authEyebrow { color: #0f7656 !important; text-align: left; font-size: 9px; }
+.authPage.authRedesigned .authCard h1 {
+  color: #172820 !important;
+  text-align: left !important;
+  font-size: 30px !important;
+  font-weight: 850;
+  letter-spacing: -.045em;
+}
+.authPage.authRedesigned .authCard form > p,
+.authPage.authRedesigned .authCard > p {
+  margin: 8px 0 22px !important;
+  color: #68786f !important;
+  text-align: left !important;
+  font-size: 12px !important;
+  line-height: 1.65;
+}
+.authPage.authRedesigned .authCard .field { margin: 15px 0; }
+.authPage.authRedesigned .authCard .field label {
+  display: block;
+  margin-bottom: 7px;
+  color: #40554a !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+.authPage.authRedesigned .authCard .field input,
+.authPage.authRedesigned .authCard .field select {
+  width: 100%;
+  min-height: 46px;
+  height: 46px !important;
+  padding: 0 13px !important;
+  color: #172820 !important;
+  background: #fff !important;
+  border: 1px solid #dce6de !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+}
+.authPage.authRedesigned .authCard .field input:focus,
+.authPage.authRedesigned .authCard .field select:focus {
+  border-color: #83b99a !important;
+  box-shadow: 0 0 0 3px rgba(15,118,86,.12) !important;
+}
+.authPage.authRedesigned .authCard .field input::placeholder { color: #9aa79f !important; }
+.authPage.authRedesigned .pwWrap input { padding-right: 86px !important; }
+.authPage.authRedesigned .pwToggle {
+  right: 7px;
+  color: #0f7656 !important;
+  background: #f1f6f2 !important;
+  border: 1px solid #e5eee7 !important;
+  border-radius: 7px !important;
+  font-size: 10px !important;
+}
+.authPage.authRedesigned .authForgot,
+.authPage.authRedesigned .authResend {
+  margin-top: 8px;
+  color: #0f7656 !important;
+  font-size: 10px !important;
+  font-weight: 750;
+}
+.authPage.authRedesigned .authAlert {
+  padding: 11px 12px;
+  color: #7e3c20 !important;
+  background: #fff8ed !important;
+  border: 1px solid #f2dfc4 !important;
+  border-radius: 8px !important;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.authPage.authRedesigned .authAlert.ok {
+  color: #176043 !important;
+  background: #eef7f0 !important;
+  border-color: #d7eadd !important;
+}
+.authPage.authRedesigned .authCard .landingCta.authWide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  color: #fff !important;
+  background: #0f7656 !important;
+  border: 1px solid #0f7656 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 800;
+}
+.authPage.authRedesigned .authCard .landingCta.authWide:hover { background: #0a6045 !important; border-color: #0a6045 !important; }
+.authPage.authRedesigned .authSwitch {
+  margin-top: 18px;
+  color: #6b7a71 !important;
+  text-align: center;
+  font-size: 10px;
+}
+.authPage.authRedesigned .authSwitch button { color: #0f7656 !important; font-weight: 800; }
+.authPage.authRedesigned .authShellSingle {
+  display: block;
+  width: min(520px, 100%);
+  overflow: visible;
+  border: 1px solid #e0e9e2 !important;
+  border-radius: 15px !important;
+}
+.authPage.authRedesigned .authShellSingle .authCard {
+  padding: 36px !important;
+  border-radius: 15px !important;
+}
+.authPage.authRedesigned .authShellSingle .authCard h1,
+.authPage.authRedesigned .authShellSingle .authCard > p { text-align: left !important; }
+.authPage.authRedesigned .authShellSingle .authLogo { place-items: start; }
+.authPage.authRedesigned .authSuccess h1,
+.authPage.authRedesigned .authSuccess p { text-align: left !important; }
+.authPage.authRedesigned .authSteps { gap: 13px; padding-left: 20px; }
+.authPage.authRedesigned .authSteps li { color: #4c6054; font-size: 11px; line-height: 1.5; }
+.authPage.authRedesigned .authSteps li span { display: block; margin-top: 3px; color: #718078; }
+.authPage.authRedesigned .authSuccessIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+  color: #0f7656;
+  background: #eaf4ed;
+  border-radius: 12px;
+}
+.authPage.authRedesigned .authBack:focus-visible,
+.publicLandingRedesign :is(button,a):focus-visible {
+  outline: 3px solid rgba(15,118,86,.35) !important;
+  outline-offset: 3px !important;
+}
+@keyframes aurekaPublicReveal {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 900px) {
+  .publicLandingRedesign .landingHero {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr) !important;
+    gap: 26px !important;
+    min-height: 500px !important;
+    padding: 58px 0 !important;
+  }
+  .publicLandingRedesign .landingHeroVisual { padding: 19px; }
+  .publicLandingRedesign .heroCopy h1 { font-size: clamp(39px, 5.4vw, 55px) !important; }
+  .authPage.authRedesigned .authShell { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
+  .authPage.authRedesigned .authAside { padding: 34px 28px; }
+  .authPage.authRedesigned .authCard { padding: 38px 32px !important; }
+}
+@media (max-width: 720px) {
+  .publicLandingRedesign .landingTopbar {
+    width: calc(100% - 28px);
+    margin-top: 14px;
+    padding: 10px 11px;
+  }
+  .publicLandingRedesign .landingBrand .brandLogoWrap { width: 36px; height: 36px; flex-basis: 36px; }
+  .publicLandingRedesign .landingBrand .brandLogoImage { width: 31px; height: 31px; }
+  .publicLandingRedesign .landingTopActions { gap: 6px; }
+  .publicLandingRedesign .landingTopActions .landingGhost,
+  .publicLandingRedesign .landingTopActions .landingCta {
+    min-height: 36px;
+    padding: 0 9px !important;
+    font-size: 10px !important;
+  }
+  .publicLandingRedesign .landingHero {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: calc(100% - 32px);
+    min-height: 0 !important;
+    gap: 28px !important;
+    padding: 52px 0 42px !important;
+  }
+  .publicLandingRedesign .heroCopy h1 { font-size: clamp(39px, 10vw, 56px) !important; }
+  .publicLandingRedesign .heroCopy h1 em { font-size: .52em; }
+  .publicLandingRedesign .heroCopy p { font-size: 13px !important; }
+  .publicLandingRedesign .landingActions { display: grid; grid-template-columns: 1fr; }
+  .publicLandingRedesign .landingActions > button { width: 100%; }
+  .publicLandingRedesign .landingStats { gap: 10px; margin-top: 28px; }
+  .publicLandingRedesign .landingStats b { font-size: 12px; }
+  .publicLandingRedesign .landingStats span { font-size: 9px; }
+  .publicLandingRedesign .landingHeroVisual { padding: 16px; border-radius: 13px; }
+  .publicLandingRedesign .heroVisualItem { grid-template-columns: 38px minmax(0, 1fr) 20px; gap: 9px; padding: 10px; }
+  .publicLandingRedesign .heroVisualIcon { width: 36px; height: 36px; }
+  .publicLandingRedesign .heroVisualIcon svg { width: 18px; height: 18px; }
+  .publicLandingRedesign .publicDashboardSection { width: calc(100% - 32px); padding: 42px 0; }
+  .publicLandingRedesign .publicSectionIntro { display: grid; align-items: start; gap: 16px; }
+  .publicLandingRedesign .publicDashboardToggle { width: 100%; }
+  .publicLandingRedesign .publicDashboardPanel { padding: 13px; border-radius: 12px; }
+  .publicLandingRedesign .publicDashboardHeader { display: grid; gap: 12px; }
+  .publicLandingRedesign .publicDashboardGrid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .publicLandingRedesign .publicMetricCardWide { grid-column: auto; }
+  .publicLandingRedesign .publicMetricCard { padding: 13px; }
+  .publicLandingRedesign .publicMetricCardHead { gap: 9px; }
+  .publicLandingRedesign .publicMetricNumber { flex-basis: 29px; width: 29px; height: 29px; font-size: 9px; }
+  .publicLandingRedesign .publicMetricTitle h4 { font-size: 13px; }
+  .publicLandingRedesign .publicPeriodPill { max-width: 105px; white-space: normal; text-align: center; font-size: 8px; }
+  .publicLandingRedesign .publicMetricMetaRow,
+  .publicLandingRedesign .publicChartPlaceholder { margin-left: 38px; }
+  .publicLandingRedesign .publicMetricEmpty { align-items: flex-start; padding: 11px; gap: 9px; }
+  .publicLandingRedesign .publicEmptyIcon { flex-basis: 31px; width: 31px; height: 31px; }
+  .publicLandingRedesign .publicDashboardFoot { display: grid; gap: 8px; }
+  .publicLandingRedesign .landingFooter { display: grid; gap: 7px; width: calc(100% - 32px); }
+  .authPage.authRedesigned {
+    align-content: start;
+    padding: 114px 14px 28px;
+  }
+  .authPage.authRedesigned .authTopbar { top: 12px; left: 14px; right: 14px; min-height: 54px; }
+  .authPage.authRedesigned .authBack { top: 75px; left: 16px; }
+  .authPage.authRedesigned .authShell {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(520px, 100%);
+  }
+  .authPage.authRedesigned .authAside {
+    min-height: 0;
+    padding: 22px 22px 20px;
+    gap: 10px;
+  }
+  .authPage.authRedesigned .authAside h2 { margin-top: 9px; font-size: 22px; }
+  .authPage.authRedesigned .authAside p { font-size: 11px; }
+  .authPage.authRedesigned .authAside ul { grid-template-columns: 1fr; gap: 8px; margin-top: 2px; }
+  .authPage.authRedesigned .authAside li { font-size: 10px; }
+  .authPage.authRedesigned .authAsideFoot { margin-top: 4px; }
+  .authPage.authRedesigned .authCard { padding: 26px 22px !important; }
+  .authPage.authRedesigned .authShellSingle { display: block; }
+  .authPage.authRedesigned .authShellSingle .authCard { padding: 26px 22px !important; }
+  .authPage.authRedesigned .authCard h1 { font-size: 26px !important; }
+}
+@media (max-width: 380px) {
+  .publicLandingRedesign .landingBrand small { font-size: 8px; }
+  .publicLandingRedesign .landingTopActions .landingGhost { display: none; }
+  .publicLandingRedesign .landingTopActions .landingCta { padding: 0 10px !important; }
+  .publicLandingRedesign .landingStats { grid-template-columns: 1fr; gap: 9px; }
+  .publicLandingRedesign .publicMetricCardHead { display: grid; grid-template-columns: 30px minmax(0, 1fr); }
+  .publicLandingRedesign .publicPeriodPill { grid-column: 2; justify-self: start; max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .publicLandingRedesign *,
+  .authPage.authRedesigned * {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
