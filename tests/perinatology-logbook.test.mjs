@@ -144,7 +144,8 @@ test('calculates LOS from complete dates and retains an active episode with no d
 test('uses physical Excel row for idempotency when displayed source sequence repeats', () => {
   assert.equal(makePerinatologySubjectKey(2026, 429), 'excel-pmkp-perinatologi-2026:row:429')
   assert.notEqual(makePerinatologySubjectKey(2026, 429), makePerinatologySubjectKey(2026, 430))
-  assert.throws(() => makePerinatologySubjectKey(2025, 429), /harus 2026/)
+  assert.throws(() => makePerinatologySubjectKey(2025, 429), /tidak valid/)
+  assert.equal(makePerinatologySubjectKey(2027, 429), 'excel-pmkp-perinatologi-2027:row:429')
 })
 
 test('recognizes cached spreadsheet formula errors without classifying ordinary text as an error', () => {
