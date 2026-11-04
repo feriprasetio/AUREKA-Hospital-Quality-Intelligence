@@ -186,7 +186,18 @@ export default function OverviewDashboard({
     ]).then(results => {
       if (!results.some((x: any) => x.error)) {
         ovCache.set(cacheKey, results)
-        try { sessionStorage.setItem('aureka-ov:' + cacheKey, JSON.stringify(results)) } catch { /* penyimpanan penuh: abaikan */ }
+        // sessionStorage hanya menyimpan data ringkas: naratif insiden (summary)
+        // dibuang agar teks IKP yang dapat memuat identitas pasien tidak menetap
+        // di penyimpanan browser pada komputer bersama. Cache memori tetap lengkap.
+        try {
+          const compact = results.map((section: any, index: number) => index === 2
+            ? { ...section, rows: (section.rows || []).map((row: any) => {
+                const { summary: omitted, ...rest } = row ?? {}
+                return rest
+              }) }
+            : section)
+          sessionStorage.setItem('aureka-ov:' + cacheKey, JSON.stringify(compact))
+        } catch { /* penyimpanan penuh: abaikan */ }
       }
       apply(results)
     }).catch(() => {
