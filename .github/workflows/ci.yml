@@ -1,0 +1,43 @@
+name: AUREKA CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aureka-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gates:
+    name: Unit, data, type, security and staging build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Dependency security audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run AUREKA Quality Assurance gate
+        run: npm run qa:gate
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_STAGING_SUPABASE_URL || secrets.AUREKA_STAGING_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+          AUREKA_BUILD_TARGET: preview
