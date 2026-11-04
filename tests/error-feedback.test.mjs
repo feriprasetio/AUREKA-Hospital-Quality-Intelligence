@@ -56,12 +56,16 @@ test('sanitizes legacy notification text without changing safe operator guidance
     'Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.',
   )
 })
-test('workspace chat and public metrics expose explicit async retry states', () => {
+test('workspace chat and public transparency panel expose safe, explicit states', () => {
   const source = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
   assert.match(source, /supportLoadError/)
   assert.match(source, /title="Percakapan belum dapat dimuat"/)
   assert.match(source, /onRetry=\{\(\)=>void loadSupportConversations\(\)\}/)
   assert.match(source, /title="Pesan belum dapat dimuat"/)
-  assert.match(source, /publicMetricsAttempt/)
+  assert.match(source, /publicDashboardOpen/)
+  assert.match(source, /Menunggu snapshot publik yang disetujui/)
+  assert.match(source, /Belum ada data publik/)
+  assert.doesNotMatch(source, /public_landing_metrics/)
+  assert.doesNotMatch(source, /publicMetricsAttempt/)
   assert.match(source, /sanitizeNotificationText\(text,technicalFallback\)/)
 })

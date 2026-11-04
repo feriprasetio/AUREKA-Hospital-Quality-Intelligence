@@ -32,30 +32,6 @@ const MANAGER_ONLY_MODULES:string[]=AUREKA_PRIMARY_NAV.filter(({visibility})=>vi
 const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS']
 const ROLE_LABEL:Record<string,string>={ADMIN:'Super Admin',PMKP:'Komite PMKP',MANAGEMENT:'Manajemen',PIC:'PIC Unit',VALIDATOR:'Validator Unit',KABID:'Kepala Bidang',DIREKTUR:'Direktur',DEWAN_PENGAWAS:'Dewan Pengawas'}
 const initials=(name?:string|null)=>{const parts=String(name||'').split('@')[0].replace(/[^A-Za-z0-9\u00C0-\u024F ]/g,' ').trim().split(/\s+/).filter(Boolean);return ((parts[0]?.[0]||'A')+(parts.length>1?parts[parts.length-1][0]:'')).toUpperCase()}
-const QUICK_MODULES=[
- {id:'quality',label:'Mutu Klinis',short:'Clinical quality',description:'Preview modul audit indikator, Clinical Pathway, dan audit klinis.'},
- {id:'safety',label:'Keselamatan Pasien',short:'Safety',description:'Preview insiden dan keselamatan pasien.'},
- {id:'risk',label:'Manajemen Risiko',short:'Risk',description:'Preview Risk Register dan pengendalian risiko.'},
-] as const
-
-type QuickModule=typeof QUICK_MODULES[number]
-type PublicLandingPoint={label:string;value:number|null}
-type PublicLandingMetrics={domain:QuickModule['id'];kind:'monthly'|'category';title:string;generated_at:string;minimum_group_size:number;points:PublicLandingPoint[]}
-function publicMetricLabel(kind:'monthly'|'category',label:string){
- if(kind!=='monthly'||!/^\d{4}-\d{2}$/.test(label))return label
- const [year,month]=label.split('-').map(Number)
- return new Intl.DateTimeFormat('id-ID',{month:'short',year:'2-digit',timeZone:'Asia/Pontianak'}).format(new Date(Date.UTC(year,month-1,1,5)))
-}
-const MODULE_INFO:Record<QuickModule['id'],{tagline:string;features:[string,string][]}>={
- quality:{tagline:'Pengumpulan & pemantauan capaian indikator mutu unit dan rumah sakit.',features:[['Audit Indikator Mutu','Logbook episode pasien per unit dengan profil indikator 2026.'],['Clinical Pathway','Audit per episode, checklist PPA, dan penghitungan kepatuhan.'],['Audit Klinis & Kematian','Telaah klinis terstruktur, pembelajaran, rekomendasi, dan tindak lanjut.'],['OPPE','Penilaian praktik profesional berbasis logbook tervalidasi dan bukti indikator.']]},
- safety:{tagline:'Pelaporan insiden, investigasi RCA, dan budaya keselamatan pasien.',features:[['Laporan IKP','Formulir insiden sesuai format resmi, tersimpan aman di server.'],['Investigasi / RCA','Akar masalah, grading risiko, dan rekomendasi tindak lanjut.'],['Survey Budaya','Survei budaya keselamatan anonim untuk seluruh staf.'],['Rekap & Ekspor','Rekap respons dan ekspor Excel untuk Komite PMKP.']]},
- risk:{tagline:'Register risiko per unit dengan matriks 5×5 dan RTP berjenjang.',features:[['Risk Register','Identifikasi, penilaian baseline & residual, otomatis dari matriks Kepmenkes.'],['RTP Terintegrasi','Satu rencana pengendalian untuk beberapa risiko, persetujuan Kabid → Direktur → Dewas.'],['Konektor Risiko','Hubungan penyebab bersama, hulu-hilir, dan potensi duplikasi.'],['FMEA / HFMEA','Analisis modus kegagalan dengan RPN terpisah dari skor matriks.']]},
-}
-function ModuleIcon({id}:{id:QuickModule['id']}){
- if(id==='quality')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7"/><path d="M3.5 19.5h17"/></svg>
- if(id==='safety')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="m8.8 12.1 2.1 2.1 4.5-4.7"/></svg>
- return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg>
-}
 function NavIcon({id}:{id:string}){
  if(id==='home')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10.5 8.5-7 8.5 7"/><path d="M5.5 9.5v10h13v-10M9 19.5v-6h6v6"/></svg>
  if(id==='quality')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7"/><path d="M3.5 19.5h17"/></svg>
@@ -82,7 +58,7 @@ async function rooms(){const {data,error}=await sb.from('master_rooms').select('
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[overviewModule,setOverviewModule]=useState<QuickModule['id']|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[publicDashboardOpen,setPublicDashboardOpen]=useState(false),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const mobileSidebar=useAccessibleSidebar()
  const [closedNav,setClosedNav]=useState<string[]>([])
  const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
@@ -93,29 +69,6 @@ export default function HomeClient(){
   document.documentElement.dataset.theme='solid'
   document.documentElement.style.colorScheme='light'
  },[])
- const [publicMetrics,setPublicMetrics]=useState<PublicLandingMetrics|null>(null)
- const [publicMetricsLoading,setPublicMetricsLoading]=useState(false)
- const [publicMetricsError,setPublicMetricsError]=useState('')
- const [publicMetricsAttempt,setPublicMetricsAttempt]=useState(0)
- useEffect(()=>{
-  if(!overviewModule){setPublicMetrics(null);setPublicMetricsError('');setPublicMetricsLoading(false);return}
-  let cancelled=false
-  setPublicMetrics(null);setPublicMetricsError('');setPublicMetricsLoading(true)
-  const load=async()=>{
-   try{
-    const {data,error}=await sb.schema('aureka_analytics').rpc('public_landing_metrics',{p_domain:overviewModule})
-    if(cancelled)return
-    if(error){setPublicMetricsError('Grafik publik belum dapat dimuat saat ini.');return}
-    const value=data as unknown as PublicLandingMetrics
-    if(!value||!Array.isArray(value.points)){setPublicMetricsError('Format data agregat publik belum tersedia.');return}
-    setPublicMetrics(value)
-   }catch{
-    if(!cancelled)setPublicMetricsError('Grafik publik belum dapat dimuat saat ini.')
-   }finally{if(!cancelled)setPublicMetricsLoading(false)}
-  }
-  void load()
-  return ()=>{cancelled=true}
- },[overviewModule,publicMetricsAttempt])
  useEffect(()=>{rooms().then(setRoomsList);const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}sb.rpc('aureka_sync_my_email').then(()=>{},()=>{});if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setView(p.must_change_password?'force-password':'workspace')}})},[])
  useEffect(()=>{
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
@@ -515,8 +468,8 @@ export default function HomeClient(){
 
  useEffect(()=>{if(!manager&&MANAGER_ONLY_MODULES.includes(active))setActive('home')},[manager,active])
  const title=useMemo(()=>MODS.find(([id])=>id===active)?.[1]||(active==='home'?'Ringkasan':'Workspace'),[active])
- if(view==='force-password')return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||'unit yang ditetapkan'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack" style={{position:'static',marginTop:16}} onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
- if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
+ if(view==='force-password')return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||'unit yang ditetapkan'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack" style={{position:'static',marginTop:16}} onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
+ if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   {!rec&&<button type="button" className="authBack" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('normal')}}><span aria-hidden="true">←</span> Kembali ke login</button>}
   <div className="authShell authShellSingle">
@@ -547,7 +500,7 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='login'||view==='signup'){const l=view==='login';const submit=(e:any)=>{e.preventDefault();l?login():signup()};return <main className="authPage"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
+ if(view==='login'||view==='signup'){const l=view==='login';const submit=(e:any)=>{e.preventDefault();l?login():signup()};return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}><span aria-hidden="true">←</span> Kembali ke beranda</button>
   <div className="authShell">
@@ -738,13 +691,14 @@ export default function HomeClient(){
   </div>
  </section>
 </main>
- return <main className="publicRoot landing">
+ return <main className="publicRoot landing publicLandingRedesign">
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   <header className="topbar glassPanel landingTopbar">
-   <div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
+   <a className="brand landingBrand" href="/AUREKA-Hospital-Quality-Intelligence/" aria-label="AUREKA beranda">
+    {logo()}<span><b>AUREKA</b><small>Hospital Quality Intelligence</small></span>
+   </a>
    <div className="landingTopActions">
-    
-    <button type="button" className="landingGhost" onClick={()=>{setMessage('');setView('signup')}}>Daftar akun unit</button>
+    <button type="button" className="landingGhost" onClick={()=>{setMessage('');setSignupDone(false);setView('signup')}}>Daftar akun unit</button>
     <button type="button" className="landingCta" onClick={()=>{setMessage('');setView('login')}}>Masuk Workspace <span aria-hidden="true">→</span></button>
    </div>
   </header>
@@ -752,65 +706,128 @@ export default function HomeClient(){
   <section className="heroPublic landingHero">
    <div className="heroCopy">
     <div className="landingBadge"><span className="landingPulse" aria-hidden="true"/>UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP</div>
-    <h1>AUREKA<br/><em>Alkadrie Unified Risk Evaluation, Quality, Assessment.</em></h1>
-    <p>Satu workspace untuk indikator mutu, keselamatan pasien, dan manajemen risiko — setiap unit menginput datanya sendiri, Komite PMKP memantau seluruh rumah sakit secara langsung.</p>
-
+    <h1>AUREKA<br/><em>Mutu terukur. Keselamatan terjaga.</em></h1>
+    <p>Platform Hospital Quality Intelligence untuk mengintegrasikan pemantauan indikator mutu, keselamatan pasien, dan manajemen risiko rumah sakit dalam satu workspace yang terstruktur.</p>
+    <div className="landingActions">
+     <button type="button" className="landingCta big" onClick={()=>{setMessage('');setView('login')}}>Masuk ke Workspace <span aria-hidden="true">→</span></button>
+     <button type="button" className="landingGhost big" onClick={()=>{setPublicDashboardOpen(true);document.getElementById("transparansi-capaian")?.scrollIntoView({behavior:"smooth",block:"start"})}}>Lihat transparansi publik</button>
+    </div>
+    <div className="landingStats" aria-label="Area utama AUREKA">
+     <div><b>Mutu</b><span>Indikator dan hasil pengukuran</span></div>
+     <div><b>Keselamatan</b><span>Pelaporan dan pembelajaran insiden</span></div>
+     <div><b>Risiko</b><span>Identifikasi dan pengendalian</span></div>
+    </div>
    </div>
 
-   <div className="landingModules" aria-label="Modul utama AUREKA">
-    {QUICK_MODULES.map((module,idx)=>
-     <button key={module.id} type="button" className={`landingModule quickDock-${module.id}`} style={{animationDelay:`${140+idx*90}ms`}} onClick={()=>setOverviewModule(module.id)} aria-label={`Lihat modul ${module.label}`}>
-      <span className="quickDockIcon"><ModuleIcon id={module.id}/></span>
-      <span className="landingModuleText"><b>{module.label}</b><small>{MODULE_INFO[module.id].tagline}</small></span>
-      <span className="landingModuleArrow" aria-hidden="true">↗</span>
-     </button>
-    )}
-   </div>
+   <aside className="landingHeroVisual" aria-label="Tiga domain utama AUREKA">
+    <div className="heroVisualTop">
+     <div><span className="heroVisualKicker">HOSPITAL QUALITY INTELLIGENCE</span><strong>Integrated quality oversight</strong></div>
+     <span className="heroVisualMark">A</span>
+    </div>
+    <div className="heroVisualList">
+     <div className="heroVisualItem">
+      <span className="heroVisualIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m8 10V5m8 14v-7M2.5 19.5h19"/></svg></span>
+      <span><b>Indikator Nasional Mutu</b><small>Pengukuran, target, dan tren</small></span>
+      <span className="heroVisualArrow" aria-hidden="true">↗</span>
+     </div>
+     <div className="heroVisualItem">
+      <span className="heroVisualIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="M12 8v5m0 3h.01"/></svg></span>
+      <span><b>Keselamatan Pasien</b><small>Pelaporan dan pembelajaran insiden</small></span>
+      <span className="heroVisualArrow" aria-hidden="true">↗</span>
+     </div>
+     <div className="heroVisualItem">
+      <span className="heroVisualIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg></span>
+      <span><b>Manajemen Risiko</b><small>Register dan rencana pengendalian</small></span>
+      <span className="heroVisualArrow" aria-hidden="true">↗</span>
+     </div>
+    </div>
+    <div className="heroVisualFoot"><span className="heroVisualDot"/> Satu ekosistem kerja Komite PMKP dan unit pelayanan</div>
+   </aside>
   </section>
 
-  {overviewModule&&(()=>{
-   const selected=QUICK_MODULES.find(m=>m.id===overviewModule)
-   if(!selected)return null
-   const info=MODULE_INFO[selected.id]
-   return <div className="overviewOverlay" role="presentation" onClick={()=>setOverviewModule(null)}>
-    <section className={`overviewModal landingModal quickDock-${selected.id}`} role="dialog" aria-modal="true" aria-labelledby="overviewTitle" onClick={e=>e.stopPropagation()}>
-     <div className="landingModalHead">
-      <span className="quickDockIcon"><ModuleIcon id={selected.id}/></span>
-      <div><div className="eyebrow">AUREKA · MODUL</div><h2 id="overviewTitle">{selected.label}</h2><p>{info.tagline}</p></div>
-      <button type="button" className="landingClose" onClick={()=>setOverviewModule(null)} aria-label="Tutup">×</button>
-     </div>
-     <div className="publicMetricsPanel">
-      {publicMetricsLoading
-       ? <AsyncStatePanel state="loading" title="Memuat grafik publik" description="Menyiapkan ringkasan agregat dari data yang tersedia."/>
-       : publicMetricsError
-        ? <AsyncStatePanel state="error" title="Grafik belum tersedia" description={publicMetricsError} retrying={publicMetricsLoading} onRetry={()=>setPublicMetricsAttempt(value=>value+1)}/>
-        : !publicMetrics || publicMetrics.domain!==selected.id
-         ? <AsyncStatePanel state="empty" title="Data agregat belum tersedia" description="Ringkasan akan muncul setelah data yang memenuhi syarat publikasi tersedia."/>
-         : (() => {
-            const visible=publicMetrics.points.filter(point=>point.value!==null&&Number.isFinite(Number(point.value))&&Number(point.value)>=publicMetrics.minimum_group_size)
-            const maxValue=Math.max(1,...visible.map(point=>Number(point.value)))
-            if(!visible.length)return <AsyncStatePanel state="empty" title="Belum ada data agregat yang cukup untuk publikasi" description={`Grafik hanya memuat catatan tervalidasi atau laporan yang telah ditutup, dengan sedikitnya ${publicMetrics.minimum_group_size} catatan per kelompok. Tidak ada data contoh.`}/>
-            return <div className="publicMetricsContent">
-             <div className="publicMetricsHeading"><div><span className="publicMetricKicker">RINGKASAN PUBLIK</span><h3>{publicMetrics.title}</h3></div><span className="publicAggregatePill">Agregat saja</span></div>
-             {publicMetrics.kind==='monthly'
-              ? <div className="publicMonthlyChart" role="img" aria-label={publicMetrics.title}>
-                 {publicMetrics.points.map(point=>{const shown=point.value!==null&&Number(point.value)>=publicMetrics.minimum_group_size;const value=shown?Number(point.value):0;return <div className="publicMonthlyPoint" key={point.label} title={shown?publicMetricLabel(publicMetrics.kind,point.label)+': '+value:'Nilai disembunyikan'}><span className="publicChartValue">{shown?value.toLocaleString('id-ID'):'—'}</span><div className="publicChartTrack"><div className="publicChartBar" style={{height:shown?Math.max(7,value/maxValue*100)+'%':'0%'}}/></div><span className="publicChartLabel">{publicMetricLabel(publicMetrics.kind,point.label)}</span></div>})}
-                </div>
-              : <div className="publicCategoryChart" role="img" aria-label={publicMetrics.title}>
-                 {publicMetrics.points.map(point=>{const shown=point.value!==null&&Number(point.value)>=publicMetrics.minimum_group_size;const value=shown?Number(point.value):0;return <div className="publicCategoryPoint" key={point.label}><span className="publicCategoryLabel">{point.label}</span><div className="publicCategoryTrack"><div className="publicCategoryBar" style={{width:shown?Math.max(2,value/maxValue*100)+'%':'0%'}}/></div><b>{shown?value.toLocaleString('id-ID'):'—'}</b></div>})}
-                </div>
-             }
-             <p className="publicMetricsPrivacy">Angka di bawah ambang publikasi {publicMetrics.minimum_group_size} disembunyikan. Grafik tidak memuat identitas pasien, nama unit, uraian risiko, maupun rincian insiden.</p>
-             <small className="publicMetricsUpdated">Pembaruan data: {new Date(publicMetrics.generated_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})} WIB</small>
-            </div>
-           })()
-      }
-     </div>
-     <div className="landingModalFoot">
-      <span>Grafik ini menampilkan data agregat yang memenuhi ambang publikasi. Rincian operasional tetap memerlukan login sesuai hak akses.</span>
-     </div>
-    </section>
+  <section className="publicDashboardSection" id="transparansi-capaian">
+   <div className="publicSectionIntro">
+    <div className="publicSectionCopy">
+     <span className="publicSectionEyebrow">TRANSPARANSI PUBLIK</span>
+     <h2>Transparansi capaian rumah sakit</h2>
+     <p>Ringkasan indikator mutu, laporan insiden keselamatan pasien, dan kategori risiko yang telah melalui validasi serta persetujuan publikasi.</p>
+    </div>
+    <button type="button" className="publicDashboardToggle" onClick={()=>setPublicDashboardOpen(open=>!open)} aria-expanded={publicDashboardOpen} aria-controls="aureka-public-dashboard">
+     <span>{publicDashboardOpen?'Tutup ringkasan':'Lihat capaian publik'}</span>
+     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
    </div>
-  })()}
+
+   {publicDashboardOpen&&<section className="publicDashboardPanel" id="aureka-public-dashboard" aria-label="AUREKA Public Hospital Quality Intelligence Dashboard">
+    <header className="publicDashboardHeader">
+     <div>
+      <span className="publicDashboardKicker">AUREKA · PUBLIC HOSPITAL QUALITY INTELLIGENCE</span>
+      <h3>Capaian Mutu Rumah Sakit</h3>
+      <p>UPT RSUD Sultan Syarif Mohamad Alkadrie</p>
+     </div>
+     <span className="publicReadOnly"><span aria-hidden="true"/> PUBLIK · READ ONLY</span>
+    </header>
+
+    <div className="publicDashboardGrid">
+     <article className="publicMetricCard publicMetricCardWide">
+      <div className="publicMetricCardHead">
+       <span className="publicMetricNumber">01</span>
+       <div className="publicMetricTitle">
+        <span>INDIKATOR MUTU</span>
+        <h4>Indikator Nasional Mutu (INM)</h4>
+        <p>Seluruh indikator yang ditetapkan bertipe INM di AUREKA, ditampilkan pada tingkat rumah sakit.</p>
+       </div>
+       <span className="publicPeriodPill">Periode terakhir disetujui</span>
+      </div>
+      <div className="publicMetricMetaRow"><span>Capaian terbaru</span><span>Target dan satuan</span><span>Tren 12 bulan</span></div>
+      <div className="publicMetricEmpty">
+       <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9m8 10V5m8 14v-7M2.5 19.5h19"/></svg></span>
+       <div><strong>Menunggu snapshot publik yang disetujui</strong><p>Kartu setiap indikator akan muncul setelah capaian, target, periode, dan definisinya divalidasi untuk publikasi.</p></div>
+      </div>
+     </article>
+
+     <article className="publicMetricCard">
+      <div className="publicMetricCardHead">
+       <span className="publicMetricNumber">02</span>
+       <div className="publicMetricTitle">
+        <span>KESELAMATAN PASIEN</span>
+        <h4>Insiden Keselamatan Pasien</h4>
+        <p>Jumlah laporan menurut jenis insiden resmi.</p>
+       </div>
+       <span className="publicPeriodPill">YTD</span>
+      </div>
+      <div className="publicMetricEmpty compact">
+       <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="M12 8v5m0 3h.01"/></svg></span>
+       <div><strong>Belum ada data publik</strong><p>Grafik akan memuat jumlah laporan per jenis setelah snapshot disetujui dan ambang publikasi terpenuhi.</p></div>
+      </div>
+     </article>
+
+     <article className="publicMetricCard">
+      <div className="publicMetricCardHead">
+       <span className="publicMetricNumber">03</span>
+       <div className="publicMetricTitle">
+        <span>MANAJEMEN RISIKO</span>
+        <h4>Risiko Rumah Sakit</h4>
+        <p>Jumlah risiko aktif terdaftar menurut kategori risiko.</p>
+       </div>
+       <span className="publicPeriodPill">Snapshot terakhir</span>
+      </div>
+      <div className="publicMetricEmpty compact">
+       <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg></span>
+       <div><strong>Belum ada data publik</strong><p>Grafik akan memuat jumlah risiko aktif per kategori dari snapshot register yang disetujui.</p></div>
+      </div>
+     </article>
+    </div>
+    <footer className="publicDashboardFoot">
+     <span>Hanya agregat yang telah divalidasi dan disetujui. Data individu, kronologi insiden, lokasi unit, skor risiko, dan rincian mitigasi tidak ditampilkan.</span>
+     <span className="publicSource">Sumber: AUREKA · Komite PMKP</span>
+    </footer>
+   </section>}
+  </section>
+
+  <footer className="landingFooter">
+   <div><b>AUREKA</b><span>Hospital Quality Intelligence</span></div>
+   <p>UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite Peningkatan Mutu dan Keselamatan Pasien</p>
+  </footer>
  </main>
 }
