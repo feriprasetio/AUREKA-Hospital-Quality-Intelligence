@@ -263,6 +263,32 @@ test('directional indicators exclude explicitly ineligible responses from the de
   assert.equal(result.observations, 2)
 })
 
+
+test('directional option mapping rejects an answer label that conflicts with its numeric code', () => {
+  const profile = {
+    id: 'p-label-conflict',
+    room_id: 4,
+    code: '4.3',
+    title: 'Penundaan Operasi Elektif',
+    measurement_grain: 'patient_episode',
+    schema_json: { indicator_direction: 'negative', measurement_type: 'compliance' },
+    options_json: [
+      { code: 1, label: 'Operasi tepat waktu', numerator: false, denominator: true },
+      { code: 2, label: 'Ditunda karena alasan medis', numerator: false, denominator: true },
+      { code: 3, label: 'Ditunda karena kesiapan rumah sakit', numerator: true, denominator: true },
+    ],
+  }
+  const rows = [
+    { record_date: '2026-06-01', status: 'ready', core_data: { indicator_values: { '4.3': {
+      answer: 'Operasi tepat waktu', code: 3, source_code: 3, mapping_status: 'mapped', review_required: false,
+    } } } },
+  ]
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.annualNumerator, 0)
+  assert.equal(result.annualDenominator, 0)
+  assert.equal(result.observations, 0)
+})
+
 test('negative event indicators honor the inclusive 1% threshold', () => {
   const profile = {
     id: 'p-blood-waste',
