@@ -109,6 +109,19 @@ BEGIN
       END IF;
     END IF;
 
+    -- The active-published unique index is scoped by year + indicator code.
+    -- Retire the prior version first; the enclosing DO block keeps both writes atomic.
+    UPDATE aureka_quality.indicator_profiles
+       SET status = 'retired',
+           is_active = false
+     WHERE id = v_old.id
+       AND status = 'published'
+       AND is_active = true;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Versi aktif indikator % berubah selama migrasi; proses dibatalkan.', v_old.code;
+    END IF;
+
     INSERT INTO aureka_quality.indicator_profiles (
       profile_year, code, room_id, unit_name, title, indicator_type, category,
       unit_of_measure, target_text, target_operator, target_value,
@@ -122,11 +135,6 @@ BEGIN
       v_denominator_definition, v_old.measurement_grain, v_schema, v_options,
       coalesce(v_old.version, 1) + 1, 'published', true, v_old.created_by, v_old.updated_by
     );
-
-    UPDATE aureka_quality.indicator_profiles
-       SET status = 'retired',
-           is_active = false
-     WHERE id = v_old.id;
 
     v_updated := v_updated + 1;
   END LOOP;
