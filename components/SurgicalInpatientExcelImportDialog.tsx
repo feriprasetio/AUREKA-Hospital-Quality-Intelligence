@@ -229,12 +229,15 @@ function preparePayload(
       numerator: answer.numerator,
       denominator: answer.denominator,
       source_value: answer.sourceLabel,
-      source_code: answer.sourceCode,
-      review_required: true,
+      source_code: answer.sourceCode ?? answer.code,
+      free_text: answer.freeText ?? '',
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
-      classification_note: answer.mappingStatus === 'mapped_existing_master'
-        ? 'Pilihan Linen/Obat diselaraskan dengan master aktif yang sudah memiliki klasifikasi; respons tetap pending untuk verifikasi sumber.'
-        : 'Pilihan sumber dipertahankan; numerator/denominator belum ditetapkan dan menunggu verifikasi pemilik indikator.',
+      classification_note: answer.freeText
+        ? 'Nama obat yang tidak tersedia disimpan sebagai bukti kejadian kekosongan; diklasifikasikan code 3.'
+        : answer.mappingStatus === 'mapped_existing_master'
+          ? 'Pilihan Linen/Obat dipetakan ke master aktif dan klasifikasi universal; denominator tetap dihitung.'
+          : 'Pilihan sumber disimpan sesuai klasifikasi yang tersedia.',
     }
     indicatorValues[item.code] = rawValue
     sourceIndicatorValues[item.code] = answer.sourceLabel
@@ -243,8 +246,8 @@ function preparePayload(
       response_label: answer.label,
       response_code: answer.code,
       raw_value: rawValue,
-      other_text: answer.sourceLabel,
-      review_status: 'pending',
+      other_text: answer.freeText || answer.sourceLabel || null,
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -511,7 +514,7 @@ export default function SurgicalInpatientExcelImportDialog({
         for (const item of SURGICAL_SOURCE_INDICATORS) {
           const sourceValue = value('indicator:' + item.code)
           sourceIndicatorCells[item.code] = sourceValue
-          if (!sourceValue) {
+          if (!sourceValue && item.code !== '23.3') {
             if (item.code === '23.4') emptyTransferResponses++
             if (item.code === '23.1') emptyCancellationResponses++
             continue
