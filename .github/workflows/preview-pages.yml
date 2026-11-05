@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - feat/aureka-2-landing-page
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 permissions:
