@@ -66,14 +66,14 @@ jobs:
       - name: Validate Supabase build configuration
         env:
           AUREKA_BUILD_TARGET: preview
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_STAGING_SUPABASE_URL || secrets.AUREKA_STAGING_SUPABASE_URL || 'https://ypsbvxnqdbjjhlhjerad.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_tTgpB91qJSaLmY45NTXVeg_sM0gt53l' }}
+          NEXT_PUBLIC_SUPABASE_URL: https://preview-disabled.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_preview_disabled
         run: node scripts/validate-supabase-build-env.mjs
 
       - name: Build static export
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_STAGING_SUPABASE_URL || secrets.AUREKA_STAGING_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: https://preview-disabled.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_preview_disabled
         run: npm run build
       - uses: actions/upload-artifact@v4
         with:
