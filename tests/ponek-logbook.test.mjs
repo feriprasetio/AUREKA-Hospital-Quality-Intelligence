@@ -92,8 +92,8 @@ test('maps the source Petugas choice to indicator 33.1 without treating it as a 
   assert.equal(answer?.code, 1)
   assert.equal(answer?.sourceCode, 1)
   assert.equal(answer?.sourceLabel, source)
-  assert.equal(answer?.mappingStatus, 'mapped_pending_classification')
-  assert.equal(answer?.reviewRequired, true)
+  assert.equal(answer?.mappingStatus, 'mapped')
+  assert.equal(answer?.reviewRequired, false)
 })
 
 test('maps the three remaining PONEK indicator headers to their source choices', () => {
@@ -110,19 +110,21 @@ test('maps the three remaining PONEK indicator headers to their source choices',
   ]
   for (const [code, source, options] of cases) {
     const answer = parsePonekSourceAnswer(source, options)
-    assert.equal(answer?.mappingStatus, 'mapped_pending_classification', code)
+    assert.equal(answer?.mappingStatus, 'mapped', code)
+    assert.equal(answer?.reviewRequired, false, code)
     assert.equal(answer?.code, 1, code)
     assert.equal(answer?.sourceLabel, source, code)
   }
 })
 
-test('supports exact labels without Code suffix and keeps them pending', () => {
+test('maps exact master labels without a Code suffix using the master response code', () => {
   const answer = parsePonekSourceAnswer('Ruptur Derajat III/IV (Faktor Ibu)', [
     pending(2, 'Ruptur Derajat III/IV (Faktor Ibu)'),
   ])
   assert.equal(answer?.sourceCode, null)
   assert.equal(answer?.code, 2)
-  assert.equal(answer?.mappingStatus, 'mapped_pending_classification')
+  assert.equal(answer?.reviewRequired, false)
+  assert.equal(answer?.mappingStatus, 'mapped')
 })
 
 test('flags conflicting and unknown source choices without guessing', () => {
