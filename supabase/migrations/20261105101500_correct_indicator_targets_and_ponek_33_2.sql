@@ -25,7 +25,7 @@ BEGIN
          (room_id = 9 AND code = '9.1')
          OR (room_id = 29 AND code = '29.1')
          OR (room_id = 12 AND code = '12.3')
-         OR (room_id = 33 AND code = '33.2')
+         OR (room_id = 33 AND code IN ('33.1','33.2','33.3','33.4'))
        )
   ) <> 7 THEN
     RAISE EXCEPTION 'Koreksi indikator 2026 dibatalkan: tujuh profil target aktif harus ditemukan tepat satu per indikator.';
@@ -41,7 +41,7 @@ BEGIN
          (room_id = 9 AND code = '9.1')
          OR (room_id = 29 AND code = '29.1')
          OR (room_id = 12 AND code = '12.3')
-         OR (room_id = 33 AND code = '33.2')
+         OR (room_id = 33 AND code IN ('33.1','33.2','33.3','33.4'))
        )
      ORDER BY room_id, code
      FOR UPDATE
