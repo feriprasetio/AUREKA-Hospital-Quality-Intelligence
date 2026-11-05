@@ -51,6 +51,34 @@ export const PEDIATRIC_SOURCE_ONLY_FIELDS = [
     mappingStatus: 'free_text_source_not_mapped',
     reason: 'Kolom workbook berisi nama obat dalam teks bebas, bukan pilihan kategori yang dapat dipetakan secara valid ke master 22.5.',
   },
+  {
+    key: '22.9_source_only',
+    code: '22.9',
+    header: 'Demam 2–7H + Trombositopenia + ↑Ht',
+    mappingStatus: 'clinical_definition_pending_source_only',
+    reason: 'Profil 22.9 masih draf dan belum memiliki definisi N/D, arah, tipe ukur, serta target yang disahkan. Nilai sumber dipertahankan untuk review; tidak dipetakan atau dihitung sebagai capaian.',
+  },
+  {
+    key: '22.10_source_only',
+    code: '22.10',
+    header: 'DR ≥1×/Hari',
+    mappingStatus: 'clinical_definition_pending_source_only',
+    reason: 'Profil 22.10 masih draf dan belum memiliki definisi N/D, arah, tipe ukur, serta target yang disahkan. Nilai sumber dipertahankan untuk review; tidak dipetakan atau dihitung sebagai capaian.',
+  },
+  {
+    key: '22.11_source_only',
+    code: '22.11',
+    header: 'Kristaloid ≥500 cc/8J',
+    mappingStatus: 'clinical_definition_pending_source_only',
+    reason: 'Profil 22.11 masih draf dan belum memiliki definisi N/D, arah, tipe ukur, serta target yang disahkan. Nilai sumber dipertahankan untuk review; tidak dipetakan atau dihitung sebagai capaian.',
+  },
+  {
+    key: '22.12_source_only',
+    code: '22.12',
+    header: 'Tidak DSS',
+    mappingStatus: 'clinical_definition_pending_source_only',
+    reason: 'Profil 22.12 masih draf dan belum memiliki definisi N/D, arah, tipe ukur, serta target yang disahkan. Nilai sumber dipertahankan untuk review; tidak dipetakan atau dihitung sebagai capaian.',
+  },
 ] as const
 
 const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?'])
