@@ -310,7 +310,7 @@
   .a2-hero-showcase { min-height: 510px; }
   .a2-capa-section { margin-inline: -24px; padding-inline: 24px; }
 }
-@media (max-width: 900px) {
+@media (max-width: 780px) {
   .a2-desktop-nav { display: none; }
   .a2-header-inner { min-height: 68px; }
   .a2-header-actions { margin-left: auto; }
@@ -391,8 +391,6 @@
   .a2-transparency-grid { grid-template-columns: 1fr; gap: 8px; }
   .a2-transparency-grid article { padding: 13px; }
   .a2-faq-section { grid-template-columns: 1fr; gap: 22px; padding: 49px 0 57px; }
-  .a2-final-cta-inner { display: grid; gap: 19px; padding-block: 31px; }
-  .a2-final-cta-inner .a2-button { width: 100%; }
   .a2-footer-main { grid-template-columns: 1fr; gap: 12px; padding-block: 18px; }
   .a2-footer-bottom { display: grid; gap: 7px; }
 }
