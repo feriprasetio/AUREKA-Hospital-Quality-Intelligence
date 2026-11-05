@@ -304,6 +304,10 @@ BEGIN
           RAISE EXCEPTION 'Kode indikator null tidak konsisten pada baris Excel %.', v_source_row USING ERRCODE = '22023';
         END IF;
 
+        IF v_response->'raw_value'->>'mapping_status' = 'mapped' THEN
+          RAISE EXCEPTION 'Respons indikator % tidak dapat berstatus mapped tanpa kode 1–3 pada baris Excel %.', v_code, v_source_row USING ERRCODE = '22023';
+        END IF;
+
         SELECT count(*)
           INTO v_match_count
           FROM aureka_quality.indicator_profiles ip
