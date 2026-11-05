@@ -56,7 +56,7 @@ test('production Pages preserves the release root and mounts main under the isol
   const combine = production.indexOf('Combine production root with staging preview path')
 
   assert.ok(productionValidation >= 0 && productionValidation < productionBuild)
-  assert.ok(productionBuild < stagingValidation && stagingValidation < stagingBuild)
+  assert.ok(productionValidation < stagingValidation && stagingValidation < productionBuild && productionBuild < stagingBuild)
   assert.ok(stagingBuild < combine)
   const productionBlock = production.slice(productionValidation, stagingValidation)
   const stagingBlock = production.slice(stagingValidation, combine)
