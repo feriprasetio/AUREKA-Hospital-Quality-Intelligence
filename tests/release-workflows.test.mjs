@@ -38,14 +38,28 @@ test('preview reports dependency findings and blocks high or critical severity',
   assert.doesNotMatch(preview, /actions\/deploy-pages/)
 })
 
-test('production Pages workflow installs reproducibly and uses production Supabase values only', () => {
+test('production Pages keeps root on production Supabase and mounts staging under a separate path', () => {
   assert.match(production, /run: npm ci/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_URL/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY/)
   assert.match(production, /AUREKA_BUILD_TARGET: production/)
-  assert.match(production, /node scripts\/validate-supabase-build-env\.mjs/)
-  assert.doesNotMatch(production, /AUREKA_STAGING_SUPABASE_URL/)
-  assert.doesNotMatch(production, /AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY/)
+  assert.match(production, /node scripts\\/validate-supabase-build-env\\.mjs/)
+
+  const productionValidation = production.indexOf('Validate Supabase build configuration')
+  const productionBuild = production.indexOf('name: Build static export')
+  const stagingValidation = production.indexOf('Validate isolated staging Supabase configuration')
+  const stagingBuild = production.indexOf('name: Build isolated staging route')
+  const combine = production.indexOf('Combine production root with staging preview path')
+
+  assert.ok(productionValidation >= 0 && productionValidation < productionBuild)
+  assert.ok(productionBuild < stagingValidation && stagingValidation < stagingBuild)
+  assert.ok(stagingBuild < combine)
+  const productionBlock = production.slice(productionValidation, stagingValidation)
+  const stagingBlock = production.slice(stagingValidation, combine)
+  assert.doesNotMatch(productionBlock, /AUREKA_STAGING_SUPABASE_URL|AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY/)
+  assert.match(stagingBlock, /AUREKA_STAGING_SUPABASE_URL/)
+  assert.match(stagingBlock, /AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY/)
+  assert.match(stagingBlock, /AUREKA_BASE_PATH: \/AUREKA-Hospital-Quality-Intelligence\/staging/)
 })
 
 test('production deployment blocks moderate, high, and critical dependency findings', () => {
