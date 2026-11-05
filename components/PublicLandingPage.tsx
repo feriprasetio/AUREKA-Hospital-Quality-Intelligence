@@ -257,8 +257,6 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
             </div>
           </div>
 
-          </div>
-
           <aside className="a2-hero-showcase" aria-label="Pratinjau visual dashboard AUREKA">
             <div className="a2-risk-backplate" aria-hidden="true">
               <div className="a2-risk-backplate-head">
