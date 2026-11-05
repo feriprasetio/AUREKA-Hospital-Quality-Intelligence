@@ -58,6 +58,22 @@ test('maps the actual Rawat Inap Anak Logbook headers to six indicator fields an
   assert.ok(PEDIATRIC_SOURCE_ONLY_FIELDS.slice(2).every(item => item.mappingStatus === 'clinical_definition_pending_source_only'))
 })
 
+test('allows older workbooks without optional source-only columns while requiring all formal indicators', () => {
+  const headers = [
+    'No.', 'Nama Pasien', 'No. Rekam Medis', 'Tanggal Masuk', 'Tanggal Keluar',
+    'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Berat Badan', 'Tinggi Badan',
+    'Tanggal Lahir', 'Umur (Rumus)', 'Lenght of Stay', 'Perawat Penerima', 'DPJP',
+    'Visite Spesialis', 'Validitas Asesmen Keperawatan', 'Transfer IGD',
+    'Infus Vena Perifer', 'Ketenangan Pasien', 'Assessment Stunting Wasting2',
+  ]
+  const result = mapPediatricLogbookHeaders(headers)
+  assert.deepEqual(result.missingHeaders, [])
+  assert.deepEqual(result.duplicateHeaders, [])
+  for (const item of PEDIATRIC_SOURCE_ONLY_FIELDS) {
+    assert.equal(result.indexes[item.key], undefined)
+  }
+})
+
 test('reports missing and duplicated source headers precisely', () => {
   const headers = [
     'No.', 'Nama Pasien', 'No. Rekam Medis', 'Tanggal Masuk', 'Tanggal Keluar',
