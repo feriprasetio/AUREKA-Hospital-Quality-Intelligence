@@ -26,7 +26,7 @@ export function validateSupabaseBuildConfiguration({ target, url, key, config })
     throw new Error('AUREKA_BUILD_TARGET must be either preview or production.')
   }
 
-  const prefix = target === 'preview' ? 'AUREKA_STAGING' : 'AUREKA_PRODUCTION'
+  const prefix = target === 'preview' ? 'PREVIEW_ONLY' : 'AUREKA_PRODUCTION'
   if (!url || !url.trim()) {
     throw new Error('Set ' + prefix + '_SUPABASE_URL in GitHub Actions Variables or Secrets.')
   }
