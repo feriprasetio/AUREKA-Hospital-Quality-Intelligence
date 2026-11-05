@@ -111,13 +111,14 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const editorOpen = Boolean(edit || newOne)
   useEffect(() => {
-    if (!edit && !newOne) return
+    if (!editorOpen) return
     const frame = window.requestAnimationFrame(() => {
       editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [edit, newOne])
+  }, [editorOpen])
 
   const load = useCallback(async () => {
     setLoading(true)
