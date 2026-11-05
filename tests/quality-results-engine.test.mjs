@@ -230,6 +230,39 @@ test('approved direction resolves exact categorical labels with pending legacy f
   assert.equal(result.observations, 2)
 })
 
+
+test('directional indicators exclude explicitly ineligible responses from the denominator', () => {
+  const profile = {
+    id: 'p-eligible-only',
+    room_id: 19,
+    code: '19.2',
+    title: 'Inisiasi Menyusu Dini',
+    measurement_grain: 'patient_episode',
+    schema_json: { indicator_direction: 'positive' },
+    options_json: [
+      { code: 1, label: 'IMD dilakukan', numerator: null, denominator: true, review_required: true },
+      { code: 2, label: 'Ibu tidak stabil', numerator: null, denominator: false, review_required: true },
+      { code: 3, label: 'Petugas tidak melakukan IMD', numerator: null, denominator: true, review_required: true },
+    ],
+  }
+  const rows = [
+    { record_date: '2026-05-01', status: 'ready', core_data: { indicator_values: { '19.2': {
+      answer: 'IMD dilakukan', code: 1, source_code: 1, review_required: true, mapping_status: 'mapped_pending_classification',
+    } } } },
+    { record_date: '2026-05-02', status: 'ready', core_data: { indicator_values: { '19.2': {
+      answer: 'Ibu tidak stabil', code: 2, source_code: 2, review_required: true, mapping_status: 'mapped_pending_classification',
+    } } } },
+    { record_date: '2026-05-03', status: 'ready', core_data: { indicator_values: { '19.2': {
+      answer: 'Petugas tidak melakukan IMD', code: 3, source_code: 3, review_required: true, mapping_status: 'mapped_pending_classification',
+    } } } },
+  ]
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.annualNumerator, 1)
+  assert.equal(result.annualDenominator, 2)
+  assert.equal(result.annualRate, 50)
+  assert.equal(result.observations, 2)
+})
+
 test('negative event indicators honor the inclusive 1% threshold', () => {
   const profile = {
     id: 'p-blood-waste',
