@@ -25,18 +25,41 @@ jobs:
             exit 1
           fi
 
-      - name: Checkout
+      # This immutable release branch keeps the current public root unchanged
+      # while the merged AUREKA 2.0 application is reviewed under /staging/.
+      - name: Checkout current production release baseline
         uses: actions/checkout@v4
+        with:
+          ref: aureka-pages-production
+          path: production-src
+          persist-credentials: false
+
+      - name: Checkout current AUREKA application for staging
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: staging-src
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          
-      - name: Install locked dependencies
+          cache: npm
+          cache-dependency-path: |
+            production-src/package-lock.json
+            staging-src/package-lock.json
+
+      - name: Install locked production dependencies
+        working-directory: production-src
+        run: npm ci
+
+      - name: Install locked staging dependencies
+        working-directory: staging-src
         run: npm ci
 
       - name: Dependency audit (block moderate, high and critical)
+        working-directory: staging-src
         shell: bash
         run: |
           set +e
@@ -75,33 +98,39 @@ jobs:
           }
           NODE
 
-      - name: Unit, data and type checks
+      - name: Test production release baseline
+        working-directory: production-src
         run: npm test
 
-      - name: Validate Supabase build configuration
+      - name: Test staging application and data
+        working-directory: staging-src
+        run: npm test
+
+      - name: Validate production Supabase configuration
+        working-directory: production-src
         env:
           AUREKA_BUILD_TARGET: production
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL || 'https://ktukmjscopggkzrkgnzp.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
         run: node scripts/validate-supabase-build-env.mjs
 
-      - name: Build static export
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL || 'https://ktukmjscopggkzrkgnzp.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
-        run: npm run build
-
-      - name: Preserve production static export
-        run: mv out /tmp/aureka-production-out
-
       - name: Validate isolated staging Supabase configuration
+        working-directory: staging-src
         env:
           AUREKA_BUILD_TARGET: preview
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_STAGING_SUPABASE_URL || secrets.AUREKA_STAGING_SUPABASE_URL || 'https://ypsbvxnqdbjjhlhjerad.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_tTgpB91qJSaLmY45NTXVeg_sM0gt53l' }}
         run: node scripts/validate-supabase-build-env.mjs
 
-      - name: Build isolated staging route
+      - name: Build unchanged production root
+        working-directory: production-src
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL || 'https://ktukmjscopggkzrkgnzp.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
+        run: npm run build
+
+      - name: Build AUREKA 2.0 under the staging path
+        working-directory: staging-src
         env:
           AUREKA_BASE_PATH: /AUREKA-Hospital-Quality-Intelligence/staging
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_STAGING_SUPABASE_URL || secrets.AUREKA_STAGING_SUPABASE_URL || 'https://ypsbvxnqdbjjhlhjerad.supabase.co' }}
@@ -110,10 +139,8 @@ jobs:
 
       - name: Combine production root with staging preview path
         run: |
-          mkdir -p /tmp/aureka-production-out/staging
-          cp -a out/. /tmp/aureka-production-out/staging/
-          rm -rf out
-          mv /tmp/aureka-production-out out
+          mkdir -p production-src/out/staging
+          cp -a staging-src/out/. production-src/out/staging/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -121,7 +148,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: production-src/out
 
   deploy:
     environment:
