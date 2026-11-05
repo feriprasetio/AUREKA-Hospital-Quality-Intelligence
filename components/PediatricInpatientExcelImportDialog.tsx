@@ -302,12 +302,13 @@ function preparePayload(
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
     'DPJP': row.dpjp,
-    'Kekosongan Linen': row.sourceOnlyValues['22.4'] ?? '',
-    'Kekosongan Obat': row.sourceOnlyValues['22.5'] ?? '',
   }
 
   for (const item of PEDIATRIC_SOURCE_INDICATORS) {
     formFields[item.sourceHeader] = row.sourceIndicatorCells[item.code] ?? ''
+  }
+  for (const item of PEDIATRIC_SOURCE_ONLY_FIELDS) {
+    formFields[item.header] = row.sourceOnlyValues[item.code] ?? ''
   }
 
   const core = {
@@ -375,6 +376,10 @@ export default function PediatricInpatientExcelImportDialog({
   )
   const sourceOnlyLinenRows = useMemo(() => rows.filter(row => row.sourceOnlyValues['22.4'] !== '').length, [rows])
   const sourceOnlyMedicineRows = useMemo(() => rows.filter(row => row.sourceOnlyValues['22.5'] !== '').length, [rows])
+  const sourceOnlyDengueRows = useMemo(
+    () => rows.filter(row => ['22.9', '22.10', '22.11', '22.12'].some(code => String(row.sourceOnlyValues[code] ?? '').trim() !== '')).length,
+    [rows],
+  )
 
   const reset = () => {
     setFile(null)
@@ -497,10 +502,9 @@ export default function PediatricInpatientExcelImportDialog({
         const sourceLos = value('sourceLos')
         const receivingNurse = value('receivingNurse')
         const dpjp = value('dpjp')
-        const sourceOnlyValues: Record<string, string> = {
-          '22.4': value('22.4_source_only'),
-          '22.5': value('22.5_source_only'),
-        }
+        const sourceOnlyValues: Record<string, string> = Object.fromEntries(
+          PEDIATRIC_SOURCE_ONLY_FIELDS.map(item => [item.code, value(item.key)]),
+        )
         const rowIssues: string[] = []
         const rowWarnings: string[] = []
 
@@ -782,6 +786,7 @@ export default function PediatricInpatientExcelImportDialog({
           <div style={{ marginTop: 6 }}><strong>Episode ongoing:</strong> {findings.openEpisodes} episode tanpa Tanggal Keluar dipertahankan; Diagnosis dan Status Pulang tetap null, tidak diisi asumsi.</div>
           <div style={{ marginTop: 6 }}><strong>Kekosongan Linen:</strong> {sourceOnlyLinenRows} baris disimpan sebagai sumber asli; tidak dipaksakan ke master 22.4 karena pilihan sumber berbeda dari master aktif.</div>
           <div style={{ marginTop: 6 }}><strong>Kekosongan Obat:</strong> {sourceOnlyMedicineRows} baris berisi teks bebas nama obat; tidak dikonversi ke master 22.5.</div>
+          <div style={{ marginTop: 6 }}><strong>Kolom Dengue (22.9–22.12):</strong> {sourceOnlyDengueRows} episode memiliki nilai sumber yang disimpan untuk review. Profilnya masih draf; nilai tidak dipetakan ke capaian dan tidak dihitung sampai definisi klinis disahkan.</div>
           <div style={{ marginTop: 6 }}>Ada {unmatchedAnswers} respons pada enam indikator formal yang label sumbernya tidak cocok secara unik dengan pilihan Profil; nilai asli tetap disimpan dan respons ditandai untuk review.</div>
           <div style={{ marginTop: 6 }}>Kolom Assessment Stunting Wasting2 kosong pada {findings.missingStuntingAnswers} episode. Sel kosong tidak diubah menjadi nol atau ketidakpatuhan.</div>
           <div style={{ marginTop: 6 }}>No. RM dan kombinasi episode berulang tidak digabung atau dihapus otomatis; setiap baris fisik Excel tetap memiliki identitas impor sendiri.</div>

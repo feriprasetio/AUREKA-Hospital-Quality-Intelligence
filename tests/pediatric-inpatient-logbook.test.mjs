@@ -22,7 +22,7 @@ const pending = (code, label) => ({
   review_required: true,
 })
 
-test('maps the actual Rawat Inap Anak Logbook headers to six indicator fields and two source-only fields', () => {
+test('maps the actual Rawat Inap Anak Logbook headers to six indicator fields and six source-only fields', () => {
   const headers = [
     'No.', 'Nama Pasien', 'No. Rekam Medis', 'Tanggal Masuk', 'Tanggal Keluar',
     'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Berat Badan', 'Tinggi Badan',
@@ -30,6 +30,10 @@ test('maps the actual Rawat Inap Anak Logbook headers to six indicator fields an
     'Visite Spesialis', 'Validitas Asesmen Keperawatan', 'Transfer IGD',
     'Infus Vena Perifer', 'Ketenangan Pasien', 'Kekosongan Linen', 'Kekosongan Obat',
     'Assessment Stunting Wasting2',
+    'Demam 2–7H + Trombositopenia + ↑Ht',
+    'DR ≥1×/Hari',
+    'Kristaloid ≥500 cc/8J',
+    'Tidak DSS',
   ]
   const result = mapPediatricLogbookHeaders(headers)
   assert.deepEqual(result.missingHeaders, [])
@@ -41,11 +45,17 @@ test('maps the actual Rawat Inap Anak Logbook headers to six indicator fields an
   assert.equal(result.indexes.dpjp, 15)
   assert.equal(result.indexes['22.4_source_only'], 21)
   assert.equal(result.indexes['22.5_source_only'], 22)
+  assert.equal(result.indexes['22.9_source_only'], 24)
+  assert.equal(result.indexes['22.10_source_only'], 25)
+  assert.equal(result.indexes['22.11_source_only'], 26)
+  assert.equal(result.indexes['22.12_source_only'], 27)
   assert.deepEqual(
     PEDIATRIC_SOURCE_INDICATORS.map(item => [item.code, result.indexes['indicator:' + item.code]]),
     [['22.7', 16], ['22.8', 17], ['22.6', 18], ['22.3', 19], ['22.2', 20], ['22.1', 23]],
   )
-  assert.equal(PEDIATRIC_SOURCE_ONLY_FIELDS.length, 2)
+  assert.equal(PEDIATRIC_SOURCE_ONLY_FIELDS.length, 6)
+  assert.deepEqual(PEDIATRIC_SOURCE_ONLY_FIELDS.slice(2).map(item => item.code), ['22.9', '22.10', '22.11', '22.12'])
+  assert.ok(PEDIATRIC_SOURCE_ONLY_FIELDS.slice(2).every(item => item.mappingStatus === 'clinical_definition_pending_source_only'))
 })
 
 test('reports missing and duplicated source headers precisely', () => {
@@ -55,6 +65,7 @@ test('reports missing and duplicated source headers precisely', () => {
     'Tanggal Lahir', 'Umur (Rumus)', 'Lenght of Stay', 'Perawat Penerima', 'DPJP',
     'Visite Spesialis', 'Validitas Asesmen Keperawatan', 'Transfer IGD',
     'Infus Vena Perifer', 'Ketenangan Pasien', 'Kekosongan Linen', 'Kekosongan Obat',
+    'Demam 2–7H + Trombositopenia + ↑Ht', 'DR ≥1×/Hari', 'Kristaloid ≥500 cc/8J', 'Tidak DSS',
   ]
   const missing = mapPediatricLogbookHeaders(headers)
   assert.deepEqual(missing.missingHeaders, ['Assessment Stunting Wasting2'])
@@ -197,12 +208,16 @@ test('flags conflicting source codes and duplicate master labels without guessin
   assert.equal(ambiguous?.code, null)
 })
 
-test('keeps free-text drug and distinct linen source fields outside formal indicator mapping', () => {
+test('keeps linen, free-text drug, and unsigned Dengue source fields outside formal indicator mapping', () => {
   assert.deepEqual(
     PEDIATRIC_SOURCE_ONLY_FIELDS.map(item => [item.code, item.header, item.mappingStatus]),
     [
       ['22.4', 'Kekosongan Linen', 'source_semantics_not_mapped'],
       ['22.5', 'Kekosongan Obat', 'free_text_source_not_mapped'],
+      ['22.9', 'Demam 2–7H + Trombositopenia + ↑Ht', 'clinical_definition_pending_source_only'],
+      ['22.10', 'DR ≥1×/Hari', 'clinical_definition_pending_source_only'],
+      ['22.11', 'Kristaloid ≥500 cc/8J', 'clinical_definition_pending_source_only'],
+      ['22.12', 'Tidak DSS', 'clinical_definition_pending_source_only'],
     ],
   )
 })
