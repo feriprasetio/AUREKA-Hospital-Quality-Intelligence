@@ -47,7 +47,7 @@ test('production Pages preserves the release root and mounts main under the isol
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_URL/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY/)
   assert.match(production, /AUREKA_BUILD_TARGET: production/)
-  assert.match(production, /node scripts\\/validate-supabase-build-env\\.mjs/)
+  assert.ok(production.includes('node scripts/validate-supabase-build-env.mjs'))
 
   const productionValidation = production.indexOf('Validate production Supabase configuration')
   const productionBuild = production.indexOf('Build unchanged production root')
@@ -63,7 +63,7 @@ test('production Pages preserves the release root and mounts main under the isol
   assert.doesNotMatch(productionBlock, /AUREKA_STAGING_SUPABASE_URL|AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY/)
   assert.match(stagingBlock, /AUREKA_STAGING_SUPABASE_URL/)
   assert.match(stagingBlock, /AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY/)
-  assert.match(stagingBlock, /AUREKA_BASE_PATH: \\/AUREKA-Hospital-Quality-Intelligence\\/staging/)
+  assert.ok(stagingBlock.includes('AUREKA_BASE_PATH: /AUREKA-Hospital-Quality-Intelligence/staging'))
 })
 
 test('production deployment blocks moderate, high, and critical dependency findings', () => {
