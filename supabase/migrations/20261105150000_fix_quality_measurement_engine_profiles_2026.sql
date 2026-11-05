@@ -142,10 +142,10 @@ BEGIN
       INTO v_options
       FROM jsonb_array_elements(v_options) WITH ORDINALITY AS x(opt,ord);
 
-      IF (SELECT count(*) FROM jsonb_array_elements(v_options) e
-           WHERE e->>'code'='1') <> 1
-         OR (SELECT count(*) FROM jsonb_array_elements(v_options) e
-              WHERE e->>'code'='3') <> 2 THEN
+      IF (SELECT count(*) FROM jsonb_array_elements(v_options) AS opt(item)
+           WHERE item->>'code'='1') <> 1
+         OR (SELECT count(*) FROM jsonb_array_elements(v_options) AS opt(item)
+              WHERE item->>'code'='3') <> 2 THEN
         RAISE EXCEPTION 'Pemetaan ulang opsi visite % tidak menghasilkan kode sukses dan gagal yang unik.',v_old.code;
       END IF;
       v_schema := v_schema || jsonb_build_object(
