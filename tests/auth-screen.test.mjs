@@ -57,6 +57,19 @@ test('forgot-password, recovery and reset-success states remain present', () => 
   assert.match(homeClient, /Cek email Anda/)
 })
 
+test('login shell avoids duplicate branding and keeps the return link in document flow', () => {
+  assert.doesNotMatch(authScreen, /authAsideBrand/)
+  assert.match(authStyles, /\.authPage\.authProfessional \.authBack\s*\{[\s\S]*?position: static !important/)
+  assert.match(authStyles, /\.authPage\.authProfessional \.authTopbar\s*\{[\s\S]*?1080px/)
+  assert.match(authStyles, /\.authPage\.authProfessional \.authShell\s*\{[\s\S]*?1080px/)
+})
+
+test('browser autofill retains AUREKA neutral input styling', () => {
+  assert.match(authStyles, /input:-webkit-autofill/)
+  assert.match(authStyles, /-webkit-text-fill-color: #1d3327/)
+  assert.match(authStyles, /0 0 0 1000px #fbfdfb inset/)
+})
+
 test('professional auth styles provide responsive layouts and visible keyboard focus', () => {
   assert.match(authStyles, /\.authPage\.authProfessional \.authShell/)
   assert.match(authStyles, /@media \(max-width: 780px\)/)
