@@ -128,6 +128,24 @@ test('maps Linen and Medicine source aliases to existing classified masters', ()
   assert.equal(medicineAnswer?.mappingStatus, 'mapped_existing_master')
 })
 
+test('maps medicine free text and empty medicine cells to code 3 and code 1 respectively', () => {
+  const options = [
+    { code: 1, label: 'Tidak terjadi kekosongan obat', numerator: false, denominator: true, review_required: false },
+    { code: 3, label: 'Terjadi kekosongan obat', numerator: true, denominator: true, review_required: false },
+  ]
+  const shortage = parseInternalMedicineSourceAnswer('Ceftriaxone 1 g', options, '25.10')
+  assert.equal(shortage?.code, 3)
+  assert.equal(shortage?.numerator, true)
+  assert.equal(shortage?.denominator, true)
+  assert.equal(shortage?.freeText, 'Ceftriaxone 1 g')
+  assert.equal(shortage?.reviewRequired, false)
+
+  const noShortage = parseInternalMedicineSourceAnswer('', options, '25.10')
+  assert.equal(noShortage?.code, 1)
+  assert.equal(noShortage?.numerator, false)
+  assert.equal(noShortage?.freeText, '')
+  assert.equal(noShortage?.reviewRequired, false)
+})
 test('does not silently map labels absent from Profil or conflicting numeric suffixes', () => {
   const nursing = [pending(1, 'Seluruh Data Pasien Baru Akurat')]
   const sourceCode55 = parseInternalMedicineSourceAnswer('Seluruh Data Pasien Baru Akurat (Code 55)', nursing, '25.18')
