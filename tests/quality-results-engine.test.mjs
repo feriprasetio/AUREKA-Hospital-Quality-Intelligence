@@ -92,6 +92,94 @@ test('option results use the published numerator mapping, not the option code al
   assert.equal(result.observations, 2)
 })
 
+test('positive option indicators count code 1 as the numerator regardless of legacy option flags', () => {
+  const profile = {
+    id: 'p-positive',
+    room_id: 4,
+    code: '4.4',
+    title: 'Ketepatan Verifikasi Operasi',
+    measurement_grain: 'patient_episode',
+    schema_json: { indicator_direction: 'positive' },
+    options_json: [
+      { code: 1, label: 'Tepat', numerator: false, denominator: false },
+      { code: 2, label: 'Pengecualian', numerator: true, denominator: false },
+      { code: 3, label: 'Tidak Tepat', numerator: true, denominator: false },
+    ],
+    target_text: '≥ 50%',
+    target_operator: '>=',
+    target_value: 50,
+  }
+  const rows = [1, 1, 2, 3].map((code, index) => ({
+    record_date: '2026-01-0' + (index + 1),
+    status: 'validated',
+    core_data: { indicator_values: { '4.4': { answer: code === 1 ? 'Tepat' : code === 2 ? 'Pengecualian' : 'Tidak Tepat', code } } },
+  }))
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.annualNumerator, 2)
+  assert.equal(result.annualDenominator, 4)
+  assert.equal(result.annualRate, 50)
+  assert.equal(result.targetMet, true)
+})
+
+test('negative option indicators count codes 2 and 3 as events against all classified responses', () => {
+  const profile = {
+    id: 'p-negative',
+    room_id: 33,
+    code: '33.2',
+    title: 'Kejadian Ruptur Perineum Tingkat III dan IV',
+    measurement_grain: 'patient_episode',
+    schema_json: { indicator_direction: 'negative' },
+    options_json: [
+      { code: 1, label: 'Aman', numerator: true, denominator: true },
+      { code: 2, label: 'Ruptur faktor ibu', numerator: false, denominator: true },
+      { code: 3, label: 'Ruptur faktor teknis', numerator: false, denominator: true },
+    ],
+    target_text: '≤ 5%',
+    target_operator: '<=',
+    target_value: 5,
+  }
+  const codes = [1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  const rows = codes.map((code, index) => ({
+    record_date: '2026-01-' + String(index + 1).padStart(2, '0'),
+    status: 'validated',
+    core_data: { indicator_values: { '33.2': { answer: code === 1 ? 'Aman' : code === 2 ? 'Ruptur faktor ibu' : 'Ruptur faktor teknis', code } } },
+  }))
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.annualNumerator, 2)
+  assert.equal(result.annualDenominator, 20)
+  assert.equal(result.annualRate, 10)
+  assert.equal(result.targetMet, false)
+})
+
+test('negative zero-event indicators reach a 0% target when every response is code 1', () => {
+  const profile = {
+    id: 'p-falls',
+    room_id: 12,
+    code: '12.3',
+    title: 'Kejadian Jatuh Saat Program Rehab Medik',
+    measurement_grain: 'patient_episode',
+    schema_json: { indicator_direction: 'negative' },
+    options_json: [
+      { code: 1, label: 'Tidak Ada Kejadian Jatuh', numerator: true, denominator: true },
+      { code: 2, label: 'Jatuh karena kondisi medis mendadak', numerator: false, denominator: true },
+      { code: 3, label: 'Jatuh terkait faktor teknis', numerator: false, denominator: true },
+    ],
+    target_text: '0%',
+    target_operator: '=',
+    target_value: 0,
+  }
+  const rows = [1, 1, 1].map((code, index) => ({
+    record_date: '2026-02-0' + (index + 1),
+    status: 'validated',
+    core_data: { indicator_values: { '12.3': { answer: 'Tidak Ada Kejadian Jatuh', code } } },
+  }))
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.annualNumerator, 0)
+  assert.equal(result.annualDenominator, 3)
+  assert.equal(result.annualRate, 0)
+  assert.equal(result.targetMet, true)
+})
+
 function cpRow(status, admissionDate, dayOne, dayTwo) {
   return {
     status,
