@@ -241,7 +241,7 @@ test('directional indicators exclude explicitly ineligible responses from the de
     schema_json: { indicator_direction: 'positive' },
     options_json: [
       { code: 1, label: 'IMD dilakukan', numerator: null, denominator: true, review_required: true },
-      { code: 2, label: 'Ibu tidak stabil', numerator: null, denominator: false, review_required: true },
+      { code: 2, label: 'Ibu tidak stabil', numerator: null, denominator: true, eligible: false, review_required: true },
       { code: 3, label: 'Petugas tidak melakukan IMD', numerator: null, denominator: true, review_required: true },
     ],
   }
