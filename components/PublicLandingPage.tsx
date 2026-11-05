@@ -553,7 +553,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
             </details>
             <details>
               <summary>Bagaimana cara memperoleh akun?</summary>
-              <p>Pada form login, pilih tautan “Daftar akun unit”. Aktivasi dan pemberian kewenangan tetap mengikuti proses administrasi Komite PMKP atau pengelola yang berwenang.</p>
+              <p>Gunakan tautan pendaftaran yang tersedia pada form autentikasi. Aktivasi dan pemberian kewenangan tetap mengikuti proses administrasi Komite PMKP atau pengelola yang berwenang.</p>
             </details>
             <details>
               <summary>Apakah seluruh fitur sudah tersedia?</summary>
