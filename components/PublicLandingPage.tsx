@@ -189,7 +189,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
         <div className="a2-container a2-header-inner">
           <a className="a2-brand" href="#top" aria-label="AUREKA — kembali ke awal halaman">
             <span className="a2-brand-mark">
-              <img src={logoSrc} alt="Logo UPT RSUD Sultan Syarif Mohamad Alkadrie" />
+              <img src={logoSrc} alt="Logo AUREKA Hospital Quality Intelligence" />
             </span>
             <span className="a2-brand-copy">
               <strong>AUREKA</strong>
