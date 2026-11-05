@@ -570,7 +570,7 @@ export default function HomeClient(){
        </div>
        <div className="field">
         <label htmlFor="username">Username</label>
-        <input id="username" autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={e=>setUsername(e.target.value.toLowerCase().replace(/\\s+/g,'.'))} placeholder="contoh: pic.isolasi"/>
+        <input id="username" autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={e=>setUsername(e.target.value.toLowerCase().replace(/\s+/g,'.'))} placeholder="contoh: pic.isolasi"/>
         <small className="fieldHint">Huruf kecil, angka, titik, garis bawah, atau strip.</small>
        </div>
       </>}
