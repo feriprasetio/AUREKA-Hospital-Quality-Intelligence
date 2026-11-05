@@ -180,18 +180,17 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       created_by: userResult.user.id,
       updated_by: userResult.user.id,
     }
-    const { error: insertError } = await q().from('indicator_profiles').insert(next)
-    if (insertError) {
-      setMsg('Versi baru gagal dipublikasikan: ' + insertError.message)
+    const { data: publishedId, error: publishError } = await q().rpc('publish_indicator_profile_version', {
+      p_prior_id: priorId,
+      p_profile: next,
+    })
+    if (publishError || !publishedId) {
+      setMsg('Versi baru gagal dipublikasikan: ' + (publishError?.message || 'Server tidak mengembalikan identitas versi baru.'))
       setSaving(false)
       return
     }
-    const { error: retireError } = await q().from('indicator_profiles')
-      .update({ status: 'retired', is_active: false, updated_by: userResult.user.id })
-      .eq('id', priorId)
     setEdit(null)
-    if (retireError) setMsg('Versi baru berhasil dibuat, tetapi versi sebelumnya belum berhasil dipensiunkan: ' + retireError.message)
-    else setMsg('Versi baru dipublikasikan. Versi sebelumnya tetap tersimpan sebagai riwayat.')
+    setMsg('Versi baru dipublikasikan secara atomik. Versi sebelumnya tetap tersimpan sebagai riwayat.')
     await load()
     setSaving(false)
   }
