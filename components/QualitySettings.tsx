@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
@@ -46,6 +46,29 @@ const editModel = (profile: Model): Model => ({
   _options_text: JSON.stringify(profile.options_json || [], null, 2),
 })
 
+type ProfileViewFilter = 'active' | 'needs_review' | 'complete' | 'draft' | 'retired' | 'all'
+
+const metadataReviewReasons = (profile: Model): string[] => {
+  const schema = profile.schema_json && typeof profile.schema_json === 'object' ? profile.schema_json : {}
+  const hasTargetValue = profile.target_value !== null
+    && profile.target_value !== undefined
+    && String(profile.target_value).trim() !== ''
+  const hasTargetText = String(profile.target_text ?? '').trim().length > 0
+  const targetPending = String(schema.target_review_required ?? '').toLowerCase() === 'true'
+  const reasons: string[] = []
+
+  if (!['positive', 'negative'].includes(String(schema.indicator_direction ?? ''))) reasons.push('arah indikator')
+  if (targetPending || (!hasTargetValue && !hasTargetText)) reasons.push('target')
+  if (!String(profile.unit_of_measure ?? '').trim()) reasons.push('satuan')
+  if (!String(profile.numerator_definition ?? '').trim()) reasons.push('definisi numerator')
+  if (!String(profile.denominator_definition ?? '').trim()) reasons.push('definisi denominator')
+
+  return reasons
+}
+
+const needsMetadataReview = (profile: Model): boolean => metadataReviewReasons(profile).length > 0
+const isActivePublished = (profile: Model): boolean => profile.is_active === true && profile.status === 'published'
+
 const payloadFrom = (model: Model): Model => {
   const {
     id, created_at, updated_at, created_by, updated_by,
@@ -77,6 +100,8 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
+  const [profileViewFilter, setProfileViewFilter] = useState<ProfileViewFilter>('active')
+  const editorRef = useRef<HTMLDivElement | null>(null)
   const [msg, setMsg] = useState('')
   useEffect(() => {
     if (!msg || typeof window === 'undefined') return
@@ -86,25 +111,39 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const editorOpen = Boolean(edit || newOne)
+  useEffect(() => {
+    if (!editorOpen) return
+    const frame = window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [editorOpen])
+
   const load = useCallback(async () => {
     setLoading(true)
-    let query = q().from('indicator_profiles').select('*')
-      .eq('profile_year', year)
-      .order('indicator_type', { ascending: true })
-      .order('code', { ascending: true })
-    if (room) query = query.eq('room_id', Number(room))
-    const { data, error } = await query
-    if (error) setMsg('Gagal memuat kamus indikator: ' + toUserFacingError(error, { fallback: 'Kamus indikator belum dapat dimuat.' }))
-    else setProfiles((data || []) as Model[])
+    try {
+      let query = q().from('indicator_profiles').select('*')
+        .eq('profile_year', year)
+        .order('indicator_type', { ascending: true })
+        .order('code', { ascending: true })
+      if (room) query = query.eq('room_id', Number(room))
+      const { data, error } = await query
+      if (error) throw error
+      setProfiles((data || []) as Model[])
 
-    const { data: reviewData, error: reviewError } = await q()
-      .from('quality_record_responses')
-      .select('id,record_id,indicator_id,response_label,other_text,classification_note,created_at')
-      .eq('review_status', 'pending')
-      .order('created_at', { ascending: false })
-    if (reviewError) setMsg((previous) => previous || ('Gagal memuat daftar klasifikasi: ' + reviewError.message))
-    else setPending((reviewData || []) as Model[])
-    setLoading(false)
+      const { data: reviewData, error: reviewError } = await q()
+        .from('quality_record_responses')
+        .select('id,record_id,indicator_id,response_label,other_text,classification_note,created_at')
+        .eq('review_status', 'pending')
+        .order('created_at', { ascending: false })
+      if (reviewError) setMsg((previous) => previous || ('Gagal memuat daftar klasifikasi: ' + reviewError.message))
+      else setPending((reviewData || []) as Model[])
+    } catch (error) {
+      setMsg('Gagal memuat kamus indikator: ' + toUserFacingError(error, { fallback: 'Kamus indikator belum dapat dimuat.' }))
+    } finally {
+      setLoading(false)
+    }
   }, [year, room])
 
   useEffect(() => { void load() }, [load])
@@ -128,18 +167,30 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
     }
   }), [programs, profiles])
 
+  const activeProfileCount = useMemo(() => profiles.filter(isActivePublished).length, [profiles])
+  const activeReviewCount = useMemo(
+    () => profiles.filter((profile) => isActivePublished(profile) && needsMetadataReview(profile)).length,
+    [profiles],
+  )
+
   const filteredProfiles = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase('id')
     return profiles.filter((profile) => {
+      const active = isActivePublished(profile)
+      if (profileViewFilter === 'active' && !active) return false
+      if (profileViewFilter === 'needs_review' && (!active || !needsMetadataReview(profile))) return false
+      if (profileViewFilter === 'complete' && (!active || needsMetadataReview(profile))) return false
+      if (profileViewFilter === 'draft' && profile.status !== 'draft') return false
+      if (profileViewFilter === 'retired' && profile.status !== 'retired' && profile.is_active !== false) return false
       if (programFilter && String(profile.indicator_type || '') !== programFilter) return false
       if (!normalized) return true
       return [profile.code, profile.title, profile.indicator_type, profile.category, profile.unit_name]
         .some((value) => String(value || '').toLocaleLowerCase('id').includes(normalized))
     })
-  }, [profiles, search, programFilter])
+  }, [profiles, search, programFilter, profileViewFilter])
 
   const openNew = (programName = '') => {
-    const selectedRoom = rooms.find((item) => String(item.id) === room) || rooms[0]
+    const selectedRoom = rooms.find((item) => String(item.id) === room)
     setEdit(null)
     setMsg('')
     setNewOne(empty(selectedRoom, year, programName))
@@ -153,6 +204,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       setMsg('Kode, nama indikator, dan unit pemilik wajib diisi.')
       return
     }
+
     let payload: Model
     try {
       payload = payloadFrom(edit)
@@ -164,35 +216,36 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
       return
     }
+
     setSaving(true)
-    const { data: userResult } = await sb.auth.getUser()
-    if (!userResult.user) {
-      setMsg('Sesi login tidak ditemukan. Silakan login ulang.')
+    try {
+      const { data: userResult, error: userError } = await sb.auth.getUser()
+      if (userError) throw userError
+      if (!userResult.user) throw new Error('Sesi login tidak ditemukan. Silakan login ulang.')
+
+      const next = {
+        ...payload,
+        version: Number(edit.version || 1) + 1,
+        status: 'published',
+        is_active: true,
+        created_by: userResult.user.id,
+        updated_by: userResult.user.id,
+      }
+      const { data: publishedId, error: publishError } = await q().rpc('publish_indicator_profile_version', {
+        p_prior_id: edit.id,
+        p_profile: next,
+      })
+      if (publishError) throw publishError
+      if (!publishedId) throw new Error('Server tidak mengembalikan identitas versi baru.')
+
+      setEdit(null)
+      setMsg('Versi baru dipublikasikan secara atomik. Versi sebelumnya tetap tersimpan sebagai riwayat.')
+      await load()
+    } catch (error) {
+      setMsg('Versi baru gagal dipublikasikan: ' + toUserFacingError(error, { fallback: 'Periksa hak akses dan metadata indikator.' }))
+    } finally {
       setSaving(false)
-      return
     }
-    const priorId = edit.id
-    const next = {
-      ...payload,
-      version: Number(edit.version || 1) + 1,
-      status: 'published',
-      is_active: true,
-      created_by: userResult.user.id,
-      updated_by: userResult.user.id,
-    }
-    const { data: publishedId, error: publishError } = await q().rpc('publish_indicator_profile_version', {
-      p_prior_id: priorId,
-      p_profile: next,
-    })
-    if (publishError || !publishedId) {
-      setMsg('Versi baru gagal dipublikasikan: ' + (publishError?.message || 'Server tidak mengembalikan identitas versi baru.'))
-      setSaving(false)
-      return
-    }
-    setEdit(null)
-    setMsg('Versi baru dipublikasikan secara atomik. Versi sebelumnya tetap tersimpan sebagai riwayat.')
-    await load()
-    setSaving(false)
   }
 
   const add = async () => {
@@ -202,6 +255,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       setMsg('Kode, nama indikator, dan unit pemilik wajib diisi.')
       return
     }
+
     let payload: Model
     try {
       payload = payloadFrom(newOne)
@@ -213,43 +267,46 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
       return
     }
+
     setSaving(true)
-    const { data: duplicate, error: duplicateError } = await q().from('indicator_profiles')
-      .select('id').eq('profile_year', payload.profile_year).eq('room_id', payload.room_id)
-      .eq('code', String(payload.code).trim()).eq('is_active', true).limit(1)
-    if (duplicateError) {
-      setMsg('Pemeriksaan duplikasi gagal: ' + duplicateError.message)
-      setSaving(false)
-      return
-    }
-    if (duplicate?.length) {
-      setMsg('Kode indikator tersebut sudah aktif pada unit dan tahun yang sama. Gunakan Edit untuk menerbitkan versi baru.')
-      setSaving(false)
-      return
-    }
-    const { data: userResult } = await sb.auth.getUser()
-    if (!userResult.user) {
-      setMsg('Sesi login tidak ditemukan. Silakan login ulang.')
-      setSaving(false)
-      return
-    }
-    const { error } = await q().from('indicator_profiles').insert({
-      ...payload,
-      code: String(payload.code).trim(),
-      title: String(payload.title).trim(),
-      version: 1,
-      status: 'published',
-      is_active: true,
-      created_by: userResult.user.id,
-      updated_by: userResult.user.id,
-    })
-    if (error) setMsg('Indikator gagal ditambahkan: ' + toUserFacingError(error, { fallback: 'Indikator belum dapat ditambahkan.' }))
-    else {
+    try {
+      const { data: duplicate, error: duplicateError } = await q().from('indicator_profiles')
+        .select('id')
+        .eq('profile_year', payload.profile_year)
+        .eq('room_id', payload.room_id)
+        .eq('code', String(payload.code).trim())
+        .eq('is_active', true)
+        .limit(1)
+      if (duplicateError) throw duplicateError
+      if (duplicate?.length) {
+        setMsg('Kode indikator tersebut sudah aktif pada unit dan tahun yang sama. Gunakan Edit untuk menerbitkan versi baru.')
+        return
+      }
+
+      const { data: userResult, error: userError } = await sb.auth.getUser()
+      if (userError) throw userError
+      if (!userResult.user) throw new Error('Sesi login tidak ditemukan. Silakan login ulang.')
+
+      const { error } = await q().from('indicator_profiles').insert({
+        ...payload,
+        code: String(payload.code).trim(),
+        title: String(payload.title).trim(),
+        version: 1,
+        status: 'published',
+        is_active: true,
+        created_by: userResult.user.id,
+        updated_by: userResult.user.id,
+      })
+      if (error) throw error
+
       setNewOne(null)
       setMsg('Indikator berhasil ditambahkan ke kamus.')
+      await load()
+    } catch (error) {
+      setMsg('Indikator gagal ditambahkan: ' + toUserFacingError(error, { fallback: 'Periksa hak akses dan kelengkapan metadata.' }))
+    } finally {
+      setSaving(false)
     }
-    await load()
-    setSaving(false)
   }
 
   const retire = async (profile: Model) => {
@@ -320,7 +377,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(null); setNewOne(null) }}>Batal</button>
-        <LiquidGlassButton onClick={onSave}>{saving ? 'Menyimpan…' : model.id ? 'Terbitkan versi baru' : 'Tambah indikator'}</LiquidGlassButton>
+        <LiquidGlassButton onClick={onSave} disabled={saving}>{saving ? 'Menyimpan…' : model.id ? 'Terbitkan versi baru' : 'Tambah indikator'}</LiquidGlassButton>
       </div>
       <div style={{ marginTop: 7, fontSize: 10, color: 'var(--muted)' }}>
         Perubahan pada indikator yang sudah terbit dibuat sebagai versi baru. Opsi JSON harus berupa array dan struktur instrumen harus berupa objek.
@@ -351,14 +408,14 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Tahun metadata</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
           <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}><option value="">Semua unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <div style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${profiles.length.toLocaleString('id-ID')} profil indikator pada filter ini`}</div>
+          <div style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
         {tab === 'programs' && (
           <div style={{ marginTop: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.5 }}>Nama program kerja mengikuti klasifikasi <code>Program kerja / jenis indikator</code>. Pilih satu program untuk meninjau dan mengelola seluruh indikator di dalamnya.</div>
-              <LiquidGlassButton onClick={() => openNew()}>+ Tambah indikator / program</LiquidGlassButton>
+              <LiquidGlassButton onClick={() => openNew()} disabled={saving}>+ Tambah indikator / program</LiquidGlassButton>
             </div>
             {programStats.length === 0 ? (
               <div style={{ border: '1px dashed rgba(20,34,27,.18)', borderRadius: 15, padding: 18, color: 'var(--muted)', fontSize: 11 }}>Belum ada profil indikator pada tahun dan unit terpilih. Tambahkan indikator untuk mulai membentuk kamus program kerja.</div>
@@ -383,13 +440,34 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
           <div style={{ marginTop: 12 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <input className="qualitySettingsLocalSearch" aria-label="Cari kode, nama indikator, program, kategori, atau unit" placeholder="Cari kode, indikator, program, kategori, unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '1 1 240px', minWidth: 180 }} />
+              <select
+                aria-label="Filter kelengkapan dan status indikator"
+                value={profileViewFilter}
+                onChange={(e) => setProfileViewFilter(e.target.value as ProfileViewFilter)}
+              >
+                <option value="active">Indikator aktif ({activeProfileCount})</option>
+                <option value="needs_review">Perlu perbaikan / dilengkapi — merah ({activeReviewCount})</option>
+                <option value="complete">Metadata lengkap</option>
+                <option value="draft">Draf</option>
+                <option value="retired">Riwayat versi (retired)</option>
+                <option value="all">Semua versi</option>
+              </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
-              <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter('') }}>Reset filter</button>
-              <LiquidGlassButton onClick={() => openNew(programFilter)}>+ Tambah indikator</LiquidGlassButton>
+              <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
+              <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
+            {(edit || newOne) && (
+              <div ref={editorRef} style={{ scrollMarginTop: 18 }}>
+                {edit
+                  ? editor(edit, setEdit, () => void publish())
+                  : newOne
+                    ? editor(newOne, setNewOne, () => void add())
+                    : null}
+              </div>
+            )}
             <div style={{ display: 'grid', gap: 7 }}>
               {filteredProfiles.map((profile) => (
-                <div key={profile.id} style={{ padding: 11, border: (!profile.schema_json?.indicator_direction || (profile.target_value == null && !String(profile.target_text || '').trim()) || !String(profile.numerator_definition || '').trim() || !String(profile.denominator_definition || '').trim()) ? '1px solid rgba(184,52,52,.48)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
+                <div key={profile.id} style={{ padding: 11, border: needsMetadataReview(profile) ? '1px solid rgba(184,52,52,.48)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
                   <div style={{ minWidth: 0, flex: '1 1 260px' }}>
                     <div style={{ fontSize: 11, fontWeight: 850, overflowWrap: 'anywhere' }}>{profile.code} · {profile.title || '(Tanpa nama)'}</div>
                     <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7, marginTop: 4, overflowWrap: 'anywhere' }}>
@@ -401,11 +479,12 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
                     <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7 }}>
                       Arah capaian: {profile.schema_json?.indicator_direction === 'positive' ? 'Positif' : profile.schema_json?.indicator_direction === 'negative' ? 'Negatif' : 'Belum ditetapkan'}
                     </div>
-                    {(!profile.schema_json?.indicator_direction || (profile.target_value == null && !String(profile.target_text || '').trim()) || !String(profile.numerator_definition || '').trim() || !String(profile.denominator_definition || '').trim()) && <div style={{ marginTop: 5, color: '#a83232', fontSize: 10, fontWeight: 750 }}>Perlu perbaikan metadata — arah, target, atau definisi N/D belum lengkap.</div>}
+                    {needsMetadataReview(profile) && <div style={{ marginTop: 5, color: '#a83232', fontSize: 10, fontWeight: 750 }}>Perlu perbaikan / dilengkapi: {metadataReviewReasons(profile).join(', ')}.</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {(profile.status === 'draft' || (profile.is_active && profile.status === 'published')) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit versi'}</button>}
-                    {profile.is_active && profile.status === 'published' && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
+                    {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
+                    {isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
+                    {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 9, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
                   </div>
                 </div>
               ))}
@@ -431,8 +510,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
           </div>
         )}
 
-        {edit && editor(edit, setEdit, () => void publish())}
-        {newOne && editor(newOne, setNewOne, () => void add())}
+
       </LiquidGlass>
     </div>
   )
