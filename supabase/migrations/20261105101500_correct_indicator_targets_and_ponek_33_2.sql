@@ -1,5 +1,5 @@
 -- Correct approved 2026 indicator targets and formalize indicator direction.
--- Published profiles are versioned: insert v(n+1), then retire v(n). No historical row is overwritten.
+-- Published profiles are versioned transactionally: retire the prior profile, then insert v(n+1). No history is overwritten.
 
 DO $migration$
 DECLARE
