@@ -129,8 +129,9 @@ function findOption(profile: IndicatorProfileForResults, response: Record<string
   if (!options.length) return null
   const answer = String(response.answer ?? '').trim()
   if (answer) {
-    const exact = options.find((option) => String(option.label ?? '').trim() === answer)
-    if (exact) return exact
+    const exact = options.filter((option) => String(option.label ?? '').trim() === answer)
+    if (exact.length === 1) return exact[0]
+    if (exact.length > 1) return null
   }
   const code = finiteNumber(response.code)
   if (code == null) return null
@@ -190,22 +191,52 @@ function extractObservation(
 
   const option = findOption(profile, response)
   if (option) {
-    // Never include unresolved source mappings in N/D. Exact PONEK options are
-    // marked "mapped" by the importer once their source label/code match the master.
     const mappingStatus = String(response.mapping_status ?? '').trim()
-    if (response.review_required === true || (mappingStatus && mappingStatus !== 'mapped')) return null
-
     const direction = indicatorDirection(profile)
+
+    // When a profile has an approved 1/2/3 direction, an exact option-label + code
+    // match is sufficient to apply the universal code semantics. This resolves old
+    // logbook rows that were marked "mapped_pending_classification" only because the
+    // master had no legacy numerator boolean. True source conflicts and unmatched /
+    // ambiguous labels remain excluded.
+    const answer = String(response.answer ?? '').trim()
+    const exactMatches = answer
+      ? (Array.isArray(profile.options_json) ? profile.options_json : []).filter(
+          (item) => String(item.label ?? '').trim() === answer,
+        )
+      : []
+    const responseCode = finiteNumber(response.code)
+    const optionCode = finiteNumber(option.code)
+    const sourceCode = finiteNumber(response.source_code)
+    const exactDirectionalMatch =
+      direction != null &&
+      exactMatches.length === 1 &&
+      optionCode != null &&
+      [1, 2, 3].includes(optionCode) &&
+      responseCode === optionCode &&
+      (sourceCode == null || sourceCode === optionCode) &&
+      !['source_code_conflict', 'ambiguous_master', 'not_in_master'].includes(mappingStatus)
+
+    if (mappingStatus === 'source_code_conflict' ||
+        mappingStatus === 'ambiguous_master' ||
+        mappingStatus === 'not_in_master') return null
+
+    if (
+      (response.review_required === true || (mappingStatus && mappingStatus !== 'mapped')) &&
+      !exactDirectionalMatch
+    ) return null
+
     if (direction) {
       // Code 1 always represents the favorable response. For a negative indicator,
       // the metric numerator is the observed adverse response (codes 2 and 3).
       // For a positive indicator, the metric numerator is the favorable response (code 1).
-      const code = finiteNumber(option.code)
+      const code = optionCode
       if (code == null || ![1, 2, 3].includes(code)) return null
       const favorable = code === 1
       const metricNumerator = direction === 'negative' ? !favorable : favorable
       return { month, numerator: metricNumerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
     }
+
     // Backward compatibility for profiles that have not yet been assigned a direction.
     if (option.denominator === false || typeof option.numerator !== 'boolean') return null
     return { month, numerator: option.numerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
