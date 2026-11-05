@@ -43,8 +43,7 @@ BEGIN
     INTO v_old_version
     FROM aureka_quality.indicator_profiles
    WHERE id = p_prior_id
-     AND status = 'published'
-     AND is_active = true
+     AND status IN ('published', 'draft')
    FOR UPDATE;
 
   IF v_old_version IS NULL THEN
@@ -60,8 +59,7 @@ BEGIN
          is_active = false,
          updated_by = v_user_id
    WHERE id = p_prior_id
-     AND status = 'published'
-     AND is_active = true;
+     AND status IN ('published', 'draft');
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Versi aktif berubah selama publikasi; transaksi dibatalkan.' USING ERRCODE = '40001';
