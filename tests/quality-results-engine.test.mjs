@@ -242,7 +242,7 @@ test('negative event indicators honor the inclusive 1% threshold', () => {
   const makeRows = (wastedCount) => Array.from({ length: 100 }, (_, index) => {
     const code = index < wastedCount ? 3 : 1
     return {
-      record_date: '2026-03-' + String(index + 1).padStart(2, '0'),
+      record_date: new Date(Date.UTC(2026, 0, 1 + index)).toISOString().slice(0, 10),
       status: 'validated',
       core_data: { indicator_values: { '9.1': { answer: code === 1 ? 'Darah terpakai atau dikembalikan' : 'Darah terbuang karena faktor teknis', code } } },
     }
