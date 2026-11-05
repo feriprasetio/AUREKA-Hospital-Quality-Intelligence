@@ -223,6 +223,12 @@ function extractObservation(
       (sourceCode == null || sourceCode === optionCode) &&
       !['source_code_conflict', 'ambiguous_master', 'not_in_master'].includes(mappingStatus)
 
+    // If an answer label is present, it must uniquely match the master exactly.
+    // Never fall back to a numerically matching code after a conflicting label.
+    if (direction && answer && exactMatches.length !== 1) return null
+    if (direction && responseCode != null && responseCode !== optionCode) return null
+    if (direction && sourceCode != null && sourceCode !== optionCode) return null
+
     if (mappingStatus === 'source_code_conflict' ||
         mappingStatus === 'ambiguous_master' ||
         mappingStatus === 'not_in_master') return null
