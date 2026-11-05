@@ -521,10 +521,6 @@ export default function HomeClient(){
    </button>
    <div className="authShell">
     <aside className="authAside">
-     <div className="authAsideBrand">
-      {logo()}
-      <div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div>
-     </div>
      <span className="authAsideEyebrow">ALKADRIE · UNIFIKASI RISIKO, EVALUASI KUALITAS, DAN ASESMEN</span>
      <h2>{l?'Satu ruang kendali untuk mutu, keselamatan, dan risiko.':'Akun unit untuk proses pelayanan yang terukur.'}</h2>
      <p>{l?'Akses workspace AUREKA untuk mengelola indikator mutu, keselamatan pasien, manajemen risiko, dan asesmen sesuai peran serta unit kerja Anda.':'Daftarkan akun sebagai PIC unit. Data pendaftaran akan diverifikasi dan diaktifkan oleh Komite PMKP sebelum digunakan untuk mengelola data unit.'}</p>
