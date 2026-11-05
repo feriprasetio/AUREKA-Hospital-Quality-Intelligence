@@ -31,6 +31,7 @@ const empty = (room: Room | undefined, year: number, indicatorType = ''): Model 
   measurement_grain: 'activity',
   schema_json: {},
   options_json: [{ label: 'Lainnya — tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }],
+  _indicator_direction: '',
   _schema_text: '{}',
   _options_text: JSON.stringify([{ label: 'Lainnya — tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }], null, 2),
   version: 1,
@@ -40,6 +41,7 @@ const empty = (room: Room | undefined, year: number, indicatorType = ''): Model 
 
 const editModel = (profile: Model): Model => ({
   ...profile,
+  _indicator_direction: profile.schema_json?.indicator_direction || '',
   _schema_text: JSON.stringify(profile.schema_json || {}, null, 2),
   _options_text: JSON.stringify(profile.options_json || [], null, 2),
 })
@@ -47,10 +49,13 @@ const editModel = (profile: Model): Model => ({
 const payloadFrom = (model: Model): Model => {
   const {
     id, created_at, updated_at, created_by, updated_by,
-    _schema_text, _options_text, ...fields
+    _schema_text, _options_text, _indicator_direction, ...fields
   } = model
   const options = JSON.parse(String(_options_text ?? JSON.stringify(model.options_json || [])))
   const schema = JSON.parse(String(_schema_text ?? JSON.stringify(model.schema_json || {})))
+  const direction = String(_indicator_direction ?? '').trim()
+  if (direction === 'positive' || direction === 'negative') schema.indicator_direction = direction
+  else delete schema.indicator_direction
   return {
     ...fields,
     room_id: Number(fields.room_id),
@@ -308,6 +313,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
         <label className="field" style={fieldStyle}><span>Operator target</span><select value={model.target_operator || '>='} onChange={(e) => setModel({ ...model, target_operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value="=">=</option><option value=">">&gt;</option><option value="<">&lt;</option></select></label>
         <label className="field" style={fieldStyle}><span>Nilai target numerik</span><input type="number" value={model.target_value ?? ''} onChange={(e) => setModel({ ...model, target_value: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Measurement grain</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{grain}</option>)}</select></label>
+        <label className="field" style={fieldStyle}><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif — semakin tinggi semakin baik</option><option value="negative">Negatif — semakin rendah semakin baik</option></select></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi numerator</span><textarea value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi denominator</span><textarea value={model.denominator_definition || ''} onChange={(e) => setModel({ ...model, denominator_definition: e.target.value })} /></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Struktur instrumen (JSON object)</span><textarea style={{ minHeight: 95, fontFamily: 'ui-monospace,monospace', fontSize: 10 }} value={model._schema_text ?? '{}'} onChange={(e) => setModel({ ...model, _schema_text: e.target.value })} /></label>
@@ -384,7 +390,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
             </div>
             <div style={{ display: 'grid', gap: 7 }}>
               {filteredProfiles.map((profile) => (
-                <div key={profile.id} style={{ padding: 11, border: '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
+                <div key={profile.id} style={{ padding: 11, border: (!profile.schema_json?.indicator_direction || (profile.target_value == null && !String(profile.target_text || '').trim()) || !String(profile.numerator_definition || '').trim() || !String(profile.denominator_definition || '').trim()) ? '1px solid rgba(184,52,52,.48)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
                   <div style={{ minWidth: 0, flex: '1 1 260px' }}>
                     <div style={{ fontSize: 11, fontWeight: 850, overflowWrap: 'anywhere' }}>{profile.code} · {profile.title || '(Tanpa nama)'}</div>
                     <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7, marginTop: 4, overflowWrap: 'anywhere' }}>
@@ -393,6 +399,10 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
                     <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7 }}>
                       Target: {profile.target_text || '—'} · Satuan: {profile.unit_of_measure || '—'} · Grain: {profile.measurement_grain || '—'} · v{profile.version || 1} · {profile.status || '—'}
                     </div>
+                    <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7 }}>
+                      Arah capaian: {profile.schema_json?.indicator_direction === 'positive' ? 'Positif' : profile.schema_json?.indicator_direction === 'negative' ? 'Negatif' : 'Belum ditetapkan'}
+                    </div>
+                    {(!profile.schema_json?.indicator_direction || (profile.target_value == null && !String(profile.target_text || '').trim()) || !String(profile.numerator_definition || '').trim() || !String(profile.denominator_definition || '').trim()) && <div style={{ marginTop: 5, color: '#a83232', fontSize: 10, fontWeight: 750 }}>Perlu perbaikan metadata — arah, target, atau definisi N/D belum lengkap.</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {(profile.status === 'draft' || (profile.is_active && profile.status === 'published')) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit versi'}</button>}
