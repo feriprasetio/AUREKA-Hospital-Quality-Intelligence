@@ -146,10 +146,12 @@ const workSteps = [
 ]
 
 function SectionHeading({
+  id,
   eyebrow,
   title,
   description,
 }: {
+  id: string
   eyebrow: string
   title: string
   description: string
@@ -157,7 +159,7 @@ function SectionHeading({
   return (
     <div className="a2-section-heading">
       <span className="a2-eyebrow">{eyebrow}</span>
-      <h2>{title}</h2>
+      <h2 id={id}>{title}</h2>
       <p>{description}</p>
     </div>
   )
@@ -232,7 +234,7 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
         )}
       </header>
 
-      <div className="a2-container">
+      <div className="a2-container" id="main-content" tabIndex={-1}>
         <section className="a2-hero" aria-labelledby="a2-hero-title">
           <div className="a2-hero-copy">
             <div className="a2-institution-chip">
@@ -304,11 +306,12 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
         <section className="a2-principle-strip" aria-label="Prinsip pengelolaan AUREKA">
           <div><Icon name="network" size={19} /><span><strong>Terintegrasi</strong><small>Antarmodul saling terhubung</small></span></div>
           <div><Icon name="shield" size={19} /><span><strong>Berbasis kewenangan</strong><small>Akses mengikuti role dan unit</small></span></div>
-          <div><Icon name="clipboard" size={19} /><span><strong>Terketertelusuran</strong><small>Aktivitas dan tindak lanjut tercatat</small></span></div>
+          <div><Icon name="clipboard" size={19} /><span><strong>Dapat ditelusuri</strong><small>Aktivitas dan tindak lanjut tercatat</small></span></div>
         </section>
 
         <section className="a2-section a2-platform-section" id="platform" aria-labelledby="a2-platform-title">
           <SectionHeading
+            id="a2-platform-title"
             eyebrow="Satu platform · Banyak proses"
             title="Menghubungkan tata kelola mutu rumah sakit"
             description="AUREKA menyatukan proses pencatatan, pemeriksaan, analisis, dan peningkatan mutu dalam ruang kerja yang mengikuti peran serta tanggung jawab pengguna."
@@ -337,6 +340,7 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
 
         <section className="a2-section a2-modules-section" id="modules" aria-labelledby="a2-modules-title">
           <SectionHeading
+            id="a2-modules-title"
             eyebrow="Ruang kerja AUREKA"
             title="Tujuh area kerja dalam satu ekosistem"
             description="Setiap area memiliki fungsi khusus, tetapi tetap mengikuti identitas data, hak akses, dan pola interaksi yang konsisten."
@@ -385,6 +389,7 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
 
         <section className="a2-section a2-workflow-section" id="workflow" aria-labelledby="a2-workflow-title">
           <SectionHeading
+            id="a2-workflow-title"
             eyebrow="Alur kerja terstruktur"
             title="Dari pencatatan menuju peningkatan"
             description="Alur berikut menjadi pola kerja lintas modul. Detail validasi dan persetujuan tetap mengikuti aturan masing-masing domain."
@@ -405,6 +410,7 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
 
         <section className="a2-section a2-governance-section" id="governance" aria-labelledby="a2-governance-title">
           <SectionHeading
+            id="a2-governance-title"
             eyebrow="Keamanan dan tata kelola"
             title="Data dikelola dengan prinsip kehati-hatian"
             description="Arsitektur AUREKA memisahkan tampilan antarmuka dari kontrol akses serta proses penyimpanan pada backend."
@@ -436,6 +442,7 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
         <section className="a2-section a2-transparency-section" id="transparency" aria-labelledby="a2-transparency-title">
           <div className="a2-transparency-head">
             <SectionHeading
+              id="a2-transparency-title"
               eyebrow="Transparansi publik"
               title="Informasi yang dapat dipublikasikan"
               description="AUREKA menyiapkan ruang transparansi untuk agregat mutu rumah sakit, tanpa membuka identitas pasien, narasi insiden, atau detail risiko yang bersifat sensitif."
