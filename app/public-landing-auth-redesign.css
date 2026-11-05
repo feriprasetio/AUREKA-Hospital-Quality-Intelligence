@@ -1490,3 +1490,30 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Keep the form surface clean and let long registration forms scroll from the top. */
+.authPage.authProfessional {
+  align-content: start;
+}
+.authPage.authProfessional .authCard::before,
+.authPage.authProfessional .authCard::after {
+  display: none !important;
+}
+.authPage.authProfessional .authBack:hover {
+  color: #0f7656 !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.authPage.authProfessional .authCard .field select {
+  appearance: auto;
+  cursor: pointer;
+}
+.authPage.authProfessional .authPasswordField {
+  margin-bottom: 12px !important;
+}
+.authPage.authProfessional .authCard .landingCta.authWide:disabled {
+  color: rgba(255,255,255,.9) !important;
+  background: #6b9e84 !important;
+  border-color: #6b9e84 !important;
+  box-shadow: none !important;
+}
