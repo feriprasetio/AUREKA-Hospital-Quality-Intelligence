@@ -38,17 +38,21 @@ test('preview reports dependency findings and blocks high or critical severity',
   assert.doesNotMatch(preview, /actions\/deploy-pages/)
 })
 
-test('production Pages keeps root on production Supabase and mounts staging under a separate path', () => {
+test('production Pages preserves the release root and mounts main under the isolated staging path', () => {
   assert.match(production, /run: npm ci/)
+  assert.match(production, /ref: aureka-pages-production/)
+  assert.match(production, /path: production-src/)
+  assert.match(production, /ref: main/)
+  assert.match(production, /path: staging-src/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_URL/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY/)
   assert.match(production, /AUREKA_BUILD_TARGET: production/)
-  assert.match(production, /node scripts\/validate-supabase-build-env\.mjs/)
+  assert.match(production, /node scripts\\/validate-supabase-build-env\\.mjs/)
 
-  const productionValidation = production.indexOf('Validate Supabase build configuration')
-  const productionBuild = production.indexOf('name: Build static export')
+  const productionValidation = production.indexOf('Validate production Supabase configuration')
+  const productionBuild = production.indexOf('Build unchanged production root')
   const stagingValidation = production.indexOf('Validate isolated staging Supabase configuration')
-  const stagingBuild = production.indexOf('name: Build isolated staging route')
+  const stagingBuild = production.indexOf('Build AUREKA 2.0 under the staging path')
   const combine = production.indexOf('Combine production root with staging preview path')
 
   assert.ok(productionValidation >= 0 && productionValidation < productionBuild)
@@ -59,7 +63,7 @@ test('production Pages keeps root on production Supabase and mounts staging unde
   assert.doesNotMatch(productionBlock, /AUREKA_STAGING_SUPABASE_URL|AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY/)
   assert.match(stagingBlock, /AUREKA_STAGING_SUPABASE_URL/)
   assert.match(stagingBlock, /AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY/)
-  assert.match(stagingBlock, /AUREKA_BASE_PATH: \/AUREKA-Hospital-Quality-Intelligence\/staging/)
+  assert.match(stagingBlock, /AUREKA_BASE_PATH: \\/AUREKA-Hospital-Quality-Intelligence\\/staging/)
 })
 
 test('production deployment blocks moderate, high, and critical dependency findings', () => {
@@ -68,8 +72,8 @@ test('production deployment blocks moderate, high, and critical dependency findi
 })
 
 test('production validates its Supabase configuration before build and deploy', () => {
-  const validation = production.indexOf('Validate Supabase build configuration')
-  const build = production.indexOf('name: Build static export')
+  const validation = production.indexOf('Validate production Supabase configuration')
+  const build = production.indexOf('Build unchanged production root')
   const deploy = production.indexOf('uses: actions/deploy-pages@v4')
   assert.notEqual(validation, -1)
   assert.notEqual(build, -1)
