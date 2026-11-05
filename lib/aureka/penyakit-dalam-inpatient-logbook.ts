@@ -25,8 +25,9 @@ export type InternalMedicineSourceAnswer = {
   denominator: boolean
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
-  mappingStatus: 'mapped_pending_classification' | 'mapped_existing_master' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
+  reviewRequired: boolean
+  freeText?: string
+  mappingStatus: 'mapped' | 'mapped_pending_classification' | 'mapped_existing_master' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
 export const INTERNAL_MEDICINE_SOURCE_INDICATORS = [
@@ -205,61 +206,51 @@ export function parseInternalMedicineSourceAnswer(
   indicatorCode: string,
 ): InternalMedicineSourceAnswer | null {
   const sourceLabel = String(raw ?? '').normalize('NFKC').replace(/[\u00a0\u202f\u2007]/g, ' ').trim()
-  if (!sourceLabel) return null
-
-  const suffix = sourceLabel.match(/\(\s*code\s*(\d+)\s*\)\s*$/i)
+  const isMedicine = indicatorCode === '25.10'
+  if (!sourceLabel && !isMedicine) return null
+  const effectiveSource = sourceLabel || 'Tidak Adanya Kekosongan Obat (Code 1)'
+  const suffix = effectiveSource.match(/\(\s*code\s*(\d+)\s*\)$/i)
   const sourceCode = suffix ? Number(suffix[1]) : null
-  const unwrappedLabel = sourceLabel.replace(/\s*\(\s*code\s*\d+\s*\)\s*$/i, '').trim()
+  const unwrappedLabel = effectiveSource.replace(/\s*\(\s*code\s*\d+\s*\)\s*$/i, '').trim()
   const normalizedSource = normalizeInternalMedicineOptionLabel(unwrappedLabel)
   const alias = SOURCE_LABEL_ALIASES[indicatorCode]?.[normalizedSource]
   const canonicalSource = alias ? normalizeInternalMedicineOptionLabel(alias) : normalizedSource
-  const masterOptions = Array.isArray(options)
-    ? options.filter(option => option && String(option.label ?? '').trim())
-    : []
-
-  if (!masterOptions.length) {
-    return {
-      label: unwrappedLabel, code: null, numerator: null, denominator: true,
-      sourceLabel, sourceCode, reviewRequired: true, mappingStatus: 'not_in_master',
-    }
-  }
+  const masterOptions = Array.isArray(options) ? options.filter(option => option && String(option.label ?? '').trim()) : []
+  const pending = (status: InternalMedicineSourceAnswer['mappingStatus'], selectedLabel = unwrappedLabel): InternalMedicineSourceAnswer => ({
+    label: selectedLabel, code: null, numerator: null, denominator: true,
+    sourceLabel: effectiveSource, sourceCode, reviewRequired: true, mappingStatus: status,
+  })
+  if (!masterOptions.length) return pending('not_in_master')
   const matches = masterOptions.filter(option => normalizeInternalMedicineOptionLabel(option.label) === canonicalSource)
-  if (!matches.length) {
+  if (matches.length > 1) return pending('ambiguous_master')
+  if (matches.length === 1) {
+    const option = matches[0]
+    const masterCode = option.code == null ? null : Number(option.code)
+    if (sourceCode != null && (sourceCode < 1 || sourceCode > 3 || masterCode !== sourceCode)) return pending('source_code_conflict', String(option.label))
     return {
-      label: unwrappedLabel, code: null, numerator: null, denominator: true,
-      sourceLabel, sourceCode, reviewRequired: true, mappingStatus: 'not_in_master',
+      label: String(option.label), code: masterCode,
+      numerator: typeof option.numerator === 'boolean' ? option.numerator : null,
+      denominator: option.denominator !== false, sourceLabel: effectiveSource, sourceCode,
+      reviewRequired: isMedicine ? false : true,
+      freeText: isMedicine && sourceLabel && !alias ? sourceLabel : '',
+      mappingStatus: isMedicine ? 'mapped_existing_master' : 'mapped_pending_classification',
     }
   }
-  if (matches.length > 1) {
+  if (isMedicine) {
+    const events = masterOptions.filter(option =>
+      normalizeInternalMedicineOptionLabel(option.label) === normalizeInternalMedicineOptionLabel('Terjadi kekosongan obat')
+      && Number(option.code) === 3 && option.denominator !== false && option.numerator === true,
+    )
+    if (events.length !== 1) return pending(events.length ? 'ambiguous_master' : 'not_in_master')
+    if (sourceCode != null && sourceCode !== 3) return pending('source_code_conflict', String(events[0].label))
     return {
-      label: String(matches[0].label), code: null, numerator: null, denominator: true,
-      sourceLabel, sourceCode, reviewRequired: true, mappingStatus: 'ambiguous_master',
+      label: String(events[0].label), code: 3, numerator: true, denominator: true,
+      sourceLabel: effectiveSource, sourceCode: 3, reviewRequired: false,
+      freeText: sourceLabel, mappingStatus: 'mapped_existing_master',
     }
   }
-
-  const option = matches[0]
-  const masterCode = option.code == null ? null : Number(option.code)
-  if (sourceCode != null && (sourceCode < 1 || sourceCode > 3 || masterCode !== sourceCode)) {
-    return {
-      label: String(option.label), code: null, numerator: null, denominator: true,
-      sourceLabel, sourceCode, reviewRequired: true, mappingStatus: 'source_code_conflict',
-    }
-  }
-
-  return {
-    label: String(option.label),
-    code: masterCode,
-    numerator: typeof option.numerator === 'boolean' ? option.numerator : null,
-    denominator: option.denominator !== false,
-    sourceLabel,
-    sourceCode,
-    reviewRequired: true,
-    mappingStatus: indicatorCode === '25.9' || indicatorCode === '25.10'
-      ? 'mapped_existing_master'
-      : 'mapped_pending_classification',
-  }
+  return pending('not_in_master')
 }
-
 export function calculateInternalMedicineStayDays(admissionDate: string, dischargeDate: string | null): number | null {
   const admission = normalizeInternalMedicineDate(admissionDate)
   const discharge = dischargeDate ? normalizeInternalMedicineDate(dischargeDate) : null
