@@ -180,6 +180,41 @@ test('negative zero-event indicators reach a 0% target when every response is co
   assert.equal(result.targetMet, true)
 })
 
+test('negative event indicators honor the inclusive 1% threshold', () => {
+  const profile = {
+    id: 'p-blood-waste',
+    room_id: 9,
+    code: '9.1',
+    title: 'Darah yang terbuang setelah crossmatch',
+    measurement_grain: 'patient_episode',
+    schema_json: { indicator_direction: 'negative' },
+    options_json: [
+      { code: 1, label: 'Darah terpakai atau dikembalikan', numerator: true, denominator: true },
+      { code: 2, label: 'Darah terbuang dengan alasan klinis', numerator: false, denominator: true },
+      { code: 3, label: 'Darah terbuang karena faktor teknis', numerator: false, denominator: true },
+    ],
+    target_text: '≤ 1%',
+    target_operator: '<=',
+    target_value: 1,
+  }
+  const makeRows = (wastedCount) => Array.from({ length: 100 }, (_, index) => {
+    const code = index < wastedCount ? 3 : 1
+    return {
+      record_date: '2026-03-' + String(index + 1).padStart(2, '0'),
+      status: 'validated',
+      core_data: { indicator_values: { '9.1': { answer: code === 1 ? 'Darah terpakai atau dikembalikan' : 'Darah terbuang karena faktor teknis', code } } },
+    }
+  })
+  const atThreshold = calculateIndicatorResult(profile, makeRows(1), 2026)
+  const aboveThreshold = calculateIndicatorResult(profile, makeRows(2), 2026)
+  assert.equal(atThreshold.annualNumerator, 1)
+  assert.equal(atThreshold.annualDenominator, 100)
+  assert.equal(atThreshold.annualRate, 1)
+  assert.equal(atThreshold.targetMet, true)
+  assert.equal(aboveThreshold.annualRate, 2)
+  assert.equal(aboveThreshold.targetMet, false)
+})
+
 function cpRow(status, admissionDate, dayOne, dayTwo) {
   return {
     status,
