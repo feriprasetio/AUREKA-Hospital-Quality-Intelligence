@@ -501,48 +501,114 @@ export default function HomeClient(){
    </LiquidGlass>
   </div>
  </main>}
- if(view==='login'||view==='signup'){const l=view==='login';const submit=(e:any)=>{e.preventDefault();l?login():signup()};return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
-  <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
-  <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}><span aria-hidden="true">←</span> Kembali ke beranda</button>
-  <div className="authShell">
-   <aside className="authAside">
-    <div className="authAsideBrand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
-    <h2>{l?'Selamat datang kembali.':'Bergabung sebagai PIC unit.'}</h2>
-    <p>{l?'Masuk untuk menginput dan memantau data mutu, keselamatan pasien, dan manajemen risiko sesuai unit kerja Anda.':'Daftarkan akun unit Anda. Setelah diaktifkan Komite PMKP, Anda dapat menginput data unit secara mandiri.'}</p>
-    <ul>
-     <li><span>✓</span>Data tersimpan aman di server, sesuai hak akses</li>
-     <li><span>✓</span>PIC hanya melihat dan mengelola data unitnya</li>
-     <li><span>✓</span>Rekap otomatis untuk Komite PMKP</li>
-    </ul>
-    <small className="authAsideFoot">UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP</small>
-   </aside>
-   <LiquidGlass className="authCard">
-    {!l&&signupDone?<div className="authSuccess">
-     <div className="authSuccessIcon" aria-hidden="true">✓</div>
-     <h1>Akun berhasil dibuat</h1>
-     <p>Akun <b>{email.trim()}</b> untuk unit <b>{roomsList.find(r=>String(r.id)===String(signupRoom))?.name||'-'}</b> sudah terdaftar dan sedang <b>menunggu aktivasi</b>.</p>
-     <ol className="authSteps">
-      <li><b>Verifikasi email</b><span>Buka email <i className="authStrong">{email.trim()}</i> dan klik tautan verifikasi (cek juga folder Spam).</span></li>
-      <li><b>Aktivasi oleh Komite PMKP</b><span>Super Admin akan memeriksa unit dan mengaktifkan akun Anda.</span></li>
-      <li><b>Masuk ke workspace</b><span>Setelah aktif, login dengan username <i className="authStrong">{username||'-'}</i> (atau email) dan password Anda.</span></li>
-     </ol>
-     <button type="button" className="landingCta big authWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login <span aria-hidden="true">→</span></button>
-    </div>:<form onSubmit={submit} noValidate>
-     <div className="authLogo">{logo()}</div>
-     <div className="eyebrow authEyebrow">AUREKA WORKSPACE</div>
-     <h1>{l?'Masuk':'Daftar Akun Unit'}</h1>
-     <p>{l?'Gunakan akun AUREKA sesuai role dan unit kerja.':'Registrasi untuk calon PIC pelaporan unit.'}</p>
-     {!l&&<><div className="field"><label htmlFor="fullName">Nama lengkap</label><input id="fullName" autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Nama sesuai identitas pegawai"/></div><div className="field"><label htmlFor="signupRoom">Ruangan / unit</label><select id="signupRoom" value={signupRoom} onChange={e=>setSignupRoom(e.target.value)}><option value="">Pilih unit kerja</option>{roomsList.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></div></>}
-     {!l&&<div className="field"><label htmlFor="username">Username</label><input id="username" autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={e=>setUsername(e.target.value.toLowerCase().replace(/\s+/g,'.'))} placeholder="contoh: pic.isolasi"/><small className="fieldHint">Dipakai untuk login. Huruf kecil, angka, titik, garis bawah, atau strip.</small></div>}
-     <div className="field"><label htmlFor="email">{l?'Username atau email':'Email'}</label><input id="email" type={l?'text':'email'} autoComplete={l?'username':'email'} autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} placeholder={l?'pic.isolasi atau nama@email.com':'nama@email.com'}/>{!l&&<small className="fieldHint">Wajib email aktif: link verifikasi dan reset password dikirim ke sini. Bisa diubah nanti.</small>}</div>
-     <div className="field"><label htmlFor="password">Password</label><div className="pwWrap"><input id="password" type={showPw?'text':'password'} autoComplete={l?'current-password':'new-password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder={l?'Password akun':'Minimal 8 karakter'}/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)} aria-label={showPw?'Sembunyikan password':'Tampilkan password'}>{showPw?'Sembunyikan':'Lihat'}</button></div>{l&&<button type="button" className="authForgot" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('forgot')}}>Lupa password?</button>}</div>
-     {authInfo&&<div className="authAlert ok" role="status">{authInfo}</div>}{message&&<div className={/tersimpan|dikirim ulang/.test(message)?'authAlert ok':'authAlert'} role="alert">{message}</div>}{l&&needVerify&&<button type="button" className="authResend" disabled={busy} onClick={resendVerify}>✉️ Kirim ulang email verifikasi</button>}
-     <button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Memproses…':l?'Masuk':'Buat akun'} {!busy&&<span aria-hidden="true">→</span>}</button>
-     <div className="authSwitch">{l?'Belum punya akun?':'Sudah punya akun?'} <button type="button" onClick={()=>{setMessage('');setView(l?'signup':'login')}}>{l?'Daftar akun unit':'Masuk di sini'}</button></div>
-    </form>}
-   </LiquidGlass>
-  </div>
- </main>}
+ if(view==='login'||view==='signup'){
+  const l=view==='login'
+  const submit=(e:any)=>{e.preventDefault();l?login():signup()}
+  return <main className="authPage authRedesigned authProfessional">
+   <header className="authTopbar">
+    <div className="brand">
+     {logo()}
+     <div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div>
+    </div>
+    <div className="authTopbarMeta">
+     <span className="authSecureDot" aria-hidden="true"/>
+     <span>PORTAL INTERNAL · RSUD SSMA</span>
+    </div>
+   </header>
+   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
+   <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}>
+    <span aria-hidden="true">←</span> Kembali ke beranda
+   </button>
+   <div className="authShell">
+    <aside className="authAside">
+     <div className="authAsideBrand">
+      {logo()}
+      <div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div>
+     </div>
+     <span className="authAsideEyebrow">ALKADRIE · UNIFIKASI RISIKO, EVALUASI KUALITAS, DAN ASESMEN</span>
+     <h2>{l?'Satu ruang kendali untuk mutu, keselamatan, dan risiko.':'Akun unit untuk proses pelayanan yang terukur.'}</h2>
+     <p>{l?'Akses workspace AUREKA untuk mengelola indikator mutu, keselamatan pasien, manajemen risiko, dan asesmen sesuai peran serta unit kerja Anda.':'Daftarkan akun sebagai PIC unit. Data pendaftaran akan diverifikasi dan diaktifkan oleh Komite PMKP sebelum digunakan untuk mengelola data unit.'}</p>
+     <ul>
+      <li><span aria-hidden="true">✓</span><div><b>Akses berbasis peran dan unit</b><small>Menu dan data mengikuti kewenangan akun.</small></div></li>
+      <li><span aria-hidden="true">✓</span><div><b>Proses mutu terintegrasi</b><small>Pengukuran, audit, insiden, dan risiko dalam satu ekosistem.</small></div></li>
+      <li><span aria-hidden="true">✓</span><div><b>Akuntabilitas yang dapat ditelusuri</b><small>Aktivitas dan tindak lanjut mengikuti jejak kerja.</small></div></li>
+     </ul>
+     <div className="authAsideBottom">
+      <span className="authAsideBottomMark" aria-hidden="true">A</span>
+      <small>UPT RSUD Sultan Syarif Mohamad Alkadrie<br/>Komite Peningkatan Mutu dan Keselamatan Pasien</small>
+     </div>
+    </aside>
+    <LiquidGlass className="authCard">
+     {!l&&signupDone?<div className="authSuccess">
+      <div className="authSuccessIcon" aria-hidden="true">✓</div>
+      <span className="authFormEyebrow">REGISTRASI AKUN UNIT</span>
+      <h1>Akun berhasil dibuat</h1>
+      <p>Akun <b>{email.trim()}</b> untuk unit <b>{roomsList.find(r=>String(r.id)===String(signupRoom))?.name||'-'}</b> sudah terdaftar dan sedang <b>menunggu aktivasi</b>.</p>
+      <ol className="authSteps">
+       <li><b>Verifikasi email</b><span>Buka email <i className="authStrong">{email.trim()}</i> dan klik tautan verifikasi (cek juga folder Spam).</span></li>
+       <li><b>Aktivasi oleh Komite PMKP</b><span>Super Admin akan memeriksa unit dan mengaktifkan akun Anda.</span></li>
+       <li><b>Masuk ke workspace</b><span>Setelah aktif, login dengan username <i className="authStrong">{username||'-'}</i> (atau email) dan password Anda.</span></li>
+      </ol>
+      <button type="button" className="landingCta big authWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login <span aria-hidden="true">→</span></button>
+     </div>:<form className="authForm" onSubmit={submit} noValidate>
+      <div className="authFormIntro">
+       <span className="authFormEyebrow">{l?'AKSES WORKSPACE':'REGISTRASI PENGGUNA'}</span>
+       <h1>{l?'Masuk ke AUREKA':'Daftar Akun Unit'}</h1>
+       <p>{l?'Gunakan username atau alamat email yang telah terdaftar, lalu masukkan password akun Anda.':'Lengkapi identitas dan unit kerja. Pengajuan akun akan diperiksa sebelum aktivasi.'}</p>
+      </div>
+      {!l&&<>
+       <div className="field">
+        <label htmlFor="fullName">Nama lengkap</label>
+        <input id="fullName" autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Nama sesuai identitas pegawai"/>
+       </div>
+       <div className="field">
+        <label htmlFor="signupRoom">Ruangan / unit</label>
+        <select id="signupRoom" value={signupRoom} onChange={e=>setSignupRoom(e.target.value)}>
+         <option value="">Pilih unit kerja</option>
+         {roomsList.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+       </div>
+       <div className="field">
+        <label htmlFor="username">Username</label>
+        <input id="username" autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={e=>setUsername(e.target.value.toLowerCase().replace(/\s+/g,'.'))} placeholder="contoh: pic.isolasi"/>
+        <small className="fieldHint">Huruf kecil, angka, titik, garis bawah, atau strip.</small>
+       </div>
+      </>}
+      <div className="field">
+       <label htmlFor="email">{l?'Username atau email':'Email aktif'}</label>
+       <input id="email" type={l?'text':'email'} autoComplete={l?'username':'email'} autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} placeholder={l?'Masukkan username atau email':'nama@email.com'}/>
+       {!l&&<small className="fieldHint">Email digunakan untuk verifikasi akun dan pemulihan password.</small>}
+      </div>
+      <div className="field authPasswordField">
+       <div className="authFieldLabelRow">
+        <label htmlFor="password">Password</label>
+        {l&&<button type="button" className="authForgot" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('forgot')}}>Lupa password?</button>}
+       </div>
+       <div className="pwWrap">
+        <input id="password" type={showPw?'text':'password'} autoComplete={l?'current-password':'new-password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder={l?'Masukkan password':'Minimal 8 karakter'}/>
+        <button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)} aria-label={showPw?'Sembunyikan password':'Tampilkan password'}>{showPw?'Sembunyikan':'Tampilkan'}</button>
+       </div>
+      </div>
+      {authInfo&&<div className="authAlert ok" role="status">{authInfo}</div>}
+      {message&&<div className={/tersimpan|dikirim ulang/.test(message)?'authAlert ok':'authAlert'} role="alert">{message}</div>}
+      {l&&needVerify&&<button type="button" className="authResend" disabled={busy} onClick={resendVerify}>✉️ Kirim ulang email verifikasi</button>}
+      <button type="submit" className="landingCta big authWide" disabled={busy}>
+       {busy?(l?'Memeriksa akun…':'Mengirim pendaftaran…'):l?'Masuk ke Workspace':'Kirim Pendaftaran'}
+       {!busy&&<span aria-hidden="true">→</span>}
+      </button>
+      <div className="authSwitch">
+       {l?'Belum memiliki akun unit?':'Sudah memiliki akun?'}
+       <button type="button" onClick={()=>{setMessage('');setView(l?'signup':'login')}}>{l?'Daftar akun unit':'Masuk di sini'}</button>
+      </div>
+      <div className="authFormFootnote">
+       <span aria-hidden="true">⌑</span>
+       <p>{l?'Akses hanya untuk pengguna yang telah memiliki akun dan kewenangan.':'Akun baru dapat digunakan setelah verifikasi dan aktivasi oleh Komite PMKP.'}</p>
+      </div>
+     </form>}
+    </LiquidGlass>
+   </div>
+  </main>
+ }
  if(view==='workspace')return <main data-aureka-theme="solid-white" className={'workspaceRoot '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
