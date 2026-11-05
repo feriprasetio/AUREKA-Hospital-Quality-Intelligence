@@ -95,15 +95,18 @@ BEGIN
       v_unit_of_measure := 'Persentase (%)';
       v_numerator_definition := 'Jumlah ibu bersalin normal (tanpa bantuan vakum/forsep) yang mengalami robekan perineum hingga derajat III (mengenai sfingter ani) atau IV (mengenai mukosa rektum).';
       v_denominator_definition := 'Jumlah seluruh ibu yang menjalani persalinan pervaginam spontan/normal.';
-      SELECT jsonb_agg(
-        jsonb_set(
-          jsonb_set(option, '{numerator}', to_jsonb((option->>'code') = '1'), true),
-          '{denominator}', 'true'::jsonb, true
-        )
-        ORDER BY ordinal
-      )
-        INTO v_options
-        FROM jsonb_array_elements(v_options) WITH ORDINALITY AS item(option, ordinal);
+      -- Keep the legacy source-mapping metadata unchanged for the existing secure import RPC.
+      -- The result engine now derives the metric numerator from option code + indicator direction.
+      IF EXISTS (
+        SELECT 1
+          FROM jsonb_array_elements(v_options) AS item(option)
+         WHERE coalesce(option->>'code', '') NOT IN ('1', '2', '3')
+            OR option->'numerator' IS DISTINCT FROM 'null'::jsonb
+            OR option->>'denominator' <> 'true'
+            OR option->>'review_required' <> 'true'
+      ) THEN
+        RAISE EXCEPTION 'Opsi 33.2 tidak sesuai dengan kontrak impor sumber PONEK yang sedang berjalan.';
+      END IF;
     END IF;
 
     INSERT INTO aureka_quality.indicator_profiles (
