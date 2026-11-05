@@ -46,27 +46,36 @@ const editModel = (profile: Model): Model => ({
   _options_text: JSON.stringify(profile.options_json || [], null, 2),
 })
 
-type ProfileViewFilter = 'active' | 'needs_review' | 'complete' | 'draft' | 'retired' | 'all'
+type ProfileViewFilter = 'active' | 'needs_review' | 'target_pending' | 'complete' | 'draft' | 'retired' | 'all'
 
 const metadataReviewReasons = (profile: Model): string[] => {
   const schema = profile.schema_json && typeof profile.schema_json === 'object' ? profile.schema_json : {}
-  const hasTargetValue = profile.target_value !== null
-    && profile.target_value !== undefined
-    && String(profile.target_value).trim() !== ''
-  const hasTargetText = String(profile.target_text ?? '').trim().length > 0
-  const targetPending = String(schema.target_review_required ?? '').toLowerCase() === 'true'
+  const measurementType = String(schema.measurement_type ?? '').trim().toLowerCase()
+  const supportedMeasurementTypes = ['ratio', 'compliance', 'visit', 'door', 'minutes', 'numeric', 'occurrence']
   const reasons: string[] = []
 
   if (!['positive', 'negative'].includes(String(schema.indicator_direction ?? ''))) reasons.push('arah indikator')
-  if (targetPending || (!hasTargetValue && !hasTargetText)) reasons.push('target')
   if (!String(profile.unit_of_measure ?? '').trim()) reasons.push('satuan')
   if (!String(profile.numerator_definition ?? '').trim()) reasons.push('definisi numerator')
   if (!String(profile.denominator_definition ?? '').trim()) reasons.push('definisi denominator')
+  if (!supportedMeasurementTypes.includes(measurementType)) reasons.push('tipe pengukuran')
+  if (String(schema.excel_header_mapping_status ?? '') === 'unmatched_header'
+      || String(schema.excel_header_mapping_status ?? '') === 'missing_header_label') reasons.push('pemetaan header Excel')
 
   return reasons
 }
 
+const targetApprovalReasons = (profile: Model): string[] => {
+  const schema = profile.schema_json && typeof profile.schema_json === 'object' ? profile.schema_json : {}
+  const reasons: string[] = []
+  if (String(schema.target_review_required ?? '').toLowerCase() === 'true') reasons.push('target belum disahkan')
+  if (String(schema.definition_review_required ?? '').toLowerCase() === 'true') reasons.push('definisi perlu validasi pemilik indikator')
+  if (String(schema.survey_scale_requires_confirmation ?? '').toLowerCase() === 'true') reasons.push('skala/perhitungan survei perlu konfirmasi')
+  return reasons
+}
+
 const needsMetadataReview = (profile: Model): boolean => metadataReviewReasons(profile).length > 0
+const needsTargetApproval = (profile: Model): boolean => targetApprovalReasons(profile).length > 0
 const isActivePublished = (profile: Model): boolean => profile.is_active === true && profile.status === 'published'
 
 const payloadFrom = (model: Model): Model => {
@@ -172,6 +181,10 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
     () => profiles.filter((profile) => isActivePublished(profile) && needsMetadataReview(profile)).length,
     [profiles],
   )
+  const activeTargetPendingCount = useMemo(
+    () => profiles.filter((profile) => isActivePublished(profile) && needsTargetApproval(profile)).length,
+    [profiles],
+  )
 
   const filteredProfiles = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase('id')
@@ -179,6 +192,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       const active = isActivePublished(profile)
       if (profileViewFilter === 'active' && !active) return false
       if (profileViewFilter === 'needs_review' && (!active || !needsMetadataReview(profile))) return false
+      if (profileViewFilter === 'target_pending' && (!active || !needsTargetApproval(profile))) return false
       if (profileViewFilter === 'complete' && (!active || needsMetadataReview(profile))) return false
       if (profileViewFilter === 'draft' && profile.status !== 'draft') return false
       if (profileViewFilter === 'retired' && profile.status !== 'retired' && profile.is_active !== false) return false
@@ -238,9 +252,22 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       if (publishError) throw publishError
       if (!publishedId) throw new Error('Server tidak mengembalikan identitas versi baru.')
 
+      const { data: savedProfile, error: verifyError } = await q().from('indicator_profiles')
+        .select('id,code,version,status,is_active')
+        .eq('id', String(publishedId))
+        .maybeSingle()
+      if (verifyError) throw new Error('Versi baru sudah dikirim ke server, tetapi verifikasi baca gagal: ' + verifyError.message)
+      if (!savedProfile || savedProfile.status !== 'published' || savedProfile.is_active !== true) {
+        throw new Error('RPC mengembalikan ID, tetapi versi baru belum terbaca sebagai profil aktif. Mohon muat ulang dan periksa riwayat versi.')
+      }
+
       setEdit(null)
-      setMsg('Versi baru dipublikasikan secara atomik. Versi sebelumnya tetap tersimpan sebagai riwayat.')
+      setNewOne(null)
+      setProgramFilter('')
+      setProfileViewFilter('active')
+      setSearch(String(savedProfile.code || edit.code).trim())
       await load()
+      setMsg(`Perubahan berhasil tersimpan dan diverifikasi sebagai versi aktif v${savedProfile.version} untuk indikator ${savedProfile.code}. Versi sebelumnya tetap tersimpan sebagai riwayat.`)
     } catch (error) {
       setMsg('Versi baru gagal dipublikasikan: ' + toUserFacingError(error, { fallback: 'Periksa hak akses dan metadata indikator.' }))
     } finally {
@@ -287,7 +314,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       if (userError) throw userError
       if (!userResult.user) throw new Error('Sesi login tidak ditemukan. Silakan login ulang.')
 
-      const { error } = await q().from('indicator_profiles').insert({
+      const { data: insertedProfile, error } = await q().from('indicator_profiles').insert({
         ...payload,
         code: String(payload.code).trim(),
         title: String(payload.title).trim(),
@@ -296,12 +323,18 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
         is_active: true,
         created_by: userResult.user.id,
         updated_by: userResult.user.id,
-      })
+      }).select('id,code,version,status,is_active').single()
       if (error) throw error
+      if (!insertedProfile || insertedProfile.status !== 'published' || insertedProfile.is_active !== true) {
+        throw new Error('Data terkirim, tetapi profil baru belum terbaca sebagai profil aktif.')
+      }
 
       setNewOne(null)
-      setMsg('Indikator berhasil ditambahkan ke kamus.')
+      setProgramFilter('')
+      setProfileViewFilter('active')
+      setSearch(String(insertedProfile.code || newOne.code).trim())
       await load()
+      setMsg(`Indikator ${insertedProfile.code} berhasil ditambahkan dan diverifikasi sebagai versi aktif v${insertedProfile.version}.`)
     } catch (error) {
       setMsg('Indikator gagal ditambahkan: ' + toUserFacingError(error, { fallback: 'Periksa hak akses dan kelengkapan metadata.' }))
     } finally {
@@ -446,8 +479,9 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
                 onChange={(e) => setProfileViewFilter(e.target.value as ProfileViewFilter)}
               >
                 <option value="active">Indikator aktif ({activeProfileCount})</option>
-                <option value="needs_review">Perlu perbaikan / dilengkapi — merah ({activeReviewCount})</option>
-                <option value="complete">Metadata lengkap</option>
+                <option value="needs_review">Perlu perbaikan teknis — merah ({activeReviewCount})</option>
+                <option value="target_pending">Target/definisi menunggu pengesahan — kuning ({activeTargetPendingCount})</option>
+                <option value="complete">Metadata siap digunakan</option>
                 <option value="draft">Draf</option>
                 <option value="retired">Riwayat versi (retired)</option>
                 <option value="all">Semua versi</option>
@@ -479,7 +513,8 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
                     <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7 }}>
                       Arah capaian: {profile.schema_json?.indicator_direction === 'positive' ? 'Positif' : profile.schema_json?.indicator_direction === 'negative' ? 'Negatif' : 'Belum ditetapkan'}
                     </div>
-                    {needsMetadataReview(profile) && <div style={{ marginTop: 5, color: '#a83232', fontSize: 10, fontWeight: 750 }}>Perlu perbaikan / dilengkapi: {metadataReviewReasons(profile).join(', ')}.</div>}
+                    {needsMetadataReview(profile) && <div style={{ marginTop: 5, color: '#a83232', fontSize: 10, fontWeight: 750 }}>Perlu perbaikan teknis: {metadataReviewReasons(profile).join(', ')}.</div>}
+                    {!needsMetadataReview(profile) && needsTargetApproval(profile) && <div style={{ marginTop: 5, color: '#9a6700', fontSize: 10, fontWeight: 750 }}>Perlu pengesahan pemilik indikator: {targetApprovalReasons(profile).join(', ')}. Indikator tetap dapat dipetakan dan dicatat; target belum dihitung sebagai target resmi.</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
