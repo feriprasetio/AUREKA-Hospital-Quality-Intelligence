@@ -102,8 +102,8 @@ BEGIN
           FROM jsonb_array_elements(v_options) AS item(option)
          WHERE coalesce(option->>'code', '') NOT IN ('1', '2', '3')
             OR option->'numerator' IS DISTINCT FROM 'null'::jsonb
-            OR option->>'denominator' <> 'true'
-            OR option->>'review_required' <> 'true'
+            OR coalesce(option->>'denominator', 'false') <> 'true'
+            OR coalesce(option->>'review_required', 'false') <> 'true'
       ) THEN
         RAISE EXCEPTION 'Opsi 33.2 tidak sesuai dengan kontrak impor sumber PONEK yang sedang berjalan.';
       END IF;
