@@ -91,6 +91,30 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
         run: npm run build
 
+      - name: Preserve production static export
+        run: mv out /tmp/aureka-production-out
+
+      - name: Validate isolated staging Supabase configuration
+        env:
+          AUREKA_BUILD_TARGET: preview
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_STAGING_SUPABASE_URL || secrets.AUREKA_STAGING_SUPABASE_URL || 'https://ypsbvxnqdbjjhlhjerad.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_tTgpB91qJSaLmY45NTXVeg_sM0gt53l' }}
+        run: node scripts/validate-supabase-build-env.mjs
+
+      - name: Build isolated staging route
+        env:
+          AUREKA_BASE_PATH: /AUREKA-Hospital-Quality-Intelligence/staging
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_STAGING_SUPABASE_URL || secrets.AUREKA_STAGING_SUPABASE_URL || 'https://ypsbvxnqdbjjhlhjerad.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_STAGING_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_tTgpB91qJSaLmY45NTXVeg_sM0gt53l' }}
+        run: npm run build
+
+      - name: Combine production root with staging preview path
+        run: |
+          mkdir -p /tmp/aureka-production-out/staging
+          cp -a out/. /tmp/aureka-production-out/staging/
+          rm -rf out
+          mv /tmp/aureka-production-out out
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
