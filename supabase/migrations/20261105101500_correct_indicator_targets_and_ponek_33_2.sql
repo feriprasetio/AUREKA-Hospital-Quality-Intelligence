@@ -27,8 +27,8 @@ BEGIN
          OR (room_id = 12 AND code = '12.3')
          OR (room_id = 33 AND code = '33.2')
        )
-  ) <> 4 THEN
-    RAISE EXCEPTION 'Koreksi indikator 2026 dibatalkan: empat profil target aktif harus ditemukan tepat satu per indikator.';
+  ) <> 7 THEN
+    RAISE EXCEPTION 'Koreksi indikator 2026 dibatalkan: tujuh profil target aktif harus ditemukan tepat satu per indikator.';
   END IF;
 
   FOR v_old IN
@@ -61,6 +61,7 @@ BEGIN
 
     v_direction := CASE
       WHEN v_old.room_id = 29 AND v_old.code = '29.1' THEN 'positive'
+      WHEN v_old.room_id = 33 AND v_old.code IN ('33.1','33.3','33.4') THEN 'positive'
       ELSE 'negative'
     END;
     v_schema := coalesce(v_old.schema_json, '{}'::jsonb)
@@ -85,6 +86,9 @@ BEGIN
       v_target_text := '0% — Tidak ada kejadian yang ditoleransi (Zero Tolerance)';
       v_target_operator := '=';
       v_target_value := 0;
+    ELSIF v_old.room_id = 33 AND v_old.code IN ('33.1','33.3','33.4') THEN
+      v_target_operator := '=';
+      v_target_value := 100;
     ELSIF v_old.room_id = 33 AND v_old.code = '33.2' THEN
       IF jsonb_typeof(v_options) <> 'array' OR jsonb_array_length(v_options) <> 6 THEN
         RAISE EXCEPTION 'Pilihan respons indikator 33.2 harus berisi tepat enam opsi yang disepakati.';
@@ -139,8 +143,8 @@ BEGIN
     v_updated := v_updated + 1;
   END LOOP;
 
-  IF v_updated <> 4 THEN
-    RAISE EXCEPTION 'Koreksi indikator 2026 tidak lengkap: empat versi baru diharapkan, % diproses.', v_updated;
+  IF v_updated <> 7 THEN
+    RAISE EXCEPTION 'Koreksi indikator 2026 tidak lengkap: tujuh versi baru diharapkan, % diproses.', v_updated;
   END IF;
 END
 $migration$;
