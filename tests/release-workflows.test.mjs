@@ -43,7 +43,7 @@ test('production Pages keeps root on production Supabase and mounts staging unde
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_URL/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY/)
   assert.match(production, /AUREKA_BUILD_TARGET: production/)
-  assert.match(production, /node scripts\\/validate-supabase-build-env\\.mjs/)
+  assert.match(production, /node scripts\/validate-supabase-build-env\.mjs/)
 
   const productionValidation = production.indexOf('Validate Supabase build configuration')
   const productionBuild = production.indexOf('name: Build static export')
