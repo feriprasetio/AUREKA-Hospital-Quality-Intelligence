@@ -194,9 +194,11 @@ function extractObservation(
     const mappingStatus = String(response.mapping_status ?? '').trim()
     const direction = indicatorDirection(profile)
 
-    // A master option may explicitly declare that the case is outside the eligible denominator.
-    // This must be honored before applying the universal 1/2/3 event semantics.
-    if (option.denominator === false) return null
+    // Explicit clinical eligibility is separate from legacy numerator/denominator flags.
+    // Directional profiles must follow code 1/2/3 semantics even when an old master
+    // contains stale denominator=false metadata. Only the dedicated eligibility flag
+    // removes a response from both numerator and denominator.
+    if (option.eligible === false || option.denominator_excluded === true) return null
 
     // When a profile has an approved 1/2/3 direction, an exact option-label + code
     // match is sufficient to apply the universal code semantics. This resolves old
