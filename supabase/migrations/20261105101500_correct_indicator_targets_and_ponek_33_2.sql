@@ -134,5 +134,3 @@ BEGIN
 END
 $migration$;
 
-COMMENT ON TABLE aureka_quality.indicator_profiles IS
-'Published indicator profile metadata is versioned. schema_json.indicator_direction is positive or negative for option-based percentage interpretation.';
