@@ -36,7 +36,7 @@ test('right-side dashboard preview has a layered risk matrix and structured over
   for (const selector of [
     'a2-hero-showcase',
     'a2-risk-backplate',
-    'Matriks Risiko 5×5',
+    'MATRIKS RISIKO 5×5',
     'a2-dashboard-card',
     'a2-dashboard-metrics',
     'a2-dashboard-trend',
