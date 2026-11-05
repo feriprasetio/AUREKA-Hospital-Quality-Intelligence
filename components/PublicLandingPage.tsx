@@ -5,7 +5,6 @@ import { useState, type ReactNode } from 'react'
 type LandingProps = {
   logoSrc: string
   onLogin: () => void
-  onSignup: () => void
 }
 
 type IconName =
@@ -66,11 +65,10 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
 }
 
 const navItems = [
-  { href: '#platform', label: 'Platform' },
+  { href: '#platform', label: 'Fitur' },
   { href: '#modules', label: 'Modul' },
-  { href: '#workflow', label: 'Alur kerja' },
-  { href: '#capa', label: 'CAPA' },
-  { href: '#governance', label: 'Tata kelola' },
+  { href: '#workflow', label: 'Alur Kerja' },
+  { href: '#transparency', label: 'Transparansi' },
 ]
 
 const modules: Array<{
@@ -131,6 +129,14 @@ const modules: Array<{
   },
 ]
 
+const riskMatrixTones = [
+  'low', 'low', 'low', 'moderate', 'moderate',
+  'low', 'low', 'moderate', 'moderate', 'high',
+  'low', 'moderate', 'moderate', 'high', 'high',
+  'moderate', 'moderate', 'high', 'high', 'critical',
+  'moderate', 'high', 'high', 'critical', 'critical',
+]
+
 const improvementSteps = [
   { number: '01', title: 'Temuan teridentifikasi', text: 'Sumber dapat berasal dari audit mutu, IKP, RCA, risiko, FMEA, Clinical Pathway, maupun evaluasi tenaga klinis.' },
   { number: '02', title: 'Analisis dan rencana', text: 'Masalah, akar penyebab, tindakan korektif dan preventif, PIC, serta target waktu dicatat secara terstruktur.' },
@@ -165,7 +171,7 @@ function SectionHeading({
   )
 }
 
-export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: LandingProps) {
+export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [transparencyOpen, setTransparencyOpen] = useState(false)
 
@@ -174,10 +180,6 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
     onLogin()
   }
 
-  const openSignup = () => {
-    setMobileOpen(false)
-    onSignup()
-  }
 
   return (
     <main className="a2-landing" id="top">
@@ -200,8 +202,9 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
           </nav>
 
           <div className="a2-header-actions">
-            <button type="button" className="a2-button a2-button-quiet" onClick={openLogin}>Masuk</button>
-            <button type="button" className="a2-button a2-button-primary a2-button-compact" onClick={openSignup}>Daftar akun unit</button>
+            <button type="button" className="a2-button a2-button-primary a2-button-workspace" onClick={openLogin}>
+              Masuk Workspace <Icon name="arrow" size={15} />
+            </button>
           </div>
 
           <button
@@ -226,10 +229,6 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
                 </a>
               ))}
             </nav>
-            <div className="a2-mobile-actions">
-              <button type="button" className="a2-button a2-button-quiet" onClick={openLogin}>Masuk</button>
-              <button type="button" className="a2-button a2-button-primary" onClick={openSignup}>Daftar akun unit</button>
-            </div>
           </div>
         )}
       </header>
@@ -241,73 +240,129 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
               <span className="a2-chip-dot" />
               UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP
             </div>
-            <p className="a2-kicker">HOSPITAL QUALITY INTELLIGENCE PLATFORM</p>
-            <h1 id="a2-hero-title">Mutu terukur.<br /><span>Keselamatan terjaga.</span></h1>
+            <h1 id="a2-hero-title">
+              Alkadrie<br />
+              <span>Unifikasi Risiko,</span><br />
+              Evaluasi Kualitas,<br />
+              <span>dan Asesmen</span>
+            </h1>
             <p className="a2-hero-description">
-              Satu ekosistem kerja untuk menghubungkan pengukuran mutu, keselamatan pasien, manajemen risiko,
-              tenaga klinis, analitik, dan tindak lanjut perbaikan rumah sakit.
+              Satu ekosistem terintegrasi untuk menyatukan manajemen risiko, evaluasi mutu,
+              keselamatan pasien, dan asesmen pelayanan rumah sakit dalam alur kerja yang terstruktur.
             </p>
-            <div className="a2-hero-actions">
-              <button type="button" className="a2-button a2-button-primary a2-button-large" onClick={openLogin}>
-                Masuk ke workspace <Icon name="arrow" size={17} />
-              </button>
-              <a className="a2-button a2-button-outline a2-button-large" href="#modules">
-                Jelajahi modul <Icon name="chevron" size={16} />
-              </a>
-            </div>
-            <div className="a2-hero-principles" aria-label="Prinsip platform">
-              <span><Icon name="check" size={15} /> Alur kerja terstruktur</span>
-              <span><Icon name="check" size={15} /> Akses sesuai kewenangan</span>
-              <span><Icon name="check" size={15} /> Tindak lanjut terlacak</span>
+            <div className="a2-hero-principles" aria-label="Fokus utama AUREKA">
+              <span><Icon name="chart" size={15} /> Evaluasi kualitas</span>
+              <span><Icon name="shield" size={15} /> Keselamatan pasien</span>
+              <span><Icon name="risk" size={15} /> Unifikasi risiko</span>
             </div>
           </div>
 
-          <aside className="a2-hero-preview" aria-label="Ilustrasi struktur workspace AUREKA">
-            <div className="a2-preview-top">
-              <div className="a2-preview-brand">
-                <span className="a2-preview-logo">A</span>
-                <span><strong>AUREKA Workspace</strong><small>Ilustrasi struktur platform</small></span>
+          <aside className="a2-hero-showcase" aria-label="Pratinjau visual dashboard AUREKA">
+            <div className="a2-risk-backplate" aria-hidden="true">
+              <div className="a2-risk-backplate-head">
+                <strong>MATRIKS RISIKO 5×5</strong>
+                <span>ILUSTRASI</span>
               </div>
-              <span className="a2-preview-pill">ROLE BASED</span>
-            </div>
-            <div className="a2-preview-heading">
-              <span>AREA KERJA TERINTEGRASI</span>
-              <strong>Satu alur, lintas fungsi</strong>
-            </div>
-            <div className="a2-preview-list">
-              <div className="a2-preview-row">
-                <span className="a2-preview-icon"><Icon name="chart" size={19} /></span>
-                <span><strong>Mutu Klinis</strong><small>Pengukuran · Audit · Clinical Pathway</small></span>
-                <Icon name="arrow" size={16} />
+              <div className="a2-risk-matrix-grid">
+                {riskMatrixTones.map((tone, index) => (
+                  <span key={index} className={`a2-risk-cell a2-risk-cell-${tone}`} />
+                ))}
               </div>
-              <div className="a2-preview-row">
-                <span className="a2-preview-icon a2-preview-blue"><Icon name="shield" size={19} /></span>
-                <span><strong>Keselamatan Pasien</strong><small>Pelaporan · Investigasi · Pembelajaran</small></span>
-                <Icon name="arrow" size={16} />
-              </div>
-              <div className="a2-preview-row">
-                <span className="a2-preview-icon a2-preview-amber"><Icon name="risk" size={19} /></span>
-                <span><strong>Manajemen Risiko</strong><small>Register · Pengendalian · Eskalasi</small></span>
-                <Icon name="arrow" size={16} />
-              </div>
-              <div className="a2-preview-row">
-                <span className="a2-preview-icon a2-preview-violet"><Icon name="people" size={19} /></span>
-                <span><strong>Tenaga Klinis</strong><small>Direktori · Penugasan · Evaluasi</small></span>
-                <Icon name="arrow" size={16} />
+              <div className="a2-risk-legend">
+                <span><i className="a2-legend-low" /> Rendah</span>
+                <span><i className="a2-legend-mid" /> Sedang</span>
+                <span><i className="a2-legend-high" /> Tinggi</span>
               </div>
             </div>
-            <div className="a2-preview-foot">
-              <span><Icon name="lock" size={14} /> Modul operasional tersedia setelah autentikasi</span>
+
+            <div className="a2-dashboard-card">
+              <div className="a2-dashboard-topbar">
+                <span className="a2-dashboard-window-dots" aria-hidden="true"><i /><i /><i /></span>
+                <strong>AUREKA · Ringkasan</strong>
+                <span className="a2-dashboard-period">PRATINJAU UI</span>
+              </div>
+
+              <div className="a2-dashboard-content">
+                <div className="a2-dashboard-metrics">
+                  <article className="a2-dashboard-metric">
+                    <div className="a2-dashboard-metric-head">
+                      <span>Indikator mutu terpantau</span>
+                      <i><Icon name="chart" size={14} /></i>
+                    </div>
+                    <div className="a2-dashboard-value">—</div>
+                    <p>Menunggu snapshot tervalidasi</p>
+                    <svg className="a2-dashboard-spark" viewBox="0 0 108 32" aria-hidden="true">
+                      <path d="M2 27 L17 22 L29 24 L42 15 L54 18 L68 10 L81 13 L94 5 L106 7" />
+                    </svg>
+                  </article>
+                  <article className="a2-dashboard-metric">
+                    <div className="a2-dashboard-metric-head">
+                      <span>Rekam data tervalidasi</span>
+                      <i><Icon name="clipboard" size={14} /></i>
+                    </div>
+                    <div className="a2-dashboard-value">—</div>
+                    <p>Menunggu sinkronisasi data</p>
+                    <svg className="a2-dashboard-spark a2-dashboard-spark-alt" viewBox="0 0 108 32" aria-hidden="true">
+                      <path d="M2 25 L16 26 L28 18 L41 21 L55 14 L68 16 L82 8 L94 10 L106 3" />
+                    </svg>
+                  </article>
+                </div>
+
+                <div className="a2-dashboard-trend">
+                  <div>
+                    <span>TREN CAPAIAN MUTU</span>
+                    <strong>Grafik aktif setelah validasi data</strong>
+                  </div>
+                  <svg viewBox="0 0 112 34" aria-hidden="true">
+                    <path d="M2 27 L18 21 L31 24 L45 14 L58 18 L73 9 L88 12 L110 3" />
+                    <circle cx="110" cy="3" r="2.5" />
+                  </svg>
+                </div>
+
+                <div className="a2-dashboard-section-head">
+                  <strong>LINGKUP PEMANTAUAN UNIT</strong>
+                  <span>AREA KERJA</span>
+                </div>
+                <div className="a2-dashboard-unit-list" aria-label="Contoh struktur lingkup unit">
+                  {[
+                    { name: 'IGD', width: '82%' },
+                    { name: 'Rawat Inap', width: '70%' },
+                    { name: 'NICU', width: '58%' },
+                    { name: 'OK & Anestesi', width: '76%' },
+                    { name: 'Farmasi', width: '86%' },
+                    { name: 'Laboratorium', width: '73%' },
+                  ].map((unit) => (
+                    <div className="a2-dashboard-unit-row" key={unit.name}>
+                      <span>{unit.name}</span>
+                      <i><b style={{ width: unit.width }} /></i>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="a2-dashboard-priorities">
+                  <div className="a2-dashboard-section-head">
+                    <strong>PRIORITAS EVALUASI</strong>
+                    <span>CONTOH TAMPILAN</span>
+                  </div>
+                  <article>
+                    <div><strong>INM · Waktu tunggu rawat jalan</strong><small>Indikator mutu klinis</small></div>
+                    <span>Belum ada data</span>
+                  </article>
+                  <article>
+                    <div><strong>SKP · Identifikasi pasien</strong><small>Keselamatan pasien</small></div>
+                    <span>Belum ada data</span>
+                  </article>
+                  <article>
+                    <div><strong>RISIKO · Rencana pengendalian</strong><small>Manajemen risiko</small></div>
+                    <span>Belum ada data</span>
+                  </article>
+                </div>
+              </div>
+              <p className="a2-dashboard-disclaimer">Ilustrasi antarmuka; tidak menampilkan data atau capaian operasional aktual.</p>
             </div>
-            <p className="a2-preview-disclaimer">Ilustrasi antarmuka; bukan tampilan atau capaian data aktual.</p>
           </aside>
         </section>
 
-        <section className="a2-principle-strip" aria-label="Prinsip pengelolaan AUREKA">
-          <div><Icon name="network" size={19} /><span><strong>Terintegrasi</strong><small>Antarmodul saling terhubung</small></span></div>
-          <div><Icon name="shield" size={19} /><span><strong>Berbasis kewenangan</strong><small>Akses mengikuti role dan unit</small></span></div>
-          <div><Icon name="clipboard" size={19} /><span><strong>Dapat ditelusuri</strong><small>Aktivitas dan tindak lanjut tercatat</small></span></div>
-        </section>
 
         <section className="a2-section a2-platform-section" id="platform" aria-labelledby="a2-platform-title">
           <SectionHeading
@@ -496,7 +551,7 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
             </details>
             <details>
               <summary>Bagaimana cara memperoleh akun?</summary>
-              <p>Gunakan tombol Daftar akun unit. Aktivasi dan pemberian kewenangan tetap mengikuti proses administrasi Komite PMKP atau pengelola yang berwenang.</p>
+              <p>Gunakan tautan pendaftaran yang tersedia pada form autentikasi. Aktivasi dan pemberian kewenangan tetap mengikuti proses administrasi Komite PMKP atau pengelola yang berwenang.</p>
             </details>
             <details>
               <summary>Apakah seluruh fitur sudah tersedia?</summary>
@@ -506,18 +561,6 @@ export default function PublicLandingPage({ logoSrc, onLogin, onSignup }: Landin
         </section>
       </div>
 
-      <section className="a2-final-cta" aria-labelledby="a2-final-cta-title">
-        <div className="a2-container a2-final-cta-inner">
-          <div>
-            <p className="a2-eyebrow">AUREKA · UPT RSUD SSMA</p>
-            <h2 id="a2-final-cta-title">Bangun perbaikan mutu dalam satu alur kerja.</h2>
-            <p>Masuk ke workspace untuk melanjutkan tugas sesuai akun dan kewenangan Anda.</p>
-          </div>
-          <button type="button" className="a2-button a2-button-white" onClick={openLogin}>
-            Masuk ke AUREKA <Icon name="arrow" size={17} />
-          </button>
-        </div>
-      </section>
 
       <footer className="a2-footer">
         <div className="a2-container a2-footer-main">

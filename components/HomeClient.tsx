@@ -695,6 +695,5 @@ export default function HomeClient(){
  return <PublicLandingPage
   logoSrc={LOGO}
   onLogin={()=>{setMessage('');setAuthMode('normal');setView('login')}}
-  onSignup={()=>{setMessage('');setSignupDone(false);setAuthMode('normal');setView('signup')}}
  />
 }

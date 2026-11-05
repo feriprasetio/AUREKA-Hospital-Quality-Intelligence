@@ -12,12 +12,52 @@ test('landing page exposes the seven registered AUREKA work areas', () => {
   }
 })
 
-test('landing page connects login and unit registration to existing auth callbacks', () => {
+test('landing page exposes one workspace login action and keeps registration inside the login form', () => {
   assert.match(component, /onLogin: \(\) => void/)
-  assert.match(component, /onSignup: \(\) => void/)
+  assert.match(component, /Masuk Workspace/)
   assert.match(component, /onClick=\{openLogin\}/)
-  assert.match(component, /onClick=\{openSignup\}/)
+  assert.doesNotMatch(component, /onSignup|openSignup|Daftar akun unit|Jelajahi modul|Masuk ke workspace/)
   assert.match(homeClient, /<PublicLandingPage[\s\S]*onLogin=/)
+  assert.doesNotMatch(homeClient.slice(homeClient.lastIndexOf(' return <PublicLandingPage')), /onSignup=/)
+  assert.match(homeClient, /if\(view==='login'\|\|view==='signup'\)/)
+  assert.match(homeClient, /authSwitch/)
+  assert.match(homeClient, /setView\(l\?'signup':'login'\)/)
+})
+
+test('hero uses the approved Alkadrie unification headline and compact focus chips', () => {
+  assert.match(component, /Alkadrie[\s\S]*Unifikasi Risiko,[\s\S]*Evaluasi Kualitas,[\s\S]*dan Asesmen/)
+  assert.match(component, /Evaluasi kualitas/)
+  assert.match(component, /Keselamatan pasien/)
+  assert.match(component, /Unifikasi risiko/)
+  assert.doesNotMatch(component, /Mutu terukur|Keselamatan terjaga/)
+})
+
+test('right-side dashboard preview has a layered risk matrix and structured overview', () => {
+  for (const selector of [
+    'a2-hero-showcase',
+    'a2-risk-backplate',
+    'MATRIKS RISIKO 5×5',
+    'a2-dashboard-card',
+    'a2-dashboard-metrics',
+    'a2-dashboard-trend',
+    'a2-dashboard-unit-list',
+    'a2-dashboard-priorities',
+  ]) {
+    assert.ok(component.includes(selector), `Missing dashboard preview element: ${selector}`)
+  }
+  assert.match(component, /Ilustrasi antarmuka; tidak menampilkan data atau capaian operasional aktual/)
+  assert.match(component, /Belum ada data/)
+  assert.doesNotMatch(component, /72\s*%|1\.248|83,8\s*%|80,7\s*%/)
+  assert.match(stylesheet, /\.a2-dashboard-card/)
+  assert.match(stylesheet, /\.a2-risk-matrix-grid/)
+  assert.match(stylesheet, /@media \(max-width: 640px\)/)
+})
+
+test('landing page keeps a single primary workspace CTA in the top navigation', () => {
+  assert.match(component, /a2-header-actions/)
+  assert.match(component, /Masuk Workspace/)
+  assert.doesNotMatch(component, /a2-hero-actions|a2-final-cta|a2-mobile-actions/)
+  assert.doesNotMatch(component, /Daftar akun unit/)
 })
 
 test('public transparency never invents operational values', () => {
@@ -60,7 +100,6 @@ test('all aria-labelledby targets and the skip-link destination exist', () => {
     'a2-governance-title',
     'a2-transparency-title',
     'a2-faq-title',
-    'a2-final-cta-title',
   ]) {
     assert.ok(component.includes(`id="${id}"`) || component.includes(`id={"${id}"}`), `Missing target id: ${id}`)
   }
