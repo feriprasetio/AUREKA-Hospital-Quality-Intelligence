@@ -208,12 +208,16 @@ test('flags conflicting source codes and duplicate master labels without guessin
   assert.equal(ambiguous?.code, null)
 })
 
-test('keeps free-text drug and distinct linen source fields outside formal indicator mapping', () => {
+test('keeps linen, free-text drug, and unsigned Dengue source fields outside formal indicator mapping', () => {
   assert.deepEqual(
     PEDIATRIC_SOURCE_ONLY_FIELDS.map(item => [item.code, item.header, item.mappingStatus]),
     [
       ['22.4', 'Kekosongan Linen', 'source_semantics_not_mapped'],
       ['22.5', 'Kekosongan Obat', 'free_text_source_not_mapped'],
+      ['22.9', 'Demam 2–7H + Trombositopenia + ↑Ht', 'clinical_definition_pending_source_only'],
+      ['22.10', 'DR ≥1×/Hari', 'clinical_definition_pending_source_only'],
+      ['22.11', 'Kristaloid ≥500 cc/8J', 'clinical_definition_pending_source_only'],
+      ['22.12', 'Tidak DSS', 'clinical_definition_pending_source_only'],
     ],
   )
 })
