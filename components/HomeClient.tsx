@@ -9,6 +9,7 @@ import {type SupabaseClient} from '@supabase/supabase-js'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
+import PublicLandingPage from '@/components/PublicLandingPage'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 const CommandPalette=dynamic(()=>import('@/components/CommandPalette'),{ssr:false})
 const workspaceChunkLoading=(label:string)=><AsyncStatePanel state="loading" title={`Memuat ${label}`} description="Menyiapkan ruang kerja." compact/>
@@ -58,7 +59,7 @@ async function rooms(){const {data,error}=await sb.from('master_rooms').select('
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[publicDashboardOpen,setPublicDashboardOpen]=useState(false),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const mobileSidebar=useAccessibleSidebar()
  const [closedNav,setClosedNav]=useState<string[]>([])
  const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
@@ -691,143 +692,9 @@ export default function HomeClient(){
   </div>
  </section>
 </main>
- return <main className="publicRoot landing publicLandingRedesign">
-  <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
-  <header className="topbar glassPanel landingTopbar">
-   <a className="brand landingBrand" href="/AUREKA-Hospital-Quality-Intelligence/" aria-label="AUREKA beranda">
-    {logo()}<span><b>AUREKA</b><small>Hospital Quality Intelligence</small></span>
-   </a>
-   <div className="landingTopActions">
-    <button type="button" className="landingGhost" onClick={()=>{setMessage('');setSignupDone(false);setView('signup')}}>Daftar akun unit</button>
-    <button type="button" className="landingCta" onClick={()=>{setMessage('');setView('login')}}>Masuk Workspace <span aria-hidden="true">→</span></button>
-   </div>
-  </header>
-
-  <section className="heroPublic landingHero">
-   <div className="heroCopy">
-    <div className="landingBadge"><span className="landingPulse" aria-hidden="true"/>UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP</div>
-    <h1>AUREKA<br/><em>Mutu terukur. Keselamatan terjaga.</em></h1>
-    <p>Platform Hospital Quality Intelligence untuk mengintegrasikan pemantauan indikator mutu, keselamatan pasien, dan manajemen risiko rumah sakit dalam satu workspace yang terstruktur.</p>
-    <div className="landingActions">
-     <button type="button" className="landingCta big" onClick={()=>{setMessage('');setView('login')}}>Masuk ke Workspace <span aria-hidden="true">→</span></button>
-     <button type="button" className="landingGhost big" onClick={()=>{setPublicDashboardOpen(true);document.getElementById("transparansi-capaian")?.scrollIntoView({behavior:"smooth",block:"start"})}}>Lihat transparansi publik</button>
-    </div>
-    <div className="landingStats" aria-label="Area utama AUREKA">
-     <div><b>Mutu</b><span>Indikator dan hasil pengukuran</span></div>
-     <div><b>Keselamatan</b><span>Pelaporan dan pembelajaran insiden</span></div>
-     <div><b>Risiko</b><span>Identifikasi dan pengendalian</span></div>
-    </div>
-   </div>
-
-   <aside className="landingHeroVisual" aria-label="Tiga domain utama AUREKA">
-    <div className="heroVisualTop">
-     <div><span className="heroVisualKicker">HOSPITAL QUALITY INTELLIGENCE</span><strong>Integrated quality oversight</strong></div>
-     <span className="heroVisualMark">A</span>
-    </div>
-    <div className="heroVisualList">
-     <div className="heroVisualItem">
-      <span className="heroVisualIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m8 10V5m8 14v-7M2.5 19.5h19"/></svg></span>
-      <span><b>Indikator Nasional Mutu</b><small>Pengukuran, target, dan tren</small></span>
-      <span className="heroVisualArrow" aria-hidden="true">↗</span>
-     </div>
-     <div className="heroVisualItem">
-      <span className="heroVisualIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="M12 8v5m0 3h.01"/></svg></span>
-      <span><b>Keselamatan Pasien</b><small>Pelaporan dan pembelajaran insiden</small></span>
-      <span className="heroVisualArrow" aria-hidden="true">↗</span>
-     </div>
-     <div className="heroVisualItem">
-      <span className="heroVisualIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg></span>
-      <span><b>Manajemen Risiko</b><small>Register dan rencana pengendalian</small></span>
-      <span className="heroVisualArrow" aria-hidden="true">↗</span>
-     </div>
-    </div>
-    <div className="heroVisualFoot"><span className="heroVisualDot"/> Satu ekosistem kerja Komite PMKP dan unit pelayanan</div>
-   </aside>
-  </section>
-
-  <section className="publicDashboardSection" id="transparansi-capaian">
-   <div className="publicSectionIntro">
-    <div className="publicSectionCopy">
-     <span className="publicSectionEyebrow">TRANSPARANSI PUBLIK</span>
-     <h2>Transparansi capaian rumah sakit</h2>
-     <p>Ringkasan indikator mutu, laporan insiden keselamatan pasien, dan kategori risiko yang telah melalui validasi serta persetujuan publikasi.</p>
-    </div>
-    <button type="button" className="publicDashboardToggle" onClick={()=>setPublicDashboardOpen(open=>!open)} aria-expanded={publicDashboardOpen} aria-controls="aureka-public-dashboard">
-     <span>{publicDashboardOpen?'Tutup ringkasan':'Lihat capaian publik'}</span>
-     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-    </button>
-   </div>
-
-   {publicDashboardOpen&&<section className="publicDashboardPanel" id="aureka-public-dashboard" aria-label="AUREKA Public Hospital Quality Intelligence Dashboard">
-    <header className="publicDashboardHeader">
-     <div>
-      <span className="publicDashboardKicker">AUREKA · PUBLIC HOSPITAL QUALITY INTELLIGENCE</span>
-      <h3>Capaian Mutu Rumah Sakit</h3>
-      <p>UPT RSUD Sultan Syarif Mohamad Alkadrie</p>
-     </div>
-     <span className="publicReadOnly"><span aria-hidden="true"/> PUBLIK · READ ONLY</span>
-    </header>
-
-    <div className="publicDashboardGrid">
-     <article className="publicMetricCard publicMetricCardWide">
-      <div className="publicMetricCardHead">
-       <span className="publicMetricNumber">01</span>
-       <div className="publicMetricTitle">
-        <span>INDIKATOR MUTU</span>
-        <h4>Indikator Nasional Mutu (INM)</h4>
-        <p>Seluruh indikator yang ditetapkan bertipe INM di AUREKA, ditampilkan pada tingkat rumah sakit.</p>
-       </div>
-       <span className="publicPeriodPill">Periode terakhir disetujui</span>
-      </div>
-      <div className="publicMetricMetaRow"><span>Capaian terbaru</span><span>Target dan satuan</span><span>Tren 12 bulan</span></div>
-      <div className="publicMetricEmpty">
-       <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9m8 10V5m8 14v-7M2.5 19.5h19"/></svg></span>
-       <div><strong>Menunggu snapshot publik yang disetujui</strong><p>Kartu setiap indikator akan muncul setelah capaian, target, periode, dan definisinya divalidasi untuk publikasi.</p></div>
-      </div>
-     </article>
-
-     <article className="publicMetricCard">
-      <div className="publicMetricCardHead">
-       <span className="publicMetricNumber">02</span>
-       <div className="publicMetricTitle">
-        <span>KESELAMATAN PASIEN</span>
-        <h4>Insiden Keselamatan Pasien</h4>
-        <p>Jumlah laporan menurut jenis insiden resmi.</p>
-       </div>
-       <span className="publicPeriodPill">YTD</span>
-      </div>
-      <div className="publicMetricEmpty compact">
-       <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="M12 8v5m0 3h.01"/></svg></span>
-       <div><strong>Belum ada data publik</strong><p>Grafik akan memuat jumlah laporan per jenis setelah snapshot disetujui dan ambang publikasi terpenuhi.</p></div>
-      </div>
-     </article>
-
-     <article className="publicMetricCard">
-      <div className="publicMetricCardHead">
-       <span className="publicMetricNumber">03</span>
-       <div className="publicMetricTitle">
-        <span>MANAJEMEN RISIKO</span>
-        <h4>Risiko Rumah Sakit</h4>
-        <p>Jumlah risiko aktif terdaftar menurut kategori risiko.</p>
-       </div>
-       <span className="publicPeriodPill">Snapshot terakhir</span>
-      </div>
-      <div className="publicMetricEmpty compact">
-       <span className="publicEmptyIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg></span>
-       <div><strong>Belum ada data publik</strong><p>Grafik akan memuat jumlah risiko aktif per kategori dari snapshot register yang disetujui.</p></div>
-      </div>
-     </article>
-    </div>
-    <footer className="publicDashboardFoot">
-     <span>Hanya agregat yang telah divalidasi dan disetujui. Data individu, kronologi insiden, lokasi unit, skor risiko, dan rincian mitigasi tidak ditampilkan.</span>
-     <span className="publicSource">Sumber: AUREKA · Komite PMKP</span>
-    </footer>
-   </section>}
-  </section>
-
-  <footer className="landingFooter">
-   <div><b>AUREKA</b><span>Hospital Quality Intelligence</span></div>
-   <p>UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite Peningkatan Mutu dan Keselamatan Pasien</p>
-  </footer>
- </main>
+ return <PublicLandingPage
+  logoSrc={LOGO}
+  onLogin={()=>{setMessage('');setAuthMode('normal');setView('login')}}
+  onSignup={()=>{setMessage('');setSignupDone(false);setAuthMode('normal');setView('signup')}}
+ />
 }
