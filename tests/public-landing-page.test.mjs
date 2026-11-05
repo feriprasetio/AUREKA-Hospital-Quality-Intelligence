@@ -48,3 +48,26 @@ test('landing styles are isolated from authenticated workspace selectors', () =>
   assert.match(stylesheet, /\.a2-landing/)
   assert.doesNotMatch(stylesheet, /\.workspaceRoot/)
 })
+
+test('all aria-labelledby targets and the skip-link destination exist', () => {
+  for (const id of [
+    'main-content',
+    'a2-hero-title',
+    'a2-platform-title',
+    'a2-modules-title',
+    'a2-capa-title',
+    'a2-workflow-title',
+    'a2-governance-title',
+    'a2-transparency-title',
+    'a2-faq-title',
+    'a2-final-cta-title',
+  ]) {
+    assert.ok(component.includes(`id="${id}"`) || component.includes(`id={"${id}"}`), `Missing target id: ${id}`)
+  }
+  assert.match(component, /href="#main-content"/)
+  assert.match(component, /aria-labelledby="a2-platform-title"/)
+  assert.match(component, /aria-labelledby="a2-modules-title"/)
+  assert.match(component, /aria-labelledby="a2-workflow-title"/)
+  assert.match(component, /aria-labelledby="a2-governance-title"/)
+  assert.match(component, /aria-labelledby="a2-transparency-title"/)
+})
