@@ -221,9 +221,11 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       code: answer.code,
       source_value: answer.sourceLabel,
       source_code: answer.sourceCode,
-      review_required: true,
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
-      classification_note: 'Kode sumber dipertahankan sebagai klasifikasi sumber; penetapan numerator/denominator harus ditelaah pemilik indikator dan Komite PMKP.',
+      classification_note: answer.mappingStatus === 'mapped'
+        ? 'Kode respons sumber dipetakan otomatis menggunakan standar universal AUREKA: 1=keberhasilan, 2=keberhasilan bersyarat, 3=kegagalan. Arah indikator menentukan interpretasi capaian.'
+        : 'Pilihan sumber belum cocok secara unik dengan Kamus Indikator dan memerlukan telaah sebelum dihitung.',
     }
     indicatorValues[item.code] = rawValue
     sourceIndicatorValues[item.code] = answer.sourceLabel
@@ -233,7 +235,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       response_code: answer.code,
       raw_value: rawValue,
       other_text: answer.sourceLabel,
-      review_status: 'pending',
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -288,7 +290,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       subject_json: { source_import: sourceImport },
       core_data: core,
       status: 'ready',
-      review_required: true,
+      review_required: responses.some(response => response.review_status === 'pending'),
       entered_by: userId,
     },
     responses,
@@ -317,7 +319,7 @@ export default function PonekExcelImportDialog({
     () => rows.reduce((sum, row) => sum + Object.keys(row.indicators).length, 0),
     [rows],
   )
-  const pendingResponses = matchedResponses
+  const pendingResponses = rows.reduce((sum, row) => sum + Object.values(row.indicators).filter(answer => answer.reviewRequired).length, 0)
   const rowsWithWarnings = useMemo(() => rows.filter(row => row.warnings.length > 0).length, [rows])
 
   const reset = () => {
@@ -463,7 +465,7 @@ export default function PonekExcelImportDialog({
           if (answer) {
             indicators[item.code] = answer
             mappedResponses++
-            if (answer.mappingStatus !== 'mapped_pending_classification') {
+            if (answer.mappingStatus !== 'mapped') {
               rowWarnings.push(item.code + ' ' + item.header + ': pilihan sumber perlu telaah (' + answer.mappingStatus + ').')
             }
           }
@@ -582,7 +584,7 @@ export default function PonekExcelImportDialog({
       if (rowErrors.length) {
         setErrorMessage('Ada baris yang tidak valid. Seluruh impor ditahan; tidak ada partial import sampai semua episode memiliki identitas dan tanggal pencatatan yang sah.')
       } else {
-        setErrorMessage('Pratinjau selesai. Empat respons indikator tetap pending menunggu klasifikasi numerator/denominator; seluruh episode berstatus Ready for Review.')
+        setErrorMessage('Pratinjau selesai. Respons berkode 1–3 yang cocok tepat dengan Kamus Indikator dipetakan otomatis; pilihan yang tidak cocok, ambigu, atau konflik tetap pending untuk telaah. Episode tetap berstatus Ready for Review.')
       }
     } catch (error) {
       setRows([])
