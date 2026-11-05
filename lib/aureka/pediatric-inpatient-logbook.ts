@@ -122,8 +122,8 @@ export function mapPediatricLogbookHeaders(headerValues: unknown[]): PediatricHe
   const missingHeaders: string[] = []
   const duplicateHeaders: string[] = []
 
-  const resolve = (key: string, aliases: string[]) => {
-    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
+  const resolve = (key: string, aliases: string[], required = true) => {
+    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? [])]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
       return
@@ -132,12 +132,12 @@ export function mapPediatricLogbookHeaders(headerValues: unknown[]): PediatricHe
       indexes[key] = matches[0]
       return
     }
-    missingHeaders.push(aliases[0])
+    if (required) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) resolve(key, aliases)
   for (const item of PEDIATRIC_SOURCE_INDICATORS) resolve('indicator:' + item.code, [item.sourceHeader])
-  for (const item of PEDIATRIC_SOURCE_ONLY_FIELDS) resolve(item.key, [item.header])
+  for (const item of PEDIATRIC_SOURCE_ONLY_FIELDS) resolve(item.key, [item.header], false)
 
   return { indexes, missingHeaders, duplicateHeaders }
 }
