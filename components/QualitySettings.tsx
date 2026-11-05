@@ -71,6 +71,8 @@ const targetApprovalReasons = (profile: Model): string[] => {
   if (String(schema.target_review_required ?? '').toLowerCase() === 'true') reasons.push('target belum disahkan')
   if (String(schema.definition_review_required ?? '').toLowerCase() === 'true') reasons.push('definisi perlu validasi pemilik indikator')
   if (String(schema.survey_scale_requires_confirmation ?? '').toLowerCase() === 'true') reasons.push('skala/perhitungan survei perlu konfirmasi')
+  if (String(schema.header_mapping_semantics_review_required ?? '').toLowerCase() === 'true') reasons.push('kecocokan makna header Excel perlu konfirmasi')
+  if (String(schema.no_unit_workbook_layout ?? '').toLowerCase() === 'true') reasons.push('layout workbook khusus unit belum tersedia')
   return reasons
 }
 
