@@ -23,8 +23,8 @@ export type PonekSourceAnswer = {
   code: number | null
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
-  mappingStatus: 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
+  reviewRequired: boolean
+  mappingStatus: 'mapped' | 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
 export const PONEK_SOURCE_INDICATORS = [
@@ -214,9 +214,16 @@ export function parsePonekSourceAnswer(
     }
   }
 
+  if (masterCode == null || ![1, 2, 3].includes(masterCode)) {
+    return {
+      label: String(option.label), code: null, sourceLabel, sourceCode,
+      reviewRequired: true, mappingStatus: 'source_code_conflict',
+    }
+  }
+
   return {
     label: String(option.label), code: masterCode, sourceLabel, sourceCode,
-    reviewRequired: true, mappingStatus: 'mapped_pending_classification',
+    reviewRequired: false, mappingStatus: 'mapped',
   }
 }
 

@@ -138,6 +138,11 @@ function findOption(profile: IndicatorProfileForResults, response: Record<string
   return matching.length === 1 ? matching[0] : null
 }
 
+function indicatorDirection(profile: IndicatorProfileForResults): 'positive' | 'negative' | null {
+  const raw = String(profile.schema_json?.indicator_direction ?? '').trim().toLowerCase()
+  return raw === 'positive' || raw === 'negative' ? raw : null
+}
+
 function extractObservation(
   profile: IndicatorProfileForResults,
   row: ResultRecord,
@@ -185,6 +190,23 @@ function extractObservation(
 
   const option = findOption(profile, response)
   if (option) {
+    // Never include unresolved source mappings in N/D. Exact PONEK options are
+    // marked "mapped" by the importer once their source label/code match the master.
+    const mappingStatus = String(response.mapping_status ?? '').trim()
+    if (response.review_required === true || (mappingStatus && mappingStatus !== 'mapped')) return null
+
+    const direction = indicatorDirection(profile)
+    if (direction) {
+      // Code 1 always represents the favorable response. For a negative indicator,
+      // the metric numerator is the observed adverse response (codes 2 and 3).
+      // For a positive indicator, the metric numerator is the favorable response (code 1).
+      const code = finiteNumber(option.code)
+      if (code == null || ![1, 2, 3].includes(code)) return null
+      const favorable = code === 1
+      const metricNumerator = direction === 'negative' ? !favorable : favorable
+      return { month, numerator: metricNumerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
+    }
+    // Backward compatibility for profiles that have not yet been assigned a direction.
     if (option.denominator === false || typeof option.numerator !== 'boolean') return null
     return { month, numerator: option.numerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
   }

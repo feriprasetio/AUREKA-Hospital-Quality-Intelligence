@@ -1,0 +1,42 @@
+name: AUREKA Regression Suite
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - fix/2026-indicator-targets-ponek-33-2
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aureka-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    name: Unit, data validation, and typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Unit regression tests
+        run: npm run test:unit
+
+      - name: AUREKA data validation
+        run: npm run test:data
+
+      - name: TypeScript validation
+        run: npm run typecheck
