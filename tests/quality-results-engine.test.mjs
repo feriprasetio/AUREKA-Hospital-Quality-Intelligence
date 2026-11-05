@@ -180,6 +180,48 @@ test('negative zero-event indicators reach a 0% target when every response is co
   assert.equal(result.targetMet, true)
 })
 
+test('unresolved PONEK source mappings are excluded from N/D until the exact code is mapped', () => {
+  const profile = {
+    id: 'p-ponek-pending',
+    room_id: 33,
+    code: '33.2',
+    title: 'Ruptur Perineum III/IV',
+    measurement_grain: 'patient_episode',
+    schema_json: { indicator_direction: 'negative' },
+    options_json: [
+      { code: 1, label: 'Aman', numerator: null, denominator: true, review_required: true },
+      { code: 2, label: 'Ruptur faktor ibu', numerator: null, denominator: true, review_required: true },
+      { code: 3, label: 'Ruptur faktor teknis', numerator: null, denominator: true, review_required: true },
+    ],
+    target_text: '0%',
+    target_operator: '=',
+    target_value: 0,
+  }
+  const rows = [
+    {
+      record_date: '2026-04-01',
+      status: 'ready',
+      core_data: { indicator_values: { '33.2': {
+        answer: 'Ruptur faktor ibu', code: 2,
+        review_required: true, mapping_status: 'mapped_pending_classification',
+      } } },
+    },
+    {
+      record_date: '2026-04-02',
+      status: 'ready',
+      core_data: { indicator_values: { '33.2': {
+        answer: 'Aman', code: 1,
+        review_required: false, mapping_status: 'mapped',
+      } } },
+    },
+  ]
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.annualNumerator, 0)
+  assert.equal(result.annualDenominator, 1)
+  assert.equal(result.annualRate, 0)
+  assert.equal(result.observations, 1)
+})
+
 test('negative event indicators honor the inclusive 1% threshold', () => {
   const profile = {
     id: 'p-blood-waste',
