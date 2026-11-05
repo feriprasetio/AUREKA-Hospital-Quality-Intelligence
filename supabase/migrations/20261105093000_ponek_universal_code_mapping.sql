@@ -417,7 +417,7 @@ BEGIN
     'skipped_existing_count', v_skipped
   );
 END;
-$function$
+$function$;
 
 REVOKE ALL ON FUNCTION aureka_quality.import_ponek_logbook_batch(jsonb) FROM PUBLIC;
 REVOKE ALL ON FUNCTION aureka_quality.import_ponek_logbook_batch(jsonb) FROM anon;
