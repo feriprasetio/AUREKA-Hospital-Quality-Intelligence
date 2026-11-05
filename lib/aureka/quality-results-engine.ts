@@ -190,6 +190,11 @@ function extractObservation(
 
   const option = findOption(profile, response)
   if (option) {
+    // Never include unresolved source mappings in N/D. Exact PONEK options are
+    // marked "mapped" by the importer once their source label/code match the master.
+    const mappingStatus = String(response.mapping_status ?? '').trim()
+    if (response.review_required === true || (mappingStatus && mappingStatus !== 'mapped')) return null
+
     const direction = indicatorDirection(profile)
     if (direction) {
       // Code 1 always represents the favorable response. For a negative indicator,
