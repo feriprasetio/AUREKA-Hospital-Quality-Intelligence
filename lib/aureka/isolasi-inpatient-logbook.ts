@@ -240,8 +240,8 @@ export function calculateIsolasiStayDays(admissionDate: string, dischargeDate: s
 
 export function makeIsolasiSubjectKey(year: number, sourceExcelRow: number): string {
   if (year !== 2026) throw new Error('Tahun profil Rawat Inap Isolasi harus 2026.')
-  if (!Number.isInteger(sourceExcelRow) || sourceExcelRow < 3 || sourceExcelRow > 5002) {
-    throw new Error('Nomor baris Excel Rawat Inap Isolasi tidak valid.')
+  if (!Number.isInteger(sourceExcelRow) || sourceExcelRow < 3 || sourceExcelRow > 5102) {
+    throw new Error('Nomor baris Excel Rawat Inap Isolasi harus berada di rentang 3–5102.')
   }
   return 'excel-pmkp-rawat-inap-isolasi-2026:row:' + sourceExcelRow
 }
