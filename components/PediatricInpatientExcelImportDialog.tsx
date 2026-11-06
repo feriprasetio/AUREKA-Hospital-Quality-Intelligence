@@ -243,11 +243,15 @@ function preparePayload(
     const rawValue = {
       answer: answer.label,
       code: answer.code,
+      numerator: answer.numerator,
+      denominator: answer.denominator,
       source_value: answer.sourceLabel,
       source_code: answer.sourceCode,
-      review_required: true,
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
-      classification_note: 'Pilihan sumber dicocokkan dengan Profil workbook; penetapan numerator/denominator tetap menunggu verifikasi pemilik indikator.',
+      classification_note: answer.reviewRequired
+        ? 'Respons sumber belum dapat diklasifikasikan unik; nilai asli dipertahankan untuk review.'
+        : 'Respons sumber dipetakan unik ke kode universal 1/2/3 sesuai arah indikator aktif.',
     }
     indicatorValues[item.code] = rawValue
     sourceIndicatorValues[item.code] = answer.sourceLabel
@@ -257,9 +261,39 @@ function preparePayload(
       response_code: answer.code,
       raw_value: rawValue,
       other_text: answer.sourceLabel,
-      review_status: 'pending',
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
+
+  const medicineName = String(row.sourceOnlyValues['22.5'] ?? '').trim()
+  const medicineProfile = profileByCode.get('22.5')
+  if (!medicineProfile?.id) throw new Error('Master indikator 22.5 Kekosongan Obat tidak tersedia untuk impor Rawat Inap Anak.')
+  const medicineAnswer = medicineName ? 'Terjadi kekosongan obat' : 'Tidak terjadi kekosongan obat'
+  const medicineCode = medicineName ? 3 : 1
+  const medicineMetric = {
+    answer: medicineAnswer,
+    code: medicineCode,
+    numerator: medicineCode === 3,
+    denominator: true,
+    free_text: medicineName,
+    source_value: medicineName || 'Tidak Adanya Kekosongan Obat (Code 1)',
+    source_code: medicineCode,
+    review_required: false,
+    mapping_status: 'mapped',
+    classification_note: medicineName
+      ? 'Nama obat sumber dicatat sebagai bukti kejadian kekosongan; code 3 masuk numerator indikator negatif.'
+      : 'Tidak ada nama obat kekosongan; code 1 tetap masuk denominator dan tidak masuk numerator.',
+  }
+  indicatorValues['22.5'] = medicineMetric
+  sourceIndicatorValues['22.5'] = medicineMetric.source_value
+  responses.push({
+    indicator_id: medicineProfile.id,
+    response_label: medicineAnswer,
+    response_code: medicineCode,
+    raw_value: medicineMetric,
+    other_text: medicineName || null,
+    review_status: 'not_required',
+  })
 
   const sourceOnlyFields = PEDIATRIC_SOURCE_ONLY_FIELDS.map(item => ({
     code: item.code,
@@ -276,7 +310,7 @@ function preparePayload(
     source_excel_no: row.sourceNo,
     dashboard_declared_count: dashboardCount,
     source_indicator_values: sourceIndicatorValues,
-    source_indicator_cells: row.sourceIndicatorCells,
+    source_indicator_cells: { ...row.sourceIndicatorCells, '22.5': String(row.sourceOnlyValues['22.5'] ?? '') },
     source_only_fields: sourceOnlyFields,
     source_cached_los: row.sourceLos,
     source_age_text: row.ageText,
@@ -542,11 +576,15 @@ export default function PediatricInpatientExcelImportDialog({
             continue
           }
           const profile = profileByCode.get(item.code)
-          const answer = parsePediatricSourceAnswer(sourceValue, profile?.options_json)
+          const answer = parsePediatricSourceAnswer(
+            sourceValue,
+            profile?.options_json,
+            String(profile?.schema_json?.indicator_direction ?? ''),
+          )
           if (answer) {
             indicators[item.code] = answer
             mappedResponsesCount++
-            if (answer.mappingStatus !== 'mapped_pending_classification') {
+            if (answer.reviewRequired) {
               unknownAnswerCells++
               rowWarnings.push(item.code + ' ' + item.header + ': nilai sumber perlu telaah (' + answer.mappingStatus + ').')
             }
