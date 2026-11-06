@@ -34,14 +34,14 @@ export default function ClinicalWorkforceWorkspace({
 
   return (
     <section className="cwWorkspace" aria-labelledby="cw-title">
-      <header className="cwHeader">
+      {showTabs ? <header className="cwHeader">
         <div className="cwEyebrow">TENAGA KLINIS · MASTER IDENTITAS & EVALUASI</div>
         <h3 className="cwTitle" id="cw-title">Tenaga Klinis</h3>
         <p className="cwDescription">
           Identitas tenaga, penugasan unit, dan penilaian OPPE/FPPE berada dalam satu ruang kerja.
           Kode identitas kanonik dipertahankan agar riwayat penilaian dan audit tetap dapat ditelusuri.
         </p>
-      </header>
+      </header> : <details className="workspaceInlineGuide"><summary>Identitas kanonik & jejak evaluasi</summary><p>Identitas tenaga, penugasan unit, dan penilaian OPPE/FPPE berada dalam satu ruang kerja. Kode identitas kanonik dipertahankan agar riwayat penilaian dan audit tetap dapat ditelusuri.</p></details>}
 
       {tabs.length > 0 ? (
         <>

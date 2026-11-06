@@ -1,4 +1,7 @@
 'use client'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -382,17 +385,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
 
   return <div className="qra">
     <style>{pageCss}</style>
-    <section className="qraHero">
-      <div>
-        <div className="qraEyebrow">AUREKA · HASIL AUDIT MUTU KLINIS</div>
-        <h2>{modeTitle(mode)}</h2>
-        <p>{mode === 'indicators'
+    <WorkspaceModuleHeader
+      className="qraHero"
+      title={modeTitle(mode)}
+      description={mode === 'indicators'
           ? 'Analisis capaian indikator per bulan, hasil kumulatif tahunan, status target, keterkinian input, dan kelengkapan data untuk satu unit kerja.'
           : mode === 'pathway'
             ? 'Analisis kelengkapan dan kepatuhan Clinical Pathway pada episode yang telah tervalidasi, dengan denominator sel yang benar-benar dijadwalkan dan dinilai.'
-            : 'Analisis hasil telaah klinis dan kematian. Distribusi serta median skor hanya dihitung dari telaah tervalidasi; data pasien tidak ditampilkan pada laporan.'}</p>
-      </div>
-      <div className="qraActions">
+            : 'Analisis hasil telaah klinis dan kematian. Distribusi serta median skor hanya dihitung dari telaah tervalidasi; data pasien tidak ditampilkan pada laporan.'}
+      actions={<div className="qraActions">
         <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms} onChange={(event) => setRoomId(normalizeRoom(event.target.value))}>
           {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
@@ -400,8 +401,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           {YEARS.map((value) => <option key={value} value={value}>{value}</option>)}
         </select></label>
         <button type="button" className="qraBtn" disabled={loading} onClick={() => setReload((value) => value + 1)}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button>
-      </div>
-    </section>
+      </div>}
+    />
 
     {error && <div className="qraError" role="alert">{error}</div>}
     {capped && <div className="qraInfo" role="status">Daftar dibatasi 10.000 catatan. Ringkasan ini hanya mencakup data yang terbaca; periksa rentang tahun atau unit bila diperlukan.</div>}
@@ -421,7 +422,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3><p>Setiap persentase rasio menggunakan Σ numerator ÷ Σ denominator; bukan rerata sederhana antarbaris atau antarb ulan.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
               {indicatorResults.length === 0
                 ? <EmptyState title="Belum ada indikator aktif" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
-                : <div className="qraTableWrap"><table className="qraTable qraIndicatorTable">
+                : <WorkspaceTableViewport label="Hasil capaian mutu" className="qraTableWrap"><table className="qraTable qraIndicatorTable">
                   <thead><tr><th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{indicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
@@ -431,7 +432,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <td>{formatDateTime(result.latestInputAt)}</td>
                     <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small></td>
                   </tr>)}</tbody>
-                </table></div>}
+                </table></WorkspaceTableViewport>}
               <div className="qraNotice">Capaian mutu unit merupakan proporsi indikator yang targetnya dapat dinilai dan memenuhi target, bukan rata-rata persentase indikator yang berbeda definisi. Data Ready for Review tetap ditampilkan sebagai antrean peninjauan dan tidak masuk perhitungan capaian resmi; hanya catatan tervalidasi yang dihitung sebagai hasil. Untuk rasio, capaian tahunan menggunakan penggabungan numerator dan denominator. Untuk durasi/nilai kontinu, ditampilkan rerata dan proporsi observasi yang memenuhi target.</div>
             </section>
           </>
@@ -458,9 +459,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 <div className="qraPanelHead"><div><h3>Hasil menurut Clinical Pathway</h3><p>Rekap per template; denominator kepatuhan mengecualikan sel N/A dan sel yang tidak dijadwalkan.</p></div></div>
                 {pathwayTemplates.length === 0
                   ? <EmptyState title="Belum ada template dengan catatan audit" detail="Daftar akan terbentuk otomatis berdasarkan template yang dipakai pada audit." />
-                  : <div className="qraTableWrap"><table className="qraTable"><thead><tr><th>Clinical Pathway</th><th>Jumlah audit</th><th>Tervalidasi</th><th>Keterisian tertimbang</th><th>Kepatuhan tertimbang</th><th>Rata-rata per episode</th><th>Episode memenuhi target</th><th>Bagian D lulus</th></tr></thead><tbody>{pathwayTemplates.map((item) => <tr key={item.code}>
+                  : <WorkspaceTableViewport label="Hasil capaian mutu · 2" className="qraTableWrap"><table className="qraTable"><thead><tr><th>Clinical Pathway</th><th>Jumlah audit</th><th>Tervalidasi</th><th>Keterisian tertimbang</th><th>Kepatuhan tertimbang</th><th>Rata-rata per episode</th><th>Episode memenuhi target</th><th>Bagian D lulus</th></tr></thead><tbody>{pathwayTemplates.map((item) => <tr key={item.code}>
                     <td><strong>{item.name}</strong><small>{item.code}</small></td><td>{formatCount(item.result.totalRecords)}</td><td>{formatCount(item.result.validatedRecords)}</td><td>{formatPct(item.result.completionPct)}</td><td>{formatPct(item.result.compliancePct)}</td><td>{formatPct(item.result.meanEpisodeCompliancePct)}</td><td>{formatPct(item.result.episodeTargetMetPct)}</td><td>{formatPct(item.result.sectionDPassPct)}</td>
-                  </tr>)}</tbody></table></div>}
+                  </tr>)}</tbody></table></WorkspaceTableViewport>}
               </section>
               <section className="qraPanel"><div className="qraPanelHead"><div><h3>Alur review data</h3><p>Audit tercatat seluruh status; capaian hanya dari status tervalidasi.</p></div></div><div className="qraStatusGrid">
                 <div className="qraStatusBox"><span>Tervalidasi</span><strong>{pathway.statusCounts.validated}</strong></div>

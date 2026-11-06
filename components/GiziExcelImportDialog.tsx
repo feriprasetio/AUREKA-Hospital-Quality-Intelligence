@@ -1,4 +1,6 @@
 'use client'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+
 
 import { useCallback, useMemo, useState } from 'react'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
@@ -266,6 +268,8 @@ export default function GiziExcelImportDialog({
     reset()
     onClose()
   }
+  const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
+
 
   const parseWorkbook = async (selectedFile: File) => {
     setFile(selectedFile)
@@ -528,7 +532,7 @@ export default function GiziExcelImportDialog({
 
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
-      <section className="aqDrawer aqGiziImport" role="dialog" aria-modal="true" aria-labelledby="aqGiziImportTitle">
+      <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqGiziImport" role="dialog" aria-modal="true" aria-labelledby="aqGiziImportTitle">
         <style>{'.aqGiziImport .aqBody{display:grid;align-content:start;gap:12px}.aqGiziImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqGiziImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqGiziImport .ciUpload input{width:100%;font-size:12px}.aqGiziImport .ciStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.aqGiziImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqGiziImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqGiziImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqGiziImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqGiziImport .ciError{background:#fff0ef;color:#8b2822}.aqGiziImport .ciSuccess{background:#eaf8ef;color:#206443}.aqGiziImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqGiziImport .ciTable{overflow:auto;max-height:310px;border:1px solid var(--line);border-radius:11px}.aqGiziImport table{width:100%;border-collapse:collapse;font-size:10px}.aqGiziImport th,.aqGiziImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqGiziImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqGiziImport td.ciWrap{white-space:normal;min-width:190px;max-width:360px;overflow-wrap:anywhere}.aqGiziImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}.aqGiziImport .ciCode{font-size:9px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}.aqGiziImport .ciPreviewName{white-space:nowrap}@media(max-width:800px){.aqGiziImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
         <div className="aqDHead">
           <div>

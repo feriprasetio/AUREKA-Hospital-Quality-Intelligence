@@ -1,4 +1,5 @@
 'use client'
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -519,10 +520,12 @@ export default function FppeEvaluationWorkspace({
   return (
     <section className="fppeWorkspace">
       <style>{CSS}</style>
-      <div className="fppePanel fppeHeader">
-        <div><div className="fppeEyebrow">AUREKA · FOCUSED PROFESSIONAL PRACTICE EVALUATION</div><h3>Evaluasi Praktik Profesional Terfokus (FPPE)</h3><p>FPPE terintegrasi di dalam Kontainer Audit OPPE. Identitas tenaga mengikuti Metadata dan roster Tim Tenaga Kerja. Pengajuan memerlukan validasi oleh akun yang berbeda dari pembuat.</p></div>
-        <div className="fppeHeaderActions"><button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}>＋ FPPE baru</button></div>
-      </div>
+      <WorkspaceModuleHeader
+        className="fppeHeader"
+        title="Evaluasi terfokus (FPPE)"
+        description="FPPE terintegrasi di dalam Kontainer Audit OPPE. Identitas tenaga mengikuti Metadata dan roster Tim Tenaga Kerja. Pengajuan memerlukan validasi oleh akun yang berbeda dari pembuat."
+        actions={<div className="fppeHeaderActions"><button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}>＋ FPPE baru</button></div>}
+      />
       {error && <div className="fppeAlert fppeError" role="alert">{error}</div>}
       {notice && <div className="fppeAlert fppeSuccess" role="status" aria-live="polite">{notice}</div>}
       <div className="fppePanel fppeToolbar">

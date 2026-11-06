@@ -1,4 +1,7 @@
 'use client'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -258,6 +261,7 @@ export default function PatientSafetyWorkspace({
   focus,
   initialTab = 'overview',
   showTabs = true,
+  onTabChange,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -267,11 +271,13 @@ export default function PatientSafetyWorkspace({
   focus?: SafetyFocus | null
   initialTab?: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'
   showTabs?: boolean
+  onTabChange?: (tab: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses') => void
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_patient_safety'), [supabase])
   const qualityDb = useMemo(() => (supabase as any).schema('aureka_quality'), [supabase])
   const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>(initialTab)
   useEffect(() => { setTab(initialTab) }, [initialTab])
+  useEffect(() => { onTabChange?.(tab) }, [tab, onTabChange])
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
   const [responses, setResponses] = useState<CultureResponse[]>([])
@@ -843,24 +849,25 @@ export default function PatientSafetyWorkspace({
 
   return <div className="ps">
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
-    <LiquidGlass className="psHead">
-      <div className="content">
-        <div className="psEyebrow">AUREKA · PATIENT SAFETY INTELLIGENCE</div>
-        <h3>Keselamatan Pasien</h3>
-        <p>Pelaporan IKP, investigasi dan pembelajaran insiden, serta pemetaan budaya keselamatan dan kesejahteraan staf dalam satu workspace.</p>
-      </div>
-      <div className="psActions content">
+    <WorkspaceModuleHeader
+      className="psHead"
+      title="Alur kerja keselamatan pasien"
+      description="Pelaporan IKP, investigasi dan pembelajaran insiden, serta pemetaan budaya keselamatan dan kesejahteraan staf dalam satu workspace."
+      actions={<div className="psActions">
         <span className="psPill green">{canManageWorkflow ? 'Workflow Manager' : 'PIC Workspace'}</span>
         <button type="button" className="psBtn" disabled={loading} onClick={() => void loadData()}>{loading ? 'Memuat…' : '↻ Refresh'}</button>
-      </div>
-    </LiquidGlass>
+      </div>}
+    />
 
+    <details className="workspaceSummary" open={tab === 'overview' ? true : undefined}>
+      <summary><b>Ringkasan keselamatan</b><span>{incidents.length} laporan · {openInvestigations.length} investigasi aktif</span></summary>
     <div className="psKpis">
       <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong><small>Record yang dapat Anda akses</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Belum Closed</span><strong>{incidents.filter(row => row.status !== 'closed').length}</strong><small>Perlu pemantauan</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Investigasi Aktif</span><strong>{openInvestigations.length}</strong><small>RCA belum closed</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{isSuperAdmin ? responses.length : '—'}</strong><small>{isSuperAdmin ? 'Rekapan dari Supabase' : 'Data agregat terbatas pada Superadmin'}</small></LiquidGlass>
     </div>
+    </details>
 
     {showTabs && <div className="psTabs glass">
           {([
@@ -893,13 +900,13 @@ export default function PatientSafetyWorkspace({
       </LiquidGlass>
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Insiden Terbaru</h4><p>Daftar mengikuti hak akses Supabase; identitas korban tidak ditampilkan di tabel ringkasan.</p></div><button type="button" className="psBtn" onClick={() => setTab('incidents')}>Lihat Semua</button></div>
-        {incidents.length ? <div className="psTableWrap"><table className="psTable"><thead><tr><th>Kode IKP</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
+        {incidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode IKP</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
           {incidents.slice(0, 12).map(row => <tr key={row.id}>
             <td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '—'}</td><td>{row.unit_name || '—'}</td>
             <td>{row.incident_type || '—'}</td><td>{row.summary || '—'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td>
             <td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td>
           </tr>)}
-        </tbody></table></div> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Periksa migration dan izin Supabase.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Periksa migration dan izin Supabase.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
       </LiquidGlass>
     </> : null}
 
@@ -912,9 +919,9 @@ export default function PatientSafetyWorkspace({
           <div className="psFilter"><label>Unit</label><select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
           <div className="psFilter"><label>Data tersedia</label><div className="psPill green">{incidents.length} record</div></div>
         </div>
-        {filteredIncidents.length ? <div className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
+        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '—'}</td><td>{row.unit_name || '—'}</td><td>{row.incident_type || '—'}</td><td>{row.summary || '—'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
-        </tbody></table></div> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
       </LiquidGlass>
       {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'} onClose={() => closeForm()}>
       <div className="psModalTop">
@@ -984,9 +991,9 @@ export default function PatientSafetyWorkspace({
       </LiquidGlass>
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Register Investigasi</h4><p>Daftar disaring oleh kebijakan akses Supabase.</p></div><span className="psPill">{investigations.length} record</span></div>
-        {investigations.length ? <div className="psTableWrap"><table className="psTable"><thead><tr><th>Kode RCA</th><th>Insiden</th><th>Status</th><th>Diubah</th><th></th></tr></thead><tbody>
+        {investigations.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 3" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode RCA</th><th>Insiden</th><th>Status</th><th>Diubah</th><th></th></tr></thead><tbody>
           {investigations.map(row => <tr key={row.id}><td><span className="psCode">{row.investigation_code}</span></td><td>{incidents.find(item => item.id === row.incident_id)?.incident_code || 'Insiden terkait'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td>{new Date(row.updated_at).toLocaleDateString('id-ID')}</td><td><button type="button" className="psBtn" onClick={() => { setInvestigationIncidentId(row.incident_id); setTab('investigation') }}>Buka</button></td></tr>)}
-        </tbody></table></div> : <div className="psEmpty">Belum ada investigasi yang dapat ditampilkan.</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">Belum ada investigasi yang dapat ditampilkan.</div>}
       </LiquidGlass>
     </> : null}
 
@@ -1069,9 +1076,9 @@ export default function PatientSafetyWorkspace({
         </div>
       </LiquidGlass>
       <LiquidGlass className="psPanel">
-        {responseRows.length ? <div className="psTableWrap"><table className="psTable"><thead><tr><th>Response ID</th><th>Waktu Submit</th><th>Periode</th><th>Unit</th><th>Profesi</th><th>Shift</th><th>Item</th><th>E1</th><th>D1</th></tr></thead><tbody>
+        {responseRows.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 4" className="psTableWrap"><table className="psTable"><thead><tr><th>Response ID</th><th>Waktu Submit</th><th>Periode</th><th>Unit</th><th>Profesi</th><th>Shift</th><th>Item</th><th>E1</th><th>D1</th></tr></thead><tbody>
           {responseRows.map(row => <tr key={row.response_id}><td><span className="psCode">{row.response_code}</span></td><td>{new Date(row.submitted_at).toLocaleString('id-ID')}</td><td>{row.survey_period}</td><td>{row.unit_name}</td><td>{row.profession_group}</td><td>{row.shift_pattern || '—'}</td><td>{row.answered_item_count}</td><td>{row.answers?.E1 || '—'}</td><td>{row.answers?.D1 || '—'}</td></tr>)}
-        </tbody></table></div> : <div className="psEmpty">Belum ada respons yang cocok dengan filter.</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">Belum ada respons yang cocok dengan filter.</div>}
         <div className="psAlert" style={{ marginTop: 12 }}>Rekapan Excel berisi dua sheet: ringkasan per respons dan jawaban per item. Tidak ada kolom akun, email, atau user ID responden.</div>
       </LiquidGlass>
     </> : null}

@@ -45,7 +45,6 @@ function NavIcon({id}:{id:string}){
  if(id==='analytics')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-8"/><path d="M3 19.5h18"/></svg>
  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 13.7 5l2.3-.2.9 2.1 2 1.2-.7 2.2 1.1 2-1.5 1.8.2 2.3-2.1.9-1.2 2-2.2-.7-2 1.1-1.8-1.5-2.3.2-.9-2.1-2-1.2.7-2.2-1.1-2 1.5-1.8-.2-2.3 2.1-.9 1.2-2 2.2.7 2-1.1Z"/><circle cx="12" cy="12" r="3"/></svg>
 }
-const CHILD:any={quality:['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'],safety:['Insiden Keselamatan Pasien','Investigasi / Root Cause Analysis (RCA)','Survey Budaya Keselamatan Pasien'],risk:['Risk Register','RTP','FMEA / HFMEA'],staff:['Direktori Tenaga','Tim & Penugasan','OPPE / FPPE'],analytics:['Dashboard Statistik','Kelengkapan Data','Ekspor Agregat','Laporan Individu'],settings:['Pengguna & Role','Unit','Kamus Indikator / CP','Versi Aturan','Konfigurasi']}
 type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
 type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'
 type StaffWorkspaceArea='directory'|'team'|'oppe'
@@ -92,8 +91,16 @@ export default function HomeClient(){
     return
    }
    const routes:Record<string,string>={'ringkasan':'home','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','analitik-laporan':'analytics','administrasi':'settings'}
-   let next=routes[path]||'home'
-   if(next==='analytics'&&!MANAGER_ROLES.includes(role||''))next='home'
+   const [modulePath,section]=path.split('/')
+   let next=routes[modulePath]||'home'
+   if(next!=='home'&&!AUREKA_PRIMARY_NAV.some(module=>module.id===next&&module.requiredRoles.includes((role||'') as AurekaRole)))next='home'
+   if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
+   if(next==='risk')setRiskTab((['overview','register','mitigation','connections','fmea'].includes(section)?section:'overview') as RiskWorkspaceTab)
+   if(next==='staff'){
+    const available=role==='ADMIN'?['directory','team','oppe']:['PMKP','PIC','VALIDATOR'].includes(role||'')?['team','oppe']:['oppe']
+    setStaffArea((available.includes(section)?section:available[0]) as StaffWorkspaceArea)
+   }
+   if(next==='analytics')setAnalyticsTab((role==='ADMIN'&&['metadata','staff'].includes(section)?section:'statistics') as AnalyticsWorkspaceTab)
    setActive(next)
    setQualityOpen(false)
    setClinicalPathwayOpen(false)
@@ -115,9 +122,11 @@ export default function HomeClient(){
   }else{
    const routes:Record<string,string>={home:'#ringkasan',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',staff:'#tenaga-klinis',analytics:'#analitik-laporan',settings:'#administrasi'}
    hash=routes[active]||'#ringkasan'
+   const section=active==='safety'?safetyTab:active==='risk'?riskTab:active==='staff'?staffArea:active==='analytics'?analyticsTab:null
+   if(section)hash+='/'+section
   }
   if(window.location.hash!==hash)window.location.hash=hash
- },[view,routeReady,active,qualityOpen,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView])
+ },[view,routeReady,active,qualityOpen,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,staffArea,analyticsTab])
 
  const resolveLoginEmail=async(input:string)=>{const v=input.trim();if(!v)throw new Error('Isi username atau email.');if(v.includes('@'))return v;const {data,error}=await sb.rpc('aureka_login_email',{p_username:v});if(error){if(error.code==='PGRST202'||/Could not find the function|schema cache/i.test(error.message))throw new Error('Login dengan username belum aktif. Silakan masuk memakai email.');throw error}if(!data)throw new Error('Username tidak ditemukan. Periksa ejaan atau masuk memakai email.');return String(data)}
  const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return toUserFacingError(e,{fallback:'Autentikasi belum berhasil. Periksa informasi akun, lalu coba lagi.'})}
@@ -197,6 +206,8 @@ export default function HomeClient(){
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,staffArea,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
+ const contextNavigation=sidebarChildGroups[active]??[]
+ const moduleLabel=active==='home'?'Ringkasan':visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
  const openMainModule=(id:string,keepMenuOpen=false)=>{
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
   setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id)
@@ -246,6 +257,18 @@ export default function HomeClient(){
   if(typeof window==='undefined'||view!=='workspace')return
   window.dispatchEvent(new CustomEvent('aureka:workspace-search',{detail:{query:globalSearch,module:active,container:currentContainer}}))
  },[globalSearch,active,currentContainer,view])
+ useEffect(()=>{
+  if(!notificationHistoryOpen&&!supportOpen)return
+  const dismiss=(event:KeyboardEvent|PointerEvent)=>{
+   if(event instanceof KeyboardEvent){
+    if(event.key!=='Escape')return
+   }else if(event.target instanceof Element&&event.target.closest('.workspaceNotificationPanel,.workspaceSupportPanel,[data-workspace-popover-trigger]'))return
+   setNotificationHistoryOpen(false);setSupportOpen(false)
+  }
+  document.addEventListener('keydown',dismiss)
+  document.addEventListener('pointerdown',dismiss)
+  return()=>{document.removeEventListener('keydown',dismiss);document.removeEventListener('pointerdown',dismiss)}
+ },[notificationHistoryOpen,supportOpen])
 
  useEffect(()=>{
   if(typeof window==='undefined'||view!=='workspace'||!globalSearch.trim()){
@@ -614,18 +637,16 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="solid-white" data-density={density} className={'workspaceRoot '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
+ if(view==='workspace')return <main data-aureka-theme="solid-white" data-density={density} className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
+ <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
   <div className="sideHeader">
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
+   <button type="button" className="workspaceDrawerClose" aria-label="Tutup menu navigasi" onClick={mobileSidebar.close}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
   </div>
-  <button type="button" className="sideProfile" title="Buka profil" onClick={()=>{openMainModule('settings');setProfileFocus(Date.now())}}>
-   <span className="sideProfileAvatar">{initials(profile?.full_name||user?.email)}</span>
-   <span className="sideProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
-  </button>
   <div className="sidebarDiscovery">
-   <label className="sidebarSearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg><input type="search" aria-label="Cari menu workspace" placeholder="Cari menu…" value={navigationQuery} onChange={e=>setNavigationQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();setNavigationQuery('')}}}/></label>
+   <label className="sidebarSearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg><input data-sidebar-autofocus type="search" aria-label="Cari menu workspace" placeholder="Cari menu…" value={navigationQuery} onChange={e=>setNavigationQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&navigationQuery){e.preventDefault();e.stopPropagation();setNavigationQuery('')}}}/></label>
    {navigationQuery&&<button type="button" className="sidebarSearchReset" aria-label="Hapus pencarian menu" onClick={()=>setNavigationQuery('')}>×</button>}
   </div>
   <div className="navLabel">{navigationQuery?'Hasil pencarian':'Menu utama'}</div>
@@ -659,6 +680,10 @@ export default function HomeClient(){
    </div>})}
   </nav>
   <div className="sidebarFooter">
+   <button type="button" className="sideProfile" title="Buka profil" onClick={()=>{openMainModule('settings');setProfileFocus(Date.now())}}>
+    <span className="sideProfileAvatar">{initials(profile?.full_name||user?.email)}</span>
+    <span className="sideProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
+   </button>
    <LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton>
   </div>
  </aside>
@@ -670,12 +695,21 @@ export default function HomeClient(){
     <span>{currentContainer}</span>
    </div>
 
-   <div className="workspaceGlobalSearch">
+   <div className="workspaceGlobalSearch" onKeyDown={event=>{
+    if(event.key==='Escape'){event.preventDefault();dispatchWorkspaceSearch('');document.getElementById('workspaceGlobalSearchInput')?.focus();return}
+    if(!['ArrowDown','ArrowUp'].includes(event.key))return
+    const options=Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="option"]'))
+    if(!options.length)return
+    const index=options.indexOf(event.target as HTMLButtonElement)
+    if(index<0&&!(event.target instanceof HTMLInputElement))return
+    event.preventDefault()
+    options[event.key==='ArrowDown'?(index+1)%options.length:index<0?options.length-1:(index+options.length-1)%options.length].focus()
+   }}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
-    <input id="workspaceGlobalSearchInput" type="search" value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder="Cari data dalam modul ini…" aria-label="Cari catatan atau data yang sudah diinput"/>
+    <input id="workspaceGlobalSearchInput" type="search" role="combobox" aria-autocomplete="list" aria-expanded={Boolean(globalSearch.trim())} aria-controls={globalSearch.trim()?'workspace-search-results':undefined} value={globalSearch} onChange={e=>dispatchWorkspaceSearch(e.target.value)} placeholder="Cari data dalam modul ini…" aria-label="Cari catatan atau data yang sudah diinput"/>
     {globalSearch?<button type="button" className="workspaceSearchClear" onClick={()=>dispatchWorkspaceSearch('')} aria-label="Hapus pencarian">×</button>:null}
-    {globalSearch.trim()&&<div className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
-     <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResults.length?searchResults.length+' hasil':'Mencari…'}</span></div>
+    {globalSearch.trim()&&<div id="workspace-search-results" className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
+     <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResultsQuery===globalSearch.trim()?searchResults.length+' hasil':'Mencari…'}</span></div>
      {searchResults.length?searchResults.map((result,index)=><button type="button" role="option" aria-selected="false" key={index+'-'+result.text} onClick={()=>jumpToSearchResult(result)}>
       <span className="workspaceSearchResultTag">{result.tag}</span><span>{result.text}</span><span className="workspaceSearchResultArrow" aria-hidden="true">↗</span>
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
@@ -685,10 +719,10 @@ export default function HomeClient(){
    <button type="button" className="workspaceHeaderIcon workspaceFullscreenButton" title="Layar penuh" aria-label="Aktifkan atau keluar dari layar penuh" onClick={()=>{if(typeof document==='undefined')return;if(document.fullscreenElement){void document.exitFullscreen().catch(()=>undefined)}else if(document.documentElement.requestFullscreen){void document.documentElement.requestFullscreen().catch(()=>undefined)}}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
    </button>
-   <button type="button" className="workspaceHeaderIcon" title="Riwayat notifikasi" aria-label="Riwayat notifikasi" aria-expanded={notificationHistoryOpen} onClick={()=>{setNotificationHistoryOpen(v=>!v);setSupportOpen(false)}}>
+   <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="notifications" title="Riwayat notifikasi" aria-label="Riwayat notifikasi" aria-expanded={notificationHistoryOpen} onClick={()=>{setNotificationHistoryOpen(v=>!v);setSupportOpen(false)}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>{notifications.length>0&&<span className="workspaceHeaderBadge">{notifications.length>9?'9+':notifications.length}</span>}
    </button>
-   <button type="button" className="workspaceHeaderIcon" title="Chat Super Admin" aria-label="Chat Super Admin" aria-expanded={supportOpen} onClick={openSupportChat}>
+   <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="support" title="Chat Super Admin" aria-label="Chat Super Admin" aria-expanded={supportOpen} onClick={openSupportChat}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.9 8.9 0 0 1-4-.95L3 21l1.95-5.5a8.9 8.9 0 0 1-.95-4A8.5 8.5 0 0 1 12.5 3H13a8.5 8.5 0 0 1 8 8.5Z"/><path d="M8 10h8M8 14h5"/></svg>
    </button>
 
@@ -729,16 +763,23 @@ export default function HomeClient(){
    </form>
   </section>}
   <div className="workspacePageHead">
-   <div className="workspacePageIntro"><span className="workspacePageEyebrow">AUREKA WORKSPACE</span><h1>{active==='home'?'Ringkasan':currentContainer.split(' · ')[0]}</h1><p>{({home:'Gambaran yang jelas untuk menentukan langkah berikutnya.',quality:'Catat, tinjau, dan evaluasi mutu pelayanan secara terstruktur.',safety:'Laporkan, pelajari, dan tindak lanjuti untuk pelayanan yang lebih aman.',risk:'Kenali prioritas risiko dan pantau efektivitas pengendaliannya.',staff:'Kelola identitas, penugasan, dan pengembangan tenaga klinis.',analytics:'Ubah data yang tervalidasi menjadi informasi yang bermakna.',settings:'Kelola akun, unit kerja, dan konfigurasi sesuai kewenangan.'} as Record<string,string>)[active]}</p></div>
-   <button type="button" className="workspaceDensityToggle" aria-label="Tampilan ringkas" aria-pressed={density==='compact'} title={density==='compact'?'Beralih ke tampilan nyaman':'Beralih ke tampilan ringkas'} onClick={()=>setDensity(value=>value==='compact'?'comfortable':'compact')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h12"/></svg><span>{density==='compact'?'Ringkas':'Nyaman'}</span></button>
+   <div className="workspacePageIntro">
    <nav className="workspaceCrumbs" aria-label="Breadcrumb">
     <button type="button" onClick={()=>openMainModule('home')} aria-label="Ringkasan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
     {active!=='home'&&<><span aria-hidden="true">/</span><span>{active==='settings'?'Administrasi':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
     {active!=='home'&&active!=='settings'&&<><span aria-hidden="true">/</span><b>{currentContainer.split(' · ')[0]}</b></>}
     {active==='home'&&<><span aria-hidden="true">/</span><b>Dashboard</b></>}
    </nav>
+    <h1>{active==='home'?'Ringkasan':currentContainer.split(' · ')[0]}</h1>
+    <p>{({home:'Gambaran yang jelas tentang prioritas dan kinerja.',quality:'Pencatatan, pemeriksaan, dan evaluasi mutu pelayanan.',safety:'Pelaporan, pembelajaran, dan tindak lanjut keselamatan pasien.',risk:'Prioritas risiko dan efektivitas pengendalian.',staff:'Identitas, penugasan, dan evaluasi tenaga klinis.',analytics:'Statistik dan laporan sesuai ruang lingkup akses.',settings:'Akun, unit kerja, dan konfigurasi sesuai kewenangan.'} as Record<string,string>)[active]}</p>
+   </div>
+   <button type="button" className="workspaceDensityToggle" aria-label="Tampilan ringkas" aria-pressed={density==='compact'} title={density==='compact'?'Beralih ke tampilan nyaman':'Beralih ke tampilan ringkas'} onClick={()=>setDensity(value=>value==='compact'?'comfortable':'compact')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h12"/></svg><span>{density==='compact'?'Ringkas':'Nyaman'}</span></button>
   </div>
-  <div key={active+'-'+qualityOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
+  {contextNavigation.length>0&&<div className="workspaceContextBar">
+   <nav className="workspaceContextNav" aria-label={'Bagian '+moduleLabel}>
+    {contextNavigation.map(child=><button type="button" key={child.id} aria-current={selectedSidebarChild(active)===child.id?'page':undefined} onClick={()=>selectSidebarChild(active,child.id)}>{child.label}</button>)}
+   </nav>
+   <label className="workspaceContextSelect"><span>Bagian {moduleLabel}</span><select aria-label={'Pilih bagian '+moduleLabel} value={selectedSidebarChild(active)} onChange={event=>selectSidebarChild(active,event.target.value)}>{contextNavigation.map(child=><option key={child.id} value={child.id}>{child.label}</option>)}</select></label>
    {active==='quality'&&<nav className="qualityWorkspaceTabs" aria-label="Tampilan audit mutu">
     <button type="button" className={!qualityResultsView?'active':''} aria-pressed={!qualityResultsView} onClick={()=>{
      const mode=selectedQualityMode
@@ -755,17 +796,19 @@ export default function HomeClient(){
      setQualityInitialContainer(mode==='clinical-death'?'Audit Klinis dan Kematian':'Audit Indikator Mutu')
     }}>Hasil Capaian</button>
    </nav>}
+  </div>}
+  <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<OverviewDashboard supabase={sb} role={role} roomId={room?.id??null} roomName={room?.name??null} manager={manager} userName={profile?.full_name||user?.email||'Pengguna'} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView} mode={qualityResultsView} initialRoomId={room?.id??null} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'}/>
-   :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>selectSidebarChild('quality','logbook-pathway')}/>
+   :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>openMainModule('quality')}/>
    :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={qualityInitialContainer} initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} initialContainer={qualityInitialContainer} showContainerTabs={false}/>
    :active==='quality'?<QualityHub onOpen={()=>selectSidebarChild('quality','indicators')} onOpenClinicalPathway={()=>selectSidebarChild('quality','clinical-pathway')} onOpenClinicalDeathReview={()=>selectSidebarChild('quality','clinical-death')}/>
-   :active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false}/>
-   :active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false}/>
+   :active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab}/>
+   :active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab}/>
    :active==='staff'?<ClinicalWorkforceWorkspace rooms={roomsList} initialRoomId={room?.id??null} role={role} isSuperAdmin={admin} initialArea={staffArea} showTabs={false}/>
    :active==='analytics'&&manager?<MetadataStatisticsWorkspace supabase={sb} rooms={roomsList} isSuperAdmin={admin} initialContainer={analyticsTab} showTabs={false}/>
    :active==='settings'?<GeneralSettings key={profileFocus} openProfile={profileFocus>0} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
-   :<div className="placeholderGrid">{(CHILD[active]||[]).map((x:string)=><LiquidGlass key={x} className="placeholderCard"><b>{x}</b><span>Container modul siap dikembangkan.</span></LiquidGlass>)}</div>}
+   :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
   </div>
  </section>
 </main>

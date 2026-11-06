@@ -1,4 +1,7 @@
 'use client'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -123,16 +126,14 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
 
   return (
     <div className="ovRoot">
-      <section className="ovHero">
-        <div>
-          <span className="ovEyebrow">MODUL 04 · METADATA & STATISTIK</span>
-          <h3>Analisis data AUREKA</h3>
-          <p>Kamus data, kelengkapan pengisian, distribusi, dan statistik deskriptif dari data operasional setiap modul. Ekspor mengikuti filter aktif.</p>
-        </div>
-        <div className="ovHeroMeta">
+      <WorkspaceModuleHeader
+        className="ovHero"
+        title="Analisis data operasional"
+        description="Kamus data, kelengkapan pengisian, distribusi, dan statistik deskriptif dari data operasional setiap modul. Ekspor mengikuti filter aktif."
+        actions={<div className="ovHeroMeta">
           <button type="button" className="ovRefresh" onClick={exportCsv} disabled={loading || !filtered.length}>⇩ Ekspor CSV ({fmt(filtered.length)} baris)</button>
-        </div>
-      </section>
+        </div>}
+      />
 
       <div className="stFilters">
         <label>Dataset<select value={datasetId} onChange={e => setDatasetId(e.target.value)}>{DATASETS.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}</select></label>
@@ -176,7 +177,7 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
         <section className="ovPanel" style={{ marginTop: 14 }}>
           <header className="ovPanelHead"><div><span className="ovEyebrow">KAMUS DATA</span><h4>Variabel & kelengkapan pengisian</h4></div></header>
           {loading ? <div className="ovSkeletonBlock" /> :
-            <div className="stTableWrap"><table className="stTable">
+            <WorkspaceTableViewport label="Data statistik operasional" className="stTableWrap"><table className="stTable">
               <thead><tr><th>Variabel</th><th>Tipe</th><th>Terisi</th><th>Kelengkapan</th><th>Nilai unik</th></tr></thead>
               <tbody>{dictionary.map(d => (
                 <tr key={d.name}>
@@ -186,7 +187,7 @@ export default function StatisticsWorkspace({ supabase, rooms }: { supabase: Sup
                 </tr>))}
                 {!dictionary.length && <tr><td colSpan={5} className="stEmpty">Belum ada data pada dataset ini.</td></tr>}
               </tbody>
-            </table></div>}
+            </table></WorkspaceTableViewport>}
         </section>
       </>}
     </div>

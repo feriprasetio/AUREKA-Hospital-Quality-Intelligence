@@ -1,4 +1,6 @@
 'use client'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+
 
 import { useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -327,6 +329,8 @@ export default function IcuExcelImportDialog({
     reset()
     onClose()
   }
+  const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
+
 
   const parseWorkbook = async (selectedFile: File) => {
     setFile(selectedFile)
@@ -561,7 +565,7 @@ export default function IcuExcelImportDialog({
   if (!open) return null
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
-    <section className="aqDrawer aqWide aqIcuImport" role="dialog" aria-modal="true" aria-labelledby="aqIcuImportTitle">
+    <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqIcuImport" role="dialog" aria-modal="true" aria-labelledby="aqIcuImportTitle">
       <style>{'.aqIcuImport .aqBody{display:grid;align-content:start;gap:12px}.aqIcuImport .iiBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqIcuImport .iiError{background:#fff1f0;color:#8b2822}.aqIcuImport .iiWarn{background:#fff8e8;color:#795c26}.aqIcuImport .iiSuccess{background:#ebf8ef;color:#1e6544}.aqIcuImport .iiTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqIcuImport table{width:100%;border-collapse:collapse;font-size:10px}.aqIcuImport th,.aqIcuImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqIcuImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqIcuImport .iiStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqIcuImport .iiStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqIcuImport .iiStat span{display:block;color:#65736b;font-size:9px}.aqIcuImport .iiStat strong{display:block;font-size:17px;margin-top:4px}.aqIcuImport .iiFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqIcuImport .iiProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqIcuImport .iiProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqIcuImport .iiTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqIcuImport .iiTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqIcuImport .iiStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqIcuImport .iiFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>

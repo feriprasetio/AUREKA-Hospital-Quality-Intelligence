@@ -4,6 +4,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+
+function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' }) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true">
+    {kind === 'lock' ? <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" /></>
+      : kind === 'profile' ? <><circle cx="12" cy="8" r="3.2" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></>
+      : kind === 'unit' ? <><path d="M4 21V4h16v17M9 21v-5h6v5M8 8h2m4 0h2M8 12h2m4 0h2M2 21h20" /></>
+      : kind === 'users' ? <><circle cx="9" cy="8" r="3" /><path d="M3 21v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 4v2" /></>
+      : kind === 'data' ? <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V2h6v2M9 10h6M9 14h6M9 18h3" /></>
+      : <><path d="m12 3 2 2 3-.1.7 2.7 2.3 1.8-1.2 2.6.4 2.9-2.6 1.3-1.5 2.5-2.8-.6-2.8.6L8 16.2l-2.6-1.3.4-2.9-1.2-2.6L7 7.6 7.7 5l3 .1L12 3Z" /><circle cx="12" cy="11.5" r="3" /></>}
+  </svg>
+}
 
 const sb = aurekaSupabase
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/AUREKA-Hospital-Quality-Intelligence'
@@ -481,7 +493,7 @@ export default function GeneralSettings({
   const roleLabel = friendlyRole(roleMeta) !== '—' ? friendlyRole(roleMeta) : effectiveRole === 'ADMIN' ? 'Super Admin' : (role || '—')
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
+    <div className="settingsWorkspace" style={{ display: 'grid', gap: 14 }}>
       {msg && (
         <div className={`aurToast ${msgIsError ? 'error' : 'ok'}`} role={msgIsError ? 'alert' : 'status'} aria-live={msgIsError ? 'assertive' : 'polite'}>
           <span className="aurToastIcon" aria-hidden="true">{msgIsError ? '!' : '✓'}</span>
@@ -490,43 +502,39 @@ export default function GeneralSettings({
         </div>
       )}
       {section === 'menu' && (
-        <LiquidGlass style={{ padding: 18 }}>
-          <div className="eyebrow">PENGATURAN</div>
-          <h3 style={{ margin: '5px 0 4px', fontSize: 26, letterSpacing: '-.04em' }}>Pengaturan AUREKA</h3>
-          <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11, lineHeight: 1.65 }}>
-            Konfigurasi umum aplikasi berada di sini. Konfigurasi domain mutu, clinical pathway, klinis & kematian,
-            dan OPPE tetap dikelola di kontainer modul masing-masing.
-          </p>
+        <LiquidGlass className="settingsHome" style={{ padding: 18 }}>
+          <WorkspaceModuleHeader title="Pusat administrasi" description="Konfigurasi umum aplikasi berada di sini. Konfigurasi domain mutu, clinical pathway, klinis & kematian, dan OPPE tetap dikelola di kontainer modul masing-masing." />
+          <p className="settingsScopeNote">Pilih area pengaturan. Konfigurasi klinis tetap dikelola di modulnya masing-masing.</p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12, marginTop: 16 }}>
+          <div className="settingsDestinations">
             <button
               type="button"
-              className="placeholderCard glassPanel"
+              className="settingsDestination"
               onClick={() => setSection('general')}
               style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}
             >
-              <span style={{ fontSize: 28 }}>⚙️</span>
+              <span className="settingsDestinationIcon"><SettingsIcon kind="settings" /></span>
               <b style={{ display: 'block', marginTop: 8 }}>Pengaturan Umum</b>
               <span>Profil akun, akses, unit, preferensi tampilan, dan keamanan.</span>
             </button>
 
-            <button type="button" className="placeholderCard glassPanel" onClick={() => { setSection('general'); setTab('security') }} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
-              <span style={{ fontSize: 28 }}>🔒</span>
+            <button type="button" className="settingsDestination" onClick={() => { setSection('general'); setTab('security') }} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+              <span className="settingsDestinationIcon"><SettingsIcon kind="lock" /></span>
               <b style={{ display: 'block', marginTop: 8 }}>Keamanan & Password</b>
               <span>Ganti password akun dan lihat informasi sesi login.</span>
             </button>
 
             {!isAdmin && (
-              <button type="button" className="placeholderCard glassPanel" onClick={() => setSection('mydata')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
-                <span style={{ fontSize: 28 }}>📋</span>
+              <button type="button" className="settingsDestination" onClick={() => setSection('mydata')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+                <span className="settingsDestinationIcon"><SettingsIcon kind="data" /></span>
                 <b style={{ display: 'block', marginTop: 8 }}>Data Saya untuk PMKP</b>
                 <span>Ringkasan data unit yang Anda laporkan, kewajiban PIC, dan kontak Komite PMKP.</span>
               </button>
             )}
 
             {isAdmin && (
-              <button type="button" className="placeholderCard glassPanel" onClick={() => setSection('users')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
-                <span style={{ fontSize: 28 }}>👥</span>
+              <button type="button" className="settingsDestination" onClick={() => setSection('users')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
+                <span className="settingsDestinationIcon"><SettingsIcon kind="users" /></span>
                 <b style={{ display: 'block', marginTop: 8 }}>Manajemen User / PIC Pelaporan</b>
                 <span>Kelola profil, role, unit utama, aktivasi, dan penghapusan akun pengguna.</span>
               </button>
@@ -573,19 +581,29 @@ export default function GeneralSettings({
 
             <div className="settingsTabs" role="tablist" aria-label="Bagian pengaturan">
               {([
-                ['profile', 'Akun & Akses', '👤', 'Nama, role, unit'],
-                ['units', 'Unit & Instalasi', '🏥', 'Daftar unit kerja'],
-                ['security', 'Keamanan & Password', '🔒', 'Ganti password'],
+                ['profile', 'Akun & Akses', 'profile', 'Nama, role, unit'],
+                ['units', 'Unit & Instalasi', 'unit', 'Daftar unit kerja'],
+                ['security', 'Keamanan & Password', 'lock', 'Ganti password'],
               ] as const).filter(([key]) => isAdmin || key !== 'units').map(([key, label, icon, hint]) => (
                 <button
                   type="button"
                   role="tab"
                   aria-selected={tab === key}
+                  id={'settings-tab-' + key}
+                  aria-controls={tab === key ? 'settings-active-panel' : undefined}
+                  tabIndex={tab === key ? 0 : -1}
                   key={key}
                   className={tab === key ? 'settingsTab active' : 'settingsTab'}
                   onClick={() => setTab(key)}
+                  onKeyDown={event => {
+                    const buttons = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])
+                    const index = buttons.indexOf(event.currentTarget)
+                    const next = event.key === 'ArrowRight' ? (index + 1) % buttons.length : event.key === 'ArrowLeft' ? (index + buttons.length - 1) % buttons.length : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : -1
+                    if (next < 0) return
+                    event.preventDefault(); buttons[next].click(); buttons[next].focus()
+                  }}
                 >
-                  <span className="settingsTabIcon" aria-hidden="true">{icon}</span>
+                  <span className="settingsTabIcon"><SettingsIcon kind={icon} /></span>
                   <span className="settingsTabText"><b>{label}</b><small>{hint}</small></span>
                 </button>
               ))}
@@ -593,6 +611,7 @@ export default function GeneralSettings({
           </LiquidGlass>
 
 
+          <div id="settings-active-panel" role="tabpanel" aria-labelledby={'settings-tab-' + tab} tabIndex={0} className="settingsActivePanel">
           {tab === 'profile' && (
             <LiquidGlass style={{ padding: 18 }}>
               <h4 style={{ margin: '0 0 12px' }}>Akun & Akses</h4>
@@ -731,7 +750,7 @@ export default function GeneralSettings({
                   ['Session', 'Persistent session + automatic refresh'],
                   ['Authorization', `Role-based access · ${roleLabel}`],
                   ['Password', 'Dikelola oleh Supabase Auth, bukan disimpan di halaman Pengaturan.'],
-                  ['Tema tampilan', 'Diatur melalui kontrol Light / AMOLED pada sidebar.'],
+                  ['Kepadatan tampilan', 'Gunakan tombol Nyaman / Ringkas di atas area kerja.'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>
                     <b style={{ fontSize: 10 }}>{label}</b>
@@ -741,6 +760,7 @@ export default function GeneralSettings({
               </div>
             </LiquidGlass>
           )}
+          </div>
         </>
       )}
 
@@ -862,7 +882,7 @@ export default function GeneralSettings({
                     <div className="userActions">
                     <button type="button" className={detailId === u.user_id ? 'uBtn outline active' : 'uBtn outline'} aria-expanded={detailId === u.user_id}
                       title="Lihat & ubah data akun, reset password" onClick={() => openDetail(u)}>
-                      <span aria-hidden="true">👤</span> {detailId === u.user_id ? 'Tutup detail' : 'Detail'}
+                        {detailId === u.user_id ? 'Tutup detail' : 'Detail'}
                     </button>
                     {!u.is_active ? (
                       <button type="button" className="uBtn primary" disabled={busy || (!u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
@@ -885,7 +905,7 @@ export default function GeneralSettings({
                       </span>
                     ) : (
                       <button type="button" className="uBtn danger" disabled={busy} title="Hapus akun (hanya untuk akun yang belum memiliki data)" onClick={() => { setConfirmDeleteId(u.user_id); setRowNote(null) }}>
-                        <span aria-hidden="true">🗑</span> Hapus
+                        Hapus
                       </button>
                     ))}
                     </div>
@@ -917,7 +937,7 @@ export default function GeneralSettings({
                         <label className="userDetailCheck"><input type="checkbox" checked={detailIdent.verify} onChange={(e) => setDetailIdent({ ...detailIdent, verify: e.target.checked })} /> Kirim email verifikasi bila email diganti (disarankan)</label>
                         <div className="userDetailInline" style={{ marginTop: 8 }}>
                           <button type="button" className="uBtn primary" disabled={busy || ((detailIdent.username.trim() || '') === (u.username || '') && detailIdent.email.trim().toLowerCase() === (u.email || '').toLowerCase())} onClick={() => saveIdentity(u)}>Simpan username & email</button>
-                          <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => resendVerification(u)}>✉️ Kirim ulang verifikasi</button>
+                          <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => resendVerification(u)}>Kirim ulang verifikasi</button>
                         </div>
                         <p className="userDetailHint">Unit dan role diubah lewat pilihan di baris atas. User login memakai username atau email.</p>
                       </div>
@@ -926,10 +946,10 @@ export default function GeneralSettings({
                         <p className="userDetailHint" style={{ marginTop: 0 }}><b>Cara 1 — Password sementara.</b> Buat password baru, lalu sampaikan ke user (WA/langsung). Akun dan datanya tetap utuh.</p>
                         <div className="userDetailInline">
                           <input aria-label={`Password sementara untuk ${u.full_name || u.email || 'pengguna'}`} placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
-                          <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">🎲 Buat acak</button>
+                          <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">Buat acak</button>
                         </div>
                         <button type="button" className="uBtn primary" style={{ marginTop: 8 }} disabled={busy || tempPw.trim().length < 12} onClick={() => setUserPassword(u)}>
-                          {busy ? 'Menyimpan…' : '🔑 Setel password sementara'}
+                          {busy ? 'Menyimpan…' : 'Setel password sementara'}
                         </button>
                         {tempPwDone?.id === u.user_id && (
                           <div className="userTempPw">
@@ -939,7 +959,7 @@ export default function GeneralSettings({
                           </div>
                         )}
                         <p className="userDetailHint"><b>Cara 2 — Email reset.</b> User menerima tautan di email untuk membuat password sendiri.</p>
-                        <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => sendResetEmail(u)}>✉️ Kirim email reset password</button>
+                        <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => sendResetEmail(u)}>Kirim email reset password</button>
                       </div>
                     </div>
                   )}

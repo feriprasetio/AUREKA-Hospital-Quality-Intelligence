@@ -1,0 +1,641 @@
+/*
+ * Authenticated workbench. The explicit workspaceDesk boundary keeps the public
+ * site unchanged and gives legacy module styles one predictable integration layer.
+ */
+html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] {
+  --desk-ink: #203b34;
+  --desk-muted: #65766b;
+  --desk-line: #dfe7e2;
+  --desk-soft: #f4f7f5;
+  --desk-brand: #17634d;
+  --desk-brand-dark: #104d3b;
+  --desk-pad: 16px;
+  --desk-cell-y: 10px;
+  --aureka-color-primary: var(--desk-brand);
+  --aureka-color-border: var(--desk-line);
+  --aureka-color-foreground: var(--desk-ink);
+  --aureka-color-muted: var(--desk-muted);
+  --accent: var(--desk-brand);
+  --accent2: var(--desk-brand-dark);
+  --muted: var(--desk-muted);
+  --line: var(--desk-line);
+  display: grid !important;
+  grid-template-columns: 224px minmax(0, 1fr) !important;
+  min-height: 100dvh !important;
+  height: auto !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: visible !important;
+  background: #f5f7f6 !important;
+  color: var(--desk-ink) !important;
+  font-family: "Segoe UI", Arial, sans-serif !important;
+  font-size: 12px;
+}
+
+html[data-theme] .workspaceRoot.workspaceDesk[data-density="compact"] {
+  --desk-pad: 12px;
+  --desk-cell-y: 6px;
+}
+html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme][data-density] .moduleEnter td { padding-block: var(--desk-cell-y) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme][data-density] .moduleEnter :is(.ovPanel,.psPanel,.rmPanel,.cpPanel,.oppePanel,.sdPanel,.stPanel,.mswPanel,.qraPanel,.fppePanel,.acdPanel) { padding: var(--desk-pad) !important; }
+
+/* App frame: one document scroll, a persistent rail, no nested page-height caps. */
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContent {
+  display: block !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100dvh !important;
+  max-height: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  background: #f5f7f6 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar {
+  position: sticky !important;
+  inset: 0 auto auto 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 224px !important;
+  min-width: 0 !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  padding: 0 10px 10px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--desk-line) !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sideHeader {
+  min-height: 68px !important;
+  margin: 0 3px !important;
+  padding: 13px 8px !important;
+  border-bottom: 1px solid #edf1ee !important;
+  background: #fff !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand { gap: 10px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand .brandLogoWrap {
+  width: 34px !important; height: 34px !important; flex: 0 0 34px !important;
+  border-radius: 9px !important; background: #e7f0eb !important; border-color: #dfe9e2 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand b {
+  font-size: 17px !important; letter-spacing: .1em !important; color: #194b3c !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand small {
+  font-size: 8px !important; line-height: 1.5 !important; color: #74867e !important; margin-top: 4px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarDiscovery { margin: 16px 3px 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarSearch {
+  border-color: #e4eae6 !important; border-radius: 6px !important; background: #f7f9f7 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarSearch input {
+  height: 33px !important; min-height: 33px !important; font-size: 11px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .navLabel {
+  margin: 19px 10px 8px !important; font-size: 9px !important; color: #82938b !important;
+  letter-spacing: .1em !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNav {
+  display: flex !important; flex-direction: column !important; flex: 1 1 auto !important;
+  gap: 4px !important; padding: 0 !important; margin: 0 !important; overflow-y: auto !important;
+  scrollbar-width: thin !important; scrollbar-color: #dbe4de transparent !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNav[hidden] { display: none !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button {
+  min-height: 39px !important; padding: 9px 10px !important; gap: 11px !important;
+  border-radius: 6px !important; font-size: 11.5px !important; color: #586f64 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button > svg {
+  width: 17px !important; height: 17px !important; flex: 0 0 17px !important; stroke-width: 1.5 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebar .sidebarNavGroup > button > span:not(.sidebarChevron) {
+  min-width: 0 !important; font-size: inherit !important; font-weight: inherit !important;
+  line-height: 1.4 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button.navActive {
+  background: #eaf2ed !important; color: #17553f !important; font-weight: 650 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button:hover:not(.navActive) {
+  background: #f5f8f5 !important; color: #284f3b !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarTreeChildren {
+  margin: 4px 0 6px 17px !important; padding: 2px 0 2px 12px !important;
+  border-left: 1px solid #e1e9e3 !important; gap: 2px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarChild {
+  min-height: 32px !important; padding: 7px 8px !important; gap: 7px !important; font-size: 10.5px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarChild.active {
+  background: #f0f5f0 !important; color: #17634d !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarChildMark {
+  width: 4px !important; height: 4px !important; flex: 0 0 4px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter {
+  display: grid !important; gap: 7px !important; margin-top: auto !important;
+  padding: 10px 3px 0 !important; border-top-color: #e8ede9 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sideProfile {
+  display: flex !important; align-items: center !important; gap: 9px !important;
+  width: 100% !important; min-height: 44px !important; margin: 0 !important; padding: 7px !important;
+  border: 1px solid #e9eeea !important; border-radius: 6px !important; background: #fafbf9 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sideProfileAvatar {
+  width: 28px !important; height: 28px !important; flex: 0 0 28px !important;
+  border-radius: 7px !important; font-size: 9px !important; background: #e5eee7 !important; color: #3d6246 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sideProfileText b { font-size: 10px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sideProfileText small { font-size: 9px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter > .liquidButton { width: 100% !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter > .liquidButton button {
+  min-height: 32px !important; justify-content: flex-start !important;
+  padding: 6px 9px !important; border-color: transparent !important; background: transparent !important;
+  color: #6a7d71 !important; font-size: 10px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed { grid-template-columns: 64px minmax(0, 1fr) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebar { width: 64px !important; padding-inline: 7px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sideHeader { margin-inline: 0 !important; padding-inline: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebarNav { padding-top: 17px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebarFooter { padding-inline: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebarFooter .sideProfile { justify-content: center !important; padding-inline: 0 !important; }
+
+/* A low, stable utility bar, followed by a single page heading. */
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar {
+  position: sticky !important; top: 0 !important; z-index: 35 !important;
+  min-height: 60px !important; padding: 10px 22px !important; margin: 0 !important;
+  gap: 10px !important; border: 0 !important; border-bottom: 1px solid var(--desk-line) !important;
+  border-radius: 0 !important; background: #fff !important; box-shadow: none !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceSidebarMenuButton,
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon,
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar > .commandPaletteTrigger {
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important;
+  flex: 0 0 34px !important; padding: 7px !important; border: 1px solid transparent !important;
+  border-radius: 6px !important; color: #6c8077 !important; background: transparent !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceSidebarMenuButton { border-color: #e2e9e4 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon:hover,
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar > .commandPaletteTrigger:hover { background: #f0f5f1 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext { flex: 0 1 235px !important; min-width: 110px !important; gap: 3px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext strong { font-size: 11px !important; font-weight: 650 !important; color: #355548 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext span { font-size: 9px !important; color: #8a998e !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch {
+  flex: 1 1 260px !important; min-width: 100px !important; max-width: 430px !important;
+  min-height: 34px !important; margin-left: auto !important; padding-inline: 11px !important;
+  border: 1px solid #e7ece8 !important; border-radius: 6px !important; background: #f7f9f7 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch input { font-size: 11px !important; height: 32px !important; min-height: 32px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { flex: 0 0 auto !important; gap: 8px !important; padding-left: 10px !important; border-left: 1px solid #e9ede8 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderAvatar { width: 30px !important; height: 30px !important; font-size: 9px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfileText { max-width: 128px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfileText b { font-size: 10px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfileText small { font-size: 8px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead {
+  display: flex !important; flex-direction: row !important; align-items: center !important;
+  flex-wrap: nowrap !important; gap: 16px !important; margin: 0 !important; padding: 19px 24px 14px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspacePageIntro { min-width: 0 !important; flex: 1 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead h1 {
+  margin: 6px 0 0 !important; font-size: 24px !important; font-weight: 650 !important;
+  color: #203f33 !important; letter-spacing: -.035em !important; line-height: 1.25 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspacePageIntro p {
+  margin: 5px 0 0 !important; color: #7b8b80 !important; font-size: 11px !important; line-height: 1.6 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs {
+  display: flex !important; align-items: center !important; gap: 7px !important;
+  width: auto !important; padding: 0 !important; margin: 0 !important;
+  font-size: 9px !important; line-height: 1.3 !important; color: #809184 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs b { color: #5c7866 !important; font-weight: 500 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs button { padding: 0 !important; min-height: 14px !important; height: 14px !important; width: 14px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs svg { width: 12px !important; height: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceDensityToggle {
+  align-self: center !important; margin: 0 !important; min-height: 31px !important;
+  padding: 6px 9px !important; border-color: #dfe7e0 !important; font-size: 10px !important; color: #647e69 !important;
+}
+.workspaceSkipLink { position: fixed; top: -100px; left: 12px; z-index: 2000; padding: 12px 16px; border: 1px solid #17634d; border-radius: 6px; background: #fff; color: #17634d; }
+.workspaceSkipLink:focus { top: 10px; }
+.workspaceDrawerClose { display: none; }
+.workspaceClinicalDisclaimer { margin: 0; padding: 10px 13px; border: 1px solid #e1e7d8; border-left: 3px solid #97ad77; border-radius: 5px; background: #f7f9f0; color: #788764; font-size: 10px; line-height: 1.7; }
+.workspaceInlineGuide { margin: 0; color: #7b8d70; font-size: 10px; line-height: 1.7; }
+.workspaceInlineGuide summary { cursor: pointer; }
+.workspaceInlineGuide p { margin: 6px 0 0; }
+.workspaceFeedback { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 11px 14px; border: 1px solid #d9e5ce; border-radius: 6px; background: #f2f7eb; color: #577344; font-size: 11px; line-height: 1.7; }
+.workspaceFeedback[role="alert"] { border-color: #e9d3c7; background: #fff8f2; color: #95664d; }
+.workspaceFeedback button { flex: 0 0 24px; width: 24px; height: 24px; padding: 0; border: 0; background: transparent; color: inherit; font-size: 18px; }
+
+/* Administration is an actual destination list, not a grid of placeholder cards. */
+.settingsWorkspace { min-width: 0; }
+html[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace .liquidGlass {
+  min-width: 0 !important; padding: var(--desk-pad) !important; border: 1px solid #e0e7dc !important;
+  border-radius: 8px !important; background: #fff !important; box-shadow: none !important;
+}
+.settingsDestinations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 15px; }
+html[data-theme] .workspaceRoot.workspaceDesk .settingsDestination {
+  display: grid; grid-template-columns: 35px minmax(0, 1fr); column-gap: 12px; row-gap: 4px; min-width: 0;
+  padding: 18px !important; border: 1px solid #dfe7d8 !important; border-radius: 7px; background: #fafcf7;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .settingsDestination:hover { background: #f0f6e8; border-color: #bccfb0 !important; }
+.settingsDestinationIcon { display: grid; place-items: center; grid-row: 1 / 3; width: 35px; height: 35px; background: #ecf3e3; border: 1px solid #e0e9d5; border-radius: 8px; color: #6a8a50; }
+.settingsDestinationIcon svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+html[data-theme] .workspaceRoot.workspaceDesk .settingsDestination > b { display: block; margin: 0 !important; color: #436937; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.settingsDestination > span:last-child { grid-column: 2; font-size: 11px; line-height: 1.7; color: #7c906c; }
+.settingsScopeNote { margin: 12px 0 0; font-size: 11px; color: #7b9069; line-height: 1.7; }
+.settingsTabIcon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.settingsActivePanel { display: grid; gap: 12px; min-width: 0; }
+html[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace :is(.userRow,.roomCard,.userDetail,.roomEditor) { border-radius: 7px !important; box-shadow: none !important; background: #fafcf7 !important; border-color: #e2e9da !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace h3 { font-size: 18px !important; font-weight: 650 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace h4 { font-size: 14px !important; font-weight: 650 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.cwWorkspace,.msw) { min-width: 0 !important; gap: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.cwPanel,.mswContent) { padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; min-width: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.mswAccessNote,.cwHint) { margin: 0 0 12px !important; padding: 10px 12px !important; border-radius: 6px !important; font-size: 10px !important; }
+
+/* Context navigation stays discoverable with a collapsed rail or a phone drawer. */
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  min-width: 0; margin: 0 24px 12px; padding-bottom: 0;
+  border-bottom: 1px solid #dce5de;
+}
+.workspaceContextNav { display: flex; align-items: stretch; gap: 21px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav > button {
+  position: relative; flex: 0 0 auto; min-height: 41px; padding: 7px 0 12px;
+  border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent;
+  color: #7a8c7d; font-size: 11px; font-weight: 500; white-space: nowrap;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav > button[aria-current="page"] {
+  color: #1b6147; border-bottom-color: #267150; font-weight: 650;
+}
+.workspaceContextSelect { display: none; }
+html[data-theme] .workspaceRoot.workspaceDesk .qualityWorkspaceTabs {
+  display: flex !important; flex: 0 0 auto !important; width: auto !important; margin: 0 0 8px !important;
+  gap: 2px !important; padding: 3px !important; border: 1px solid #dfe7df !important;
+  border-radius: 6px !important; background: #edf2ed !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .qualityWorkspaceTabs > button {
+  min-height: 28px !important; padding: 5px 10px !important; border: 1px solid transparent !important;
+  border-radius: 4px !important; font-size: 10px !important; background: transparent !important; color: #728574 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .qualityWorkspaceTabs > button.active {
+  background: #fff !important; color: #1b6047 !important; border-color: #dbe5db !important; box-shadow: 0 1px 2px #25432c08 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter {
+  display: block !important; padding: 0 24px 28px !important; margin: 0 !important;
+  min-width: 0 !important; min-height: 0 !important; height: auto !important;
+  max-height: none !important; overflow: visible !important; animation: none !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter > :is(.aq,.ps,.rm,.cpRoot,.ovRoot,.acd,.oppeRoot,.sdRoot,.stRoot,.mswRoot,.qraRoot,.cwRoot,.fppeRoot) {
+  min-width: 0 !important; gap: 12px !important; height: auto !important; max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Common operational language: compact heading, actions, optional explanation. */
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceModuleHeader {
+  position: relative !important; display: flex !important; align-items: center !important;
+  justify-content: space-between !important; flex-wrap: wrap !important; gap: 10px !important;
+  min-height: 48px !important; padding: 10px 0 !important; margin: 0 !important;
+  border: 0 !important; border-bottom: 1px solid #e2e9e1 !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; overflow: visible !important;
+}
+.workspaceModuleHeader::before, .workspaceModuleHeader::after { display: none !important; }
+.workspaceModuleHeaderCopy { min-width: 0; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceModuleHeader h2 {
+  margin: 0 !important; color: #365c44 !important; font-size: 14px !important;
+  font-weight: 650 !important; letter-spacing: -.015em !important; line-height: 1.45 !important;
+}
+.workspaceModuleEyebrow { display: block; font-size: 9px; color: #81927d; letter-spacing: .07em; margin-bottom: 3px; }
+.workspaceModuleHeaderTools, .workspaceModuleActions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.workspaceModuleGuide { position: relative; flex: 0 0 auto; }
+.workspaceModuleGuide summary { display: flex; align-items: center; gap: 5px; min-height: 30px; color: #809078; font-size: 10px; cursor: pointer; list-style: none; }
+.workspaceModuleGuide summary::-webkit-details-marker { display: none; }
+.workspaceModuleGuide svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.4; fill: none; stroke-linecap: round; }
+.workspaceModuleGuide[open] summary { color: #2b6b47; }
+.workspaceModuleGuideBody { position: absolute; z-index: 31; right: 0; top: calc(100% + 7px); width: min(340px, calc(100vw - 48px)); padding: 14px 16px; background: #fff; border: 1px solid #dbe6d7; border-radius: 8px; box-shadow: 0 12px 36px #1c38221a; font-size: 11px; color: #62775b; line-height: 1.8; }
+.workspaceSummary { border: 1px solid #e0e7dc; background: #fff; border-radius: 8px; min-width: 0; }
+.workspaceSummary > summary { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 11px 14px; font-size: 11px; color: #5a7950; cursor: pointer; }
+.workspaceSummary > summary::after { content: "+"; font-size: 14px; line-height: 1; margin-left: auto; }
+.workspaceSummary[open] > summary::after { content: "−"; }
+.workspaceSummary > summary span { font-size: 10px; color: #85947b; font-weight: 400; }
+.workspaceSummary > .psKpis { padding: 0 12px 12px; }
+
+/* Shared cards, action groups, filter fields, and forms across all modules. */
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovPanel,.psPanel,.rmPanel,.cpPanel,.oppePanel,.sdPanel,.stPanel,.mswPanel,.qraPanel,.fppePanel,.acdPanel) {
+  padding: var(--desk-pad) !important; border: 1px solid var(--desk-line) !important;
+  border-radius: 8px !important; background: #fff !important; box-shadow: none !important; min-width: 0 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.psSectionHead,.rmSectionHead,.cpSectionHead,.oppeSectionHead,.sdSectionHead,.stSectionHead,.qraSectionHead,.acdSectionHead) {
+  gap: 10px !important; margin-bottom: 12px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.psSectionHead,.rmSectionHead,.cpSectionHead,.oppeSectionHead,.sdSectionHead,.stSectionHead,.qraSectionHead,.acdSectionHead) :is(h3,h4) {
+  font-size: 14px !important; font-weight: 650 !important; line-height: 1.5 !important; margin: 0 !important; color: #345541 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.psSectionHead,.rmSectionHead,.cpSectionHead,.oppeSectionHead,.sdSectionHead,.stSectionHead,.qraSectionHead,.acdSectionHead) p {
+  margin-top: 4px !important; font-size: 10.5px !important; color: #7a8b73 !important; line-height: 1.65 !important; max-width: 740px;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovKpis,.psKpis,.rmKpis,.qraKpis,.acdKpis,.sdKpis) { gap: 10px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovKpi,.psKpi,.rmKpi,.cpKpi,.qraKpi,.acdKpi,.sdKpi,.stSummary) {
+  min-height: 0 !important; padding: 13px 15px !important; border: 1px solid var(--desk-line) !important;
+  border-radius: 7px !important; background: #fff !important; box-shadow: none !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovKpi b,.psKpi strong,.rmKpi strong,.cpKpi strong,.qraKpi strong,.acdKpi strong,.sdKpi strong) {
+  font-size: 25px !important; font-weight: 650 !important; line-height: 1.25 !important; letter-spacing: -.04em !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.aqBtn,.psBtn,.rmButton,.cpBtn,.oppeBtn,.sdBtn,.stBtn,.qraBtn,.acdBtn,.uBtn) {
+  min-height: 33px !important; padding: 6px 11px !important; border-radius: 5px !important;
+  font-size: 10.5px !important; font-weight: 600 !important; line-height: 1.5 !important; box-shadow: none !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.aqBtn,.psBtn,.rmButton,.cpBtn,.oppeBtn,.sdBtn,.stBtn,.qraBtn,.acdBtn,.uBtn).primary {
+  color: #fff !important; background: var(--desk-brand) !important; border-color: var(--desk-brand) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea) {
+  min-height: 35px !important; height: auto; padding: 7px 10px !important; border: 1px solid #d7e2d7 !important;
+  border-radius: 5px !important; background: #fff !important; font-size: 12px !important; font-weight: 400 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter textarea { min-height: 84px !important; line-height: 1.7 !important; resize: vertical; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(label,.aqLabel,.psLabel) {
+  font-size: 10.5px !important; font-weight: 550 !important; line-height: 1.5 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.aqFilters,.oppeFilters,.psFilterGrid,.rmFilterGrid,.qraFilters,.sdFilters,.stFilters,.acdFilters) {
+  padding: 12px !important; border: 1px solid #e4eadd !important; border-radius: 6px !important;
+  background: #f7f9f4 !important; gap: 10px !important; margin-bottom: 12px !important; min-width: 0 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .oppeFilterMeta {
+  min-width: 0 !important; white-space: normal !important; overflow-wrap: anywhere;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.psFormGrid,.rmFormGrid,.cpFormGrid,.oppeFormGrid,.sdFormGrid,.stFormGrid,.acdFormGrid) { gap: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.psTabs,.rmTabs,.cwTabs,.oppeTabs,.qraTabs,.settingsTabs,.mswTabs) {
+  padding: 4px !important; border-radius: 6px !important; background: #f1f5ed !important; gap: 3px !important; overflow-x: auto !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.psTabs,.rmTabs,.cwTabs,.oppeTabs,.qraTabs,.settingsTabs,.mswTabs) > button { min-height: 32px !important; font-size: 10.5px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovContextBar) { padding: 11px 14px !important; gap: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .ovScopeNote { font-size: 10px !important; line-height: 1.7 !important; margin: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .ovMatrixWrap { grid-template-columns: 16px minmax(0, 1fr) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .ovMatrix { min-width: 0 !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .ovCell { min-width: 0 !important; width: 100% !important; }
+
+/* Data regions: a single scroll owner, sticky headers, and reachable hidden columns. */
+.workspaceTableFrame { min-width: 0; max-width: 100%; border: 1px solid #e0e7dc; border-radius: 7px; background: #fff; overflow: hidden; }
+.workspaceTableHint { display: flex; align-items: center; justify-content: flex-end; gap: 9px; min-height: 28px; padding: 3px 7px 3px 12px; border-bottom: 1px solid #e9eee5; background: #fcfdfa; }
+.workspaceTableHint > span { font-size: 9px; color: #89997d; }
+.workspaceTableHint > div { display: flex; gap: 4px; }
+.workspaceTableHint button { display: grid; place-items: center; width: 24px; height: 22px; min-height: 22px; padding: 3px; border: 1px solid #e0e7d9; border-radius: 4px; background: #fff; color: #6d8760; cursor: pointer; }
+.workspaceTableHint button:disabled { opacity: .4; cursor: default; }
+.workspaceTableHint svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport {
+  position: relative !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important;
+  height: auto !important; max-height: min(64dvh, 740px) !important; overflow: auto !important;
+  overscroll-behavior-inline: contain; scrollbar-width: thin; scrollbar-color: #cbd9c5 #f7faf4;
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter table { width: 100%; border-collapse: separate !important; border-spacing: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter th {
+  position: sticky !important; top: 0 !important; z-index: 3 !important; padding: 10px 12px !important;
+  border-bottom: 1px solid #dfe7d9 !important; background: #f4f7ef !important; color: #708367 !important;
+  font-size: 10px !important; font-weight: 600 !important; letter-spacing: .01em !important; line-height: 1.5 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter td {
+  padding: var(--desk-cell-y) 12px !important; border-bottom: 1px solid #edf1e7 !important; color: #4c6547 !important;
+  font-size: 11px !important; line-height: 1.55 !important; vertical-align: middle !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter tbody tr:hover td { background: #f7faf3 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter tbody tr:focus-visible td { background: #eef5e6 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter tr:last-child td { border-bottom: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport :is(.aqBtn,.psBtn,.rmIconButton,.cpBtn,.sdBtn,.stBtn,.acdBtn) {
+  min-height: 27px !important; padding: 4px 8px !important; font-size: 10px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport tr.selected td { background: #edf5e6 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport:focus-visible { outline: 2px solid #7da572 !important; outline-offset: -2px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovEmpty,.psEmpty,.rmEmpty,.aqEmpty,.sdEmpty,.stEmpty,.qraEmpty,.acdEmpty) {
+  padding: 30px 18px !important; background: #fafcf6 !important; border-radius: 6px !important;
+  color: #809375 !important; font-size: 11px !important; line-height: 1.8 !important;
+}
+
+/* Audit logbook: filters, a compact metric strip, and one generous register. */
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqAuditWorkspace { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 10px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters { margin-bottom: 0 !important; padding: 10px 12px !important; overflow: visible !important; max-height: none !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid {
+  display: grid !important; grid-template-columns: minmax(180px, 1.4fr) 100px minmax(125px, .7fr) minmax(170px, 1fr) !important;
+  gap: 10px !important; align-items: end !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > label { display: flex !important; flex-direction: column !important; width: 100% !important; min-width: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > label:first-child { grid-column: 1 !important; grid-row: 1 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > label:nth-child(2) { grid-column: 2 !important; grid-row: 1 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > .aqMonthSelect { grid-column: 3 !important; grid-row: 1 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > .aqField.aqLocalSearch { grid-column: 4 !important; grid-row: 1 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 0 !important; border: 1px solid #dfe7d9; border-radius: 7px; background: #fff; overflow: hidden; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi .glass { min-height: 78px !important; padding: 12px 15px !important; border: 0 !important; border-right: 1px solid #e8eee0 !important; border-radius: 0 !important; background: #fff !important; box-shadow: none !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi .glass:last-child { border-right: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi strong { font-size: 23px !important; color: #35633e !important; line-height: 1.2 !important; font-weight: 650 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi span { font-size: 10px !important; color: #81916f !important; font-weight: 500 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi small { font-size: 9px !important; color: #91a083 !important; line-height: 1.5 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important;
+  gap: 7px 14px !important; margin: 0 !important; padding: 5px 0 8px !important; border: 0 !important;
+  border-bottom: 1px solid #e0e7d8 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > div { padding: 3px 8px !important; flex: 0 1 auto !important; border-right-color: #e2e9db !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > .aqRegisterTitle { display: grid !important; grid-column: 1; grid-row: 1; gap: 2px !important; margin: 0 !important; padding: 0 !important; border-right: 0 !important; }
+.aqRegisterTitle h2 { font-size: 13px; line-height: 17px; font-weight: 650; letter-spacing: -.01em; margin: 0; color: #3d6745; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > .aqRegisterTitle span { font-size: 10px !important; line-height: 14px !important; font-weight: 400 !important; color: var(--desk-muted) !important; white-space: normal !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > .aqRegisterActions {
+  display: flex !important; flex-wrap: wrap !important; align-items: center !important; justify-content: flex-end !important;
+  grid-column: 2; grid-row: 1; gap: 6px !important; padding: 0 !important; border: 0 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > .aqRegisterSummary {
+  display: flex !important; align-items: center !important; flex-wrap: wrap !important;
+  grid-column: 1 / -1; grid-row: 2; gap: 7px 0 !important; padding: 0 !important; border: 0 !important;
+}
+.aqRegisterSummary > div { display: flex; align-items: baseline; gap: 5px; padding-inline: 12px; border-right: 1px solid #e0e7d9; }
+.aqRegisterSummary > div:first-child { padding-left: 0; }
+.aqRegisterSummary > div:last-child { border-right: 0; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar .aqRegisterSummary span { font-size: 10px !important; font-weight: 400 !important; color: var(--desk-muted) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar :is(.aqImportButton,.aqAddButton) { display: inline-flex !important; align-items: center !important; gap: 6px !important; margin: 0 !important; }
+.workspaceButtonIcon { width: 13px; height: 13px; flex: 0 0 13px; stroke: currentColor; stroke-width: 1.4; fill: none; stroke-linecap: round; }
+.aqMetricsSummary > .aqComplaintKpi { margin: 0 12px 12px; }
+.aqMetricsSummary > .aqTable { margin: 0 12px 12px !important; width: auto !important; }
+.aqMetricsSummary > summary { padding-block: 8px; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqTable {
+  display: block !important; min-width: 0 !important; height: auto !important; max-height: none !important;
+  overflow: visible !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqTable .aqWrap {
+  min-height: min(280px, 45dvh) !important; max-height: min(64dvh, 740px) !important;
+  height: auto !important; overflow: auto !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqData th:first-child { z-index: 5 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqData td:first-child { background: #fff !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqPharmacySummary .aqWrap,
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqOutpatientSummary .aqWrap { min-height: 0 !important; }
+.aqTableFooter { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 2px; font-size: 10px; color: #8b9c7d; }
+.aqTableFooter > span { display: flex; flex-wrap: wrap; gap: 8px; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqTableFooter button { min-height: 28px !important; padding: 4px 8px !important; background: transparent !important; border-color: #dfe6d7 !important; color: #718a61 !important; font-size: 10px !important; }
+
+/* Small text remains readable; status and clinical-band colors are not reset. */
+html[data-theme] .workspaceRoot.workspaceDesk :is(.workspacePageIntro p,.workspaceCrumbs,.workspaceContext span,.sideBrand small,.sidebar .navLabel,.workspaceModuleEyebrow,.workspaceModuleGuide summary,.workspaceInlineGuide,.settingsScopeNote,.settingsDestination > span:last-child,.workspaceSummary > summary span,.aqComplaintKpi span,.aqComplaintKpi small,.workspaceTableHint > span,.aqTableFooter) { color: var(--desk-muted) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav > button:not([aria-current="page"]) { color: var(--desk-muted) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceClinicalDisclaimer { color: #647651 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .oppeHeaderNotes.workspaceClinicalDisclaimer {
+  display: flex !important; flex-wrap: wrap !important; gap: 4px 14px !important; margin: 0 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .oppeHeaderNotes.workspaceClinicalDisclaimer > span {
+  display: inline !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; color: inherit !important; font-size: 10.5px !important; line-height: 1.7 !important;
+}
+
+/* Portals live outside the app root; scope them to an authenticated workbench. */
+body:has(.workspaceDesk) :is(.aqPortal,.psModalSheet,.rmModalSheet,.oppeModal,.sdEditDialog,.acdDrawer) {
+  --accent: #17634d; --accent2: #104d3b; --line: #dfe7e2; --muted: #6c8073;
+  font-family: "Segoe UI", Arial, sans-serif !important; color: #345b40;
+}
+body:has(.workspaceDesk) :is(.aqEditorDialog,.psModalSheet,.rmModalSheet,.oppeModal,.sdEditDialog,.acdDrawer) {
+  border: 1px solid #dbe5d7 !important; border-radius: 12px !important; background: #fff !important;
+  box-shadow: 0 24px 85px #19382330 !important;
+}
+body:has(.workspaceDesk) :is(.aqEditorBack,.psModalBackdrop,.rmModalBackdrop,.oppeModalBackdrop,.sdEditBackdrop) {
+  background: #17362866 !important; backdrop-filter: blur(3px) !important;
+}
+body:has(.workspaceDesk) .aqPortal .aqEditorDialog { width: min(1080px, calc(100vw - 40px)) !important; }
+body:has(.workspaceDesk) .aqPortal .aqDHead { padding: 15px 20px !important; border-bottom: 1px solid #e3eadc !important; background: #f9fbf5 !important; }
+body:has(.workspaceDesk) .aqPortal .aqDHead h4 { font-size: 18px !important; font-weight: 650 !important; color: #315b3a !important; }
+body:has(.workspaceDesk) .aqPortal .aqBody { padding: 18px 20px !important; }
+body:has(.workspaceDesk) .aqPortal .aqFoot { padding: 12px 20px !important; border-top: 1px solid #e3eadc !important; }
+body:has(.workspaceDesk) .aqPortal :is(input,select,textarea) { border-radius: 5px !important; border-color: #d7e3d0 !important; min-height: 36px !important; font-size: 12px !important; }
+body:has(.workspaceDesk) .aqPortal .aqBtn { border-radius: 5px !important; min-height: 34px !important; font-size: 11px !important; }
+body:has(.workspaceDesk) .aqPortal .aqBtn.primary { background: #17634d !important; border-color: #17634d !important; color: #fff !important; }
+body:has(.workspaceDesk) .aqPortal .aqEpisode { padding: 14px; background: #f8faf4; border: 1px solid #e5ebde; border-radius: 7px; }
+body:has(.workspaceDesk) .aqPortal .aqInd { border-radius: 7px !important; border-color: #e0e8d9 !important; box-shadow: none !important; }
+body:has(.workspaceDesk) .aqPortal .aqIHead { background: #f4f8ee !important; }
+body:has(.workspaceDesk) .aqPortal :is(button,input,select,textarea):focus-visible { outline: 2px solid #7da773 !important; outline-offset: 2px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqBack:has(> .aqDrawer[class*="Import"]) {
+  align-items: center !important; justify-content: center !important; padding: 24px !important;
+  background: #17362866 !important; backdrop-filter: blur(3px) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] {
+  display: flex !important; flex-direction: column !important; width: min(1120px, calc(100vw - 48px)) !important;
+  min-height: 0 !important; max-height: calc(100dvh - 48px) !important; overflow: hidden !important;
+  border: 1px solid #dbe5d7 !important; border-radius: 12px !important; background: #fff !important;
+  box-shadow: 0 24px 85px #19382330 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqDHead { flex: 0 0 auto; padding: 15px 19px !important; border-bottom: 1px solid #e1e8da; background: #f8faf4; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqDHead h4 { font-size: 18px !important; font-weight: 650 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqBody { flex: 1 1 auto !important; min-height: 0 !important; max-height: none !important; padding: 16px 19px !important; overflow: auto !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqFoot { flex: 0 0 auto; position: static !important; margin: 0 !important; padding: 12px 19px !important; border-top: 1px solid #e1e8da; }
+
+/* Tablet and phone layouts keep controls visible rather than squeezing them. */
+@media (max-width: 1180px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfileText { display: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext { flex-basis: 185px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav { gap: 16px; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { align-items: flex-start; flex-wrap: wrap; gap: 4px 12px; }
+  html[data-theme] .workspaceRoot.workspaceDesk .qualityWorkspaceTabs { margin-left: auto !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid { grid-template-columns: minmax(0, 1.6fr) minmax(90px, .6fr) minmax(130px, 1fr) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > .aqField.aqLocalSearch { grid-column: 1 / -1 !important; grid-row: 2 !important; }
+}
+@media (min-width: 721px) and (max-width: 900px) {
+  html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] { grid-template-columns: 196px minmax(0, 1fr) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar { width: 196px !important; padding-inline: 8px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar { padding-inline: 16px !important; gap: 5px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext { min-width: 100px !important; flex-basis: 140px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceFullscreenButton { display: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead { padding-inline: 18px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { margin-inline: 18px; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding-inline: 18px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed { grid-template-columns: 64px minmax(0, 1fr) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebar { width: 64px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 1000px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .ovGrid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 720px) {
+  html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme],
+  html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed { display: block !important; grid-template-columns: minmax(0, 1fr) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar,
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebar {
+    position: fixed !important; inset: 0 auto 0 0 !important; z-index: 80 !important;
+    width: min(284px, calc(100vw - 48px)) !important; min-width: 0 !important; max-width: calc(100vw - 48px) !important;
+    padding: env(safe-area-inset-top) 12px calc(12px + env(safe-area-inset-bottom)) !important;
+    box-shadow: 12px 0 50px #12301c24 !important;
+  }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar.mobileOpen { transform: translateX(0) !important; visibility: visible !important; pointer-events: auto !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar:not(.mobileOpen) { transform: translateX(-103%) !important; visibility: hidden !important; pointer-events: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceScrim[data-open="true"] { z-index: 79 !important; background: #19351f55 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sideHeader { min-height: 68px !important; }
+  .workspaceDrawerClose { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; margin-left: auto; padding: 5px; border: 1px solid #e4eadc; border-radius: 5px; background: #fff; color: #7a8e6c; }
+  .workspaceDrawerClose svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sideBrand > div,
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebar .navLabel,
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sideProfileText,
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebarDiscovery,
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebarSearchResults { display: block !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebar .sidebarNavGroup > button > span:not(.sidebarChevron) { display: inline !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebarTreeChildren:not([hidden]) { display: flex !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk.sidebarIsCollapsed .sidebar .sidebarNavGroup > button { justify-content: flex-start !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar {
+    display: grid !important; grid-template-columns: 34px minmax(0, 1fr) repeat(3, 32px) !important;
+    gap: 7px !important; min-height: 96px !important; padding: 10px 14px !important;
+  }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceSidebarMenuButton { grid-column: 1; grid-row: 1; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext { grid-column: 2; grid-row: 1; min-width: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext span { font-size: 8px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch { grid-column: 1 / 5; grid-row: 2; width: 100% !important; max-width: none !important; min-width: 0 !important; margin: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar > .commandPaletteTrigger { grid-column: 5; grid-row: 2; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon[data-workspace-popover-trigger="notifications"] { grid-column: 3; grid-row: 1; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon[data-workspace-popover-trigger="support"] { grid-column: 4; grid-row: 1; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { grid-column: 5; grid-row: 1; padding-left: 0 !important; border: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceFullscreenButton { display: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead { padding: 19px 16px 15px !important; gap: 8px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead h1 { font-size: 21px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspacePageIntro p { font-size: 10px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs { gap: 5px !important; font-size: 8px !important; flex-wrap: wrap !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs > b { display: none; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceDensityToggle { padding: 5px 7px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceDensityToggle > span { display: none; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { margin: 0 16px 13px; display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; }
+  .workspaceContextNav { display: none; }
+  .workspaceContextSelect { display: block; flex: 1 1 150px; min-width: 0; }
+  .workspaceContextSelect > span { display: block; font-size: 9px; color: #83947a; margin-bottom: 5px; }
+  .workspaceContextSelect select { width: 100%; min-height: 35px; padding: 6px 8px; border: 1px solid #dce6d5; border-radius: 5px; background: #fff; color: #4c7345; font-size: 11px; }
+  html[data-theme] .workspaceRoot.workspaceDesk .qualityWorkspaceTabs { align-self: flex-end; margin: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .qualityWorkspaceTabs > button { padding-inline: 8px !important; font-size: 9px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding: 0 16px 24px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > label:first-child { grid-column: 1 / -1 !important; grid-row: 1 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > label:nth-child(2) { grid-column: 1 !important; grid-row: 2 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > .aqMonthSelect { grid-column: 2 !important; grid-row: 2 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqFilters .aqGrid > .aqField.aqLocalSearch { grid-column: 1 / -1 !important; grid-row: 3 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi .glass { padding: 11px 12px !important; min-height: 80px !important; border-bottom: 1px solid #e8eee0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi strong { font-size: 22px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar { grid-template-columns: minmax(0, 1fr) !important; gap: 10px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > .aqRegisterTitle { grid-column: 1; grid-row: 1; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > .aqRegisterActions { grid-column: 1; grid-row: 2; justify-content: flex-start !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > .aqRegisterSummary { grid-column: 1; grid-row: 3; gap: 7px 0 !important; }
+  .aqRegisterSummary > div { padding-inline: 8px; }
+  .workspaceModuleHeaderTools { width: 100%; justify-content: space-between; }
+  .workspaceModuleGuideBody { position: static; width: 100%; box-shadow: none; margin-top: 6px; }
+  .workspaceModuleGuide[open] { flex-basis: 100%; }
+  .workspaceModuleActions { justify-content: flex-start; }
+  .settingsDestinations { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  html[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace .userDetailInline { flex-wrap: wrap; }
+  .workspaceTableHint { justify-content: space-between; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceNotificationPanel,
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceSupportPanel { top: 96px !important; right: 10px !important; width: calc(100vw - 20px) !important; max-height: calc(100dvh - 112px) !important; }
+  body:has(.workspaceDesk) .aqPortal .aqEditorDialog { width: calc(100vw - 16px) !important; }
+  body:has(.workspaceDesk) .aqPortal .aqBody { padding: 12px !important; }
+  body:has(.workspaceDesk) .aqPortal .aqDHead,
+  body:has(.workspaceDesk) .aqPortal .aqFoot { padding: 12px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .aqBack:has(> .aqDrawer[class*="Import"]) { padding: 8px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] { width: calc(100vw - 16px) !important; max-height: calc(100dvh - 16px) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] :is(.aqDHead,.aqBody,.aqFoot) { padding: 12px !important; }
+}
+@media print {
+  html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] { display: block !important; background: #fff !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk :is(.sidebar,.workspaceHeaderBar,.workspacePageHead,.workspaceContextBar,.workspaceTableHint,.workspaceSkipLink) { display: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport { max-height: none !important; overflow: visible !important; }
+}

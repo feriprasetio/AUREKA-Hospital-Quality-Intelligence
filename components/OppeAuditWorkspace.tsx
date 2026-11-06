@@ -1,4 +1,5 @@
 'use client'
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
@@ -1117,15 +1118,13 @@ export default function OppeAuditWorkspace({
   return (
     <section className="oppeRoot">
       <style>{CSS}</style>
-      <header className="oppeGlass oppeHeader">
-        <div>
-          <div className="oppeEyebrow">AUREKA · ONGOING PROFESSIONAL PRACTICE EVALUATION</div>
-          <h3>Audit OPPE</h3>
-          <p>Penilaian profesional berbasis logbook terverifikasi, bukti perilaku, dan pengembangan profesi. FPPE terfokus memakai identitas kanonis dari Metadata tenaga kerja dan tersimpan dengan alur validasi tersendiri.</p>
-          <div className="oppeHeaderNotes"><span>Data klinis: hanya logbook tervalidasi</span><span>Pembaruan realtime + fallback 60 detik</span><span>Indikator otomatis: wajib memiliki aturan atribusi aktif</span><span>Skor bukan keputusan otomatis kewenangan klinis</span></div>
-        </div>
-        <div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}>＋ Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>
-      </header>
+      <WorkspaceModuleHeader
+        className="oppeHeader"
+        title="Evaluasi praktik profesional"
+        description="Penilaian profesional berbasis logbook terverifikasi, bukti perilaku, dan pengembangan profesi. FPPE terfokus memakai identitas kanonis dari Metadata tenaga kerja dan tersimpan dengan alur validasi tersendiri."
+        actions={<div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}>＋ Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>}
+      />
+      <div className="oppeHeaderNotes workspaceClinicalDisclaimer" role="note"><span>Data klinis: hanya logbook tervalidasi</span><span>Pembaruan realtime + fallback 60 detik</span><span>Indikator otomatis: wajib memiliki aturan atribusi aktif</span><span>Skor bukan keputusan otomatis kewenangan klinis</span></div>
 
       {error && <div className="oppeNotice oppeError" role="alert">{error}</div>}
       {notice && <div className="oppeNotice oppeSuccess" role="status" aria-live="polite">{notice}</div>}

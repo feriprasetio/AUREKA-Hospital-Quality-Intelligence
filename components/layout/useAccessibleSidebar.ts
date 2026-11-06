@@ -79,7 +79,7 @@ export function useAccessibleSidebar() {
     }
 
     const handleResize = () => {
-      if (window.innerWidth > 760) close()
+      if (window.innerWidth > 720) close()
     }
 
     document.addEventListener('keydown', handleKeyDown)

@@ -1,4 +1,6 @@
 'use client'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+
 
 import { useMemo, useState } from 'react'
 import {
@@ -362,6 +364,8 @@ export default function NifasExcelImportDialog({
     reset()
     onClose()
   }
+  const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
+
 
   const parseWorkbook = async (selectedFile: File) => {
     setFile(selectedFile)
@@ -721,7 +725,7 @@ export default function NifasExcelImportDialog({
   if (!open) return null
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
-    <section className="aqDrawer aqWide aqNifasImport" role="dialog" aria-modal="true" aria-labelledby="aqNifasImportTitle">
+    <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqNifasImport" role="dialog" aria-modal="true" aria-labelledby="aqNifasImportTitle">
       <style>{'.aqNifasImport .aqBody{display:grid;align-content:start;gap:12px}.aqNifasImport .niBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqNifasImport .niError{background:#fff1f0;color:#8b2822}.aqNifasImport .niWarn{background:#fff8e8;color:#795c26}.aqNifasImport .niSuccess{background:#ebf8ef;color:#1e6544}.aqNifasImport .niTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqNifasImport table{width:100%;border-collapse:collapse;font-size:10px}.aqNifasImport th,.aqNifasImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqNifasImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqNifasImport .niStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqNifasImport .niStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqNifasImport .niStat span{display:block;color:#65736b;font-size:9px}.aqNifasImport .niStat strong{display:block;font-size:17px;margin-top:4px}.aqNifasImport .niFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqNifasImport .niProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqNifasImport .niProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqNifasImport .niTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqNifasImport .niTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqNifasImport .niStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqNifasImport .niFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>

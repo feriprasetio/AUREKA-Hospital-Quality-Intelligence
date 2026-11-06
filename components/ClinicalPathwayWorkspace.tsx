@@ -1,4 +1,7 @@
 'use client'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -834,7 +837,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       <div className="cpPanel cpGlass">
         <div className="cpSectionHead"><div><h4>Bagian D · Kepatuhan Clinical Pathway</h4><p>Perhitungan langsung mengikuti kriteria pada master CP dan direkalkulasi oleh Supabase saat disimpan.</p></div><span className={'cpBadge ' + (c.sectionDPass ? '' : 'draft')}>{c.sectionDPass ? 'Memenuhi seluruh kriteria' : 'Belum memenuhi seluruh kriteria'}</span></div>
         <div className="cpNotice info">{form.template.scoring_rules.completion_definition} {form.template.scoring_rules.compliance_definition}</div>
-        <div className="cpTableWrap" style={{ maxHeight: 'none', marginTop: 12 }}>
+        <WorkspaceTableViewport label="Checklist dan format Clinical Pathway" className="cpTableWrap" style={{ maxHeight: 'none', marginTop: 12 }}>
           <table className="cpTable" style={{ minWidth: 760 }}>
             <thead><tr><th>Item Penilaian</th><th>Standar pada dokumen sumber</th><th>Hasil otomatis</th></tr></thead>
             <tbody>
@@ -848,7 +851,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
               })}
             </tbody>
           </table>
-        </div>
+        </WorkspaceTableViewport>
         <p className="cpTiny">Catatan: sel kosong berarti belum dinilai; bukan otomatis “tidak patuh”. Sel kondisional dapat diputuskan “Tidak berlaku”. Variasi yang terdokumentasi tidak otomatis mengubah item tidak sesuai menjadi patuh.</p>
       </div>
     </div>
@@ -858,21 +861,19 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
   return <div className="cpRoot">
     <style>{CSS}</style>
-    <section className="cpGlass cpHead">
-      <div>
-        <div className="cpEyebrow">AUREKA · Audit Clinical Pathway</div>
-        <h3>{screen === 'library' ? 'Audit Clinical Pathway' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}</h3>
-        <p>{screen === 'library' ? 'Kelola format CP per diagnosis, dokumentasikan pelayanan seluruh PPA dalam satu tabel checklist, dan hitung otomatis Bagian D.' : screen === 'diagnosis' ? 'Daftar audit pasien untuk diagnosis terpilih. Setiap audit menggunakan snapshot versi format CP yang dipakai saat pengisian.' : screen === 'builder' ? 'Editor Super Admin untuk identitas diagnosis, kelompok PPA, item/tindakan, jadwal berwarna, data klinis, kriteria inklusi, dan aturan penilaian.' : 'Checklist semua item beserta hari perawatan dalam satu tabel. Klik tanda pada sel untuk menandai sesuai; gunakan rincian untuk mencatat pengecualian, petugas, dan bukti.'}</p>
-      </div>
-      <div className="cpActions">
-        <button type="button" className="cpBtn" onClick={onBack}>← Kembali ke kontainer mutu</button>
+    <WorkspaceModuleHeader
+      className="cpHead"
+      title={screen === 'library' ? 'Pustaka diagnosis & format CP' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
+      description={screen === 'library' ? 'Kelola format CP per diagnosis, dokumentasikan pelayanan seluruh PPA dalam satu tabel checklist, dan hitung otomatis Bagian D.' : screen === 'diagnosis' ? 'Daftar audit pasien untuk diagnosis terpilih. Setiap audit menggunakan snapshot versi format CP yang dipakai saat pengisian.' : screen === 'builder' ? 'Editor Super Admin untuk identitas diagnosis, kelompok PPA, item/tindakan, jadwal berwarna, data klinis, kriteria inklusi, dan aturan penilaian.' : 'Checklist semua item beserta hari perawatan dalam satu tabel. Klik tanda pada sel untuk menandai sesuai; gunakan rincian untuk mencatat pengecualian, petugas, dan bukti.'}
+      actions={<div className="cpActions">
+        <button type="button" className="cpBtn" onClick={onBack}>← Audit Indikator Mutu</button>
         {screen !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(screen === 'audit' ? 'diagnosis' : screen === 'builder' ? builderReturnScreen : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
         {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit Form CP</button>}
         {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={beginNewBuilder}>＋ Tambah CP baru</button>}
         {screen === 'diagnosis' && <button type="button" className="cpBtn primary" onClick={newAudit}>＋ Audit pasien baru</button>}
         {screen === 'audit' && <button type="button" className="cpBtn" onClick={() => window.print()}>Cetak / PDF</button>}
-      </div>
-    </section>
+      </div>}
+    />
 
     {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'} aria-live={messageKind === 'error' ? 'assertive' : 'polite'}>{message}</div>}
     {!masterReady && screen !== 'library' && <div className="cpNotice error">Master CP belum lengkap di Supabase. Audit tidak dapat disimpan sampai Super Admin membuka modul dan menyinkronkan format.</div>}
@@ -1011,7 +1012,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             <div className="cpWide" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" className="cpBtn" onClick={() => setFocusedCell(null)}>Tutup rincian</button>{item.oppe && !String(answer.performer_name || '').trim() && <span className="cpNotice">Item ini dipetakan ke OPPE; isi nama pelaksana agar bukti dapat diatribusikan.</span>}</div>
           </div>
         })()}
-        <div className="cpTableWrap cpAuditWrap">
+        <WorkspaceTableViewport label="Checklist dan format Clinical Pathway · 2" className="cpTableWrap cpAuditWrap">
           <table className="cpTable cpAuditTable" style={{ width: '100%', minWidth: 0, tableLayout: 'fixed' }}>
             <colgroup><col style={{ width: ((100 - checklistDays.length * 4) * 0.4) + '%' }} /><col style={{ width: ((100 - checklistDays.length * 4) * 0.6) + '%' }} />{checklistDays.map((day) => <col key={day} style={{ width: '4%' }} />)}</colgroup>
             <thead><tr><th>Pilihan PPA</th><th>Item / tindakan dan keterangan</th>{checklistDays.map((day) => { const phase = activeAdditionalPhases.find((item) => item.key === day); return <th key={day} className="cpDayCol" title={phase?.label || day}>{phase?.shortLabel || day}</th> })}</tr></thead>
@@ -1075,7 +1076,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
               return rows
             })()}</tbody>
           </table>
-        </div>
+        </WorkspaceTableViewport>
         <div className="cpSectionHead"><div><h4>Ringkasan perhitungan otomatis</h4><p>Nilai pratinjau berubah saat sel checklist diubah; saat disimpan, database menghitung ulang dengan trigger.</p></div></div>
         {renderScore()}
       </div>
@@ -1124,7 +1125,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Checklist item / tindakan dan jadwal</h4><p>Atur kolom pilihan PPA, profesi, kelompok, item, keterangan, dan status jadwal per hari. Hijau = wajib, kuning = kondisional, putih = tidak dijadwalkan.</p></div><div className="cpActions"><span className="cpBadge">{builder.items.length} item · {builder.days.length} hari/tahap</span><button type="button" className="cpBtn" onClick={addBuilderDay}>＋ Tambah hari / tahap</button><button type="button" className="cpBtn primary" onClick={addBuilderItem}>＋ Tambah item</button></div></div>
         <div className="cpBuilderLegend"><span><i className="cpLegendDot required" /> Jadwal wajib</span><span><i className="cpLegendDot conditional" /> Jadwal kondisional</span><span><i className="cpLegendDot not_scheduled" /> Tidak dijadwalkan</span></div>
-        <div className="cpTableWrap cpBuilderTable">
+        <WorkspaceTableViewport label="Checklist dan format Clinical Pathway · 3" className="cpTableWrap cpBuilderTable">
           <table className="cpTable cpBuilderMatrix" style={{ width: 951 + builder.days.length * 90, minWidth: 951 + builder.days.length * 90, tableLayout: 'fixed' }}>
             <colgroup><col style={{ width: 170 }} /><col style={{ width: 145 }} /><col style={{ width: 180 }} /><col style={{ width: 300 }} />{builder.days.map((day,index)=><col key={'builder-col-'+index} style={{ width: 90 }} />)}<col style={{ width: 76 }} /><col style={{ width: 80 }} /></colgroup>
             <thead><tr><th>Profesi / bagian</th><th>Pilihan PPA</th><th>Kelompok / tahap</th><th>Item / tindakan dan keterangan</th>
@@ -1139,7 +1140,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
               <td><label className="cpOppe"><input type="checkbox" checked={!!item.oppe} onChange={(e)=>patchBuilderItem(item.id,{oppe:e.target.checked})}/>Ya</label></td><td><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderItem(item.id)}>Hapus</button></td>
             </tr>)}</tbody>
           </table>
-        </div>
+        </WorkspaceTableViewport>
         <div className="cpTiny" style={{marginTop:10}}>Nama hari/tahap dapat diedit pada judul kolom. Saat dihapus, semua aturan jadwal pada kolom tersebut ikut dihapus dari master.</div>
       </div>
       <div className="cpGlass cpPanel">

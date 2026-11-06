@@ -52,7 +52,7 @@ export default function MetadataStatisticsWorkspace({
         @media(max-width:640px){.mswHeader{padding:16px}.mswTab{flex:1;justify-content:center;padding:10px}.mswDescription{font-size:11px}}
       `}</style>
 
-      <header className="glassPanel mswHeader">
+      {showTabs ? <header className="glassPanel mswHeader">
         <div>
           <div className="mswEyebrow">Governance &amp; Analytics</div>
           <h3 className="mswTitle">Metadata dan Statistik</h3>
@@ -98,12 +98,11 @@ export default function MetadataStatisticsWorkspace({
                   </button>
                 </div>}
 
-      </header>
+      </header> : <details className="workspaceInlineGuide"><summary>Tentang metadata & statistik</summary><p>Metadata menjadi sumber konfigurasi program kerja dan kamus indikator; Statistik digunakan untuk membaca, membandingkan, dan mengekstrak data yang sudah tercatat.</p></details>}
 
       {active === 'metadata' && isSuperAdmin ? (
         <div className="mswContent" role="tabpanel" aria-label="Kamus Indikator">
           <div className="mswAccessNote">
-            <span aria-hidden="true">🔐</span>
             <span><strong>Kontrol metadata — Superadmin.</strong> Pengelolaan lintas unit tersedia di sini. Indikator yang tidak digunakan sebaiknya dinonaktifkan/dipensiunkan, bukan dihapus permanen, agar jejak historis tetap terjaga.</span>
           </div>
           <QualitySettings rooms={rooms} />
@@ -111,7 +110,6 @@ export default function MetadataStatisticsWorkspace({
       ) : active === 'staff' && isSuperAdmin ? (
         <div className="mswContent" role="tabpanel" aria-label="Direktori Tenaga Kerja">
           <div className="mswAccessNote">
-            <span aria-hidden="true">🔐</span>
             <span><strong>Master tenaga kerja — Superadmin.</strong> Data ini menjadi identitas induk lintas modul. Rekam dengan sumber atau ejaan yang belum pasti tetap ditahan. Kesamaan nama saja tidak dianggap duplikasi; kode AUREKA, gelar, profesi, dan jabatan dipertahankan untuk membedakan orang.</span>
           </div>
           <StaffDirectoryWorkspace />

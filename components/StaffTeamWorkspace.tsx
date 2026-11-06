@@ -1,4 +1,5 @@
 'use client'
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -202,14 +203,12 @@ export default function StaffTeamWorkspace({
       `}</style>
 
       <div className="stPanel">
-        <div className="stHead">
-          <div>
-            <div className="stEyebrow">AUREKA · Identitas Terpadu</div>
-            <h3 className="stTitle">Tim Tenaga Kerja</h3>
-            <p className="stDesc">Pilih tenaga dari master AUREKA untuk mengunci ke tim/unit kerja. Identitas tidak dapat ditetapkan ke dua tim aktif sekaligus. Nama dengan status perlu verifikasi belum dapat dipilih. Pelepasan atau perpindahan hanya dapat dilakukan Super Admin/Komite PMKP dan meninggalkan jejak audit.</p>
-          </div>
-          <button type="button" className="stBtn" onClick={() => void load()} disabled={loading || busy}>↻ Segarkan</button>
-        </div>
+        <WorkspaceModuleHeader
+          className="stHead"
+          title="Roster & penugasan unit"
+          description="Pilih tenaga dari master AUREKA untuk mengunci ke tim/unit kerja. Identitas tidak dapat ditetapkan ke dua tim aktif sekaligus. Nama dengan status perlu verifikasi belum dapat dipilih. Pelepasan atau perpindahan hanya dapat dilakukan Super Admin/Komite PMKP dan meninggalkan jejak audit."
+          actions={<button type="button" className="stBtn" onClick={() => void load()} disabled={loading || busy}>↻ Segarkan</button>}
+        />
         {canChooseRoom ? (
           <label className="stField" style={{maxWidth:520,marginTop:14}}>
             <span>Unit / tim yang dikelola</span>
@@ -244,7 +243,7 @@ export default function StaffTeamWorkspace({
       <div className="stPanel">
         <div className="stHead" style={{alignItems:'center',marginBottom:13}}>
           <div><div className="stEyebrow">Daftar Tim Aktif</div><div style={{fontSize:13,fontWeight:900,marginTop:4}}>{roomName}</div></div>
-          <span className="stLock">🔒 Identitas terkunci</span>
+          <span className="stLock">Identitas terkunci</span>
         </div>
         {loading ? <div className="stEmpty">Memuat daftar tim…</div> : roster.length ? (
           <div className="stRows">

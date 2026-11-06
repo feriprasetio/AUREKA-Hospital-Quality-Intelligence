@@ -1,4 +1,7 @@
 'use client'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -340,18 +343,16 @@ export default function StaffDirectoryWorkspace() {
       `}</style>
 
       <div className="sdPanel">
-        <div className="sdHead">
-          <div>
-            <div className="sdEyebrow">Metadata · Master Tenaga Kerja</div>
-            <h3 className="sdTitle">Direktori Tenaga Kerja AUREKA</h3>
-            <p className="sdDesc">Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak digunakan sebagai identitas atau dasar penugasan AUREKA.</p>
-          </div>
-          <div className="sdActions">
+        <WorkspaceModuleHeader
+          className="sdHead"
+          title="Direktori induk tenaga kerja"
+          description="Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak digunakan sebagai identitas atau dasar penugasan AUREKA."
+          actions={<div className="sdActions">
             <input ref={fileRef} type="file" aria-label="Pilih file CSV direktori tenaga kerja" accept=".csv,text/csv" hidden onChange={(e) => void importCsv(e.target.files?.[0])}/>
             <button type="button" className="sdBtn" disabled={busy} onClick={() => fileRef.current?.click()}>Impor CSV</button>
             <button type="button" className="sdBtn" disabled={busy || loading} onClick={() => void load()}>↻ Segarkan</button>
-          </div>
-        </div>
+          </div>}
+        />
         <div className="sdKpis">
           <div className="sdKpi"><span>Total direktori</span><strong>{rows.length.toLocaleString('id-ID')}</strong></div>
           <div className="sdKpi"><span>Siap dipetakan</span><strong>{availableCount.toLocaleString('id-ID')}</strong></div>
@@ -377,7 +378,7 @@ export default function StaffDirectoryWorkspace() {
           <div className="sdSub">Kesamaan nama tidak otomatis dianggap data ganda; gunakan kode AUREKA, gelar, kelompok profesi, dan jabatan untuk memastikan identitas yang tepat.</div>
         </div>
         {loading ? <div className="sdEmpty">Memuat direktori tenaga kerja…</div> : (
-          <div className="sdTableWrap">
+          <WorkspaceTableViewport label="Direktori tenaga kerja" className="sdTableWrap">
             <table className="sdTable">
               <thead><tr><th>Kode AUREKA</th><th>Nama resmi dan gelar</th><th>Kelompok profesi</th><th>Jabatan / unit kerja</th><th>Kelayakan untuk pemetaan</th><th>Aksi</th></tr></thead>
               <tbody>
@@ -399,7 +400,7 @@ export default function StaffDirectoryWorkspace() {
                 {!filtered.length && <tr><td colSpan={6} className="sdEmpty">Tidak ada tenaga kerja yang cocok dengan filter ini.</td></tr>}
               </tbody>
             </table>
-          </div>
+          </WorkspaceTableViewport>
         )}
       </div>
 

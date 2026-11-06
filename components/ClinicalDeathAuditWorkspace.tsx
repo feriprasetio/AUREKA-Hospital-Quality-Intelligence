@@ -1,4 +1,7 @@
 'use client'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -550,14 +553,13 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
   return (
     <div className="acd">
       <style>{CSS}</style>
-      <section className="acdPanel acdHero">
-        <div>
-          <div className="acdEyebrow">AUREKA · QUALITY IMPROVEMENT</div>
-          <h3>Audit Klinis dan Kematian</h3>
-          <p>Penemuan kasus berbasis episode pasien, penilaian mutu pelayanan per fase, dan rekomendasi perbaikan. Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>
-        </div>
-        <div className="acdActions"><button type="button" className="acdBtn" disabled={loading || saving} onClick={() => void load()}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button></div>
-      </section>
+      <WorkspaceModuleHeader
+        className="acdHero"
+        title="Penemuan kasus & telaah episode"
+        description="Penemuan kasus berbasis episode pasien, penilaian mutu pelayanan per fase, dan rekomendasi perbaikan."
+        actions={<button type="button" className="acdBtn" disabled={loading || saving} onClick={() => void load()}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button>}
+      />
+      <p className="workspaceClinicalDisclaimer" role="note">Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>
 
       <div className="acdPanel acdMode" role="tablist" aria-label="Jenis audit">
         <button type="button" role="tab" aria-selected={auditType === 'clinical'} className={auditType === 'clinical' ? 'active' : ''} onClick={() => setAuditType('clinical')}>🩺 Audit klinis<span>Semua episode dalam ruang lingkup yang dipilih; gunakan kata kunci untuk topik audit tertentu.</span></button>
@@ -587,7 +589,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
           <div><strong style={{fontSize:15}}>Daftar kandidat audit</strong><div className="acdSmall">{auditType === 'death' ? 'Penyaringan kematian berdasarkan status akhir yang eksplisit.' : 'Penyaringan seluruh episode pasien yang tersedia dan memenuhi filter.'}</div></div>
           <span className="acdPill green">{filteredEpisodes.length} kasus</span>
         </div>
-        <div className="acdTableWrap"><table className="acdTable">
+        <WorkspaceTableViewport label="Daftar episode telaah klinis dan kematian" className="acdTableWrap"><table className="acdTable">
           <thead><tr><th>No.</th><th>Pasien / No. RM</th><th>Diagnosis / DPJP</th><th>Unit</th><th>Admisi – keluar</th><th>Hasil akhir</th><th>Status audit</th><th>Tindakan</th></tr></thead>
           <tbody>
             {filteredEpisodes.map((episode, index) => {
@@ -605,7 +607,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
             })}
             {!filteredEpisodes.length && <tr><td colSpan={8}><div className="acdEmpty">{loading ? 'Memuat episode pasien…' : auditType === 'death' ? 'Tidak ditemukan episode dengan hasil akhir kematian yang eksplisit pada sumber dan filter ini. Pastikan status hasil akhir sudah tercatat; diagnosis atau status logbook tidak digunakan sebagai pengganti status kematian.' : 'Belum ada episode pasien yang sesuai. Pastikan catatan logbook menggunakan measurement grain patient_episode atau tunggu sumber episode SIMRS terhubung.'}</div></td></tr>}
           </tbody>
-        </table></div>
+        </table></WorkspaceTableViewport>
       </section>
 
       {editorOpen && activeEpisode && <div className="acdDrawerBack" onClick={(event) => { if (event.target === event.currentTarget && !saving) setEditorOpen(false) }}>

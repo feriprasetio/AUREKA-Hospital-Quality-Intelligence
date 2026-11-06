@@ -16,6 +16,7 @@ type AccessibleDialogOptions = {
   open: boolean
   onClose?: () => void
   closeOnEscape?: boolean
+  lockScroll?: boolean
 }
 
 /**
@@ -29,6 +30,7 @@ export function useAccessibleDialog<T extends HTMLElement = HTMLElement>({
   open,
   onClose,
   closeOnEscape = true,
+  lockScroll = false,
 }: AccessibleDialogOptions) {
   const dialogRef = useRef<T | null>(null)
   const onCloseRef = useRef(onClose)
@@ -46,6 +48,8 @@ export function useAccessibleDialog<T extends HTMLElement = HTMLElement>({
     const previousFocus = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null
+    const previousBodyOverflow = document.body.style.overflow
+    if (lockScroll) document.body.style.overflow = 'hidden'
 
     const getFocusableElements = (): HTMLElement[] =>
       Array.from(dialog.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTOR)).filter(
@@ -97,9 +101,10 @@ export function useAccessibleDialog<T extends HTMLElement = HTMLElement>({
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      if (lockScroll) document.body.style.overflow = previousBodyOverflow
       if (previousFocus?.isConnected) previousFocus.focus()
     }
-  }, [closeOnEscape, open])
+  }, [closeOnEscape, lockScroll, open])
 
   return dialogRef
 }

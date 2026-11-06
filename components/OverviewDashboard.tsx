@@ -1,4 +1,5 @@
 'use client'
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -265,21 +266,19 @@ export default function OverviewDashboard({
 
   return (
     <div className="ovRoot">
-      <section className="ovHero">
-        <div className="ovHeroCopy">
-          <span className="ovEyebrow">AUREKA · PMKP WORKSPACE</span>
-          <h3>{`Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}</h3>
-          <p>{manager
+      <WorkspaceModuleHeader
+        className="ovHero"
+        title={`Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}
+        description={manager
             ? 'Ringkasan terpadu indikator mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
-            : `Ruang kerja mutu untuk ${roomName || 'unit Anda'} · input dan tindak lanjut sesuai hak akses.`}</p>
-        </div>
-        <div className="ovHeroMeta">
+            : `Ruang kerja mutu untuk ${roomName || 'unit Anda'} · input dan tindak lanjut sesuai hak akses.`}
+        actions={<div className="ovHeroMeta">
           <span className="ovHeroDate">{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Pontianak' }).format(new Date())}</span>
           <button type="button" className="ovRefresh" onClick={() => setReloadKey(k => k + 1)} disabled={loading} aria-label="Muat ulang data">
             <span className={loading ? 'ovSpin' : ''}>↻</span> {loading ? 'Memuat…' : 'Perbarui'}
           </button>
-        </div>
-      </section>
+        </div>}
+      />
 
       {!manager && roomId == null && <div className="ovNotice">Akun Anda belum terhubung ke ruangan/unit kerja, sehingga data unit belum dapat ditampilkan. Hubungi Super Admin untuk memetakan unit utama akun Anda.</div>}
 

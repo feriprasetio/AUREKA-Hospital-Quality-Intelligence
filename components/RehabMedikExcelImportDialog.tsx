@@ -1,4 +1,6 @@
 'use client'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+
 
 import { useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -230,6 +232,8 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
  const stats=useMemo(()=>formatCounts(rows),[rows])
  const reset=()=>{setFile(null);setRows([]);setErrors([]);setParsing(false);setImporting(false);setResult(null);setPartial(null);setProgress(0);setErrorMessage('');setFileKey(v=>v+1)}
  const close=()=>{if(parsing||importing)return;reset();onClose()}
+  const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
+
 
  const parseWorkbook=async(selectedFile:File)=>{
   setFile(selectedFile);setRows([]);setErrors([]);setResult(null);setPartial(null);setProgress(0);setErrorMessage('')
@@ -344,7 +348,7 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
 
  if(!open)return null
  return <div className="aqBack" role="presentation" onClick={event=>{if(event.target===event.currentTarget)close()}}>
-  <section className="aqDrawer aqWide aqRehabImport" role="dialog" aria-modal="true" aria-labelledby="aqRehabImportTitle">
+  <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqRehabImport" role="dialog" aria-modal="true" aria-labelledby="aqRehabImportTitle">
    <style>{'.aqRehabImport .aqBody{display:grid;align-content:start;gap:12px}.aqRehabImport .riBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqRehabImport .riError{background:#fff1f0;color:#8b2822}.aqRehabImport .riWarn{background:#fff8e8;color:#795c26}.aqRehabImport .riSuccess{background:#ebf8ef;color:#1e6544}.aqRehabImport .riTable{max-height:320px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqRehabImport table{width:100%;border-collapse:collapse;font-size:10px}.aqRehabImport th,.aqRehabImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;white-space:nowrap}.aqRehabImport th{position:sticky;top:0;background:#f5f8f6}.aqRehabImport .riStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.aqRehabImport .riStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff}.aqRehabImport .riStat span{display:block;color:#65736b;font-size:9px}.aqRehabImport .riStat strong{display:block;font-size:17px;margin-top:4px}.aqRehabImport .riMuted{font-size:10px;color:#65736b;line-height:1.5}@media(max-width:560px){.aqRehabImport .riStats{grid-template-columns:1fr 1fr}}'}</style>
    <div className="aqDHead"><div><div className="eyebrow">Audit Indikator Mutu · Instalasi Rehab Medik</div><h4 id="aqRehabImportTitle">Unggah workbook Rehab Medik (.xlsx)</h4><p>Impor baris pelayanan pasien dan respons indikator 12.1–12.6.</p></div><button type="button" className="aqClose" disabled={parsing||importing} onClick={close} aria-label="Batal">×</button></div>
    <div className="aqBody">
