@@ -193,7 +193,7 @@ export function parseSurgicalSourceAnswer(
       denominator: option.denominator !== false, sourceLabel: effectiveSource, sourceCode,
       reviewRequired: isMedicine ? false : true,
       freeText: isMedicine && sourceLabel && !alias ? sourceLabel : '',
-      mappingStatus: isMedicine ? 'mapped_existing_master' : 'mapped_pending_classification',
+      mappingStatus: isMedicine || indicatorCode === '23.2' ? 'mapped_existing_master' : 'mapped_pending_classification',
     }
   }
   if (isMedicine) {
