@@ -260,8 +260,20 @@ export function parsePediatricSourceAnswer(
   if (sourceCode != null && (sourceCode < 1 || sourceCode > 3 || masterCode !== sourceCode)) {
     return pending('source_code_conflict', String(option.label))
   }
-  if (masterCode == null || ![1,2,3].includes(masterCode) || !direction) {
+  if (masterCode == null || ![1,2,3].includes(masterCode)) {
     return pending('mapped_pending_classification', String(option.label))
+  }
+  if (!direction) {
+    return {
+      label: String(option.label),
+      code: masterCode,
+      numerator: null,
+      denominator: true,
+      sourceLabel,
+      sourceCode,
+      reviewRequired: true,
+      mappingStatus: 'mapped_pending_classification',
+    }
   }
 
   return {
