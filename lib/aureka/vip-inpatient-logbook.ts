@@ -186,9 +186,7 @@ export function parseVipSourceAnswer(
   const masterOptions = Array.isArray(options)
     ? options.filter(option => option && String(option.label ?? '').trim())
     : []
-  const sourceProfileMatch = sourceProfileOptions.length === 0
-    ? true
-    : sourceProfileOptions.some(option => normalizeVipOptionLabel(option) === normalizeVipOptionLabel(sourceLabel))
+  const sourceProfileMatch = sourceProfileOptions.some(option => normalizeVipOptionLabel(option) === normalizeVipOptionLabel(sourceLabel))
 
   if (!sourceProfileMatch) {
     return {
