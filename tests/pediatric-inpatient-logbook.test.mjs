@@ -214,6 +214,34 @@ test('maps Stunting Wasting including the uncoded over-five-years exclusion', ()
   assert.equal(coded?.code, 1)
 })
 
+test('classifies exact child-inpatient source answers by positive and negative direction', () => {
+  const positive = [
+    {code:1,label:'Tinggi Badan dan Berat Badan Sudah Diisi',numerator:true,denominator:true,review_required:false},
+    {code:2,label:'Hanya Tinggi Badan Diisi',numerator:false,denominator:true,review_required:false},
+    {code:3,label:'Tinggi Badan dan Berat Badan Tidak Terisi',numerator:false,denominator:true,review_required:false},
+    {code:2,label:'Pasien Berusia Diatas 5 Tahun Tidak Dilakukan Screening',numerator:false,denominator:true,review_required:false},
+  ]
+  const complete = parsePediatricSourceAnswer('Tinggi Badan dan Berat Badan Sudah Diisi',positive,'positive')
+  assert.equal(complete?.code,1)
+  assert.equal(complete?.numerator,true)
+  assert.equal(complete?.reviewRequired,false)
+  assert.equal(complete?.mappingStatus,'mapped')
+
+  const exception = parsePediatricSourceAnswer('Pasien Berusia Diatas 5 Tahun Tidak Dilakukan Screening',positive,'positive')
+  assert.equal(exception?.code,2)
+  assert.equal(exception?.numerator,false)
+  assert.equal(exception?.reviewRequired,false)
+
+  const negative = [
+    {code:1,label:'Tidak terjadi kekosongan obat',numerator:false,denominator:true,review_required:false},
+    {code:3,label:'Terjadi kekosongan obat',numerator:true,denominator:true,review_required:false},
+  ]
+  const adverse = parsePediatricSourceAnswer('Terjadi kekosongan obat',negative,'negative')
+  assert.equal(adverse?.code,3)
+  assert.equal(adverse?.numerator,true)
+  assert.equal(adverse?.reviewRequired,false)
+})
+
 test('flags conflicting source codes and duplicate master labels without guessing', () => {
   const options = [pending(1, 'Pilihan A'), pending(2, 'Pilihan B')]
   const conflict = parsePediatricSourceAnswer('Pilihan A (Code 3)', options)
