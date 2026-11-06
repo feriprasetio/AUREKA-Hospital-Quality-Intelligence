@@ -174,6 +174,11 @@ function SectionHeading({
 export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [transparencyOpen, setTransparencyOpen] = useState(false)
+  const [moduleQuery, setModuleQuery] = useState('')
+  const visibleModules = modules.filter((module) =>
+    `${module.title} ${module.description} ${module.tags.join(' ')}`.toLocaleLowerCase('id-ID')
+      .includes(moduleQuery.trim().toLocaleLowerCase('id-ID')),
+  )
 
   const openLogin = () => {
     setMobileOpen(false)
@@ -238,23 +243,26 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
           <div className="a2-hero-copy">
             <div className="a2-institution-chip">
               <span className="a2-chip-dot" />
-              UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP
+              PLATFORM MUTU & KESELAMATAN PASIEN
             </div>
             <h1 id="a2-hero-title">
-              Alkadrie<br />
-              <span>Unifikasi Risiko,</span><br />
-              Evaluasi Kualitas,<br />
-              <span>dan Asesmen</span>
+              Pelayanan lebih baik.<br />
+              <span>Dimulai dari mutu<br />yang terukur.</span>
             </h1>
             <p className="a2-hero-description">
-              Satu ekosistem terintegrasi untuk menyatukan manajemen risiko, evaluasi mutu,
-              keselamatan pasien, dan asesmen pelayanan rumah sakit dalam alur kerja yang terstruktur.
+              Dari pencatatan hingga keputusan. Satukan mutu klinis, keselamatan pasien,
+              dan pengendalian risiko dalam satu ruang kerja yang jelas, terarah, dan dapat ditelusuri.
             </p>
+            <div className="a2-hero-links">
+              <a href="#modules">Kenali ruang kerja <Icon name="arrow" size={17} /></a>
+              <a href="#workflow">Lihat cara kerjanya <span aria-hidden="true">↗</span></a>
+            </div>
             <div className="a2-hero-principles" aria-label="Fokus utama AUREKA">
               <span><Icon name="chart" size={15} /> Evaluasi kualitas</span>
               <span><Icon name="shield" size={15} /> Keselamatan pasien</span>
               <span><Icon name="risk" size={15} /> Unifikasi risiko</span>
             </div>
+            <p className="a2-hero-expansion">Alkadrie · Unifikasi Risiko, Evaluasi Kualitas, dan Asesmen</p>
           </div>
 
           <aside className="a2-hero-showcase" aria-label="Pratinjau visual dashboard AUREKA">
@@ -363,12 +371,17 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
           </aside>
         </section>
 
+        <div className="a2-institution-strip">
+          <span className="a2-institution-seal"><Icon name="heart" size={25} /></span>
+          <div><strong>Dibangun untuk pelayanan yang lebih bermakna.</strong><p>UPT RSUD Sultan Syarif Mohamad Alkadrie · Komite PMKP</p></div>
+          <span className="a2-institution-note"><Icon name="lock" size={15} /> Berbasis peran & kewenangan</span>
+        </div>
 
         <section className="a2-section a2-platform-section" id="platform" aria-labelledby="a2-platform-title">
           <SectionHeading
             id="a2-platform-title"
             eyebrow="Satu platform · Banyak proses"
-            title="Menghubungkan tata kelola mutu rumah sakit"
+            title="Lebih sedikit fragmentasi. Lebih jelas arah perbaikan."
             description="AUREKA menyatukan proses pencatatan, pemeriksaan, analisis, dan peningkatan mutu dalam ruang kerja yang mengikuti peran serta tanggung jawab pengguna."
           />
           <div className="a2-domain-grid">
@@ -400,8 +413,16 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
             title="Tujuh area kerja dalam satu ekosistem"
             description="Setiap area memiliki fungsi khusus, tetapi tetap mengikuti identitas data, hak akses, dan pola interaksi yang konsisten."
           />
+          <div className="a2-module-toolbar">
+            <label className="a2-module-search">
+              <Icon name="report" size={18} />
+              <span className="a2-sr-only">Cari area kerja</span>
+              <input type="search" value={moduleQuery} onChange={(event) => setModuleQuery(event.target.value)} placeholder="Cari modul, proses, atau kebutuhan Anda…" />
+            </label>
+            <span role="status" aria-live="polite">{visibleModules.length} area kerja</span>
+          </div>
           <div className="a2-module-grid">
-            {modules.map((module) => (
+            {visibleModules.map((module) => (
               <article className="a2-module-card" key={module.number}>
                 <div className="a2-module-top">
                   <span className="a2-module-icon"><Icon name={module.icon} size={21} /></span>
@@ -415,6 +436,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
               </article>
             ))}
           </div>
+          {visibleModules.length === 0 && <div className="a2-module-empty"><strong>Area kerja tidak ditemukan</strong><p>Coba kata kunci “mutu”, “risiko”, atau “tenaga”.</p><button type="button" className="a2-button a2-button-outline" onClick={() => setModuleQuery('')}>Tampilkan semua area</button></div>}
         </section>
 
         <section className="a2-capa-section" id="capa" aria-labelledby="a2-capa-title">

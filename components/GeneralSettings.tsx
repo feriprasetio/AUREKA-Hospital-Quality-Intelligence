@@ -6,6 +6,7 @@ import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feed
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 
 const sb = aurekaSupabase
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/AUREKA-Hospital-Quality-Intelligence'
 
 
 type Room = { id: number; code?: string; name: string; is_active?: boolean }
@@ -161,7 +162,7 @@ export default function GeneralSettings({
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return setAcctNote({ ok: false, text: 'Format email tidak valid.' })
     if (em === (myAccount.email || '').toLowerCase()) return setAcctNote({ ok: false, text: 'Email baru sama dengan email saat ini.' })
     setBusy(true)
-    const { error } = await sb.auth.updateUser({ email: em }, { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` })
+    const { error } = await sb.auth.updateUser({ email: em }, { emailRedirectTo: `${window.location.origin}${BASE_PATH}/` })
     setBusy(false)
     if (error) return setAcctNote({ ok: false, text: /rate limit|too many/i.test(error.message) ? 'Terlalu banyak permintaan email. Coba lagi beberapa menit lagi.' : /already|registered/i.test(error.message) ? 'Email sudah dipakai akun lain.' : `Gagal mengubah email: ${toUserFacingError(error, { fallback: 'Email belum dapat diubah. Coba kembali.' })}` })
     setAcctNote({ ok: true, text: `Link konfirmasi dikirim ke ${em}. Email baru berlaku setelah Anda klik link tersebut (Supabase juga dapat mengirim konfirmasi ke email lama). Sampai saat itu, login tetap memakai email lama.` })
@@ -385,7 +386,7 @@ export default function GeneralSettings({
     if (!u.email) { setRowNote({ id: u.user_id, ok: false, text: 'Akun ini tidak memiliki email.' }); return }
     setBusy(true)
     setMsg('')
-    const redirectTo = `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/`
+    const redirectTo = `${window.location.origin}${BASE_PATH}/`
     const { error } = await sb.auth.resetPasswordForEmail(u.email, { redirectTo })
     setBusy(false)
     const text = error
@@ -412,7 +413,7 @@ export default function GeneralSettings({
     }
     let text = 'Username & email disimpan.'
     if (data === 'verify') {
-      const r = await sb.auth.resend({ type: 'signup', email: em, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
+      const r = await sb.auth.resend({ type: 'signup', email: em, options: { emailRedirectTo: `${window.location.origin}${BASE_PATH}/` } })
       text = r.error
         ? `Email diubah ke ${em}, tetapi email verifikasi gagal dikirim (${/rate limit|too many/i.test(r.error.message) ? 'batas pengiriman email, coba “Kirim ulang” nanti' : toUserFacingError(r.error, { fallback: 'Email verifikasi belum dapat dikirim.' })}).`
         : `Email diubah ke ${em}. Link verifikasi dikirim; ${u.full_name} perlu klik link tersebut sebelum bisa login.`
@@ -425,7 +426,7 @@ export default function GeneralSettings({
   const resendVerification = async (u: Profile) => {
     if (!u.email) return
     setBusy(true)
-    const r = await sb.auth.resend({ type: 'signup', email: u.email, options: { emailRedirectTo: `${window.location.origin}/AUREKA-Hospital-Quality-Intelligence/` } })
+    const r = await sb.auth.resend({ type: 'signup', email: u.email, options: { emailRedirectTo: `${window.location.origin}${BASE_PATH}/` } })
     setBusy(false)
     const text = r.error ? (/already|confirmed/i.test(r.error.message) ? 'Email akun ini sudah terverifikasi.' : `Gagal mengirim: ${toUserFacingError(r.error, { fallback: 'Email verifikasi belum dapat dikirim.' })}`) : `Email verifikasi dikirim ulang ke ${u.email}.`
     setRowNote({ id: u.user_id, ok: !r.error, text })

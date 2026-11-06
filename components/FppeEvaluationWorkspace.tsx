@@ -537,7 +537,7 @@ export default function FppeEvaluationWorkspace({
             <iframe
               ref={frameRef}
               title="Formulir FPPE AUREKA"
-              src="/AUREKA-Hospital-Quality-Intelligence/fppe-digital.html"
+              src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? '/AUREKA-Hospital-Quality-Intelligence'}/fppe-digital.html`}
               onLoad={() => {
                 setFrameReady(true)
                 postToFrame({
