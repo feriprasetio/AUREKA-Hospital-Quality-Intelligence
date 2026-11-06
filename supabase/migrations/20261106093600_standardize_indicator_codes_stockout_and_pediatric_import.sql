@@ -247,13 +247,15 @@ BEGIN
   IF v_count<>1 THEN RAISE EXCEPTION 'Surgical importer response-state guard mismatch (%).',v_count; END IF;
   v_def:=replace(v_def,v_old,v_new);
 
-  v_old:=$old$            OR (v_code='23.3' AND v_source_values->>v_code IN (
+  v_old:=$old$          OR
+          (v_code='23.3' AND v_source_values->>v_code IN (
             'Adanya Kekosongan Obat (Code 3)','Tidak Adanya Kekosongan Obat (Code 1)'
           ) AND (
             (v_source_values->>v_code='Adanya Kekosongan Obat (Code 3)' AND v_response->>'response_label'='Terjadi kekosongan obat')
             OR (v_source_values->>v_code='Tidak Adanya Kekosongan Obat (Code 1)' AND v_response->>'response_label'='Tidak terjadi kekosongan obat')
           ))$old$;
-  v_new:=$new$            OR (v_code='23.3' AND v_source_values->>v_code IN (
+  v_new:=$new$          OR
+          (v_code='23.3' AND v_source_values->>v_code IN (
             'Adanya Kekosongan Obat (Code 3)','Tidak Adanya Kekosongan Obat (Code 1)'
           ) AND (
             (v_source_values->>v_code='Adanya Kekosongan Obat (Code 3)' AND v_response->>'response_label'='Terjadi kekosongan obat')
@@ -307,17 +309,19 @@ BEGIN
   IF v_count<>1 THEN RAISE EXCEPTION 'Internal medicine importer response-state guard mismatch (%).',v_count; END IF;
   v_def:=replace(v_def,v_old,v_new);
 
-  v_old:=$old$            AND ((v_source_values->>v_code='Tidak Adanya Kekosongan Obat (Code 1)' AND v_response->>'response_label'='Tidak terjadi kekosongan obat')))
-        ) THEN RAISE EXCEPTION 'Alias sumber Linen/Obat tidak cocok (baris Excel %).',v_source_row USING ERRCODE='22023'; END IF;$old$;
-  v_new:=$new$            AND ((v_source_values->>v_code='Tidak Adanya Kekosongan Obat (Code 1)' AND v_response->>'response_label'='Tidak terjadi kekosongan obat')))
+  v_old:=$old$          (v_code='25.10' AND v_source_values->>v_code IN ('Adanya Kekosongan Obat (Code 3)','Tidak Adanya Kekosongan Obat (Code 1)')
+            AND ((v_source_values->>v_code='Adanya Kekosongan Obat (Code 3)' AND v_response->>'response_label'='Terjadi kekosongan obat')
+              OR (v_source_values->>v_code='Tidak Adanya Kekosongan Obat (Code 1)' AND v_response->>'response_label'='Tidak terjadi kekosongan obat')))$old$;
+  v_new:=$new$          (v_code='25.10' AND v_source_values->>v_code IN ('Adanya Kekosongan Obat (Code 3)','Tidak Adanya Kekosongan Obat (Code 1)')
+            AND ((v_source_values->>v_code='Adanya Kekosongan Obat (Code 3)' AND v_response->>'response_label'='Terjadi kekosongan obat')
+              OR (v_source_values->>v_code='Tidak Adanya Kekosongan Obat (Code 1)' AND v_response->>'response_label'='Tidak terjadi kekosongan obat')))
           OR (v_code='25.10'
               AND coalesce(v_response->'raw_value'->>'free_text','')<>''
               AND coalesce(v_response->>'other_text','')=coalesce(v_source_values->>v_code,'')
               AND coalesce(v_response->'raw_value'->>'free_text','')=coalesce(v_source_values->>v_code,'')
               AND v_response_code=3
               AND v_response->>'response_label'='Terjadi kekosongan obat'
-              AND v_response->'raw_value'->>'numerator'='true')
-        ) THEN RAISE EXCEPTION 'Alias sumber Linen/Obat atau nama obat free text tidak cocok (baris Excel %).',v_source_row USING ERRCODE='22023'; END IF;$new$;
+              AND v_response->'raw_value'->>'numerator'='true')$new$;
   v_count:=(length(v_def)-length(replace(v_def,v_old,'')))/length(v_old);
   IF v_count<>1 THEN RAISE EXCEPTION 'Internal medicine importer medicine free-text validator mismatch (%).',v_count; END IF;
   v_def:=replace(v_def,v_old,v_new);
