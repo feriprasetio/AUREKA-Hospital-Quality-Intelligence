@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import LandingProductPreview from '@/components/LandingProductPreview'
 
 type LandingProps = {
   logoSrc: string
@@ -127,14 +128,6 @@ const modules: Array<{
     icon: 'settings',
     tags: ['Pengguna', 'Master Data'],
   },
-]
-
-const riskMatrixTones = [
-  'low', 'low', 'low', 'moderate', 'moderate',
-  'low', 'low', 'moderate', 'moderate', 'high',
-  'low', 'moderate', 'moderate', 'high', 'high',
-  'moderate', 'moderate', 'high', 'high', 'critical',
-  'moderate', 'high', 'high', 'critical', 'critical',
 ]
 
 const improvementSteps = [
@@ -265,109 +258,9 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
             <p className="a2-hero-expansion">Alkadrie · Unifikasi Risiko, Evaluasi Kualitas, dan Asesmen</p>
           </div>
 
-          <aside className="a2-hero-showcase" aria-label="Pratinjau visual dashboard AUREKA">
-            <div className="a2-risk-backplate" aria-hidden="true">
-              <div className="a2-risk-backplate-head">
-                <strong>MATRIKS RISIKO 5×5</strong>
-                <span>ILUSTRASI</span>
-              </div>
-              <div className="a2-risk-matrix-grid">
-                {riskMatrixTones.map((tone, index) => (
-                  <span key={index} className={`a2-risk-cell a2-risk-cell-${tone}`} />
-                ))}
-              </div>
-              <div className="a2-risk-legend">
-                <span><i className="a2-legend-low" /> Rendah</span>
-                <span><i className="a2-legend-mid" /> Sedang</span>
-                <span><i className="a2-legend-high" /> Tinggi</span>
-              </div>
-            </div>
-
-            <div className="a2-dashboard-card">
-              <div className="a2-dashboard-topbar">
-                <span className="a2-dashboard-window-dots" aria-hidden="true"><i /><i /><i /></span>
-                <strong>AUREKA · Ringkasan</strong>
-                <span className="a2-dashboard-period">PRATINJAU UI</span>
-              </div>
-
-              <div className="a2-dashboard-content">
-                <div className="a2-dashboard-metrics">
-                  <article className="a2-dashboard-metric">
-                    <div className="a2-dashboard-metric-head">
-                      <span>Indikator mutu terpantau</span>
-                      <i><Icon name="chart" size={14} /></i>
-                    </div>
-                    <div className="a2-dashboard-value">—</div>
-                    <p>Menunggu snapshot tervalidasi</p>
-                    <svg className="a2-dashboard-spark" viewBox="0 0 108 32" aria-hidden="true">
-                      <path d="M2 27 L17 22 L29 24 L42 15 L54 18 L68 10 L81 13 L94 5 L106 7" />
-                    </svg>
-                  </article>
-                  <article className="a2-dashboard-metric">
-                    <div className="a2-dashboard-metric-head">
-                      <span>Rekam data tervalidasi</span>
-                      <i><Icon name="clipboard" size={14} /></i>
-                    </div>
-                    <div className="a2-dashboard-value">—</div>
-                    <p>Menunggu sinkronisasi data</p>
-                    <svg className="a2-dashboard-spark a2-dashboard-spark-alt" viewBox="0 0 108 32" aria-hidden="true">
-                      <path d="M2 25 L16 26 L28 18 L41 21 L55 14 L68 16 L82 8 L94 10 L106 3" />
-                    </svg>
-                  </article>
-                </div>
-
-                <div className="a2-dashboard-trend">
-                  <div>
-                    <span>TREN CAPAIAN MUTU</span>
-                    <strong>Grafik aktif setelah validasi data</strong>
-                  </div>
-                  <svg viewBox="0 0 112 34" aria-hidden="true">
-                    <path d="M2 27 L18 21 L31 24 L45 14 L58 18 L73 9 L88 12 L110 3" />
-                    <circle cx="110" cy="3" r="2.5" />
-                  </svg>
-                </div>
-
-                <div className="a2-dashboard-section-head">
-                  <strong>LINGKUP PEMANTAUAN UNIT</strong>
-                  <span>AREA KERJA</span>
-                </div>
-                <div className="a2-dashboard-unit-list" aria-label="Contoh struktur lingkup unit">
-                  {[
-                    { name: 'IGD', width: '82%' },
-                    { name: 'Rawat Inap', width: '70%' },
-                    { name: 'NICU', width: '58%' },
-                    { name: 'OK & Anestesi', width: '76%' },
-                    { name: 'Farmasi', width: '86%' },
-                    { name: 'Laboratorium', width: '73%' },
-                  ].map((unit) => (
-                    <div className="a2-dashboard-unit-row" key={unit.name}>
-                      <span>{unit.name}</span>
-                      <i><b style={{ width: unit.width }} /></i>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="a2-dashboard-priorities">
-                  <div className="a2-dashboard-section-head">
-                    <strong>PRIORITAS EVALUASI</strong>
-                    <span>CONTOH TAMPILAN</span>
-                  </div>
-                  <article>
-                    <div><strong>INM · Waktu tunggu rawat jalan</strong><small>Indikator mutu klinis</small></div>
-                    <span>Belum ada data</span>
-                  </article>
-                  <article>
-                    <div><strong>SKP · Identifikasi pasien</strong><small>Keselamatan pasien</small></div>
-                    <span>Belum ada data</span>
-                  </article>
-                  <article>
-                    <div><strong>RISIKO · Rencana pengendalian</strong><small>Manajemen risiko</small></div>
-                    <span>Belum ada data</span>
-                  </article>
-                </div>
-              </div>
-              <p className="a2-dashboard-disclaimer">Ilustrasi antarmuka; tidak menampilkan data atau capaian operasional aktual.</p>
-            </div>
+          <aside className="a2-hero-showcase a2-product-showcase" aria-label="Tur produk interaktif AUREKA">
+            <LandingProductPreview />
+            <div className="a2-product-note"><span><Icon name="network" size={19} /></span><div><strong>Terhubung. Terstruktur. Tertelusur.</strong><small>Satu ekosistem untuk siklus peningkatan mutu.</small></div></div>
           </aside>
         </section>
 

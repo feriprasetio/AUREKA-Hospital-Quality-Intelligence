@@ -32,25 +32,20 @@ test('hero uses the approved Alkadrie unification headline and compact focus chi
   assert.doesNotMatch(component, /Mutu terukur|Keselamatan terjaga/)
 })
 
-test('right-side dashboard preview has a layered risk matrix and structured overview', () => {
-  for (const selector of [
-    'a2-hero-showcase',
-    'a2-risk-backplate',
-    'MATRIKS RISIKO 5×5',
-    'a2-dashboard-card',
-    'a2-dashboard-metrics',
-    'a2-dashboard-trend',
-    'a2-dashboard-unit-list',
-    'a2-dashboard-priorities',
-  ]) {
-    assert.ok(component.includes(selector), `Missing dashboard preview element: ${selector}`)
+test('right-side product tour explains real workflows without fabricated metrics', () => {
+  const preview = readFileSync(new URL('../components/LandingProductPreview.tsx', import.meta.url), 'utf8')
+  assert.match(component, /<LandingProductPreview \/>/)
+  assert.match(component, /Tur produk interaktif AUREKA/)
+  for (const workflow of ['Audit indikator mutu', 'Investigasi / RCA', 'Risk Register', 'Rencana pengendalian']) {
+    assert.ok(preview.includes(workflow), `Missing workflow: ${workflow}`)
   }
-  assert.match(component, /Ilustrasi antarmuka; tidak menampilkan data atau capaian operasional aktual/)
-  assert.match(component, /Belum ada data/)
-  assert.doesNotMatch(component, /72\s*%|1\.248|83,8\s*%|80,7\s*%/)
-  assert.match(stylesheet, /\.a2-dashboard-card/)
-  assert.match(stylesheet, /\.a2-risk-matrix-grid/)
-  assert.match(stylesheet, /@media \(max-width: 640px\)/)
+  assert.match(preview, /Bukan data operasional/)
+  assert.match(preview, /role="tablist"/)
+  assert.match(preview, /role="tabpanel"/)
+  assert.match(preview, /ArrowRight/)
+  assert.match(preview, /ArrowLeft/)
+  assert.match(preview, /hidden=\{selected !== index\}/)
+  assert.doesNotMatch(preview, /\b\d+[.,]\d+\s*%|\.from\(|\.rpc\(/)
 })
 
 test('landing page keeps a single primary workspace CTA in the top navigation', () => {
