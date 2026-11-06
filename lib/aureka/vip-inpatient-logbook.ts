@@ -170,8 +170,8 @@ export function normalizeVipOptionLabel(value: string): string {
 
 /**
  * Match source answers to existing master options only.
- * Seven Vip indicators have no published choices at present; their source values
- * remain not_in_master and review-required rather than being assigned invented codes.
+ * Ten VIP indicators have no published choices; only Linen and Medicine use the two
+ * currently published master option sets. Source-profile mismatch prevents classification.
  */
 export function parseVipSourceAnswer(
   raw: string,
@@ -184,7 +184,7 @@ export function parseVipSourceAnswer(
 
   const suffix = sourceLabel.match(/\\(\\s*code\\s*(\\d+)\\s*\\)\\s*$/i)
   const sourceCode = suffix ? Number(suffix[1]) : null
-  const unwrappedLabel = sourceLabel.replace(/\\s*\\(\\s*code\\s*\\d+\\s*\\)\\s*$/i, '').trim()
+  const unwrappedLabel = sourceLabel.replace(/\\s*\\(\\s*code\\s*\\d+\\s*\\)?\\s*$/i, '').trim()
   const normalizedSource = normalizeVipOptionLabel(unwrappedLabel)
   const alias = SOURCE_LABEL_ALIASES[indicatorCode]?.[normalizedSource]
   const canonicalSource = alias ? normalizeVipOptionLabel(alias) : normalizedSource
@@ -194,6 +194,13 @@ export function parseVipSourceAnswer(
   const sourceProfileMatch = sourceProfileOptions.length === 0
     ? true
     : sourceProfileOptions.some(option => normalizeVipOptionLabel(option) === normalizeVipOptionLabel(sourceLabel))
+
+  if (!sourceProfileMatch) {
+    return {
+      label: unwrappedLabel, code: null, numerator: null, denominator: true,
+      sourceLabel, sourceCode, sourceProfileMatch, reviewRequired: true, mappingStatus: 'not_in_master',
+    }
+  }
 
   if (!masterOptions.length) {
     return {
