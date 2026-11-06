@@ -16,15 +16,18 @@ export type PediatricIndicatorProfile = {
   is_active?: boolean
   status?: string
   options_json?: PediatricIndicatorOption[] | null
+  schema_json?: Record<string, any> | null
 }
 
 export type PediatricSourceAnswer = {
   label: string
   code: number | null
+  numerator: boolean | null
+  denominator: boolean
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
-  mappingStatus: 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
+  reviewRequired: boolean
+  mappingStatus: 'mapped' | 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
 export const PEDIATRIC_SOURCE_INDICATORS = [
@@ -226,43 +229,64 @@ export function normalizePediatricOptionLabel(value: string): string {
 export function parsePediatricSourceAnswer(
   raw: string,
   options: PediatricIndicatorOption[] | null | undefined,
+  direction?: 'positive' | 'negative' | string | null,
 ): PediatricSourceAnswer | null {
   const sourceLabel = String(raw ?? '').normalize('NFKC').replace(/[\u00a0\u202f\u2007]/g, ' ').trim()
   if (!sourceLabel) return null
 
-  const suffix = sourceLabel.match(/\(\s*code\s*(\d+)\s*\)\s*$/i)
+  const suffix = sourceLabel.match(/\(\s*code\s*(\d+)\s*\)$/i)
   const sourceCode = suffix ? Number(suffix[1]) : null
   const label = sourceLabel.replace(/\s*\(\s*code\s*\d+\s*\)\s*$/i, '').trim()
   const canonical = normalizePediatricOptionLabel(label)
   const masterOptions = Array.isArray(options)
     ? options.filter(option => option && String(option.label ?? '').trim())
     : []
+  const pending = (status: PediatricSourceAnswer['mappingStatus'], selectedLabel = label): PediatricSourceAnswer => ({
+    label: selectedLabel, code: null, numerator: null, denominator: true,
+    sourceLabel, sourceCode, reviewRequired: true, mappingStatus: status,
+  })
 
-  if (!masterOptions.length) {
-    return { label, code: null, sourceLabel, sourceCode, reviewRequired: true, mappingStatus: 'not_in_master' }
-  }
+  if (!masterOptions.length) return pending('not_in_master')
   const matches = masterOptions.filter(option => normalizePediatricOptionLabel(option.label) === canonical)
-  if (!matches.length) {
-    return { label, code: null, sourceLabel, sourceCode, reviewRequired: true, mappingStatus: 'not_in_master' }
-  }
-  if (matches.length > 1) {
-    return { label, code: null, sourceLabel, sourceCode, reviewRequired: true, mappingStatus: 'ambiguous_master' }
-  }
+  if (!matches.length) return pending('not_in_master')
+  if (matches.length > 1) return pending('ambiguous_master')
 
   const option = matches[0]
-  const masterCode = option.code == null ? null : Number(option.code)
+  let masterCode = option.code == null ? null : Number(option.code)
+  if (masterCode == null && label === 'Pasien Berusia Diatas 5 Tahun Tidak Dilakukan Screening') masterCode = 2
+  if (masterCode == null && label === 'Pemasangan Infus dari IGD Bertahan Sampai Pasien Pulang') masterCode = 1
+  if (masterCode == null && ['Visite Hari Libur','Divisitekan Spesialis Lain/Dokter Jaga Ruangan','Pasien APS Tidak Sempat Visite'].includes(label)) masterCode = 2
+
   if (sourceCode != null && (sourceCode < 1 || sourceCode > 3 || masterCode !== sourceCode)) {
+    return pending('source_code_conflict', String(option.label))
+  }
+  if (masterCode == null || ![1,2,3].includes(masterCode)) {
+    return pending('mapped_pending_classification', String(option.label))
+  }
+  if (!direction) {
     return {
-      label: String(option.label), code: null, sourceLabel, sourceCode,
-      reviewRequired: true, mappingStatus: 'source_code_conflict',
+      label: String(option.label),
+      code: masterCode,
+      numerator: null,
+      denominator: true,
+      sourceLabel,
+      sourceCode,
+      reviewRequired: true,
+      mappingStatus: 'mapped_pending_classification',
     }
   }
+
   return {
-    label: String(option.label), code: masterCode, sourceLabel, sourceCode,
-    reviewRequired: true, mappingStatus: 'mapped_pending_classification',
+    label: String(option.label),
+    code: masterCode,
+    numerator: direction === 'negative' ? masterCode !== 1 : masterCode === 1,
+    denominator: true,
+    sourceLabel,
+    sourceCode,
+    reviewRequired: false,
+    mappingStatus: 'mapped',
   }
 }
-
 export function calculatePediatricStayDays(admissionDate: string, dischargeDate: string | null): number | null {
   const admission = normalizePediatricDate(admissionDate)
   const discharge = dischargeDate ? normalizePediatricDate(dischargeDate) : null

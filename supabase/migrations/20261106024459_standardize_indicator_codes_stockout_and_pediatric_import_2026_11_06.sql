@@ -1,0 +1,3 @@
+-- No-op migration ledger alignment.
+-- The original migration identifier was recorded in production by an early no-op call.
+-- The complete changes are implemented in 20261106024700_standardize_indicator_codes_stockout_and_pediatric_import_2026_11_06_v3.sql.
