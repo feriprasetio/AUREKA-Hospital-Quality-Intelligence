@@ -24,6 +24,7 @@ const sb = aurekaSupabase
 const quality = () => sb.schema('aureka_quality')
 const MAX_FILE_BYTES = 15 * 1024 * 1024
 const MAX_DATA_ROWS = 5000
+const MAX_PHYSICAL_ROWS = MAX_DATA_ROWS + 102
 const MAX_COLUMNS = 100
 const BATCH_SIZE = Math.min(DEFAULT_IMPORT_BATCH_SIZE, 20)
 const MIN_BATCH_SIZE = MIN_IMPORT_BATCH_SIZE
@@ -398,7 +399,7 @@ export default function IsolasiInpatientExcelImportDialog({
       }
       const sheet = workbook.getWorksheet('Logbook')
       if (!sheet) throw new Error('Sheet Logbook tidak ditemukan. Sheet Profil, Dashboard, dan rekap 1–20 tidak diimpor.')
-      if (sheet.rowCount > MAX_DATA_ROWS + 2 || sheet.columnCount > MAX_COLUMNS) {
+      if (sheet.rowCount > MAX_PHYSICAL_ROWS || sheet.columnCount > MAX_COLUMNS) {
         throw new Error('Dimensi sheet Logbook melewati batas aman (' + MAX_DATA_ROWS + ' baris data dan ' + MAX_COLUMNS + ' kolom).')
       }
       if (!workbook.getWorksheet('Profil')) {
@@ -441,6 +442,7 @@ export default function IsolasiInpatientExcelImportDialog({
         const source = sheet.getRow(rowNumber)
         if (!rowHasData(source, header.indexes)) continue
         dataRows++
+        if (dataRows > MAX_DATA_ROWS) throw new Error('Logbook melebihi batas 5.000 episode sumber.')
 
         const value = (key: string) => {
           const index = header.indexes[key]
