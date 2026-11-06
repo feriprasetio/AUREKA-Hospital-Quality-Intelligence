@@ -754,7 +754,7 @@ export default function VipInpatientExcelImportDialog({
         <div>
           <div className="eyebrow">AUDIT INDIKATOR MUTU · RAWAT INAP VIP</div>
           <h4 id="aqVipImportTitle">Import workbook Rawat Inap VIP 2026</h4>
-          <p>Pratinjau episode rawat inap, dua belas indikator, pemeriksaan tanggal/LOS, serta temuan sumber TB.</p>
+          <p>Pratinjau episode rawat inap, dua belas indikator, pemeriksaan tanggal/LOS, serta temuan sumber dan kecocokan dropdown Profil.</p>
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
