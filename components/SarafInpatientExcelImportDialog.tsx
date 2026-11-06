@@ -572,13 +572,13 @@ export default function SarafInpatientExcelImportDialog({
       const warnedMrn = new Set<string>()
 
       for (const row of prepared) {
-        const sequenceCount = sourceNoCounts.get(row.sourceNo) ?? 0
-        if (sequenceCount > 1 && !warnedSequence.has(row.sourceNo)) {
+        const sequenceCount = row.sourceNo ? (sourceNoCounts.get(row.sourceNo) ?? 0) : 0
+        if (row.sourceNo && sequenceCount > 1 && !warnedSequence.has(row.sourceNo)) {
           repeatedSequenceGroups++
           repeatedSequenceRows += sequenceCount
           warnedSequence.add(row.sourceNo)
         }
-        if (sequenceCount > 1) row.warnings.push('Nomor urut sumber berulang; kunci impor tetap menggunakan baris Excel fisik.')
+        if (row.sourceNo && sequenceCount > 1) row.warnings.push('Nomor urut sumber berulang; kunci impor tetap menggunakan baris Excel fisik.')
 
         const mrnKey = normalizedIdentity(row.medicalRecordNo)
         const mrnCount = medicalRecordCounts.get(mrnKey) ?? 0
