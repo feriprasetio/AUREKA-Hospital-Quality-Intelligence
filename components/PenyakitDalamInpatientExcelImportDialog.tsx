@@ -232,12 +232,15 @@ function preparePayload(
       numerator: answer.numerator,
       denominator: answer.denominator,
       source_value: answer.sourceLabel,
-      source_code: answer.sourceCode,
-      review_required: true,
+      source_code: answer.sourceCode ?? answer.code,
+      free_text: answer.freeText ?? '',
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
-      classification_note: answer.mappingStatus === 'mapped_existing_master'
-        ? 'Pilihan Linen/Obat diselaraskan melalui alias eksplisit dengan master aktif yang telah memiliki klasifikasi; respons tetap pending untuk review.'
-        : 'Pilihan sumber disimpan apa adanya; numerator/denominator belum ditetapkan dan menunggu verifikasi pemilik indikator.',
+      classification_note: answer.freeText
+        ? 'Nama obat yang tidak tersedia disimpan sebagai bukti kejadian kekosongan; diklasifikasikan code 3.'
+        : answer.mappingStatus === 'mapped_existing_master'
+          ? 'Pilihan Linen/Obat dipetakan ke master aktif dan klasifikasi universal; denominator tetap dihitung.'
+          : 'Pilihan sumber disimpan sesuai klasifikasi yang tersedia.',
     }
     indicatorValues[item.code] = rawValue
     sourceIndicatorValues[item.code] = answer.sourceLabel
@@ -246,8 +249,8 @@ function preparePayload(
       response_label: answer.label,
       response_code: answer.code,
       raw_value: rawValue,
-      other_text: answer.sourceLabel,
-      review_status: 'pending',
+      other_text: answer.freeText || answer.sourceLabel || null,
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -524,7 +527,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
         for (const item of INTERNAL_MEDICINE_SOURCE_INDICATORS) {
           const sourceValue = value('indicator:' + item.code)
           sourceIndicatorCells[item.code] = sourceValue
-          if (!sourceValue) continue
+          if (!sourceValue && item.code !== '25.10') continue
           const profile = profileByCode.get(item.code)
           const answer = parseInternalMedicineSourceAnswer(sourceValue, profile?.options_json, item.code)
           if (answer) {
