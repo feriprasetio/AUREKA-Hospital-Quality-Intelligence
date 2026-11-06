@@ -130,10 +130,12 @@ test('maps Visite Spesialis with and without Code suffix', () => {
   const coded = parsePediatricSourceAnswer('Visite Hari Kerja (06.00-14.00) (Code 1)', options)
   assert.equal(coded?.code, 1)
   assert.equal(coded?.mappingStatus, 'mapped_pending_classification')
-  const uncoded = parsePediatricSourceAnswer('Visite Hari Libur', options)
-  assert.equal(uncoded?.code, null)
-  assert.equal(uncoded?.sourceCode, null)
-  assert.equal(uncoded?.mappingStatus, 'mapped_pending_classification')
+  const conditional = parsePediatricSourceAnswer('Visite Hari Libur', options)
+  assert.equal(conditional?.code, 2)
+  assert.equal(conditional?.sourceCode, null)
+  assert.equal(conditional?.numerator, null)
+  assert.equal(conditional?.reviewRequired, true)
+  assert.equal(conditional?.mappingStatus, 'mapped_pending_classification')
 })
 
 test('maps Validitas Asesmen Keperawatan options without inferring numerator', () => {
@@ -180,7 +182,9 @@ test('maps peripheral infusion choices and flags cross-column labels', () => {
   ]
   const answer = parsePediatricSourceAnswer('Pemasangan Infus dari IGD Bertahan Sampai Pasien Pulang', options)
   assert.equal(answer?.mappingStatus, 'mapped_pending_classification')
-  assert.equal(answer?.code, null)
+  assert.equal(answer?.code, 1)
+  assert.equal(answer?.numerator, null)
+  assert.equal(answer?.reviewRequired, true)
   const unmatched = parsePediatricSourceAnswer('Formulir Transfer Terisi Lengkap (SBAR, TTV, Terapi, Tindakan) (Code 1)', options)
   assert.equal(unmatched?.mappingStatus, 'not_in_master')
 })
@@ -207,9 +211,11 @@ test('maps Stunting Wasting including the uncoded over-five-years exclusion', ()
     pending(2, 'Hanya Berat Badan Diisi'),
     pending(3, 'Tinggi Badan dan Berat Badan Tidak Terisi'),
   ]
-  const uncoded = parsePediatricSourceAnswer('Pasien Berusia Diatas 5 Tahun Tidak Dilakukan Screening', options)
-  assert.equal(uncoded?.code, null)
-  assert.equal(uncoded?.mappingStatus, 'mapped_pending_classification')
+  const exclusion = parsePediatricSourceAnswer('Pasien Berusia Diatas 5 Tahun Tidak Dilakukan Screening', options)
+  assert.equal(exclusion?.code, 2)
+  assert.equal(exclusion?.numerator, null)
+  assert.equal(exclusion?.reviewRequired, true)
+  assert.equal(exclusion?.mappingStatus, 'mapped_pending_classification')
   const coded = parsePediatricSourceAnswer('Tinggi Badan dan Berat Badan Sudah Diisi (Code 1)', options)
   assert.equal(coded?.code, 1)
 })
