@@ -954,7 +954,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
 
  const indicatorEditor=(p:Profile)=>{
-   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=kind(p),isHit=hit(p,selected?.diagnosis??''),opts=optionsFor(p),title=displayTitle(p)
+   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=String(p.schema_json?.input_mode??'')==='free_text_event'?'occurrence':kind(p),isHit=hit(p,selected?.diagnosis??''),opts=optionsFor(p),title=displayTitle(p)
    const choices=indicatorChoicesFor(p,selectedLayout,r)
    const selectedChoiceIndex=findIndicatorDropdownSelection(choices,r as any)
    const selectedChoice=selectedChoiceIndex>=0?choices[selectedChoiceIndex]:undefined
