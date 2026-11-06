@@ -129,9 +129,12 @@ BEGIN
        OR coalesce(jsonb_typeof(v_source_cells),'') <> 'object'
        OR coalesce(jsonb_typeof(v_values),'') <> 'object'
        OR coalesce(jsonb_typeof(v_responses),'') <> 'array'
-       OR coalesce(jsonb_typeof(v_row->'attributions'),'') <> 'array'
-       OR jsonb_array_length(v_row->'attributions') <> 0 THEN
+       OR coalesce(jsonb_typeof(v_row->'attributions'),'') <> 'array' THEN
       RAISE EXCEPTION 'Struktur payload episode Rawat Inap Isolasi tidak valid.' USING ERRCODE = '22023';
+    END IF;
+
+    IF jsonb_array_length(v_row->'attributions') <> 0 THEN
+      RAISE EXCEPTION 'Atribusi episode Isolasi tidak diizinkan pada impor workbook.' USING ERRCODE = '22023';
     END IF;
 
     IF jsonb_array_length(v_responses) > 9 THEN
@@ -143,6 +146,8 @@ BEGIN
        OR coalesce(v_payload->>'measurement_grain','') <> 'patient_episode'
        OR coalesce(v_payload->>'status','') <> 'ready'
        OR coalesce(v_payload->>'review_required','false') <> 'true'
+       OR coalesce(v_payload->>'entered_by','') <> v_user_id::text
+       OR v_payload->'subject_json'->'source_import' IS DISTINCT FROM v_source
        OR coalesce(v_core->>'room_id','') <> '24'
        OR coalesce(v_core->>'unit_name','') <> 'Rawat Inap Isolasi'
        OR coalesce(v_core->>'measurement_grain','') <> 'patient_episode'
@@ -164,7 +169,8 @@ BEGIN
     v_subject_key := 'excel-pmkp-rawat-inap-isolasi-2026:row:' || v_source_row::text;
 
     IF v_source_row < 3 OR v_source_row > 5102
-       OR coalesce(v_payload->>'subject_key','') <> v_subject_key THEN
+       OR coalesce(v_payload->>'subject_key','') <> v_subject_key
+       OR coalesce(v_form->>'No.','') <> coalesce(v_source->>'source_excel_no','') THEN
       RAISE EXCEPTION 'Kunci idempotensi harus memakai nomor baris fisik Excel 3–5102.' USING ERRCODE = '22023';
     END IF;
 
