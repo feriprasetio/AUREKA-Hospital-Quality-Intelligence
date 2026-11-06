@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -421,31 +423,36 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
   )
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
-      <LiquidGlass style={{ padding: 14 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div>
-            <div className="eyebrow">METADATA · AKSES SUPERADMIN</div>
-            <h3 style={{ margin: '4px 0', fontSize: 24 }}>Program Kerja &amp; Kamus Indikator</h3>
-            <div style={{ marginTop: 5, fontSize: 11, color: 'var(--muted)', lineHeight: 1.6, maxWidth: 820 }}>
-              Kelola daftar program dari klasifikasi indikator, lalu ubah, tambah, atau pensiunkan profil indikator lintas unit. Metadata yang sudah dipakai tidak dihapus permanen sehingga riwayat capaian tetap terlindungi.
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-            <button type="button" className="textButton" onClick={() => setTab('programs')}>Program Kerja</button>
-            <button type="button" className="textButton" onClick={() => setTab('profiles')}>Kamus Indikator</button>
-            <button type="button" className="textButton" onClick={() => setTab('review')}>Review “Lainnya” {pending.length > 0 && `(${pending.length})`}</button>
-          </div>
-        </div>
+    <div className="qualitySettingsWorkspace" style={{ display: 'grid', gap: 14 }}>
+      <LiquidGlass className="qualitySettingsSurface" style={{ padding: 14 }}>
+        <WorkspaceModuleHeader
+          title="Program kerja & kamus indikator"
+          description="Kelola daftar program dari klasifikasi indikator, lalu ubah, tambah, atau pensiunkan profil indikator lintas unit. Metadata yang sudah dipakai tidak dihapus permanen sehingga riwayat capaian tetap terlindungi."
+          eyebrow="Metadata · Akses Superadmin"
+        />
+        <WorkspaceTabs
+          className="metadataTabs"
+          idPrefix="metadata"
+          label="Bagian metadata"
+          value={tab}
+          onChange={setTab}
+          panelId="metadata-active-panel"
+          items={[
+            { value: 'programs', label: 'Program kerja' },
+            { value: 'profiles', label: 'Kamus indikator' },
+            { value: 'review', label: 'Review “Lainnya”', count: pending.length },
+          ] as const}
+        />
 
         {msg && <div className="msg visible" role={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'alert' : 'status'} aria-live={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'assertive' : 'polite'} style={{ color: /gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? '#9c3f32' : '#0f7656', marginTop: 12 }}>{msg}</div>}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="metadataScopeFilters" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Tahun metadata</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
           <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}><option value="">Semua unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <div style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
+        <div id="metadata-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'metadata-tab-' + tab} tabIndex={0}>
         {tab === 'programs' && (
           <div style={{ marginTop: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
@@ -455,7 +462,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
             {programStats.length === 0 ? (
               <div style={{ border: '1px dashed rgba(20,34,27,.18)', borderRadius: 15, padding: 18, color: 'var(--muted)', fontSize: 11 }}>Belum ada profil indikator pada tahun dan unit terpilih. Tambahkan indikator untuk mulai membentuk kamus program kerja.</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(225px,1fr))', gap: 9 }}>
+              <div className="metadataProgramGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(225px,1fr))', gap: 9 }}>
                 {programStats.map((program) => (
                   <div key={program.name} style={{ padding: 13, border: '1px solid rgba(20,34,27,.09)', borderRadius: 16, background: 'rgba(255,255,255,.25)', minWidth: 0 }}>
                     <div style={{ fontWeight: 850, fontSize: 12, lineHeight: 1.5, overflowWrap: 'anywhere' }}>{program.name}</div>
@@ -473,7 +480,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
 
         {tab === 'profiles' && (
           <div style={{ marginTop: 12 }}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
+            <div className="metadataProfileFilters" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <input className="qualitySettingsLocalSearch" aria-label="Cari kode, nama indikator, program, kategori, atau unit" placeholder="Cari kode, indikator, program, kategori, unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '1 1 240px', minWidth: 180 }} />
               <select
                 aria-label="Filter kelengkapan dan status indikator"
@@ -548,6 +555,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
         )}
 
 
+        </div>
       </LiquidGlass>
     </div>
   )

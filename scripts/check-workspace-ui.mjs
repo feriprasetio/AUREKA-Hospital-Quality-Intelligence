@@ -22,9 +22,20 @@ const exceptions = []
 const requests = []
 const checks = []
 const measurements = []
+const interceptions = new Set()
+let stopping = false
+let stopRequests
+const requestsStopped = new Promise(resolve => { stopRequests = resolve })
+const isCancelledInterception = error => stopping && /Fetch domain is not enabled|Invalid InterceptionId|Invalid interceptionId|Invalid request id|No resource with given identifier|Target closed|Session closed/.test(error.message)
 let testRole = 'ADMIN'
 let failQualityReads = false
 let failQualitySave = false
+let failFppeWrites = false
+let fppeWriteGate = null
+let fppeRecords = []
+let pathwayTemplates = []
+const testWidths = process.env.AUREKA_UI_WIDTHS?.split(',').map(Number) || [1440, 1366, 1024, 768, 390, 375, 320]
+assert.ok(testWidths.length && testWidths.every(width => Number.isInteger(width) && width >= 320 && width <= 2560), 'UI widths must be integers from 320 to 2560')
 const uid = '11111111-1111-4111-8111-111111111111'
 const user = {
   id: uid, aud: 'authenticated', role: 'authenticated', email: 'workspace-ui@example.invalid',
@@ -104,21 +115,7 @@ const fulfill = (requestId, data, code = 200, extra = []) => send('Fetch.fulfill
   body: Buffer.from(JSON.stringify(data)).toString('base64'),
 })
 
-socket.addEventListener('message', async event => {
-  const message = JSON.parse(event.data)
-  if (message.id) {
-    const task = pending.get(message.id)
-    if (task) {
-      pending.delete(message.id)
-      message.error ? task.reject(new Error(JSON.stringify(message.error))) : task.resolve(message.result)
-    }
-    return
-  }
-  if (message.method === 'Runtime.exceptionThrown') {
-    exceptions.push(message.params.exceptionDetails.exception?.description || message.params.exceptionDetails.text)
-  }
-  if (message.method !== 'Fetch.requestPaused') return
-  const { request, requestId } = message.params
+const handlePausedRequest = async ({ request, requestId }) => {
   const url = new URL(request.url)
   if (url.origin === new URL(appUrl).origin) {
     await send('Fetch.continueRequest', { requestId })
@@ -151,10 +148,31 @@ socket.addEventListener('message', async event => {
       qualityRecords = qualityRecords.filter(row => row.id !== body.p_record_id)
       return await fulfill(requestId, true)
     }
+    if (resource === 'oppe_fppe_evaluations' && ['POST', 'PATCH'].includes(request.method)) {
+      if (failFppeWrites) return await fulfill(requestId, { message: 'Penyimpanan FPPE ditolak pada uji antarmuka', code: '42501' }, 403)
+      if (fppeWriteGate) {
+        const gate = fppeWriteGate
+        fppeWriteGate = null
+        gate.started()
+        await Promise.race([gate.wait, requestsStopped])
+        if (stopping) return
+      }
+      const id = request.method === 'POST' ? '70000000-0000-4000-8000-000000000001' : url.searchParams.get('id')?.replace(/^eq\./, '')
+      const row = { ...fppeRecords.find(record => record.id === id), id, ...body, updated_at: new Date().toISOString() }
+      fppeRecords = [row, ...fppeRecords.filter(record => record.id !== id)]
+      return await fulfill(requestId, request.method === 'POST' ? row : null)
+    }
+    if (resource === 'clinical_pathway_templates' && request.method === 'POST') {
+      for (const row of Array.isArray(body) ? body : [body]) {
+        pathwayTemplates = [...pathwayTemplates.filter(template => template.code !== row.code), { id: `80000000-0000-4000-8000-${String(pathwayTemplates.length + 1).padStart(12, '0')}`, ...row }]
+      }
+      return await fulfill(requestId, null)
+    }
     if (failQualityReads && resource === 'indicator_profiles') return await fulfill(requestId, { message: 'Sumber data sengaja tidak tersedia pada uji antarmuka', code: 'PGRST000' }, 503)
     const sources = {
       master_rooms: rooms, indicator_profiles: profiles, quality_records: qualityRecords,
-      risk_register: risks, incidents, staff_directory: staff,
+      risk_register: risks, incidents, staff_directory: staff, oppe_fppe_evaluations: fppeRecords,
+      clinical_pathway_templates: pathwayTemplates,
       staff_team_assignments: [{ staff_id: staff[0].id, room_id: 1, assignment_status: 'active', is_locked: true }],
     }
     let rows = sources[resource] || []
@@ -169,9 +187,30 @@ socket.addEventListener('message', async event => {
     const data = accept.includes('vnd.pgrst.object') ? rows[0] || null : rows
     await fulfill(requestId, data, 200, [{ name: 'Content-Range', value: rows.length ? `${offset}-${offset + rows.length - 1}/${total}` : `*/${total}` }])
   } catch (error) {
+    if (isCancelledInterception(error)) return
     exceptions.push('Mock handler: ' + error.message)
     await fulfill(requestId, { message: 'Isolated UI fixture failed' }, 500)
   }
+}
+
+socket.addEventListener('message', event => {
+  const message = JSON.parse(event.data)
+  if (message.id) {
+    const task = pending.get(message.id)
+    if (task) {
+      pending.delete(message.id)
+      message.error ? task.reject(new Error(JSON.stringify(message.error))) : task.resolve(message.result)
+    }
+    return
+  }
+  if (message.method === 'Runtime.exceptionThrown' && !stopping) {
+    exceptions.push(message.params.exceptionDetails.exception?.description || message.params.exceptionDetails.text)
+  }
+  if (message.method !== 'Fetch.requestPaused' || stopping) return
+  const operation = handlePausedRequest(message.params)
+    .catch(error => { if (!isCancelledInterception(error)) exceptions.push('Request interception: ' + error.message) })
+    .finally(() => interceptions.delete(operation))
+  interceptions.add(operation)
 })
 
 const evaluate = async expression => {
@@ -182,7 +221,7 @@ const evaluate = async expression => {
 const wait = async (expression, description = expression) => {
   const deadline = Date.now() + 40000
   while (Date.now() < deadline) {
-    if (await evaluate(`Boolean(${expression})`)) return
+    if (typeof expression === 'function' ? await expression() : await evaluate(`Boolean(${expression})`)) return
     await new Promise(resolve => setTimeout(resolve, 120))
   }
   throw new Error('Timed out: ' + description)
@@ -209,6 +248,7 @@ const check = async (name, action) => {
 }
 const viewport = (width, height = 900) => send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width <= 720 })
 const screenshot = async name => {
+  await evaluate("Promise.all(Array.from(document.querySelectorAll('[role=\"dialog\"]')).flatMap(e=>e.getAnimations({subtree:true})).filter(a=>Number.isFinite(a.effect?.getTiming().iterations)).map(a=>a.finished.catch(()=>{}))).then(()=>undefined)")
   const image = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
   writeFileSync(`${artifacts}/${name}.png`, Buffer.from(image.data, 'base64'))
 }
@@ -239,6 +279,11 @@ const goSection = async (id, label) => {
   else await clickText('.workspaceContextNav button', label)
   await wait(`document.querySelector('.workspaceContextSelect select')?.value===${JSON.stringify(id)}`)
 }
+const goView = async (selector, value, label) => {
+  if (await evaluate('innerWidth <= 720')) await fill(selector + ' select', value, 'HTMLSelectElement')
+  else await clickText(selector + ' button', label)
+  await wait(`document.querySelector(${JSON.stringify(selector + ' select')})?.value===${JSON.stringify(value)}`)
+}
 const login = async role => {
   testRole = role
   await send('Storage.clearDataForOrigin', { origin: new URL(appUrl).origin, storageTypes: 'all' })
@@ -252,6 +297,17 @@ const login = async role => {
   await evaluate("document.querySelector('.authForm').requestSubmit()")
   await wait("document.querySelector('.workspaceDesk')")
 }
+
+let stopInterceptionPromise
+const stopInterception = () => stopInterceptionPromise ??= (async () => {
+  stopping = true
+  stopRequests()
+  // Unload the test document before unmocking so background refreshes cannot reach a backend.
+  await send('Page.navigate', { url: 'about:blank' })
+  await Promise.all([...interceptions])
+  await send('Fetch.disable')
+  await send('Network.setBlockedURLs', { urls: [] })
+})()
 
 try {
   await send('Page.enable')
@@ -366,6 +422,21 @@ try {
     await wait("document.querySelector('.aqHideStatus')")
     await goSection('audit-pathway', 'Audit Clinical Pathway')
     await wait("document.querySelector('.cpRoot')")
+    await wait("document.querySelectorAll('.cpTile').length===6")
+    await click('.cpTile')
+    await clickText('.cpActions button', 'Audit pasien baru')
+    await wait("document.querySelector('.cpAuditTable')")
+    await layout('Clinical Pathway editor')
+    await screenshot('pathway-editor-1366')
+    await click('.cpChoiceToggle input')
+    await click('.cpCell .cpMark')
+    await wait("document.querySelector('.cpCell .cpMark.done')")
+    await click('.cpCell .cpCellEdit')
+    await wait("document.querySelector('.cpCellDetail')")
+    await layout('Clinical Pathway item detail')
+    await clickText('.cpCellDetail button', 'Tutup rincian')
+    await evaluate("document.querySelector('.cpAuditWrap').scrollIntoView({block:'center'})")
+    await screenshot('pathway-checklist-1366')
     await wait("Array.from(document.querySelectorAll('.cpRoot button')).some(e=>e.textContent.includes('Audit Indikator Mutu'))")
     await clickText('.cpRoot button', 'Audit Indikator Mutu')
     await wait("document.querySelector('.aqHideStatus')")
@@ -431,6 +502,41 @@ try {
     assert.equal(identity.code, staff[0].employee_code)
     assert.equal(identity.unit, rooms[0].name)
   })
+  await check('FPPE submit retains its required-field validation', async () => {
+    const before = requests.filter(request => request.resource === 'oppe_fppe_evaluations' && request.method === 'POST').length
+    await evaluate("document.querySelector('.fppeFramePanel iframe').contentDocument.getElementById('submitFppeBtn').click()")
+    await wait("document.querySelector('.fppeFramePanel iframe').contentDocument.getElementById('integrationStatus').textContent.includes('Belum dapat diajukan')")
+    assert.equal(requests.filter(request => request.resource === 'oppe_fppe_evaluations' && request.method === 'POST').length, before)
+  })
+  await check('FPPE keeps edits on a rejected save and waits for the server before success', async () => {
+    failFppeWrites = true
+    await evaluate("document.querySelector('.fppeFramePanel iframe').contentDocument.getElementById('saveFppeBtn').click()")
+    await wait("document.querySelector('.fppeError') && !document.querySelector('.fppeBusyOverlay')")
+    assert.equal(await evaluate("document.querySelector('.fppeFramePanel iframe').contentDocument.getElementById('staffName').value"), staff[0].display_name)
+    failFppeWrites = false
+    let started = false
+    let release
+    fppeWriteGate = { started: () => { started = true }, wait: new Promise(resolve => { release = resolve }) }
+    await evaluate("document.querySelector('.fppeFramePanel iframe').contentDocument.getElementById('saveFppeBtn').click()")
+    await wait(() => started, 'FPPE write reached the isolated server gate')
+    assert.ok(await evaluate("Boolean(document.querySelector('.fppeBusyOverlay'))"))
+    assert.equal(await evaluate("Boolean(document.querySelector('.fppeSuccess'))"), false)
+    release()
+    await wait("document.querySelector('.fppeSuccess')?.textContent.includes('tersimpan') && !document.querySelector('.fppeBusyOverlay')")
+    assert.equal(fppeRecords[0].staff_id, staff[0].id)
+    assert.equal(fppeRecords[0].status, 'draft')
+  })
+  await check('FPPE archive disclosure retains its real search and exports', async () => {
+    await click('.fppeHistorySummary > summary')
+    await wait("document.querySelector('.fppeHistoryItem')")
+    await fill('.fppeLocalSearch', 'tidak-ada-tenaga-ini')
+    await wait("!document.querySelector('.fppeHistoryItem')")
+    await fill('.fppeLocalSearch', staff[0].display_name)
+    await wait("document.querySelector('.fppeHistoryItem')")
+    assert.equal(await evaluate("document.querySelectorAll('.fppeHistoryExportActions button').length"), 2)
+    await fill('.fppeLocalSearch', '')
+    if (await evaluate("document.querySelector('.fppeHistorySummary').open")) await click('.fppeHistorySummary > summary')
+  })
   await screenshot('fppe-1366')
   await goModule('settings', 'Administrasi')
   await clickText('.settingsDestination', 'Pengaturan Umum')
@@ -468,7 +574,7 @@ try {
     await wait("location.hash==='#manajemen-risiko/fmea'")
     await click('.workspaceSidebarMenuButton')
   })
-  for (const width of [1440, 1366, 1024, 768, 390, 375, 320]) {
+  for (const width of testWidths) {
     await viewport(width, width <= 720 ? 844 : 900)
     await check(`responsive module layout at ${width}px`, async () => {
       for (const [id, label] of [
@@ -496,16 +602,69 @@ try {
             await layout(label + ' / ' + section.label + ' / Hasil Capaian')
             await clickText('.qualityWorkspaceTabs button', 'Form Logbook')
             await wait("!document.querySelector('.moduleEnter .aurekaAsyncState.loading')")
+            if (section.id === 'audit-pathway') {
+              await wait("document.querySelectorAll('.cpTile').length===6")
+              await click('.cpTile')
+              await clickText('.cpActions button', 'Audit pasien baru')
+              await wait("document.querySelector('.cpAuditTable')")
+              await layout('Clinical Pathway editor')
+              const dayWidth = await evaluate("document.querySelector('.cpAuditTable th.cpDayCol').getBoundingClientRect().width")
+              assert.ok(dayWidth >= 80, 'Clinical Pathway days are squeezed below a usable control width')
+              await screenshot(`pathway-editor-${width}`)
+              const controlsFit = await evaluate("Array.from(document.querySelectorAll('.cpCellControls')).every(e=>e.scrollWidth<=e.clientWidth+1)")
+              assert.ok(controlsFit, 'Clinical Pathway status and detail controls overlap')
+              const schedule = await evaluate("(()=>{const r=document.querySelector('.cpCell.required'),c=document.querySelector('.cpCell.conditional'),b=document.querySelector('.cpChoiceToggle input').getBoundingClientRect();return{required:r&&getComputedStyle(r).backgroundColor,conditional:c&&getComputedStyle(c).backgroundColor,checkbox:b.width}})()")
+              assert.equal(schedule.required, 'rgba(145, 203, 81, 0.25)', 'Required CP days lost their original clinical color')
+              if (schedule.conditional) assert.equal(schedule.conditional, 'rgba(255, 225, 53, 0.28)', 'Conditional CP days lost their original clinical color')
+              assert.ok(schedule.checkbox >= 14 && schedule.checkbox <= 20, 'A generic field rule oversized the CP checkbox')
+              const scoresFit = await evaluate("Array.from(document.querySelectorAll('.cpScoreGrid .cpScore')).every(e=>e.scrollWidth<=e.clientWidth+1&&e.querySelector('small').getBoundingClientRect().height>0)")
+              assert.ok(scoresFit, 'Clinical Pathway results must fit and retain their clinical denominator/target context')
+              await evaluate("document.querySelector('.cpAuditWrap').scrollIntoView({block:'center'})")
+              await screenshot(`pathway-checklist-${width}`)
+            }
           }
+          if (id === 'analytics' && section.id === 'metadata') {
+            for (const [value, label] of [['profiles', 'Kamus indikator'], ['review', 'Review “Lainnya”'], ['programs', 'Program kerja']]) {
+              await goView('.metadataTabs', value, label)
+              await layout('Metadata / ' + label)
+              await screenshot(`metadata-${value}-${width}`)
+            }
+          }
+        }
+        if (id === 'settings') {
+          await clickText('.settingsDestination', 'Pengaturan Umum')
+          await wait("document.querySelector('#settings-active-panel')")
+          await goView('.settingsTabs', 'security', 'Keamanan & Password')
+          await layout('Pengaturan / Keamanan')
         }
       }
     })
     await goModule('staff', 'Tenaga Klinis')
     await goSection('oppe', 'OPPE / FPPE')
     await wait("document.querySelector('.oppeTabs')")
-    await clickText('.oppeTabs button', 'FPPE terfokus')
+    await check(`all OPPE destinations and counts remain available at ${width}px`, async () => {
+      const destinations = await evaluate("Array.from(document.querySelector('.oppeTabs select').options).map(e=>({value:e.value,label:e.textContent}))")
+      assert.deepEqual(destinations.map(item => item.value), ['assessment', 'fppe', 'rules', 'history'])
+      assert.ok(destinations.find(item => item.value === 'rules').label.includes('(0)'))
+      assert.ok(destinations.find(item => item.value === 'history').label.includes('(0)'))
+      for (const [value, label] of [['rules', 'Pemetaan indikator'], ['history', 'Riwayat penilaian'], ['assessment', 'Form & output OPPE']]) {
+        await goView('.oppeTabs', value, label)
+        await layout('OPPE / ' + label)
+      }
+      const filtersFit = await evaluate("(()=>{const e=document.querySelector('.oppeFilters');return e.scrollWidth<=e.clientWidth+1})()")
+      assert.ok(filtersFit, 'OPPE scope filters overflow their available grid')
+      await wait("!document.querySelector('.oppeFilterMeta').textContent.includes('Memuat')")
+      if (width <= 1100) {
+        assert.equal(await evaluate("getComputedStyle(document.querySelector('.oppeWorkGrid')).gridTemplateColumns.split(' ').length"), 1, 'OPPE squeezed its form into desktop columns')
+        assert.equal(await evaluate("getComputedStyle(document.querySelector('.oppeAside')).gridTemplateColumns.split(' ').length"), 1, 'OPPE score cards must remain readable on narrow screens')
+      }
+      assert.ok(await evaluate("Array.from(document.querySelectorAll('.oppeScorePanel')).every(e=>e.scrollWidth<=e.clientWidth+1)"), 'An OPPE score card clips its text')
+      await screenshot(`oppe-${width}`)
+    })
+    await goView('.oppeTabs', 'fppe', 'FPPE terfokus')
     await wait("document.querySelector('.fppeWorkspace')")
     await wait("document.querySelector('.fppeFramePanel iframe')?.contentDocument?.getElementById('staffPicker')")
+    await wait("document.querySelector('.fppeFramePanel iframe').contentDocument.querySelectorAll('#staffPicker option').length>1")
     await check(`FPPE layout remains usable at ${width}px`, async () => {
       await layout('FPPE')
       const frame = await evaluate("(()=>{const f=document.querySelector('.fppeFramePanel iframe');return{viewport:f.contentWindow.innerWidth,document:f.contentDocument.documentElement.scrollWidth}})()")
@@ -530,15 +689,16 @@ try {
       await check(`logbook editor fits the phone at ${width}px`, async () => {
         await click('.aqHideStatus tbody tr')
         await wait("document.querySelector('.aqPortal [role=\"dialog\"]')")
+        await screenshot(`logbook-editor-${width}`)
         const fits = await evaluate(`(()=>{const d=document.querySelector('.aqEditorDialog').getBoundingClientRect(),f=document.querySelector('.aqPortal .aqFoot').getBoundingClientRect();return d.left>=0&&d.right<=innerWidth+1&&d.top>=0&&f.bottom<=innerHeight+1})()`)
         assert.ok(fits, 'Dialog or save actions are outside the phone viewport')
-        await screenshot(`logbook-editor-${width}`)
         await key('Escape')
         await wait("!document.querySelector('.aqPortal')")
       })
       await check(`phone drawer focus and Escape at ${width}px`, async () => {
         await click('.workspaceSidebarMenuButton')
         await wait("document.querySelector('.sidebar.mobileOpen')")
+        await wait("(()=>{const r=document.querySelector('.sidebar').getBoundingClientRect();return r.left>=-.5&&r.right<=innerWidth})()")
         assert.ok(await evaluate("document.querySelector('.sidebar').contains(document.activeElement)"))
         await screenshot(`drawer-${width}`)
         await key('Escape')
@@ -571,7 +731,8 @@ try {
       await wait("document.querySelector('.a2-landing')")
     })
   }
-  assert.deepEqual(exceptions, [], 'Browser runtime exceptions')
+  await stopInterception()
+  assert.deepEqual(exceptions, [], 'Browser runtime or interception exceptions')
   const report = { mode: 'isolated Supabase fixtures; no backend acceptance', checks, measurements, requestCount: requests.length, runtimeExceptions: exceptions }
   writeFileSync(`${artifacts}/report.json`, JSON.stringify(report, null, 2))
   console.log(`Passed ${checks.length} browser checks; ${requests.length} mocked requests; no runtime exceptions.`)
@@ -581,7 +742,9 @@ try {
   writeFileSync(`${artifacts}/failure.json`, JSON.stringify({ error: error.message, checks, exceptions, measurements: measurements.slice(-8) }, null, 2))
   throw error
 } finally {
-  await send('Fetch.disable').catch(() => {})
-  await send('Network.setBlockedURLs', { urls: [] }).catch(() => {})
-  socket.close()
+  try {
+    await stopInterception()
+  } finally {
+    socket.close()
+  }
 }

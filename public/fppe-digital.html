@@ -89,42 +89,49 @@ tr:last-child td{border-bottom:0}
 }
 
 @media screen {
-  :root{--navy:#193f2e;--blue:#28764f;--border:rgba(33,65,47,.13);--text:#233b2f;--muted:#66786d;--light:rgba(255,255,255,.48);--good:#218653;--warn:#93620d;--bad:#a83838}
-  body{background:linear-gradient(135deg,#eef4ef,#f7faf8);color:var(--text);font-family:Arial,Helvetica,sans-serif}
-  .container{max-width:1480px;padding:18px}
-  .header{background:linear-gradient(135deg,#173f2e,#2d7953);border:1px solid rgba(255,255,255,.72);border-radius:22px;padding:22px 24px;box-shadow:0 12px 34px rgba(24,63,41,.13)}
-  .header h1{font-size:26px;letter-spacing:-.04em}
-  .header p{opacity:.88;line-height:1.6}
-  .grid{grid-template-columns:minmax(290px,340px) minmax(0,1fr);gap:14px;align-items:start}
-  .card{background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.5));border:1px solid rgba(255,255,255,.8);border-radius:20px;box-shadow:0 10px 28px rgba(23,55,37,.08),inset 0 1px 0 rgba(255,255,255,.84);backdrop-filter:blur(18px) saturate(145%);-webkit-backdrop-filter:blur(18px) saturate(145%);overflow:hidden}
-  .card .hd{padding:14px 16px;border-bottom:1px solid rgba(33,65,47,.1);font-weight:850;color:#28694a;background:rgba(255,255,255,.28)}
-  .card .bd{padding:16px}
-  label{color:#5f7466;font-weight:850}
-  input,select,textarea{border:1px solid rgba(35,63,50,.16);border-radius:11px;padding:10px 11px;background:rgba(255,255,255,.76);color:#243d30;outline:none}
-  input:focus,select:focus,textarea:focus{border-color:#4b9870;box-shadow:0 0 0 3px rgba(43,121,82,.09)}
-  .mini-title,.section-title h2{color:#27694b}
-  .section-mini{border-top-color:rgba(35,63,50,.18)}
-  .actions{gap:8px}
-  button{border-radius:11px;padding:10px 12px;font-size:11px;transition:transform .12s ease,filter .12s ease}
-  button:hover{filter:brightness(.98);transform:translateY(-1px)}
-  button:focus-visible{outline:3px solid rgba(43,121,82,.25);outline-offset:2px}
-  .primary{background:linear-gradient(135deg,#2d7953,#1f6344);color:#fff}
-  .secondary{background:rgba(255,255,255,.7);color:#2d5b43;border:1px solid rgba(33,65,47,.13)}
+  :root{--navy:#203b34;--blue:#17634d;--border:#dfe7e2;--text:#203b34;--muted:#65766b;--light:#f5f7f5;--good:#218653;--warn:#93620d;--bad:#a83838}
+  body{background:#f5f7f6;color:var(--text);font:12px/1.5 "Segoe UI",Arial,sans-serif}
+  .container{max-width:none;padding:14px}
+  .header{background:transparent;color:var(--text);border:0;border-bottom:1px solid var(--border);border-radius:0;padding:0 0 12px;margin-bottom:14px;box-shadow:none}
+  .header h1{font-size:18px;letter-spacing:-.02em;line-height:1.4}
+  .header p{font-size:11px;color:var(--muted);line-height:1.6}
+  .grid{grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:14px;align-items:start}
+  .card{min-width:0;background:#fff;border:1px solid var(--border);border-radius:7px;box-shadow:none;overflow:hidden}
+  .card .hd{padding:11px 12px;border-bottom:1px solid var(--border);font-size:12px;font-weight:650;color:var(--navy);background:#f9fbf9}
+  .card .bd{padding:12px}
+  label{color:var(--muted);font-size:11px;font-weight:600}
+  input,select,textarea{min-width:0;min-height:35px;border:1px solid #d7e2d7;border-radius:5px;padding:7px 9px;background:#fff;color:var(--text);outline:none}
+  input:focus,select:focus,textarea:focus{border-color:#599374;box-shadow:0 0 0 2px #17634d15}
+  .muted{display:block;margin-top:4px;color:var(--muted);font-size:10px;line-height:1.6}
+  .mini-title,.section-title h2{color:var(--navy)}
+  .section-mini{border-top-color:var(--border)}
+  .field-inline{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  #resetFppeBtn{grid-column:1/-1}
+  button{min-width:0;min-height:35px;border-radius:5px;padding:7px 9px;font:600 11px/1.5 "Segoe UI",Arial,sans-serif;transition:filter .12s ease}
+  button:hover{filter:brightness(.97)}
+  button:focus-visible,.table-wrap:focus-visible{outline:2px solid #599374;outline-offset:2px}
+  .primary{background:#17634d;color:#fff}
+  .secondary{background:#f7faf7;color:#355b45;border:1px solid var(--border)}
   .danger{background:#fff0ef;color:#9d3838;border:1px solid rgba(157,56,56,.15)}
-  .summary{gap:8px}
-  .kpi{border:1px solid rgba(35,63,50,.1);background:rgba(255,255,255,.58);border-radius:14px;padding:11px}
-  .kpi .n{color:#26724f}
-  .table-wrap{border:1px solid rgba(35,63,50,.12);border-radius:12px;background:rgba(255,255,255,.55)}
-  th,td{border-bottom:1px solid rgba(35,63,50,.1)}
-  th{background:rgba(234,243,236,.78);color:#4d6857}
-  .choice{border:1px solid rgba(35,63,50,.15);border-radius:10px;background:rgba(255,255,255,.7)}
+  .summary{grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+  .kpi{min-width:0;border:0;border-right:1px solid var(--border);background:#fafcf9;border-radius:0;padding:9px}
+  .kpi:last-child{border-right:0}
+  .kpi .n{color:#26724f;font-size:20px;font-weight:650;overflow-wrap:anywhere}
+  .kpi .l{font-size:10px;line-height:1.5}
+  .table-wrap{max-width:100%;min-width:0;border:1px solid var(--border);border-radius:6px;background:#fff}
+  th,td{border-bottom:1px solid var(--border);padding:8px;font-size:11px;line-height:1.5}
+  th{background:#f4f7f1;color:#556d51;font-size:10.5px;font-weight:600}
+  .choice-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .choice{border:1px solid #d7e2d7;border-radius:5px;background:#fff;font-size:10.5px;line-height:1.5}
+  .choice input{min-height:0}
   .choice.sel{background:#e5f4ea;border-color:#9acbae}
   .choice.red.sel{background:#fff0ef;border-color:#e5b0aa}
-  .note{background:rgba(232,244,235,.85);border-left-color:#2d7953;color:#4d6857;border-radius:10px;line-height:1.55}
-  .pill{background:#e4efe7;color:#486452}
-  .fppeHistoryRecord,.oppeExportButton{min-width:0}
-  @media(max-width:980px){.grid{grid-template-columns:1fr}.container{padding:12px}}
-  @media(max-width:620px){.container{padding:8px}.header{padding:16px}.header h1{font-size:22px}.card .bd{padding:12px}}
+  .note{background:#f3f7ee;border-left-color:#8da978;color:#526b49;border-radius:5px;line-height:1.65}
+  .pill{background:#edf3e8;color:#566e4b}
+  @media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}.container{padding:12px}.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:620px){.container{padding:8px}.header h1{font-size:16px}.header p{font-size:10px}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.field-inline{grid-template-columns:minmax(0,1fr)}.section-title{flex-wrap:wrap;gap:6px}}
+  @media(prefers-reduced-motion:reduce){button{transition:none}}
 }
 </style>
 </head>
@@ -139,15 +146,15 @@ tr:last-child td{border-bottom:0}
     <aside class="card sidebar">
       <div class="hd">Identitas & Konfigurasi FPPE</div>
       <div class="bd">
-        <div class="field"><label>Pilih Tenaga (Metadata &amp; Tim Unit)</label><select id="staffPicker"><option value="">Memuat roster tenaga kerja…</option></select><small class="muted">Identitas bersumber dari Metadata tenaga kerja AUREKA. Pilihan dibatasi pada tenaga yang ditetapkan ke unit.</small></div>
-        <div class="field"><label>Nama Staf</label><input id="staffName" placeholder="Pilih tenaga dari Metadata" readonly></div>
-        <div class="field"><label>Kode Tenaga AUREKA</label><input id="staffId" placeholder="Terisi dari Metadata" readonly></div>
-        <div class="field"><label>Profesi / SMF / Area Praktik</label><select id="profession"></select><small class="muted">Disarankan dari jabatan/kelompok profesi Metadata; periksa area praktik sebelum pengajuan.</small></div>
-        <div class="field"><label>Unit / Wilayah Kerja</label><input id="unit" placeholder="Terisi dari Tim Tenaga Kerja" readonly></div>
+        <div class="field"><label for="staffPicker">Pilih Tenaga (Metadata &amp; Tim Unit)</label><select id="staffPicker"><option value="">Memuat roster tenaga kerja…</option></select><small class="muted">Identitas bersumber dari Metadata tenaga kerja AUREKA. Pilihan dibatasi pada tenaga yang ditetapkan ke unit.</small></div>
+        <div class="field"><label for="staffName">Nama Staf</label><input id="staffName" placeholder="Pilih tenaga dari Metadata" readonly></div>
+        <div class="field"><label for="staffId">Kode Tenaga AUREKA</label><input id="staffId" placeholder="Terisi dari Metadata" readonly></div>
+        <div class="field"><label for="profession">Profesi / SMF / Area Praktik</label><select id="profession"></select><small class="muted">Disarankan dari jabatan/kelompok profesi Metadata; periksa area praktik sebelum pengajuan.</small></div>
+        <div class="field"><label for="unit">Unit / Wilayah Kerja</label><input id="unit" placeholder="Terisi dari Tim Tenaga Kerja" readonly></div>
         <div id="integrationStatus" class="note" role="status">Menunggu koneksi ke kontainer Audit OPPE AUREKA…</div>
 
         <div class="field">
-          <label>Jenis FPPE</label>
+          <label for="fppeType">Jenis FPPE</label>
           <select id="fppeType">
             <option value="initial">FPPE Initial</option>
             <option value="triggered">FPPE Triggered</option>
@@ -155,7 +162,7 @@ tr:last-child td{border-bottom:0}
         </div>
 
         <div class="field">
-          <label>Alasan / Trigger FPPE</label>
+          <label for="trigger">Alasan / Trigger FPPE</label>
           <select id="trigger">
             <option value="Nakes baru bergabung">Nakes baru bergabung</option>
             <option value="Clinical privilege baru">Clinical privilege baru</option>
@@ -175,46 +182,46 @@ tr:last-child td{border-bottom:0}
         </div>
 
         <div class="field">
-          <label>Uraian Trigger / Masalah</label>
+          <label for="triggerDetail">Uraian Trigger / Masalah</label>
           <textarea id="triggerDetail" placeholder="Jelaskan dasar dilakukannya FPPE, bila ada."></textarea>
         </div>
 
         <div class="field">
-          <label>Periode Evaluasi</label>
+          <label for="startDate">Periode Evaluasi</label>
           <div class="field-inline">
-            <input id="startDate" type="date">
-            <input id="endDate" type="date">
+            <input id="startDate" type="date" aria-label="Tanggal mulai evaluasi">
+            <input id="endDate" type="date" aria-label="Tanggal selesai evaluasi">
           </div>
         </div>
 
         <div class="section-mini">
-          <div class="mini-title">Ruang Lingkup / Privilege yang Dievaluasi</div>
+          <label class="mini-title" for="scope">Ruang Lingkup / Privilege yang Dievaluasi</label>
           <textarea id="scope" placeholder="Contoh: pemasangan CVC; ventilator management; tindakan hemodialisis tertentu;"></textarea>
         </div>
 
         <div class="section-mini">
           <div class="mini-title">Pengesahan</div>
-          <div class="field"><label>Atasan Langsung / Evaluator — Nama</label><input id="directSupervisor"></div>
-          <div class="field"><label>Atasan Langsung / Evaluator — NIP</label><input id="directSupervisorNip"></div>
+          <div class="field"><label for="directSupervisor">Atasan Langsung / Evaluator — Nama</label><input id="directSupervisor"></div>
+          <div class="field"><label for="directSupervisorNip">Atasan Langsung / Evaluator — NIP</label><input id="directSupervisorNip"></div>
 
-          <div class="field"><label>Kepala Bidang Atasan Langsung</label>
+          <div class="field"><label for="headDivisionRole">Kepala Bidang Atasan Langsung</label>
             <select id="headDivisionRole">
               <option>Kepala Bidang Pelayanan Medik dan Keperawatan</option>
               <option>Kepala Bidang Penunjang Medik dan Non-Medik</option>
             </select>
           </div>
-          <div class="field"><label>Kepala Bidang — Nama</label><input id="headDivisionName"></div>
-          <div class="field"><label>Kepala Bidang — NIP</label><input id="headDivisionNip"></div>
+          <div class="field"><label for="headDivisionName">Kepala Bidang — Nama</label><input id="headDivisionName"></div>
+          <div class="field"><label for="headDivisionNip">Kepala Bidang — NIP</label><input id="headDivisionNip"></div>
 
-          <div class="field"><label id="subcommitteeLabel">Ketua Sub Komite Mutu</label><input id="subcommitteeName"></div>
-          <div class="field"><label id="subcommitteeNipLabel">NIP Ketua Sub Komite Mutu</label><input id="subcommitteeNip"></div>
-          <div class="field"><label id="committeeLabel">Ketua Komite</label><input id="committeeName"></div>
-          <div class="field"><label id="committeeNipLabel">NIP Ketua Komite</label><input id="committeeNip"></div>
+          <div class="field"><label id="subcommitteeLabel" for="subcommitteeName">Ketua Sub Komite Mutu</label><input id="subcommitteeName"></div>
+          <div class="field"><label id="subcommitteeNipLabel" for="subcommitteeNip">NIP Ketua Sub Komite Mutu</label><input id="subcommitteeNip"></div>
+          <div class="field"><label id="committeeLabel" for="committeeName">Ketua Komite</label><input id="committeeName"></div>
+          <div class="field"><label id="committeeNipLabel" for="committeeNip">NIP Ketua Komite</label><input id="committeeNip"></div>
         </div>
 
         <div class="actions">
-          <button id="saveFppeBtn" class="primary" onclick="saveToServer(\'draft\')">Simpan draf</button>
-          <button id="submitFppeBtn" class="primary" onclick="saveToServer(\'submitted\')">Ajukan untuk validasi</button>
+          <button id="saveFppeBtn" class="primary" onclick="saveToServer('draft')">Simpan draf</button>
+          <button id="submitFppeBtn" class="primary" onclick="saveToServer('submitted')">Ajukan untuk validasi</button>
           <button class="secondary" onclick="exportJSON()">Export JSON</button>
           <button class="secondary" onclick="window.print()">Cetak</button>
           <button id="resetFppeBtn" class="danger" onclick="resetForm()">Penilaian baru</button>
@@ -240,30 +247,30 @@ tr:last-child td{border-bottom:0}
             <h2>1. Penilaian Kompetensi Terfokus</h2>
             <span class="pill">sesuai profesi / area praktik</span>
           </div>
-          <div id="competencyTable" class="table-wrap"></div>
+          <div id="competencyTable" class="table-wrap" tabindex="0" role="region" aria-label="Penilaian kompetensi FPPE"></div>
         </div>
 
         <div class="section">
           <div class="section-title"><h2>2. Metode / Bukti Evaluasi</h2></div>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Bukti evaluasi FPPE">
             <table style="min-width:0">
               <tr><th style="width:27%">Metode</th><th>Bukti / Catatan</th></tr>
-              <tr><td>Observasi langsung</td><td><textarea id="evidenceObservation" placeholder="Temuan observasi"></textarea></td></tr>
-              <tr><td>Audit rekam medis / dokumentasi</td><td><textarea id="evidenceRecord" placeholder="Temuan audit"></textarea></td></tr>
-              <tr><td>Logbook / volume kasus / privilege</td><td><textarea id="evidenceLogbook" placeholder="Bukti volume / logbook"></textarea></td></tr>
-              <tr><td>Wawancara / diskusi kasus / simulasi</td><td><textarea id="evidenceOther" placeholder="Hasil wawancara / simulasi"></textarea></td></tr>
+              <tr><td>Observasi langsung</td><td><textarea id="evidenceObservation" aria-label="Bukti observasi langsung" placeholder="Temuan observasi"></textarea></td></tr>
+              <tr><td>Audit rekam medis / dokumentasi</td><td><textarea id="evidenceRecord" aria-label="Bukti audit rekam medis" placeholder="Temuan audit"></textarea></td></tr>
+              <tr><td>Logbook / volume kasus / privilege</td><td><textarea id="evidenceLogbook" aria-label="Bukti logbook dan volume kasus" placeholder="Bukti volume / logbook"></textarea></td></tr>
+              <tr><td>Wawancara / diskusi kasus / simulasi</td><td><textarea id="evidenceOther" aria-label="Bukti wawancara dan diskusi kasus" placeholder="Hasil wawancara / simulasi"></textarea></td></tr>
             </table>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title"><h2>3. Kesimpulan & Tindak Lanjut</h2></div>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Kesimpulan dan tindak lanjut FPPE">
             <table style="min-width:0">
               <tr>
                 <th style="width:27%">Keputusan FPPE</th>
                 <td>
-                  <select id="overallDecision">
+                  <select id="overallDecision" aria-label="Keputusan FPPE">
                     <option value="">Pilih keputusan</option>
                     <option>Kompeten / dapat praktik sesuai kewenangan</option>
                     <option>Kompeten dengan supervisi</option>
@@ -272,9 +279,9 @@ tr:last-child td{border-bottom:0}
                   </select>
                 </td>
               </tr>
-              <tr><th>Rencana Tindak Lanjut</th><td><textarea id="actionPlan" placeholder="Supervisi, mentoring, pendidikan ulang, audit tambahan, pembatasan privilege, dsb."></textarea></td></tr>
-              <tr><th>Tanggal Reassessment</th><td><input id="reassessmentDate" type="date"></td></tr>
-              <tr><th>Kesimpulan Evaluator</th><td><textarea id="conclusion" placeholder="Ringkasan hasil FPPE"></textarea></td></tr>
+              <tr><th>Rencana Tindak Lanjut</th><td><textarea id="actionPlan" aria-label="Rencana tindak lanjut FPPE" placeholder="Supervisi, mentoring, pendidikan ulang, audit tambahan, pembatasan privilege, dsb."></textarea></td></tr>
+              <tr><th>Tanggal Reassessment</th><td><input id="reassessmentDate" type="date" aria-label="Tanggal reassessment"></td></tr>
+              <tr><th>Kesimpulan Evaluator</th><td><textarea id="conclusion" aria-label="Kesimpulan evaluator" placeholder="Ringkasan hasil FPPE"></textarea></td></tr>
             </table>
           </div>
         </div>

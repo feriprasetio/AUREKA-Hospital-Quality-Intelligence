@@ -302,7 +302,7 @@ html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceModuleHeade
   background: transparent !important; box-shadow: none !important; overflow: visible !important;
 }
 .workspaceModuleHeader::before, .workspaceModuleHeader::after { display: none !important; }
-.workspaceModuleHeaderCopy { min-width: 0; }
+.workspaceModuleHeaderCopy { min-width: 0; text-align: left !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .workspaceModuleHeader h2 {
   margin: 0 !important; color: #365c44 !important; font-size: 14px !important;
   font-weight: 650 !important; letter-spacing: -.015em !important; line-height: 1.45 !important;
@@ -321,6 +321,67 @@ html[data-theme] .workspaceRoot.workspaceDesk .workspaceModuleHeader h2 {
 .workspaceSummary[open] > summary::after { content: "−"; }
 .workspaceSummary > summary span { font-size: 10px; color: #85947b; font-weight: 400; }
 .workspaceSummary > .psKpis { padding: 0 12px 12px; }
+
+/* One destination model drives desktop tabs, keyboard selection, and phone menus. */
+html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .workspaceViewTabs {
+  display: block !important; min-width: 0 !important; max-width: 100% !important; overflow: visible !important;
+  margin: 0 !important; padding: 4px !important; border: 1px solid #e0e7dc !important;
+  border-radius: 6px !important; background: #f1f5ef !important;
+}
+.workspaceViewTabList { display: flex; flex-wrap: wrap; gap: 3px; min-width: 0; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabs .workspaceViewTab {
+  display: inline-flex !important; align-items: center !important; gap: 7px !important; width: auto !important;
+  min-width: 0 !important; min-height: 34px !important; margin: 0 !important; padding: 7px 11px !important;
+  border: 1px solid transparent !important; border-radius: 4px !important; background: transparent !important;
+  color: var(--desk-muted) !important; font-size: 11px !important; font-weight: 500 !important; text-align: left !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabs .workspaceViewTab[aria-selected="true"] {
+  border-color: #dce5d8 !important; background: #fff !important; color: #205f46 !important; box-shadow: 0 1px 2px #203b3408 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabs .workspaceViewTab > span {
+  min-width: 0 !important; height: auto !important; margin: 0 !important; padding: 0 !important;
+  border: 0 !important; background: transparent !important; font-size: inherit !important; line-height: 1.5 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabs .workspaceViewTabCopy { display: grid !important; gap: 2px; }
+.workspaceViewTabCopy b { font: inherit; font-weight: 600; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabCopy small { font-size: 10px !important; font-weight: 400 !important; color: var(--desk-muted) !important; }
+.workspaceViewTabIcon { display: grid; place-items: center; flex: 0 0 17px; }
+.workspaceViewTabIcon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabs .workspaceViewTab > .workspaceViewTabCount {
+  display: inline-flex !important; align-items: center; justify-content: center; min-width: 18px !important;
+  padding: 1px 5px !important; border-radius: 4px; background: #e8eee4 !important; font-size: 10px !important;
+}
+.workspaceViewTabMobile { display: none; }
+.workspaceActivePanel { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 12px; }
+.workspaceActivePanel > * { min-width: 0; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceModuleHeader .ovHeroMeta { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 7px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceModuleHeader .ovHeroDate { min-height: 33px !important; margin: 0 !important; padding: 7px 9px !important; font-size: 11px !important; border-radius: 5px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceModuleHeader .ovRefresh { min-height: 33px !important; padding: 7px 10px !important; font-size: 11px !important; border-radius: 5px !important; }
+
+/* Evaluation work uses the full canvas; archive tools expand only when requested. */
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .fppeLayout { grid-template-columns: minmax(0, 1fr) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme][data-density] .moduleEnter .fppeFramePanel { padding: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .fppeFrameHeader { padding: 10px 14px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .fppeHeaderActions { align-items: center; gap: 7px; }
+.fppeUnitChoice { display: grid; gap: 4px; min-width: 180px; max-width: 250px; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .fppeHeaderActions button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; border-radius: 5px; font-size: 11px; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .fppeHistory { position: static !important; max-height: none !important; border: 0 !important; border-top: 1px solid #e0e7dc !important; border-radius: 0 0 7px 7px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .fppeHistoryList { max-height: 420px; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .oppeScopeSummary .oppeFilters { margin: 0 !important; border: 0 !important; border-top: 1px solid #e0e7dc !important; border-radius: 0 0 6px 6px !important; }
+.fppeHistorySummary > summary, .oppeScopeSummary > summary { padding-block: 8px; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.oppeSection,.oppeScorePanel) { min-width: 0 !important; padding: var(--desk-pad) !important; border: 1px solid var(--desk-line) !important; border-radius: 8px !important; background: #fff !important; box-shadow: none !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .oppeScorePanel { overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .oppeWorkGrid { grid-template-columns: minmax(0, 1fr) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .oppeAside { grid-template-columns: minmax(0, 1fr) !important; position: static !important; }
+}
+
+html[data-theme] .workspaceRoot.workspaceDesk .qualitySettingsSurface { min-width: 0 !important; padding: var(--desk-pad) !important; border: 1px solid var(--desk-line) !important; border-radius: 8px !important; background: #fff !important; box-shadow: none !important; }
+.qualitySettingsWorkspace { min-width: 0; }
+.metadataScopeFilters > label { min-width: 0; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .qualitySettingsWorkspace :is(input,select,textarea) { min-width: 0 !important; max-width: 100% !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .metadataScopeFilters select { width: 100%; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .metadataProgramGrid { grid-template-columns: repeat(auto-fit, minmax(min(225px, 100%), 1fr)) !important; }
 
 /* Shared cards, action groups, filter fields, and forms across all modules. */
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovPanel,.psPanel,.rmPanel,.cpPanel,.oppePanel,.sdPanel,.stPanel,.mswPanel,.qraPanel,.fppePanel,.acdPanel) {
@@ -401,7 +462,7 @@ html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter td {
   padding: var(--desk-cell-y) 12px !important; border-bottom: 1px solid #edf1e7 !important; color: #4c6547 !important;
   font-size: 11px !important; line-height: 1.55 !important; vertical-align: middle !important;
 }
-html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter tbody tr:hover td { background: #f7faf3 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter tbody tr:hover td:not(.cpCell):not(.cpBuilderScheduleCell) { background: #f7faf3 !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter tbody tr:focus-visible td { background: #eef5e6 !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter tr:last-child td { border-bottom: 0 !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport :is(.aqBtn,.psBtn,.rmIconButton,.cpBtn,.sdBtn,.stBtn,.acdBtn) {
@@ -409,6 +470,35 @@ html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewpo
 }
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport tr.selected td { background: #edf5e6 !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport:focus-visible { outline: 2px solid #7da572 !important; outline-offset: -2px !important; }
+@media screen {
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpAuditTable { width: max(100%, var(--cp-audit-width)) !important; min-width: var(--cp-audit-width) !important; max-width: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpAuditTable col:first-child { width: 180px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpAuditTable col:nth-child(2) { width: 280px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpAuditTable col:nth-child(n+3) { width: 84px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpAuditTable td.cpCell { padding-inline: 6px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpCell .cpMark { width: 34px !important; min-width: 34px !important; height: 34px !important; font-size: 13px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpCell .cpCellEdit { width: 28px !important; min-width: 28px !important; height: 34px !important; font-size: 12px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpCellControls { gap: 4px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpChoiceToggle { display: flex !important; align-items: center !important; min-height: 24px; gap: 8px !important; white-space: normal !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpChoiceToggle input[type="checkbox"] { width: 16px !important; min-width: 16px !important; height: 16px !important; min-height: 16px !important; margin: 0 !important; padding: 0 !important; flex: 0 0 16px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpChoiceDisabled { opacity: 1 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpChoiceHint { margin: 4px 0 0 24px !important; font-size: 10px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpCell.required { background: rgba(145, 203, 81, .25) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpCell.conditional { background: rgba(255, 225, 53, .28) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpCell.not_scheduled { background: rgba(255, 255, 255, .24) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpBuilderScheduleCell.required { background: rgba(145, 203, 81, .3) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpBuilderScheduleCell.conditional { background: rgba(255, 225, 53, .34) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpBuilderScheduleCell.not_scheduled { background: rgba(255, 255, 255, .26) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 10px !important; min-width: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; overflow: visible !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid .cpScore { display: grid !important; align-items: start !important; min-width: 0 !important; min-height: 0 !important; gap: 5px !important; padding: 12px !important; border: 1px solid var(--desk-line) !important; border-radius: 7px !important; background: #fff !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid .cpScore span { font-size: 10px !important; line-height: 1.5 !important; white-space: normal !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid .cpScore strong { display: block !important; font-size: 22px !important; line-height: 1.3 !important; white-space: normal !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid .cpScore small { display: block !important; font-size: 10px !important; line-height: 1.6 !important; white-space: normal !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid .cpBadge { display: inline-flex !important; justify-self: start; font-size: 9px !important; white-space: normal !important; }
+}
+@media screen and (max-width: 1100px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovEmpty,.psEmpty,.rmEmpty,.aqEmpty,.sdEmpty,.stEmpty,.qraEmpty,.acdEmpty) {
   padding: 30px 18px !important; background: #fafcf6 !important; border-radius: 6px !important;
   color: #809375 !important; font-size: 11px !important; line-height: 1.8 !important;
@@ -620,6 +710,12 @@ html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqFoot
   .workspaceModuleGuideBody { position: static; width: 100%; box-shadow: none; margin-top: 6px; }
   .workspaceModuleGuide[open] { flex-basis: 100%; }
   .workspaceModuleActions { justify-content: flex-start; }
+  .workspaceViewTabList { display: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabMobile { display: grid !important; gap: 5px; margin: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabMobile > span { display: block !important; min-width: 0; height: auto; margin: 0; background: transparent; font-size: 10px; color: var(--desk-muted); }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceViewTabMobile select { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .fppeHeaderActions { width: 100%; }
+  .fppeUnitChoice { width: 100%; max-width: none; min-width: 0; flex-basis: 100%; }
   .settingsDestinations { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   html[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace .userDetailInline { flex-wrap: wrap; }
   .workspaceTableHint { justify-content: space-between; }
@@ -638,4 +734,5 @@ html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqFoot
   html[data-theme] .workspaceRoot.workspaceDesk :is(.sidebar,.workspaceHeaderBar,.workspacePageHead,.workspaceContextBar,.workspaceTableHint,.workspaceSkipLink) { display: none !important; }
   html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding: 0 !important; }
   html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport { max-height: none !important; overflow: visible !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableFrame { overflow: visible !important; }
 }

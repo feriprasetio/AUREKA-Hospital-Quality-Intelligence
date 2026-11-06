@@ -524,15 +524,40 @@ export default function FppeEvaluationWorkspace({
         className="fppeHeader"
         title="Evaluasi terfokus (FPPE)"
         description="FPPE terintegrasi di dalam Kontainer Audit OPPE. Identitas tenaga mengikuti Metadata dan roster Tim Tenaga Kerja. Pengajuan memerlukan validasi oleh akun yang berbeda dari pembuat."
-        actions={<div className="fppeHeaderActions"><button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}>＋ FPPE baru</button></div>}
+        actions={<div className="fppeHeaderActions">
+          <label className="fppeUnitChoice"><span>Unit FPPE</span><select value={roomId} disabled={busy} onChange={(e) => startNew(Number(e.target.value))}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
+          <button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> FPPE baru</button>
+        </div>}
       />
       {error && <div className="fppeAlert fppeError" role="alert">{error}</div>}
       {notice && <div className="fppeAlert fppeSuccess" role="status" aria-live="polite">{notice}</div>}
-      <div className="fppePanel fppeToolbar">
-        <label><span>Unit FPPE</span><select value={roomId} disabled={busy} onChange={(e) => startNew(Number(e.target.value))}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
-        <div className="fppeHelper"><strong>{roster.length}</strong> tenaga tersedia pada roster unit · <strong>{filtered.length}</strong> rekaman FPPE pada unit ini.</div>
-        {activeEvaluation && <div className="fppeSelected"><span>Status FPPE: <b>{STATUS_LABEL[activeEvaluation.status] || activeEvaluation.status}</b></span><span>ID: <code>{String(activeEvaluation.id).slice(0, 8)}…</code></span></div>}
-      </div>
+      {activeEvaluation && <div className="fppeSelected"><span>Status FPPE: <b>{STATUS_LABEL[activeEvaluation.status] || activeEvaluation.status}</b></span><span>ID: <code>{String(activeEvaluation.id).slice(0, 8)}…</code></span></div>}
+      <details className="workspaceSummary fppeHistorySummary" open={search.trim() ? true : undefined}>
+        <summary><b>Riwayat & ekspor evaluasi</b><span>{roster.length} tenaga pada roster unit · {loading ? 'Memuat riwayat…' : `${filtered.length} rekaman FPPE`}</span></summary>
+        <aside className="fppePanel fppeHistory">
+          <div className="fppeHistoryHead"><div><div className="fppeEyebrow">ARSIP FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
+          <input className="fppeLocalSearch" aria-label="Cari arsip FPPE berdasarkan nama, kode, jabatan, atau trigger" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
+          {loading ? <p className="fppeMuted">Memuat riwayat…</p> : <div className="fppeHistoryList">
+            {filtered.map((record) => {
+              const staff = staffForRecord(record)
+              return <div className="fppeHistoryRecord" key={String(record.id)}>
+                <button type="button" className={'fppeHistoryItem ' + (String(activeEvaluation?.id) === String(record.id) ? 'selected' : '')} onClick={() => openEvaluation(record)}>
+                  <span className={'fppeBadge ' + (STATUS_CLASS[record.status] || 'fppeNeutral')}>{STATUS_LABEL[record.status] || record.status}</span>
+                  <strong>{staff.name}</strong>
+                  <small>{staff.code} · {staff.title}</small>
+                  <small>{record.evaluation_type === 'triggered' ? 'Triggered FPPE' : 'Initial FPPE'} · {record.period_start || 'Tanggal belum diisi'} – {record.period_end || 'Tanggal belum diisi'}</small>
+                  <small>Trigger: {record.trigger_reason || 'Belum ditentukan'}</small>
+                </button>
+                <div className="fppeHistoryExportActions">
+                  <button type="button" onClick={() => exportFppePdf(record)} title={'Ekspor PDF FPPE ' + staff.name}>Ekspor PDF</button>
+                  <button type="button" onClick={() => exportFppeJson(record)} title={'Unduh JSON FPPE ' + staff.name}>JSON</button>
+                </div>
+              </div>
+            })}
+            {!filtered.length && <div className="fppeEmpty">{search ? 'Tidak ada rekaman yang cocok.' : 'Belum ada rekaman FPPE pada unit ini. Gunakan FPPE baru untuk memulai.'}</div>}
+          </div>}
+        </aside>
+      </details>
       <div className="fppeLayout">
         <div className="fppeMain">
           <div className="fppePanel fppeFramePanel">
@@ -570,29 +595,6 @@ export default function FppeEvaluationWorkspace({
           )}
           {activeEvaluation && events.length > 0 && <div className="fppePanel fppeEvents"><div className="fppeEyebrow">AUDIT TRAIL</div><h4>Riwayat proses FPPE</h4><div className="fppeEventList">{events.map((event) => <div className="fppeEvent" key={String(event.id)}><span className="fppeDot" /><div><strong>{eventName(String(event.event_type))}</strong><small>{event.created_at ? new Date(event.created_at).toLocaleString('id-ID') : 'Waktu tidak tersedia'} · {event.actor_id ? 'Akun ' + String(event.actor_id).slice(0, 8) + '…' : 'Akun tidak tercatat'}</small><small>{event.from_status ? (STATUS_LABEL[String(event.from_status)] || event.from_status) + ' → ' : ''}{STATUS_LABEL[String(event.to_status)] || event.to_status} · {String(event.summary_snapshot_json?.decision || 'Ringkasan tersimpan')}</small></div></div>)}</div></div>}
         </div>
-        <aside className="fppePanel fppeHistory">
-          <div className="fppeHistoryHead"><div><div className="fppeEyebrow">ARSIP FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
-          <input className="fppeLocalSearch" aria-label="Cari arsip FPPE berdasarkan nama, kode, jabatan, atau trigger" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
-          {loading ? <p className="fppeMuted">Memuat riwayat…</p> : <div className="fppeHistoryList">
-            {filtered.map((record) => {
-              const staff = staffForRecord(record)
-              return <div className="fppeHistoryRecord" key={String(record.id)}>
-                <button type="button" className={'fppeHistoryItem ' + (String(activeEvaluation?.id) === String(record.id) ? 'selected' : '')} onClick={() => openEvaluation(record)}>
-                  <span className={'fppeBadge ' + (STATUS_CLASS[record.status] || 'fppeNeutral')}>{STATUS_LABEL[record.status] || record.status}</span>
-                  <strong>{staff.name}</strong>
-                  <small>{staff.code} · {staff.title}</small>
-                  <small>{record.evaluation_type === 'triggered' ? 'Triggered FPPE' : 'Initial FPPE'} · {record.period_start || 'Tanggal belum diisi'} – {record.period_end || 'Tanggal belum diisi'}</small>
-                  <small>Trigger: {record.trigger_reason || 'Belum ditentukan'}</small>
-                </button>
-                <div className="fppeHistoryExportActions">
-                  <button type="button" onClick={() => exportFppePdf(record)} title={'Ekspor PDF FPPE ' + staff.name}>Ekspor PDF</button>
-                  <button type="button" onClick={() => exportFppeJson(record)} title={'Unduh JSON FPPE ' + staff.name}>JSON</button>
-                </div>
-              </div>
-            })}
-            {!filtered.length && <div className="fppeEmpty">{search ? 'Tidak ada rekaman yang cocok.' : 'Belum ada rekaman FPPE pada unit ini. Gunakan FPPE baru untuk memulai.'}</div>}
-          </div>}
-        </aside>
       </div>
     </section>
   )

@@ -55,7 +55,7 @@ test('operational modules use the same small header while retaining their own ac
     'OverviewDashboard', 'QualityResultsWorkspace', 'ClinicalPathwayWorkspace',
     'ClinicalDeathAuditWorkspace', 'PatientSafetyWorkspace', 'RiskManagementWorkspace',
     'StaffDirectoryWorkspace', 'StaffTeamWorkspace', 'OppeAuditWorkspace',
-    'FppeEvaluationWorkspace', 'StatisticsWorkspace', 'GeneralSettings',
+    'FppeEvaluationWorkspace', 'StatisticsWorkspace', 'GeneralSettings', 'QualitySettings',
   ]) {
     assert.ok(read(`components/${name}.tsx`).includes('<WorkspaceModuleHeader'), name)
   }
@@ -113,6 +113,8 @@ test('clinical interpretation disclaimers stay visible outside optional guides',
 
 test('OPPE filter summary wraps inside its grid instead of widening the document', () => {
   assert.match(css, /\.moduleEnter \.oppeFilterMeta \{\s*min-width: 0 !important; white-space: normal !important; overflow-wrap: anywhere;/)
+  assert.match(css, /@media \(max-width: 1100px\) \{[\s\S]*\.oppeWorkGrid \{ grid-template-columns: minmax\(0, 1fr\) !important;/)
+  assert.match(css, /\.oppeAside \{ grid-template-columns: minmax\(0, 1fr\) !important; position: static !important;/)
 })
 
 test('overview matrix fits narrow cards without changing clinical band colors', () => {
@@ -126,12 +128,68 @@ test('settings destinations stay wired and keyboard tabs identify the active pan
   assert.match(settings, /className="settingsDestination"/)
   assert.doesNotMatch(settings, /placeholderCard|Light \/ AMOLED/)
   assert.match(settings, /<SettingsIcon kind=\{icon\}/)
-  assert.match(settings, /event\.key === 'ArrowRight'/)
+  assert.match(read('components/workspace/WorkspaceTabs.tsx'), /event\.key === 'ArrowRight'/)
   assert.match(settings, /id="settings-active-panel" role="tabpanel"/)
   assert.match(settings, /aria-labelledby=\{'settings-tab-' \+ tab\}/)
   for (const operation of ['saveMe', 'changePassword', 'saveRoom', 'saveIdentity', 'provisionUnitAccounts']) {
     assert.ok(settings.includes(operation), operation)
   }
+})
+
+test('shared workspace tabs provide keyboard links and the same native phone destinations', () => {
+  const tabs = read('components/workspace/WorkspaceTabs.tsx')
+  for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End']) assert.ok(tabs.includes(`event.key === '${key}'`))
+  assert.match(tabs, /role="tablist"/)
+  assert.match(tabs, /tabIndex=\{value === item\.value \? 0 : -1\}/)
+  assert.match(tabs, /aria-controls=\{value === item\.value \? panelId : undefined\}/)
+  assert.match(tabs, /className="workspaceViewTabMobile"/)
+  assert.match(tabs, /items\.map\(item => <option/)
+  assert.match(tabs, /if \(item\) onChange\(item\.value\)/)
+  for (const module of ['GeneralSettings', 'OppeAuditWorkspace', 'QualitySettings']) {
+    assert.ok(read(`components/${module}.tsx`).includes('<WorkspaceTabs'), module)
+  }
+  assert.match(css, /\.workspaceActivePanel \{ display: grid; grid-template-columns: minmax\(0, 1fr\);/)
+  assert.match(css, /\.workspaceActivePanel > \* \{ min-width: 0; \}/)
+})
+
+test('Clinical Pathway catalogue follows the existing configured static-export base path', () => {
+  const cp = read('components/ClinicalPathwayWorkspace.tsx')
+  assert.match(cp, /const BASE_PATH = process\.env\.NEXT_PUBLIC_BASE_PATH \?\? '\/AUREKA-Hospital-Quality-Intelligence'/)
+  assert.match(cp, /fetch\(BASE_PATH \+ '\/clinical-pathway-catalog-'/)
+  assert.match(cp, /'--cp-audit-width': `\$\{460 \+ checklistDays\.length \* 84\}px`/)
+  assert.match(css, /@media screen \{[\s\S]*\.cpAuditTable \{ width: max\(100%, var\(--cp-audit-width\)\)/)
+  assert.match(cp, /minWidth: 0, tableLayout: 'fixed' \} as CSSProperties/)
+  assert.match(cp, /100 - checklistDays\.length \* 4/)
+  assert.match(css, /tr:hover td:not\(\.cpCell\):not\(\.cpBuilderScheduleCell\)/)
+  assert.match(css, /\.cpCell\.required \{ background: rgba\(145, 203, 81, \.25\) !important;/)
+  assert.match(css, /\.cpCell\.conditional \{ background: rgba\(255, 225, 53, \.28\) !important;/)
+  assert.match(css, /\.cpChoiceToggle input\[type="checkbox"\] \{ width: 16px !important; min-width: 16px !important;/)
+  assert.match(css, /\.cpScoreGrid \{ display: grid !important; grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/)
+  assert.match(css, /\.cpScoreGrid \.cpScore small \{ display: block !important;/)
+  assert.match(css, /@media screen and \(max-width: 1100px\)[\s\S]*\.cpScoreGrid \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
+})
+
+test('FPPE prioritizes the full-width form while keeping its archive and original actions', () => {
+  const fppe = read('components/FppeEvaluationWorkspace.tsx')
+  const html = read('public/fppe-digital.html')
+  assert.match(fppe, /className="workspaceSummary fppeHistorySummary"/)
+  assert.match(fppe, /className="fppeUnitChoice"/)
+  assert.match(fppe, /onClick=\{\(\) => exportFppePdf\(record\)\}/)
+  assert.match(fppe, /onClick=\{\(\) => openEvaluation\(record\)\}/)
+  assert.match(css, /\.fppeLayout \{ grid-template-columns: minmax\(0, 1fr\) !important;/)
+  assert.match(html, /for="staffPicker"/)
+  assert.match(html, /for="profession"/)
+  assert.match(html, /role="region" aria-label="Penilaian kompetensi FPPE"/)
+  for (const contract of ['AUREKA_FPPE_INIT', 'AUREKA_FPPE_SAVE_RESULT', 'AUREKA_FPPE_RESIZE']) assert.ok(fppe.includes(contract), contract)
+})
+
+test('FPPE save and submit controls compile and call the existing validated bridge', () => {
+  const markup = read('public/fppe-digital.html').split('<script>')[0]
+  const handlers = Array.from(markup.matchAll(/onclick="([^"]*)"/g), match => match[1])
+  assert.equal(handlers.length, 5)
+  for (const handler of handlers) assert.doesNotThrow(() => new Function('event', handler), handler)
+  assert.ok(handlers.includes("saveToServer('draft')"))
+  assert.ok(handlers.includes("saveToServer('submitted')"))
 })
 
 test('drawer breakpoint agrees with its controller and is dismissible from inside', () => {
@@ -158,4 +216,5 @@ test('density changes real cells and surfaces and print removes scroll caps', ()
   assert.match(css, /--desk-cell-y: 6px/)
   assert.match(css, /\[data-density\] \.moduleEnter td \{ padding-block: var\(--desk-cell-y\)/)
   assert.match(css, /@media print[\s\S]*\.workspaceTableViewport \{ max-height: none !important; overflow: visible !important/)
+  assert.match(css, /@media print[\s\S]*\.workspaceTableFrame \{ overflow: visible !important/)
 })

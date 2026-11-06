@@ -5,6 +5,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 
 function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -579,35 +580,19 @@ export default function GeneralSettings({
               ))}
             </div>
 
-            <div className="settingsTabs" role="tablist" aria-label="Bagian pengaturan">
-              {([
+            <WorkspaceTabs
+              className="settingsTabs"
+              idPrefix="settings"
+              label="Bagian pengaturan"
+              value={tab}
+              onChange={setTab}
+              panelId="settings-active-panel"
+              items={([
                 ['profile', 'Akun & Akses', 'profile', 'Nama, role, unit'],
                 ['units', 'Unit & Instalasi', 'unit', 'Daftar unit kerja'],
                 ['security', 'Keamanan & Password', 'lock', 'Ganti password'],
-              ] as const).filter(([key]) => isAdmin || key !== 'units').map(([key, label, icon, hint]) => (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === key}
-                  id={'settings-tab-' + key}
-                  aria-controls={tab === key ? 'settings-active-panel' : undefined}
-                  tabIndex={tab === key ? 0 : -1}
-                  key={key}
-                  className={tab === key ? 'settingsTab active' : 'settingsTab'}
-                  onClick={() => setTab(key)}
-                  onKeyDown={event => {
-                    const buttons = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])
-                    const index = buttons.indexOf(event.currentTarget)
-                    const next = event.key === 'ArrowRight' ? (index + 1) % buttons.length : event.key === 'ArrowLeft' ? (index + buttons.length - 1) % buttons.length : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : -1
-                    if (next < 0) return
-                    event.preventDefault(); buttons[next].click(); buttons[next].focus()
-                  }}
-                >
-                  <span className="settingsTabIcon"><SettingsIcon kind={icon} /></span>
-                  <span className="settingsTabText"><b>{label}</b><small>{hint}</small></span>
-                </button>
-              ))}
-            </div>
+              ] as const).filter(([key]) => isAdmin || key !== 'units').map(([value, label, icon, hint]) => ({ value, label, icon: <SettingsIcon kind={icon} />, hint }))}
+            />
           </LiquidGlass>
 
 

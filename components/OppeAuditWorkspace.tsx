@@ -1,5 +1,6 @@
 'use client'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
@@ -1115,6 +1116,15 @@ export default function OppeAuditWorkspace({
     return <section className="oppeRoot"><style>{CSS}</style><div className="oppeGlass oppeDenied"><div className="oppeEyebrow">AUREKA · AUDIT OPPE</div><h3>Audit OPPE terbatas</h3><p>Kontainer ini memuat evaluasi kinerja profesional individu. Akses saat ini dibatasi untuk Superadmin/Komite PMKP yang diberi wewenang. PIC tetap mengisi logbook mutu pada kontainer Audit Indikator Mutu.</p></div></section>
   }
 
+  const scopeFilters = (
+    <section className="oppeGlass oppeFilters">
+      <label className="oppeField"><span>Tahun</span><select value={year} onChange={(e) => changeScope(Number(e.target.value), quarter, roomFilter)}>{years.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label className="oppeField"><span>Periode penilaian</span><select value={quarter} onChange={(e) => changeScope(year, Number(e.target.value), roomFilter)}>{quarters.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+      <label className="oppeField"><span>Unit kerja</span><select value={roomFilter ?? ''} onChange={(e) => changeScope(year, quarter, e.target.value === '' ? null : Number(e.target.value))}><option value="">Semua unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+      <div className="oppeFilterMeta">{loading ? 'Memuat data…' : `${records.filter((record) => record.status === 'validated').length} logbook tervalidasi pada tahun ${year} · ${selectedRuleCount} aturan OPPE aktif`}</div>
+    </section>
+  )
+
   return (
     <section className="oppeRoot">
       <style>{CSS}</style>
@@ -1122,27 +1132,31 @@ export default function OppeAuditWorkspace({
         className="oppeHeader"
         title="Evaluasi praktik profesional"
         description="Penilaian profesional berbasis logbook terverifikasi, bukti perilaku, dan pengembangan profesi. FPPE terfokus memakai identitas kanonis dari Metadata tenaga kerja dan tersimpan dengan alur validasi tersendiri."
-        actions={<div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}>＋ Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>}
+        actions={<div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>}
       />
       <div className="oppeHeaderNotes workspaceClinicalDisclaimer" role="note"><span>Data klinis: hanya logbook tervalidasi</span><span>Pembaruan realtime + fallback 60 detik</span><span>Indikator otomatis: wajib memiliki aturan atribusi aktif</span><span>Skor bukan keputusan otomatis kewenangan klinis</span></div>
 
       {error && <div className="oppeNotice oppeError" role="alert">{error}</div>}
       {notice && <div className="oppeNotice oppeSuccess" role="status" aria-live="polite">{notice}</div>}
 
-      <section className="oppeGlass oppeFilters">
-        <label className="oppeField"><span>Tahun</span><select value={year} onChange={(e) => changeScope(Number(e.target.value), quarter, roomFilter)}>{years.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="oppeField"><span>Periode penilaian</span><select value={quarter} onChange={(e) => changeScope(year, Number(e.target.value), roomFilter)}>{quarters.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-        <label className="oppeField"><span>Unit kerja</span><select value={roomFilter ?? ''} onChange={(e) => changeScope(year, quarter, e.target.value === '' ? null : Number(e.target.value))}><option value="">Semua unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-        <div className="oppeFilterMeta">{loading ? 'Memuat data…' : `${records.filter((record) => record.status === 'validated').length} logbook tervalidasi pada tahun ${year} · ${selectedRuleCount} aturan OPPE aktif`}</div>
-      </section>
+      {screen === 'fppe' ? <details className="workspaceSummary oppeScopeSummary"><summary><b>Filter periode & unit OPPE</b><span>{year} · {quarters.find(item => item.value === quarter)?.label}</span></summary>{scopeFilters}</details> : scopeFilters}
 
-      <nav className="oppeTabs" aria-label="Kontainer Audit OPPE">
-        <button type="button" className={screen === 'assessment' ? 'active' : ''} onClick={() => setScreen('assessment')}>Form &amp; output OPPE</button>
-        <button type="button" className={screen === 'fppe' ? 'active' : ''} onClick={() => setScreen('fppe')}>FPPE terfokus</button>
-        <button type="button" className={screen === 'rules' ? 'active' : ''} onClick={() => setScreen('rules')}>Pemetaan indikator <span>{selectedRuleCount}</span></button>
-        <button type="button" className={screen === 'history' ? 'active' : ''} onClick={() => setScreen('history')}>Riwayat penilaian <span>{assessments.length}</span></button>
-      </nav>
+      <WorkspaceTabs
+        className="oppeTabs"
+        idPrefix="oppe"
+        label="Kontainer Audit OPPE"
+        value={screen}
+        onChange={setScreen}
+        panelId="oppe-active-panel"
+        items={[
+          { value: 'assessment', label: 'Form & output OPPE' },
+          { value: 'fppe', label: 'FPPE terfokus' },
+          { value: 'rules', label: 'Pemetaan indikator', count: selectedRuleCount },
+          { value: 'history', label: 'Riwayat penilaian', count: assessments.length },
+        ] as const}
+      />
 
+      <div id="oppe-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'oppe-tab-' + screen} tabIndex={0}>
       {screen === 'assessment' && (
         <div className="oppeWorkGrid">
           <main className="oppeMain">
@@ -1355,6 +1369,7 @@ export default function OppeAuditWorkspace({
         </section>
       )}
 
+      </div>
       <section className="oppePrintOnly">
         <div className="oppePrintHeader"><h2>ON-GOING PROFESSIONAL PRACTICE EVALUATION (OPPE)</h2><p>Rumah Sakit Umum Daerah Sultan Syarif Mohamad Alkadrie</p></div>
         <table className="oppePrintMeta"><tbody>
