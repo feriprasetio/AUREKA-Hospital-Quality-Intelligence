@@ -179,12 +179,12 @@ export function parseVipSourceAnswer(
   indicatorCode: string,
   sourceProfileOptions: string[] = [],
 ): VipSourceAnswer | null {
-  const sourceLabel = String(raw ?? '').normalize('NFKC').replace(/[\\u00a0\\u202f\\u2007]/g, ' ').trim()
+  const sourceLabel = String(raw ?? '').normalize('NFKC').replace(/[\u00a0\u202f\u2007]/g, ' ').trim()
   if (!sourceLabel) return null
 
-  const suffix = sourceLabel.match(/\\(\\s*code\\s*(\\d+)\\s*\\)\\s*$/i)
+  const suffix = sourceLabel.match(/\(\s*code\s*(\d+)\s*\)?\s*$/i)
   const sourceCode = suffix ? Number(suffix[1]) : null
-  const unwrappedLabel = sourceLabel.replace(/\\s*\\(\\s*code\\s*\\d+\\s*\\)?\\s*$/i, '').trim()
+  const unwrappedLabel = sourceLabel.replace(/\s*\(\s*code\s*\d+\s*\)?\s*$/i, '').trim()
   const normalizedSource = normalizeVipOptionLabel(unwrappedLabel)
   const alias = SOURCE_LABEL_ALIASES[indicatorCode]?.[normalizedSource]
   const canonicalSource = alias ? normalizeVipOptionLabel(alias) : normalizedSource
