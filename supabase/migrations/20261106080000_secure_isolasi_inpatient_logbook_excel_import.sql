@@ -320,7 +320,7 @@ BEGIN
         RAISE EXCEPTION 'Nilai sumber, respons, provenance, atau status review indikator % tidak konsisten (baris Excel %).', v_code, v_source_row USING ERRCODE = '22023';
       END IF;
 
-      IF v_response->'raw_value'->>'mapping_status' NOT IN (
+      IF coalesce(v_response->'raw_value'->>'mapping_status','') NOT IN (
         'mapped_pending_classification',
         'mapped_existing_master',
         'not_in_master',
@@ -367,7 +367,7 @@ BEGIN
           RAISE EXCEPTION 'Alias indikator % tidak cocok unik dengan pilihan master aktif (baris Excel %).', v_code, v_source_row USING ERRCODE = '23503';
         END IF;
       ELSIF v_response->'raw_value'->>'mapping_status' = 'mapped_pending_classification' THEN
-        IF v_response_code IS DISTINCT FROM v_source_code
+        IF (v_source_code IS NOT NULL AND v_response_code IS DISTINCT FROM v_source_code)
            OR v_response->'raw_value'->'numerator' IS DISTINCT FROM 'null'::jsonb
            OR coalesce(v_response->'raw_value'->>'denominator','') <> 'true' THEN
           RAISE EXCEPTION 'Klasifikasi indikator % harus tetap pending tanpa numerator (baris Excel %).', v_code, v_source_row USING ERRCODE = '22023';
