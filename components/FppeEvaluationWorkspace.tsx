@@ -4,6 +4,7 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { readAllPages } from '@/lib/aureka/pagination'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 
 type Room = { id: number; name: string }
@@ -107,13 +108,12 @@ export default function FppeEvaluationWorkspace({
     setLoading(true)
     setError('')
     try {
-      const { data, error: queryError } = await q().from('oppe_fppe_evaluations')
+      const rows = await readAllPages<FppeRecord>((from, to) => q().from('oppe_fppe_evaluations')
         .select('*')
         .eq('room_id', roomId)
         .order('updated_at', { ascending: false })
-        .limit(250)
-      if (queryError) throw queryError
-      const rows = (data || []) as FppeRecord[]
+        .order('id', { ascending: true })
+        .range(from, to))
       setEvaluations(rows)
       const current = activeRef.current
       if (current?.id) {

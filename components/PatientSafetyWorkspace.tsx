@@ -11,6 +11,7 @@ import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { readAllPages } from '@/lib/aureka/pagination'
 
 type Room = { id: number; name: string }
 type StaffOption = {
@@ -332,33 +333,46 @@ export default function PatientSafetyWorkspace({
     setLoading(true)
     setError('')
     try {
-      const incidentQuery = db.from('incidents').select('id,incident_code,incident_date,incident_time,unit_name,incident_type,summary,status,form_data,created_at,submitted_at').order('created_at', { ascending: false }).limit(500)
-      const [incidentResult, investigationResult] = await Promise.all([
-        incidentQuery,
-        db.from('investigations').select('id,investigation_code,incident_id,status,form_data,created_at,updated_at').order('updated_at', { ascending: false }).limit(500),
+      const [nextIncidents, investigationResult] = await Promise.all([
+        readAllPages<IncidentRow>((from, to) => db.from('incidents')
+          .select('id,incident_code,incident_date,incident_time,unit_name,incident_type,summary,status,form_data,created_at,submitted_at')
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to)),
+        readAllPages<InvestigationRow>((from, to) => db.from('investigations')
+          .select('id,investigation_code,incident_id,status,form_data,created_at,updated_at')
+          .order('updated_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to))
+          .then((data) => ({ data, error: null as unknown }))
+          .catch((error: unknown) => ({ data: null, error })),
       ])
-      if (incidentResult.error) throw incidentResult.error
-      const nextIncidents = (incidentResult.data || []) as IncidentRow[]
       setIncidents(nextIncidents)
       if (investigationResult.error) {
         if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + toUserFacingError(investigationResult.error, { fallback: 'Daftar investigasi belum dapat dimuat. Coba muat ulang.' }))
       } else {
-        setInvestigations((investigationResult.data || []) as InvestigationRow[])
+        setInvestigations(investigationResult.data || [])
       }
 
-      // Cross-module personnel identities come from the active locked roster, restricted by RLS to accessible rooms.
+      // Keep all active, locked staff-to-room assignments; a person may serve in multiple units.
       try {
-        const { data: assignmentRows, error: assignmentError } = await qualityDb
+        const assignments = await readAllPages<{ staff_id: string; room_id: number }>((from, to) => qualityDb
           .from('staff_team_assignments')
           .select('staff_id,room_id')
           .eq('assignment_status', 'active')
           .eq('is_locked', true)
-        if (assignmentError) throw assignmentError
-        const assignments = (assignmentRows || []) as Array<{ staff_id: string; room_id: number }>
+          .order('staff_id', { ascending: true })
+          .order('room_id', { ascending: true })
+          .range(from, to))
         const roomById = new Map(rooms.map((room) => [Number(room.id), room.name]))
-        const roomByStaff = new Map(assignments.map((assignment) => [String(assignment.staff_id), Number(assignment.room_id)]))
-        const staffIds = Array.from(roomByStaff.keys())
-        const nextStaff: StaffOption[] = []
+        const roomIdsByStaff = new Map<string, Set<number>>()
+        for (const assignment of assignments) {
+          const staffId = String(assignment.staff_id)
+          if (!roomIdsByStaff.has(staffId)) roomIdsByStaff.set(staffId, new Set<number>())
+          roomIdsByStaff.get(staffId)!.add(Number(assignment.room_id))
+        }
+        const staffIds = Array.from(roomIdsByStaff.keys())
+        const staffById = new Map<string, any>()
         for (let offset = 0; offset < staffIds.length; offset += 100) {
           const batch = staffIds.slice(offset, offset + 100)
           const { data: directoryRows, error: directoryError } = await qualityDb
@@ -368,18 +382,28 @@ export default function PatientSafetyWorkspace({
             .in('id', batch)
             .order('display_name')
           if (directoryError) throw directoryError
-          nextStaff.push(...(directoryRows || []).map((row: any) => ({
-            id: String(row.id),
-            employee_code: String(row.employee_code || ''),
-            display_name: String(row.display_name || ''),
-            profession_group: String(row.profession_group || ''),
-            position_title: String(row.position_title || ''),
-            room_id: Number(roomByStaff.get(String(row.id))),
-            room_name: roomById.get(Number(roomByStaff.get(String(row.id)))) || '',
-          })))
+          for (const row of directoryRows || []) staffById.set(String(row.id), row)
         }
-        setStaffOptions(nextStaff.filter((staff) => staff.room_name))
-      } catch (staffLoadError) {
+        const nextStaff: StaffOption[] = []
+        for (const [staffId, assignedRoomIds] of roomIdsByStaff) {
+          const row = staffById.get(staffId)
+          if (!row) continue
+          for (const roomId of assignedRoomIds) {
+            const roomName = roomById.get(roomId)
+            if (!roomName) continue
+            nextStaff.push({
+              id: staffId,
+              employee_code: String(row.employee_code || ''),
+              display_name: String(row.display_name || ''),
+              profession_group: String(row.profession_group || ''),
+              position_title: String(row.position_title || ''),
+              room_id: roomId,
+              room_name: roomName,
+            })
+          }
+        }
+        setStaffOptions(nextStaff)
+      } catch {
         setStaffOptions([])
         setMessage('Direktori tenaga belum dapat dimuat; penautan identitas staf dinonaktifkan sementara. Periksa akses Metadata / Tim Tenaga Kerja.')
       }
@@ -387,17 +411,20 @@ export default function PatientSafetyWorkspace({
       try {
         const entityIds = [
           ...nextIncidents.map((row) => String(row.id)),
-          ...(((investigationResult.data || []) as InvestigationRow[]).map((row) => String(row.id))),
+          ...((investigationResult.data || []).map((row) => String(row.id))),
         ]
         const links: StaffEntityAttribution[] = []
         for (let offset = 0; offset < entityIds.length; offset += 100) {
           const batch = entityIds.slice(offset, offset + 100)
-          const { data: linkRows, error: linkError } = await qualityDb
+          const linkRows = await readAllPages<StaffEntityAttribution>((from, to) => qualityDb
             .from('staff_entity_attributions')
             .select('entity_type,entity_id,staff_id,field_key,attribution_type')
             .in('entity_id', batch)
-          if (linkError) throw linkError
-          links.push(...((linkRows || []) as StaffEntityAttribution[]))
+            .order('entity_id', { ascending: true })
+            .order('field_key', { ascending: true })
+            .order('staff_id', { ascending: true })
+            .range(from, to))
+          links.push(...linkRows)
         }
         setStaffEntityLinks(links)
       } catch {
@@ -405,16 +432,11 @@ export default function PatientSafetyWorkspace({
       }
 
       if (isSuperAdmin) {
-        const allResponses: CultureResponse[] = []
-        let start = 0
-        while (true) {
-          const result = await db.from('culture_responses').select('*').order('submitted_at', { ascending: false }).range(start, start + 499)
-          if (result.error) throw result.error
-          const batch = (result.data || []) as CultureResponse[]
-          allResponses.push(...batch)
-          if (batch.length < 500) break
-          start += 500
-        }
+        const allResponses = await readAllPages<CultureResponse>((from, to) => db.from('culture_responses')
+          .select('*')
+          .order('submitted_at', { ascending: false })
+          .order('response_id', { ascending: true })
+          .range(from, to))
         setResponses(allResponses)
       } else {
         setResponses([])

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
+import { readAllPages } from '@/lib/aureka/pagination'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
@@ -471,24 +472,66 @@ export default function GeneralSettings({
 
   useEffect(() => {
     if (section !== 'mydata') return
+    let cancelled = false
     const roomId = me?.primary_room_id ?? null
     const roomName = rooms.find((r) => r.id === roomId)?.name || ''
     const anySb = sb as any
-    Promise.all([
-      anySb.schema('aureka_risk').from('risk_register').select('id,unit_id,unit_name,risk_level').range(0, 4999),
-      anySb.schema('aureka_patient_safety').from('incidents').select('id,status,created_by').eq('created_by', me?.user_id || '').range(0, 4999),
-      anySb.schema('aureka_quality').from('quality_records').select('id,room_id').eq('profile_year', new Date().getFullYear()).range(0, 4999),
+    const norm = (value: unknown) => String(value || '').trim().toLowerCase()
+    const safeRead = async <T,>(promise: Promise<T>) => {
+      try {
+        return { data: await promise, error: null as unknown }
+      } catch (error) {
+        return { data: null as T | null, error }
+      }
+    }
+
+    const riskPromise = roomId == null
+      ? Promise.resolve([] as any[])
+      : Promise.all([
+          readAllPages<any>((from, to) => anySb.schema('aureka_risk').from('risk_register')
+            .select('id,unit_id,unit_name,risk_level')
+            .eq('unit_id', roomId)
+            .order('id', { ascending: true })
+            .range(from, to)),
+          readAllPages<any>((from, to) => anySb.schema('aureka_risk').from('risk_register')
+            .select('id,unit_id,unit_name,risk_level')
+            .is('unit_id', null)
+            .order('id', { ascending: true })
+            .range(from, to)),
+        ]).then(([unitRisks, legacyRisks]) => [
+          ...unitRisks,
+          ...legacyRisks.filter((risk) => norm(risk.unit_name) === norm(roomName)),
+        ])
+
+    void Promise.all([
+      safeRead(riskPromise),
+      safeRead(!me?.user_id ? Promise.resolve([] as any[]) : readAllPages<any>((from, to) => anySb.schema('aureka_patient_safety')
+        .from('incidents')
+        .select('id,status,created_by')
+        .eq('created_by', me.user_id)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(from, to))),
+      safeRead(roomId == null ? Promise.resolve([] as any[]) : readAllPages<any>((from, to) => anySb.schema('aureka_quality')
+        .from('quality_records')
+        .select('id,room_id')
+        .eq('profile_year', new Date().getFullYear())
+        .eq('room_id', roomId)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(from, to))),
     ]).then(([r, i, q]: any[]) => {
-      const norm = (v: unknown) => String(v || '').trim().toLowerCase()
-      const mineRisk = (r.data || []).filter((x: any) => roomId != null && (x.unit_id === roomId || (x.unit_id == null && norm(x.unit_name) === norm(roomName))))
+      if (cancelled) return
+      const mineRisk = r.data || []
       setMyData({
         risks: r.error ? null : mineRisk.length,
         highRisks: r.error ? null : mineRisk.filter((x: any) => x.risk_level === 'Tinggi' || x.risk_level === 'Sangat Tinggi').length,
         incidents: i.error ? null : (i.data || []).length,
         openIncidents: i.error ? null : (i.data || []).filter((x: any) => x.status !== 'closed').length,
-        quality: q.error ? null : (q.data || []).filter((x: any) => roomId != null && x.room_id === roomId).length,
+        quality: q.error ? null : (q.data || []).length,
       })
     })
+    return () => { cancelled = true }
   }, [section, me?.primary_room_id, me?.user_id, rooms])
 
   const roleLabel = friendlyRole(roleMeta) !== '—' ? friendlyRole(roleMeta) : effectiveRole === 'ADMIN' ? 'Super Admin' : (role || '—')

@@ -27,6 +27,7 @@ import { calculateInclusiveDurationDays, matchLogbookOption, summarizeOptionResp
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {toUserFacingError} from '@/lib/ui/error-feedback'
+import {readAllPages} from '@/lib/aureka/pagination'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Audit Klinis dan Kematian" compact/>})
@@ -668,11 +669,12 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      if(pe) throw pe
      setProfiles(pd??[])
      // Personnel fields are linked only to the locked roster for the current unit.
-     const {data:assignmentRows,error:assignmentError}=await q().from('staff_team_assignments')
+     const assignedPairs=await readAllPages<{staff_id:string;room_id:number}>((from,to)=>q().from('staff_team_assignments')
        .select('staff_id,room_id')
+       .eq('room_id',roomId)
        .eq('assignment_status','active')
-     if(assignmentError) throw assignmentError
-     const assignedPairs=(assignmentRows??[]).filter((a:any)=>Number(a.room_id)===Number(roomId))
+       .order('staff_id',{ascending:true})
+       .range(from,to))
      const roomByStaff=new Map<string,number>(assignedPairs.map((a:any)=>[String(a.staff_id),Number(a.room_id)]))
      const assignedStaffIds=Array.from(roomByStaff.keys())
      const staffRows:TeamStaffOption[]=[]

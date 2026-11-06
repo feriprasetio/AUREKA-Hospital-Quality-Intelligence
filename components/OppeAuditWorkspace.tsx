@@ -9,6 +9,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { readAllPages } from '@/lib/aureka/pagination'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
@@ -255,36 +256,40 @@ export default function OppeAuditWorkspace({
     if (!canManage) return
     setLoading(true)
     setError('')
-    const fetchAll = async (initialQuery: any, tableLabel: string) => {
-      const rows: any[] = []
-      let from = 0
-      while (from < 20000) {
-        const { data, error: queryError } = await initialQuery.range(from, from + 499)
-        if (queryError) throw new Error(`${tableLabel}: ${queryError.message}`)
-        rows.push(...(data || []))
-        if (!data || data.length < 500) break
-        from += 500
+    const fetchAll = async (buildPage: (from: number, to: number) => any, tableLabel: string) => {
+      try {
+        return await readAllPages<any>(buildPage)
+      } catch (error) {
+        throw new Error(tableLabel + ': ' + (error instanceof Error ? error.message : String(error)))
       }
-      return rows
     }
     try {
-      let pQuery = q().from('indicator_profiles').select('*').eq('profile_year', year).order('unit_name').order('code')
-      if (roomFilter != null) pQuery = pQuery.eq('room_id', roomFilter)
-      const nextProfiles = await fetchAll(pQuery, 'Master indikator')
+      const nextProfiles = await fetchAll((from, to) => {
+        let query = q().from('indicator_profiles').select('*').eq('profile_year', year).order('unit_name').order('code')
+        if (roomFilter != null) query = query.eq('room_id', roomFilter)
+        return query.range(from, to)
+      }, 'Master indikator')
 
-      let rQuery = q().from('oppe_indicator_rules').select('*').eq('profile_year', year).order('updated_at', { ascending: false })
-      if (roomFilter != null) rQuery = rQuery.eq('room_id', roomFilter)
-      const nextRules = await fetchAll(rQuery, 'Pemetaan OPPE')
+      const nextRules = await fetchAll((from, to) => {
+        let query = q().from('oppe_indicator_rules').select('*').eq('profile_year', year).order('updated_at', { ascending: false }).order('id', { ascending: true })
+        if (roomFilter != null) query = query.eq('room_id', roomFilter)
+        return query.range(from, to)
+      }, 'Pemetaan OPPE')
 
-      // Identity choices come only from the locked team roster, never from names typed into logbooks.
-      const activeAssignments = await fetchAll(
-        q().from('staff_team_assignments').select('staff_id,room_id').eq('assignment_status', 'active').order('assigned_at'),
-        'Penetapan tim tenaga kerja',
-      )
-      const assignmentRoomByStaff = new Map<string, number>(
-        activeAssignments.map((item: any) => [String(item.staff_id), Number(item.room_id)]),
-      )
-      const assignedIds = Array.from(assignmentRoomByStaff.keys())
+      // Keep each active staff-to-room assignment; one person may serve in more than one unit.
+      const activeAssignments = await fetchAll((from, to) => q().from('staff_team_assignments')
+        .select('staff_id,room_id')
+        .eq('assignment_status', 'active')
+        .order('staff_id', { ascending: true })
+        .order('room_id', { ascending: true })
+        .range(from, to), 'Penetapan tim tenaga kerja')
+      const assignmentRoomsByStaff = new Map<string, Set<number>>()
+      for (const item of activeAssignments) {
+        const staffId = String(item.staff_id)
+        if (!assignmentRoomsByStaff.has(staffId)) assignmentRoomsByStaff.set(staffId, new Set<number>())
+        assignmentRoomsByStaff.get(staffId)!.add(Number(item.room_id))
+      }
+      const assignedIds = Array.from(assignmentRoomsByStaff.keys())
       const directoryRows: any[] = []
       for (let offset = 0; offset < assignedIds.length; offset += 100) {
         const batch = assignedIds.slice(offset, offset + 100)
@@ -296,54 +301,57 @@ export default function OppeAuditWorkspace({
         if (directoryError) throw new Error('Master tenaga kerja OPPE: ' + directoryError.message)
         directoryRows.push(...(directoryBatch || []))
       }
-      const nextTeamStaff: AssignedStaff[] = directoryRows
-        .map((staff: any) => ({ ...staff, id: String(staff.id), room_id: Number(assignmentRoomByStaff.get(String(staff.id))) }))
-        .filter((staff: AssignedStaff) => Number.isFinite(staff.room_id) && staff.room_id > 0)
+      const nextTeamStaff: AssignedStaff[] = directoryRows.flatMap((staff: any) =>
+        Array.from(assignmentRoomsByStaff.get(String(staff.id)) || []).map((roomId) => ({
+          ...staff,
+          id: String(staff.id),
+          room_id: Number(roomId),
+        })),
+      ).filter((staff: AssignedStaff) => Number.isFinite(staff.room_id) && staff.room_id > 0)
 
       // Clinical scoring uses validated logbooks plus canonical staff-ID attributions when available.
-      let qQuery = q().from('quality_records').select('*').eq('profile_year', year).eq('room_id', form.roomId).neq('status', 'archived').order('created_at', { ascending: false })
-      const nextRecordsRaw = await fetchAll(qQuery, 'Logbook mutu')
+      const nextRecordsRaw = await fetchAll((from, to) => q().from('quality_records')
+        .select('*')
+        .eq('profile_year', year)
+        .eq('room_id', form.roomId)
+        .neq('status', 'archived')
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(from, to), 'Logbook mutu')
 
       const ids = nextRecordsRaw.map((record: any) => String(record.id)).filter(Boolean)
       const nextResponses: OppeResponseRow[] = []
-      for (let offset = 0; offset < ids.length; offset += 100) {
-        const batch = ids.slice(offset, offset + 100)
-        let from = 0
-        while (from < 20000) {
-          const { data, error: responseError } = await q().from('quality_record_responses')
-            .select('record_id,indicator_id,raw_value,response_label,response_code')
-            .in('record_id', batch)
-            .range(from, from + 499)
-          if (responseError) throw new Error(`Respons indikator: ${responseError.message}`)
-          nextResponses.push(...((data || []) as OppeResponseRow[]))
-          if (!data || data.length < 500) break
-          from += 500
-        }
-      }
-
       const nextAttributions: Array<{ record_id: string; staff_id: string; field_key: string }> = []
       for (let offset = 0; offset < ids.length; offset += 100) {
         const batch = ids.slice(offset, offset + 100)
-        let from = 0
-        while (from < 20000) {
-          const { data, error: attributionError } = await q().from('quality_record_staff_attributions')
-            .select('record_id,staff_id,field_key')
-            .in('record_id', batch)
-            .range(from, from + 499)
-          if (attributionError) throw new Error('Atribusi tenaga pada logbook: ' + attributionError.message)
-          nextAttributions.push(...((data || []) as Array<{ record_id: string; staff_id: string; field_key: string }>))
-          if (!data || data.length < 500) break
-          from += 500
-        }
+        const responseRows = await readAllPages<OppeResponseRow>((from, to) => q().from('quality_record_responses')
+          .select('record_id,indicator_id,raw_value,response_label,response_code')
+          .in('record_id', batch)
+          .order('record_id', { ascending: true })
+          .order('indicator_id', { ascending: true })
+          .range(from, to))
+        nextResponses.push(...responseRows)
+
+        const attributionRows = await readAllPages<{ record_id: string; staff_id: string; field_key: string }>((from, to) => q().from('quality_record_staff_attributions')
+          .select('record_id,staff_id,field_key')
+          .in('record_id', batch)
+          .order('record_id', { ascending: true })
+          .order('staff_id', { ascending: true })
+          .order('field_key', { ascending: true })
+          .range(from, to))
+        nextAttributions.push(...attributionRows)
       }
+
       const nextRecords = nextRecordsRaw.map((record: any) => ({
         ...record,
         staff_attributions: nextAttributions.filter((attribution) => String(attribution.record_id) === String(record.id)),
       }))
 
-      let aQuery = q().from('oppe_assessments').select('*').eq('period_year', year).order('updated_at', { ascending: false })
-      if (roomFilter != null) aQuery = aQuery.eq('room_id', roomFilter)
-      const nextAssessments = await fetchAll(aQuery, 'Riwayat OPPE')
+      const nextAssessments = await fetchAll((from, to) => {
+        let query = q().from('oppe_assessments').select('*').eq('period_year', year).order('updated_at', { ascending: false }).order('id', { ascending: true })
+        if (roomFilter != null) query = query.eq('room_id', roomFilter)
+        return query.range(from, to)
+      }, 'Riwayat OPPE')
 
       setProfiles(nextProfiles)
       setRules(nextRules as OppeRule[])
