@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://preview-disabled.invalid}"
+export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:-sb_publishable_preview_disabled}"
+
+NODE_ENV=production npm run build
+[[ -d "out" ]] || {
+  echo "Expected build output at out" >&2
+  exit 1
+}
+figma make deploy --build-dir "out"
