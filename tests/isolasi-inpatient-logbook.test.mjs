@@ -178,6 +178,8 @@ test('normalizes labels without discarding the original source wording', () => {
 test('creates idempotency keys from physical Excel rows', () => {
   assert.equal(makeIsolasiSubjectKey(2026, 3), 'excel-pmkp-rawat-inap-isolasi-2026:row:3')
   assert.equal(makeIsolasiSubjectKey(2026, 264), 'excel-pmkp-rawat-inap-isolasi-2026:row:264')
+  assert.equal(makeIsolasiSubjectKey(2026, 5102), 'excel-pmkp-rawat-inap-isolasi-2026:row:5102')
+  assert.throws(() => makeIsolasiSubjectKey(2026, 5103))
   assert.throws(() => makeIsolasiSubjectKey(2025, 3))
   assert.throws(() => makeIsolasiSubjectKey(2026, 2))
 })
