@@ -163,9 +163,9 @@ BEGIN
     v_source_row := (v_source->>'source_excel_row')::integer;
     v_subject_key := 'excel-pmkp-rawat-inap-isolasi-2026:row:' || v_source_row::text;
 
-    IF v_source_row < 3 OR v_source_row > 5002
+    IF v_source_row < 3 OR v_source_row > 5102
        OR coalesce(v_payload->>'subject_key','') <> v_subject_key THEN
-      RAISE EXCEPTION 'Kunci idempotensi harus memakai nomor baris fisik Excel 3–5002.' USING ERRCODE = '22023';
+      RAISE EXCEPTION 'Kunci idempotensi harus memakai nomor baris fisik Excel 3–5102.' USING ERRCODE = '22023';
     END IF;
 
     IF nullif(btrim(v_form->>'Nama Pasien'),'') IS NULL
