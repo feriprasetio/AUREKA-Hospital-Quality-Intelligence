@@ -268,7 +268,7 @@ function preparePayload(
   const medicineName = String(row.sourceOnlyValues['22.5'] ?? '').trim()
   const medicineProfile = profileByCode.get('22.5')
   if (!medicineProfile?.id) throw new Error('Master indikator 22.5 Kekosongan Obat tidak tersedia untuk impor Rawat Inap Anak.')
-  const medicineAnswer = medicineName ? 'Ada kekosongan obat' : 'Tidak ada kekosongan obat'
+  const medicineAnswer = medicineName ? 'Terjadi kekosongan obat' : 'Tidak terjadi kekosongan obat'
   const medicineCode = medicineName ? 3 : 1
   const medicineMetric = {
     answer: medicineAnswer,
@@ -584,7 +584,7 @@ export default function PediatricInpatientExcelImportDialog({
           if (answer) {
             indicators[item.code] = answer
             mappedResponsesCount++
-            if (answer.mappingStatus !== 'mapped_pending_classification') {
+            if (answer.reviewRequired) {
               unknownAnswerCells++
               rowWarnings.push(item.code + ' ' + item.header + ': nilai sumber perlu telaah (' + answer.mappingStatus + ').')
             }
