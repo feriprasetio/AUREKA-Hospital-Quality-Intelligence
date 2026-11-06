@@ -65,8 +65,10 @@ type WorkbookFindings = {
   duplicateEpisodeRows: number
   missingCategories: number
   missingDischargeStatus: number
+  missingReceivingNurse: number
   missingDpjp: number
   mappedResponses: number
+  emptySpecialistVisitResponses: number
   emptyOatResponses: number
   emptySputumResponses: number
   emptySitbResponses: number
@@ -430,8 +432,10 @@ export default function IsolasiInpatientExcelImportDialog({
       let dataRows = 0
       let missingCategories = 0
       let missingDischargeStatus = 0
+      let missingReceivingNurse = 0
       let missingDpjp = 0
       let mappedResponsesCount = 0
+      let emptySpecialistVisitResponses = 0
       let emptyOatResponses = 0
       let emptySputumResponses = 0
       let emptySitbResponses = 0
@@ -496,7 +500,10 @@ export default function IsolasiInpatientExcelImportDialog({
           missingDischargeStatus++
           rowWarnings.push('Status Pulang kosong; nilai sumber dipertahankan tanpa asumsi.')
         }
-        if (!receivingNurse) rowWarnings.push('Perawat Penerima kosong; perlu ditinjau.')
+        if (!receivingNurse) {
+          missingReceivingNurse++
+          rowWarnings.push('Perawat Penerima kosong; perlu ditinjau.')
+        }
         if (!dpjp) {
           missingDpjp++
           rowWarnings.push('DPJP kosong; tidak diisi berdasarkan perkiraan.')
@@ -521,6 +528,7 @@ export default function IsolasiInpatientExcelImportDialog({
           const sourceValue = value('indicator:' + item.code)
           sourceIndicatorCells[item.code] = sourceValue
           if (!sourceValue) {
+            if (item.code === '24.8') emptySpecialistVisitResponses++
             if (item.code === '24.1') emptyOatResponses++
             if (item.code === '24.2') emptySputumResponses++
             if (item.code === '24.3') emptySitbResponses++
@@ -635,8 +643,10 @@ export default function IsolasiInpatientExcelImportDialog({
         duplicateEpisodeRows,
         missingCategories,
         missingDischargeStatus,
+        missingReceivingNurse,
         missingDpjp,
         mappedResponses: mappedResponsesCount,
+        emptySpecialistVisitResponses,
         emptyOatResponses,
         emptySputumResponses,
         emptySitbResponses,
@@ -756,8 +766,8 @@ export default function IsolasiInpatientExcelImportDialog({
 
         {rows.length > 0 && findings && <div className="suBox suWarn">
           <strong>Review klasifikasi:</strong> Tujuh indikator 24.1–24.4, 24.8–24.10 belum memiliki pilihan pada master terbit. Nilai sumber dipertahankan sebagai not_in_master dengan kode sumber asli, numerator NULL, dan review_required true. Indikator Linen 24.5 dan Obat 24.6 menggunakan alias eksplisit ke pilihan master aktif yang telah memiliki klasifikasi; master tidak diubah. Seluruh respons tetap pending untuk review.
-          <div style={{ marginTop: 6 }}>Kategori Pasien kosong: {findings.missingCategories}; Status Pulang kosong: {findings.missingDischargeStatus}; DPJP kosong: {findings.missingDpjp}. Semua nilai kosong dipertahankan, bukan diisi otomatis.</div>
-          <div style={{ marginTop: 6 }}>Sel kosong: Terapi OAT {findings.emptyOatResponses}; Sputum/TCM {findings.emptySputumResponses}; SITB {findings.emptySitbResponses}; Gejala TB Hilang {findings.emptySymptomResponses}. Sel kosong tidak dibuat sebagai respons nol atau ketidakpatuhan.</div>
+          <div style={{ marginTop: 6 }}>Kategori Pasien kosong: {findings.missingCategories}; Status Pulang kosong: {findings.missingDischargeStatus}; Perawat Penerima kosong: {findings.missingReceivingNurse}; DPJP kosong: {findings.missingDpjp}. Semua nilai kosong dipertahankan, bukan diisi otomatis.</div>
+          <div style={{ marginTop: 6 }}>Sel kosong: Visite Spesialis {findings.emptySpecialistVisitResponses}; Terapi OAT {findings.emptyOatResponses}; Sputum/TCM {findings.emptySputumResponses}; SITB {findings.emptySitbResponses}; Gejala TB Hilang {findings.emptySymptomResponses}. Sel kosong tidak dibuat sebagai respons nol atau ketidakpatuhan.</div>
           <div style={{ marginTop: 6 }}>Kekosongan Linen dan Kekosongan Obat memiliki pilihan kategori eksplisit pada workbook dan dipetakan melalui alias yang telah ditentukan ke master 24.5/24.6.</div>
           <div style={{ marginTop: 6 }}>Baris dengan No. RM berulang dan kombinasi episode identik dipertahankan satu per satu; tidak ada penggabungan otomatis.</div>
         </div>}
