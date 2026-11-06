@@ -236,7 +236,7 @@ function preparePayload(
     const answer = row.indicators[item.code]
     if (!answer) continue
     const profile = profileByCode.get(item.code)
-    if (!profile?.id) throw new Error('Master indikator ' + item.code + ' tidak tersedia untuk impor Rawat Inap Vip.')
+    if (!profile?.id) throw new Error('Master indikator ' + item.code + ' tidak tersedia untuk impor Rawat Inap VIP.')
 
     const rawValue = {
       answer: answer.label,
@@ -388,7 +388,7 @@ export default function VipInpatientExcelImportDialog({
     setFindings(null)
 
     if (!eligible) {
-      setErrorMessage('Pilih unit Rawat Inap Vip dan profil tahun 2026 sebelum mengunggah.')
+      setErrorMessage('Pilih unit Rawat Inap VIP dan profil tahun 2026 sebelum mengunggah.')
       return
     }
     if (!/\.xlsx$/i.test(selectedFile.name)) {
@@ -417,7 +417,7 @@ export default function VipInpatientExcelImportDialog({
         throw new Error('Dimensi sheet Logbook melewati batas aman (' + MAX_DATA_ROWS + ' baris data dan ' + MAX_COLUMNS + ' kolom).')
       }
       if (!workbook.getWorksheet('Profil')) {
-        throw new Error('Sheet Profil tidak ditemukan; file tidak sesuai workbook PMKP Rawat Inap Vip.')
+        throw new Error('Sheet Profil tidak ditemukan; file tidak sesuai workbook PMKP Rawat Inap VIP.')
       }
 
       const header = findHeaderRow(sheet)
@@ -453,11 +453,8 @@ export default function VipInpatientExcelImportDialog({
       let missingReceivingNurse = 0
       let missingDpjp = 0
       let mappedResponsesCount = 0
-      let emptySpecialistVisitResponses = 0
-      let emptyOatResponses = 0
-      let emptySputumResponses = 0
-      let emptySitbResponses = 0
-      let emptySymptomResponses = 0
+      let emptyIndicatorResponses = 0
+      let sourceProfileMismatchResponses = 0
       let aliasMappedResponsesCount = 0
 
       for (let rowNumber = header.rowNumber + 1; rowNumber <= sheet.rowCount; rowNumber++) {
@@ -756,8 +753,8 @@ export default function VipInpatientExcelImportDialog({
       <div className="aqDHead">
         <div>
           <div className="eyebrow">AUDIT INDIKATOR MUTU · RAWAT INAP VIP</div>
-          <h4 id="aqVipImportTitle">Import workbook Rawat Inap Vip 2026</h4>
-          <p>Pratinjau episode rawat inap, sembilan indikator, pemeriksaan tanggal/LOS, serta temuan sumber TB.</p>
+          <h4 id="aqVipImportTitle">Import workbook Rawat Inap VIP 2026</h4>
+          <p>Pratinjau episode rawat inap, dua belas indikator, pemeriksaan tanggal/LOS, serta temuan sumber TB.</p>
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
@@ -785,7 +782,7 @@ export default function VipInpatientExcelImportDialog({
         </div>}
 
         {rows.length > 0 && findings && <div className="suBox suWarn">
-          <strong>Review klasifikasi:</strong> Sepuluh indikator selain Linen (27.6) dan Obat (27.7) belum memiliki pilihan pada master terbit. Nilai sumber dipertahankan sebagai not_in_master dengan kode sumber asli, numerator NULL, dan review_required true. Indikator Linen 27.5 dan Obat 27.6 menggunakan alias eksplisit ke pilihan master aktif yang telah memiliki klasifikasi; master tidak diubah. Seluruh respons tetap pending untuk review.
+          <strong>Review klasifikasi:</strong> Sepuluh indikator selain Linen (27.6) dan Obat (27.7) belum memiliki pilihan pada master terbit. Nilai sumber dipertahankan sebagai not_in_master dengan kode sumber asli, numerator NULL, dan review_required true. Indikator Linen 27.6 dan Obat 27.7 menggunakan alias eksplisit ke pilihan master aktif yang telah memiliki klasifikasi; master tidak diubah. Seluruh respons tetap pending untuk review.
           <div style={{ marginTop: 6 }}>Kategori Pasien kosong: {findings.missingCategories}; Status Pulang kosong: {findings.missingDischargeStatus}; Perawat Penerima kosong: {findings.missingReceivingNurse}; DPJP kosong: {findings.missingDpjp}. Semua nilai kosong dipertahankan, bukan diisi otomatis.</div>
           <div style={{ marginTop: 6 }}>Sel indikator kosong: {findings.emptyIndicatorResponses}. Nilai yang tidak cocok dengan dropdown Profil indikator: {findings.sourceProfileMismatchResponses}. Sel kosong tidak dibuat sebagai respons nol atau ketidakpatuhan.</div>
           <div style={{ marginTop: 6 }}>Kekosongan Linen dan Kekosongan Obat dipetakan hanya ketika label sumber cocok dengan dropdown Profil dan pilihan master terbit.</div>
@@ -806,7 +803,7 @@ export default function VipInpatientExcelImportDialog({
                   <td>{row.dischargeDate ?? 'Ongoing'}</td>
                   <td>{row.computedLos ?? '—'}</td>
                   <td>{row.patientCategory ?? '—'}</td>
-                  <td>{Object.keys(row.indicators).length}/9</td>
+                  <td>{Object.keys(row.indicators).length}/12</td>
                   <td>{row.warnings.length ? <details><summary className="suTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="suTag">OK</span>}</td>
                 </tr>)}
               </tbody>
@@ -838,7 +835,7 @@ export default function VipInpatientExcelImportDialog({
         </div>}
 
         <div className="suFooter">
-          <span className="aqMetaText">{errors.length ? errors.length + ' baris dikecualikan; ' + rows.length + ' episode valid siap diimpor setelah ditinjau.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Vip, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+          <span className="aqMetaText">{errors.length ? errors.length + ' baris dikecualikan; ' + rows.length + ' episode valid siap diimpor setelah ditinjau.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap VIP, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Rawat Inap VIP'}</button>
