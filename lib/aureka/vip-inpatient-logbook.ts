@@ -162,17 +162,12 @@ export function normalizeVipOptionLabel(value: string): string {
   return String(value ?? '')
     .normalize('NFKC')
     .replace(/[\u00a0\u202f\u2007]/g, ' ')
-    .replace(/\s*\(\s*code\s*\d+\s*\)\s*$/i, '')
+    .replace(/\s*\(\s*code\s*\d+\s*\)?\s*$/i, '')
     .trim()
     .replace(/\s+/g, ' ')
     .toLocaleLowerCase('id-ID')
 }
 
-/**
- * Match source answers to existing master options only.
- * Ten VIP indicators have no published choices; only Linen and Medicine use the two
- * currently published master option sets. Source-profile mismatch prevents classification.
- */
 export function parseVipSourceAnswer(
   raw: string,
   options: VipIndicatorOption[] | null | undefined,
