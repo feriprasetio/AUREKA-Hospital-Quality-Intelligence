@@ -159,6 +159,24 @@ test('maps the source Medicine wording to the existing classified 23.3 master wi
   assert.equal(answer?.mappingStatus, 'mapped_existing_master')
 })
 
+test('maps medicine free text and blank drug cells to adverse and no-event classifications', () => {
+  const options = [
+    {code:1,label:'Tidak terjadi kekosongan obat',numerator:false,denominator:true,review_required:false},
+    {code:3,label:'Terjadi kekosongan obat',numerator:true,denominator:true,review_required:false},
+  ]
+  const shortage = parseSurgicalSourceAnswer('Ceftriaxone 1 g',options,'23.3')
+  assert.equal(shortage?.code,3)
+  assert.equal(shortage?.numerator,true)
+  assert.equal(shortage?.denominator,true)
+  assert.equal(shortage?.freeText,'Ceftriaxone 1 g')
+  assert.equal(shortage?.reviewRequired,false)
+  const noShortage = parseSurgicalSourceAnswer('',options,'23.3')
+  assert.equal(noShortage?.code,1)
+  assert.equal(noShortage?.numerator,false)
+  assert.equal(noShortage?.freeText,'')
+  assert.equal(noShortage?.reviewRequired,false)
+})
+
 test('does not guess when source label is unknown or source code conflicts', () => {
   const options = [pending(1, 'Pilihan A'), pending(3, 'Pilihan B')]
   const unknown = parseSurgicalSourceAnswer('Label tidak dikenal (Code 1)', options, '23.1')
