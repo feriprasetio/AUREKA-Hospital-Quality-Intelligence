@@ -267,7 +267,6 @@ function preparePayload(
     'No.': row.sourceNo,
     'Nama Pasien': row.patientName,
     'No. Rekam Medis': row.medicalRecordNo,
-    'No. Rekam Medis': row.medicalRecordNo,
     'Tanggal Masuk': row.admissionDate,
     'Tanggal Keluar': row.dischargeDate,
     'Diagnosa Tegak': row.diagnosis,
