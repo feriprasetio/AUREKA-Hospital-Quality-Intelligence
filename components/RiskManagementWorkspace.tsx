@@ -209,6 +209,7 @@ export default function RiskManagementWorkspace({
   const [editingFmeaId, setEditingFmeaId] = useState('')
   const [fmeaForm, setFmeaForm] = useState<Partial<FmeaRow>>(() => emptyFmea(rooms.find(r => r.id === initialRoomId)?.name || ''))
   const [registerDetailExpanded, setRegisterDetailExpanded] = useState(false)
+  const [planDetailOpen, setPlanDetailOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState<{ kind: 'delete-risk' | 'delete-link' | 'delete-fmea'; id: string } | null>(null)
 
   const roleCode = role || ''
@@ -585,6 +586,7 @@ export default function RiskManagementWorkspace({
       }
       setMessage('Rencana mitigasi gabungan ' + insertResult.data.plan_code + ' dibuat sebagai draft. Kirim ke Kabid setelah ditinjau unit.')
       setSelectedPlanId(insertResult.data.id)
+      setPlanDetailOpen(true)
       setPlanFormOpen(false)
       setDecisionNote('')
       await loadData()
@@ -859,22 +861,22 @@ export default function RiskManagementWorkspace({
           <div className="rmFormFooter"><div className="rmFormNote">Peringkat Sedang ke atas berada di luar area penerimaan risiko dan membutuhkan keputusan mitigasi.</div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}>Batal</button><button type="button" className="rmButton primary" disabled={saving} onClick={saveRisk}>{saving ? 'Menyimpan…' : 'Simpan risk register'}</button></div></div>
         </LiquidGlass></RmModal>}
 
-        {!riskEditorOpen && activeRisk && registerDetailExpanded && <LiquidGlass className="rmPanel">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">DETAIL RISIKO TERPILIH</span><h4>{activeRisk.risk_event}</h4><p>{activeRisk.risk_code} · {activeRisk.unit_name} · diperbarui {fmtDate(activeRisk.updated_at)}</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setRegisterDetailExpanded(false)}>Ringkas</button><button type="button" className="rmButton primary" disabled={!canEditRisk(activeRisk)} onClick={() => openRiskEditor(activeRisk)}>Edit detail</button></div></div>
+        {!riskEditorOpen && !fmeaEditorOpen && activeRisk && registerDetailExpanded && <RmModal label="Detail risiko" error={error}><LiquidGlass className="rmPanel rmDetailModal">
+          <div className="rmSectionHead"><div><span className="rmEyebrow">DETAIL RISIKO TERPILIH</span><h4>{activeRisk.risk_event}</h4><p>{activeRisk.risk_code} · {activeRisk.unit_name} · diperbarui {fmtDate(activeRisk.updated_at)}</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setRegisterDetailExpanded(false)}>Tutup</button><button type="button" className="rmButton primary" disabled={!canEditRisk(activeRisk)} onClick={() => openRiskEditor(activeRisk)}>Edit detail</button></div></div>
           <div className="rmDetailGrid">
             <div><span>Kategori</span><b>{activeRisk.category}</b></div><div><span>Baseline · engine</span><b>{activeRisk.likelihood} × {activeRisk.impact} · {activeRisk.risk_score}</b>{renderRiskBadge(activeRisk.risk_level)}</div><div><span>Skor sumber workbook</span><b>{activeRisk.source_risk_score ?? '—'}{activeRisk.source_risk_level ? ' · ' + activeRisk.source_risk_level : ''}</b>{activeRisk.source_risk_score != null && activeRisk.source_risk_score !== activeRisk.risk_score ? <p>Berbeda dari skor engine; nilai sumber tetap dipertahankan.</p> : null}</div><div><span>Sumber data</span><b>{activeRisk.source_sheet || 'Input AUREKA'}{activeRisk.source_row_number ? ' · baris ' + activeRisk.source_row_number : ''}{activeRisk.source_record_no ? ' · record ' + activeRisk.source_record_no : ''}</b></div><div><span>Residual</span><b>{activeRisk.residual_score == null ? 'Belum dinilai' : activeRisk.residual_score + ' · ' + activeRisk.residual_level}</b>{activeRisk.residual_level ? renderRiskBadge(activeRisk.residual_level) : null}</div><div><span>Pemilik risiko</span><b>{activeRisk.owner_name || 'Belum ditetapkan'}</b></div>
             <div className="wide"><span>Sasaran</span><p>{activeRisk.objective || 'Belum diuraikan'}</p></div><div className="wide"><span>Penyebab</span><p>{activeRisk.causes || 'Belum diuraikan'}</p></div><div className="wide"><span>Dampak</span><p>{activeRisk.impacts || 'Belum diuraikan'}</p></div><div className="wide"><span>Pengendalian saat ini</span><p>{activeRisk.existing_controls || 'Belum diuraikan'}</p></div>
           </div>
           {activeLinks.length > 0 && <div className="rmRelated"><b>Terhubung dengan {activeLinks.length} relasi</b>{activeLinks.map(link => { const other = risks.find(r => r.id === (link.source_risk_id === activeRisk.id ? link.target_risk_id : link.source_risk_id)); return <button type="button" key={link.id} onClick={() => { if (other) setSelectedRiskId(other.id); }}><span>{RELATION_TYPES.find(x => x.value === link.relationship_type)?.label || link.relationship_type}</span><b>{other?.risk_code || 'Risiko terkait'} · {other?.risk_event || ''}</b></button> })}</div>}
           <div className="rmActions rmBottomActions"><button type="button" className="rmButton subtle" onClick={() => openFmea()}>＋ Tambahkan FMEA</button><button type="button" className="rmButton subtle" onClick={() => { setLinkForm(f => ({ ...f, source: activeRisk.id })); setTab('connections'); }}>Hubungkan risiko ↗</button><button type="button" className="rmButton subtle" onClick={() => { setSelectedRiskIds(current => current.includes(activeRisk.id) ? current : [...current, activeRisk.id]); setTab('mitigation'); setPlanFormOpen(true); }}>Masukkan ke RTP gabungan</button><button type="button" className="rmButton danger" disabled={!canDeleteRisk(activeRisk)} title={hasRiskReferences(activeRisk.id) ? 'Tidak dapat dihapus karena masih menjadi referensi FMEA atau rencana mitigasi.' : 'Hapus risiko yang belum memiliki referensi FMEA atau RTP.'} onClick={() => setPendingAction({ kind: 'delete-risk', id: activeRisk.id })}>Hapus</button></div>
-        </LiquidGlass>}
-        {pendingAction?.kind === 'delete-risk' && <div className="rmInlineConfirm"><div><b>Konfirmasi penghapusan risiko</b><p>Penghapusan akan ditolak apabila risiko memiliki referensi FMEA atau rencana mitigasi. Pertimbangkan mengubah status menjadi Controlled/Accepted agar jejak audit tetap terjaga.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteRisk(pendingAction.id)}>Lanjutkan penghapusan</button></div></div>}
+        </LiquidGlass></RmModal>}
+        {pendingAction?.kind === 'delete-risk' && <RmModal label="Konfirmasi"><div className="rmInlineConfirm rmConfirmCard"><div><b>Konfirmasi penghapusan risiko</b><p>Penghapusan akan ditolak apabila risiko memiliki referensi FMEA atau rencana mitigasi. Pertimbangkan mengubah status menjadi Controlled/Accepted agar jejak audit tetap terjaga.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteRisk(pendingAction.id)}>Lanjutkan penghapusan</button></div></div></RmModal>}
       </>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'mitigation' && <>
         <div className="rmKpis compact"><LiquidGlass className="rmKpi"><span>Rencana RTP</span><strong>{plans.length}</strong><small>Termasuk draft dan rencana berjalan</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Menunggu persetujuan</span><strong>{plans.filter(p => p.status.startsWith('pending_')).length}</strong><small>Kabid → Direktur → Dewan Pengawas</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Dalam pelaksanaan</span><strong>{plans.filter(p => p.status === 'in_progress').length}</strong><small>Rencana disetujui dan dikerjakan</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Lewat tenggat</span><strong>{plans.filter(p => p.target_date && new Date(p.target_date + 'T23:59:59') < new Date() && !['closed'].includes(p.status)).length}</strong><small>Perlu eskalasi atau penyesuaian</small></LiquidGlass></div>
         <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">MITIGASI TERINTEGRASI</span><h4>Rencana Tindak Pengendalian</h4><p>Satu rencana dapat menangani beberapa risiko yang berbagi penyebab, kontrol, atau proses. Semua tahap persetujuan dicatat.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Pilih risiko</button><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>＋ Rencana gabungan</button></div></div>
-          {planFormOpen && <div className="rmPlanComposer">
+          {planFormOpen && <RmModal label="Penyusunan RTP" error={error}><div className="rmPlanComposer rmPanel">
             <div className="rmSectionHead"><div><span className="rmEyebrow">PENYUSUNAN RTP</span><h4>Rencana mitigasi untuk {selectedRiskIds.length} risiko</h4><p>Rencana lintas unit sebaiknya menyebutkan koordinator utama dan kontribusi tiap unit yang terlibat.</p></div><button type="button" className="rmButton subtle" onClick={() => setPlanFormOpen(false)}>Tutup formulir</button></div>
             {selectedForPlan.length > 25 && <div className="rmNotice" role="status"><span>Terlalu banyak risiko</span><p>{selectedForPlan.length.toLocaleString('id-ID')} risiko dipilih. RTP gabungan sebaiknya hanya mencakup risiko yang benar-benar berbagi penyebab, kontrol, atau proses yang sama (umumnya di bawah 20). Kembali ke Risk Register untuk mempersempit pilihan.</p></div>}
             <div className="rmSelectedHead">
@@ -899,16 +901,16 @@ export default function RiskManagementWorkspace({
             </div>
             <div className="rmCallout"><b>Target hasil</b><p>Target residual yang dipilih menghasilkan skor {riskScore(Number(planForm.target_likelihood), Number(planForm.target_impact))} ({levelFor(riskScore(Number(planForm.target_likelihood), Number(planForm.target_impact)))}). Untuk risiko utama, target penerimaan sebaiknya didukung bukti efektivitas pengendalian dan pertimbangan pimpinan.</p></div>
             <div className="rmFormFooter"><span className="rmFormNote">Draft belum dikirim untuk persetujuan. Periksa cakupan lintas unit sebelum menyimpan.</span><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPlanFormOpen(false)}>Batal</button><button type="button" className="rmButton primary" disabled={saving} onClick={() => void createPlan()}>{saving ? 'Menyimpan…' : 'Simpan draft RTP'}</button></div></div>
-          </div>}
+          </div></RmModal>}
           <div className="rmPlanGrid">
-            {plans.map(plan => <button type="button" key={plan.id} className={'rmPlanCard' + (selectedPlanId === plan.id ? ' selected' : '')} onClick={() => { setSelectedPlanId(plan.id); setDecisionNote(''); clearMessages(); }}>
+            {plans.map(plan => <button type="button" key={plan.id} className={'rmPlanCard' + (selectedPlanId === plan.id ? ' selected' : '')} onClick={() => { setSelectedPlanId(plan.id); setPlanDetailOpen(true); setDecisionNote(''); clearMessages(); }}>
               <div className="rmPlanTop"><span className="rmEyebrow">{plan.plan_code}</span><span className={'rmWorkflowPill ' + plan.status}>{PLAN_STATUS[plan.status] || plan.status}</span></div><b>{plan.title}</b><p>{plan.action_plan}</p><div className="rmPlanMeta"><span>{planRisks.filter(r => r.plan_id === plan.id).length} risiko terhubung</span><span>Target {fmtDate(plan.target_date)}</span></div>
             </button>)}
             {!plans.length && <div className="rmEmptySmall">Belum ada rencana mitigasi. Pilih beberapa risiko dari register, lalu susun rencana gabungan.</div>}
           </div>
         </LiquidGlass>
-        {activePlan && <LiquidGlass className="rmPanel">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">{activePlan.plan_code} · ALUR PERSETUJUAN</span><h4>{activePlan.title}</h4><p>{activePlan.objective || 'Sasaran mitigasi belum dicantumkan.'}</p></div><span className={'rmWorkflowPill ' + activePlan.status}>{PLAN_STATUS[activePlan.status] || activePlan.status}</span></div>
+        {activePlan && planDetailOpen && <RmModal label="Detail rencana" error={error}><LiquidGlass className="rmPanel rmDetailModal">
+          <div className="rmSectionHead"><div><span className="rmEyebrow">{activePlan.plan_code} · ALUR PERSETUJUAN</span><h4>{activePlan.title}</h4><p>{activePlan.objective || 'Sasaran mitigasi belum dicantumkan.'}</p></div><div className="rmActions"><span className={'rmWorkflowPill ' + activePlan.status}>{PLAN_STATUS[activePlan.status] || activePlan.status}</span><button type="button" className="rmButton subtle" onClick={() => setPlanDetailOpen(false)}>Tutup</button></div></div>
           <div className="rmApprovalRail">
             {[['pending_kabid', 'Kepala Bidang'], ['pending_director', 'Direktur'], ['pending_board', 'Dewan Pengawas']].map(([stage, label], i) => {
               const sequence = ['pending_kabid', 'pending_director', 'pending_board', 'approved', 'in_progress', 'evaluated', 'closed']
@@ -937,7 +939,7 @@ export default function RiskManagementWorkspace({
             </div>
           </div>
           <div className="rmHistory"><b>Riwayat keputusan</b>{activeEvents.length ? activeEvents.map(e => <div className="rmHistoryRow" key={e.id}><i></i><div><b>{PLAN_STATUS[e.to_status] || e.to_status}</b><p>{e.note || 'Tidak ada catatan'} · {e.actor_name || 'Pengguna'} · {fmtDate(e.created_at)}</p></div></div>) : <p className="rmMuted">Belum ada keputusan workflow.</p>}</div>
-        </LiquidGlass>}
+        </LiquidGlass></RmModal>}
       </>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'connections' && <>
@@ -979,7 +981,7 @@ export default function RiskManagementWorkspace({
               <button type="button" className="rmIconButton dangerText" aria-label="Hapus konektor" onClick={() => setPendingAction({ kind: 'delete-link', id: link.id })}>Hapus</button>
             </div>
           })}{!visibleLinks.length && <div className="rmEmptySmall">Belum ada konektor aktif pada kelompok sumber ini. Pilih kandidat, verifikasi dasarnya, lalu aktifkan konektor.</div>}</div>
-          {pendingAction?.kind === 'delete-link' && <div className="rmInlineConfirm"><div><b>Konfirmasi penghapusan konektor</b><p>Data risiko tetap dipertahankan; hanya relasi yang dihapus.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteLink(pendingAction.id)}>Hapus konektor</button></div></div>}
+          {pendingAction?.kind === 'delete-link' && <RmModal label="Konfirmasi"><div className="rmInlineConfirm rmConfirmCard"><div><b>Konfirmasi penghapusan konektor</b><p>Data risiko tetap dipertahankan; hanya relasi yang dihapus.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteLink(pendingAction.id)}>Hapus konektor</button></div></div></RmModal>}
         </LiquidGlass>
       </>}
 
@@ -1009,7 +1011,7 @@ export default function RiskManagementWorkspace({
             <label>Status tindakan <select value={String(fmeaForm.status || 'Open')} onChange={e => setFmeaForm(f => ({ ...f, status: e.target.value }))}>{['Open', 'In Progress', 'Evaluated', 'Closed'].map(s => <option key={s}>{s}</option>)}</select></label>
           </div>
           <div className="rmFormFooter"><span className="rmFormNote">RPN tinggi atau Severity ≥ 4 memerlukan evaluasi prioritas dan pertimbangan RCA/redesign; keputusan klinis tetap memerlukan telaah tim terkait.</span><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}>Batal</button><button type="button" className="rmButton primary" disabled={saving} onClick={() => void saveFmea()}>{saving ? 'Menyimpan…' : 'Simpan FMEA'}</button></div></div>
-          {pendingAction?.kind === 'delete-fmea' && <div className="rmInlineConfirm"><b>Hapus FMEA terpilih?</b><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" onClick={async () => { if (!pendingAction) return; const result = await db.from('fmea_analyses').delete().eq('id', pendingAction.id); if (result.error) setError(toUserFacingError(result.error, { fallback: 'FMEA belum dapat dihapus. Periksa hak akses dan coba kembali.' })); else { setMessage('FMEA dihapus.'); setPendingAction(null); await loadData(); } }}>Hapus</button></div></div>}
+          {pendingAction?.kind === 'delete-fmea' && <RmModal label="Konfirmasi"><div className="rmInlineConfirm rmConfirmCard"><b>Hapus FMEA terpilih?</b><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" onClick={async () => { if (!pendingAction) return; const result = await db.from('fmea_analyses').delete().eq('id', pendingAction.id); if (result.error) setError(toUserFacingError(result.error, { fallback: 'FMEA belum dapat dihapus. Periksa hak akses dan coba kembali.' })); else { setMessage('FMEA dihapus.'); setPendingAction(null); await loadData(); } }}>Hapus</button></div></div></RmModal>}
         </LiquidGlass></RmModal>}
       </>}
 

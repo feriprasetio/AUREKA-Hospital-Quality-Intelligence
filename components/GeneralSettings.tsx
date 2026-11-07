@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
@@ -84,6 +85,7 @@ export default function GeneralSettings({
   const [msg, setMsg] = useState('')
   const [rowNote, setRowNote] = useState<{ id: string; ok: boolean; text: string } | null>(null)
   const [detailId, setDetailId] = useState<string | null>(null)
+  useEffect(() => { if (!detailId || typeof document === 'undefined') return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [detailId])
   const [detailName, setDetailName] = useState('')
   const [detailIdent, setDetailIdent] = useState({ username: '', email: '', verify: true })
   const [myAccount, setMyAccount] = useState<{ username: string; email: string; supported: boolean }>({ username: '', email: '', supported: true })
@@ -910,7 +912,7 @@ export default function GeneralSettings({
                     <div className="userActions">
                     <button type="button" className={detailId === u.user_id ? 'uBtn outline active' : 'uBtn outline'} aria-expanded={detailId === u.user_id}
                       title="Lihat & ubah data akun, reset password" onClick={() => openDetail(u)}>
-                        {detailId === u.user_id ? 'Tutup detail' : 'Detail'}
+                        Detail
                     </button>
                     {!u.is_active ? (
                       <button type="button" className="uBtn primary" disabled={busy || (!u.primary_room_id && (u.role_id === picRoleId || !u.role_id))}
@@ -939,7 +941,11 @@ export default function GeneralSettings({
                     </div>
                   </div>
                   {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'} aria-live={rowNote.ok ? 'polite' : 'assertive'}>{rowNote.text}</div>}
-                  {detailId === u.user_id && (
+                  {detailId === u.user_id && typeof document !== 'undefined' && createPortal(
+                    <div className="moduleEnter settingsWorkspace aurModalLayer"><div className="rmModalBackdrop" role="presentation" onKeyDown={(e) => { if (e.key === 'Escape') setDetailId(null) }}>
+                    <section className="rmModalSheet userDetailSheet" role="dialog" aria-modal="true" aria-label={`Detail akun ${u.full_name || u.email || ''}`}>
+                    <div className="userDetailHead"><div><span>DETAIL AKUN</span><h4>{u.full_name || u.username || u.email || 'Pengguna'}</h4><p>{u.username ? '@' + u.username + ' · ' : ''}{u.email || 'Email belum diisi'}</p></div><button type="button" className="uBtn outline" autoFocus onClick={() => setDetailId(null)}>Tutup</button></div>
+                    {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'}>{rowNote.text}</div>}
                     <div className="userDetail">
                       <div className="userDetailCol">
                         <h5>Data akun</h5>
@@ -990,6 +996,8 @@ export default function GeneralSettings({
                         <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => sendResetEmail(u)}>Kirim email reset password</button>
                       </div>
                     </div>
+                    </section></div></div>,
+                    document.querySelector('.workspaceRoot') || document.body
                   )}
                 </div>
               ))}

@@ -483,3 +483,45 @@ html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.rmNoti
   html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:nth-child(4){margin-left:36px!important}
   html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:last-child{margin-left:auto!important}
 }
+
+/* Confirmation dialogs (hapus risiko / konektor / FMEA) shown as a small centred card */
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet:has(> .rmConfirmCard){width:min(460px,100%)!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard{display:grid!important;gap:12px!important;margin:0!important;padding:20px 22px!important;border:0!important;background:#fff!important;box-shadow:none!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard b{font-size:16px!important;color:#1e293b!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard p{font-size:13px!important;line-height:1.55!important;color:#475569!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard .rmActions{justify-content:flex-end!important;gap:8px!important}
+
+/* Administrasi › Manajemen User: account detail as a pop-up */
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailSheet{width:min(920px,100%)!important;padding:0!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailHead{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 22px 14px;background:linear-gradient(180deg,#eef8f3,#fff);border-bottom:1px solid #e2ebe6}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailHead span{font-size:11px;font-weight:800;letter-spacing:.1em;color:#0f7656}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailHead h4{margin:2px 0;font-size:19px;color:#0b5d44}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailHead p{margin:0;font-size:12.5px;color:#64748b}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailSheet .userDetail{margin:0!important;padding:18px 22px 22px!important;border:0!important;border-radius:0!important;background:#fff!important;box-shadow:none!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailSheet .userRowNote{margin:12px 22px 0!important}
+@media(max-width:760px){html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .userDetailSheet .userDetail{grid-template-columns:1fr!important}}
+
+/* Checkboxes / radios: normal size everywhere (were stretched to 40–84px by generic input rules) */
+html[data-theme] .workspaceRoot .moduleEnter input:is([type=checkbox],[type=radio]),
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter input:is([type=checkbox],[type=radio]){
+  width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;max-width:18px!important;max-height:18px!important;
+  padding:0!important;margin:0!important;flex:0 0 18px!important;accent-color:#0f7656;box-shadow:none!important;vertical-align:middle
+}
+/* Risk name in the register table was 10px while its code line was 12px */
+html[data-theme] .workspaceRoot .moduleEnter .rmRiskName b{font-size:13.5px!important;line-height:1.35!important}
+html[data-theme] .workspaceRoot .moduleEnter .rmRiskName small{font-size:12px!important}
+/* Risk heat map numbers: dark text on light cells (white text on yellow/green was unreadable) */
+html[data-theme] .workspaceRoot .moduleEnter .ovCell[data-band]:not([data-band="very-high"]){color:#1e293b!important;-webkit-text-fill-color:#1e293b!important}
+html[data-theme] .workspaceRoot .moduleEnter .ovCell[data-band="very-high"]{color:#fff!important;-webkit-text-fill-color:#fff!important}
+/* Risk detail pop-up: readable labels and values */
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmDetailModal .rmDetailGrid span{font-size:11px!important;letter-spacing:.06em!important;color:#64748b!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmDetailModal .rmDetailGrid :is(b,p){font-size:14px!important;color:#1e293b!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmDetailModal .rmSectionHead h4{font-size:19px!important}
+/* Risk Register cards on phones: the desk theme's cell padding/background must not apply inside the card */
+@media (max-width:760px){
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .rmTable tbody tr[data-risk-id]>td,
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport .rmTable tbody tr[data-risk-id]>td,
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceTableViewport tr.selected[data-risk-id] td{padding:0!important;background:transparent!important;background-color:transparent!important;min-width:0!important}
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .rmTable tbody tr[data-risk-id]{background:#fff!important}
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .rmTable tbody tr.selected[data-risk-id]{background:#f1f9f5!important}
+}
