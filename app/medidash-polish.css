@@ -483,3 +483,10 @@ html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.rmNoti
   html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:nth-child(4){margin-left:36px!important}
   html[data-theme] .workspaceRoot .moduleEnter .rmTable tbody tr[data-risk-id]>td:last-child{margin-left:auto!important}
 }
+
+/* Confirmation dialogs (hapus risiko / konektor / FMEA) shown as a small centred card */
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet:has(> .rmConfirmCard){width:min(460px,100%)!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard{display:grid!important;gap:12px!important;margin:0!important;padding:20px 22px!important;border:0!important;background:#fff!important;box-shadow:none!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard b{font-size:16px!important;color:#1e293b!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard p{font-size:13px!important;line-height:1.55!important;color:#475569!important}
+html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmConfirmCard .rmActions{justify-content:flex-end!important;gap:8px!important}
