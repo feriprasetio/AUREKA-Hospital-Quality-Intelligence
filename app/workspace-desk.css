@@ -818,3 +818,68 @@ html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicPanel:hover {
     animation: none !important;
   }
 }
+
+
+/* Stable audit logbook toolbar: filters occupy row one, actions occupy a full-width row two. */
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.4fr) minmax(95px, 120px) minmax(150px, 200px) !important;
+  grid-template-areas: "unit year month" "actions actions actions" !important;
+  grid-auto-flow: row !important;
+  align-items: end !important;
+  gap: 10px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid>.aqField:nth-of-type(1) { grid-area: unit !important; min-width: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid>.aqField:nth-of-type(2) { grid-area: year !important; min-width: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid>.aqField:nth-of-type(3) { grid-area: month !important; min-width: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid>.aqFilterActions {
+  grid-area: actions !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid>.aqFilterActions>button {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+}
+/* Remove any legacy density switch from cached/embedded workspace shells. */
+html[data-theme] .workspaceRoot.workspaceDesk :is(
+  .workspaceDensityToggle,
+  .workspaceDensityControl,
+  [data-workspace-density-toggle],
+  [data-density-toggle],
+  button[title*="nyaman" i],
+  button[aria-label*="nyaman" i]
+) { display: none !important; }
+@media (max-width: 760px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-areas: "unit unit" "year month" "actions actions" !important;
+  }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid>.aqFilterActions {
+    grid-area: actions !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    justify-content: flex-start !important;
+  }
+}
+@media (max-width: 480px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas: "unit" "year" "month" "actions" !important;
+  }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter>.aq.aqAuditWorkspace>.aqFilters>.aqGrid>.aqFilterActions {
+    grid-column: 1 / -1 !important;
+    grid-row: 4 !important;
+    justify-content: flex-start !important;
+  }
+}
