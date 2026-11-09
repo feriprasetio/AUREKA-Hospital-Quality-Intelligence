@@ -5,6 +5,7 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { compareToTarget } from '@/lib/aureka/indicator-engine'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
 import { summarizeOutpatientClinics, summarizeOutpatientIndicator, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
@@ -355,8 +356,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       const outpatient = aggregatePharmacyMetric(pharmacyRows, item.code, 'Rawat Jalan')
       const inpatient = aggregatePharmacyMetric(pharmacyRows, item.code, 'Rawat Inap')
       const combined = combinePharmacyMetric(outpatient, inpatient)
-      const result = indicatorResults.find((candidate) => String(candidate.profile.code) === item.code)
-      return { ...item, profile, outpatient, inpatient, combined, meets: result?.targetMet ?? null }
+      const meets = profile && combined.rate != null ? compareToTarget(profile, combined.rate) : null
+      return { ...item, profile, outpatient, inpatient, combined, meets }
     })
     return {
       metrics,
