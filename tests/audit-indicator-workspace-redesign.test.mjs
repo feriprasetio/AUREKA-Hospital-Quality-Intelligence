@@ -37,3 +37,19 @@ test('Results tab retains the validated indicator calculation engine and balance
   assert.match(source, /\.qraHero\{padding:14px 16px/)
   assert.match(source, /\.qraTable\{min-width:1080px/)
 })
+
+
+test('Every indicator uses the professional compact assessment UI without evidence or draft labels', () => {
+  const source = read('components/QualityIndicatorWorkspace.tsx')
+  const editorStart = source.indexOf('const indicatorEditor=')
+  const editorEnd = source.indexOf('const reviewRecord=', editorStart)
+  const editor = source.slice(editorStart, editorEnd)
+  assert.ok(editorStart >= 0 && editorEnd > editorStart)
+  assert.doesNotMatch(editor, /Bukti & catatan audit|Definisi operasional & rumus indikator|Pilih hasil sesuai Logbook|Nama master:/)
+  assert.match(source, /<h5>Penilaian Indikator Mutu<\/h5>/)
+  assert.match(source, /className="aqIndicatorMeta"/)
+  assert.match(source, /className="aqChoiceField"/)
+  assert.match(source, /aqResultSummary/)
+  assert.match(source, /review_required===true\|\|choice\.code==null/)
+  assert.match(source, /Compact professional indicator assessment — shared by every unit/)
+})
