@@ -94,18 +94,21 @@ function Kpi({ label, value, sub, tone, loading, onClick, delay, formatted }: { 
     normalized.includes('ikp') ? 'safety' :
     normalized.includes('risiko') ? 'risk' :
     normalized.includes('audit') ? 'audit' : 'quality'
+  const displayValue = value === null ? '—' : formatted || shown.toLocaleString('id-ID')
   return (
-    <button type="button" className={`ovKpi ${tone || ''}`} style={{ animationDelay: `${delay}ms` }} onClick={onClick} disabled={!onClick}>
+    <button type="button" className={`ovKpi magicKpi ${tone || ''}`} style={{ animationDelay: `${delay}ms` }} onClick={onClick} disabled={!onClick}>
+      <span className="magicKpiGlow" aria-hidden="true" />
       <span className="ovKpiHeader"><span className="ovKpiLabel">{label}</span><span className={`ovKpiIcon ${kind}`}><KpiIcon kind={kind}/></span></span>
-      {loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value === null ? '—' : formatted || shown.toLocaleString('id-ID')}</b>}
+      {loading ? <span className="ovSkeleton ovSkeletonNum" /> : <b className="magicKpiValue" aria-label={`${label}: ${displayValue}`}>{displayValue}</b>}
       {sub && !loading && <small>{sub}</small>}
+      <span className="magicKpiSweep" aria-hidden="true" />
     </button>
   )
 }
 
 function Panel({ title, eyebrow, children, delay, action }: { title: string; eyebrow?: string; children: ReactNode; delay: number; action?: ReactNode }) {
   return (
-    <section className="ovPanel" style={{ animationDelay: `${delay}ms` }}>
+    <section className="ovPanel magicPanel" style={{ animationDelay: `${delay}ms` }}>
       <header className="ovPanelHead">
         <div>{eyebrow && <span className="ovEyebrow">{eyebrow}</span>}<h4>{title}</h4></div>
         {action}
@@ -414,7 +417,7 @@ export default function OverviewDashboard({
           <Panel delay={240} eyebrow="AUDIT KLINIS" title="Kinerja Clinical Pathway">
             {clinicalPathway.error ? <SectionError error={clinicalPathway.error} /> : loading ? <div className="ovSkeletonBlock" /> :
               <div className="ovExecPerformance">
-                <div className="ovExecHeadline"><strong>{stats.cpAverageCompliance === null ? '—' : stats.cpAverageCompliance.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'}</strong><span>Rerata kepatuhan pada episode eligible yang memiliki nilai kepatuhan numerik.</span></div>
+                <div className="ovExecHeadline"><strong className="magicKpiValue">{stats.cpAverageCompliance === null ? '—' : stats.cpAverageCompliance.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'}</strong><span>Rerata kepatuhan pada episode eligible yang memiliki nilai kepatuhan numerik.</span></div>
                 <div className="ovExecMetric"><span>Episode audit</span><b>{stats.cpAuditTotal.toLocaleString('id-ID')}</b></div>
                 <div className="ovExecMetric"><span>Episode masuk perhitungan</span><b>{stats.cpEligibleTotal.toLocaleString('id-ID')}</b></div>
                 <div className="ovExecMetric"><span>Lulus komponen Section D</span><b>{stats.cpEligibleTotal ? stats.cpSectionDPass.toLocaleString('id-ID') + ' / ' + stats.cpEligibleTotal.toLocaleString('id-ID') : '—'}</b></div>
