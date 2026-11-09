@@ -5,6 +5,10 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { compareToTarget } from '@/lib/aureka/indicator-engine'
+import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
+import { summarizeOutpatientClinics, summarizeOutpatientIndicator, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
+import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   aggregateClinicalDeathAudits,
   aggregateClinicalDeathByValidationMonth,
@@ -34,6 +38,76 @@ const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 const YEARS = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+
+type OperationalCalendarParts = { year: number; month: number; iso: string }
+type OperationalLayout = { roomId: number; providerGroups?: OutpatientProviderGroup[] }
+const OUTPATIENT_PROVIDER_GROUPS =
+  (qualityAuditLayout2026 as OperationalLayout[]).find((layout) => Number(layout.roomId) === 11)?.providerGroups ?? []
+
+function parseOperationalCalendarDate(value: unknown): OperationalCalendarParts | null {
+  const raw = String(value ?? '').trim()
+  if (!raw) return null
+
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (iso) {
+    const year = Number(iso[1])
+    const month = Number(iso[2])
+    const day = Number(iso[3])
+    const check = new Date(Date.UTC(year, month - 1, day))
+    if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null
+    return { year, month, iso: `${iso[1]}-${iso[2]}-${iso[3]}` }
+  }
+
+  const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/)
+  if (dmy) {
+    const day = Number(dmy[1])
+    const month = Number(dmy[2])
+    const year = Number(dmy[3])
+    const check = new Date(Date.UTC(year, month - 1, day))
+    if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null
+    return {
+      year,
+      month,
+      iso: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+    }
+  }
+
+  const parsed = new Date(raw)
+  if (Number.isNaN(parsed.getTime())) return null
+  return {
+    year: parsed.getFullYear(),
+    month: parsed.getMonth() + 1,
+    iso: `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`,
+  }
+}
+
+function operationalFormFields(row: ResultRecord): Record<string, any> {
+  const core = row.core_data ?? {}
+  const fields = core.form_fields ?? core.form_data
+  return fields && typeof fields === 'object' ? fields as Record<string, any> : {}
+}
+
+function operationalRecordDate(row: ResultRecord): string {
+  const core = row.core_data ?? {}
+  const fields = operationalFormFields(row)
+  const candidates = [
+    row.record_date,
+    core.record_date,
+    core.admission_at,
+    core.admit,
+    fields['Tanggal pengamatan'],
+    fields['Tanggal Masuk'],
+    fields['Tanggal Audit'],
+    fields['Tanggal Dilayani'],
+    fields['Tanggal Permintaan'],
+  ]
+  const found = candidates.find((value) => value != null && String(value).trim() !== '')
+  return String(found ?? '')
+}
+
+function operationalCalendarParts(row: ResultRecord): OperationalCalendarParts | null {
+  return parseOperationalCalendarDate(operationalRecordDate(row))
+}
 
 function normalizeRoom(value: unknown): number | null {
   const parsed = Number(value)
@@ -166,6 +240,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       }
 
       if (mode === 'indicators') {
+        const includeOperationalFields = selectedRoom === 5 || selectedRoom === 11
+        const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values' +
+          (includeOperationalFields
+            ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit,source_import:core_data->source_import'
+            : '')
         const [profileResult, recordResult] = await Promise.all([
           q().from('indicator_profiles')
             .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
@@ -175,7 +254,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             .eq('is_active', true)
             .order('code'),
           readPaged<ResultRecord>((from, to) => q().from('quality_records')
-            .select('id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values')
+            .select(indicatorRecordSelect)
             .eq('room_id', selectedRoom)
             .eq('profile_year', year)
             .neq('status', 'archived')
@@ -186,7 +265,13 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         if (recordResult.rows.length > 0) {
           recordResult.rows = recordResult.rows.map((row: any) => ({
             ...row,
-            core_data: { indicator_values: row.indicator_values ?? {} },
+            core_data: {
+              indicator_values: row.indicator_values ?? {},
+              ...(row.form_fields != null || row.form_data != null ? { form_fields: row.form_fields ?? row.form_data ?? {} } : {}),
+              ...(row.admission_at != null ? { admission_at: row.admission_at } : {}),
+              ...(row.admit != null ? { admit: row.admit } : {}),
+              ...(row.source_import != null ? { source_import: row.source_import } : {}),
+            },
           }))
         }
         if (cancelled) return
@@ -249,6 +334,82 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     ? indicatorData.rows.filter((row) => ['ready','validated'].includes(String(row.status).toLowerCase())).length
     : 0
 
+  const pharmacyMetricSummary = useMemo(() => {
+    if (mode !== 'indicators' || Number(roomId) !== 5) return null
+
+    const yearRows = indicatorData.rows.filter((row) => operationalCalendarParts(row)?.year === year)
+    const validatedRows = yearRows.filter((row) => String(row.status ?? '').toLowerCase() === 'validated')
+    const readyRecords = yearRows.filter((row) => String(row.status ?? '').toLowerCase() === 'ready').length
+    const pharmacyRows = validatedRows.map((row) => ({
+      databaseStatus: row.status,
+      formData: operationalFormFields(row),
+      indicatorValues: row.core_data?.indicator_values ?? {},
+    }))
+    const definitions = [
+      { code: '5.2', title: 'Angka Copy Resep' },
+      { code: '5.3', title: 'Angka Ketidakpatuhan Penggunaan Label High Alert' },
+      { code: '5.4', title: 'Kepatuhan Penggunaan Formularium Nasional' },
+      { code: '5.5', title: 'Kepatuhan Penggunaan Formularium Rumah Sakit' },
+    ]
+    const metrics = definitions.map((item) => {
+      const profile = indicatorData.profiles.find((candidate) => Number(candidate.room_id) === 5 && String(candidate.code) === item.code)
+      const outpatient = aggregatePharmacyMetric(pharmacyRows, item.code, 'Rawat Jalan')
+      const inpatient = aggregatePharmacyMetric(pharmacyRows, item.code, 'Rawat Inap')
+      const combined = combinePharmacyMetric(outpatient, inpatient)
+      const meets = profile && combined.rate != null ? compareToTarget(profile, combined.rate) : null
+      return { ...item, profile, outpatient, inpatient, combined, meets }
+    })
+    return {
+      metrics,
+      validatedRecords: validatedRows.length,
+      readyRecords,
+      periodLabel: String(year),
+    }
+  }, [mode, roomId, indicatorData, indicatorResults, year])
+
+  const outpatientClinicSummary = useMemo(() => {
+    if (mode !== 'indicators' || Number(roomId) !== 11) return null
+
+    const yearRows = indicatorData.rows.filter((row) => operationalCalendarParts(row)?.year === year)
+    const validatedRows = yearRows.filter((row) =>
+      String(row.status ?? '').toLowerCase() === 'validated' &&
+      row.core_data?.source_import?.exclude_from_profile_year_metrics !== true
+    )
+    const readyRecords = yearRows.filter((row) =>
+      String(row.status ?? '').toLowerCase() === 'ready' &&
+      row.core_data?.source_import?.exclude_from_profile_year_metrics !== true
+    ).length
+    const outpatientRows = validatedRows.map((row) => {
+      const date = operationalRecordDate(row)
+      return {
+        admit: date,
+        recordDate: date,
+        formData: operationalFormFields(row),
+      }
+    })
+    const metrics = summarizeOutpatientClinics(
+      outpatientRows,
+      OUTPATIENT_PROVIDER_GROUPS,
+      year,
+      0,
+      'Waktu Tunggu Rawat Jalan (Menit)',
+    )
+    const profile = indicatorData.profiles.find((candidate) => Number(candidate.room_id) === 11 && String(candidate.code) === '11.1')
+    const masterThreshold = Number(profile?.schema_json?.threshold_minutes)
+    const thresholdMinutes = Number.isFinite(masterThreshold) && masterThreshold >= 0 ? masterThreshold : 60
+    const indicator = summarizeOutpatientIndicator(metrics, OUTPATIENT_PROVIDER_GROUPS, thresholdMinutes)
+    return {
+      metrics,
+      ...indicator,
+      averageWaitingMinutes: indicator.averageClinicMinutes,
+      totalRecords: metrics.reduce((total, item) => total + item.recordCount, 0),
+      recordsWithMinutes: metrics.reduce((total, item) => total + item.measurementCount, 0),
+      readyRecords,
+      validatedRecords: validatedRows.length,
+      periodLabel: String(year),
+    }
+  }, [mode, roomId, indicatorData, year])
+
   const pathway = useMemo(() => aggregateClinicalPathwayRows(pathwayData), [pathwayData])
   const pathwayMonthly = useMemo(() => aggregatePathwayByMonth(pathwayData, year), [pathwayData, year])
   const pathwayTemplates = useMemo(() => {
@@ -295,6 +456,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qraField select{min-height:39px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--ink);padding:8px 10px;font-size:11px}
     .qraBtn{min-height:39px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--accent2);font-size:10px;font-weight:850;padding:8px 12px;cursor:pointer}
     .qraKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .qraKpis.qraKpisThree{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .qraNestedTable{min-width:560px}
     .qraKpi{padding:14px 15px;min-width:0;background:var(--surface,#fff);border:1px solid var(--line);border-radius:15px}
     .qraKpi span{display:block;font-size:9px;color:var(--muted);font-weight:850}
     .qraKpi strong{display:block;margin:5px 0 2px;font-size:23px;letter-spacing:-.035em}
@@ -341,8 +504,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qraTabs button.active{background:#fff;border-color:var(--line);color:var(--accent2)}
     .qraError{padding:12px 14px;border-radius:12px;border:1px solid #f1d1cb;background:#fff0ed;color:#8e3e34;font-size:10px;line-height:1.5}
     .qraInfo{padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#f7faf8;color:var(--muted);font-size:10px;line-height:1.55}
-    @media(max-width:1050px){.qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qraSplit{grid-template-columns:1fr}.qraStatusGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:650px){.qraHero{display:grid}.qraActions{width:100%}.qraField{flex:1;min-width:120px}.qraKpis{grid-template-columns:1fr 1fr}.qraKpi strong{font-size:19px}.qraBars{gap:3px;padding:10px}.qraBarsTrack{height:80px}.qraStatusGrid{grid-template-columns:1fr 1fr}}
+    @media(max-width:1050px){.qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qraKpis.qraKpisThree{grid-template-columns:repeat(2,minmax(0,1fr))}.qraSplit{grid-template-columns:1fr}.qraStatusGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:650px){.qraHero{display:grid}.qraActions{width:100%}.qraField{flex:1;min-width:120px}.qraKpis{grid-template-columns:1fr 1fr}.qraKpis.qraKpisThree{grid-template-columns:1fr 1fr}.qraKpi strong{font-size:19px}.qraBars{gap:3px;padding:10px}.qraBarsTrack{height:80px}.qraStatusGrid{grid-template-columns:1fr 1fr}}
 
     /* Compact, balanced presentation shared with the Audit Logbook workspace */
     .qra{gap:10px}
@@ -370,6 +533,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       .qraActions{display:grid;grid-template-columns:1fr 1fr;width:100%}
       .qraActions .qraBtn{grid-column:1/-1}
       .qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .qraKpis.qraKpisThree{grid-template-columns:repeat(2,minmax(0,1fr))}
       .qraKpi{padding:10px}
       .qraKpi strong{font-size:18px}
     }
@@ -434,7 +598,67 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   </tr>)}</tbody>
                 </table></WorkspaceTableViewport>}
               <div className="qraNotice">Capaian mutu unit merupakan proporsi indikator yang targetnya dapat dinilai dan memenuhi target, bukan rata-rata persentase indikator yang berbeda definisi. Data Ready for Review tetap ditampilkan sebagai antrean peninjauan dan tidak masuk perhitungan capaian resmi; hanya catatan tervalidasi yang dihitung sebagai hasil. Untuk rasio, capaian tahunan menggunakan penggabungan numerator dan denominator. Untuk durasi/nilai kontinu, ditampilkan rerata dan proporsi observasi yang memenuhi target.</div>
-            </section>
+              </section>
+              {pharmacyMetricSummary && <section className="qraPanel" aria-label="Rekap capaian indikator Farmasi">
+                <div className="qraPanelHead">
+                  <div><h3>Rekap capaian indikator Farmasi</h3><p>Perbandingan Rawat Jalan, Rawat Inap, dan gabungan. Capaian resmi dihitung dari catatan tervalidasi.</p></div>
+                  <span className="qraPill">{pharmacyMetricSummary.periodLabel} · {pharmacyMetricSummary.validatedRecords} tervalidasi</span>
+                </div>
+                <div className="qraKpis qraKpisThree">
+                  <Kpi label="Catatan tervalidasi" value={formatCount(pharmacyMetricSummary.validatedRecords)} detail="Masuk perhitungan capaian resmi" />
+                  <Kpi label="Siap ditinjau" value={formatCount(pharmacyMetricSummary.readyRecords)} detail="Tidak dimasukkan ke numerator/denominator resmi" />
+                  <Kpi label="Indikator Farmasi" value={formatCount(pharmacyMetricSummary.metrics.length)} detail="Empat indikator pada rekap operasional" />
+                </div>
+                <WorkspaceTableViewport label="Rekap capaian indikator Farmasi" className="qraTableWrap">
+                  <table className="qraTable">
+                    <thead><tr><th>Indikator</th><th>Rawat Jalan · Sumber N/D</th><th>Capaian</th><th>Rawat Inap · Sumber N/D</th><th>Capaian</th><th>Gabungan · Sumber N/D</th><th>Capaian gabungan</th><th>Target master</th><th>Status</th></tr></thead>
+                    <tbody>{pharmacyMetricSummary.metrics.map((item) => {
+                      const sourceCount = (aggregate: typeof item.outpatient) => {
+                        const numerator = item.code === '5.3' ? aggregate.noncompliant : aggregate.numerator
+                        return formatCount(numerator) + ' / ' + formatCount(aggregate.denominator)
+                      }
+                      return <tr key={item.code}>
+                        <td><strong>{item.title}</strong><small>{item.code === '5.3' ? 'N sumber = obat tidak berlabel; capaian dikonversi menjadi kepatuhan.' : 'N/D dijumlahkan sebelum persentase dihitung.'}</small></td>
+                        <td>{sourceCount(item.outpatient)}</td><td><strong>{formatPct(item.outpatient.rate)}</strong></td>
+                        <td>{sourceCount(item.inpatient)}</td><td><strong>{formatPct(item.inpatient.rate)}</strong></td>
+                        <td><strong>{sourceCount(item.combined)}</strong></td><td><strong>{formatPct(item.combined.rate)}</strong></td>
+                        <td>{item.profile ? targetLabel(item.profile) : '—'}</td>
+                        <td><StatusPill value={item.meets} /></td>
+                      </tr>
+                    })}</tbody>
+                  </table>
+                </WorkspaceTableViewport>
+                <div className="qraNotice">Rasio gabungan dihitung dari jumlah numerator Rawat Jalan dan Rawat Inap dibagi jumlah denominator keduanya, bukan rata-rata dua persentase. Angka “Siap ditinjau” ditampilkan terpisah dan belum masuk hasil resmi.</div>
+                <div className="qraNotice">Untuk indikator 5.2, target yang dipakai adalah target master AUREKA yang aktif. Workbook sumber pernah menggunakan target berbeda; perubahan target harus melalui pemutakhiran master indikator.</div>
+              </section>}
+              {outpatientClinicSummary && <section className="qraPanel" aria-label="Rekap capaian waktu tunggu Rawat Jalan">
+                <div className="qraPanelHead">
+                  <div><h3>Rekap waktu tunggu Rawat Jalan per klinik</h3><p>Agregasi rata-rata dokter per klinik dan kepatuhan terhadap roster klinik operasional.</p></div>
+                  <span className="qraPill">{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.validatedRecords} tervalidasi</span>
+                </div>
+                <div className="qraKpis qraKpisThree">
+                  <Kpi label="Rata-rata waktu tunggu antar-klinik" value={outpatientClinicSummary.averageWaitingMinutes == null ? '—' : outpatientClinicSummary.averageWaitingMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' menit'} detail={outpatientClinicSummary.clinicsWithData + ' klinik dengan data tervalidasi'} />
+                  <Kpi label="Klinik memenuhi target" value={formatCount(outpatientClinicSummary.clinicsBelowThreshold) + ' / ' + formatCount(outpatientClinicSummary.operationalClinicCount)} detail={outpatientClinicSummary.compliancePercent == null ? 'Roster klinik belum tersedia' : formatPct(outpatientClinicSummary.compliancePercent) + ' dari seluruh klinik operasional'} />
+                  <Kpi label="Klinik dengan data" value={formatCount(outpatientClinicSummary.clinicsWithData) + ' / ' + formatCount(outpatientClinicSummary.operationalClinicCount)} detail={formatCount(outpatientClinicSummary.clinicsWithoutData) + ' klinik belum memiliki pengukuran tervalidasi'} />
+                </div>
+                <div className="qraTableWrap">
+                  <table className="qraTable">
+                    <thead><tr><th>Klinik</th><th>Dokter dengan data</th><th>Catatan dokter-hari</th><th>Hari tercatat</th><th>Rata-rata waktu tunggu</th><th>Status target (&lt;{outpatientClinicSummary.thresholdMinutes} menit)</th><th>Terakhir dicatat</th><th>Rincian dokter</th></tr></thead>
+                    <tbody>{outpatientClinicSummary.metrics.map((item) => <tr key={item.clinic}>
+                      <td><strong>{item.clinic}</strong><small>{formatCount(item.rosterDoctorCount)} dokter pada roster klinik</small></td>
+                      <td>{formatCount(item.doctorsWithData)} / {formatCount(item.rosterDoctorCount)}</td>
+                      <td>{formatCount(item.recordCount)}</td>
+                      <td>{formatCount(item.daysCount)}</td>
+                      <td><strong>{item.averageMinutes == null ? '—' : item.averageMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' menit'}</strong></td>
+                      <td><strong>{item.averageMinutes == null ? 'Belum ada data' : item.averageMinutes < outpatientClinicSummary.thresholdMinutes ? 'Memenuhi' : 'Tidak memenuhi'}</strong></td>
+                      <td>{formatDateTime(item.lastObserved)}</td>
+                      <td><details><summary>Rincian ({item.doctorSummaries.length})</summary><WorkspaceTableViewport label={'Rincian dokter ' + item.clinic} className="qraTableWrap"><table className="qraTable qraNestedTable"><thead><tr><th>Dokter</th><th>Catatan berangka</th><th>Rata-rata (menit)</th><th>Terakhir dicatat</th></tr></thead><tbody>{item.doctorSummaries.map((doctor) => <tr key={doctor.doctor}><td>{doctor.doctor}</td><td>{formatCount(doctor.measurementCount)}</td><td>{doctor.averageMinutes == null ? '—' : doctor.averageMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td><td>{formatDateTime(doctor.lastObserved)}</td></tr>)}</tbody></table></WorkspaceTableViewport></details></td>
+                    </tr>)}</tbody>
+                  </table>
+                </div>
+                <div className="qraNotice">Perhitungan hanya menggunakan catatan tervalidasi. Rata-rata klinik dihitung dari rata-rata waktu tunggu masing-masing dokter, lalu dirata-ratakan antar-dokter yang memiliki data. Denominator kepatuhan tetap seluruh roster klinik operasional; klinik tanpa pengukuran tervalidasi tidak dihitung memenuhi target.</div>
+                {outpatientClinicSummary.readyRecords > 0 && <div className="qraNotice">{formatCount(outpatientClinicSummary.readyRecords)} catatan masih berstatus Siap ditinjau dan belum dimasukkan ke hasil capaian.</div>}
+              </section>}
           </>
           : mode === 'pathway'
             ? <>
