@@ -14,8 +14,9 @@ test('Audit Indikator Mutu keeps its operational engine and adds a scoped balanc
   assert.match(source, /openImportDialog\(/)
   assert.match(source, /archivePatient\(/)
   assert.match(source, /reviewRecord\(/)
-  assert.ok(source.includes('grid-template-columns:minmax(0,1fr) minmax(95px,120px) minmax(150px,200px)'))
-  assert.ok(source.includes('.aqAuditWorkspace .aqFilterActions{grid-column:1/-1;display:flex'))
+  assert.ok(source.includes('grid-template-areas:"unit year month" "actions actions actions"'))
+  assert.ok(source.includes('.aqAuditWorkspace .aqFilterActions{grid-column:1/-1;grid-row:2;display:flex'))
+  assert.match(source, /\.aqFilterActions>button\{flex:0 0 auto;width:auto;min-width:max-content/)
   assert.match(source, /table\.aqData\{width:100%;min-width:1050px;table-layout:auto/)
 })
 
@@ -79,8 +80,9 @@ test('Logbook toolbar is consolidated into the unit/year/month filter row', () =
   assert.match(filterMarkup, /aqAddButton/)
   assert.doesNotMatch(source, /aqRegisterTitle|Logbook unit|Buka baris untuk meninjau atau melanjutkan catatan/)
   assert.match(source, /aria-label="Statistik catatan logbook"/)
-  assert.ok(source.includes('.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(0,1fr) minmax(95px,120px) minmax(150px,200px)'))
-  assert.ok(source.includes('.aqFilterActions{grid-column:1/-1;display:flex'))
+  assert.ok(source.includes('grid-template-areas:"unit year month" "actions actions actions"'))
+  assert.ok(source.includes('.aqFilterActions{grid-column:1/-1;grid-row:2;display:flex'))
+  assert.match(source, /\.aqFilterActions>button\{flex:0 0 auto;width:auto;min-width:max-content/)
   assert.match(source, /white-space:normal;flex-wrap:wrap/)
 })
 

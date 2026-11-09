@@ -216,6 +216,10 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
 export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange }: Props) {
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
+    const incoming = normalizeRoom(initialRoomId)
+    if (incoming != null && incoming !== roomId) setRoomId(incoming)
+  }, [initialRoomId])
+  useEffect(() => {
     if (roomId == null) {
       const initial = defaultRoom(rooms, initialRoomId, canViewAllRooms)
       if (initial != null) setRoomId(initial)
@@ -223,8 +227,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }, [roomId, rooms, initialRoomId, canViewAllRooms])
 
   useEffect(() => {
-    if (roomId != null) onRoomChange?.(roomId)
-  }, [roomId, onRoomChange])
+    if (roomId != null && (initialRoomId != null || !canViewAllRooms)) onRoomChange?.(roomId)
+  }, [roomId, onRoomChange, initialRoomId, canViewAllRooms])
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
   const [indicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
