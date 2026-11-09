@@ -15,7 +15,7 @@ test('Audit Indikator Mutu keeps its operational engine and adds a scoped balanc
   assert.match(source, /archivePatient\(/)
   assert.match(source, /reviewRecord\(/)
   assert.ok(source.includes('grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr) auto'))
-  assert.match(source, /\.aqAuditWorkspace \.aqComplaintKpi \.glass\{min-height:78px/)
+  assert.match(source, /\.aqAuditWorkspace \.aqFilterActions\{display:flex;align-items:center;justify-content:flex-end/)
   assert.match(source, /table\.aqData\{width:100%;min-width:1050px;table-layout:auto/)
 })
 
@@ -79,7 +79,7 @@ test('Logbook toolbar is consolidated into the unit/year/month filter row', () =
   assert.match(filterMarkup, /aqAddButton/)
   assert.doesNotMatch(source, /aqRegisterTitle|Logbook unit|Buka baris untuk meninjau atau melanjutkan catatan/)
   assert.match(source, /aria-label="Statistik catatan logbook"/)
-  assert.match(source, /\\.aqAuditWorkspace \\.aqGrid\\{grid-template-columns:minmax\\(220px,1\\.45fr\\) minmax\\(105px,\\.55fr\\) minmax\\(155px,\\.8fr\\) auto\\}/)
+  assert.ok(source.includes('.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr) auto'))
 })
 
 test('Informasi dan Pengaduan no longer renders its one-off indicator summary', () => {
