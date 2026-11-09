@@ -43,17 +43,18 @@ test('indicator results pool numerators and denominators instead of averaging mo
   const result = calculateIndicatorResult(profile, rows, 2026)
 
   assert.equal(result.observations, 2)
-  assert.equal(result.annualNumerator, 9)
-  assert.equal(result.annualDenominator, 12)
-  assert.equal(result.annualRate, 75)
-  assert.equal(result.monthlyMeanRate, 65)
-  assert.equal(result.readyRecords, 0)
-  assert.equal(result.validatedRecords, 2)
+  assert.equal(result.annualNumerator, 8)
+  assert.equal(result.annualDenominator, 10)
+  assert.equal(result.annualRate, 80)
+  assert.equal(result.monthlyMeanRate, 80)
+  assert.equal(result.readyRecords, 1)
+  assert.equal(result.validatedRecords, 1)
   assert.equal(result.observations, 2)
-  assert.equal(result.targetMet, false)
+  assert.equal(result.targetMet, true)
   assert.equal(result.latestInputAt, '2026-02-05T08:00:00Z')
-  assert.equal(result.monthly[0].rate, 50)
-  assert.equal(result.monthly[0].readyRecords, 0)
+  assert.equal(result.monthly[0].rate, null)
+  assert.equal(result.monthly[0].readyRecords, 1)
+  assert.equal(result.monthly[0].validatedRecords, 0)
   assert.equal(result.monthly[1].validatedRecords, 1)
   assert.equal(result.monthly[2].rate, null)
 })
@@ -200,7 +201,7 @@ test('approved direction resolves exact categorical labels with pending legacy f
   const rows = [
     {
       record_date: '2026-04-01',
-      status: 'ready',
+      status: 'validated',
       core_data: { indicator_values: { '33.2': {
         answer: 'Ruptur faktor ibu', code: 2, source_code: 2,
         review_required: true, mapping_status: 'mapped_pending_classification',
@@ -208,7 +209,7 @@ test('approved direction resolves exact categorical labels with pending legacy f
     },
     {
       record_date: '2026-04-02',
-      status: 'ready',
+      status: 'validated',
       core_data: { indicator_values: { '33.2': {
         answer: 'Aman', code: 1, source_code: 1,
         review_required: false, mapping_status: 'mapped',
@@ -216,7 +217,7 @@ test('approved direction resolves exact categorical labels with pending legacy f
     },
     {
       record_date: '2026-04-03',
-      status: 'ready',
+      status: 'validated',
       core_data: { indicator_values: { '33.2': {
         answer: 'Ruptur faktor teknis', code: 3, source_code: 2,
         review_required: true, mapping_status: 'source_code_conflict',
@@ -246,13 +247,13 @@ test('directional indicators exclude explicitly ineligible responses from the de
     ],
   }
   const rows = [
-    { record_date: '2026-05-01', status: 'ready', core_data: { indicator_values: { '19.2': {
+    { record_date: '2026-05-01', status: 'validated', core_data: { indicator_values: { '19.2': {
       answer: 'IMD dilakukan', code: 1, source_code: 1, review_required: true, mapping_status: 'mapped_pending_classification',
     } } } },
-    { record_date: '2026-05-02', status: 'ready', core_data: { indicator_values: { '19.2': {
+    { record_date: '2026-05-02', status: 'validated', core_data: { indicator_values: { '19.2': {
       answer: 'Ibu tidak stabil', code: 2, source_code: 2, review_required: true, mapping_status: 'mapped_pending_classification',
     } } } },
-    { record_date: '2026-05-03', status: 'ready', core_data: { indicator_values: { '19.2': {
+    { record_date: '2026-05-03', status: 'validated', core_data: { indicator_values: { '19.2': {
       answer: 'Petugas tidak melakukan IMD', code: 3, source_code: 3, review_required: true, mapping_status: 'mapped_pending_classification',
     } } } },
   ]
@@ -279,7 +280,7 @@ test('directional option mapping rejects an answer label that conflicts with its
     ],
   }
   const rows = [
-    { record_date: '2026-06-01', status: 'ready', core_data: { indicator_values: { '4.3': {
+    { record_date: '2026-06-01', status: 'validated', core_data: { indicator_values: { '4.3': {
       answer: 'Operasi tepat waktu', code: 3, source_code: 3, mapping_status: 'mapped', review_required: false,
     } } } },
   ]
