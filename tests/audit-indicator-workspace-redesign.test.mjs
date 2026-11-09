@@ -14,7 +14,7 @@ test('Audit Indikator Mutu keeps its operational engine and adds a scoped balanc
   assert.match(source, /openImportDialog\(/)
   assert.match(source, /archivePatient\(/)
   assert.match(source, /reviewRecord\(/)
-  assert.match(source, /\.aqAuditWorkspace \.aqGrid\{grid-template-columns:minmax\(220px,1\.45fr\)/)
+  assert.ok(source.includes('grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr) auto'))
   assert.match(source, /\.aqAuditWorkspace \.aqComplaintKpi \.glass\{min-height:78px/)
   assert.match(source, /table\.aqData\{width:100%;min-width:1050px;table-layout:auto/)
 })
