@@ -14,8 +14,8 @@ test('Audit Indikator Mutu keeps its operational engine and adds a scoped balanc
   assert.match(source, /openImportDialog\(/)
   assert.match(source, /archivePatient\(/)
   assert.match(source, /reviewRecord\(/)
-  assert.match(source, /\.aqAuditWorkspace \.aqGrid\{grid-template-columns:minmax\(220px,1\.45fr\)/)
-  assert.match(source, /\.aqAuditWorkspace \.aqComplaintKpi \.glass\{min-height:78px/)
+  assert.ok(source.includes('grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr) auto'))
+  assert.match(source, /\.aqAuditWorkspace \.aqFilterActions\{display:flex;align-items:center;justify-content:flex-end/)
   assert.match(source, /table\.aqData\{width:100%;min-width:1050px;table-layout:auto/)
 })
 
@@ -64,4 +64,30 @@ test('Audit Indikator Mutu uses the single global header search and removes its 
   assert.match(workspace, /aqMonthSelect/)
   assert.match(home, /workspaceGlobalSearchInput/)
   assert.doesNotMatch(home, /Cari menu|sidebarSearch|navigationQuery/)
+})
+
+
+test('Logbook toolbar is consolidated into the unit/year/month filter row', () => {
+  const source = read('components/QualityIndicatorWorkspace.tsx')
+  const filterStart = source.indexOf('<section className="glass aqFilters">')
+  const dataBarStart = source.indexOf('<div className="aqDataBar"')
+  const filterMarkup = source.slice(filterStart, dataBarStart)
+  assert.ok(filterStart >= 0 && dataBarStart > filterStart)
+  assert.ok(filterMarkup.indexOf('Bulan Pengamatan') < filterMarkup.indexOf('aqFilterActions'))
+  assert.match(filterMarkup, /aqFilterActions/)
+  assert.match(filterMarkup, /aqImportButton/)
+  assert.match(filterMarkup, /aqAddButton/)
+  assert.doesNotMatch(source, /aqRegisterTitle|Logbook unit|Buka baris untuk meninjau atau melanjutkan catatan/)
+  assert.match(source, /aria-label="Statistik catatan logbook"/)
+  assert.ok(source.includes('.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr) auto'))
+})
+
+test('Informasi dan Pengaduan no longer renders its one-off indicator summary', () => {
+  const source = read('components/QualityIndicatorWorkspace.tsx')
+  assert.doesNotMatch(source, /complaintMetricSummary|summarizeOptionResponses|Ringkasan indikator unit|aqComplaintKpi/)
+  assert.match(source, /pharmacyMetricSummary&&/)
+  assert.match(source, /outpatientClinicSummary&&/)
+  assert.match(source, /Rekap operasional unit/)
+  assert.match(source, /aqPharmacySummary/)
+  assert.match(source, /aqOutpatientSummary/)
 })
