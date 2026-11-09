@@ -2064,7 +2064,7 @@ html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amole
   border-radius:13px!important;background:#fff!important;box-shadow:0 1px 3px rgba(20,48,34,.045)!important;
 }
 .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{
-  display:grid!important;grid-template-columns:minmax(220px,1.4fr) minmax(105px,.55fr) minmax(150px,.8fr)!important;
+  display:grid!important;grid-template-columns:minmax(220px,1.4fr) minmax(105px,.55fr) minmax(150px,.8fr) auto!important;
   grid-auto-flow:row!important;align-items:end!important;gap:10px!important;width:100%!important;min-width:0!important;
 }
 .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqField{display:block!important;min-width:0!important;margin:0!important}
@@ -2077,16 +2077,6 @@ html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amole
   padding:7px 10px!important;border:1px solid #dfe8e2!important;border-radius:9px!important;
   background:#fff!important;color:#26372d!important;font-size:12px!important;box-shadow:none!important;
 }
-.moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi{
-  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:0!important;
-}
-.moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi>.glass{
-  min-width:0!important;min-height:76px!important;padding:10px 12px!important;border:1px solid #e3ebe5!important;
-  border-radius:12px!important;background:#fff!important;box-shadow:0 1px 2px rgba(20,48,34,.035)!important;
-}
-.moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi span{font-size:9px!important;font-weight:750!important;color:#718077!important}
-.moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi strong{font-size:20px!important;line-height:1.2!important;margin:5px 0 2px!important;color:#26372d!important}
-.moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi small{font-size:9px!important;line-height:1.35!important;color:#718077!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar{
   display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:0!important;
   min-width:0!important;min-height:0!important;margin:0!important;padding:6px 8px!important;
@@ -2099,14 +2089,11 @@ html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amole
 }
 .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div span{display:inline!important;font-size:9px!important;color:#718077!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div strong{display:inline!important;font-size:12px!important;color:#26372d!important}
-.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar .aqImportButton,
-.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar .aqAddButton{
-  display:inline-flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;
-  min-height:32px!important;margin:0 0 0 7px!important;padding:6px 11px!important;border-radius:8px!important;
-  font-size:10px!important;white-space:nowrap!important;
-}
-.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar .aqImportButton{margin-left:auto!important;background:#fff!important;border:1px solid #dfe8e2!important;color:#50675a!important}
-.moduleEnter>.aq.aqAuditWorkspace>.aqDataBar .aqAddButton{background:#137653!important;border:1px solid #137653!important;color:#fff!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:7px!important;min-width:0!important;white-space:nowrap!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions:empty{display:none!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqImportButton,.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqAddButton{display:inline-flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;min-height:32px!important;margin:0!important;padding:6px 10px!important;border-radius:8px!important;font-size:10px!important;white-space:nowrap!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqImportButton{background:#fff!important;border:1px solid #dfe8e2!important;color:#50675a!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqAddButton{background:#137653!important;border:1px solid #137653!important;color:#fff!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqTable{
   display:block!important;min-width:0!important;width:100%!important;overflow:hidden!important;
   border:1px solid #e3ebe5!important;border-radius:12px!important;background:#fff!important;
@@ -2155,7 +2142,6 @@ html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amole
 .aq.aqPortal.aqAuditWorkspace .aqEditorDialog .aqField :is(input,select,textarea){min-height:38px!important;border-radius:9px!important;font-size:12px!important}
 @media(max-width:1180px){
  .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:minmax(180px,1.2fr) minmax(100px,.6fr) minmax(140px,.8fr)!important}
- .moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
 @media(max-width:760px){
  .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
@@ -2173,9 +2159,6 @@ html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amole
 }
 @media(max-width:480px){
  .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:1fr!important}
- .moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi{grid-template-columns:repeat(2,minmax(0,1fr))!important}
- .moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi>.glass{min-height:68px!important;padding:8px!important}
- .moduleEnter>.aq.aqAuditWorkspace .aqComplaintKpi strong{font-size:18px!important}
  .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div{flex:1 1 42%!important}
  .aq.aqPortal.aqAuditWorkspace .aqBack.aqEditorBack{padding:7px!important}
  .aq.aqPortal.aqAuditWorkspace .aqEditorDialog{width:calc(100vw - 14px)!important;max-height:calc(100dvh - 14px)!important}
