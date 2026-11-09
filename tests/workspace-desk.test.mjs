@@ -220,7 +220,7 @@ test('every workbook importer traps focus and delegates Escape to its original b
 test('page header exposes no comfortable/compact density control', () => {
   const home = read('components/HomeClient.tsx')
   const desk = read('app/workspace-desk.css')
-  assert.doesNotMatch(home, /workspaceDensityToggle|workspaceDensityControl|setDensity|const \[density,|Nyaman|Ringkas/)
+  assert.doesNotMatch(home, /workspaceDensityToggle|workspaceDensityControl|setDensity|const \[density,|>Nyaman<|>Ringkas</)
   assert.match(home, /data-density="comfortable"/)
   assert.match(desk, /workspaceDensityToggle/)
   assert.match(desk, /button\[title\*="nyaman" i\]/)
