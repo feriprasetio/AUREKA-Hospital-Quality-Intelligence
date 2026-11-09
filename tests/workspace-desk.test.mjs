@@ -218,3 +218,23 @@ test('density changes real cells and surfaces and print removes scroll caps', ()
   assert.match(css, /@media print[\s\S]*\.workspaceTableViewport \{ max-height: none !important; overflow: visible !important/)
   assert.match(css, /@media print[\s\S]*\.workspaceTableFrame \{ overflow: visible !important/)
 })
+
+
+test('Magic UI-inspired overview treatment stays inside the authenticated AUREKA design system', () => {
+  const overview = read('components/OverviewDashboard.tsx')
+  assert.match(overview, /className=\{\`ovKpi magicKpi/)
+  assert.match(overview, /className="magicKpiGlow" aria-hidden="true"/)
+  assert.match(overview, /className="magicKpiSweep" aria-hidden="true"/)
+  assert.match(overview, /aria-label=\{\`\$\{label\}: \$\{displayValue\}\`\}/)
+  assert.match(overview, /className="ovPanel magicPanel"/)
+  assert.match(css, /\.moduleEnter \.magicKpi:not\(:disabled\):hover/)
+  assert.match(css, /@keyframes aurekaMagicSweep/)
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.magicKpiSweep/)
+  assert.doesNotMatch(css, /\.publicRoot[^\n]*magicKpi|\.authPage[^\n]*magicKpi/)
+})
+
+test('Magic UI-inspired effects do not add animation dependencies to the production bundle', () => {
+  const pkg = JSON.parse(read('package.json'))
+  assert.equal(pkg.dependencies?.['motion'], undefined)
+  assert.equal(pkg.dependencies?.['framer-motion'], undefined)
+})
