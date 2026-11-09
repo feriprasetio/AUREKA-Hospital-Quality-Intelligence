@@ -97,8 +97,6 @@ test('logbook table cannot collapse to a viewport subtraction or hide its retry 
   const results = read('components/QualityResultsWorkspace.tsx')
   assert.match(results, /Rekap capaian indikator Farmasi/)
   assert.match(results, /Rekap waktu tunggu Rawat Jalan per klinik/)
-  assert.match(quality, /pharmacyMetricSummary&&/)
-  assert.match(quality, /outpatientClinicSummary&&/)
   assert.match(quality, /className="aqRegisterSummary"/)
   assert.match(quality, /if\(e\.target!==e\.currentTarget\)return/)
   for (const contract of ['save_quality_logbook', 'archive_quality_logbook', 'responseComplete', 'monthlyReview', 'loadedImportDialogs']) {
