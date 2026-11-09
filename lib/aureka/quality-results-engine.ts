@@ -302,7 +302,7 @@ export function calculateIndicatorResult(
     if (!observation) continue
     const bucket = accumulators[observation.month - 1]
     bucket.observations += 1
-    if (status === 'validated' || status === 'ready') {
+    if (status === 'validated') {
       bucket.validatedRecords += 1
       validatedRecords += 1
       bucket.numerator += observation.numerator
