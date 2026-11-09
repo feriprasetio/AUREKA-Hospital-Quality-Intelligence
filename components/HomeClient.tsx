@@ -202,7 +202,7 @@ export default function HomeClient(){
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,staffArea,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
- const effectiveQualityRoomId=selectedQualityRoomId??(admin||role==='PMKP'?null:room?.id??null)
+ const effectiveQualityRoomId=selectedQualityRoomId??(admin?null:room?.id??null)
  const contextNavigation=sidebarChildGroups[active]??[]
  const moduleLabel=active==='home'?'Ringkasan':visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
  const openMainModule=(id:string,keepMenuOpen=false)=>{
