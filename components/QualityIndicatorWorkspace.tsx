@@ -65,7 +65,10 @@ const CSS=`
 /* Audit Indikator Mutu — balanced enterprise workspace */
 .aqAuditWorkspace{gap:10px;min-width:0}
 .aqAuditWorkspace .aqFilters{padding:11px 13px;border-radius:13px;background:#fff;border-color:#e5ece7;box-shadow:0 1px 2px rgba(20,48,34,.035)}
-.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(0,1fr) minmax(95px,120px) minmax(150px,200px);gap:10px;align-items:end}
+.aqAuditWorkspace .aqGrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(95px,120px) minmax(150px,200px);grid-template-areas:"unit year month" "actions actions actions";gap:10px;align-items:end}
+.aqAuditWorkspace .aqGrid>.aqField:nth-of-type(1){grid-area:unit;min-width:0}
+.aqAuditWorkspace .aqGrid>.aqField:nth-of-type(2){grid-area:year;min-width:0}
+.aqAuditWorkspace .aqGrid>.aqField:nth-of-type(3){grid-area:month;min-width:0}
 .aqAuditWorkspace .aqField.aqLocalSearch{display:none!important}
 .aqAuditWorkspace .aqField span{font-size:9px;font-weight:750;letter-spacing:.025em;color:#738178;margin-bottom:4px}
 .aqAuditWorkspace .aqField select,.aqAuditWorkspace .aqField input{height:38px;min-height:38px;padding:7px 10px;border:1px solid #e1e9e3;border-radius:9px;background:#fff;color:#26372d;font-size:12px;box-shadow:none}
@@ -74,7 +77,8 @@ const CSS=`
 .aqAuditWorkspace .aqDataBar>div{display:flex;align-items:baseline;gap:6px;min-width:0;padding:3px 10px;border-right:1px solid #edf1ee}
 .aqAuditWorkspace .aqDataBar>div span{font-size:9px;color:#75837a;font-weight:650;white-space:nowrap}
 .aqAuditWorkspace .aqDataBar>div strong{font-size:12px;color:#26372d;font-weight:800;font-variant-numeric:tabular-nums}
-.aqAuditWorkspace .aqFilterActions{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;white-space:normal;flex-wrap:wrap}
+.aqAuditWorkspace .aqFilterActions{grid-column:1/-1;grid-row:2;display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;white-space:normal;flex-wrap:wrap}
+.aqAuditWorkspace .aqFilterActions>button{flex:0 0 auto;width:auto;min-width:max-content;max-width:100%;white-space:nowrap}
 .aqAuditWorkspace .aqFilterActions:empty{display:none!important}
 .aqAuditWorkspace .aqFilterActions .aqImportButton{min-height:32px;padding:6px 10px;border-radius:8px;font-size:10px;white-space:nowrap;background:#fff;border:1px solid #dfe8e2;color:#50675a}
 .aqAuditWorkspace .aqFilterActions .aqAddButton{min-height:32px;padding:6px 11px;border-radius:8px;font-size:10px;white-space:nowrap;background:#137653;color:#fff;border:1px solid #137653}
@@ -99,12 +103,12 @@ const CSS=`
 .aqAuditWorkspace .aqEditorDialog .aqEpisode{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .aqAuditWorkspace .aqEditorDialog .aqFoot{flex:0 0 auto;padding:11px 20px;background:#fbfcfb}
 @media(max-width:1050px){
- .aqAuditWorkspace .aqGrid{grid-template-columns:minmax(0,1fr) minmax(95px,120px) minmax(150px,200px)}
+ .aqAuditWorkspace .aqGrid{grid-template-columns:minmax(0,1.4fr) minmax(95px,120px) minmax(150px,200px);grid-template-areas:"unit year month" "actions actions actions"}
  .aqAuditWorkspace .aqWrap{max-height:calc(100dvh - 390px)}
 }
 @media(max-width:760px){
- .aqAuditWorkspace .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .aqAuditWorkspace .aqFilterActions{grid-column:1/-1;justify-content:flex-end;flex-wrap:wrap}
+ .aqAuditWorkspace .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"unit unit" "year month" "actions actions"}
+ .aqAuditWorkspace .aqFilterActions{grid-column:1/-1;grid-row:3;justify-content:flex-start;flex-wrap:wrap}
  .aqAuditWorkspace .aqDataBar{gap:4px;padding:7px}
  .aqAuditWorkspace .aqDataBar>div{flex:1 1 28%;padding:3px 6px;border-right:0}
  .aqAuditWorkspace .aqDataBar .aqImportButton{margin-left:0}
@@ -117,8 +121,8 @@ const CSS=`
  .aqAuditWorkspace .aqEditorDialog .aqDHead,.aqAuditWorkspace .aqEditorDialog .aqFoot{padding:12px}
 }
 @media(max-width:480px){
- .aqAuditWorkspace .aqGrid{grid-template-columns:1fr}
- .aqAuditWorkspace .aqFilterActions{grid-column:1/-1;justify-content:flex-end;flex-wrap:wrap}
+ .aqAuditWorkspace .aqGrid{grid-template-columns:1fr;grid-template-areas:"unit" "year" "month" "actions"}
+ .aqAuditWorkspace .aqFilterActions{grid-column:1/-1;grid-row:4;justify-content:flex-start;flex-wrap:wrap}
  .aqAuditWorkspace .aqDataBar>div{flex:1 1 42%}
  .aqAuditWorkspace .aqEditorDialog .aqEpisode{grid-template-columns:1fr}
  .aqAuditWorkspace .aqBack.aqEditorBack{padding:8px}
@@ -128,22 +132,22 @@ const CSS=`
 
 
 /* Win against legacy workspace-wide density rules without changing other modules. */
-.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:minmax(0,1fr) minmax(95px,120px) minmax(150px,200px)!important;gap:10px!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{display:grid!important;grid-template-columns:minmax(0,1.4fr) minmax(95px,120px) minmax(150px,200px)!important;grid-template-areas:"unit year month" "actions actions actions"!important;grid-auto-flow:row!important;gap:10px!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqField.aqLocalSearch{display:none!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:0!important;min-height:0!important;overflow:visible!important;white-space:normal!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div{display:flex!important;flex:0 1 auto!important;align-items:baseline!important;padding:3px 10px!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div span{display:inline!important;font-size:9px!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div strong{font-size:12px!important}
-.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions{grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:7px!important;min-width:0!important;white-space:normal!important;flex-wrap:wrap!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions:empty{display:none!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqImportButton,.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqAddButton{min-height:32px!important;font-size:10px!important;padding:6px 10px!important;margin:0!important;white-space:nowrap!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqImportButton{background:#fff!important;border:1px solid #dfe8e2!important;color:#50675a!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqAddButton{background:#137653!important;border:1px solid #137653!important;color:#fff!important}
+.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions{grid-column:1/-1!important;grid-row:2!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;min-width:0!important;white-space:normal!important;flex-wrap:wrap!important}.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions>button{flex:0 0 auto!important;width:auto!important;min-width:max-content!important;max-width:100%!important;white-space:nowrap!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions:empty{display:none!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqImportButton,.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqAddButton{min-height:32px!important;font-size:10px!important;padding:6px 10px!important;margin:0!important;white-space:nowrap!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqImportButton{background:#fff!important;border:1px solid #dfe8e2!important;color:#50675a!important}\n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqAddButton{background:#137653!important;border:1px solid #137653!important;color:#fff!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqTable .aqWrap{min-width:0!important;width:100%!important;overflow:auto!important}
 .moduleEnter>.aq.aqAuditWorkspace>.aqTable table.aqData{min-width:1050px!important;table-layout:auto!important}
 @media(max-width:760px){
- .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
- .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions{grid-column:1/-1!important;justify-content:flex-end!important;flex-wrap:wrap!important}
+ .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:"unit unit" "year month" "actions actions"!important}
+ .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions{grid-column:1/-1!important;grid-row:3!important;justify-content:flex-start!important;flex-wrap:wrap!important}
  .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar{flex-wrap:wrap!important;overflow:visible!important}
  .moduleEnter>.aq.aqAuditWorkspace>.aqDataBar>div{flex:1 1 28%!important}
 }
-@media(max-width:480px){.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:1fr!important}.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions{grid-column:1/-1!important;justify-content:flex-end!important;flex-wrap:wrap!important}}
+@media(max-width:480px){.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:1fr!important;grid-template-areas:"unit" "year" "month" "actions"!important}.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions{grid-column:1/-1!important;grid-row:4!important;justify-content:flex-start!important;flex-wrap:wrap!important}}
 
 /* Compact professional indicator assessment — shared by every unit using this editor. */
 .aqAuditWorkspace .aqIndicatorSection{min-width:0}
@@ -514,6 +518,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(initialContainer&&CONTAINERS.includes(initialContainer)?initialContainer:CONTAINERS[0])
  const [year,setYear]=useState(2026)
  const [roomId,setRoomId]=useState<number|null>(()=>defaultAuditRoomId(rooms,initialRoomId,isAdmin))
+ useEffect(()=>{
+  const incoming=normalizeRoomIdValue(initialRoomId)
+  if(incoming!=null&&incoming!==roomId)setRoomId(incoming)
+ },[initialRoomId])
  const canImportWorkbook=isAdmin||canViewAllRooms
  const canImportOutpatientWorkbook=canImportWorkbook||(!isValidator&&Number(initialRoomId)===11)
  useEffect(()=>{
@@ -523,8 +531,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   }
  },[roomId,rooms,initialRoomId,isAdmin])
  useEffect(()=>{
-  if(roomId!=null)onRoomChange?.(roomId)
- },[roomId,onRoomChange])
+  if(roomId!=null&&(initialRoomId!=null||!isAdmin))onRoomChange?.(roomId)
+ },[roomId,onRoomChange,initialRoomId,isAdmin])
  const [monthFilter,setMonthFilter]=useState(0)
  const [reviewMonth,setReviewMonth]=useState(()=>new Date().getMonth()+1)
  const [monthlyReview,setMonthlyReview]=useState<any>(null)
