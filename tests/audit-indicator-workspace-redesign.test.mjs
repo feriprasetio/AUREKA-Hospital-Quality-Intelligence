@@ -79,7 +79,9 @@ test('Logbook toolbar is consolidated into the unit/year/month filter row', () =
   assert.match(filterMarkup, /aqAddButton/)
   assert.doesNotMatch(source, /aqRegisterTitle|Logbook unit|Buka baris untuk meninjau atau melanjutkan catatan/)
   assert.match(source, /aria-label="Statistik catatan logbook"/)
-  assert.ok(source.includes('.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(220px,1.45fr) minmax(105px,.55fr) minmax(155px,.8fr) auto'))
+  assert.ok(source.includes('.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(0,1fr) minmax(95px,120px) minmax(150px,200px)'))
+  assert.match(source, /aqFilterActions\\{grid-column:1\\/-1;display:flex/)
+  assert.match(source, /white-space:normal;flex-wrap:wrap/)
 })
 
 test('Operational pharmacy and outpatient calculations live in Hasil Capaian, not Form Logbook', () => {
