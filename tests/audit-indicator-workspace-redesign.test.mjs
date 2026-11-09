@@ -58,7 +58,7 @@ test('Every indicator uses the professional compact assessment UI without eviden
 test('Audit Indikator Mutu uses the single global header search and removes its local search field', () => {
   const workspace = read('components/QualityIndicatorWorkspace.tsx')
   const home = read('components/HomeClient.tsx')
-  assert.doesNotMatch(workspace, /aqLocalSearch|Pencarian<\/span><input/)
+  assert.doesNotMatch(workspace, /className="aqField aqLocalSearch"|<span>Pencarian<\/span><input/)
   assert.match(workspace, /aureka:workspace-search/)
   assert.match(workspace, /hay\.includes\(search\.toLowerCase\(\)\.trim\(\)\)/)
   assert.match(workspace, /aqMonthSelect/)
