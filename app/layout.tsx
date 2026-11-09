@@ -12,6 +12,7 @@ import './public-landing-auth-redesign.css'
 import './aureka-landing.css'
 import './aureka-refined.css'
 import './workspace-desk.css'
+import './workspace-redesign.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',

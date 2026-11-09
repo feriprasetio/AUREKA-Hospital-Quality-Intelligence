@@ -1,0 +1,105 @@
+/* AUREKA Workspace redesign — clinical command center */
+:root {
+  --aureka-navy: #102c3b;
+  --aureka-ink: #183746;
+  --aureka-teal: #137c74;
+  --aureka-mint: #dff3ee;
+  --aureka-amber: #f3b562;
+  --aureka-canvas: #f5f8f8;
+  --aureka-border: #dce7e7;
+}
+
+html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] {
+  grid-template-columns: 260px minmax(0, 1fr) !important;
+  background: var(--aureka-canvas) !important;
+  color: var(--aureka-ink) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 13px;
+  --desk-line: var(--aureka-border);
+  --desk-brand: var(--aureka-teal);
+  --desk-brand-dark: #0d625d;
+  --desk-ink: var(--aureka-ink);
+  --desk-muted: #668087;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar {
+  width: 260px !important;
+  padding: 0 14px 14px !important;
+  border-right: 1px solid #d8e5e5 !important;
+  background: #fbfdfd !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sideHeader {
+  min-height: 84px !important;
+  margin: 0 !important;
+  padding: 18px 12px !important;
+  border-bottom: 1px solid #e5eeee !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand { gap: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand .brandLogoWrap {
+  width: 42px !important; height: 42px !important; flex-basis: 42px !important;
+  border-radius: 12px !important; background: var(--aureka-navy) !important; border: 0 !important;
+  box-shadow: 0 8px 18px rgba(16,44,59,.16);
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand b { color: var(--aureka-navy) !important; font-size: 18px !important; letter-spacing: .08em !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sideBrand small { color: #789097 !important; font-size: 9px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarDiscovery { margin: 20px 0 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarSearch { border: 1px solid #dbe8e8 !important; border-radius: 10px !important; background: #f3f8f8 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarSearch input { height: 38px !important; font-size: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .navLabel { margin: 24px 10px 10px !important; color: #8ba0a4 !important; font-size: 10px !important; font-weight: 700 !important; letter-spacing: .12em !important; text-transform: uppercase; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNav { gap: 5px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button { min-height: 44px !important; padding: 10px 12px !important; border-radius: 10px !important; font-size: 12px !important; color: #587078 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button > svg { width: 18px !important; height: 18px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button.navActive { background: var(--aureka-mint) !important; color: var(--aureka-teal) !important; box-shadow: inset 3px 0 0 var(--aureka-teal); }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button:hover:not(.navActive) { background: #eef6f5 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarTreeChildren { margin-left: 21px !important; border-left-color: #cfe2e0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarChild { min-height: 34px !important; font-size: 11px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarChild.active { color: var(--aureka-teal) !important; background: #eef8f6 !important; border-radius: 7px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter { padding: 14px 0 0 !important; gap: 9px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sideProfile { min-height: 52px !important; padding: 9px !important; border-radius: 10px !important; border-color: #dfeaea !important; background: #f6faf9 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sideProfileAvatar, html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderAvatar { background: var(--aureka-navy) !important; color: #fff !important; border-radius: 10px !important; }
+
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar { min-height: 72px !important; padding: 14px 32px !important; border-bottom: 1px solid #dce8e8 !important; background: rgba(255,255,255,.92) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext strong { color: var(--aureka-navy) !important; font-size: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext span { color: #80959a !important; font-size: 10px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch { min-height: 40px !important; max-width: 480px !important; border-radius: 10px !important; border-color: #dbe8e8 !important; background: #f5f9f9 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch input { height: 38px !important; font-size: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon, html[data-theme] .workspaceRoot.workspaceDesk .workspaceSidebarMenuButton { width: 38px !important; height: 38px !important; border-radius: 10px !important; color: #607980 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon:hover { background: var(--aureka-mint) !important; color: var(--aureka-teal) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { padding-left: 14px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfileText b { color: var(--aureka-navy) !important; font-size: 11px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfileText small { color: #819397 !important; font-size: 9px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead { padding: 30px 32px 22px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead h1 { color: var(--aureka-navy) !important; font-size: 30px !important; letter-spacing: -.045em !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspacePageIntro p { color: #72888e !important; font-size: 12px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs { color: #8da0a3 !important; font-size: 10px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs b { color: var(--aureka-teal) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceDensityToggle { min-height: 36px !important; border-radius: 9px !important; border-color: #d6e4e3 !important; color: var(--aureka-teal) !important; background: #fff !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { margin: 0 32px 18px !important; border-bottom-color: #d8e6e5 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav > button { min-height: 45px !important; padding-bottom: 13px !important; color: #799095 !important; font-size: 11px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav > button[aria-current="page"] { color: var(--aureka-teal) !important; border-bottom-color: var(--aureka-teal) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding: 0 32px 40px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter > * { min-width: 0; }
+
+@media (max-width: 900px) {
+  html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] { grid-template-columns: 76px minmax(0, 1fr) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar { width: 76px !important; padding-inline: 9px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sideBrand > div, html[data-theme] .workspaceRoot.workspaceDesk .sidebarSearch input, html[data-theme] .workspaceRoot.workspaceDesk .navLabel, html[data-theme] .workspaceRoot.workspaceDesk .sidebarNavGroup > button > span:not(.sidebarChevron), html[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter .sideProfileText, html[data-theme] .workspaceRoot.workspaceDesk .logoutLabel { display: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sideBrand { justify-content: center; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button { justify-content: center; padding-inline: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarNavGroup > button > svg { margin: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebarSearch { justify-content: center; padding: 0 !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter .sideProfile { justify-content: center; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar { padding-inline: 18px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead, html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding-inline: 18px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { margin-inline: 18px !important; }
+}
+@media (max-width: 720px) {
+  html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] { display: block !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .sidebar { width: 280px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar { padding: 12px 14px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContext { display: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch { max-width: none !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead { align-items: flex-start !important; padding: 22px 14px 17px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead h1 { font-size: 25px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { margin-inline: 14px !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding-inline: 14px !important; }
+}
