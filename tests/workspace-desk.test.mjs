@@ -217,6 +217,21 @@ test('every workbook importer traps focus and delegates Escape to its original b
   assert.match(read('components/layout/useAccessibleDialog.ts'), /if \(lockScroll\) document\.body\.style\.overflow = previousBodyOverflow/)
 })
 
+test('page header has no comfortable/compact toggle and keeps the comfortable density baseline', () => {
+  const home = read('components/HomeClient.tsx')
+  assert.doesNotMatch(home, /workspaceDensityToggle|setDensity|const \[density,/)
+  assert.match(home, /data-density="comfortable"/)
+  assert.doesNotMatch(home, /Nyaman|Ringkas/)
+})
+
+test('logbook filter controls and workbook actions occupy separate non-overlapping rows', () => {
+  const quality = read('components/QualityIndicatorWorkspace.tsx')
+  assert.match(quality, /aqGrid\{grid-template-columns:minmax\(0,1fr\) minmax\(95px,120px\) minmax\(150px,200px\)/)
+  assert.match(quality, /aqFilterActions\{grid-column:1\/-1;display:flex/)
+  assert.match(quality, /white-space:normal;flex-wrap:wrap/)
+  assert.match(quality, /grid-column:1\/-1!important;display:flex!important/)
+})
+
 test('density changes real cells and surfaces and print removes scroll caps', () => {
   assert.match(css, /--desk-cell-y: 10px/)
   assert.match(css, /--desk-cell-y: 6px/)
