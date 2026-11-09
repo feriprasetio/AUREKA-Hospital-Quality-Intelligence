@@ -151,6 +151,42 @@ const CSS=`
 }
 @media(max-width:480px){.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqGrid{grid-template-columns:1fr!important}}
 
+/* Compact professional indicator assessment — shared by every unit using this editor. */
+.aqAuditWorkspace .aqIndicatorSection{min-width:0}
+.aqAuditWorkspace .aqIndicatorSection>.aqSection{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:5px 1px 9px}
+.aqAuditWorkspace .aqIndicatorSection>.aqSection h5{font-size:16px;font-weight:750;letter-spacing:-.02em;color:#24382d;margin:0}
+.aqAuditWorkspace .aqIndicatorSection>.aqSection>span{font-size:10px;color:#718078;white-space:nowrap}
+.aqAuditWorkspace .aqIndicatorList{display:grid;gap:9px}
+.aqAuditWorkspace .aqInd{margin:0;border:1px solid #e0e9e2;border-radius:13px;box-shadow:0 1px 3px rgba(25,59,39,.035);transition:border-color 160ms ease,box-shadow 160ms ease}
+.aqAuditWorkspace .aqInd:hover{border-color:#cbded0;box-shadow:0 5px 16px rgba(25,59,39,.055)}
+.aqAuditWorkspace .aqIHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 14px;background:linear-gradient(180deg,#f7faf6 0%,#f4f8f3 100%);border-bottom:1px solid #e5ece5}
+.aqAuditWorkspace .aqIndicatorHeadMain{min-width:0;flex:1}
+.aqAuditWorkspace .aqIndicatorHeading{display:flex;align-items:baseline;gap:8px;min-width:0}
+.aqAuditWorkspace .aqIndicatorCode{flex:0 0 auto;padding:3px 6px;border-radius:5px;background:#e8f1e9;color:#416b50;font-size:9px;font-weight:800;letter-spacing:.035em;font-variant-numeric:tabular-nums}
+.aqAuditWorkspace .aqIndicatorHeading strong{font-size:13px;line-height:1.4;font-weight:750;color:#1d3025;letter-spacing:-.01em;overflow-wrap:anywhere}
+.aqAuditWorkspace .aqIndicatorMeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+.aqAuditWorkspace .aqMetaTag{display:inline-flex;align-items:center;min-height:21px;padding:3px 7px;border:1px solid #e3ebe4;border-radius:5px;background:#fff;color:#68796e;font-size:9px;font-weight:650;line-height:1.25}
+.aqAuditWorkspace .aqMetaTag.aqMetaCategory{border-color:#dce9df;background:#edf5ef;color:#3f6e50}
+.aqAuditWorkspace .aqIHead .aqMatch{align-self:flex-start;flex:0 0 auto;margin-top:1px}
+.aqAuditWorkspace .aqIBody{display:grid;gap:10px;padding:13px 14px}
+.aqAuditWorkspace .aqQ{margin:0;font-size:13px;line-height:1.45;font-weight:700;letter-spacing:-.01em;color:#26372d}
+.aqAuditWorkspace .aqChoiceField{display:block;max-width:100%;margin:0}
+.aqAuditWorkspace .aqChoiceField select{width:100%;min-height:39px;height:39px;padding:7px 11px;border:1px solid #dce7df;border-radius:8px;background:#fff;color:#26372d;font-size:11px;box-shadow:none}
+.aqAuditWorkspace .aqChoiceField select:focus{outline:2px solid rgba(22,128,92,.16);border-color:#87b69a}
+.aqAuditWorkspace .aqResultSummary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:0!important;padding:9px 11px;border:1px solid #e0eee5;border-radius:9px;background:#f1f8f4}
+.aqAuditWorkspace .aqResultSummary>span{font-size:9px;font-weight:700;color:#6e8075}
+.aqAuditWorkspace .aqResultSummary>strong{font-size:13px;line-height:1.3;color:#1e5c40}
+.aqAuditWorkspace .aqResultSummary>small{margin-left:auto;font-size:9px;color:#748278}
+.aqAuditWorkspace .aqUnmatchedInd .aqIHead{background:#f8f9f7}
+.aqAuditWorkspace .aqUnmatchedInd .aqIndicatorCode{background:#eef0ed;color:#69746c}
+@media(max-width:600px){
+ .aqAuditWorkspace .aqIHead{padding:11px 12px}
+ .aqAuditWorkspace .aqIBody{padding:12px}
+ .aqAuditWorkspace .aqIndicatorHeading{align-items:flex-start;gap:6px}
+ .aqAuditWorkspace .aqIndicatorHeading strong{font-size:12px}
+ .aqAuditWorkspace .aqResultSummary>small{margin-left:0;flex-basis:100%}
+}
+
 `
 function ymd(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?0:d.getFullYear()}
 function mon(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?0:d.getMonth()+1}
@@ -178,7 +214,7 @@ function responseComplete(p:Profile,r:Resp|undefined){
  if(opts.length>0){
    if(!r.answer)return false
    const o=opts.find((x:any)=>String(x.label)===String(r.answer))
-   return o?.code!=null||r.source_option===true||!!r.notes||!!r.evidence
+   return o?.code!=null||r.source_option===true||r.review_required===true||!!r.notes||!!r.evidence
  }
  if(k==='occurrence')return !!r.occurrence
  return !!r.answer
@@ -450,6 +486,11 @@ function grainLabel(grain:string){
  if(grain==='activity')return'Per aktivitas'
  if(grain==='aggregate')return'Agregat'
  return'Catatan logbook'
+}
+function indicatorTypeLabel(value:unknown){
+ const raw=String(value??'').trim().replace(/\s+/g,' ')
+ if(!raw)return''
+ return raw.replace(/^INM\s*/i,'').trim()||'INM'
 }
 function normalizeRoomIdValue(value:unknown):number|null{
  const raw=String(value??'').trim()
@@ -976,10 +1017,24 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const targetKinds=['ratio','visit','door','minutes','numeric'].includes(kindNow)
    const actualForTarget=kindNow==='ratio'?rateNow:kindNow==='door'?diff(String(r.start??''),String(r.end??'')):kindNow==='minutes'?r.minutes:kindNow==='numeric'?r.value:kindNow==='visit'?r.time:null
    const resultLabel=targetKinds?(actualForTarget==null||actualForTarget===''?'Belum dihitung':metricMet==null?'Target belum dapat dinilai':metricMet?'Memenuhi target':'Belum memenuhi target'):needsSourceReview?'Perlu review':resultCode===1?'Memenuhi / Sesuai':resultCode===2?'Pengecualian / Perlu review':resultCode===3?'Tidak memenuhi / Tidak sesuai':(option?.code==null&&r.answer)?'Perlu review':'Belum tervalidasi'
-   const commonEvidence=<details className="aqEvidence"><summary>Bukti & catatan audit</summary><div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Sumber bukti</span><input disabled={isValidator} value={r.evidence??''} onChange={(e:any)=>setResp(p,{evidence:e.target.value})} placeholder="RME / RM / hasil observasi…"/></label><label className="aqField"><span>Referensi / lokasi data</span><input disabled={isValidator} value={r.reference??''} onChange={(e:any)=>setResp(p,{reference:e.target.value})} placeholder="No. dokumen / waktu / lokasi…"/></label></div><label className="aqField" style={{marginTop:10}}><span>Catatan</span><textarea disabled={isValidator} value={r.notes??''} onChange={(e:any)=>setResp(p,{notes:e.target.value})} placeholder="Catatan audit bila diperlukan…"/></label></details>
    const freeTextEvent=String(p.schema_json?.input_mode??'')==='free_text_event'
    const genericOptions=!freeTextEvent&&(shouldUseIndicatorDropdown(p)||(choices.length>1&&!['ratio','visit','door','minutes','numeric'].includes(kindNow)))
-   return <article className={`aqInd ${isHit?'hit':''}`} key={k}><div className="aqIHead"><div><strong>{p.code} · {title}</strong><div className="aqMetaText">{p.unit_name} · {p.indicator_type||'Indikator Mutu'} · Target {p.target_text||'—'} · {grainLabel(String(p.measurement_grain))}</div>{String(p.title??'').trim()&&String(p.title??'').trim()!==title&&<div className="aqMetaText">Nama master: {p.title}</div>}</div>{isHit&&<span className="aqMatch">Relevan dengan diagnosis</span>}</div><div className="aqIBody"><div className="aqQ">{kindNow==='visit'?'Apakah waktu visite memenuhi jendela waktu yang ditetapkan pada master indikator?':kindNow==='door'?'Berapa durasi dari pasien tiba sampai keputusan medis definitif?':kindNow==='minutes'?'Berapa waktu aktual yang diukur untuk indikator ini (menit)?':kindNow==='numeric'?'Berapa nilai numerik indikator pada episode pasien ini?':kindNow==='ratio'?'Masukkan jumlah pembilang dan penyebut dari pengukuran pada periode ini.':`Bagaimana hasil validasi ${title} pada pasien ini?`}</div>{(String(p.numerator_definition??'').trim()||String(p.denominator_definition??'').trim())&&<details className="aqEvidence"><summary>Definisi operasional & rumus indikator</summary><div className="aqMetaText" style={{marginTop:8,whiteSpace:'normal'}}><b>Pembilang (N):</b> {p.numerator_definition||'Belum tersedia pada master sumber.'}</div><div className="aqMetaText" style={{marginTop:8,whiteSpace:'normal'}}><b>Penyebut (D):</b> {p.denominator_definition||'Belum tersedia pada master sumber.'}</div></details>}{(!String(p.numerator_definition??'').trim()||!String(p.denominator_definition??'').trim())&&<div className="aqNotice" style={{marginTop:10}}>Detail pembilang/penyebut pada master belum lengkap; jangan mengisi definisi berdasarkan perkiraan.</div>}
+   const typeLabel=indicatorTypeLabel(p.indicator_type)
+   const grainText=grainLabel(String(p.measurement_grain))
+   return <article className={'aqInd '+(isHit?'hit':'')} key={k}>
+     <div className="aqIHead">
+       <div className="aqIndicatorHeadMain">
+         <div className="aqIndicatorHeading"><span className="aqIndicatorCode">{p.code}</span><strong>{title}</strong></div>
+         <div className="aqIndicatorMeta">
+           {typeLabel&&<span className="aqMetaTag aqMetaCategory">{typeLabel}</span>}
+           {p.target_text&&<span className="aqMetaTag">Target {p.target_text}</span>}
+           {grainText&&<span className="aqMetaTag">{grainText}</span>}
+         </div>
+       </div>
+       {isHit&&<span className="aqMatch">Relevan dengan diagnosis</span>}
+     </div>
+     <div className="aqIBody">
+       <div className="aqQ">{kindNow==='visit'?'Apakah waktu visite memenuhi jendela waktu yang ditetapkan pada master indikator?':kindNow==='door'?'Berapa durasi dari pasien tiba sampai keputusan medis definitif?':kindNow==='minutes'?'Berapa waktu aktual yang diukur untuk indikator ini (menit)?':kindNow==='numeric'?'Berapa nilai numerik indikator pada episode pasien ini?':kindNow==='ratio'?'Masukkan jumlah pembilang dan penyebut dari pengukuran pada periode ini.':'Bagaimana hasil validasi '+title+' pada pasien ini?'}</div>
      {kindNow==='ratio'&&(()=>{
        const inverseInput=String(p.schema_json?.logbook_input_transform??'')==='denominator_minus_input'
        const rawInputNumber=inverseInput?(r.noncompliant??(r.denominator!=null&&r.numerator!=null?Number(r.denominator)-Number(r.numerator):null)):r.numerator
@@ -1002,11 +1057,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      {kindNow==='minutes'&&<div className="aqTwo"><label className="aqField"><span>Waktu aktual (menit)</span><input disabled={isValidator} type="number" min="0" value={r.minutes??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,minutes:v});setResp(p,{minutes:v,code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Interpretasi</span><strong>{r.minutes==null?'Belum diisi':metricMet==null?'Target perlu dilengkapi':metricMet?'Memenuhi target':'Tidak memenuhi target'}</strong></div></div>}
      {kindNow==='numeric'&&<label className="aqField"><span>Nilai indikator</span><input disabled={isValidator} type="number" step="0.01" value={r.value??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,value:v});setResp(p,{value:v,code:met==null?null:met?1:3})}}/></label>}
      {kindNow==='occurrence'&&!genericOptions&&<div className="aqRadio"><label><input disabled={isValidator} type="radio" checked={r.occurrence==='Tidak terjadi'} onChange={()=>setResp(p,{occurrence:'Tidak terjadi',code:1})}/> Tidak terjadi</label><label><input disabled={isValidator} type="radio" checked={r.occurrence==='Terjadi'} onChange={()=>setResp(p,{occurrence:'Terjadi',code:3})}/> Terjadi</label></div>}
-     {genericOptions&&<><label className="aqField"><span>Pilih hasil sesuai Logbook</span><select disabled={isValidator} value={selectedChoiceIndex>=0?String(selectedChoiceIndex):''} onChange={(e:any)=>{const choice=choices[Number(e.target.value)];if(!choice)return;setResp(p,{answer:choice.answer,code:choice.code,source_option:choice.source_only,review_required:choice.review_required,source_label:choice.source_label,source_value:choice.source_label})}}><option value="">Pilih hasil…</option>{choices.map((o:any,i:number)=><option key={`${k}-opt-${o.key}`} value={String(i)}>{String(o.label)}</option>)}</select></label>{needsSourceReview&&<div className="aqNotice">Pilihan sumber belum memiliki pasangan persis dalam master indikator. Jawaban tetap disimpan untuk review manual dan tidak diberi kode otomatis.</div>}</>}
+     {genericOptions&&<label className="aqField aqChoiceField"><select aria-label={'Hasil pengukuran '+title} disabled={isValidator} value={selectedChoiceIndex>=0?String(selectedChoiceIndex):''} onChange={(e:any)=>{const choice=choices[Number(e.target.value)];if(!choice)return;setResp(p,{answer:choice.answer,code:choice.code,source_option:choice.source_only,review_required:choice.review_required===true||choice.code==null,source_label:choice.source_label,source_value:choice.source_label})}}><option value="">Pilih respons…</option>{choices.map((o:any,i:number)=><option key={k+'-opt-'+o.key} value={String(i)}>{String(o.label)}</option>)}</select></label>}
+     {genericOptions&&needsSourceReview&&<div className="aqNotice">Respons tersimpan dan memerlukan peninjauan karena belum memiliki pemetaan kode otomatis.</div>}
      {!genericOptions&&kindNow==='compliance'&&<div className="aqRadio"><label><input disabled={isValidator} type="radio" checked={r.answer==='Sesuai'} onChange={()=>setResp(p,{answer:'Sesuai',code:1})}/> Sesuai</label><label><input disabled={isValidator} type="radio" checked={r.answer==='Exception'} onChange={()=>setResp(p,{answer:'Exception',code:2})}/> Justified Exception</label><label><input disabled={isValidator} type="radio" checked={r.answer==='Tidak sesuai'} onChange={()=>setResp(p,{answer:'Tidak sesuai',code:3})}/> Tidak sesuai</label></div>}
-     {r.answer==='Lainnya — tuliskan alasan/temuan'&&<label className="aqField" style={{marginTop:10}}><span>Alasan / temuan wajib</span><textarea disabled={isValidator} value={r.notes??''} onChange={(e:any)=>setResp(p,{notes:e.target.value})} placeholder="Tuliskan alasan/temuan untuk review superadmin…"/></label>}
-     <div className="aqAuto" style={{marginTop:10}}><span>Hasil validasi indikator</span><strong>{resultLabel}</strong><small>{responseComplete(p,r)?'Respons lengkap':'Belum lengkap'}</small></div>
-     {commonEvidence}
+     <div className="aqAuto aqResultSummary" style={{marginTop:10}}><span>Status pengukuran</span><strong>{resultLabel}</strong><small>{responseComplete(p,r)?'Respons lengkap':'Belum lengkap'}</small></div>
    </div></article>
  }
 
@@ -1100,13 +1154,13 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    const renderPatientEditor=()=>selected&&patientOpen?<section className="glass aqInlineEditor" role="region" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" type="button" data-dialog-autofocus aria-label="Tutup formulir" title="Tutup" onClick={requestCloseEditor}>×</button></div><div className="aqBody">
       {message&&<div className="workspaceFeedback" role={/gagal|belum|tidak dapat|wajib|lengkapi|kolom|tanggal|pilih/i.test(message)?'alert':'status'}><span>{message}</span></div>}
       <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map(renderLogbookField)}</div>
-      <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'—'}</strong></div><div><span>Kelengkapan indikator hijau</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
+      <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'—'}</strong></div><div><span>Indikator terisi</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
       <section className="aqIndicatorSection" aria-label="Daftar indikator mutu">
-        <div className="aqSection"><h5>Indikator mutu (header hijau)</h5><span>{filledN} dari {applicable.length} terisi</span></div>
-        {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Layout Excel untuk unit ini belum mencantumkan header indikator berwarna hijau.</div>}
+        <div className="aqSection"><h5>Penilaian Indikator Mutu</h5><span>{filledN} dari {applicable.length} terisi</span></div>
+        {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Belum ada indikator yang dikonfigurasikan untuk unit ini.</div>}
         <div className="aqIndicatorList">
           {applicable.map(indicatorEditor)}
-          {selectedUnmatchedHeaders.map((header,i)=><article className="aqInd aqUnmatchedInd" key={`unmapped-${selected.roomId}-${i}-${header}`}><div className="aqIHead"><div><strong>{header}</strong><div className="aqMetaText">Header hijau dari Header Aureka.xlsx · indikator belum terpetakan ke master aktif</div></div></div><div className="aqIBody"><div className="aqNotice">Profil ini belum memiliki pasangan aktif dengan target dan definisi operasional yang tervalidasi. Isian angka/hasil indikator belum diaktifkan agar tidak menghasilkan perhitungan mutu yang keliru.</div></div></article>)}
+          {selectedUnmatchedHeaders.map((header,i)=><article className="aqInd aqUnmatchedInd" key={`unmapped-${selected.roomId}-${i}-${header}`}><div className="aqIHead"><div><strong>{header}</strong><div className="aqMetaText">Belum terhubung ke master indikator</div></div></div><div className="aqIBody"><div className="aqNotice">Profil ini belum memiliki pasangan aktif dengan target dan definisi operasional yang tervalidasi. Isian angka/hasil indikator belum diaktifkan agar tidak menghasilkan perhitungan mutu yang keliru.</div></div></article>)}
           {!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator hijau pada layout unit ini.</div>}
         </div>
       </section>
