@@ -10,7 +10,6 @@ import {aurekaSupabase} from '@/lib/aureka/supabase'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import PublicLandingPage from '@/components/PublicLandingPage'
-import {searchWorkspaceNavigation} from '@/lib/aureka/navigation-search'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 const CommandPalette=dynamic(()=>import('@/components/CommandPalette'),{ssr:false})
 const workspaceChunkLoading=(label:string)=><AsyncStatePanel state="loading" title={`Memuat ${label}`} description="Menyiapkan ruang kerja." compact/>
@@ -63,7 +62,6 @@ async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
  const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[staffArea,setStaffArea]=useState<StaffWorkspaceArea>('directory'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('statistics'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const mobileSidebar=useAccessibleSidebar()
- const [navigationQuery,setNavigationQuery]=useState('')
  const [density,setDensity]=useState<'comfortable'|'compact'>('comfortable')
  const [closedNav,setClosedNav]=useState<string[]>([])
  const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
@@ -194,7 +192,6 @@ export default function HomeClient(){
   if(!manager)delete groups.analytics
   return groups
  },[admin,manager,role])
- const navigationResults=useMemo(()=>searchWorkspaceNavigation([['home','Ringkasan'],...visibleMods],sidebarChildGroups,navigationQuery),[visibleMods,sidebarChildGroups,navigationQuery])
  const currentContainer=useMemo(()=>{
   if(active==='home')return 'Ringkasan Mutu, Keselamatan & Risiko'
   if(active==='quality')return qualityResultsView?({indicators:'Audit Indikator Mutu · Hasil Capaian',pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<NonNullable<typeof qualityResultsView>,string>)[qualityResultsView]:clinicalPathwayOpen?'Audit Clinical Pathway · Form Logbook':qualityInitialContainer+' · Form Logbook'
@@ -645,13 +642,8 @@ export default function HomeClient(){
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>
    <button type="button" className="workspaceDrawerClose" aria-label="Tutup menu navigasi" onClick={mobileSidebar.close}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
   </div>
-  <div className="sidebarDiscovery">
-   <label className="sidebarSearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg><input data-sidebar-autofocus type="search" aria-label="Cari menu workspace" placeholder="Cari menu…" value={navigationQuery} onChange={e=>setNavigationQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&navigationQuery){e.preventDefault();e.stopPropagation();setNavigationQuery('')}}}/></label>
-   {navigationQuery&&<button type="button" className="sidebarSearchReset" aria-label="Hapus pencarian menu" onClick={()=>setNavigationQuery('')}>×</button>}
-  </div>
-  <div className="navLabel">{navigationQuery?'Hasil pencarian':'Menu utama'}</div>
-  {navigationQuery&&<div className="sidebarSearchResults" aria-label="Hasil pencarian menu"><p role="status">{navigationResults.length} tujuan ditemukan</p>{navigationResults.map(result=><button type="button" key={result.key} onClick={()=>{if(result.childId)selectSidebarChild(result.moduleId,result.childId);else openMainModule(result.moduleId);setNavigationQuery('')}}><span><strong>{result.label}</strong><small>{result.context}</small></span><span aria-hidden="true">↗</span></button>)}{navigationResults.length===0&&<div className="sidebarSearchEmpty">Coba kata kunci seperti “audit”, “risiko”, atau “tim”.<button type="button" onClick={()=>setNavigationQuery('')}>Tampilkan semua menu</button></div>}</div>}
-  <nav className="sidebarNav" aria-label="Navigasi utama AUREKA" hidden={Boolean(navigationQuery)}>
+  <div className="navLabel">Menu utama</div>
+  <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'expanded':'')} key="home">
     <button type="button" title="Ringkasan" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
      <NavIcon id="home"/><span>Ringkasan</span>
