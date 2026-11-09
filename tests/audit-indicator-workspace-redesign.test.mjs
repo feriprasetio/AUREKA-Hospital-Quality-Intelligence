@@ -48,7 +48,7 @@ test('Every indicator uses the professional compact assessment UI without eviden
   assert.doesNotMatch(editor, /Bukti & catatan audit|Definisi operasional & rumus indikator|Pilih hasil sesuai Logbook|Nama master:/)
   assert.match(source, /<h5>Penilaian Indikator Mutu<\/h5>/)
   assert.match(source, /className="aqIndicatorMeta"/)
-  assert.match(source, /className="aqChoiceField"/)
+  assert.match(source, /className="aqField aqChoiceField"/)
   assert.match(source, /aqResultSummary/)
   assert.match(source, /review_required===true\|\|choice\.code==null/)
   assert.match(source, /Compact professional indicator assessment — shared by every unit/)
