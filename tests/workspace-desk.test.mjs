@@ -196,7 +196,9 @@ test('drawer breakpoint agrees with its controller and is dismissible from insid
   assert.match(read('components/layout/useAccessibleSidebar.ts'), /window\.innerWidth > 720/)
   assert.match(home, /window\.matchMedia\('\(max-width: 720px\)'\)/)
   assert.match(home, /className="workspaceDrawerClose"[^>]*onClick=\{mobileSidebar\.close\}/)
-  assert.match(home, /data-sidebar-autofocus type="search"/)
+  assert.match(home, /workspaceGlobalSearchInput/)
+  assert.doesNotMatch(home, /data-sidebar-autofocus|sidebarSearch|Cari menu/)
+  assert.match(home, /<nav className="sidebarNav" aria-label="Navigasi utama AUREKA">/)
 })
 
 test('every workbook importer traps focus and delegates Escape to its original busy-guarded close', () => {
