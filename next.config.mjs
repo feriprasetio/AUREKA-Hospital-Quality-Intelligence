@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
-const basePath = process.env.FIGMA
-  ? ''
-  : process.env.AUREKA_BASE_PATH || '/AUREKA-Hospital-Quality-Intelligence'
+const basePath = process.env.AUREKA_BASE_PATH ?? (
+  process.env.NODE_ENV === 'development' || process.env.VERCEL || process.env.FIGMA
+    ? ''
+    : '/AUREKA-Hospital-Quality-Intelligence'
+)
 
 const nextConfig = {
   output: 'export',
