@@ -214,10 +214,6 @@ html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs {
 html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs b { color: #5c7866 !important; font-weight: 500 !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs button { padding: 0 !important; min-height: 14px !important; height: 14px !important; width: 14px !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs svg { width: 12px !important; height: 12px !important; }
-html[data-theme] .workspaceRoot.workspaceDesk .workspaceDensityToggle {
-  align-self: center !important; margin: 0 !important; min-height: 31px !important;
-  padding: 6px 9px !important; border-color: #dfe7e0 !important; font-size: 10px !important; color: #647e69 !important;
-}
 .workspaceSkipLink { position: fixed; top: -100px; left: 12px; z-index: 2000; padding: 12px 16px; border: 1px solid #17634d; border-radius: 6px; background: #fff; color: #17634d; }
 .workspaceSkipLink:focus { top: 10px; }
 .workspaceDrawerClose { display: none; }
@@ -683,8 +679,6 @@ html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqFoot
   html[data-theme] .workspaceRoot.workspaceDesk .workspacePageIntro p { font-size: 10px !important; }
   html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs { gap: 5px !important; font-size: 8px !important; flex-wrap: wrap !important; }
   html[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs > b { display: none; }
-  html[data-theme] .workspaceRoot.workspaceDesk .workspaceDensityToggle { padding: 5px 7px !important; }
-  html[data-theme] .workspaceRoot.workspaceDesk .workspaceDensityToggle > span { display: none; }
   html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { margin: 0 16px 13px; display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; }
   .workspaceContextNav { display: none; }
   .workspaceContextSelect { display: block; flex: 1 1 150px; min-width: 0; }

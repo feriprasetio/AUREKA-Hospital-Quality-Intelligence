@@ -29,6 +29,7 @@ type Props = {
   initialRoomId: number | null
   rooms: Room[]
   canViewAllRooms: boolean
+  onRoomChange?: (roomId: number | null) => void
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
 type PathwayDataset = ClinicalPathwayRow[]
@@ -115,12 +116,12 @@ function normalizeRoom(value: unknown): number | null {
 }
 
 function defaultRoom(rooms: Room[], initialRoomId: number | null, canViewAllRooms: boolean): number | null {
+  const initial = normalizeRoom(initialRoomId)
+  if (initial != null) return initial
   if (canViewAllRooms) {
     const firstUnit = rooms.find((room) => /informasi\s+dan\s+pengaduan/i.test(room.name))
     if (firstUnit) return normalizeRoom(firstUnit.id)
   }
-  const initial = normalizeRoom(initialRoomId)
-  if (initial != null) return initial
   return normalizeRoom(rooms[0]?.id)
 }
 
@@ -212,8 +213,18 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
   return { rows, capped: true }
 }
 
-export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms }: Props) {
+export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange }: Props) {
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
+  useEffect(() => {
+    if (roomId == null) {
+      const initial = defaultRoom(rooms, initialRoomId, canViewAllRooms)
+      if (initial != null) setRoomId(initial)
+    }
+  }, [roomId, rooms, initialRoomId, canViewAllRooms])
+
+  useEffect(() => {
+    if (roomId != null) onRoomChange?.(roomId)
+  }, [roomId, onRoomChange])
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
   const [indicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
@@ -558,7 +569,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             ? 'Analisis kelengkapan dan kepatuhan Clinical Pathway pada episode yang telah tervalidasi, dengan denominator sel yang benar-benar dijadwalkan dan dinilai.'
             : 'Analisis hasil telaah klinis dan kematian. Distribusi serta median skor hanya dihitung dari telaah tervalidasi; data pasien tidak ditampilkan pada laporan.'}
       actions={<div className="qraActions">
-        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms} onChange={(event) => setRoomId(normalizeRoom(event.target.value))}>
+        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms} onChange={(event) => { const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
           {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
         <label className="qraField"><span>Tahun</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>
