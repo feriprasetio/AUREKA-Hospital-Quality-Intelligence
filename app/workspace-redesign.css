@@ -103,3 +103,95 @@ html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter > * { min-width: 0; }
   html[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { margin-inline: 14px !important; }
   html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter { padding-inline: 14px !important; }
 }
+
+/* Audit workspace: reduce noise, emphasize status and keep the logbook readable. */
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace {
+  --aq-surface: #ffffff;
+  --aq-soft: #f7fbfa;
+  --aq-line: #dce9e6;
+  --aq-ink: #173746;
+  --aq-muted: #71878c;
+  color: var(--aq-ink);
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace > * { max-width: 1240px; margin-inline: auto; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqToolbar,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqFilters,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqSummary,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqTable {
+  border: 1px solid var(--aq-line) !important;
+  border-radius: 14px !important;
+  background: var(--aq-surface) !important;
+  box-shadow: 0 8px 24px rgba(19, 73, 72, .055) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqFilters {
+  position: sticky;
+  top: 8px;
+  z-index: 3;
+  padding: 14px !important;
+  background: rgba(255,255,255,.94) !important;
+  backdrop-filter: blur(12px);
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqField span,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqAuto span {
+  color: var(--aq-muted) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .035em;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace input,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace select,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace textarea {
+  min-height: 38px !important;
+  border: 1px solid #d4e3e0 !important;
+  border-radius: 9px !important;
+  background: #fbfdfc !important;
+  color: var(--aq-ink) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace input:focus,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace select:focus,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace textarea:focus {
+  outline: 3px solid rgba(19,124,116,.13) !important;
+  border-color: var(--aureka-teal) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqTableHead {
+  padding: 16px 18px !important;
+  border-bottom: 1px solid var(--aq-line) !important;
+  background: linear-gradient(90deg, #f5fbf9, #fff) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqTableHead strong { color: var(--aureka-navy) !important; font-size: 14px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqWrap { max-height: min(58vh, 620px) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace table { min-width: 980px; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace th {
+  position: sticky; top: 0; z-index: 2;
+  padding: 12px 14px !important;
+  background: #f4f9f7 !important;
+  color: #6e8387 !important;
+  font-size: 10px !important;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--aq-line) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace td {
+  padding: 14px !important;
+  border-bottom: 1px solid #edf3f1 !important;
+  color: #294b56 !important;
+  font-size: 11px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace tbody tr:hover td { background: #f7fcfa !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqStatus,
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqMatch {
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqInd {
+  border: 1px solid var(--aq-line) !important;
+  border-radius: 14px !important;
+  background: var(--aq-surface) !important;
+  box-shadow: 0 8px 24px rgba(19, 73, 72, .055) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqIHead { padding: 16px 18px !important; background: var(--aq-soft) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqMetaText { color: var(--aq-muted) !important; }
+@media (max-width: 720px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqFilters { position: static; }
+  html[data-theme] .workspaceRoot.workspaceDesk .aqAuditWorkspace .aqWrap { max-height: none !important; }
+}
