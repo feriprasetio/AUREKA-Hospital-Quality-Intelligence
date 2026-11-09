@@ -217,19 +217,26 @@ test('every workbook importer traps focus and delegates Escape to its original b
   assert.match(read('components/layout/useAccessibleDialog.ts'), /if \(lockScroll\) document\.body\.style\.overflow = previousBodyOverflow/)
 })
 
-test('page header has no comfortable/compact toggle and keeps the comfortable density baseline', () => {
+test('page header exposes no comfortable/compact density control', () => {
   const home = read('components/HomeClient.tsx')
-  assert.doesNotMatch(home, /workspaceDensityToggle|setDensity|const \[density,/)
+  const desk = read('app/workspace-desk.css')
+  assert.doesNotMatch(home, /workspaceDensityToggle|workspaceDensityControl|setDensity|const \[density,|Nyaman|Ringkas/)
   assert.match(home, /data-density="comfortable"/)
-  assert.doesNotMatch(home, /workspaceDensityToggle|setDensity/)
+  assert.match(desk, /workspaceDensityToggle/)
+  assert.match(desk, /button\[title\*="nyaman" i\]/)
 })
 
-test('logbook filter controls and workbook actions occupy separate non-overlapping rows', () => {
+test('logbook filters and workbook actions use separate grid rows with non-shrinking controls', () => {
   const quality = read('components/QualityIndicatorWorkspace.tsx')
-  assert.match(quality, /aqGrid\{grid-template-columns:minmax\(0,1fr\) minmax\(95px,120px\) minmax\(150px,200px\)/)
-  assert.ok(quality.includes('.aqAuditWorkspace .aqFilterActions{grid-column:1/-1;display:flex'))
-  assert.match(quality, /white-space:normal;flex-wrap:wrap/)
-  assert.match(quality, /grid-column:1\/-1!important;display:flex!important/)
+  const desk = read('app/workspace-desk.css')
+  assert.match(quality, /grid-template-areas:"unit year month" "actions actions actions"/)
+  assert.match(quality, /\.aqFilterActions\{grid-column:1\/-1;grid-row:2/)
+  assert.match(quality, /\.aqFilterActions>button\{flex:0 0 auto;width:auto;min-width:max-content/)
+  assert.match(quality, /grid-template-areas:"unit unit" "year month" "actions actions"/)
+  assert.match(desk, /grid-template-areas: "unit year month" "actions actions actions" !important/)
+  assert.match(desk, /min-width: max-content !important/)
+  assert.match(desk, /workspaceDensityToggle/)
+  assert.doesNotMatch(quality, /<div className="aqFilterActions">[\s\S]{0,500}<button[^>]*style=\{\{[^}]*flex/)
 })
 
 test('density changes real cells and surfaces and print removes scroll caps', () => {
