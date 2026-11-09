@@ -54,7 +54,7 @@ function parseOperationalCalendarDate(value: unknown): OperationalCalendarParts 
     const day = Number(iso[3])
     const check = new Date(Date.UTC(year, month - 1, day))
     if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null
-    return { year, month, iso: \`\${iso[1]}-\${iso[2]}-\${iso[3]}\` }
+    return { year, month, iso: `${iso[1]}-${iso[2]}-${iso[3]}` }
   }
 
   const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/)
@@ -67,7 +67,7 @@ function parseOperationalCalendarDate(value: unknown): OperationalCalendarParts 
     return {
       year,
       month,
-      iso: \`\${year}-\${String(month).padStart(2, '0')}-\${String(day).padStart(2, '0')}\`,
+      iso: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
     }
   }
 
@@ -76,7 +76,7 @@ function parseOperationalCalendarDate(value: unknown): OperationalCalendarParts 
   return {
     year: parsed.getFullYear(),
     month: parsed.getMonth() + 1,
-    iso: \`\${parsed.getFullYear()}-\${String(parsed.getMonth() + 1).padStart(2, '0')}-\${String(parsed.getDate()).padStart(2, '0')}\`,
+    iso: `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`,
   }
 }
 
