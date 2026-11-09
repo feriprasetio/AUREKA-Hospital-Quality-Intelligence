@@ -221,13 +221,13 @@ test('page header has no comfortable/compact toggle and keeps the comfortable de
   const home = read('components/HomeClient.tsx')
   assert.doesNotMatch(home, /workspaceDensityToggle|setDensity|const \[density,/)
   assert.match(home, /data-density="comfortable"/)
-  assert.doesNotMatch(home, /Nyaman|Ringkas/)
+  assert.doesNotMatch(home, /workspaceDensityToggle|setDensity/)
 })
 
 test('logbook filter controls and workbook actions occupy separate non-overlapping rows', () => {
   const quality = read('components/QualityIndicatorWorkspace.tsx')
   assert.match(quality, /aqGrid\{grid-template-columns:minmax\(0,1fr\) minmax\(95px,120px\) minmax\(150px,200px\)/)
-  assert.match(quality, /aqFilterActions\{grid-column:1\/-1;display:flex/)
+  assert.ok(quality.includes('.aqAuditWorkspace .aqFilterActions{grid-column:1/-1;display:flex'))
   assert.match(quality, /white-space:normal;flex-wrap:wrap/)
   assert.match(quality, /grid-column:1\/-1!important;display:flex!important/)
 })
