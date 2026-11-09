@@ -80,7 +80,7 @@ test('Logbook toolbar is consolidated into the unit/year/month filter row', () =
   assert.doesNotMatch(source, /aqRegisterTitle|Logbook unit|Buka baris untuk meninjau atau melanjutkan catatan/)
   assert.match(source, /aria-label="Statistik catatan logbook"/)
   assert.ok(source.includes('.aqAuditWorkspace .aqGrid{grid-template-columns:minmax(0,1fr) minmax(95px,120px) minmax(150px,200px)'))
-  assert.match(source, /aqFilterActions\\{grid-column:1\\/-1;display:flex/)
+  assert.ok(source.includes('.aqFilterActions{grid-column:1/-1;display:flex'))
   assert.match(source, /white-space:normal;flex-wrap:wrap/)
 })
 
