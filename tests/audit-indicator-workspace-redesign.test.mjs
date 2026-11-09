@@ -87,6 +87,7 @@ test('Informasi dan Pengaduan no longer renders its one-off indicator summary', 
   assert.doesNotMatch(source, /complaintMetricSummary|summarizeOptionResponses|Ringkasan indikator unit|aqComplaintKpi/)
   assert.match(source, /pharmacyMetricSummary&&/)
   assert.match(source, /outpatientClinicSummary&&/)
+  assert.match(source, /Rekap operasional unit/)
   assert.match(source, /aqPharmacySummary/)
   assert.match(source, /aqOutpatientSummary/)
 })
