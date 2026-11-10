@@ -339,6 +339,7 @@ export default function IgdExcelImportDialog({
   const [consultProgress, setConsultProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
   const [fileInputKey, setFileInputKey] = useState(0)
+  const [activeImportTab, setActiveImportTab] = useState<'logbook' | 'consultation'>('logbook')
   const eligible = open && authorized && roomId === 6 && year === 2026
   const parsing = mainParsing || consultParsing
   const importing = mainImporting || consultImporting
@@ -360,12 +361,14 @@ export default function IgdExcelImportDialog({
     setConsultResult(null)
     setConsultProgress(0)
     setErrorMessage('')
+    setActiveImportTab('logbook')
     setFileInputKey(value => value + 1)
     onClose()
   }
   const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
 
   const parseMainWorkbook = async (selectedFile: File) => {
+    setActiveImportTab('logbook')
     setMainFile(selectedFile)
     setMainRows([])
     setMainExcluded([])
@@ -579,7 +582,7 @@ export default function IgdExcelImportDialog({
       const all: ConsultRow[] = []
       for (const file of files) {
         const sourceMonth = parseIgdMonthFromFilename(file.name)
-        if (sourceMonth == null || sourceMonth > 5) throw new Error('Nama file "' + file.name + '" tidak mengidentifikasi bulan Januari–Mei 2026.')
+        if (sourceMonth == null) throw new Error('Nama file "' + file.name + '" harus mencantumkan nama bulan Januari–Desember agar periode sumber dapat dicatat.')
         const fileHash = await sha256(file)
         const workbook = new ExcelJS.Workbook()
         await workbook.xlsx.load(await file.arrayBuffer())
@@ -683,7 +686,7 @@ export default function IgdExcelImportDialog({
         }
         if (!detailSheets) throw new Error('Tidak ditemukan tab detail konsultasi pada workbook ' + file.name + '.')
       }
-      if (!all.length) throw new Error('Tidak ada sampel konsultasi operasional pada lima workbook yang dipilih.')
+      if (!all.length) throw new Error('Tidak ada sampel konsultasi operasional pada workbook yang dipilih.')
       setConsultRows(all.sort((a, b) => a.sourceMonth - b.sourceMonth || a.sourceWorkbook.localeCompare(b.sourceWorkbook) || a.sourceSheet.localeCompare(b.sourceSheet) || a.sourceRow - b.sourceRow))
     } catch (error) {
       setConsultRows([])
@@ -791,7 +794,7 @@ export default function IgdExcelImportDialog({
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqIgdImport" role="dialog" aria-modal="true" aria-labelledby="aqIgdImportTitle">
-        <style>{'.aqIgdImport .aqBody{display:grid;align-content:start;gap:12px}.aqIgdImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIgdImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIgdImport .ciUpload input{width:100%;font-size:12px}.aqIgdImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.aqIgdImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIgdImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqIgdImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIgdImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIgdImport .ciError{background:#fff0ef;color:#8b2822}.aqIgdImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIgdImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIgdImport .ciTable{overflow:auto;max-height:290px;border:1px solid var(--line);border-radius:11px}.aqIgdImport table{width:100%;border-collapse:collapse;font-size:10px}.aqIgdImport th,.aqIgdImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqIgdImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqIgdImport td.ciWrap{white-space:normal;min-width:150px;max-width:300px;overflow-wrap:anywhere}.aqIgdImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}.aqIgdImport .ciCode{font-size:9px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}@media(max-width:800px){.aqIgdImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
+        <style>{'.aqIgdImport .aqBody{display:grid;align-content:start;gap:12px}.aqIgdImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIgdImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIgdImport .ciUpload input{width:100%;font-size:12px}.aqIgdImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.aqIgdImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIgdImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqIgdImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIgdImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIgdImport .ciError{background:#fff0ef;color:#8b2822}.aqIgdImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIgdImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIgdImport .ciTable{overflow:auto;max-height:290px;border:1px solid var(--line);border-radius:11px}.aqIgdImport table{width:100%;border-collapse:collapse;font-size:10px}.aqIgdImport th,.aqIgdImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqIgdImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqIgdImport td.ciWrap{white-space:normal;min-width:150px;max-width:300px;overflow-wrap:anywhere}.aqIgdImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}.aqIgdImport .ciCode{font-size:9px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}.aqIgdImport .ciTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:5px;border:1px solid var(--line);border-radius:14px;background:#f5f8f6}.aqIgdImport .ciTab{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease}.aqIgdImport .ciTab.isActive{background:#fff;border-color:var(--line);box-shadow:0 3px 12px rgba(20,35,28,.06)}.aqIgdImport .ciTab:disabled{opacity:.58;cursor:progress}.aqIgdImport .ciTab[data-locked=true] .ciTabNumber{background:#eef0ed;color:#737c75}.aqIgdImport .ciTabNumber{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:#e4eee8;color:#315d48;font-size:11px;font-weight:800}.aqIgdImport .ciTabText{display:grid;gap:3px;min-width:0}.aqIgdImport .ciTabText strong{font-size:12px;line-height:1.25}.aqIgdImport .ciTabText small{font-size:10px;line-height:1.35;color:var(--muted)}.aqIgdImport .ciTabState{margin-left:auto;max-width:112px;color:var(--muted);font-size:9px;line-height:1.3;text-align:right}.aqIgdImport .ciPanel{min-width:0}.aqIgdImport .ciTab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}@media(max-width:800px){.aqIgdImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqIgdImport .ciTabs{grid-template-columns:1fr}.aqIgdImport .ciTabState{max-width:130px}}'}</style>
         <div className="aqDHead">
           <div>
             <div className="eyebrow">Audit Indikator Mutu · Impor Terarah</div>
@@ -803,10 +806,23 @@ export default function IgdExcelImportDialog({
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke IGD.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih Instalasi Gawat Darurat dan tahun profil 2026 sebelum membuka impor.</div>}
-          <div className="ciIntro"><strong>Urutan kerja:</strong> unggah dan impor workbook induk IGD terlebih dahulu. Setelah semua episode memiliki ID AUREKA, unggah lima workbook waktu konsultasi DPJP. Seluruh record berstatus Ready for Review dan tidak langsung mengesahkan capaian.</div>
+          <div className="ciIntro">Pilih jenis data yang akan diimpor. Setiap alur memiliki pratinjau, pemeriksaan sumber, dan hasil proses tersendiri. Data yang masuk tetap berstatus <strong>Ready for Review</strong> sampai divalidasi oleh petugas berwenang.</div>
 
-          <div className="glass" style={{ padding: 13, display: 'grid', gap: 10 }}>
-            <div><strong>1 · Logbook utama IGD</strong><div className="ciPrivacy">Membaca sheet Logbook, header baris 3, data mulai baris 4. Satu baris sumber menjadi satu episode; RM berulang tidak digabung.</div></div>
+          <div className="ciTabs" role="tablist" aria-label="Jenis impor data IGD">
+            <button id="ci-igd-logbook-tab" type="button" role="tab" aria-selected={activeImportTab === 'logbook'} aria-controls="ci-igd-logbook-panel" className={`ciTab ${activeImportTab === 'logbook' ? 'isActive' : ''}`} onClick={() => setActiveImportTab('logbook')} disabled={busy}>
+              <span className="ciTabNumber">01</span>
+              <span className="ciTabText"><strong>Logbook episode</strong><small>Data utama pelayanan IGD</small></span>
+              <span className="ciTabState">{mainResult ? 'Selesai' : mainRows.length ? 'Preview siap' : 'Belum dipilih'}</span>
+            </button>
+            <button id="ci-igd-consultation-tab" type="button" role="tab" aria-selected={activeImportTab === 'consultation'} aria-controls="ci-igd-consultation-panel" aria-disabled={!mainReady} data-locked={!mainReady} className={`ciTab ${activeImportTab === 'consultation' ? 'isActive' : ''}`} onClick={() => setActiveImportTab('consultation')} disabled={busy}>
+              <span className="ciTabNumber">02</span>
+              <span className="ciTabText"><strong>Audit konsultasi DPJP</strong><small>Catatan waktu dan relasi episode</small></span>
+              <span className="ciTabState">{consultResult ? 'Selesai' : mainReady ? (consultRows.length ? 'Preview siap' : 'Siap diimpor') : 'Menunggu logbook'}</span>
+            </button>
+          </div>
+
+          {activeImportTab === 'logbook' && <section id="ci-igd-logbook-panel" role="tabpanel" aria-labelledby="ci-igd-logbook-tab" tabIndex={0} className="ciPanel glass" style={{ padding: 13, display: 'grid', gap: 10 }}>
+            <div><strong>Logbook episode IGD</strong><div className="ciPrivacy">Membaca sheet Logbook, header baris 3, data mulai baris 4. Satu baris sumber menjadi satu episode; RM berulang tidak digabung.</div></div>
             <div className="ciUpload">
               <label className="aqField"><span>Workbook induk (.xlsx), maksimal 25 MB</span>
                 <input key={fileInputKey} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || busy} onChange={event => { const file = event.target.files?.[0]; if (file) void parseMainWorkbook(file); event.currentTarget.value = '' }}/>
@@ -832,15 +848,16 @@ export default function IgdExcelImportDialog({
               {mainResult && <div className="ciMessage ciSuccess">Logbook selesai diproses: {mainResult.imported} episode baru, {mainResult.skipped} sudah ada, {mainResult.received} total. Semua ID episode diterima dari server dan siap digunakan untuk relasi audit konsultasi.</div>}
               <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !mainRows.length || mainParsing || mainImporting || !!mainResult} onClick={() => void importMain()}>{mainImporting ? 'Mengimpor logbook…' : 'Impor ' + mainRows.length + ' episode IGD'}</button>
             </div>
-          </div>
+          </section>}
 
-          <div className="glass" style={{ padding: 13, display: 'grid', gap: 10 }}>
-            <div><strong>2 · Audit waktu konsultasi DPJP</strong><div className="ciPrivacy">Pilih satu atau beberapa workbook bulanan Januari–Mei. Sampel konsultasi disimpan sebagai audit terpisah dan ditautkan hanya ke episode dengan RM + tanggal yang cocok unik.</div></div>
+          {activeImportTab === 'consultation' && <section id="ci-igd-consultation-panel" role="tabpanel" aria-labelledby="ci-igd-consultation-tab" tabIndex={0} className="ciPanel glass" style={{ padding: 13, display: 'grid', gap: 10 }}>
+            <div><strong>Audit waktu konsultasi DPJP</strong><div className="ciPrivacy">Impor workbook sumber konsultasi dari periode yang sedang diaudit. Beberapa file dapat dipilih sekaligus; setiap sheet dan baris sumber tetap disimpan sebagai jejak audit dan ditautkan hanya jika RM + tanggal cocok unik.</div></div>
             <div className="ciUpload">
-              <label className="aqField"><span>Lima workbook bulanan (.xlsx), pilih beberapa file</span>
+              <label className="aqField"><span>Workbook sumber konsultasi (.xlsx), pilih satu atau beberapa file</span>
                 <input type="file" multiple accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || !mainReady || busy} onChange={event => { const files = Array.from(event.target.files ?? []); if (files.length) void parseConsultationFiles(files); event.currentTarget.value = '' }}/>
               </label>
               {!mainReady && <div className="ciMessage ciWarning">Alur ini terbuka setelah impor workbook induk berhasil dan seluruh pemetaan ID episode dikonfirmasi oleh server.</div>}
+              <div className="ciPrivacy">Nama file harus mencantumkan bulan sumber (Januari–Desember) agar periode audit dicatat secara konsisten.</div>
               {consultFiles.length > 0 && <div className="ciPrivacy">{consultFiles.length} file dipilih: {consultFiles.map(file => file.name).join(' · ')}</div>}
               {consultParsing && <div className="ciMessage">Membaca tab per dokter umum, mengekstrak sampel konsultasi, menghitung selisih timestamp, dan mencocokkan RM + tanggal…</div>}
               {consultRows.length > 0 && <div className="ciStats">
@@ -850,7 +867,7 @@ export default function IgdExcelImportDialog({
                 <div className="ciStat"><span>Belum cocok</span><strong>{consultRows.length - (matches.matched_unique ?? 0) - (matches.ambiguous_rm_date ?? 0)}</strong></div>
               </div>}
               {consultRows.length > 0 && <div className="ciMessage ciWarning"><strong>Interpretasi durasi:</strong> kolom sumber hanya menyediakan Waktu Registrasi dan Waktu Konsultasi DPJP. Engine menghitung selisih kedua timestamp sebagai durasi registrasi-ke-konsultasi, bukan DPJP response time sejak permintaan konsultasi. Label Ya/Tidak dan alasan sumber disimpan tanpa dikonversi menjadi Code 1/2/3.</div>}
-              {consultRows.length > 0 && <div className="ciTable"><table><thead><tr><th>Bulan/file</th><th>Dokter IGD</th><th>Waktu registrasi</th><th>Durasi sumber</th><th>Durasi hitung</th><th>Capaian sumber</th><th>Relasi episode</th></tr></thead><tbody>
+              {consultRows.length > 0 && <div className="ciTable"><table><thead><tr><th>Periode / sheet</th><th>Dokter IGD</th><th>Waktu registrasi</th><th>Durasi sumber</th><th>Durasi hitung</th><th>Capaian sumber</th><th>Relasi episode</th></tr></thead><tbody>
                 {consultRows.slice(0, 60).map(row => <tr key={row.sourceKey}><td>{row.sourceMonth} · {row.sourceSheet}</td><td className="ciWrap">{row.requestingDoctor || '—'}</td><td>{row.rawRegistrationAt || '—'}</td><td>{row.rawReportedElapsed || '—'}</td><td>{row.calculatedElapsedMinutes == null ? '—' : row.calculatedElapsedMinutes + ' menit'}</td><td>{row.performanceLabel || '—'}</td><td className="ciWrap">{row.matchStatus} · {row.matchNote}</td></tr>)}
               </tbody></table></div>}
               {consultRows.length > 60 && <div className="ciPrivacy">Preview menampilkan 60 dari {consultRows.length} sampel.</div>}
@@ -859,7 +876,7 @@ export default function IgdExcelImportDialog({
               {consultResult && <div className="ciMessage ciSuccess">Audit konsultasi selesai: {consultResult.imported} baru, {consultResult.skipped} sudah ada, {consultResult.received} total. Jawaban sumber belum menjadi klasifikasi indikator resmi.</div>}
               <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !mainReady || !consultRows.length || consultParsing || consultImporting || !!consultResult} onClick={() => void importConsultations()}>{consultImporting ? 'Mengimpor audit konsultasi…' : 'Impor ' + consultRows.length + ' sampel konsultasi'}</button>
             </div>
-          </div>
+          </section>}
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
           <div className="ciPrivacy">Catatan integritas: RM berulang tidak digabung; respons kosong tetap kosong; opsi tak dikenal tetap menjadi provenance; sampel yang ambigu atau tidak cocok tetap disimpan di audit konsultasi tanpa relasi episode paksa. Tidak ada file sumber yang dikirim ke layanan eksternal.</div>
         </div>
