@@ -479,7 +479,7 @@ export default function HomeClient(){
      <h1>Cek email Anda</h1>
      <p>Jika akun <b>{email.trim()}</b> terdaftar di AUREKA, tautan untuk membuat password baru sudah dikirim.</p>
      <ol className="authSteps">
-      <li><b>Buka email</b><span>Cari email dari AUREKA/Supabase. Cek juga folder Spam/Promosi.</span></li>
+      <li><b>Buka email</b><span>Cari email dari AUREKA. Cek juga folder Spam/Promosi.</span></li>
       <li><b>Klik tautan reset</b><span>Anda akan dibawa kembali ke AUREKA untuk membuat password baru.</span></li>
       <li><b>Tidak menerima email?</b><span>Hubungi Super Admin/Komite PMKP untuk dibuatkan password sementara.</span></li>
      </ol>
