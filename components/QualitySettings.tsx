@@ -106,7 +106,6 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [year, setYear] = useState(2026)
   const [room, setRoom] = useState('')
   const [profiles, setProfiles] = useState<Model[]>([])
-  const [pending, setPending] = useState<Model[]>([])
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
   const [tab, setTab] = useState<MetadataTab>(initialTab)
@@ -119,7 +118,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   useEffect(() => {
     if (!msg || typeof window === 'undefined') return
     const type = /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(msg) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(msg) ? 'success' : 'info'
-    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: msg, type, module: 'Kamus Indikator' } }))
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: msg, type, module: 'Metadata' } }))
   }, [msg])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -414,9 +413,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
             onChange={setTab}
             panelId="metadata-active-panel"
             items={[
-              { value: 'programs', label: 'Program kerja' },
+              { value: 'programs', label: 'Program Kerja' },
               { value: 'profiles', label: 'Profil Indikator' },
-              { value: 'review', label: 'Review “Lainnya”', count: pendingState === 'ready' ? pending.length : undefined },
             ] as const}
           />
         )}
