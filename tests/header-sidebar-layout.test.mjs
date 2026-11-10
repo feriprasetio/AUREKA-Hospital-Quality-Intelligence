@@ -12,11 +12,9 @@ test('header menu is before hospital context and search controls are separate si
   const menu = header.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"')
   const context = header.indexOf('className="workspaceContext"')
   const search = header.indexOf('className="workspaceGlobalSearch"')
-  const palette = header.indexOf('<CommandPalette')
   assert.ok(menu >= 0 && context > menu, 'hamburger must be left of hospital context')
   assert.ok(search > context, 'search must follow hospital context')
-  assert.ok(palette > search, 'command palette must be a separate control after search')
-  assert.doesNotMatch(header.slice(search, palette), /<CommandPalette/, 'palette must not be nested inside search')
+  assert.equal(header.includes('<CommandPalette'), false, 'module search trigger is removed from the header')
 })
 
 test('header layout prevents overlap on desktop and narrow screens', () => {
