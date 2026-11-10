@@ -156,10 +156,10 @@ test('shared workspace tabs provide keyboard links and the same native phone des
   assert.match(css, /\.workspaceActivePanel > \* \{ min-width: 0; \}/)
 })
 
-test('Clinical Pathway catalogue follows the existing configured static-export base path', () => {
+test('Clinical Pathway master data is database-backed while its audit layout remains responsive', () => {
   const cp = read('components/ClinicalPathwayWorkspace.tsx')
-  assert.match(cp, /const BASE_PATH = process\.env\.NEXT_PUBLIC_BASE_PATH \?\? '\/AUREKA-Hospital-Quality-Intelligence'/)
-  assert.match(cp, /fetch\(BASE_PATH \+ '\/clinical-pathway-catalog-'/)
+  assert.match(cp, /from\('clinical_pathway_templates'\)\.select\('\*'\)\.order\('name'\)/)
+  assert.doesNotMatch(cp, /clinical-pathway-catalog-|fetchCatalog|normalizeCatalog/)
   assert.match(cp, /'--cp-audit-width': `\$\{460 \+ checklistDays\.length \* 84\}px`/)
   assert.match(css, /@media screen \{[\s\S]*\.cpAuditTable \{ width: max\(100%, var\(--cp-audit-width\)\)/)
   assert.match(cp, /minWidth: 0, tableLayout: 'fixed' \} as CSSProperties/)

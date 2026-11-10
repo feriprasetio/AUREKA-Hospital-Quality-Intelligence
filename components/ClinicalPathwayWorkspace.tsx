@@ -60,48 +60,6 @@ const STATUS_LABEL: Record<string, string> = { draft: 'Draf', submitted: 'Diajuk
 
 const CSS = ".cpRoot{display:grid;gap:14px;color:var(--ink)}.cpRoot .cpGlass{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.72);border-radius:24px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}.cpHead{padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.cpEyebrow{font-size:10px;font-weight:850;letter-spacing:.045em;color:var(--accent2);text-transform:none}.cpHead h3{font-size:28px;letter-spacing:-.045em;margin:7px 0 5px}.cpHead p{font-size:12px;color:var(--muted);margin:0;max-width:780px;line-height:1.6}.cpActions{display:flex;gap:8px;flex-wrap:wrap}.cpBtn{min-height:40px;border:1px solid rgba(255,255,255,.82);background:rgba(255,255,255,.5);color:#214a39;border-radius:13px;padding:9px 13px;font-size:11px;font-weight:850;cursor:pointer}.cpBtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border-color:transparent}.cpBtn:disabled{opacity:.5;cursor:not-allowed}.cpGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cpTile{padding:17px;text-align:left;width:100%;cursor:pointer;color:var(--ink);transition:transform .18s,border-color .18s}.cpTile:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.35)}.cpTileTop{display:flex;justify-content:space-between;align-items:center;gap:8px}.cpTileIcon{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent2);font-size:18px}.cpBadge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;background:#e8f7ef;color:#216b49;white-space:nowrap}.cpBadge.draft{background:#fff4d8;color:#835c15}.cpBadge.retired{background:#eceeed;color:#69746e}.cpTile h4{font-size:16px;line-height:1.35;margin:14px 0 4px}.cpTile p{font-size:11px;color:var(--muted);line-height:1.55;margin:0}.cpTileFoot{border-top:1px solid rgba(26,69,48,.09);display:flex;justify-content:space-between;gap:8px;margin-top:15px;padding-top:12px;font-size:10px;font-weight:850;color:var(--accent2)}.cpKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpKpi{padding:14px 16px}.cpKpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.cpKpi strong{display:block;font-size:23px;margin-top:5px;letter-spacing:-.03em}.cpKpi small{font-size:10px;color:var(--muted)}.cpToolbar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;align-items:end}.cpField{display:grid;gap:6px;min-width:0}.cpField label,.cpLabel{font-size:10px;font-weight:900;color:#68786f;letter-spacing:.035em}.cpField input,.cpField select,.cpField textarea,.cpInput{width:100%;min-height:42px;border:1px solid rgba(25,60,45,.14);border-radius:12px;background:rgba(255,255,255,.7);padding:10px 12px;color:var(--ink);outline:none;font-size:12px}.cpField textarea{min-height:72px;resize:vertical}.cpField input:focus,.cpField select:focus,.cpField textarea:focus,.cpInput:focus{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.08)}.cpSearch{flex:1;min-width:210px}.cpSelect{min-width:170px}.cpNotice{padding:12px 15px;border-radius:14px;background:#fff7e5;border:1px solid #f2dfb4;color:#77591d;font-size:11px;line-height:1.55}.cpNotice.info{background:#edf7f3;border-color:#d6ebe1;color:#245d48}.cpNotice.error{background:#fff0ef;border-color:#f4d0cc;color:#8d332d}.cpPanel{padding:17px}.cpPanel h4{margin:0 0 12px;font-size:15px}.cpBack{border:0;background:transparent;color:var(--accent2);font-size:11px;font-weight:900;padding:6px 0;cursor:pointer}.cpRecordList{display:grid;gap:8px}.cpRecord{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid rgba(25,60,45,.1);border-radius:14px;background:rgba(255,255,255,.42)}.cpRecord b{display:block;font-size:12px}.cpRecord small{display:block;font-size:10px;color:var(--muted);margin-top:4px}.cpRecordRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cpFormGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.cpFormGrid .span2{grid-column:span 2}.cpSectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 9px}.cpSectionHead h4{font-size:16px;margin:0}.cpSectionHead p{font-size:10px;color:var(--muted);margin:4px 0 0}.cpTableWrap{max-width:100%;overflow:auto;max-height:68vh;border:1px solid rgba(25,60,45,.12);border-radius:15px;background:rgba(255,255,255,.55)}table.cpTable{width:100%;min-width:1140px;border-collapse:separate;border-spacing:0;font-size:11px}table.cpTable th,table.cpTable td{padding:9px 10px;border-bottom:1px solid rgba(25,60,45,.1);border-right:1px solid rgba(25,60,45,.07);vertical-align:middle;text-align:left}table.cpTable th{position:sticky;top:0;z-index:3;background:rgba(246,250,247,.97);font-size:9px;color:#69796f;text-transform:uppercase;letter-spacing:.035em;white-space:nowrap}table.cpTable th.cpDayCol{text-align:center;min-width:72px}table.cpTable td:nth-child(1){min-width:150px;max-width:190px;white-space:normal}table.cpTable td:nth-child(2){min-width:140px;max-width:190px;white-space:normal}table.cpTable td:nth-child(3){min-width:240px;white-space:normal}table.cpTable td:nth-child(4){min-width:230px;white-space:normal;color:#607168}table.cpTable .cpGroup td{background:rgba(var(--accent-rgb),.1);color:var(--accent2);font-size:10px;font-weight:950;position:sticky;left:0;z-index:1}.cpCell{min-width:72px;text-align:center!important;padding:5px!important}.cpCell.required{background:rgba(145,203,81,.25)}.cpCell.conditional{background:rgba(255,225,53,.28)}.cpCell.not_scheduled{background:rgba(255,255,255,.24);color:#b0b8b3}.cpCellControls{display:flex;align-items:center;justify-content:center;gap:5px}.cpMark{height:28px;min-width:28px;border:1px solid rgba(15,118,86,.2);border-radius:8px;background:rgba(255,255,255,.65);font-size:14px;font-weight:900;color:var(--accent2);cursor:pointer}.cpMark.done{background:#dff3e6;border-color:#8bc6a4;color:#12683e}.cpMark.not_done{background:#fff0ef;border-color:#e9b5af;color:#ac3932}.cpMark.not_applicable{background:#ececfb;border-color:#cbcbee;color:#48478b;font-size:10px}.cpCellEdit{border:0;background:transparent;color:#718177;cursor:pointer;font-size:13px;padding:4px}.cpSubtle{font-size:9px;color:var(--muted)}.cpChoiceCell{min-width:145px;max-width:175px;text-align:left!important;white-space:normal}.cpChoiceToggle{display:flex;align-items:flex-start;gap:8px;font-size:11px;font-weight:750;line-height:1.45;cursor:pointer}.cpChoiceToggle input{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:var(--accent2)}.cpChoiceHint{display:block;margin:4px 0 0 24px;font-size:9px;color:var(--muted);line-height:1.4}.cpChoiceDisabled{opacity:.48}.cpProfessionHead td{padding:0!important;background:rgba(var(--accent-rgb),.12);border-right:0!important}.cpProfessionToggle{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:12px 14px;text-align:left;cursor:pointer;color:var(--accent2)}.cpProfessionToggle strong{font-size:12px;font-weight:850}.cpProfessionToggle small{margin-left:auto;font-size:10px;color:var(--muted);font-weight:650}.cpProfessionArrow{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(var(--accent-rgb),.2);border-radius:7px;background:rgba(255,255,255,.65)}.cpStageHead td{background:rgba(255,255,255,.58);color:#52675c;font-size:10px;font-weight:850;padding:8px 12px!important;border-bottom:1px solid rgba(25,60,45,.1)}.cpItemLabel{font-size:11px;font-weight:800;line-height:1.5}.cpItemDetail{font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px}.cpField label,.cpLabel{text-transform:none;letter-spacing:0}.cpCellDetail{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;padding:14px;background:rgba(var(--accent-rgb),.06);border:1px solid rgba(var(--accent-rgb),.18);border-radius:15px;margin:10px 0}.cpCellDetail .cpWide{grid-column:1/-1}.cpScoreGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cpScore{padding:13px;border-radius:14px;background:rgba(255,255,255,.58);border:1px solid rgba(24,64,43,.1)}.cpScore span{display:block;font-size:9px;color:var(--muted);font-weight:850;text-transform:none}.cpScore strong{display:block;font-size:23px;margin:4px 0}.cpScore small{display:block;color:var(--muted);font-size:9px;line-height:1.45}.cpPass{background:#e8f7ef;color:#216b49}.cpFail{background:#fff0ef;color:#8d332d}.cpPending{background:#fff6dd;color:#805d18}.cpCriterionList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cpCriterion{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(24,64,43,.1);border-radius:13px;padding:11px 12px;background:rgba(255,255,255,.45)}.cpCriterion label{font-size:11px;font-weight:800}.cpToggleGroup{display:flex;gap:5px;flex-wrap:wrap}.cpToggle{border:1px solid rgba(25,60,45,.13);background:#fff;border-radius:9px;padding:7px 9px;font-size:10px;font-weight:850;cursor:pointer}.cpToggle.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent2)}.cpVarList{display:grid;gap:10px}.cpVar{border:1px solid rgba(25,60,45,.13);background:rgba(255,255,255,.4);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.cpVarHead{display:flex;justify-content:space-between;align-items:center;grid-column:1/-1}.cpVarHead b{font-size:11px}.cpVar .cpField.full{grid-column:1/-1}.cpFooter{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid rgba(25,60,45,.1)}.cpEmpty{padding:22px;text-align:center;color:var(--muted);font-size:11px}.cpBuilderTable{max-height:62vh}.cpBuilderInput{min-width:180px}.cpBuilderDay{min-width:115px}.cpOppe{display:flex;align-items:center;gap:6px;font-size:10px}.cpSourceNotes{display:grid;gap:6px}.cpTiny{font-size:9px;color:var(--muted)}.cpAuditWrap{overflow:auto;max-width:100%}table.cpTable.cpAuditTable{table-layout:fixed;width:max-content;min-width:0}table.cpTable.cpAuditTable th:nth-child(1),table.cpTable.cpAuditTable td.cpChoiceCell{width:180px;min-width:180px;max-width:180px}table.cpTable.cpAuditTable th:nth-child(2),table.cpTable.cpAuditTable td:nth-child(2){width:270px;min-width:270px;max-width:270px}table.cpTable.cpAuditTable th.cpDayCol,table.cpTable.cpAuditTable td.cpCell{width:84px;min-width:84px;max-width:84px;text-align:center}table.cpTable.cpAuditTable td:nth-child(n+3){min-width:0;max-width:none;white-space:normal}table.cpTable.cpAuditTable td.cpCell{padding:5px 3px!important}table.cpTable.cpAuditTable .cpCellControls{gap:3px}.cpPatientSummary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-top:14px;padding:14px;border:1px solid rgba(25,60,45,.11);border-radius:14px;background:rgba(255,255,255,.44)}.cpPatientSummary>div{display:grid;gap:4px;min-width:0}.cpPatientSummary small{font-size:9px;color:var(--muted)}.cpPatientSummary b{font-size:11px;overflow-wrap:anywhere}.cpCollapseBtn{white-space:nowrap}.cpBuilderLegend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.cpBuilderLegend span{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#52675c;padding:6px 9px;border:1px solid rgba(25,60,45,.1);border-radius:9px;background:rgba(255,255,255,.46)}.cpLegendDot{width:10px;height:10px;border-radius:3px;display:inline-block}.cpLegendDot.required{background:rgba(145,203,81,.65)}.cpLegendDot.conditional{background:rgba(255,225,53,.8)}.cpLegendDot.not_scheduled{background:rgba(170,180,175,.3);border:1px solid rgba(25,60,45,.13)}.cpBuilderTable{max-height:65vh}table.cpTable.cpBuilderMatrix{table-layout:fixed;width:max-content;min-width:0}table.cpTable.cpBuilderMatrix th,table.cpTable.cpBuilderMatrix td{padding:7px 8px;vertical-align:top}table.cpTable.cpBuilderMatrix th:nth-child(1),table.cpTable.cpBuilderMatrix td:nth-child(1){width:170px;min-width:170px;max-width:170px}table.cpTable.cpBuilderMatrix th:nth-child(2),table.cpTable.cpBuilderMatrix td:nth-child(2){width:145px;min-width:145px;max-width:145px}table.cpTable.cpBuilderMatrix th:nth-child(3),table.cpTable.cpBuilderMatrix td:nth-child(3){width:180px;min-width:180px;max-width:180px}table.cpTable.cpBuilderMatrix th:nth-child(4),table.cpTable.cpBuilderMatrix td:nth-child(4){width:300px;min-width:300px;max-width:300px}table.cpTable.cpBuilderMatrix th.cpBuilderDayHead,table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell{width:90px;min-width:90px;max-width:90px}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell{padding:5px!important}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell.required{background:rgba(145,203,81,.3)}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell.conditional{background:rgba(255,225,53,.34)}table.cpTable.cpBuilderMatrix td.cpBuilderScheduleCell.not_scheduled{background:rgba(255,255,255,.26)}.cpBuilderDayHead{display:grid;grid-template-columns:minmax(0,1fr) 24px;align-items:center;gap:4px}.cpBuilderDayName{width:100%;min-width:0;min-height:30px;border:1px solid rgba(25,60,45,.16);border-radius:7px;padding:4px 5px;text-align:center;background:#fff;color:var(--ink);font-size:10px;font-weight:800}.cpBuilderDayRemove{border:0;border-radius:6px;background:rgba(255,255,255,.65);color:#8c3c34;width:22px;height:24px;padding:0;font-size:15px}.cpBuilderPolicy{width:100%;min-width:0;min-height:36px;padding:5px 3px!important;font-size:9px!important;font-weight:800;border-radius:7px!important}.cpBuilderPolicy.required{background:#e5f2d9!important;border-color:#a6cd83!important;color:#345e22}.cpBuilderPolicy.conditional{background:#fff1ad!important;border-color:#e6d16b!important;color:#735a00}.cpBuilderPolicy.not_scheduled{background:rgba(255,255,255,.72)!important;border-color:rgba(25,60,45,.12)!important;color:#647168}.cpBuilderTextCell{display:grid;gap:6px}.cpBuilderTextCell .cpInput,.cpBuilderItemCell .cpInput{min-width:0;min-height:35px;padding:7px 8px;font-size:10px}.cpBuilderItemCell{display:grid;gap:6px}.cpBuilderItemCell textarea{min-height:58px;resize:vertical}.cpBuilderConfigList{display:grid;gap:9px}.cpBuilderConfigRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:8px;align-items:start;padding:10px;border:1px solid rgba(25,60,45,.1);border-radius:12px;background:rgba(255,255,255,.35)}.cpBuilderConfigRow .cpInput{min-width:0}.cpBuilderConfigRow .cpBuilderLong{grid-column:span 2}.cpBuilderDelete{min-height:35px}.cpBuilderSectionText{font-size:10px;color:var(--muted);line-height:1.5}.cpBuilderMatrix .cpOppe{justify-content:center}@media(max-width:760px){.cpPatientSummary{grid-template-columns:repeat(2,minmax(0,1fr))}.cpBuilderConfigRow{grid-template-columns:1fr}.cpBuilderConfigRow .cpBuilderLong{grid-column:auto}}@media(max-width:1080px){.cpGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpKpis,.cpScoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpCellDetail{grid-template-columns:1fr 1fr}}@media(max-width:650px){.cpGrid,.cpKpis,.cpScoreGrid,.cpCriterionList,.cpFormGrid{grid-template-columns:1fr}.cpHead h3{font-size:23px}.cpFormGrid .span2{grid-column:auto}.cpCellDetail,.cpVar{grid-template-columns:1fr}.cpCellDetail .cpWide,.cpVar .cpField.full,.cpVarHead{grid-column:auto}.cpRecord{grid-template-columns:1fr}.cpRecordRight{justify-content:flex-start}.cpSectionHead{align-items:flex-start}}.cpPpaGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px}.cpPpaGrid .cpField{min-width:0}.cpPpaGrid .cpField label{line-height:1.4;color:#506359;font-size:10px;font-weight:850}.cpPpaGrid .cpField input{min-width:0}.cpAuditWrap{overflow:visible!important;max-height:none!important;max-width:100%;width:100%}table.cpTable.cpAuditTable{width:100%;min-width:0;max-width:100%;table-layout:fixed}table.cpTable.cpAuditTable th:nth-child(1),table.cpTable.cpAuditTable td.cpChoiceCell{width:auto!important;min-width:0!important;max-width:none!important}table.cpTable.cpAuditTable th:nth-child(2),table.cpTable.cpAuditTable td:nth-child(2){width:auto!important;min-width:0!important;max-width:none!important}table.cpTable.cpAuditTable th.cpDayCol,table.cpTable.cpAuditTable td.cpCell{width:auto!important;min-width:0!important;max-width:none!important;padding-left:1px!important;padding-right:1px!important;text-align:center}table.cpTable.cpAuditTable td.cpChoiceCell{padding:9px 8px!important}.cpChoiceToggle{white-space:nowrap;gap:6px;font-size:10px}.cpChoiceToggle input{width:14px;height:14px}.cpChoiceHint{margin-left:20px;font-size:8px}.cpCellControls{gap:1px!important;white-space:nowrap}.cpCell .cpMark{width:20px;min-width:20px;height:24px;padding:0;border-radius:6px;font-size:11px}.cpCell .cpCellEdit{width:11px;min-width:11px;padding:0;font-size:10px;line-height:1}.cpCell .cpTiny{font-size:8px}table.cpTable.cpAuditTable th.cpDayCol{font-size:9px;padding:7px 0!important;letter-spacing:0;text-transform:none}table.cpTable.cpAuditTable td.cpCell{font-size:9px}@media(max-width:900px){.cpPpaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.cpPpaGrid{grid-template-columns:1fr}.cpChoiceToggle{white-space:normal}}.cpAdditionalPhase{background:rgba(255,255,255,.94)!important;color:#52675c!important}.cpAdditionalPhase .cpMark{background:rgba(255,255,255,.92);border-color:rgba(25,60,45,.19)}.cpAdditionalPhase .cpCellEdit{color:#6d7a72}.cpAdditionalPhasePanel{margin-top:16px;padding-top:8px;border-top:1px solid rgba(25,60,45,.1)}.cpPhaseToggleList{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.cpPhaseToggle{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:start;padding:10px;border:1px solid rgba(25,60,45,.13);border-radius:12px;background:rgba(255,255,255,.4);cursor:pointer}.cpPhaseToggle.active{background:rgba(255,255,255,.82);border-color:rgba(15,118,86,.35);box-shadow:inset 0 0 0 1px rgba(15,118,86,.06)}.cpPhaseToggle input{margin:2px 0 0;width:15px;height:15px;accent-color:var(--accent)}.cpPhaseToggle span{display:grid;gap:4px;min-width:0}.cpPhaseToggle strong{font-size:10px;color:#244d3b}.cpPhaseToggle small{font-size:9px;color:var(--muted);line-height:1.4}.cpPhaseToggle em{font-style:normal;font-size:9px;font-weight:850;color:#7b867f;white-space:nowrap}.cpPhaseToggle.active em{color:var(--accent2)}@media(max-width:760px){.cpPhaseToggleList{grid-template-columns:1fr}}"
 
-function normalizeCatalog(raw: any): Template[] {
-  return (raw?.pathways || []).map((row: any[]) => {
-    const [code, name, icd10, source_filename, status, version, days, rawItems, fields, notes, scoring_rules] = row
-    return {
-      code, name, icd10: icd10 || '', source_filename, status, version, days,
-      items: (rawItems || []).map((it: any[]) => ({
-        id: it[0], section: it[1] || '', profession: it[2] || '', choice: it[3] || '',
-        stage: it[4] || '', label: it[5] || '', detail: it[6] || '',
-        schedule: days.map((day: string, i: number) => ({
-          day, policy: it[7]?.[i] === 'R' ? 'required' : it[7]?.[i] === 'C' ? 'conditional' : 'not_scheduled',
-        })), oppe: false,
-      })),
-      clinical_fields: (fields || []).map((f: any[], i: number) => ({
-        id: 'source_field_' + i, label: f[0] || ('Data klinis ' + (i + 1)),
-        hint: f[1] || '', code_label: f[2] || '', additional_label: f[3] || '',
-      })),
-      source_notes: notes || [],
-      scoring_rules: scoring_rules || {
-        completion_threshold_pct: 85, compliance_target_pct: 100,
-        completion_definition: 'Keterisian item wajib dan kondisional yang telah diputuskan.',
-        compliance_definition: 'Item sesuai dibagi seluruh item yang telah dinilai, dikalikan 100%.',
-        variation_required: true,
-        variation_definition: 'Variasi wajib dilengkapi tanggal, alasan, dan justifikasi.',
-        inclusion_mode: 'all', inclusion_criteria: [], source_section_d: [],
-      },
-    } as Template
-  })
-}
-
-async function fetchCatalog(): Promise<Template[]> {
-  const partNames = ['01', '02', '03', '04']
-  const parts = await Promise.all(partNames.map(async (part) => {
-    const response = await fetch(BASE_PATH + '/clinical-pathway-catalog-' + part + '.b64', { cache: 'force-cache' })
-    if (!response.ok) throw new Error('Master CP ' + part + ' tidak dapat dimuat (HTTP ' + response.status + ').')
-    return (await response.text()).trim()
-  }))
-  const compressed = Uint8Array.from(atob(parts.join('')), (c) => c.charCodeAt(0))
-  const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'))
-  const catalog = JSON.parse(await new Response(stream).text())
-  return normalizeCatalog(catalog)
-}
-
 function clone<T>(value: T): T { return JSON.parse(JSON.stringify(value)) }
 function n(value: unknown): number { const x = Number(value); return Number.isFinite(x) ? x : 0 }
 function fmtDate(value?: string | null): string {
@@ -240,8 +198,9 @@ function calcClient(form: AuditForm) {
     completionPass, compliancePass, sectionDPass, oppeCells, oppeMissing }
 }
 
-function fromDatabase(row: any, fallback: Template, roomName: string): AuditForm {
+function fromDatabase(row: any, fallback: Template | null, roomName: string): AuditForm {
   const t = row.template_snapshot && row.template_snapshot.items ? row.template_snapshot as Template : fallback
+  if (!t) throw new Error('Snapshot Clinical Pathway pada audit ini tidak tersedia dan master penggantinya belum dimuat.')
   return {
     id: row.id, room_id: Number(row.room_id), template: clone(t), patient_name: row.patient_name || '',
     medical_record_no: row.medical_record_no || '', sex: row.sex || '', date_of_birth: row.date_of_birth || '',
@@ -255,7 +214,6 @@ function fromDatabase(row: any, fallback: Template, roomName: string): AuditForm
 }
 
 export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin, userName, onBack }: Props) {
-  const [catalog, setCatalog] = useState<Template[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
   const [masterReady, setMasterReady] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -291,7 +249,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [staffAttributions, setStaffAttributions] = useState<Record<string, string>>({})
   const [savedStaffAttributions, setSavedStaffAttributions] = useState<Record<string, string>>({})
 
-  const selectedTemplate = templates.find((x) => x.code === selectedCode) || catalog.find((x) => x.code === selectedCode) || null
+  const selectedTemplate = templates.find((x) => x.code === selectedCode) || null
   const roomNames = useMemo(() => new Map(rooms.map((r) => [Number(r.id), r.name])), [rooms])
   const score = useMemo(() => form ? calcClient(form) : null, [form])
   const activeAdditionalPhases = form ? additionalPhaseOptions(form.template).filter((phase) => (form.additional_phases_json || []).includes(phase.key)) : []
@@ -356,62 +314,37 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
   const loadTemplates = useCallback(async () => {
     setLoading(true)
+    setTemplates([])
+    setMasterReady(false)
     setMessage('')
     try {
-      const source = await fetchCatalog()
-      setCatalog(source)
-      let remote: any[] = []
-      let remoteError: any = null
-      const first = await q().from('clinical_pathway_templates').select('*').order('name')
-      remoteError = first.error
-      remote = first.data || []
-      if (!remoteError && isAdmin) {
-        const codes = new Set(remote.map((r) => r.code))
-        const missing = source.filter((t) => !codes.has(t.code))
-        if (missing.length) {
-          const user = await sb.auth.getUser()
-          const actor = user.data.user?.id || null
-          const { error: seedError } = await q().from('clinical_pathway_templates').insert(missing.map((t) => ({
-            code: t.code, name: t.name, icd10: t.icd10, status: t.status, version: t.version,
-            template_json: t, source_filename: t.source_filename, created_by: actor, updated_by: actor,
-          })))
-          if (seedError) {
-            // Concurrent first-open is harmless if another Super Admin inserted the same master.
-            const second = await q().from('clinical_pathway_templates').select('*').order('name')
-            if (second.error) throw seedError
-            remote = second.data || []
-          } else {
-            const second = await q().from('clinical_pathway_templates').select('*').order('name')
-            if (second.error) throw second.error
-            remote = second.data || []
-          }
-        }
-      }
+      // Supabase is the sole source of truth. Never restore deleted CPs from bundled assets.
+      const { data, error } = await q().from('clinical_pathway_templates').select('*').order('name')
+      if (error) throw error
       const mapRow = (row: any): Template => ({
         ...(row.template_json || {}),
         code: row.code, name: row.name, icd10: row.icd10 || '',
         status: row.status, version: row.version,
         source_filename: row.source_filename || row.template_json?.source_filename || '',
       })
-      if (remoteError) {
-        setTemplates(source)
-        setMasterReady(false)
-        setMessage('Format master CP belum dapat diverifikasi di Supabase. Data audit belum dapat disimpan sampai koneksi master pulih.')
-        setMessageKind('error')
-      } else {
-        const byCode = new Map(remote.map((r) => [r.code, mapRow(r)]))
-        const sourceCodes = new Set(source.map((t) => t.code))
-        const shown = [...source.map((t) => byCode.get(t.code) || t), ...remote.filter((row) => !sourceCodes.has(String(row.code))).map(mapRow)]
-          .filter((t) => t.status !== 'retired' || isAdmin).sort((a, b) => a.name.localeCompare(b.name, 'id'))
-        setTemplates(shown)
-        setMasterReady(source.every((t) => byCode.has(t.code)))
-        if (!source.every((t) => byCode.has(t.code))) {
-          setMessage('Sebagian master CP belum tersinkron di Supabase. Super Admin perlu membuka modul ini untuk menyinkronkan format sebelum audit disimpan.')
-          setMessageKind('error')
-        }
+      const shown = (data || [])
+        .map(mapRow)
+        .filter((template: Template) => template.status !== 'retired' || isAdmin)
+        .sort((a: Template, b: Template) => a.name.localeCompare(b.name, 'id'))
+      setTemplates(shown)
+      setSelectedCode((current) => shown.some((template: Template) => template.code === current) ? current : '')
+      setMasterReady(true)
+      if (shown.length === 0) {
+        setMessage(isAdmin
+          ? 'Belum ada format Clinical Pathway tersimpan. Tambahkan format baru setelah dokumen pengganti siap.'
+          : 'Belum ada format Clinical Pathway yang tersedia. Hubungi Super Admin setelah format baru diunggah.')
+        setMessageKind('info')
       }
     } catch (e: any) {
-      setMessage(e?.message || 'Gagal memuat master Clinical Pathway.')
+      setTemplates([])
+      setSelectedCode('')
+      setMasterReady(false)
+      setMessage('Master Clinical Pathway tidak dapat dimuat dari Supabase. Daftar tidak ditampilkan untuk mencegah penggunaan format yang kedaluwarsa. ' + (e?.message || ''))
       setMessageKind('error')
     } finally {
       setLoading(false)
@@ -474,8 +407,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     try {
       const { data, error } = await q().from('clinical_pathway_audits').select('*').eq('id', row.id).single()
       if (error) throw error
-      const fallback = templates.find((x) => x.code === row.template_code) || catalog.find((x) => x.code === row.template_code)
-      if (!fallback) throw new Error('Master CP untuk audit ini tidak ditemukan.')
+      const fallback = templates.find((x) => x.code === row.template_code) || null
       setForm(fromDatabase(data, fallback, roomNames.get(Number(data.room_id)) || ''))
       const { data: links, error: linkError } = await q().from('staff_entity_attributions')
         .select('field_key,staff_id')
@@ -811,7 +743,6 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       if(!result.data)throw new Error('Master CP tidak mengembalikan hasil simpan.')
       const normalized:Template={...(result.data.template_json||saved),code:result.data.code,name:result.data.name,icd10:result.data.icd10||'',status:result.data.status,version:result.data.version,source_filename:result.data.source_filename||saved.source_filename||''}
       setTemplates((old)=>[...old.filter((item)=>item.code!==normalized.code),normalized].sort((a,b)=>a.name.localeCompare(b.name,'id')))
-      setCatalog((old)=>old.map((item)=>item.code===normalized.code?normalized:item))
       setMasterReady(true);setSelectedCode(normalized.code);setBuilder(null);setBuilderIsNew(false);setScreen(builderReturnScreen)
       setMessage((builderIsNew?'Clinical Pathway baru':'Format CP')+' versi '+nextVersion+' berhasil disimpan. Audit terdahulu tetap memakai snapshot versi sebelumnya.');setMessageKind('info')
     } catch(e:any){setMessage('Gagal menyimpan format CP: '+(e?.message||'Kesalahan server.'));setMessageKind('error')}
@@ -905,7 +836,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         </button>)}
       </div>
       {filteredTemplates.length === 0 && <div className="cpGlass cpEmpty">Tidak ada CP yang cocok dengan pencarian.</div>}
-      <div className="cpNotice info">Format bersumber dari 6 dokumen CP yang diberikan. Penanda hijau pada sumber dipetakan sebagai wajib, kuning sebagai kondisional, dan sel tanpa penanda sebagai tidak dijadwalkan. Isi item dan catatan sumber tidak digantikan oleh template generik.</div>
+      <div className="cpNotice info">Daftar ini hanya menampilkan format Clinical Pathway yang tersimpan aktif di database AUREKA. Format yang dihapus tidak akan dimuat kembali secara otomatis.</div>
     </>}
 
     {screen === 'diagnosis' && selectedTemplate && <>
