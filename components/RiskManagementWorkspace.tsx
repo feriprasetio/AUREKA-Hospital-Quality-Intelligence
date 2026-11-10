@@ -953,7 +953,7 @@ export default function RiskManagementWorkspace({
               <label>Jenis hubungan <select value={linkForm.type} onChange={e => setLinkForm(f => ({ ...f, type: e.target.value }))}>{RELATION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select></label>
               <label className="full">Dasar / penjelasan relasi <input value={linkForm.description} onChange={e => setLinkForm(f => ({ ...f, description: e.target.value }))} placeholder="Tinjau bukti relasi atau gunakan salah satu kandidat berikut" /></label>
             </div>
-            <div className="rmFormFooter"><span className="rmFormNote">Record sumber tidak diubah oleh sistem rekomendasi. Periksa mekanisme hubungan sebelum mengaktifkan konektor.</span><button type="button" className="rmButton primary" disabled={saving || !connectorPrimary || !linkForm.target} onClick={() => void addLink()}>＋ Aktifkan konektor</button></div>
+            <div className="rmFormFooter"><button type="button" className="rmButton primary" disabled={saving || !connectorPrimary || !linkForm.target} onClick={() => void addLink()}>＋ Aktifkan konektor</button></div>
           </div>
           {connectorPrimary ? <div className="rmSelectionBar">
             <div><b>Risiko utama · {connectorPrimary.risk_level}</b><span>{connectorPrimary.risk_event} · {connectorPrimary.unit_name} · sumber {connectorPrimary.source_sheet || 'Input AUREKA'}{connectorPrimary.source_row_number ? ' baris ' + connectorPrimary.source_row_number : ''}</span></div>
@@ -1015,7 +1015,7 @@ export default function RiskManagementWorkspace({
         </LiquidGlass></RmModal>}
       </>}
 
-      <div className="rmFooterNote">Kerangka analisis menggunakan Kepmenkes HK.01.07/MENKES/1354/2024 untuk selera risiko. Tindakan dan persetujuan tidak menggantikan penetapan formal kebijakan manajemen risiko rumah sakit.</div>
+      
     </div>
   )
 }
