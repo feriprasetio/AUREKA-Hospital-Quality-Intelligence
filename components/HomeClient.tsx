@@ -89,6 +89,9 @@ export default function HomeClient(){
   document.documentElement.dataset.theme='solid'
   document.documentElement.style.colorScheme='light'
  },[])
+ const [uiTheme,setUiTheme]=useState<'arktik'|'klasik'>('arktik')
+ useEffect(()=>{if(typeof document!=='undefined'&&document.documentElement.getAttribute('data-skin')==='klasik')setUiTheme('klasik')},[])
+ const toggleUiTheme=()=>{const next=uiTheme==='arktik'?'klasik':'arktik';setUiTheme(next);document.documentElement.setAttribute('data-skin',next);try{localStorage.setItem('aureka-theme',next)}catch{}}
  useEffect(()=>{rooms().then(setRoomsList);const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setView(p.must_change_password?'force-password':'workspace')}})},[])
  useEffect(()=>{
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
@@ -726,6 +729,9 @@ export default function HomeClient(){
     </div>}
    </div>
     <CommandPalette items={commandItems} searchResults={commandSearchItems} contextLabel={currentContainer} onSearchChange={dispatchWorkspaceSearch}/>
+   <button type="button" className="workspaceHeaderIcon workspaceThemeButton" title={uiTheme==='arktik'?'Ganti ke tema klasik':'Ganti ke tema kaca Arktik'} aria-label={uiTheme==='arktik'?'Ganti ke tema klasik':'Ganti ke tema kaca Arktik'} onClick={toggleUiTheme}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+   </button>
    <button type="button" className="workspaceHeaderIcon workspaceFullscreenButton" title="Layar penuh" aria-label="Aktifkan atau keluar dari layar penuh" onClick={()=>{if(typeof document==='undefined')return;if(document.fullscreenElement){void document.exitFullscreen().catch(()=>undefined)}else if(document.documentElement.requestFullscreen){void document.documentElement.requestFullscreen().catch(()=>undefined)}}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
    </button>
