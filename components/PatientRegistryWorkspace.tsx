@@ -101,7 +101,7 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms: boolean
   onOpenLogbook: () => void
 }) {
-  const [roomFilter, setRoomFilter] = useState(canViewAllRooms ? 'all' : String(initialRoomId ?? ''))
+  const [roomFilter, setRoomFilter] = useState(String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
@@ -112,7 +112,7 @@ export default function PatientRegistryWorkspace({
   const [error, setError] = useState('')
 
   const roomNames = useMemo(() => new Map(rooms.map((room) => [Number(room.id), room.name])), [rooms])
-  const effectiveRoom = canViewAllRooms ? roomFilter : String(initialRoomId ?? '')
+  const effectiveRoom = roomFilter
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
@@ -124,7 +124,8 @@ export default function PatientRegistryWorkspace({
         .eq('profile_year', Number(year))
         .order('record_date', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
-      if (effectiveRoom !== 'all' && effectiveRoom) request = request.eq('room_id', Number(effectiveRoom))
+      if (effectiveRoom) request = request.eq('room_id', Number(effectiveRoom))
+      else throw new Error('Unit kerja belum tersedia untuk akun ini. Hubungi administrator untuk pemetaan unit.')
       const from = page * PAGE_SIZE
       const { data, count, error: queryError } = await request.range(from, from + PAGE_SIZE - 1)
       if (queryError) throw queryError
@@ -139,6 +140,7 @@ export default function PatientRegistryWorkspace({
     }
   }, [effectiveRoom, page, roomNames, year])
 
+  useEffect(() => { if (!roomFilter && rooms.length) setRoomFilter(String(initialRoomId ?? rooms[0].id)) }, [roomFilter, rooms, initialRoomId])
   useEffect(() => { void load() }, [load])
 
   const filtered = useMemo(() => {
@@ -170,7 +172,7 @@ export default function PatientRegistryWorkspace({
         .prKpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
         .prKpi,.prPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px}
         .prKpi{padding:14px 16px}.prKpi span{display:block;color:var(--muted,#718078);font-size:11px}.prKpi strong{display:block;font-size:25px;margin-top:5px}
-        .prFilters{padding:14px}.prFilters label{display:grid;gap:5px;color:var(--muted,#718078);font-size:10px;font-weight:700}
+        .prFilters{padding:14px}.prFilters label{display:grid;gap:5px;color:var(--muted,#718078);font-size:10px;font-weight:700}.prUnitScope{display:grid;gap:5px;min-width:170px;padding:3px 0}.prUnitScope span{color:var(--muted,#718078);font-size:10px;font-weight:700}.prUnitScope strong{font-size:12px;color:var(--ink,#18372b)}
         .prFilters input,.prFilters select{min-height:39px;min-width:145px;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink,#18372b);font-size:12px}
         .prSearch{flex:1;min-width:210px}
         .prTableWrap{overflow:auto;max-width:100%;border-radius:15px}
@@ -203,12 +205,7 @@ export default function PatientRegistryWorkspace({
       </div>
 
       <div className="prPanel prFilters">
-        {canViewAllRooms && <label>Unit pelayanan
-          <select value={roomFilter} onChange={(event) => { setRoomFilter(event.target.value); setPage(0) }}>
-            <option value="all">Seluruh unit yang dapat diakses</option>
-            {rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}
-          </select>
-        </label>}
+        <div className="prUnitScope"><span>Unit pelayanan</span><strong>{rooms.find((room) => String(room.id) === roomFilter)?.name || 'Unit belum dipetakan'}</strong></div>
         <label>Tahun
           <select value={year} onChange={(event) => { setYear(event.target.value); setPage(0) }}>
             {[2025, 2026, 2027, 2028, 2029].map((item) => <option key={item} value={String(item)}>{item}</option>)}
