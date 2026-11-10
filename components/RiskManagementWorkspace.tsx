@@ -263,6 +263,8 @@ export default function RiskManagementWorkspace({
       setUnitFilter(current => {
         if (scopedToUnit) return currentRoom?.name || (incomingRisks.length ? sourceUnitLabel(incomingRisks[0]) : '')
         if (current && current !== 'all' && incomingRisks.some(risk => sourceUnitLabel(risk) === current)) return current
+        // Peran yang boleh melihat semua unit: tetap "Semua unit" agar peta risiko tidak diam-diam hanya satu unit.
+        if (!scopedToUnit && (current === 'all' || !current)) return 'all'
         if (currentRoom?.name && incomingRisks.some(risk => sourceUnitLabel(risk) === currentRoom.name)) return currentRoom.name
         return incomingRisks.length ? sourceUnitLabel(incomingRisks[0]) : ''
       })
@@ -707,6 +709,7 @@ export default function RiskManagementWorkspace({
 
   const renderMatrix = (large = false) => (
     <div className={'rmMatrixWrap' + (large ? ' large' : '')}>
+      <p className="rmMatrixScope" style={{ margin: '0 0 8px', fontSize: 13, opacity: .8 }}>Cakupan peta: <b>{unitFilter === 'all' || !unitFilter ? 'Semua ruangan / unit' : unitFilter}</b> · {risks.filter(r => unitFilter === 'all' || !unitFilter || sourceUnitLabel(r) === unitFilter).length.toLocaleString('id-ID')} risiko{canManageAll && unitFilter && unitFilter !== 'all' ? <> · <button type="button" className="rmButton subtle" style={{ padding: '2px 8px' }} onClick={() => setUnitFilter('all')}>Tampilkan semua unit</button></> : null}</p>
       <div className="rmMatrixYAxis"><span>LEVEL KEMUNGKINAN</span><b>Hampir pasti → Jarang</b></div>
       <div className="rmMatrix">
         <div className="rmMatrixHeader"><span></span>{IMPACT_LABELS.map((label, i) => <span key={label}><b>{i + 1}</b><small>{label}</small></span>)}</div>
@@ -947,7 +950,7 @@ export default function RiskManagementWorkspace({
           <div className="rmSectionHead"><div><span className="rmEyebrow">GRAPH RISIKO</span><h4>Konektor risiko utama</h4><p>Hanya risiko Sangat Tinggi yang dapat menjadi sumber konektor. Sistem mengusulkan risiko terkait dari seluruh sumber berdasarkan kecocokan teks pada peristiwa, penyebab, dampak, kontrol, dan sasaran. Usulan tidak aktif sampai diverifikasi dan ditambahkan.</p></div></div>
           <div className="rmLinkComposer">
             <div className="rmFormGrid">
-              <label>Ruangan / kelompok risiko utama <select aria-label="Unit risiko utama" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setSelectedRiskIds([]); setLinkForm(f => ({ ...f, source: '', target: '', description: '' })); }}><option value="">Pilih ruangan/kelompok sumber</option>{sourceUnitOptions.map(renderSourceUnitOption)}</select></label>
+              <label>Ruangan / kelompok risiko utama <select aria-label="Unit risiko utama" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setSelectedRiskIds([]); setLinkForm(f => ({ ...f, source: '', target: '', description: '' })); }}><option value="">Pilih ruangan/kelompok sumber</option>{canManageAll && <option value="all">Semua ruangan / unit</option>}{sourceUnitOptions.map(renderSourceUnitOption)}</select></label>
               <label>Risiko utama · Sangat Tinggi <select value={linkForm.source} onChange={e => setLinkForm(f => ({ ...f, source: e.target.value, target: f.target === e.target.value ? '' : f.target, description: '' }))}><option value="">Pilih risiko utama</option>{primaryRisksInUnit.map(renderRiskOption)}</select></label>
               <label>Risiko terkait <select value={linkForm.target} onChange={e => setLinkForm(f => ({ ...f, target: e.target.value }))}><option value="">Pilih target dari seluruh register</option>{risks.filter(r => !connectorPrimary || r.id !== connectorPrimary.id).map(renderRiskOption)}</select></label>
               <label>Jenis hubungan <select value={linkForm.type} onChange={e => setLinkForm(f => ({ ...f, type: e.target.value }))}>{RELATION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select></label>

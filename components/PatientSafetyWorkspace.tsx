@@ -95,7 +95,13 @@ const INCIDENT_SECTIONS: { letter: string; title: string; fields: IncidentField[
   ]},
 ]
 const INCIDENT_FIELDS = INCIDENT_SECTIONS.flatMap(s => s.fields)
-const INCIDENT_REQUIRED = INCIDENT_FIELDS.map(f => f.code)
+// Isian administratif (penjamin, tanggal/jam masuk, kejadian di ruangan lain) tidak menghalangi pengiriman.
+const INCIDENT_OPTIONAL = new Set(['C5', 'C6', 'C7', 'D5'])
+// Untuk KNC/KPC tidak ada pasien yang terpapar/cedera, jadi identitas korban tidak wajib.
+const PATIENT_FIELDS = new Set(['C1', 'C2', 'C3', 'C4'])
+const noPatientRequired = (type: string) => /\(KNC\)|\(KPCs?\)/.test(type)
+const incidentRequired = (data: Record<string, string>) => INCIDENT_FIELDS.map(f => f.code).filter(code =>
+  !INCIDENT_OPTIONAL.has(code) && !(PATIENT_FIELDS.has(code) && noPatientRequired(String(data.A7 || ''))))
 
 const INVESTIGATION_FIELDS: IncidentField[] = [
   { code: '1', label: 'Tipe Insiden dan Subtipe Insiden', type: 'text' },
@@ -475,7 +481,9 @@ export default function PatientSafetyWorkspace({
     const values = responses.map(row => Number(row.answers?.E1)).filter(value => Number.isFinite(value) && value >= 1 && value <= 5)
     return values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2) : '—'
   }, [responses])
-  const missingIncident = useMemo(() => INCIDENT_REQUIRED.filter(code => !String(incidentData[code] || '').trim()), [incidentData])
+  const missingIncident = useMemo(() => incidentRequired(incidentData).filter(code => !String(incidentData[code] || '').trim()), [incidentData])
+  // Tanda "wajib diisi" baru muncul setelah pengguna mencoba mengirim.
+  const [showMissing, setShowMissing] = useState(false)
   const missingSurvey = useMemo(() => SURVEY_REQUIRED.filter(code => !Object.prototype.hasOwnProperty.call(surveyAnswers, code) || surveyAnswers[code] === ''), [surveyAnswers])
   const roomOptions = rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
 
@@ -552,11 +560,19 @@ export default function PatientSafetyWorkspace({
     setError('')
     setMessage('')
     setConfirmClose(false)
+    setShowMissing(false)
     setFormOpen(true)
   }
+  // Tombol "Buat Laporan IKP" di Ringkasan berpindah tab; bila halaman tab dimuat ulang, buka form-nya di sini.
+  useEffect(() => {
+    if (tab !== 'incidents') return
+    try { if (sessionStorage.getItem('aureka-ikp-new') === '1') { sessionStorage.removeItem('aureka-ikp-new'); if (!formOpen) newIncident() } } catch { /* abaikan */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
   const saveIncident = async (nextStatus: IncidentStatus) => {
     if (saving) return
     if (nextStatus !== 'draft' && missingIncident.length) {
+      setShowMissing(true)
       setError('Laporan belum lengkap. Lengkapi ' + missingIncident.length + ' field wajib sebelum mengirim.')
       return
     }
@@ -748,13 +764,13 @@ export default function PatientSafetyWorkspace({
     const value = incidentData[field.code] || ''
     const disabled = incidentLocked || saving
     const wide = field.type === 'textarea' || field.type === 'radio'
-    const fieldInvalid = missingIncident.includes(field.code)
+    const fieldInvalid = showMissing && missingIncident.includes(field.code)
     const fieldErrorId = `incident-field-${field.code}-error`
     const fieldDescribedBy = [field.hint ? `incident-field-${field.code}-hint` : '', fieldInvalid ? fieldErrorId : ''].filter(Boolean).join(' ') || undefined
     const reporterOptions = staffOptions.filter(staff => staff.room_name === (incidentData.E2 || ''))
     const reporterSelectValue = incidentStaffId || (value ? '__unmapped__' : '')
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
-      <label className="psLabel" id={`incident-field-${field.code}-label`} htmlFor={`incident-field-${field.code}`}>{field.code} · {field.label} <span className="psRequired">*</span></label>
+      <label className="psLabel" id={`incident-field-${field.code}-label`} htmlFor={`incident-field-${field.code}`}>{field.code} · {field.label} {incidentRequired(incidentData).includes(field.code) ? <span className="psRequired">*</span> : <small style={{ fontWeight: 500, opacity: .7 }}>(opsional)</small>}</label>
       {field.hint ? <div className="psHint" id={`incident-field-${field.code}-hint`}>{field.hint}</div> : null}
       {field.code === 'E1' ? <><select id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={incidentReporterExternal ? '__external__' : reporterSelectValue} disabled={disabled} onChange={event => {
         const value = event.target.value
@@ -862,7 +878,8 @@ export default function PatientSafetyWorkspace({
     </div>
 
   const surveyCompletion = Math.round(((SURVEY_REQUIRED.length - missingSurvey.length) / SURVEY_REQUIRED.length) * 100)
-  const incidentCompletion = Math.round(((INCIDENT_REQUIRED.length - missingIncident.length) / INCIDENT_REQUIRED.length) * 100)
+  const incidentRequiredCount = incidentRequired(incidentData).length
+  const incidentCompletion = Math.round(((incidentRequiredCount - missingIncident.length) / Math.max(1, incidentRequiredCount)) * 100)
   const statusLabel = (status: string) => ({
     draft: 'Draft', submitted: 'Dikirim', under_review: 'Review', investigation: 'Investigasi', active: 'Berjalan',
     action_planned: 'Rencana Tindakan', closed: 'Closed',
@@ -876,7 +893,7 @@ export default function PatientSafetyWorkspace({
       title="Alur kerja keselamatan pasien"
       description="Pelaporan IKP, investigasi dan pembelajaran insiden, serta pemetaan budaya keselamatan dan kesejahteraan staf dalam satu workspace."
       actions={<div className="psActions">
-        <span className="psPill green">{canManageWorkflow ? 'Workflow Manager' : 'PIC Workspace'}</span>
+        <span className="psPill green">{canManageWorkflow ? 'Pengelola alur' : 'Ruang kerja PIC'}</span>
         <button type="button" className="psBtn" disabled={loading} onClick={() => void loadData()}>{loading ? 'Memuat…' : '↻ Refresh'}</button>
       </div>}
     />
@@ -917,7 +934,7 @@ export default function PatientSafetyWorkspace({
           <div className="psRcaNode"><b>04 · Tindakan</b><span>Rekomendasi dan pengurangan risiko.</span></div>
           <div className="psRcaNode"><b>05 · Pembelajaran</b><span>Efektivitas perbaikan dan closure.</span></div>
         </div>
-        <div className="psActions"><button type="button" className="psBtn primary" onClick={() => { newIncident(); setTab('incidents') }}>＋ Buat Laporan IKP</button>
+        <div className="psActions"><button type="button" className="psBtn primary" onClick={() => { try { sessionStorage.setItem('aureka-ikp-new', '1') } catch { /* abaikan */ } newIncident(); setTab('incidents') }}>＋ Buat Laporan IKP</button>
           {canManageWorkflow ? <button type="button" className="psBtn" onClick={() => setTab('investigation')}>Buka Workspace Investigasi</button> : null}</div>
       </LiquidGlass>
       <LiquidGlass className="psPanel">

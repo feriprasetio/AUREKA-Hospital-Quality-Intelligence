@@ -231,7 +231,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }, [roomId, onRoomChange, initialRoomId, canViewAllRooms])
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
-  const [indicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
+  const [rawIndicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
+  // Laporan PIC berstatus "ready" ikut dihitung (default), karena validasi dilakukan terpisah per bulan.
+  // Bisa dimatikan untuk melihat capaian yang hanya berasal dari data tervalidasi.
+  const [includeReady, setIncludeReady] = useState(true)
+  const rawReadyCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'ready').length, [rawIndicatorData])
+  const rawValidatedCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'validated').length, [rawIndicatorData])
+  const indicatorData = useMemo<IndicatorDataset>(() => includeReady
+    ? { ...rawIndicatorData, rows: rawIndicatorData.rows.map((row) => String(row.status ?? '').toLowerCase() === 'ready' ? { ...row, status: 'validated' } : row) }
+    : rawIndicatorData, [rawIndicatorData, includeReady])
   const [pathwayData, setPathwayData] = useState<PathwayDataset>([])
   const [clinicalData, setClinicalData] = useState<ClinicalDataset>([])
   const [loading, setLoading] = useState(true)
@@ -594,8 +602,13 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             <div className="qraKpis">
               <Kpi label="Capaian Mutu Unit Secara Keseluruhan" value={overallIndicatorAchievement == null ? '—' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
               <Kpi label="Indikator aktif" value={formatCount(indicatorResults.length)} detail="Profil terbit dan aktif pada tahun terpilih" />
-              <Kpi label="Laporan final" value={formatCount(validatedCount)} detail="Seluruh laporan PIC masuk sebagai data final" />
-              <Kpi label="Pemeriksaan bulanan" value="Terpisah" detail="Validator mencatat pemeriksaan seluruh laporan satu kali setiap bulan" />
+              <Kpi label="Laporan masuk" value={formatCount(rawReadyCount + rawValidatedCount)} detail={formatCount(rawValidatedCount) + ' sudah divalidasi · ' + formatCount(rawReadyCount) + ' belum divalidasi'} />
+              <Kpi label="Dasar perhitungan" value={includeReady ? 'Semua laporan' : 'Tervalidasi saja'} detail={includeReady ? 'Laporan PIC yang belum divalidasi ikut dihitung' : 'Hanya data yang sudah divalidasi validator'} />
+            </div>
+            <div className="qraNotice" role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}><input type="checkbox" checked={includeReady} onChange={(event) => setIncludeReady(event.target.checked)} /> Hitung juga laporan yang belum divalidasi</label>
+              {includeReady && rawReadyCount > 0 && <span>Capaian di bawah memuat {formatCount(rawReadyCount)} laporan yang belum divalidasi; anggap sebagai capaian sementara sampai validasi bulanan selesai.</span>}
+              {!includeReady && rawValidatedCount === 0 && <span>Belum ada data tervalidasi untuk unit dan tahun ini, jadi capaian kosong.</span>}
             </div>
             <section className="qraPanel">
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3><p>Setiap persentase rasio menggunakan Σ numerator ÷ Σ denominator; bukan rerata sederhana antarbaris atau antarb ulan.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
