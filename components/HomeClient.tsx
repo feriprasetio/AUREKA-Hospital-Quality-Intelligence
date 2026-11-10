@@ -221,7 +221,7 @@ export default function HomeClient(){
   return groups
  },[admin,manager,role])
  const currentContainer=useMemo(()=>{
-  if(active==='home')return 'Ringkasan Mutu, Keselamatan & Risiko'
+  if(active==='home')return 'Halaman Utama'
   if(active==='quality')return qualityOppeOpen?'OPPE / FPPE':qualityResultsView?({indicators:'Audit Indikator Mutu · Hasil Capaian',pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<NonNullable<typeof qualityResultsView>,string>)[qualityResultsView]:clinicalPathwayOpen?'Audit Clinical Pathway · Form Logbook':qualityInitialContainer+' · Form Logbook'
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Laporan IKP',investigation:'Investigasi / RCA',survey:'Survei Budaya Keselamatan',responses:'Rekapan Survei'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register',mitigation:'RTP Terintegrasi',connections:'Konektor Risiko',fmea:'FMEA / HFMEA'} as Record<RiskWorkspaceTab,string>)[riskTab]
@@ -652,8 +652,8 @@ export default function HomeClient(){
   <div className="navLabel">Menu utama</div>
   <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'expanded':'')} key="home">
-    <button type="button" title="Ringkasan" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
-     <NavIcon id="home"/><span>Ringkasan</span>
+    <button type="button" title="Halaman Utama" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
+     <NavIcon id="home"/><span>Halaman Utama</span>
     </button>
    </div>
    {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=active===id&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(active===id?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
