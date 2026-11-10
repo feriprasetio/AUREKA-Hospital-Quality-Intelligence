@@ -16,7 +16,7 @@ test('HomeClient lazy-loads heavy workspaces rather than importing them into the
     'GeneralSettings',
     'OverviewDashboard',
     'MetadataStatisticsWorkspace',
-    'ClinicalWorkforceWorkspace',
+    'OppeAuditWorkspace',
   ]
   for (const moduleName of lazyModules) {
     assert.match(source, new RegExp(`const ${moduleName}=dynamic\\(\\(\\)=>import\\('`))
@@ -26,15 +26,17 @@ test('HomeClient lazy-loads heavy workspaces rather than importing them into the
   assert.match(source, /workspaceChunkLoading/)
 })
 
-test('staff workspace splits directory, team, and OPPE areas by the selected tab', () => {
-  const source = read('components/ClinicalWorkforceWorkspace.tsx')
-  for (const moduleName of ['StaffDirectoryWorkspace', 'StaffTeamWorkspace', 'OppeAuditWorkspace']) {
-    assert.match(source, new RegExp(`const ${moduleName}=dynamic\\(\\(\\)=>import\\('`))
+test('Metadata workspace separates the staff master directory from unit assignment tabs', () => {
+  const source = read('components/MetadataStatisticsWorkspace.tsx')
+  for (const moduleName of ['StaffDirectoryWorkspace', 'StaffTeamWorkspace']) {
+    assert.match(source, new RegExp(`const ${moduleName}\\s*=\\s*dynamic\\(\\(\\)\\s*=>\\s*import\\('`))
     assert.doesNotMatch(source, new RegExp(`^import ${moduleName} from `, 'm'))
   }
-  assert.match(source, /activeArea === 'directory' && isSuperAdmin/)
-  assert.match(source, /activeArea === 'team' && canOpenTeam/)
-  assert.match(source, /activeArea === 'oppe' && canOpenOppe/)
+  assert.match(source, /label: 'Direktori Induk SDM'/)
+  assert.match(source, /label: 'Daftar Tenaga Kerja'/)
+  assert.match(source, /label: 'Tim & Penugasan'/)
+  assert.match(source, /activeDirectoryTab === 'directory' && canOpenDirectory/)
+  assert.match(source, /activeDirectoryTab === 'team' && canOpenTeam/)
 })
 
 test('FPPE and Clinical Death audit are split from their parent workspaces', () => {
@@ -79,12 +81,13 @@ test('Excel import dialogs are split into on-demand chunks and remain mounted af
   assert.match(source, /else if\(key==='ponek'\)setPonekImportOpen\(true\)/)
 })
 
-test('analytics tabs load their large child workspaces independently', () => {
+test('Metadata tabs lazy-load profile, workforce list, and assignment workspaces independently', () => {
   const source = read('components/MetadataStatisticsWorkspace.tsx')
-  for (const moduleName of ['QualitySettings', 'StatisticsWorkspace', 'StaffDirectoryWorkspace']) {
-    assert.match(source, new RegExp(`const ${moduleName}=dynamic\\(\\(\\)=>import\\('`))
+  for (const moduleName of ['QualitySettings', 'StaffDirectoryWorkspace', 'StaffTeamWorkspace']) {
+    assert.match(source, new RegExp(`const ${moduleName}\\s*=\\s*dynamic\\(\\(\\)\\s*=>\\s*import\\('`))
     assert.doesNotMatch(source, new RegExp(`^import ${moduleName} from `, 'm'))
   }
+  assert.doesNotMatch(source, /StatisticsWorkspace|Statistik & Laporan/)
 })
 
 test('performance refactor does not add bundle tooling or change Supabase and clinical engines', () => {
