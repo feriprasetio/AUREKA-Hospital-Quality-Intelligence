@@ -889,7 +889,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       <div className="cpGrid">
         <LiquidGlass className="cpKpi"><span>Format CP tersedia</span><strong>{templates.filter((t) => t.status === 'published').length}</strong><small>Diagnosis sumber dan CP tambahan</small></LiquidGlass>
         <LiquidGlass className="cpKpi"><span>Total item master</span><strong>{templates.filter((t) => t.status === 'published').reduce((a, t) => a + t.items.length, 0).toLocaleString('id-ID')}</strong><small>Item dan jadwal dari dokumen sumber</small></LiquidGlass>
-        <LiquidGlass className="cpKpi"><span>Unit / ruangan</span><strong>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</strong><small>Disaring sesuai hak akses</small></LiquidGlass>
+        <LiquidGlass className="cpKpi"><span>Unit / ruangan</span><strong>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</strong></LiquidGlass>
       </div>
       {isAdmin && <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Pengelolaan master Clinical Pathway</h4></div><span className="cpBadge">Super Admin</span></div>
@@ -926,11 +926,11 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       <div className="cpGrid">
         <LiquidGlass className="cpKpi"><span>Item dalam format</span><strong>{selectedTemplate.items.length}</strong><small>Baris checklist dari sumber</small></LiquidGlass>
         <LiquidGlass className="cpKpi"><span>Hari / tahap</span><strong>{selectedTemplate.days.length}</strong><small>{selectedTemplate.days.join(' · ')}</small></LiquidGlass>
-        <LiquidGlass className="cpKpi"><span>Standar keterisian</span><strong>≥{selectedTemplate.scoring_rules.completion_threshold_pct}%</strong><small>Mengikuti Bagian D pada sumber</small></LiquidGlass>
-        <LiquidGlass className="cpKpi"><span>Target kepatuhan</span><strong>{selectedTemplate.scoring_rules.compliance_target_pct}%</strong><small>Dihitung dari item yang telah dinilai</small></LiquidGlass>
+        <LiquidGlass className="cpKpi"><span>Standar keterisian</span><strong>≥{selectedTemplate.scoring_rules.completion_threshold_pct}%</strong></LiquidGlass>
+        <LiquidGlass className="cpKpi"><span>Target kepatuhan</span><strong>{selectedTemplate.scoring_rules.compliance_target_pct}%</strong></LiquidGlass>
       </div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Audit pasien · {selectedTemplate.name}</h4><p>Daftar audit tersimpan langsung di Supabase. Pilih rekam audit untuk melanjutkan atau buat audit baru.</p></div><span className="cpBadge">{audits.length} rekam audit</span></div>
+        <div className="cpSectionHead"><div><h4>Audit pasien · {selectedTemplate.name}</h4></div><span className="cpBadge">{audits.length} rekam audit</span></div>
         {isAdmin && <div className="cpField cpSelect" style={{ marginBottom: 12 }}><label>Filter unit / ruangan</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit</option>{rooms.map(roomOption)}</select></div>}
         {auditLoading ? <div className="cpEmpty">Memuat audit…</div> : audits.length === 0 ? <div className="cpEmpty">Belum ada rekam audit untuk diagnosis ini pada ruang lingkup akses Anda.</div> :
           <div className="cpRecordList">{audits.map((a) => {
@@ -976,7 +976,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
                 <option value="">Pilih dari roster terkunci {field.profession ? '(' + humanizeProfession(field.profession) + ')' : ''}…</option>
                 {options.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code}</option>)}
               </select>
-              <small className="cpTiny">{linkedId ? 'ID tenaga AUREKA tertaut.' : savedName ? 'Nama pada snapshot audit: ' + savedName + '. Pilih identitas kanonik jika orang tersebut sudah ada pada roster unit.' : options.length ? 'Nama dipilih dari roster unit yang telah dikunci.' : 'Roster belum memiliki tenaga yang cocok untuk profesi ini pada unit audit.'}</small>
+              
             </div>
           })}
         </div>
@@ -992,7 +992,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       />
 
       {form.template.clinical_fields?.length > 0 && <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Data klinis khusus format ini</h4><p>Isi informasi tambahan yang memang tercantum pada dokumen sumber CP.</p></div><span className="cpBadge">{form.template.clinical_fields.filter((field) => !!String(form.clinical_data?.[field.id] || '').trim()).length} dari {form.template.clinical_fields.length} terisi</span></div>
+        <div className="cpSectionHead"><div><h4>Data klinis khusus format ini</h4></div><span className="cpBadge">{form.template.clinical_fields.filter((field) => !!String(form.clinical_data?.[field.id] || '').trim()).length} dari {form.template.clinical_fields.length} terisi</span></div>
         <div className="cpClinicalFieldGrid">{form.template.clinical_fields.map((field) => <div className="cpClinicalField" key={field.id}>
           <label>{field.label}</label>
           {field.options?.length ? <select className="cpInput" value={form.clinical_data?.[field.id] || ''} disabled={!isAdmin && form.status === 'validated'} onChange={(event) => patchForm({ clinical_data: { ...(form.clinical_data || {}), [field.id]: event.target.value } })}>
@@ -1011,7 +1011,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <div className="cpSectionHead"><div><h4>Inklusi penilaian</h4><p>Kriteria berbeda mengikuti dokumen masing-masing diagnosis. Belum diputuskan tidak dianggap memenuhi.</p></div><span className={'cpBadge ' + (currentScore?.inclusionReady && currentScore.included ? '' : 'draft')}>{currentScore?.inclusionReady ? (currentScore.included ? 'Termasuk inklusi' : 'Di luar inklusi') : 'Belum diputuskan'}</span></div>
         <div className="cpCriterionList">{form.template.scoring_rules.inclusion_criteria.map((c) => <div key={c.id} className="cpCriterion"><label>{c.label}</label><div className="cpToggleGroup"><button type="button" className={'cpToggle ' + (form.inclusion_json[c.id] === true ? 'active' : '')} onClick={() => setInclusion(c.id, true)}>Ya / Memenuhi</button><button type="button" className={'cpToggle ' + (form.inclusion_json[c.id] === false ? 'active' : '')} onClick={() => setInclusion(c.id, false)}>Tidak</button></div></div>)}</div>
         {additionalPhaseOptions(form.template).length > 0 && <div className="cpAdditionalPhasePanel">
-          <div className="cpSectionHead"><div><h4>Fase tambahan (opsional)</h4><p>Aktifkan fase yang relevan untuk pasien ini. Kolom tambahan akan muncul sebelum H1, berwarna putih, dan selnya ikut dihitung pada item yang dipilih PPA.</p></div><span className="cpBadge">{activeAdditionalPhases.length} dari {additionalPhaseOptions(form.template).length} aktif</span></div>
+          <div className="cpSectionHead"><div><h4>Fase tambahan (opsional)</h4></div><span className="cpBadge">{activeAdditionalPhases.length} dari {additionalPhaseOptions(form.template).length} aktif</span></div>
           <div className="cpPhaseToggleList">{additionalPhaseOptions(form.template).map((phase) => {
             const active = (form.additional_phases_json || []).includes(phase.key)
             return <label key={phase.key} className={'cpPhaseToggle ' + (active ? 'active' : '')} title={phase.description}>
@@ -1024,7 +1024,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>
 
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Checklist pelaksanaan clinical pathway · {form.template.name}{form.patient_name.trim() ? ' · ' + form.patient_name.trim() : ''}</h4><p>Pilih item/tindakan yang menjadi bagian dari perawatan pasien. Hijau dan kuning mengikuti jadwal sumber; sel putih tetap dapat diisi untuk mendokumentasikan pelaksanaan di luar jadwal. Fase tambahan yang diaktifkan ikut dihitung pada item terpilih.</p></div><span className="cpBadge">{form.template.items.length} item · {checklistDays.length} hari / fase</span></div>
+        <div className="cpSectionHead"><div><h4>Checklist pelaksanaan clinical pathway · {form.template.name}{form.patient_name.trim() ? ' · ' + form.patient_name.trim() : ''}</h4></div><span className="cpBadge">{form.template.items.length} item · {checklistDays.length} hari / fase</span></div>
         {focusedCell && (() => {
           const item = form.template.items.find((it) => it.id === focusedCell.itemId)
           const phase = additionalPhaseOptions(form.template).find((entry) => entry.key === focusedCell.day && (form.additional_phases_json || []).includes(entry.key))
@@ -1041,7 +1041,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
                 performer_profession: answer.performer_profession || item.profession,
               })
             }}><option value="">Belum dinilai</option><option value="done">Sesuai standar</option><option value="not_done">Tidak sesuai / tidak dilakukan</option>{(sched.policy === 'conditional' || !!phase) && <option value="not_applicable">Tidak berlaku (kondisional / fase tambahan)</option>}</select></div>
-            <div className="cpField"><label>Petugas pelaksana {item.oppe ? '· bukti OPPE' : ''}</label><select value={staffAttributions['performer:' + item.id + ':' + focusedCell.day] || ''} disabled={!form.room_id || staffLoading || (!isAdmin && form.status === 'validated')} onChange={(e) => selectPerformerStaff(item, focusedCell.day, e.target.value)}><option value="">Pilih petugas dari roster terkunci unit…</option>{staffForProfession(answer.performer_profession || item.profession, form.room_id).map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}</select><small className="cpTiny">{staffAttributions['performer:' + item.id + ':' + focusedCell.day] ? 'Identitas pelaksana tertaut ke staff_id AUREKA.' : answer.performer_name ? 'Nama pada snapshot saat ini: ' + answer.performer_name + '. Pilih tenaga dari roster untuk mengaitkan identitas.' : 'Pilih tenaga yang benar-benar melaksanakan tindakan.'}</small></div>
+            <div className="cpField"><label>Petugas pelaksana {item.oppe ? '· bukti OPPE' : ''}</label><select value={staffAttributions['performer:' + item.id + ':' + focusedCell.day] || ''} disabled={!form.room_id || staffLoading || (!isAdmin && form.status === 'validated')} onChange={(e) => selectPerformerStaff(item, focusedCell.day, e.target.value)}><option value="">Pilih petugas dari roster terkunci unit…</option>{staffForProfession(answer.performer_profession || item.profession, form.room_id).map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}</select></div>
             <div className="cpField"><label>Profesi pelaksana</label><input value={answer.performer_profession || item.profession || ''} onChange={(e) => patchCell(item, focusedCell.day, { performer_profession: e.target.value })} /></div>
             <div className="cpField"><label>Waktu pelaksanaan</label><input type="datetime-local" value={toLocalDateTimeInput(answer.performed_at)} onChange={(e) => patchCell(item, focusedCell.day, { performed_at: e.target.value ? new Date(e.target.value).toISOString() : '' })} /></div>
             <div className="cpField"><label>Bukti / referensi</label><input value={answer.evidence || ''} onChange={(e) => patchCell(item, focusedCell.day, { evidence: e.target.value })} placeholder="Nomor dokumen / catatan" /></div>
