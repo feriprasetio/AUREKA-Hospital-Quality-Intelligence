@@ -1135,7 +1135,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>
 
       <div className="cpGlass cpFooter">
-        <div><span className="cpTiny">Pengisi: {userName} · Petugas pelaksana dicatat pada rincian tiap item bila diperlukan.</span><div className="cpTiny">Snapshot CP versi {form.template.version} · Sistem tidak menggunakan cache lokal sebagai penyimpanan data audit.</div></div>
+        <div><span className="cpTiny">Pengisi: {userName} · Petugas pelaksana dicatat pada rincian tiap item bila diperlukan.</span></div>
         <div className="cpActions"><button type="button" className="cpBtn" disabled={saving} onClick={() => void saveAudit('draft')}>{saving ? 'Menyimpan…' : 'Simpan draf'}</button><button type="button" className="cpBtn primary" disabled={saving} onClick={() => void saveAudit(isAdmin && form.status !== 'draft' ? 'validated' : 'submitted')}>{saving ? 'Menyimpan…' : isAdmin && form.status === 'submitted' ? 'Simpan & validasi' : form.status === 'validated' ? 'Perbarui audit tervalidasi' : 'Simpan / ajukan audit'}</button></div>
       </div>
     </>}
