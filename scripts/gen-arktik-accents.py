@@ -26,7 +26,7 @@ HUE_MIN, HUE_MAX, SAT_MIN = 135, 180, 0.08
 TARGET_HUE = 208
 PREFIX = 'html[data-skin="arktik"]'
 
-HEX = re.compile(r'#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b')
+HEX = re.compile(r'#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b')
 RGB = re.compile(r'rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(,\s*[\d.]+\s*)?\)')
 TRIPLE = re.compile(r'^\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*$')  # --accent-rgb: 15,118,86
 
@@ -48,13 +48,14 @@ def recolor(value):
     def hex_sub(m):
         nonlocal changed
         h = m.group(1)
-        if len(h) == 3:
+        if len(h) in (3, 4):
             h = ''.join(c * 2 for c in h)
+        alpha = h[6:]
         out = shift(int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
         if not out:
             return m.group(0)
         changed = True
-        return '#%02x%02x%02x' % out
+        return '#%02x%02x%02x' % out + alpha
 
     def rgb_sub(m):
         nonlocal changed
