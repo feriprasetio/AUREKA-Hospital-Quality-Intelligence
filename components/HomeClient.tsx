@@ -1,5 +1,5 @@
 'use client'
-import {useCallback,useEffect,useMemo,useState} from 'react'
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import dynamic from 'next/dynamic'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
 import type {CommandPaletteItem} from '@/components/CommandPalette'
@@ -152,6 +152,9 @@ export default function HomeClient(){
  const resendVerify=async()=>{if(busy||!needVerify)return;setBusy(true);const {error}=await sb.auth.resend({type:'signup',email:needVerify,options:{emailRedirectTo:`${window.location.origin}${BASE_PATH}/`}});setBusy(false);setAuthInfo('');setMessage(error?authError(error):`Email verifikasi dikirim ulang ke ${needVerify}. Cek juga folder Spam.`)}
  const login=async()=>{if(busy)return;if(!email.trim()||!password){setAuthInfo('');setMessage('Lengkapi username/email dan password untuk melanjutkan.');return}setBusy(true);setMessage('');setNeedVerify('');setAuthInfo('');let em='';try{em=await resolveLoginEmail(email);const {data,error}=await sb.auth.signInWithPassword({email:em,password});if(error)throw error;syncMyEmail();const p=await prof(data.user.id);if(!p){await sb.auth.signOut();throw new Error('Profil AUREKA belum tersedia.')}if(!p.is_active){await sb.auth.signOut();throw new Error('Akun belum aktif. Hubungi Super Admin/Komite PMKP untuk aktivasi.')}setUser(data.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setClinicalPathwayOpen(false);if(p.must_change_password){setPassword('');setPassword2('');setView('force-password')}else{setView('workspace')}}catch(e){setMessage(authError(e,em))}finally{setBusy(false)}}
  const signup=async()=>{if(busy)return;setBusy(true);setMessage('');try{const un=username.trim().toLowerCase();if(!fullName.trim()||!signupRoom||password.length<8)throw new Error('Nama, unit utama, dan password minimal 8 karakter wajib diisi.');if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(un))throw new Error('Username 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau strip. Contoh: pic.isolasi');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()))throw new Error('Email wajib diisi dengan benar (dipakai untuk verifikasi dan reset password).');const av=await sb.rpc('aureka_username_available',{p_username:un});if(!av.error&&av.data===false)throw new Error(`Username “${un}” sudah dipakai. Coba yang lain, misalnya ${un}2.`);const {data:su,error}=await sb.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:`${window.location.origin}${BASE_PATH}/`,data:{full_name:fullName.trim(),primary_room_id:signupRoom,username:un}}});if(error)throw error;if(su?.user&&Array.isArray((su.user as any).identities)&&(su.user as any).identities.length===0)throw new Error('Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.');if(su?.session)await sb.auth.signOut();setUsername(un);setMessage('');setSignupDone(true)}catch(e){setMessage(authError(e))}finally{setBusy(false)}}
+ const intentionalLogoutRef=useRef(false)
+ // Sesi hilang tanpa logout (refresh token gagal/kedaluwarsa): jangan biarkan modul memuat data sebagai tamu.
+ useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event!=='SIGNED_OUT')return;if(intentionalLogoutRef.current){intentionalLogoutRef.current=false;return}setUser(null);setProfile(null);setRoom(null);setRole(null);setActive('home');setNotifications([]);setActiveToast(null);setAuthMode('normal');setMessage('');setAuthInfo('Sesi login Anda berakhir. Silakan masuk kembali, data Anda tetap aman.');setView('login')});return()=>{sub.subscription.unsubscribe()}},[])
  useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){setAuthMode('recovery');setMessage('');setPassword('');setPassword2('');setView('login')}});if(typeof window!=='undefined'&&/type=recovery/.test(window.location.hash)){setAuthMode('recovery');setView('login')}return()=>{sub.subscription.unsubscribe()}},[])
  const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');let em='';try{em=await resolveLoginEmail(email)}catch(e){setBusy(false);setMessage(authError(e));return}if(!/^\S+@\S+\.\S+$/.test(em)){setBusy(false);setMessage('Masukkan username atau email akun yang valid.');return}if(em.toLowerCase().endsWith('@aureka.invalid')){setBusy(false);setMessage('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara; akun akan wajib menggantinya saat login berikutnya.');return}const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}${BASE_PATH}/`});setBusy(false);if(error){setMessage(/rate limit|too many/i.test(error.message)?'Terlalu banyak permintaan. Coba lagi beberapa menit lagi, atau minta Super Admin menyetel password sementara.':`Gagal mengirim email: ${toUserFacingError(error,{fallback:'Email pemulihan belum dapat dikirim. Coba kembali beberapa saat lagi.'})}`);return}setResetSent(true)}
  const saveNewPassword=async()=>{if(busy)return;if(password.length<8){setMessage('Password baru minimal 8 karakter.');return}if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}setBusy(true);setMessage('');const {error}=await sb.auth.updateUser({password});if(error){setBusy(false);setMessage(`Gagal menyimpan password: ${toUserFacingError(error,{fallback:'Password belum dapat diperbarui. Periksa koneksi dan coba kembali.'})}`);return}await sb.auth.signOut();setBusy(false);if(typeof window!=='undefined'&&window.location.hash)history.replaceState(null,'',window.location.pathname+window.location.search);setPassword('');setPassword2('');setAuthMode('normal');setMessage('');setResetSent(false);setView('login');setMessage('Password baru tersimpan. Silakan masuk dengan password baru.')}
@@ -173,7 +176,7 @@ export default function HomeClient(){
    setBusy(false);setMessage(toUserFacingError(e,{fallback:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.'}))
   }
  }
- const logout=async()=>{try{if(user?.id)sessionStorage.removeItem('aureka-quality-room:'+String(user.id));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut();setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);}
+ const logout=async()=>{intentionalLogoutRef.current=true;try{if(user?.id)sessionStorage.removeItem('aureka-quality-room:'+String(user.id));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut();setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);}
   const admin=role==='ADMIN'
  const manager=MANAGER_ROLES.includes(role||'')
  const validator=role==='VALIDATOR'
@@ -413,9 +416,21 @@ export default function HomeClient(){
    onSelect:()=>jumpToSearchResult(result),
   }))
  },[globalSearch,searchResultsQuery,searchResults,currentContainer,jumpToSearchResult])
+ const lastNoticeRef=useRef<{key:string;at:number;auth:number}>({key:'',at:0,auth:0})
  const pushWorkspaceNotification=(message:string,kind:'success'|'error'|'info'='info',module?:string)=>{
-  const text=String(message||'').trim()
+  let text=String(message||'').trim()
   if(!text)return
+  const now=Date.now()
+  // Banyak modul gagal bersamaan karena sesi/izin: cukup satu notifikasi ringkas.
+  if(kind==='error'&&/tidak memiliki izin|akses ditolak|sesi (login|akses)|masuk kembali/i.test(text)){
+   if(now-lastNoticeRef.current.auth<20000)return
+   lastNoticeRef.current.auth=now
+   text='Sesi login berakhir atau akses ditolak, sehingga beberapa modul gagal memuat data. Muat ulang halaman atau masuk kembali.'
+   module='Sesi'
+  }
+  const key=(module||'')+'|'+text
+  if(key===lastNoticeRef.current.key&&now-lastNoticeRef.current.at<30000)return
+  lastNoticeRef.current.key=key;lastNoticeRef.current.at=now
   const item:WorkspaceNotification={id:Date.now()+Math.floor(Math.random()*1000),message:text,kind,createdAt:Date.now(),module}
   setNotifications(current=>[item,...current].slice(0,40))
   setActiveToast(item)

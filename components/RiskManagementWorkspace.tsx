@@ -239,7 +239,7 @@ export default function RiskManagementWorkspace({
     setError('')
     const firstError = queries.find(q => q.error)
     if (firstError?.error) {
-      setError('Data Manajemen Risiko belum dapat dimuat. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase. ' + toUserFacingError(firstError.error, { fallback: 'Periksa koneksi dan hak akses, lalu muat ulang.' }))
+      setError('Data Manajemen Risiko belum dapat dimuat. ' + toUserFacingError(firstError.error, { fallback: 'Periksa koneksi dan hak akses, lalu muat ulang.' }))
     } else {
       let incomingRisks = (queries[0].data || []) as RiskRow[]
       let incomingPlans = (queries[1].data || []) as PlanRow[]
@@ -768,7 +768,7 @@ export default function RiskManagementWorkspace({
       {!loading && error.startsWith('Data Manajemen Risiko') && <div className="rmPanel rmEmpty">
         {/jwt|token|401|403|expired|session|sesi|login|izin|permission|denied/i.test(error)
           ? <><div className="rmEmptyIcon">!</div><h4>Sesi atau akses bermasalah</h4><p>Data risiko tidak bisa dibaca dengan sesi saat ini. Muat ulang halaman atau keluar lalu masuk kembali.</p><button type="button" className="rmButton primary" onClick={() => window.location.reload()}>Muat ulang</button></>
-          : <><div className="rmEmptyIcon">DB</div><h4>Data risiko belum dapat dimuat</h4><p>{error.replace(/^Data Manajemen Risiko belum dapat dimuat\. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase\. /, '') || 'Periksa koneksi, lalu muat ulang.'}</p><button type="button" className="rmButton" onClick={() => window.location.reload()}>Muat ulang</button></>}
+          : <><div className="rmEmptyIcon">DB</div><h4>Data risiko belum dapat dimuat</h4><p>{error.replace(/^Data Manajemen Risiko belum dapat dimuat\. /, '') || 'Periksa koneksi, lalu muat ulang.'}</p><button type="button" className="rmButton" onClick={() => window.location.reload()}>Muat ulang</button></>}
       </div>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'overview' && <>
