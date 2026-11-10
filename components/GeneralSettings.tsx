@@ -169,7 +169,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.rpc('aureka_set_my_username', { p_username: un })
     setBusy(false)
-    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum aktif di database (migration 20261014095000_username_login.sql).' : `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` })
+    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum tersedia.' : `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` })
     setAcctNote({ ok: true, text: `Username disimpan. Mulai sekarang Anda bisa login dengan “${un}”.` })
     loadMyAccount()
   }
