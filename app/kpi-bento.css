@@ -115,3 +115,18 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) { min-height: 112px !important; padding: 14px !important; }
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) > strong { font-size: 26px !important; }
 }
+
+/* Teks di dalam sel peta risiko ikut warna sel (sebelumnya abu-abu: hilang di sel merah) */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell :is(b, small, span) { color: inherit !important; opacity: 1 !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-weight: 600 !important; opacity: .9 !important; }
+/* Avatar Administrasi: inisial selalu kontras */
+html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #ffffff !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #0a0f1c !important; }
+/* HP: label baris peta risiko tidak menabrak sel */
+@media (max-width: 760px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood { min-width: 0 !important; overflow: hidden !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood small { font-size: 10.5px !important; line-height: 1.2 !important; overflow-wrap: break-word !important; hyphens: auto; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixHeader small { font-size: 10.5px !important; line-height: 1.2 !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell { padding: 4px 2px !important; font-size: 12px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-size: 10px !important; }
+}

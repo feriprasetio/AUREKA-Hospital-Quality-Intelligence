@@ -145,13 +145,6 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
       if (error) throw error
       setProfiles((data || []) as Model[])
 
-      const { data: reviewData, error: reviewError } = await q()
-        .from('quality_record_responses')
-        .select('id,record_id,indicator_id,response_label,other_text,classification_note,created_at')
-        .eq('review_status', 'pending')
-        .order('created_at', { ascending: false })
-      if (reviewError) setMsg((previous) => previous || ('Gagal memuat daftar klasifikasi: ' + reviewError.message))
-      else setPending((reviewData || []) as Model[])
     } catch (error) {
       setMsg('Gagal memuat kamus indikator: ' + toUserFacingError(error, { fallback: 'Kamus indikator belum dapat dimuat.' }))
     } finally {
@@ -160,6 +153,26 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
   }, [year, room])
 
   useEffect(() => { void load() }, [load])
+
+  // Daftar "Lainnya" berat (tabel respons besar): dimuat hanya saat tab Review dibuka.
+  const [pendingState, setPendingState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const loadPending = useCallback(async () => {
+    setPendingState('loading')
+    const { data: reviewData, error: reviewError } = await q()
+      .from('quality_record_responses')
+      .select('id,record_id,indicator_id,response_label,other_text,classification_note,created_at')
+      .eq('review_status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(200)
+    if (reviewError) {
+      setPendingState('error')
+      setMsg((previous) => previous || ('Daftar review "Lainnya" belum dapat dimuat: ' + toUserFacingError(reviewError, { fallback: 'server terlalu lama merespons. Coba lagi nanti.' })))
+      return
+    }
+    setPending((reviewData || []) as Model[])
+    setPendingState('ready')
+  }, [])
+  useEffect(() => { if (tab === 'review' && pendingState === 'idle') void loadPending() }, [tab, pendingState, loadPending])
 
   const programs = useMemo(() => {
     const values = new Set<string>()
@@ -381,6 +394,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
     if (error) setMsg('Klasifikasi gagal disimpan: ' + toUserFacingError(error, { fallback: 'Klasifikasi belum dapat disimpan.' }))
     else {
       setMsg('Klasifikasi tersimpan.')
+      setPending((previous) => previous.filter((item) => item.id !== id))
       await load()
     }
   }
@@ -440,7 +454,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
           items={[
             { value: 'programs', label: 'Program kerja' },
             { value: 'profiles', label: 'Kamus indikator' },
-            { value: 'review', label: 'Review “Lainnya”', count: pending.length },
+            { value: 'review', label: 'Review “Lainnya”', count: pendingState === 'ready' ? pending.length : undefined },
           ] as const}
         />
 
@@ -539,7 +553,9 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
 
         {tab === 'review' && (
           <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-            {pending.length === 0 && <div style={{ fontSize: 11, color: 'var(--muted)', padding: 14 }}>Tidak ada jawaban “Lainnya” yang menunggu klasifikasi.</div>}
+            {pendingState === 'loading' && <div style={{ fontSize: 12, color: 'var(--muted)', padding: 14 }}>Memuat jawaban “Lainnya”…</div>}
+            {pendingState === 'error' && <div style={{ fontSize: 12, color: 'var(--muted)', padding: 14 }}>Daftar belum dapat dimuat karena server terlalu lama merespons. <button type="button" className="textButton" onClick={() => void loadPending()}>Coba lagi</button></div>}
+            {pendingState === 'ready' && pending.length === 0 && <div style={{ fontSize: 11, color: 'var(--muted)', padding: 14 }}>Tidak ada jawaban “Lainnya” yang menunggu klasifikasi.</div>}
             {pending.map((item) => (
               <div key={item.id} style={{ padding: 12, border: '1px solid rgba(20,34,27,.09)', borderRadius: 15 }}>
                 <b style={{ fontSize: 11 }}>{item.response_label || 'Respons lain'}</b>
