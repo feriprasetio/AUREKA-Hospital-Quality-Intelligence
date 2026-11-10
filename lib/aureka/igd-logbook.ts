@@ -41,7 +41,7 @@ export type IgdConsultationMatch = {
 }
 
 function cleanText(value: unknown): string {
-  return String(value ?? '').normalize('NFKC').replace(/\\s+/g, ' ').trim()
+  return String(value ?? '').normalize('NFKC').replace(/\s+/g, ' ').trim()
 }
 
 function dateParts(
@@ -78,7 +78,7 @@ export function normalizeIgdDateTime(value: unknown): string | null {
     )
   }
 
-  if (typeof value === 'number' || /^\\d{5,6}(?:\\.\\d+)?$/.test(cleanText(value))) {
+  if (typeof value === 'number' || /^\d{5,6}(?:\.\d+)?$/.test(cleanText(value))) {
     const serial = Number(value)
     if (!Number.isFinite(serial) || serial < 20000 || serial > 80000) return null
     const timestamp = Date.UTC(1899, 11, 30) + serial * 86400000
@@ -91,13 +91,13 @@ export function normalizeIgdDateTime(value: unknown): string | null {
   }
 
   const source = cleanText(value)
-  const iso = source.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})(?:[T ](\\d{1,2}):(\\d{2})(?::(\\d{2})(?:\\.\\d{1,9})?)?)?$/)
+  const iso = source.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d{1,9})?)?)?$/)
   if (iso) return dateParts(
     Number(iso[1]), Number(iso[2]), Number(iso[3]),
     Number(iso[4] ?? 0), Number(iso[5] ?? 0), Number(iso[6] ?? 0),
   )
 
-  const dmy = source.match(/^(\\d{1,2})[/.-](\\d{1,2})[/.-](\\d{4})(?:[, ]+)?(?:([01]?\\d|2[0-3]):([0-5]\\d)(?::([0-5]\\d)(?:\\.\\d{1,9})?)?)?$/)
+  const dmy = source.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})(?:[, ]+)?(?:([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,9})?)?)?$/)
   if (dmy) return dateParts(
     Number(dmy[3]), Number(dmy[2]), Number(dmy[1]),
     Number(dmy[4] ?? 0), Number(dmy[5] ?? 0), Number(dmy[6] ?? 0),
@@ -132,9 +132,9 @@ export function normalizeIgdPatientName(value: unknown): string {
 export function matchIgdSourceOption<T extends IgdIndicatorOption>(rawValue: unknown, options: T[]): T | null {
   const raw = cleanText(rawValue)
   if (!raw) return null
-  const suffix = raw.match(/\\s*\\(code\\s*(\\d+)\\)\\s*$/i)
+  const suffix = raw.match(/\s*\(code\s*(\d+)\)\s*$/i)
   const sourceCode = suffix ? Number(suffix[1]) : null
-  const sourceLabel = cleanText(raw.replace(/\\s*\\(code\\s*\\d+\\)\\s*$/i, '')).toLocaleLowerCase('id-ID')
+  const sourceLabel = cleanText(raw.replace(/\s*\(code\s*\d+\)\s*$/i, '')).toLocaleLowerCase('id-ID')
   const matches = options.filter(option =>
     cleanText(option.label).toLocaleLowerCase('id-ID') === sourceLabel &&
     (sourceCode == null || (option.code != null && Number(option.code) === sourceCode))

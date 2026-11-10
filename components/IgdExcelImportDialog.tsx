@@ -340,10 +340,12 @@ export default function IgdExcelImportDialog({
   const [errorMessage, setErrorMessage] = useState('')
   const [fileInputKey, setFileInputKey] = useState(0)
   const eligible = open && authorized && roomId === 6 && year === 2026
-  const busy = mainParsing || mainImporting || consultParsing || consultImporting
+  const parsing = mainParsing || consultParsing
+  const importing = mainImporting || consultImporting
+  const busy = parsing || importing
 
   const close = () => {
-    if (busy) return
+    if (parsing || importing) return
     setMainFile(null)
     setMainRows([])
     setMainExcluded([])
@@ -361,7 +363,7 @@ export default function IgdExcelImportDialog({
     setFileInputKey(value => value + 1)
     onClose()
   }
-  const dialogRef = useAccessibleDialog<HTMLElement>({ open, onClose: close, lockScroll: true })
+  const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
 
   const parseMainWorkbook = async (selectedFile: File) => {
     setMainFile(selectedFile)
@@ -788,7 +790,7 @@ export default function IgdExcelImportDialog({
   if (!open) return null
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
-      <section ref={dialogRef} tabIndex={-1} className="aqDrawer aqIgdImport" role="dialog" aria-modal="true" aria-labelledby="aqIgdImportTitle">
+      <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqIgdImport" role="dialog" aria-modal="true" aria-labelledby="aqIgdImportTitle">
         <style>{'.aqIgdImport .aqBody{display:grid;align-content:start;gap:12px}.aqIgdImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIgdImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIgdImport .ciUpload input{width:100%;font-size:12px}.aqIgdImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.aqIgdImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIgdImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqIgdImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIgdImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIgdImport .ciError{background:#fff0ef;color:#8b2822}.aqIgdImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIgdImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIgdImport .ciTable{overflow:auto;max-height:290px;border:1px solid var(--line);border-radius:11px}.aqIgdImport table{width:100%;border-collapse:collapse;font-size:10px}.aqIgdImport th,.aqIgdImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqIgdImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqIgdImport td.ciWrap{white-space:normal;min-width:150px;max-width:300px;overflow-wrap:anywhere}.aqIgdImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}.aqIgdImport .ciCode{font-size:9px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}@media(max-width:800px){.aqIgdImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
         <div className="aqDHead">
           <div>
