@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
-const StaffDirectoryWorkspace=dynamic(()=>import('@/components/StaffDirectoryWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Direktori Tenaga" compact/>})
+const StaffDirectoryWorkspace=dynamic(()=>import('@/components/StaffDirectoryWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Direktori Induk SDM" compact/>})
 const StaffTeamWorkspace=dynamic(()=>import('@/components/StaffTeamWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Tim dan Penugasan" compact/>})
 const OppeAuditWorkspace=dynamic(()=>import('@/components/OppeAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat OPPE / FPPE" compact/>})
 
@@ -26,7 +26,7 @@ export default function ClinicalWorkforceWorkspace({
   const [area, setArea] = useState<WorkforceArea>(initialArea || (isSuperAdmin ? 'directory' : canOpenTeam ? 'team' : 'oppe'))
   useEffect(() => { if (initialArea && tabs.some((tab) => tab.id === initialArea)) setArea(initialArea) }, [initialArea, isSuperAdmin, canOpenTeam, canOpenOppe])
   const tabs: { id: WorkforceArea; title: string; description: string }[] = [
-    ...(isSuperAdmin ? [{ id: 'directory' as const, title: 'Direktori Tenaga', description: 'Master identitas kanonik lintas modul.' }] : []),
+    ...(isSuperAdmin ? [{ id: 'directory' as const, title: 'Direktori Induk SDM', description: 'Master identitas kanonik lintas modul.' }] : []),
     ...(canOpenTeam ? [{ id: 'team' as const, title: 'Tim & Penugasan', description: 'Pemetaan staf yang terkunci ke unit kerja.' }] : []),
     ...(canOpenOppe ? [{ id: 'oppe' as const, title: 'OPPE / FPPE', description: 'Evaluasi praktik profesional dan tindak lanjut individu.' }] : []),
   ]
@@ -35,7 +35,7 @@ export default function ClinicalWorkforceWorkspace({
   return (
     <section className="cwWorkspace" aria-labelledby="cw-title">
       {showTabs ? <header className="cwHeader">
-        <div className="cwEyebrow">TENAGA KLINIS · MASTER IDENTITAS & EVALUASI</div>
+        <div className="cwEyebrow">SDM & TENAGA KLINIS · MASTER IDENTITAS & EVALUASI</div>
         <h3 className="cwTitle" id="cw-title">Tenaga Klinis</h3>
         <p className="cwDescription">
           Identitas tenaga, penugasan unit, dan penilaian OPPE/FPPE berada dalam satu ruang kerja.
