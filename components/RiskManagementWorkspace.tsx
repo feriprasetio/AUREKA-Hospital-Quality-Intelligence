@@ -669,7 +669,7 @@ export default function RiskManagementWorkspace({
 
   const exportCsv = () => {
     const rows = [
-      ['Unit', 'Kategori', 'Sasaran', 'Peristiwa Risiko', 'Penyebab', 'Dampak', 'Kontrol Saat Ini', 'Kemungkinan', 'Dampak Level', 'Skor', 'Level', 'Residual Kemungkinan', 'Residual Dampak', 'Skor Residual', 'Level Residual', 'PIC', 'Target', 'Status', 'Sheet Sumber', 'Baris Sumber', 'Kode Sumber', 'Skor Sumber'],
+      ['Unit', 'Kategori', 'Sasaran', 'Peristiwa Risiko', 'Penyebab', 'Dampak', 'Kontrol Saat Ini', 'Kemungkinan', 'Dampak Level', 'Skor', 'Level', 'Residual Kemungkinan', 'Residual Dampak', 'Skor Residual', 'Level Residual', 'PIC', 'Target', 'Status', 'Sheet Sumber', 'Baris Sumber', 'Skor Sumber'],
       ...filteredRisks.map(r => [r.unit_name, r.category, r.objective, r.risk_event, r.causes, r.impacts, r.existing_controls, r.likelihood, r.impact, r.risk_score, r.risk_level, r.residual_likelihood, r.residual_impact, r.residual_score, r.residual_level, r.owner_name, r.due_date, r.status, r.source_sheet, r.source_row_number, r.source_risk_score]),
     ]
     const csv = '\ufeff' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n')
