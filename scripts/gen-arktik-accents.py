@@ -34,7 +34,10 @@ TRIPLE = re.compile(r'^\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*$')  # --a
 def shift(r, g, b):
     h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
     deg = h * 360
-    if s < SAT_MIN or not (HUE_MIN <= deg <= HUE_MAX):
+    in_brand = s >= SAT_MIN and HUE_MIN <= deg <= HUE_MAX
+    # sage / olive tints (light or greyish greens) used as surfaces and muted text
+    in_tint = 75 <= deg < HUE_MIN and s >= 0.05 and (l >= 0.86 or s <= 0.3)
+    if not (in_brand or in_tint):
         return None
     # slightly more saturation for the mid tones so blue does not look grey
     s2 = min(1.0, s * 1.08)
@@ -78,14 +81,18 @@ def recolor(value):
 
 
 def scope(sel):
+    # :where() keeps the original specificity, so the cascade between the
+    # original rules is preserved; this file loads later, so it wins ties.
     sel = sel.strip()
     if not sel or SKIP_SELECTOR.search(sel):
         return None
     if sel.startswith(':root'):
-        return PREFIX + sel
+        return ':root:where([data-skin="arktik"])' + sel[5:]
     if sel.startswith('html'):
-        return PREFIX + sel[4:] if not sel[4:5].isalnum() else None
-    return f'{PREFIX}:root {sel}'
+        return 'html:where([data-skin="arktik"])' + sel[4:] if not sel[4:5].isalnum() else None
+    if sel.startswith('body'):
+        return f':where(html[data-skin="arktik"]) {sel}'
+    return f':where(html[data-skin="arktik"]) {sel}'
 
 
 def split_selectors(prelude):
@@ -161,10 +168,12 @@ def rules(css):
             prop = prop.strip()
             if not PROPS.match(prop):
                 continue
-            val = val.strip().replace('!important', '').strip()
+            val = val.strip()
+            imp = '!important' in val
+            val = val.replace('!important', '').strip()
             new = recolor(val)
             if new:
-                decls.append(f'{prop}: {new} !important;')
+                decls.append(f'{prop}: {new}{" !important" if imp else ""};')
         if not decls:
             continue
         sels = [s for s in (scope(x) for x in split_selectors(prelude)) if s]
