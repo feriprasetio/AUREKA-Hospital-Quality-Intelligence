@@ -570,7 +570,7 @@ export default function GeneralSettings({
         })}
       </nav>
       <div className="stMain">
-      <WorkspaceModuleHeader title="Pengaturan" description="Akun, keamanan, tampilan, unit kerja, dan pengguna AUREKA. Konfigurasi klinis tetap dikelola di modulnya masing-masing." />
+      <WorkspaceModuleHeader title="Pengaturan" />
       {section === 'appearance' && <AppearancePanel />}
 
       {section === 'general' && (
