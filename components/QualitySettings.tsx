@@ -145,7 +145,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       setProfiles((data || []) as Model[])
 
     } catch (error) {
-      setMsg('Gagal memuat kamus indikator: ' + toUserFacingError(error, { fallback: 'Kamus indikator belum dapat dimuat.' }))
+      setMsg('Gagal memuat profil indikator: ' + toUserFacingError(error, { fallback: 'Profil indikator belum dapat dimuat.' }))
     } finally {
       setLoading(false)
     }
