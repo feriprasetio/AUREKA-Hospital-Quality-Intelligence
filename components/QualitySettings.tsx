@@ -102,7 +102,7 @@ const payloadFrom = (model: Model): Model => {
   }
 }
 
-export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean }) {
+export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void }) {
   const [year, setYear] = useState(2026)
   const [room, setRoom] = useState('')
   const [profiles, setProfiles] = useState<Model[]>([])
@@ -207,6 +207,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     setMsg('')
     setNewOne(empty(selectedRoom, year, programName))
     setTab('profiles')
+    onTabChange?.('profiles')
   }
 
   const publish = async () => {
@@ -444,7 +445,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', margin: '10px 0 12px', fontSize: 10, color: 'var(--muted)' }}>
                       <span>{program.total} profil</span><span>·</span><span>{program.active} aktif</span>{program.retired > 0 && <><span>·</span><span>{program.retired} dipensiunkan</span></>}
                     </div>
-                    <button type="button" className="textButton" onClick={() => { setProgramFilter(program.name); setSearch(''); setTab('profiles') }}>Kelola indikator →</button>
+                    <button type="button" className="textButton" onClick={() => { setProgramFilter(program.name); setSearch(''); setTab('profiles'); onTabChange?.('profiles') }}>Kelola indikator →</button>
                     <button type="button" className="textButton" style={{ marginLeft: 8 }} onClick={() => openNew(program.name)}>+ Tambah ke program</button>
                   </div>
                 ))}
