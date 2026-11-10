@@ -1287,7 +1287,7 @@ export default function OppeAuditWorkspace({
               </div>
             </section>
             <section className="oppeGlass oppeScorePanel">
-              <div className="oppeEyebrow">KELENGKAPAN ENGINE</div>
+              <div className="oppeEyebrow">KELENGKAPAN DATA</div>
               <div className="oppeMiniMetric"><span>Aturan indikator aktif</span><strong>{selectedRuleCount}</strong></div>
               <div className="oppeMiniMetric"><span>Logbook tervalidasi tahun ini</span><strong>{records.filter((item) => item.status === 'validated').length}</strong></div>
               <div className="oppeMiniMetric"><span>Staf terdeteksi dari logbook</span><strong>{staffSuggestions.length}</strong></div>
