@@ -9,6 +9,7 @@ import type React from 'react'
 import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { LiquidGlass } from '@/components/LiquidGlass'
+import SurveyWizard from '@/components/patient-safety/SurveyWizard'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
@@ -859,25 +860,6 @@ export default function PatientSafetyWorkspace({
       }
     </div>
   }
-  const renderSurveyScale = (code: string, options: { value: string; label: string; short?: string }[]) =>
-    <div className="psScale" key={code}>{options.map(option =>
-      <button type="button" key={option.value} className={surveyAnswers[code] === option.value ? 'selected' : ''}
-        aria-pressed={surveyAnswers[code] === option.value} onClick={() => setSurveyAnswer(code, option.value)}>
-        {option.label}{option.short ? <span>{option.short}</span> : null}
-      </button>
-    )}</div>
-
-  const renderSurveyQuestion = (code: string, text: string, options?: { value: string; label: string; short?: string }[]) =>
-    <div className="psQuestion" key={code}>
-      <div className="psQuestionText"><span className="psQCode">{code}</span><div>{text}</div></div>
-      {renderSurveyScale(code, options || [
-        { value: '1', label: '1', short: 'STS' }, { value: '2', label: '2', short: 'TS' },
-        { value: '3', label: '3', short: 'N' }, { value: '4', label: '4', short: 'S' },
-        { value: '5', label: '5', short: 'SS' }, { value: 'TB', label: 'TB' },
-      ])}
-    </div>
-
-  const surveyCompletion = Math.round(((SURVEY_REQUIRED.length - missingSurvey.length) / SURVEY_REQUIRED.length) * 100)
   const incidentRequiredCount = incidentRequired(incidentData).length
   const incidentCompletion = Math.round(((incidentRequiredCount - missingIncident.length) / Math.max(1, incidentRequiredCount)) * 100)
   const statusLabel = (status: string) => ({
@@ -1036,73 +1018,23 @@ export default function PatientSafetyWorkspace({
       </LiquidGlass>
     </> : null}
 
-    {tab === 'survey' ? <div className="psSurveyShell">
-      <LiquidGlass className="psSurveyIntro">
-        <div className="psEyebrow">SAFETY CULTURE · ANONYMOUS RESPONSE</div>
-        <h3>Survey Budaya Keselamatan Pasien & Kesejahteraan Staf</h3>
-        <p>Instrumen ini memetakan budaya keselamatan, kerja tim, ketersediaan sumber daya, beban psikologis, dan kesejahteraan staf. Satu pengisian selalu disimpan sebagai rekaman baru, termasuk ketika perangkat atau akun AUREKA yang sama digunakan berulang kali.</p>
-        <div className="psPrivacy"><b>Anonim dan rahasia.</b> Skema respons tidak menyimpan user ID, alamat email, atau identitas akun pengisi. Respons lama tidak diperbarui/ditimpa. Estimasi pengisian 15–20 menit. Untuk item yang tidak relevan, pilih TB, jangan dikosongkan.</div>
-        <div className="psSurveyMeta">
-          <div><label>Periode Survey</label><select value={surveyPeriod} onChange={event => setSurveyPeriod(event.target.value)}><option>2026-Q4</option><option>2027-Q1</option><option>2027-Q2</option><option>2027-Q3</option><option>2027-Q4</option><option>2028-Q1</option></select></div>
-          <div><label>Unit Kerja</label><select value={surveyUnit} onChange={event => setSurveyUnit(event.target.value)}><option value="">Pilih unit</option>{roomOptions.map(name => <option key={name}>{name}</option>)}</select></div>
-          <div><label>Profesi / Kelompok Jabatan</label><select value={surveyProfession} onChange={event => setSurveyProfession(event.target.value)}><option value="">Pilih</option>{['Medis / Dokter','Perawat / Bidan','Farmasi','Penunjang Medis','Manajemen / Administrasi','Lainnya'].map(name => <option key={name}>{name}</option>)}</select></div>
-          <div><label>Lama Bekerja di RS</label><select value={surveyHospitalTenure} onChange={event => setSurveyHospitalTenure(event.target.value)}><option value="">Pilih (opsional)</option>{['< 1 tahun','1–5 tahun','6–10 tahun','> 10 tahun'].map(name => <option key={name}>{name}</option>)}</select></div>
-          <div><label>Lama Bekerja di Unit Saat Ini</label><select value={surveyUnitTenure} onChange={event => setSurveyUnitTenure(event.target.value)}><option value="">Pilih (opsional)</option>{['< 1 tahun','1–5 tahun','6–10 tahun','> 10 tahun'].map(name => <option key={name}>{name}</option>)}</select></div>
-          <div><label>Pola Kerja / Shift</label><select value={surveyShift} onChange={event => setSurveyShift(event.target.value)}><option value="">Pilih (opsional)</option>{['Non-shift (jam kerja reguler)','Shift tanpa dinas malam','Shift dengan dinas malam / rotasi'].map(name => <option key={name}>{name}</option>)}</select></div>
-          <div><label>Peran Utama</label><select value={surveyRole} onChange={event => setSurveyRole(event.target.value)}><option value="">Pilih (opsional)</option>{['Staf pelaksana (klinis / non-klinis)','Penyelia / Kepala Ruangan / Manajerial'].map(name => <option key={name}>{name}</option>)}</select></div>
-          <div><label>Interaksi Langsung dengan Pasien</label><select value={surveyPatientContact} onChange={event => setSurveyPatientContact(event.target.value)}><option value="">Pilih (opsional)</option><option>Ya</option><option>Tidak</option></select></div>
-        </div>
-        <div className="psFormFooter"><div><span className="psPill blue">{SURVEY_REQUIRED.length - missingSurvey.length} / {SURVEY_REQUIRED.length} item terjawab · {surveyCompletion}%</span>{lastResponseCode ? <div className="psMuted" style={{ fontSize: 9, marginTop: 5 }}>Respons terakhir tersimpan: {lastResponseCode}</div> : null}</div><div className="psActions">
-          <button type="button" className="psBtn" disabled={saving} onClick={resetSurvey}>Responden Baru / Reset</button>
-          <button type="button" className="psBtn primary" disabled={saving} onClick={() => void submitSurvey()}>{saving ? 'Menyimpan…' : 'Kirim Respons Anonim'}</button>
-        </div></div>
-      </LiquidGlass>
-
-      {SURVEY_DIMENSIONS.map(dimension => <LiquidGlass className="psDim" key={dimension.code}>
-        <div className="psDimHead"><div><span>DIMENSI {dimension.code}</span><h4>{dimension.title}</h4></div><small>{dimension.items.length} item</small></div>
-        {dimension.items.map(item => renderSurveyQuestion(item.code, item.text))}
-      </LiquidGlass>)}
-
-      <LiquidGlass className="psDim">
-        <div className="psDimHead"><div><span>ITEM FREKUENSI</span><h4>Pengalaman Kekerasan Verbal</h4></div><small>B26</small></div>
-        {renderSurveyQuestion('B26', 'Dalam 12 bulan terakhir, seberapa sering Anda mengalami tindakan kekerasan verbal (dibentak / diancam / dihina) dari pasien, keluarga, atau pengunjung di tempat kerja?',
-          [{ value: '0', label: 'Tidak pernah' }, { value: '1', label: '1–2 kali' }, { value: '2', label: '3–5 kali' }, { value: '3', label: 'Lebih dari 5 kali' }])}
-      </LiquidGlass>
-
-      <LiquidGlass className="psDim">
-        <div className="psDimHead"><div><span>DIMENSI XII</span><h4>Kesejahteraan Positif (WHO-5 Well-Being Index)</h4></div><small>C10–C14</small></div>
-        <div className="psAlert" style={{ marginBottom: 10 }}>Skala frekuensi dua minggu terakhir: 0 Tidak pernah · 1 Kadang-kadang · 2 Kurang dari separuh waktu · 3 Lebih dari separuh waktu · 4 Sebagian besar waktu · 5 Sepanjang waktu.</div>
-        <div className="psWhoGrid">{WHO_ITEMS.map(item => <div className="psWho" key={item.code}><b>{item.code}</b><span>{item.text}</span>
-          {renderSurveyScale(item.code, [0,1,2,3,4,5].map(value => ({ value: String(value), label: String(value) })))}
-        </div>)}</div>
-      </LiquidGlass>
-
-      <LiquidGlass className="psDim">
-        <div className="psDimHead"><div><span>BAGIAN D</span><h4>Skrining Burnout — Item Tunggal Tervalidasi</h4></div><small>D1</small></div>
-        <div className="psBurnout">{[
-          'Saya menikmati pekerjaan saya. Saya tidak mengalami gejala burnout (kelelahan kerja).',
-          'Saya terkadang merasa stres, tetapi saya tidak memiliki gejala burnout.',
-          'Saya mulai mengalami burnout. Saya memiliki satu atau lebih gejala, seperti kelelahan fisik/emosional, namun masih bisa mengatasinya.',
-          'Gejala burnout yang saya alami sudah mulai mengganggu, sehingga sulit bagi saya untuk tidak memikirkannya bahkan saat sedang tidak bekerja.',
-          'Saya merasa sepenuhnya kehabisan tenaga (burnout berat) dan sering berpikir bahwa saya tidak sanggup lagi melakukan pekerjaan ini.',
-        ].map((text, index) => <button type="button" key={`burnout-score-${index}`} className={surveyAnswers.D1 === String(index + 1) ? 'selected' : ''} onClick={() => setSurveyAnswer('D1', String(index + 1))}><b>Skor {index + 1}</b><span>{text}</span></button>)}</div>
-      </LiquidGlass>
-
-      <LiquidGlass className="psDim">
-        <div className="psDimHead"><div><span>BAGIAN E</span><h4>Indikator Hasil (Outcome Measures)</h4></div><small>E1–E2</small></div>
-        {renderSurveyQuestion('E1', 'Beri nilai keseluruhan untuk budaya/kondisi keselamatan pasien di unit kerja Anda saat ini.',
-          [{ value: '1', label: '1 · Buruk' }, { value: '2', label: '2 · Kurang' }, { value: '3', label: '3 · Cukup' }, { value: '4', label: '4 · Baik' }, { value: '5', label: '5 · Sangat Baik' }])}
-        {renderSurveyQuestion('E2', 'Dalam 12 bulan terakhir, berapa kali Anda melaporkan insiden/kejadian nyaris cedera (near-miss) keselamatan pasien?',
-          [{ value: '0', label: 'Tidak pernah' }, { value: '1', label: '1–2 kali' }, { value: '2', label: '3–5 kali' }, { value: '3', label: '6–10 kali' }, { value: '4', label: '> 10 kali' }])}
-        <div className="psAlert warn" style={{ marginTop: 12 }}>Item B17 bertanda (R) dalam instrumen sumber. AUREKA menyimpan jawaban mentah dan tidak menerapkan reverse scoring otomatis sebelum formula skoring disepakati.</div>
-      </LiquidGlass>
-      <LiquidGlass className="psPanel">
-        <div className="psFormFooter" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
-          <div><span className="psPill blue">{SURVEY_REQUIRED.length - missingSurvey.length} / {SURVEY_REQUIRED.length} item terjawab</span></div>
-          <div className="psActions"><button type="button" className="psBtn" disabled={saving} onClick={resetSurvey}>Reset Pengisian</button><button type="button" className="psBtn primary" disabled={saving} onClick={() => void submitSurvey()}>{saving ? 'Menyimpan…' : 'Kirim Respons Anonim'}</button></div>
-        </div>
-      </LiquidGlass>
-    </div> : null}
+    {tab === 'survey' ? <SurveyWizard
+      meta={{ period: surveyPeriod, setPeriod: setSurveyPeriod, unit: surveyUnit, setUnit: setSurveyUnit,
+        profession: surveyProfession, setProfession: setSurveyProfession, hospitalTenure: surveyHospitalTenure, setHospitalTenure: setSurveyHospitalTenure,
+        unitTenure: surveyUnitTenure, setUnitTenure: setSurveyUnitTenure, shift: surveyShift, setShift: setSurveyShift,
+        role: surveyRole, setRole: setSurveyRole, patientContact: surveyPatientContact, setPatientContact: setSurveyPatientContact }}
+      roomOptions={roomOptions}
+      dimensions={SURVEY_DIMENSIONS}
+      whoItems={WHO_ITEMS}
+      required={SURVEY_REQUIRED}
+      answers={surveyAnswers}
+      setAnswer={setSurveyAnswer}
+      saving={saving}
+      error={error}
+      lastResponseCode={lastResponseCode}
+      onSubmit={submitSurvey}
+      onReset={resetSurvey}
+    /> : null}
 
     {tab === 'responses' && isSuperAdmin ? <>
       <LiquidGlass className="psPanel">
