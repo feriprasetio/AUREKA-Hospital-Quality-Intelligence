@@ -89,17 +89,23 @@ export default function HomeLandingWorkspace({supabase,userName,userId,roomId,ro
     const q=(schema:string,table:string)=>supabase.schema(schema).from(table)
     ;(async()=>{
       const jobs=await Promise.all([
-        q('aureka_quality','audit_log').select('created_at').eq('actor_id',userId).order('created_at',{ascending:false}).limit(1),
+        q('aureka_quality','quality_records').select('updated_at').eq('entered_by',userId).order('updated_at',{ascending:false}).limit(1),
         q('aureka_quality','quality_records').select('id',{count:'exact',head:true}).eq('entered_by',userId).in('status',['draft','reopened']),
+        q('aureka_quality','clinical_pathway_audits').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId).order('updated_at',{ascending:false}).limit(1),
         q('aureka_quality','clinical_pathway_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),
+        q('aureka_quality','clinical_death_audits').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId).order('updated_at',{ascending:false}).limit(1),
         q('aureka_quality','clinical_death_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),
+        q('aureka_patient_safety','incidents').select('updated_at').eq('created_by',userId).order('updated_at',{ascending:false}).limit(1),
         q('aureka_patient_safety','incidents').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','submitted','under_review','investigation']),
+        q('aureka_risk','risk_register').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId).order('updated_at',{ascending:false}).limit(1),
         q('aureka_risk','risk_register').select('id',{count:'exact',head:true}).eq('created_by',userId).neq('status','Controlled').neq('status','Accepted'),
+        q('aureka_risk','mitigation_plans').select('updated_at').eq('created_by',userId).order('updated_at',{ascending:false}).limit(1),
         q('aureka_risk','mitigation_plans').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['pending_kabid','pending_director','pending_board','in_progress']),
       ])
       if(cancelled)return
-      const [audit,quality,cp,death,incidents,risks,plans]=jobs
-      const lastAt=(audit.data??[])[0]?.created_at??null
+      const [qualityLast,quality,cpLast,cp,deathLast,death,incidentLast,incidents,riskLast,risks,planLast,plans]=jobs
+      const dates=[qualityLast,cpLast,deathLast,incidentLast,riskLast,planLast].flatMap(result=>(result.data??[]).map((row:any)=>String(row.updated_at??''))).filter(Boolean).sort()
+      const lastAt=dates.at(-1)||null
       const pending=[
         {label:'Catatan indikator mutu yang belum selesai',count:quality.count??0,module:'Mutu Klinis'},
         {label:'Audit Clinical Pathway yang masih draf/perbaikan',count:cp.count??0,module:'Mutu Klinis'},
