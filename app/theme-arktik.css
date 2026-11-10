@@ -180,3 +180,79 @@ html[data-skin="arktik"]:root .workspaceRoot :is(h1, h2, h3) {
 @media (max-width: 760px) {
   html[data-skin="arktik"]:root { --arktik-blur: blur(12px) saturate(150%); --arktik-glass: rgba(255, 255, 255, 0.7); }
 }
+
+/* ===== Halaman publik (landing) dan halaman masuk ===== */
+html[data-skin="arktik"]:root .a2-landing,
+html[data-skin="arktik"]:root .authPage.authRedesigned {
+  --a2-canvas: #e9f1f8;
+  --a2-line: rgba(160, 190, 215, 0.55);
+  background-color: var(--arktik-bg) !important;
+  background-image:
+    radial-gradient(40rem 22rem at 6% 0%, rgba(169, 216, 255, 0.85), transparent 70%),
+    radial-gradient(32rem 30rem at 100% 30%, rgba(185, 240, 240, 0.75), transparent 70%),
+    radial-gradient(36rem 28rem at 30% 100%, rgba(209, 217, 255, 0.7), transparent 70%) !important;
+  background-attachment: fixed !important;
+  background-size: auto !important;
+}
+html[data-skin="arktik"]:root .a2-landing .a2-header,
+html[data-skin="arktik"]:root .authPage.authRedesigned .authTopbar {
+  background: rgba(255, 255, 255, 0.5) !important;
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
+  border-bottom: 1px solid var(--arktik-edge) !important;
+  box-shadow: 0 6px 24px rgba(20, 60, 110, 0.05) !important;
+}
+html[data-skin="arktik"]:root .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card, .a2-governance-panel,
+  .a2-transparency-panel, .a2-dashboard-card, .a2-risk-backplate, .a2-faq-list, .a2-module-toolbar, .a2-institution-chip, .a2-status-pill) {
+  background: rgba(255, 255, 255, 0.55) !important;
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
+  border: 1px solid var(--arktik-edge) !important;
+  box-shadow: var(--arktik-shadow) !important;
+}
+html[data-skin="arktik"]:root .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card, .a2-governance-panel,
+  .a2-transparency-panel, .a2-dashboard-card, .a2-faq-list) {
+  border-radius: 22px !important;
+}
+html[data-skin="arktik"]:root .a2-landing .a2-button {
+  border-radius: 14px !important;
+}
+html[data-skin="arktik"]:root .a2-landing .a2-button-outline,
+html[data-skin="arktik"]:root .a2-landing .a2-mobile-toggle {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: var(--arktik-edge) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
+}
+html[data-skin="arktik"]:root .a2-landing .a2-footer {
+  background: rgba(255, 255, 255, 0.45) !important;
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
+  border-top: 1px solid var(--arktik-edge) !important;
+}
+html[data-skin="arktik"]:root .authPage.authRedesigned .authShell {
+  background: rgba(255, 255, 255, 0.55) !important;
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
+  border: 1px solid var(--arktik-edge) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 24px 60px rgba(20, 60, 110, 0.14) !important;
+}
+html[data-skin="arktik"]:root .authPage.authRedesigned .authCard {
+  background: transparent !important;
+}
+html[data-skin="arktik"]:root .authPage.authRedesigned .authCard .field :is(input, select) {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(150, 180, 210, 0.6) !important;
+  border-radius: 12px !important;
+}
+html[data-skin="arktik"]:root .authPage.authRedesigned .authTopbar {
+  border: 1px solid var(--arktik-edge) !important;
+  border-radius: 18px !important;
+}
+/* Kolom cari di header: biarkan bingkai bawaannya, tanpa kotak putih ganda */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar input {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
