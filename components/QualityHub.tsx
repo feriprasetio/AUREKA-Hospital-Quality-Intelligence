@@ -25,7 +25,7 @@ export default function QualityHub({
         <div>
           <div className="qhEyebrow">MUTU KLINIS · RUANG KERJA</div>
           <h3 id="qh-title">Pilih modul audit</h3>
-          <p>Setiap modul membuka alur kerja khusus dengan sumber data dan aturan validasi yang sesuai.</p>
+          
         </div>
       </header>
       <div className="qhGrid">
