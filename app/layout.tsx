@@ -20,6 +20,7 @@ import './theme-arktik-modern.css'
 import './overview-bento.css'
 import './settings-modern.css'
 import './kpi-bento.css'
+import './tanya-aureka.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',

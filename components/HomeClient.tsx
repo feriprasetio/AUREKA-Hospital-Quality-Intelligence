@@ -12,6 +12,7 @@ import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import PublicLandingPage from '@/components/PublicLandingPage'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 const CommandPalette=dynamic(()=>import('@/components/CommandPalette'),{ssr:false})
+const TanyaAureka=dynamic(()=>import('@/components/TanyaAureka'),{ssr:false})
 const workspaceChunkLoading=(label:string)=><AsyncStatePanel state="loading" title={`Memuat ${label}`} description="Menyiapkan ruang kerja." compact/>
 const QualityIndicatorWorkspace=dynamic(()=>import('@/components/QualityIndicatorWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Audit Indikator Mutu')})
 const QualityResultsWorkspace=dynamic(()=>import('@/components/QualityResultsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Hasil Capaian Mutu')})
@@ -756,6 +757,7 @@ export default function HomeClient(){
    <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="notifications" title="Riwayat notifikasi" aria-label="Riwayat notifikasi" aria-expanded={notificationHistoryOpen} onClick={()=>{setNotificationHistoryOpen(v=>!v);setSupportOpen(false)}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>{notifications.length>0&&<span className="workspaceHeaderBadge">{notifications.length>9?'9+':notifications.length}</span>}
    </button>
+   <TanyaAureka sb={sb} page={currentContainer}/>
    <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="support" title="Chat Super Admin" aria-label="Chat Super Admin" aria-expanded={supportOpen} onClick={openSupportChat}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.9 8.9 0 0 1-4-.95L3 21l1.95-5.5a8.9 8.9 0 0 1-.95-4A8.5 8.5 0 0 1 12.5 3H13a8.5 8.5 0 0 1 8 8.5Z"/><path d="M8 10h8M8 14h5"/></svg>
    </button>
