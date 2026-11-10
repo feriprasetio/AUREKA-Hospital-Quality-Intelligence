@@ -903,7 +903,6 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             <button type="button" className="cpBtn primary" disabled={importingMaster || !importFile} onClick={() => void importClinicalPathwaySourcePack(importFile)}>{importingMaster ? 'Mengimpor paket…' : '↓ Impor 8 format CP sumber baru'}</button>
           </div>}
         </div>
-        {templates.length === 0 && }
       </div>}
       <div className="cpGlass cpToolbar">
         <div className="cpField cpSearch cpLocalSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
