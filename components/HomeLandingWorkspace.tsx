@@ -35,7 +35,7 @@ const diagnosisOf = (core: Record<string, any>) => {
 const icdOf = (core: Record<string, any>) => {
   const fields = fieldData(core)
   const raw = valueText(core.icd10_code) || valueText(core.icd10) || valueText(fields['Kode ICD-10']) || valueText(fields['ICD-10']) || valueText(fields['Kode Diagnosa'])
-  const match = raw.toUpperCase().match(/[A-Z][0-9]{2}(?:\\.[0-9A-Z]{1,4})?/)
+  const match = raw.toUpperCase().match(/[A-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?/)
   return match?.[0] || ''
 }
 const losOf = (core: Record<string, any>) => {
