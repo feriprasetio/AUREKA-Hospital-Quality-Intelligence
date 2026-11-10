@@ -871,7 +871,6 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     <WorkspaceModuleHeader
       className="cpHead"
       title={screen === 'library' ? 'Pustaka diagnosis & format CP' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
-      description={screen === 'library' ? 'Kelola format CP per diagnosis, dokumentasikan pelayanan seluruh PPA dalam satu tabel checklist, dan hitung otomatis Bagian D.' : screen === 'diagnosis' ? 'Daftar audit pasien untuk diagnosis terpilih. Setiap audit menggunakan snapshot versi format CP yang dipakai saat pengisian.' : screen === 'builder' ? 'Editor Super Admin untuk identitas diagnosis, kelompok PPA, item/tindakan, jadwal berwarna, data klinis, kriteria inklusi, dan aturan penilaian.' : 'Checklist semua item beserta hari perawatan dalam satu tabel. Klik tanda pada sel untuk menandai sesuai; gunakan rincian untuk mencatat pengecualian, petugas, dan bukti.'}
       actions={<div className="cpActions">
         <button type="button" className="cpBtn" onClick={onBack}>← Audit Indikator Mutu</button>
         {screen !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(screen === 'audit' ? 'diagnosis' : screen === 'builder' ? builderReturnScreen : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
