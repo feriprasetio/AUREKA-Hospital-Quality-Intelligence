@@ -558,12 +558,8 @@ export default function HomeClient(){
     <aside className="authAside">
      <span className="authAsideEyebrow">BERSAMA, MENINGKATKAN KUALITAS PELAYANAN</span>
      <h2>{l?'Setiap perbaikan dimulai dari Anda.':'Peran Anda. Dampak yang lebih besar.'}</h2>
-     <p>{l?'Akses workspace AUREKA untuk mengelola indikator mutu, keselamatan pasien, manajemen risiko, dan asesmen sesuai peran serta unit kerja Anda.':'Daftarkan akun sebagai PIC unit. Data pendaftaran akan diverifikasi dan diaktifkan oleh Komite PMKP sebelum digunakan untuk mengelola data unit.'}</p>
-     <ul>
-      <li><span aria-hidden="true">✓</span><div><b>Akses berbasis peran dan unit</b><small>Menu dan data mengikuti kewenangan akun.</small></div></li>
-      <li><span aria-hidden="true">✓</span><div><b>Proses mutu terintegrasi</b><small>Pengukuran, audit, insiden, dan risiko dalam satu ekosistem.</small></div></li>
-      <li><span aria-hidden="true">✓</span><div><b>Akuntabilitas yang dapat ditelusuri</b><small>Aktivitas dan tindak lanjut mengikuti jejak kerja.</small></div></li>
-     </ul>
+     
+     
      <div className="authAsideBottom">
       <span className="authAsideBottomMark" aria-hidden="true">A</span>
       <small>UPT RSUD Sultan Syarif Mohamad Alkadrie<br/>Komite Peningkatan Mutu dan Keselamatan Pasien</small>
@@ -589,7 +585,7 @@ export default function HomeClient(){
        <h1>{l?'Selamat datang kembali.':'Daftar Akun Unit'}</h1>
        <p>{l?'Masuk ke AUREKA dan lanjutkan langkah perbaikan Anda.':'Lengkapi identitas dan unit kerja. Pengajuan akun akan diperiksa sebelum aktivasi.'}</p>
       </div>
-      {PREVIEW_ONLY&&<div className="authPreviewNotice" role="note"><strong>Pratinjau antarmuka</strong><p>Koneksi Supabase dinonaktifkan di lingkungan ini. Login dan pengelolaan data nyata memerlukan backend yang telah dikonfigurasi.</p></div>}
+      
       {!l&&<>
        <div className="field">
         <label htmlFor="fullName">Nama lengkap</label>
