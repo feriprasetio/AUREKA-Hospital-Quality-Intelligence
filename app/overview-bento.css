@@ -1,0 +1,152 @@
+/* Ringkasan: tata letak bento (peta risiko besar + 4 KPI 2x2 + 4 tindakan) */
+.workspaceRoot .ovRoot .ovBento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.workspaceRoot .ovRoot .ovBentoMap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 22px;
+  border-radius: 24px;
+  background: var(--arktik-glass, #ffffff);
+  -webkit-backdrop-filter: var(--arktik-blur, none);
+  backdrop-filter: var(--arktik-blur, none);
+  border: 1px solid var(--arktik-edge, #e2e8e4);
+  box-shadow: var(--arktik-shadow, 0 4px 14px rgba(15, 23, 42, .06));
+}
+.workspaceRoot .ovRoot .ovBentoMapHead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.workspaceRoot .ovRoot .ovBentoMapHead h3 { margin: 4px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.workspaceRoot .ovRoot .ovBentoTotal {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 0; border: 0; background: transparent; cursor: pointer;
+  color: inherit; font: inherit;
+}
+.workspaceRoot .ovRoot .ovBentoTotal b { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.workspaceRoot .ovRoot .ovBentoTotal small { font-size: 13px; opacity: .75; }
+.workspaceRoot .ovRoot .ovBentoTotal:hover b { text-decoration: underline; text-underline-offset: 4px; }
+
+.workspaceRoot .ovRoot .ovBentoMatrix { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.workspaceRoot .ovRoot .ovBentoGrid { display: grid; gap: 8px; }
+.workspaceRoot .ovRoot .ovBentoRow { display: grid; grid-template-columns: 26px repeat(5, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+.workspaceRoot .ovRoot .ovBentoAxis { display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; opacity: .7; }
+.workspaceRoot .ovRoot .ovBentoCols .ovBentoAxis { padding-top: 2px; }
+.workspaceRoot .ovRoot .ovBentoGrid .ovCell {
+  width: auto !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  min-height: 52px !important;
+  border-radius: 14px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.workspaceRoot .ovRoot .ovBentoGrid .ovCell:disabled { font-weight: 500 !important; opacity: .55; }
+.workspaceRoot .ovRoot .ovBentoLegend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; opacity: .85; }
+.workspaceRoot .ovRoot .ovBentoLegend span { display: inline-flex; align-items: center; gap: 6px; }
+.workspaceRoot .ovRoot .ovBentoLegend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+.workspaceRoot .ovRoot .ovBento .ovBentoKpis {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr;
+  gap: 16px !important;
+  margin: 0 !important;
+}
+.workspaceRoot .ovRoot .ovBento .ovBentoKpis .ovKpi {
+  min-height: 150px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 20px !important;
+  border-radius: 22px !important;
+}
+.workspaceRoot .ovRoot .ovBento .ovBentoKpis .ovKpi :is(.ovKpiValue, strong) { font-size: 36px !important; letter-spacing: -0.03em; line-height: 1.05; }
+
+.workspaceRoot .ovRoot .ovBentoTodo { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.workspaceRoot .ovRoot .ovBentoTodo button {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 68px;
+  padding: 14px 18px; text-align: left; cursor: pointer; color: inherit; font: inherit;
+  border-radius: 20px;
+  background: var(--arktik-glass, #ffffff);
+  -webkit-backdrop-filter: var(--arktik-blur, none);
+  backdrop-filter: var(--arktik-blur, none);
+  border: 1px solid var(--arktik-edge, #e2e8e4);
+  box-shadow: var(--arktik-shadow, 0 4px 14px rgba(15, 23, 42, .06));
+  transition: transform .12s ease, box-shadow .15s ease;
+}
+.workspaceRoot .ovRoot .ovBentoTodo button:hover { transform: translateY(-1px); }
+.workspaceRoot .ovRoot .ovBentoTodo button:focus-visible { outline: 3px solid rgba(29, 95, 153, .35); outline-offset: 2px; }
+.workspaceRoot .ovRoot .ovBentoTodo b { display: block; font-size: 14.5px; font-weight: 700; }
+.workspaceRoot .ovRoot .ovBentoTodo small { display: block; margin-top: 2px; font-size: 12.5px; opacity: .75; }
+.workspaceRoot .ovRoot .ovBentoTodo strong { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1100px) {
+  .workspaceRoot .ovRoot .ovBento { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .workspaceRoot .ovRoot .ovBentoMap { padding: 16px; border-radius: 20px; }
+  .workspaceRoot .ovRoot .ovBentoRow { grid-template-columns: 18px repeat(5, minmax(0, 1fr)); gap: 5px; }
+  .workspaceRoot .ovRoot .ovBentoGrid .ovCell { min-height: 44px !important; font-size: 13px !important; border-radius: 10px !important; }
+  .workspaceRoot .ovRoot .ovBento .ovBentoKpis { gap: 10px !important; }
+  .workspaceRoot .ovRoot .ovBento .ovBentoKpis .ovKpi { min-height: 128px !important; padding: 14px !important; }
+  .workspaceRoot .ovRoot .ovBento .ovBentoKpis .ovKpi :is(.ovKpiValue, strong) { font-size: 28px !important; }
+  .workspaceRoot .ovRoot .ovBentoTodo { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .workspaceRoot .ovRoot .ovBentoTodo button { flex-direction: column; align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspaceRoot .ovRoot .ovBentoTodo button { transition: none; }
+}
+
+/* ===== Warna peta risiko & KPI seperti desain #6 (tema Arktik) ===== */
+html[data-skin="arktik"] {
+  --ak-risk-vh: #c7413a;      --ak-risk-vh-ink: #ffffff;
+  --ak-risk-h: rgba(240, 140, 100, 0.72);  --ak-risk-h-ink: #3a1408;
+  --ak-risk-m: rgba(245, 200, 110, 0.66);  --ak-risk-m-ink: #3a2806;
+  --ak-risk-l: rgba(150, 210, 230, 0.62);  --ak-risk-l-ink: #0b2e40;
+  --ak-risk-vl: rgba(255, 255, 255, 0.62); --ak-risk-vl-ink: #2e4a66;
+}
+html[data-skin="arktik"][data-mode="gelap"] {
+  --ak-risk-vh: rgba(239, 90, 72, 0.8);    --ak-risk-vh-ink: #ffffff;
+  --ak-risk-h: rgba(240, 140, 80, 0.5);    --ak-risk-h-ink: #ffffff;
+  --ak-risk-m: rgba(236, 190, 80, 0.38);   --ak-risk-m-ink: #ffffff;
+  --ak-risk-l: rgba(90, 170, 220, 0.3);    --ak-risk-l-ink: #ffffff;
+  --ak-risk-vl: rgba(255, 255, 255, 0.06); --ak-risk-vl-ink: #d5dcea;
+}
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell {
+  background-image: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell { border-color: rgba(255, 255, 255, 0.12) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell[data-band="very-high"] { background: var(--ak-risk-vh) !important; color: var(--ak-risk-vh-ink) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell[data-band="high"] { background: var(--ak-risk-h) !important; color: var(--ak-risk-h-ink) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell[data-band="moderate"] { background: var(--ak-risk-m) !important; color: var(--ak-risk-m-ink) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell[data-band="low"] { background: var(--ak-risk-l) !important; color: var(--ak-risk-l-ink) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell[data-band="very-low"] { background: var(--ak-risk-vl) !important; color: var(--ak-risk-vl-ink) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell:disabled { opacity: 0.55 !important; }
+/* legenda: urutan Sangat Tinggi, Tinggi, Sedang, Rendah, Sangat Rendah */
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoLegend span:nth-child(2) i { background: var(--ak-risk-vh) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoLegend span:nth-child(3) i { background: var(--ak-risk-h) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoLegend span:nth-child(4) i { background: var(--ak-risk-m) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoLegend span:nth-child(5) i { background: var(--ak-risk-l) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoLegend span:nth-child(6) i { background: var(--ak-risk-vl) !important; border: 1px solid rgba(140, 170, 200, 0.6); }
+/* batang distribusi level ikut palet yang sama */
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBarFill.lvl-very-high { background: var(--ak-risk-vh) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBarFill.lvl-high { background: var(--ak-risk-h) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBarFill.lvl-moderate { background: var(--ak-risk-m) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBarFill.lvl-low { background: var(--ak-risk-l) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBarFill.lvl-very-low { background: var(--ak-risk-vl) !important; }
+/* KPI: angka besar, ikon & efek lama disembunyikan agar bersih seperti desain */
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi :is(.magicKpiGlow, .magicKpiSweep) { display: none !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .ovKpiIcon { display: none !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .ovKpiLabel { font-size: 13.5px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--arktik-ink-2, #2e4a66) !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .magicKpiValue { font-size: 38px !important; font-weight: 800 !important; letter-spacing: -0.03em !important; color: var(--arktik-ink, #0b1f33) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi.danger .magicKpiValue { color: #b3352e !important; }
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .ovRoot .ovBento .ovKpi.danger .magicKpiValue { color: #ff9a85 !important; }
+html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi small { font-size: 13px !important; color: var(--arktik-ink-2, #2e4a66) !important; }
