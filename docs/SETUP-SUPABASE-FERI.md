@@ -57,4 +57,4 @@ create index if not exists quality_record_responses_pending_idx
 Aman: hanya menambah index, tidak mengubah data.
 
 ---
-Selesai ketiganya, kabari supaya dites ulang dari aplikasi.
+Setelah perubahan konfigurasi disimpan, uji alur reset password, verifikasi akun, dan konfirmasi ganti email dari alamat GitHub Pages.
