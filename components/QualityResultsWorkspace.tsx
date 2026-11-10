@@ -628,7 +628,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <span className="qraPill">{pharmacyMetricSummary.periodLabel} · {pharmacyMetricSummary.validatedRecords} tervalidasi</span>
                 </div>
                 <div className="qraKpis qraKpisThree">
-                  <Kpi label="Catatan tervalidasi" value={formatCount(pharmacyMetricSummary.validatedRecords)} detail="Masuk perhitungan capaian resmi" />
+                  <Kpi label="Catatan tervalidasi" value={formatCount(pharmacyMetricSummary.validatedRecords)} detail="" />
                   <Kpi label="Siap ditinjau" value={formatCount(pharmacyMetricSummary.readyRecords)} detail="Tidak dimasukkan ke numerator/denominator resmi" />
                   <Kpi label="Indikator Farmasi" value={formatCount(pharmacyMetricSummary.metrics.length)} detail="Empat indikator pada rekap operasional" />
                 </div>
