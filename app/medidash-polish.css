@@ -525,3 +525,20 @@ html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmDetailModal .rmSec
   html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .rmTable tbody tr[data-risk-id]{background:#fff!important}
   html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .rmTable tbody tr.selected[data-risk-id]{background:#f1f9f5!important}
 }
+
+/* =====================================================================
+   iPhone/iPad auto-zoom: Safari zooms in whenever a field with text smaller than 16px is tapped
+   (e.g. "Cari menu…" in the side menu) and does not zoom back out. All text fields, dropdowns and
+   text areas therefore use 16px on touch screens. ":is(html,#aureka-ios-zoom-guard)" carries
+   ID-level weight so module styles cannot shrink them again.
+   ===================================================================== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@media (pointer:coarse), (max-width:760px){
+  :is(html,#aureka-ios-zoom-guard) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),select,textarea){
+    font-size:16px!important;line-height:1.3!important
+  }
+  :is(html,#aureka-ios-zoom-guard) :is(.workspaceGlobalSearch,.sidebarSearch) input{height:auto!important;min-height:40px!important;padding-top:8px!important;padding-bottom:8px!important}
+  :is(html,#aureka-ios-zoom-guard) .workspaceContextSelect{height:auto!important;min-height:40px!important}
+}
+/* Search boxes: only the outer box shows focus (the inner field drew a second square outline) */
+:is(html,#aureka-ios-zoom-guard) :is(.sidebarSearch,.workspaceGlobalSearch) input:is(:focus,:focus-visible){outline:none!important;box-shadow:none!important;border:0!important}
