@@ -51,16 +51,16 @@ html[data-skin="arktik"]:root .workspaceRoot .sidebar .sidebarFooter {
 html[data-skin="arktik"]:root .workspaceRoot aside.sidebar {
   background-image: none !important;
   background: rgba(255, 255, 255, 0.5) !important;
-  -webkit-backdrop-filter: var(--arktik-blur);
-  backdrop-filter: var(--arktik-blur);
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
   border-right: 1px solid var(--arktik-edge) !important;
   box-shadow: 8px 0 30px rgba(20, 60, 110, 0.06) !important;
 }
 html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar {
   background-image: none !important;
   background: rgba(255, 255, 255, 0.5) !important;
-  -webkit-backdrop-filter: var(--arktik-blur);
-  backdrop-filter: var(--arktik-blur);
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
   border-bottom: 1px solid var(--arktik-edge) !important;
   box-shadow: 0 6px 24px rgba(20, 60, 110, 0.05) !important;
 }
@@ -88,12 +88,12 @@ html[data-skin="arktik"]:root .workspaceRoot .sidebar .sidebarChild.active {
   color: #ffffff !important;
 }
 /* Induk grup yang terbuka: kaca terang, supaya hanya submenu aktif yang gelap */
-html[data-skin="arktik"]:root .workspaceRoot .sidebar .sidebarNavGroup > button.navActive {
+html[data-skin="arktik"]:root .workspaceRoot .sidebar .sidebarNavGroup:has(.sidebarChild) > button.navActive {
   background: rgba(255, 255, 255, 0.8) !important;
   color: var(--arktik-ink) !important;
   font-weight: 700;
 }
-html[data-skin="arktik"]:root .workspaceRoot .sidebar .sidebarNav > button.navActive :is(svg, span, b),
+html[data-skin="arktik"]:root .workspaceRoot .sidebar :is(.sidebarNav > button, .sidebarNavGroup:not(:has(.sidebarChild)) > button).navActive :is(svg, span, b),
 html[data-skin="arktik"]:root .workspaceRoot .sidebar .sidebarChild.active :is(svg, span, b) {
   color: #ffffff !important;
   stroke: currentColor;
@@ -116,8 +116,8 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(
   .workspaceSummary, .workspaceTableFrame
 ) {
   background: var(--arktik-glass) !important;
-  -webkit-backdrop-filter: var(--arktik-blur);
-  backdrop-filter: var(--arktik-blur);
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
   border: 1px solid var(--arktik-edge) !important;
   box-shadow: var(--arktik-shadow) !important;
   border-radius: 20px !important;
@@ -146,8 +146,8 @@ html[data-skin="arktik"]:root .workspaceRoot thead th {
 html[data-skin="arktik"]:root .workspaceRoot :is(.rmModalSheet, .psModalSheet, .aqEditorDialog, .aqDrawer, .acdDrawer,
   .sdEditDialog, .oppeModal, .rmDetailModal, .rmConfirmCard, .userDetailSheet, .overviewModal) {
   background: rgba(250, 252, 255, 0.94) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
   border: 1px solid var(--arktik-edge) !important;
   border-radius: 24px !important;
 }
@@ -167,7 +167,7 @@ html[data-skin="arktik"]:root .workspaceRoot :is(h1, h2, h3) {
 
 /* Hemat: tanpa backdrop-filter, panel dibuat buram solid */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  html[data-skin="arktik"]:root { --arktik-glass: rgba(255, 255, 255, 0.9); }
+  html[data-skin="arktik"]:root { --arktik-glass: rgba(255, 255, 255, 0.9) !important; }
   html[data-skin="arktik"]:root .workspaceRoot aside.sidebar,
   html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar { background: rgba(255, 255, 255, 0.92) !important; }
 }
