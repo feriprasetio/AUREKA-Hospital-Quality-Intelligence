@@ -282,9 +282,6 @@ export default function OverviewDashboard({
       <WorkspaceModuleHeader
         className="ovHero"
         title={`Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}
-        description={manager
-            ? 'Ringkasan terpadu indikator mutu, keselamatan pasien, audit klinis, dan pengendalian risiko rumah sakit.'
-            : `Ruang kerja mutu untuk ${roomName || 'unit Anda'} · input dan tindak lanjut sesuai hak akses.`}
         actions={<div className="ovHeroMeta">
           <span className="ovHeroDate">{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Pontianak' }).format(new Date())}</span>
           <button type="button" className="ovRefresh" onClick={() => setReloadKey(k => k + 1)} disabled={loading} aria-label="Muat ulang data">
