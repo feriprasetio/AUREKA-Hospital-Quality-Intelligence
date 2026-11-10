@@ -1,0 +1,82 @@
+/* Administrasi: tata letak dua panel (menu kiri + isi kanan) */
+.workspaceRoot .settingsWorkspace .stLayout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.workspaceRoot .settingsWorkspace .stNav {
+  position: sticky;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 22px;
+  background: var(--arktik-glass, #ffffff);
+  -webkit-backdrop-filter: var(--arktik-blur, none);
+  backdrop-filter: var(--arktik-blur, none);
+  border: 1px solid var(--arktik-edge, #e2e8e4);
+  box-shadow: var(--arktik-shadow, 0 4px 14px rgba(15, 23, 42, .06));
+}
+.workspaceRoot .settingsWorkspace .stNavProfile { display: flex; align-items: center; gap: 10px; padding: 6px 6px 12px; margin-bottom: 4px; border-bottom: 1px solid var(--arktik-edge, #e2e8e4); }
+.workspaceRoot .settingsWorkspace .stNavWho { min-width: 0; }
+.workspaceRoot .settingsWorkspace .stNavWho b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.workspaceRoot .settingsWorkspace .stNavWho small { display: block; font-size: 12px; opacity: .75; }
+.workspaceRoot .settingsWorkspace .stAvatar {
+  flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 800; font-size: 14px; color: #ffffff; background: var(--arktik-ink, #0f7656);
+}
+.workspaceRoot .settingsWorkspace .stAvatar.lg { width: 64px; height: 64px; font-size: 22px; }
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stAvatar { color: #0a0f1c; background: #ffffff; }
+.workspaceRoot .settingsWorkspace .stNavItem {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 12px;
+  font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer;
+  color: inherit; background: transparent; border: 0; border-radius: 12px;
+  transition: background-color .12s ease;
+}
+.workspaceRoot .settingsWorkspace .stNavItem:hover { background: rgba(255, 255, 255, .6); }
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stNavItem:hover { background: rgba(255, 255, 255, .08); }
+.workspaceRoot .settingsWorkspace .stNavItem.on { color: #ffffff; background: var(--arktik-ink, #0f7656); }
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stNavItem.on { color: #0a0f1c; background: #ffffff; }
+.workspaceRoot .settingsWorkspace .stNavItem:focus-visible { outline: 3px solid rgba(29, 95, 153, .35); outline-offset: 2px; }
+.workspaceRoot .settingsWorkspace .stNavIcon { display: inline-flex; width: 20px; height: 20px; }
+.workspaceRoot .settingsWorkspace .stNavIcon svg { width: 20px; height: 20px; }
+.workspaceRoot .settingsWorkspace .stMain { display: grid; gap: 14px; min-width: 0; }
+
+.workspaceRoot .settingsWorkspace .stHeroCard { display: flex; align-items: center; gap: 18px; padding: 22px !important; border-radius: 24px !important; flex-wrap: wrap; }
+.workspaceRoot .settingsWorkspace .stHeroText { min-width: 0; flex: 1; }
+.workspaceRoot .settingsWorkspace .stHeroText h3 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.workspaceRoot .settingsWorkspace .stHeroText p { margin: 2px 0 10px; font-size: 13.5px; opacity: .75; }
+.workspaceRoot .settingsWorkspace .stChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.workspaceRoot .settingsWorkspace .stChip { padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: rgba(127, 150, 175, .16); }
+.workspaceRoot .settingsWorkspace .stChip.ok { background: rgba(47, 122, 85, .16); color: #2f7a55; }
+.workspaceRoot .settingsWorkspace .stChip.warn { background: rgba(179, 53, 46, .14); color: #b3352e; }
+
+.workspaceRoot .settingsWorkspace .stPanel { padding: 22px !important; border-radius: 24px !important; }
+.workspaceRoot .settingsWorkspace .stPanel h4 { margin: 0; font-size: 18px; }
+.workspaceRoot .settingsWorkspace .stPanelHint { margin: 4px 0 16px; font-size: 13px; opacity: .75; }
+.workspaceRoot .settingsWorkspace .stModeGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.workspaceRoot .settingsWorkspace .stMode {
+  display: grid; gap: 4px; padding: 12px; text-align: left; cursor: pointer; font: inherit; color: inherit;
+  border-radius: 18px; background: rgba(255, 255, 255, .4); border: 2px solid transparent;
+}
+.workspaceRoot .settingsWorkspace .stMode.on { border-color: var(--arktik-ink, #0f7656); }
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stMode { background: rgba(255, 255, 255, .06); }
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stMode.on { border-color: #ffffff; }
+.workspaceRoot .settingsWorkspace .stMode b { font-size: 14.5px; margin-top: 6px; }
+.workspaceRoot .settingsWorkspace .stMode small { font-size: 12.5px; opacity: .75; }
+.workspaceRoot .settingsWorkspace .stModePreview { display: grid; grid-template-columns: 1fr 2fr; grid-template-rows: 1fr 1fr; gap: 6px; height: 88px; padding: 8px; border-radius: 12px; }
+.workspaceRoot .settingsWorkspace .stModePreview i { border-radius: 6px; }
+.workspaceRoot .settingsWorkspace .stModePreview i:first-child { grid-row: span 2; }
+.workspaceRoot .settingsWorkspace .stMode.terang .stModePreview { background: linear-gradient(135deg, #cfe6ff, #d9f6f4); }
+.workspaceRoot .settingsWorkspace .stMode.terang .stModePreview i { background: rgba(255, 255, 255, .75); }
+.workspaceRoot .settingsWorkspace .stMode.gelap .stModePreview { background: linear-gradient(135deg, #1a1446, #0b2a4d); }
+.workspaceRoot .settingsWorkspace .stMode.gelap .stModePreview i { background: rgba(255, 255, 255, .12); }
+
+@media (max-width: 900px) {
+  .workspaceRoot .settingsWorkspace .stLayout { grid-template-columns: 1fr; }
+  .workspaceRoot .settingsWorkspace .stNav { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 6px; }
+  .workspaceRoot .settingsWorkspace .stNavProfile { display: none; }
+  .workspaceRoot .settingsWorkspace .stNavItem { flex: 0 0 auto; white-space: nowrap; }
+}

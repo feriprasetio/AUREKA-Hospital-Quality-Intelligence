@@ -6,12 +6,11 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
-import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
-import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 
-function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' }) {
+function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' | 'palette' }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">
-    {kind === 'lock' ? <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" /></>
+    {kind === 'palette' ? <><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" /></>
+      : kind === 'lock' ? <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" /></>
       : kind === 'profile' ? <><circle cx="12" cy="8" r="3.2" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></>
       : kind === 'unit' ? <><path d="M4 21V4h16v17M9 21v-5h6v5M8 8h2m4 0h2M8 12h2m4 0h2M2 21h20" /></>
       : kind === 'users' ? <><circle cx="9" cy="8" r="3" /><path d="M3 21v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 4v2" /></>
@@ -62,7 +61,8 @@ export default function GeneralSettings({
   /** Dibuka dari kartu nama di sidebar: langsung ke Akun Saya → Profil. */
   openProfile?: boolean
 }) {
-  const [section, setSection] = useState<'menu' | 'general' | 'users' | 'mydata'>(openProfile ? 'general' : 'menu')
+  const [section, setSection] = useState<'general' | 'users' | 'mydata' | 'appearance'>('general')
+  void openProfile
   const [tab, setTab] = useState<'profile' | 'units' | 'security'>('profile')
   const [me, setMe] = useState<Profile | null>(profile)
   const [users, setUsers] = useState<Profile[]>([])
@@ -547,97 +547,43 @@ export default function GeneralSettings({
           <button type="button" onClick={() => setMsg('')} aria-label="Tutup notifikasi">×</button>
         </div>
       )}
-      {section === 'menu' && (
-        <LiquidGlass className="settingsHome" style={{ padding: 18 }}>
-          <WorkspaceModuleHeader title="Pusat administrasi" description="Konfigurasi umum aplikasi berada di sini. Konfigurasi domain mutu, clinical pathway, klinis & kematian, dan OPPE tetap dikelola di kontainer modul masing-masing." />
-          <p className="settingsScopeNote">Pilih area pengaturan. Konfigurasi klinis tetap dikelola di modulnya masing-masing.</p>
-
-          <div className="settingsDestinations">
-            <button
-              type="button"
-              className="settingsDestination"
-              onClick={() => setSection('general')}
-              style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}
-            >
-              <span className="settingsDestinationIcon"><SettingsIcon kind="settings" /></span>
-              <b style={{ display: 'block', marginTop: 8 }}>Pengaturan Umum</b>
-              <span>Profil akun, akses, unit, preferensi tampilan, dan keamanan.</span>
-            </button>
-
-            <button type="button" className="settingsDestination" onClick={() => { setSection('general'); setTab('security') }} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
-              <span className="settingsDestinationIcon"><SettingsIcon kind="lock" /></span>
-              <b style={{ display: 'block', marginTop: 8 }}>Keamanan & Password</b>
-              <span>Ganti password akun dan lihat informasi sesi login.</span>
-            </button>
-
-            {!isAdmin && (
-              <button type="button" className="settingsDestination" onClick={() => setSection('mydata')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
-                <span className="settingsDestinationIcon"><SettingsIcon kind="data" /></span>
-                <b style={{ display: 'block', marginTop: 8 }}>Data Saya untuk PMKP</b>
-                <span>Ringkasan data unit yang Anda laporkan, kewajiban PIC, dan kontak Komite PMKP.</span>
-              </button>
-            )}
-
-            {isAdmin && (
-              <button type="button" className="settingsDestination" onClick={() => setSection('users')} style={{ textAlign: 'left', border: 0, cursor: 'pointer' }}>
-                <span className="settingsDestinationIcon"><SettingsIcon kind="users" /></span>
-                <b style={{ display: 'block', marginTop: 8 }}>Manajemen User / PIC Pelaporan</b>
-                <span>Kelola profil, role, unit utama, aktivasi, dan penghapusan akun pengguna.</span>
-              </button>
-            )}
-          </div>
-        </LiquidGlass>
-      )}
-
-      {section !== 'menu' && (
-        <div><button type="button" className="backBtn" onClick={() => setSection('menu')}>
-          <span aria-hidden="true">←</span> Kembali ke menu Pengaturan
-        </button></div>
-      )}
+      <div className="stLayout">
+      <nav className="stNav" aria-label="Menu pengaturan">
+        <div className="stNavProfile">
+          <span className="stAvatar" aria-hidden="true">{(me?.full_name || 'A').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}</span>
+          <span className="stNavWho"><b>{me?.full_name || 'Akun AUREKA'}</b><small>{roleLabel}</small></span>
+        </div>
+        {([
+          ['general', 'profile', 'Akun & Akses', 'profile', true],
+          ['general', 'security', 'Keamanan & Password', 'lock', true],
+          ['appearance', null, 'Tampilan', 'palette', true],
+          ['general', 'units', 'Unit & Instalasi', 'unit', isAdmin],
+          ['users', null, 'Manajemen User / PIC', 'users', isAdmin],
+          ['mydata', null, 'Data Saya untuk PMKP', 'data', !isAdmin],
+        ] as const).filter(item => item[4]).map(([sec, t, label, icon]) => {
+          const current = section === sec && (t === null || tab === t)
+          return <button key={label} type="button" className={'stNavItem' + (current ? ' on' : '')} aria-current={current ? 'page' : undefined}
+            onClick={() => { setSection(sec); if (t) setTab(t) }}>
+            <span className="stNavIcon"><SettingsIcon kind={icon} /></span><span>{label}</span>
+          </button>
+        })}
+      </nav>
+      <div className="stMain">
+      {section === 'appearance' && <AppearancePanel />}
 
       {section === 'general' && (
         <>
-          <LiquidGlass style={{ padding: 18 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div>
-                <div className="eyebrow">PENGATURAN UMUM</div>
-                <h3 style={{ margin: '5px 0 4px', fontSize: 24, letterSpacing: '-.04em' }}>Pengaturan AUREKA</h3>
-                <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>
-                  {me?.email || 'Akun AUREKA'} · {roleLabel}
-                </p>
-              </div>
-              <div style={{ padding: '8px 12px', borderRadius: 14, background: 'var(--accent-soft)', color: 'var(--accent2)', fontSize: 10, fontWeight: 850 }}>
-                {me?.is_active ? 'AKUN AKTIF' : 'AKUN NONAKTIF'}
+          <LiquidGlass className="stHeroCard">
+            <span className="stAvatar lg" aria-hidden="true">{(me?.full_name || 'A').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}</span>
+            <div className="stHeroText">
+              <h3>{me?.full_name || 'Akun AUREKA'}</h3>
+              <p>{me?.email || 'Akun AUREKA'}</p>
+              <div className="stChips">
+                <span className="stChip">{roleLabel}</span>
+                <span className="stChip">{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</span>
+                <span className={'stChip ' + (me?.is_active ? 'ok' : 'warn')}>{me?.is_active ? 'Akun aktif' : 'Akun nonaktif'}</span>
               </div>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 8, marginTop: 16 }}>
-              {[
-                ['Peran', roleLabel],
-                ['Unit', rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Belum dipetakan'],
-                ['Authentication', 'Supabase Auth'],
-                ['Status akun', me?.is_active ? 'Aktif' : 'Nonaktif'],
-              ].map(([label, value]) => (
-                <div key={label} style={{ padding: 12, borderRadius: 16, background: 'rgba(255,255,255,.28)', border: '1px solid rgba(255,255,255,.6)' }}>
-                  <span style={{ display: 'block', color: 'var(--muted)', fontSize: 9 }}>{label}</span>
-                  <b style={{ display: 'block', marginTop: 5, fontSize: 11 }}>{value}</b>
-                </div>
-              ))}
-            </div>
-
-            <WorkspaceTabs
-              className="settingsTabs"
-              idPrefix="settings"
-              label="Bagian pengaturan"
-              value={tab}
-              onChange={setTab}
-              panelId="settings-active-panel"
-              items={([
-                ['profile', 'Akun & Akses', 'profile', 'Nama, role, unit'],
-                ['units', 'Unit & Instalasi', 'unit', 'Daftar unit kerja'],
-                ['security', 'Keamanan & Password', 'lock', 'Ganti password'],
-              ] as const).filter(([key]) => isAdmin || key !== 'units').map(([value, label, icon, hint]) => ({ value, label, icon: <SettingsIcon kind={icon} />, hint }))}
-            />
           </LiquidGlass>
 
 
@@ -1006,6 +952,33 @@ export default function GeneralSettings({
           </LiquidGlass>
         </>
       )}
+      </div>
+      </div>
     </div>
+  )
+}
+
+
+function AppearancePanel() {
+  const [mode, setMode] = useState<'terang' | 'gelap'>(() => (typeof document !== 'undefined' && document.documentElement.getAttribute('data-mode') === 'gelap') ? 'gelap' : 'terang')
+  const choose = (next: 'terang' | 'gelap') => {
+    setMode(next)
+    document.documentElement.setAttribute('data-mode', next)
+    try { localStorage.setItem('aureka-mode', next) } catch { /* abaikan */ }
+    window.dispatchEvent(new CustomEvent('aureka-mode-change', { detail: next }))
+  }
+  return (
+    <LiquidGlass className="stPanel">
+      <h4>Tampilan</h4>
+      <p className="stPanelHint">Pilihan disimpan di perangkat ini.</p>
+      <div className="stModeGrid" role="radiogroup" aria-label="Mode tampilan">
+        {([['terang', 'Terang', 'Kaca es, cocok untuk siang hari'], ['gelap', 'Gelap', 'Kaca malam, nyaman di ruangan redup']] as const).map(([value, label, hint]) => (
+          <button key={value} type="button" role="radio" aria-checked={mode === value} className={'stMode ' + value + (mode === value ? ' on' : '')} onClick={() => choose(value)}>
+            <span className="stModePreview" aria-hidden="true"><i /><i /><i /></span>
+            <b>{label}</b><small>{hint}</small>
+          </button>
+        ))}
+      </div>
+    </LiquidGlass>
   )
 }
