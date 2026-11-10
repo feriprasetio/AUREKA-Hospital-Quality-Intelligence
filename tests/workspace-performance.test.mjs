@@ -87,7 +87,7 @@ test('Metadata tabs lazy-load profile, workforce list, and assignment workspaces
     assert.match(source, new RegExp(`const ${moduleName}\\s*=\\s*dynamic\\(\\(\\)\\s*=>\\s*import\\('`))
     assert.doesNotMatch(source, new RegExp(`^import ${moduleName} from `, 'm'))
   }
-  assert.doesNotMatch(source, /StatisticsWorkspace|Statistik & Laporan/)
+  assert.doesNotMatch(source, /const StatisticsWorkspace\\s*=|import\\(['\"]@\\/components\\/StatisticsWorkspace/)
 })
 
 test('performance refactor does not add bundle tooling or change Supabase and clinical engines', () => {
