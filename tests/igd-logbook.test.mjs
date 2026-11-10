@@ -88,6 +88,9 @@ test('matches source indicator choices only on exact label/code agreement', () =
 test('recognizes Indonesian source months from source filenames', () => {
   assert.equal(parseIgdMonthFromFilename('1. PMKP IGD Januari Waktu Konsul DPJP.xlsx'), 1)
   assert.equal(parseIgdMonthFromFilename('PMKP IGD Mei 2026.xlsx'), 5)
+  assert.equal(parseIgdMonthFromFilename('PMKP IGD Juni 2026.xlsx'), 6)
+  assert.equal(parseIgdMonthFromFilename('PMKP IGD Agustus 2026.xlsx'), 8)
+  assert.equal(parseIgdMonthFromFilename('PMKP IGD Desember 2026.xlsx'), 12)
   assert.equal(parseIgdMonthFromFilename('Workbook without month.xlsx'), null)
 })
 
