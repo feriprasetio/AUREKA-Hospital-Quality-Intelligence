@@ -129,7 +129,9 @@ test('overview matrix fits narrow cards without changing clinical band colors', 
 
 test('settings destinations stay wired and keyboard tabs identify the active panel', () => {
   const settings = read('components/GeneralSettings.tsx')
-  assert.match(settings, /className="settingsDestination"/)
+  assert.match(settings, /className=\{'stNavItem settingsDestination'/)
+  assert.match(settings, /aria-current=\{current \? 'page' : undefined\}/)
+  assert.match(settings, /id=\{t \? 'settings-tab-' \+ t : undefined\}/)
   assert.doesNotMatch(settings, /placeholderCard|Light \/ AMOLED/)
   assert.match(settings, /<SettingsIcon kind=\{icon\}/)
   assert.match(read('components/workspace/WorkspaceTabs.tsx'), /event\.key === 'ArrowRight'/)
@@ -149,7 +151,8 @@ test('shared workspace tabs provide keyboard links and the same native phone des
   assert.match(tabs, /className="workspaceViewTabMobile"/)
   assert.match(tabs, /items\.map\(item => <option/)
   assert.match(tabs, /if \(item\) onChange\(item\.value\)/)
-  for (const module of ['GeneralSettings', 'OppeAuditWorkspace', 'QualitySettings']) {
+  // GeneralSettings memakai menu samping (stNav) dengan aria-current, bukan WorkspaceTabs
+  for (const module of ['OppeAuditWorkspace', 'QualitySettings']) {
     assert.ok(read(`components/${module}.tsx`).includes('<WorkspaceTabs'), module)
   }
   assert.match(css, /\.workspaceActivePanel \{ display: grid; grid-template-columns: minmax\(0, 1fr\);/)
