@@ -12,7 +12,7 @@ export type ModuleStatus = 'available' | 'beta' | 'maintenance' | 'planned'
 export type ModuleVisibility = 'all-authenticated' | 'management-only'
 
 export type AurekaModule = {
-  id: 'home' | 'quality' | 'safety' | 'risk' | 'staff' | 'analytics' | 'settings'
+  id: 'home' | 'patients' | 'quality' | 'safety' | 'risk' | 'staff' | 'analytics' | 'settings'
   label: string
   group: 'overview' | 'clinical' | 'governance'
   status: ModuleStatus
