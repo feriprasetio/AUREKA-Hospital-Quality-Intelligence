@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { normalizePatientEpisode, type PatientEpisode } from '@/lib/aureka/patient-registry'
+import { normalizePatientEpisode } from '@/lib/aureka/patient-registry'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 
 type Room = { id: number; name: string }
@@ -18,9 +18,9 @@ type StoredEpisode = {
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-const panelStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e5ece8', borderRadius: 16, padding: 18, minWidth: 0, boxShadow: '0 2px 8px rgba(18,50,35,.035)' }
-const labelStyle: React.CSSProperties = { color: '#66776d', fontSize: 11, fontWeight: 700 }
-const valueStyle: React.CSSProperties = { color: '#153d2b', fontSize: 25, lineHeight: 1.2, fontWeight: 800, letterSpacing: '-.04em' }
+const panelStyle: CSSProperties = { background: '#fff', border: '1px solid #e5ece8', borderRadius: 16, padding: 18, minWidth: 0, boxShadow: '0 2px 8px rgba(18,50,35,.035)' }
+const labelStyle: CSSProperties = { color: '#66776d', fontSize: 11, fontWeight: 700 }
+const valueStyle: CSSProperties = { color: '#153d2b', fontSize: 25, lineHeight: 1.2, fontWeight: 800, letterSpacing: '-.04em' }
 
 function monthKey(value: string | null | undefined) { return String(value ?? '').slice(0, 7) }
 function numberLabel(value: number) { return value.toLocaleString('id-ID', { maximumFractionDigits: 1 }) }
@@ -50,12 +50,11 @@ function BarList({ rows }: { rows: Array<{ label: string; value: number; note?: 
 }
 
 export default function OverviewInfographics({
-  supabase, rooms, roomId, manager, canViewAllRooms,
+  supabase, rooms, roomId, canViewAllRooms,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
   roomId: number | null
-  manager: boolean
   canViewAllRooms: boolean
 }) {
   const currentYear = new Date().getFullYear()
@@ -102,7 +101,6 @@ export default function OverviewInfographics({
 
   const metrics = useMemo(() => {
     const today = new Date()
-    const todayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-')
     const episodes = rows.map(row => ({ row, episode: normalizePatientEpisode(row, today) }))
     const patientEpisodes = episodes.filter(({ episode }) => episode.measurementGrain === 'patient_episode' || (!!episode.name && !!episode.admissionDate))
     const hasPatientEpisodes = patientEpisodes.length > 0
