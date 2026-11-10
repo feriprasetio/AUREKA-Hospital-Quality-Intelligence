@@ -5,6 +5,7 @@ export type PatientEpisodeSource = {
   record_date?: string | null
   created_at?: string | null
   updated_at?: string | null
+  room_id?: number | null
 }
 
 export type Icd10Match = {
@@ -124,7 +125,7 @@ export function normalizePatientEpisode(row: PatientEpisodeSource, today = new D
     isCurrentlyAdmitted,
     recordDate: dateOnly(row.record_date ?? core.admission_at ?? core.admit) ?? null,
     measurementGrain: String(row.measurement_grain ?? core.measurement_grain ?? 'event'),
-    roomId: Number.isFinite(Number(core.room_id)) ? Number(core.room_id) : null,
+    roomId: Number.isFinite(Number(core.room_id ?? row.room_id)) ? Number(core.room_id ?? row.room_id) : null,
     lastUpdatedAt: String(FIRST(row.updated_at, row.created_at) ?? '') || null,
   }
 }
