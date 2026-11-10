@@ -101,7 +101,7 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms: boolean
   onOpenLogbook: () => void
 }) {
-  const [roomFilter, setRoomFilter] = useState(initialRoomId == null ? 'all' : String(initialRoomId))
+  const [roomFilter, setRoomFilter] = useState(canViewAllRooms ? 'all' : String(initialRoomId ?? ''))
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
