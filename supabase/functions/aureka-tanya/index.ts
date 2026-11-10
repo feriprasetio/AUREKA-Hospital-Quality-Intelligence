@@ -11,6 +11,7 @@ const corsHeaders = {
   "Cache-Control": "no-store, max-age=0",
 };
 const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
+const FALLBACK_MODEL = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
 const LIMIT_PER_WINDOW = 20;           // pertanyaan per pengguna
 const WINDOW_MS = 10 * 60 * 1000;      // per 10 menit (perkiraan; per instance fungsi)
 const hits = new Map<string, number[]>();
@@ -142,18 +143,25 @@ Deno.serve(async (req) => {
     { role: "user", parts: [{ text: question }] },
   ];
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.3, maxOutputTokens: 1200 } }),
+  const payload = JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.3, maxOutputTokens: 1200 } });
+  const call = (model: string) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
   });
+  // Model utama kadang sibuk (503) atau kuotanya habis (429): coba model cadangan sekali.
+  let model = MODEL;
+  let res = await call(model);
+  if ([429, 500, 503].includes(res.status) && FALLBACK_MODEL !== MODEL) {
+    console.warn("gemini", model, res.status, "-> fallback", FALLBACK_MODEL);
+    model = FALLBACK_MODEL;
+    res = await call(model);
+  }
   if (res.status === 429) return reply(429, { error: "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi." });
   if (!res.ok) {
-    console.error("gemini", res.status, (await res.text()).slice(0, 500));
-    return reply(502, { error: "Layanan AI sedang tidak dapat dihubungi. Coba lagi nanti." });
+    console.error("gemini", model, res.status, (await res.text()).slice(0, 500));
+    return reply(502, { error: "Layanan AI sedang sibuk. Coba lagi sebentar lagi." });
   }
   const out = await res.json();
   const answer = (out?.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("").trim();
   if (!answer) return reply(502, { error: "AI tidak memberikan jawaban. Coba ulangi dengan kalimat lain." });
-  return reply(200, { answer, model: MODEL });
+  return reply(200, { answer, model });
 });

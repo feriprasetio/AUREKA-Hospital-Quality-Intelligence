@@ -15,7 +15,7 @@ Atau lewat Dashboard Supabase:
 1. Edge Functions → Secrets → tambah `GEMINI_API_KEY`.
 2. Edge Functions → Deploy new function → nama `aureka-tanya` → tempel isi `index.ts` → Deploy (biarkan "Verify JWT" aktif).
 
-Opsional: `GEMINI_MODEL` (bawaan `gemini-flash-latest`).
+Opsional: `GEMINI_MODEL` (bawaan `gemini-flash-latest`) dan `GEMINI_FALLBACK_MODEL` (bawaan `gemini-flash-lite-latest`, dipakai otomatis saat model utama sibuk).
 
 ## Data yang dikirim ke AI
 - Ringkasan hitungan register risiko, rencana tindak, IKP (jenis/status/unit/bulan), dan jumlah episode logbook mutu.
