@@ -616,7 +616,6 @@ export default function GeneralSettings({
                     <option value="">Belum dipetakan</option>
                     {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
-                  {!isAdmin && }
                 </label>
               </div>
               <div style={{ marginTop: 14 }}>
