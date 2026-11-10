@@ -172,7 +172,7 @@ export default function OverviewDashboard({
     else setLoading(true)
     Promise.all([
       fetchAll<Risk>((f, t) => sb.schema('aureka_risk').from('risk_register')
-        .select('id,risk_code,unit_id,unit_name,risk_event,likelihood,impact,risk_score,risk_level,status,due_date')
+        .select('id,unit_id,unit_name,risk_event,likelihood,impact,risk_score,risk_level,status,due_date')
         .order('risk_score', { ascending: false }).order('id', { ascending: true }).range(f, t)),
       fetchAll<Plan>((f, t) => sb.schema('aureka_risk').from('mitigation_plans')
         .select('id,status,target_date,owner_room_id').order('id', { ascending: true }).range(f, t)),
@@ -380,9 +380,9 @@ export default function OverviewDashboard({
             <ol className="ovList">
               {topRisks.map(r => (
                 <li key={r.id}>
-                  <button type="button" onClick={() => onNavigate('risk', { riskId: r.id })} aria-label={`Buka risiko ${r.risk_code}`}>
+                  <button type="button" onClick={() => onNavigate('risk', { riskId: r.id })} aria-label={`Buka risiko: ${r.risk_event}`}>
                     <strong className="ovScore">{r.risk_score}</strong>
-                    <span className="ovListText" title={`${r.risk_event} · ${r.unit_name}`}><b>{r.risk_event}</b><small>{r.risk_code} · {r.unit_name}</small></span>
+                    <span className="ovListText" title={`${r.risk_event} · ${r.unit_name}`}><b>{r.risk_event}</b><small>{r.unit_name}</small></span>
                     <span className={`rmBadge ${LEVEL_CLASS[r.risk_level] || ''}`}>{r.risk_level}</span>
                   </button>
                 </li>
