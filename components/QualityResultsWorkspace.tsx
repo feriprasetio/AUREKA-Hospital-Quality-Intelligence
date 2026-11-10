@@ -587,7 +587,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     />
 
     {error && <div className="qraError" role="alert">{error}</div>}
-    {capped && }
     {loading
       ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…" detail="" /></div>
       : loadingError
@@ -602,8 +601,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             </div>
             <div className="qraNotice" role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}><input type="checkbox" checked={includeReady} onChange={(event) => setIncludeReady(event.target.checked)} /> Hitung juga laporan yang belum divalidasi</label>
-              {includeReady && rawReadyCount > 0 && }
-              {!includeReady && rawValidatedCount === 0 && }
             </div>
             <section className="qraPanel">
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
@@ -680,7 +677,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   </table>
                 </div>
                 
-                {outpatientClinicSummary.readyRecords > 0 && }
               </section>}
           </>
           : mode === 'pathway'
