@@ -123,7 +123,8 @@ export default function HomeClient(){
    if(next==='analytics'){
     const legacySection=section==='metadata'?'profiles':section==='staff'?'directory':section
     if(legacySection==='team'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('team')}
-    else if(['programs','profiles','directory'].includes(legacySection))setAnalyticsTab(legacySection as AnalyticsWorkspaceTab)
+    else if(legacySection==='directory'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
+    else if(['programs','profiles'].includes(legacySection))setAnalyticsTab(legacySection as AnalyticsWorkspaceTab)
     else setAnalyticsTab('programs')
    }
    setActive(next)
