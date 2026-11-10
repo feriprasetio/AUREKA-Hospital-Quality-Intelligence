@@ -832,7 +832,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <div className="cpGlass cpScore"><span>Variasi pelayanan</span><strong>{c.variationCount}</strong><small>{c.variationRequired ? 'Justifikasi diperlukan untuk setiap variasi' : 'Tidak dipersyaratkan pada master CP'}</small><div className={'cpBadge ' + (c.variationComplete ? '' : 'draft')}>{!c.variationRequired ? 'Tidak diwajibkan' : c.variationComplete ? 'Terdokumentasi' : 'Belum lengkap'}</div></div>
       </div>
       <div className="cpPanel cpGlass">
-        <div className="cpSectionHead"><div><h4>Bagian D · Kepatuhan Clinical Pathway</h4><p>Perhitungan langsung mengikuti kriteria pada master CP dan direkalkulasi oleh Supabase saat disimpan.</p></div><span className={'cpBadge ' + (c.sectionDPass ? '' : 'draft')}>{c.sectionDPass ? 'Memenuhi seluruh kriteria' : 'Belum memenuhi seluruh kriteria'}</span></div>
+        <div className="cpSectionHead"><div><h4>Bagian D · Kepatuhan Clinical Pathway</h4></div><span className={'cpBadge ' + (c.sectionDPass ? '' : 'draft')}>{c.sectionDPass ? 'Memenuhi seluruh kriteria' : 'Belum memenuhi seluruh kriteria'}</span></div>
         <div className="cpNotice info">{form.template.scoring_rules.completion_definition} {form.template.scoring_rules.compliance_definition}</div>
         <div className="cpTableWrap" style={{ maxHeight: 'none', marginTop: 12 }}>
           <table className="cpTable" style={{ minWidth: 760 }}>
@@ -854,7 +854,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     </div>
   }
 
-  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Menyiapkan master Clinical Pathway…</h3><p>Membaca format dari dokumen sumber dan menyelaraskan master di Supabase.</p></div></div></div>
+  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Menyiapkan master Clinical Pathway…</h3></div></div></div>
 
   return <div className="cpRoot">
     <style>{CSS}</style>
@@ -884,7 +884,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <LiquidGlass className="cpKpi"><span>Unit / ruangan</span><strong>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</strong><small>Disaring sesuai hak akses</small></LiquidGlass>
       </div>
       {isAdmin && <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Pengelolaan master Clinical Pathway</h4><p>Super Admin dapat membuat CP baru atau membuka format yang sudah ada untuk diedit. Perubahan tersimpan di Supabase sebagai versi master.</p></div><span className="cpBadge">Super Admin</span></div>
+        <div className="cpSectionHead"><div><h4>Pengelolaan master Clinical Pathway</h4></div><span className="cpBadge">Super Admin</span></div>
         <div className="cpToolbar" style={{ padding: 0 }}>
           <div className="cpField cpSearch"><label>Format CP yang akan diedit</label><select value={selectedCode} onChange={(e) => setSelectedCode(e.target.value)}><option value="">Pilih diagnosis / format CP</option>{templates.map((template) => <option key={template.code} value={template.code}>{template.name} · {template.status === 'published' ? 'Aktif' : template.status === 'draft' ? 'Draf' : 'Tidak aktif'} · v{template.version}</option>)}</select></div>
           <button type="button" className="cpBtn" disabled={!selectedTemplate} onClick={() => beginBuilder(selectedTemplate, 'library')}>✎ Edit format terpilih</button>
@@ -904,7 +904,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         </button>)}
       </div>
       {filteredTemplates.length === 0 && <div className="cpGlass cpEmpty">Tidak ada CP yang cocok dengan pencarian.</div>}
-      <div className="cpNotice info">Format bersumber dari 6 dokumen CP yang diberikan. Penanda hijau pada sumber dipetakan sebagai wajib, kuning sebagai kondisional, dan sel tanpa penanda sebagai tidak dijadwalkan. Isi item dan catatan sumber tidak digantikan oleh template generik.</div>
+      
     </>}
 
     {screen === 'diagnosis' && selectedTemplate && <>
@@ -915,7 +915,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <LiquidGlass className="cpKpi"><span>Target kepatuhan</span><strong>{selectedTemplate.scoring_rules.compliance_target_pct}%</strong><small>Dihitung dari item yang telah dinilai</small></LiquidGlass>
       </div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Audit pasien · {selectedTemplate.name}</h4><p>Daftar audit tersimpan langsung di Supabase. Pilih rekam audit untuk melanjutkan atau buat audit baru.</p></div><span className="cpBadge">{audits.length} rekam audit</span></div>
+        <div className="cpSectionHead"><div><h4>Audit pasien · {selectedTemplate.name}</h4></div><span className="cpBadge">{audits.length} rekam audit</span></div>
         {isAdmin && <div className="cpField cpSelect" style={{ marginBottom: 12 }}><label>Filter unit / ruangan</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit</option>{rooms.map(roomOption)}</select></div>}
         {auditLoading ? <div className="cpEmpty">Memuat audit…</div> : audits.length === 0 ? <div className="cpEmpty">Belum ada rekam audit untuk diagnosis ini pada ruang lingkup akses Anda.</div> :
           <div className="cpRecordList">{audits.map((a) => {
@@ -923,12 +923,12 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             return <div key={a.id} className="cpRecord"><div><b>{a.patient_name || 'Pasien tanpa nama'} <span className="cpSubtle">· RM {a.medical_record_no || '—'}</span></b><small>{roomNames.get(Number(a.room_id)) || a.unit_name || 'Unit'} · Masuk {fmtDate(a.admission_date)} · Dibuat {fmtDate(a.created_at)}</small><small>Keterisian {c.completion_pct == null ? '—' : c.completion_pct + '%'} · Kepatuhan {c.compliance_pct == null ? '—' : c.compliance_pct + '%'} · Bagian D {c.section_d_pass ? 'Memenuhi' : 'Belum memenuhi'}</small></div><div className="cpRecordRight"><span className={'cpBadge ' + (a.status === 'draft' ? 'draft' : '')}>{STATUS_LABEL[a.status] || a.status}</span><button type="button" className="cpBtn" onClick={() => void openAudit(a)}>Buka / Edit</button></div></div>
           })}</div>}
       </div>
-      {isAdmin && <div className="cpGlass cpPanel"><h4>Pengelolaan master</h4><p className="cpTiny">Menu master hanya tersedia bagi Super Admin dan dilindungi kebijakan RLS database.</p><div className="cpActions"><button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit format ini</button><button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ Tambah CP baru</button></div></div>}
+      {isAdmin && <div className="cpGlass cpPanel"><h4>Pengelolaan master</h4><div className="cpActions"><button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit format ini</button><button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ Tambah CP baru</button></div></div>}
     </>}
 
     {screen === 'audit' && form && <>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Identitas pasien dan episode perawatan</h4><p>Petugas pengisi terekam otomatis dari akun AUREKA. Identitas pelaksana setiap item dapat diisi pada rincian sel.</p></div>
+        <div className="cpSectionHead"><div><h4>Identitas pasien dan episode perawatan</h4></div>
           <div className="cpActions"><span className={'cpBadge ' + (form.status === 'draft' ? 'draft' : '')}>{STATUS_LABEL[form.status] || form.status}</span><button type="button" className="cpBtn cpCollapseBtn" aria-expanded={!patientPanelCollapsed} onClick={() => setPatientPanelCollapsed((value) => !value)}>{patientPanelCollapsed ? 'Tampilkan data' : 'Ringkas data'}</button></div>
         </div>
         {patientPanelCollapsed ? <div className="cpPatientSummary">
@@ -1076,7 +1076,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             })()}</tbody>
           </table>
         </div>
-        <div className="cpSectionHead"><div><h4>Ringkasan perhitungan otomatis</h4><p>Nilai pratinjau berubah saat sel checklist diubah; saat disimpan, database menghitung ulang dengan trigger.</p></div></div>
+        <div className="cpSectionHead"><div><h4>Ringkasan perhitungan otomatis</h4></div></div>
         {renderScore()}
       </div>
 
@@ -1148,7 +1148,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         {(builder.scoring_rules.inclusion_criteria||[]).length===0&&<div className="cpEmpty">Belum ada kriteria inklusi. Tanpa kriteria, inklusi otomatis tidak membatasi penilaian.</div>}
       </div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Kriteria dan rincian Bagian D</h4><p>Catatan sumber ini ditampilkan pada tabel ringkasan penilaian; hasil otomatis tetap dihitung oleh mesin penilaian.</p></div><div className="cpActions"><span className="cpBadge">{(builder.scoring_rules.source_section_d||[]).length} butir</span><button type="button" className="cpBtn" onClick={addBuilderSectionD}>＋ Tambah butir</button></div></div>
+        <div className="cpSectionHead"><div><h4>Kriteria dan rincian Bagian D</h4></div><div className="cpActions"><span className="cpBadge">{(builder.scoring_rules.source_section_d||[]).length} butir</span><button type="button" className="cpBtn" onClick={addBuilderSectionD}>＋ Tambah butir</button></div></div>
         <div className="cpBuilderConfigList">{(builder.scoring_rules.source_section_d||[]).map((criterion,index)=><div className="cpBuilderConfigRow" key={'section-d-'+index}><input className="cpInput" value={criterion.item} onChange={(e)=>patchBuilderSectionD(index,{item:e.target.value})} placeholder="Item penilaian" aria-label="Item penilaian Bagian D"/><textarea className="cpInput cpBuilderLong" value={criterion.standard} onChange={(e)=>patchBuilderSectionD(index,{standard:e.target.value})} placeholder="Standar pada dokumen sumber" aria-label="Standar penilaian"/><input className="cpInput" value={criterion.source_result} onChange={(e)=>patchBuilderSectionD(index,{source_result:e.target.value})} placeholder="Hasil / catatan sumber" aria-label="Hasil sumber"/><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderSectionD(index)}>Hapus</button></div>)}</div>
         {(builder.scoring_rules.source_section_d||[]).length===0&&<div className="cpEmpty">Belum ada butir dari dokumen sumber.</div>}
       </div>
