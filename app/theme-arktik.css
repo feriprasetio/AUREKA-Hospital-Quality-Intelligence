@@ -372,3 +372,27 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContex
   html[data-skin="arktik"]:root .workspaceRoot .workspacePageHead { padding: 10px 16px 4px !important; }
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar { margin: 0 16px 8px !important; }
 }
+
+/* ===== Perbaikan: sapaan Ringkasan, tombol Perbarui, kolom cari ===== */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .ovRoot .ovHero {
+  background: transparent !important; background-image: none !important; border: 0 !important; box-shadow: none !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important; padding: 4px 0 0 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .ovRoot .ovHero :is(.ovHeroDate, .workspaceModuleGuide summary) {
+  background: var(--arktik-glass-strong) !important; border: 1px solid var(--arktik-edge) !important; border-radius: 12px !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .ovRoot .ovHero .ovRefresh {
+  background: var(--arktik-ink) !important; background-image: none !important; color: #ffffff !important;
+  border: 1px solid var(--arktik-ink) !important; border-radius: 12px !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .ovRoot .ovHero .ovRefresh * { color: inherit !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContent .moduleEnter .ovRoot .ovHero .ovRefresh {
+  background: #ffffff !important; color: #0a0f1c !important; border-color: #ffffff !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar .workspaceGlobalSearch input:not([type="checkbox"]):not([type="radio"]) {
+  background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar .workspaceGlobalSearch {
+  background: var(--arktik-glass-strong) !important; border: 1px solid var(--arktik-edge) !important; border-radius: 14px !important;
+}
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceHeaderBar .workspaceGlobalSearch { background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.14) !important; }
