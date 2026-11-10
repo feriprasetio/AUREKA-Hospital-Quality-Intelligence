@@ -93,12 +93,10 @@ function downloadCsv(rows: Episode[], revealIdentity: boolean) {
 export default function PatientRegistryWorkspace({
   rooms,
   initialRoomId,
-  canViewAllRooms,
   onOpenLogbook,
 }: {
   rooms: Room[]
   initialRoomId: number | null
-  canViewAllRooms: boolean
   onOpenLogbook: () => void
 }) {
   const [roomFilter, setRoomFilter] = useState(String(initialRoomId ?? rooms[0]?.id ?? ''))
