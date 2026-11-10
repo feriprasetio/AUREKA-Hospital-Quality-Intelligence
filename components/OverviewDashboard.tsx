@@ -2,6 +2,7 @@
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import HomeWelcome from '@/components/HomeWelcome'
 import OverviewInfographics from '@/components/OverviewInfographics'
+import QualityResultsWorkspace from '@/components/QualityResultsWorkspace'
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -128,7 +129,7 @@ const SectionError = ({ error }: { error: string }) => (
 )
 
 export default function OverviewDashboard({
-  supabase, role, roomId, roomName, manager, userName, userId = '', rooms = [], onNavigate,
+  supabase, role, roomId, roomName, manager, userName, userId = '', rooms = [], canViewAllRooms = role === 'ADMIN' || role === 'PMKP', onRoomChange, onNavigate,
 }: {
   supabase: SupabaseClient
   role: string | null
@@ -138,6 +139,8 @@ export default function OverviewDashboard({
   userName: string
   userId?: string
   rooms?: Array<{ id: number; name: string }>
+  canViewAllRooms?: boolean
+  onRoomChange?: (roomId: number | null) => void
   onNavigate: NavigateFn
 }) {
   const [loading, setLoading] = useState(true)
@@ -290,7 +293,7 @@ export default function OverviewDashboard({
         <button type="button" role="tab" aria-selected={homeTab === 'achievement'} className={homeTab === 'achievement' ? 'active' : ''} onClick={() => setHomeTab('achievement')}>Capaian Unit</button>
       </nav>
       {homeTab === 'welcome' && <HomeWelcome supabase={supabase} userId={userId} userName={userName} roomName={roomName} />}
-      {homeTab === 'infographics' && <OverviewInfographics supabase={supabase} rooms={rooms} roomId={roomId} manager={manager} canViewAllRooms={role === 'ADMIN' || role === 'PMKP'} />}
+      {homeTab === 'infographics' && <OverviewInfographics supabase={supabase} rooms={rooms} roomId={roomId} manager={manager} canViewAllRooms={canViewAllRooms} />}
       {homeTab === 'achievement' && <>
       <WorkspaceModuleHeader
         className="ovHero"
@@ -302,6 +305,8 @@ export default function OverviewDashboard({
           </button>
         </div>}
       />
+
+      <QualityResultsWorkspace mode="indicators" initialRoomId={canViewAllRooms ? null : roomId} rooms={rooms} canViewAllRooms={canViewAllRooms} onRoomChange={onRoomChange}/>
 
       {!manager && roomId == null && <div className="ovNotice">Akun Anda belum terhubung ke ruangan/unit kerja, sehingga data unit belum dapat ditampilkan. Hubungi Super Admin untuk memetakan unit utama akun Anda.</div>}
 
