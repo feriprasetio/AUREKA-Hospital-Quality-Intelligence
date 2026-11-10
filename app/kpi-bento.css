@@ -120,8 +120,8 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(
 html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell :is(b, small, span) { color: inherit !important; opacity: 1 !important; }
 html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-weight: 600 !important; opacity: .9 !important; }
 /* Avatar Administrasi: inisial selalu kontras */
-html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #ffffff !important; }
-html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #0a0f1c !important; }
+html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #ffffff !important; background: #0b467a !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #0a0f1c !important; background: #dbeafe !important; }
 /* HP: label baris peta risiko tidak menabrak sel */
 @media (max-width: 760px) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood { min-width: 0 !important; overflow: hidden !important; }

@@ -757,7 +757,8 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .wo
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqRegisterSummary > div > span { color: var(--ak-muted, #bccbdb) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell { border: 1px solid rgba(255, 255, 255, 0.119) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContent .rmMatrixCell { border-color: rgba(255, 255, 255, 0.017) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #e2e6f1 !important; }
+html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stAvatar { background: #4993d4 !important; }
+html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #e2e6f1 !important; background: rgba(255, 255, 255, 0.005) !important; }
 
 /* from layout-responsive.css */
 @media (max-width: 760px) {
