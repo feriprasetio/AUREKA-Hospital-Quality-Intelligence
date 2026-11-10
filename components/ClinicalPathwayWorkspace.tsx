@@ -882,7 +882,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     />
 
     {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'} aria-live={messageKind === 'error' ? 'assertive' : 'polite'}>{message}</div>}
-    {!masterReady && screen !== 'library' && <div className="cpNotice error">Master CP belum lengkap di Supabase. Audit tidak dapat disimpan sampai Super Admin membuka modul dan menyinkronkan format.</div>}
+    {!masterReady && screen !== 'library' && <div className="cpNotice error">Format Clinical Pathway belum lengkap. Audit belum dapat disimpan.</div>}
 
     {screen === 'library' && <>
       <div className="cpGrid">
@@ -1141,7 +1141,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     </>}
 
     {screen === 'builder' && builder && isAdmin && <>
-      <div className="cpNotice info">{builderIsNew ? 'Mode pembuatan master baru.' : 'Mode penyuntingan master.'} Semua pengaturan, teks keterangan, pilihan PPA, dan warna jadwal disimpan sebagai satu versi master. Audit terdahulu tetap memakai snapshot versi yang telah digunakan.</div>
+      
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Identitas format Clinical Pathway</h4><p>Lengkapi identitas diagnosis, status publikasi, ambang penilaian, dan definisi perhitungan.</p></div><span className="cpBadge">{builderIsNew ? 'Master baru' : 'Versi ' + builder.version}</span></div>
         <div className="cpFormGrid">
