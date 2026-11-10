@@ -120,8 +120,8 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(
 html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell :is(b, small, span) { color: inherit !important; opacity: 1 !important; }
 html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-weight: 600 !important; opacity: .9 !important; }
 /* Avatar Administrasi: inisial selalu kontras */
-html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #ffffff !important; }
-html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #0a0f1c !important; }
+html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #ffffff !important; background: #0b467a !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #0a0f1c !important; background: #dbeafe !important; }
 /* HP: label baris peta risiko tidak menabrak sel */
 @media (max-width: 760px) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood { min-width: 0 !important; overflow: hidden !important; }
@@ -130,3 +130,15 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspa
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell { padding: 4px 2px !important; font-size: 12px !important; }
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-size: 10px !important; }
 }
+
+/* HP: kolom kiri peta risiko cukup angka (nama level dijelaskan di keterangan atas) */
+@media (max-width: 760px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood small,
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixHeader small { display: none !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood { display: flex !important; align-items: center !important; justify-content: center !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixRow,
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixHeader { grid-template-columns: 26px repeat(5, minmax(0, 1fr)) !important; gap: 6px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixYAxis b::after { content: " (5 → 1)"; font-weight: 500; }
+}
+/* Menu Administrasi aktif: teks di dalamnya ikut warna tombol */
+html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stNavItem.on * { color: inherit !important; }

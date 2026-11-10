@@ -232,6 +232,13 @@ def main():
             out.append(f'\n/* from {f.name} */')
             out.extend(r)
             total += len(r)
+    for name, css in acc.component_css():
+        # <style> komponen dimuat setelah CSS global, jadi butuh spesifisitas sedikit lebih tinggi
+        r = [line.replace(':where(html[data-skin="arktik"][data-mode="gelap"])', 'html[data-skin="arktik"][data-mode="gelap"]') for line in rules(acc.strip_comments(css))]
+        if r:
+            out.append(f'\n/* from {name} */')
+            out.extend(r)
+            total += len(r)
     OUT.write_text('\n'.join(out) + '\n')
     print(f'{total} rules -> {OUT.relative_to(ROOT)}')
 
