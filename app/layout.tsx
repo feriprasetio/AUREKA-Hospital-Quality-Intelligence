@@ -12,6 +12,7 @@ import './public-landing-auth-redesign.css'
 import './aureka-landing.css'
 import './aureka-refined.css'
 import './workspace-desk.css'
+import './theme-arktik-accents.css'
 import './theme-arktik.css'
 
 export const metadata: Metadata = {
