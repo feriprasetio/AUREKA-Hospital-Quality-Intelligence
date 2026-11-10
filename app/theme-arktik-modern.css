@@ -208,3 +208,14 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(
 @media (prefers-reduced-motion: reduce) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter * { transition: none !important; }
 }
+
+/* Teks di dalam tab (mis. <b>/<small> pada WorkspaceTabs) ikut warna tombol tab */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [class$="tabs"], [role="tablist"]) > button :is(b, span, small, strong) {
+  color: inherit !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [class$="tabs"], [role="tablist"]) > button :is(.workspaceViewTabCount, [class*="Count"]) {
+  background: rgba(127, 150, 175, 0.18) !important;
+  border-radius: 999px !important;
+  padding: 1px 7px !important;
+  font-size: 11.5px !important;
+}
