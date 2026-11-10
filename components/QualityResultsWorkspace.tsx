@@ -715,7 +715,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <td><strong>{item.name}</strong><small>{item.code}</small></td><td>{formatCount(item.result.totalRecords)}</td><td>{formatCount(item.result.validatedRecords)}</td><td>{formatPct(item.result.completionPct)}</td><td>{formatPct(item.result.compliancePct)}</td><td>{formatPct(item.result.meanEpisodeCompliancePct)}</td><td>{formatPct(item.result.episodeTargetMetPct)}</td><td>{formatPct(item.result.sectionDPassPct)}</td>
                   </tr>)}</tbody></table></WorkspaceTableViewport>}
               </section>
-              <section className="qraPanel"><div className="qraPanelHead"><div><h3>Alur review data</h3><p>Audit tercatat seluruh status; capaian hanya dari status tervalidasi.</p></div></div><div className="qraStatusGrid">
+              <section className="qraPanel"><div className="qraPanelHead"><div><h3>Alur review data</h3></div></div><div className="qraStatusGrid">
                 <div className="qraStatusBox"><span>Tervalidasi</span><strong>{pathway.statusCounts.validated}</strong></div>
                 <div className="qraStatusBox"><span>Menunggu review</span><strong>{pathway.statusCounts.submitted + pathway.statusCounts.ready}</strong></div>
                 <div className="qraStatusBox"><span>Draf</span><strong>{pathway.statusCounts.draft}</strong></div>
@@ -734,14 +734,14 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 <Kpi label="Rekomendasi tindak lanjut" value={formatCount(selectedClinical.createdActions)} detail="Telaah tervalidasi dengan rekomendasi terdokumentasi" />
               </div>
               <div className="qraSplit">
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor per fase perawatan</h3><p>Median dan IQR skala ordinal 1–5; fase N/A tidak dihitung.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor per fase perawatan</h3></div></div>
                   {selectedClinical.validatedRecords === 0
-                    ? <EmptyState title="Belum ada telaah tervalidasi" detail="Skor fase akan dihitung setelah reviewer memvalidasi telaah. Draf dan telaah yang belum disetujui tidak dimasukkan." />
+                    ? <EmptyState title="Belum ada telaah tervalidasi" detail="" />
                     : <div className="qraContent">{selectedClinical.phases.map((phase) => <Bar key={phase.id} label={phase.label} value={phase.summary.median} max={5} suffix=" / 5" sublabel={'Median ordinal · IQR ' + (phase.summary.q1 ?? '—') + '–' + (phase.summary.q3 ?? '—') + ' · n=' + phase.summary.n} />)}</div>}
                 </section>
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Masalah mutu pelayanan</h3><p>Distribusi penilaian reviewer pada telaah tervalidasi.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Masalah mutu pelayanan</h3></div></div>
                   {selectedClinical.validatedRecords === 0
-                    ? <EmptyState title="Belum ada hasil untuk ditampilkan" detail="Distribusi akan terbentuk setelah telaah tervalidasi." />
+                    ? <EmptyState title="Belum ada hasil untuk ditampilkan" detail="" />
                     : <div className="qraContent">{[
                       ['Teridentifikasi', selectedClinical.careIssue.yes],
                       ['Tidak teridentifikasi', selectedClinical.careIssue.no],
@@ -753,7 +753,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               {clinicalTab === 'death' && <div className="qraSplit">
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Kontribusi masalah pelayanan terhadap kematian</h3></div></div>
                   {selectedClinical.validatedRecords === 0
-                    ? <EmptyState title="Belum ada hasil audit kematian tervalidasi" detail="Distribusi kontribusi akan tampil setelah telaah kematian tervalidasi." />
+                    ? <EmptyState title="Belum ada hasil audit kematian tervalidasi" detail="" />
                     : <div className="qraContent">{[
                       ['Ya', selectedClinical.contribution.yes],
                       ['Tidak', selectedClinical.contribution.no],
@@ -761,19 +761,19 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                       ['Belum diisi', selectedClinical.contribution.missing],
                     ].map(([label, count]) => <Bar key={String(label)} label={String(label)} value={Number(count)} max={selectedClinical.validatedRecords} suffix="" sublabel={formatCount(Number(count)) + ' kasus'} />)}</div>}
                 </section>
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor ketercegahan kematian</h3><p>Skala ordinal 1–6; laporkan distribusi, median dan IQR tanpa menyamakan skor sebagai probabilitas kausal.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor ketercegahan kematian</h3></div></div>
                   {selectedClinical.avoidability.n === 0
-                    ? <EmptyState title="Belum ada skor ketercegahan" detail="Skala 1 (pasti dapat dicegah) sampai 6 (pasti tidak dapat dicegah) akan ditampilkan setelah data tervalidasi." />
+                    ? <EmptyState title="Belum ada skor ketercegahan" detail="" />
                     : <><div className="qraContent"><strong>Median {selectedClinical.avoidability.median} / 6 · IQR {selectedClinical.avoidability.q1}–{selectedClinical.avoidability.q3} · n={selectedClinical.avoidability.n}</strong></div><Distribution summary={selectedClinical.avoidability} minimum={1} maximum={6}/></>}
                 </section>
               </div>}
               <div className="qraSplit">
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Distribusi skor mutu pelayanan</h3><p>Skala ordinal 1–5; median dan IQR menjadi ringkasan utama.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Distribusi skor mutu pelayanan</h3></div></div>
                   {selectedClinical.overallScore.n === 0
-                    ? <EmptyState title="Belum ada skor mutu pelayanan" detail="Tidak ada nilai yang dibuat-buat; distribusi menunggu telaah yang tervalidasi." />
+                    ? <EmptyState title="Belum ada skor mutu pelayanan" detail="" />
                     : <><div className="qraContent"><strong>Median {selectedClinical.overallScore.median} / 5 · IQR {selectedClinical.overallScore.q1}–{selectedClinical.overallScore.q3} · n={selectedClinical.overallScore.n}</strong></div><Distribution summary={selectedClinical.overallScore} minimum={1} maximum={5}/></>}
                 </section>
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Hasil validasi per bulan</h3><p>Jumlah telaah yang divalidasi pada setiap bulan berdasarkan tanggal validasi.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Hasil validasi per bulan</h3></div></div>
                   {selectedClinical.validatedRecords === 0
                     ? <EmptyState title="Belum ada validasi pada periode ini" detail="Grafik bulanan akan muncul seiring penyelesaian review dan validasi." />
                     : <div className="qraBars">{selectedValidationMonthly.map((item) => <div className="qraBarsItem" key={item.month}><div className="qraBarsTrack"><span style={{ height: (item.validated / Math.max(1, ...selectedValidationMonthly.map((entry) => entry.validated))) * 100 + '%' }} /></div><b>{item.validated}</b><small>{MONTHS[item.month - 1]}</small></div>)}</div>}
