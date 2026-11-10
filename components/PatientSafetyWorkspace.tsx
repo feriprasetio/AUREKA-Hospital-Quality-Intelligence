@@ -449,7 +449,7 @@ export default function PatientSafetyWorkspace({
         setResponses([])
       }
     } catch (e) {
-      setError('Layanan Keselamatan Pasien belum siap atau akses ditolak. Pastikan migration patient safety sudah dijalankan di Supabase. ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan hak akses, lalu coba kembali.' }))
+      setError('Data Keselamatan Pasien belum dapat dimuat. ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan hak akses, lalu coba kembali.' }))
     } finally {
       setLoading(false)
     }

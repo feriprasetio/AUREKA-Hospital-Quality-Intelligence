@@ -260,7 +260,7 @@ export default function OppeAuditWorkspace({
       try {
         return await readAllPages<any>(buildPage)
       } catch (error) {
-        throw new Error(tableLabel + ': ' + (error instanceof Error ? error.message : String(error)))
+        throw new Error(tableLabel + ': ' + toUserFacingError(error, { fallback: 'data belum dapat dimuat.' }))
       }
     }
     try {
