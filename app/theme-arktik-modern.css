@@ -243,3 +243,42 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbod
   white-space: nowrap !important;
   overflow-wrap: normal !important;
 }
+
+/* ===== Perbaikan tampilan HP & dropdown ===== */
+/* Tanda panah dropdown: spesifisitas dinaikkan agar tidak tertimpa gaya filter lama */
+html[data-skin="arktik"]:root .workspaceRoot.workspaceDesk .workspaceContent .moduleEnter select:not([multiple]):not([size]) {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  padding-right: 40px !important;
+  background-image: var(--ak-chevron) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 18px 18px !important;
+}
+/* Strip ringkasan Form Logbook: grid rata */
+html[data-skin="arktik"]:root .workspaceRoot.workspaceDesk .workspaceContent .moduleEnter .aqDataBar > .aqRegisterSummary {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot.workspaceDesk .workspaceContent .moduleEnter .aqDataBar > .aqRegisterSummary > div {
+  border-right: 1px solid var(--arktik-edge) !important;
+  padding: 14px 16px !important;
+  align-items: flex-start !important;
+}
+@media (max-width: 760px) {
+  /* Satu navigasi saja: kapsul geser, dropdown pengganti disembunyikan */
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextSelect,
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceViewTabMobile { display: none !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar { display: block !important; padding-bottom: 0 !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav {
+    display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; max-width: 100% !important; scrollbar-width: none;
+  }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav::-webkit-scrollbar { display: none; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button { flex: 0 0 auto !important; white-space: nowrap !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceViewTabList {
+    display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scrollbar-width: none;
+  }
+  html[data-skin="arktik"]:root .workspaceRoot.workspaceDesk .workspaceContent .moduleEnter .aqDataBar > .aqRegisterSummary { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+}
