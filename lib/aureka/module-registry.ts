@@ -90,7 +90,7 @@ export const AUREKA_MODULE_REGISTRY = [
     label: 'Metadata',
     group: 'governance',
     status: 'beta',
-    visibility: 'management-only',
+    visibility: 'all-authenticated',
     requiredRoles: ['ADMIN', 'PMKP', 'PIC', 'VALIDATOR'],
     routeHash: '#metadata',
     owner: 'Komite PMKP / pengelola data',
