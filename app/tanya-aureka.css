@@ -2,7 +2,7 @@
 .tanyaPanel {
   --tn-ink: #0b2440; --tn-muted: #4a6580; --tn-glass: rgba(255, 255, 255, .82); --tn-edge: rgba(255, 255, 255, .9);
   --tn-line: rgba(11, 70, 122, .12); --tn-navy: #0b467a; --tn-user: #0b467a; --tn-user-ink: #fff; --tn-bot: rgba(255, 255, 255, .9); --tn-chip: rgba(11, 70, 122, .07);
-  position: fixed; z-index: 1200; right: 20px; top: 76px; bottom: 20px; width: min(420px, calc(100vw - 32px));
+  position: fixed; z-index: 1200; right: 24px; bottom: 96px; width: min(400px, calc(100vw - 32px)); height: min(600px, calc(100vh - 128px)); transform-origin: bottom right;
   display: flex; flex-direction: column; border-radius: 26px; overflow: hidden;
   background: var(--tn-glass); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
   border: 1px solid var(--tn-edge); box-shadow: 0 24px 60px rgba(11, 36, 64, .22);
@@ -13,7 +13,7 @@ html[data-mode="gelap"] .tanyaPanel {
   --tn-line: rgba(255, 255, 255, .1); --tn-navy: #7cb8f0; --tn-user: #2f6fae; --tn-user-ink: #fff; --tn-bot: rgba(255, 255, 255, .07); --tn-chip: rgba(255, 255, 255, .07);
   box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
 }
-@keyframes tanyaIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes tanyaIn { from { opacity: 0; transform: translateY(12px) scale(.94); } to { opacity: 1; transform: none; } }
 .tanyaHead { display: flex; align-items: center; gap: 12px; padding: 16px 16px 14px; border-bottom: 1px solid var(--tn-line); }
 .tanyaHead > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .tanyaHead strong { font-size: 15.5px; }
@@ -46,9 +46,28 @@ html[data-mode="gelap"] .tanyaMsg.error { color: #ff9b9b; }
 .tanyaComposer button:disabled { opacity: .45; cursor: default; }
 .tanyaComposer svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .tanyaNote { margin: 0; padding: 4px 16px 12px; font-size: 11px; color: var(--tn-muted); }
-.workspaceHeaderIcon.tanyaTrigger svg { fill: none; stroke: currentColor; }
-.workspaceHeaderIcon.tanyaTrigger.on { background: #0b467a; color: #fff; }
+.tanyaHead .tanyaClose { display: none; }
+/* Tombol mengambang pojok kanan bawah */
+.tanyaFab {
+  position: fixed; z-index: 1201; right: 24px; bottom: 24px; height: 56px; min-width: 56px; padding: 0 20px 0 16px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 999px; cursor: pointer;
+  color: #fff; font: inherit; font-size: 14px; font-weight: 700; letter-spacing: .01em;
+  background: linear-gradient(135deg, #0b467a, #2f84cc); box-shadow: 0 12px 30px rgba(11, 70, 122, .38), inset 0 1px 0 rgba(255, 255, 255, .25);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.tanyaFab:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(11, 70, 122, .45), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.tanyaFab:focus-visible { outline: 3px solid rgba(47, 132, 204, .45); outline-offset: 3px; }
+.tanyaFab.on { padding: 0; width: 56px; }
+.tanyaFab svg { width: 22px; height: 22px; flex: 0 0 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+html[data-mode="gelap"] .tanyaFab { box-shadow: 0 12px 30px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .2); }
 @media (max-width: 640px) {
-  .tanyaPanel { right: 8px; left: 8px; top: 64px; bottom: 8px; width: auto; border-radius: 22px; }
+  .tanyaFab { right: 16px; bottom: 16px; width: 54px; height: 54px; min-width: 0; padding: 0; }
+  .tanyaFabLabel { display: none; }
+  .tanyaPanel { right: 8px; left: 8px; top: 64px; bottom: 82px; width: auto; height: auto; border-radius: 22px; }
   .tanyaMsg { max-width: 92%; }
 }
+@media print { .tanyaFab, .tanyaPanel { display: none !important; } }
+/* Sembunyikan tombol saat form/modal atau survei terbuka agar tidak menutupi tombol Simpan/Lanjut */
+body:has([aria-modal="true"], .rmModalBackdrop, .psModalBackdrop, .oppeModalBackdrop, .sdEditBackdrop, .overviewOverlay, .aqEditorDialog, .svNav) .tanyaFab:not(.on) { display: none; }
+/* Notifikasi pojok kanan bawah naik sedikit agar tidak tertutup tombol */
+body:has(.tanyaFab) .aurToast { bottom: 92px; }
