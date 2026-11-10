@@ -72,13 +72,27 @@ export default function HomeLandingWorkspace({supabase,userName,userId,roomId,ro
     setLoading(true);setError('')
     const year=new Date().getFullYear()
     ;(async()=>{
-      const {data,error:queryError}=await supabase.schema('aureka_quality').from('quality_records')
-        .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at')
+      const base=()=>supabase.schema('aureka_quality').from('quality_records')
+        .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at',{count:'exact'})
         .eq('room_id',roomId).eq('profile_year',year).is('archived_at',null)
-        .order('record_date',{ascending:true,nullsFirst:false}).limit(5000)
+      const pageSize=1000
+      const first=await base().order('record_date',{ascending:true,nullsFirst:false}).range(0,pageSize-1)
       if(cancelled)return
-      if(queryError){setError('Infografis belum dapat dimuat. Periksa koneksi dan hak akses unit.');setRecords([])}
-      else {setRecords((data??[]) as RecordRow[]);setRefreshedAt(new Date())}
+      if(first.error)throw first.error
+      const all=[...((first.data??[]) as RecordRow[])]
+      const total=first.count??all.length
+      if(total>pageSize){
+        const pages=await Promise.all(Array.from({length:Math.ceil(total/pageSize)-1},(_,index)=>{
+          const from=(index+1)*pageSize
+          return base().order('record_date',{ascending:true,nullsFirst:false}).range(from,Math.min(total-1,from+pageSize-1))
+        }))
+        const failed=pages.find(page=>page.error)
+        if(failed)throw failed.error
+        pages.forEach(page=>all.push(...((page.data??[]) as RecordRow[])))
+      }
+      if(cancelled)return
+      setRecords(all)
+      setRefreshedAt(new Date())
       setLoading(false)
     })().catch(()=>{if(!cancelled){setError('Infografis belum dapat dimuat. Coba kembali.');setLoading(false)}})
     return()=>{cancelled=true}
