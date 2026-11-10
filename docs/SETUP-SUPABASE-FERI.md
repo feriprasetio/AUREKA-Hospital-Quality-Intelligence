@@ -1,6 +1,6 @@
 # Yang perlu dijalankan di Supabase (proyek `ktukmjscopggkzrkgnzp`)
 
-Ada 4 hal. Semuanya lewat **Dashboard Supabase** — tidak perlu install apa pun. **Nomor 0 paling penting.**
+Ada 3 hal. Semuanya lewat **Dashboard Supabase** — tidak perlu install apa pun. **Nomor 0 paling penting.**
 
 ## 0. Alamat tautan email (Lupa password, verifikasi daftar, ganti email) — PENTING
 
@@ -61,20 +61,6 @@ grant execute on function public.aureka_sync_my_email() to authenticated;
 
 Fungsinya: setelah user mengganti email dan mengonfirmasinya, email di profil AUREKA ikut diperbarui.
 
-## 3. Index untuk "Review Lainnya" (sebelumnya timeout)
-
-Tab **Mutu Klinis → Pengaturan → Review Lainnya** pernah gagal (timeout 57014) karena tabel jawaban besar.
-Jalankan di **SQL Editor**:
-
-```sql
-create index if not exists quality_record_responses_pending_idx
-  on aureka_quality.quality_record_responses (created_at desc)
-  where review_status = 'pending';
-```
-
-Aman: hanya menambah index, tidak mengubah data.
-
----
 ## Catatan keamanan (untuk diputuskan, tidak wajib sekarang)
 Fungsi `aureka_login_email` (untuk login pakai username) bisa dipanggil tanpa login dan mengembalikan **alamat email** pemilik username.
 Artinya orang luar yang menebak username (mis. `pic.isolasi`) bisa melihat email akun tersebut.
