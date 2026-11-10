@@ -756,9 +756,8 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .wo
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) > small { color: var(--ak-muted, #bccbdb) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqRegisterSummary > div > span { color: var(--ak-muted, #bccbdb) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell { border: 1px solid rgba(255, 255, 255, 0.119) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContent .rmMatrixCell { border-color: rgba(255, 255, 255, 0.017) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stAvatar { background: #4993d4 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stAvatar { color: #e2e6f1 !important; background: rgba(255, 255, 255, 0.005) !important; }
+html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stNavItem.on { background: #4993d4 !important; }
 
 /* from layout-responsive.css */
 @media (max-width: 760px) {
@@ -1046,9 +1045,7 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .ovRoot .ovBentoMap { background: var(--arktik-glass, rgba(255, 255, 255, 0.005)); border: 1px solid var(--arktik-edge, rgba(255, 255, 255, 0.02)); box-shadow: var(--arktik-shadow, 0 4px 14px rgba(0, 0, 0, 0.132)); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .ovRoot .ovBentoTodo button { background: var(--arktik-glass, rgba(255, 255, 255, 0.005)); border: 1px solid var(--arktik-edge, rgba(255, 255, 255, 0.02)); box-shadow: var(--arktik-shadow, 0 4px 14px rgba(0, 0, 0, 0.132)); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] { --ak-risk-h-ink: #eddeda; --ak-risk-m-ink: #ede7da; --ak-risk-l-ink: #d7e5ec; --ak-risk-vl: rgba(255, 255, 255, 0.043); --ak-risk-vl-ink: #c1d1e1; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"] { --ak-risk-vl: rgba(255, 255, 255, 0.004); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell { border: 1px solid rgba(255, 255, 255, 0.119) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell { border-color: rgba(255, 255, 255, 0.017) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .ovKpiLabel { color: var(--arktik-ink-2, #c1d1e1) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .magicKpiValue { color: var(--arktik-ink, #dbe4ee) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi.danger .magicKpiValue { color: #d98782 !important; }
@@ -1058,17 +1055,12 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspa
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stNav { background: var(--arktik-glass, rgba(255, 255, 255, 0.005)); border: 1px solid var(--arktik-edge, rgba(255, 255, 255, 0.02)); box-shadow: var(--arktik-shadow, 0 4px 14px rgba(0, 0, 0, 0.132)); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stNavProfile { border-bottom: 1px solid var(--arktik-edge, rgba(255, 255, 255, 0.02)); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stAvatar { background: var(--arktik-ink, #4993d4); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stAvatar { color: #e2e6f1; background: rgba(255, 255, 255, 0.005); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stNavItem:hover { background: rgba(255, 255, 255, 0.042); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stNavItem:hover { background: rgba(255, 255, 255, 0.006); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stNavItem.on { background: var(--arktik-ink, #4993d4); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stNavItem.on { color: #e2e6f1; background: rgba(255, 255, 255, 0.005); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stChip.ok { color: #6395c1; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stChip.warn { color: #d98782; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stMode { background: rgba(255, 255, 255, 0.028); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stMode.on { border-color: var(--arktik-ink, rgba(255, 255, 255, 0.025)); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stMode { background: rgba(255, 255, 255, 0.004); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .stMode.on { border-color: rgba(255, 255, 255, 0.02); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stMode.terang .stModePreview { background: linear-gradient(135deg, rgba(255, 255, 255, 0.005), rgba(255, 255, 255, 0.005)); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stMode.terang .stModePreview i { background: rgba(255, 255, 255, 0.053); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stMode.gelap .stModePreview { background: linear-gradient(135deg, #1a1446, #4993d4); }
@@ -1169,7 +1161,6 @@ html:where([data-skin="arktik"][data-mode="gelap"]):has(.workspaceRoot),
 
 /* from theme-arktik-modern.css */
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root { --ak-primary-bg: #4993d4; --ak-control-bg: rgba(255, 255, 255, 0.057); --ak-row-hover: rgba(255, 255, 255, 0.039); --ak-muted: #bccbdb; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"][data-mode="gelap"]:root { --ak-primary-bg: rgba(255, 255, 255, 0.005); --ak-primary-ink: #e2e6f1; --ak-control-bg: rgba(255, 255, 255, 0.004); --ak-control-line: rgba(255, 255, 255, 0.022); --ak-row-hover: rgba(255, 255, 255, 0.004); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter input:is([type="checkbox"], [type="radio"]) { accent-color: #599cd7; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):not([class*="Icon"]):not([class*="Tab"]) { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.132) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):not([class*="Icon"]):not([class*="Tab"]):hover:not(:disabled) { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.264) !important; }
