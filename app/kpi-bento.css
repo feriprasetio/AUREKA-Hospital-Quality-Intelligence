@@ -142,3 +142,29 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspa
 }
 /* Menu Administrasi aktif: teks di dalamnya ikut warna tombol */
 html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stNavItem.on * { color: inherit !important; }
+
+/* Konektor risiko: teks kartu terbaca (sebelumnya 8–9px) */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode span { font-size: 11px !important; letter-spacing: .02em; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode b { font-size: 13px !important; line-height: 1.4 !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode small { font-size: 11.5px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector span { font-size: 11px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector small { font-size: 11.5px !important; line-height: 1.45 !important; }
+/* HP: kartu konektor ditumpuk satu kolom, tombol selebar kartu */
+@media (max-width: 620px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink { grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; padding: 12px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink > * { grid-column: 1 !important; grid-row: auto !important; min-width: 0 !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector { text-align: left !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector i { transform: rotate(90deg); display: inline-block; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink > .rmButton,
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink > .rmIconButton { width: 100% !important; justify-content: center !important; white-space: nowrap !important; }
+}
+/* Pilihan (select) tidak melebarkan halaman di HP */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent select { max-width: 100% !important; min-width: 0 !important; text-overflow: ellipsis; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.qraField, .qraActions) { min-width: 0 !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .qraField { grid-template-columns: minmax(0, 1fr) !important; }
+@media (max-width: 560px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .qraActions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; width: 100% !important; }
+}
+/* Menu Administrasi aktif: latar & teks tegas di semua ukuran layar */
+html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stNavItem.on { background: #0b467a !important; color: #ffffff !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stNavItem.on { background: #dbeafe !important; color: #0a0f1c !important; }

@@ -27,7 +27,7 @@ spec.loader.exec_module(acc)
 APP = ROOT / 'app'
 OUT = APP / 'theme-arktik-dark.css'
 SKIP_FILES = {'theme-arktik.css', 'theme-arktik-accents.css', 'theme-arktik-dark.css', 'survey-wizard.css'}
-SKIP_SELECTOR = re.compile(r'amoled|data-theme="dark"|a2-|authPage|landing|publicLanding', re.I)
+SKIP_SELECTOR = re.compile(r'amoled|data-theme="dark"|data-mode="gelap"|a2-|authPage|landing|publicLanding', re.I)
 PROPS = acc.PROPS
 HEX = acc.HEX
 RGB = re.compile(r'rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*([\d.]+)\s*)?\)')
