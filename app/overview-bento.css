@@ -150,3 +150,10 @@ html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .magicKpiValue {
 html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi.danger .magicKpiValue { color: #b3352e !important; }
 html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .ovRoot .ovBento .ovKpi.danger .magicKpiValue { color: #ff9a85 !important; }
 html[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi small { font-size: 13px !important; color: var(--arktik-ink-2, #2e4a66) !important; }
+
+
+/* Halaman Utama: navigasi tab ringkas untuk Welcome, Infografis, dan Capaian Unit. */
+.workspaceRoot .ovRoot .ovHomeTabs{display:flex;align-items:center;gap:6px;width:max-content;max-width:100%;overflow-x:auto;padding:5px;margin:0 0 14px;border:1px solid var(--line,#e4ebe6);border-radius:13px;background:var(--surface-soft,#f5f8f6)}
+.workspaceRoot .ovRoot .ovHomeTabs button{border:1px solid transparent;border-radius:9px;min-height:38px;padding:8px 14px;background:transparent;color:var(--muted,#6e7d73);font:inherit;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+.workspaceRoot .ovRoot .ovHomeTabs button.active{background:var(--surface,#fff);border-color:var(--line,#e4ebe6);color:var(--accent2,#176b49);box-shadow:0 1px 3px rgba(20,48,34,.08)}
+@media(max-width:600px){.workspaceRoot .ovRoot .ovHomeTabs{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.workspaceRoot .ovRoot .ovHomeTabs button{padding:8px 6px;font-size:10px}}
