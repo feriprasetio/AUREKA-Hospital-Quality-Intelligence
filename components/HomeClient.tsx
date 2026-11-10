@@ -459,20 +459,13 @@ export default function HomeClient(){
   if(!admin){pushWorkspaceNotification('Pengumuman massal hanya dapat dikirim oleh Super Admin.','error','Pengumuman');return}
   if(!body||broadcastSending)return
   if(body.length>4000){pushWorkspaceNotification('Pengumuman maksimal 4.000 karakter.','error','Pengumuman');return}
-  if(!roomsList.length){pushWorkspaceNotification('Daftar ruangan belum tersedia. Pengumuman tidak dikirim.','error','Pengumuman');return}
   setBroadcastSending(true)
   try{
-   const {data:{user:authUser},error:authError}=await sb.auth.getUser()
-   if(authError||!authUser)throw authError||new Error('Sesi login tidak tersedia.')
-   const payload=roomsList.map(target=>({room_id:target.id,created_by:authUser.id,subject:'Pengumuman Massal'}))
-   const {data:created,error}=await sys().from('support_conversations').insert(payload).select('id,room_id,created_by,subject,status,created_at,updated_at')
+   const {data,error}=await sys().rpc('send_mass_room_announcement',{p_body:body})
    if(error)throw error
-   if(!created?.length)throw new Error('Tidak ada ruang percakapan yang berhasil dibuat.')
-   const messages=created.map((conversation:any)=>({conversation_id:conversation.id,sender_id:authUser.id,body}))
-   const {error:messageError}=await sys().from('support_messages').insert(messages)
-   if(messageError)throw messageError
+   const count=Number(data||0)
    setBroadcastDraft('')
-   pushWorkspaceNotification('Pengumuman berhasil dikirim ke '+created.length+' ruangan.','success','Pengumuman Massal')
+   pushWorkspaceNotification('Pengumuman berhasil dikirim ke '+count+' ruangan.','success','Pengumuman Massal')
   }catch(error){pushWorkspaceNotification(toUserFacingError(error,{fallback:'Pengumuman massal belum terkirim. Periksa izin database dan coba kembali.'}),'error','Pengumuman Massal')}
   finally{setBroadcastSending(false)}
  }
