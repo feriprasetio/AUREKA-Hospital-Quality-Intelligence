@@ -332,9 +332,13 @@ export default function GeneralSettings({
     const { data: resetResult, error } = await sb.functions.invoke('aureka-admin-reset-unit-password', { body: { user_id: u.user_id, new_password: pwd } })
     setBusy(false)
     if (error) {
-      const t = error.message || ''
-      let note = `Gagal menyetel password: ${toUserFacingError(error, { fallback: 'Password sementara belum dapat disetel.' })}`
-      if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t)) note = 'Fitur reset password belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014094000_admin_password_reset.sql di SQL Editor, lalu coba lagi.'
+      // Pesan asli dari Edge Function (mis. "Hanya Super Admin…") ada di badan respons, bukan di error.message.
+      let serverText = ''
+      const ctx = (error as { context?: Response }).context
+      if (ctx && typeof ctx.json === 'function') { try { serverText = String((await ctx.clone().json())?.error || '') } catch { /* abaikan */ } }
+      const t = serverText || error.message || ''
+      let note = serverText ? `Gagal menyetel password: ${serverText}` : `Gagal menyetel password: ${toUserFacingError(error, { fallback: 'Password sementara belum dapat disetel.' })}`
+      if ((ctx && ctx.status === 404) || (error as { name?: string }).name === 'FunctionsFetchError') note = 'Fitur reset password belum aktif di server. Minta pemilik Supabase men-deploy Edge Function "aureka-admin-reset-unit-password".'
       else if (/PASSWORD_TOO_SHORT/.test(t)) note = 'Password sementara minimal 12 karakter.'
       setMsg(note)
       setRowNote({ id: u.user_id, ok: false, text: note })
@@ -460,7 +464,9 @@ export default function GeneralSettings({
     if (pw.next.length < 8) return setPwMsg({ ok: false, text: 'Password baru minimal 8 karakter.' })
     if (pw.next !== pw.confirm) return setPwMsg({ ok: false, text: 'Konfirmasi password baru tidak sama.' })
     if (pw.next === pw.current) return setPwMsg({ ok: false, text: 'Password baru harus berbeda dari password saat ini.' })
-    const email = me?.email || profile?.email
+    // Pakai email login yang sebenarnya (Supabase Auth); email di profil bisa tertinggal setelah ganti email.
+    const { data: authUser } = await sb.auth.getUser()
+    const email = authUser.user?.email || me?.email || profile?.email
     if (!email) return setPwMsg({ ok: false, text: 'Email akun tidak ditemukan.' })
     setBusy(true)
     // Verifikasi password saat ini sebelum mengganti, agar sesi yang tertinggal di komputer bersama tidak bisa dipakai mengganti password.

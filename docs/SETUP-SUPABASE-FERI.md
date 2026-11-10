@@ -1,6 +1,24 @@
 # Yang perlu dijalankan di Supabase (proyek `ktukmjscopggkzrkgnzp`)
 
-Ada 3 hal. Semuanya lewat **Dashboard Supabase** — tidak perlu install apa pun.
+Ada 4 hal. Semuanya lewat **Dashboard Supabase** — tidak perlu install apa pun. **Nomor 0 paling penting.**
+
+## 0. Alamat tautan email (Lupa password, verifikasi daftar, ganti email) — PENTING
+
+Saat ini Supabase mengarahkan semua tautan dari email ke alamat lama
+`https://aureka-rsudssma-komite-pmkp.vercel.app` yang sudah **404 (mati)**.
+Akibatnya: **lupa password, verifikasi akun baru, dan konfirmasi ganti email tidak bisa dipakai.**
+
+1. Buka https://supabase.com/dashboard/project/ktukmjscopggkzrkgnzp/auth/url-configuration
+2. **Site URL** → ganti menjadi:
+   `https://feriprasetio.github.io/AUREKA-Hospital-Quality-Intelligence/`
+3. **Redirect URLs** → **Add URL** → tambahkan:
+   `https://feriprasetio.github.io/AUREKA-Hospital-Quality-Intelligence/**`
+4. **Save**.
+
+**Cek:** di halaman login AUREKA klik **Lupa password?**, isi email sendiri → buka email → klik tautan → harus terbuka halaman **Buat password baru** di AUREKA (bukan 404).
+
+*(Opsional)* Authentication → Emails → Templates: ubah teks email "Reset Password" dan "Confirm signup" ke Bahasa Indonesia.
+
 
 ## 1. Tanya AUREKA (asisten AI)
 
@@ -57,4 +75,10 @@ create index if not exists quality_record_responses_pending_idx
 Aman: hanya menambah index, tidak mengubah data.
 
 ---
-Selesai ketiganya, kabari supaya dites ulang dari aplikasi.
+## Catatan keamanan (untuk diputuskan, tidak wajib sekarang)
+Fungsi `aureka_login_email` (untuk login pakai username) bisa dipanggil tanpa login dan mengembalikan **alamat email** pemilik username.
+Artinya orang luar yang menebak username (mis. `pic.isolasi`) bisa melihat email akun tersebut.
+Akun unit memakai email `@aureka.invalid` jadi aman, tapi akun dengan email pribadi ikut terlihat.
+Perbaikannya butuh perubahan cara login (lewat Edge Function) — dibahas dulu sebelum diubah.
+
+Selesai semuanya, kabari supaya dites ulang dari aplikasi.
