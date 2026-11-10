@@ -228,8 +228,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }, [roomId, rooms, initialRoomId, canViewAllRooms])
 
   useEffect(() => {
+    if (canViewAllRooms && mode === 'indicators') { onRoomChange?.(roomId); return }
     if (roomId != null && (initialRoomId != null || !canViewAllRooms)) onRoomChange?.(roomId)
-  }, [roomId, onRoomChange, initialRoomId, canViewAllRooms])
+  }, [roomId, onRoomChange, initialRoomId, canViewAllRooms, mode])
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
   const [indicatorTypeFilter, setIndicatorTypeFilter] = useState('all')
@@ -579,7 +580,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       className="qraHero"
       title={modeTitle(mode)}
       actions={<div className="qraActions">
-        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? (canViewAllRooms && mode === 'indicators' ? 'all' : '')} disabled={!canViewAllRooms} onChange={(event) => { if(event.target.value==='all' && canViewAllRooms && mode==='indicators'){setRoomId(null);return} const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
+        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? (canViewAllRooms && mode === 'indicators' ? 'all' : '')} disabled={!canViewAllRooms} onChange={(event) => { if(event.target.value==='all' && canViewAllRooms && mode==='indicators'){setRoomId(null);onRoomChange?.(null);return} const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
           {canViewAllRooms && mode === 'indicators' && <option value="all">Seluruh rumah sakit</option>}{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
         <label className="qraField"><span>Tahun</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>
