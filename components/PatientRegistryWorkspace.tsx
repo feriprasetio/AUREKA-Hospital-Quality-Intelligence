@@ -201,7 +201,7 @@ export default function PatientRegistryWorkspace({
         <div className="prActions">
           <button className="prButton" type="button" onClick={() => setShowIdentity((value) => !value)}>{showIdentity ? 'Samarkan Identitas' : 'Tampilkan Identitas'}</button>
           <button className="prButton" type="button" onClick={() => downloadCsv(filtered, showIdentity)} disabled={!filtered.length}>Ekspor CSV</button>
-          <button className="prButton primary" type="button" onClick={onOpenLogbook}>Input Catatan Pasien</button>
+          <button className="prButton primary" type="button" onClick={() => setTab('add')}>Tambah Pasien</button>
         </div>
       </header>
 
