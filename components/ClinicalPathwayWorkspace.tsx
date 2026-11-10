@@ -350,7 +350,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       setTemplates([])
       setSelectedCode('')
       setMasterReady(false)
-      setMessage('Master Clinical Pathway tidak dapat dimuat dari Supabase. Daftar tidak ditampilkan untuk mencegah penggunaan format yang kedaluwarsa. ' + (e?.message || ''))
+      setMessage('Format Clinical Pathway tidak dapat dimuat. Silakan muat ulang atau hubungi administrator. ' + (e?.message || ''))
       setMessageKind('error')
     } finally {
       setLoading(false)
@@ -360,7 +360,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   async function importClinicalPathwaySourcePack(file: File | null) {
     if (!isAdmin || importingMaster || templates.length > 0) return
     if (!file) { setMessage('Pilih file JSON paket Clinical Pathway terlebih dahulu.'); setMessageKind('error'); return }
-    if (!window.confirm('Impor delapan format Clinical Pathway dari paket JSON yang dipilih? Proses ini membuat 8 master (686 item) di Supabase. Format lama yang dihapus tidak dimuat kembali.')) return
+    if (!window.confirm('Impor 8 format Clinical Pathway dari file yang dipilih?')) return
     setImportingMaster(true)
     setMessage('')
     try {
@@ -389,7 +389,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       if (error) throw error
       setImportFile(null)
       await loadTemplates()
-      setMessage('Berhasil mengimpor 8 Clinical Pathway dari dokumen sumber baru (' + itemCount.toLocaleString('id-ID') + ' item). Seluruh item, warna jadwal, Bagian D, dan metadata text mining telah dimuat ke Supabase.')
+      setMessage('Berhasil mengimpor 8 format Clinical Pathway.')
       setMessageKind('info')
     } catch (error: any) {
       setMessage('Impor master Clinical Pathway gagal: ' + (error?.message || 'Kesalahan tidak diketahui.'))
@@ -602,7 +602,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
   async function saveAudit(nextStatus: 'draft' | 'submitted' | 'validated') {
     if (!form) return
-    if (!masterReady) { setMessage('Audit belum dapat disimpan: master CP belum tersinkron di Supabase.'); setMessageKind('error'); return }
+    if (!masterReady) { setMessage('Audit belum dapat disimpan. Format Clinical Pathway belum siap.'); setMessageKind('error'); return }
     if (!form.room_id) { setMessage('Pilih unit/ruangan sebelum menyimpan audit.'); setMessageKind('error'); return }
     if (!form.patient_name.trim()) { setMessage('Nama pasien wajib diisi.'); setMessageKind('error'); return }
     if (nextStatus === 'submitted' && !form.id && !staffAttributions['ppa:dpjp']) {
@@ -678,11 +678,11 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       const fallback = templates.find((x) => x.code === result.data.template_code) || form.template
       setForm(fromDatabase(result.data, fallback, roomNames.get(Number(result.data.room_id)) || ''))
       setSelectedCode(result.data.template_code)
-      setMessage(identityWarning || 'Audit CP berhasil disimpan ke Supabase. Identitas PPA/pelaksana tertaut ke direktori AUREKA; hasil Bagian D dihitung ulang oleh database.')
+      setMessage(identityWarning || 'Audit Clinical Pathway berhasil disimpan.')
       setMessageKind(identityWarning ? 'error' : 'info')
       if (screen === 'diagnosis') await loadAudits(result.data.template_code)
     } catch (e: any) {
-      setMessage('Gagal menyimpan audit ke Supabase: ' + (e?.message || 'Kesalahan server.'))
+      setMessage('Audit Clinical Pathway belum berhasil disimpan: ' + (e?.message || 'Kesalahan server.'))
       setMessageKind('error')
     } finally {
       setSaving(false)
@@ -1113,7 +1113,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             })()}</tbody>
           </table>
         </WorkspaceTableViewport>
-        <div className="cpSectionHead"><div><h4>Ringkasan perhitungan otomatis</h4></div></div>
+        <div className="cpSectionHead"><div><h4>Ringkasan hasil</h4></div></div>
         {renderScore()}
       </div>
 
