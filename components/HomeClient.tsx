@@ -11,7 +11,6 @@ import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import PublicLandingPage from '@/components/PublicLandingPage'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
-const CommandPalette=dynamic(()=>import('@/components/CommandPalette'),{ssr:false})
 const TanyaAureka=dynamic(()=>import('@/components/TanyaAureka'),{ssr:false})
 const workspaceChunkLoading=(label:string)=><AsyncStatePanel state="loading" title={`Memuat ${label}`} description="Menyiapkan ruang kerja." compact/>
 const QualityIndicatorWorkspace=dynamic(()=>import('@/components/QualityIndicatorWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Audit Indikator Mutu')})
@@ -63,7 +62,7 @@ function syncMyEmail(){try{if(localStorage.getItem('aureka-sync-email-missing')=
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('programs'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[qualityOpen,setQualityOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('overview'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('overview'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('programs'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportTab,setSupportTab]=useState<'admin'|'ai'|'broadcast'>('admin'),[broadcastDraft,setBroadcastDraft]=useState(''),[broadcastSending,setBroadcastSending]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const updateSelectedQualityRoom=useCallback((nextRoomId:number|null)=>{
   setSelectedQualityRoomId(nextRoomId)
   if(typeof window==='undefined'||!user?.id)return
@@ -494,10 +493,33 @@ export default function HomeClient(){
    pushWorkspaceNotification(message,'error','Chat Super Admin')
   }finally{setSupportMessagesLoading(false)}
  }
- const openSupportChat=()=>{
+ const openSupportChat=(tab:'admin'|'ai'|'broadcast'='admin')=>{
   setNotificationHistoryOpen(false)
+  setSupportTab(tab)
   setSupportOpen(true)
-  void loadSupportConversations()
+  if(tab==='admin')void loadSupportConversations()
+ }
+ const sendMassAnnouncement=async()=>{
+  const body=broadcastDraft.trim()
+  if(!admin){pushWorkspaceNotification('Pengumuman massal hanya dapat dikirim oleh Super Admin.','error','Pengumuman');return}
+  if(!body||broadcastSending)return
+  if(body.length>4000){pushWorkspaceNotification('Pengumuman maksimal 4.000 karakter.','error','Pengumuman');return}
+  if(!roomsList.length){pushWorkspaceNotification('Daftar ruangan belum tersedia. Pengumuman tidak dikirim.','error','Pengumuman');return}
+  setBroadcastSending(true)
+  try{
+   const {data:{user:authUser},error:authError}=await sb.auth.getUser()
+   if(authError||!authUser)throw authError||new Error('Sesi login tidak tersedia.')
+   const payload=roomsList.map(target=>({room_id:target.id,created_by:authUser.id,subject:'Pengumuman Massal'}))
+   const {data:created,error}=await sys().from('support_conversations').insert(payload).select('id,room_id,created_by,subject,status,created_at,updated_at')
+   if(error)throw error
+   if(!created?.length)throw new Error('Tidak ada ruang percakapan yang berhasil dibuat.')
+   const messages=created.map((conversation:any)=>({conversation_id:conversation.id,sender_id:authUser.id,body}))
+   const {error:messageError}=await sys().from('support_messages').insert(messages)
+   if(messageError)throw messageError
+   setBroadcastDraft('')
+   pushWorkspaceNotification('Pengumuman berhasil dikirim ke '+created.length+' ruangan.','success','Pengumuman Massal')
+  }catch(error){pushWorkspaceNotification(toUserFacingError(error,{fallback:'Pengumuman massal belum terkirim. Periksa izin database dan coba kembali.'}),'error','Pengumuman Massal')}
+  finally{setBroadcastSending(false)}
  }
  const sendSupportMessage=async()=>{
   const body=supportDraft.trim()
@@ -742,7 +764,6 @@ export default function HomeClient(){
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
    </div>
-    <CommandPalette items={commandItems} searchResults={commandSearchItems} contextLabel={currentContainer} onSearchChange={dispatchWorkspaceSearch}/>
    <button type="button" className="workspaceHeaderIcon workspaceThemeButton" title={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-label={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-pressed={uiMode==='gelap'} onClick={toggleUiMode}>
     {uiMode==='terang'?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>:<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>}
    </button>
@@ -752,9 +773,9 @@ export default function HomeClient(){
    <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="notifications" title="Riwayat notifikasi" aria-label="Riwayat notifikasi" aria-expanded={notificationHistoryOpen} onClick={()=>{setNotificationHistoryOpen(v=>!v);setSupportOpen(false)}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>{notifications.length>0&&<span className="workspaceHeaderBadge">{notifications.length>9?'9+':notifications.length}</span>}
    </button>
-   <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="support" title="Chat Super Admin" aria-label="Chat Super Admin" aria-expanded={supportOpen} onClick={openSupportChat}>
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.9 8.9 0 0 1-4-.95L3 21l1.95-5.5a8.9 8.9 0 0 1-.95-4A8.5 8.5 0 0 1 12.5 3H13a8.5 8.5 0 0 1 8 8.5Z"/><path d="M8 10h8M8 14h5"/></svg>
-   </button>
+    <button type="button" className="workspaceHeaderIcon workspaceCommunicationTrigger" data-workspace-popover-trigger="support" title="Tanya AUREKA · Komunikasi" aria-label="Buka pusat komunikasi AUREKA" aria-expanded={supportOpen} onClick={()=>openSupportChat('ai')}>
+     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.2 8l5.1 2-5.1 2L12 17.2 9.8 12 4.7 10l5.1-2z"/><path d="m19 15 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>
+    </button>
 
    <button type="button" className="workspaceHeaderProfile" title="Buka profil dan pengaturan akun" aria-label="Buka profil dan pengaturan akun" onClick={()=>{setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()}}>
     <span className="workspaceHeaderAvatar">{initials(profile?.full_name||user?.email)}</span>
@@ -772,26 +793,24 @@ export default function HomeClient(){
    {notifications.length===0?<div className="workspacePopoverEmpty">Belum ada notifikasi.</div>:<div className="workspaceNotificationList">{notifications.map(item=><article key={item.id} className={'workspaceNotificationItem '+item.kind}><span className="workspaceNotificationDot"/><div><strong>{item.module||'AUREKA'}</strong><p>{item.message}</p><time>{new Date(item.createdAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</time></div></article>)}</div>}
    {notifications.length>0&&<button type="button" className="workspaceClearHistory" onClick={()=>setNotifications([])}>Hapus riwayat sesi</button>}
   </section>}
-  {supportOpen&&<section className="workspaceSupportPanel" aria-label="Chat Super Admin">
-   <div className="workspacePopoverHead"><div><strong>Chat Super Admin</strong><span>{admin?'Kotak masuk seluruh unit':(room?.name||'Unit belum dipetakan')}</span></div><div className="workspacePopoverActions"><button type="button" title="Muat ulang" aria-label="Muat ulang chat" onClick={()=>{void loadSupportConversations();if(supportConversationId)void loadSupportMessages(supportConversationId)}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5 9a7 7 0 0 1 12-2l3 5M4 12l3 5a7 7 0 0 0 12-2"/></svg></button><button type="button" aria-label="Tutup chat" onClick={()=>setSupportOpen(false)}>×</button></div></div>
-   {supportLoading&&<AsyncStatePanel state="loading" title="Memuat percakapan" description="Mengambil daftar percakapan Anda." compact/>}
-   {supportLoadError&&<AsyncStatePanel state="error" title="Percakapan belum dapat dimuat" description={supportLoadError} retrying={supportLoading} onRetry={()=>void loadSupportConversations()} compact/>}
-   {admin&&!supportLoading&&!supportLoadError&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}{supportConversations.length===0&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Pesan dari unit akan tampil di sini." compact/>}</div>}
-   {!admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Kirim pesan untuk memulai percakapan dengan Super Admin." compact/>}
-   {admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&supportConversations.length>0&&<div className="workspacePopoverEmpty">Pilih percakapan untuk membaca pesan masuk.</div>}
-   {supportConversationId&&<div className="workspaceSupportMessages">
-    {supportMessagesLoading
-     ? <AsyncStatePanel state="loading" title="Memuat pesan" description="Mengambil isi percakapan." compact/>
-     : supportMessagesError
-      ? <AsyncStatePanel state="error" title="Pesan belum dapat dimuat" description={supportMessagesError} retrying={supportMessagesLoading} onRetry={()=>void loadSupportMessages(supportConversationId)} compact/>
-      : supportMessages.length===0
-       ? <AsyncStatePanel state="empty" title="Belum ada pesan" description="Percakapan ini belum memiliki pesan." compact/>
-       : supportMessages.map(item=><div key={item.id} className={'workspaceSupportMessage '+(item.sender_id===user?.id?'mine':'theirs')}><span>{item.sender_id===user?.id?(admin?'Super Admin':'Anda'):(admin?'PIC Unit':'Super Admin')}</span><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>)}
-   </div>}
-   <form className="workspaceSupportComposer" onSubmit={event=>{event.preventDefault();void sendSupportMessage()}}>
-    <textarea value={supportDraft} onChange={event=>setSupportDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Tulis pesan kepada Super Admin…" aria-label="Pesan ke Super Admin" disabled={supportSending||(admin&&!supportConversationId)}/>
-    <button type="submit" disabled={supportSending||!supportDraft.trim()||(admin&&!supportConversationId)}>{supportSending?'Mengirim…':'Kirim'}</button>
-   </form>
+  {supportOpen&&<section className="workspaceSupportPanel workspaceCommunicationPanel" aria-label="Pusat komunikasi AUREKA">
+   <div className="workspacePopoverHead"><div><strong>Pusat Komunikasi</strong><span>{admin?'Komunikasi seluruh rumah sakit':(room?.name||'Unit belum dipetakan')}</span></div><div className="workspacePopoverActions"><button type="button" aria-label="Tutup pusat komunikasi" onClick={()=>setSupportOpen(false)}>×</button></div></div>
+   <nav className="workspaceCommunicationTabs" role="tablist" aria-label="Jenis komunikasi">
+    <button type="button" role="tab" aria-selected={supportTab==='admin'} className={supportTab==='admin'?'selected':''} onClick={()=>{setSupportTab('admin');void loadSupportConversations()}}>Chat Admin</button>
+    <button type="button" role="tab" aria-selected={supportTab==='ai'} className={supportTab==='ai'?'selected':''} onClick={()=>setSupportTab('ai')}>Chat AI</button>
+    {admin&&<button type="button" role="tab" aria-selected={supportTab==='broadcast'} className={supportTab==='broadcast'?'selected':''} onClick={()=>setSupportTab('broadcast')}>Semua Ruangan</button>}
+   </nav>
+   {supportTab==='admin'&&<>
+    {supportLoading&&<AsyncStatePanel state="loading" title="Memuat percakapan" description="Mengambil daftar percakapan Anda." compact/>}
+    {supportLoadError&&<AsyncStatePanel state="error" title="Percakapan belum dapat dimuat" description={supportLoadError} retrying={supportLoading} onRetry={()=>void loadSupportConversations()} compact/>}
+    {admin&&!supportLoading&&!supportLoadError&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}{supportConversations.length===0&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Pesan dari unit akan tampil di sini." compact/>}</div>}
+    {!admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Kirim pesan untuk memulai percakapan dengan Super Admin." compact/>}
+    {admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&supportConversations.length>0&&<div className="workspacePopoverEmpty">Pilih percakapan untuk membaca pesan masuk.</div>}
+    {supportConversationId&&<div className="workspaceSupportMessages">{supportMessagesLoading?<AsyncStatePanel state="loading" title="Memuat pesan" description="Mengambil isi percakapan." compact/>:supportMessagesError?<AsyncStatePanel state="error" title="Pesan belum dapat dimuat" description={supportMessagesError} retrying={supportMessagesLoading} onRetry={()=>void loadSupportMessages(supportConversationId)} compact/>:supportMessages.length===0?<AsyncStatePanel state="empty" title="Belum ada pesan" description="Percakapan ini belum memiliki pesan." compact/>:supportMessages.map(item=><div key={item.id} className={'workspaceSupportMessage '+(item.sender_id===user?.id?'mine':'theirs')}><span>{item.sender_id===user?.id?(admin?'Super Admin':'Anda'):(admin?'PIC Unit':'Super Admin')}</span><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>)}</div>}
+    <form className="workspaceSupportComposer" onSubmit={event=>{event.preventDefault();void sendSupportMessage()}}><textarea value={supportDraft} onChange={event=>setSupportDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Tulis pesan kepada Super Admin…" aria-label="Pesan ke Super Admin" disabled={supportSending||(admin&&!supportConversationId)}/><button type="submit" disabled={supportSending||!supportDraft.trim()||(admin&&!supportConversationId)}>{supportSending?'Mengirim…':'Kirim'}</button></form>
+   </>}
+   {supportTab==='ai'&&<div className="workspaceCommunicationAi"><TanyaAureka sb={sb} page={currentContainer} embedded/></div>}
+   {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>}
   <div className="workspacePageHead">
    <div className="workspacePageIntro">
