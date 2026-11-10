@@ -8,7 +8,7 @@ test('HomeClient lazy-loads heavy workspaces rather than importing them into the
   const source = read('components/HomeClient.tsx')
   const lazyModules = [
     'QualityIndicatorWorkspace',
-    'QualityResultsWorkspace',
+    'RegisterPasienWorkspace',
     'ClinicalPathwayWorkspace',
     'PatientSafetyWorkspace',
     'RiskManagementWorkspace',
@@ -23,6 +23,9 @@ test('HomeClient lazy-loads heavy workspaces rather than importing them into the
     assert.doesNotMatch(source, new RegExp(`^import ${moduleName} from `, 'm'))
   }
   assert.doesNotMatch(source, /CommandPalette/)
+  assert.doesNotMatch(source, /QualityResultsWorkspace/)
+  const overview = read('components/OverviewDashboard.tsx')
+  assert.match(overview, /import QualityResultsWorkspace from '@\/components\/QualityResultsWorkspace'/)
   assert.match(source, /workspaceChunkLoading/)
 })
 
