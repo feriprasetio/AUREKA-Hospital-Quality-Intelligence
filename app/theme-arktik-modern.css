@@ -1,0 +1,210 @@
+/*
+ * AUREKA tema Arktik — lapisan komponen modern untuk SEMUA modul.
+ * Menyeragamkan label, kolom isian, tombol, sub-tab, tabel, dan keadaan kosong
+ * tanpa mengubah markup modul. Aktif hanya bila html[data-skin="arktik"].
+ * Memakai variabel --arktik-* sehingga mode gelap ikut otomatis.
+ */
+html[data-skin="arktik"]:root {
+  --ak-primary-bg: #0b1f33;
+  --ak-primary-ink: #ffffff;
+  --ak-focus: rgba(29, 95, 153, 0.28);
+  --ak-control-bg: rgba(255, 255, 255, 0.82);
+  --ak-control-line: rgba(140, 170, 200, 0.55);
+  --ak-row-hover: rgba(255, 255, 255, 0.55);
+  --ak-muted: #3d5670;
+  --ak-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%232e4a66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 8 5 5 5-5'/%3E%3C/svg%3E");
+  --ak-empty-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%232e4a66' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 28 12 10h24l6 18'/%3E%3Cpath d='M6 28v10h36V28H32l-3 5h-10l-3-5z'/%3E%3C/svg%3E");
+}
+html[data-skin="arktik"][data-mode="gelap"]:root {
+  --ak-primary-bg: #ffffff;
+  --ak-primary-ink: #0a0f1c;
+  --ak-focus: rgba(120, 185, 240, 0.35);
+  --ak-control-bg: rgba(255, 255, 255, 0.06);
+  --ak-control-line: rgba(255, 255, 255, 0.16);
+  --ak-row-hover: rgba(255, 255, 255, 0.05);
+  --ak-muted: #b9c3d6;
+  --ak-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23b9c3d6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 8 5 5 5-5'/%3E%3C/svg%3E");
+  --ak-empty-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23b9c3d6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 28 12 10h24l6 18'/%3E%3Cpath d='M6 28v10h36V28H32l-3 5h-10l-3-5z'/%3E%3C/svg%3E");
+}
+
+/* ---------- Label: ukuran normal, tidak lagi huruf kapital kecil pucat ---------- */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter label:not(:has(input[type="checkbox"], input[type="radio"])),
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Field"], [class*="Field "]) > :is(span, b, small):first-child {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: var(--ak-muted) !important;
+  opacity: 1 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter small { font-size: max(12px, 1em) !important; }
+
+/* ---------- Kolom isian ---------- */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea) {
+  min-height: 44px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  color: var(--arktik-ink) !important;
+  background-color: var(--ak-control-bg) !important;
+  border: 1px solid var(--ak-control-line) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter select {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  padding-right: 40px !important;
+  background-image: var(--ak-chevron) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 18px 18px !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter textarea { min-height: 96px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(input, select, textarea):focus {
+  outline: none !important;
+  border-color: #1d5f99 !important;
+  box-shadow: 0 0 0 4px var(--ak-focus) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(input, textarea)::placeholder { color: var(--ak-muted) !important; opacity: .7 !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(input, select, textarea):disabled,
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(input, textarea)[readonly] {
+  opacity: .75 !important;
+  background-color: transparent !important;
+  border-style: dashed !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter input:is([type="checkbox"], [type="radio"]) {
+  width: 18px; height: 18px; accent-color: #1d5f99;
+}
+
+/* ---------- Tombol ---------- */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):not([class*="Icon"]):not([class*="Tab"]) {
+  min-height: 40px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--arktik-ink) !important;
+  background: var(--arktik-glass-strong) !important;
+  background-image: none !important;
+  border: 1px solid var(--arktik-edge) !important;
+  box-shadow: 0 2px 8px rgba(20, 60, 110, 0.06) !important;
+  transition: transform .1s ease, box-shadow .15s ease, background-color .15s ease;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):not([class*="Icon"]):not([class*="Tab"]):hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(20, 60, 110, 0.12) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):not([class*="Icon"]):not([class*="Tab"]):active:not(:disabled) { transform: scale(.98); }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):is(.primary, [class*="Primary"], [class*="primary"]):not([class*="Icon"]) {
+  color: var(--ak-primary-ink) !important;
+  background: var(--ak-primary-bg) !important;
+  border-color: var(--ak-primary-bg) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):is(.danger, [class*="Danger"], [class*="danger"]):not([class*="Icon"]) {
+  color: #ffffff !important; background: #b3352e !important; border-color: #b3352e !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:is([class*="Btn"], [class*="Button"], [class*="btn"]):disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 4px var(--ak-focus) !important;
+}
+
+/* ---------- Sub-tab di dalam modul: kapsul tersegmentasi ---------- */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [class$="tabs"], [role="tablist"]):not(:has(> * > button)) {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  padding: 4px !important;
+  border-radius: 14px !important;
+  background: var(--arktik-glass) !important;
+  border: 1px solid var(--arktik-edge) !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [class$="tabs"], [role="tablist"]) > button {
+  min-height: 36px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--ak-muted) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [class$="tabs"], [role="tablist"]) > button:hover { color: var(--arktik-ink) !important; background: var(--ak-row-hover) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [class$="tabs"], [role="tablist"]) > button:is(.active, .on, .selected, [aria-selected="true"], [aria-pressed="true"], [aria-current="page"], [aria-current="true"]) {
+  color: var(--ak-primary-ink) !important;
+  background: var(--ak-primary-bg) !important;
+}
+
+/* ---------- Tabel: lega, header jelas, baris hover ---------- */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter table { border-collapse: separate !important; border-spacing: 0 !important; font-size: 13.5px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter thead th {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  padding: 12px 14px !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbody td { padding: 12px 14px !important; vertical-align: middle !important; border-bottom: 1px solid var(--ak-control-line) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbody tr { transition: background-color .12s ease; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbody tr:hover > td { background-color: var(--ak-row-hover) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbody tr:last-child > td { border-bottom: 0 !important; }
+
+/* ---------- Keadaan kosong: ikon + teks yang jelas ---------- */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Empty"], [class*="Empty "], [class$="EmptySmall"]) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  min-height: 140px !important;
+  padding: 28px 20px !important;
+  text-align: center !important;
+  font-size: 14px !important;
+  color: var(--ak-muted) !important;
+  opacity: 1 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Empty"], [class*="Empty "], [class$="EmptySmall"]):not(:has([class*="EmptyIcon"]))::before {
+  content: "";
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--arktik-glass-strong) var(--ak-empty-icon) center / 26px 26px no-repeat;
+  border: 1px solid var(--arktik-edge);
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter td:is([class$="Empty"], [class*="Empty "]) { display: table-cell !important; }
+
+/* ---------- Teks kecil & eyebrow lebih terbaca ---------- */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Eyebrow"], [class*="Eyebrow "], [class$="Kicker"]) {
+  font-size: 11px !important;
+  letter-spacing: .08em !important;
+  color: var(--ak-muted) !important;
+  opacity: 1 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(h2, h3, h4) { letter-spacing: -0.01em; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Muted"], [class*="Muted "], [class$="Hint"], [class$="Note"], [class$="Help"]) {
+  font-size: max(12.5px, 1em) !important;
+  color: var(--ak-muted) !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [role="tablist"]):not(:has(> * > button)) {
+    display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scrollbar-width: none;
+  }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Tabs"], [class*="Tabs "], [role="tablist"]) > button { flex: 0 0 auto !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter * { transition: none !important; }
+}

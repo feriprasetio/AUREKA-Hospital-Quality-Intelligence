@@ -16,6 +16,7 @@ import './survey-wizard.css'
 import './theme-arktik-accents.css'
 import './theme-arktik-dark.css'
 import './theme-arktik.css'
+import './theme-arktik-modern.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',
