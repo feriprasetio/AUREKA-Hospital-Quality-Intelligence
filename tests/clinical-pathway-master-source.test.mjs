@@ -14,7 +14,7 @@ test('Clinical Pathway library uses Supabase as the sole source of master format
 test('opening Clinical Pathway does not seed bundled legacy formats back into the database', () => {
   const source = read('components/ClinicalPathwayWorkspace.tsx')
   const start = source.indexOf('const loadTemplates = useCallback')
-  const end = source.indexOf('const loadAudits = useCallback', start)
+  const end = source.indexOf('async function importClinicalPathwaySourcePack', start)
   assert.ok(start >= 0 && end > start, 'loadTemplates block should exist')
   const loader = source.slice(start, end)
   assert.doesNotMatch(loader, /\.insert\(/)
