@@ -99,6 +99,7 @@ export default function PatientRegistryWorkspace({
   initialRoomId: number | null
   onOpenLogbook: () => void
 }) {
+  const [tab, setTab] = useState<'add' | 'records'>('add')
   const [roomFilter, setRoomFilter] = useState(String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [page, setPage] = useState(0)
@@ -159,7 +160,7 @@ export default function PatientRegistryWorkspace({
   return (
     <section className="patientRegistry">
       <style>{`
-        .patientRegistry{display:grid;gap:16px;color:var(--ink,#18372b)}
+        .patientRegistry{display:grid;gap:16px;color:var(--ink,#18372b)}.prTabs{display:flex;gap:7px;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.prTabs button{border:1px solid transparent;background:transparent;color:#66766d;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:750;cursor:pointer}.prTabs button.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.prAddPanel{padding:22px;display:grid;gap:10px}.prAddPanel h3{margin:0;font-size:17px}.prAddPanel p{margin:0 0 5px;color:var(--muted,#718078);font-size:12px;line-height:1.6}.prAddPanel .prButton{justify-self:start}
         .prHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
         .prHead h2{margin:0;font-size:clamp(22px,3vw,30px);letter-spacing:-.045em}
         .prHead p{margin:6px 0 0;color:var(--muted,#718078);font-size:12px;line-height:1.55}
@@ -184,6 +185,8 @@ export default function PatientRegistryWorkspace({
         .prAlert{padding:12px 14px;border-radius:12px;background:#fff5e8;color:#825a20;font-size:12px}
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
+      <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button></nav>
+      {tab === 'add' ? <section className="prPanel prAddPanel"><h3>Tambah catatan episode pasien</h3><p>Gunakan formulir catatan pasien dan impor workbook yang saat ini tersedia pada Audit Indikator Mutu. Data yang disimpan akan menjadi sumber Register Pasien dan infografis unit.</p><button className="prButton primary" type="button" onClick={onOpenLogbook}>Buka formulir tambah catatan</button></section> : <>
       <header className="prHead">
         <div>
           <h2>Register Pasien</h2>
@@ -242,6 +245,7 @@ export default function PatientRegistryWorkspace({
         </footer>
       </div>
       <p className="prMuted">Pencarian dilakukan pada 50 data di halaman aktif. Hak akses unit tetap mengikuti akun dan pembatasan basis data.</p>
+      </>}
     </section>
   )
 }
