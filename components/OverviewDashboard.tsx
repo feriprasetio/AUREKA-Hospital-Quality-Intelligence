@@ -13,7 +13,7 @@ type Plan = { id: string; status: string; target_date: string | null; owner_room
 type Incident = { id: string; incident_code: string; incident_date: string | null; unit_name: string; incident_type: string; summary: string; status: string; created_at: string }
 type QualityRecord = { id: string; room_id: number | null; status: string | null; review_required: boolean | null; created_at: string }
 type ClinicalPathwayAudit = { id: string; room_id: number; template_code: string; template_name: string; patient_name: string; status: string; calculation_json: Record<string, any>; created_at: string }
-type Section<T> = { rows: T[]; error: string | null; incomplete?: boolean }
+type Section<T> = { rows: T[]; error: string | null; incomplete?: boolean; total?: number; review?: number }
 
 const LEVELS = ['Sangat Tinggi', 'Tinggi', 'Sedang', 'Rendah', 'Sangat Rendah'] as const
 // Same bands as Manajemen Risiko (skor = kemungkinan × dampak).
@@ -149,7 +149,7 @@ export default function OverviewDashboard({
   useEffect(() => {
     let cancelled = false
     const sb = supabase as any
-    const cacheKey = ['overview-v2', userName, manager, roomId, roomName, year].join('|')
+    const cacheKey = ['overview-v3', userName, manager, roomId, roomName, year].join('|')
     const apply = ([r, p, i, q, cp]: any[]) => {
       if (cancelled) return
       // Role unit (PIC) melihat data unitnya saja, selaras dengan modul Manajemen Risiko.
@@ -159,7 +159,7 @@ export default function OverviewDashboard({
       setRisks({ ...r, rows: (r.rows as Risk[]).filter(x => mine(x.unit_id, x.unit_name)) })
       setPlans({ ...p, rows: (p.rows as Plan[]).filter(x => manager || (roomId != null && x.owner_room_id === roomId)) })
       setIncidents(i)
-      setQuality({ ...q, rows: (q.rows as QualityRecord[]).filter(x => manager || (roomId != null && x.room_id === roomId)) })
+      setQuality(q)
       // Hanya 3 nilai ringkas dari calculation_json yang diambil (bukan seluruh isi audit) agar Ringkasan cepat.
       const cpRows = (cp.rows as any[]).map(x => x.calculation_json ? x : { ...x, calculation_json: { included: x.cj_included, section_d_pass: x.cj_section_d, compliance_pct: x.cj_compliance } }) as ClinicalPathwayAudit[]
       setClinicalPathway({ ...cp, rows: cpRows.filter(x => manager || (roomId != null && x.room_id === roomId)) })
@@ -179,9 +179,18 @@ export default function OverviewDashboard({
       fetchAll<Incident>((f, t) => sb.schema('aureka_patient_safety').from('incidents')
         .select('id,incident_code,incident_date,unit_name,incident_type,summary,status,created_at')
         .order('created_at', { ascending: false }).range(f, t)),
-      fetchAll<QualityRecord>((f, t) => sb.schema('aureka_quality').from('quality_records')
-        .select('id,room_id,status,review_required,created_at').eq('profile_year', year)
-        .order('created_at', { ascending: false }).range(f, t)),
+      // Kartu episode mutu hanya butuh jumlah: hitung di database (count), jangan tarik ribuan baris.
+      (async (): Promise<Section<QualityRecord>> => {
+        const base = () => {
+          let q = sb.schema('aureka_quality').from('quality_records').select('id', { count: 'exact', head: true }).eq('profile_year', year).is('archived_at', null)
+          if (!manager) q = roomId != null ? q.eq('room_id', roomId) : q.eq('room_id', -1)
+          return q
+        }
+        const [all, review] = await Promise.all([base(), base().eq('review_required', true)])
+        const err = all.error || review.error
+        if (err) return { rows: [], error: err.message || 'Gagal memuat data' }
+        return { rows: [], error: null, total: all.count ?? 0, review: review.count ?? 0 }
+      })(),
       fetchAll<ClinicalPathwayAudit>((f, t) => sb.schema('aureka_quality').from('clinical_pathway_audits')
         .select('id,room_id,status,created_at,cj_included:calculation_json->included,cj_section_d:calculation_json->section_d_pass,cj_compliance:calculation_json->compliance_pct')
         .gte('created_at', String(year) + '-01-01T00:00:00.000Z')
@@ -213,11 +222,12 @@ export default function OverviewDashboard({
     const byLevel = Object.fromEntries(LEVELS.map(l => [l, 0])) as Record<string, number>
     const matrix: number[][] = Array.from({ length: 5 }, () => [0, 0, 0, 0, 0])
     const unitHigh = new Map<string, number>()
-    let overdue = 0, overdueHigh = 0
+    let overdue = 0, overdueHigh = 0, highNoTarget = 0
     for (const r of risks.rows) {
       byLevel[r.risk_level] = (byLevel[r.risk_level] || 0) + 1
       if (r.likelihood >= 1 && r.likelihood <= 5 && r.impact >= 1 && r.impact <= 5) matrix[5 - r.likelihood][r.impact - 1]++
       if (r.risk_level === 'Tinggi' || r.risk_level === 'Sangat Tinggi') {
+        if (!r.due_date && r.status !== 'Controlled' && r.status !== 'Accepted') highNoTarget++
         const key = r.unit_name?.trim() || 'Tanpa unit'
         unitHigh.set(key, (unitHigh.get(key) || 0) + 1)
       }
@@ -242,14 +252,14 @@ export default function OverviewDashboard({
       if (i.status !== 'closed' && i.status !== 'draft') incidentsOpen++
     }
     return {
-      byLevel, matrix, overdue, overdueHigh, months, incidentsYear, incidentsMonth, incidentsOpen,
+      byLevel, matrix, overdue, overdueHigh, highNoTarget, months, incidentsYear, incidentsMonth, incidentsOpen,
       high: (byLevel['Tinggi'] || 0) + (byLevel['Sangat Tinggi'] || 0),
       needsMitigation: (byLevel['Sedang'] || 0) + (byLevel['Tinggi'] || 0) + (byLevel['Sangat Tinggi'] || 0),
       plansActive: plans.rows.filter(p => PLAN_ACTIVE.includes(p.status)).length,
       plansPending: plans.rows.filter(p => PLAN_PENDING.includes(p.status)).length,
-      qualityTotal: quality.rows.length,
-      qualityReview: quality.rows.filter(q => q.review_required).length,
-      auditPending: quality.rows.filter(q => q.review_required).length + clinicalPathway.rows.filter(x => x.status === 'submitted').length,
+      qualityTotal: quality.total ?? 0,
+      qualityReview: quality.review ?? 0,
+      auditPending: (quality.review ?? 0) + clinicalPathway.rows.filter(x => x.status === 'submitted').length,
       cpAuditTotal: clinicalPathway.rows.length,
       cpReviewedTotal: clinicalPathway.rows.filter(x => x.status === 'submitted' || x.status === 'validated').length,
       cpEligibleTotal: clinicalPathway.rows.filter(x => (x.status === 'submitted' || x.status === 'validated') && x.calculation_json?.included === true).length,
@@ -259,7 +269,7 @@ export default function OverviewDashboard({
       maxMatrix: Math.max(1, ...matrix.flat()),
       maxMonth: Math.max(1, ...months.map(m => m.count)),
     }
-  }, [risks.rows, incidents.rows, plans.rows, quality.rows, clinicalPathway.rows])
+  }, [risks.rows, incidents.rows, plans.rows, quality.total, quality.review, clinicalPathway.rows])
 
   const totalRisk = risks.rows.length
   const maxLevel = Math.max(1, ...LEVELS.map(l => stats.byLevel[l] || 0))
@@ -297,7 +307,7 @@ export default function OverviewDashboard({
       <div className="ovKpis">
         <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.incomplete ? 'Rekap belum lengkap' : quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
         <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.incomplete ? 'Rekap belum lengkap' : incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
-        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.incomplete ? 'Rekap belum lengkap' : risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
+        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.incomplete ? 'Rekap belum lengkap' : risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : stats.highNoTarget ? `${stats.highNoTarget.toLocaleString('id-ID')} belum punya target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
         <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.incomplete || clinicalPathway.incomplete ? 'Rekap belum lengkap' : quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
       </div>
 
