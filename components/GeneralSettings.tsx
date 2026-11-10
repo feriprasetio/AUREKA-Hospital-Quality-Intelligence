@@ -629,7 +629,7 @@ export default function GeneralSettings({
             <LiquidGlass style={{ padding: 18 }}>
               <h4 style={{ margin: '0 0 4px' }}>Username & Email Login</h4>
               <p style={{ margin: '0 0 12px', color: 'var(--muted)', fontSize: 12 }}>Login bisa memakai username atau email. Email dipakai untuk verifikasi dan reset password, jadi pastikan email aktif.</p>
-              {!myAccount.supported && <div className="userRowNote error" style={{ marginBottom: 10 }}>Fitur username belum aktif di database. Minta pemilik Supabase menjalankan migration 20261014095000_username_login.sql.</div>}
+              {!myAccount.supported && <div className="userRowNote error" style={{ marginBottom: 10 }}>Fitur username belum tersedia.</div>}
               <div className="acctGrid">
                 <div>
                   <label className="userDetailLabel" htmlFor="myUsername">Username</label>
@@ -663,7 +663,7 @@ export default function GeneralSettings({
                 {isAdmin && roomsSupported && <button type="button" className="uBtn primary" onClick={() => setRoomEdit({ id: null, name: '', code: '', is_active: true })}><span aria-hidden="true">＋</span> Tambah unit</button>}
               </div>
 
-              {isAdmin && !roomsSupported && <div className="userRowNote error" style={{ marginTop: 12 }}>Fitur tambah/edit unit belum aktif di database. Minta pemilik Supabase menjalankan <code>supabase/migrations/20261014093000_user_lifecycle_and_room_admin.sql</code> di SQL Editor.</div>}
+              {isAdmin && !roomsSupported && <div className="userRowNote error" style={{ marginTop: 12 }}>Fitur tambah/edit unit belum tersedia.</div>}
 
               {roomEdit && (
                 <div className="roomEditor">
