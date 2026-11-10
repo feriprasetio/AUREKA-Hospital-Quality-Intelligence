@@ -14,7 +14,7 @@ const YEARS = Array.from({ length: 12 }, (_, i) => 2024 + i)
 
 type Room = { id: number; name: string }
 type Model = Record<string, any>
-type MetadataTab = 'programs' | 'profiles' | 'review'
+type MetadataTab = 'programs' | 'profiles'
 
 const empty = (room: Room | undefined, year: number, indicatorType = ''): Model => ({
   profile_year: year,
@@ -102,14 +102,14 @@ const payloadFrom = (model: Model): Model => {
   }
 }
 
-export default function QualitySettings({ rooms }: { rooms: Room[] }) {
+export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean }) {
   const [year, setYear] = useState(2026)
   const [room, setRoom] = useState('')
   const [profiles, setProfiles] = useState<Model[]>([])
   const [pending, setPending] = useState<Model[]>([])
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
-  const [tab, setTab] = useState<MetadataTab>('programs')
+  const [tab, setTab] = useState<MetadataTab>(initialTab)
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
@@ -154,25 +154,7 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
 
   useEffect(() => { void load() }, [load])
 
-  // Daftar "Lainnya" berat (tabel respons besar): dimuat hanya saat tab Review dibuka.
-  const [pendingState, setPendingState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const loadPending = useCallback(async () => {
-    setPendingState('loading')
-    const { data: reviewData, error: reviewError } = await q()
-      .from('quality_record_responses')
-      .select('id,record_id,indicator_id,response_label,other_text,classification_note,created_at')
-      .eq('review_status', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(200)
-    if (reviewError) {
-      setPendingState('error')
-      setMsg((previous) => previous || ('Daftar review "Lainnya" belum dapat dimuat: ' + toUserFacingError(reviewError, { fallback: 'server terlalu lama merespons. Coba lagi nanti.' })))
-      return
-    }
-    setPending((reviewData || []) as Model[])
-    setPendingState('ready')
-  }, [])
-  useEffect(() => { if (tab === 'review' && pendingState === 'idle') void loadPending() }, [tab, pendingState, loadPending])
+  useEffect(() => { setTab(initialTab) }, [initialTab])
 
   const programs = useMemo(() => {
     const values = new Set<string>()
@@ -378,27 +360,6 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
     setSaving(false)
   }
 
-  const classify = async (id: string, code: number) => {
-    const { data: userResult } = await sb.auth.getUser()
-    if (!userResult.user) {
-      setMsg('Sesi login tidak ditemukan. Silakan login ulang.')
-      return
-    }
-    const { error } = await q().from('quality_record_responses').update({
-      review_status: 'classified',
-      classified_code: code,
-      classified_by: userResult.user.id,
-      classified_at: new Date().toISOString(),
-      classification_note: 'Diklasifikasikan oleh Superadmin',
-    }).eq('id', id)
-    if (error) setMsg('Klasifikasi gagal disimpan: ' + toUserFacingError(error, { fallback: 'Klasifikasi belum dapat disimpan.' }))
-    else {
-      setMsg('Klasifikasi tersimpan.')
-      setPending((previous) => previous.filter((item) => item.id !== id))
-      await load()
-    }
-  }
-
   const fieldStyle: CSSProperties = {
     display: 'grid',
     gap: 5,
@@ -440,23 +401,25 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
     <div className="qualitySettingsWorkspace" style={{ display: 'grid', gap: 14 }}>
       <LiquidGlass className="qualitySettingsSurface" style={{ padding: 14 }}>
         <WorkspaceModuleHeader
-          title="Program kerja & kamus indikator"
-          description="Kelola daftar program dari klasifikasi indikator, lalu ubah, tambah, atau pensiunkan profil indikator lintas unit. Metadata yang sudah dipakai tidak dihapus permanen sehingga riwayat capaian tetap terlindungi."
-          eyebrow="Metadata · Akses Superadmin"
+          title={tab === 'programs' ? 'Program Kerja' : 'Profil Indikator'}
+          description={tab === 'programs' ? 'Kelola klasifikasi program kerja yang menjadi dasar pengelompokan indikator mutu.' : 'Kelola definisi, target, metode pengukuran, dan versi profil indikator lintas unit.'}
+          eyebrow="Metadata · Superadmin"
         />
-        <WorkspaceTabs
-          className="metadataTabs"
-          idPrefix="metadata"
-          label="Bagian metadata"
-          value={tab}
-          onChange={setTab}
-          panelId="metadata-active-panel"
-          items={[
-            { value: 'programs', label: 'Program kerja' },
-            { value: 'profiles', label: 'Kamus indikator' },
-            { value: 'review', label: 'Review “Lainnya”', count: pendingState === 'ready' ? pending.length : undefined },
-          ] as const}
-        />
+{showTabs && (
+          <WorkspaceTabs
+            className="metadataTabs"
+            idPrefix="metadata"
+            label="Bagian metadata"
+            value={tab}
+            onChange={setTab}
+            panelId="metadata-active-panel"
+            items={[
+              { value: 'programs', label: 'Program kerja' },
+              { value: 'profiles', label: 'Profil Indikator' },
+              { value: 'review', label: 'Review “Lainnya”', count: pendingState === 'ready' ? pending.length : undefined },
+            ] as const}
+          />
+        )}
 
         {msg && <div className="msg visible" role={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'alert' : 'status'} aria-live={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'assertive' : 'polite'} style={{ color: /gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? '#9c3f32' : '#0f7656', marginTop: 12 }}>{msg}</div>}
 
@@ -551,24 +514,6 @@ export default function QualitySettings({ rooms }: { rooms: Room[] }) {
           </div>
         )}
 
-        {tab === 'review' && (
-          <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-            {pendingState === 'loading' && <div style={{ fontSize: 12, color: 'var(--muted)', padding: 14 }}>Memuat jawaban “Lainnya”…</div>}
-            {pendingState === 'error' && <div style={{ fontSize: 12, color: 'var(--muted)', padding: 14 }}>Daftar belum dapat dimuat karena server terlalu lama merespons. <button type="button" className="textButton" onClick={() => void loadPending()}>Coba lagi</button></div>}
-            {pendingState === 'ready' && pending.length === 0 && <div style={{ fontSize: 11, color: 'var(--muted)', padding: 14 }}>Tidak ada jawaban “Lainnya” yang menunggu klasifikasi.</div>}
-            {pending.map((item) => (
-              <div key={item.id} style={{ padding: 12, border: '1px solid rgba(20,34,27,.09)', borderRadius: 15 }}>
-                <b style={{ fontSize: 11 }}>{item.response_label || 'Respons lain'}</b>
-                <div style={{ fontSize: 10, margin: '6px 0', color: 'var(--muted)' }}>{item.other_text || '—'}</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <button type="button" disabled={saving} className="textButton" onClick={() => void classify(item.id, 1)}>Sesuai / patuh</button>
-                  <button type="button" disabled={saving} className="textButton" onClick={() => void classify(item.id, 2)}>Pengecualian dibenarkan</button>
-                  <button type="button" disabled={saving} className="textButton" onClick={() => void classify(item.id, 3)}>Tidak sesuai / kelalaian</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
 
         </div>
