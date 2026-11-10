@@ -19,6 +19,7 @@ const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorks
 const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Manajemen Risiko')})
 const QualityHub=dynamic(()=>import('@/components/QualityHub'),{ssr:false,loading:()=>workspaceChunkLoading('Menu Mutu Klinis')})
 const GeneralSettings=dynamic(()=>import('@/components/GeneralSettings'),{ssr:false,loading:()=>workspaceChunkLoading('Administrasi')})
+const OverviewDashboard=dynamic(()=>import('@/components/OverviewDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Capaian Unit')})
 const HomeLandingWorkspace=dynamic(()=>import('@/components/HomeLandingWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Halaman Utama')})
 const PatientRegistryWorkspace=dynamic(()=>import('@/components/PatientRegistryWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Register Pasien')})
 const MetadataStatisticsWorkspace=dynamic(()=>import('@/components/MetadataStatisticsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Metadata')})
