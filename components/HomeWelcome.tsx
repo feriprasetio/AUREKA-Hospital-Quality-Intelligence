@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import TanyaAureka from '@/components/TanyaAureka'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
@@ -22,7 +22,7 @@ function latest(values: Array<string | null | undefined>) {
   const valid = values.filter((x): x is string => !!x && !Number.isNaN(new Date(x).getTime()))
   return valid.sort((a,b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null
 }
-const card: React.CSSProperties = { background: '#fff', border: '1px solid #e4ece7', borderRadius: 18, minWidth: 0, boxShadow: '0 5px 22px rgba(18,50,35,.045)' }
+const card: CSSProperties = { background: '#fff', border: '1px solid #e4ece7', borderRadius: 18, minWidth: 0, boxShadow: '0 5px 22px rgba(18,50,35,.045)' }
 
 export default function HomeWelcome({ supabase, userId, userName, roomName }: {
   supabase: SupabaseClient
@@ -72,7 +72,7 @@ export default function HomeWelcome({ supabase, userId, userName, roomName }: {
         if (['draft','reopened'].includes(String(row.status).toLowerCase())) pending.push({ id: String(row.id), module: 'Mutu Klinis', title: 'Lanjutkan input indikator mutu', detail: 'Catatan masih berupa draf atau dikembalikan untuk perbaikan', date: String(row.updated_at ?? row.created_at ?? ''), route: 'mutu-klinis/audit-indikator/form-logbook' })
       }
       if (!incidents.error) for (const row of incidents.data ?? []) {
-        if (!['closed'].includes(String(row.status).toLowerCase()) && !['draft'].includes(String(row.status).toLowerCase())) pending.push({ id: String(row.id), module: 'Keselamatan Pasien', title: 'Tindak lanjut laporan IKP', detail: String(row.incident_code ?? 'Laporan insiden'), date: String(row.updated_at ?? row.created_at ?? ''), route: 'keselamatan-pasien/incidents' })
+        if (!['closed'].includes(String(row.status).toLowerCase())) pending.push({ id: String(row.id), module: 'Keselamatan Pasien', title: 'Tindak lanjut laporan IKP', detail: String(row.incident_code ?? 'Laporan insiden'), date: String(row.updated_at ?? row.created_at ?? ''), route: 'keselamatan-pasien/incidents' })
       }
       if (!investigations.error) for (const row of investigations.data ?? []) {
         if (!['closed'].includes(String(row.status).toLowerCase())) pending.push({ id: String(row.id), module: 'Investigasi / RCA', title: 'Selesaikan investigasi insiden', detail: String(row.investigation_code ?? 'Investigasi'), date: String(row.updated_at ?? row.created_at ?? ''), route: 'keselamatan-pasien/investigation' })
