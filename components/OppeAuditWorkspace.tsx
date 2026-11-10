@@ -1142,7 +1142,10 @@ export default function OppeAuditWorkspace({
        
         actions={<div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>}
       />
-      
+      <div className="oppeHeaderNotes workspaceClinicalDisclaimer" role="note">
+        <span>Skor OPPE bukan keputusan otomatis tentang kewenangan klinis.</span>
+        <span>Indikator otomatis hanya dinilai bila atribusi profesi telah ditetapkan.</span>
+      </div>
 
       {error && <div className="oppeNotice oppeError" role="alert">{error}</div>}
       {notice && <div className="oppeNotice oppeSuccess" role="status" aria-live="polite">{notice}</div>}
