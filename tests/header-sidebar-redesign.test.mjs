@@ -4,16 +4,16 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('header places hamburger before hospital context and separates search from command palette', () => {
+test('header places hamburger before hospital context and removes the separate module-search control', () => {
   const home = read('components/HomeClient.tsx')
   const workspace = home.slice(home.indexOf("if(view==='workspace')"))
   const hamburger = workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"')
   const context = workspace.indexOf('className="workspaceContext"')
   const searchOpen = workspace.indexOf('className="workspaceGlobalSearch"')
   const searchClose = workspace.indexOf('</div>', searchOpen)
-  const palette = workspace.indexOf('<CommandPalette')
   assert.ok(hamburger >= 0 && hamburger < context, 'hamburger must be left of hospital context')
-  assert.ok(searchOpen >= 0 && palette > searchClose, 'command palette must be outside search container')
+  assert.ok(searchOpen >= 0 && searchClose > searchOpen, 'workspace search remains available')
+  assert.equal(workspace.includes('<CommandPalette'), false, 'module-search button is removed')
   assert.doesNotMatch(workspace, /className="sidebarToggle"|className="mobileSidebarClose"/)
 })
 
