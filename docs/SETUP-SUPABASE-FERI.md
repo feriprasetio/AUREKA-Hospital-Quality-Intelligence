@@ -2,6 +2,20 @@
 
 Ada 3 hal. Semuanya lewat **Dashboard Supabase** — tidak perlu install apa pun.
 
+## 0. Alamat tautan email (Lupa password, verifikasi daftar, ganti email) — PENTING
+
+Periksa apakah konfigurasi Supabase masih mengarahkan tautan email ke alamat lama
+`https://aureka-rsudssma-komite-pmkp.vercel.app`. Jika masih, tautan lupa password, verifikasi akun, dan konfirmasi ganti email dapat berakhir di halaman 404.
+
+1. Buka https://supabase.com/dashboard/project/ktukmjscopggkzrkgnzp/auth/url-configuration
+2. **Site URL** → gunakan alamat utama GitHub Pages:
+   `https://feriprasetio.github.io/AUREKA-Hospital-Quality-Intelligence/`
+3. **Redirect URLs** → tambahkan:
+   `https://feriprasetio.github.io/AUREKA-Hospital-Quality-Intelligence/**`
+4. Simpan perubahan.
+
+**Uji:** dari halaman login pilih **Lupa password?**, gunakan email uji yang dapat diakses, lalu pastikan tautan membuka AUREKA dan proses penggantian password dapat diselesaikan.
+
 ## 1. Tanya AUREKA (asisten AI)
 
 **a. Simpan kunci Gemini sebagai secret**
