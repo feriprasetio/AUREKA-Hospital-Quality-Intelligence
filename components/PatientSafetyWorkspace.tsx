@@ -904,7 +904,7 @@ export default function PatientSafetyWorkspace({
 
     {error ? <div className="psAlert error">{error}</div> : null}
     {message ? <div className="psAlert">{message}</div> : null}
-    {loading ? <div className="psAlert">Memuat data dari Supabase…</div> : null}
+    {loading ? <div className="psAlert">Memuat data…</div> : null}
 
     {tab === 'overview' ? <>
       <LiquidGlass className="psPanel">
