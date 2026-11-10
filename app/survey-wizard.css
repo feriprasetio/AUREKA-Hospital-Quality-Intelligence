@@ -206,3 +206,22 @@ html[data-skin="arktik"] .svWizard {
   .svBar i, .svStepDot, .svChip, .svDot { transition: none; }
   .svBtn.pulse { animation: none; }
 }
+html[data-skin="arktik"][data-mode="gelap"] .svWizard {
+  --sv-accent: #5aa9e6;
+  --sv-ink: #eef2fa;
+  --sv-muted: #b9c3d6;
+  --sv-line: rgba(255, 255, 255, 0.16);
+  --sv-card: rgba(255, 255, 255, 0.07);
+  --sv-soft: rgba(255, 255, 255, 0.06);
+  --sv-on-soft: rgba(90, 169, 230, 0.16);
+  --sv-accent-ink: #07101e;
+}
+html[data-skin="arktik"][data-mode="gelap"] .svWizard :is(.svQ, .svBurn, .svReview li button, .svDot, .svSelect select, .svBtn) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sv-ink);
+}
+html[data-skin="arktik"][data-mode="gelap"] .svWizard .svQ.ok { background: rgba(255, 255, 255, 0.1); }
+html[data-skin="arktik"][data-mode="gelap"] .svWizard :is(.svDot.on, .svChip.on, .svBtn.primary) { background: var(--sv-accent); color: #07101e; }
+html[data-skin="arktik"][data-mode="gelap"] .svWizard .svRing { background: radial-gradient(closest-side, #0e1426 78%, transparent 79%), conic-gradient(var(--sv-accent) calc(var(--p) * 1%), rgba(255,255,255,.1) 0); }
+html[data-skin="arktik"][data-mode="gelap"] .svWizard :is(.svBar, .svStepDot:not(.ok):not(.now), .svQCode) { background: rgba(255, 255, 255, 0.12); }
+html[data-skin="arktik"][data-mode="gelap"] .svWizard .svError { background: rgba(179, 53, 46, 0.25); color: #ffb4ad; }
