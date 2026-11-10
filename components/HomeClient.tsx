@@ -2,7 +2,6 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import dynamic from 'next/dynamic'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
-import type {CommandPaletteItem} from '@/components/CommandPalette'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import {sanitizeNotificationText,toUserFacingError} from '@/lib/ui/error-feedback'
 import {type SupabaseClient} from '@supabase/supabase-js'
@@ -374,49 +373,6 @@ export default function HomeClient(){
   target.focus()
   pushWorkspaceNotification('Pemilih unit difokuskan. Gunakan daftar pilihan untuk mengganti cakupan tampilan modul ini. Unit utama akun dan hak akses tidak diubah.','info',currentContainer)
  }
- const commandItems=useMemo<CommandPaletteItem[]>(()=>{
-  const items:CommandPaletteItem[]=[
-   {id:'nav-home',label:'Ringkasan',description:'Dashboard mutu, keselamatan pasien, dan risiko.',group:'Navigasi',keywords:['dashboard','home','beranda'],onSelect:()=>openMainModule('home')},
-   ...visibleMods.map(([id,label])=>({
-    id:'nav-'+id,label,description:AUREKA_PRIMARY_NAV.find(module=>module.id===id)?.description||'Buka workspace '+label+'.',
-    group:'Navigasi',keywords:[id,label],onSelect:()=>openMainModule(id),
-   })),
-  ]
-  const addChildren=(moduleId:string,moduleLabel:string,children:SidebarChild[],parents:string[]=[]):void=>{
-   for(const child of children){
-    const nextPath=[...parents,child.label]
-    if(child.children?.length)addChildren(moduleId,moduleLabel,child.children,nextPath)
-    else items.push({
-     id:'nav-child-'+moduleId+'-'+child.id,
-     label:child.label,
-     description:moduleLabel+' · '+nextPath.join(' / '),
-     group:'Navigasi',
-     keywords:[moduleId,moduleLabel,...nextPath],
-     onSelect:()=>selectSidebarChild(moduleId,child.id),
-    })
-   }
-  }
-  for(const [moduleId,moduleLabel] of visibleMods){
-   const children=sidebarChildGroups[moduleId]
-   if(children?.length)addChildren(moduleId,moduleLabel,children)
-  }
-  items.push(
-   {id:'action-export',label:'Ekspor data pada modul aktif',description:'Jalankan kontrol ekspor yang tersedia pada workspace saat ini.',group:'Aksi Cepat',keywords:['export','ekspor','download','unduh','excel','csv'],onSelect:triggerWorkspaceExport},
-   {id:'action-unit',label:'Pilih unit pada modul aktif',description:'Fokuskan filter unit yang disediakan workspace; tidak mengubah unit utama akun.',group:'Aksi Cepat',keywords:['ganti unit','pilih unit','ruangan','room','filter'],onSelect:focusWorkspaceUnitSelector},
-  )
-  return items
- },[visibleMods,sidebarChildGroups,openMainModule,selectSidebarChild,triggerWorkspaceExport,focusWorkspaceUnitSelector])
- const commandSearchItems=useMemo<CommandPaletteItem[]>(()=>{
-  if(globalSearch.trim().length<2||searchResultsQuery!==globalSearch.trim())return []
-  return searchResults.map((result,index)=>({
-   id:'data-'+index+'-'+result.tag,
-   label:result.tag+': '+result.text,
-   description:'Catatan dari '+currentContainer+' · data yang sudah dimuat dan dapat diakses.',
-   group:'Data di Modul Aktif',
-   keywords:['pasien','dokter','indikator','catatan','data','rekam medis',result.tag],
-   onSelect:()=>jumpToSearchResult(result),
-  }))
- },[globalSearch,searchResultsQuery,searchResults,currentContainer,jumpToSearchResult])
  const lastNoticeRef=useRef<{key:string;at:number;auth:number}>({key:'',at:0,auth:0})
  const pushWorkspaceNotification=(message:string,kind:'success'|'error'|'info'='info',module?:string)=>{
   let text=String(message||'').trim()
