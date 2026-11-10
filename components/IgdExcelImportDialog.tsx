@@ -794,7 +794,7 @@ export default function IgdExcelImportDialog({
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqIgdImport" role="dialog" aria-modal="true" aria-labelledby="aqIgdImportTitle">
-        <style>{'.aqIgdImport .aqBody{display:grid;align-content:start;gap:12px}.aqIgdImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIgdImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIgdImport .ciUpload input{width:100%;font-size:12px}.aqIgdImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.aqIgdImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIgdImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqIgdImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIgdImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIgdImport .ciError{background:#fff0ef;color:#8b2822}.aqIgdImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIgdImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIgdImport .ciTable{overflow:auto;max-height:290px;border:1px solid var(--line);border-radius:11px}.aqIgdImport table{width:100%;border-collapse:collapse;font-size:10px}.aqIgdImport th,.aqIgdImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqIgdImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqIgdImport td.ciWrap{white-space:normal;min-width:150px;max-width:300px;overflow-wrap:anywhere}.aqIgdImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}.aqIgdImport .ciCode{font-size:9px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}.aqIgdImport .ciTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:5px;border:1px solid var(--line);border-radius:14px;background:#f5f8f6}.aqIgdImport .ciTab{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease}.aqIgdImport .ciTab.isActive{background:#fff;border-color:var(--line);box-shadow:0 3px 12px rgba(20,35,28,.06)}.aqIgdImport .ciTab:disabled{opacity:.58;cursor:progress}.aqIgdImport .ciTab[data-locked=true] .ciTabNumber{background:#eef0ed;color:#737c75}.aqIgdImport .ciTabNumber{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:#e4eee8;color:#315d48;font-size:11px;font-weight:800}.aqIgdImport .ciTabText{display:grid;gap:3px;min-width:0}.aqIgdImport .ciTabText strong{font-size:12px;line-height:1.25}.aqIgdImport .ciTabText small{font-size:10px;line-height:1.35;color:var(--muted)}.aqIgdImport .ciTabState{margin-left:auto;max-width:112px;color:var(--muted);font-size:9px;line-height:1.3;text-align:right}.aqIgdImport .ciPanel{min-width:0}.aqIgdImport .ciTab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}@media(max-width:800px){.aqIgdImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqIgdImport .ciTabs{grid-template-columns:1fr}.aqIgdImport .ciTabState{max-width:130px}}'}</style>
+        <style>{'.aqIgdImport .aqBody{display:grid;align-content:start;gap:12px}.aqIgdImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIgdImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIgdImport .ciUpload input{width:100%;font-size:12px}.aqIgdImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.aqIgdImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIgdImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqIgdImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIgdImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIgdImport .ciError{background:#fff0ef;color:#8b2822}.aqIgdImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIgdImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIgdImport .ciTable{overflow:auto;max-height:290px;border:1px solid var(--line);border-radius:11px}.aqIgdImport table{width:100%;border-collapse:collapse;font-size:10px}.aqIgdImport th,.aqIgdImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqIgdImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqIgdImport td.ciWrap{white-space:normal;min-width:150px;max-width:300px;overflow-wrap:anywhere}.aqIgdImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}.aqIgdImport .ciCode{font-size:9px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}.aqIgdImport .ciTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:5px;border:1px solid var(--line);border-radius:14px;background:#f5f8f6}.aqIgdImport .ciTab{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease}.aqIgdImport .ciTab.isActive{background:#fff;border-color:var(--line);box-shadow:0 3px 12px rgba(20,35,28,.06)}.aqIgdImport .ciTab:disabled{opacity:.58;cursor:progress}.aqIgdImport .ciTab[data-locked=true] .ciTabNumber{background:#eef0ed;color:#737c75}.aqIgdImport .ciTabNumber{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:#e4eee8;color:#315d48;font-size:11px;font-weight:800}.aqIgdImport .ciTabText{display:grid;gap:3px;min-width:0}.aqIgdImport .ciTabText strong{font-size:12px;line-height:1.25}.aqIgdImport .ciTabText small{font-size:10px;line-height:1.35;color:var(--muted)}.aqIgdImport .ciTabState{margin-left:auto;max-width:112px;color:var(--muted);font-size:9px;line-height:1.3;text-align:right}.aqIgdImport .ciPanel{min-width:0}.aqIgdImport .ciTab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.aqIgdImport .aqFoot{flex:0 0 auto;position:relative;z-index:6;gap:10px;flex-wrap:wrap}.aqIgdImport .ciFootActions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-left:auto}.aqIgdImport .ciFootActions .ciImportAction{min-height:36px;padding:8px 13px;border-radius:9px;font-size:11px;white-space:nowrap}@media(max-width:700px){.aqIgdImport .aqFoot{align-items:stretch}.aqIgdImport .aqFoot>span{font-size:10px!important}.aqIgdImport .ciFootActions{width:100%;margin-left:0;justify-content:space-between}.aqIgdImport .ciFootActions .ciImportAction{flex:1}}@media(max-width:800px){.aqIgdImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqIgdImport .ciTabs{grid-template-columns:1fr}.aqIgdImport .ciTabState{max-width:130px}}'}</style>
         <div className="aqDHead">
           <div>
             <div className="eyebrow">Audit Indikator Mutu · Impor Terarah</div>
@@ -846,7 +846,6 @@ export default function IgdExcelImportDialog({
               {mainRows.length > 40 && <div className="ciPrivacy">Preview menampilkan 40 dari {mainRows.length} episode.</div>}
               {mainImporting && <div className="ciMessage">Impor logbook: {mainProgress}% · batch aman, idempotensi berdasarkan SHA-256 file dan nomor baris fisik.</div>}
               {mainResult && <div className="ciMessage ciSuccess">Logbook selesai diproses: {mainResult.imported} episode baru, {mainResult.skipped} sudah ada, {mainResult.received} total. Semua ID episode diterima dari server dan siap digunakan untuk relasi audit konsultasi.</div>}
-              <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !mainRows.length || mainParsing || mainImporting || !!mainResult} onClick={() => void importMain()}>{mainImporting ? 'Mengimpor logbook…' : 'Impor ' + mainRows.length + ' episode IGD'}</button>
             </div>
           </section>}
 
@@ -874,15 +873,46 @@ export default function IgdExcelImportDialog({
               {warningConsults > 0 && <div className="ciPrivacy">{warningConsults} sampel memiliki catatan QA timestamp, perbedaan durasi, RM numerik, atau status pencocokan.</div>}
               {consultImporting && <div className="ciMessage">Impor audit konsultasi: {consultProgress}% · batch aman dan idempoten.</div>}
               {consultResult && <div className="ciMessage ciSuccess">Audit konsultasi selesai: {consultResult.imported} baru, {consultResult.skipped} sudah ada, {consultResult.received} total. Jawaban sumber belum menjadi klasifikasi indikator resmi.</div>}
-              <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !mainReady || !consultRows.length || consultParsing || consultImporting || !!consultResult} onClick={() => void importConsultations()}>{consultImporting ? 'Mengimpor audit konsultasi…' : 'Impor ' + consultRows.length + ' sampel konsultasi'}</button>
             </div>
           </section>}
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
           <div className="ciPrivacy">Catatan integritas: RM berulang tidak digabung; respons kosong tetap kosong; opsi tak dikenal tetap menjadi provenance; sampel yang ambigu atau tidak cocok tetap disimpan di audit konsultasi tanpa relasi episode paksa. Tidak ada file sumber yang dikirim ke layanan eksternal.</div>
         </div>
         <div className="aqFoot">
-          <span style={{ fontSize: 11, color: 'var(--muted)' }}>Semua record baru berstatus Ready for Review; validasi mutu tetap dilakukan oleh validator unit/Komite PMKP.</span>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <span aria-live="polite" style={{ fontSize: 11, color: errorMessage ? '#8b2822' : 'var(--muted)', lineHeight: 1.45 }}>
+            {errorMessage
+              ? errorMessage
+              : mainImporting
+                ? `Impor logbook sedang berjalan: ${mainProgress}%.`
+                : consultImporting
+                  ? `Impor audit konsultasi sedang berjalan: ${consultProgress}%.`
+                  : activeImportTab === 'logbook' && mainResult
+                    ? `Logbook selesai: ${mainResult.imported} baru, ${mainResult.skipped} sudah ada, ${mainResult.received} total.`
+                    : activeImportTab === 'consultation' && consultResult
+                      ? `Audit konsultasi selesai: ${consultResult.imported} baru, ${consultResult.skipped} sudah ada, ${consultResult.received} total.`
+                      : 'Semua record baru berstatus Ready for Review; validasi mutu dilakukan oleh validator unit/Komite PMKP.'}
+          </span>
+          <div className="ciFootActions">
+            {activeImportTab === 'logbook' && mainRows.length > 0 && !mainResult && (
+              <button
+                type="button"
+                className="aqBtn primary ciImportAction"
+                disabled={!eligible || !authorized || mainParsing || mainImporting}
+                onClick={() => void importMain()}
+              >
+                {mainImporting ? `Mengimpor logbook ${mainProgress}%…` : `Impor ${mainRows.length.toLocaleString('id-ID')} episode IGD`}
+              </button>
+            )}
+            {activeImportTab === 'consultation' && consultRows.length > 0 && !consultResult && (
+              <button
+                type="button"
+                className="aqBtn primary ciImportAction"
+                disabled={!eligible || !authorized || !mainReady || consultParsing || consultImporting}
+                onClick={() => void importConsultations()}
+              >
+                {consultImporting ? `Mengimpor audit konsultasi ${consultProgress}%…` : `Impor ${consultRows.length.toLocaleString('id-ID')} sampel konsultasi`}
+              </button>
+            )}
             <button type="button" className="aqBtn" disabled={busy} onClick={close}>Tutup</button>
           </div>
         </div>
