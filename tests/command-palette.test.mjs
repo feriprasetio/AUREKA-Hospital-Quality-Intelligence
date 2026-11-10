@@ -29,7 +29,7 @@ test('Admin chat, AI chat and all-room announcements share one communication hub
   assert.match(source, />Semua Ruangan</)
   assert.match(source, /TanyaAureka sb=\{sb\} page=\{currentContainer\} embedded/)
   assert.match(source, /sendMassAnnouncement/)
-  assert.match(source, /roomsList\.map\(target=>\(\{room_id:target\.id/)
+  assert.match(source, /sys\(\)\.rpc\('send_mass_room_announcement'/)
   assert.match(source, /Pengumuman berhasil dikirim ke/)
   assert.match(source, /if\(!admin\).*Pengumuman massal hanya dapat dikirim/)
 })
