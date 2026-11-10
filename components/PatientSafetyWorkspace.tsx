@@ -883,10 +883,10 @@ export default function PatientSafetyWorkspace({
     <details className="workspaceSummary" open={tab === 'overview' ? true : undefined}>
       <summary><b>Ringkasan keselamatan</b><span>{incidents.length} laporan · {openInvestigations.length} investigasi aktif</span></summary>
     <div className="psKpis">
-      <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong><small>Record yang dapat Anda akses</small></LiquidGlass>
+      <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Belum Closed</span><strong>{incidents.filter(row => row.status !== 'closed').length}</strong><small>Perlu pemantauan</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Investigasi Aktif</span><strong>{openInvestigations.length}</strong><small>RCA belum closed</small></LiquidGlass>
-      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{isSuperAdmin ? responses.length : '—'}</strong><small>{isSuperAdmin ? 'Rekapan dari Supabase' : 'Data agregat terbatas pada Superadmin'}</small></LiquidGlass>
+      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{isSuperAdmin ? responses.length : '—'}</strong></LiquidGlass>
     </div>
     </details>
 
@@ -1038,7 +1038,7 @@ export default function PatientSafetyWorkspace({
 
     {tab === 'responses' && isSuperAdmin ? <>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><div className="psEyebrow">SUPERADMIN · RESPONSE REPOSITORY</div><h4>Rekapan Survey Budaya Keselamatan</h4><p>Seluruh respons yang sudah tersimpan di Supabase. Satu submission menghasilkan response ID baru dan tidak menimpa respons lama.</p></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
+        <div className="psSectionHead"><div><div className="psEyebrow">SUPERADMIN · RESPONSE REPOSITORY</div><h4>Rekapan Survey Budaya Keselamatan</h4></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter"><label>Periode</label><select value={responsePeriodFilter} onChange={event => setResponsePeriodFilter(event.target.value)}><option value="">Semua periode</option>{Array.from(new Set(responses.map(row => row.survey_period))).sort().map(period => <option key={period}>{period}</option>)}</select></div>
           <div className="psFilter"><label>Unit</label><select value={responseUnitFilter} onChange={event => setResponseUnitFilter(event.target.value)}><option value="">Semua unit</option>{Array.from(new Set(responses.map(row => row.unit_name))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
