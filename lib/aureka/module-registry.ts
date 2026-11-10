@@ -12,7 +12,7 @@ export type ModuleStatus = 'available' | 'beta' | 'maintenance' | 'planned'
 export type ModuleVisibility = 'all-authenticated' | 'management-only'
 
 export type AurekaModule = {
-  id: 'home' | 'quality' | 'safety' | 'risk' | 'staff' | 'analytics' | 'settings'
+  id: 'home' | 'patients' | 'quality' | 'safety' | 'risk' | 'staff' | 'analytics' | 'settings'
   label: string
   group: 'overview' | 'clinical' | 'governance'
   status: ModuleStatus
@@ -36,6 +36,18 @@ export const AUREKA_MODULE_REGISTRY = [
     owner: 'Komite PMKP',
     lastReviewed: '2026-10-29',
     description: 'Dashboard operasional, antrean prioritas, dan status data sesuai hak akses.',
+  },
+  {
+    id: 'patients',
+    label: 'Register Pasien',
+    group: 'overview',
+    status: 'beta',
+    visibility: 'all-authenticated',
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'],
+    routeHash: '#register-pasien',
+    owner: 'Unit pelayanan / Komite PMKP',
+    lastReviewed: '2026-11-11',
+    description: 'Rekapan episode pelayanan pasien yang terhubung dengan catatan unit dan dibatasi oleh hak akses.',
   },
   {
     id: 'quality',
