@@ -86,7 +86,11 @@ export default function TanyaAureka({ sb, page }: { sb: SupabaseClient; page?: s
     setBusy(true)
     const { data, error } = await sb.functions.invoke('aureka-tanya', { body: { question, history, page } })
     setBusy(false)
-    if (error || !data?.answer) { setMsgs(m => [...m, { role: 'model', text: error ? await errorText(error) : 'AI tidak memberikan jawaban.', error: true }]); return }
+    if (error || !data?.answer) {
+      const text = error ? await errorText(error) : 'AI tidak memberikan jawaban.'
+      setMsgs(m => [...m, { role: 'model', text, error: true }])
+      return
+    }
     setMsgs(m => [...m, { role: 'model', text: String(data.answer) }])
   }
 
