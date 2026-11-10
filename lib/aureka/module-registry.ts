@@ -107,7 +107,7 @@ export const AUREKA_MODULE_REGISTRY = [
     routeHash: '#administrasi',
     owner: 'Super Admin / Komite PMKP',
     lastReviewed: '2026-10-29',
-    description: 'Akun, role, unit, kamus indikator, dan konfigurasi berwenang.',
+    description: 'Akun, role, unit, profil indikator, dan konfigurasi berwenang.',
   },
 ] as const satisfies readonly AurekaModule[]
 
