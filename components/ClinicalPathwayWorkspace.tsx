@@ -222,6 +222,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [masterReady, setMasterReady] = useState(false)
   const [loading, setLoading] = useState(true)
   const [importingMaster, setImportingMaster] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [messageKind, setMessageKind] = useState<'info' | 'error'>('info')
@@ -356,9 +357,10 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     }
   }, [isAdmin])
 
-  async function importClinicalPathwaySourcePack() {
+  async function importClinicalPathwaySourcePack(file: File | null) {
     if (!isAdmin || importingMaster || templates.length > 0) return
-    if (!window.confirm('Impor delapan format Clinical Pathway dari dokumen sumber baru? Proses ini membuat 8 master (686 item) di Supabase. Format lama yang telah dihapus tidak dimuat kembali.')) return
+    if (!file) { setMessage('Pilih file JSON paket Clinical Pathway terlebih dahulu.'); setMessageKind('error'); return }
+    if (!window.confirm('Impor delapan format Clinical Pathway dari paket JSON yang dipilih? Proses ini membuat 8 master (686 item) di Supabase. Format lama yang dihapus tidak dimuat kembali.')) return
     setImportingMaster(true)
     setMessage('')
     try {
@@ -367,13 +369,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       const current = await q().from('clinical_pathway_templates').select('code').limit(1)
       if (current.error) throw current.error
       if ((current.data || []).length > 0) throw new Error('Database sudah berisi master CP. Impor dibatalkan agar tidak menimpa format yang sudah ada.')
-      const response = await fetch(BASE_PATH + '/clinical-pathways-2026.json.gz.b64', { cache: 'no-store' })
-      if (!response.ok) throw new Error('Paket sumber CP tidak dapat dimuat dari aplikasi (HTTP ' + response.status + ').')
-      const base64 = (await response.text()).trim()
-      if (!base64 || typeof DecompressionStream === 'undefined') throw new Error('Browser tidak mendukung pemuatan paket kompresi ini.')
-      const binary = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0))
-      const decompressed = new Blob([binary]).stream().pipeThrough(new DecompressionStream('gzip'))
-      const source = JSON.parse(await new Response(decompressed).text())
+      if (!file.name.toLocaleLowerCase('id-ID').endsWith('.json')) throw new Error('Format file harus .json.')
+      const source = JSON.parse(await file.text())
       const sourceTemplates = Array.isArray(source?.templates) ? source.templates : []
       const itemCount = sourceTemplates.reduce((total: number, template: any) => total + (Array.isArray(template.items) ? template.items.length : 0), 0)
       if (sourceTemplates.length !== 8 || itemCount !== 686) throw new Error('Validasi paket gagal. Ditemukan ' + sourceTemplates.length + ' format dan ' + itemCount + ' item; diharapkan 8 format dan 686 item.')
@@ -390,6 +387,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       }))
       const { error } = await q().from('clinical_pathway_templates').insert(payload)
       if (error) throw error
+      setImportFile(null)
       await loadTemplates()
       setMessage('Berhasil mengimpor 8 Clinical Pathway dari dokumen sumber baru (' + itemCount.toLocaleString('id-ID') + ' item). Seluruh item, warna jadwal, Bagian D, dan metadata text mining telah dimuat ke Supabase.')
       setMessageKind('info')
@@ -899,9 +897,14 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           <div className="cpField cpSearch"><label>Format CP yang akan diedit</label><select value={selectedCode} onChange={(e) => setSelectedCode(e.target.value)}><option value="">Pilih diagnosis / format CP</option>{templates.map((template) => <option key={template.code} value={template.code}>{template.name} · {template.status === 'published' ? 'Aktif' : template.status === 'draft' ? 'Draf' : 'Tidak aktif'} · v{template.version}</option>)}</select></div>
           <button type="button" className="cpBtn" disabled={!selectedTemplate} onClick={() => beginBuilder(selectedTemplate, 'library')}>✎ Edit format terpilih</button>
           <button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ Tambah CP baru</button>
-          {templates.length === 0 && <button type="button" className="cpBtn primary" disabled={importingMaster} onClick={() => void importClinicalPathwaySourcePack()}>{importingMaster ? 'Mengimpor paket…' : '↓ Impor 8 format CP sumber baru'}</button>}
+          {templates.length === 0 && <div className="cpField" style={{minWidth:260}}>
+            <label htmlFor="cp-source-json">Paket JSON Clinical Pathway (8 format)</label>
+            <input id="cp-source-json" className="cpInput" type="file" accept=".json,application/json" disabled={importingMaster} onChange={(event) => setImportFile(event.target.files?.[0] || null)} />
+            {importFile && <small className="cpTiny">{importFile.name} · {(importFile.size / 1024).toFixed(0)} KB</small>}
+            <button type="button" className="cpBtn primary" disabled={importingMaster || !importFile} onClick={() => void importClinicalPathwaySourcePack(importFile)}>{importingMaster ? 'Mengimpor paket…' : '↓ Impor 8 format CP sumber baru'}</button>
+          </div>}
         </div>
-        {templates.length === 0 && <div className="cpNotice info" style={{marginTop:12}}>Paket sumber berisi 8 dokumen Clinical Pathway baru dan 686 item. Impor hanya berjalan setelah Super Admin menekan tombol; tidak ada proses seed otomatis.</div>}
+        {templates.length === 0 && <div className="cpNotice info" style={{marginTop:12}}>Pilih file JSON hasil ekstraksi delapan dokumen CP yang disediakan. Sistem memvalidasi 8 format dan 686 item sebelum impor. Tidak ada seed otomatis saat modul dibuka.</div>}
       </div>}
       <div className="cpGlass cpToolbar">
         <div className="cpField cpSearch cpLocalSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
