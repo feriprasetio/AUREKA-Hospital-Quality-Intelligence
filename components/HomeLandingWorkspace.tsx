@@ -90,23 +90,23 @@ export default function HomeLandingWorkspace({supabase,userName,userId,roomId,ro
     ;(async()=>{
       const jobs=await Promise.all([
         q('aureka_quality','audit_log').select('created_at').eq('actor_id',userId).order('created_at',{ascending:false}).limit(1),
-        q('aureka_quality','quality_records').select('id,status,updated_at').eq('entered_by',userId).in('status',['draft','reopened']).order('updated_at',{ascending:false}).limit(100),
-        q('aureka_quality','clinical_pathway_audits').select('id,status,updated_at').eq('created_by',userId).in('status',['draft','reopened']).limit(100),
-        q('aureka_quality','clinical_death_audits').select('id,status,updated_at').eq('created_by',userId).in('status',['draft','reopened']).limit(100),
-        q('aureka_patient_safety','incidents').select('id,status,updated_at').eq('created_by',userId).in('status',['draft','submitted','under_review','investigation']).limit(100),
-        q('aureka_risk','risk_register').select('id,status,updated_at').eq('created_by',userId).neq('status','Controlled').neq('status','Accepted').limit(100),
-        q('aureka_risk','mitigation_plans').select('id,status,updated_at').eq('created_by',userId).in('status',['pending_kabid','pending_director','pending_board','in_progress']).limit(100),
+        q('aureka_quality','quality_records').select('id',{count:'exact',head:true}).eq('entered_by',userId).in('status',['draft','reopened']),
+        q('aureka_quality','clinical_pathway_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),
+        q('aureka_quality','clinical_death_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),
+        q('aureka_patient_safety','incidents').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','submitted','under_review','investigation']),
+        q('aureka_risk','risk_register').select('id',{count:'exact',head:true}).eq('created_by',userId).neq('status','Controlled').neq('status','Accepted'),
+        q('aureka_risk','mitigation_plans').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['pending_kabid','pending_director','pending_board','in_progress']),
       ])
       if(cancelled)return
       const [audit,quality,cp,death,incidents,risks,plans]=jobs
       const lastAt=(audit.data??[])[0]?.created_at??null
       const pending=[
-        {label:'Catatan indikator mutu yang belum selesai',count:(quality.data??[]).length,module:'Mutu Klinis'},
-        {label:'Audit Clinical Pathway yang masih draf/perbaikan',count:(cp.data??[]).length,module:'Mutu Klinis'},
-        {label:'Telaah klinis/kematian yang masih draf/perbaikan',count:(death.data??[]).length,module:'Mutu Klinis'},
-        {label:'Laporan insiden yang masih dalam proses',count:(incidents.data??[]).length,module:'Keselamatan Pasien'},
-        {label:'Risiko yang masih memerlukan pengendalian',count:(risks.data??[]).length,module:'Manajemen Risiko'},
-        {label:'Rencana mitigasi yang masih berjalan/menunggu persetujuan',count:(plans.data??[]).length,module:'Manajemen Risiko'},
+        {label:'Catatan indikator mutu yang belum selesai',count:quality.count??0,module:'Mutu Klinis'},
+        {label:'Audit Clinical Pathway yang masih draf/perbaikan',count:cp.count??0,module:'Mutu Klinis'},
+        {label:'Telaah klinis/kematian yang masih draf/perbaikan',count:death.count??0,module:'Mutu Klinis'},
+        {label:'Laporan insiden yang masih dalam proses',count:incidents.count??0,module:'Keselamatan Pasien'},
+        {label:'Risiko yang masih memerlukan pengendalian',count:risks.count??0,module:'Manajemen Risiko'},
+        {label:'Rencana mitigasi yang masih berjalan/menunggu persetujuan',count:plans.count??0,module:'Manajemen Risiko'},
       ].filter(item=>item.count>0)
       setActivity({lastAt,pending,partial:jobs.some(result=>Boolean(result.error))})
     })().catch(()=>{if(!cancelled)setActivity({lastAt:null,pending:[],partial:true})})
