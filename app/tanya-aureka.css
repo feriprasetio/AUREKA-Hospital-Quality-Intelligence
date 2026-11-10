@@ -71,3 +71,6 @@ html[data-mode="gelap"] .tanyaFab { box-shadow: 0 12px 30px rgba(0, 0, 0, .5), i
 body:has([aria-modal="true"], .rmModalBackdrop, .psModalBackdrop, .oppeModalBackdrop, .sdEditBackdrop, .overviewOverlay, .aqEditorDialog, .svNav) .tanyaFab:not(.on) { display: none; }
 /* Notifikasi pojok kanan bawah naik sedikit agar tidak tertutup tombol */
 body:has(.tanyaFab) .aurToast { bottom: 92px; }
+
+/* Embedded AI chat inside the unified communication hub */
+.tanyaPanelEmbedded{position:relative!important;inset:auto!important;right:auto!important;bottom:auto!important;left:auto!important;top:auto!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;transform:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation:none!important}
