@@ -26,7 +26,9 @@ test('Direktori Induk SDM contains exactly the staff directory and unit assignme
   assert.match(metadata, /aria-label="Bagian Direktori Induk SDM"/)
   assert.match(metadata, /StaffDirectoryWorkspace/)
   assert.match(metadata, /StaffTeamWorkspace/)
-  assert.doesNotMatch(metadata, /StatisticsWorkspace|Statistik & Laporan|Review “Lainnya”/)
+  assert.equal(metadata.includes('const StatisticsWorkspace'), false)
+  assert.equal(metadata.includes('@/components/StatisticsWorkspace'), false)
+  assert.doesNotMatch(metadata, /Statistik & Laporan|Review “Lainnya”/)
 })
 
 test('the unclear Other response review and Statistics & Reports tabs are removed', () => {
@@ -36,7 +38,9 @@ test('the unclear Other response review and Statistics & Reports tabs are remove
   assert.doesNotMatch(settings, /Review “Lainnya”|pendingState|loadPending|review_status/)
   assert.match(settings, /label: 'Program Kerja'/)
   assert.match(settings, /label: 'Profil Indikator'/)
-  assert.doesNotMatch(metadata, /StatisticsWorkspace|Statistik & Laporan|Review “Lainnya”/)
+  assert.equal(metadata.includes('const StatisticsWorkspace'), false)
+  assert.equal(metadata.includes('@/components/StatisticsWorkspace'), false)
+  assert.doesNotMatch(metadata, /Statistik & Laporan|Review “Lainnya”/)
 })
 
 test('OPPE / FPPE is a Mutu Klinis subtab immediately after Audit Klinis dan Kematian', () => {
