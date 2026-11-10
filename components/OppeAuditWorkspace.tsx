@@ -1168,7 +1168,7 @@ export default function OppeAuditWorkspace({
                       {assignableStaff.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
                     </select>
                   )}
-                  <small className="oppeMuted">{currentReadOnly ? 'Identitas mengikuti snapshot penilaian tersimpan.' : assignableStaff.length ? 'Pilihan dibatasi pada roster tim yang sudah dikunci. Nama tidak dapat diketik bebas.' : 'Belum ada tenaga yang dikunci pada tim ini. Buka kontainer Tim Tenaga Kerja untuk menetapkan roster terlebih dahulu.'}</small>
+                  
                 </label>
                 <label className="oppeField"><span>Kode Tenaga AUREKA</span><input value={form.staffIdentifier} readOnly disabled placeholder="Terisi dari direktori induk" /><small className="oppeMuted">Kode internal AUREKA, bukan NIP/NIK.</small></label>
                 <label className="oppeField"><span>Kelompok profesi *</span><input value={form.profession} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, profession: e.target.value }))} placeholder="Terisi dari direktori induk; dapat dipersempit sesuai pemetaan profesi." /></label>
@@ -1232,7 +1232,7 @@ export default function OppeAuditWorkspace({
                           updated: 'Perubahan OPPE disimpan',
                         } as Record<string, string>)[String(event.event_type)] || 'Perubahan OPPE'}</strong>
                         <span>{event.created_at ? new Date(event.created_at).toLocaleString('id-ID') : 'Waktu tidak tersedia'} · {event.actor_id ? `Akun ${String(event.actor_id).slice(0, 8)}…` : 'Akun tidak tercatat'}</span>
-                        <small>{event.from_status ? `${statusLabel[String(event.from_status)] || event.from_status} → ` : ''}{statusLabel[String(event.to_status)] || event.to_status} · {Number(event.source_records_count || 0)} sumber logbook · snapshot skor tersimpan</small>
+                        <small>{event.from_status ? `${statusLabel[String(event.from_status)] || event.from_status} → ` : ''}{statusLabel[String(event.to_status)] || event.to_status} · {Number(event.source_records_count || 0)} sumber logbook</small>
                       </div>
                     </article>
                   ))}
@@ -1253,7 +1253,7 @@ export default function OppeAuditWorkspace({
                 <div><span>Pengembangan profesional</span><strong>{fmtPct(score.professionalism.score)}</strong><small>{score.professionalism.assessed}/{score.professionalism.applicable} butir dinilai</small></div>
                 <div><span>Kinerja klinis/profesional</span><strong>{fmtPct(score.clinical.score)}</strong><small>{score.clinical.assessed}/{score.clinical.applicable} indikator memiliki skor</small></div>
               </div>
-              <div className="oppeMethodNote"><strong>Metode versi 1</strong><br />Rerata tiga ranah dengan bobot setara; setiap butir/indikator di dalam ranah berbobot sama. Indikator kritis yang tidak memenuhi target tetap ditandai untuk telaah khusus dan tidak boleh ditutupi skor agregat.</div>
+              
               {score.needsReview && <div className="oppeNotice oppeError" style={{ marginTop: 10 }}>Ada indikator dengan tingkat telaah tinggi/kritis yang tidak memenuhi target. Tinjau bukti serta konteks sebelum validasi.</div>}
               {score.overall == null && <div className="oppeNotice oppeNoticeInfo" style={{ marginTop: 10 }}>Skor total belum dihitung. Data tidak memadai tidak diperlakukan sebagai nilai nol.</div>}
               <div className="oppeAsideActions">
@@ -1266,7 +1266,7 @@ export default function OppeAuditWorkspace({
               </div>
             </section>
             <section className="oppeGlass oppeScorePanel">
-              <div className="oppeEyebrow">KELENGKAPAN ENGINE</div>
+              <div className="oppeEyebrow">KELENGKAPAN DATA</div>
               <div className="oppeMiniMetric"><span>Aturan indikator aktif</span><strong>{selectedRuleCount}</strong></div>
               <div className="oppeMiniMetric"><span>Logbook tervalidasi tahun ini</span><strong>{records.filter((item) => item.status === 'validated').length}</strong></div>
               <div className="oppeMiniMetric"><span>Staf terdeteksi dari logbook</span><strong>{staffSuggestions.length}</strong></div>
@@ -1350,7 +1350,7 @@ export default function OppeAuditWorkspace({
 
       {screen === 'history' && (
         <section className="oppeGlass oppeSection">
-          <div className="oppeSectionHead"><div><div className="oppeEyebrow">RIWAYAT &amp; OUTPUT</div><h4>Penilaian tersimpan</h4><p>Buka penilaian untuk melihat bukti, snapshot skor dan status validasi. Draf dapat dilanjutkan; penilaian tervalidasi hanya dapat dikoreksi melalui alur pembukaan kembali.</p></div></div>
+          <div className="oppeSectionHead"><div><div className="oppeEyebrow">RIWAYAT &amp; OUTPUT</div><h4>Penilaian tersimpan</h4></div></div>
           <div className="oppeRuleToolbar"><input className="oppeLocalSearch" aria-label="Cari nama, profesi, atau evaluator pada riwayat OPPE" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="Cari nama, profesi, ID pegawai, evaluator…" /><span>{filteredAssessments.length} penilaian pada filter aktif</span><button type="button" className="oppeBtn" onClick={exportOppeListCsv} disabled={!filteredAssessments.length}>Ekspor daftar CSV</button></div>
           <div className="oppeRuleList">{filteredAssessments.map((assessment) => <article className="oppeRuleRow" key={assessment.id}><div className="oppeRuleTitle"><strong>{assessment.staff_name} · {assessment.profession}</strong><span>{roomMap.get(Number(assessment.room_id)) || 'Unit'} · {quarters.find((item) => item.value === Number(assessment.period_quarter))?.label} {assessment.period_year}</span><span className="oppeRuleDescription">Nilai: {fmtPct(asObject(assessment.score_json).overall)} · {asObject(assessment.score_json).category || 'Belum dinilai'} · Evaluator: {assessment.evaluator_name || '—'}</span></div><div className="oppeRuleActions"><span className={`oppeStatus ${statusTone[assessment.status] || 'oppeNeutral'}`}>{statusLabel[assessment.status] || assessment.status}</span><button type="button" className="oppeBtn" onClick={() => openSaved(assessment)}>Buka penilaian</button><button type="button" className="oppeBtn" onClick={() => exportOppePdf(assessment)}>Ekspor PDF</button><button type="button" className="oppeBtn" onClick={() => exportOppeJson(assessment)}>JSON</button></div></article>)}{!filteredAssessments.length && <div className="oppeEmpty">{loading ? 'Memuat riwayat…' : 'Belum ada penilaian tersimpan untuk periode ini. Gunakan Form & output OPPE untuk memulai draf.'}</div>}</div>
         </section>
