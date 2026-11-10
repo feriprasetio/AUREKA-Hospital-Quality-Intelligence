@@ -1139,7 +1139,7 @@ export default function OppeAuditWorkspace({
       <WorkspaceModuleHeader
         className="oppeHeader"
         title="Evaluasi praktik profesional"
-        description="Penilaian profesional berbasis logbook terverifikasi, bukti perilaku, dan pengembangan profesi. FPPE terfokus memakai identitas kanonis dari Metadata tenaga kerja dan tersimpan dengan alur validasi tersendiri."
+       
         actions={<div className="oppeHeaderActions"><button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading ? "Memuat…" : "↻ Perbarui data"}</button><LiquidGlassButton onClick={resetNew}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Penilaian baru</LiquidGlassButton><button type="button" className="oppeBtn" onClick={handlePrint}>Cetak / Simpan PDF</button></div>}
       />
       
@@ -1253,7 +1253,7 @@ export default function OppeAuditWorkspace({
                           updated: 'Perubahan OPPE disimpan',
                         } as Record<string, string>)[String(event.event_type)] || 'Perubahan OPPE'}</strong>
                         <span>{event.created_at ? new Date(event.created_at).toLocaleString('id-ID') : 'Waktu tidak tersedia'} · {event.actor_id ? `Akun ${String(event.actor_id).slice(0, 8)}…` : 'Akun tidak tercatat'}</span>
-                        <small>{event.from_status ? `${statusLabel[String(event.from_status)] || event.from_status} → ` : ''}{statusLabel[String(event.to_status)] || event.to_status} · {Number(event.source_records_count || 0)} sumber logbook · snapshot skor tersimpan</small>
+                        <small>{event.from_status ? `${statusLabel[String(event.from_status)] || event.from_status} → ` : ''}{statusLabel[String(event.to_status)] || event.to_status} · {Number(event.source_records_count || 0)} sumber logbook</small>
                       </div>
                     </article>
                   ))}
@@ -1268,13 +1268,13 @@ export default function OppeAuditWorkspace({
               <div className="oppeEyebrow">RINGKASAN PENILAIAN</div>
               <h4>{score.overall == null ? 'Belum final' : fmtPct(score.overall)}</h4>
               <span className={`oppeStatus ${score.needsReview ? 'oppeWarn' : score.complete ? 'oppeGood' : 'oppeNeutral'}`}>{scoreStatus}</span>
-              <p>{score.category}. Skor total hanya ditampilkan bila ketiga ranah memiliki skor; status lengkap menunjukkan seluruh butir yang berlaku sudah dinilai.</p>
+              
               <div className="oppeScoreRows">
                 <div><span>Perilaku profesional</span><strong>{fmtPct(score.behavior.score)}</strong><small>{score.behavior.assessed}/{score.behavior.applicable} butir dinilai</small></div>
                 <div><span>Pengembangan profesional</span><strong>{fmtPct(score.professionalism.score)}</strong><small>{score.professionalism.assessed}/{score.professionalism.applicable} butir dinilai</small></div>
                 <div><span>Kinerja klinis/profesional</span><strong>{fmtPct(score.clinical.score)}</strong><small>{score.clinical.assessed}/{score.clinical.applicable} indikator memiliki skor</small></div>
               </div>
-              <div className="oppeMethodNote"><strong>Metode versi 1</strong><br />Rerata tiga ranah dengan bobot setara; setiap butir/indikator di dalam ranah berbobot sama. Indikator kritis yang tidak memenuhi target tetap ditandai untuk telaah khusus dan tidak boleh ditutupi skor agregat.</div>
+              
               {score.needsReview && <div className="oppeNotice oppeError" style={{ marginTop: 10 }}>Ada indikator dengan tingkat telaah tinggi/kritis yang tidak memenuhi target. Tinjau bukti serta konteks sebelum validasi.</div>}
               {score.overall == null && <div className="oppeNotice oppeNoticeInfo" style={{ marginTop: 10 }}>Skor total belum dihitung. Data tidak memadai tidak diperlakukan sebagai nilai nol.</div>}
               <div className="oppeAsideActions">
