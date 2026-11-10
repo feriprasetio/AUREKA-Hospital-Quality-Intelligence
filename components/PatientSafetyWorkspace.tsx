@@ -927,7 +927,7 @@ export default function PatientSafetyWorkspace({
             <td>{row.incident_type || '—'}</td><td>{row.summary || '—'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td>
             <td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td>
           </tr>)}
-        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Periksa migration dan izin Supabase.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Silakan muat ulang atau hubungi administrator.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
       </LiquidGlass>
     </> : null}
 
