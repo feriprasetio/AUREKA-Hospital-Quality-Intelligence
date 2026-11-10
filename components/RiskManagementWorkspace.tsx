@@ -766,7 +766,9 @@ export default function RiskManagementWorkspace({
 
       {loading && <div className="rmPanel rmLoading"><span className="rmSpinner"></span>Memuat data risiko dan riwayat pengendalian…</div>}
       {!loading && error.startsWith('Data Manajemen Risiko') && <div className="rmPanel rmEmpty">
-        <div className="rmEmptyIcon">DB</div><h4>Backend belum siap</h4><p>Modul memerlukan migration aureka_risk. Terapkan migration yang tersedia pada repositori sebelum menguji penyimpanan operasional.</p>
+        {/jwt|token|401|403|expired|session|sesi|login|izin|permission|denied/i.test(error)
+          ? <><div className="rmEmptyIcon">!</div><h4>Sesi atau akses bermasalah</h4><p>Data risiko tidak bisa dibaca dengan sesi saat ini. Muat ulang halaman atau keluar lalu masuk kembali.</p><button type="button" className="rmButton primary" onClick={() => window.location.reload()}>Muat ulang</button></>
+          : <><div className="rmEmptyIcon">DB</div><h4>Data risiko belum dapat dimuat</h4><p>{error.replace(/^Data Manajemen Risiko belum dapat dimuat\. Pastikan migration Manajemen Risiko sudah diterapkan pada Supabase\. /, '') || 'Periksa koneksi, lalu muat ulang.'}</p><button type="button" className="rmButton" onClick={() => window.location.reload()}>Muat ulang</button></>}
       </div>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'overview' && <>

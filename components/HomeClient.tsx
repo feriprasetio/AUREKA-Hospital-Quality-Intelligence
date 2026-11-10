@@ -89,9 +89,9 @@ export default function HomeClient(){
   document.documentElement.dataset.theme='solid'
   document.documentElement.style.colorScheme='light'
  },[])
- const [uiTheme,setUiTheme]=useState<'arktik'|'klasik'>('arktik')
- useEffect(()=>{if(typeof document!=='undefined'&&document.documentElement.getAttribute('data-skin')==='klasik')setUiTheme('klasik')},[])
- const toggleUiTheme=()=>{const next=uiTheme==='arktik'?'klasik':'arktik';setUiTheme(next);document.documentElement.setAttribute('data-skin',next);try{localStorage.setItem('aureka-theme',next)}catch{}}
+ const [uiMode,setUiMode]=useState<'terang'|'gelap'>('terang')
+ useEffect(()=>{if(typeof document==='undefined')return;document.documentElement.setAttribute('data-skin','arktik');try{localStorage.removeItem('aureka-theme')}catch{}if(document.documentElement.getAttribute('data-mode')==='gelap')setUiMode('gelap')},[])
+ const toggleUiMode=()=>{const next=uiMode==='terang'?'gelap':'terang';setUiMode(next);document.documentElement.setAttribute('data-mode',next);try{localStorage.setItem('aureka-mode',next)}catch{}}
  useEffect(()=>{rooms().then(setRoomsList);const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null)}if(currentRole==='VALIDATOR'){setActive('quality');setQualityOpen(true)}else{setActive('home');setQualityOpen(false)}setView(p.must_change_password?'force-password':'workspace')}})},[])
  useEffect(()=>{
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
@@ -729,8 +729,8 @@ export default function HomeClient(){
     </div>}
    </div>
     <CommandPalette items={commandItems} searchResults={commandSearchItems} contextLabel={currentContainer} onSearchChange={dispatchWorkspaceSearch}/>
-   <button type="button" className="workspaceHeaderIcon workspaceThemeButton" title={uiTheme==='arktik'?'Ganti ke tema klasik':'Ganti ke tema kaca Arktik'} aria-label={uiTheme==='arktik'?'Ganti ke tema klasik':'Ganti ke tema kaca Arktik'} onClick={toggleUiTheme}>
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+   <button type="button" className="workspaceHeaderIcon workspaceThemeButton" title={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-label={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-pressed={uiMode==='gelap'} onClick={toggleUiMode}>
+    {uiMode==='terang'?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>:<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>}
    </button>
    <button type="button" className="workspaceHeaderIcon workspaceFullscreenButton" title="Layar penuh" aria-label="Aktifkan atau keluar dari layar penuh" onClick={()=>{if(typeof document==='undefined')return;if(document.fullscreenElement){void document.exitFullscreen().catch(()=>undefined)}else if(document.documentElement.requestFullscreen){void document.documentElement.requestFullscreen().catch(()=>undefined)}}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>

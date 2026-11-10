@@ -19,7 +19,7 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 APP = ROOT / 'app'
 OUT = APP / 'theme-arktik-accents.css'
-SKIP_FILES = {'theme-arktik.css', 'theme-arktik-accents.css'}
+SKIP_FILES = {'theme-arktik.css', 'theme-arktik-accents.css', 'theme-arktik-dark.css', 'survey-wizard.css'}
 SKIP_SELECTOR = re.compile(r'amoled|data-theme="dark"|risk|success|rendah|low\b|lowRisk|ok\b|good|valid|pass|safe|aman|done|complete|selesai|positive|up\b|trend|status|badge|pill|level|band|matrix|heat|cell', re.I)
 PROPS = re.compile(r'^(--[\w-]+|color|background(-color|-image)?|border(-[\w-]+)?|outline(-color)?|box-shadow|text-shadow|fill|stroke|accent-color|caret-color|text-decoration-color|column-rule-color)$')
 HUE_MIN, HUE_MAX, SAT_MIN = 135, 180, 0.08
