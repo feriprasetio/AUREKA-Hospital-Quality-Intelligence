@@ -3,9 +3,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NavigateFn } from '@/lib/aureka/focus'
+import dynamic from 'next/dynamic'
 import OverviewDashboard from '@/components/OverviewDashboard'
 import TanyaAureka from '@/components/TanyaAureka'
+const QualityResultsWorkspace=dynamic(()=>import('@/components/QualityResultsWorkspace'),{ssr:false})
+const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorkspace'),{ssr:false})
+const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false})
 
+type Room = { id:number; name:string }
 type RecordRow = {
   id: string
   room_id: number | null
@@ -20,6 +25,9 @@ type Props = {
   supabase: SupabaseClient
   userName: string
   userId: string
+  rooms: Room[]
+  role: string | null
+  isAdmin: boolean
   roomId: number | null
   roomName: string | null
   manager: boolean
@@ -56,8 +64,9 @@ function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
   const points = values.map((v,i) => `${18 + i* (264/Math.max(1,values.length-1))},${104 - (v/max)*82}`).join(' ')
   return <div className="hlChart"><svg viewBox="0 0 300 126" role="img" aria-label="Tren data bulanan"><line x1="16" y1="105" x2="284" y2="105" stroke="#dfe8e2"/><line x1="16" y1="63" x2="284" y2="63" stroke="#edf2ee"/><polyline points={points} fill="none" stroke="#24744f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>{values.map((v,i)=><circle key={labels[i]} cx={18+i*(264/Math.max(1,values.length-1))} cy={104-(v/max)*82} r="3.5" fill="#24744f"><title>{labels[i]}: {v}</title></circle>)}</svg><div className="hlAxis">{labels.map(label=><span key={label}>{label}</span>)}</div></div>
 }
-export default function HomeLandingWorkspace({supabase,userName,userId,roomId,roomName,manager,onNavigate}:Props) {
+export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,onNavigate}:Props) {
   const [tab,setTab] = useState<'welcome'|'infographics'|'achievements'>('welcome')
+  const [achievementTab,setAchievementTab] = useState<'overview'|'indicators'|'safety'|'risk'>('overview')
   const [records,setRecords] = useState<RecordRow[]>([])
   const [loading,setLoading] = useState(false)
   const [error,setError] = useState('')
@@ -172,6 +181,14 @@ export default function HomeLandingWorkspace({supabase,userName,userId,roomId,ro
       <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak (kode ICD-10 bila tersedia)</h3></header>{metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code+item.diagnosis}><span title={item.diagnosis}>{item.code==='Belum berkode'?item.diagnosis:item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
       <p className="hlDate">Data dibatasi pada unit aktif dan tahun berjalan. Episode terbuka tidak boleh ditafsirkan sebagai jumlah bed terisi tanpa integrasi sensus tempat tidur.</p>
     </>}
-    {tab==='achievements'&&<OverviewDashboard supabase={supabase} role={manager?'MANAGEMENT':'PIC'} roomId={roomId} roomName={roomName} manager={false} userName={userName} onNavigate={onNavigate}/>}
+    {tab==='achievements'&&<>
+      <nav className="hlTabs hlAchievementTabs" role="tablist" aria-label="Capaian Unit">
+        {([['overview','Ikhtisar'],['indicators','Indikator Mutu'],['safety','Keselamatan Pasien'],['risk','Manajemen Risiko']] as const).map(([id,label])=><button key={id} type="button" role="tab" aria-selected={achievementTab===id} className={achievementTab===id?'hlTab active':'hlTab'} onClick={()=>setAchievementTab(id)}>{label}</button>)}
+      </nav>
+      {achievementTab==='overview'&&<OverviewDashboard supabase={supabase} role={role??(manager?'MANAGEMENT':'PIC')} roomId={manager?null:roomId} roomName={manager?null:roomName} manager={manager} userName={userName} onNavigate={onNavigate}/>}
+      {achievementTab==='indicators'&&<QualityResultsWorkspace key="home-unit-indicators" mode="indicators" initialRoomId={manager?null:roomId} rooms={rooms} canViewAllRooms={manager}/>}
+      {achievementTab==='safety'&&<PatientSafetyWorkspace key="home-unit-safety" supabase={supabase} rooms={rooms} initialRoomId={manager?null:roomId} isSuperAdmin={isAdmin} canManageWorkflow={manager} initialTab="overview" showTabs={false}/>}
+      {achievementTab==='risk'&&<RiskManagementWorkspace key="home-unit-risk" supabase={supabase} rooms={rooms} initialRoomId={manager?null:roomId} role={role} userId={userId} userName={userName} initialTab="overview" showTabs={false}/>}
+    </>}
   </section>
 }
