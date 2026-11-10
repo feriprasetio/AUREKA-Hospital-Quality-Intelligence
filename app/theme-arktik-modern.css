@@ -219,3 +219,20 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(
   padding: 1px 7px !important;
   font-size: 11.5px !important;
 }
+
+/* Teks sel tabel boleh turun baris agar tidak menimpa kolom sebelahnya
+   (mis. Risk Register: baris kode/sumber menimpa kolom Unit). Sel aksi tetap satu baris. */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbody td:not(:has(button, a, input, select)),
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbody td:not(:has(button, a, input, select)) * {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter tbody td { max-width: 520px; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .rmTable tbody tr[data-risk-id] > td:nth-child(2) { min-width: 320px; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .rmTable tbody tr[data-risk-id] > td:nth-child(3) { min-width: 150px; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .rmTable tbody tr[data-risk-id] > td:is(:nth-child(2), :nth-child(3)),
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .rmTable tbody tr[data-risk-id] > td:is(:nth-child(2), :nth-child(3)) * {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
