@@ -114,7 +114,7 @@ export default function HomeClient(){
     setQualityResultsView(tab==='hasil-capaian'?(audit==='audit-indikator'?'indicators':audit==='clinical-pathway'?'pathway':'clinical-death'):null)
     return
    }
-   const routes:Record<string,string>={'ringkasan':'home','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'analytics','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings'}
+   const routes:Record<string,string>={'ringkasan':'home','register-pasien':'patients','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'analytics','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings'}
    const [modulePath,section]=path.split('/')
    let next=routes[modulePath]||'home'
    if(next!=='home'&&!AUREKA_PRIMARY_NAV.some(module=>module.id===next&&module.requiredRoles.includes((role||'') as AurekaRole)))next='home'
@@ -150,7 +150,7 @@ export default function HomeClient(){
     hash='#mutu-klinis/'+audit+'/'+tab
    }
   }else{
-   const routes:Record<string,string>={home:'#ringkasan',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#metadata',settings:'#administrasi'}
+   const routes:Record<string,string>={home:'#ringkasan',patients:'#register-pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#metadata',settings:'#administrasi'}
    hash=routes[active]||'#ringkasan'
    const section=active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(analyticsTab==='directory'?analyticsDirectoryTab:analyticsTab):null
    if(section)hash+='/'+section
