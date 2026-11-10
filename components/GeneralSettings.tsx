@@ -6,6 +6,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' | 'palette' }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -562,13 +563,14 @@ export default function GeneralSettings({
           ['mydata', null, 'Data Saya untuk PMKP', 'data', !isAdmin],
         ] as const).filter(item => item[4]).map(([sec, t, label, icon]) => {
           const current = section === sec && (t === null || tab === t)
-          return <button key={label} type="button" className={'stNavItem' + (current ? ' on' : '')} aria-current={current ? 'page' : undefined}
+          return <button key={label} type="button" id={t ? 'settings-tab-' + t : undefined} className={'stNavItem settingsDestination' + (current ? ' on' : '')} aria-current={current ? 'page' : undefined}
             onClick={() => { setSection(sec); if (t) setTab(t) }}>
             <span className="stNavIcon"><SettingsIcon kind={icon} /></span><span>{label}</span>
           </button>
         })}
       </nav>
       <div className="stMain">
+      <WorkspaceModuleHeader title="Pengaturan" description="Akun, keamanan, tampilan, unit kerja, dan pengguna AUREKA. Konfigurasi klinis tetap dikelola di modulnya masing-masing." />
       {section === 'appearance' && <AppearancePanel />}
 
       {section === 'general' && (
