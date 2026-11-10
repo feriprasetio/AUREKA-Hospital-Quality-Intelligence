@@ -709,8 +709,7 @@ export default function RiskManagementWorkspace({
 
   const renderMatrix = (large = false) => (
     <div className={'rmMatrixWrap' + (large ? ' large' : '')}>
-      <p className="rmMatrixScope" style={{ margin: '0 0 8px', fontSize: 13, opacity: .8 }}>Cakupan peta: <b>{unitFilter === 'all' || !unitFilter ? 'Semua ruangan / unit' : unitFilter}</b> · {risks.filter(r => unitFilter === 'all' || !unitFilter || sourceUnitLabel(r) === unitFilter).length.toLocaleString('id-ID')} risiko{canManageAll && unitFilter && unitFilter !== 'all' ? <> · <button type="button" className="rmButton subtle" style={{ padding: '2px 8px' }} onClick={() => setUnitFilter('all')}>Tampilkan semua unit</button></> : null}</p>
-      <div className="rmMatrixYAxis"><span>LEVEL KEMUNGKINAN</span><b>Hampir pasti → Jarang</b></div>
+            <div className="rmMatrixYAxis"><span>LEVEL KEMUNGKINAN</span><b>Hampir pasti → Jarang</b></div>
       <div className="rmMatrix">
         <div className="rmMatrixHeader"><span></span>{IMPACT_LABELS.map((label, i) => <span key={label}><b>{i + 1}</b><small>{label}</small></span>)}</div>
         {[5, 4, 3, 2, 1].map(p => (
@@ -726,7 +725,7 @@ export default function RiskManagementWorkspace({
           </div>
         ))}
       </div>
-      <div className="rmMatrixAxisFoot">LEVEL DAMPAK → · Angka dalam sel = besaran risiko berdasarkan lookup Kepmenkes HK.01.07/MENKES/1354/2024</div>
+      
     </div>
   )
 
@@ -746,7 +745,7 @@ export default function RiskManagementWorkspace({
         <span>Unit belum dipetakan</span><p>Akun Anda belum terhubung ke ruangan/unit kerja, sehingga register risiko unit belum dapat ditampilkan atau diisi. Hubungi Super Admin untuk memetakan unit utama akun Anda di menu Pengaturan.</p>
       </div>}
       {scopedToUnit && !unitMissing && <div className="rmNotice" role="status">
-        <span>Mode unit</span><p>Anda melihat dan mengelola risiko unit {currentRoom?.name || 'Anda'} saja. Risiko yang salah input dapat diperbaiki melalui tombol Edit pada register.</p>
+        
       </div>}
 
       {(message || error) && <div className={'rmNotice' + (error ? ' error' : '')} role={error ? 'alert' : 'status'}>
@@ -778,10 +777,7 @@ export default function RiskManagementWorkspace({
           <LiquidGlass className="rmKpi"><span>Risiko Tinggi / Sangat Tinggi</span><strong>{counts.high.toLocaleString('id-ID')}</strong><small>Prioritas perhatian manajemen</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Residual telah dinilai</span><strong>{counts.residualComplete.toLocaleString('id-ID')}</strong><small>{counts.total ? Math.round(counts.residualComplete / counts.total * 100) : 0}% register</small></LiquidGlass>
         </div>
-        {(counts.sourceScoreDiff > 0 || counts.unitUnmapped > 0 || counts.sourceCategoryMissing > 0) && <div className="rmNotice" role="status">
-          <span>Rekonsiliasi impor</span>
-          <p>Data workbook telah diimpor tanpa menghapus nilai sumber. {counts.sourceScoreDiff.toLocaleString('id-ID')} skor sumber berbeda dari kalkulasi matriks engine; kedua nilai dipertahankan untuk audit. {counts.unitUnmapped.toLocaleString('id-ID')} risiko masih belum terhubung ke ID unit master AUREKA, sehingga penetapan akses PIC unit memerlukan pemetaan unit. {counts.sourceCategoryMissing.toLocaleString('id-ID')} entri sheet Profesi memang tidak memiliki kategori pada sumber.</p>
-        </div>}
+        {(counts.sourceScoreDiff > 0 || counts.unitUnmapped > 0 || counts.sourceCategoryMissing > 0) && }
         <div className="rmOverviewGrid">
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">PROFIL RISIKO</span><h4>Peta risiko dan selera risiko</h4><p>Area Rendah/Sangat Rendah dapat diterima; level Sedang ke atas menjadi risiko utama yang perlu mitigasi.</p></div><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Lihat register →</button></div>{renderMatrix()}</LiquidGlass>
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">PENGENDALIAN</span><h4>Status tindak pengendalian</h4><p>Ringkasan untuk membantu penentuan prioritas dan pemantauan.</p></div></div>
@@ -809,7 +805,7 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'register' && <>
         <LiquidGlass className="rmPanel">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">REGISTER TERKENDALI</span><h4>Risk Register</h4><p>Menampilkan record asli dari satu ruangan/kelompok sumber setiap kali. Teks sumber dan nomor baris dipertahankan untuk penelusuran; pindah ruangan melalui filter di bawah.</p></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">REGISTER TERKENDALI</span><h4>Risk Register</h4></div>
             <div className="rmActions"><button type="button" className="rmButton subtle" onClick={exportCsv}>Ekspor CSV</button><button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Tambah risiko</button></div>
           </div>
           <div className="rmFilterGrid">
@@ -834,7 +830,7 @@ export default function RiskManagementWorkspace({
         </LiquidGlass>
 
         {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className="rmPanel rmEditor">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4><p>Isi berdasarkan sasaran organisasi, kejadian risiko, penyebab, dampak, dan kontrol saat ini. Skor dihitung otomatis.</p></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
             <label>Unit kerja <select value={riskForm.unit_id} disabled={!canManageAll && initialRoomId != null} onChange={e => setRiskForm(f => ({ ...f, unit_id: e.target.value }))}><option value="">Pilih unit</option>{unitOptions.map(r => <option value={String(r.id)} key={r.id}>{r.name}</option>)}</select></label>
             <label>Kategori risiko <select value={riskForm.category} onChange={e => setRiskForm(f => ({ ...f, category: e.target.value }))}>{Array.from(new Set(CATEGORIES)).map(c => <option key={c}>{c}</option>)}</select></label>
@@ -868,7 +864,7 @@ export default function RiskManagementWorkspace({
         {!riskEditorOpen && !fmeaEditorOpen && activeRisk && registerDetailExpanded && <RmModal label="Detail risiko" error={error}><LiquidGlass className="rmPanel rmDetailModal">
           <div className="rmSectionHead"><div><span className="rmEyebrow">DETAIL RISIKO TERPILIH</span><h4>{activeRisk.risk_event}</h4><p>{activeRisk.unit_name} · diperbarui {fmtDate(activeRisk.updated_at)}</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setRegisterDetailExpanded(false)}>Tutup</button><button type="button" className="rmButton primary" disabled={!canEditRisk(activeRisk)} onClick={() => openRiskEditor(activeRisk)}>Edit detail</button></div></div>
           <div className="rmDetailGrid">
-            <div><span>Kategori</span><b>{activeRisk.category}</b></div><div><span>Baseline · engine</span><b>{activeRisk.likelihood} × {activeRisk.impact} · {activeRisk.risk_score}</b>{renderRiskBadge(activeRisk.risk_level)}</div><div><span>Skor sumber workbook</span><b>{activeRisk.source_risk_score ?? '—'}{activeRisk.source_risk_level ? ' · ' + activeRisk.source_risk_level : ''}</b>{activeRisk.source_risk_score != null && activeRisk.source_risk_score !== activeRisk.risk_score ? <p>Berbeda dari skor engine; nilai sumber tetap dipertahankan.</p> : null}</div><div><span>Sumber data</span><b>{activeRisk.source_sheet || 'Input AUREKA'}{activeRisk.source_row_number ? ' · baris ' + activeRisk.source_row_number : ''}{activeRisk.source_record_no ? ' · record ' + activeRisk.source_record_no : ''}</b></div><div><span>Residual</span><b>{activeRisk.residual_score == null ? 'Belum dinilai' : activeRisk.residual_score + ' · ' + activeRisk.residual_level}</b>{activeRisk.residual_level ? renderRiskBadge(activeRisk.residual_level) : null}</div><div><span>Pemilik risiko</span><b>{activeRisk.owner_name || 'Belum ditetapkan'}</b></div>
+            <div><span>Kategori</span><b>{activeRisk.category}</b></div><div><span>Baseline</span><b>{activeRisk.likelihood} × {activeRisk.impact} · {activeRisk.risk_score}</b>{renderRiskBadge(activeRisk.risk_level)}</div><div><span>Skor sumber workbook</span><b>{activeRisk.source_risk_score ?? '—'}{activeRisk.source_risk_level ? ' · ' + activeRisk.source_risk_level : ''}</b>{activeRisk.source_risk_score != null && activeRisk.source_risk_score !== activeRisk.risk_score ?  : null}</div><div><span>Sumber data</span><b>{activeRisk.source_sheet || 'Input AUREKA'}{activeRisk.source_row_number ? ' · baris ' + activeRisk.source_row_number : ''}{activeRisk.source_record_no ? ' · record ' + activeRisk.source_record_no : ''}</b></div><div><span>Residual</span><b>{activeRisk.residual_score == null ? 'Belum dinilai' : activeRisk.residual_score + ' · ' + activeRisk.residual_level}</b>{activeRisk.residual_level ? renderRiskBadge(activeRisk.residual_level) : null}</div><div><span>Pemilik risiko</span><b>{activeRisk.owner_name || 'Belum ditetapkan'}</b></div>
             <div className="wide"><span>Sasaran</span><p>{activeRisk.objective || 'Belum diuraikan'}</p></div><div className="wide"><span>Penyebab</span><p>{activeRisk.causes || 'Belum diuraikan'}</p></div><div className="wide"><span>Dampak</span><p>{activeRisk.impacts || 'Belum diuraikan'}</p></div><div className="wide"><span>Pengendalian saat ini</span><p>{activeRisk.existing_controls || 'Belum diuraikan'}</p></div>
           </div>
           {activeLinks.length > 0 && <div className="rmRelated"><b>Terhubung dengan {activeLinks.length} relasi</b>{activeLinks.map(link => { const other = risks.find(r => r.id === (link.source_risk_id === activeRisk.id ? link.target_risk_id : link.source_risk_id)); return <button type="button" key={link.id} onClick={() => { if (other) setSelectedRiskId(other.id); }}><span>{RELATION_TYPES.find(x => x.value === link.relationship_type)?.label || link.relationship_type}</span><b>{other?.risk_event || 'Risiko terkait'}</b></button> })}</div>}
@@ -879,7 +875,7 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'mitigation' && <>
         <div className="rmKpis compact"><LiquidGlass className="rmKpi"><span>Rencana RTP</span><strong>{plans.length}</strong><small>Termasuk draft dan rencana berjalan</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Menunggu persetujuan</span><strong>{plans.filter(p => p.status.startsWith('pending_')).length}</strong><small>Kabid → Direktur → Dewan Pengawas</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Dalam pelaksanaan</span><strong>{plans.filter(p => p.status === 'in_progress').length}</strong><small>Rencana disetujui dan dikerjakan</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Lewat tenggat</span><strong>{plans.filter(p => p.target_date && new Date(p.target_date + 'T23:59:59') < new Date() && !['closed'].includes(p.status)).length}</strong><small>Perlu eskalasi atau penyesuaian</small></LiquidGlass></div>
-        <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">MITIGASI TERINTEGRASI</span><h4>Rencana Tindak Pengendalian</h4><p>Satu rencana dapat menangani beberapa risiko yang berbagi penyebab, kontrol, atau proses. Semua tahap persetujuan dicatat.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Pilih risiko</button><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>＋ Rencana gabungan</button></div></div>
+        <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">MITIGASI TERINTEGRASI</span><h4>Rencana Tindak Pengendalian</h4></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Pilih risiko</button><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>＋ Rencana gabungan</button></div></div>
           {planFormOpen && <RmModal label="Penyusunan RTP" error={error}><div className="rmPlanComposer rmPanel">
             <div className="rmSectionHead"><div><span className="rmEyebrow">PENYUSUNAN RTP</span><h4>Rencana mitigasi untuk {selectedRiskIds.length} risiko</h4><p>Rencana lintas unit sebaiknya menyebutkan koordinator utama dan kontribusi tiap unit yang terlibat.</p></div><button type="button" className="rmButton subtle" onClick={() => setPlanFormOpen(false)}>Tutup formulir</button></div>
             {selectedForPlan.length > 25 && <div className="rmNotice" role="status"><span>Terlalu banyak risiko</span><p>{selectedForPlan.length.toLocaleString('id-ID')} risiko dipilih. RTP gabungan sebaiknya hanya mencakup risiko yang benar-benar berbagi penyebab, kontrol, atau proses yang sama (umumnya di bawah 20). Kembali ke Risk Register untuk mempersempit pilihan.</p></div>}
@@ -926,7 +922,7 @@ export default function RiskManagementWorkspace({
             })}
           </div>
           <div className="rmPlanFacts"><div><span>Koordinator</span><b>{activePlan.owner_name || 'Belum ditetapkan'}</b></div><div><span>Tenggat</span><b>{fmtDate(activePlan.target_date)}</b></div><div><span>Risiko tercakup</span><b>{activePlanRisks.length}</b></div><div><span>Penilaian residual aktual</span><b>{activePlanRisks.filter(x => x.risk?.residual_score != null).length} / {activePlanRisks.length}</b></div></div>
-          <div className="rmSectionHead compactHead"><div><h4>Risiko dalam rencana</h4><p>Hasil residual berasal dari register risiko, bukan sekadar target yang diharapkan.</p></div></div>
+          <div className="rmSectionHead compactHead"><div><h4>Risiko dalam rencana</h4></div></div>
           <WorkspaceTableViewport label="Register dan pengendalian risiko · 2" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Peristiwa risiko</th><th>Unit</th><th>Baseline</th><th>Target residual</th><th>Residual aktual</th></tr></thead><tbody>
             {activePlanRisks.map(x => <tr key={x.id}><td><button className="rmTextLink" type="button" onClick={() => { if (x.risk) { setSelectedRiskId(x.risk.id); setTab('register'); setRegisterDetailExpanded(true); } }}>{x.risk?.risk_event}</button></td><td>{x.risk?.unit_name}</td><td>{x.risk?.risk_score} · {x.risk?.risk_level}</td><td>{x.target_likelihood && x.target_impact ? riskScore(x.target_likelihood, x.target_impact) + ' · ' + levelFor(riskScore(x.target_likelihood, x.target_impact)) : 'Belum ditetapkan'}</td><td>{x.risk?.residual_score == null ? 'Belum dinilai' : x.risk.residual_score + ' · ' + x.risk.residual_level}</td></tr>)}
           </tbody></table></WorkspaceTableViewport>
@@ -948,7 +944,7 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'connections' && <>
         <LiquidGlass className="rmPanel">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">GRAPH RISIKO</span><h4>Konektor risiko utama</h4><p>Hanya risiko Sangat Tinggi yang dapat menjadi sumber konektor. Sistem mengusulkan risiko terkait dari seluruh sumber berdasarkan kecocokan teks pada peristiwa, penyebab, dampak, kontrol, dan sasaran. Usulan tidak aktif sampai diverifikasi dan ditambahkan.</p></div></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">GRAPH RISIKO</span><h4>Konektor risiko utama</h4></div></div>
           <div className="rmLinkComposer">
             <div className="rmFormGrid">
               <label>Ruangan / kelompok risiko utama <select aria-label="Unit risiko utama" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setSelectedRiskIds([]); setLinkForm(f => ({ ...f, source: '', target: '', description: '' })); }}><option value="">Pilih ruangan/kelompok sumber</option>{canManageAll && <option value="all">Semua ruangan / unit</option>}{sourceUnitOptions.map(renderSourceUnitOption)}</select></label>
@@ -963,7 +959,7 @@ export default function RiskManagementWorkspace({
             <div><b>Risiko utama · {connectorPrimary.risk_level}</b><span>{connectorPrimary.risk_event} · {connectorPrimary.unit_name} · sumber {connectorPrimary.source_sheet || 'Input AUREKA'}{connectorPrimary.source_row_number ? ' baris ' + connectorPrimary.source_row_number : ''}</span></div>
             <button type="button" className="rmButton primary" disabled={relatedRiskIds.length < 2} onClick={prepareIntegratedPlan}>Siapkan RTP gabungan ({relatedRiskIds.length} risiko) →</button>
           </div> : <div className="rmEmptySmall">Tidak ada risiko Sangat Tinggi pada kelompok sumber ini. Pilih kelompok lain atau periksa nilai risiko pada register.</div>}
-          <div className="rmSectionHead compactHead"><div><h4>Kandidat konektor yang disarankan</h4><p>{connectorPrimary ? 'Maksimal 8 kandidat teratas. Kecocokan dihitung dari kata-kata pada record, bukan bukti kausal otomatis.' : 'Pilih risiko utama untuk melihat kandidat.'}</p></div></div>
+          <div className="rmSectionHead compactHead"><div><h4>Kandidat konektor yang disarankan</h4></div></div>
           <div className="rmGraphList">{connectorPrimary && connectorSuggestions.map(suggestion => {
             const relationshipLabel = RELATION_TYPES.find(type => type.value === suggestion.recommendedType)?.label || suggestion.recommendedType
             const generatedDescription = 'Usulan kecocokan teks ' + suggestion.score + '%; bidang yang cocok: ' + suggestion.evidence.join(', ') + '; kata kunci: ' + suggestion.matchWords.join(', ') + '. Verifikasi hubungan proses sebelum mengaktifkan.'
@@ -975,7 +971,7 @@ export default function RiskManagementWorkspace({
               <button type="button" className="rmButton subtle" onClick={() => { setLinkForm(f => ({ ...f, target: suggestion.risk.id, type: suggestion.recommendedType, description: generatedDescription })); setMessage('Kandidat dimasukkan ke form. Verifikasi jenis dan dasar hubungan, lalu aktifkan konektor.'); }}>Gunakan kandidat</button>
             </div>
           })}{connectorPrimary && !connectorSuggestions.length && <div className="rmEmptySmall">Belum ada kandidat yang melewati ambang kecocokan teks. Hal ini tidak membuktikan tidak ada hubungan; tinjau record manual atau tambah kata kunci yang relevan.</div>}</div>
-          <div className="rmSectionHead compactHead"><div><h4>Konektor aktif pada ruangan ini</h4><p>{visibleLinks.length} konektor · sumber setiap konektor dibatasi pada risiko utama Sangat Tinggi dalam kelompok sumber terpilih. Target dapat berasal dari unit lain.</p></div></div>
+          <div className="rmSectionHead compactHead"><div><h4>Konektor aktif pada ruangan ini</h4></div></div>
           <div className="rmGraphList">{visibleLinks.map(link => {
             const a = risks.find(r => r.id === link.source_risk_id), b = risks.find(r => r.id === link.target_risk_id)
             return <div className="rmGraphLink" key={link.id}>
@@ -991,10 +987,10 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'fmea' && <>
         <div className="rmKpis compact"><LiquidGlass className="rmKpi"><span>Analisis FMEA</span><strong>{fmeas.length}</strong><small>Modus kegagalan terdaftar</small></LiquidGlass><LiquidGlass className="rmKpi"><span>RPN ≥ 30 atau S ≥ 4</span><strong>{fmeas.filter(f => f.rpn >= 30 || f.severity >= 4).length}</strong><small>Prioritas penanganan tinggi</small></LiquidGlass><LiquidGlass className="rmKpi"><span>RPN maksimum</span><strong>{fmeas.length ? Math.max(...fmeas.map(f => f.rpn)) : '—'}</strong><small>Skor S × O × D</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Target tindakan belum lewat</span><strong>{fmeas.filter(f => f.target_date && new Date(f.target_date + 'T23:59:59') < new Date() && f.status !== 'Closed').length}</strong><small>Perlu tindak lanjut pemilik</small></LiquidGlass></div>
-        <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">ANALISIS MODUS KEGAGALAN</span><h4>FMEA / HFMEA</h4><p>Engine FMEA dipisahkan dari baseline risk scoring. RPN = Severity × Occurrence × Detection; RPN bukan skor matriks kemungkinan–dampak.</p></div><button type="button" className="rmButton primary" onClick={() => openFmea()}>＋ Analisis FMEA</button></div>
+        <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">ANALISIS MODUS KEGAGALAN</span><h4>FMEA / HFMEA</h4></div><button type="button" className="rmButton primary" onClick={() => openFmea()}>＋ Analisis FMEA</button></div>
           <WorkspaceTableViewport label="Register dan pengendalian risiko · 3" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Kode FMEA</th><th>Unit / Proses</th><th>Modus kegagalan</th><th>S–O–D</th><th>RPN</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{fmeas.map(f => <tr key={f.id}><td><b>{f.fmea_code}</b></td><td>{f.unit_name}<small className="rmCellSmall">{f.process_name}</small></td><td><b>{f.failure_mode}</b><small className="rmCellSmall">{f.risk_register_id ? risks.find(r => r.id === f.risk_register_id)?.risk_event || 'Risiko tertaut' : 'Belum ditautkan ke register'}</small></td><td>{f.severity}–{f.occurrence}–{f.detection}</td><td><strong className="rmScore">{f.rpn}</strong></td><td><span className={'rmBadge ' + (f.priority === 'Tinggi' ? 'very-high' : f.priority === 'Sedang' ? 'moderate' : 'low')}>{f.priority}</span></td><td>{renderStatus(f.status)}</td><td><button type="button" className="rmIconButton" onClick={() => openFmea(f)} disabled={!canManageAll && !risks.some(r => r.id === f.risk_register_id && canEditRisk(r))} aria-label="Edit FMEA">✎ Edit</button></td></tr>)}{!fmeas.length && <tr><td colSpan={8}><div className="rmEmptySmall">Belum ada analisis FMEA. Tambahkan analisis dan tautkan ke risk register bila relevan.</div></td></tr>}</tbody></table></WorkspaceTableViewport>
         </LiquidGlass>
-        {fmeaEditorOpen && <RmModal label="Analisis FMEA" error={error}><LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4><p>Definisikan proses, failure mode, efek, penyebab, kontrol, dan tindakan pengurangan risiko.</p></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}><span aria-hidden="true">✕</span> Tutup</button></div>
+        {fmeaEditorOpen && <RmModal label="Analisis FMEA" error={error}><LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
             <label>Hubungkan ke risiko <select value={String(fmeaForm.risk_register_id || '')} onChange={e => { const risk = risks.find(r => r.id === e.target.value); setFmeaForm(f => ({ ...f, risk_register_id: e.target.value || null, unit_name: risk?.unit_name || f.unit_name })); }}><option value="">Tidak ditautkan</option>{risks.map(renderRiskOption)}</select></label>
             <label>Unit kerja <select value={String(fmeaForm.unit_name || '')} onChange={e => setFmeaForm(f => ({ ...f, unit_name: e.target.value }))}>{unitOptions.map(r => <option key={r.id}>{r.name}</option>)}</select></label>
