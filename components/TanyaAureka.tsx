@@ -73,10 +73,11 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
   useEffect(() => {
     if (!open) return
     setTimeout(() => inputRef.current?.focus(), 50)
+    if (embedded) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [open, embedded])
 
   const ask = async (q: string) => {
     const question = q.trim()
