@@ -1,5 +1,7 @@
 'use client'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import HomeWelcome from '@/components/HomeWelcome'
+import OverviewInfographics from '@/components/OverviewInfographics'
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -126,7 +128,7 @@ const SectionError = ({ error }: { error: string }) => (
 )
 
 export default function OverviewDashboard({
-  supabase, role, roomId, roomName, manager, userName, onNavigate,
+  supabase, role, roomId, roomName, manager, userName, userId = '', rooms = [], onNavigate,
 }: {
   supabase: SupabaseClient
   role: string | null
@@ -134,6 +136,8 @@ export default function OverviewDashboard({
   roomName: string | null
   manager: boolean
   userName: string
+  userId?: string
+  rooms?: Array<{ id: number; name: string }>
   onNavigate: NavigateFn
 }) {
   const [loading, setLoading] = useState(true)
@@ -144,6 +148,7 @@ export default function OverviewDashboard({
   const [clinicalPathway, setClinicalPathway] = useState<Section<ClinicalPathwayAudit>>({ rows: [], error: null })
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [homeTab, setHomeTab] = useState<'welcome' | 'infographics' | 'achievement'>('welcome')
   const year = new Date().getFullYear()
 
   useEffect(() => {
@@ -279,6 +284,14 @@ export default function OverviewDashboard({
 
   return (
     <div className="ovRoot">
+      <nav className="ovHomeTabs" aria-label="Halaman Utama">
+        <button type="button" role="tab" aria-selected={homeTab === 'welcome'} className={homeTab === 'welcome' ? 'active' : ''} onClick={() => setHomeTab('welcome')}>Welcome Page</button>
+        <button type="button" role="tab" aria-selected={homeTab === 'infographics'} className={homeTab === 'infographics' ? 'active' : ''} onClick={() => setHomeTab('infographics')}>Infografis</button>
+        <button type="button" role="tab" aria-selected={homeTab === 'achievement'} className={homeTab === 'achievement' ? 'active' : ''} onClick={() => setHomeTab('achievement')}>Capaian Unit</button>
+      </nav>
+      {homeTab === 'welcome' && <HomeWelcome supabase={supabase} userId={userId} userName={userName} roomName={roomName} />}
+      {homeTab === 'infographics' && <OverviewInfographics supabase={supabase} rooms={rooms} roomId={roomId} manager={manager} canViewAllRooms={role === 'ADMIN' || role === 'PMKP'} />}
+      {homeTab === 'achievement' && <>
       <WorkspaceModuleHeader
         className="ovHero"
         title={`Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}
@@ -455,6 +468,7 @@ export default function OverviewDashboard({
           
         </div>
               </section>}
+      </>}
     </div>
   )
 }
