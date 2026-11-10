@@ -28,9 +28,9 @@ test('the refined theme reaches every operational module without recoloring clin
   assert.match(css, /@media \(max-width: 640px\)/)
 })
 
-test('workspace has contextual guidance while retaining the actual navigation and data controls', () => {
+test('workspace header stays compact while retaining the actual navigation and data controls', () => {
   assert.match(home, /workspacePageIntro/)
-  assert.match(home, /Gambaran yang jelas/)
+  assert.doesNotMatch(home, /Gambaran yang jelas|Pencatatan, pemeriksaan, dan evaluasi mutu pelayanan/)
   for (const control of ['selectSidebarChild', 'triggerWorkspaceExport', 'dispatchWorkspaceSearch', 'saveFirstPassword', 'resendVerify', 'sendReset']) {
     assert.ok(home.includes(control), `Missing workflow: ${control}`)
   }
@@ -43,9 +43,9 @@ test('assets and account return URLs follow the configured deployment base path'
   assert.match(source('../components/FppeEvaluationWorkspace.tsx'), /NEXT_PUBLIC_BASE_PATH/)
 })
 
-test('disabled preview backend is disclosed without bypassing authentication', () => {
+test('disabled preview backend remains authentication-gated without technical UI notices', () => {
   assert.match(home, /PREVIEW_ONLY=process\.env\.NEXT_PUBLIC_SUPABASE_URL==='https:\/\/preview-disabled\.invalid'/)
-  assert.match(home, /PREVIEW_ONLY&&<div className="authPreviewNotice" role="note"/)
+  assert.doesNotMatch(home, /authPreviewNotice|Koneksi Supabase dinonaktifkan/)
   assert.match(home, /signInWithPassword/)
   assert.doesNotMatch(home, /if\(PREVIEW_ONLY\).*setView\('workspace'\)/)
 })
