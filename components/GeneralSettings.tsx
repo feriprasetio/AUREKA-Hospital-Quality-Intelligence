@@ -616,7 +616,7 @@ export default function GeneralSettings({
                     <option value="">Belum dipetakan</option>
                     {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
-                  {!isAdmin && <small style={{ display: 'block', marginTop: 6, color: 'var(--muted)', fontSize: 9 }}>Unit utama menentukan data yang dapat Anda akses dan hanya dapat diubah oleh Super Admin.</small>}
+                  {!isAdmin && }
                 </label>
               </div>
               <div style={{ marginTop: 14 }}>
