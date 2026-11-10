@@ -594,7 +594,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     {error && <div className="qraError" role="alert">{error}</div>}
     {capped && <div className="qraInfo" role="status">Daftar dibatasi 10.000 catatan. Ringkasan ini hanya mencakup data yang terbaca; periksa rentang tahun atau unit bila diperlukan.</div>}
     {loading
-      ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…" detail="Mengambil data satu unit dan satu tahun sesuai hak akses." /></div>
+      ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…" detail="" /></div>
       : loadingError
         ? null
         : mode === 'indicators'
@@ -611,7 +611,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               {!includeReady && rawValidatedCount === 0 && <span>Belum ada data tervalidasi untuk unit dan tahun ini, jadi capaian kosong.</span>}
             </div>
             <section className="qraPanel">
-              <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3><p>Setiap persentase rasio menggunakan Σ numerator ÷ Σ denominator; bukan rerata sederhana antarbaris atau antarb ulan.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
+              <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
               {indicatorResults.length === 0
                 ? <EmptyState title="Belum ada indikator aktif" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
                 : <WorkspaceTableViewport label="Hasil capaian mutu" className="qraTableWrap"><table className="qraTable qraIndicatorTable">
@@ -625,11 +625,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small></td>
                   </tr>)}</tbody>
                 </table></WorkspaceTableViewport>}
-              <div className="qraNotice">Capaian mutu unit merupakan proporsi indikator yang targetnya dapat dinilai dan memenuhi target, bukan rata-rata persentase indikator yang berbeda definisi. Data Ready for Review tetap ditampilkan sebagai antrean peninjauan dan tidak masuk perhitungan capaian resmi; hanya catatan tervalidasi yang dihitung sebagai hasil. Untuk rasio, capaian tahunan menggunakan penggabungan numerator dan denominator. Untuk durasi/nilai kontinu, ditampilkan rerata dan proporsi observasi yang memenuhi target.</div>
+              
               </section>
               {pharmacyMetricSummary && <section className="qraPanel" aria-label="Rekap capaian indikator Farmasi">
                 <div className="qraPanelHead">
-                  <div><h3>Rekap capaian indikator Farmasi</h3><p>Perbandingan Rawat Jalan, Rawat Inap, dan gabungan. Capaian resmi dihitung dari catatan tervalidasi.</p></div>
+                  <div><h3>Rekap capaian indikator Farmasi</h3></div>
                   <span className="qraPill">{pharmacyMetricSummary.periodLabel} · {pharmacyMetricSummary.validatedRecords} tervalidasi</span>
                 </div>
                 <div className="qraKpis qraKpisThree">
@@ -751,7 +751,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 </section>
               </div>
               {clinicalTab === 'death' && <div className="qraSplit">
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Kontribusi masalah pelayanan terhadap kematian</h3><p>Penilaian reviewer; bukan kesimpulan otomatis kausalitas.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Kontribusi masalah pelayanan terhadap kematian</h3></div></div>
                   {selectedClinical.validatedRecords === 0
                     ? <EmptyState title="Belum ada hasil audit kematian tervalidasi" detail="Distribusi kontribusi akan tampil setelah telaah kematian tervalidasi." />
                     : <div className="qraContent">{[
