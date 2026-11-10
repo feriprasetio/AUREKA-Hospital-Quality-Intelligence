@@ -12,6 +12,7 @@ import './public-landing-auth-redesign.css'
 import './aureka-landing.css'
 import './aureka-refined.css'
 import './workspace-desk.css'
+import './theme-arktik.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',
@@ -20,7 +21,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="id">
+    <html lang="id" data-skin="arktik" suppressHydrationWarning>
+      <head>
+        {/* Tema tampilan: "arktik" (kaca) atau "klasik"; pilihan disimpan per perangkat. */}
+        <script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('aureka-theme');if(t==='klasik'||t==='arktik')document.documentElement.setAttribute('data-skin',t)}catch(e){}" }} />
+      </head>
       <body>{children}</body>
     </html>
   )
