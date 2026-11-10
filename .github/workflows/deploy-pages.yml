@@ -96,6 +96,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
         run: npm run build
 
+      - name: Verify removed system-explanatory copy stays out of the public UI
+        run: |
+          if grep -R -F -n -e 'Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan' -e 'Angka dihitung langsung dari database AUREKA sesuai hak akses' -e 'Ini bukan satu periode filter yang diterapkan ke seluruh modul' out; then
+            echo '::error::System-explanatory dashboard copy was found in the production artifact.'
+            exit 1
+          fi
+          echo 'Public UI copy check passed.'
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
