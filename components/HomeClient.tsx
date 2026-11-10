@@ -769,7 +769,7 @@ export default function HomeClient(){
     {active==='home'&&<><span aria-hidden="true">/</span><b>Dashboard</b></>}
    </nav>
     <h1>{active==='home'?'Ringkasan':currentContainer.split(' · ')[0]}</h1>
-    <p>{({home:'Gambaran yang jelas tentang prioritas dan kinerja.',quality:'Pencatatan, pemeriksaan, dan evaluasi mutu pelayanan.',safety:'Pelaporan, pembelajaran, dan tindak lanjut keselamatan pasien.',risk:'Prioritas risiko dan efektivitas pengendalian.',staff:'Identitas, penugasan, dan evaluasi tenaga klinis.',analytics:'Statistik dan laporan sesuai ruang lingkup akses.',settings:'Akun, unit kerja, dan konfigurasi sesuai kewenangan.'} as Record<string,string>)[active]}</p>
+    
    </div>
   </div>
   {contextNavigation.length>0&&<div className="workspaceContextBar">
