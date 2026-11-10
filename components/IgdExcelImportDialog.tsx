@@ -627,7 +627,7 @@ export default function IgdExcelImportDialog({
     reset()
     onClose()
   }
-  const dialogRef = useAccessibleDialog<HTMLElement>({ open, onClose: close, lockScroll: true })
+  const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
 
   const mainByIndicator = useMemo(() => IGD_INDICATORS.map(item => ({
     code: item.code,
@@ -792,7 +792,7 @@ export default function IgdExcelImportDialog({
 
   if (!open) return null
   return <div className="aqBack" onClick={event => { if (event.target === event.currentTarget) close() }}>
-    <section ref={dialogRef} tabIndex={-1} className="aqDrawer aqWide aqIgdImport" role="dialog" aria-modal="true" aria-labelledby="aqIgdImportTitle">
+    <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqIgdImport" role="dialog" aria-modal="true" aria-labelledby="aqIgdImportTitle">
       <style>{'.aqIgdImport .aqBody{display:grid;gap:13px}.aqIgdImport .igdDrop{border:1px dashed rgba(35,63,50,.22);border-radius:14px;padding:13px;background:#fbfdfb}.aqIgdImport .igdDrop label{display:block;font-weight:850;font-size:12px;margin-bottom:7px}.aqIgdImport .igdDrop input{width:100%;font-size:12px}.aqIgdImport .igdGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.aqIgdImport .igdKpi{border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff}.aqIgdImport .igdKpi small{display:block;color:var(--muted);font-size:10px}.aqIgdImport .igdKpi strong{display:block;font-size:19px;margin-top:4px}.aqIgdImport .igdList{display:grid;gap:5px}.aqIgdImport .igdRow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}.aqIgdImport .igdWarn{padding:10px 12px;border-radius:10px;background:#fff8e7;color:#765923;font-size:11px}.aqIgdImport .igdError{padding:10px 12px;border-radius:10px;background:#fff0ef;color:#8b3028;font-size:11px;white-space:pre-wrap}.aqIgdImport .igdPreview{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:9px}.aqIgdImport .igdActions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.aqIgdImport .igdMuted{font-size:10px;color:var(--muted);line-height:1.5}@media(max-width:720px){.aqIgdImport .igdGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
       <header className="aqDHead">
         <div>
