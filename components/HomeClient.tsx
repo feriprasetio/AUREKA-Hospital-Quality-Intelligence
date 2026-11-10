@@ -206,13 +206,13 @@ export default function HomeClient(){
     {id:'fmea',label:'FMEA / HFMEA'},
    ],
    staff:[
-    ...(admin?[{id:'directory',label:'Direktori Tenaga'}]:[]),
+    ...(admin?[{id:'directory',label:'Direktori Induk SDM'}]:[]),
     ...(['ADMIN','PMKP','PIC','VALIDATOR'].includes(role||'')?[{id:'team',label:'Tim & Penugasan'}]:[]),
     ...(['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'].includes(role||'')?[{id:'oppe',label:'OPPE / FPPE'}]:[]),
    ],
    analytics:[
-    ...(admin?[{id:'metadata',label:'Kamus Indikator'}]:[]),
-    ...(admin?[{id:'staff',label:'Tenaga Kerja'}]:[]),
+    ...(admin?[{id:'metadata',label:'Pengelolaan Metadata'}]:[]),
+    ...(admin?[{id:'staff',label:'Direktori Induk SDM'}]:[]),
     {id:'statistics',label:'Statistik & Laporan'},
    ],
   }
@@ -225,7 +225,7 @@ export default function HomeClient(){
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Laporan IKP',investigation:'Investigasi / RCA',survey:'Survei Budaya Keselamatan',responses:'Rekapan Survei'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register',mitigation:'RTP Terintegrasi',connections:'Konektor Risiko',fmea:'FMEA / HFMEA'} as Record<RiskWorkspaceTab,string>)[riskTab]
   if(active==='staff')return ({directory:'Direktori Tenaga',team:'Tim & Penugasan',oppe:'OPPE / FPPE'} as Record<StaffWorkspaceArea,string>)[staffArea]
-  if(active==='analytics')return ({metadata:'Kamus Indikator',staff:'Tenaga Kerja',statistics:'Statistik & Laporan'} as Record<AnalyticsWorkspaceTab,string>)[analyticsTab]
+  if(active==='analytics')return ({metadata:'Pengelolaan Metadata Indikator',staff:'Direktori Induk SDM',statistics:'Statistik & Laporan'} as Record<AnalyticsWorkspaceTab,string>)[analyticsTab]
   if(active==='settings')return 'Administrasi'
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,staffArea,analyticsTab])
@@ -712,10 +712,6 @@ export default function HomeClient(){
    </div>})}
   </nav>
   <div className="sidebarFooter">
-   <button type="button" className="sideProfile" title="Buka profil" onClick={()=>{openMainModule('settings');setProfileFocus(Date.now())}}>
-    <span className="sideProfileAvatar">{initials(profile?.full_name||user?.email)}</span>
-    <span className="sideProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
-   </button>
    <LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton>
   </div>
  </aside>
