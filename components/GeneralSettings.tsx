@@ -151,7 +151,7 @@ export default function GeneralSettings({
     setBusy(true)
     const { error } = await sb.rpc('aureka_set_my_username', { p_username: un })
     setBusy(false)
-    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum aktif di database (migration 20261014095000_username_login.sql).' : `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` })
+    if (error) return setAcctNote({ ok: false, text: /USERNAME_TAKEN/.test(error.message) ? 'Username sudah dipakai akun lain.' : error.code === 'PGRST202' ? 'Fitur username belum tersedia.' : `Gagal: ${toUserFacingError(error, { fallback: 'Data belum dapat disimpan. Periksa koneksi dan hak akses, lalu coba kembali.' })}` })
     setAcctNote({ ok: true, text: `Username disimpan. Mulai sekarang Anda bisa login dengan “${un}”.` })
     loadMyAccount()
   }
@@ -277,7 +277,7 @@ export default function GeneralSettings({
       const text = error.message || ''
       let note = `Gagal menghapus: ${toUserFacingError(error, { fallback: 'Akun belum dapat dihapus.' })}`
       if (/USER_HAS_DATA/.test(text)) note = 'Akun ini sudah memiliki data (risiko/laporan/rekam mutu), sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.'
-      else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014092000_admin_delete_user.sql di SQL Editor, lalu coba lagi.'
+      else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum tersedia.'
       setMsg(note)
       setRowNote({ id: u.user_id, ok: false, text: note })
       return
@@ -316,7 +316,7 @@ export default function GeneralSettings({
     if (error) {
       const t = error.message || ''
       let note = `Gagal menyetel password: ${toUserFacingError(error, { fallback: 'Password sementara belum dapat disetel.' })}`
-      if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t)) note = 'Fitur reset password belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014094000_admin_password_reset.sql di SQL Editor, lalu coba lagi.'
+      if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t)) note = 'Fitur reset password belum tersedia.'
       else if (/PASSWORD_TOO_SHORT/.test(t)) note = 'Password sementara minimal 12 karakter.'
       setMsg(note)
       setRowNote({ id: u.user_id, ok: false, text: note })
@@ -406,7 +406,7 @@ export default function GeneralSettings({
     if (error) {
       setBusy(false)
       const t = error.message || ''
-      const note = error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Fitur ubah username/email belum aktif di database. Minta pemilik Supabase menjalankan supabase/migrations/20261014095000_username_login.sql.'
+      const note = error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Fitur ubah username/email belum tersedia.'
         : /USERNAME_TAKEN/.test(t) ? 'Username sudah dipakai akun lain.' : /EMAIL_TAKEN/.test(t) ? 'Email sudah dipakai akun lain.' : /USERNAME_INVALID/.test(t) ? 'Username tidak valid.' : /EMAIL_INVALID/.test(t) ? 'Format email tidak valid.' : `Gagal menyimpan: ${toUserFacingError(error, { fallback: 'Identitas akun belum dapat disimpan.' })}`
       setMsg(note); setRowNote({ id: u.user_id, ok: false, text: note }); return
     }
@@ -631,7 +631,7 @@ export default function GeneralSettings({
             <LiquidGlass style={{ padding: 18 }}>
               <h4 style={{ margin: '0 0 4px' }}>Username & Email Login</h4>
               <p style={{ margin: '0 0 12px', color: 'var(--muted)', fontSize: 12 }}>Login bisa memakai username atau email. Email dipakai untuk verifikasi dan reset password, jadi pastikan email aktif.</p>
-              {!myAccount.supported && <div className="userRowNote error" style={{ marginBottom: 10 }}>Fitur username belum aktif di database. Minta pemilik Supabase menjalankan migration 20261014095000_username_login.sql.</div>}
+              {!myAccount.supported && <div className="userRowNote error" style={{ marginBottom: 10 }}>Fitur username belum tersedia.</div>}
               <div className="acctGrid">
                 <div>
                   <label className="userDetailLabel" htmlFor="myUsername">Username</label>
@@ -665,7 +665,7 @@ export default function GeneralSettings({
                 {isAdmin && roomsSupported && <button type="button" className="uBtn primary" onClick={() => setRoomEdit({ id: null, name: '', code: '', is_active: true })}><span aria-hidden="true">＋</span> Tambah unit</button>}
               </div>
 
-              {isAdmin && !roomsSupported && <div className="userRowNote error" style={{ marginTop: 12 }}>Fitur tambah/edit unit belum aktif di database. Minta pemilik Supabase menjalankan <code>supabase/migrations/20261014093000_user_lifecycle_and_room_admin.sql</code> di SQL Editor.</div>}
+              {isAdmin && !roomsSupported && <div className="userRowNote error" style={{ marginTop: 12 }}>Fitur tambah/edit unit belum tersedia.</div>}
 
               {roomEdit && (
                 <div className="roomEditor">
