@@ -474,3 +474,14 @@
 @media(max-width:760px){
  .workspaceRoot .moduleEnter .ovScopeNote{font-size:11px!important}
 }
+
+
+/* Register Pasien: entry controls and compact recap within Mutu Klinis. */
+.workspaceRoot .moduleEnter .aqRegisterEntryCard{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 22px;border:1px solid var(--line,#e4ebe6);border-radius:16px;background:var(--surface,#fff)}
+.workspaceRoot .moduleEnter .aqRegisterEntryCard h3{margin:4px 0 5px;font-size:18px;color:var(--ink,#183a2b)}
+.workspaceRoot .moduleEnter .aqRegisterEntryCard p{margin:0;max-width:760px;color:var(--muted,#6e7d73);font-size:12px;line-height:1.6}
+.workspaceRoot .moduleEnter .aqEntryEyebrow{font-size:9px;font-weight:900;letter-spacing:.1em;color:var(--accent2,#176b49)}
+.workspaceRoot .moduleEnter .aqEntryActions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.workspaceRoot .moduleEnter .aqEntryActions>span{max-width:230px;font-size:10px;color:var(--muted,#718078);line-height:1.5}
+.workspaceRoot .moduleEnter .aqCompactSummary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media(max-width:680px){.workspaceRoot .moduleEnter .aqRegisterEntryCard{align-items:flex-start;flex-direction:column}.workspaceRoot .moduleEnter .aqEntryActions{justify-content:flex-start}.workspaceRoot .moduleEnter .aqEntryActions>span{max-width:none}.workspaceRoot .moduleEnter .aqCompactSummary{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
