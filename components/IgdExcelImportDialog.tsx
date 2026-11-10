@@ -292,7 +292,7 @@ function buildMainRows(sheet: any, fileName: string, profiles: Profile[]): { row
         indicator_id: profile.id,
         response_label: sourceLabel,
         response_code: choice.code,
-        raw_value: { ...indicatorValues[item.code], source_indicator_code: item.code },
+        raw_value: { ...(indicatorValues[item.code] as Record<string, unknown>), source_indicator_code: item.code },
         other_text: sourceLabel,
         review_status: 'pending',
       })

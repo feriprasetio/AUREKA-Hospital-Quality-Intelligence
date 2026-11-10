@@ -95,7 +95,7 @@ export default function IgdConsultationAuditPanel() {
         .order('source_excel_row', { ascending: false })
         .range(from, from + PAGE_SIZE - 1)
       if (queryError) throw queryError
-      setRows((data ?? []) as ConsultationAudit[])
+      setRows((data ?? []) as unknown as ConsultationAudit[])
       setTotal(Number(count ?? 0))
 
       const countFor = async (status: string) => {
@@ -145,7 +145,7 @@ export default function IgdConsultationAuditPanel() {
           .order('consultation_at', { ascending: false, nullsFirst: false })
           .range(offset, offset + 499)
         if (queryError) throw queryError
-        const batch = (data ?? []) as ConsultationAudit[]
+        const batch = (data ?? []) as unknown as ConsultationAudit[]
         all.push(...batch)
         if (batch.length < 500) break
         offset += 500
