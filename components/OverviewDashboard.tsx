@@ -293,11 +293,11 @@ export default function OverviewDashboard({
         <button type="button" role="tab" aria-selected={homeTab === 'achievement'} className={homeTab === 'achievement' ? 'active' : ''} onClick={() => setHomeTab('achievement')}>Capaian Unit</button>
       </nav>
       {homeTab === 'welcome' && <HomeWelcome supabase={supabase} userId={userId} userName={userName} roomName={roomName} />}
-      {homeTab === 'infographics' && <OverviewInfographics supabase={supabase} rooms={rooms} roomId={roomId} manager={manager} canViewAllRooms={canViewAllRooms} />}
+      {homeTab === 'infographics' && <OverviewInfographics supabase={supabase} rooms={rooms} roomId={roomId} canViewAllRooms={canViewAllRooms} />}
       {homeTab === 'achievement' && <>
       <WorkspaceModuleHeader
         className="ovHero"
-        title={`Selamat datang, ${userName.trim().split(/\s+/)[0] || 'Pengguna'}`}
+        title="Capaian Unit"
         actions={<div className="ovHeroMeta">
           <span className="ovHeroDate">{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Pontianak' }).format(new Date())}</span>
           <button type="button" className="ovRefresh" onClick={() => setReloadKey(k => k + 1)} disabled={loading} aria-label="Muat ulang data">
