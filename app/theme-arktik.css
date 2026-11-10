@@ -338,3 +338,37 @@ html[data-skin="arktik"][data-mode="gelap"]:root :is(.a2-landing, .authPage) {
   --arktik-shadow: 0 14px 34px rgba(20, 60, 110, 0.10), inset 0 1px 0 rgba(255, 255, 255, 1);
   --arktik-blur: blur(20px) saturate(175%);
 }
+
+/* ===== Semua halaman lebih ringkas ===== */
+html[data-skin="arktik"]:root .workspaceRoot .workspacePageHead { padding: 12px 24px 6px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspacePageHead .workspaceCrumbs { font-size: 11px !important; opacity: 0.8; }
+html[data-skin="arktik"]:root .workspaceRoot .workspacePageHead h1 { font-size: 22px !important; margin: 2px 0 0 !important; line-height: 1.2 !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspacePageHead .workspacePageIntro > p {
+  position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar { margin: 0 24px 10px !important; border: 0 !important; background: transparent !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav {
+  display: inline-flex !important; flex-wrap: wrap !important; gap: 4px !important; padding: 4px !important; border-radius: 14px !important;
+  background: var(--arktik-glass) !important; border: 1px solid var(--arktik-edge) !important;
+  -webkit-backdrop-filter: blur(16px) !important; backdrop-filter: blur(16px) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button {
+  padding: 7px 14px !important; border: 0 !important; border-radius: 10px !important; font-size: 13px !important;
+  min-height: 34px !important; color: #1e3a56 !important; background: transparent !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button:hover { background: rgba(255, 255, 255, 0.6) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button[aria-current="page"] { background: var(--arktik-ink) !important; color: #ffffff !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) {
+  padding: 0 !important; min-height: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important; margin: 0 0 -4px !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) .workspaceModuleHeaderCopy {
+  position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) .workspaceModuleHeaderTools { margin-left: auto !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button { color: #d5dcea !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button:hover { background: rgba(255, 255, 255, 0.08) !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button[aria-current="page"] { background: #ffffff !important; color: #0a0f1c !important; }
+@media (max-width: 760px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspacePageHead { padding: 10px 16px 4px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar { margin: 0 16px 8px !important; }
+}
