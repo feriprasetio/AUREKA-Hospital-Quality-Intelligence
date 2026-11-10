@@ -345,8 +345,7 @@ export default function OverviewDashboard({
         <div><span>PEMUTAKHIRAN DATA</span><b>{loading ? 'Memuat data…' : refreshedAt ? `Dicek ${refreshedAt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Pontianak' })}, ${refreshedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Pontianak' })} WIB` : 'Belum diperbarui'}</b></div>
         <div className="ovContextStatus"><span>STATUS SUMBER</span><b className={sourceError ? 'error' : loading ? 'loading' : 'ok'}>{loading ? 'Memuat' : sourceError ? 'Perlu pemeriksaan' : 'Pembacaan selesai'}</b></div>
       </section>
-      <p className="ovScopeNote">Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan; risiko dihitung dari register yang dapat diakses; IKP perlu tindak lanjut menghitung laporan yang belum ditutup tanpa batasan tahun. Ini bukan satu periode filter yang diterapkan ke seluruh modul.</p>
-
+      
       <div className="ovGrid">
         <Panel delay={120} eyebrow="MANAJEMEN RISIKO" title="Distribusi level risiko" action={<button type="button" className="ovLink" onClick={() => onNavigate('risk')}>Buka register →</button>}>
           {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> : !totalRisk ? <div className="ovEmpty"><b>Belum ada risiko</b><span>Tambahkan risiko melalui modul Manajemen Risiko.</span></div> :
@@ -426,8 +425,7 @@ export default function OverviewDashboard({
           </div>
         </Panel>}
       </div>
-      <p className="ovFoot">Angka dihitung langsung dari database AUREKA sesuai hak akses {role === 'ADMIN' ? 'Super Admin' : 'akun Anda'}. Klik kartu, baris, atau sel peta untuk langsung membuka datanya.</p>
-      </> {manager && <section className="ovExecutive" aria-label="Ringkasan manajemen terpadu">
+            </> {manager && <section className="ovExecutive" aria-label="Ringkasan manajemen terpadu">
         <div className="ovExecGrid">
           <Panel delay={120} eyebrow="EARLY WARNING" title="Peringatan prioritas manajemen">
             <div className="ovExecutiveAlerts">
@@ -435,14 +433,14 @@ export default function OverviewDashboard({
               {!risks.error && stats.overdueHigh > 0 && <button type="button" className="ovExecutiveAlert danger" onClick={() => onNavigate('risk')}><b>{stats.overdueHigh} risiko tinggi terlambat</b><span>Target pengendalian telah terlewati dan perlu perhatian manajemen.</span></button>}
               {!incidents.error && stats.incidentsOpen > 0 && <button type="button" className="ovExecutiveAlert warning" onClick={() => onNavigate('safety')}><b>{stats.incidentsOpen} laporan IKP belum ditutup</b><span>Pantau investigasi, rekomendasi, dan penyelesaian tindak lanjut.</span></button>}
               {!quality.error && !clinicalPathway.error && stats.auditPending > 0 && <button type="button" className="ovExecutiveAlert warning" onClick={() => onNavigate('quality')}><b>{stats.auditPending} audit menunggu validasi</b><span>Logbook indikator dan Clinical Pathway memerlukan telaah.</span></button>}
-              {!sourceError && stats.overdueHigh === 0 && stats.incidentsOpen === 0 && stats.auditPending === 0 && <div className="ovExecutiveAlert success"><b>Tidak ada prioritas terbuka pada sumber yang dibaca</b><span>Ini bukan pernyataan bahwa seluruh risiko atau insiden rumah sakit telah terkendali.</span></div>}
+              {!sourceError && stats.overdueHigh === 0 && stats.incidentsOpen === 0 && stats.auditPending === 0 && <div className="ovExecutiveAlert success"><b>Tidak ada prioritas terbuka pada sumber yang dibaca</b></div>}
             </div>
           </Panel>
           
           <Panel delay={240} eyebrow="AUDIT KLINIS" title="Kinerja Clinical Pathway">
             {clinicalPathway.error ? <SectionError error={clinicalPathway.error} /> : loading ? <div className="ovSkeletonBlock" /> :
               <div className="ovExecPerformance">
-                <div className="ovExecHeadline"><strong className="magicKpiValue">{stats.cpAverageCompliance === null ? '—' : stats.cpAverageCompliance.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'}</strong><span>Rerata kepatuhan pada episode eligible yang memiliki nilai kepatuhan numerik.</span></div>
+                <div className="ovExecHeadline"><strong className="magicKpiValue">{stats.cpAverageCompliance === null ? '—' : stats.cpAverageCompliance.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'}</strong></div>
                 <div className="ovExecMetric"><span>Episode audit</span><b>{stats.cpAuditTotal.toLocaleString('id-ID')}</b></div>
                 <div className="ovExecMetric"><span>Episode masuk perhitungan</span><b>{stats.cpEligibleTotal.toLocaleString('id-ID')}</b></div>
                 <div className="ovExecMetric"><span>Lulus komponen Section D</span><b>{stats.cpEligibleTotal ? stats.cpSectionDPass.toLocaleString('id-ID') + ' / ' + stats.cpEligibleTotal.toLocaleString('id-ID') : '—'}</b></div>
@@ -459,8 +457,7 @@ export default function OverviewDashboard({
           </Panel>
           
         </div>
-        <p className="ovFoot">Bagian ringkasan manajemen melengkapi panel operasional pada halaman yang sama; setiap angka tetap mengikuti cakupan sumber dan hak akses. Angka lintas-modul tidak boleh ditafsirkan sebagai satu skor mutu rumah sakit atau sebagai indikator nasional yang telah tervalidasi.</p>
-      </section>}
+              </section>}
     </div>
   )
 }
