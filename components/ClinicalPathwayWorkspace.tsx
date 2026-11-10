@@ -1190,7 +1190,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         {(builder.scoring_rules.source_section_d||[]).length===0&&<div className="cpEmpty">Belum ada butir dari dokumen sumber.</div>}
       </div>
       <div className="cpGlass cpFooter">
-        <div><span className="cpTiny">Format ini dapat dipublikasikan setelah ditinjau dan disahkan. Pilihan jadwal berwarna hijau/kuning akan tampil pada checklist audit.</span><div className="cpTiny">{builderIsNew?'Master baru · versi pertama':'Snapshot audit terdahulu tidak akan berubah'} · {builder.items.length} item · {builder.days.length} hari/tahap</div></div>
+        <div><span className="cpTiny">Format ini dapat dipublikasikan setelah ditinjau dan disahkan. Pilihan jadwal berwarna hijau/kuning akan tampil pada checklist audit.</span><div className="cpTiny">{builder.items.length} item · {builder.days.length} hari/tahap</div></div>
         <div className="cpActions"><button type="button" className="cpBtn" onClick={()=>{setBuilder(null);setBuilderIsNew(false);setScreen(builderReturnScreen)}}>Batal</button><button type="button" className="cpBtn primary" disabled={saving} onClick={()=>void saveBuilder()}>{saving?'Menyimpan…':builderIsNew?'Simpan Clinical Pathway baru':'Simpan versi master baru'}</button></div>
       </div>
     </>}
