@@ -16,7 +16,7 @@ test('workspace data search remains scoped to visible record-like content', () =
   assert.match(source, /\.moduleEnter\[data-workspace-container\]/)
   assert.match(source, /table tbody tr:not\(\.aqInlineEditorRow\)/)
   assert.match(source, /node\.closest\('\[aria-hidden="true"\]'\)/)
-  assert.match(source, /searchResultsQuery!==globalSearch\.trim\(\)/)
+  assert.match(source, /searchResultsQuery===globalSearch\.trim\(\)/)
   assert.match(source, /jumpToSearchResult/)
 })
 
