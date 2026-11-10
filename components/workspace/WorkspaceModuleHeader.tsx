@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 type WorkspaceModuleHeaderProps = {
   title: ReactNode
-  description: ReactNode
+  description?: ReactNode
   eyebrow?: string
   className?: string
   actions?: ReactNode
@@ -23,16 +23,18 @@ export default function WorkspaceModuleHeader({
         <h2>{title}</h2>
       </div>
       <div className="workspaceModuleHeaderTools">
-        <details className="workspaceModuleGuide">
-          <summary>
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <circle cx="10" cy="10" r="7.25" />
-              <path d="M10 9v5M10 6v.2" />
-            </svg>
-            Panduan
-          </summary>
-          <div className="workspaceModuleGuideBody">{description}</div>
-        </details>
+        {description != null && description !== '' && (
+          <details className="workspaceModuleGuide">
+            <summary>
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <circle cx="10" cy="10" r="7.25" />
+                <path d="M10 9v5M10 6v.2" />
+              </svg>
+              Panduan
+            </summary>
+            <div className="workspaceModuleGuideBody">{description}</div>
+          </details>
+        )}
         {actions && <div className="workspaceModuleActions">{actions}</div>}
       </div>
     </section>
