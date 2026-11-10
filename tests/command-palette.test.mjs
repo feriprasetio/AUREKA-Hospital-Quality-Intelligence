@@ -41,7 +41,8 @@ test('Command Palette uses the shared dialog focus trap and Escape close behavio
 
 test('Command navigation is generated only from role-filtered modules and available sidebar children', () => {
   const source = read('components/HomeClient.tsx')
-  assert.match(source, /const visibleMods=useMemo\(\(\)=>AUREKA_PRIMARY_NAV\.filter\(\(\{requiredRoles\}\)=>requiredRoles\.includes/)
+  assert.match(source, /const visibleMods=useMemo\(\(\)=>AUREKA_PRIMARY_NAV\.filter\(\(\{id,requiredRoles\}\)=>id!=='staff'&&requiredRoles\.includes/)
+  assert.match(source, /id==='analytics'\?'Metadata'/)
   assert.match(source, /const commandItems=useMemo<CommandPaletteItem\[\]>\(\(\)=>/)
   assert.match(source, /for\(const \[moduleId,moduleLabel\] of visibleMods\)/)
   assert.match(source, /const children=sidebarChildGroups\[moduleId\]/)
