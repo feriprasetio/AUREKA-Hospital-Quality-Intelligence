@@ -95,7 +95,7 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     setMsgs(m => [...m, { role: 'model', text: String(data.answer) }])
   }
 
-  const panel = open && <section className="tanyaPanel" role="dialog" aria-label="Tanya AUREKA">
+  const panel = open && <section className={embedded?"tanyaPanel tanyaPanelEmbedded":"tanyaPanel"} role="dialog" aria-label="Tanya AUREKA">
     <header className="tanyaHead">
       <span className="tanyaMark" aria-hidden="true">✦</span>
       <div><strong>Tanya AUREKA</strong><span>Asisten AI · membaca data sesuai hak akses Anda</span></div>
