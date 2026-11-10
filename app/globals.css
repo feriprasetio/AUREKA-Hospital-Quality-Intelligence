@@ -2191,3 +2191,25 @@ html[data-theme="amoled"] .moduleEnter .aqDeleteConfirm p,html[data-theme="amole
  .workspaceRoot.sidebarIsCollapsed .sideBrand img{width:34px!important;height:34px!important;flex-basis:34px!important}
 }
 
+
+/* Unified AUREKA communication hub */
+.workspaceCommunicationPanel{height:min(680px,calc(100dvh - 76px));max-height:calc(100dvh - 76px);width:min(460px,calc(100vw - 20px))}
+.workspaceCommunicationTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px;border-bottom:1px solid var(--border);background:var(--surface)}
+.workspaceCommunicationTabs button{min-height:34px;padding:7px 9px;border:1px solid transparent;border-radius:9px;background:var(--surface-raised);color:var(--muted);font-size:10px;font-weight:750}
+.workspaceCommunicationTabs button.selected,.workspaceCommunicationTabs button[aria-selected="true"]{border-color:rgba(var(--accent-rgb),.32);background:var(--accent-soft);color:var(--accent)}
+.workspaceCommunicationAi{display:flex;flex:1;min-height:0;overflow:hidden}
+.workspaceCommunicationAi .tanyaPanelEmbedded{position:relative;inset:auto;z-index:auto;width:100%;height:100%;max-height:none;min-height:260px;flex:1;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;animation:none}
+.workspaceCommunicationAi .tanyaHead{padding:10px 13px}
+.workspaceCommunicationAi .tanyaHead .tanyaClose{display:none}
+.workspaceCommunicationAi .tanyaList{padding:12px}
+.workspaceCommunicationAi .tanyaNote{padding:4px 12px 9px;font-size:9px}
+.workspaceBroadcastPanel{display:flex;flex:1;min-height:0;flex-direction:column;gap:12px;padding:14px}
+.workspaceBroadcastIntro{display:grid;gap:4px}
+.workspaceBroadcastIntro strong{font-size:12px;color:var(--ink)}
+.workspaceBroadcastIntro span{font-size:10px;line-height:1.5;color:var(--muted)}
+.workspaceBroadcastPanel textarea{width:100%;min-height:170px;resize:vertical;padding:11px;border:1px solid var(--border);border-radius:11px;background:var(--page-bg);color:var(--ink);font:inherit;font-size:11px;line-height:1.5}
+.workspaceBroadcastFooter{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
+.workspaceBroadcastFooter span{font-size:9px;color:var(--muted)}
+.workspaceBroadcastFooter button{min-height:36px;padding:8px 12px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:10px;font-weight:800}
+.workspaceBroadcastFooter button:disabled{opacity:.45}
+@media(max-width:640px){.workspaceCommunicationPanel{top:52px;right:8px;width:calc(100vw - 16px);height:calc(100dvh - 64px);max-height:calc(100dvh - 64px)}}
