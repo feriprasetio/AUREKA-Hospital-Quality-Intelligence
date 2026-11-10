@@ -777,7 +777,6 @@ export default function RiskManagementWorkspace({
           <LiquidGlass className="rmKpi"><span>Risiko Tinggi / Sangat Tinggi</span><strong>{counts.high.toLocaleString('id-ID')}</strong><small>Prioritas perhatian manajemen</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Residual telah dinilai</span><strong>{counts.residualComplete.toLocaleString('id-ID')}</strong><small>{counts.total ? Math.round(counts.residualComplete / counts.total * 100) : 0}% register</small></LiquidGlass>
         </div>
-        {(counts.sourceScoreDiff > 0 || counts.unitUnmapped > 0 || counts.sourceCategoryMissing > 0) && }
         <div className="rmOverviewGrid">
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">PROFIL RISIKO</span><h4>Peta risiko dan selera risiko</h4><p>Area Rendah/Sangat Rendah dapat diterima; level Sedang ke atas menjadi risiko utama yang perlu mitigasi.</p></div><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Lihat register →</button></div>{renderMatrix()}</LiquidGlass>
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">PENGENDALIAN</span><h4>Status tindak pengendalian</h4><p>Ringkasan untuk membantu penentuan prioritas dan pemantauan.</p></div></div>
