@@ -736,6 +736,10 @@ html:where([data-skin="arktik"])[data-theme] .workspaceRoot.workspaceDesk .modul
 :where(html[data-skin="arktik"]) .workspaceRoot .workspaceSupportComposer button { background: linear-gradient(130deg,#0b467a,#1062a9) !important; }
 :where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .ovKpiIcon { background: #eef3f7 !important; }
 
+/* from overview-bento.css */
+:where(html[data-skin="arktik"]) .workspaceRoot .ovRoot .ovBentoMap { border: 1px solid var(--arktik-edge, #e2e5e8); }
+:where(html[data-skin="arktik"]) .workspaceRoot .ovRoot .ovBentoTodo button { border: 1px solid var(--arktik-edge, #e2e5e8); }
+
 /* from public-landing-auth-redesign.css */
 :where(html[data-skin="arktik"]) .publicRoot.landing.publicLandingRedesign { --aureka-green: #0b467a; --aureka-green-dark: #073359; --aureka-ink: #162029; --aureka-line: #e1e5e9; background: #f5f7f8 !important; }
 :where(html[data-skin="arktik"]) .publicLandingRedesign .landingTopbar { box-shadow: 0 5px 20px rgba(17, 34, 48, .035) !important; }
@@ -849,6 +853,14 @@ html:where([data-skin="arktik"])[data-theme] .workspaceRoot.workspaceDesk .modul
 :where(html[data-skin="arktik"]) .authPage.authProfessional .authCard .field input:-webkit-autofill:focus,
 :where(html[data-skin="arktik"]) .authPage.authProfessional .authCard .field input:-webkit-autofill:active { caret-color: #1c2934; box-shadow: 0 0 0 1000px #fbfcfd inset !important; border: 1px solid #dbe1e6 !important; }
 :where(html[data-skin="arktik"]) .authPage.authProfessional .authCard .field input:-moz-autofill { color: #1c2934 !important; box-shadow: 0 0 0 1000px #fbfcfd inset !important; }
+
+/* from settings-modern.css */
+:where(html[data-skin="arktik"]) .workspaceRoot .settingsWorkspace .stNav { border: 1px solid var(--arktik-edge, #e2e5e8); }
+:where(html[data-skin="arktik"]) .workspaceRoot .settingsWorkspace .stNavProfile { border-bottom: 1px solid var(--arktik-edge, #e2e5e8); }
+:where(html[data-skin="arktik"]) .workspaceRoot .settingsWorkspace .stAvatar { background: var(--arktik-ink, #0b467a); }
+:where(html[data-skin="arktik"]) .workspaceRoot .settingsWorkspace .stNavItem.on { background: var(--arktik-ink, #0b467a); }
+:where(html[data-skin="arktik"]) .workspaceRoot .settingsWorkspace .stMode.on { border-color: var(--arktik-ink, #0b467a); }
+:where(html[data-skin="arktik"]) .workspaceRoot .settingsWorkspace .stMode.terang .stModePreview { background: linear-gradient(135deg, #cfe6ff, #d8e9f7); }
 
 /* from solid-default.css */
 :root:where([data-skin="arktik"]) { --md-primary: #0b467a; --md-primary-2: #1062a9; --md-blue: #0b467a; --md-mint: #00539b; }
@@ -981,3 +993,189 @@ html:where([data-skin="arktik"])[data-theme] .workspaceRoot.workspaceDesk .modul
 html:where([data-skin="arktik"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicKpi:not(:disabled):focus-visible { border-color: #b7c8d7 !important; box-shadow: 0 12px 28px rgba(17, 54, 87, .105), inset 0 1px 0 rgba(255,255,255,.98) !important; }
 html:where([data-skin="arktik"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicPanel { border-color: #e0e5ea !important; box-shadow: 0 1px 3px rgba(15, 43, 67,.035), 0 5px 18px rgba(15, 43, 67,.025) !important; }
 html:where([data-skin="arktik"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicPanel:hover { border-color: #cad5df !important; box-shadow: 0 8px 24px rgba(15, 43, 67,.055) !important; }
+
+/* from components/FppeEvaluationWorkspace.tsx */
+html[data-skin="arktik"] .fppeWorkspace button { border: 1px solid rgba(30, 54, 75,.12); }
+html[data-skin="arktik"] .fppeToolbar select,
+html[data-skin="arktik"] .fppeHistory input,
+html[data-skin="arktik"] .fppeReviewPanel textarea { border: 1px solid rgba(34, 50, 64,.15); }
+html[data-skin="arktik"] .fppeFrameHeader { border-bottom: 1px solid rgba(34, 50, 64,.1); }
+html[data-skin="arktik"] .fppeNeutral { background: #edeff0; }
+html[data-skin="arktik"] .fppeHistoryItem { border: 1px solid rgba(34, 50, 64,.1) !important; }
+html[data-skin="arktik"] .fppeEvent { border-top: 1px solid rgba(34, 50, 64,.09); }
+html[data-skin="arktik"] .fppeEmpty { border: 1px dashed rgba(34, 50, 64,.15); }
+
+/* from components/MetadataStatisticsWorkspace.tsx */
+html[data-skin="arktik"] .mswEyebrow { color: var(--accent,#0b467a); }
+html[data-skin="arktik"] .mswTitle { color: var(--text,#202d38); }
+html[data-skin="arktik"] .mswTab:hover { color: var(--text,#202d38); }
+html[data-skin="arktik"] .mswTab[aria-selected="true"] { background: linear-gradient(135deg,var(--accent,#0b467a),var(--accent2,#052e52)); box-shadow: 0 7px 18px rgba(11, 70, 122,.16); }
+html[data-skin="arktik"] .mswAccessNote { border: 1px solid rgba(11, 70, 122,.13); }
+html[data-skin="arktik"] .mswAccessNote strong { color: var(--text,#202d38); }
+
+/* from components/OppeAuditWorkspace.tsx */
+html[data-skin="arktik"] .oppeHeaderNotes span { border: 1px solid rgba(28, 55, 78,.1); color: #4f5c67; }
+html[data-skin="arktik"] .oppeBtn { color: #273643; }
+html[data-skin="arktik"] .oppeField>span { color: #5f6a73; }
+html[data-skin="arktik"] .oppeField input,
+html[data-skin="arktik"] .oppeField select,
+html[data-skin="arktik"] .oppeField textarea,
+html[data-skin="arktik"] .oppeRuleToolbar input { border: 1px solid rgba(34, 50, 64,.13); }
+html[data-skin="arktik"] .oppeTabs button { color: #5c6771; }
+html[data-skin="arktik"] .oppeInlineNote { border: 1px solid rgba(24, 44, 61,.09); }
+html[data-skin="arktik"] .oppeNeutral { background: #edeff0; }
+html[data-skin="arktik"] .oppeManualCard { border: 1px solid rgba(24, 44, 61,.1); }
+html[data-skin="arktik"] .oppeScoreRows>div { border: 1px solid rgba(24, 44, 61,.09); }
+html[data-skin="arktik"] .oppeMethodNote { background: rgba(239, 243, 246,.8); border: 1px solid rgba(24, 44, 61,.1); color: #515e69; }
+html[data-skin="arktik"] .oppeMiniMetric { border-bottom: 1px solid rgba(24, 44, 61,.09); }
+html[data-skin="arktik"] .oppeClinicalCard { border: 1px solid rgba(24, 44, 61,.1); }
+html[data-skin="arktik"] .oppeEmpty { border: 1px dashed rgba(24, 44, 61,.19); }
+html[data-skin="arktik"] .oppeRuleRow { border: 1px solid rgba(24, 44, 61,.1); }
+html[data-skin="arktik"] .oppeRuleDescription { color: #525f6b !important; }
+html[data-skin="arktik"] .oppeRuleMapping { border: 1px solid rgba(24, 44, 61,.1); }
+html[data-skin="arktik"] .oppeModalBackdrop { background: rgba(11, 17, 22,.32); }
+html[data-skin="arktik"] .oppeModal { background: rgba(249, 251, 252,.99); }
+html[data-skin="arktik"] .oppeModalHeader { border-bottom: 1px solid rgba(24, 44, 61,.1); }
+html[data-skin="arktik"] .oppeClose { background: #e9ecef; }
+html[data-skin="arktik"] .oppeModalFooter { border-top: 1px solid rgba(24, 44, 61,.1); }
+html[data-skin="arktik"] .oppeCheck { border: 1px solid rgba(24, 44, 61,.12); }
+html[data-skin="arktik"] .oppeEventItem { border-bottom: 1px solid rgba(24, 44, 61,.09); }
+html[data-skin="arktik"] .oppeEventMarker { box-shadow: 0 0 0 4px rgba(11, 70, 122,.09); }
+
+/* from components/PatientSafetyWorkspace.tsx */
+html[data-skin="arktik"] .psBtn { color: #253543; }
+html[data-skin="arktik"] .psTab { color: #515b63; }
+html[data-skin="arktik"] .psAlert { color: #445361; }
+html[data-skin="arktik"] .psTable th { background: rgba(248, 250, 251,.96); }
+html[data-skin="arktik"] .psField input,
+html[data-skin="arktik"] .psField select,
+html[data-skin="arktik"] .psField textarea,
+html[data-skin="arktik"] .psFilter input,
+html[data-skin="arktik"] .psFilter select { border: 1px solid rgba(34, 50, 64,.12); }
+html[data-skin="arktik"] .psField input:disabled,
+html[data-skin="arktik"] .psField select:disabled,
+html[data-skin="arktik"] .psField textarea:disabled { background: rgba(235, 237, 239,.62); }
+html[data-skin="arktik"] .psRadio { border: 1px solid rgba(34, 50, 64,.10); }
+html[data-skin="arktik"] .psPrivacy { border: 1px solid #dbe6f0; background: #eef3f8; color: #475561; }
+html[data-skin="arktik"] .psSurveyMeta select { border: 1px solid rgba(34, 50, 64,.12); }
+html[data-skin="arktik"] .psScale button { border: 1px solid rgba(34, 50, 64,.12); color: #515b64; }
+html[data-skin="arktik"] .psChoiceGrid button { border: 1px solid rgba(34, 50, 64,.12); }
+html[data-skin="arktik"] .psBurnout button { border: 1px solid rgba(34, 50, 64,.12); }
+html[data-skin="arktik"] .psBar { background: #e8ebee; }
+html[data-skin="arktik"] .psBar i { background: linear-gradient(90deg,var(--accent),#6e98bd); }
+html[data-skin="arktik"] .psToast { background: rgba(13, 27, 40,.93); }
+
+/* from components/QualityExcelPastePanel.tsx */
+html[data-skin="arktik"] .aepTable th { background: rgba(235, 240, 244,.9); color: #3c4e5e; }
+
+/* from components/QualityIndicatorWorkspace.tsx */
+html[data-skin="arktik"] .aqInlineEditor { box-shadow: 0 8px 28px rgba(18, 35, 49,.08); }
+html[data-skin="arktik"] .aqInlineEditor .aqFoot { background: rgba(248, 250, 251,.96); }
+html[data-skin="arktik"] .aq .glass { box-shadow: 0 1px 3px rgba(18, 35, 49,.045); }
+html[data-skin="arktik"] .aqBtn { color: #253543; }
+html[data-skin="arktik"] .aqTab { color: #515b63; }
+html[data-skin="arktik"] .aqField input,
+html[data-skin="arktik"] .aqField select,
+html[data-skin="arktik"] .aqField textarea,
+html[data-skin="arktik"] .aqCat input,
+html[data-skin="arktik"] .aqCat select { border: 1px solid rgba(34, 50, 64,.12); }
+html[data-skin="arktik"] .aqMonths button { color: #4f5961; }
+html[data-skin="arktik"] table.aqData th { background: rgba(249, 251, 252,.94); }
+html[data-skin="arktik"] .aqBack { background: rgba(11, 17, 22,.24); }
+html[data-skin="arktik"] .aqDrawer { background: rgba(248, 250, 251,.98); }
+html[data-skin="arktik"] .aqGuard { background: #e8f1f8; color: #1b486f; }
+html[data-skin="arktik"] .aqAuto { background: #eef3f8; border: 1px solid #dbe6f0; }
+html[data-skin="arktik"] table.aqCatalog th { background: #f8fafb; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqFilters { border-color: #e5e9ec; box-shadow: 0 1px 2px rgba(19, 35, 49,.035); }
+html[data-skin="arktik"] .aqAuditWorkspace .aqField select,
+html[data-skin="arktik"] .aqAuditWorkspace .aqField input { border: 1px solid #e1e5e9; color: #252f38; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqField select:focus,
+html[data-skin="arktik"] .aqAuditWorkspace .aqField input:focus { outline: 2px solid rgba(18, 79, 132,.14); border-color: #89a4bb; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqDataBar { border: 1px solid #e4e8eb; box-shadow: 0 1px 2px rgba(19, 35, 49,.025); }
+html[data-skin="arktik"] .aqAuditWorkspace .aqDataBar>div { border-right: 1px solid #edeff1; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqDataBar>div strong { color: #252f38; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqFilterActions .aqImportButton { border: 1px solid #dfe4e8; color: #4f5c68; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqFilterActions .aqAddButton { background: #0f487a; border: 1px solid #0f487a; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqTable { border-color: #e3e7eb; box-shadow: 0 1px 3px rgba(19, 35, 49,.035); }
+html[data-skin="arktik"] .aqAuditWorkspace table.aqData th { color: #606a73; background: #f5f7f8; }
+html[data-skin="arktik"] .aqAuditWorkspace table.aqData th:first-child { background: #f5f7f8; }
+html[data-skin="arktik"] .aqAuditWorkspace table.aqData tbody tr:hover td { background: #f8fafb; }
+html[data-skin="arktik"] .aqAuditWorkspace table.aqData tbody tr:hover td:first-child { background: #f8fafb; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqBtn.primary { background: #0f487a; border-color: #0f487a; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqBack.aqEditorBack { background: rgba(11, 19, 26,.42); }
+html[data-skin="arktik"] .aqAuditWorkspace .aqEditorDialog { border: 1px solid #e1e5e9; box-shadow: 0 24px 80px rgba(8, 18, 26,.24); }
+html[data-skin="arktik"] .aqAuditWorkspace .aqEditorDialog .aqFoot { background: #fbfcfc; }
+html[data-skin="arktik"] \n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqImportButton { border: 1px solid #dfe4e8 !important; color: #4f5c68 !important; }
+html[data-skin="arktik"] \n.moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions .aqAddButton { background: #0f487a !important; border: 1px solid #0f487a !important; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqIndicatorSection>.aqSection h5 { color: #232f39; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqInd { border: 1px solid #e0e5e9; box-shadow: 0 1px 3px rgba(24, 43, 60,.035); }
+html[data-skin="arktik"] .aqAuditWorkspace .aqInd:hover { border-color: #cad5df; box-shadow: 0 5px 16px rgba(24, 43, 60,.055); }
+html[data-skin="arktik"] .aqAuditWorkspace .aqIHead { background: linear-gradient(180deg,#f6f8fa 0%,#f3f6f8 100%); border-bottom: 1px solid #e5e9ec; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqIndicatorCode { background: #e8edf1; color: #3f586d; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqIndicatorHeading strong { color: #1c2731; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqMetaTag { border: 1px solid #e3e7eb; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqMetaTag.aqMetaCategory { border-color: #dbe3ea; background: #edf1f5; color: #3d5870; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqQ { color: #252f38; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqChoiceField select { border: 1px solid #dce2e7; color: #252f38; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqChoiceField select:focus { outline: 2px solid rgba(18, 79, 132,.16); border-color: #85a0b8; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqResultSummary { border: 1px solid #dfe8ef; background: #f1f5f8; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqResultSummary>strong { color: #1c3f5e; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqUnmatchedInd .aqIHead { background: #f7f8f9; }
+html[data-skin="arktik"] .aqAuditWorkspace .aqUnmatchedInd .aqIndicatorCode { background: #edeff0; }
+
+/* from components/QualityResultsWorkspace.tsx */
+html[data-skin="arktik"] .qraHero,
+html[data-skin="arktik"] .qraPanel { box-shadow: 0 1px 3px rgba(17, 34, 48,.045); }
+html[data-skin="arktik"] .qraNotice { background: #f5f7f8; color: #505c66; }
+html[data-skin="arktik"] .qraTable th { background: #f7f9fa; }
+html[data-skin="arktik"] .qraMonthly span.empty { background: #eef0f1; }
+html[data-skin="arktik"] .qraEmptyIcon { color: #99a2aa; }
+html[data-skin="arktik"] .qraBarsTrack { background: #eef0f2; }
+html[data-skin="arktik"] .qraBarsTrack span { background: linear-gradient(180deg,#5180aa,#154b7a); }
+html[data-skin="arktik"] .qraDot { background: #154b7a; }
+html[data-skin="arktik"] .qraBarTrack { background: #eef0f2; }
+html[data-skin="arktik"] .qraBarTrack span { background: linear-gradient(90deg,#739abc,#14446e); }
+html[data-skin="arktik"] .qraDistributionItem>div { background: #eff1f2; }
+html[data-skin="arktik"] .qraDistributionItem i { background: #49769d; }
+html[data-skin="arktik"] .qraTabs { background: #f6f7f8; }
+html[data-skin="arktik"] .qraInfo { background: #f7f9fa; }
+html[data-skin="arktik"] .qraHero { box-shadow: 0 1px 2px rgba(17, 34, 48,.035); }
+html[data-skin="arktik"] .qraPanel { box-shadow: 0 1px 2px rgba(17, 34, 48,.035); }
+
+/* from components/StaffDirectoryWorkspace.tsx */
+html[data-skin="arktik"] .sdEyebrow { color: var(--accent,#0b467a); }
+html[data-skin="arktik"] .sdTitle { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .sdBtn { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .sdBtn.primary { background: linear-gradient(135deg,var(--accent,#0b467a),var(--accent2,#052e52)); }
+html[data-skin="arktik"] .sdKpi strong { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .sdFilters input,
+html[data-skin="arktik"] .sdFilters select { border: 1px solid rgba(34, 50, 64,.14); color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .sdNotice { background: rgba(11, 70, 122,.08); border: 1px solid rgba(11, 70, 122,.14); color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .sdTable th { background: #eff3f6; color: #596570; border-bottom: 1px solid #d7e0e8; }
+html[data-skin="arktik"] .sdTable td { border-bottom: 1px solid rgba(36, 53, 68,.09); color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .sdName { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .sdMini { border: 1px solid #d7dde2; color: #324352; }
+html[data-skin="arktik"] .sdEditBackdrop { background: rgba(16, 26, 34,.48); }
+html[data-skin="arktik"] .sdEditDialog { background: #f8fafb; color: #1f2c38; }
+html[data-skin="arktik"] .sdEditField span { color: #586570; }
+html[data-skin="arktik"] .sdEditField input,
+html[data-skin="arktik"] .sdEditField select,
+html[data-skin="arktik"] .sdEditField textarea { border: 1px solid #d3dbe2; color: #1f2c38; }
+html[data-skin="arktik"] .sdEditHelp { color: #646f78; }
+html[data-skin="arktik"] .sdEditFooter { border-top: 1px solid #dce2e7; }
+html[data-skin="arktik"] .sdCodeLock { border: 1px dashed #b7c3ce; background: #edf1f5; }
+html[data-skin="arktik"] .sdModalTitle { color: #1f2c38; }
+html[data-skin="arktik"] .sdEditBtn { border: 1px solid #ced7df; color: #324352; }
+
+/* from components/StaffTeamWorkspace.tsx */
+html[data-skin="arktik"] .stEyebrow { color: var(--accent,#0b467a); }
+html[data-skin="arktik"] .stTitle { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .stBtn { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .stBtn.primary { background: linear-gradient(135deg,var(--accent,#0b467a),var(--accent2,#052e52)); }
+html[data-skin="arktik"] .stField input,
+html[data-skin="arktik"] .stField select { border: 1px solid rgba(34, 50, 64,.14); color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .stKpi strong { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .stNotice { background: rgba(11, 70, 122,.08); border: 1px solid rgba(11, 70, 122,.14); color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .stName { color: var(--text,#1f2c38); }
+html[data-skin="arktik"] .stCode { background: rgba(11, 70, 122,.09); color: var(--accent2,#052e52); }
+html[data-skin="arktik"] .stLock { background: #dbe9f5; color: #134067; }
