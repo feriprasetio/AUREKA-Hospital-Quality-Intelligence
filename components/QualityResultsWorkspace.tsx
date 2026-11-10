@@ -142,7 +142,7 @@ function formatDateTime(value: string | null | undefined): string {
 }
 
 function modeTitle(mode: Mode): string {
-  if (mode === 'indicators') return 'Hasil Audit Indikator Mutu'
+  if (mode === 'indicators') return 'Capaian Indikator Mutu'
   if (mode === 'pathway') return 'Hasil Audit Clinical Pathway'
   return 'Hasil Audit Klinis dan Kematian'
 }
@@ -214,13 +214,14 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
 }
 
 export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange }: Props) {
-  const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
+  const [roomId, setRoomId] = useState<number | null>(() => canViewAllRooms && mode === 'indicators' ? null : defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
+    if (canViewAllRooms && mode === 'indicators') return
     const incoming = normalizeRoom(initialRoomId)
     if (incoming != null && incoming !== roomId) setRoomId(incoming)
-  }, [initialRoomId])
+  }, [initialRoomId, canViewAllRooms, mode])
   useEffect(() => {
-    if (roomId == null) {
+    if (roomId == null && !(canViewAllRooms && mode === 'indicators')) {
       const initial = defaultRoom(rooms, initialRoomId, canViewAllRooms)
       if (initial != null) setRoomId(initial)
     }
