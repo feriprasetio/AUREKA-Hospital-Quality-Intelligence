@@ -859,7 +859,7 @@ export default function PatientSafetyWorkspace({
       <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong><small>Record yang dapat Anda akses</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Belum Closed</span><strong>{incidents.filter(row => row.status !== 'closed').length}</strong><small>Perlu pemantauan</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Investigasi Aktif</span><strong>{openInvestigations.length}</strong><small>RCA belum closed</small></LiquidGlass>
-      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{isSuperAdmin ? responses.length : '—'}</strong><small>{isSuperAdmin ? 'Rekapan dari Supabase' : 'Data agregat terbatas pada Superadmin'}</small></LiquidGlass>
+      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{isSuperAdmin ? responses.length : '—'}</strong></LiquidGlass>
     </div>
 
     {showTabs && <div className="psTabs glass">
@@ -876,11 +876,11 @@ export default function PatientSafetyWorkspace({
 
     {error ? <div className="psAlert error">{error}</div> : null}
     {message ? <div className="psAlert">{message}</div> : null}
-    {loading ? <div className="psAlert">Memuat data dari Supabase…</div> : null}
+    {loading ? <div className="psAlert">Memuat data…</div> : null}
 
     {tab === 'overview' ? <>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Alur Kerja Keselamatan Pasien</h4><p>Form operasional berada pada workspace utama; ringkasan tidak mengambil lebar form.</p></div><span className="psPill green">WORKFLOW</span></div>
+        <div className="psSectionHead"><div><h4>Alur Kerja Keselamatan Pasien</h4></div><span className="psPill green">WORKFLOW</span></div>
         <div className="psRcaMap">
           <div className="psRcaNode"><b>01 · Pelaporan</b><span>IKP dibuat dan dikirim oleh pelapor.</span></div>
           <div className="psRcaNode"><b>02 · Review</b><span>Validasi oleh pengelola keselamatan pasien.</span></div>
@@ -892,7 +892,7 @@ export default function PatientSafetyWorkspace({
           {canManageWorkflow ? <button type="button" className="psBtn" onClick={() => setTab('investigation')}>Buka Workspace Investigasi</button> : null}</div>
       </LiquidGlass>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Insiden Terbaru</h4><p>Daftar mengikuti hak akses Supabase; identitas korban tidak ditampilkan di tabel ringkasan.</p></div><button type="button" className="psBtn" onClick={() => setTab('incidents')}>Lihat Semua</button></div>
+        <div className="psSectionHead"><div><h4>Insiden Terbaru</h4></div><button type="button" className="psBtn" onClick={() => setTab('incidents')}>Lihat Semua</button></div>
         {incidents.length ? <div className="psTableWrap"><table className="psTable"><thead><tr><th>Kode IKP</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
           {incidents.slice(0, 12).map(row => <tr key={row.id}>
             <td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '—'}</td><td>{row.unit_name || '—'}</td>
@@ -983,7 +983,7 @@ export default function PatientSafetyWorkspace({
         {investigationIncidentId && canManageWorkflow ? <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 10 }}>Status: {statusLabel(investigationStatus)}</div><div className="psActions"><button type="button" className="psBtn" onClick={() => { setInvestigationData(emptyRecord()); setInvestigationStatus('draft'); setInvestigationId(''); setInvestigationCode('') }}>Kosongkan Form</button><button type="button" className="psBtn primary" disabled={saving} onClick={() => void saveInvestigation()}>{saving ? 'Menyimpan…' : 'Simpan Investigasi'}</button></div></div> : null}
       </LiquidGlass>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Register Investigasi</h4><p>Daftar disaring oleh kebijakan akses Supabase.</p></div><span className="psPill">{investigations.length} record</span></div>
+        <div className="psSectionHead"><div><h4>Register Investigasi</h4></div><span className="psPill">{investigations.length} record</span></div>
         {investigations.length ? <div className="psTableWrap"><table className="psTable"><thead><tr><th>Kode RCA</th><th>Insiden</th><th>Status</th><th>Diubah</th><th></th></tr></thead><tbody>
           {investigations.map(row => <tr key={row.id}><td><span className="psCode">{row.investigation_code}</span></td><td>{incidents.find(item => item.id === row.incident_id)?.incident_code || 'Insiden terkait'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td>{new Date(row.updated_at).toLocaleDateString('id-ID')}</td><td><button type="button" className="psBtn" onClick={() => { setInvestigationIncidentId(row.incident_id); setTab('investigation') }}>Buka</button></td></tr>)}
         </tbody></table></div> : <div className="psEmpty">Belum ada investigasi yang dapat ditampilkan.</div>}
@@ -1060,7 +1060,7 @@ export default function PatientSafetyWorkspace({
 
     {tab === 'responses' && isSuperAdmin ? <>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><div className="psEyebrow">SUPERADMIN · RESPONSE REPOSITORY</div><h4>Rekapan Survey Budaya Keselamatan</h4><p>Seluruh respons yang sudah tersimpan di Supabase. Satu submission menghasilkan response ID baru dan tidak menimpa respons lama.</p></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
+        <div className="psSectionHead"><div><div className="psEyebrow">SUPERADMIN · RESPONSE REPOSITORY</div><h4>Rekapan Survey Budaya Keselamatan</h4></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter"><label>Periode</label><select value={responsePeriodFilter} onChange={event => setResponsePeriodFilter(event.target.value)}><option value="">Semua periode</option>{Array.from(new Set(responses.map(row => row.survey_period))).sort().map(period => <option key={period}>{period}</option>)}</select></div>
           <div className="psFilter"><label>Unit</label><select value={responseUnitFilter} onChange={event => setResponseUnitFilter(event.target.value)}><option value="">Semua unit</option>{Array.from(new Set(responses.map(row => row.unit_name))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
@@ -1077,6 +1077,6 @@ export default function PatientSafetyWorkspace({
     </> : null}
 
     {tab === 'responses' && !isSuperAdmin ? <LiquidGlass className="psPanel"><div className="psEmpty">Rekapan jawaban mentah hanya tersedia bagi Superadmin.</div></LiquidGlass> : null}
-    <div className="psMuted" style={{ fontSize: 9, padding: '2px 4px' }}>Data operasional disimpan di Supabase. Preview modul tidak menggunakan localStorage untuk menyimpan informasi pasien atau jawaban survei.</div>
+    
   </div>
 }
