@@ -88,6 +88,22 @@ def scope(sel):
     return f'{PREFIX}:root {sel}'
 
 
+def split_selectors(prelude):
+    out, buf, depth = [], '', 0
+    for ch in prelude:
+        if ch in '([':
+            depth += 1
+        elif ch in ')]':
+            depth -= 1
+        if ch == ',' and depth == 0:
+            out.append(buf)
+            buf = ''
+        else:
+            buf += ch
+    out.append(buf)
+    return out
+
+
 def strip_comments(css):
     return re.sub(r'/\*.*?\*/', '', css, flags=re.S)
 
@@ -151,7 +167,7 @@ def rules(css):
                 decls.append(f'{prop}: {new} !important;')
         if not decls:
             continue
-        sels = [s for s in (scope(x) for x in prelude.split(',')) if s]
+        sels = [s for s in (scope(x) for x in split_selectors(prelude)) if s]
         if not sels:
             continue
         lines.append(',\n'.join(sels) + ' { ' + ' '.join(decls) + ' }')
