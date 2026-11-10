@@ -122,10 +122,12 @@ export default function TanyaAureka({ sb, page }: { sb: SupabaseClient; page?: s
     <p className="tanyaNote">Jawaban AI bisa keliru — cek kembali angka penting di modul terkait. Identitas pasien tidak dikirim ke AI.</p>
   </section>
 
-  return <>
-    <button type="button" className={'workspaceHeaderIcon tanyaTrigger' + (open ? ' on' : '')} title="Tanya AUREKA" aria-label="Tanya AUREKA" aria-expanded={open} onClick={() => setOpen(v => !v)}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg>
-    </button>
-    {mounted && panel ? createPortal(panel, document.body) : null}
-  </>
+  const fab = <button type="button" className={'tanyaFab' + (open ? ' on' : '')} title="Tanya AUREKA" aria-label={open ? 'Tutup Tanya AUREKA' : 'Tanya AUREKA'} aria-expanded={open} onClick={() => setOpen(v => !v)}>
+    {open
+      ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg>}
+    {!open && <span className="tanyaFabLabel">Tanya AUREKA</span>}
+  </button>
+
+  return mounted ? createPortal(<>{panel}{fab}</>, document.body) : null
 }
