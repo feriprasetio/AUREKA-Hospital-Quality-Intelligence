@@ -202,20 +202,28 @@ function classifyEvidence(item: ClinicalTextMiningItem, context: string, matched
   const config = item.text_mining || {}
   const kind = String(config.concept_type || 'clinical_activity').toLowerCase()
   const expectedAbsence = config.expected_assertion === 'absence' || hasExpectedAbsence(item.label)
-  const combined = context + ' ' + matchedText
-  const hasNegation = NEGATION_RE.test(combined)
+  const foldedContext = fold(context)
+  const foldedMatch = fold(matchedText)
+  const matchIndex = foldedContext.indexOf(foldedMatch)
+  const beforeContext = matchIndex >= 0 ? foldedContext.slice(Math.max(0, matchIndex - 80), matchIndex) : ''
+  const afterContext = matchIndex >= 0 ? foldedContext.slice(matchIndex + foldedMatch.length, matchIndex + foldedMatch.length + 140) : foldedContext
+  const negationBefore = NEGATION_RE.test(beforeContext)
+  const negationAfter = NEGATION_RE.exec(afterContext)
+  const actionAfter = ACTION_RE.exec(afterContext)
+  // A negated test result after a documented completed procedure must not negate the procedure itself.
+  const hasNegation = negationBefore || (!!negationAfter && (!actionAfter || negationAfter.index < actionAfter.index))
   const hasPlanning = PLANNED_RE.test(context)
   const hasAction = ACTION_RE.test(context)
   const hasResult = RESULT_RE.test(context)
   const hasOutcome = OUTCOME_RE.test(context)
 
   if (expectedAbsence) {
-    if (hasNegation || /\b(bebas|tidak ada|tidak terdapat|tidak ditemukan|tanpa)\b/i.test(combined)) {
+    if (hasNegation || /\b(bebas|tidak ada|tidak terdapat|tidak ditemukan|tanpa)\b/i.test(foldedContext)) {
       return { status: 'completed', reason: 'Dokumentasi menyatakan kondisi negatif yang sesuai dengan item outcome ini.', confidenceAdjustment: 0.08 }
     }
     return { status: 'negated', reason: 'Dokumentasi tidak membuktikan kondisi negatif yang disyaratkan item CP; periksa apakah terdapat temuan positif yang berlawanan.', confidenceAdjustment: -0.02 }
   }
-  if (hasNegation) return { status: 'negated', reason: 'Konteks menyatakan tidak dilakukan, tidak ditemukan, ditunda, atau dibatalkan.', confidenceAdjustment: 0.01 }
+  if (hasNegation) return { status: 'negated', reason: 'Konteks di sekitar istilah item menyatakan tidak dilakukan, tidak ditemukan, ditunda, atau dibatalkan.', confidenceAdjustment: 0.01 }
   if (hasPlanning) return { status: 'planned', reason: 'Konteks berupa rencana, instruksi, permintaan, atau persiapan; belum membuktikan pelaksanaan.', confidenceAdjustment: 0.02 }
 
   if (kind === 'medication') {
