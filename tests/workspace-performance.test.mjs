@@ -22,7 +22,7 @@ test('HomeClient lazy-loads heavy workspaces rather than importing them into the
     assert.match(source, new RegExp(`const ${moduleName}=dynamic\\(\\(\\)=>import\\('`))
     assert.doesNotMatch(source, new RegExp(`^import ${moduleName} from `, 'm'))
   }
-  assert.match(source, /const CommandPalette=dynamic\(\(\)=>import\('@\/components\/CommandPalette'\),\{ssr:false\}\)/)
+  assert.doesNotMatch(source, /CommandPalette/)
   assert.match(source, /workspaceChunkLoading/)
 })
 
