@@ -406,7 +406,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     {error && <div className="qraError" role="alert">{error}</div>}
     {capped && <div className="qraInfo" role="status">Daftar dibatasi 10.000 catatan. Ringkasan ini hanya mencakup data yang terbaca; periksa rentang tahun atau unit bila diperlukan.</div>}
     {loading
-      ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…" detail="Mengambil data satu unit dan satu tahun sesuai hak akses." /></div>
+      ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…"  /></div>
       : loadingError
         ? null
         : mode === 'indicators'
@@ -418,7 +418,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               <Kpi label="Pemeriksaan bulanan" value="Terpisah" detail="Validator mencatat pemeriksaan seluruh laporan satu kali setiap bulan" />
             </div>
             <section className="qraPanel">
-              <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3><p>Setiap persentase rasio menggunakan Σ numerator ÷ Σ denominator; bukan rerata sederhana antarbaris atau antarb ulan.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
+              <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
               {indicatorResults.length === 0
                 ? <EmptyState title="Belum ada indikator aktif" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
                 : <div className="qraTableWrap"><table className="qraTable qraIndicatorTable">
@@ -498,7 +498,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 </section>
               </div>
               {clinicalTab === 'death' && <div className="qraSplit">
-                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Kontribusi masalah pelayanan terhadap kematian</h3><p>Penilaian reviewer; bukan kesimpulan otomatis kausalitas.</p></div></div>
+                <section className="qraPanel"><div className="qraPanelHead"><div><h3>Kontribusi masalah pelayanan terhadap kematian</h3></div></div>
                   {selectedClinical.validatedRecords === 0
                     ? <EmptyState title="Belum ada hasil audit kematian tervalidasi" detail="Distribusi kontribusi akan tampil setelah telaah kematian tervalidasi." />
                     : <div className="qraContent">{[
@@ -538,6 +538,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               <div className="qraInfo">Semua skor dan distribusi pada halaman ini dihitung dari telaah tervalidasi untuk unit dan periode yang dipilih. Skor 1–5 dan 1–6 diperlakukan sebagai data ordinal; median, IQR, dan distribusi diprioritaskan dibanding rerata aritmetika. Audit kematian tidak secara otomatis menyimpulkan bahwa kematian dapat dicegah atau bahwa masalah pelayanan menyebabkan kematian.</div>
             </>}
 
-    <div className="qraFoot"><span>Sumber: Supabase AUREKA · {selectedRoomName} · {year} · {formatCount(totalRows)} catatan terbaca</span><span>Data terakhir diperbarui: {formatDateTime(latestDataInputAt)}</span></div>
+    
   </div>
 }
