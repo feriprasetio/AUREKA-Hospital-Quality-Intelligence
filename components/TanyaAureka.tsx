@@ -54,8 +54,8 @@ async function errorText(error: unknown): Promise<string> {
   return 'Pertanyaan belum dapat dijawab. Coba lagi sebentar lagi.'
 }
 
-export default function TanyaAureka({ sb, page }: { sb: SupabaseClient; page?: string }) {
-  const [open, setOpen] = useState(false)
+export default function TanyaAureka({ sb, page, embedded = false }: { sb: SupabaseClient; page?: string; embedded?: boolean }) {
+  const [open, setOpen] = useState(embedded)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -64,9 +64,10 @@ export default function TanyaAureka({ sb, page }: { sb: SupabaseClient; page?: s
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
+    if (embedded) setOpen(true)
     setMounted(true)
     try { const raw = sessionStorage.getItem(STORE_KEY); if (raw) setMsgs(JSON.parse(raw)) } catch { /* abaikan */ }
-  }, [])
+  }, [embedded])
   useEffect(() => { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(msgs.slice(-20))) } catch { /* abaikan */ } }, [msgs])
   useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }) }, [msgs, busy])
   useEffect(() => {
@@ -129,5 +130,6 @@ export default function TanyaAureka({ sb, page }: { sb: SupabaseClient; page?: s
     {!open && <span className="tanyaFabLabel">Tanya AUREKA</span>}
   </button>
 
+  if (embedded) return panel
   return mounted ? createPortal(<>{panel}{fab}</>, document.body) : null
 }
