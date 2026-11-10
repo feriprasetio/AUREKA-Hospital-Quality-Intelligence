@@ -231,6 +231,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }, [roomId, onRoomChange, initialRoomId, canViewAllRooms])
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
+  const [indicatorTypeFilter, setIndicatorTypeFilter] = useState('all')
   const [rawIndicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
   // Laporan PIC berstatus "ready" ikut dihitung (default), karena validasi dilakukan terpisah per bulan.
   // Bisa dimatikan untuk melihat capaian yang hanya berasal dari data tervalidasi.
@@ -258,7 +259,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
 
     const load = async () => {
       const selectedRoom = normalizeRoom(roomId)
-      if (selectedRoom == null) {
+      if (selectedRoom == null && !(mode === 'indicators' && canViewAllRooms)) {
         throw new Error('Unit kerja belum terpetakan. Pilih unit yang valid sebelum melihat hasil audit.')
       }
 
@@ -269,20 +270,18 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit,source_import:core_data->source_import'
             : '')
         const [profileResult, recordResult] = await Promise.all([
-          q().from('indicator_profiles')
+          (() => { let query=q().from('indicator_profiles')
             .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
-            .eq('room_id', selectedRoom)
-            .eq('profile_year', year)
+            .eq('profile_year', year); if(selectedRoom!=null) query=query.eq('room_id',selectedRoom); return query })()
             .eq('status', 'published')
             .eq('is_active', true)
             .order('code'),
-          readPaged<ResultRecord>((from, to) => q().from('quality_records')
+          readPaged<ResultRecord>((from, to) => { let query=q().from('quality_records')
             .select(indicatorRecordSelect)
-            .eq('room_id', selectedRoom)
-            .eq('profile_year', year)
+            .eq('profile_year', year); if(selectedRoom!=null) query=query.eq('room_id',selectedRoom); return query
             .neq('status', 'archived')
             .order('created_at', { ascending: false })
-            .range(from, to)),
+            .range(from, to) }),
         ])
         if (profileResult.error) throw profileResult.error
         if (recordResult.rows.length > 0) {
@@ -342,7 +341,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       if (!cancelled) setLoading(false)
     })
     return () => { cancelled = true }
-  }, [mode, roomId, year, reload])
+  }, [mode, roomId, year, reload, canViewAllRooms])
 
   const indicatorResults = useMemo(() => indicatorData.profiles.map((profile) =>
     calculateIndicatorResult(profile, indicatorData.rows, year),
@@ -465,7 +464,10 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     return candidates.filter((value): value is string => !!value).sort().at(-1) ?? null
   }, [mode, indicatorResults, pathwayData, clinicalData])
 
-  const selectedRoomName = rooms.find((room) => Number(room.id) === Number(roomId))?.name ?? 'Unit tidak diketahui'
+  const selectedRoomName = roomId == null && canViewAllRooms ? 'Seluruh rumah sakit' : rooms.find((room) => Number(room.id) === Number(roomId))?.name ?? 'Unit tidak diketahui'
+  const indicatorTypes = useMemo(() => Array.from(new Set(indicatorData.profiles.map(profile => String(profile.indicator_type ?? '').trim()).filter(Boolean))).sort((a,b) => a.localeCompare(b,'id')), [indicatorData.profiles])
+  const visibleIndicatorResults = useMemo(() => indicatorTypeFilter === 'all' ? indicatorResults : indicatorResults.filter(result => String(result.profile.indicator_type ?? '') === indicatorTypeFilter), [indicatorResults, indicatorTypeFilter])
+  const formatIndicatorType = (value: string) => value.replaceAll('_',' ').replace(/\\b\\w/g, character => character.toUpperCase())
 
   const pageCss = `
     .qra{display:grid;gap:14px;color:var(--ink)}
@@ -576,12 +578,13 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       className="qraHero"
       title={modeTitle(mode)}
       actions={<div className="qraActions">
-        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms} onChange={(event) => { const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
-          {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
+        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? (canViewAllRooms && mode === 'indicators' ? 'all' : '')} disabled={!canViewAllRooms} onChange={(event) => { if(event.target.value==='all' && canViewAllRooms && mode==='indicators'){setRoomId(null);return} const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
+          {canViewAllRooms && mode === 'indicators' && <option value="all">Seluruh rumah sakit</option>}{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
         <label className="qraField"><span>Tahun</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>
           {YEARS.map((value) => <option key={value} value={value}>{value}</option>)}
         </select></label>
+        {mode === 'indicators' && <label className="qraField"><span>Jenis indikator mutu</span><select value={indicatorTypeFilter} onChange={event => setIndicatorTypeFilter(event.target.value)}><option value="all">Semua jenis indikator</option>{indicatorTypes.map(type => <option key={type} value={type}>{formatIndicatorType(type)}</option>)}</select></label>}
         <button type="button" className="qraBtn" disabled={loading} onClick={() => setReload((value) => value + 1)}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button>
       </div>}
     />
@@ -604,11 +607,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             </div>
             <section className="qraPanel">
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
-              {indicatorResults.length === 0
-                ? <EmptyState title="Belum ada indikator aktif" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
+              {visibleIndicatorResults.length === 0
+                ? <EmptyState title="Belum ada indikator pada filter ini" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
                 : <WorkspaceTableViewport label="Hasil capaian mutu" className="qraTableWrap"><table className="qraTable qraIndicatorTable">
                   <thead><tr><th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
-                  <tbody>{indicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
+                  <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
                     {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '—'}</small></td>)}
                     <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
