@@ -295,6 +295,50 @@ export default function OverviewDashboard({
 
       {!manager && roomId == null && <div className="ovNotice">Akun Anda belum terhubung ke ruangan/unit kerja, sehingga data unit belum dapat ditampilkan. Hubungi Super Admin untuk memetakan unit utama akun Anda.</div>}
 
+
+      <>
+      <section className="ovBento" aria-label="Ringkasan utama">
+        <div className="ovBentoMap">
+          <header className="ovBentoMapHead">
+            <div><span className="ovEyebrow">PETA RISIKO</span><h3>Peta risiko rumah sakit</h3></div>
+            <button type="button" className="ovBentoTotal" onClick={() => onNavigate('risk', {})} title="Buka register risiko">
+              <b>{risks.error || loading ? '—' : totalRisk.toLocaleString('id-ID')}</b><small>risiko</small>
+            </button>
+          </header>
+          {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> :
+            <div className="ovBentoMatrix">
+              <div className="ovBentoGrid" role="table" aria-label="Jumlah risiko per kemungkinan dan dampak">
+                {stats.matrix.map((row, ri) => <div className="ovBentoRow" role="row" key={ri}>
+                  <span className="ovBentoAxis" role="rowheader">{5 - ri}</span>
+                  {row.map((count, ci) => (
+                    <button type="button" key={`${ri}-${ci}`} role="cell" className="ovCell" disabled={!count} data-band={matrixBand((5 - ri) * (ci + 1))}
+                      onClick={() => onNavigate('risk', { likelihood: 5 - ri, impact: ci + 1 })}
+                      title={`Kemungkinan ${5 - ri} × Dampak ${ci + 1}: ${count} risiko${count ? ' — klik untuk melihat daftarnya' : ''}`}
+                      style={{ ['--heat' as any]: count ? 0.18 + 0.82 * (count / stats.maxMatrix) : 0 }}>
+                      {count ? count.toLocaleString('id-ID') : '–'}
+                    </button>
+                  ))}
+                </div>)}
+                <div className="ovBentoRow ovBentoCols" aria-hidden="true"><span className="ovBentoAxis" />{[1, 2, 3, 4, 5].map(n => <span key={n} className="ovBentoAxis">{n}</span>)}</div>
+              </div>
+              <div className="ovBentoLegend"><span>↑ kemungkinan · → dampak</span>{LEVELS.map(l => <span key={l}><i style={{ background: `rgb(var(--risk-${LEVEL_CLASS[l]}))` }} />{l}</span>)}</div>
+            </div>}
+        </div>
+        <div className="ovBentoKpis ovKpis">
+        <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.incomplete ? 'Rekap belum lengkap' : quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
+        <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.incomplete ? 'Rekap belum lengkap' : incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
+        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.incomplete ? 'Rekap belum lengkap' : risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : stats.highNoTarget ? `${stats.highNoTarget.toLocaleString('id-ID')} belum punya target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
+        <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.incomplete || clinicalPathway.incomplete ? 'Rekap belum lengkap' : quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
+        </div>
+      </section>
+
+      <nav className="ovBentoTodo" aria-label="Perlu tindakan">
+        <button type="button" onClick={() => onNavigate('quality')}><span><b>Validasi logbook</b><small>Laporan PIC siap ditinjau</small></span><strong>{loading || quality.error ? '—' : (quality.review ?? 0).toLocaleString('id-ID')}</strong></button>
+        <button type="button" onClick={() => onNavigate('risk')}><span><b>Susun RTP</b><small>Risiko tinggi tanpa target RTP</small></span><strong>{loading || risks.error ? '—' : stats.highNoTarget.toLocaleString('id-ID')}</strong></button>
+        <button type="button" onClick={() => onNavigate('risk')}><span><b>RTP lewat tenggat</b><small>Risiko tinggi melewati target</small></span><strong>{loading || risks.error ? '—' : stats.overdueHigh.toLocaleString('id-ID')}</strong></button>
+        <button type="button" onClick={() => onNavigate('safety')}><span><b>Laporan IKP</b><small>Insiden belum ditutup</small></span><strong>{loading || incidents.error ? '—' : stats.incidentsOpen.toLocaleString('id-ID')}</strong></button>
+      </nav>
+
       <section className="ovContextBar" aria-label="Periode dan status data">
         <div><span>PERIODE PELAPORAN</span><b>{`1 Jan–${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', timeZone: 'Asia/Pontianak' })} ${year} · Tahun berjalan`}</b></div>
         <div><span>UNIT</span><b>{manager ? 'Seluruh rumah sakit' : roomName || 'Unit belum dipetakan'}</b></div>
@@ -302,14 +346,6 @@ export default function OverviewDashboard({
         <div className="ovContextStatus"><span>STATUS SUMBER</span><b className={sourceError ? 'error' : loading ? 'loading' : 'ok'}>{loading ? 'Memuat' : sourceError ? 'Perlu pemeriksaan' : 'Pembacaan selesai'}</b></div>
       </section>
       <p className="ovScopeNote">Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan; risiko dihitung dari register yang dapat diakses; IKP perlu tindak lanjut menghitung laporan yang belum ditutup tanpa batasan tahun. Ini bukan satu periode filter yang diterapkan ke seluruh modul.</p>
-
-      <>
-      <div className="ovKpis">
-        <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.incomplete ? 'Rekap belum lengkap' : quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
-        <Kpi delay={60} loading={loading} tone="warn" label="IKP perlu tindak lanjut" value={incidents.error ? null : stats.incidentsOpen} sub={incidents.incomplete ? 'Rekap belum lengkap' : incidents.error ? 'Tidak tersedia' : 'Insiden belum ditutup'} onClick={() => onNavigate('safety')} />
-        <Kpi delay={120} loading={loading} tone="danger" label="Risiko tinggi / sangat tinggi" value={risks.error ? null : stats.high} sub={risks.incomplete ? 'Rekap belum lengkap' : risks.error ? 'Tidak tersedia' : stats.overdueHigh ? `${stats.overdueHigh} melewati target RTP` : stats.highNoTarget ? `${stats.highNoTarget.toLocaleString('id-ID')} belum punya target RTP` : 'Tidak ada yang melewati target'} onClick={() => onNavigate('risk')} />
-        <Kpi delay={180} loading={loading} label="Audit menunggu validasi" value={quality.error || clinicalPathway.error ? null : stats.auditPending} sub={quality.incomplete || clinicalPathway.incomplete ? 'Rekap belum lengkap' : quality.error || clinicalPathway.error ? 'Tidak tersedia' : 'Logbook dan Clinical Pathway'} onClick={() => onNavigate('quality')} />
-      </div>
 
       <div className="ovGrid">
         <Panel delay={120} eyebrow="MANAJEMEN RISIKO" title="Distribusi level risiko" action={<button type="button" className="ovLink" onClick={() => onNavigate('risk')}>Buka register →</button>}>
@@ -323,27 +359,6 @@ export default function OverviewDashboard({
                   <b>{v.toLocaleString('id-ID')}</b>
                 </button>
               })}
-            </div>}
-        </Panel>
-
-        <Panel delay={180} eyebrow="PETA RISIKO" title="Sebaran kemungkinan × dampak" action={<button type="button" className="ovLink" onClick={() => onNavigate('risk', {})}>Lihat semua →</button>}>
-          {risks.error ? <SectionError error={risks.error} /> : loading ? <div className="ovSkeletonBlock" /> :
-            <div className="ovMatrixWrap">
-              <span className="ovAxisY">Kemungkinan</span>
-              <div className="ovMatrix" role="table" aria-label="Jumlah risiko per kemungkinan dan dampak">
-                {stats.matrix.map((row, ri) => row.map((count, ci) => (
-                  <button type="button" key={`${ri}-${ci}`} role="cell" className="ovCell" disabled={!count} data-band={matrixBand((5 - ri) * (ci + 1))}
-                    onClick={() => onNavigate('risk', { likelihood: 5 - ri, impact: ci + 1 })}
-                    title={`Kemungkinan ${5 - ri} × Dampak ${ci + 1}: ${count} risiko${count ? ' — klik untuk melihat daftarnya' : ''}`}
-                    style={{ ['--heat' as any]: count ? 0.18 + 0.82 * (count / stats.maxMatrix) : 0 }}>
-                    {count || ''}
-                  </button>
-                )))}
-              </div>
-              <span className="ovAxisX">Dampak →</span>
-              <div className="ovMatrixLegend" aria-label="Keterangan warna level risiko">
-                {LEVELS.map(l => <span key={l}><i style={{ background: `rgb(var(--risk-${LEVEL_CLASS[l]}))` }} />{l}</span>)}
-              </div>
             </div>}
         </Panel>
 
