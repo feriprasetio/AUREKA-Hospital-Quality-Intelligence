@@ -144,11 +144,13 @@ export default function HomeLandingWorkspace({supabase,userName,userId,roomId,ro
       const key=(row.record_date||row.created_at||'').slice(0,7);const m=months.find(item=>item.key===key);if(m)m.count++
       const core=row.core_data??{}
       const code=icdOf(core), diagnosis=diagnosisOf(core)
-      if(code){const old=byCode.get(code);byCode.set(code,{code,diagnosis:diagnosis||old?.diagnosis||'Diagnosis belum dinormalisasi',count:(old?.count||0)+1})}
+      const diagnosisKey=code||diagnosis.toLocaleLowerCase('id-ID').trim()
+      if(diagnosisKey){const old=byCode.get(diagnosisKey);byCode.set(diagnosisKey,{code:code||'Belum berkode',diagnosis:diagnosis||old?.diagnosis||'Diagnosis belum dinormalisasi',count:(old?.count||0)+1})}
       const stay=losOf(core);if(stay!==null)los.push(stay)
       const fields=fieldData(core)
+      const hasDischargeField=Object.prototype.hasOwnProperty.call(core,'discharge_at')||Object.prototype.hasOwnProperty.call(fields,'Tanggal Keluar')
       const discharged=valueText(core.discharge_at)||valueText(fields['Tanggal Keluar'])
-      if(!discharged && row.status!=='archived')active++
+      if(hasDischargeField&&!discharged&&row.status!=='archived')active++
     }
     return {months,episodeRows:episodeRows.length,active,averageLos:los.length?los.reduce((a,b)=>a+b,0)/los.length:null,topDiagnoses:Array.from(byCode.values()).sort((a,b)=>b.count-a.count).slice(0,6),activity:records.length,losCount:los.length}
   },[records])
@@ -166,8 +168,8 @@ export default function HomeLandingWorkspace({supabase,userName,userId,roomId,ro
       {error&&<div className="hlNotice">{error}</div>}
       <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas input data bulanan</h3><span>{roomName||'Unit'} · {new Date().getFullYear()}</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:<LineChart values={metrics.months.map(m=>m.activity)} labels={metrics.months.map(m=>m.label)}/>}</section>
       <section className="hlPanel"><header className="hlPanelHead"><h3>Episode pasien per bulan</h3><span>Berbasis Register Pasien</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:metrics.episodeRows?<LineChart values={metrics.months.map(m=>m.count)} labels={metrics.months.map(m=>m.label)}/>:<div className="hlEmpty">Belum ada episode pasien pada unit ini. Aktivitas input unit tetap ditampilkan pada grafik di atas.</div>}</section>
-      <div className="hlGrid"><section className="hlPanel"><header className="hlPanelHead"><h3>Indikator episode pasien</h3></header><div className="hlMetric"><span>Episode masih terbuka*</span><strong>{metrics.active.toLocaleString('id-ID')}</strong><small>*Proxy episode tanpa tanggal keluar, bukan sensus bed aktif.</small></div><div className="hlMetric" style={{marginTop:8}}><span>Rata-rata Length of Stay</span><strong>{metrics.averageLos===null?'—':metrics.averageLos.toLocaleString('id-ID',{maximumFractionDigits:1})+' hari'}</strong><small>{metrics.losCount} episode dengan data LOS</small></div></section>
-      <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak · ICD-10</h3></header>{metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code}><span title={item.diagnosis}>{item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
+      <div className="hlGrid"><section className="hlPanel"><header className="hlPanelHead"><h3>Indikator episode pasien</h3></header><div className="hlMetric"><span>Rawat inap tanpa tanggal keluar*</span><strong>{metrics.active.toLocaleString('id-ID')}</strong><small>*Hanya episode dengan field tanggal keluar; bukan sensus bed aktif.</small></div><div className="hlMetric" style={{marginTop:8}}><span>Rata-rata Length of Stay</span><strong>{metrics.averageLos===null?'—':metrics.averageLos.toLocaleString('id-ID',{maximumFractionDigits:1})+' hari'}</strong><small>{metrics.losCount} episode dengan data LOS</small></div></section>
+      <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak (kode ICD-10 bila tersedia)</h3></header>{metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code+item.diagnosis}><span title={item.diagnosis}>{item.code==='Belum berkode'?item.diagnosis:item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
       <p className="hlDate">Data dibatasi pada unit aktif dan tahun berjalan. Episode terbuka tidak boleh ditafsirkan sebagai jumlah bed terisi tanpa integrasi sensus tempat tidur.</p>
     </>}
     {tab==='achievements'&&<OverviewDashboard supabase={supabase} role={manager?'MANAGEMENT':'PIC'} roomId={roomId} roomName={roomName} manager={false} userName={userName} onNavigate={onNavigate}/>}
