@@ -1,0 +1,117 @@
+/*
+ * Gaya bento Ringkasan diterapkan ke semua modul (tema Arktik):
+ * kartu angka besar yang bersih, peta risiko & badge level dengan palet kaca.
+ * Semua modul memakai pola kartu <span>label</span><strong>angka</strong><small>keterangan</small>.
+ */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpis, .psKpis, .qraKpis, .sdKpis, .stKpis, .cpKpis, .acdKpis) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 16px !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  min-height: 132px !important;
+  padding: 20px !important;
+  border-radius: 22px !important;
+  background: var(--arktik-glass) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
+  border: 1px solid var(--arktik-edge) !important;
+  box-shadow: var(--arktik-shadow) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) > span:first-child {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--ak-muted, #3d5670) !important;
+  opacity: 1 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) > strong {
+  display: block !important;
+  font-size: 34px !important;
+  font-weight: 800 !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.03em !important;
+  color: var(--arktik-ink) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) > small {
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  color: var(--ak-muted, #3d5670) !important;
+  opacity: 1 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmKpis.compact :is(.rmKpi) { min-height: 104px !important; padding: 16px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmKpis.compact .rmKpi > strong { font-size: 28px !important; }
+
+/* Strip ringkas Form Logbook: kotak-kotak kecil seragam */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqRegisterSummary {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  gap: 12px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqRegisterSummary > div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 14px 16px !important;
+  border-radius: 18px !important;
+  background: var(--arktik-glass) !important;
+  border: 1px solid var(--arktik-edge) !important;
+  box-shadow: var(--arktik-shadow) !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqRegisterSummary > div > span { font-size: 12.5px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--ak-muted, #3d5670) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqRegisterSummary > div > strong { font-size: 24px !important; font-weight: 800 !important; letter-spacing: -0.02em !important; color: var(--arktik-ink) !important; }
+
+/* Peta risiko modul Manajemen Risiko: palet sama dengan Ringkasan */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell {
+  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContent .rmMatrixCell { border-color: rgba(255, 255, 255, 0.12) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell.very-high { background: var(--ak-risk-vh) !important; color: var(--ak-risk-vh-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell.high { background: var(--ak-risk-h) !important; color: var(--ak-risk-h-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell.moderate { background: var(--ak-risk-m) !important; color: var(--ak-risk-m-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell.low { background: var(--ak-risk-l) !important; color: var(--ak-risk-l-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell.very-low { background: var(--ak-risk-vl) !important; color: var(--ak-risk-vl-ink) !important; }
+
+/* Badge level risiko di tabel & daftar: palet yang sama */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmBadge {
+  border-radius: 999px !important;
+  border: 0 !important;
+  background-image: none !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  padding: 4px 10px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmBadge.very-high { background: var(--ak-risk-vh) !important; color: var(--ak-risk-vh-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmBadge.high { background: var(--ak-risk-h) !important; color: var(--ak-risk-h-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmBadge.moderate { background: var(--ak-risk-m) !important; color: var(--ak-risk-m-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmBadge.low { background: var(--ak-risk-l) !important; color: var(--ak-risk-l-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmBadge.very-low { background: var(--ak-risk-vl) !important; color: var(--ak-risk-vl-ink) !important; border: 1px solid rgba(140, 170, 200, 0.5) !important; }
+
+/* Panel modul: sudut & jarak seperti bento */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(.rmPanel, .psPanel, .qraPanel, .sdPanel, .stPanel, .cpPanel, .aqPanel, .acdPanel, .oppePanel, .cwPanel, .mswPanel) {
+  border-radius: 24px !important;
+}
+
+@media (max-width: 560px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpis, .psKpis, .qraKpis, .sdKpis, .stKpis, .cpKpis, .acdKpis) { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) { min-height: 112px !important; padding: 14px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .acdKpi) > strong { font-size: 26px !important; }
+}
