@@ -1,0 +1,123 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import OverviewDashboard from '@/components/OverviewDashboard'
+import TanyaAureka from '@/components/TanyaAureka'
+
+type RecordRow = {
+  id: string
+  room_id: number | null
+  record_date: string | null
+  measurement_grain: string | null
+  status: string | null
+  core_data: Record<string, any> | null
+  created_at: string
+  updated_at: string
+}
+type Props = {
+  supabase: SupabaseClient
+  userName: string
+  roomId: number | null
+  roomName: string | null
+  manager: boolean
+  onNavigate: (id: string, focus?: Record<string, unknown>) => void
+}
+const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
+const valueText = (value: unknown) => value == null ? '' : String(value).trim()
+const fieldData = (core: Record<string, any>) => (core.form_fields ?? core.form_data ?? {}) as Record<string, unknown>
+const diagnosisOf = (core: Record<string, any>) => {
+  const fields = fieldData(core)
+  return valueText(core.diagnosis) || valueText(fields['Diagnosa Tegak']) || valueText(fields['Diagnosa IGD']) || valueText(fields['Diagnosa']) || valueText(fields['Diagnosa Operasi'])
+}
+const icdOf = (core: Record<string, any>) => {
+  const fields = fieldData(core)
+  const raw = valueText(core.icd10_code) || valueText(core.icd10) || valueText(fields['Kode ICD-10']) || valueText(fields['ICD-10']) || valueText(fields['Kode Diagnosa'])
+  const match = raw.toUpperCase().match(/[A-Z][0-9]{2}(?:\\.[0-9A-Z]{1,4})?/)
+  return match?.[0] || ''
+}
+const losOf = (core: Record<string, any>) => {
+  const fields = fieldData(core)
+  const calc = (core.calculated_fields ?? {}) as Record<string, unknown>
+  const raw = core.los_days ?? calc['Length of Stay'] ?? calc['Lenght of Stay'] ?? fields['Length of Stay'] ?? fields['Lenght of Stay']
+  const n = Number(raw)
+  if (Number.isFinite(n) && n >= 0) return n
+  const start = valueText(core.admission_at) || valueText(fields['Tanggal Masuk'])
+  const end = valueText(core.discharge_at) || valueText(fields['Tanggal Keluar'])
+  if (!start) return null
+  const from = new Date(start).getTime()
+  const to = end ? new Date(end).getTime() : Date.now()
+  return Number.isFinite(from) && Number.isFinite(to) && to >= from ? Math.max(1, Math.ceil((to-from)/86400000)) : null
+}
+function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
+  const max = Math.max(1, ...values)
+  const points = values.map((v,i) => `${18 + i* (264/Math.max(1,values.length-1))},${104 - (v/max)*82}`).join(' ')
+  return <div className="hlChart"><svg viewBox="0 0 300 126" role="img" aria-label="Tren data bulanan"><line x1="16" y1="105" x2="284" y2="105" stroke="#dfe8e2"/><line x1="16" y1="63" x2="284" y2="63" stroke="#edf2ee"/><polyline points={points} fill="none" stroke="#24744f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>{values.map((v,i)=><circle key={labels[i]} cx={18+i*(264/Math.max(1,values.length-1))} cy={104-(v/max)*82} r="3.5" fill="#24744f"><title>{labels[i]}: {v}</title></circle>)}</svg><div className="hlAxis">{labels.map(label=><span key={label}>{label}</span>)}</div></div>
+}
+export default function HomeLandingWorkspace({supabase,userName,roomId,roomName,manager,onNavigate}:Props) {
+  const [tab,setTab] = useState<'welcome'|'infographics'|'achievements'>('welcome')
+  const [records,setRecords] = useState<RecordRow[]>([])
+  const [loading,setLoading] = useState(false)
+  const [error,setError] = useState('')
+  const [refreshedAt,setRefreshedAt] = useState<Date|null>(null)
+  const firstName = userName.trim().split(/\\s+/)[0] || 'Pengguna'
+  const greeting = (() => { const h=Number(new Intl.DateTimeFormat('en-US',{hour:'2-digit',hour12:false,timeZone:'Asia/Pontianak'}).format(new Date())); return h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam' })()
+  const dateLabel = new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date())
+  useEffect(() => {
+    let cancelled=false
+    if(!roomId){setRecords([]);setError('Unit kerja belum terhubung ke akun ini.');return}
+    setLoading(true);setError('')
+    const year=new Date().getFullYear()
+    ;(async()=>{
+      const {data,error:queryError}=await supabase.schema('aureka_quality').from('quality_records')
+        .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at')
+        .eq('room_id',roomId).eq('profile_year',year).is('archived_at',null)
+        .order('record_date',{ascending:true,nullsFirst:false}).limit(5000)
+      if(cancelled)return
+      if(queryError){setError('Infografis belum dapat dimuat. Periksa koneksi dan hak akses unit.');setRecords([])}
+      else {setRecords((data??[]) as RecordRow[]);setRefreshedAt(new Date())}
+      setLoading(false)
+    })().catch(()=>{if(!cancelled){setError('Infografis belum dapat dimuat. Coba kembali.');setLoading(false)}})
+    return()=>{cancelled=true}
+  },[supabase,roomId])
+  const metrics=useMemo(()=>{
+    const now=new Date()
+    const months=Array.from({length:12},(_,i)=>({key:`${now.getFullYear()}-${String(i+1).padStart(2,'0')}`,label:MONTHS[i],count:0,activity:0}))
+    const episodeRows=records.filter(row=>row.measurement_grain==='patient_episode')
+    const byCode=new Map<string,{code:string;diagnosis:string;count:number}>()
+    const los:number[]=[]
+    let active=0
+    for(const row of records){const key=(row.record_date||row.created_at||'').slice(0,7);const m=months.find(item=>item.key===key);if(m)m.activity++}
+    for(const row of episodeRows){
+      const key=(row.record_date||row.created_at||'').slice(0,7);const m=months.find(item=>item.key===key);if(m)m.count++
+      const core=row.core_data??{}
+      const code=icdOf(core), diagnosis=diagnosisOf(core)
+      if(code){const old=byCode.get(code);byCode.set(code,{code,diagnosis:diagnosis||old?.diagnosis||'Diagnosis belum dinormalisasi',count:(old?.count||0)+1})}
+      const stay=losOf(core);if(stay!==null)los.push(stay)
+      const fields=fieldData(core)
+      const discharged=valueText(core.discharge_at)||valueText(fields['Tanggal Keluar'])
+      if(!discharged && row.status!=='archived')active++
+    }
+    return {months,episodeRows:episodeRows.length,active,averageLos:los.length?los.reduce((a,b)=>a+b,0)/los.length:null,topDiagnoses:Array.from(byCode.values()).sort((a,b)=>b.count-a.count).slice(0,6),activity:records.length,losCount:los.length}
+  },[records])
+  const tabButton=(id:typeof tab,label:string)=><button type="button" role="tab" aria-selected={tab===id} className={tab===id?'hlTab active':'hlTab'} onClick={()=>setTab(id)}>{label}</button>
+  return <section className="homeLanding">
+    <style>{`
+      .homeLanding{display:grid;gap:16px;color:var(--ink,#18372b)}.hlTabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.hlTab{border:1px solid transparent;border-radius:10px;padding:10px 14px;background:transparent;color:#66766d;font-size:12px;font-weight:750;cursor:pointer}.hlTab.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.hlWelcomeCard,.hlPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.13));border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(28,60,43,.035)}.hlWelcomeCard{background:linear-gradient(125deg,#f3f8f4,#fff 70%);display:grid;gap:7px}.hlWelcomeCard .hlGreeting{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:-.04em;color:#204b35}.hlWelcomeCard p{margin:0;color:#718078;font-size:12px}.hlDate{font-size:12px;color:#718078}.hlPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.hlPanelHead h3{font-size:15px;margin:0;color:#244638}.hlPanelHead span{font-size:10px;color:#819087}.hlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hlMetric{padding:13px;border-radius:12px;background:#f7faf8;border:1px solid #e8efea}.hlMetric span{display:block;font-size:10px;color:#78877e}.hlMetric strong{display:block;font-size:23px;margin-top:5px;color:#244638}.hlMetric small{font-size:10px;color:#829087}.hlChart{width:100%}.hlChart svg{width:100%;height:auto;overflow:visible}.hlAxis{display:flex;justify-content:space-between;color:#87948c;font-size:9px}.hlBars{display:grid;gap:8px}.hlBarRow{display:grid;grid-template-columns:minmax(90px,1fr) 3fr 28px;gap:8px;align-items:center;font-size:10px}.hlBarTrack{height:8px;background:#edf2ee;border-radius:10px;overflow:hidden}.hlBarFill{height:100%;background:#4d9670;border-radius:10px}.hlEmpty{padding:22px;text-align:center;color:#829087;font-size:12px}.hlAi{min-height:250px}.hlNotice{padding:11px 13px;border-radius:10px;background:#fff7e9;color:#805e2b;font-size:11px}@media(max-width:640px){.hlGrid{grid-template-columns:1fr}.hlWelcomeCard,.hlPanel{padding:14px}.hlTab{flex:1}}`}</style>
+    <nav className="hlTabs" role="tablist" aria-label="Halaman Utama">{tabButton('welcome','Welcome Page')}{tabButton('infographics','Infografis')}{tabButton('achievements','Capaian Unit')}</nav>
+    {tab==='welcome'&&<>
+      <section className="hlWelcomeCard"><span className="hlGreeting">{greeting}, {firstName}</span><p>{dateLabel}</p><p>{roomName||'Unit kerja belum dipetakan'}</p></section>
+      <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas terakhir Anda</h3><span>{refreshedAt?'Data diperbarui '+refreshedAt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'Ringkasan aktivitas'}</span></header><p className="hlEmpty">Aktivitas terakhir lintas modul akan ditampilkan setelah sumber aktivitas pengguna terintegrasi. Data tidak ditampilkan sebagai aktivitas personal tanpa identitas pencatat yang terverifikasi.</p></section>
+      <section className="hlPanel hlAi"><header className="hlPanelHead"><h3>Tanya AI</h3><span>Asisten mutu dan keselamatan pasien</span></header><TanyaAureka sb={supabase} page="Halaman Utama · Welcome Page" embedded/></section>
+    </>}
+    {tab==='infographics'&&<>
+      {error&&<div className="hlNotice">{error}</div>}
+      <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas input data bulanan</h3><span>{roomName||'Unit'} · {new Date().getFullYear()}</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:<LineChart values={metrics.months.map(m=>m.activity)} labels={metrics.months.map(m=>m.label)}/>}</section>
+      <section className="hlPanel"><header className="hlPanelHead"><h3>Episode pasien per bulan</h3><span>Berbasis Register Pasien</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:metrics.episodeRows?<LineChart values={metrics.months.map(m=>m.count)} labels={metrics.months.map(m=>m.label)}/>:<div className="hlEmpty">Belum ada episode pasien pada unit ini. Aktivitas input unit tetap ditampilkan pada grafik di atas.</div>}</section>
+      <div className="hlGrid"><section className="hlPanel"><header className="hlPanelHead"><h3>Indikator episode pasien</h3></header><div className="hlMetric"><span>Episode masih terbuka*</span><strong>{metrics.active.toLocaleString('id-ID')}</strong><small>*Proxy episode tanpa tanggal keluar, bukan sensus bed aktif.</small></div><div className="hlMetric" style={{marginTop:8}}><span>Rata-rata Length of Stay</span><strong>{metrics.averageLos===null?'—':metrics.averageLos.toLocaleString('id-ID',{maximumFractionDigits:1})+' hari'}</strong><small>{metrics.losCount} episode dengan data LOS</small></div></section>
+      <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak · ICD-10</h3></header>{metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code}><span title={item.diagnosis}>{item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
+      <p className="hlDate">Data dibatasi pada unit aktif dan tahun berjalan. Episode terbuka tidak boleh ditafsirkan sebagai jumlah bed terisi tanpa integrasi sensus tempat tidur.</p>
+    </>}
+    {tab==='achievements'&&<OverviewDashboard supabase={supabase} role={manager?'MANAGEMENT':'PIC'} roomId={roomId} roomName={roomName} manager={false} userName={userName} onNavigate={onNavigate}/>}
+  </section>
+}
