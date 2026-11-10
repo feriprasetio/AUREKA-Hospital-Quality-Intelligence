@@ -289,8 +289,6 @@ export default function OverviewDashboard({
         <div><span>PEMUTAKHIRAN DATA</span><b>{loading ? 'Memuat data…' : refreshedAt ? `Dicek ${refreshedAt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Pontianak' })}, ${refreshedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Pontianak' })} WIB` : 'Belum diperbarui'}</b></div>
         <div className="ovContextStatus"><span>STATUS SUMBER</span><b className={sourceError ? 'error' : loading ? 'loading' : 'ok'}>{loading ? 'Memuat' : sourceError ? 'Perlu pemeriksaan' : 'Pembacaan selesai'}</b></div>
       </section>
-      <p className="ovScopeNote">Cakupan: episode mutu dan Clinical Pathway mengikuti tahun laporan; risiko dihitung dari register yang dapat diakses; IKP perlu tindak lanjut menghitung laporan yang belum ditutup tanpa batasan tahun. Ini bukan satu periode filter yang diterapkan ke seluruh modul.</p>
-
       <>
       <div className="ovKpis">
         <Kpi delay={0} loading={loading} label={`Episode mutu ${year}`} value={quality.error ? null : stats.qualityTotal} sub={quality.incomplete ? 'Rekap belum lengkap' : quality.error ? 'Tidak tersedia' : `${stats.qualityReview} perlu review`} onClick={() => onNavigate('quality')} />
@@ -399,7 +397,6 @@ export default function OverviewDashboard({
           </div>
         </Panel>}
       </div>
-      <p className="ovFoot">Angka dihitung langsung dari database AUREKA sesuai hak akses {role === 'ADMIN' ? 'Super Admin' : 'akun Anda'}. Klik kartu, baris, atau sel peta untuk langsung membuka datanya.</p>
       </> {manager && <section className="ovExecutive" aria-label="Ringkasan manajemen terpadu">
         <div className="ovExecGrid">
           <Panel delay={120} eyebrow="EARLY WARNING" title="Peringatan prioritas manajemen">
@@ -432,8 +429,7 @@ export default function OverviewDashboard({
           </Panel>
           
         </div>
-        <p className="ovFoot">Bagian ringkasan manajemen melengkapi panel operasional pada halaman yang sama; setiap angka tetap mengikuti cakupan sumber dan hak akses. Angka lintas-modul tidak boleh ditafsirkan sebagai satu skor mutu rumah sakit atau sebagai indikator nasional yang telah tervalidasi.</p>
-      </section>}
+        </section>}
     </div>
   )
 }
