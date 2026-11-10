@@ -27,15 +27,15 @@ export type AurekaModule = {
 export const AUREKA_MODULE_REGISTRY = [
   {
     id: 'home',
-    label: 'Ringkasan',
+    label: 'Halaman Utama',
     group: 'overview',
     status: 'beta',
     visibility: 'all-authenticated',
     requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'],
-    routeHash: '#ringkasan',
+    routeHash: '#halaman-utama',
     owner: 'Komite PMKP',
     lastReviewed: '2026-10-29',
-    description: 'Dashboard operasional, antrean prioritas, dan status data sesuai hak akses.',
+    description: 'Welcome Page, infografis operasional, Tanya AI, dan capaian unit sesuai hak akses.',
   },
   {
     id: 'patients',
