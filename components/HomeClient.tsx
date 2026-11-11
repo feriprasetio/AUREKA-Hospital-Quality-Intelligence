@@ -273,8 +273,6 @@ export default function HomeClient(){
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
  const effectiveQualityRoomId=admin?activeWorkspaceRoomId:(selectedQualityRoomId??room?.id??null)
- const contextNavigation:SidebarChild[]=[]
- const moduleLabel=active==='home'?'Beranda':active==='analytics'?(analyticsTab==='directory'||analyticsTab==='oppe'?'Sumber Daya Manusia':'Program & Indikator'):visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
  const openMainModule=(id:string,keepMenuOpen=false)=>{
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
   setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id==='staff'?'analytics':id)
@@ -863,12 +861,8 @@ export default function HomeClient(){
     
    </div>
   </div>
-  {(contextNavigation.length>0||(active==='quality'&&!qualityOppeOpen))&&<div className="workspaceContextBar">
-   <nav className="workspaceContextNav" aria-label={'Bagian '+moduleLabel}>
-    {contextNavigation.map(child=><button type="button" key={child.id} aria-current={selectedSidebarChild(active)===child.id?'page':undefined} onClick={()=>selectSidebarChild(active,child.id)}>{child.label}</button>)}
-   </nav>
-   <label className="workspaceContextSelect"><span>Bagian {moduleLabel}</span><select aria-label={'Pilih bagian '+moduleLabel} value={selectedSidebarChild(active)} onChange={event=>selectSidebarChild(active,event.target.value)}>{contextNavigation.map(child=><option key={child.id} value={child.id}>{child.label}</option>)}</select></label>
-   {active==='quality'&&!qualityOppeOpen&&<nav className="qualityWorkspaceTabs" aria-label="Tampilan audit mutu">
+  {active==='quality'&&!qualityOppeOpen&&<div className="workspaceContextBar">
+   <nav className="qualityWorkspaceTabs" aria-label="Tampilan audit mutu">
     <button type="button" className={!qualityResultsView?'active':''} aria-pressed={!qualityResultsView} onClick={()=>{
      const mode=selectedQualityMode
      setQualityResultsView(null)
@@ -883,7 +877,7 @@ export default function HomeClient(){
      setClinicalPathwayOpen(false)
      setQualityInitialContainer(mode==='clinical-death'?'Audit Klinis dan Kematian':'Audit Indikator Mutu')
     }}>Hasil Capaian</button>
-   </nav>}
+   </nav>
   </div>}
   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} roomId={activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin} scopeToRoom={admin} selectedRoomId={admin?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
