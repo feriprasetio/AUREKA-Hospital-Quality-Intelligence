@@ -83,3 +83,20 @@ html body .tanyaPanel .tanyaMsg.error p { color: inherit !important; -webkit-tex
 .tanyaGhost + .tanyaGhost { margin-left: -6px; }
 .tanyaGhost.danger { color: #b33a3a; }
 html[data-mode="gelap"] .tanyaGhost.danger { color: #ff9b9b; }
+
+/* Kartu draf pengingat ke PIC unit (dikirim hanya setelah pengguna menekan Kirim) */
+.tanyaReminder { margin-top: 10px; display: grid; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid var(--tn-line); background: var(--tn-chip); }
+.tanyaReminder b { font-size: 13px; }
+.tanyaReminderUnits { display: flex; flex-wrap: wrap; gap: 6px; }
+.tanyaReminderUnits label { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--tn-line); font-size: 12px; cursor: pointer; opacity: .6; }
+.tanyaReminderUnits label.on { opacity: 1; border-color: var(--tn-navy); }
+.tanyaReminderUnits input { margin: 0; }
+.tanyaReminder textarea { width: 100%; resize: vertical; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--tn-line); background: var(--tn-bot); color: var(--tn-ink); font: inherit; font-size: 13px; }
+.tanyaReminderActions { display: flex; gap: 8px; }
+.tanyaReminderActions button { border: 1px solid var(--tn-line); background: transparent; color: var(--tn-ink); border-radius: 10px; padding: 8px 14px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.tanyaReminderActions button.primary { background: var(--tn-user); border-color: var(--tn-user); color: #fff; }
+.tanyaReminderActions button:disabled { opacity: .6; cursor: default; }
+.tanyaReminder small { font-size: 12px; }
+.tanyaReminder small.ok { color: #1f7a4a; } .tanyaReminder small.err { color: #b33a3a; }
+html[data-mode="gelap"] .tanyaReminder small.ok { color: #7fd8a6; } html[data-mode="gelap"] .tanyaReminder small.err { color: #ff9b9b; }
+html body .tanyaPanel .tanyaMsg.model .tanyaReminder :is(b, label, small) { -webkit-text-fill-color: currentColor !important; }
