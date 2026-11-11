@@ -222,11 +222,11 @@ test('every workbook importer traps focus and delegates Escape to its original b
 
 test('primary quality workspace exposes workbook imports without patient-episode-only read mode', () => {
   const quality = read('components/QualityIndicatorWorkspace.tsx')
-  assert.match(home, /<QualityIndicatorWorkspace[\\s\\S]*?showWorkbookImportButtons=\\{true\\}/)
-  assert.match(quality, /\\(patientRegistryMode\\|\\|showWorkbookImportButtons\\)&&!isValidator/)
-  assert.match(quality, /if\\(patientRegistryMode\\)rq=rq\\.eq\\('measurement_grain','patient_episode'\\)/)
-  assert.match(quality, /else if\\(id===2\\)openImportDialog\\('it'\\)/)
-  assert.match(quality, /Number\\(roomId\\)===2/)
+  assert.match(home, /<QualityIndicatorWorkspace[\s\S]*?showWorkbookImportButtons=\{true\}/)
+  assert.match(quality, /\(patientRegistryMode\|\|showWorkbookImportButtons\)&&!isValidator/)
+  assert.match(quality, /if\(patientRegistryMode\)rq=rq\.eq\('measurement_grain','patient_episode'\)/)
+  assert.match(quality, /else if\(id===2\)openImportDialog\('it'\)/)
+  assert.match(quality, /Number\(roomId\)===2/)
 })
 
 test('page header exposes no comfortable/compact density control', () => {
