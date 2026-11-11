@@ -62,13 +62,68 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
   const [mounted, setMounted] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  // Riwayat disimpan per akun di browser ini (sampai logout / dihapus), dan disamakan antar-panel (tombol pojok, pusat komunikasi, Halaman Utama).
+  const instanceId = useRef(Math.random().toString(36).slice(2))
+  const storeKey = useRef<string | null>(null)
+  const applyingRemote = useRef(false)
+  const hydrated = useRef(false)
 
   useEffect(() => {
     if (embedded) setOpen(true)
     setMounted(true)
-    try { const raw = sessionStorage.getItem(STORE_KEY); if (raw) setMsgs(JSON.parse(raw)) } catch { /* abaikan */ }
-  }, [embedded])
-  useEffect(() => { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(msgs.slice(-20))) } catch { /* abaikan */ } }, [msgs])
+    let cancelled = false
+    void sb.auth.getSession().then(({ data }) => {
+      if (cancelled) return
+      const uid = data.session?.user?.id
+      storeKey.current = uid ? STORE_KEY + ':' + uid : null
+      try {
+        const raw = (storeKey.current && localStorage.getItem(storeKey.current)) || sessionStorage.getItem(STORE_KEY)
+        if (raw) { applyingRemote.current = true; setMsgs(JSON.parse(raw)) }
+        sessionStorage.removeItem(STORE_KEY)
+      } catch { /* abaikan */ }
+      hydrated.current = true
+    })
+    const onSync = (e: Event) => {
+      const d = (e as CustomEvent<{ from: string; msgs: Msg[] }>).detail
+      if (!d || d.from === instanceId.current) return
+      applyingRemote.current = true
+      setMsgs(d.msgs)
+    }
+    window.addEventListener('aureka-tanya-sync', onSync)
+    return () => { cancelled = true; window.removeEventListener('aureka-tanya-sync', onSync) }
+  }, [embedded, sb])
+  useEffect(() => {
+    // Jangan simpan/siarkan sebelum riwayat dimuat (panel baru tidak boleh menghapus riwayat panel lain).
+    if (!hydrated.current) { applyingRemote.current = false; return }
+    if (applyingRemote.current) { applyingRemote.current = false; return }
+    try { if (storeKey.current) { if (msgs.length) localStorage.setItem(storeKey.current, JSON.stringify(msgs.slice(-60))); else localStorage.removeItem(storeKey.current) } } catch { /* abaikan */ }
+    window.dispatchEvent(new CustomEvent('aureka-tanya-sync', { detail: { from: instanceId.current, msgs } }))
+  }, [msgs])
+
+  const clearChat = () => {
+    if (!msgs.length) return
+    if (!window.confirm('Hapus seluruh riwayat chat Tanya AUREKA di perangkat ini?')) return
+    setMsgs([])
+  }
+  const saveChat = () => {
+    if (!msgs.length) return
+    const stamp = new Date()
+    const lines = [
+      'Percakapan Tanya AUREKA',
+      'Disimpan: ' + stamp.toLocaleString('id-ID'),
+      '',
+      ...msgs.map(m => (m.role === 'user' ? 'Anda' : 'AUREKA') + ':\n' + m.text.trim() + '\n'),
+    ]
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'tanya-aureka-' + stamp.toISOString().slice(0, 16).replace(/[T:]/g, '-') + '.txt'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
   useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }) }, [msgs, busy])
   useEffect(() => {
     if (!open) return
@@ -100,7 +155,10 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     <header className="tanyaHead">
       <span className="tanyaMark" aria-hidden="true">✦</span>
       <div><strong>Tanya AUREKA</strong><span>Asisten AI · membaca data sesuai hak akses Anda</span></div>
-      {msgs.length > 0 && <button type="button" className="tanyaGhost" onClick={() => setMsgs([])} title="Mulai percakapan baru">Baru</button>}
+      {msgs.length > 0 && <>
+        <button type="button" className="tanyaGhost" onClick={saveChat} title="Unduh percakapan sebagai file teks">Simpan</button>
+        <button type="button" className="tanyaGhost danger" onClick={clearChat} title="Hapus riwayat chat di perangkat ini">Hapus</button>
+      </>}
       <button type="button" className="tanyaClose" aria-label="Tutup Tanya AUREKA" onClick={() => setOpen(false)}>×</button>
     </header>
     <div className="tanyaList" ref={listRef} aria-live="polite">
