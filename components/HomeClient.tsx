@@ -278,11 +278,10 @@ export default function HomeClient(){
   if(id==='safety')setSafetyTab('incidents')
   if(id==='risk')setRiskTab('register')
   if(id==='staff'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
-  if(id==='staff'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
   if(id==='analytics'){setAnalyticsTab(admin?'programs':'directory');setAnalyticsDirectoryTab(admin?'directory':'team')}
  }
  const selectSidebarChild=(moduleId:string,childId:string)=>{
-  setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId)
+  setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId==='staff'?'analytics':moduleId)
   if(moduleId==='quality'){
    if(childId==='oppe-fppe'){setQualityOppeOpen(true);setQualityResultsView(null);setClinicalPathwayOpen(false);setQualityOpen(false);return}
    setQualityOppeOpen(false)
@@ -722,8 +721,8 @@ export default function HomeClient(){
   <div className="navLabel">Menu utama</div>
   <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'expanded':'')} key="home">
-    <button type="button" title="Halaman Utama" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
-     <NavIcon id="home"/><span>Halaman Utama</span>
+    <button type="button" title="Beranda" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
+     <NavIcon id="home"/><span>Beranda</span>
     </button>
    </div>
    {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=(active===id||(id==='staff'&&active==='analytics'))&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+((active===id||(id==='staff'&&active==='analytics'))?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
@@ -838,7 +837,7 @@ export default function HomeClient(){
   <div className="workspacePageHead">
    <div className="workspacePageIntro">
    <nav className="workspaceCrumbs" aria-label="Breadcrumb">
-    <button type="button" onClick={()=>openMainModule('home')} aria-label="Halaman Utama"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
+    <button type="button" onClick={()=>openMainModule('home')} aria-label="Beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
     {active!=='home'&&<><span aria-hidden="true">/</span><span>{active==='settings'?'Administrasi':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
     {active!=='home'&&active!=='settings'&&<><span aria-hidden="true">/</span><b>{currentContainer.split(' · ')[0]}</b></>}
     {active==='home'&&<><span aria-hidden="true">/</span><b>Beranda</b></>}
@@ -879,7 +878,7 @@ export default function HomeClient(){
    :active==='quality'?<QualityHub onOpen={()=>selectSidebarChild('quality','indicators')} onOpenClinicalPathway={()=>selectSidebarChild('quality','clinical-pathway')} onOpenClinicalDeathReview={()=>selectSidebarChild('quality','clinical-death')}/>
    :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab}/>
    :active==='risk'?<RiskManagementWorkspace key={'risk-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab}/>
-   :active==='analytics'?<MetadataStatisticsWorkspace key={'metadata-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin} initialContainer={analyticsTab} initialDirectoryTab={analyticsDirectoryTab}/>
+   :active==='analytics'&&analyticsTab==='oppe'?<OppeAuditWorkspace key="staff-oppe-fppe" initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin}/>:active==='analytics'?<MetadataStatisticsWorkspace key={'metadata-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin} initialContainer={analyticsTab} initialDirectoryTab={analyticsDirectoryTab}/>
    :active==='settings'?<GeneralSettings key={profileFocus+(settingsTab||'')} openProfile={profileFocus>0} initialTab={settingsTab||undefined} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
   </div>
