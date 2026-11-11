@@ -91,7 +91,7 @@ export const AUREKA_MODULE_REGISTRY = [
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
-    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'DEWAN_PENGAWAS', 'PIC', 'VALIDATOR'],
+    requiredRoles: ['ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR', 'PIC', 'VALIDATOR'],
     routeHash: '#tenaga-klinis',
     owner: 'Super Admin / Komite PMKP',
     lastReviewed: '2026-10-29',
