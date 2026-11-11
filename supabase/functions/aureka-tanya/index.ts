@@ -1,4 +1,4 @@
-// Tanya AUREKA — asisten tanya-jawab berbasis data AUREKA (Gemini dan/atau Groq).
+// Tanya AUREKA — asisten tanya-jawab berbasis data AUREKA (Gemini, Groq, NVIDIA; opsional DeepSeek/LLM7).
 // Kunci API disimpan sebagai secret Supabase (GROQ_API_KEY atau GEMINI_API_KEY), tidak pernah dikirim ke browser.
 // Data diambil dengan JWT pengguna sehingga RLS berlaku: AI hanya melihat data yang boleh dilihat pengguna itu.
 // Tidak ada data identitas pasien yang dikirim ke AI (ringkasan IKP hanya berupa hitungan).
@@ -204,31 +204,53 @@ async function askGemini(apiKey: string, system: string, contents: Turn[]): Prom
   return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
 }
 
-/** Groq (API kompatibel OpenAI): coba beberapa model gratis berurutan. */
-async function askGroq(apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
+/** Penyedia berformat OpenAI (Groq, NVIDIA, DeepSeek, LLM7): coba beberapa model berurutan. */
+type OpenAiProvider = { label: string; url: string; models: string[] };
+const OPENAI_PROVIDERS: Record<string, OpenAiProvider> = {
+  groq: { label: "Groq", url: "https://api.groq.com/openai/v1/chat/completions",
+    models: [Deno.env.get("GROQ_MODEL") || "", "openai/gpt-oss-120b", "llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant"] },
+  nvidia: { label: "NVIDIA", url: "https://integrate.api.nvidia.com/v1/chat/completions",
+    models: [Deno.env.get("NVIDIA_MODEL") || "", "meta/llama-3.3-70b-instruct", "openai/gpt-oss-120b", "meta/llama-3.1-70b-instruct"] },
+  deepseek: { label: "DeepSeek", url: "https://api.deepseek.com/chat/completions",
+    models: [Deno.env.get("DEEPSEEK_MODEL") || "", "deepseek-flash", "deepseek-chat"] },
+  llm7: { label: "LLM7", url: "https://api.llm7.io/v1/chat/completions",
+    models: [Deno.env.get("LLM7_MODEL") || "", "default", "fast"] },
+};
+
+async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
   const messages = [
     { role: "system", content: system },
-    ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map((p) => p.text).join("\n") })),
+    ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map((x) => x.text).join("\n") })),
   ];
-  const models = [Deno.env.get("GROQ_MODEL"), "openai/gpt-oss-120b", "llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant"].filter(Boolean) as string[];
   let last = 0;
-  for (const model of [...new Set(models)]) {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1200 }),
-    });
+  for (const model of [...new Set(p.models.filter(Boolean))]) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 45000);
+    let res: Response;
+    try {
+      res = await fetch(p.url, {
+        method: "POST", signal: ctrl.signal,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1200 }),
+      });
+    } catch (e) {
+      clearTimeout(timer);
+      console.warn(p.label, model, "jaringan/timeout", String(e).slice(0, 200));
+      last = 504;
+      continue;
+    }
+    clearTimeout(timer);
     last = res.status;
     if (res.ok) {
       const out = await res.json();
-      const answer = String(out?.choices?.[0]?.message?.content || "").trim();
-      return answer ? { answer, model } : { status: 502, error: "AI tidak memberikan jawaban. Coba ulangi dengan kalimat lain." };
+      const answer = String(out?.choices?.[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+      if (answer) return { answer, model };
+      continue;
     }
-    const text = (await res.text()).slice(0, 300);
-    console.warn("groq", model, res.status, text);
-    if (res.status === 401 || res.status === 403) return { status: 502, error: "Kunci GROQ_API_KEY ditolak Groq. Periksa atau buat ulang kuncinya di console.groq.com/keys." };
-    // Model dihentikan/tidak ada (400/404), kuota per model habis (429) atau server sibuk: coba model berikutnya.
-    if (![400, 404, 413, 429, 500, 502, 503].includes(res.status)) break;
+    console.warn(p.label, model, res.status, (await res.text()).slice(0, 300));
+    if (res.status === 401 || res.status === 403) return { status: 502, error: `Kunci ${p.label} ditolak. Periksa atau buat ulang kuncinya.` };
+    // Model dihentikan/tidak ada (400/404/422), kuota (429), server sibuk: coba model berikutnya.
+    if (![400, 404, 413, 422, 429, 500, 502, 503, 504].includes(res.status)) break;
   }
   return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
 }
@@ -249,11 +271,19 @@ async function handle(req: Request): Promise<Response> {
     const parts = /curl|x-goog-api-key|authorization/i.test(raw) ? [raw] : raw.split(/[\s,;]+/);
     return [...new Set(parts.map(cleanKey).filter((k) => /^[A-Za-z0-9._\-]{20,200}$/.test(k)))];
   };
-  const available: Record<string, string[]> = { gemini: keysOf("GEMINI_API_KEY"), groq: keysOf("GROQ_API_KEY") };
-  const order = (Deno.env.get("AI_PROVIDER_ORDER") || "gemini,groq").split(/[\s,]+/).map((x) => x.toLowerCase()).filter((x) => available[x]?.length);
+  const available: Record<string, string[]> = {
+    gemini: keysOf("GEMINI_API_KEY"),
+    groq: keysOf("GROQ_API_KEY"),
+    nvidia: keysOf("NVIDIA_API_KEY"),
+    deepseek: keysOf("DEEPSEEK_API_KEY"),
+    llm7: [...new Set([...keysOf("LLM7_API_KEY"), ...keysOf("LLM7.IO_API_KEY"), ...keysOf("LLM7_IO_API_KEY")])],
+  };
+  // Bawaan hanya penyedia langsung (Google, Groq, NVIDIA). DeepSeek (server di Tiongkok) & LLM7 (perantara pihak ketiga)
+  // dipakai hanya bila dicantumkan sendiri di AI_PROVIDER_ORDER, karena data mutu RS ikut terkirim.
+  const order = (Deno.env.get("AI_PROVIDER_ORDER") || "gemini,groq,nvidia").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, "")).filter((x) => available[x]?.length);
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GROQ_API_KEY dan/atau GEMINI_API_KEY dengan kode kunci saja)." });
+  if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GEMINI_API_KEY, GROQ_API_KEY, atau NVIDIA_API_KEY dengan kode kunci saja)." });
 
   stage = "cek-login";
   const authHeader = req.headers.get("Authorization") || "";
@@ -309,7 +339,7 @@ async function handle(req: Request): Promise<Response> {
   let last: AiResult = { status: 502, error: BUSY };
   for (const provider of order) {
     for (const key of available[provider]) {
-      const result = provider === "groq" ? await askGroq(key, system, contents) : await askGemini(key, system, contents);
+      const result = provider === "gemini" ? await askGemini(key, system, contents) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents);
       if (!("status" in result)) return reply(200, { answer: result.answer, model: provider + ":" + result.model });
       last = result;
       console.warn("aureka-tanya", provider, "gagal:", result.error);
