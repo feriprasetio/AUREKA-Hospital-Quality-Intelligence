@@ -31,6 +31,8 @@ type Props = {
   roomId: number | null
   roomName: string | null
   manager: boolean
+  scopeToRoom?: boolean
+  onRoomChange?: (roomId: number) => void
   onNavigate: NavigateFn
 }
 const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
@@ -64,7 +66,7 @@ function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
   const points = values.map((v,i) => `${18 + i* (264/Math.max(1,values.length-1))},${104 - (v/max)*82}`).join(' ')
   return <div className="hlChart"><svg viewBox="0 0 300 126" role="img" aria-label="Tren data bulanan"><line x1="16" y1="105" x2="284" y2="105" stroke="#dfe8e2"/><line x1="16" y1="63" x2="284" y2="63" stroke="#edf2ee"/><polyline points={points} fill="none" stroke="#24744f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>{values.map((v,i)=><circle key={labels[i]} cx={18+i*(264/Math.max(1,values.length-1))} cy={104-(v/max)*82} r="3.5" fill="#24744f"><title>{labels[i]}: {v}</title></circle>)}</svg><div className="hlAxis">{labels.map(label=><span key={label}>{label}</span>)}</div></div>
 }
-export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,onNavigate}:Props) {
+export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,scopeToRoom=false,onRoomChange,onNavigate}:Props) {
   const [tab,setTab] = useState<'welcome'|'infographics'|'achievements'>('welcome')
   const [achievementTab,setAchievementTab] = useState<'overview'|'indicators'|'safety'|'risk'>('overview')
   const [records,setRecords] = useState<RecordRow[]>([])
@@ -73,14 +75,16 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const [refreshedAt,setRefreshedAt] = useState<Date|null>(null)
   // Manajemen/PMKP: Infografis bawaan 'Semua unit' ('' ), bisa dipilih per unit. Unit biasa tetap unitnya sendiri.
   const [infoRoom,setInfoRoom] = useState<string>(manager?'':String(roomId??''))
-  const infoRoomId = infoRoom?Number(infoRoom):null
-  const infoRoomName = infoRoomId?(rooms.find(r=>Number(r.id)===infoRoomId)?.name??roomName):(manager?'Semua unit':roomName)
+  const infoRoomId = scopeToRoom ? roomId : infoRoom?Number(infoRoom):null
+  const infoRoomName = infoRoomId?(rooms.find(r=>Number(r.id)===Number(infoRoomId))?.name??roomName):(manager?'Semua unit':roomName)
+  useEffect(() => { if(scopeToRoom && roomId != null) setInfoRoom(String(roomId)) }, [scopeToRoom,roomId])
   const [activity,setActivity] = useState<{lastAt:string|null;pending:{label:string;count:number;module:string}[];partial:boolean}>({lastAt:null,pending:[],partial:false})
   const firstName = userName.trim().split(/\s+/)[0] || 'Pengguna'
   const greeting = (() => { const h=Number(new Intl.DateTimeFormat('en-US',{hour:'2-digit',hour12:false,timeZone:'Asia/Pontianak'}).format(new Date())); return h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam' })()
   const dateLabel = new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date())
   useEffect(() => {
     let cancelled=false
+    if(scopeToRoom&&!infoRoomId){setRecords([]);setError('Pilih unit kerja untuk melihat infografis.');return}
     if(!infoRoomId&&!manager){setRecords([]);setError('Unit kerja belum terhubung ke akun ini.');return}
     setLoading(true);setError('')
     const year=new Date().getFullYear()
@@ -110,25 +114,26 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       setLoading(false)
     })().catch(()=>{if(!cancelled){setError('Infografis belum dapat dimuat. Coba kembali.');setLoading(false)}})
     return()=>{cancelled=true}
-  },[supabase,infoRoomId,manager])
+  },[supabase,infoRoomId,manager,scopeToRoom])
   useEffect(() => {
     let cancelled=false
-    if(!userId){setActivity({lastAt:null,pending:[],partial:true});return}
+    if(!userId || (scopeToRoom && !roomId)){setActivity({lastAt:null,pending:[],partial:true});return}
     const q=(schema:string,table:string)=>supabase.schema(schema).from(table)
+    const scoped=(query:any,column:string,value:unknown)=>scopeToRoom&&value!=null?query.eq(column,value):query
     ;(async()=>{
       const jobs=await Promise.all([
-        q('aureka_quality','quality_records').select('updated_at').eq('entered_by',userId).order('updated_at',{ascending:false}).limit(1),
-        q('aureka_quality','quality_records').select('id',{count:'exact',head:true}).eq('entered_by',userId).in('status',['draft','reopened']),
-        q('aureka_quality','clinical_pathway_audits').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId).order('updated_at',{ascending:false}).limit(1),
-        q('aureka_quality','clinical_pathway_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),
-        q('aureka_quality','clinical_death_audits').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId).order('updated_at',{ascending:false}).limit(1),
-        q('aureka_quality','clinical_death_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),
-        q('aureka_patient_safety','incidents').select('updated_at').eq('created_by',userId).order('updated_at',{ascending:false}).limit(1),
-        q('aureka_patient_safety','incidents').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','submitted','under_review','investigation']),
-        q('aureka_risk','risk_register').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId).order('updated_at',{ascending:false}).limit(1),
-        q('aureka_risk','risk_register').select('id',{count:'exact',head:true}).eq('created_by',userId).neq('status','Controlled').neq('status','Accepted'),
-        q('aureka_risk','mitigation_plans').select('updated_at').eq('created_by',userId).order('updated_at',{ascending:false}).limit(1),
-        q('aureka_risk','mitigation_plans').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['pending_kabid','pending_director','pending_board','in_progress']),
+        scoped(q('aureka_quality','quality_records').select('updated_at').eq('entered_by',userId),'room_id',roomId).order('updated_at',{ascending:false}).limit(1),
+        scoped(q('aureka_quality','quality_records').select('id',{count:'exact',head:true}).eq('entered_by',userId).in('status',['draft','reopened']),'room_id',roomId),
+        scoped(q('aureka_quality','clinical_pathway_audits').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId),'room_id',roomId).order('updated_at',{ascending:false}).limit(1),
+        scoped(q('aureka_quality','clinical_pathway_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),'room_id',roomId),
+        scoped(q('aureka_quality','clinical_death_audits').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId),'room_id',roomId).order('updated_at',{ascending:false}).limit(1),
+        scoped(q('aureka_quality','clinical_death_audits').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','reopened']),'room_id',roomId),
+        scoped(q('aureka_patient_safety','incidents').select('updated_at').eq('created_by',userId),'unit_name',roomName).order('updated_at',{ascending:false}).limit(1),
+        scoped(q('aureka_patient_safety','incidents').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['draft','submitted','under_review','investigation']),'unit_name',roomName),
+        scoped(q('aureka_risk','risk_register').select('updated_at').or('created_by.eq.'+userId+',updated_by.eq.'+userId),'unit_id',roomId).order('updated_at',{ascending:false}).limit(1),
+        scoped(q('aureka_risk','risk_register').select('id',{count:'exact',head:true}).eq('created_by',userId).neq('status','Controlled').neq('status','Accepted'),'unit_id',roomId),
+        scoped(q('aureka_risk','mitigation_plans').select('updated_at').eq('created_by',userId),'owner_room_id',roomId).order('updated_at',{ascending:false}).limit(1),
+        scoped(q('aureka_risk','mitigation_plans').select('id',{count:'exact',head:true}).eq('created_by',userId).in('status',['pending_kabid','pending_director','pending_board','in_progress']),'owner_room_id',roomId),
       ])
       if(cancelled)return
       const [qualityLast,quality,cpLast,cp,deathLast,death,incidentLast,incidents,riskLast,risks,planLast,plans]=jobs
@@ -145,7 +150,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       setActivity({lastAt,pending,partial:jobs.some(result=>Boolean(result.error))})
     })().catch(()=>{if(!cancelled)setActivity({lastAt:null,pending:[],partial:true})})
     return()=>{cancelled=true}
-  },[supabase,userId])
+  },[supabase,userId,scopeToRoom,roomId,roomName])
   const metrics=useMemo(()=>{
     const now=new Date()
     const months=Array.from({length:12},(_,i)=>({key:`${now.getFullYear()}-${String(i+1).padStart(2,'0')}`,label:MONTHS[i],count:0,activity:0}))
@@ -171,15 +176,15 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const tabButton=(id:typeof tab,label:string)=><button type="button" role="tab" aria-selected={tab===id} className={tab===id?'hlTab active':'hlTab'} onClick={()=>setTab(id)}>{label}</button>
   return <section className="homeLanding">
     <style>{`
-      .homeLanding{display:grid;gap:16px;color:var(--ink,#18372b)}.hlTabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.hlTab{border:1px solid transparent;border-radius:10px;padding:10px 14px;background:transparent;color:#66766d;font-size:12px;font-weight:750;cursor:pointer}.hlTab.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.hlWelcomeCard,.hlPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.13));border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(28,60,43,.035)}.hlWelcomeCard{background:linear-gradient(125deg,#f3f8f4,#fff 70%);display:grid;gap:7px}.hlWelcomeCard .hlGreeting{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:-.04em;color:#204b35}.hlWelcomeCard p{margin:0;color:#718078;font-size:12px}.hlDate{font-size:12px;color:#718078}.hlPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.hlPanelHead h3{font-size:15px;margin:0;color:#244638}.hlPanelHead span{font-size:10px;color:#819087}.hlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hlMetric{padding:13px;border-radius:12px;background:#f7faf8;border:1px solid #e8efea}.hlMetric span{display:block;font-size:10px;color:#78877e}.hlMetric strong{display:block;font-size:23px;margin-top:5px;color:#244638}.hlMetric small{font-size:10px;color:#829087}.hlChart{width:100%}.hlChart svg{width:100%;height:auto;overflow:visible}.hlAxis{display:flex;justify-content:space-between;color:#87948c;font-size:9px}.hlBars{display:grid;gap:8px}.hlBarRow{display:grid;grid-template-columns:minmax(90px,1fr) 3fr 28px;gap:8px;align-items:center;font-size:10px}.hlBarTrack{height:8px;background:#edf2ee;border-radius:10px;overflow:hidden}.hlBarFill{height:100%;background:#4d9670;border-radius:10px}.hlPendingRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid #e8efea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}.hlPendingRow span{display:grid;gap:4px}.hlPendingRow b{font-size:11px;color:#315442}.hlPendingRow small{font-size:10px;color:#839087}.hlPendingRow strong{font-size:18px;color:#a45b28}.hlEmpty{padding:22px;text-align:center;color:#829087;font-size:12px}.hlAi{min-height:250px}.hlInfoFilter{display:flex;justify-content:flex-end}.hlInfoFilter label{display:grid;gap:5px;font-size:11px;font-weight:700;color:#718078}.hlInfoFilter select{min-width:240px;min-height:40px;border-radius:12px;padding:8px 12px;font-size:13px}.hlNotice{padding:11px 13px;border-radius:10px;background:#fff7e9;color:#805e2b;font-size:11px}@media(max-width:640px){.hlGrid{grid-template-columns:1fr}.hlWelcomeCard,.hlPanel{padding:14px}.hlTab{flex:1}}`}</style>
+      .homeLanding{display:grid;gap:16px;color:var(--ink,#18372b)}.hlTabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.hlTab{border:1px solid transparent;border-radius:10px;padding:10px 14px;background:transparent;color:#66766d;font-size:12px;font-weight:750;cursor:pointer}.hlTab.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.hlWelcomeCard,.hlPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.13));border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(28,60,43,.035)}.hlWelcomeCard{background:linear-gradient(125deg,#f3f8f4,#fff 70%);display:grid;gap:7px}.hlWelcomeCard .hlGreeting{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:-.04em;color:#204b35}.hlWelcomeCard p{margin:0;color:#718078;font-size:12px}.hlWelcomeUnit{display:grid;gap:5px;max-width:460px;margin-top:5px}.hlWelcomeUnit label{font-size:10px;font-weight:800;color:#718078}.hlWelcomeUnit select{width:min(100%,460px);min-height:40px;border:1px solid #d9e5dd;border-radius:10px;padding:9px 12px;background:#fff;color:#244638;font-size:12px;font-weight:700;outline:none}.hlWelcomeUnit select:focus-visible{border-color:#43845f;box-shadow:0 0 0 3px rgba(67,132,95,.16)}.hlDate{font-size:12px;color:#718078}.hlPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.hlPanelHead h3{font-size:15px;margin:0;color:#244638}.hlPanelHead span{font-size:10px;color:#819087}.hlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hlMetric{padding:13px;border-radius:12px;background:#f7faf8;border:1px solid #e8efea}.hlMetric span{display:block;font-size:10px;color:#78877e}.hlMetric strong{display:block;font-size:23px;margin-top:5px;color:#244638}.hlMetric small{font-size:10px;color:#829087}.hlChart{width:100%}.hlChart svg{width:100%;height:auto;overflow:visible}.hlAxis{display:flex;justify-content:space-between;color:#87948c;font-size:9px}.hlBars{display:grid;gap:8px}.hlBarRow{display:grid;grid-template-columns:minmax(90px,1fr) 3fr 28px;gap:8px;align-items:center;font-size:10px}.hlBarTrack{height:8px;background:#edf2ee;border-radius:10px;overflow:hidden}.hlBarFill{height:100%;background:#4d9670;border-radius:10px}.hlPendingRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid #e8efea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}.hlPendingRow span{display:grid;gap:4px}.hlPendingRow b{font-size:11px;color:#315442}.hlPendingRow small{font-size:10px;color:#839087}.hlPendingRow strong{font-size:18px;color:#a45b28}.hlEmpty{padding:22px;text-align:center;color:#829087;font-size:12px}.hlAi{min-height:250px}.hlInfoFilter{display:flex;justify-content:flex-end}.hlInfoFilter label{display:grid;gap:5px;font-size:11px;font-weight:700;color:#718078}.hlInfoFilter select{min-width:240px;min-height:40px;border-radius:12px;padding:8px 12px;font-size:13px}.hlNotice{padding:11px 13px;border-radius:10px;background:#fff7e9;color:#805e2b;font-size:11px}@media(max-width:640px){.hlGrid{grid-template-columns:1fr}.hlWelcomeCard,.hlPanel{padding:14px}.hlTab{flex:1}}`}</style>
     <nav className="hlTabs" role="tablist" aria-label="Halaman Utama">{tabButton('welcome','Welcome Page')}{tabButton('infographics','Infografis')}{tabButton('achievements','Capaian Unit')}</nav>
     {tab==='welcome'&&<>
-      <section className="hlWelcomeCard"><span className="hlGreeting">{greeting}, {firstName}</span><p>{dateLabel}</p><p>{roomName||'Unit kerja belum dipetakan'}</p></section>
+      <section className="hlWelcomeCard"><span className="hlGreeting">{greeting}, {firstName}</span><p>{dateLabel}</p>{scopeToRoom?<div className="hlWelcomeUnit"><label htmlFor="home-active-unit">Unit kerja aktif untuk seluruh modul</label><select id="home-active-unit" aria-label="Pilih unit kerja untuk seluruh modul AUREKA" value={roomId??''} onChange={event=>{const next=Number(event.target.value);if(Number.isSafeInteger(next)&&next>0)onRoomChange?.(next)}} disabled={!rooms.length}><option value="">Pilih unit kerja</option>{rooms.map(room=><option key={room.id} value={room.id}>{room.name}</option>)}</select></div>:<p>{roomName||'Unit kerja belum dipetakan'}</p>}</section>
       <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas terakhir Anda</h3><span>{activity.lastAt?new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(activity.lastAt)):'Belum ada aktivitas tercatat'}</span></header>{activity.pending.length?<div className="hlBars">{activity.pending.map(item=><button type="button" className="hlPendingRow" key={item.module+item.label} onClick={()=>onNavigate(item.module==='Keselamatan Pasien'?'safety':item.module==='Manajemen Risiko'?'risk':'quality')}><span><b>{item.label}</b><small>{item.module}</small></span><strong>{item.count}</strong></button>)}</div>:<p className="hlEmpty">Tidak ada pekerjaan tertunda yang ditemukan pada sumber aktivitas yang terhubung.</p>}{activity.partial&&<p className="hlDate">Sebagian sumber aktivitas belum dapat dibaca. Periksa kembali modul terkait untuk memastikan daftar pekerjaan lengkap.</p>}</section>
       <section className="hlPanel hlAi"><header className="hlPanelHead"><h3>Tanya AI</h3><span>Asisten mutu dan keselamatan pasien</span></header><TanyaAureka sb={supabase} page="Halaman Utama · Welcome Page" embedded/></section>
     </>}
     {tab==='infographics'&&<>
-      {manager&&<div className="hlInfoFilter"><label>Unit pelayanan<select value={infoRoom} onChange={e=>setInfoRoom(e.target.value)}><option value="">Semua unit</option>{rooms.map(r=><option key={r.id} value={String(r.id)}>{r.name}</option>)}</select></label></div>}
+      {manager&&!scopeToRoom&&<div className="hlInfoFilter"><label>Unit pelayanan<select value={infoRoom} onChange={e=>setInfoRoom(e.target.value)}><option value="">Semua unit</option>{rooms.map(r=><option key={r.id} value={String(r.id)}>{r.name}</option>)}</select></label></div>}
       {error&&<div className="hlNotice">{error}</div>}
       <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas input data bulanan</h3><span>{infoRoomName||'Unit'} · {new Date().getFullYear()}</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:<LineChart values={metrics.months.map(m=>m.activity)} labels={metrics.months.map(m=>m.label)}/>}</section>
       <section className="hlPanel"><header className="hlPanelHead"><h3>Episode pasien per bulan</h3><span>Berbasis Register Pasien</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:metrics.episodeRows?<LineChart values={metrics.months.map(m=>m.count)} labels={metrics.months.map(m=>m.label)}/>:<div className="hlEmpty">Belum ada episode pasien pada pilihan unit ini. Aktivitas input unit tetap ditampilkan pada grafik di atas.</div>}</section>
@@ -191,10 +196,10 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       <nav className="hlTabs hlAchievementTabs" role="tablist" aria-label="Capaian Unit">
         {([['overview','Ikhtisar'],['indicators','Indikator Mutu'],['safety','Keselamatan Pasien'],['risk','Manajemen Risiko']] as const).map(([id,label])=><button key={id} type="button" role="tab" aria-selected={achievementTab===id} className={achievementTab===id?'hlTab active':'hlTab'} onClick={()=>setAchievementTab(id)}>{label}</button>)}
       </nav>
-      {achievementTab==='overview'&&<OverviewDashboard supabase={supabase} role={role??(manager?'MANAGEMENT':'PIC')} roomId={manager?null:roomId} roomName={manager?null:roomName} manager={manager} userName={userName} onNavigate={onNavigate}/>}
-      {achievementTab==='indicators'&&<QualityResultsWorkspace key="home-unit-indicators" mode="indicators" initialRoomId={manager?null:roomId} rooms={rooms} canViewAllRooms={manager}/>}
-      {achievementTab==='safety'&&<PatientSafetyWorkspace key="home-unit-safety" supabase={supabase} rooms={rooms} initialRoomId={manager?null:roomId} isSuperAdmin={isAdmin} canManageWorkflow={manager} initialTab="overview" showTabs={false}/>}
-      {achievementTab==='risk'&&<RiskManagementWorkspace key="home-unit-risk" supabase={supabase} rooms={rooms} initialRoomId={manager?null:roomId} role={role} userId={userId} userName={userName} initialTab="overview" showTabs={false}/>}
+      {achievementTab==='overview'&&<OverviewDashboard key={'home-unit-overview-'+(scopeToRoom?roomId??'none':manager?'all':roomId??'none')} supabase={supabase} role={role??(manager?'MANAGEMENT':'PIC')} roomId={scopeToRoom?roomId:manager?null:roomId} roomName={scopeToRoom?roomName:manager?null:roomName} manager={manager&&!scopeToRoom} userName={userName} onNavigate={onNavigate}/>}
+      {achievementTab==='indicators'&&<QualityResultsWorkspace key={'home-unit-indicators-'+(scopeToRoom?roomId??'none':manager?'all':roomId??'none')} mode="indicators" initialRoomId={scopeToRoom?roomId:manager?null:roomId} rooms={rooms} canViewAllRooms={manager&&!scopeToRoom} onRoomChange={onRoomChange}/>}
+      {achievementTab==='safety'&&<PatientSafetyWorkspace key={'home-unit-safety-'+(scopeToRoom?roomId??'none':manager?'all':roomId??'none')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:manager?null:roomId} isSuperAdmin={isAdmin} forceRoomScope={scopeToRoom} canManageWorkflow={manager} initialTab="overview" showTabs={false}/>}
+      {achievementTab==='risk'&&<RiskManagementWorkspace key={'home-unit-risk-'+(scopeToRoom?roomId??'none':manager?'all':roomId??'none')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:manager?null:roomId} role={role} forceRoomScope={scopeToRoom} userId={userId} userName={userName} initialTab="overview" showTabs={false}/>}
     </>}
   </section>
 }
