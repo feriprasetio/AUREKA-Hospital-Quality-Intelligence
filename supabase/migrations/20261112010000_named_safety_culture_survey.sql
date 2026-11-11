@@ -4,6 +4,7 @@
 
 begin;
 
+-- Historical responses remain legacy anonymous; no identity is inferred retroactively.
 -- Existing rows receive identity_mode = 'legacy_anonymous' only through the column default.
 -- No UPDATE/backfill is performed: respondent and submitter identity are never inferred retroactively.
 -- New INSERTs are validated by the trigger below and must explicitly use identity_mode = 'named'.
