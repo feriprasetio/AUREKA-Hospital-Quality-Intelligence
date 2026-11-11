@@ -158,8 +158,8 @@ export default function OverviewDashboard({
         manager || (roomId != null && (unitId === roomId || (unitId == null && !!roomName && norm(unitName) === norm(roomName))))
       setRisks({ ...r, rows: (r.rows as Risk[]).filter(x => mine(x.unit_id, x.unit_name)) })
       setPlans({ ...p, rows: (p.rows as Plan[]).filter(x => manager || (roomId != null && x.owner_room_id === roomId)) })
-      setIncidents(i)
-      setQuality(q)
+      setIncidents({ ...i, rows: (i.rows as Incident[]).filter(row => manager || (roomId != null && norm(row.unit_name) === norm(roomName))) })
+      setQuality({ ...q, rows: (q.rows as QualityRecord[]).filter(row => manager || (roomId != null && row.room_id === roomId)) })
       // Hanya 3 nilai ringkas dari calculation_json yang diambil (bukan seluruh isi audit) agar Ringkasan cepat.
       const cpRows = (cp.rows as any[]).map(x => x.calculation_json ? x : { ...x, calculation_json: { included: x.cj_included, section_d_pass: x.cj_section_d, compliance_pct: x.cj_compliance } }) as ClinicalPathwayAudit[]
       setClinicalPathway({ ...cp, rows: cpRows.filter(x => manager || (roomId != null && x.room_id === roomId)) })
