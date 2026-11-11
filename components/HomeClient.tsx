@@ -97,7 +97,7 @@ export default function HomeClient(){
   if(role==='ADMIN'){
    let stored:number|null=null
    try{stored=Number(window.sessionStorage.getItem('aureka-workspace-room:'+String(user.id)))||Number(window.sessionStorage.getItem('aureka-quality-room:'+String(user.id)))||null}catch{}
-   const resolved=resolveAdminWorkspaceRoomId(roomsList,[selectedWorkspaceRoomId,stored,selectedQualityRoomId,room?.id])
+   const resolved=resolveAdminWorkspaceRoomId(roomsList,[stored,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id])
    if(resolved!=null&&resolved!==selectedWorkspaceRoomId)setSelectedWorkspaceRoomId(resolved)
    if(resolved!=null&&resolved!==selectedQualityRoomId)setSelectedQualityRoomId(resolved)
    return
