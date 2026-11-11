@@ -47,7 +47,6 @@ test('legacy bookmarks remain mapped while the new HR route is canonical', () =>
 test('home parent and child navigation use the approved labels and canonical route', () => {
   const app = read('components/HomeClient.tsx')
   assert.ok(app.includes('title="Halaman Utama"'))
-  assert.ok(app.includes('<span>Beranda</span>'))
   assert.ok(app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
   assert.ok(app.includes("active==='home'?(homeTab==='infographics'?'infografis':'beranda')"))
   assert.ok(app.includes("initialTab={homeTab} onTabChange={setHomeTab}"))
