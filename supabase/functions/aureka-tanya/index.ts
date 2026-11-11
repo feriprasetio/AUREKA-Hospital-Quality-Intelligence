@@ -107,7 +107,10 @@ async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
 
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  // Toleran bila secret terisi utuh dengan perintah curl/header: ambil kodenya saja.
+  const rawKey = (Deno.env.get("GEMINI_API_KEY") || "").trim();
+  const apiKey = (/x-goog-api-key\s*:\s*([A-Za-z0-9._\-]+)/i.exec(rawKey)?.[1] || /[?&]key=([A-Za-z0-9._\-]+)/.exec(rawKey)?.[1] || rawKey).replace(/^['"]|['"]$/g, "");
+  if (apiKey && !/^[A-Za-z0-9._\-]{20,200}$/.test(apiKey)) return reply(500, { error: "Secret GEMINI_API_KEY tidak valid. Isi hanya dengan kode kunci (tanpa curl, spasi, atau tanda kutip)." });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!apiKey || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (GEMINI_API_KEY)." });
@@ -180,7 +183,8 @@ Deno.serve(async (req) => {
   try {
     return await handle(req);
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    // Jangan pernah memantulkan isi header/secret ke browser.
+    const detail = (error instanceof Error ? error.message : String(error)).replace(/Invalid header value[\s\S]*/i, "Invalid header value (isi secret GEMINI_API_KEY tidak valid)");
     console.error("aureka-tanya", stage, detail);
     return reply(500, { error: "Tanya AUREKA mengalami gangguan di server.", stage, detail: detail.slice(0, 300) });
   }
