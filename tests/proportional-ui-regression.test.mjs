@@ -6,13 +6,13 @@ const home = readFileSync(new URL('../components/HomeLandingWorkspace.tsx', impo
 const layout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8')
 const polish = readFileSync(new URL('../app/proportional-ui.css', import.meta.url), 'utf8')
 
-test('infographic line charts use a balanced desktop two-column layout', () => {
+test('interactive infographics expose selectors and responsive charts', () => {
   assert.match(home, /type InfographicChartType = 'line' \| 'area' \| 'bar' \| 'doughnut'/)
   assert.match(home, /value="diagnosis">Distribusi diagnosis/)
   assert.match(home, /className="hlFilterGrid"/)
   assert.match(home, /<InfographicChart data=\{infographic.data\}/)
-  assert.match(home, /className="hlChartGrid"/)
-  assert.match(polish, /\.homeLanding \.hlChartGrid[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
+  assert.match(home, /className="hlExplorer"/)
+  assert.match(polish, /\.homeLanding \.hlChart svg[\s\S]*width: 100% !important/)
   assert.match(polish, /max-height: 238px/)
 })
 
