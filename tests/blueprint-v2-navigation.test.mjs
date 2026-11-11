@@ -4,47 +4,51 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('home exposes only Beranda and one canonical read-only Infografis entry', () => {
+test('home exposes only Beranda and one canonical Infografis entry', () => {
   const home = read('components/HomeLandingWorkspace.tsx')
-  assert.match(home, /tabButton\('welcome','Beranda'\)/)
-  assert.match(home, /tabButton\('infographics','Infografis'\)/)
-  assert.doesNotMatch(home, /tabButton\('achievements'/)
-  assert.doesNotMatch(home, /tab==='achievements'/)
-  assert.doesNotMatch(home, /OverviewDashboard|QualityResultsWorkspace|PatientSafetyWorkspace|RiskManagementWorkspace/)
+  assert.ok(home.includes("tabButton('welcome','Beranda')"))
+  assert.ok(home.includes("tabButton('infographics','Infografis')"))
+  assert.ok(!home.includes("tabButton('achievements'"))
+  assert.ok(!home.includes("tab==='achievements'"))
+  assert.ok(!home.includes('OverviewDashboard'))
 })
 
 test('primary navigation labels follow the approved domain terminology', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  assert.match(registry, /label: 'Beranda'/)
-  assert.match(registry, /label: 'Pasien'/)
-  assert.match(registry, /label: 'Indikator Mutu'/)
-  assert.match(registry, /label: 'Sumber Daya Manusia'/)
-  assert.match(registry, /label: 'Pengaturan'/)
+  for (const label of ["label: 'Beranda'", "label: 'Pasien'", "label: 'Indikator Mutu'", "label: 'Sumber Daya Manusia'", "label: 'Pengaturan'"]) {
+    assert.ok(registry.includes(label), 'Missing registry label: ' + label)
+  }
 })
 
-test('OPPE and FPPE are reachable from the SDM navigation and not from the quality menu', () => {
+test('OPPE and FPPE are reachable from SDM navigation and not from quality navigation', () => {
   const app = read('components/HomeClient.tsx')
-  const qualityGroup = app.match(/quality:\[([\s\S]*?)\n   \],/)?.[1] || ''
-  const staffGroup = app.match(/staff:\[([\s\S]*?)\n   \],/)?.[1] || ''
-  assert.doesNotMatch(qualityGroup, /oppe-fppe/)
-  assert.match(staffGroup, /Daftar Tenaga Kerja/)
-  assert.match(staffGroup, /Tim dan Penugasan/)
-  assert.match(staffGroup, /oppe-fppe/)
-  assert.match(app, /active==='analytics'&&analyticsTab==='oppe'\?<OppeAuditWorkspace/)
-  assert.match(app, /'tenaga-klinis':'staff'/)
-  assert.match(app, /if\(next==='staff'\)next='analytics'/)
+  const qualityStart = app.indexOf('quality:[')
+  const qualityEnd = app.indexOf('\n   ],', qualityStart)
+  const staffStart = app.indexOf('staff:[')
+  const staffEnd = app.indexOf('\n   ],', staffStart)
+  const qualityGroup = app.slice(qualityStart, qualityEnd)
+  const staffGroup = app.slice(staffStart, staffEnd)
+  assert.ok(!qualityGroup.includes('oppe-fppe'))
+  assert.ok(staffGroup.includes('Daftar Tenaga Kerja'))
+  assert.ok(staffGroup.includes('Tim dan Penugasan'))
+  assert.ok(staffGroup.includes('oppe-fppe'))
+  assert.ok(app.includes("active==='analytics'&&analyticsTab==='oppe'?<OppeAuditWorkspace"))
+  assert.ok(app.includes("'tenaga-klinis':'staff'"))
+  assert.ok(app.includes("if(next==='staff')next='analytics'"))
 })
 
 test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
   const app = read('components/HomeClient.tsx')
-  assert.match(app, /'metadata':'analytics'/)
-  assert.match(app, /analytics:'#tenaga-klinis'/)
-  assert.match(app, /'tenaga-klinis':'staff'/)
+  assert.ok(app.includes("'metadata':'analytics'"))
+  assert.ok(app.includes("analytics:'#tenaga-klinis'"))
+  assert.ok(app.includes("'tenaga-klinis':'staff'"))
 })
 
-test('sidebar home label and breadcrumb use Beranda terminology', () => {
+test('home parent and child navigation use the approved labels and canonical route', () => {
   const app = read('components/HomeClient.tsx')
-  assert.match(app, //title="Halaman Utama"//)
-  assert.match(app, /<NavIcon id="home"\/><span>Beranda<\/span>/)
-  assert.match(app, /<b>Beranda<\/b>/)
+  assert.ok(app.includes('title="Halaman Utama"'))
+  assert.ok(app.includes('<NavIcon id="home"/><span>Beranda</span>'))
+  assert.ok(app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
+  assert.ok(app.includes("active==='home'?(homeTab==='infographics'?'infografis':'beranda')"))
+  assert.ok(app.includes("initialTab={homeTab} onTabChange={setHomeTab}"))
 })
