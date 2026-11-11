@@ -51,7 +51,7 @@ export const AUREKA_MODULE_REGISTRY = [
   },
   {
     id: 'quality',
-    label: 'Indikator Mutu',
+    label: 'Peningkatan Kinerja Klinis',
     group: 'clinical',
     status: 'beta',
     visibility: 'all-authenticated',
@@ -99,7 +99,7 @@ export const AUREKA_MODULE_REGISTRY = [
   },
   {
     id: 'analytics',
-    label: 'Metadata',
+    label: 'Program & Indikator',
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
@@ -107,11 +107,11 @@ export const AUREKA_MODULE_REGISTRY = [
     routeHash: '#metadata',
     owner: 'Komite PMKP / pengelola data',
     lastReviewed: '2026-10-29',
-    description: 'Program kerja, profil indikator, direktori induk SDM, serta penugasan tenaga ke unit kerja.',
+    description: 'Program kerja dan profil indikator dengan tindak lanjut yang dapat ditelusuri.',
   },
   {
     id: 'settings',
-    label: 'Pengaturan',
+    label: 'Administrasi & Konfigurasi',
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
