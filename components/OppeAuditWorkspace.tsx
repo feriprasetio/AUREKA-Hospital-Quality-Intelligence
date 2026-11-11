@@ -200,16 +200,19 @@ export default function OppeAuditWorkspace({
   rooms,
   isSuperAdmin,
   canManage,
+  lockRoomScope = false,
 }: {
   initialRoomId: number | null
   rooms: Room[]
   isSuperAdmin: boolean
   canManage: boolean
+  lockRoomScope?: boolean
 }) {
   const initialRoom = initialRoomId ?? rooms[0]?.id ?? 0
   const [year, setYear] = useState(() => new Date().getFullYear())
   const [quarter, setQuarter] = useState(() => Math.ceil((new Date().getMonth() + 1) / 3))
-  const [roomFilter, setRoomFilter] = useState<number | null>(canManage ? null : initialRoom)
+  const [roomFilter, setRoomFilter] = useState<number | null>(lockRoomScope ? initialRoom : canManage ? null : initialRoom)
+  useEffect(() => { if (lockRoomScope && initialRoom > 0 && roomFilter !== initialRoom) setRoomFilter(initialRoom) }, [lockRoomScope, initialRoom, roomFilter])
   const [profiles, setProfiles] = useState<any[]>([])
   const [rules, setRules] = useState<OppeRule[]>([])
   const [records, setRecords] = useState<OppeQualityRecord[]>([])
@@ -1128,7 +1131,7 @@ export default function OppeAuditWorkspace({
     <section className="oppeGlass oppeFilters">
       <label className="oppeField"><span>Tahun</span><select value={year} onChange={(e) => changeScope(Number(e.target.value), quarter, roomFilter)}>{years.map((item) => <option key={item}>{item}</option>)}</select></label>
       <label className="oppeField"><span>Periode penilaian</span><select value={quarter} onChange={(e) => changeScope(year, Number(e.target.value), roomFilter)}>{quarters.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-      <label className="oppeField"><span>Unit kerja</span><select value={roomFilter ?? ''} onChange={(e) => changeScope(year, quarter, e.target.value === '' ? null : Number(e.target.value))}><option value="">Semua unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+      <label className="oppeField"><span>Unit kerja</span><select value={roomFilter ?? ''} disabled={lockRoomScope} onChange={(e) => changeScope(year, quarter, e.target.value === '' ? null : Number(e.target.value))}>{!lockRoomScope && <option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       <div className="oppeFilterMeta">{loading ? 'Memuat data…' : `${records.filter((record) => record.status === 'validated').length} logbook tervalidasi pada tahun ${year} · ${selectedRuleCount} aturan OPPE aktif`}</div>
     </section>
   )
@@ -1196,7 +1199,7 @@ export default function OppeAuditWorkspace({
                 </label>
                 <label className="oppeField"><span>Kode Tenaga AUREKA</span><input value={form.staffIdentifier} readOnly disabled placeholder="Terisi dari direktori induk" /></label>
                 <label className="oppeField"><span>Kelompok profesi *</span><input value={form.profession} disabled={currentReadOnly} onChange={(e) => setForm((current) => ({ ...current, profession: e.target.value }))} placeholder="Terisi dari direktori induk; dapat dipersempit sesuai pemetaan profesi." /></label>
-                <label className="oppeField"><span>Unit penilaian *</span><select value={form.roomId} disabled={currentReadOnly} onChange={(e) => {
+                <label className="oppeField"><span>Unit penilaian *</span><select value={form.roomId} disabled={currentReadOnly || lockRoomScope} onChange={(e) => {
                   const nextRoom = Number(e.target.value)
                   setForm((current) => ({ ...current, roomId: nextRoom, staffId: '', staffName: '', staffIdentifier: '', profession: '' }))
                 }}>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -1306,6 +1309,7 @@ export default function OppeAuditWorkspace({
           teamStaff={teamStaff}
           initialRoomId={roomFilter ?? form.roomId ?? initialRoom}
           canManage={canManage}
+          lockRoomScope={lockRoomScope}
         />
       )}
 
@@ -1354,7 +1358,7 @@ export default function OppeAuditWorkspace({
           {gapDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setGapDraft(null) }}><section ref={gapDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-gap-dialog-title" tabIndex={-1}>
             <header className="oppeModalHeader"><div><div className="oppeEyebrow">MASTER INDIKATOR · DRAF KESENJANGAN</div><h4 id="oppe-gap-dialog-title">Usulkan indikator profesional baru</h4><p>Draf tidak masuk kalkulasi sampai ditelaah, diterbitkan dan dipetakan.</p></div><button type="button" className="oppeClose" data-dialog-autofocus aria-label="Tutup draf indikator OPPE" onClick={() => setGapDraft(null)}>×</button></header>
             <div className="oppeModalBody"><div className="oppeFormGrid">
-              <label className="oppeField"><span>Unit pemilik</span><select value={gapDraft.roomId} onChange={(e) => { const value = Number(e.target.value); setGapDraft((current) => current ? { ...current, roomId: value, measurementGrain: suggestedMeasurementGrain(profiles, value), responsibilityField: staffFieldOptions(value)[0] || '' } : current) }}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
+              <label className="oppeField"><span>Unit pemilik</span><select value={gapDraft.roomId} disabled={lockRoomScope} onChange={(e) => { const value = Number(e.target.value); setGapDraft((current) => current ? { ...current, roomId: value, measurementGrain: suggestedMeasurementGrain(profiles, value), responsibilityField: staffFieldOptions(value)[0] || '' } : current) }}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
               <label className="oppeField"><span>Profesi/SMF *</span><input value={gapDraft.professionLabel} onChange={(e) => setGapDraft((current) => current ? { ...current, professionLabel: e.target.value } : current)} placeholder="Contoh: Dokter Spesialis Anestesiologi" /></label>
               <label className="oppeField oppeWide"><span>Nama indikator *</span><input value={gapDraft.title} onChange={(e) => setGapDraft((current) => current ? { ...current, title: e.target.value } : current)} /></label>
               <label className="oppeField"><span>Target tertulis *</span><input value={gapDraft.targetText} onChange={(e) => setGapDraft((current) => current ? { ...current, targetText: e.target.value } : current)} placeholder="Contoh: ≥ 95%" /></label>
