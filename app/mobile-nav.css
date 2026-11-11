@@ -57,3 +57,44 @@
     max-width: 100% !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 }
+
+/* --- Header HP versi rapi: baris 1 = unit + ikon, baris 2 = pencarian selebar layar --- */
+@media (max-width: 720px) {
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar.workspaceHeaderBar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 40px 40px 40px !important;
+    grid-template-areas: "ctx theme bell ai" "search search search search" !important;
+    align-items: center !important;
+    column-gap: 4px !important; row-gap: 10px !important;
+    min-height: 0 !important; height: auto !important;
+    padding: 12px 16px 12px !important;
+  }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceContext {
+    grid-area: ctx !important; display: block !important; width: auto !important; margin: 0 6px 0 0 !important;
+  }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceContext > span { display: none !important; }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceContext strong {
+    display: block !important; font-size: 15px !important; font-weight: 750 !important; line-height: 1.25 !important;
+  }
+  html[data-skin="arktik"]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select {
+    min-height: 40px !important; height: 40px !important; padding: 0 34px 0 12px !important;
+    border-radius: 12px !important; font-size: 14px !important; font-weight: 650 !important;
+  }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceThemeButton { grid-area: theme !important; }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceCommunicationTrigger { grid-area: ai !important; }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceHeaderIcon {
+    display: grid !important; place-items: center !important; justify-self: center !important;
+    width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important;
+    margin: 0 !important; padding: 0 !important; border-radius: 12px !important; order: 0 !important; position: relative !important;
+  }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceHeaderIcon svg { width: 21px !important; height: 21px !important; }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceFullscreenButton,
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceSidebarMenuButton,
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceHeaderProfile { display: none !important; }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceGlobalSearch {
+    grid-area: search !important; width: 100% !important; max-width: none !important; margin: 0 !important;
+    height: 42px !important; min-height: 42px !important; padding: 0 14px !important; border-radius: 12px !important;
+  }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceGlobalSearch input { font-size: 14px !important; }
+}
