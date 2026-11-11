@@ -221,7 +221,7 @@ export default function SurveyWizard(props: Props) {
 
         {step.key === 'profil' ? (
           <div className="svProfile">
-            <div className="svPrivacy"><b>Survei bernama dan terbatas.</b> Identitas responden diambil dari Direktori Induk SDM dan disimpan terpisah dari akun yang mengirim. Rekap jawaban mentah dibatasi sesuai kewenangan; hasil organisasi sebaiknya dilaporkan secara agregat. Perkiraan waktu 15–20 menit. Untuk pernyataan tidak relevan, pilih <b>TB</b> (tidak berlaku).</div>
+            <div className="svPrivacy"><b>Survei bernama dengan akses terbatas.</b> Identitas responden diambil dari Direktori Induk SDM dan disimpan terpisah dari akun yang mengirim. Jawaban individual dapat ditelusuri oleh petugas berwenang; hasil organisasi dilaporkan secara agregat dan digunakan untuk pembelajaran/perbaikan sistem. Perkiraan waktu 15–20 menit. Untuk pernyataan tidak relevan, pilih <b>TB</b> (tidak berlaku).</div>
             <label className="svField svSelect">
               <span>Unit kerja <span className="svReq" aria-hidden="true">*</span></span>
               <select value={meta.unit} onChange={e => meta.setUnit(e.target.value)}>
