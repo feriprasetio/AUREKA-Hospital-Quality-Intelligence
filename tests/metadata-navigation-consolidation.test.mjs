@@ -4,15 +4,17 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('Metadata is the single primary entry point for the metadata and workforce master', () => {
+test('Sumber Daya Manusia is the primary entry point for workforce and OPPE functions', () => {
   const home = read('components/HomeClient.tsx')
   const registry = read('lib/aureka/module-registry.ts')
   const metadata = read('components/MetadataStatisticsWorkspace.tsx')
 
-  assert.match(registry, /id: 'analytics',[\s\S]*?label: 'Metadata',[\s\S]*?routeHash: '#metadata'/)
-  assert.match(home, /id!=='staff'/)
-  assert.match(home, /id==='analytics'\?'Metadata'/)
-  assert.doesNotMatch(home, /ClinicalWorkforceWorkspace|StaffWorkspaceArea|staffArea/)
+  assert.match(registry, /id: 'staff',[\\s\\S]*?label: 'Sumber Daya Manusia',[\\s\\S]*?routeHash: '#tenaga-klinis'/)
+  assert.match(home, /id!=='analytics'/)
+  assert.match(home, /staff:\\[/)
+  assert.match(home, /id:'directory',label:'Daftar Tenaga Kerja'/)
+  assert.match(home, /id:'team',label:'Tim dan Penugasan'/)
+  assert.doesNotMatch(home, /visibleMods[^\\n]*id==='analytics'\\?'Metadata'/)
   assert.match(metadata, /label: 'Program Kerja'/)
   assert.match(metadata, /label: 'Profil Indikator'/)
   assert.match(metadata, /label: 'Direktori Induk SDM'/)
@@ -43,13 +45,15 @@ test('the unclear Other response review and Statistics & Reports tabs are remove
   assert.doesNotMatch(metadata, /Statistik & Laporan|Review “Lainnya”/)
 })
 
-test('OPPE / FPPE is a Mutu Klinis subtab immediately after Audit Klinis dan Kematian', () => {
+test('OPPE / FPPE is nested under Sumber Daya Manusia and uses the canonical route', () => {
   const home = read('components/HomeClient.tsx')
   const qualityNav = home.slice(home.indexOf('quality:['), home.indexOf('safety:[', home.indexOf('quality:[')))
+  const staffNav = home.slice(home.indexOf('staff:['), home.indexOf('}', home.indexOf('staff:[')) + 1)
 
-  assert.ok(qualityNav.indexOf("id:'audit-clinical-death'") < qualityNav.indexOf("id:'oppe-fppe'"))
-  assert.match(home, /qualityOppeOpen\?'oppe-fppe'/)
-  assert.match(home, /OppeAuditWorkspace key="quality-oppe-fppe"/)
-  assert.match(home, /active==='quality'&&!qualityOppeOpen&&<nav className="qualityWorkspaceTabs"/)
-  assert.match(home, /#mutu-klinis\/oppe-fppe/)
+  assert.doesNotMatch(qualityNav, /oppe-fppe/)
+  assert.match(staffNav, /oppe-fppe/)
+  assert.match(home, /analyticsTab==='oppe'\\?<OppeAuditWorkspace/)
+  assert.match(home, /'tenaga-klinis':'staff'/)
+  assert.match(home, /analytics:'#tenaga-klinis'/)
 })
+
