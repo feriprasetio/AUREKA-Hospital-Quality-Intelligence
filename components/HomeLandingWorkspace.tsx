@@ -112,6 +112,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   useEffect(() => {
     let cancelled=false
     if(!userId){setActivity({lastAt:null,pending:[],partial:true});return}
+    if(scopeToRoom&&roomId==null){setActivity({lastAt:null,pending:[],partial:false});return}
     const q=(schema:string,table:string)=>supabase.schema(schema).from(table)
     const scoped=(query:any,column:string,value:unknown)=>scopeToRoom&&value!=null?query.eq(column,value):query
     ;(async()=>{
