@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { fetchRoomMonthCounts } from '@/lib/aureka/quality-counts'
+import PatientIndexTab from '@/components/patient-registry/PatientIndexTab'
 
 type Room = { id: number; name: string }
 type EpisodeRow = {
@@ -30,6 +31,8 @@ type Episode = {
   los: string
   status: string
   updatedAt: string
+  /** Unit rawat inap (ada kolom Tanggal Keluar). Kunjungan IGD/Rehab/IBS bukan "masih dirawat". */
+  inpatient: boolean
 }
 
 const QualityIndicatorWorkspace = dynamic(() => import('@/components/QualityIndicatorWorkspace'), { ssr: false })
@@ -40,23 +43,44 @@ function text(value: unknown) {
   return value == null ? '' : String(value).trim()
 }
 
+const DATE_FMT = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Pontianak' })
+const DATETIME_FMT = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Pontianak' })
+/** Tampilkan tanggal rapi: "30 Sep 2026" atau "30 Sep 2026 20.29" (bukan "2026-09-30T20:29:00"). */
+function formatDate(value: string) {
+  const v = value.trim()
+  if (!v) return ''
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(v)
+  if (!m) return v
+  const hasTime = Boolean(m[4]) && !(m[4] === '00' && m[5] === '00')
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4] ?? 0), Number(m[5] ?? 0))
+  if (Number.isNaN(d.getTime())) return v
+  return hasTime ? DATETIME_FMT.format(d).replace(/\./g, '.') : DATE_FMT.format(d)
+}
+const first = (...values: unknown[]) => { for (const v of values) { const t = text(v); if (t) return t } return '' }
+
 function episodeFromRow(row: EpisodeRow, roomNames: Map<number, string>): Episode {
   const core = row.core_data ?? {}
   const fields = (core.form_fields ?? core.form_data ?? {}) as Record<string, unknown>
   const calculated = (core.calculated_fields ?? {}) as Record<string, unknown>
+  // Nama kolom berbeda per unit (IGD, Gizi, Rehab Medik, PONEK, Nifas, IBS ...).
+  const admission = first(core.admission_at, fields['Tanggal Masuk'], fields['Waktu Masuk'], fields['Tanggal Dilayani'], row.record_date)
+  const discharge = first(core.discharge_at, fields['Tanggal Keluar'])
+  const inpatient = Object.prototype.hasOwnProperty.call(core, 'discharge_at') || Object.prototype.hasOwnProperty.call(fields, 'Tanggal Keluar')
+  const losRaw = first(core.los_days, calculated['Length of Stay'], calculated['Lenght of Stay'], fields['Length of Stay'], fields['Lenght of Stay'])
   return {
     id: row.id,
     roomId: Number(row.room_id),
     unit: text(core.unit_name) || roomNames.get(Number(row.room_id)) || 'Unit tidak diketahui',
-    name: text(core.patient_name) || text(fields['Nama Pasien']),
-    mrn: text(core.medical_record_no) || text(fields['No. Rekam Medis']) || text(fields['No. RM']),
-    admission: text(core.admission_at) || text(fields['Tanggal Masuk']) || text(row.record_date),
-    discharge: text(core.discharge_at) || text(fields['Tanggal Keluar']),
-    diagnosis: text(core.diagnosis) || text(fields['Diagnosa Tegak']) || text(fields['Diagnosa IGD']) || text(fields['Diagnosa']) || text(fields['Diagnosa Operasi']),
-    dpjp: text(core.dpjp) || text(fields['DPJP']) || text(fields['Dpjp']),
-    los: text(core.los_days) || text(calculated['Length of Stay']) || text(calculated['Lenght of Stay']) || text(fields['Lenght of Stay']),
+    name: first(core.patient_name, fields['Nama Pasien']),
+    mrn: first(core.medical_record_no, fields['No. Rekam Medis'], fields['No. RM']).replace(/^'+/, ''),
+    admission: formatDate(admission),
+    discharge: formatDate(discharge),
+    diagnosis: first(core.diagnosis, fields['Diagnosa Tegak'], fields['Diagnosa IGD'], fields['Diagnosa'], fields['Diagnosa Operasi']),
+    dpjp: first(core.dpjp, fields['DPJP'], fields['Dpjp'], fields['Nama Dokter'], fields['Dokter Umum'], fields['Petugas'], fields['Nama Terapis'], fields['Nutrisionis']),
+    los: inpatient && discharge && /^\d+(\.\d+)?$/.test(losRaw) ? losRaw : '',
     status: row.status,
     updatedAt: row.updated_at || row.created_at,
+    inpatient,
   }
 }
 
@@ -108,13 +132,15 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms: boolean
   lockRoomScope?: boolean
 }) {
-  const [tab, setTab] = useState<'add' | 'records'>('add')
+  const [tab, setTab] = useState<'add' | 'records' | 'database'>('add')
   // Super Admin mengikuti unit global; PMKP dapat memilih Semua Unit atau unit tertentu.
   const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
+  const [query, setQuery] = useState('')
+  useEffect(() => { const t = window.setTimeout(() => { setQuery(search.trim()); setPage(0) }, 400); return () => window.clearTimeout(t) }, [search])
   const [showIdentity, setShowIdentity] = useState(false)
   const [rows, setRows] = useState<Episode[]>([])
   const [total, setTotal] = useState(0)
@@ -127,20 +153,33 @@ export default function PatientRegistryWorkspace({
     setLoading(true)
     setError('')
     try {
+      // Hitung pasti hanya bila dibatasi unit/pencarian; untuk Semua unit total diambil dari hitungan database (lebih cepat).
+      const exact = Boolean(effectiveRoom || query)
       let request: any = db.from('quality_records')
-        .select('id,room_id,record_date,profile_year,status,core_data,created_at,updated_at', { count: 'exact' })
+        .select('id,room_id,record_date,profile_year,status,core_data,created_at,updated_at', exact ? { count: 'exact' } : undefined)
         .eq('measurement_grain', 'patient_episode')
         .neq('status', 'archived')
         .eq('profile_year', Number(year))
         .order('record_date', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
+      // Cari di seluruh data (bukan hanya halaman aktif): No. RM (dengan/tanpa strip) atau nama pasien.
+      const safe = query.replace(/[,()*%\\]/g, ' ').trim()
+      if (safe) {
+        const digits = safe.replace(/[^0-9]/g, '')
+        // 36539 / 036539 -> 03-65-39 (format No. RM RSUD; Excel sering menghapus nol depan)
+        const dashed = digits.length >= 3 && digits.length <= 6 ? digits.padStart(6, '0').replace(/^(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3') : ''
+        const ors = [`core_data->>medical_record_no.ilike.*${safe}*`, `core_data->>patient_name.ilike.*${safe}*`]
+        if (digits && digits !== safe) ors.push(`core_data->>medical_record_no.ilike.*${digits}*`)
+        if (dashed) ors.push(`core_data->>medical_record_no.ilike.*${dashed}*`)
+        request = request.or(ors.join(','))
+      }
       if (effectiveRoom) request = request.eq('room_id', Number(effectiveRoom))
       else if (!canViewAllRooms || lockRoomScope) throw new Error('Unit kerja belum tersedia untuk akun ini. Hubungi administrator untuk pemetaan unit.')
       const from = page * PAGE_SIZE
       const { data, count, error: queryError } = await request.range(from, from + PAGE_SIZE - 1)
       if (queryError) throw queryError
       setRows(((data ?? []) as EpisodeRow[]).map((row) => episodeFromRow(row, roomNames)))
-      setTotal(count ?? 0)
+      setTotal(exact ? (count ?? 0) : -1)
     } catch (cause) {
       setRows([])
       setTotal(0)
@@ -148,7 +187,7 @@ export default function PatientRegistryWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [effectiveRoom, page, roomNames, year, canViewAllRooms, lockRoomScope])
+  }, [effectiveRoom, page, roomNames, year, canViewAllRooms, lockRoomScope, query])
 
   // Jumlah episode per unit (untuk pilihan unit & unit bawaan formulir Tambah Pasien).
   useEffect(() => {
@@ -173,20 +212,16 @@ export default function PatientRegistryWorkspace({
   }, [roomFilter, rooms, initialRoomId, canViewAllRooms, lockRoomScope])
   useEffect(() => { void load() }, [load])
 
-  const filtered = useMemo(() => {
-    const tokens = search.toLocaleLowerCase('id').trim().split(/\s+/).filter(Boolean)
-    if (!tokens.length) return rows
-    return rows.filter((row) => {
-      const haystack = [row.unit, row.name, row.mrn, row.admission, row.discharge, row.diagnosis, row.dpjp, row.status].join(' ').toLocaleLowerCase('id')
-      return tokens.every((token) => haystack.includes(token))
-    })
-  }, [rows, search])
+  const filtered = rows
 
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const firstRow = total ? page * PAGE_SIZE + 1 : 0
-  const lastRow = Math.min((page + 1) * PAGE_SIZE, total)
-  const discharged = rows.filter((row) => row.discharge).length
-  const activeEpisodes = rows.length - discharged
+  const allTotal = [...roomCounts.values()].reduce((a, b) => a + b, 0)
+  const shownTotal = total >= 0 ? total : allTotal
+  const pageCount = Math.max(1, Math.ceil(shownTotal / PAGE_SIZE))
+  const firstRow = rows.length ? page * PAGE_SIZE + 1 : 0
+  const lastRow = page * PAGE_SIZE + rows.length
+  const discharged = rows.filter((row) => row.inpatient && row.discharge).length
+  const activeEpisodes = rows.filter((row) => row.inpatient && !row.discharge).length
+  const visits = rows.filter((row) => !row.inpatient).length
 
   return (
     <section className="patientRegistry">
@@ -199,7 +234,7 @@ export default function PatientRegistryWorkspace({
         .prButton{border:1px solid var(--line,rgba(30,60,45,.14));background:#fff;color:#264438;border-radius:11px;padding:10px 13px;min-height:40px;font-size:12px;font-weight:750;cursor:pointer}
         .prButton.primary{background:var(--accent,#23694a);border-color:var(--accent,#23694a);color:#fff}
         .prButton:disabled{opacity:.45;cursor:not-allowed}
-        .prKpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+        .prKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
         .prKpi,.prPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px}
         .prKpi{padding:14px 16px}.prKpi span{display:block;color:var(--muted,#718078);font-size:11px}.prKpi strong{display:block;font-size:25px;margin-top:5px}
         .prFilters{padding:14px}.prFilters label{display:grid;gap:5px;color:var(--muted,#718078);font-size:10px;font-weight:700}.prUnitScope{display:grid;gap:5px;min-width:170px;padding:3px 0}.prUnitScope span{color:var(--muted,#718078);font-size:10px;font-weight:700}.prUnitScope strong{font-size:12px;color:var(--ink,#18372b)}
@@ -210,14 +245,14 @@ export default function PatientRegistryWorkspace({
         .prTable th,.prTable td{padding:12px 11px;text-align:left;border-bottom:1px solid var(--line,rgba(30,60,45,.1));vertical-align:top}
         .prTable th{font-size:10px;color:var(--muted,#718078);font-weight:800;background:#f8faf8;white-space:nowrap}
         .prTable td{line-height:1.45}.prStrong{font-weight:800;color:#244638}.prMuted{color:var(--muted,#718078);font-size:11px}
-        .prStatus{display:inline-flex;padding:5px 8px;border-radius:999px;background:#e9f5ee;color:#286346;font-size:10px;font-weight:800}
+        .prStatus{display:inline-flex;padding:5px 8px;border-radius:999px;background:#e9f5ee;color:#286346;font-size:10px;font-weight:800}.prStatus.in{background:#fff4e0;color:#8a5a12}.prStatus.visit{background:#e8f0fb;color:#1e4f86}
         .prFoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px}
         .prEmpty{padding:35px 16px;text-align:center;color:var(--muted,#718078);font-size:12px}
         .prAlert{padding:12px 14px;border-radius:12px;background:#fff5e8;color:#825a20;font-size:12px}
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button></nav>
-      {tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
+      <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button><button type="button" role="tab" aria-selected={tab === 'database'} className={tab === 'database' ? 'active' : ''} onClick={() => setTab('database')}>Database Pasien</button></nav>
+      {tab === 'database' ? <PatientIndexTab isAdmin={isAdmin} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <div>
           <h2>Register Pasien</h2>
@@ -231,9 +266,10 @@ export default function PatientRegistryWorkspace({
       </header>
 
       <div className="prKpis">
-        <div className="prKpi"><span>Total episode · tahun {year}</span><strong>{total.toLocaleString('id-ID')}</strong></div>
-        <div className="prKpi"><span>Episode selesai · halaman ini</span><strong>{discharged.toLocaleString('id-ID')}</strong></div>
+        <div className="prKpi"><span>{query ? 'Hasil pencarian' : 'Total episode · tahun ' + year}</span><strong>{shownTotal.toLocaleString('id-ID')}</strong></div>
+        <div className="prKpi"><span>Rawat inap pulang · halaman ini</span><strong>{discharged.toLocaleString('id-ID')}</strong></div>
         <div className="prKpi"><span>Masih dirawat · halaman ini</span><strong>{activeEpisodes.toLocaleString('id-ID')}</strong></div>
+        <div className="prKpi"><span>Kunjungan (IGD/rawat jalan/tindakan) · halaman ini</span><strong>{visits.toLocaleString('id-ID')}</strong></div>
       </div>
 
       <div className="prPanel prFilters">
@@ -250,8 +286,8 @@ export default function PatientRegistryWorkspace({
             {[2025, 2026, 2027, 2028, 2029].map((item) => <option key={item} value={String(item)}>{item}</option>)}
           </select>
         </label>
-        <label className="prSearch">Cari pada halaman ini
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nama, No. RM, diagnosis, DPJP..." />
+        <label className="prSearch">Cari No. RM atau nama pasien (semua data)
+          <input type="search" name="aureka-patient-search" autoComplete="off" data-lpignore="true" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="mis. 03-65-39, 36539, atau nama" />
         </label>
         <button className="prButton" type="button" onClick={() => { setSearch(''); setPage(0); void load() }}>Muat Ulang</button>
       </div>
@@ -268,21 +304,21 @@ export default function PatientRegistryWorkspace({
                   <td><div className="prStrong">{showIdentity ? row.name || '—' : maskName(row.name)}</div><div className="prMuted">{showIdentity ? row.mrn || '—' : maskMrn(row.mrn)}</div></td>
                   <td>{row.unit}</td><td>{row.admission || '—'}</td><td>{row.discharge || '—'}</td>
                   <td>{row.diagnosis || '—'}</td><td>{row.dpjp || '—'}</td><td>{row.los ? row.los + ' hari' : '—'}</td>
-                  <td><span className="prStatus">{row.status === 'validated' ? 'Tervalidasi' : row.status === 'ready' ? 'Menunggu validasi' : row.status === 'draft' ? 'Draf' : row.status}</span></td>
-                </tr>) : <tr><td colSpan={9}><div className="prEmpty">{search ? 'Tidak ada hasil pada halaman ini.' : 'Belum ada catatan episode pasien untuk filter yang dipilih.'}</div></td></tr>}
+                  <td><span className={'prStatus ' + (row.inpatient ? (row.discharge ? 'out' : 'in') : 'visit')}>{row.inpatient ? (row.discharge ? 'Pulang' : 'Dirawat') : 'Kunjungan'}</span><div className="prMuted">{row.status === 'validated' ? 'Tervalidasi' : row.status === 'ready' ? 'Menunggu validasi' : row.status === 'draft' ? 'Draf' : row.status}</div></td>
+                </tr>) : <tr><td colSpan={9}><div className="prEmpty">{query ? 'Tidak ada pasien yang cocok dengan pencarian.' : 'Belum ada catatan episode pasien untuk filter yang dipilih.'}</div></td></tr>}
             </tbody>
           </table>
         </div>
         <footer className="prFoot">
-          <span className="prMuted">Menampilkan {firstRow.toLocaleString('id-ID')}–{lastRow.toLocaleString('id-ID')} dari {total.toLocaleString('id-ID')} episode · 50 data per halaman</span>
+          <span className="prMuted">Menampilkan {firstRow.toLocaleString('id-ID')}–{lastRow.toLocaleString('id-ID')} dari {shownTotal.toLocaleString('id-ID')} episode · 50 data per halaman</span>
           <div className="prActions">
             <button className="prButton" type="button" disabled={page <= 0 || loading} onClick={() => setPage((value) => Math.max(0, value - 1))}>Sebelumnya</button>
             <span className="prMuted">Halaman {page + 1} / {pageCount}</span>
-            <button className="prButton" type="button" disabled={(page + 1) * PAGE_SIZE >= total || loading} onClick={() => setPage((value) => value + 1)}>Berikutnya</button>
+            <button className="prButton" type="button" disabled={rows.length < PAGE_SIZE || (page + 1) * PAGE_SIZE >= shownTotal || loading} onClick={() => setPage((value) => value + 1)}>Berikutnya</button>
           </div>
         </footer>
       </div>
-      <p className="prMuted">Pencarian dilakukan pada 50 data di halaman aktif. Hak akses unit tetap mengikuti akun dan pembatasan basis data.</p>
+      <p className="prMuted">Pencarian mencakup seluruh data tahun terpilih. Status "Kunjungan" untuk unit tanpa tanggal keluar (IGD, rawat jalan, tindakan). Hak akses unit tetap mengikuti akun.</p>
       </>}
     </section>
   )
