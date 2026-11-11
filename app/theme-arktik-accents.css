@@ -1005,12 +1005,33 @@ html[data-skin="arktik"] .fppeHistoryItem { border: 1px solid rgba(34, 50, 64,.1
 html[data-skin="arktik"] .fppeEvent { border-top: 1px solid rgba(34, 50, 64,.09); }
 html[data-skin="arktik"] .fppeEmpty { border: 1px dashed rgba(34, 50, 64,.15); }
 
+/* from components/HomeLandingWorkspace.tsx */
+html[data-skin="arktik"] .homeLanding { color: var(--ink,#172938); }
+html[data-skin="arktik"] .hlTabs { border-bottom: 1px solid var(--line,rgba(29, 46, 61,.14)); }
+html[data-skin="arktik"] .hlTab.active { background: #eaeff4; color: #224360; border-color: #d6e0e9; }
+html[data-skin="arktik"] .hlWelcomeCard,
+html[data-skin="arktik"] .hlPanel { border: 1px solid var(--line,rgba(29, 46, 61,.13)); box-shadow: 0 8px 24px rgba(27, 45, 61,.035); }
+html[data-skin="arktik"] .hlWelcomeCard { background: linear-gradient(125deg,#f3f6f8,#fff 70%); }
+html[data-skin="arktik"] .hlWelcomeCard .hlGreeting { color: #1e374d; }
+html[data-skin="arktik"] .hlPanelHead h3 { color: #233647; }
+html[data-skin="arktik"] .hlMetric { background: #f7f9fa; border: 1px solid #e8ecef; }
+html[data-skin="arktik"] .hlMetric strong { color: #233647; }
+html[data-skin="arktik"] .hlBarTrack { background: #edf0f2; }
+html[data-skin="arktik"] .hlBarFill { background: #4a7499; }
+html[data-skin="arktik"] .hlPendingRow { border: 1px solid #e8ecef; }
+html[data-skin="arktik"] .hlPendingRow b { color: #304455; }
+
 /* from components/MetadataStatisticsWorkspace.tsx */
+html[data-skin="arktik"] .mswHeader { border: 1px solid var(--line,#e5e8eb); }
 html[data-skin="arktik"] .mswEyebrow { color: var(--accent,#0b467a); }
 html[data-skin="arktik"] .mswTitle { color: var(--text,#202d38); }
-html[data-skin="arktik"] .mswTab:hover { color: var(--text,#202d38); }
-html[data-skin="arktik"] .mswTab[aria-selected="true"] { background: linear-gradient(135deg,var(--accent,#0b467a),var(--accent2,#052e52)); box-shadow: 0 7px 18px rgba(11, 70, 122,.16); }
-html[data-skin="arktik"] .mswAccessNote { border: 1px solid rgba(11, 70, 122,.13); }
+html[data-skin="arktik"] .mswTabs,
+html[data-skin="arktik"] .mswDirectoryTabs { border-bottom: 1px solid #e8ebee; }
+html[data-skin="arktik"] .mswTab,
+html[data-skin="arktik"] .mswDirectoryTab { border: 1px solid #e4e8eb; color: #525d67; }
+html[data-skin="arktik"] .mswTab:hover,
+html[data-skin="arktik"] .mswDirectoryTab:hover { background: #f6f8f9; border-color: #cad4dd; color: #1f2d3a; }
+html[data-skin="arktik"] .mswAccessNote { border: 1px solid #e5eaee; background: #f8fafb; }
 html[data-skin="arktik"] .mswAccessNote strong { color: var(--text,#202d38); }
 
 /* from components/OppeAuditWorkspace.tsx */
@@ -1041,6 +1062,22 @@ html[data-skin="arktik"] .oppeModalFooter { border-top: 1px solid rgba(24, 44, 6
 html[data-skin="arktik"] .oppeCheck { border: 1px solid rgba(24, 44, 61,.12); }
 html[data-skin="arktik"] .oppeEventItem { border-bottom: 1px solid rgba(24, 44, 61,.09); }
 html[data-skin="arktik"] .oppeEventMarker { box-shadow: 0 0 0 4px rgba(11, 70, 122,.09); }
+
+/* from components/PatientRegistryWorkspace.tsx */
+html[data-skin="arktik"] .patientRegistry { color: var(--ink,#172938); }
+html[data-skin="arktik"] .prTabs { border-bottom: 1px solid var(--line,rgba(29, 46, 61,.14)); }
+html[data-skin="arktik"] .prTabs button.active { background: #eaeff4; color: #224360; border-color: #d6e0e9; }
+html[data-skin="arktik"] .prButton { border: 1px solid var(--line,rgba(29, 46, 61,.14)); color: #253645; }
+html[data-skin="arktik"] .prButton.primary { background: var(--accent,#20496c); border-color: var(--accent,#20496c); }
+html[data-skin="arktik"] .prKpi,
+html[data-skin="arktik"] .prPanel { border: 1px solid var(--line,rgba(29, 46, 61,.14)); }
+html[data-skin="arktik"] .prUnitScope strong { color: var(--ink,#172938); }
+html[data-skin="arktik"] .prFilters input,
+html[data-skin="arktik"] .prFilters select { border: 1px solid var(--line,rgba(29, 46, 61,.14)); color: var(--ink,#172938); }
+html[data-skin="arktik"] .prTable th,
+html[data-skin="arktik"] .prTable td { border-bottom: 1px solid var(--line,rgba(29, 46, 61,.1)); }
+html[data-skin="arktik"] .prTable th { background: #f8f9fa; }
+html[data-skin="arktik"] .prStrong { color: #233647; }
 
 /* from components/PatientSafetyWorkspace.tsx */
 html[data-skin="arktik"] .psBtn { color: #253543; }
