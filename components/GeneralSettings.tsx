@@ -286,6 +286,7 @@ export default function GeneralSettings({
   }
 
   const deleteUser = async (u: Profile) => {
+    // Single-account deletion remains available as a guarded fallback for existing admin workflows.
     setBusy(true)
     setMsg('')
     const { error } = await sb.rpc('aureka_admin_delete_user', { p_user_id: u.user_id })
@@ -294,8 +295,8 @@ export default function GeneralSettings({
     if (error) {
       const text = error.message || ''
       let note = `Gagal menghapus: ${toUserFacingError(error, { fallback: 'Akun belum dapat dihapus.' })}`
-      if (/USER_HAS_DATA/.test(text)) note = 'Akun ini sudah memiliki data (risiko/laporan/rekam mutu), sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.'
-      else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum aktif di database. Minta pemilik Supabase menjalankan file supabase/migrations/20261014092000_admin_delete_user.sql di SQL Editor, lalu coba lagi.'
+      if (/USER_HAS_DATA/.test(text)) note = 'Akun ini sudah memiliki data operasional sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.'
+      else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum aktif di database.'
       setMsg(note)
       setRowNote({ id: u.user_id, ok: false, text: note })
       return
@@ -303,6 +304,32 @@ export default function GeneralSettings({
     setMsg(`Akun ${u.full_name} berhasil dihapus.`)
     setRowNote(null)
     loadUsers()
+  }
+
+  const cleanupUnitAccounts = async () => {
+    if (!isAdmin || busy) return
+    const confirmed = window.confirm('Bersihkan semua akun dengan role PIC dan Validator? Super Admin tidak akan diubah. Akun yang masih terhubung dengan data operasional akan dinonaktifkan agar datanya tetap utuh.')
+    if (!confirmed) return
+    setBusy(true)
+    setMsg('')
+    const { data, error } = await sb.rpc('aureka_admin_cleanup_unit_accounts')
+    setBusy(false)
+    if (error) {
+      const note = `Gagal membersihkan akun: ${toUserFacingError(error, { fallback: 'Operasi belum dapat dijalankan.' })}`
+      setMsg(note)
+      setProvisionMessage(note)
+      return
+    }
+    const result = Array.isArray(data) ? data[0] : data
+    const deleted = Number(result?.deleted_count || 0)
+    const deactivated = Number(result?.deactivated_count || 0)
+    const protectedCount = Number(result?.protected_count || 0)
+    const summary = `Pembersihan selesai: ${deleted} akun dihapus, ${deactivated} akun dinonaktifkan karena masih memiliki relasi data operasional, ${protectedCount} akun terproteksi. Super Admin dipertahankan.`
+    setProvisionMessage(summary)
+    setMsg(summary)
+    setConfirmDeleteId(null)
+    setDetailId(null)
+    await loadUsers()
   }
 
   const openDetail = (u: Profile) => {
@@ -809,6 +836,17 @@ export default function GeneralSettings({
               Kelola role, unit utama, status, dan penggantian password untuk akun AUREKA.
             </p>
             <div style={{ marginTop: 14, padding: 14, border: '1px solid rgba(15,118,86,.18)', borderRadius: 16, background: 'rgba(255,255,255,.25)' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 12 }}>
+                <div style={{ flex: '1 1 280px' }}>
+                  <b>Bersihkan seluruh akun PIC dan Validator</b>
+                  <p style={{ margin: '5px 0 0', fontSize: 10, color: 'var(--muted)', lineHeight: 1.5 }}>
+                    Hapus akun unit yang tidak memiliki relasi data operasional. Akun yang masih direferensikan data akan dinonaktifkan; Super Admin dan seluruh data tetap dipertahankan.
+                  </p>
+                </div>
+                <button type="button" className="uBtn danger" disabled={busy || provisioning} onClick={cleanupUnitAccounts}>
+                  {busy ? 'Memproses…' : 'Bersihkan akun PIC & Validator'}
+                </button>
+              </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 280px' }}>
                   <b>Buat akun PIC dan Validator untuk semua unit</b>
