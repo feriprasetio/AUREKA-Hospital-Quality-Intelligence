@@ -150,7 +150,7 @@ const roleLabel = (role: string | null) => ({
 }[role || ''] || role || 'Pengguna')
 
 export default function RiskManagementWorkspace({
-  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true, onTabChange,
+  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true, onTabChange, forceRoomScope = false,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -162,6 +162,7 @@ export default function RiskManagementWorkspace({
   initialTab?: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'
   showTabs?: boolean
   onTabChange?: (tab: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea') => void
+  forceRoomScope?: boolean
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
   const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'>(initialTab)
@@ -217,7 +218,7 @@ export default function RiskManagementWorkspace({
   const canManageAll = privilegedRoles.includes(roleCode)
   const currentRoom = rooms.find(r => r.id === initialRoomId)
   // PIC/unit users only see their own unit's register; managers see the whole hospital.
-  const scopedToUnit = !canManageAll
+  const scopedToUnit = forceRoomScope || !canManageAll
   const unitMissing = scopedToUnit && initialRoomId == null
   const belongsToMyUnit = useCallback((risk: Pick<RiskRow, 'unit_id' | 'unit_name'>) =>
     initialRoomId != null && (risk.unit_id === initialRoomId ||
