@@ -356,9 +356,10 @@ export default function PatientSafetyWorkspace({
           .then((data) => ({ data, error: null as unknown }))
           .catch((error: unknown) => ({ data: null, error })),
       ])
-      const activeRoomName = rooms.find(room => Number(room.id) === Number(initialRoomId))?.name || ''
+      const selectedRoomName = rooms.find(room => Number(room.id) === Number(initialRoomId))?.name || ''
+      const normalizedRoomName = selectedRoomName.trim().toLocaleLowerCase('id-ID')
       const visibleIncidents = forceRoomScope
-        ? (activeRoomName ? nextIncidents.filter(row => row.unit_name === activeRoomName) : [])
+        ? (normalizedRoomName ? nextIncidents.filter(row => String(row.unit_name || '').trim().toLocaleLowerCase('id-ID') === normalizedRoomName) : [])
         : nextIncidents
       const visibleIncidentIds = new Set(visibleIncidents.map(row => String(row.id)))
       const visibleInvestigations = forceRoomScope
@@ -455,7 +456,7 @@ export default function PatientSafetyWorkspace({
           .order('response_id', { ascending: true })
           .range(from, to))
         setResponses(forceRoomScope
-          ? (activeRoomName ? allResponses.filter(row => row.unit_name === activeRoomName) : [])
+          ? (normalizedRoomName ? allResponses.filter(row => String(row.unit_name || '').trim().toLocaleLowerCase('id-ID') === normalizedRoomName) : [])
           : allResponses)
       } else {
         setResponses([])
@@ -498,7 +499,10 @@ export default function PatientSafetyWorkspace({
   // Tanda "wajib diisi" baru muncul setelah pengguna mencoba mengirim.
   const [showMissing, setShowMissing] = useState(false)
   const missingSurvey = useMemo(() => SURVEY_REQUIRED.filter(code => !Object.prototype.hasOwnProperty.call(surveyAnswers, code) || surveyAnswers[code] === ''), [surveyAnswers])
-  const roomOptions = rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
+  const activeRoomName = rooms.find(room => Number(room.id) === Number(initialRoomId))?.name || ''
+  const roomOptions = forceRoomScope
+    ? (activeRoomName ? [activeRoomName] : [])
+    : rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
 
   const [formOpen, setFormOpen] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
