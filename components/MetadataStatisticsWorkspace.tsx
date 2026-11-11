@@ -29,7 +29,6 @@ export default function MetadataStatisticsWorkspace({
   initialContainer,
   initialDirectoryTab = 'directory',
   showTabs = true,
-  lockRoomScope = false,
 }: {
   rooms: Room[]
   isSuperAdmin: boolean
@@ -38,7 +37,6 @@ export default function MetadataStatisticsWorkspace({
   initialContainer?: MetadataTab
   initialDirectoryTab?: DirectoryTab
   showTabs?: boolean
-  lockRoomScope?: boolean
 }) {
   const canOpenTeam = ['ADMIN', 'PMKP', 'PIC', 'VALIDATOR'].includes(role || '')
   const canManageAllRooms = isSuperAdmin || role === 'PMKP'
@@ -127,13 +125,13 @@ export default function MetadataStatisticsWorkspace({
 
       {activeTab === 'programs' && isSuperAdmin && (
         <div className="mswContent" role="tabpanel" aria-label="Program Kerja">
-          <QualitySettings rooms={rooms} initialTab="programs" showTabs={false} initialRoomId={initialRoomId} lockRoomScope={lockRoomScope} onTabChange={setActive} />
+          <QualitySettings rooms={rooms} initialTab="programs" showTabs={false} onTabChange={setActive} initialRoomId={initialRoomId} forceRoomScope={isSuperAdmin} />
         </div>
       )}
 
       {activeTab === 'profiles' && isSuperAdmin && (
         <div className="mswContent" role="tabpanel" aria-label="Profil Indikator">
-          <QualitySettings rooms={rooms} initialTab="profiles" showTabs={false} initialRoomId={initialRoomId} lockRoomScope={lockRoomScope} onTabChange={setActive} />
+          <QualitySettings rooms={rooms} initialTab="profiles" showTabs={false} onTabChange={setActive} initialRoomId={initialRoomId} forceRoomScope={isSuperAdmin} />
         </div>
       )}
 
@@ -170,7 +168,7 @@ export default function MetadataStatisticsWorkspace({
                 rooms={rooms}
                 isSuperAdmin={isSuperAdmin}
                 canManageAllRooms={canManageAllRooms}
-                lockRoomScope={lockRoomScope}
+                forceRoomScope={isSuperAdmin}
               />
             </div>
           )}
