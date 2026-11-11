@@ -15,6 +15,8 @@ Atau lewat Dashboard Supabase:
 1. Edge Functions → Secrets → tambah `GEMINI_API_KEY`.
 2. Edge Functions → Deploy new function → nama `aureka-tanya` → tempel isi `index.ts` → Deploy (biarkan "Verify JWT" aktif).
 
+Penyedia AI: bila secret `GROQ_API_KEY` ada, fungsi memakai **Groq** (model `llama-3.3-70b-versatile`, cadangan `openai/gpt-oss-120b`, `llama-3.1-8b-instant`; bisa diatur dengan `GROQ_MODEL`). Bila tidak, memakai Gemini.
+
 Opsional: `GEMINI_MODEL` (bawaan `gemini-flash-latest`) dan `GEMINI_FALLBACK_MODEL` (bawaan `gemini-flash-lite-latest`, dipakai otomatis saat model utama sibuk).
 
 ## Data yang dikirim ke AI
