@@ -3,13 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NavigateFn } from '@/lib/aureka/focus'
-import dynamic from 'next/dynamic'
-import OverviewDashboard from '@/components/OverviewDashboard'
 import TanyaAureka from '@/components/TanyaAureka'
 import { fetchRoomMonthCounts, type RoomMonthCount } from '@/lib/aureka/quality-counts'
-const QualityResultsWorkspace=dynamic(()=>import('@/components/QualityResultsWorkspace'),{ssr:false})
-const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorkspace'),{ssr:false})
-const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false})
 
 type Room = { id:number; name:string }
 type RecordRow = {
@@ -36,6 +31,8 @@ type Props = {
   selectedRoomId?: number | null
   onRoomChange?: (roomId: number) => void
   onNavigate: NavigateFn
+  initialTab?: 'welcome' | 'infographics'
+  onTabChange?: (tab: 'welcome' | 'infographics') => void
 }
 const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
 const valueText = (value: unknown) => value == null ? '' : String(value).trim()
@@ -127,9 +124,9 @@ function InfographicChart({ data, type, category = false, unit = '' }: { data: I
 const unitRecordCache=new Map<string,{at:number;rows:RecordRow[]}>()
 type UnitStats={allowed?:boolean;episodes:number;active:number;avg_los:number|null;los_count:number;months:{month:number;count:number}[];top:{code:string;diagnosis:string;count:number}[]}
 
-export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,scopeToRoom=false,selectedRoomId,onRoomChange,onNavigate}:Props) {
-  const [tab,setTab] = useState<'welcome'|'infographics'|'achievements'>('welcome')
-  const [achievementTab,setAchievementTab] = useState<'overview'|'indicators'|'safety'|'risk'>('overview')
+export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,scopeToRoom=false,selectedRoomId,onRoomChange,onNavigate,initialTab='welcome',onTabChange}:Props) {
+  const [tab,setTab] = useState<'welcome'|'infographics'>(initialTab)
+  useEffect(()=>setTab(initialTab),[initialTab])
   const [records,setRecords] = useState<RecordRow[]>([])
   const [loading,setLoading] = useState(false)
   const [error,setError] = useState('')
@@ -302,12 +299,12 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const infographicTotal=infographic.data.reduce((sum,p)=>sum+p.value,0)
   const infographicAverage=infographic.data.length?infographicTotal/infographic.data.length:0
   const infographicPeak=infographic.data.reduce((best,p)=>p.value>best.value?p:best,{label:'—',value:0})
-  const tabButton=(id:typeof tab,label:string)=><button type="button" role="tab" aria-selected={tab===id} className={tab===id?'hlTab active':'hlTab'} onClick={()=>setTab(id)}>{label}</button>
+  const tabButton=(id:typeof tab,label:string)=><button type="button" role="tab" aria-selected={tab===id} aria-controls={`home-panel-${id}`} className={tab===id?'hlTab active':'hlTab'} onClick={()=>{setTab(id);onTabChange?.(id)}}>{label}</button>
   return <section className="homeLanding">
     <style>{`
       .homeLanding{display:grid;gap:16px;color:var(--ink,#18372b)}.hlExplorer{display:grid;gap:18px}.hlExplorerHead,.hlVisualizationHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.hlExplorerHead h3,.hlVisualizationHead h4{margin:0;color:#244638;font-size:16px;font-weight:750}.hlExplorerHead p,.hlVisualizationHead p{margin:4px 0 0;color:#7b8981;font-size:12px;line-height:1.5}.hlDataScope{padding:6px 10px;border-radius:8px;background:#f0f5f1;color:#3d7154;font-size:11px;font-weight:700;white-space:nowrap}.hlFilterGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.hlFilterGrid label{display:grid;gap:6px;min-width:0}.hlFilterGrid label>span{font-size:11px;font-weight:750;color:#68796f}.hlFilterGrid select{width:100%;min-width:0;min-height:42px;border:1px solid #dce8df;border-radius:9px;background:#fff;color:#244638;padding:8px 32px 8px 11px;font-size:12px;font-weight:650}.hlSummaryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.hlSummaryMetric{min-width:0;padding:13px 15px;border:1px solid #e7eee9;border-radius:10px;background:#f8faf8}.hlSummaryMetric span,.hlSummaryMetric small{display:block;color:#7a8980;font-size:10px;line-height:1.4}.hlSummaryMetric strong{display:block;margin:5px 0 2px;color:#244638;font-size:22px;line-height:1.15;font-weight:800;overflow-wrap:anywhere}.hlVisualizationHead{padding-top:4px;border-top:1px solid #edf2ee}.hlVisualizationHead h4{font-size:15px}.hlVisualizationHead>span{color:#87948c;font-size:11px;white-space:nowrap}.hlDonutLayout{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);align-items:center;gap:22px;max-width:760px;margin:0 auto}.hlDonutLayout svg{width:100%;height:auto;max-height:260px}.hlDonutLegend{display:grid;gap:9px;min-width:0}.hlLegendItem{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:9px;align-items:center;font-size:11px;color:#617268}.hlLegendItem i{width:9px;height:9px;border-radius:50%}.hlLegendItem span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hlLegendItem b{color:#344e40;font-size:11px;font-variant-numeric:tabular-nums}.hlTabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.hlTab{border:1px solid transparent;border-radius:10px;padding:10px 14px;background:transparent;color:#66766d;font-size:12px;font-weight:750;cursor:pointer}.hlTab.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.hlWelcomeCard,.hlPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.13));border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(28,60,43,.035)}.hlWelcomeCard{background:linear-gradient(125deg,#f3f8f4,#fff 70%);display:grid;gap:7px}.hlWelcomeCard .hlGreeting{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:-.04em;color:#204b35}.hlWelcomeCard p{margin:0;color:#718078;font-size:12px}.hlUnitPicker{display:grid;gap:5px;max-width:420px;margin-top:4px}.hlUnitPicker span{font-size:10px;font-weight:800;color:#68796f}.hlUnitPicker select{width:100%;min-height:40px;border:1px solid #dce8df;border-radius:10px;background:#fff;color:#244638;padding:8px 11px;font-size:12px;font-weight:700;outline:none}.hlUnitPicker select:focus-visible{border-color:#397c58;box-shadow:0 0 0 3px rgba(57,124,88,.14)}.hlDate{font-size:12px;color:#718078}.hlPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.hlPanelHead h3{font-size:15px;margin:0;color:#244638}.hlPanelHead span{font-size:10px;color:#819087}.hlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hlMetric{padding:13px;border-radius:12px;background:#f7faf8;border:1px solid #e8efea}.hlMetric span{display:block;font-size:10px;color:#78877e}.hlMetric strong{display:block;font-size:23px;margin-top:5px;color:#244638}.hlMetric small{font-size:10px;color:#829087}.hlChart{width:100%}.hlChart svg{width:100%;height:auto;overflow:visible}.hlAxis{display:flex;justify-content:space-between;color:#87948c;font-size:9px}.hlBars{display:grid;gap:8px}.hlBarRow{display:grid;grid-template-columns:minmax(90px,1fr) 3fr 28px;gap:8px;align-items:center;font-size:10px}.hlBarTrack{height:8px;background:#edf2ee;border-radius:10px;overflow:hidden}.hlBarFill{height:100%;background:#4d9670;border-radius:10px}.hlPendingRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid #e8efea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}.hlPendingRow span{display:grid;gap:4px}.hlPendingRow b{font-size:11px;color:#315442}.hlPendingRow small{font-size:10px;color:#839087}.hlPendingRow strong{font-size:18px;color:#a45b28}.hlEmpty{padding:22px;text-align:center;color:#829087;font-size:12px}.hlAi{min-height:250px}.hlInfoFilter{display:flex;justify-content:flex-end}.hlInfoFilter label{display:grid;gap:5px;font-size:11px;font-weight:700;color:#718078}.hlInfoFilter select{min-width:240px;min-height:40px;border-radius:12px;padding:8px 12px;font-size:13px}.hlReminder{border-color:#f5c26b!important}.hlReminderRow{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid #f3e1b8;background:#fffaf0}.hlReminderRow small{font-size:11px;color:#8a6a2a}.hlReminderRow p{margin:4px 0 0;font-size:13px;line-height:1.5;color:#3d3220;white-space:pre-wrap}.hlReminderBtn{flex:0 0 auto;border:0;border-radius:10px;padding:9px 14px;background:#0b467a;color:#fff;font-size:12px;font-weight:700;cursor:pointer}.hlNotice{padding:11px 13px;border-radius:10px;background:#fff7e9;color:#805e2b;font-size:11px}@media(max-width:1000px){.hlFilterGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.hlDonutLayout{grid-template-columns:minmax(180px,240px) minmax(0,1fr)}}@media(max-width:640px){.hlFilterGrid,.hlSummaryGrid{grid-template-columns:1fr}.hlExplorerHead,.hlVisualizationHead{display:grid}.hlDataScope,.hlVisualizationHead>span{justify-self:start}.hlDonutLayout{grid-template-columns:1fr}.hlDonutLayout svg{max-width:250px;margin:auto}.hlGrid{grid-template-columns:1fr}.hlWelcomeCard,.hlPanel{padding:14px}.hlTab{flex:1}}`}</style>
-    <nav className="hlTabs" role="tablist" aria-label="Halaman Utama">{tabButton('welcome','Welcome Page')}{tabButton('infographics','Infografis')}{tabButton('achievements','Capaian Unit')}</nav>
-    {tab==='welcome'&&<>
+    <nav className="hlTabs" role="tablist" aria-label="Halaman Utama">{tabButton('welcome','Beranda')}{tabButton('infographics','Infografis')}</nav>
+    {tab==='welcome'&&<div id="home-panel-welcome" role="tabpanel">
       <section className="hlWelcomeCard"><button type="button" className="hlPwBtn" onClick={()=>window.dispatchEvent(new Event('aureka-open-password'))} title="Ubah password akun Anda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><span>Ubah password</span></button><span className="hlGreeting">{greeting}, {firstName}</span><p>{dateLabel}</p>{scopeToRoom ? <p>{roomName||'Unit kerja belum dipetakan'} <small className="hlUnitHint">· ganti unit aktif lewat pilihan di header (kiri atas)</small></p> : <p>{roomName||'Unit kerja belum dipetakan'}</p>}</section>
       {reminders.length>0&&<section className="hlPanel hlReminder"><header className="hlPanelHead"><h3>🔔 Pengingat dari Komite PMKP</h3><span>{reminders.length} pengingat · 30 hari terakhir</span></header>
         <div className="hlBars">{reminders.map(r=><div className="hlReminderRow" key={r.id}>
@@ -317,8 +314,8 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       </section>}
       <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas terakhir Anda</h3><span>{activity.lastAt?new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(activity.lastAt)):'Belum ada aktivitas tercatat'}</span></header>{activity.pending.length?<div className="hlBars">{activity.pending.map(item=><button type="button" className="hlPendingRow" key={item.module+item.label} onClick={()=>onNavigate(item.module==='Keselamatan Pasien'?'safety':item.module==='Manajemen Risiko'?'risk':'quality')}><span><b>{item.label}</b><small>{item.module}</small></span><strong>{item.count}</strong></button>)}</div>:<p className="hlEmpty">Tidak ada pekerjaan tertunda yang ditemukan pada sumber aktivitas yang terhubung.</p>}{activity.partial&&<p className="hlDate">Sebagian sumber aktivitas belum dapat dibaca. Periksa kembali modul terkait untuk memastikan daftar pekerjaan lengkap.</p>}</section>
       <section className="hlPanel hlAi"><header className="hlPanelHead"><h3>Tanya AI</h3><span>Asisten mutu dan keselamatan pasien</span></header><TanyaAureka sb={supabase} page="Halaman Utama · Welcome Page" embedded/></section>
-    </>}
-    {tab==='infographics'&&<>
+    </div>}
+    {tab==='infographics'&&<div id="home-panel-infographics" role="tabpanel">
       {error&&<div className="hlNotice">{error}</div>}
       <section className="hlPanel hlExplorer">
         <div className="hlExplorerHead"><div><h3>Eksplorasi data rumah sakit</h3><p>Pilih indikator, unit, periode, dan bentuk visualisasi untuk menelaah data.</p></div><span className="hlDataScope">{infoRoomId?infoRoomName:'Seluruh unit'}</span></div>
@@ -343,15 +340,6 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
         {loading?<div className="hlEmpty">Memuat data untuk pilihan Anda…</div>:!infographic.available?<div className="hlEmpty">{infoMetric==='diagnosis'&&metrics.aggregateOnly?'Distribusi diagnosis memerlukan pilihan satu unit karena ringkasan lintas unit saat ini hanya menyediakan agregat jumlah.':infoMetric==='avg_los'||infoMetric==='active'?'Pilih satu unit untuk menampilkan metrik episode pasien secara terperinci.':'Belum ada data untuk indikator dan periode yang dipilih.'}</div>:<InfographicChart data={infographic.data} type={effectiveChart} category={infographic.kind==='category'} unit={infographic.unit}/>}
         <p className="hlDate">Sumber: data AUREKA pada periode profil terpilih. Angka merupakan agregat catatan yang tersedia, bukan otomatis jumlah pasien unik. Data episode terbuka bukan pengganti sensus tempat tidur.</p>
       </section>
-    </>}
-    {tab==='achievements'&&<>
-      <nav className="hlTabs hlAchievementTabs" role="tablist" aria-label="Capaian Unit">
-        {([['overview','Ikhtisar'],['indicators','Indikator Mutu'],['safety','Keselamatan Pasien'],['risk','Manajemen Risiko']] as const).map(([id,label])=><button key={id} type="button" role="tab" aria-selected={achievementTab===id} className={achievementTab===id?'hlTab active':'hlTab'} onClick={()=>setAchievementTab(id)}>{label}</button>)}
-      </nav>
-      {achievementTab==='overview'&&<OverviewDashboard supabase={supabase} role={role??(manager?'MANAGEMENT':'PIC')} roomId={scopeToRoom?roomId:(manager?null:roomId)} roomName={roomName} manager={manager&&!scopeToRoom} userName={userName} onNavigate={onNavigate}/>}
-      {achievementTab==='indicators'&&<QualityResultsWorkspace key={'home-unit-indicators-'+String(scopeToRoom?roomId:'all')} mode="indicators" initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} rooms={rooms} canViewAllRooms={manager&&!scopeToRoom} lockRoomScope={scopeToRoom}/>}
-      {achievementTab==='safety'&&<PatientSafetyWorkspace key={'home-unit-safety-'+String(scopeToRoom?roomId:'all')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} scopeRoomId={scopeToRoom?roomId:null} isSuperAdmin={isAdmin} canManageWorkflow={manager} initialTab="overview" showTabs={false}/>}
-      {achievementTab==='risk'&&<RiskManagementWorkspace key={'home-unit-risk-'+String(scopeToRoom?roomId:'all')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} lockRoomScope={scopeToRoom} role={role} userId={userId} userName={userName} initialTab="overview" showTabs={false}/>}
-    </>}
+    </div>}
   </section>
 }
