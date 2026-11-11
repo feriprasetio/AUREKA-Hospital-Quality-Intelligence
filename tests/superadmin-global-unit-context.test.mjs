@@ -26,7 +26,7 @@ test('Super Admin resolves one valid active unit and displays it in the workspac
 })
 
 test('Welcome Page is the only Super Admin unit selector and persists the shared selection', () => {
-  assert.match(home, /onRoomChange=\{updateSelectedQualityRoom\}[^\n]*scopeToRoom=\{admin\}/)
+  assert.match(home, /scopeToRoom=\{admin\} onRoomChange=\{updateSelectedQualityRoom\}/)
   assert.match(landing, /Unit kerja aktif untuk seluruh modul/)
   assert.match(landing, /value=\{roomId\?\?''\}/)
   assert.match(landing, /onRoomChange\?\.\(next\)/)
@@ -37,7 +37,7 @@ test('Welcome activity and infographic records use the active unit for Super Adm
   assert.match(landing, /const infoRoomId = scopeToRoom \? roomId/)
   assert.match(landing, /if\(scopeToRoom&&!infoRoomId\)/)
   assert.match(landing, /scoped\(q\('aureka_quality','quality_records'[^\n]+,'room_id',roomId\)/)
-  assert.match(landing, /'unit_name',roomName\)/)
+  assert.match(landing, /'unit_name',roomName\|\|''\)/)
   assert.match(landing, /'unit_id',roomId\)/)
   assert.match(landing, /'owner_room_id',roomId\)/)
 })
