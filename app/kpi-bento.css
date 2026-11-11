@@ -243,3 +243,18 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hl
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlReminderRow p { color: #f1e6cf !important; }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlReminderRow small { color: #e3c27f !important; }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlReminderBtn { background: #dbeafe !important; color: #0a0f1c !important; }
+
+/* Pemilih unit aktif di header (Super Admin) */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContext .workspaceUnitSelect { display: block; min-width: 0; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContext .workspaceUnitSelect select {
+  max-width: min(320px, 38vw); min-height: 30px !important; padding: 4px 30px 4px 10px !important;
+  border-radius: 10px !important; border: 1px solid var(--arktik-edge, rgba(11, 70, 122, 0.18)) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important; font-size: 13px !important; font-weight: 700 !important;
+  color: var(--arktik-ink, #0b2440) !important; text-overflow: ellipsis; cursor: pointer;
+}
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContext .workspaceUnitSelect select { background-color: rgba(255, 255, 255, 0.06) !important; color: #e6eef8 !important; }
+html .workspaceRoot .srOnly { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlUnitHint { font-size: 11px; color: var(--ak-muted, #6b7f93); }
+@media (max-width: 720px) {
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContext .workspaceUnitSelect select { max-width: 46vw; font-size: 12px !important; }
+}

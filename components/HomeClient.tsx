@@ -741,7 +741,15 @@ export default function HomeClient(){
   <header className="workspaceHeaderBar">
    <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={()=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 720px)').matches){mobileSidebar.open()}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} title={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen||!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
    <div className="workspaceContext" title={(admin?activeWorkspaceRoom?.name||'Unit belum dipetakan':manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
-    <strong>{admin?activeWorkspaceRoom?.name||"Unit belum dipetakan":manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>
+    {admin
+     ? <label className="workspaceUnitSelect" title="Unit aktif untuk seluruh workspace">
+        <span className="srOnly">Unit aktif untuk seluruh workspace</span>
+        <select aria-label="Pilih unit aktif untuk seluruh modul AUREKA" value={String(activeWorkspaceRoomId??'')} onChange={e=>{const next=Number(e.target.value);if(Number.isSafeInteger(next)&&next>0)updateWorkspaceRoom(next)}}>
+         <option value="" disabled>Pilih unit kerja</option>
+         {roomsList.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
+        </select>
+       </label>
+     : <strong>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>}
     <span>{currentContainer}</span>
    </div>
 
