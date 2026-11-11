@@ -23,6 +23,7 @@ import './kpi-bento.css'
 import './tanya-aureka.css'
 import './motion.css'
 import './mobile-nav.css'
+import './perf.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',

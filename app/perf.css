@@ -1,0 +1,45 @@
+/*
+ * Lapisan performa AUREKA. Tujuan: scroll & pindah menu tetap mulus, terutama di HP.
+ * - Efek kaca (backdrop-filter blur) hanya dipakai di header, sidebar, navigasi bawah, dan jendela formulir.
+ *   Kartu-kartu tidak lagi di-blur: latarnya gradasi lembut, jadi tampilannya hampir sama tapi jauh lebih ringan.
+ * - Latar "fixed" di HP diganti biasa (menghindari repaint setiap scroll).
+ * - Tabel panjang: baris di luar layar tidak digambar dulu (content-visibility).
+ */
+html[data-skin="arktik"]:root body:not(#_) { --arktik-blur: none; }
+html[data-skin="arktik"][data-mode]:root body:not(#_) { --arktik-blur: none; }
+
+/* Kaca tetap dipertahankan untuk "bingkai" aplikasi saja */
+html[data-skin="arktik"]:root body:not(#_) .workspaceRoot .workspaceHeaderBar,
+html[data-skin="arktik"]:root body:not(#_) .workspaceRoot aside.sidebar,
+html[data-skin="arktik"]:root body:not(#_) .authPage .authTopbar,
+html[data-skin="arktik"]:root body:not(#_) .a2-landing .a2-header {
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+}
+/* Kartu/komponen kaca lama di dalam workspace: tanpa blur, latar sedikit lebih pekat agar tetap terbaca */
+html body:not(#_) .workspaceRoot .workspaceContent :is(.liquidGlass, .glassPanel) {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+html[data-skin="arktik"]:not([data-mode="gelap"]):root body:not(#_) .workspaceRoot .workspaceContent :is(.liquidGlass, .glassPanel) {
+  background-color: rgba(255, 255, 255, 0.72);
+}
+
+/* Tabel panjang: render malas untuk baris di luar layar */
+html .workspaceRoot .workspaceContent tbody tr:nth-child(n+21) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 46px;
+}
+
+@media (max-width: 760px), (pointer: coarse) {
+  html[data-skin="arktik"]:root body:not(#_) { background-attachment: scroll !important; }
+  html[data-skin="arktik"]:root body:not(#_) :is(.a2-landing, .authPage.authRedesigned) { background-attachment: scroll !important; }
+  /* Gumpalan cahaya beranimasi di halaman masuk: diam di HP (blur besar mahal) */
+  html body .landingAura span { animation: none !important; filter: blur(40px) !important; }
+  /* Sidebar HP muncul sebagai laci: blur ringan saja */
+  html[data-skin="arktik"]:root body:not(#_) .workspaceRoot aside.sidebar {
+    -webkit-backdrop-filter: blur(10px) !important; backdrop-filter: blur(10px) !important;
+  }
+}
+
+/* Gulir halus bawaan (dimatikan bila perangkat meminta kurangi gerakan) */
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
