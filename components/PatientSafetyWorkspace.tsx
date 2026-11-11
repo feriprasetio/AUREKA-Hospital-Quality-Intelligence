@@ -270,12 +270,14 @@ export default function PatientSafetyWorkspace({
   initialTab = 'overview',
   showTabs = true,
   onTabChange,
+  forceRoomScope = false,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
   initialRoomId: number | null
   isSuperAdmin: boolean
   canManageWorkflow: boolean
+  forceRoomScope?: boolean
   focus?: SafetyFocus | null
   initialTab?: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'
   showTabs?: boolean
@@ -354,11 +356,18 @@ export default function PatientSafetyWorkspace({
           .then((data) => ({ data, error: null as unknown }))
           .catch((error: unknown) => ({ data: null, error })),
       ])
-      setIncidents(nextIncidents)
+      const visibleIncidents = forceRoomScope
+        ? (normalizedRoomName ? nextIncidents.filter(row => String(row.unit_name || '').trim().toLocaleLowerCase('id-ID') === normalizedRoomName) : [])
+        : nextIncidents
+      const visibleIncidentIds = new Set(visibleIncidents.map(row => String(row.id)))
+      const visibleInvestigations = forceRoomScope
+        ? (investigationResult.data || []).filter(row => visibleIncidentIds.has(String(row.incident_id)))
+        : (investigationResult.data || [])
+      setIncidents(visibleIncidents)
       if (investigationResult.error) {
         if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + toUserFacingError(investigationResult.error, { fallback: 'Daftar investigasi belum dapat dimuat. Coba muat ulang.' }))
       } else {
-        setInvestigations(investigationResult.data || [])
+        setInvestigations(visibleInvestigations)
       }
 
       // Keep all active, locked staff-to-room assignments; a person may serve in multiple units.
@@ -409,7 +418,7 @@ export default function PatientSafetyWorkspace({
             })
           }
         }
-        setStaffOptions(nextStaff)
+        setStaffOptions(forceRoomScope ? nextStaff.filter(staff => Number(staff.room_id) === Number(initialRoomId)) : nextStaff)
       } catch {
         setStaffOptions([])
         setMessage('Direktori tenaga belum dapat dimuat; penautan identitas staf dinonaktifkan sementara. Periksa akses Metadata / Tim Tenaga Kerja.')
@@ -417,8 +426,8 @@ export default function PatientSafetyWorkspace({
 
       try {
         const entityIds = [
-          ...nextIncidents.map((row) => String(row.id)),
-          ...((investigationResult.data || []).map((row) => String(row.id))),
+          ...visibleIncidents.map((row) => String(row.id)),
+          ...visibleInvestigations.map((row) => String(row.id)),
         ]
         const links: StaffEntityAttribution[] = []
         for (let offset = 0; offset < entityIds.length; offset += 100) {
@@ -444,7 +453,7 @@ export default function PatientSafetyWorkspace({
           .order('submitted_at', { ascending: false })
           .order('response_id', { ascending: true })
           .range(from, to))
-        setResponses(allResponses)
+        setResponses(forceRoomScope ? (normalizedRoomName ? allResponses.filter(row => String(row.unit_name || '').trim().toLocaleLowerCase('id-ID') === normalizedRoomName) : []) : allResponses)
       } else {
         setResponses([])
       }
@@ -453,16 +462,20 @@ export default function PatientSafetyWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin])
+  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin, forceRoomScope, initialRoomId])
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {
-    const defaultRoom = rooms.find(room => room.id === initialRoomId)?.name || ''
-    if (defaultRoom) {
-      setIncidentData(current => current.E2 ? current : { ...current, E2: defaultRoom })
-      setSurveyUnit(current => current || defaultRoom)
+    const defaultRoom = rooms.find(room => Number(room.id) === Number(initialRoomId))?.name || ''
+    if (forceRoomScope) {
+      setUnitFilter(defaultRoom || 'all')
+      setResponseUnitFilter(defaultRoom)
     }
-  }, [rooms, initialRoomId])
+    if (defaultRoom) {
+      setIncidentData(current => ({ ...current, E2: defaultRoom }))
+      setSurveyUnit(defaultRoom)
+    }
+  }, [rooms, initialRoomId, forceRoomScope])
 
   const filteredIncidents = useMemo(() => incidents.filter(row => {
     const matchesStatus = statusFilter === 'all' || row.status === statusFilter
@@ -486,7 +499,11 @@ export default function PatientSafetyWorkspace({
   // Tanda "wajib diisi" baru muncul setelah pengguna mencoba mengirim.
   const [showMissing, setShowMissing] = useState(false)
   const missingSurvey = useMemo(() => SURVEY_REQUIRED.filter(code => !Object.prototype.hasOwnProperty.call(surveyAnswers, code) || surveyAnswers[code] === ''), [surveyAnswers])
-  const roomOptions = rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
+  const activeRoomName = rooms.find(room => Number(room.id) === Number(initialRoomId))?.name || ''
+  const normalizedRoomName = activeRoomName.trim().toLocaleLowerCase('id-ID')
+  const roomOptions = forceRoomScope
+    ? (activeRoomName ? [activeRoomName] : [])
+    : rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
 
   const [formOpen, setFormOpen] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
@@ -937,7 +954,7 @@ export default function PatientSafetyWorkspace({
         <div className="psFilterGrid">
           <div className="psFilter psLocalSearch"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
           <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draft</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Closed</option></select></div>
-          <div className="psFilter"><label>Unit</label><select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
+          <div className="psFilter"><label>Unit</label><select value={unitFilter} disabled={forceRoomScope} onChange={event => setUnitFilter(event.target.value)}>{!forceRoomScope&&<option value="all">Semua unit</option>}{roomOptions.map(unit => <option key={unit}>{unit}</option>)}</select></div>
           <div className="psFilter"><label>Data tersedia</label><div className="psPill green">{incidents.length} record</div></div>
         </div>
         {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
@@ -1041,7 +1058,7 @@ export default function PatientSafetyWorkspace({
         <div className="psSectionHead"><div><div className="psEyebrow">SUPERADMIN · RESPONSE REPOSITORY</div><h4>Rekapan Survey Budaya Keselamatan</h4></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter"><label>Periode</label><select value={responsePeriodFilter} onChange={event => setResponsePeriodFilter(event.target.value)}><option value="">Semua periode</option>{Array.from(new Set(responses.map(row => row.survey_period))).sort().map(period => <option key={period}>{period}</option>)}</select></div>
-          <div className="psFilter"><label>Unit</label><select value={responseUnitFilter} onChange={event => setResponseUnitFilter(event.target.value)}><option value="">Semua unit</option>{Array.from(new Set(responses.map(row => row.unit_name))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
+          <div className="psFilter"><label>Unit</label><select value={responseUnitFilter} disabled={forceRoomScope} onChange={event => setResponseUnitFilter(event.target.value)}>{!forceRoomScope&&<option value="">Semua unit</option>}{Array.from(new Set(responses.map(row => row.unit_name))).sort().map(unit => <option key={unit}>{unit}</option>)}</select></div>
           <div className="psFilter"><label>Cari Response ID</label><input value={responseSearch} onChange={event => setResponseSearch(event.target.value)} placeholder="SC-YYYYMMDD-…" /></div>
           <div className="psFilter"><label>Jumlah Respons</label><div className="psPill green">{responseRows.length} dari {responses.length}</div></div>
         </div>
