@@ -337,7 +337,6 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
         {loading?<div className="hlEmpty">Memuat data untuk pilihan Anda…</div>:!infographic.available?<div className="hlEmpty">{infoMetric==='diagnosis'&&metrics.aggregateOnly?'Distribusi diagnosis memerlukan pilihan satu unit karena ringkasan lintas unit saat ini hanya menyediakan agregat jumlah.':infoMetric==='avg_los'||infoMetric==='active'?'Pilih satu unit untuk menampilkan metrik episode pasien secara terperinci.':'Belum ada data untuk indikator dan periode yang dipilih.'}</div>:<InfographicChart data={infographic.data} type={effectiveChart} category={infographic.kind==='category'} unit={infographic.unit}/>}
         <p className="hlDate">Sumber: data AUREKA pada periode profil terpilih. Angka merupakan agregat catatan yang tersedia, bukan otomatis jumlah pasien unik. Data episode terbuka bukan pengganti sensus tempat tidur.</p>
       </section>
-    </>}
     </div>}
   </section>
 }
