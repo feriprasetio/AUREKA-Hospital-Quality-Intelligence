@@ -220,6 +220,15 @@ test('every workbook importer traps focus and delegates Escape to its original b
   assert.match(read('components/layout/useAccessibleDialog.ts'), /if \(lockScroll\) document\.body\.style\.overflow = previousBodyOverflow/)
 })
 
+test('primary quality workspace exposes workbook imports without patient-episode-only read mode', () => {
+  const quality = read('components/QualityIndicatorWorkspace.tsx')
+  assert.match(home, /<QualityIndicatorWorkspace[\\s\\S]*?showWorkbookImportButtons=\\{true\\}/)
+  assert.match(quality, /\\(patientRegistryMode\\|\\|showWorkbookImportButtons\\)&&!isValidator/)
+  assert.match(quality, /if\\(patientRegistryMode\\)rq=rq\\.eq\\('measurement_grain','patient_episode'\\)/)
+  assert.match(quality, /else if\\(id===2\\)openImportDialog\\('it'\\)/)
+  assert.match(quality, /Number\\(roomId\\)===2/)
+})
+
 test('page header exposes no comfortable/compact density control', () => {
   const home = read('components/HomeClient.tsx')
   const desk = read('app/workspace-desk.css')
