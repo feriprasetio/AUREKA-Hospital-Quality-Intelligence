@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { sanitizeNotificationText, toUserFacingError } from '@/lib/ui/error-feedback'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
@@ -25,7 +25,6 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/AUREKA-Hospital-Quality
 
 
 type Room = { id: number; code?: string; name: string; is_active?: boolean }
-type AccountCredential = { unit: string; unit_code: string; role: string; username: string; initial_password: string; must_change_password_on_first_login: boolean }
 type Profile = {
   user_id: string
   full_name: string
@@ -104,9 +103,6 @@ export default function GeneralSettings({
   const [acctNote, setAcctNote] = useState<{ ok: boolean; text: string } | null>(null)
   const [tempPw, setTempPw] = useState('')
   const [tempPwDone, setTempPwDone] = useState<{ id: string; pw: string } | null>(null)
-  const [provisioning, setProvisioning] = useState(false)
-  const [provisionedCredentials, setProvisionedCredentials] = useState<AccountCredential[] | null>(null)
-  const [provisionMessage, setProvisionMessage] = useState('')
   useEffect(() => {
     const notify = (text: string, error = false, module = 'Administrasi') => {
       if (!text || typeof window === 'undefined') return
@@ -116,8 +112,7 @@ export default function GeneralSettings({
     if (pwMsg?.text) notify(pwMsg.text, !pwMsg.ok, 'Keamanan akun')
     if (rowNote?.text) notify(rowNote.text, !rowNote.ok, 'Manajemen pengguna')
     if (acctNote?.text) notify(acctNote.text, !acctNote.ok, 'Akun')
-    if (provisionMessage) notify(provisionMessage, /gagal|tidak dapat|belum/i.test(provisionMessage), 'Provisioning akun')
-  }, [msg, pwMsg, rowNote, acctNote, provisionMessage])
+  }, [msg, pwMsg, rowNote, acctNote])
   useEffect(() => {
     if (!msg) return
     const t = setTimeout(() => setMsg(''), 6000)
@@ -316,32 +311,6 @@ export default function GeneralSettings({
     loadUsers()
   }
 
-  const cleanupUnitAccounts = async () => {
-    if (!isAdmin || busy) return
-    const confirmed = window.confirm('Bersihkan semua akun dengan role PIC dan Validator? Super Admin tidak akan diubah. Akun yang masih terhubung dengan data operasional akan dinonaktifkan agar datanya tetap utuh.')
-    if (!confirmed) return
-    setBusy(true)
-    setMsg('')
-    const { data, error } = await sb.rpc('aureka_admin_cleanup_unit_accounts')
-    setBusy(false)
-    if (error) {
-      const note = `Gagal membersihkan akun: ${toUserFacingError(error, { fallback: 'Operasi belum dapat dijalankan.' })}`
-      setMsg(note)
-      setProvisionMessage(note)
-      return
-    }
-    const result = Array.isArray(data) ? data[0] : data
-    const deleted = Number(result?.deleted_count || 0)
-    const deactivated = Number(result?.deactivated_count || 0)
-    const protectedCount = Number(result?.protected_count || 0)
-    const summary = `Pembersihan selesai: ${deleted} akun dihapus, ${deactivated} akun dinonaktifkan karena masih memiliki relasi data operasional, ${protectedCount} akun terproteksi. Super Admin dipertahankan.`
-    setProvisionMessage(summary)
-    setMsg(summary)
-    setConfirmDeleteId(null)
-    setDetailId(null)
-    await loadUsers()
-  }
-
   const openDetail = (u: Profile) => {
     if (detailId === u.user_id) { setDetailId(null); return }
     setDetailId(u.user_id)
@@ -396,58 +365,6 @@ export default function GeneralSettings({
     // Password reset server-side marks the account as must_change_password.
     const text = `Password sementara untuk ${u.full_name} sudah disetel. Pengguna wajib membuat password baru saat login berikutnya.`
     setRowNote({ id: u.user_id, ok: true, text })
-  }
-
-  const provisionUnitAccounts = async () => {
-    if (!isAdmin || provisioning) return
-    const confirmed = window.confirm('AUREKA akan menyiapkan 74 akun (PIC dan Validator untuk 37 unit aktif). Password awal akan dibuat unik, akun memakai username tanpa kotak surat pribadi, dan setiap pemilik wajib mengganti password pada login pertama. Lanjutkan?')
-    if (!confirmed) return
-    setProvisioning(true)
-    setProvisionMessage('')
-    setProvisionedCredentials(null)
-    try {
-      const { data: token, error: tokenError } = await sb.rpc('aureka_admin_start_unit_account_provisioning')
-      if (tokenError || typeof token !== 'string' || token.length < 80) throw new Error(tokenError?.message || 'Token provisioning tidak dapat dibuat.')
-      const { data, error } = await sb.functions.invoke('aureka-provision-unit-accounts', { body: { token } })
-      if (error) {
-        const ctx = (error as any).context
-        let detail = toUserFacingError(error, { fallback: 'Permintaan provisioning gagal.' })
-        try {
-          const body = ctx?.json ? await ctx.json() : null
-          if (body?.error) detail = sanitizeNotificationText(String(body.error), 'Permintaan provisioning gagal.')
-        } catch {}
-        throw new Error(detail)
-      }
-      if (!data?.success || !Array.isArray(data.credentials) || data.credentials.length !== 74) {
-        throw new Error(data?.error || 'Hasil provisioning tidak lengkap; kredensial belum ditampilkan.')
-      }
-      setProvisionedCredentials(data.credentials as AccountCredential[])
-      setProvisionMessage(`${data.accounts_created_or_reset} akun siap: ${data.active_units} unit, masing-masing satu PIC dan satu Validator. Unduh kredensial satu kali sebelum menutup panel ini.`)
-      await loadUsers()
-    } catch (e) {
-      setProvisionMessage(`Gagal membuat akun: ${toUserFacingError(e, { fallback: 'Provisioning akun belum berhasil. Periksa koneksi dan hak akses.' })}`)
-    } finally {
-      setProvisioning(false)
-    }
-  }
-
-  const downloadProvisionedCredentials = () => {
-    if (!provisionedCredentials?.length) return
-    const header = ['Unit', 'Kode unit', 'Peran', 'Username', 'Password awal', 'Wajib ganti password saat login pertama']
-    const rows = provisionedCredentials.map((x) => [x.unit, x.unit_code, x.role, x.username, x.initial_password, x.must_change_password_on_first_login ? 'Ya' : 'Tidak'])
-    const csvCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`
-    const csv = '\uFEFF' + [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'Kredensial_AUREKA_PIC_Validator.csv'
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.setTimeout(() => URL.revokeObjectURL(url), 1500)
-    setProvisionedCredentials(null)
-    setProvisionMessage('File kredensial telah diunduh. Untuk keamanan, password awal tidak lagi ditampilkan oleh panel ini.')
   }
 
   const sendResetEmail = async (u: Profile) => {
@@ -845,36 +762,6 @@ export default function GeneralSettings({
             <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>
               Kelola role, unit utama, status, dan penggantian password untuk akun AUREKA.
             </p>
-            <div style={{ marginTop: 14, padding: 14, border: '1px solid rgba(15,118,86,.18)', borderRadius: 16, background: 'rgba(255,255,255,.25)' }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 12 }}>
-                <div style={{ flex: '1 1 280px' }}>
-                  <b>Bersihkan seluruh akun PIC dan Validator</b>
-                  <p style={{ margin: '5px 0 0', fontSize: 10, color: 'var(--muted)', lineHeight: 1.5 }}>
-                    Hapus akun unit yang tidak memiliki relasi data operasional. Akun yang masih direferensikan data akan dinonaktifkan; Super Admin dan seluruh data tetap dipertahankan.
-                  </p>
-                </div>
-                <button type="button" className="uBtn danger" disabled={busy || provisioning} onClick={cleanupUnitAccounts}>
-                  {busy ? 'Memproses…' : 'Bersihkan akun PIC & Validator'}
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 280px' }}>
-                  <b>Buat akun PIC dan Validator untuk semua unit</b>
-                  <p style={{ margin: '5px 0 0', fontSize: 10, color: 'var(--muted)', lineHeight: 1.5 }}>
-                    Menyiapkan 74 akun dari 37 unit aktif. Setiap akun mendapat password awal yang unik dan wajib menggantinya sebelum membuka workspace.
-                  </p>
-                </div>
-                <button type="button" className="uBtn primary" disabled={provisioning || busy} onClick={provisionUnitAccounts}>
-                  {provisioning ? 'Menyiapkan akun…' : 'Buat 74 akun unit'}
-                </button>
-              </div>
-              {provisionMessage && <div role={/Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? 'alert' : 'status'} aria-live={/Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? 'assertive' : 'polite'} style={{ marginTop: 10, fontSize: 11, color: /Gagal|tidak dapat|tidak lengkap/i.test(provisionMessage) ? '#9a4b32' : 'var(--accent2)' }}>{provisionMessage}</div>}
-              {provisionedCredentials?.length === 74 && <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <button type="button" className="uBtn primary" onClick={downloadProvisionedCredentials}>Unduh kredensial awal (.csv)</button>
-                <button type="button" className="uBtn outline" onClick={() => { setProvisionedCredentials(null); setProvisionMessage('Daftar password awal dihapus dari memori panel ini.'); }}>Hapus daftar password</button>
-                <span style={{ flexBasis: '100%', fontSize: 10, color: '#946b20' }}>Unduh sekali dan simpan secara terbatas. CSV ini berisi password awal; jangan kirim melalui grup percakapan.</span>
-              </div>}
-            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
               <input className="adminLocalSearch" type="search" name="aureka-admin-user-filter" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} data-lpignore="true" data-1p-ignore="true" data-form-type="other" aria-label="Cari pengguna berdasarkan nama, username, email, atau unit" placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
               {([
