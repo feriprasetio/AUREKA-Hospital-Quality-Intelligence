@@ -168,3 +168,37 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .qraField { grid-
 /* Menu Administrasi aktif: latar & teks tegas di semua ukuran layar */
 html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stNavItem.on { background: #0b467a !important; color: #ffffff !important; }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspace .stNavItem.on { background: #dbeafe !important; color: #0a0f1c !important; }
+
+/* Halaman Utama (Welcome / Infografis / Capaian Unit): kartu kaca & tab seperti modul lain */
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding :is(.hlWelcomeCard, .hlPanel) {
+  background: var(--arktik-glass) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: var(--arktik-blur) !important;
+  backdrop-filter: var(--arktik-blur) !important;
+  border: 1px solid var(--arktik-edge) !important;
+  box-shadow: var(--arktik-shadow) !important;
+  border-radius: 22px !important;
+  padding: 20px !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlGreeting { color: var(--arktik-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding :is(.hlPanelHead h3) { color: var(--arktik-ink) !important; font-size: 16px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding :is(.hlWelcomeCard p, .hlDate, .hlPanelHead span, .hlMetric span, .hlMetric small, .hlPendingRow small, .hlAxis, .hlEmpty) { color: var(--ak-muted, #3d5670) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding :is(.hlMetric, .hlPendingRow) {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid var(--arktik-edge) !important;
+  border-radius: 14px !important;
+}
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding :is(.hlMetric, .hlPendingRow) { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding :is(.hlMetric strong, .hlPendingRow b) { color: var(--arktik-ink) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlPendingRow:hover { border-color: var(--ak-risk-m, #7fb0de) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlTabs {
+  display: inline-flex !important; width: auto !important; max-width: 100%; overflow-x: auto; gap: 4px !important;
+  padding: 4px !important; border: 1px solid var(--arktik-edge) !important; border-radius: 999px !important;
+  background: var(--arktik-glass) !important; justify-self: start;
+}
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlTab { border: 0 !important; border-radius: 999px !important; background: transparent !important; color: var(--ak-muted, #3d5670) !important; white-space: nowrap; flex: 0 0 auto !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlTab.active { background: #0b467a !important; color: #ffffff !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlTab.active { background: #dbeafe !important; color: #0a0f1c !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlBarFill { background: linear-gradient(90deg, #0b467a, #3b8fd6) !important; }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlBarTrack { background: rgba(11, 70, 122, 0.1) !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlBarTrack { background: rgba(255, 255, 255, 0.08) !important; }
