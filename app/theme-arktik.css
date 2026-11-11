@@ -396,3 +396,13 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar .workspaceGloba
   background: var(--arktik-glass-strong) !important; border: 1px solid var(--arktik-edge) !important; border-radius: 14px !important;
 }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceHeaderBar .workspaceGlobalSearch { background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.14) !important; }
+
+/* Halaman Ganti password awal: tombol Keluar di bawah formulir, tidak melayang menimpa judul */
+html .authPage .authCard .authBack.authLogoutInline,
+html .authPage.authRedesigned .authBack.authLogoutInline {
+  position: static !important; top: auto !important; left: auto !important;
+  display: flex !important; justify-content: center; width: 100%;
+  margin: 14px 0 0 !important; padding: 10px 16px !important;
+  border: 1px solid rgba(11, 70, 122, 0.18) !important; border-radius: 14px !important;
+  background: transparent !important; color: #0b467a !important; font-size: 13px !important; transform: none !important;
+}
