@@ -29,6 +29,7 @@ export default function MetadataStatisticsWorkspace({
   initialContainer,
   initialDirectoryTab = 'directory',
   showTabs = true,
+  lockRoomScope = false,
 }: {
   rooms: Room[]
   isSuperAdmin: boolean
@@ -37,6 +38,7 @@ export default function MetadataStatisticsWorkspace({
   initialContainer?: MetadataTab
   initialDirectoryTab?: DirectoryTab
   showTabs?: boolean
+  lockRoomScope?: boolean
 }) {
   const canOpenTeam = ['ADMIN', 'PMKP', 'PIC', 'VALIDATOR'].includes(role || '')
   const canManageAllRooms = isSuperAdmin || role === 'PMKP'
@@ -168,6 +170,7 @@ export default function MetadataStatisticsWorkspace({
                 rooms={rooms}
                 isSuperAdmin={isSuperAdmin}
                 canManageAllRooms={canManageAllRooms}
+                lockRoomScope={lockRoomScope}
               />
             </div>
           )}
