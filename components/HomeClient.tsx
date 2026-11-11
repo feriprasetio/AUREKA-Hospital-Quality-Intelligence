@@ -485,6 +485,32 @@ export default function HomeClient(){
   setSupportOpen(true)
   if(tab==='admin')void loadSupportConversations()
  }
+ // Pengingat dari Komite PMKP (dikirim lewat Tanya AUREKA/Chat): tampil di lonceng notifikasi saat PIC membuka AUREKA.
+ useEffect(()=>{
+  if(view!=='workspace'||!user?.id||admin)return
+  let cancelled=false
+  const seenKey='aureka-reminder-seen:'+String(user.id)
+  ;(async()=>{
+   let since='1970-01-01T00:00:00Z'
+   try{since=localStorage.getItem(seenKey)||new Date(Date.now()-30*86400000).toISOString()}catch{}
+   const {data:convs,error}=await sys().from('support_conversations').select('id,created_at').eq('subject','Pengingat Komite PMKP').gt('created_at',since).order('created_at',{ascending:false}).limit(5)
+   if(cancelled||error||!convs?.length)return
+   const {data:msgs}=await sys().from('support_messages').select('conversation_id,body,created_at').in('conversation_id',convs.map((c:any)=>c.id)).order('created_at',{ascending:true})
+   if(cancelled)return
+   for(const c of convs.slice(0,3) as any[]){
+    const body=String((msgs??[]).find((m:any)=>m.conversation_id===c.id)?.body||'').replace(/\s+/g,' ').trim()
+    pushWorkspaceNotification('Pengingat dari Komite PMKP: '+(body.length>160?body.slice(0,157)+'…':body||'buka Chat untuk membaca.'),'info','Pengingat')
+   }
+   try{localStorage.setItem(seenKey,String((convs[0] as any).created_at))}catch{}
+  })()
+  return()=>{cancelled=true}
+ },[view,user?.id,admin])
+ // Tombol "Buka Chat" dari kartu pengingat di Welcome Page.
+ useEffect(()=>{
+  const onOpen=(e:Event)=>{const id=String((e as CustomEvent<{id?:string}>).detail?.id||'');if(id)setSupportConversationId(id);openSupportChat('admin')}
+  window.addEventListener('aureka-open-support',onOpen)
+  return()=>window.removeEventListener('aureka-open-support',onOpen)
+ })
  const sendMassAnnouncement=async()=>{
   const body=broadcastDraft.trim()
   if(!admin){pushWorkspaceNotification('Pengumuman massal hanya dapat dikirim oleh Super Admin.','error','Pengumuman');return}
