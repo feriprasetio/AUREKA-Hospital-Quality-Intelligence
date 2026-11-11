@@ -167,3 +167,11 @@ html body .workspaceRoot .workspaceContent :is(.prTableWrap, .aqWrap) { max-widt
 
 /* Kartu password di Akun & Akses */
 html body .workspaceRoot .pwShortcutCard { margin-bottom: 14px; }
+
+/* Register Pasien (semua sub tab): kolom grid dibatasi lebar layar, tabel menggulir di dalam kotaknya */
+html body .workspaceRoot .workspaceContent :is(.patientRegistry, .homeLanding, .aq, .piWrap) { grid-template-columns: minmax(0, 1fr) !important; min-width: 0 !important; max-width: 100% !important; }
+html body .workspaceRoot .workspaceContent :is(.patientRegistry, .homeLanding, .aq, .piWrap) > * { min-width: 0 !important; max-width: 100% !important; }
+html body .workspaceRoot .workspaceContent .patientRegistry :is(p, small, .prMuted) { overflow-wrap: anywhere; white-space: normal; }
+@media (max-width: 760px) {
+  html body .workspaceRoot .workspaceContent .prKpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
