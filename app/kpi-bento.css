@@ -234,7 +234,7 @@ html body .workspaceRoot .tanyaPanelEmbedded :is(.tanyaHead, .tanyaComposer) { p
 html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlAi { display: flex !important; flex-direction: column !important; overflow: hidden !important; }
 html body .workspaceRoot .homeLanding .hlAi .tanyaPanelEmbedded { height: min(560px, 70vh) !important; min-height: 380px !important; border-radius: 16px !important; overflow: hidden !important; flex: 0 0 auto !important; }
 /* Jendela formulir risiko/FMEA: kepala & kaki lengket diberi jarak tepi */
-html[data-skin="arktik"]:root .workspaceRoot .rmModalSheet .rmSectionHead { padding: 16px 20px 12px !important; }
-html[data-skin="arktik"]:root .workspaceRoot .rmModalSheet .rmFormFooter { padding: 14px 20px !important; gap: 10px !important; }
-html[data-skin="arktik"]:root .workspaceRoot .rmModalSheet .rmSubhead { padding-left: 4px !important; padding-right: 4px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .moduleEnter .rmModalSheet.rmModalSheet .rmSectionHead { padding: 16px 20px 12px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .moduleEnter .rmModalSheet.rmModalSheet .rmFormFooter { padding: 14px 20px !important; gap: 10px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .moduleEnter .rmModalSheet.rmModalSheet .rmSubhead { padding-left: 4px !important; padding-right: 4px !important; }
 html[data-skin="arktik"]:root .workspaceRoot .rmFormFooter { padding: 14px 20px !important; gap: 10px !important; }
