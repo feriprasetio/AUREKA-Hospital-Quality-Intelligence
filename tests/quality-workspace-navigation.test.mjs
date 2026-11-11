@@ -61,7 +61,7 @@ test('IT workbook upload is visible from the main quality audit workspace', () =
   assert.match(quality, /else if\(id===2\)openImportDialog\('it'\)/)
   assert.match(quality, /loadedImportDialogs\.has\('it'\).*ItExcelImportDialog/)
   assert.doesNotMatch(quality, /patientRegistryMode&&!isValidator&&year>=2026/)
-  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen<QualityIndicatorWorkspace\b[^>]*hidePatientEpisodeEntry\/>/)
+  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen\\?<QualityIndicatorWorkspace\b[^>]*hidePatientEpisodeEntry\/>/)
   assert.ok(mainAuditCall, 'main Audit Indikator Mutu workspace call must remain present')
   assert.doesNotMatch(mainAuditCall[0], /patientRegistryMode/, 'main audit workspace does not opt into the patient-registry-only mode')
 })
