@@ -727,9 +727,10 @@ export default function PatientSafetyWorkspace({
   }
   const submitSurvey = async () => {
     if (saving) return
-    if (!surveyUnit || !surveyProfession) { setError('Pilih unit kerja dan profesi untuk metadata survei.'); return }
+    if (!surveyUnit) { setError('Pilih unit kerja untuk metadata survei.'); return }
     const selectedRespondent = surveyRespondents.find(person => person.id === surveyRespondentId)
     if (!selectedRespondent) { setError('Pilih responden yang terdaftar pada unit kerja tersebut di Direktori Induk SDM.'); return }
+    if (!selectedRespondent.profession) { setError('Profil profesi responden belum lengkap pada Direktori Induk SDM. Perbarui master SDM sebelum survei dikirim.'); return }
     if (!surveyUnitOptions.includes(surveyUnit)) { setError('Unit kerja yang dipilih berada di luar ruang lingkup akses akun ini.'); return }
     if (!surveyIdentityConfirmed) { setError('Konfirmasikan bahwa identitas responden telah diverifikasi dengan sepengetahuannya.'); return }
     if (missingSurvey.length) { setError('Survey belum lengkap: masih ada ' + missingSurvey.length + ' item yang belum dijawab. Gunakan TB untuk item yang tidak relevan.'); return }
@@ -750,7 +751,7 @@ export default function PatientSafetyWorkspace({
         submitted_by_user_id: authData.user.id,
         identity_mode: 'named' as const,
         respondent_identity_confirmed: surveyIdentityConfirmed,
-        profession_group: selectedRespondent.profession || surveyProfession,
+        profession_group: selectedRespondent.profession,
         hospital_tenure: surveyHospitalTenure,
         unit_tenure: surveyUnitTenure,
         shift_pattern: surveyShift,
