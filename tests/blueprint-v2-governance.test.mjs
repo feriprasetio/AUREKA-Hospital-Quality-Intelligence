@@ -45,3 +45,37 @@ test('named survey records distinguish the respondent from the authenticated sub
   assert.match(sql, /submitted_by_user_id/)
   assert.match(sql, /respondent_person_id/)
 })
+
+test('survey UI no longer describes the instrument or its submissions as anonymous', () => {
+  const workspace = read('components/PatientSafetyWorkspace.tsx')
+  const wizard = read('components/patient-safety/SurveyWizard.tsx')
+  assert.doesNotMatch(wizard, /anonim/i)
+  assert.match(wizard, /respondentOptions/)
+  assert.match(wizard, /identityConfirmed/)
+  assert.match(wizard, /Kirim respons bernama/)
+  assert.match(workspace, /respondent_person_id: surveyRespondentId/)
+  assert.match(workspace, /submitted_by_user_id: authData\.user\.id/)
+  assert.match(workspace, /identity_mode: 'named'/)
+  assert.match(workspace, /surveyUnitOptions\.includes\(surveyUnit\)/)
+  assert.match(workspace, /staffOptions\.filter\(person => person\.room_name === surveyUnit\)/)
+})
+
+test('selected person and unit are constrained to active locked staff assignments', () => {
+  const workspace = read('components/PatientSafetyWorkspace.tsx')
+  const sql = read('supabase/migrations/20261112010000_named_safety_culture_survey.sql')
+  assert.match(workspace, /\.eq\('assignment_status', 'active'\)/)
+  assert.match(workspace, /\.eq\('is_locked', true\)/)
+  assert.match(sql, /assignment_status = 'active'/)
+  assert.match(sql, /is_locked = true/)
+  assert.match(sql, /r\.is_active = true/)
+  assert.match(sql, /respondent_room_id/)
+})
+
+test('legacy responses remain readable as legacy while new response export carries identity attribution', () => {
+  const workspace = read('components/PatientSafetyWorkspace.tsx')
+  assert.match(workspace, /row\.identity_mode \|\| 'legacy_anonymous'/)
+  assert.match(workspace, /'Legacy anonim'/)
+  assert.match(workspace, /'Akun Pengirim'/)
+  assert.match(workspace, /'Waktu Konfirmasi Identitas'/)
+  assert.match(workspace, /\.select\('\*'\)/)
+})
