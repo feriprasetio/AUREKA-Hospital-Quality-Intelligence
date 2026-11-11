@@ -62,6 +62,6 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(app.includes("clinical:["))
   assert.ok(app.includes("quality:["))
   assert.ok(app.includes("hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian':'form-logbook')"))
-  assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+(clinicalPathwayOpen?'clinical-pathway':'audit-klinis-dan-kematian')"))
+  assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
 })
