@@ -36,9 +36,9 @@ x as (
               from '[A-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?') as icd,
     case
       when trim(los_raw) ~ '^[0-9]+(\.[0-9]+)?$' then trim(los_raw)::numeric
-      when start_raw ~ '^\d{4}-\d{2}-\d{2}' then greatest(1, ceil(extract(epoch from (
-             (case when end_raw ~ '^\d{4}-\d{2}-\d{2}' then left(replace(end_raw,'T',' '),19)::timestamp else now()::timestamp end)
-             - left(replace(start_raw,'T',' '),19)::timestamp)) / 86400.0))
+      -- LOS hanya untuk episode yang sudah pulang; pasien masih dirawat tidak ikut rata-rata.
+      when start_raw ~ '^\d{4}-\d{2}-\d{2}' and end_raw ~ '^\d{4}-\d{2}-\d{2}' then greatest(1, ceil(extract(epoch from (
+             left(replace(end_raw,'T',' '),19)::timestamp - left(replace(start_raw,'T',' '),19)::timestamp)) / 86400.0))
       else null
     end as los
   from d

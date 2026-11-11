@@ -58,9 +58,10 @@ const losOf = (core: Record<string, any>) => {
   if (Number.isFinite(n) && n >= 0) return n
   const start = valueText(core.admission_at) || valueText(fields['Tanggal Masuk'])
   const end = valueText(core.discharge_at) || valueText(fields['Tanggal Keluar'])
-  if (!start) return null
+  // Pasien yang masih dirawat (belum ada tanggal keluar) tidak ikut rata-rata LOS.
+  if (!start || !end) return null
   const from = new Date(start).getTime()
-  const to = end ? new Date(end).getTime() : Date.now()
+  const to = new Date(end).getTime()
   return Number.isFinite(from) && Number.isFinite(to) && to >= from ? Math.max(1, Math.ceil((to-from)/86400000)) : null
 }
 function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
