@@ -347,7 +347,14 @@ export default function PatientSafetyWorkspace({
   const surveyRespondents = useMemo(() => staffOptions.filter(person => person.room_name === surveyUnit).map(person => ({
     id: person.id,
     label: [person.display_name, person.employee_code, person.profession_group].filter(Boolean).join(' · '),
+    profession: person.profession_group,
   })), [staffOptions, surveyUnit])
+  const surveyUnitOptions = useMemo(() => {
+    if (scopeUnitName) return [scopeUnitName]
+    if (isSuperAdmin) return rooms.map(room => room.name)
+    return Array.from(new Set(staffOptions.map(person => person.room_name))).sort((a,b) => a.localeCompare(b, 'id-ID'))
+  }, [scopeUnitName, isSuperAdmin, rooms, staffOptions])
+  const selectedSurveyRespondent = surveyRespondents.find(person => person.id === surveyRespondentId) || null
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -506,7 +513,7 @@ export default function PatientSafetyWorkspace({
   // Tanda "wajib diisi" baru muncul setelah pengguna mencoba mengirim.
   const [showMissing, setShowMissing] = useState(false)
   const missingSurvey = useMemo(() => SURVEY_REQUIRED.filter(code => !Object.prototype.hasOwnProperty.call(surveyAnswers, code) || surveyAnswers[code] === ''), [surveyAnswers])
-  const roomOptions = scopeUnitName ? [scopeUnitName] : rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
+  const roomOptions = surveyUnitOptions.length ? surveyUnitOptions : (scopeUnitName ? [scopeUnitName] : rooms.map(room => room.name))
 
   const [formOpen, setFormOpen] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
@@ -723,6 +730,7 @@ export default function PatientSafetyWorkspace({
     if (!surveyUnit || !surveyProfession) { setError('Pilih unit kerja dan profesi untuk metadata survei.'); return }
     const selectedRespondent = surveyRespondents.find(person => person.id === surveyRespondentId)
     if (!selectedRespondent) { setError('Pilih responden yang terdaftar pada unit kerja tersebut di Direktori Induk SDM.'); return }
+    if (!surveyUnitOptions.includes(surveyUnit)) { setError('Unit kerja yang dipilih berada di luar ruang lingkup akses akun ini.'); return }
     if (!surveyIdentityConfirmed) { setError('Konfirmasikan bahwa identitas responden telah diverifikasi dengan sepengetahuannya.'); return }
     if (missingSurvey.length) { setError('Survey belum lengkap: masih ada ' + missingSurvey.length + ' item yang belum dijawab. Gunakan TB untuk item yang tidak relevan.'); return }
     setSaving(true); setError(''); setMessage('')
@@ -742,7 +750,7 @@ export default function PatientSafetyWorkspace({
         submitted_by_user_id: authData.user.id,
         identity_mode: 'named' as const,
         respondent_identity_confirmed: surveyIdentityConfirmed,
-        profession_group: surveyProfession,
+        profession_group: selectedRespondent.profession || surveyProfession,
         hospital_tenure: surveyHospitalTenure,
         unit_tenure: surveyUnitTenure,
         shift_pattern: surveyShift,
@@ -1064,6 +1072,7 @@ export default function PatientSafetyWorkspace({
         role: surveyRole, setRole: setSurveyRole, patientContact: surveyPatientContact, setPatientContact: setSurveyPatientContact }}
       roomOptions={roomOptions}
       respondentOptions={surveyRespondents}
+      professionFromRespondent={selectedSurveyRespondent?.profession || ''}
       selectedRespondentId={surveyRespondentId}
       onRespondentChange={(value) => { setSurveyRespondentId(value); setSurveyIdentityConfirmed(false) }}
       identityConfirmed={surveyIdentityConfirmed}
