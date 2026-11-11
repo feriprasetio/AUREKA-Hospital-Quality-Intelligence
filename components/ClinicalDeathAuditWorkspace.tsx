@@ -59,7 +59,7 @@ type AuditRow = {
   created_at: string
   updated_at: string
 }
-type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; isValidator?: boolean }
+type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; isValidator?: boolean; forceRoomScope?: boolean }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -212,9 +212,10 @@ function reviewPeriod(episode: Episode): string {
   return /^\d{4}$/.test(value) ? value : String(new Date().getFullYear())
 }
 
-export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAdmin, isValidator = false }: Props) {
+export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAdmin, isValidator = false, forceRoomScope = false }: Props) {
   const [auditType, setAuditType] = useState<AuditType>('clinical')
-  const [roomFilter, setRoomFilter] = useState<number | null>(isAdmin ? null : initialRoomId ?? rooms[0]?.id ?? null)
+  const [roomFilter, setRoomFilter] = useState<number | null>(forceRoomScope ? initialRoomId : isAdmin ? null : initialRoomId ?? rooms[0]?.id ?? null)
+  useEffect(() => { if (forceRoomScope) setRoomFilter(initialRoomId) }, [forceRoomScope, initialRoomId])
   const [yearFilter, setYearFilter] = useState<number>(new Date().getFullYear())
   const [keyword, setKeyword] = useState('')
   const [search, setSearch] = useState('')
@@ -567,7 +568,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       </div>
 
       <section className="acdPanel acdFilters"><div className="acdFilterGrid">
-        <div className="acdField"><label htmlFor="acd-room">Unit / instalasi</label><select id="acd-room" value={roomFilter ?? ''} disabled={!isAdmin} onChange={(event) => setRoomFilter(event.target.value ? Number(event.target.value) : null)}>{isAdmin && <option value="">Semua unit</option>}{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></div>
+        <div className="acdField"><label htmlFor="acd-room">Unit / instalasi</label><select id="acd-room" value={roomFilter ?? ''} disabled={!isAdmin || forceRoomScope} onChange={(event) => setRoomFilter(event.target.value ? Number(event.target.value) : null)}>{isAdmin && !forceRoomScope && <option value="">Semua unit</option>}{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></div>
         <div className="acdField"><label htmlFor="acd-year">Tahun episode</label><select id="acd-year" value={yearFilter} onChange={(event) => setYearFilter(Number(event.target.value))}><option value={0}>Semua tahun</option>{[2024,2025,2026,2027,2028,2029,2030].map((year) => <option key={year} value={year}>{year}</option>)}</select></div>
         <div className="acdField acdLocalSearch"><label htmlFor="acd-keyword">Kriteria diagnosis / topik (opsional)</label><input id="acd-keyword" value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="Contoh: stroke, STEMI, sepsis…" /></div>
         <div className="acdField acdLocalSearch"><label htmlFor="acd-search">Cari pasien, No. RM, DPJP atau unit</label><input id="acd-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Kata kunci pencarian…" /></div>
