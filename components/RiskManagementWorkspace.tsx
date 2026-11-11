@@ -150,7 +150,7 @@ const roleLabel = (role: string | null) => ({
 }[role || ''] || role || 'Pengguna')
 
 export default function RiskManagementWorkspace({
-  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true, onTabChange,
+  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true, onTabChange, forceRoomScope = false,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -162,6 +162,7 @@ export default function RiskManagementWorkspace({
   initialTab?: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'
   showTabs?: boolean
   onTabChange?: (tab: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea') => void
+  forceRoomScope?: boolean
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
   const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'>(initialTab)
@@ -217,7 +218,7 @@ export default function RiskManagementWorkspace({
   const canManageAll = privilegedRoles.includes(roleCode)
   const currentRoom = rooms.find(r => r.id === initialRoomId)
   // PIC/unit users only see their own unit's register; managers see the whole hospital.
-  const scopedToUnit = !canManageAll
+  const scopedToUnit = forceRoomScope || !canManageAll
   const unitMissing = scopedToUnit && initialRoomId == null
   const belongsToMyUnit = useCallback((risk: Pick<RiskRow, 'unit_id' | 'unit_name'>) =>
     initialRoomId != null && (risk.unit_id === initialRoomId ||
@@ -831,7 +832,7 @@ export default function RiskManagementWorkspace({
         {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className="rmPanel rmEditor">
           <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
-            <label>Unit kerja <select value={riskForm.unit_id} disabled={!canManageAll && initialRoomId != null} onChange={e => setRiskForm(f => ({ ...f, unit_id: e.target.value }))}><option value="">Pilih unit</option>{unitOptions.map(r => <option value={String(r.id)} key={r.id}>{r.name}</option>)}</select></label>
+            <label>Unit kerja <select value={riskForm.unit_id} disabled={forceRoomScope || (!canManageAll && initialRoomId != null)} onChange={e => setRiskForm(f => ({ ...f, unit_id: e.target.value }))}><option value="">Pilih unit</option>{unitOptions.map(r => <option value={String(r.id)} key={r.id}>{r.name}</option>)}</select></label>
             <label>Kategori risiko <select value={riskForm.category} onChange={e => setRiskForm(f => ({ ...f, category: e.target.value }))}>{Array.from(new Set(CATEGORIES)).map(c => <option key={c}>{c}</option>)}</select></label>
             <label>Sasaran organisasi / proses <input value={riskForm.objective} onChange={e => setRiskForm(f => ({ ...f, objective: e.target.value }))} placeholder="Sasaran yang dapat terdampak" /></label>
             <label className="full">Pernyataan kejadian risiko <textarea rows={2} value={riskForm.risk_event} onChange={e => setRiskForm(f => ({ ...f, risk_event: e.target.value }))} placeholder="Peristiwa yang berpotensi menghambat sasaran…" /></label>
@@ -992,7 +993,7 @@ export default function RiskManagementWorkspace({
         {fmeaEditorOpen && <RmModal label="Analisis FMEA" error={error}><LiquidGlass className="rmPanel rmEditor"><div className="rmSectionHead"><div><span className="rmEyebrow">FMEA / HFMEA</span><h4>{editingFmeaId ? 'Edit analisis FMEA' : 'Analisis FMEA baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => setFmeaEditorOpen(false)}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
             <label>Hubungkan ke risiko <select value={String(fmeaForm.risk_register_id || '')} onChange={e => { const risk = risks.find(r => r.id === e.target.value); setFmeaForm(f => ({ ...f, risk_register_id: e.target.value || null, unit_name: risk?.unit_name || f.unit_name })); }}><option value="">Tidak ditautkan</option>{risks.map(renderRiskOption)}</select></label>
-            <label>Unit kerja <select value={String(fmeaForm.unit_name || '')} onChange={e => setFmeaForm(f => ({ ...f, unit_name: e.target.value }))}>{unitOptions.map(r => <option key={r.id}>{r.name}</option>)}</select></label>
+            <label>Unit kerja <select value={String(fmeaForm.unit_name || '')} disabled={forceRoomScope} onChange={e => setFmeaForm(f => ({ ...f, unit_name: e.target.value }))}>{unitOptions.map(r => <option key={r.id}>{r.name}</option>)}</select></label>
             <label>Nama proses <input value={String(fmeaForm.process_name || '')} onChange={e => setFmeaForm(f => ({ ...f, process_name: e.target.value }))} /></label>
             <label>Penanggung jawab <input value={String(fmeaForm.owner_name || '')} onChange={e => setFmeaForm(f => ({ ...f, owner_name: e.target.value }))} /></label>
             <label className="full">Modus kegagalan <textarea rows={2} value={String(fmeaForm.failure_mode || '')} onChange={e => setFmeaForm(f => ({ ...f, failure_mode: e.target.value }))} /></label>
