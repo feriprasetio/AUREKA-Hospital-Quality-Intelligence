@@ -144,7 +144,7 @@ export default function HomeClient(){
     setQualityResultsView(tab==='hasil-capaian'?(audit==='audit-indikator'?'indicators':audit==='clinical-pathway'?'pathway':'clinical-death'):null)
     return
    }
-   const routes:Record<string,string>={'ringkasan':'home','halaman-utama':'home','beranda':'home','register-pasien':'patients','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings'}
+   const routes:Record<string,string>={'ringkasan':'home','halaman-utama':'home','beranda':'home','register-pasien':'patients','mutu-klinis':'quality','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','program-indikator':'analytics','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings'}
    const [modulePath,section]=path.split('/')
    let next=routes[modulePath]||'home'
    if(next!=='home'&&!AUREKA_PRIMARY_NAV.some(module=>module.id===next&&module.requiredRoles.includes((role||'') as AurekaRole)))next='home'
@@ -183,7 +183,7 @@ export default function HomeClient(){
     hash='#mutu-klinis/'+audit+'/'+tab
    }
   }else{
-   const routes:Record<string,string>={home:'#halaman-utama',patients:'#register-pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#tenaga-klinis',settings:'#administrasi'}
+   const routes:Record<string,string>={home:'#halaman-utama',patients:'#register-pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:analyticsTab==='directory'?'#tenaga-klinis/directory':analyticsTab==='oppe'?'#tenaga-klinis/oppe-fppe':'#program-indikator',settings:'#administrasi'}
    hash=routes[active]||'#ringkasan'
    const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(analyticsTab==='directory'?analyticsDirectoryTab:analyticsTab):null
    if(section)hash+='/'+section
@@ -229,7 +229,7 @@ export default function HomeClient(){
  const validator=role==='VALIDATOR'
  const activeWorkspaceRoomId=admin?resolveAdminWorkspaceRoomId(roomsList,[selectedWorkspaceRoomId,selectedQualityRoomId,room?.id]):(room?.id??null)
  const activeWorkspaceRoom=roomsList.find(item=>Number(item.id)===Number(activeWorkspaceRoomId))??room
- const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({id,requiredRoles})=>id!=='analytics'&&requiredRoles.includes((role||'') as AurekaRole)).map(({id,label})=>[id,label] as const),[role])
+ const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole)).map(({id,label})=>[id,label] as const),[role])
  const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
   const groups:Record<string,SidebarChild[]> = {
    home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}],
@@ -250,7 +250,10 @@ export default function HomeClient(){
     {id:'connections',label:'Konektor Risiko'},
     {id:'fmea',label:'FMEA / HFMEA'},
    ],
-   analytics:[],
+   analytics:[
+    {id:'programs',label:'Program Kerja Tahunan'},
+    {id:'profiles',label:'Profil Indikator Mutu'},
+   ],
    staff:[
     {id:'directory',label:'Daftar Tenaga Kerja'},
     {id:'team',label:'Tim dan Penugasan'},
@@ -264,14 +267,14 @@ export default function HomeClient(){
   if(active==='quality')return qualityOppeOpen?'OPPE / FPPE':qualityResultsView?({indicators:'Audit Indikator Mutu · Hasil Capaian',pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<NonNullable<typeof qualityResultsView>,string>)[qualityResultsView]:clinicalPathwayOpen?'Audit Clinical Pathway · Form Logbook':qualityInitialContainer+' · Form Logbook'
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Laporan IKP',investigation:'Investigasi / RCA',survey:'Survei Budaya Keselamatan',responses:'Rekapan Survei'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register',mitigation:'RTP Terintegrasi',connections:'Konektor Risiko',fmea:'FMEA / HFMEA'} as Record<RiskWorkspaceTab,string>)[riskTab]
-  if(active==='analytics')return analyticsTab==='oppe'?'OPPE / FPPE':({programs:'Sumber Daya Manusia · Program Kerja',profiles:'Sumber Daya Manusia · Profil Indikator',directory:'Sumber Daya Manusia · Direktori Tenaga Kerja'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'>,string>)[analyticsTab]
+  if(active==='analytics')return analyticsTab==='oppe'?'OPPE / FPPE':({programs:'Program Kerja Tahunan',profiles:'Profil Indikator Mutu',directory:'Direktori Tenaga Kerja'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'>,string>)[analyticsTab]
   if(active==='settings')return 'Administrasi'
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
  const effectiveQualityRoomId=admin?activeWorkspaceRoomId:(selectedQualityRoomId??room?.id??null)
  const contextNavigation=active==='home'?[]:sidebarChildGroups[active]??[]
- const moduleLabel=active==='home'?'Beranda':active==='analytics'?'Sumber Daya Manusia':visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
+ const moduleLabel=active==='home'?'Beranda':active==='analytics'?(analyticsTab==='directory'||analyticsTab==='oppe'?'Sumber Daya Manusia':'Program & Indikator'):visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
  const openMainModule=(id:string,keepMenuOpen=false)=>{
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
   setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id==='staff'?'analytics':id)
@@ -281,7 +284,7 @@ export default function HomeClient(){
   if(id==='safety')setSafetyTab('incidents')
   if(id==='risk')setRiskTab('register')
   if(id==='staff'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
-  if(id==='analytics'){setAnalyticsTab(admin?'programs':'directory');setAnalyticsDirectoryTab(admin?'directory':'team')}
+  if(id==='analytics'){setAnalyticsTab('programs');setAnalyticsDirectoryTab('directory')}
  }
  const selectSidebarChild=(moduleId:string,childId:string)=>{
   setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId==='staff'?'analytics':moduleId)
@@ -725,8 +728,8 @@ export default function HomeClient(){
   <div className="navLabel">Menu utama</div>
   <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'isCurrent ':'')+(active==='home'&&!closedNav.includes('home')?'expanded':'')} key="home">
-    <button type="button" title="Halaman Utama" className={active==='home'?'navActive':''} aria-expanded={active==='home'&&!closedNav.includes('home')} aria-controls="sidebar-children-home" aria-current={active==='home'?'page':undefined} onClick={()=>{if(active==='home')toggleNav('home');else openMainModule('home',true)}}>
-     <NavIcon id="home"/><span>Halaman Utama</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
+    <button type="button" title="Beranda" className={active==='home'?'navActive':''} aria-expanded={active==='home'&&!closedNav.includes('home')} aria-controls="sidebar-children-home" aria-current={active==='home'?'page':undefined} onClick={()=>{if(active==='home')toggleNav('home');else openMainModule('home',true)}}>
+     <NavIcon id="home"/><span>Beranda</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
     </button>
     <div className="sidebarTreeChildren" id="sidebar-children-home" hidden={active!=='home'||closedNav.includes('home')}>
      {sidebarChildGroups.home.map(child=><button type="button" key={child.id} className={homeTab===child.id?'sidebarChild active':'sidebarChild'} aria-current={homeTab===child.id?'page':undefined} onClick={()=>selectSidebarChild('home',child.id)}>
