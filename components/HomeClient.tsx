@@ -33,7 +33,7 @@ const FALLBACK=['Informasi dan Pengaduan','Informatika dan Teknologi','Instalasi
 const MODS=AUREKA_PRIMARY_NAV.map(({id,label})=>[id,label] as const)
 const MANAGER_ONLY_MODULES:string[]=AUREKA_PRIMARY_NAV.filter(({visibility})=>visibility==='management-only').map(({id})=>id)
 // Role pengelola melihat seluruh rumah sakit; role unit (PIC) hanya modul input unitnya.
-const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS']
+const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR']
 const ROLE_LABEL:Record<string,string>={ADMIN:'Super Admin',PMKP:'Komite PMKP',MANAGEMENT:'Manajemen',PIC:'PIC Unit',VALIDATOR:'Validator Unit',KABID:'Kepala Bidang',DIREKTUR:'Direktur',DEWAN_PENGAWAS:'Dewan Pengawas'}
 const initials=(name?:string|null)=>{const parts=String(name||'').split('@')[0].replace(/[^A-Za-z0-9\u00C0-\u024F ]/g,' ').trim().split(/\s+/).filter(Boolean);return ((parts[0]?.[0]||'A')+(parts.length>1?parts[parts.length-1][0]:'')).toUpperCase()}
 function NavIcon({id}:{id:string}){
