@@ -185,7 +185,7 @@ export default function HomeClient(){
   else{
    const routes:Record<string,string>={home:'#beranda',patients:'#pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#program',staff:'#sumber-daya-manusia',settings:'#pengaturan'}
    hash=isPrimaryNavActive('staff')?'#sumber-daya-manusia':routes[active]||'#ringkasan'
-   const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='patients'?'register-pasien':active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?analyticsTab:active==='staff'?(analyticsTab==='oppe'?'oppe-fppe':analyticsDirectoryTab):null
+   const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='patients'?'register-pasien':active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(isPrimaryNavActive('staff')?(analyticsTab==='oppe'?'oppe-fppe':analyticsDirectoryTab):analyticsTab):active==='staff'?(analyticsTab==='oppe'?'oppe-fppe':analyticsDirectoryTab):null
    if(section)hash+='/'+section
   }
   if(window.location.hash!==hash)window.location.hash=hash
