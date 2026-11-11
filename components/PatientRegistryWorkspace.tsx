@@ -106,7 +106,9 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms: boolean
 }) {
   const [tab, setTab] = useState<'add' | 'records'>('add')
-  const [roomFilter, setRoomFilter] = useState(String(initialRoomId ?? rooms[0]?.id ?? ''))
+  // Super Admin/PMKP: bawaan 'Semua unit' (''), unit lain tetap terkunci ke unit akunnya.
+  const [roomFilter, setRoomFilter] = useState(canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
+  const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
@@ -130,7 +132,7 @@ export default function PatientRegistryWorkspace({
         .order('record_date', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
       if (effectiveRoom) request = request.eq('room_id', Number(effectiveRoom))
-      else throw new Error('Unit kerja belum tersedia untuk akun ini. Hubungi administrator untuk pemetaan unit.')
+      else if (!canViewAllRooms) throw new Error('Unit kerja belum tersedia untuk akun ini. Hubungi administrator untuk pemetaan unit.')
       const from = page * PAGE_SIZE
       const { data, count, error: queryError } = await request.range(from, from + PAGE_SIZE - 1)
       if (queryError) throw queryError
@@ -143,9 +145,29 @@ export default function PatientRegistryWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [effectiveRoom, page, roomNames, year])
+  }, [effectiveRoom, page, roomNames, year, canViewAllRooms])
 
-  useEffect(() => { if (!roomFilter && rooms.length) setRoomFilter(String(initialRoomId ?? rooms[0].id)) }, [roomFilter, rooms, initialRoomId])
+  // Jumlah episode per unit (untuk pilihan unit & unit bawaan formulir Tambah Pasien).
+  useEffect(() => {
+    if (!canViewAllRooms) return
+    let cancelled = false
+    ;(async () => {
+      const counts = new Map<number, number>()
+      for (let from = 0; from < 50000; from += 1000) {
+        const { data, error: countError } = await db.from('quality_records').select('room_id')
+          .eq('measurement_grain', 'patient_episode').neq('status', 'archived').eq('profile_year', Number(year))
+          .order('id', { ascending: true }).range(from, from + 999)
+        if (countError || !data) break
+        for (const row of data as { room_id: number }[]) counts.set(Number(row.room_id), (counts.get(Number(row.room_id)) ?? 0) + 1)
+        if (data.length < 1000) break
+      }
+      if (!cancelled) setRoomCounts(counts)
+    })()
+    return () => { cancelled = true }
+  }, [canViewAllRooms, year])
+  const firstRoomWithData = useMemo(() => rooms.find((room) => (roomCounts.get(Number(room.id)) ?? 0) > 0)?.id ?? null, [rooms, roomCounts])
+
+  useEffect(() => { if (!canViewAllRooms && !roomFilter && rooms.length) setRoomFilter(String(initialRoomId ?? rooms[0].id)) }, [roomFilter, rooms, initialRoomId, canViewAllRooms])
   useEffect(() => { void load() }, [load])
 
   const filtered = useMemo(() => {
@@ -192,7 +214,7 @@ export default function PatientRegistryWorkspace({
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
       <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button></nav>
-      {tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+roomFilter} initialRoomId={Number(roomFilter)||null} rooms={rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
+      {tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <div>
           <h2>Register Pasien</h2>
@@ -212,7 +234,14 @@ export default function PatientRegistryWorkspace({
       </div>
 
       <div className="prPanel prFilters">
-        <div className="prUnitScope"><span>Unit pelayanan</span><strong>{rooms.find((room) => String(room.id) === roomFilter)?.name || 'Unit belum dipetakan'}</strong></div>
+        {canViewAllRooms
+          ? <label>Unit pelayanan
+            <select value={roomFilter} onChange={(event) => { setRoomFilter(event.target.value); setPage(0) }}>
+              <option value="">Semua unit{roomCounts.size ? ' (' + [...roomCounts.values()].reduce((a, b) => a + b, 0).toLocaleString('id-ID') + ')' : ''}</option>
+              {rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}{roomCounts.size ? ' (' + (roomCounts.get(Number(room.id)) ?? 0).toLocaleString('id-ID') + ')' : ''}</option>)}
+            </select>
+          </label>
+          : <div className="prUnitScope"><span>Unit pelayanan</span><strong>{rooms.find((room) => String(room.id) === roomFilter)?.name || 'Unit belum dipetakan'}</strong></div>}
         <label>Tahun
           <select value={year} onChange={(event) => { setYear(event.target.value); setPage(0) }}>
             {[2025, 2026, 2027, 2028, 2029].map((item) => <option key={item} value={String(item)}>{item}</option>)}
