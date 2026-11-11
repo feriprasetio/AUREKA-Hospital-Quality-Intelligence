@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import LandingProductPreview from '@/components/LandingProductPreview'
 
 type LandingProps = {
@@ -178,9 +178,64 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
     onLogin()
   }
 
+  const rootRef = useRef<HTMLElement>(null)
+  const [scrolled, setScrolled] = useState(false)
+
+  // Animasi: elemen muncul saat di-scroll, header mengecil, kartu produk miring mengikuti kursor (desktop).
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const onScroll = () => setScrolled(window.scrollY > 12)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce || typeof IntersectionObserver === 'undefined') return () => window.removeEventListener('scroll', onScroll)
+    root.classList.add('a2-motion')
+    const groups = [
+      '.a2-institution-strip', '.a2-section-heading',
+      '.a2-domain-card', '.a2-module-toolbar', '.a2-module-card', '.a2-capa-copy', '.a2-capa-step',
+      '.a2-workflow-card', '.a2-governance-panel', '.a2-transparency-section > *', '.a2-footer-main > *',
+    ]
+    const targets: HTMLElement[] = []
+    groups.forEach((sel) => {
+      root.querySelectorAll<HTMLElement>(sel).forEach((el) => {
+        const sib: Element[] = el.parentElement ? Array.from(el.parentElement.children).filter((c) => c.matches(sel)) : [el]
+        el.style.setProperty('--a2-i', String(Math.min(sib.indexOf(el), 6)))
+        el.classList.add('a2-reveal')
+        targets.push(el)
+      })
+    })
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target) } })
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 })
+    targets.forEach((t) => io.observe(t))
+    // Pengaman: bila observer tidak berjalan, tampilkan semuanya.
+    const safety = window.setTimeout(() => targets.forEach((t) => { const r = t.getBoundingClientRect(); if (r.top < window.innerHeight) t.classList.add('is-in') }), 1800)
+
+    const show = root.querySelector<HTMLElement>('.a2-product-showcase')
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    let raf = 0
+    const onMove = (ev: PointerEvent) => {
+      if (!show) return
+      const r = show.getBoundingClientRect()
+      const x = (ev.clientX - r.left) / r.width - 0.5
+      const y = (ev.clientY - r.top) / r.height - 0.5
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => { show.style.setProperty('--tilt-x', (y * -5).toFixed(2) + 'deg'); show.style.setProperty('--tilt-y', (x * 7).toFixed(2) + 'deg') })
+    }
+    const onLeave = () => { show?.style.setProperty('--tilt-x', '0deg'); show?.style.setProperty('--tilt-y', '0deg') }
+    if (show && fine) { show.addEventListener('pointermove', onMove); show.addEventListener('pointerleave', onLeave) }
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      io.disconnect(); window.clearTimeout(safety); cancelAnimationFrame(raf)
+      if (show && fine) { show.removeEventListener('pointermove', onMove); show.removeEventListener('pointerleave', onLeave) }
+    }
+  }, [])
+
 
   return (
-    <main className="a2-landing" id="top">
+    <main className={'a2-landing' + (scrolled ? ' a2-scrolled' : '')} id="top" ref={rootRef}>
+      <div className="a2-aurora" aria-hidden="true"><i /><i /><i /></div>
       <a className="a2-skip-link" href="#main-content">Lewati ke konten utama</a>
 
       <header className="a2-header">
@@ -239,8 +294,9 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
               PLATFORM MUTU & KESELAMATAN PASIEN
             </div>
             <h1 id="a2-hero-title">
-              Pelayanan lebih baik.<br />
-              <span>Dimulai dari mutu<br />yang terukur.</span>
+              <span className="a2-line"><span>Pelayanan lebih baik.</span></span>
+              <span className="a2-line a2-accent-line"><span>Dimulai dari mutu</span></span>
+              <span className="a2-line a2-accent-line"><span>yang terukur.</span></span>
             </h1>
             <p className="a2-hero-description">
               Dari pencatatan hingga keputusan. Satukan mutu klinis, keselamatan pasien,
