@@ -6,10 +6,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 type Msg = { role: 'user' | 'model'; text: string; error?: boolean }
 
 const SUGGESTIONS = [
+  'Halo! Hari ini aku sebaiknya fokus ke mana dulu?',
   'Unit mana yang paling banyak risiko Sangat Tinggi?',
-  'Apa prioritas tindak lanjut minggu ini?',
-  'Ringkas tren laporan IKP 6 bulan terakhir',
-  'Jelaskan beda KTD, KNC, KTC, dan KPC',
+  'Unit mana saja yang belum input logbook triwulan ini?',
+  'Jelasin dong beda KTD, KNC, KTC, dan KPC',
 ]
 const STORE_KEY = 'aureka-tanya-history'
 
@@ -82,7 +82,7 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
   const ask = async (q: string) => {
     const question = q.trim()
     if (!question || busy) return
-    const history = msgs.filter(m => !m.error).slice(-6).map(m => ({ role: m.role, text: m.text }))
+    const history = msgs.filter(m => !m.error).slice(-10).map(m => ({ role: m.role, text: m.text }))
     setMsgs(m => [...m, { role: 'user', text: question }])
     setDraft('')
     setBusy(true)
@@ -105,7 +105,7 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     </header>
     <div className="tanyaList" ref={listRef} aria-live="polite">
       {msgs.length === 0 && <div className="tanyaWelcome">
-        <p>Tanyakan apa saja tentang mutu, keselamatan pasien, dan risiko di rumah sakit Anda.</p>
+        <p>Halo! 👋 Aku AUREKA, rekan kerjamu untuk urusan mutu, keselamatan pasien, dan risiko. Mau ngobrol, tanya istilah, atau cek data unit, langsung tulis aja ya.</p>
         <div className="tanyaChips">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => void ask(s)}>{s}</button>)}</div>
       </div>}
       {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '')}>
