@@ -104,7 +104,7 @@ export const AUREKA_MODULE_REGISTRY = [
     status: 'beta',
     visibility: 'all-authenticated',
     requiredRoles: ['ADMIN', 'PMKP', 'PIC', 'VALIDATOR'],
-    routeHash: '#metadata',
+    routeHash: '#program-indikator',
     owner: 'Komite PMKP / pengelola data',
     lastReviewed: '2026-10-29',
     description: 'Program kerja dan profil indikator dengan tindak lanjut yang dapat ditelusuri.',
