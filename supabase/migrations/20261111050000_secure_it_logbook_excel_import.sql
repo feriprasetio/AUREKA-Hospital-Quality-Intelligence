@@ -42,6 +42,8 @@ declare
   v_imported integer := 0;
   v_skipped integer := 0;
   v_record_id uuid;
+  v_subject_key_count integer;
+  v_expected_review_status text;
 begin
   if v_user_id is null then
     raise exception 'Login diperlukan untuk mengimpor logbook Informatika dan Teknologi.' using errcode = '28000';
@@ -77,8 +79,10 @@ begin
     raise exception 'Master indikator 2.1 harus aktif, terbit, dan memiliki pilihan respons sebelum impor.' using errcode = '23503';
   end if;
 
-  if (select count(distinct x.item->'payload'->>'subject_key')
-        from jsonb_array_elements(p_rows) as x(item)) <> v_received then
+  select count(distinct x.item->'payload'->>'subject_key')
+    into v_subject_key_count
+    from jsonb_array_elements(p_rows) as x(item);
+  if v_subject_key_count <> v_received then
     raise exception 'Batch memuat nomor sumber kosong atau duplikat.' using errcode = '22023';
   end if;
 
@@ -176,10 +180,10 @@ begin
 
     v_option := null;
     if not v_source_only then
-      select opt into v_option
-        from jsonb_array_elements(v_profile_options) opt
-       where opt->>'label' = v_label
-         and opt->>'code' is not distinct from v_code
+      select option_json into v_option
+        from jsonb_array_elements(v_profile_options) as options(option_json)
+       where option_json->>'label' = v_label
+         and option_json->>'code' is not distinct from v_code
        limit 1;
       if v_option is null then
         raise exception 'Pilihan Tindak Lanjut tidak ditemukan pada master indikator 2.1 pada baris Excel %.', v_source_row using errcode = '23503';
@@ -187,9 +191,10 @@ begin
     end if;
 
     v_expected_review := v_source_only or coalesce((v_option->>'review_required')::boolean, false);
+    v_expected_review_status := case when v_expected_review then 'pending' else 'not_required' end;
     if coalesce((v_raw->>'review_required')::boolean, false) <> v_expected_review
        or coalesce((v_payload->>'review_required')::boolean, false) <> v_expected_review
-       or coalesce(v_response->>'review_status', 'not_required') <> case when v_expected_review then 'pending' else 'not_required' end then
+       or coalesce(v_response->>'review_status', 'not_required') <> v_expected_review_status then
       raise exception 'Status review respons tidak konsisten pada baris Excel %.', v_source_row using errcode = '22023';
     end if;
   end loop;
