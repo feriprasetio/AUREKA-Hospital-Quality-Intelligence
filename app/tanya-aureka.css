@@ -78,3 +78,8 @@ body:has(.tanyaFab) .aurToast { bottom: 92px; }
 html body .tanyaPanel .tanyaMsg.user, html body .tanyaPanel .tanyaMsg.user :is(p, span, b, li) { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
 html body .tanyaPanel .tanyaMsg.model:not(.error) :is(p, li, h5, b, span) { color: var(--tn-ink) !important; -webkit-text-fill-color: var(--tn-ink) !important; }
 html body .tanyaPanel .tanyaMsg.error p { color: inherit !important; -webkit-text-fill-color: currentColor !important; }
+
+.tanyaHead { flex-wrap: nowrap; }
+.tanyaGhost + .tanyaGhost { margin-left: -6px; }
+.tanyaGhost.danger { color: #b33a3a; }
+html[data-mode="gelap"] .tanyaGhost.danger { color: #ff9b9b; }
