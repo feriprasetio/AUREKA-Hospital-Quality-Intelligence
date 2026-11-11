@@ -11,7 +11,7 @@ html body .a2-landing .a2-domain-card .a2-domain-icon { margin-bottom: 14px; }
 /* Judul tidak dipenggal "kehati-\nhatian" dan barisnya seimbang */
 html body .a2-landing :is(h1, h2, h3) { hyphens: manual !important; -webkit-hyphens: manual !important; text-wrap: balance; overflow-wrap: normal; }
 html body .a2-landing .a2-hero h1 { display: grid; gap: 0; }
-html body .a2-landing .a2-hero h1 > .a2-line:first-child span { color: inherit !important; }
+html[data-skin] body .a2-landing .a2-hero h1#a2-hero-title > .a2-line:first-child > span { color: var(--arktik-ink, #162029) !important; }
 /* Pencarian modul selebar toolbar */
 html body .a2-landing .a2-module-search { flex: 1 1 auto; }
 /* Foto di panel kiri halaman masuk menutup penuh sampai tepi (tadinya ada celah di kanan) */
