@@ -183,7 +183,7 @@ export default function HomeClient(){
     hash='#mutu-klinis/'+audit+'/'+tab
    }
   }else{
-   const routes:Record<string,string>={home:'#halaman-utama',patients:'#register-pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:analyticsTab==='directory'?'#tenaga-klinis/directory':analyticsTab==='oppe'?'#tenaga-klinis/oppe-fppe':'#program-indikator',settings:'#administrasi'}
+   const routes:Record<string,string>={home:'#halaman-utama',patients:'#register-pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:analyticsTab==='directory'||analyticsTab==='oppe'?'#tenaga-klinis':'#program-indikator',settings:'#administrasi'}
    hash=routes[active]||'#ringkasan'
    const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(analyticsTab==='directory'?analyticsDirectoryTab:analyticsTab):null
    if(section)hash+='/'+section
