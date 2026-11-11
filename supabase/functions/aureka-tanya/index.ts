@@ -30,17 +30,42 @@ function rateLimited(userId: string) {
   return false;
 }
 
+// Ambil semua baris: halaman pertama dulu, sisanya diambil paralel (bukan satu per satu).
 async function fetchAll<T>(build: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>, cap = 5000) {
   const rows: T[] = [];
-  for (let from = 0; from < cap; from += 1000) {
-    let res: { data: T[] | null; error: unknown };
-    try { res = await build(from, from + 999); } catch (e) { console.error("fetchAll", e); return { rows, error: true }; }
-    const { data, error } = res;
-    if (error) { console.error("fetchAll", error); return { rows, error: true }; }
-    rows.push(...(data || []));
-    if (!data || data.length < 1000) break;
+  try {
+    const first = await build(0, 999);
+    if (first.error) { console.error("fetchAll", first.error); return { rows, error: true }; }
+    rows.push(...(first.data || []));
+    if (!first.data || first.data.length < 1000) return { rows, error: false };
+    for (let start = 1000; start < cap; start += 4000) {
+      const batch = await Promise.all([0, 1, 2, 3].map((k) => start + k * 1000).filter((f) => f < cap).map((f) => build(f, f + 999)));
+      let done = false;
+      for (const b of batch) {
+        if (b.error) { console.error("fetchAll", b.error); return { rows, error: true }; }
+        rows.push(...(b.data || []));
+        if (!b.data || b.data.length < 1000) done = true;
+      }
+      if (done) break;
+    }
+  } catch (e) {
+    console.error("fetchAll", e);
+    return { rows, error: true };
   }
   return { rows, error: false };
+}
+
+// Cache ringkasan data per pengguna 5 menit (per instance fungsi): pertanyaan lanjutan tidak menarik ulang ribuan baris.
+const SNAPSHOT_TTL = 5 * 60 * 1000;
+const snapshotCache = new Map<string, { at: number; data: unknown }>();
+// Model yang tidak tersedia/ditolak dilewati 30 menit agar tidak dicoba ulang setiap pertanyaan.
+const deadModels = new Map<string, number>();
+const isDead = (k: string) => (deadModels.get(k) || 0) > Date.now();
+const markDead = (k: string, minutes = 30) => deadModels.set(k, Date.now() + minutes * 60 * 1000);
+async function fetchWithTimeout(url: string, init: RequestInit, ms: number) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...init, signal: ctrl.signal }); } finally { clearTimeout(timer); }
 }
 
 const count = <T,>(rows: T[], key: (r: T) => string | null | undefined) => {
@@ -167,7 +192,8 @@ async function snapshot(db: SupabaseClient) {
       arti: "Entri Form Logbook Mutu Klinis (semua program) per unit berdasarkan tanggal layanan/periode. Unit dianggap 'belum input/lapor' pada suatu triwulan bila tidak ada entri sama sekali di triwulan itu.",
       total_entri: quality.rows.length,
       unit_belum_input_per_triwulan: belumInputPerTriwulan,
-      per_unit: logbookPerUnit,
+      per_unit: logbookPerUnit.filter((u) => u.total_entri > 0),
+      unit_tanpa_entri_sama_sekali: logbookPerUnit.filter((u) => u.total_entri === 0).map((u) => u.unit),
     },
     keselamatan_pasien: {
       total_laporan_ikp: incidents.rows.length,
@@ -188,19 +214,27 @@ async function askGemini(apiKey: string, system: string, contents: Turn[]): Prom
   const payload = JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.6, maxOutputTokens: 1200 } });
   let last = 0;
   for (const model of [...new Set([MODEL, FALLBACK_MODEL])]) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
-    });
+    if (isDead("gemini:" + model)) continue;
+    let res: Response;
+    try {
+      res = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
+      }, 25000);
+    } catch (e) { console.warn("gemini", model, "timeout", String(e).slice(0, 120)); last = 504; continue; }
     last = res.status;
     if (res.ok) {
       const out = await res.json();
-      const answer = (out?.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("").trim();
-      return answer ? { answer, model } : { status: 502, error: "AI tidak memberikan jawaban. Coba ulangi dengan kalimat lain." };
+      const answer = (out?.candidates?.[0]?.content?.parts || []).filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || "").join("").trim();
+      if (answer) return { answer, model };
+      continue;
     }
-    console.warn("gemini", model, res.status, (await res.text()).slice(0, 300));
-    if (![404, 429, 500, 503].includes(res.status)) break;
+    const body = (await res.text()).slice(0, 300);
+    console.warn("gemini", model, res.status, body);
+    if (res.status === 404 || (res.status === 400 && /model.*(not found|not supported)/i.test(body))) markDead("gemini:" + model);
+    if (res.status === 503) markDead("gemini:" + model, 2);
+    if (![400, 404, 429, 500, 503, 504].includes(res.status)) break;
   }
-  if (last === 401 || last === 403 || last === 400) return { status: 502, error: "Kunci GEMINI_API_KEY ditolak Google. Periksa atau buat ulang kuncinya." };
+  if (last === 401 || last === 403) return { status: 502, error: "Kunci GEMINI_API_KEY ditolak Google. Periksa atau buat ulang kuncinya." };
   return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
 }
 
@@ -224,22 +258,22 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
   ];
   let last = 0;
   for (const model of [...new Set(p.models.filter(Boolean))]) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 45000);
+    const tag = p.label + ":" + model;
+    if (isDead(tag)) continue;
+    // Model "berpikir" (gpt-oss) diminta berpikir singkat agar jawaban cepat.
+    const extra = /gpt-oss/.test(model) ? { reasoning_effort: "low" } : {};
     let res: Response;
     try {
-      res = await fetch(p.url, {
-        method: "POST", signal: ctrl.signal,
+      res = await fetchWithTimeout(p.url, {
+        method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1200 }),
-      });
+        body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1200, ...extra }),
+      }, 30000);
     } catch (e) {
-      clearTimeout(timer);
       console.warn(p.label, model, "jaringan/timeout", String(e).slice(0, 200));
       last = 504;
       continue;
     }
-    clearTimeout(timer);
     last = res.status;
     if (res.ok) {
       const out = await res.json();
@@ -247,9 +281,11 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
       if (answer) return { answer, model };
       continue;
     }
-    console.warn(p.label, model, res.status, (await res.text()).slice(0, 300));
+    const body = (await res.text()).slice(0, 300);
+    console.warn(p.label, model, res.status, body);
     if (res.status === 401 || res.status === 403) return { status: 502, error: `Kunci ${p.label} ditolak. Periksa atau buat ulang kuncinya.` };
-    // Model dihentikan/tidak ada (400/404/422), kuota (429), server sibuk: coba model berikutnya.
+    if (res.status === 404 || (res.status === 400 && /model|decommission|not.*(found|exist|support)/i.test(body))) markDead(tag);
+    // Model dihentikan/tidak ada (400/404/422), kuota (429), terlalu besar (413), server sibuk: coba model berikutnya.
     if (![400, 404, 413, 422, 429, 500, 502, 503, 504].includes(res.status)) break;
   }
   return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
@@ -304,7 +340,9 @@ async function handle(req: Request): Promise<Response> {
   const page = (body.page || "").toString().slice(0, 80);
 
   stage = "ambil-data";
-  const data = await snapshot(db);
+  const cached = snapshotCache.get(who.user.id);
+  const data = cached && Date.now() - cached.at < SNAPSHOT_TTL ? cached.data : await snapshot(db);
+  if (!cached || cached.data !== data) snapshotCache.set(who.user.id, { at: Date.now(), data });
   stage = "susun-prompt";
   const firstName = String(profile.full_name || "").split(/[\s,]+/)[0] || "";
   const system = [
