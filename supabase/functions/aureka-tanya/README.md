@@ -18,10 +18,17 @@ Atau lewat Dashboard Supabase:
 Opsional: `GEMINI_MODEL` (bawaan `gemini-flash-latest`) dan `GEMINI_FALLBACK_MODEL` (bawaan `gemini-flash-lite-latest`, dipakai otomatis saat model utama sibuk).
 
 ## Banyak API (opsional)
-- Isi `GROQ_API_KEY` dan/atau `GEMINI_API_KEY`. Keduanya boleh diisi bersamaan.
-- Satu secret boleh berisi **beberapa kunci**, dipisah koma (mis. `gsk_aaa,gsk_bbb`). Bila satu kunci kena batas kuota, kunci berikutnya dipakai otomatis.
-- Urutan penyedia: secret `AI_PROVIDER_ORDER` (bawaan `gemini,groq`). Penyedia tanpa kunci dilewati.
-- Model Groq: `openai/gpt-oss-120b` → `llama-3.3-70b-versatile` → `openai/gpt-oss-20b` → `llama-3.1-8b-instant` (atur dengan `GROQ_MODEL`).
+| Secret | Penyedia | Catatan |
+|---|---|---|
+| `GEMINI_API_KEY` | Google Gemini | bawaan, urutan 1 |
+| `GROQ_API_KEY` | Groq | bawaan, urutan 2 |
+| `NVIDIA_API_KEY` | NVIDIA NIM (build.nvidia.com) | bawaan, urutan 3 |
+| `DEEPSEEK_API_KEY` | DeepSeek | **tidak dipakai** kecuali dicantumkan di `AI_PROVIDER_ORDER` (server di Tiongkok) |
+| `LLM7_API_KEY` / `LLM7.IO_API_KEY` | LLM7.io | **tidak dipakai** kecuali dicantumkan di `AI_PROVIDER_ORDER` (layanan perantara) |
+
+- Satu secret boleh berisi **beberapa kunci**, dipisah koma. Bila satu kunci/penyedia gagal atau kuota habis, kunci/penyedia berikutnya dipakai otomatis.
+- Urutan: secret `AI_PROVIDER_ORDER`, mis. `gemini,groq,nvidia` (bawaan) atau `gemini,groq,nvidia,deepseek,llm7`.
+- Model bisa diganti per penyedia: `GEMINI_MODEL`, `GROQ_MODEL`, `NVIDIA_MODEL`, `DEEPSEEK_MODEL`, `LLM7_MODEL`.
 
 ## Data yang dikirim ke AI
 - Register risiko: jumlah per level, **jumlah per unit per level (semua unit)**, status, lewat tenggat, 10 contoh risiko skor tertinggi.
