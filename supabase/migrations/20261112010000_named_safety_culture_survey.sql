@@ -4,6 +4,10 @@
 
 begin;
 
+-- Existing rows receive identity_mode = 'legacy_anonymous' only through the column default.
+-- No UPDATE/backfill is performed: respondent and submitter identity are never inferred retroactively.
+-- New INSERTs are validated by the trigger below and must explicitly use identity_mode = 'named'.
+
 alter table aureka_patient_safety.culture_responses
   add column if not exists respondent_person_id uuid
     references aureka_quality.staff_directory(id) on delete restrict,
