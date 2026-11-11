@@ -34,13 +34,15 @@ export default function StaffTeamWorkspace({
   rooms,
   isSuperAdmin,
   canManageAllRooms,
+  lockRoomScope = false,
 }: {
   initialRoomId: number | null
   rooms: Room[]
   isSuperAdmin: boolean
   canManageAllRooms: boolean
+  lockRoomScope?: boolean
 }) {
-  const canChooseRoom = isSuperAdmin || canManageAllRooms
+  const canChooseRoom = !lockRoomScope && (isSuperAdmin || canManageAllRooms)
   const canRelease = isSuperAdmin || canManageAllRooms
   const [roomId, setRoomId] = useState<number>(() => Number(initialRoomId || (canChooseRoom ? rooms[0]?.id : 0) || 0))
   const [directory, setDirectory] = useState<DirectoryStaff[]>([])
@@ -217,7 +219,7 @@ export default function StaffTeamWorkspace({
             </select>
           </label>
         ) : (
-          <div className="stNotice" style={{marginTop:14}}>Tim yang ditampilkan terikat pada unit akun Anda: <strong>{roomName}</strong>. Nama yang sudah terkunci pada unit lain tidak dapat diambil ulang.</div>
+          <div className="stNotice" style={{marginTop:14}}>{lockRoomScope ? 'Tim dan roster difokuskan pada unit workspace yang dipilih:' : 'Tim yang ditampilkan terikat pada unit akun Anda:'} <strong>{roomName}</strong>. Nama yang sudah terkunci pada unit lain tidak dapat diambil ulang.</div>
         )}
         <div className="stKpis">
           <div className="stKpi"><span>Anggota tim terkunci</span><strong>{assignments.length.toLocaleString('id-ID')}</strong></div>
