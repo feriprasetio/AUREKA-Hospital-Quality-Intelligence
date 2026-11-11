@@ -15,7 +15,7 @@ test('home exposes only Beranda and one canonical Infografis entry', () => {
 
 test('primary navigation labels follow the approved domain terminology', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  for (const label of ["label: 'Beranda'", "label: 'Pasien'", "label: 'Peningkatan Kinerja Klinis'", "label: 'Sumber Daya Manusia'", "label: 'Administrasi & Konfigurasi'"]) {
+  for (const label of ["label:'Beranda'", "label:'Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Program'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
 })
@@ -33,14 +33,15 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(staffGroup.includes('Tim dan Penugasan'))
   assert.ok(staffGroup.includes('oppe-fppe'))
   assert.ok(app.includes("active==='analytics'&&analyticsTab==='oppe'?<OppeAuditWorkspace"))
-  assert.ok(app.includes("'tenaga-klinis':'staff'"))
-  assert.ok(app.includes("if(next==='staff')next='analytics'"))
+  assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
+  assert.ok(app.includes("if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'?'oppe':'directory')"))
 })
 
 test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
   const app = read('components/HomeClient.tsx')
   assert.ok(app.includes("'metadata':'analytics'"))
-  assert.ok(app.includes("analytics:analyticsTab==='directory'||analyticsTab==='oppe'?'#tenaga-klinis':'#program-indikator'"))
+  assert.ok(app.includes("analytics:'#program'"))
+  assert.ok(app.includes("staff:'#sumber-daya-manusia'"))
   assert.ok(app.includes("'tenaga-klinis':'staff'"))
 })
 
@@ -50,4 +51,17 @@ test('home parent and child navigation use the approved labels and canonical rou
   assert.ok(app.includes("home:[{id:'infographics',label:'Infografis'}]"))
   assert.ok(app.includes("active==='home'?(homeTab==='infographics'?'infografis':'beranda')"))
   assert.ok(app.includes("initialTab={homeTab} onTabChange={setHomeTab}"))
+})
+
+
+test('indicator and clinical audit domains have separate navigation and canonical routes', () => {
+  const app = read('components/HomeClient.tsx')
+  const registry = read('lib/aureka/module-registry.ts')
+  assert.ok(registry.includes("id:'quality', label:'Indikator Mutu'"))
+  assert.ok(registry.includes("id:'clinical', label:'Peningkatan Kinerja Klinis'"))
+  assert.ok(app.includes("clinical:["))
+  assert.ok(app.includes("quality:["))
+  assert.ok(app.includes("hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian':'form-logbook')"))
+  assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+(clinicalPathwayOpen?'clinical-pathway':'audit-klinis-dan-kematian')"))
+  assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
 })
