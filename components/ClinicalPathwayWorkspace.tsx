@@ -55,7 +55,7 @@ type AuditRow = {
 }
 type Room = { id: number; name: string }
 type StaffOption = { id: string; employee_code: string; display_name: string; profession_group: string; position_title: string; room_id: number; room_name: string }
-type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; userName: string; onBack: () => void }
+type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; userName: string; onBack: () => void; lockRoomScope?: boolean }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -217,7 +217,7 @@ function fromDatabase(row: any, fallback: Template | null, roomName: string): Au
   }
 }
 
-export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin, userName, onBack }: Props) {
+export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin, userName, onBack, lockRoomScope = false }: Props) {
   const [templates, setTemplates] = useState<Template[]>([])
   const [masterReady, setMasterReady] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -239,6 +239,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   }, [masterReady, loading, screen])
   const [selectedCode, setSelectedCode] = useState('')
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(initialRoomId)
+  useEffect(() => { if (lockRoomScope && initialRoomId != null && selectedRoomId !== initialRoomId) setSelectedRoomId(initialRoomId) }, [lockRoomScope, initialRoomId, selectedRoomId])
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [audits, setAudits] = useState<AuditRow[]>([])
@@ -906,7 +907,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>}
       <div className="cpGlass cpToolbar">
         <div className="cpField cpSearch cpLocalSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
-        {isAdmin && <div className="cpField cpSelect"><label>Unit untuk audit baru</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></div>}
+        {isAdmin && !lockRoomScope && <div className="cpField cpSelect"><label>Unit untuk audit baru</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></div>}
         <button type="button" className="cpBtn" onClick={() => void loadTemplates()}>↻ Muat ulang master</button>
       </div>
       <div className="cpGrid">
@@ -929,7 +930,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Audit pasien · {selectedTemplate.name}</h4></div><span className="cpBadge">{audits.length} rekam audit</span></div>
-        {isAdmin && <div className="cpField cpSelect" style={{ marginBottom: 12 }}><label>Filter unit / ruangan</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit</option>{rooms.map(roomOption)}</select></div>}
+        {isAdmin && !lockRoomScope && <div className="cpField cpSelect" style={{ marginBottom: 12 }}><label>Filter unit / ruangan</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit</option>{rooms.map(roomOption)}</select></div>}
         {auditLoading ? <div className="cpEmpty">Memuat audit…</div> : audits.length === 0 ? <div className="cpEmpty">Belum ada rekam audit untuk diagnosis ini pada ruang lingkup akses Anda.</div> :
           <div className="cpRecordList">{audits.map((a) => {
             const c = a.calculation_json || {}
@@ -958,7 +959,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           <div className="cpField"><label>Tanggal lahir</label><input type="date" value={form.date_of_birth} onChange={(e) => patchForm({ date_of_birth: e.target.value })} /></div>
           <div className="cpField"><label>Tanggal masuk</label><input type="date" value={form.admission_date} onChange={(e) => patchForm({ admission_date: e.target.value })} /></div>
           <div className="cpField"><label>Tanggal keluar</label><input type="date" value={form.discharge_date} onChange={(e) => patchForm({ discharge_date: e.target.value })} /></div>
-          <div className="cpField"><label>Unit / ruangan</label>{isAdmin ? <select value={form.room_id == null ? '' : String(form.room_id)} onChange={(e) => patchForm({ room_id: e.target.value ? Number(e.target.value) : null, unit_name: roomNames.get(Number(e.target.value)) || '' })}><option value="">Pilih unit</option>{rooms.map(roomOption)}</select> : <input value={form.unit_name || roomNames.get(Number(form.room_id)) || ''} readOnly />}</div>
+          <div className="cpField"><label>Unit / ruangan</label>{isAdmin && !lockRoomScope ? <select value={form.room_id == null ? '' : String(form.room_id)} onChange={(e) => patchForm({ room_id: e.target.value ? Number(e.target.value) : null, unit_name: roomNames.get(Number(e.target.value)) || '' })}><option value="">Pilih unit</option>{rooms.map(roomOption)}</select> : <input value={form.unit_name || roomNames.get(Number(form.room_id)) || ''} readOnly />}</div>
           <div className="cpField"><label>Status audit</label><select value={form.status} onChange={(e) => patchForm({ status: e.target.value })} disabled={!isAdmin && form.status === 'validated'}><option value="draft">Draf</option><option value="submitted">Diajukan</option>{isAdmin && <option value="validated">Tervalidasi</option>}</select></div>
         </div>
         <div className="cpSectionHead"><div><h4>Penanggung jawab PPA</h4><p>Isi nama penanggung jawab sesuai profesi yang terdapat pada clinical pathway diagnosis ini.</p></div></div>
