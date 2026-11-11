@@ -331,9 +331,7 @@ export default function ItExcelImportDialog({
   if (!open) return null
   return (
     <div className="aqBack" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) close() }}>
-      <section
-        ref={importDialogRef}
-        tabIndex={-1}
+      <section ref={importDialogRef} tabIndex={-1}
         className="aqDrawer aqWide aqITImport"
         role="dialog"
         aria-modal="true"
