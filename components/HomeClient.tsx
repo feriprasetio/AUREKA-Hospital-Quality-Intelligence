@@ -278,6 +278,7 @@ export default function HomeClient(){
   if(id==='safety')setSafetyTab('incidents')
   if(id==='risk')setRiskTab('register')
   if(id==='staff'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
+  if(id==='staff'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
   if(id==='analytics'){setAnalyticsTab(admin?'programs':'directory');setAnalyticsDirectoryTab(admin?'directory':'team')}
  }
  const selectSidebarChild=(moduleId:string,childId:string)=>{
@@ -303,6 +304,11 @@ export default function HomeClient(){
   }else if(moduleId==='safety')setSafetyTab(childId as SafetyWorkspaceTab)
   else if(moduleId==='risk')setRiskTab(childId as RiskWorkspaceTab)
   else if(moduleId==='analytics')setAnalyticsTab(childId as AnalyticsWorkspaceTab)
+  else if(moduleId==='staff'){
+   setActive('analytics')
+   if(childId==='oppe-fppe')setAnalyticsTab('oppe')
+   else {setAnalyticsTab('directory');setAnalyticsDirectoryTab(childId==='team'?'team':'directory')}
+  }
  }
  const selectedSidebarChild=(moduleId:string)=>{
   if(moduleId==='home')return ''
@@ -720,8 +726,8 @@ export default function HomeClient(){
      <NavIcon id="home"/><span>Halaman Utama</span>
     </button>
    </div>
-   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=(active===id||(id==='staff'&&active==='analytics'))&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(active===id?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
-    <button type="button" title={n} className={(active===id||(id==='staff'&&active==='analytics'))?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={(active===id||(id==='staff'&&active==='analytics'))?'page':undefined} onClick={()=>{if(hasKids&&(active===id||(id==='staff'&&active==='analytics')){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
+   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=(active===id||(id==='staff'&&active==='analytics'))&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+((active===id||(id==='staff'&&active==='analytics'))?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
+    <button type="button" title={n} className={(active===id||(id==='staff'&&active==='analytics'))?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={(active===id||(id==='staff'&&active==='analytics'))?'page':undefined} onClick={()=>{if(hasKids&&(active===id||(id==='staff'&&active==='analytics'))){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
      <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
     </button>
     {hasKids?<div className="sidebarTreeChildren" id={`sidebar-children-${id}`} hidden={!groupOpen}>
