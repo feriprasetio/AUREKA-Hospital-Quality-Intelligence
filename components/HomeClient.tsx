@@ -231,7 +231,11 @@ export default function HomeClient(){
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
- const effectiveQualityRoomId=selectedQualityRoomId??(admin?null:room?.id??null)
+ const validSelectedRoomId=selectedQualityRoomId!=null&&roomsList.some(item=>Number(item.id)===Number(selectedQualityRoomId))?selectedQualityRoomId:null
+ const activeWorkspaceRoomId=admin?(validSelectedRoomId??room?.id??roomsList[0]?.id??null):(room?.id??null)
+ const activeWorkspaceRoom=roomsList.find(item=>Number(item.id)===Number(activeWorkspaceRoomId))??(room?.id===activeWorkspaceRoomId?room:null)
+ const activeWorkspaceRoomName=activeWorkspaceRoom?.name??(activeWorkspaceRoomId!=null?'Unit '+activeWorkspaceRoomId:'Unit belum dipetakan')
+ const effectiveQualityRoomId=admin?activeWorkspaceRoomId:(selectedQualityRoomId??room?.id??null)
  const contextNavigation=sidebarChildGroups[active]??[]
  const moduleLabel=active==='home'?'Halaman Utama':visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
  const openMainModule=(id:string,keepMenuOpen=false)=>{
@@ -686,8 +690,8 @@ export default function HomeClient(){
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
    <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={()=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 720px)').matches){mobileSidebar.open()}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} title={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen||!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-   <div className="workspaceContext" title={(manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
-    <strong>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>
+   <div className="workspaceContext" title={(admin?activeWorkspaceRoomName:manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
+    <strong>{admin?activeWorkspaceRoomName:manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>
     <span>{currentContainer}</span>
    </div>
 
@@ -795,16 +799,16 @@ export default function HomeClient(){
    </nav>}
   </div>}
   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
-   {active==='home'?<HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} roomId={room?.id??(manager?roomsList[0]?.id??null:null)} roomName={room?.name??(manager?roomsList[0]?.name??null:null)} manager={manager} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
-   :active==='patients'?<PatientRegistryWorkspace rooms={roomsList} initialRoomId={room?.id??null} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'}/>
-   :active==='quality'&&qualityOppeOpen?<OppeAuditWorkspace key="quality-oppe-fppe" initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'}/>
-   :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} onRoomChange={updateSelectedQualityRoom}/>
-   :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace initialRoomId={room?.id||null} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>openMainModule('quality')}/>
-   :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={qualityInitialContainer} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} onRoomChange={updateSelectedQualityRoom} initialContainer={qualityInitialContainer} showContainerTabs={false} hidePatientEpisodeEntry/>
+   {active==='home'?<HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} roomId={activeWorkspaceRoomId} roomName={activeWorkspaceRoomName} manager={manager} onRoomChange={updateSelectedQualityRoom} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
+   :active==='patients'?<PatientRegistryWorkspace key={'patient-registry-'+activeWorkspaceRoomId} rooms={roomsList} initialRoomId={activeWorkspaceRoomId} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'}/>
+   :active==='quality'&&qualityOppeOpen?<OppeAuditWorkspace key={'quality-oppe-fppe-'+activeWorkspaceRoomId} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} forceRoomScope={admin}/>
+   :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView+'-'+effectiveQualityRoomId} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} onRoomChange={updateSelectedQualityRoom}/>
+   :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+activeWorkspaceRoomId} initialRoomId={activeWorkspaceRoomId} rooms={roomsList} isAdmin={admin} forceRoomScope={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} onBack={()=>openMainModule('quality')}/>
+   :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={qualityInitialContainer+'-'+effectiveQualityRoomId} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} onRoomChange={updateSelectedQualityRoom} initialContainer={qualityInitialContainer} showContainerTabs={false} hidePatientEpisodeEntry/>
    :active==='quality'?<QualityHub onOpen={()=>selectSidebarChild('quality','indicators')} onOpenClinicalPathway={()=>selectSidebarChild('quality','clinical-pathway')} onOpenClinicalDeathReview={()=>selectSidebarChild('quality','clinical-death')}/>
-   :active==='safety'?<PatientSafetyWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab}/>
-   :active==='risk'?<RiskManagementWorkspace supabase={sb} rooms={roomsList} initialRoomId={room?.id||null} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab}/>
-   :active==='analytics'?<MetadataStatisticsWorkspace rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={room?.id??null} initialContainer={analyticsTab} initialDirectoryTab={analyticsDirectoryTab}/>
+   :active==='safety'?<PatientSafetyWorkspace key={'safety-'+activeWorkspaceRoomId} supabase={sb} rooms={roomsList} initialRoomId={activeWorkspaceRoomId} isSuperAdmin={admin} forceRoomScope={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab}/>
+   :active==='risk'?<RiskManagementWorkspace key={'risk-'+activeWorkspaceRoomId} supabase={sb} rooms={roomsList} initialRoomId={activeWorkspaceRoomId} role={role} forceRoomScope={admin} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab}/>
+   :active==='analytics'?<MetadataStatisticsWorkspace key={'metadata-'+activeWorkspaceRoomId} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId} initialContainer={analyticsTab} initialDirectoryTab={analyticsDirectoryTab}/>
    :active==='settings'?<GeneralSettings key={profileFocus} openProfile={profileFocus>0} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
   </div>
