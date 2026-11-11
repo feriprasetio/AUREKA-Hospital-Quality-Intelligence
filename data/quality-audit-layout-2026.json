@@ -59,7 +59,16 @@
     ],
     "indicators": [
       "Tindak Lanjut"
-    ]
+    ],
+    "measurementGrain": "activity",
+    "indicatorControl": "select",
+    "fieldTypes": {
+      "Gangguan IT": "text",
+      "Asal Ruangan": "text",
+      "Tanggal Keluhan": "datetime-local",
+      "Petugas IT": "text",
+      "Tingkat Kesulitan": "text"
+    }
   },
   {
     "roomId": 3,
