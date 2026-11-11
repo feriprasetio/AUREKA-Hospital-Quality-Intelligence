@@ -259,7 +259,6 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     return()=>{cancelled=true}
   },[supabase,userId,scopeToRoom,roomId,roomName])
   const metrics=useMemo(()=>{
-    const now=new Date()
     const months=Array.from({length:12},(_,i)=>({key:`${infoYear}-${String(i+1).padStart(2,'0')}`,label:MONTHS[i],count:0,activity:0}))
     const episodeRows=records.filter(row=>row.measurement_grain==='patient_episode')
     const byCode=new Map<string,{code:string;diagnosis:string;count:number}>()

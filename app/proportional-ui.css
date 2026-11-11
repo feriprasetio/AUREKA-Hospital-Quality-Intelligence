@@ -322,3 +322,28 @@ html[data-mode="gelap"] .workspaceRoot .homeLanding .hlPanelHead span,
 html[data-mode="gelap"] .workspaceRoot .homeLanding .hlAxis {
   color: #a9bacb !important;
 }
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlFilterGrid label > span,
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlVisualizationHead p,
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlExplorerHead p {
+  color: #a9bacb !important;
+}
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlFilterGrid select {
+  background: #172536 !important;
+  color: #e5edf5 !important;
+  border-color: #35495d !important;
+}
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlSummaryMetric,
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlDataScope {
+  background: #172536 !important;
+  border-color: #35495d !important;
+}
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlSummaryMetric strong,
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlLegendItem b {
+  color: #e5edf5 !important;
+}
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlSummaryMetric span,
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlSummaryMetric small,
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlLegendItem,
+html[data-mode="gelap"] .workspaceRoot .homeLanding .hlVisualizationHead h4 {
+  color: #a9bacb !important;
+}
