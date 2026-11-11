@@ -64,33 +64,65 @@ const losOf = (core: Record<string, any>) => {
   const to = new Date(end).getTime()
   return Number.isFinite(from) && Number.isFinite(to) && to >= from ? Math.max(1, Math.ceil((to-from)/86400000)) : null
 }
-function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
-  const max = Math.max(1, ...values)
-  const plotLeft = 48
-  const plotRight = 620
-  const plotTop = 24
-  const plotBottom = 178
-  const xAt = (index: number) => plotLeft + index * ((plotRight - plotLeft) / Math.max(1, values.length - 1))
-  const yAt = (value: number) => plotBottom - (Math.max(0, value) / max) * (plotBottom - plotTop)
-  const points = values.map((value, index) => `${xAt(index)},${yAt(value)}`).join(' ')
-  const ticks = [max, max / 2, 0]
-  return (
-    <div className="hlChart">
-      <svg viewBox="0 0 640 218" role="img" aria-label="Tren data bulanan" preserveAspectRatio="xMidYMid meet">
-        {ticks.map((tick, index) => {
-          const y = plotTop + index * ((plotBottom - plotTop) / 2)
-          return <g key={index}>
-            <line x1={plotLeft} y1={y} x2={plotRight} y2={y} stroke={index === 2 ? '#d9e4dd' : '#edf2ee'} strokeWidth="1" />
-            <text x="36" y={y + 4} textAnchor="end" fill="#87948c" fontSize="10">{Math.round(tick).toLocaleString('id-ID')}</text>
-          </g>
+type InfographicPoint = { label: string; value: number }
+type InfographicChartType = 'line' | 'area' | 'bar' | 'doughnut'
+function InfographicChart({ data, type, category = false, unit = '' }: { data: InfographicPoint[]; type: InfographicChartType; category?: boolean; unit?: string }) {
+  const colors = ['#24744f','#4f8cba','#d29a43','#8a75b8','#4f9b91','#c47777']
+  const max = Math.max(1, ...data.map(point => point.value))
+  const total = data.reduce((sum, point) => sum + point.value, 0)
+  if (type === 'doughnut') {
+    const radius = 78
+    const circumference = 2 * Math.PI * radius
+    let offset = 0
+    return <div className="hlDonutLayout">
+      <svg viewBox="0 0 250 250" role="img" aria-label="Komposisi data berdasarkan kategori">
+        <circle cx="125" cy="125" r={radius} fill="none" stroke="#edf2ee" strokeWidth="24"/>
+        {data.map((point, index) => {
+          const length = total > 0 ? (point.value / total) * circumference : 0
+          const circle = <circle key={point.label} cx="125" cy="125" r={radius} fill="none" stroke={colors[index % colors.length]} strokeWidth="24" strokeDasharray={`${length} ${circumference - length}`} strokeDashoffset={-offset} transform="rotate(-90 125 125)"><title>{point.label}: {point.value.toLocaleString('id-ID')}</title></circle>
+          offset += length
+          return circle
         })}
-        {values.length > 1 && <polyline points={points} fill="none" stroke="#24744f" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />}
-        {values.map((value, index) => <circle key={labels[index] ?? index} cx={xAt(index)} cy={yAt(value)} r="4" fill="#fff" stroke="#24744f" strokeWidth="2.5"><title>{labels[index] ?? `Periode ${index + 1}`}: {value.toLocaleString('id-ID')}</title></circle>)}
+        <text x="125" y="119" textAnchor="middle" fill="#6f8176" fontSize="11">Total</text>
+        <text x="125" y="143" textAnchor="middle" fill="#244638" fontSize="23" fontWeight="700">{total.toLocaleString('id-ID')}</text>
       </svg>
-      <div className="hlAxis">{labels.map(label => <span key={label}>{label}</span>)}</div>
+      <div className="hlDonutLegend">{data.map((point,index)=><div className="hlLegendItem" key={point.label}><i style={{background:colors[index % colors.length]}}/><span title={point.label}>{point.label}</span><b>{point.value.toLocaleString('id-ID')}</b></div>)}</div>
     </div>
-  )
+  }
+  if (category) {
+    const rowHeight = 42
+    const height = Math.max(190, data.length * rowHeight + 28)
+    return <div className="hlChart"><svg viewBox={`0 0 760 ${height}`} role="img" aria-label="Perbandingan kategori" preserveAspectRatio="xMidYMid meet">
+      {data.map((point,index)=>{
+        const y=14+index*rowHeight
+        const width=(Math.max(0,point.value)/max)*480
+        return <g key={point.label}>
+          <text x="8" y={y+17} fill="#53665b" fontSize="12">{point.label.length>23?point.label.slice(0,22)+'…':point.label}</text>
+          <rect x="190" y={y+3} width="480" height="16" rx="8" fill="#edf2ee"/>
+          <rect x="190" y={y+3} width={width} height="16" rx="8" fill={colors[index % colors.length]}/>
+          <text x="684" y={y+17} fill="#53665b" fontSize="12" fontWeight="650">{point.value.toLocaleString('id-ID')}</text>
+          <title>{point.label}: {point.value.toLocaleString('id-ID')} {unit}</title>
+        </g>
+      })}
+    </svg></div>
+  }
+  const width=760, left=54, right=738, top=22, bottom=242
+  const xAt=(index:number)=>left+index*((right-left)/Math.max(1,data.length-1))
+  const yAt=(value:number)=>bottom-(Math.max(0,value)/max)*(bottom-top)
+  const points=data.map((point,index)=>`${xAt(index)},${yAt(point.value)}`).join(' ')
+  const ticks=[max,max*0.75,max*0.5,max*0.25,0]
+  const barWidth=Math.min(34,Math.max(12,(right-left)/Math.max(1,data.length)*0.58))
+  const areaPath=data.length? `M ${xAt(0)} ${bottom} L ${data.map((point,index)=>`${xAt(index)} ${yAt(point.value)}`).join(' L ')} L ${xAt(data.length-1)} ${bottom} Z`:''
+  return <div className="hlChart"><svg viewBox={`0 0 ${width} 292`} role="img" aria-label={type==='line'?'Tren data bulanan':type==='area'?'Area tren data bulanan':'Grafik batang data bulanan'} preserveAspectRatio="xMidYMid meet">
+    {ticks.map((tick,index)=>{const y=top+index*((bottom-top)/4);return <g key={index}><line x1={left} y1={y} x2={right} y2={y} stroke={index===4?'#d9e4dd':'#edf2ee'}/><text x="43" y={y+4} textAnchor="end" fill="#87948c" fontSize="10">{Math.round(tick).toLocaleString('id-ID')}</text></g>})}
+    {type==='area'&&<path d={areaPath} fill="#24744f" fillOpacity=".12"/>}
+    {type==='bar'&&data.map((point,index)=>{const y=yAt(point.value);return <g key={point.label}><rect x={xAt(index)-barWidth/2} y={y} width={barWidth} height={bottom-y} rx="5" fill="#4d9670"><title>{point.label}: {point.value.toLocaleString('id-ID')} {unit}</title></rect></g>})}
+    {type!=='bar'&&data.length>1&&<polyline points={points} fill="none" stroke="#24744f" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>}
+    {type!=='bar'&&type!=='area'&&data.map((point,index)=><circle key={point.label} cx={xAt(index)} cy={yAt(point.value)} r="4" fill="#fff" stroke="#24744f" strokeWidth="2.5"><title>{point.label}: {point.value.toLocaleString('id-ID')} {unit}</title></circle>)}
+    {data.map((point,index)=><text key={point.label} x={xAt(index)} y="268" textAnchor="middle" fill="#718078" fontSize="10">{point.label}</text>)}
+  </svg></div>
 }
+
 // Simpan sementara data per unit 10 menit: membuka ulang Infografis tidak menarik ulang ribuan baris.
 const unitRecordCache=new Map<string,{at:number;rows:RecordRow[]}>()
 type UnitStats={allowed?:boolean;episodes:number;active:number;avg_los:number|null;los_count:number;months:{month:number;count:number}[];top:{code:string;diagnosis:string;count:number}[]}
@@ -104,6 +136,9 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const [refreshedAt,setRefreshedAt] = useState<Date|null>(null)
   const [countRows,setCountRows] = useState<RoomMonthCount[]|null>(null)
   const [unitStats,setUnitStats] = useState<UnitStats|null>(null)
+  const [infoYear,setInfoYear] = useState(String(new Date().getFullYear()))
+  const [infoMetric,setInfoMetric] = useState<'activity'|'episodes'|'diagnosis'|'avg_los'|'active'>('activity')
+  const [infoChart,setInfoChart] = useState<InfographicChartType>('line')
   // Pengingat dari Komite PMKP untuk unit pengguna (30 hari terakhir) — dibaca dari Chat unit.
   const [reminders,setReminders] = useState<{id:string;at:string;body:string}[]>([])
   useEffect(()=>{
@@ -132,7 +167,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     let cancelled=false
     if(!infoRoomId&&!manager){setRecords([]);setError('Unit kerja belum terhubung ke akun ini.');return}
     setLoading(true);setError('')
-    const year=new Date().getFullYear()
+    const year=Number(infoYear)
     ;(async()=>{
       // Semua unit: cukup jumlah per unit/bulan yang dihitung database (tanpa menarik puluhan ribu baris).
       if(!infoRoomId){
@@ -185,7 +220,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       setLoading(false)
     })().catch(()=>{if(!cancelled){setError('Infografis belum dapat dimuat. Coba kembali.');setLoading(false)}})
     return()=>{cancelled=true}
-  },[supabase,infoRoomId,manager])
+  },[supabase,infoRoomId,manager,infoYear])
   useEffect(() => {
     let cancelled=false
     if(!userId){setActivity({lastAt:null,pending:[],partial:true});return}
@@ -225,7 +260,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   },[supabase,userId,scopeToRoom,roomId,roomName])
   const metrics=useMemo(()=>{
     const now=new Date()
-    const months=Array.from({length:12},(_,i)=>({key:`${now.getFullYear()}-${String(i+1).padStart(2,'0')}`,label:MONTHS[i],count:0,activity:0}))
+    const months=Array.from({length:12},(_,i)=>({key:`${infoYear}-${String(i+1).padStart(2,'0')}`,label:MONTHS[i],count:0,activity:0}))
     const episodeRows=records.filter(row=>row.measurement_grain==='patient_episode')
     const byCode=new Map<string,{code:string;diagnosis:string;count:number}>()
     const los:number[]=[]
@@ -255,11 +290,23 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       if(hasDischargeField&&!discharged&&row.status!=='archived')active++
     }
     return {months,episodeRows:episodeRows.length,active,averageLos:los.length?los.reduce((a,b)=>a+b,0)/los.length:null,topDiagnoses:Array.from(byCode.values()).sort((a,b)=>b.count-a.count).slice(0,6),activity:records.length,losCount:los.length,aggregateOnly:false}
-  },[records,countRows,unitStats])
+  },[records,countRows,unitStats,infoYear])
+  const infographic = useMemo(() => {
+    if(infoMetric==='activity') return {title:'Aktivitas input data',description:'Jumlah catatan mutu yang masuk setiap bulan.',unit:'catatan',kind:'monthly' as const,data:metrics.months.map(m=>({label:m.label,value:m.activity})),available:true}
+    if(infoMetric==='episodes') return {title:'Episode pasien',description:'Jumlah episode pasien berdasarkan Register Pasien.',unit:'episode',kind:'monthly' as const,data:metrics.months.map(m=>({label:m.label,value:m.count})),available:metrics.episodeRows>0}
+    if(infoMetric==='diagnosis') return {title:'Distribusi diagnosis',description:'Enam diagnosis teratas pada unit terpilih; menggunakan kode ICD-10 bila tersedia.',unit:'kasus',kind:'category' as const,data:metrics.topDiagnoses.map(d=>({label:d.code==='Belum berkode'?d.diagnosis:d.code,value:d.count})),available:!metrics.aggregateOnly&&metrics.topDiagnoses.length>0}
+    if(infoMetric==='avg_los') return {title:'Rata-rata Length of Stay',description:'Rata-rata lama rawat dari episode dengan data masuk dan keluar yang dapat dihitung.',unit:'hari',kind:'single' as const,data:metrics.averageLos==null?[]:[{label:'Rata-rata LOS',value:metrics.averageLos}],available:metrics.averageLos!=null}
+    return {title:'Episode rawat inap terbuka',description:'Episode yang memiliki field tanggal keluar tetapi belum memiliki tanggal keluar. Bukan sensus bed terisi.',unit:'episode',kind:'single' as const,data:metrics.active==null?[]:[{label:'Episode terbuka',value:metrics.active}],available:metrics.active!=null}
+  },[metrics,infoMetric])
+  const chartOptions:InfographicChartType[] = infographic.kind==='category'?['bar','doughnut']:infographic.kind==='single'?['bar']:['line','area','bar']
+  const effectiveChart:InfographicChartType = chartOptions.includes(infoChart)?infoChart:chartOptions[0]
+  const infographicTotal=infographic.data.reduce((sum,p)=>sum+p.value,0)
+  const infographicAverage=infographic.data.length?infographicTotal/infographic.data.length:0
+  const infographicPeak=infographic.data.reduce((best,p)=>p.value>best.value?p:best,{label:'—',value:0})
   const tabButton=(id:typeof tab,label:string)=><button type="button" role="tab" aria-selected={tab===id} className={tab===id?'hlTab active':'hlTab'} onClick={()=>setTab(id)}>{label}</button>
   return <section className="homeLanding">
     <style>{`
-      .homeLanding{display:grid;gap:16px;color:var(--ink,#18372b)}.hlTabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.hlTab{border:1px solid transparent;border-radius:10px;padding:10px 14px;background:transparent;color:#66766d;font-size:12px;font-weight:750;cursor:pointer}.hlTab.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.hlWelcomeCard,.hlPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.13));border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(28,60,43,.035)}.hlWelcomeCard{background:linear-gradient(125deg,#f3f8f4,#fff 70%);display:grid;gap:7px}.hlWelcomeCard .hlGreeting{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:-.04em;color:#204b35}.hlWelcomeCard p{margin:0;color:#718078;font-size:12px}.hlUnitPicker{display:grid;gap:5px;max-width:420px;margin-top:4px}.hlUnitPicker span{font-size:10px;font-weight:800;color:#68796f}.hlUnitPicker select{width:100%;min-height:40px;border:1px solid #dce8df;border-radius:10px;background:#fff;color:#244638;padding:8px 11px;font-size:12px;font-weight:700;outline:none}.hlUnitPicker select:focus-visible{border-color:#397c58;box-shadow:0 0 0 3px rgba(57,124,88,.14)}.hlDate{font-size:12px;color:#718078}.hlPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.hlPanelHead h3{font-size:15px;margin:0;color:#244638}.hlPanelHead span{font-size:10px;color:#819087}.hlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hlMetric{padding:13px;border-radius:12px;background:#f7faf8;border:1px solid #e8efea}.hlMetric span{display:block;font-size:10px;color:#78877e}.hlMetric strong{display:block;font-size:23px;margin-top:5px;color:#244638}.hlMetric small{font-size:10px;color:#829087}.hlChart{width:100%}.hlChart svg{width:100%;height:auto;overflow:visible}.hlAxis{display:flex;justify-content:space-between;color:#87948c;font-size:9px}.hlBars{display:grid;gap:8px}.hlBarRow{display:grid;grid-template-columns:minmax(90px,1fr) 3fr 28px;gap:8px;align-items:center;font-size:10px}.hlBarTrack{height:8px;background:#edf2ee;border-radius:10px;overflow:hidden}.hlBarFill{height:100%;background:#4d9670;border-radius:10px}.hlPendingRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid #e8efea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}.hlPendingRow span{display:grid;gap:4px}.hlPendingRow b{font-size:11px;color:#315442}.hlPendingRow small{font-size:10px;color:#839087}.hlPendingRow strong{font-size:18px;color:#a45b28}.hlEmpty{padding:22px;text-align:center;color:#829087;font-size:12px}.hlAi{min-height:250px}.hlInfoFilter{display:flex;justify-content:flex-end}.hlInfoFilter label{display:grid;gap:5px;font-size:11px;font-weight:700;color:#718078}.hlInfoFilter select{min-width:240px;min-height:40px;border-radius:12px;padding:8px 12px;font-size:13px}.hlReminder{border-color:#f5c26b!important}.hlReminderRow{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid #f3e1b8;background:#fffaf0}.hlReminderRow small{font-size:11px;color:#8a6a2a}.hlReminderRow p{margin:4px 0 0;font-size:13px;line-height:1.5;color:#3d3220;white-space:pre-wrap}.hlReminderBtn{flex:0 0 auto;border:0;border-radius:10px;padding:9px 14px;background:#0b467a;color:#fff;font-size:12px;font-weight:700;cursor:pointer}.hlNotice{padding:11px 13px;border-radius:10px;background:#fff7e9;color:#805e2b;font-size:11px}@media(max-width:640px){.hlGrid{grid-template-columns:1fr}.hlWelcomeCard,.hlPanel{padding:14px}.hlTab{flex:1}}`}</style>
+      .homeLanding{display:grid;gap:16px;color:var(--ink,#18372b)}.hlExplorer{display:grid;gap:18px}.hlExplorerHead,.hlVisualizationHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.hlExplorerHead h3,.hlVisualizationHead h4{margin:0;color:#244638;font-size:16px;font-weight:750}.hlExplorerHead p,.hlVisualizationHead p{margin:4px 0 0;color:#7b8981;font-size:12px;line-height:1.5}.hlDataScope{padding:6px 10px;border-radius:8px;background:#f0f5f1;color:#3d7154;font-size:11px;font-weight:700;white-space:nowrap}.hlFilterGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.hlFilterGrid label{display:grid;gap:6px;min-width:0}.hlFilterGrid label>span{font-size:11px;font-weight:750;color:#68796f}.hlFilterGrid select{width:100%;min-width:0;min-height:42px;border:1px solid #dce8df;border-radius:9px;background:#fff;color:#244638;padding:8px 32px 8px 11px;font-size:12px;font-weight:650}.hlSummaryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.hlSummaryMetric{min-width:0;padding:13px 15px;border:1px solid #e7eee9;border-radius:10px;background:#f8faf8}.hlSummaryMetric span,.hlSummaryMetric small{display:block;color:#7a8980;font-size:10px;line-height:1.4}.hlSummaryMetric strong{display:block;margin:5px 0 2px;color:#244638;font-size:22px;line-height:1.15;font-weight:800;overflow-wrap:anywhere}.hlVisualizationHead{padding-top:4px;border-top:1px solid #edf2ee}.hlVisualizationHead h4{font-size:15px}.hlVisualizationHead>span{color:#87948c;font-size:11px;white-space:nowrap}.hlDonutLayout{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);align-items:center;gap:22px;max-width:760px;margin:0 auto}.hlDonutLayout svg{width:100%;height:auto;max-height:260px}.hlDonutLegend{display:grid;gap:9px;min-width:0}.hlLegendItem{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:9px;align-items:center;font-size:11px;color:#617268}.hlLegendItem i{width:9px;height:9px;border-radius:50%}.hlLegendItem span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hlLegendItem b{color:#344e40;font-size:11px;font-variant-numeric:tabular-nums}.hlTabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.hlTab{border:1px solid transparent;border-radius:10px;padding:10px 14px;background:transparent;color:#66766d;font-size:12px;font-weight:750;cursor:pointer}.hlTab.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.hlWelcomeCard,.hlPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.13));border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(28,60,43,.035)}.hlWelcomeCard{background:linear-gradient(125deg,#f3f8f4,#fff 70%);display:grid;gap:7px}.hlWelcomeCard .hlGreeting{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:-.04em;color:#204b35}.hlWelcomeCard p{margin:0;color:#718078;font-size:12px}.hlUnitPicker{display:grid;gap:5px;max-width:420px;margin-top:4px}.hlUnitPicker span{font-size:10px;font-weight:800;color:#68796f}.hlUnitPicker select{width:100%;min-height:40px;border:1px solid #dce8df;border-radius:10px;background:#fff;color:#244638;padding:8px 11px;font-size:12px;font-weight:700;outline:none}.hlUnitPicker select:focus-visible{border-color:#397c58;box-shadow:0 0 0 3px rgba(57,124,88,.14)}.hlDate{font-size:12px;color:#718078}.hlPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.hlPanelHead h3{font-size:15px;margin:0;color:#244638}.hlPanelHead span{font-size:10px;color:#819087}.hlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hlMetric{padding:13px;border-radius:12px;background:#f7faf8;border:1px solid #e8efea}.hlMetric span{display:block;font-size:10px;color:#78877e}.hlMetric strong{display:block;font-size:23px;margin-top:5px;color:#244638}.hlMetric small{font-size:10px;color:#829087}.hlChart{width:100%}.hlChart svg{width:100%;height:auto;overflow:visible}.hlAxis{display:flex;justify-content:space-between;color:#87948c;font-size:9px}.hlBars{display:grid;gap:8px}.hlBarRow{display:grid;grid-template-columns:minmax(90px,1fr) 3fr 28px;gap:8px;align-items:center;font-size:10px}.hlBarTrack{height:8px;background:#edf2ee;border-radius:10px;overflow:hidden}.hlBarFill{height:100%;background:#4d9670;border-radius:10px}.hlPendingRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid #e8efea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}.hlPendingRow span{display:grid;gap:4px}.hlPendingRow b{font-size:11px;color:#315442}.hlPendingRow small{font-size:10px;color:#839087}.hlPendingRow strong{font-size:18px;color:#a45b28}.hlEmpty{padding:22px;text-align:center;color:#829087;font-size:12px}.hlAi{min-height:250px}.hlInfoFilter{display:flex;justify-content:flex-end}.hlInfoFilter label{display:grid;gap:5px;font-size:11px;font-weight:700;color:#718078}.hlInfoFilter select{min-width:240px;min-height:40px;border-radius:12px;padding:8px 12px;font-size:13px}.hlReminder{border-color:#f5c26b!important}.hlReminderRow{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid #f3e1b8;background:#fffaf0}.hlReminderRow small{font-size:11px;color:#8a6a2a}.hlReminderRow p{margin:4px 0 0;font-size:13px;line-height:1.5;color:#3d3220;white-space:pre-wrap}.hlReminderBtn{flex:0 0 auto;border:0;border-radius:10px;padding:9px 14px;background:#0b467a;color:#fff;font-size:12px;font-weight:700;cursor:pointer}.hlNotice{padding:11px 13px;border-radius:10px;background:#fff7e9;color:#805e2b;font-size:11px}@media(max-width:1000px){.hlFilterGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.hlDonutLayout{grid-template-columns:minmax(180px,240px) minmax(0,1fr)}}@media(max-width:640px){.hlFilterGrid,.hlSummaryGrid{grid-template-columns:1fr}.hlExplorerHead,.hlVisualizationHead{display:grid}.hlDataScope,.hlVisualizationHead>span{justify-self:start}.hlDonutLayout{grid-template-columns:1fr}.hlDonutLayout svg{max-width:250px;margin:auto}.hlGrid{grid-template-columns:1fr}.hlWelcomeCard,.hlPanel{padding:14px}.hlTab{flex:1}}`}</style>
     <nav className="hlTabs" role="tablist" aria-label="Halaman Utama">{tabButton('welcome','Welcome Page')}{tabButton('infographics','Infografis')}{tabButton('achievements','Capaian Unit')}</nav>
     {tab==='welcome'&&<>
       <section className="hlWelcomeCard"><button type="button" className="hlPwBtn" onClick={()=>window.dispatchEvent(new Event('aureka-open-password'))} title="Ubah password akun Anda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><span>Ubah password</span></button><span className="hlGreeting">{greeting}, {firstName}</span><p>{dateLabel}</p>{scopeToRoom ? <p>{roomName||'Unit kerja belum dipetakan'} <small className="hlUnitHint">· ganti unit aktif lewat pilihan di header (kiri atas)</small></p> : <p>{roomName||'Unit kerja belum dipetakan'}</p>}</section>
@@ -274,13 +321,29 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     </>}
     {tab==='infographics'&&<>
       {error&&<div className="hlNotice">{error}</div>}
-      <div className="hlChartGrid">
-        <section className="hlPanel"><header className="hlPanelHead"><div><h3>Aktivitas input data bulanan</h3><span>{infoRoomName||'Unit'} · {new Date().getFullYear()}</span></div></header>{loading?<div className="hlEmpty">Memuat data…</div>:<LineChart values={metrics.months.map(m=>m.activity)} labels={metrics.months.map(m=>m.label)}/>}</section>
-        <section className="hlPanel"><header className="hlPanelHead"><div><h3>Episode pasien per bulan</h3><span>Berbasis Register Pasien</span></div></header>{loading?<div className="hlEmpty">Memuat data…</div>:metrics.episodeRows?<LineChart values={metrics.months.map(m=>m.count)} labels={metrics.months.map(m=>m.label)}/>:<div className="hlEmpty">Belum ada episode pasien pada pilihan unit ini. Aktivitas input unit tetap ditampilkan pada grafik di atas.</div>}</section>
-      </div>
-      <div className="hlGrid"><section className="hlPanel"><header className="hlPanelHead"><h3>Indikator episode pasien</h3></header><div className="hlMetric"><span>Rawat inap tanpa tanggal keluar*</span><strong>{metrics.active===null?'—':metrics.active.toLocaleString('id-ID')}</strong><small>*Hanya episode dengan field tanggal keluar; bukan sensus bed aktif.</small></div><div className="hlMetric" style={{marginTop:8}}><span>Rata-rata Length of Stay</span><strong>{metrics.averageLos===null?'—':metrics.averageLos.toLocaleString('id-ID',{maximumFractionDigits:1})+' hari'}</strong><small>{metrics.losCount} episode dengan data LOS</small></div></section>
-      <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak (kode ICD-10 bila tersedia)</h3></header>{metrics.aggregateOnly?<div className="hlEmpty">Pilih satu unit di atas untuk melihat diagnosis terbanyak, lama rawat, dan pasien yang masih dirawat.</div>:metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code+item.diagnosis}><span title={item.diagnosis}>{item.code==='Belum berkode'?item.diagnosis:item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
-      <p className="hlDate">Data mengikuti pilihan unit dan tahun berjalan. Episode terbuka tidak boleh ditafsirkan sebagai jumlah bed terisi tanpa integrasi sensus tempat tidur.</p>
+      <section className="hlPanel hlExplorer">
+        <div className="hlExplorerHead"><div><h3>Eksplorasi data rumah sakit</h3><p>Pilih indikator, unit, periode, dan bentuk visualisasi untuk menelaah data.</p></div><span className="hlDataScope">{infoRoomId?infoRoomName:'Seluruh unit'}</span></div>
+        <div className="hlFilterGrid">
+          <label><span>Data yang ditampilkan</span><select value={infoMetric} onChange={e=>setInfoMetric(e.target.value as typeof infoMetric)}>
+            <option value="activity">Aktivitas input data</option><option value="episodes">Episode pasien</option><option value="diagnosis">Distribusi diagnosis</option><option value="avg_los">Rata-rata Length of Stay</option><option value="active">Episode rawat inap terbuka</option>
+          </select></label>
+          <label><span>Jenis chart</span><select value={effectiveChart} onChange={e=>setInfoChart(e.target.value as InfographicChartType)}>
+            {chartOptions.map(type=><option key={type} value={type}>{type==='line'?'Line chart':type==='area'?'Area chart':type==='bar'?'Bar chart':'Doughnut chart'}</option>)}
+          </select></label>
+          <label><span>Periode data</span><select value={infoYear} onChange={e=>setInfoYear(e.target.value)}>
+            {Array.from({length:5},(_,i)=>String(new Date().getFullYear()-i)).map(year=><option key={year} value={year}>{year}</option>)}
+          </select></label>
+          {manager&&!scopeToRoom&&<label><span>Unit pelayanan</span><select value={infoRoom} onChange={e=>setInfoRoom(e.target.value)}><option value="">Seluruh unit</option>{rooms.map(room=><option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
+        </div>
+        <div className="hlSummaryGrid">
+          <div className="hlSummaryMetric"><span>Total data tertampil</span><strong>{loading?'—':infographicTotal.toLocaleString('id-ID',{maximumFractionDigits:1})}</strong><small>{infographic.unit}</small></div>
+          <div className="hlSummaryMetric"><span>Rata-rata per kategori/periode</span><strong>{loading?'—':infographicAverage.toLocaleString('id-ID',{maximumFractionDigits:1})}</strong><small>{infographic.data.length} kategori/periode</small></div>
+          <div className="hlSummaryMetric"><span>Nilai tertinggi</span><strong>{loading?'—':infographicPeak.value.toLocaleString('id-ID',{maximumFractionDigits:1})}</strong><small>{infographicPeak.label}</small></div>
+        </div>
+        <div className="hlVisualizationHead"><div><h4>{infographic.title}</h4><p>{infographic.description}</p></div><span>{infoRoomId?infoRoomName:'Seluruh unit'} · {infoYear}</span></div>
+        {loading?<div className="hlEmpty">Memuat data untuk pilihan Anda…</div>:!infographic.available?<div className="hlEmpty">{infoMetric==='diagnosis'&&metrics.aggregateOnly?'Distribusi diagnosis memerlukan pilihan satu unit karena ringkasan lintas unit saat ini hanya menyediakan agregat jumlah.':infoMetric==='avg_los'||infoMetric==='active'?'Pilih satu unit untuk menampilkan metrik episode pasien secara terperinci.':'Belum ada data untuk indikator dan periode yang dipilih.'}</div>:<InfographicChart data={infographic.data} type={effectiveChart} category={infographic.kind==='category'} unit={infographic.unit}/>}
+        <p className="hlDate">Sumber: data AUREKA pada periode profil terpilih. Angka merupakan agregat catatan yang tersedia, bukan otomatis jumlah pasien unik. Data episode terbuka bukan pengganti sensus tempat tidur.</p>
+      </section>
     </>}
     {tab==='achievements'&&<>
       <nav className="hlTabs hlAchievementTabs" role="tablist" aria-label="Capaian Unit">
