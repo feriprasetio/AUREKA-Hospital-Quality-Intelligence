@@ -102,10 +102,10 @@ const payloadFrom = (model: Model): Model => {
   }
 }
 
-export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, lockRoomScope = false }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; lockRoomScope?: boolean }) {
+export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, forceRoomScope = false }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; forceRoomScope?: boolean }) {
   const [year, setYear] = useState(2026)
-  const [room, setRoom] = useState(lockRoomScope && initialRoomId != null ? String(initialRoomId) : '')
-  useEffect(() => { if (lockRoomScope && initialRoomId != null) setRoom(String(initialRoomId)) }, [lockRoomScope, initialRoomId])
+  const [room, setRoom] = useState(forceRoomScope && initialRoomId != null ? String(initialRoomId) : '')
+  useEffect(() => { if (forceRoomScope) setRoom(initialRoomId == null ? '' : String(initialRoomId)) }, [forceRoomScope, initialRoomId])
   const [profiles, setProfiles] = useState<Model[]>([])
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
@@ -373,7 +373,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 9, marginTop: 10 }}>
         <label className="field" style={fieldStyle}><span>Tahun metadata</span><select value={model.profile_year} onChange={(e) => setModel({ ...model, profile_year: Number(e.target.value) })}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Kode indikator</span><input required value={model.code || ''} onChange={(e) => setModel({ ...model, code: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Unit pemilik</span><select required value={model.room_id ?? ''} disabled={lockRoomScope} onChange={(e) => { const selected = rooms.find((item) => String(item.id) === e.target.value); setModel({ ...model, room_id: e.target.value ? Number(e.target.value) : '', unit_name: selected?.name || '' }) }}><option value="">Pilih unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label className="field" style={fieldStyle}><span>Unit pemilik</span><select required value={model.room_id ?? ''} disabled={forceRoomScope} onChange={(e) => { const selected = rooms.find((item) => String(item.id) === e.target.value); setModel({ ...model, room_id: e.target.value ? Number(e.target.value) : '', unit_name: selected?.name || '' }) }}><option value="">Pilih unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Nama indikator</span><input required value={model.title || ''} onChange={(e) => setModel({ ...model, title: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Program kerja / jenis indikator</span><input value={model.indicator_type || ''} placeholder="Mis. INM, IMP-RS, IMP-Unit" onChange={(e) => setModel({ ...model, indicator_type: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Kategori</span><input value={model.category || ''} placeholder="Mis. Proses, Outcome, Struktur" onChange={(e) => setModel({ ...model, category: e.target.value })} /></label>
@@ -425,7 +425,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
         <div className="metadataScopeFilters" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Tahun metadata</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} disabled={lockRoomScope} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}>{!lockRoomScope && <option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} disabled={forceRoomScope} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}>{!forceRoomScope&&<option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <div style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
