@@ -34,11 +34,13 @@ export default function StaffTeamWorkspace({
   rooms,
   isSuperAdmin,
   canManageAllRooms,
+  forceRoomScope = false,
 }: {
   initialRoomId: number | null
   rooms: Room[]
   isSuperAdmin: boolean
   canManageAllRooms: boolean
+  forceRoomScope?: boolean
 }) {
   const canChooseRoom = isSuperAdmin || canManageAllRooms
   const canRelease = isSuperAdmin || canManageAllRooms
@@ -60,9 +62,10 @@ export default function StaffTeamWorkspace({
   }, [message, error])
 
   useEffect(() => {
-    if (canChooseRoom && !roomId && rooms[0]?.id) setRoomId(Number(rooms[0].id))
+    if (forceRoomScope && initialRoomId != null) setRoomId(Number(initialRoomId))
+    else if (canChooseRoom && !roomId && rooms[0]?.id) setRoomId(Number(rooms[0].id))
     else if (!canChooseRoom && initialRoomId) setRoomId(Number(initialRoomId))
-  }, [canChooseRoom, initialRoomId, roomId, rooms])
+  }, [canChooseRoom, forceRoomScope, initialRoomId, roomId, rooms])
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
@@ -212,7 +215,7 @@ export default function StaffTeamWorkspace({
         {canChooseRoom ? (
           <label className="stField" style={{maxWidth:520,marginTop:14}}>
             <span>Unit / tim yang dikelola</span>
-            <select value={roomId || ''} disabled={loading || busy} onChange={(e) => {setSelectedStaffId('');setMessage('');setError('');setRoomId(e.target.value ? Number(e.target.value) : 0)}}>
+            <select value={roomId || ''} disabled={loading || busy || forceRoomScope} onChange={(e) => {setSelectedStaffId('');setMessage('');setError('');setRoomId(e.target.value ? Number(e.target.value) : 0)}}>
               <option value="">Pilih unit</option>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
             </select>
           </label>
