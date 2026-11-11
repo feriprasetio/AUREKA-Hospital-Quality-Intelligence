@@ -23,7 +23,7 @@ const QualityHub=dynamic(()=>import('@/components/QualityHub'),{ssr:false,loadin
 const GeneralSettings=dynamic(()=>import('@/components/GeneralSettings'),{ssr:false,loading:()=>workspaceChunkLoading('Administrasi')})
 const HomeLandingWorkspace=dynamic(()=>import('@/components/HomeLandingWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Beranda')})
 const PatientRegistryWorkspace=dynamic(()=>import('@/components/PatientRegistryWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Register Pasien')})
-const MetadataStatisticsWorkspace=dynamic(()=>import('@/components/MetadataStatisticsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Metadata')})
+const MetadataStatisticsWorkspace=dynamic(()=>import('@/components/MetadataStatisticsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Program & Indikator')})
 const OppeAuditWorkspace=dynamic(()=>import('@/components/OppeAuditWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('OPPE / FPPE')})
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
@@ -232,7 +232,7 @@ export default function HomeClient(){
  const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole)).map(({id,label})=>[id,label] as const),[role])
  const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
   const groups:Record<string,SidebarChild[]> = {
-   home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}],
+   home:[{id:'infographics',label:'Infografis'}],
    quality:[
     {id:'audit-indicators',label:'Audit Indikator Mutu'},
     {id:'audit-pathway',label:'Audit Clinical Pathway'},
@@ -268,7 +268,7 @@ export default function HomeClient(){
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Laporan IKP',investigation:'Investigasi / RCA',survey:'Survei Budaya Keselamatan',responses:'Rekapan Survei'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register',mitigation:'RTP Terintegrasi',connections:'Konektor Risiko',fmea:'FMEA / HFMEA'} as Record<RiskWorkspaceTab,string>)[riskTab]
   if(active==='analytics')return analyticsTab==='oppe'?'OPPE / FPPE':({programs:'Program Kerja Tahunan',profiles:'Profil Indikator Mutu',directory:'Direktori Tenaga Kerja'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'>,string>)[analyticsTab]
-  if(active==='settings')return 'Administrasi'
+  if(active==='settings')return 'Administrasi & Konfigurasi'
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
@@ -323,6 +323,11 @@ export default function HomeClient(){
   if(moduleId==='risk')return riskTab
   if(moduleId==='analytics'||moduleId==='staff')return analyticsTab==='oppe'?'oppe-fppe':analyticsTab==='directory'?analyticsDirectoryTab:analyticsTab
   return ''
+ }
+ const isPrimaryNavActive=(id:string)=>{
+  if(id==='staff')return active==='analytics'&&(analyticsTab==='directory'||analyticsTab==='oppe')
+  if(id==='analytics')return active==='analytics'&&analyticsTab!=='directory'&&analyticsTab!=='oppe'
+  return active===id
  }
  const dispatchWorkspaceSearch=(query:string)=>{
   setGlobalSearch(query)
@@ -737,8 +742,8 @@ export default function HomeClient(){
      </button>)}
     </div>
    </div>
-   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=(active===id||(id==='staff'&&active==='analytics'))&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+((active===id||(id==='staff'&&active==='analytics'))?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
-    <button type="button" title={n} className={(active===id||(id==='staff'&&active==='analytics'))?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={(active===id||(id==='staff'&&active==='analytics'))?'page':undefined} onClick={()=>{if(hasKids&&(active===id||(id==='staff'&&active==='analytics'))){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
+   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const selected=isPrimaryNavActive(id);const groupOpen=selected&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(selected?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
+    <button type="button" title={n} className={selected?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={selected?'page':undefined} onClick={()=>{if(hasKids&&selected){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
      <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
     </button>
     {hasKids?<div className="sidebarTreeChildren" id={`sidebar-children-${id}`} hidden={!groupOpen}>
