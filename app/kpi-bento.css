@@ -238,3 +238,8 @@ html[data-skin="arktik"]:root .workspaceRoot .moduleEnter .rmModalSheet.rmModalS
 html[data-skin="arktik"]:root .workspaceRoot .moduleEnter .rmModalSheet.rmModalSheet .rmFormFooter { padding: 14px 20px !important; gap: 10px !important; }
 html[data-skin="arktik"]:root .workspaceRoot .moduleEnter .rmModalSheet.rmModalSheet .rmSubhead { padding-left: 4px !important; padding-right: 4px !important; }
 html[data-skin="arktik"]:root .workspaceRoot .rmFormFooter { padding: 14px 20px !important; gap: 10px !important; }
+/* Kartu Pengingat dari Komite PMKP di Welcome Page */
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlReminderRow { background: rgba(245, 194, 107, 0.08) !important; border-color: rgba(245, 194, 107, 0.3) !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlReminderRow p { color: #f1e6cf !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlReminderRow small { color: #e3c27f !important; }
+html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .homeLanding .hlReminderBtn { background: #dbeafe !important; color: #0a0f1c !important; }

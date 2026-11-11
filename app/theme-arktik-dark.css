@@ -1166,6 +1166,8 @@ html:where([data-skin="arktik"][data-mode="gelap"]):has(.workspaceRoot),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaFab { background: linear-gradient(135deg, #4993d4, #2f84cc); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaFab:hover { box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaGhost.danger { color: #d69191; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaReminder small.ok { color: #bfd1e0; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaReminder small.err { color: #d69191; }
 
 /* from theme-arktik-modern.css */
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root { --ak-primary-bg: #4993d4; --ak-control-bg: rgba(255, 255, 255, 0.057); --ak-row-hover: rgba(255, 255, 255, 0.039); --ak-muted: #bccbdb; }
@@ -1340,6 +1342,9 @@ html[data-skin="arktik"][data-mode="gelap"] .hlPanel { background: rgba(255, 255
 html[data-skin="arktik"][data-mode="gelap"] .hlWelcomeCard { background: linear-gradient(125deg,rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005) 70%); }
 html[data-skin="arktik"][data-mode="gelap"] .hlWelcomeCard .hlGreeting { color: #cddbe7; }
 html[data-skin="arktik"][data-mode="gelap"] .hlWelcomeCard p { color: #b8c0bc; }
+html[data-skin="arktik"][data-mode="gelap"] .hlUnitPicker span { color: #bbc4bf; }
+html[data-skin="arktik"][data-mode="gelap"] .hlUnitPicker select { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #cedbe7; }
+html[data-skin="arktik"][data-mode="gelap"] .hlUnitPicker select:focus-visible { box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.308); }
 html[data-skin="arktik"][data-mode="gelap"] .hlDate { color: #b8c0bc; }
 html[data-skin="arktik"][data-mode="gelap"] .hlPanelHead h3 { color: #cedbe7; }
 html[data-skin="arktik"][data-mode="gelap"] .hlPanelHead span { color: #b0bab4; }
@@ -1354,6 +1359,11 @@ html[data-skin="arktik"][data-mode="gelap"] .hlPendingRow b { color: #c8d5e0; }
 html[data-skin="arktik"][data-mode="gelap"] .hlPendingRow small { color: #b0b9b3; }
 html[data-skin="arktik"][data-mode="gelap"] .hlPendingRow strong { color: #d59a71; }
 html[data-skin="arktik"][data-mode="gelap"] .hlEmpty { color: #b0b9b3; }
+html[data-skin="arktik"][data-mode="gelap"] .hlInfoFilter label { color: #b8c0bc; }
+html[data-skin="arktik"][data-mode="gelap"] .hlReminderRow { border: 1px solid rgba(196, 147, 33, 0.5); background: rgba(255, 255, 255, 0.005); }
+html[data-skin="arktik"][data-mode="gelap"] .hlReminderRow small { color: #c9a865; }
+html[data-skin="arktik"][data-mode="gelap"] .hlReminderRow p { color: #e8e0d3; }
+html[data-skin="arktik"][data-mode="gelap"] .hlReminderBtn { background: #4993d4; }
 html[data-skin="arktik"][data-mode="gelap"] .hlNotice { background: rgba(255, 255, 255, 0.005); color: #c39c62; }
 
 /* from components/MetadataStatisticsWorkspace.tsx */
