@@ -78,7 +78,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const [countRows,setCountRows] = useState<RoomMonthCount[]|null>(null)
   // PMKP/manajemen tetap dapat memilih Semua Unit di Infografis; Super Admin mengikuti unit global.
   const [infoRoom,setInfoRoom] = useState<string>(manager?'':String(roomId??''))
-  const infoRoomId = infoRoom?Number(infoRoom):null
+  const infoRoomId = scopeToRoom ? (selectedRoomId ?? roomId) : infoRoom?Number(infoRoom):null
   const infoRoomName = infoRoomId?(rooms.find(r=>Number(r.id)===infoRoomId)?.name??roomName):(manager?'Semua unit':roomName)
   const [activity,setActivity] = useState<{lastAt:string|null;pending:{label:string;count:number;module:string}[];partial:boolean}>({lastAt:null,pending:[],partial:false})
   const firstName = userName.trim().split(/\s+/)[0] || 'Pengguna'
@@ -207,8 +207,8 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       </nav>
       {achievementTab==='overview'&&<OverviewDashboard supabase={supabase} role={role??(manager?'MANAGEMENT':'PIC')} roomId={scopeToRoom?roomId:(manager?null:roomId)} roomName={roomName} manager={manager&&!scopeToRoom} userName={userName} onNavigate={onNavigate}/>}
       {achievementTab==='indicators'&&<QualityResultsWorkspace key={'home-unit-indicators-'+String(scopeToRoom?roomId:'all')} mode="indicators" initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} rooms={rooms} canViewAllRooms={manager&&!scopeToRoom} lockRoomScope={scopeToRoom}/>}
-      {achievementTab==='safety'&&<PatientSafetyWorkspace key={'home-unit-safety-'+String(scopeToRoom?roomId:'all')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} scopeRoomId={scopeToRoom?roomId:null} isSuperAdmin={isAdmin} canManageWorkflow={manager} initialTab="overview" showTabs={false}/>}
-      {achievementTab==='risk'&&<RiskManagementWorkspace key={'home-unit-risk-'+String(scopeToRoom?roomId:'all')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} lockRoomScope={scopeToRoom} role={role} userId={userId} userName={userName} initialTab="overview" showTabs={false}/>}
+      {achievementTab==='safety'&&<PatientSafetyWorkspace key={'home-unit-safety-'+String(scopeToRoom?roomId:'all')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} forceRoomScope={scopeToRoom} isSuperAdmin={isAdmin} canManageWorkflow={manager} initialTab="overview" showTabs={false}/>}
+      {achievementTab==='risk'&&<RiskManagementWorkspace key={'home-unit-risk-'+String(scopeToRoom?roomId:'all')} supabase={supabase} rooms={rooms} initialRoomId={scopeToRoom?roomId:(manager?null:roomId)} forceRoomScope={scopeToRoom} role={role} userId={userId} userName={userName} initialTab="overview" showTabs={false}/>}
     </>}
   </section>
 }
