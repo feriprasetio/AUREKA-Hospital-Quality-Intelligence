@@ -470,10 +470,10 @@ export default function PatientSafetyWorkspace({
   useEffect(() => {
     const defaultRoom = scopeUnitName || rooms.find(room => room.id === initialRoomId)?.name || ''
     if (defaultRoom) {
-      setIncidentData(current => current.E2 ? current : { ...current, E2: defaultRoom })
-      setSurveyUnit(current => current || defaultRoom)
+      setIncidentData(current => ({ ...current, E2: scopeUnitName || current.E2 || defaultRoom }))
+      setSurveyUnit(current => scopeUnitName || current || defaultRoom)
     }
-  }, [rooms, initialRoomId])
+  }, [rooms, initialRoomId, scopeUnitName])
 
   const filteredIncidents = useMemo(() => incidents.filter(row => {
     const matchesStatus = statusFilter === 'all' || row.status === statusFilter
@@ -497,7 +497,7 @@ export default function PatientSafetyWorkspace({
   // Tanda "wajib diisi" baru muncul setelah pengguna mencoba mengirim.
   const [showMissing, setShowMissing] = useState(false)
   const missingSurvey = useMemo(() => SURVEY_REQUIRED.filter(code => !Object.prototype.hasOwnProperty.call(surveyAnswers, code) || surveyAnswers[code] === ''), [surveyAnswers])
-  const roomOptions = rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
+  const roomOptions = scopeUnitName ? [scopeUnitName] : rooms.length ? rooms.map(room => room.name) : ['Instalasi Gawat Darurat', 'Rawat Inap', 'Instalasi Farmasi', 'Instalasi Bedah Sentral', 'Laboratorium', 'Radiologi']
 
   const [formOpen, setFormOpen] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
@@ -702,7 +702,7 @@ export default function PatientSafetyWorkspace({
     setSurveyShift('')
     setSurveyRole('')
     setSurveyPatientContact('')
-    setSurveyUnit('')
+    setSurveyUnit(scopeUnitName || '')
     setLastResponseCode('')
     setError('')
     setMessage('')
