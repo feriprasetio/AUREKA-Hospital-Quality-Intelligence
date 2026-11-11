@@ -270,6 +270,7 @@ export default function PatientSafetyWorkspace({
   initialTab = 'overview',
   showTabs = true,
   onTabChange,
+  forceRoomScope = false,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -280,6 +281,7 @@ export default function PatientSafetyWorkspace({
   initialTab?: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'
   showTabs?: boolean
   onTabChange?: (tab: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses') => void
+  forceRoomScope?: boolean
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_patient_safety'), [supabase])
   const qualityDb = useMemo(() => (supabase as any).schema('aureka_quality'), [supabase])
@@ -354,11 +356,19 @@ export default function PatientSafetyWorkspace({
           .then((data) => ({ data, error: null as unknown }))
           .catch((error: unknown) => ({ data: null, error })),
       ])
-      setIncidents(nextIncidents)
+      const activeRoomName = rooms.find(room => Number(room.id) === Number(initialRoomId))?.name || ''
+      const visibleIncidents = forceRoomScope
+        ? (activeRoomName ? nextIncidents.filter(row => row.unit_name === activeRoomName) : [])
+        : nextIncidents
+      const visibleIncidentIds = new Set(visibleIncidents.map(row => String(row.id)))
+      const visibleInvestigations = forceRoomScope
+        ? (investigationResult.data || []).filter(row => visibleIncidentIds.has(String(row.incident_id)))
+        : (investigationResult.data || [])
+      setIncidents(visibleIncidents)
       if (investigationResult.error) {
         if (canManageWorkflow) setError('Daftar investigasi belum dapat dimuat: ' + toUserFacingError(investigationResult.error, { fallback: 'Daftar investigasi belum dapat dimuat. Coba muat ulang.' }))
       } else {
-        setInvestigations(investigationResult.data || [])
+        setInvestigations(visibleInvestigations)
       }
 
       // Keep all active, locked staff-to-room assignments; a person may serve in multiple units.
@@ -417,8 +427,8 @@ export default function PatientSafetyWorkspace({
 
       try {
         const entityIds = [
-          ...nextIncidents.map((row) => String(row.id)),
-          ...((investigationResult.data || []).map((row) => String(row.id))),
+          ...visibleIncidents.map((row) => String(row.id)),
+          ...visibleInvestigations.map((row) => String(row.id)),
         ]
         const links: StaffEntityAttribution[] = []
         for (let offset = 0; offset < entityIds.length; offset += 100) {
@@ -444,7 +454,9 @@ export default function PatientSafetyWorkspace({
           .order('submitted_at', { ascending: false })
           .order('response_id', { ascending: true })
           .range(from, to))
-        setResponses(allResponses)
+        setResponses(forceRoomScope
+          ? (activeRoomName ? allResponses.filter(row => row.unit_name === activeRoomName) : [])
+          : allResponses)
       } else {
         setResponses([])
       }
@@ -453,7 +465,7 @@ export default function PatientSafetyWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin])
+  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin, forceRoomScope, initialRoomId])
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {
