@@ -50,7 +50,7 @@ function NavIcon({id}:{id:string}){
 }
 type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
 type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'
-type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'
+type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'|'oppe'
 type AnalyticsDirectoryTab='directory'|'team'
 type WorkspaceSearchResult={node:HTMLElement;text:string;tag:string}
 type WorkspaceNotification={id:number;message:string;kind:'success'|'error'|'info';createdAt:number;module?:string}
@@ -153,7 +153,8 @@ export default function HomeClient(){
    if(next==='risk')setRiskTab((['overview','register','mitigation','connections','fmea'].includes(section)?section:'overview') as RiskWorkspaceTab)
    if(next==='analytics'){
     const legacySection=section==='metadata'?'profiles':section==='staff'?'directory':section
-    if(legacySection==='team'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('team')}
+    if(legacySection==='oppe'||legacySection==='oppe-fppe')setAnalyticsTab('oppe')
+    else if(legacySection==='team'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('team')}
     else if(legacySection==='directory'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
     else if(['programs','profiles'].includes(legacySection))setAnalyticsTab(legacySection as AnalyticsWorkspaceTab)
     else setAnalyticsTab('programs')
@@ -181,7 +182,7 @@ export default function HomeClient(){
     hash='#mutu-klinis/'+audit+'/'+tab
    }
   }else{
-   const routes:Record<string,string>={home:'#halaman-utama',patients:'#register-pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#metadata',settings:'#administrasi'}
+   const routes:Record<string,string>={home:'#halaman-utama',patients:'#register-pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#tenaga-klinis',settings:'#administrasi'}
    hash=routes[active]||'#ringkasan'
    const section=active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(analyticsTab==='directory'?analyticsDirectoryTab:analyticsTab):null
    if(section)hash+='/'+section
@@ -227,14 +228,13 @@ export default function HomeClient(){
  const validator=role==='VALIDATOR'
  const activeWorkspaceRoomId=admin?resolveAdminWorkspaceRoomId(roomsList,[selectedWorkspaceRoomId,selectedQualityRoomId,room?.id]):(room?.id??null)
  const activeWorkspaceRoom=roomsList.find(item=>Number(item.id)===Number(activeWorkspaceRoomId))??room
- const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({id,requiredRoles})=>id!=='staff'&&requiredRoles.includes((role||'') as AurekaRole)&&(id!=='analytics'||['ADMIN','PMKP','PIC','VALIDATOR'].includes(role||''))).map(({id,label})=>[id,id==='analytics'?'Metadata':label] as const),[role])
+ const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({id,requiredRoles})=>id!=='analytics'&&requiredRoles.includes((role||'') as AurekaRole)).map(({id,label})=>[id,label] as const),[role])
  const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
   const groups:Record<string,SidebarChild[]> = {
    quality:[
     {id:'audit-indicators',label:'Audit Indikator Mutu'},
     {id:'audit-pathway',label:'Audit Clinical Pathway'},
     {id:'audit-clinical-death',label:'Audit Klinis dan Kematian'},
-    ...(['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'].includes(role||'')?[{id:'oppe-fppe',label:'OPPE / FPPE'}]:[]),
    ],
    safety:[
      {id:'incidents',label:'Laporan IKP'},
@@ -249,6 +249,11 @@ export default function HomeClient(){
     {id:'fmea',label:'FMEA / HFMEA'},
    ],
    analytics:[],
+   staff:[
+    {id:'directory',label:'Daftar Tenaga Kerja'},
+    {id:'team',label:'Tim dan Penugasan'},
+    ...(['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC','VALIDATOR'].includes(role||'')?[{id:'oppe-fppe',label:'OPPE / FPPE'}]:[]),
+   ],
   }
   return groups
  },[admin,manager,role])
@@ -257,21 +262,22 @@ export default function HomeClient(){
   if(active==='quality')return qualityOppeOpen?'OPPE / FPPE':qualityResultsView?({indicators:'Audit Indikator Mutu · Hasil Capaian',pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<NonNullable<typeof qualityResultsView>,string>)[qualityResultsView]:clinicalPathwayOpen?'Audit Clinical Pathway · Form Logbook':qualityInitialContainer+' · Form Logbook'
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Laporan IKP',investigation:'Investigasi / RCA',survey:'Survei Budaya Keselamatan',responses:'Rekapan Survei'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register',mitigation:'RTP Terintegrasi',connections:'Konektor Risiko',fmea:'FMEA / HFMEA'} as Record<RiskWorkspaceTab,string>)[riskTab]
-  if(active==='analytics')return ({programs:'Metadata · Program Kerja',profiles:'Metadata · Profil Indikator',directory:'Metadata · Direktori Induk SDM'} as Record<AnalyticsWorkspaceTab,string>)[analyticsTab]
+  if(active==='analytics')return analyticsTab==='oppe'?'OPPE / FPPE':({programs:'Sumber Daya Manusia · Program Kerja',profiles:'Sumber Daya Manusia · Profil Indikator',directory:'Sumber Daya Manusia · Direktori Tenaga Kerja'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'>,string>)[analyticsTab]
   if(active==='settings')return 'Administrasi'
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
  const effectiveQualityRoomId=admin?activeWorkspaceRoomId:(selectedQualityRoomId??room?.id??null)
  const contextNavigation=sidebarChildGroups[active]??[]
- const moduleLabel=active==='home'?'Halaman Utama':visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
+ const moduleLabel=active==='home'?'Beranda':active==='analytics'?'Sumber Daya Manusia':visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
  const openMainModule=(id:string,keepMenuOpen=false)=>{
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
-  setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id)
+  setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id==='staff'?'analytics':id)
   if(id==='quality'){setQualityOppeOpen(false);setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);setQualityResultsView(null);setQualityOpen(true)}
   else {setQualityOppeOpen(false);setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null)}
   if(id==='safety')setSafetyTab('incidents')
   if(id==='risk')setRiskTab('register')
+  if(id==='staff'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
   if(id==='analytics'){setAnalyticsTab(admin?'programs':'directory');setAnalyticsDirectoryTab(admin?'directory':'team')}
  }
  const selectSidebarChild=(moduleId:string,childId:string)=>{
@@ -303,7 +309,7 @@ export default function HomeClient(){
   if(moduleId==='quality')return qualityOppeOpen?'oppe-fppe':qualityResultsView==='pathway'||clinicalPathwayOpen?'audit-pathway':qualityResultsView==='clinical-death'||qualityInitialContainer==='Audit Klinis dan Kematian'?'audit-clinical-death':'audit-indicators'
   if(moduleId==='safety')return safetyTab
   if(moduleId==='risk')return riskTab
-  if(moduleId==='analytics')return analyticsTab
+  if(moduleId==='analytics'||moduleId==='staff')return analyticsTab==='oppe'?'oppe-fppe':analyticsTab==='directory'?analyticsDirectoryTab:analyticsTab
   return ''
  }
  const dispatchWorkspaceSearch=(query:string)=>{
@@ -714,8 +720,8 @@ export default function HomeClient(){
      <NavIcon id="home"/><span>Halaman Utama</span>
     </button>
    </div>
-   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=active===id&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(active===id?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
-    <button type="button" title={n} className={active===id?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={active===id?'page':undefined} onClick={()=>{if(hasKids&&active===id){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
+   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const groupOpen=(active===id||(id==='staff'&&active==='analytics'))&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(active===id?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
+    <button type="button" title={n} className={(active===id||(id==='staff'&&active==='analytics'))?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={(active===id||(id==='staff'&&active==='analytics'))?'page':undefined} onClick={()=>{if(hasKids&&(active===id||(id==='staff'&&active==='analytics')){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
      <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
     </button>
     {hasKids?<div className="sidebarTreeChildren" id={`sidebar-children-${id}`} hidden={!groupOpen}>
@@ -829,9 +835,9 @@ export default function HomeClient(){
     <button type="button" onClick={()=>openMainModule('home')} aria-label="Halaman Utama"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
     {active!=='home'&&<><span aria-hidden="true">/</span><span>{active==='settings'?'Administrasi':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
     {active!=='home'&&active!=='settings'&&<><span aria-hidden="true">/</span><b>{currentContainer.split(' · ')[0]}</b></>}
-    {active==='home'&&<><span aria-hidden="true">/</span><b>Halaman Utama</b></>}
+    {active==='home'&&<><span aria-hidden="true">/</span><b>Beranda</b></>}
    </nav>
-    <h1>{active==='home'?'Halaman Utama':currentContainer.split(' · ')[0]}</h1>
+    <h1>{active==='home'?'Beranda':currentContainer.split(' · ')[0]}</h1>
     
    </div>
   </div>
