@@ -70,6 +70,16 @@ export default function GeneralSettings({
   const [roles, setRoles] = useState<Role[]>([])
   const [roleMeta, setRoleMeta] = useState<Role | null>(null)
   const [search, setSearch] = useState('')
+  // Browser kadang mengisi kolom cari dengan email/username tersimpan (karena ada kolom password di halaman ini).
+  // Bila isinya persis email/username akun sendiri dan bukan diketik, kosongkan agar daftar pengguna tidak tampak kosong.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const own = [profile?.email, (profile as { username?: string } | null)?.username].filter(Boolean).map((v) => String(v).toLowerCase())
+      const active = document.activeElement as HTMLInputElement | null
+      setSearch((v) => (own.includes(v.trim().toLowerCase()) && active?.name !== 'aureka-admin-user-filter' ? '' : v))
+    }, 800)
+    return () => window.clearTimeout(t)
+  }, [profile])
   const [userFilter, setUserFilter] = useState<'all' | 'pending' | 'active' | 'inactive' | 'unmapped'>('all')
   const [lifecycleSupported, setLifecycleSupported] = useState(true)
   const [adminRooms, setAdminRooms] = useState<Room[] | null>(null)
@@ -471,7 +481,7 @@ export default function GeneralSettings({
 
   const changePassword = async () => {
     setPwMsg(null)
-    if (pw.next.length < 8) return setPwMsg({ ok: false, text: 'Password baru minimal 8 karakter.' })
+    if (pw.next.length < 6) return setPwMsg({ ok: false, text: 'Password baru minimal 6 karakter.' })
     if (pw.next !== pw.confirm) return setPwMsg({ ok: false, text: 'Konfirmasi password baru tidak sama.' })
     if (pw.next === pw.current) return setPwMsg({ ok: false, text: 'Password baru harus berbeda dari password saat ini.' })
     const { data: authUser } = await sb.auth.getUser()
@@ -694,7 +704,7 @@ export default function GeneralSettings({
               )}
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
-                <input className="adminLocalSearch" aria-label="Cari unit kerja" placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
+                <input className="adminLocalSearch" type="search" name="aureka-admin-room-filter" autoComplete="off" autoCorrect="off" spellCheck={false} data-lpignore="true" data-1p-ignore="true" data-form-type="other" aria-label="Cari unit kerja" placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
                 {isAdmin && adminRooms && <>
                   <span className="filterCount">{adminRooms.filter((r) => r.is_active !== false).length} aktif · {adminRooms.filter((r) => r.is_active === false).length} nonaktif</span>
                   <button type="button" className={showInactiveRooms ? 'filterChip active' : 'filterChip'} onClick={() => setShowInactiveRooms((v) => !v)}>{showInactiveRooms ? 'Sembunyikan unit nonaktif' : 'Tampilkan unit nonaktif'}</button>
@@ -728,7 +738,7 @@ export default function GeneralSettings({
               <h4 style={{ margin: '0 0 12px' }}>Ganti Password</h4>
               <div className="pwForm">
                 <label className="field"><span>Password saat ini</span><input type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
-                <label className="field"><span>Password baru (min. 8 karakter)</span><input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
+                <label className="field"><span>Password baru (min. 6 karakter)</span><input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
                 <label className="field"><span>Ulangi password baru</span><input type="password" autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
               </div>
               {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role={pwMsg.ok ? 'status' : 'alert'} aria-live={pwMsg.ok ? 'polite' : 'assertive'}>{pwMsg.text}</p>}
@@ -828,7 +838,7 @@ export default function GeneralSettings({
               </div>}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
-              <input className="adminLocalSearch" aria-label="Cari pengguna berdasarkan nama, username, email, atau unit" placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
+              <input className="adminLocalSearch" type="search" name="aureka-admin-user-filter" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} data-lpignore="true" data-1p-ignore="true" data-form-type="other" aria-label="Cari pengguna berdasarkan nama, username, email, atau unit" placeholder="Cari nama / username / email / unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 360, flex: '1 1 220px' }} />
               {([
                 ['all', `Semua (${users.length - inactiveCount})`],
                 ['pending', `Menunggu aktivasi (${pendingCount})`],
@@ -941,7 +951,7 @@ export default function GeneralSettings({
                         <h5>Reset password <span>untuk user yang lupa password</span></h5>
                         <p className="userDetailHint" style={{ marginTop: 0 }}><b>Cara 1 — Password sementara.</b> Buat password baru, lalu sampaikan ke user (WA/langsung). Akun dan datanya tetap utuh.</p>
                         <div className="userDetailInline">
-                          <input aria-label={`Password sementara untuk ${u.full_name || u.email || 'pengguna'}`} placeholder="Password sementara (min. 8 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
+                          <input aria-label={`Password sementara untuk ${u.full_name || u.email || 'pengguna'}`} placeholder="Password sementara (min. 12 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
                           <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">Buat acak</button>
                         </div>
                         <button type="button" className="uBtn primary" style={{ marginTop: 8 }} disabled={busy || tempPw.trim().length < 12} onClick={() => setUserPassword(u)}>
