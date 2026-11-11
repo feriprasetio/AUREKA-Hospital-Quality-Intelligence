@@ -44,7 +44,7 @@ test('legacy bookmarks remain mapped while the new HR route is canonical', () =>
 
 test('sidebar home label and breadcrumb use Beranda terminology', () => {
   const app = read('components/HomeClient.tsx')
-  assert.match(app, /title="Beranda"/)
+  assert.match(app, //title="Halaman Utama"//)
   assert.match(app, /<NavIcon id="home"\/><span>Beranda<\/span>/)
   assert.match(app, /<b>Beranda<\/b>/)
 })
