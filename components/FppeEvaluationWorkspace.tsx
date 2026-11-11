@@ -51,11 +51,13 @@ export default function FppeEvaluationWorkspace({
   rooms,
   teamStaff,
   canManage,
+  forceRoomScope = false,
 }: {
   initialRoomId: number | null
   rooms: Room[]
   teamStaff: Staff[]
   canManage: boolean
+  forceRoomScope?: boolean
 }) {
   const defaultRoom = initialRoomId ?? rooms[0]?.id ?? 0
   const frameRef = useRef<HTMLIFrameElement>(null)
@@ -63,6 +65,7 @@ export default function FppeEvaluationWorkspace({
   const roomRef = useRef<number>(defaultRoom)
   const rosterRef = useRef<any[]>([])
   const [roomId, setRoomId] = useState<number>(defaultRoom)
+  useEffect(() => { if (forceRoomScope) { const next = initialRoomId ?? defaultRoom; setRoomId(next); roomRef.current = next } }, [forceRoomScope, initialRoomId, defaultRoom])
   const [frameReady, setFrameReady] = useState(false)
   const [frameHeight, setFrameHeight] = useState(1700)
   const [loading, setLoading] = useState(false)
@@ -525,7 +528,7 @@ export default function FppeEvaluationWorkspace({
         title="Evaluasi terfokus (FPPE)"
         description="FPPE terintegrasi di dalam Kontainer Audit OPPE. Identitas tenaga mengikuti Metadata dan roster Tim Tenaga Kerja. Pengajuan memerlukan validasi oleh akun yang berbeda dari pembuat."
         actions={<div className="fppeHeaderActions">
-          <label className="fppeUnitChoice"><span>Unit FPPE</span><select value={roomId} disabled={busy} onChange={(e) => startNew(Number(e.target.value))}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
+          <label className="fppeUnitChoice"><span>Unit FPPE</span><select value={roomId} disabled={busy || forceRoomScope} onChange={(e) => startNew(Number(e.target.value))}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
           <button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> FPPE baru</button>
         </div>}
       />
