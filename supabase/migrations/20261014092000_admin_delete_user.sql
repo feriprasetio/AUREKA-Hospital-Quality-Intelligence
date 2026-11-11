@@ -1,43 +1,60 @@
--- AUREKA · Hapus akun pengguna oleh Super Admin
---
--- Menghapus akun (auth.users) beserta profil & penugasan ruangannya (ON DELETE CASCADE).
--- Pengaman data:
---   * hanya Super Admin; tidak dapat menghapus akun sendiri;
---   * akun yang sudah pernah membuat data (risiko, RTP, FMEA, IKP, investigasi, dll.)
---     TIDAK dapat dihapus karena tabel data mereferensikan auth.users tanpa CASCADE.
---     Penghapusan dibatalkan utuh dan admin diminta menonaktifkan akun tersebut.
---     Dengan begitu data operasional tidak pernah ikut terhapus.
+-- AUREKA: protected bulk cleanup of PIC and VALIDATOR accounts.
+-- Deletes only auth identities whose current profile role is PIC or VALIDATOR.
+-- Admin identity and all non-auth operational records are explicitly preserved.
+-- Deletion remains subject to FK protections; accounts with linked operational data
+-- are deactivated instead of deleted.
 
-create or replace function public.aureka_admin_delete_user(p_user_id uuid)
-returns boolean
-language plpgsql
-security definer
-set search_path = public, aureka_system, auth
-as $$
-begin
-  if not public.aureka_is_admin() then
-    raise exception 'FORBIDDEN: hanya Super Admin yang dapat menghapus akun' using errcode = '42501';
-  end if;
-  if p_user_id is null then
-    raise exception 'User tidak valid';
-  end if;
-  if p_user_id = auth.uid() then
-    raise exception 'Tidak dapat menghapus akun Anda sendiri';
-  end if;
-  if not exists (select 1 from auth.users where id = p_user_id) then
-    raise exception 'Akun tidak ditemukan';
-  end if;
+CREATE OR REPLACE FUNCTION public.aureka_admin_cleanup_unit_accounts()
+RETURNS TABLE(deleted_count integer, deactivated_count integer, protected_count integer)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, aureka_system, auth
+AS $$
+DECLARE
+  v_deleted integer := 0;
+  v_deactivated integer := 0;
+  v_protected integer := 0;
+  v_row record;
+BEGIN
+  IF auth.uid() IS NULL OR NOT public.aureka_is_admin() THEN
+    RAISE EXCEPTION 'FORBIDDEN: hanya Super Admin yang dapat membersihkan akun unit'
+      USING ERRCODE = '42501';
+  END IF;
 
-  begin
-    delete from auth.users where id = p_user_id;
-  exception when foreign_key_violation then
-    raise exception 'USER_HAS_DATA: Akun ini sudah memiliki data (risiko, laporan, atau rekam mutu) sehingga tidak dapat dihapus agar data tetap utuh. Nonaktifkan akun sebagai gantinya.'
-      using errcode = '23503';
-  end;
+  FOR v_row IN
+    SELECT up.user_id, ar.code AS role_code
+    FROM aureka_system.user_profiles up
+    JOIN aureka_system.app_roles ar ON ar.id = up.role_id
+    JOIN auth.users au ON au.id = up.user_id
+    WHERE upper(ar.code) IN ('PIC', 'VALIDATOR')
+      AND up.user_id <> auth.uid()
+    ORDER BY up.created_at
+  LOOP
+    BEGIN
+      -- FK-restricted operational rows cause a rollback of this individual deletion.
+      DELETE FROM auth.users WHERE id = v_row.user_id;
+      IF FOUND THEN
+        v_deleted := v_deleted + 1;
+      ELSE
+        v_protected := v_protected + 1;
+      END IF;
+    EXCEPTION WHEN foreign_key_violation THEN
+      UPDATE aureka_system.user_profiles
+         SET is_active = false,
+             deactivated_at = COALESCE(deactivated_at, now()),
+             updated_at = now()
+       WHERE user_id = v_row.user_id;
+      UPDATE aureka_system.user_room_assignments
+         SET is_active = false
+       WHERE user_id = v_row.user_id;
+      v_deactivated := v_deactivated + 1;
+    END;
+  END LOOP;
 
-  return true;
-end;
+  RETURN QUERY SELECT v_deleted, v_deactivated, v_protected;
+END;
 $$;
 
-revoke all on function public.aureka_admin_delete_user(uuid) from public, anon;
-grant execute on function public.aureka_admin_delete_user(uuid) to authenticated;
+REVOKE ALL ON FUNCTION public.aureka_admin_cleanup_unit_accounts() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.aureka_admin_cleanup_unit_accounts() TO authenticated;
+NOTIFY pgrst, 'reload schema';
