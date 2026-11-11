@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { fetchRoomMonthCounts } from '@/lib/aureka/quality-counts'
 
 type Room = { id: number; name: string }
 type EpisodeRow = {
@@ -155,14 +156,7 @@ export default function PatientRegistryWorkspace({
     let cancelled = false
     ;(async () => {
       const counts = new Map<number, number>()
-      for (let from = 0; from < 50000; from += 1000) {
-        const { data, error: countError } = await db.from('quality_records').select('room_id')
-          .eq('measurement_grain', 'patient_episode').neq('status', 'archived').eq('profile_year', Number(year))
-          .order('id', { ascending: true }).range(from, from + 999)
-        if (countError || !data) break
-        for (const row of data as { room_id: number }[]) counts.set(Number(row.room_id), (counts.get(Number(row.room_id)) ?? 0) + 1)
-        if (data.length < 1000) break
-      }
+      for (const row of await fetchRoomMonthCounts(Number(year), 'patient_episode')) counts.set(row.room_id, (counts.get(row.room_id) ?? 0) + row.total)
       if (!cancelled) setRoomCounts(counts)
     })()
     return () => { cancelled = true }

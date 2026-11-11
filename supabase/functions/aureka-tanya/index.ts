@@ -10,8 +10,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Cache-Control": "no-store, max-age=0",
 };
-const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
-const FALLBACK_MODEL = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
+const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
+const FALLBACK_MODEL = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-latest";
 const LIMIT_PER_WINDOW = 20;           // pertanyaan per pengguna
 const WINDOW_MS = 10 * 60 * 1000;      // per 10 menit (perkiraan; per instance fungsi)
 const hits = new Map<string, number[]>();
@@ -78,7 +78,6 @@ const top = (o: Record<string, number>, n: number) => Object.fromEntries(Object.
 type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; status: string | null; due_date: string | null };
 type Plan = { status: string | null; target_date: string | null };
 type Incident = Record<string, unknown>;
-type QRow = { room_id: number | null; record_date: string | null; period_start: string | null; measurement_grain: string | null };
 type Room = { id: number; name: string; is_active: boolean | null };
 
 const LEVELS = ["Sangat Tinggi", "Tinggi", "Sedang", "Rendah"];
@@ -96,6 +95,40 @@ const MENU_AUREKA = [
   "Administrasi → pengaturan akun, pengguna, unit",
 ];
 
+type QCount = { room_id: number; month: number | null; total: number };
+/** Jumlah logbook per unit per bulan: fungsi database bila ada, selain itu baca keyset (id > terakhir) — tidak terpotong. */
+async function qualityCounts(db: SupabaseClient, year: number): Promise<{ rows: QCount[]; error: boolean }> {
+  const rpc = await db.rpc("aureka_quality_room_month_counts", { p_year: year, p_grain: null });
+  if (!rpc.error && Array.isArray(rpc.data)) {
+    const m = new Map<string, QCount>();
+    for (const r of rpc.data as { room_id: number; month: number | null; total: number }[]) {
+      const k = r.room_id + "|" + r.month;
+      const hit = m.get(k);
+      if (hit) hit.total += Number(r.total); else m.set(k, { room_id: Number(r.room_id), month: r.month, total: Number(r.total) });
+    }
+    return { rows: [...m.values()], error: false };
+  }
+  const m = new Map<string, QCount>();
+  let last: string | null = null;
+  for (let page = 0; page < 60; page++) {
+    let q = db.schema("aureka_quality").from("quality_records").select("id,room_id,record_date,period_start")
+      .eq("profile_year", year).is("archived_at", null).neq("status", "archived").order("id", { ascending: true }).limit(1000);
+    if (last) q = q.gt("id", last);
+    const { data, error } = await q;
+    if (error || !data) return { rows: [...m.values()], error: true };
+    for (const r of data as { id: string; room_id: number; record_date: string | null; period_start: string | null }[]) {
+      const d = r.record_date || r.period_start || "";
+      const month = d.slice(0, 4) === String(year) ? Number(d.slice(5, 7)) : null;
+      const k = r.room_id + "|" + month;
+      const hit = m.get(k);
+      if (hit) hit.total++; else m.set(k, { room_id: Number(r.room_id), month, total: 1 });
+    }
+    if (data.length < 1000) break;
+    last = data[data.length - 1].id;
+  }
+  return { rows: [...m.values()], error: false };
+}
+
 async function snapshot(db: SupabaseClient) {
   const now = new Date(Date.now() + 7 * 3600 * 1000); // WIB/WIB-Pontianak
   const today = now.toISOString().slice(0, 10);
@@ -110,10 +143,7 @@ async function snapshot(db: SupabaseClient) {
       .select("status,target_date").order("id", { ascending: true }).range(f, t)),
     fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents")
       .select("*").order("created_at", { ascending: false }).range(f, t), 3000),
-    fetchAll<QRow>((f, t) => db.schema("aureka_quality").from("quality_records")
-      .select("room_id,record_date,period_start,measurement_grain")
-      .eq("profile_year", year).is("archived_at", null).neq("status", "archived")
-      .order("id", { ascending: true }).range(f, t), 30000),
+    qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
@@ -135,12 +165,9 @@ async function snapshot(db: SupabaseClient) {
   // --- Mutu klinis: entri logbook per unit per bulan tahun berjalan
   const perRoom = new Map<number, number[]>();
   for (const q of quality.rows) {
-    if (q.room_id == null) continue;
-    const d = q.record_date || q.period_start || "";
-    const m = Number(d.slice(5, 7)) - 1;
-    if (d.slice(0, 4) !== String(year) || m < 0 || m > 11) continue;
+    if (q.room_id == null || q.month == null || q.month < 1 || q.month > 12) continue;
     const arr = perRoom.get(q.room_id) || new Array(12).fill(0);
-    arr[m]++;
+    arr[q.month - 1] += q.total;
     perRoom.set(q.room_id, arr);
   }
   const logbookPerUnit = rooms.map((r) => {
@@ -190,7 +217,7 @@ async function snapshot(db: SupabaseClient) {
     mutu_klinis_logbook: {
       tahun: year,
       arti: "Entri Form Logbook Mutu Klinis (semua program) per unit berdasarkan tanggal layanan/periode. Unit dianggap 'belum input/lapor' pada suatu triwulan bila tidak ada entri sama sekali di triwulan itu.",
-      total_entri: quality.rows.length,
+      total_entri: quality.rows.reduce((a, b) => a + b.total, 0),
       unit_belum_input_per_triwulan: belumInputPerTriwulan,
       per_unit: logbookPerUnit.filter((u) => u.total_entri > 0),
       unit_tanpa_entri_sama_sekali: logbookPerUnit.filter((u) => u.total_entri === 0).map((u) => u.unit),
@@ -219,7 +246,7 @@ async function askGemini(apiKey: string, system: string, contents: Turn[]): Prom
     try {
       res = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
-      }, 25000);
+      }, 15000);
     } catch (e) { console.warn("gemini", model, "timeout", String(e).slice(0, 120)); last = 504; continue; }
     last = res.status;
     if (res.ok) {
@@ -330,19 +357,29 @@ async function handle(req: Request): Promise<Response> {
 
   const { data: profile } = await db.schema("aureka_system").from("user_profiles").select("full_name,is_active").eq("user_id", who.user.id).maybeSingle();
   if (!profile?.is_active) return reply(403, { error: "Akun belum aktif." });
-  if (rateLimited(who.user.id)) return reply(429, { error: "Batas pertanyaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
 
-  let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string };
+  let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string; warmup?: boolean };
   try { body = await req.json(); } catch { return reply(400, { error: "Format permintaan tidak valid." }); }
+  // Pemanasan saat panel dibuka: siapkan ringkasan data di cache, tanpa memanggil AI.
+  if (body.warmup) {
+    const c = snapshotCache.get(who.user.id);
+    if (!c || Date.now() - c.at >= SNAPSHOT_TTL) snapshotCache.set(who.user.id, { at: Date.now(), data: await snapshot(db) });
+    return reply(200, { ok: true });
+  }
   const question = (body.question || "").toString().trim().slice(0, 1500);
   if (!question) return reply(400, { error: "Pertanyaan kosong." });
+  if (rateLimited(who.user.id)) return reply(429, { error: "Batas pertanyaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
+  // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
+  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat)\b/i;
+  const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
   const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
   const page = (body.page || "").toString().slice(0, 80);
 
   stage = "ambil-data";
   const cached = snapshotCache.get(who.user.id);
-  const data = cached && Date.now() - cached.at < SNAPSHOT_TTL ? cached.data : await snapshot(db);
-  if (!cached || cached.data !== data) snapshotCache.set(who.user.id, { at: Date.now(), data });
+  const fresh = cached && Date.now() - cached.at < SNAPSHOT_TTL;
+  const data = fresh ? cached!.data : smallTalk ? null : await snapshot(db);
+  if (!fresh && data) snapshotCache.set(who.user.id, { at: Date.now(), data });
   stage = "susun-prompt";
   const firstName = String(profile.full_name || "").split(/[\s,]+/)[0] || "";
   const system = [
@@ -364,8 +401,8 @@ async function handle(req: Request): Promise<Response> {
     "Pengguna: " + (profile.full_name || "pengguna") + (page ? ". Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
     ...MENU_AUREKA.map((m) => "- " + m),
-    "DATA AUREKA (sesuai hak akses pengguna, JSON):",
-    JSON.stringify(data),
+    data ? "DATA AUREKA (sesuai hak akses pengguna, JSON):" : "DATA AUREKA: tidak dimuat karena ini obrolan ringan. Kalau pengguna ternyata menanyakan angka, minta dia mengulang pertanyaannya dengan menyebut data yang dimaksud.",
+    data ? JSON.stringify(data) : "",
   ].join("\n");
 
   const contents = [
