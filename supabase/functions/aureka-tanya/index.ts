@@ -1,5 +1,5 @@
 // Tanya AUREKA — asisten tanya-jawab berbasis data AUREKA (Gemini).
-// Kunci API disimpan sebagai secret Supabase GEMINI_API_KEY, tidak pernah dikirim ke browser.
+// Kunci API disimpan sebagai secret Supabase (GROQ_API_KEY atau GEMINI_API_KEY), tidak pernah dikirim ke browser.
 // Data diambil dengan JWT pengguna sehingga RLS berlaku: AI hanya melihat data yang boleh dilihat pengguna itu.
 // Tidak ada data identitas pasien yang dikirim ke AI (ringkasan IKP hanya berupa hitungan).
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
@@ -103,17 +103,81 @@ async function snapshot(db: SupabaseClient) {
   };
 }
 
+type Turn = { role: string; parts: { text: string }[] };
+type AiResult = { answer: string; model: string } | { status: number; error: string };
+const BUSY = "Layanan AI sedang sibuk. Coba lagi sebentar lagi.";
+const QUOTA = "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi.";
+
+/** Gemini: model utama, lalu model cadangan bila sibuk/kuota habis. */
+async function askGemini(apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
+  const payload = JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.3, maxOutputTokens: 1200 } });
+  let last = 0;
+  for (const model of [...new Set([MODEL, FALLBACK_MODEL])]) {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
+    });
+    last = res.status;
+    if (res.ok) {
+      const out = await res.json();
+      const answer = (out?.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("").trim();
+      return answer ? { answer, model } : { status: 502, error: "AI tidak memberikan jawaban. Coba ulangi dengan kalimat lain." };
+    }
+    console.warn("gemini", model, res.status, (await res.text()).slice(0, 300));
+    if (![404, 429, 500, 503].includes(res.status)) break;
+  }
+  if (last === 401 || last === 403 || last === 400) return { status: 502, error: "Kunci GEMINI_API_KEY ditolak Google. Periksa atau buat ulang kuncinya." };
+  return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
+}
+
+/** Groq (API kompatibel OpenAI): coba beberapa model gratis berurutan. */
+async function askGroq(apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
+  const messages = [
+    { role: "system", content: system },
+    ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map((p) => p.text).join("\n") })),
+  ];
+  const models = [Deno.env.get("GROQ_MODEL"), "llama-3.3-70b-versatile", "openai/gpt-oss-120b", "llama-3.1-8b-instant"].filter(Boolean) as string[];
+  let last = 0;
+  for (const model of [...new Set(models)]) {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model, messages, temperature: 0.3, max_tokens: 1200 }),
+    });
+    last = res.status;
+    if (res.ok) {
+      const out = await res.json();
+      const answer = String(out?.choices?.[0]?.message?.content || "").trim();
+      return answer ? { answer, model } : { status: 502, error: "AI tidak memberikan jawaban. Coba ulangi dengan kalimat lain." };
+    }
+    const text = (await res.text()).slice(0, 300);
+    console.warn("groq", model, res.status, text);
+    if (res.status === 401 || res.status === 403) return { status: 502, error: "Kunci GROQ_API_KEY ditolak Groq. Periksa atau buat ulang kuncinya di console.groq.com/keys." };
+    // Model dihentikan/tidak ada (400/404), kuota per model habis (429) atau server sibuk: coba model berikutnya.
+    if (![400, 404, 413, 429, 500, 502, 503].includes(res.status)) break;
+  }
+  return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
+}
+
 async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
 
   // Toleran bila secret terisi utuh dengan perintah curl/header: ambil kodenya saja.
-  const rawKey = (Deno.env.get("GEMINI_API_KEY") || "").trim();
-  const apiKey = (/x-goog-api-key\s*:\s*([A-Za-z0-9._\-]+)/i.exec(rawKey)?.[1] || /[?&]key=([A-Za-z0-9._\-]+)/.exec(rawKey)?.[1] || rawKey).replace(/^['"]|['"]$/g, "");
-  if (apiKey && !/^[A-Za-z0-9._\-]{20,200}$/.test(apiKey)) return reply(500, { error: "Secret GEMINI_API_KEY tidak valid. Isi hanya dengan kode kunci (tanpa curl, spasi, atau tanda kutip)." });
+  // Penyedia AI: Groq (GROQ_API_KEY) diutamakan bila ada, selain itu Gemini (GEMINI_API_KEY).
+  // Toleran bila secret terisi utuh dengan perintah curl/header: ambil kodenya saja.
+  const cleanKey = (raw: string) => {
+    const v = raw.trim();
+    return (/x-goog-api-key\s*:\s*([A-Za-z0-9._\-]+)/i.exec(v)?.[1] || /authorization\s*:\s*bearer\s+([A-Za-z0-9._\-]+)/i.exec(v)?.[1] || /[?&]key=([A-Za-z0-9._\-]+)/.exec(v)?.[1] || v).replace(/^['"]|['"]$/g, "");
+  };
+  const groqKey = cleanKey(Deno.env.get("GROQ_API_KEY") || "");
+  const geminiKey = cleanKey(Deno.env.get("GEMINI_API_KEY") || "");
+  const provider = groqKey ? "groq" : geminiKey ? "gemini" : "";
+  const apiKey = provider === "groq" ? groqKey : geminiKey;
+  const secretName = provider === "groq" ? "GROQ_API_KEY" : "GEMINI_API_KEY";
+  if (apiKey && !/^[A-Za-z0-9._\-]{20,200}$/.test(apiKey)) return reply(500, { error: `Secret ${secretName} tidak valid. Isi hanya dengan kode kunci (tanpa curl, spasi, atau tanda kutip).` });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!apiKey || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (GEMINI_API_KEY)." });
+  if (!apiKey || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GROQ_API_KEY atau GEMINI_API_KEY)." });
 
   stage = "cek-login";
   const authHeader = req.headers.get("Authorization") || "";
@@ -152,29 +216,10 @@ async function handle(req: Request): Promise<Response> {
     { role: "user", parts: [{ text: question }] },
   ];
 
-  const payload = JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.3, maxOutputTokens: 1200 } });
-  const call = (model: string) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
-  });
-  // Model utama kadang sibuk (503) atau kuotanya habis (429): coba model cadangan sekali.
-  stage = "panggil-gemini";
-  let model = MODEL;
-  let res = await call(model);
-  if ([429, 500, 503].includes(res.status) && FALLBACK_MODEL !== MODEL) {
-    console.warn("gemini", model, res.status, "-> fallback", FALLBACK_MODEL);
-    model = FALLBACK_MODEL;
-    res = await call(model);
-  }
-  if (res.status === 429) return reply(429, { error: "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi." });
-  if (!res.ok) {
-    console.error("gemini", model, res.status, (await res.text()).slice(0, 500));
-    return reply(502, { error: "Layanan AI sedang sibuk. Coba lagi sebentar lagi." });
-  }
-  stage = "baca-jawaban";
-  const out = await res.json();
-  const answer = (out?.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("").trim();
-  if (!answer) return reply(502, { error: "AI tidak memberikan jawaban. Coba ulangi dengan kalimat lain." });
-  return reply(200, { answer, model });
+  stage = "panggil-ai";
+  const result = provider === "groq" ? await askGroq(apiKey, system, contents) : await askGemini(apiKey, system, contents);
+  if ("status" in result) return reply(result.status, { error: result.error });
+  return reply(200, { answer: result.answer, model: result.model });
 }
 
 // Semua error tak terduga tetap dibalas dengan header CORS + alasan singkat,
@@ -184,7 +229,7 @@ Deno.serve(async (req) => {
     return await handle(req);
   } catch (error) {
     // Jangan pernah memantulkan isi header/secret ke browser.
-    const detail = (error instanceof Error ? error.message : String(error)).replace(/Invalid header value[\s\S]*/i, "Invalid header value (isi secret GEMINI_API_KEY tidak valid)");
+    const detail = (error instanceof Error ? error.message : String(error)).replace(/Invalid header value[\s\S]*/i, "Invalid header value (isi secret kunci AI tidak valid)");
     console.error("aureka-tanya", stage, detail);
     return reply(500, { error: "Tanya AUREKA mengalami gangguan di server.", stage, detail: detail.slice(0, 300) });
   }
