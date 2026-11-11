@@ -68,6 +68,9 @@ function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
   const points = values.map((v,i) => `${18 + i* (264/Math.max(1,values.length-1))},${104 - (v/max)*82}`).join(' ')
   return <div className="hlChart"><svg viewBox="0 0 300 126" role="img" aria-label="Tren data bulanan"><line x1="16" y1="105" x2="284" y2="105" stroke="#dfe8e2"/><line x1="16" y1="63" x2="284" y2="63" stroke="#edf2ee"/><polyline points={points} fill="none" stroke="#24744f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>{values.map((v,i)=><circle key={labels[i]} cx={18+i*(264/Math.max(1,values.length-1))} cy={104-(v/max)*82} r="3.5" fill="#24744f"><title>{labels[i]}: {v}</title></circle>)}</svg><div className="hlAxis">{labels.map(label=><span key={label}>{label}</span>)}</div></div>
 }
+// Simpan sementara data per unit 10 menit: membuka ulang Infografis tidak menarik ulang ribuan baris.
+const unitRecordCache=new Map<string,{at:number;rows:RecordRow[]}>()
+
 export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,scopeToRoom=false,selectedRoomId,onRoomChange,onNavigate}:Props) {
   const [tab,setTab] = useState<'welcome'|'infographics'|'achievements'>('welcome')
   const [achievementTab,setAchievementTab] = useState<'overview'|'indicators'|'safety'|'risk'>('overview')
@@ -113,21 +116,35 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
         setCountRows(rows);setRecords([]);setRefreshedAt(new Date());setLoading(false)
         return
       }
-      // Satu unit: baca bertahap dengan keyset (id > terakhir) agar tidak terpotong di ±4.000 baris.
-      const all:RecordRow[]=[]
-      let last:string|null=null
-      for(let page=0;page<60;page++){
-        let q:any=supabase.schema('aureka_quality').from('quality_records')
-          .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at')
-          .eq('profile_year',year).is('archived_at',null).eq('room_id',infoRoomId)
-          .order('id',{ascending:true}).limit(1000)
-        if(last)q=q.gt('id',last)
-        const {data,error:pageError}=await q
+      // Satu unit: dibaca paralel per bulan (keyset id > terakhir di tiap bulan) agar cepat dan tidak terpotong.
+      const cacheKey=infoRoomId+'|'+year
+      const cachedRows=unitRecordCache.get(cacheKey)
+      let all:RecordRow[]
+      if(cachedRows&&Date.now()-cachedRows.at<10*60*1000){all=cachedRows.rows}
+      else{
+        const windows:[string|null,string|null][]=Array.from({length:12},(_,m)=>[`${year}-${String(m+1).padStart(2,'0')}-01`,m===11?`${year+1}-01-01`:`${year}-${String(m+2).padStart(2,'0')}-01`])
+        windows.push([null,null]) // catatan tanpa tanggal / di luar tahun
+        const parts=await Promise.all(windows.map(async([from,to])=>{
+          const rows:RecordRow[]=[]
+          let last:string|null=null
+          for(let page=0;page<40;page++){
+            let q:any=supabase.schema('aureka_quality').from('quality_records')
+              .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at')
+              .eq('profile_year',year).is('archived_at',null).eq('room_id',infoRoomId)
+              .order('id',{ascending:true}).limit(1000)
+            q=from?q.gte('record_date',from).lt('record_date',to):q.or(`record_date.is.null,record_date.lt.${year}-01-01,record_date.gte.${year+1}-01-01`)
+            if(last)q=q.gt('id',last)
+            const {data,error:pageError}=await q
+            if(pageError)throw pageError
+            rows.push(...((data??[]) as RecordRow[]))
+            if(!data||data.length<1000)break
+            last=(data[data.length-1] as RecordRow).id
+          }
+          return rows
+        }))
         if(cancelled)return
-        if(pageError)throw pageError
-        all.push(...((data??[]) as RecordRow[]))
-        if(!data||data.length<1000)break
-        last=(data[data.length-1] as RecordRow).id
+        all=parts.flat()
+        unitRecordCache.set(cacheKey,{at:Date.now(),rows:all})
       }
       setCountRows(null);setRecords(all)
       setRefreshedAt(new Date())

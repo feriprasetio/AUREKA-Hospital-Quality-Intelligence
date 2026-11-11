@@ -8,7 +8,19 @@ export type RoomMonthCount = { room_id: number; month: number | null; measuremen
  * Cadangan bila fungsi belum dipasang: baca bertahap dengan keyset (id > terakhir) — akurat,
  * tidak terpotong seperti paginasi offset yang kehabisan waktu setelah ±4.000 baris.
  */
+const CACHE_MS = 10 * 60 * 1000
+const cache = new Map<string, { at: number; rows: RoomMonthCount[] }>()
+
 export async function fetchRoomMonthCounts(year: number, grain?: string): Promise<RoomMonthCount[]> {
+  const cacheKey = year + '|' + (grain ?? '*')
+  const hit = cache.get(cacheKey)
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.rows
+  const rows = await loadRoomMonthCounts(year, grain)
+  cache.set(cacheKey, { at: Date.now(), rows })
+  return rows
+}
+
+async function loadRoomMonthCounts(year: number, grain?: string): Promise<RoomMonthCount[]> {
   const rpc = await aurekaSupabase.rpc('aureka_quality_room_month_counts', { p_year: year, p_grain: grain ?? null })
   if (!rpc.error && Array.isArray(rpc.data)) {
     return (rpc.data as RoomMonthCount[]).map((r) => ({ ...r, room_id: Number(r.room_id), total: Number(r.total) }))
