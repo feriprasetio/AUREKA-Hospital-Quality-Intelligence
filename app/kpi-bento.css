@@ -211,3 +211,22 @@ html[data-skin="arktik"][data-mode="gelap"]:root { color-scheme: dark; }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .moduleEnter .ovHero .ovHeroCopy :is(h3, p) { -webkit-text-fill-color: currentColor !important; }
 /* Tabel selalu selebar bingkainya (Register Pasien: tabel 1040px di dalam bingkai lebih lebar) */
 html[data-skin="arktik"]:root .workspaceRoot .workspaceTableViewport > table { width: 100% !important; }
+
+/* ---- Jarak dalam kotak: teks/tombol tidak menempel ke tepi kotak ----
+   Lapisan kaca Arktik memberi latar & garis pada beberapa wadah yang aslinya polos tanpa padding. */
+/* Kepala bagian di dalam panel risiko: cukup judul + tombol, tanpa kotak di dalam kotak */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmSectionHead {
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important;
+  padding: 4px 4px 14px !important; margin-bottom: 4px !important; gap: 14px !important;
+  align-items: center !important;
+}
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmSectionHead > :last-child:is(button, .rmButton) { margin-right: 2px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmPanel { padding: 20px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent :is(.rmMatrixWrap, .workspaceActivePanel) { padding: 18px 20px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmFormFooter { padding: 14px 18px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqTable .aqTableFooter { padding: 12px 18px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .aqTable > :is(header, .aqTableHead, .aqTableTitle) { padding-left: 18px !important; padding-right: 18px !important; }
+/* Catatan kaki Tanya AI yang ditanam di Halaman Utama */
+html body .workspaceRoot .tanyaPanelEmbedded .tanyaNote { padding: 6px 16px 12px !important; }
+html body .workspaceRoot .tanyaPanelEmbedded :is(.tanyaHead, .tanyaComposer) { padding-left: 16px !important; padding-right: 16px !important; }

@@ -1165,6 +1165,7 @@ html:where([data-skin="arktik"][data-mode="gelap"]):has(.workspaceRoot),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaMsg.error { color: #d69191; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaFab { background: linear-gradient(135deg, #4993d4, #2f84cc); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaFab:hover { box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02); }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaGhost.danger { color: #d69191; }
 
 /* from theme-arktik-modern.css */
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"]:root { --ak-primary-bg: #4993d4; --ak-control-bg: rgba(255, 255, 255, 0.057); --ak-row-hover: rgba(255, 255, 255, 0.039); --ak-muted: #bccbdb; }
