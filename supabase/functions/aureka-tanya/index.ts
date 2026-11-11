@@ -15,6 +15,7 @@ const FALLBACK_MODEL = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-li
 const LIMIT_PER_WINDOW = 20;           // pertanyaan per pengguna
 const WINDOW_MS = 10 * 60 * 1000;      // per 10 menit (perkiraan; per instance fungsi)
 const hits = new Map<string, number[]>();
+let stage = "mulai";
 
 function reply(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -32,8 +33,10 @@ function rateLimited(userId: string) {
 async function fetchAll<T>(build: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>, cap = 5000) {
   const rows: T[] = [];
   for (let from = 0; from < cap; from += 1000) {
-    const { data, error } = await build(from, from + 999);
-    if (error) return { rows, error: true };
+    let res: { data: T[] | null; error: unknown };
+    try { res = await build(from, from + 999); } catch (e) { console.error("fetchAll", e); return { rows, error: true }; }
+    const { data, error } = res;
+    if (error) { console.error("fetchAll", error); return { rows, error: true }; }
     rows.push(...(data || []));
     if (!data || data.length < 1000) break;
   }
@@ -100,7 +103,7 @@ async function snapshot(db: SupabaseClient) {
   };
 }
 
-Deno.serve(async (req) => {
+async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
 
@@ -109,6 +112,7 @@ Deno.serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!apiKey || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (GEMINI_API_KEY)." });
 
+  stage = "cek-login";
   const authHeader = req.headers.get("Authorization") || "";
   if (!/^Bearer\s+\S+/i.test(authHeader)) return reply(401, { error: "Sesi tidak ditemukan. Silakan masuk kembali." });
   const db = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } }, auth: { autoRefreshToken: false, persistSession: false } });
@@ -126,7 +130,9 @@ Deno.serve(async (req) => {
   const history = Array.isArray(body.history) ? body.history.slice(-6) : [];
   const page = (body.page || "").toString().slice(0, 80);
 
+  stage = "ambil-data";
   const data = await snapshot(db);
+  stage = "susun-prompt";
   const system = [
     "Anda adalah \"Tanya AUREKA\", asisten mutu dan keselamatan pasien di aplikasi AUREKA (Hospital Quality Intelligence) sebuah rumah sakit di Indonesia.",
     "Jawab dalam Bahasa Indonesia yang ringkas, jelas, dan praktis untuk Komite PMKP, PIC unit, dan manajemen.",
@@ -148,6 +154,7 @@ Deno.serve(async (req) => {
     method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
   });
   // Model utama kadang sibuk (503) atau kuotanya habis (429): coba model cadangan sekali.
+  stage = "panggil-gemini";
   let model = MODEL;
   let res = await call(model);
   if ([429, 500, 503].includes(res.status) && FALLBACK_MODEL !== MODEL) {
@@ -160,8 +167,21 @@ Deno.serve(async (req) => {
     console.error("gemini", model, res.status, (await res.text()).slice(0, 500));
     return reply(502, { error: "Layanan AI sedang sibuk. Coba lagi sebentar lagi." });
   }
+  stage = "baca-jawaban";
   const out = await res.json();
   const answer = (out?.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("").trim();
   if (!answer) return reply(502, { error: "AI tidak memberikan jawaban. Coba ulangi dengan kalimat lain." });
   return reply(200, { answer, model });
+}
+
+// Semua error tak terduga tetap dibalas dengan header CORS + alasan singkat,
+// supaya browser tidak hanya melihat "Failed to fetch" dan penyebabnya bisa dilacak.
+Deno.serve(async (req) => {
+  try {
+    return await handle(req);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("aureka-tanya", stage, detail);
+    return reply(500, { error: "Tanya AUREKA mengalami gangguan di server.", stage, detail: detail.slice(0, 300) });
+  }
 });

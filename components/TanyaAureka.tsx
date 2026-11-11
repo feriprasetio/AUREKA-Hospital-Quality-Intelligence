@@ -48,7 +48,7 @@ async function errorText(error: unknown): Promise<string> {
   const e = error as { name?: string; context?: Response; message?: string }
   if (e?.context && typeof e.context.json === 'function') {
     if (e.context.status === 404) return 'Tanya AUREKA belum diaktifkan di server. Super Admin perlu men-deploy fungsi "aureka-tanya".'
-    try { const body = await e.context.json(); if (body?.error) return String(body.error) } catch { /* abaikan */ }
+    try { const body = await e.context.json(); if (body?.error) return String(body.error) + (body.detail ? ' (' + String(body.stage || '') + ': ' + String(body.detail) + ')' : '') } catch { /* abaikan */ }
   }
   if (e?.name === 'FunctionsFetchError') return 'Tanya AUREKA belum dapat dihubungi. Periksa koneksi, atau fungsi server belum diaktifkan.'
   return 'Pertanyaan belum dapat dijawab. Coba lagi sebentar lagi.'
