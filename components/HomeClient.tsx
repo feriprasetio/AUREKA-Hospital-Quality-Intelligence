@@ -184,7 +184,7 @@ export default function HomeClient(){
   else if(active==='clinical')hash='#peningkatan-kinerja-klinis/'+(clinicalPathwayOpen?'clinical-pathway':'audit-klinis-dan-kematian')
   else{
    const routes:Record<string,string>={home:'#beranda',patients:'#pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#program',staff:'#sumber-daya-manusia',settings:'#pengaturan'}
-   hash=routes[active]||'#ringkasan'
+   hash=isPrimaryNavActive('staff')?'#sumber-daya-manusia':routes[active]||'#ringkasan'
    const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='patients'?'register-pasien':active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?analyticsTab:active==='staff'?(analyticsTab==='oppe'?'oppe-fppe':analyticsDirectoryTab):null
    if(section)hash+='/'+section
   }
