@@ -137,11 +137,12 @@ export default function HomeClient(){
    if(auditMatch){setQualityOppeOpen(false);
     const audit=auditMatch[1]
     const tab=auditMatch[2]||'form-logbook'
-    setActive('quality')
-    setQualityInitialContainer(audit==='audit-klinis-dan-kematian'?'Audit Klinis dan Kematian':'Audit Indikator Mutu')
+    const clinicalDomain=audit!=='audit-indikator'
+    setActive(clinicalDomain?'clinical':'quality')
+    setQualityInitialContainer(audit==='audit-klinis-dan-kematian'?'Audit Klinis dan Kematian':audit==='clinical-pathway'?'Audit Clinical Pathway':'Audit Indikator Mutu')
     setClinicalPathwayOpen(audit==='clinical-pathway'&&tab==='form-logbook')
     setQualityOpen(audit!=='clinical-pathway'&&tab==='form-logbook')
-    setQualityResultsView(tab==='hasil-capaian'?(audit==='audit-indikator'?'indicators':audit==='clinical-pathway'?'pathway':'clinical-death'):null)
+    setQualityResultsView(!clinicalDomain&&tab==='hasil-capaian'?'indicators':null)
     return
    }
    if(path.startsWith('peningkatan-kinerja-klinis/')){const section=path.split('/')[1];setActive('clinical');setQualityOppeOpen(false);setQualityResultsView(null);setClinicalPathwayOpen(section!=='audit-klinis-dan-kematian');setQualityInitialContainer('Audit Klinis dan Kematian');setQualityOpen(section==='audit-klinis-dan-kematian');return}
@@ -150,7 +151,9 @@ export default function HomeClient(){
    const [modulePath,section]=path.split('/')
    let next=routes[modulePath]||'home'
    if(next!=='home'&&!AUREKA_PRIMARY_NAV.some(module=>module.id===next&&module.requiredRoles.includes((role||'') as AurekaRole)))next='home'
-   if(next==='staff')next='analytics'
+   if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'?'oppe':'directory');setAnalyticsDirectoryTab(section==='team'?'team':'directory');next='analytics'}
+   if(next==='clinical'){setQualityInitialContainer('Audit Clinical Pathway');setClinicalPathwayOpen(true);setQualityOpen(false)}
+   if(next==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setQualityOpen(true);setClinicalPathwayOpen(false)}
    if(next==='home')setHomeTab(section==='infografis'?'infographics':'welcome')
    if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
    if(next==='risk')setRiskTab((['overview','register','mitigation','connections','fmea'].includes(section)?section:'overview') as RiskWorkspaceTab)
@@ -176,7 +179,7 @@ export default function HomeClient(){
  },[view,role])
  useEffect(()=>{
   if(view!=='workspace'||!routeReady||typeof window==='undefined')return
-  let hash='#halaman-utama'
+  let hash='#beranda'
   if(active==='quality')hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian':'form-logbook')
   else if(active==='clinical')hash='#peningkatan-kinerja-klinis/'+(clinicalPathwayOpen?'clinical-pathway':'audit-klinis-dan-kematian')
   else{
@@ -857,7 +860,7 @@ export default function HomeClient(){
    <div className="workspacePageIntro">
    <nav className="workspaceCrumbs" aria-label="Breadcrumb">
     <button type="button" onClick={()=>openMainModule('home')} aria-label="Beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
-    {active!=='home'&&<><span aria-hidden="true">/</span><span>{active==='settings'?'Administrasi':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
+    {active!=='home'&&<><span aria-hidden="true">/</span><span>{isPrimaryNavActive('staff')?'Sumber Daya Manusia':isPrimaryNavActive('analytics')?'Program':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
     {active!=='home'&&active!=='settings'&&<><span aria-hidden="true">/</span><b>{currentContainer.split(' · ')[0]}</b></>}
     {active==='home'&&<><span aria-hidden="true">/</span><b>Beranda</b></>}
    </nav>
