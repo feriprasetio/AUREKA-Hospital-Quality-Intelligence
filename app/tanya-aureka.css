@@ -74,3 +74,7 @@ body:has(.tanyaFab) .aurToast { bottom: 92px; }
 
 /* Embedded AI chat inside the unified communication hub */
 .tanyaPanelEmbedded{position:relative!important;inset:auto!important;right:auto!important;bottom:auto!important;left:auto!important;top:auto!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;transform:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation:none!important}
+/* Gelembung pertanyaan selalu putih di atas biru, juga saat panel ditanam di dalam workspace (aturan teks modul menimpanya) */
+html body .tanyaPanel .tanyaMsg.user, html body .tanyaPanel .tanyaMsg.user :is(p, span, b, li) { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+html body .tanyaPanel .tanyaMsg.model:not(.error) :is(p, li, h5, b, span) { color: var(--tn-ink) !important; -webkit-text-fill-color: var(--tn-ink) !important; }
+html body .tanyaPanel .tanyaMsg.error p { color: inherit !important; -webkit-text-fill-color: currentColor !important; }
