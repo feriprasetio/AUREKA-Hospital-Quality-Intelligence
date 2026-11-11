@@ -34,13 +34,15 @@ export default function StaffTeamWorkspace({
   rooms,
   isSuperAdmin,
   canManageAllRooms,
+  lockRoomScope = false,
 }: {
   initialRoomId: number | null
   rooms: Room[]
   isSuperAdmin: boolean
   canManageAllRooms: boolean
+  lockRoomScope?: boolean
 }) {
-  const canChooseRoom = isSuperAdmin || canManageAllRooms
+  const canChooseRoom = !lockRoomScope && (isSuperAdmin || canManageAllRooms)
   const canRelease = isSuperAdmin || canManageAllRooms
   const [roomId, setRoomId] = useState<number>(() => Number(initialRoomId || (canChooseRoom ? rooms[0]?.id : 0) || 0))
   const [directory, setDirectory] = useState<DirectoryStaff[]>([])
