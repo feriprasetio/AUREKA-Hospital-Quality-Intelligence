@@ -13,9 +13,12 @@ test('quality audit navigation keeps audit areas in the sidebar and moves views 
   assert.match(home, />Hasil Capaian<\/button>/)
   assert.match(home, /setQualityResultsView\(mode\)/)
   assert.match(home, /if\(moduleId==='quality'\)return qualityOppeOpen\?'oppe-fppe':qualityResultsView==='pathway'\|\|clinicalPathwayOpen\?'audit-pathway'/)
-  const staffNav = home.slice(home.indexOf('staff:['), home.indexOf('}', home.indexOf('staff:[')) + 1)
-  assert.match(staffNav, /oppe-fppe/)
-  assert.doesNotMatch(home.slice(home.indexOf('quality:['), home.indexOf('safety:[', home.indexOf('quality:['))), /oppe-fppe/)
+  const qualityStart = home.indexOf('quality:[')
+  const qualityEnd = home.indexOf('\\n   ],', qualityStart)
+  const staffStart = home.indexOf('staff:[')
+  const staffEnd = home.indexOf('\\n   ],', staffStart)
+  assert.ok(home.slice(staffStart, staffEnd).includes('oppe-fppe'))
+  assert.ok(!home.slice(qualityStart, qualityEnd).includes('oppe-fppe'))
 })
 
 test('every non-validator unit logbook exposes a guarded add-note action', () => {
