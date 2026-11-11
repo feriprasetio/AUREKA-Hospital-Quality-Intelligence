@@ -146,3 +146,9 @@ html[data-skin]:root body .workspaceRoot .workspaceContent table.aqData .aqEmpty
   html[data-skin]:root body .workspaceRoot .workspaceContent .aqRegisterSummary .aqBtn { align-self: flex-start; min-height: 34px !important; padding: 6px 14px !important; font-size: 13px !important; }
   html[data-skin]:root body .workspaceRoot .workspaceContent .aqDataBar > div span { display: inline !important; }
 }
+
+/* iPhone (Safari) kadang memperbesar sendiri teks di kolom tabel yang lebar ("text autosizing").
+   Kunci ukuran teks agar judul kolom seperti "Jumlah Copy Resep…" tidak membesar sendiri. */
+html { -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }
+html body .workspaceRoot :is(table, th, td, th *, td *) { -webkit-text-size-adjust: none !important; text-size-adjust: none !important; }
+html[data-skin]:root body .workspaceRoot .workspaceContent table.aqData thead th { max-width: 260px !important; overflow: hidden !important; text-overflow: ellipsis !important; }
