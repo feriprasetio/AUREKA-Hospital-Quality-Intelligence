@@ -46,6 +46,9 @@ type CultureResponse = {
   profession_group: string; hospital_tenure: string; unit_tenure: string; shift_pattern: string
   primary_role: string; direct_patient_contact: string; answers: Record<string, string>
   answered_item_count: number; submitted_at: string
+  respondent_person_id: string | null; respondent_room_id: number | null
+  submitted_by_user_id: string | null; identity_mode: 'legacy_anonymous' | 'named'
+  respondent_identity_confirmed: boolean; respondent_identity_confirmed_at: string | null
 }
 type IncidentField = { code: string; label: string; type: 'text' | 'date' | 'time' | 'textarea' | 'select' | 'radio'; hint?: string; options?: string[] }
 
@@ -328,6 +331,8 @@ export default function PatientSafetyWorkspace({
 
   const [surveyPeriod, setSurveyPeriod] = useState('2026-Q4')
   const [surveyUnit, setSurveyUnit] = useState('')
+  const [surveyRespondentId, setSurveyRespondentId] = useState('')
+  const [surveyIdentityConfirmed, setSurveyIdentityConfirmed] = useState(false)
   const [surveyProfession, setSurveyProfession] = useState('')
   const [surveyHospitalTenure, setSurveyHospitalTenure] = useState('')
   const [surveyUnitTenure, setSurveyUnitTenure] = useState('')
@@ -339,6 +344,10 @@ export default function PatientSafetyWorkspace({
   const [responsePeriodFilter, setResponsePeriodFilter] = useState('')
   const [responseUnitFilter, setResponseUnitFilter] = useState(scopeUnitName || '')
   const [responseSearch, setResponseSearch] = useState('')
+  const surveyRespondents = useMemo(() => staffOptions.filter(person => person.room_name === surveyUnit).map(person => ({
+    id: person.id,
+    label: [person.display_name, person.employee_code, person.profession_group].filter(Boolean).join(' · '),
+  })), [staffOptions, surveyUnit])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -696,6 +705,8 @@ export default function PatientSafetyWorkspace({
   const setSurveyAnswer = (code: string, value: string) => setSurveyAnswers(current => ({ ...current, [code]: value }))
   const resetSurvey = () => {
     setSurveyAnswers(emptyRecord())
+    setSurveyRespondentId('')
+    setSurveyIdentityConfirmed(false)
     setSurveyProfession('')
     setSurveyHospitalTenure('')
     setSurveyUnitTenure('')
@@ -709,34 +720,47 @@ export default function PatientSafetyWorkspace({
   }
   const submitSurvey = async () => {
     if (saving) return
-    if (!surveyUnit || !surveyProfession) { setError('Pilih unit kerja dan profesi untuk metadata anonim survey.'); return }
+    if (!surveyUnit || !surveyProfession) { setError('Pilih unit kerja dan profesi untuk metadata survei.'); return }
+    const selectedRespondent = surveyRespondents.find(person => person.id === surveyRespondentId)
+    if (!selectedRespondent) { setError('Pilih responden yang terdaftar pada unit kerja tersebut di Direktori Induk SDM.'); return }
+    if (!surveyIdentityConfirmed) { setError('Konfirmasikan bahwa identitas responden telah diverifikasi dengan sepengetahuannya.'); return }
     if (missingSurvey.length) { setError('Survey belum lengkap: masih ada ' + missingSurvey.length + ' item yang belum dijawab. Gunakan TB untuk item yang tidak relevan.'); return }
     setSaving(true); setError(''); setMessage('')
-    const identity = makeResponseIdentity()
-    const payload = {
-      response_id: identity.id,
-      response_code: identity.code,
-      survey_period: surveyPeriod,
-      unit_name: surveyUnit,
-      profession_group: surveyProfession,
-      hospital_tenure: surveyHospitalTenure,
-      unit_tenure: surveyUnitTenure,
-      shift_pattern: surveyShift,
-      primary_role: surveyRole,
-      direct_patient_contact: surveyPatientContact,
-      answers: surveyAnswers,
-      answered_item_count: Object.keys(surveyAnswers).length,
-      submitted_at: new Date().toISOString(),
-    }
     try {
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData.user?.id) throw new Error('Sesi login tidak dapat diverifikasi. Silakan masuk kembali.')
+      const selectedRoom = rooms.find(room => room.name === surveyUnit)
+      if (!selectedRoom) throw new Error('Unit kerja tidak ditemukan pada master unit aktif.')
+      const identity = makeResponseIdentity()
+      const payload = {
+        response_id: identity.id,
+        response_code: identity.code,
+        survey_period: surveyPeriod,
+        unit_name: surveyUnit,
+        respondent_person_id: surveyRespondentId,
+        respondent_room_id: selectedRoom.id,
+        submitted_by_user_id: authData.user.id,
+        identity_mode: 'named' as const,
+        respondent_identity_confirmed: surveyIdentityConfirmed,
+        profession_group: surveyProfession,
+        hospital_tenure: surveyHospitalTenure,
+        unit_tenure: surveyUnitTenure,
+        shift_pattern: surveyShift,
+        primary_role: surveyRole,
+        direct_patient_contact: surveyPatientContact,
+        answers: surveyAnswers,
+        answered_item_count: Object.keys(surveyAnswers).length,
+        submitted_at: new Date().toISOString(),
+      }
       const result = await db.from('culture_responses').insert(payload)
       if (result.error) throw result.error
       setLastResponseCode(identity.code)
       setSurveyAnswers(emptyRecord())
+      setSurveyRespondentId(''); setSurveyIdentityConfirmed(false)
       setSurveyProfession(''); setSurveyHospitalTenure(''); setSurveyUnitTenure('')
       setSurveyShift(''); setSurveyRole(''); setSurveyPatientContact(''); setSurveyUnit(scopeUnitName || '')
       if (isSuperAdmin) await loadData()
-      notify('Respons anonim tersimpan sebagai record baru: ' + identity.code + '. Form siap untuk responden berikutnya.')
+      notify('Respons bernama tersimpan sebagai record baru: ' + identity.code + '. Akun pengirim tercatat terpisah dari identitas responden.')
     } catch (e) {
       setError('Respons tidak tersimpan. Tidak ada data lama yang ditimpa. ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan coba kembali.' }))
     } finally { setSaving(false) }
@@ -745,14 +769,18 @@ export default function PatientSafetyWorkspace({
   const exportResponses = () => {
     if (!isSuperAdmin) { setError('Ekspor rekapan hanya tersedia untuk Superadmin.'); return }
     const summary: unknown[][] = [[
-      'Response ID', 'Response Code', 'Waktu Submit', 'Periode', 'Unit', 'Profesi / Kelompok Jabatan',
+      'Response ID', 'Response Code', 'Waktu Submit', 'Periode', 'Unit', 'Mode Identitas', 'Identitas Responden', 'Kode SDM', 'Akun Pengirim', 'Waktu Konfirmasi Identitas', 'Profesi / Kelompok Jabatan',
       'Lama Bekerja di RS', 'Lama Bekerja di Unit', 'Pola Shift', 'Peran Utama', 'Kontak Langsung dengan Pasien',
       'Jumlah Item Terjawab', 'E1 Safety Rating', 'D1 Burnout'
     ]]
     const details: unknown[][] = [['Response ID', 'Response Code', 'Periode', 'Unit', 'Profesi', 'Kode Item', 'Jawaban']]
     for (const row of responseRows) {
       summary.push([
-        row.response_id, row.response_code, row.submitted_at, row.survey_period, row.unit_name, row.profession_group,
+        row.response_id, row.response_code, row.submitted_at, row.survey_period, row.unit_name,
+        row.identity_mode || 'legacy_anonymous',
+        staffOptions.find(person => person.id === row.respondent_person_id)?.display_name || (row.identity_mode === 'named' ? 'Identitas tidak ditemukan' : 'Legacy anonim'),
+        staffOptions.find(person => person.id === row.respondent_person_id)?.employee_code || '',
+        row.submitted_by_user_id || '', row.respondent_identity_confirmed_at || '', row.profession_group,
         row.hospital_tenure, row.unit_tenure, row.shift_pattern, row.primary_role, row.direct_patient_contact,
         row.answered_item_count, row.answers?.E1 || '', row.answers?.D1 || '',
       ])
@@ -1030,11 +1058,16 @@ export default function PatientSafetyWorkspace({
     </> : null}
 
     {tab === 'survey' ? <SurveyWizard
-      meta={{ period: surveyPeriod, setPeriod: setSurveyPeriod, unit: surveyUnit, setUnit: setSurveyUnit,
+      meta={{ period: surveyPeriod, setPeriod: setSurveyPeriod, unit: surveyUnit, setUnit: (value) => { setSurveyUnit(value); setSurveyRespondentId(''); setSurveyIdentityConfirmed(false) },
         profession: surveyProfession, setProfession: setSurveyProfession, hospitalTenure: surveyHospitalTenure, setHospitalTenure: setSurveyHospitalTenure,
         unitTenure: surveyUnitTenure, setUnitTenure: setSurveyUnitTenure, shift: surveyShift, setShift: setSurveyShift,
         role: surveyRole, setRole: setSurveyRole, patientContact: surveyPatientContact, setPatientContact: setSurveyPatientContact }}
       roomOptions={roomOptions}
+      respondentOptions={surveyRespondents}
+      selectedRespondentId={surveyRespondentId}
+      onRespondentChange={(value) => { setSurveyRespondentId(value); setSurveyIdentityConfirmed(false) }}
+      identityConfirmed={surveyIdentityConfirmed}
+      onIdentityConfirmedChange={setSurveyIdentityConfirmed}
       dimensions={SURVEY_DIMENSIONS}
       whoItems={WHO_ITEMS}
       required={SURVEY_REQUIRED}
@@ -1058,10 +1091,13 @@ export default function PatientSafetyWorkspace({
         </div>
       </LiquidGlass>
       <LiquidGlass className="psPanel">
-        {responseRows.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 4" className="psTableWrap"><table className="psTable"><thead><tr><th>Response ID</th><th>Waktu Submit</th><th>Periode</th><th>Unit</th><th>Profesi</th><th>Shift</th><th>Item</th><th>E1</th><th>D1</th></tr></thead><tbody>
-          {responseRows.map(row => <tr key={row.response_id}><td><span className="psCode">{row.response_code}</span></td><td>{new Date(row.submitted_at).toLocaleString('id-ID')}</td><td>{row.survey_period}</td><td>{row.unit_name}</td><td>{row.profession_group}</td><td>{row.shift_pattern || '—'}</td><td>{row.answered_item_count}</td><td>{row.answers?.E1 || '—'}</td><td>{row.answers?.D1 || '—'}</td></tr>)}
+        {responseRows.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 4" className="psTableWrap"><table className="psTable"><thead><tr><th>Response ID</th><th>Waktu Submit</th><th>Periode</th><th>Unit</th><th>Responden</th><th>Akun Pengirim</th><th>Profesi</th><th>Shift</th><th>Item</th><th>E1</th><th>D1</th></tr></thead><tbody>
+          {responseRows.map(row => {
+            const respondent = staffOptions.find(person => person.id === row.respondent_person_id)
+            return <tr key={row.response_id}><td><span className="psCode">{row.response_code}</span></td><td>{new Date(row.submitted_at).toLocaleString('id-ID')}</td><td>{row.survey_period}</td><td>{row.unit_name}</td><td>{row.identity_mode === 'named' ? (respondent?.display_name || 'Identitas tidak ditemukan') : 'Legacy anonim'}</td><td>{row.submitted_by_user_id || '—'}</td><td>{row.profession_group}</td><td>{row.shift_pattern || '—'}</td><td>{row.answered_item_count}</td><td>{row.answers?.E1 || '—'}</td><td>{row.answers?.D1 || '—'}</td></tr>
+          })}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">Belum ada respons yang cocok dengan filter.</div>}
-        <div className="psAlert" style={{ marginTop: 12 }}>Rekapan Excel berisi dua sheet: ringkasan per respons dan jawaban per item. Tidak ada kolom akun, email, atau user ID responden.</div>
+        <div className="psAlert" style={{ marginTop: 12 }}>Rekapan hanya dapat dibuka role Superadmin sesuai RLS. Respons historis tetap legacy anonim; respons v2 mencatat identitas responden dan akun pengirim secara terpisah.</div>
       </LiquidGlass>
     </> : null}
 
