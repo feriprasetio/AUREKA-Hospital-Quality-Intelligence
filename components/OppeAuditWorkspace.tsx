@@ -1309,6 +1309,7 @@ export default function OppeAuditWorkspace({
           teamStaff={teamStaff}
           initialRoomId={roomFilter ?? form.roomId ?? initialRoom}
           canManage={canManage}
+          lockRoomScope={lockRoomScope}
         />
       )}
 
