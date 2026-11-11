@@ -34,15 +34,15 @@ export default function StaffTeamWorkspace({
   rooms,
   isSuperAdmin,
   canManageAllRooms,
-  lockRoomScope = false,
+  forceRoomScope = false,
 }: {
   initialRoomId: number | null
   rooms: Room[]
   isSuperAdmin: boolean
   canManageAllRooms: boolean
-  lockRoomScope?: boolean
+  forceRoomScope?: boolean
 }) {
-  const canChooseRoom = !lockRoomScope && (isSuperAdmin || canManageAllRooms)
+  const canChooseRoom = isSuperAdmin || canManageAllRooms
   const canRelease = isSuperAdmin || canManageAllRooms
   const [roomId, setRoomId] = useState<number>(() => Number(initialRoomId || (canChooseRoom ? rooms[0]?.id : 0) || 0))
   const [directory, setDirectory] = useState<DirectoryStaff[]>([])
@@ -62,9 +62,10 @@ export default function StaffTeamWorkspace({
   }, [message, error])
 
   useEffect(() => {
-    if (canChooseRoom && !roomId && rooms[0]?.id) setRoomId(Number(rooms[0].id))
+    if (forceRoomScope && initialRoomId != null) setRoomId(Number(initialRoomId))
+    else if (canChooseRoom && !roomId && rooms[0]?.id) setRoomId(Number(rooms[0].id))
     else if (!canChooseRoom && initialRoomId) setRoomId(Number(initialRoomId))
-  }, [canChooseRoom, initialRoomId, roomId, rooms])
+  }, [canChooseRoom, forceRoomScope, initialRoomId, roomId, rooms])
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
@@ -214,12 +215,12 @@ export default function StaffTeamWorkspace({
         {canChooseRoom ? (
           <label className="stField" style={{maxWidth:520,marginTop:14}}>
             <span>Unit / tim yang dikelola</span>
-            <select value={roomId || ''} disabled={loading || busy} onChange={(e) => {setSelectedStaffId('');setMessage('');setError('');setRoomId(e.target.value ? Number(e.target.value) : 0)}}>
+            <select value={roomId || ''} disabled={loading || busy || forceRoomScope} onChange={(e) => {setSelectedStaffId('');setMessage('');setError('');setRoomId(e.target.value ? Number(e.target.value) : 0)}}>
               <option value="">Pilih unit</option>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
             </select>
           </label>
         ) : (
-          <div className="stNotice" style={{marginTop:14}}>{lockRoomScope ? 'Tim dan roster difokuskan pada unit workspace yang dipilih:' : 'Tim yang ditampilkan terikat pada unit akun Anda:'} <strong>{roomName}</strong>. Nama yang sudah terkunci pada unit lain tidak dapat diambil ulang.</div>
+          <div className="stNotice" style={{marginTop:14}}>Tim yang ditampilkan terikat pada unit akun Anda: <strong>{roomName}</strong>. Nama yang sudah terkunci pada unit lain tidak dapat diambil ulang.</div>
         )}
         <div className="stKpis">
           <div className="stKpi"><span>Anggota tim terkunci</span><strong>{assignments.length.toLocaleString('id-ID')}</strong></div>
