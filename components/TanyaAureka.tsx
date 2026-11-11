@@ -128,6 +128,14 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
   useEffect(() => {
     if (!open) return
     setTimeout(() => inputRef.current?.focus(), 50)
+    // Pemanasan: server menyiapkan ringkasan data selagi pengguna mengetik (paling sering 1x per 4 menit per tab).
+    try {
+      const lastWarm = Number(sessionStorage.getItem('aureka-tanya-warm') || 0)
+      if (Date.now() - lastWarm > 4 * 60 * 1000) {
+        sessionStorage.setItem('aureka-tanya-warm', String(Date.now()))
+        void sb.functions.invoke('aureka-tanya', { body: { warmup: true } }).catch(() => undefined)
+      }
+    } catch { /* abaikan */ }
     if (embedded) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     window.addEventListener('keydown', onKey)

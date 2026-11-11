@@ -6,6 +6,7 @@ import type { NavigateFn } from '@/lib/aureka/focus'
 import dynamic from 'next/dynamic'
 import OverviewDashboard from '@/components/OverviewDashboard'
 import TanyaAureka from '@/components/TanyaAureka'
+import { fetchRoomMonthCounts, type RoomMonthCount } from '@/lib/aureka/quality-counts'
 const QualityResultsWorkspace=dynamic(()=>import('@/components/QualityResultsWorkspace'),{ssr:false})
 const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorkspace'),{ssr:false})
 const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false})
@@ -74,6 +75,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const [loading,setLoading] = useState(false)
   const [error,setError] = useState('')
   const [refreshedAt,setRefreshedAt] = useState<Date|null>(null)
+  const [countRows,setCountRows] = useState<RoomMonthCount[]|null>(null)
   // PMKP/manajemen tetap dapat memilih Semua Unit di Infografis; Super Admin mengikuti unit global.
   const [infoRoom,setInfoRoom] = useState<string>(manager?'':String(roomId??''))
   const infoRoomId = infoRoom?Number(infoRoom):null
@@ -88,27 +90,30 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     setLoading(true);setError('')
     const year=new Date().getFullYear()
     ;(async()=>{
-      const base=()=>supabase.schema('aureka_quality').from('quality_records')
-        .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at',{count:'exact'})
-        .eq('profile_year',year).is('archived_at',null)
-      const scoped=()=>infoRoomId?base().eq('room_id',infoRoomId):base()
-      const pageSize=1000
-      const first=await scoped().order('record_date',{ascending:true,nullsFirst:false}).range(0,pageSize-1)
-      if(cancelled)return
-      if(first.error)throw first.error
-      const all=[...((first.data??[]) as RecordRow[])]
-      const total=first.count??all.length
-      if(total>pageSize){
-        const pages=await Promise.all(Array.from({length:Math.ceil(total/pageSize)-1},(_,index)=>{
-          const from=(index+1)*pageSize
-          return scoped().order('record_date',{ascending:true,nullsFirst:false}).range(from,Math.min(total-1,from+pageSize-1))
-        }))
-        const failed=pages.find(page=>page.error)
-        if(failed)throw failed.error
-        pages.forEach(page=>all.push(...((page.data??[]) as RecordRow[])))
+      // Semua unit: cukup jumlah per unit/bulan yang dihitung database (tanpa menarik puluhan ribu baris).
+      if(!infoRoomId){
+        const rows=await fetchRoomMonthCounts(year)
+        if(cancelled)return
+        setCountRows(rows);setRecords([]);setRefreshedAt(new Date());setLoading(false)
+        return
       }
-      if(cancelled)return
-      setRecords(all)
+      // Satu unit: baca bertahap dengan keyset (id > terakhir) agar tidak terpotong di ±4.000 baris.
+      const all:RecordRow[]=[]
+      let last:string|null=null
+      for(let page=0;page<60;page++){
+        let q:any=supabase.schema('aureka_quality').from('quality_records')
+          .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at')
+          .eq('profile_year',year).is('archived_at',null).eq('room_id',infoRoomId)
+          .order('id',{ascending:true}).limit(1000)
+        if(last)q=q.gt('id',last)
+        const {data,error:pageError}=await q
+        if(cancelled)return
+        if(pageError)throw pageError
+        all.push(...((data??[]) as RecordRow[]))
+        if(!data||data.length<1000)break
+        last=(data[data.length-1] as RecordRow).id
+      }
+      setCountRows(null);setRecords(all)
       setRefreshedAt(new Date())
       setLoading(false)
     })().catch(()=>{if(!cancelled){setError('Infografis belum dapat dimuat. Coba kembali.');setLoading(false)}})
@@ -158,6 +163,11 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     const byCode=new Map<string,{code:string;diagnosis:string;count:number}>()
     const los:number[]=[]
     let active=0
+    if(countRows){
+      for(const r of countRows){if(r.month==null)continue;const m=months[r.month-1];if(!m)continue;m.activity+=r.total;if(r.measurement_grain==='patient_episode')m.count+=r.total}
+      const episodes=countRows.filter(r=>r.measurement_grain==='patient_episode').reduce((a,b)=>a+b.total,0)
+      return {months,episodeRows:episodes,active:null as number|null,averageLos:null as number|null,topDiagnoses:[] as {code:string;diagnosis:string;count:number}[],activity:countRows.reduce((a,b)=>a+b.total,0),losCount:0,aggregateOnly:true}
+    }
     for(const row of records){const key=(row.record_date||row.created_at||'').slice(0,7);const m=months.find(item=>item.key===key);if(m)m.activity++}
     for(const row of episodeRows){
       const key=(row.record_date||row.created_at||'').slice(0,7);const m=months.find(item=>item.key===key);if(m)m.count++
@@ -171,8 +181,8 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       const discharged=valueText(core.discharge_at)||valueText(fields['Tanggal Keluar'])
       if(hasDischargeField&&!discharged&&row.status!=='archived')active++
     }
-    return {months,episodeRows:episodeRows.length,active,averageLos:los.length?los.reduce((a,b)=>a+b,0)/los.length:null,topDiagnoses:Array.from(byCode.values()).sort((a,b)=>b.count-a.count).slice(0,6),activity:records.length,losCount:los.length}
-  },[records])
+    return {months,episodeRows:episodeRows.length,active,averageLos:los.length?los.reduce((a,b)=>a+b,0)/los.length:null,topDiagnoses:Array.from(byCode.values()).sort((a,b)=>b.count-a.count).slice(0,6),activity:records.length,losCount:los.length,aggregateOnly:false}
+  },[records,countRows])
   const tabButton=(id:typeof tab,label:string)=><button type="button" role="tab" aria-selected={tab===id} className={tab===id?'hlTab active':'hlTab'} onClick={()=>setTab(id)}>{label}</button>
   return <section className="homeLanding">
     <style>{`
@@ -187,8 +197,8 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       {error&&<div className="hlNotice">{error}</div>}
       <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas input data bulanan</h3><span>{infoRoomName||'Unit'} · {new Date().getFullYear()}</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:<LineChart values={metrics.months.map(m=>m.activity)} labels={metrics.months.map(m=>m.label)}/>}</section>
       <section className="hlPanel"><header className="hlPanelHead"><h3>Episode pasien per bulan</h3><span>Berbasis Register Pasien</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:metrics.episodeRows?<LineChart values={metrics.months.map(m=>m.count)} labels={metrics.months.map(m=>m.label)}/>:<div className="hlEmpty">Belum ada episode pasien pada pilihan unit ini. Aktivitas input unit tetap ditampilkan pada grafik di atas.</div>}</section>
-      <div className="hlGrid"><section className="hlPanel"><header className="hlPanelHead"><h3>Indikator episode pasien</h3></header><div className="hlMetric"><span>Rawat inap tanpa tanggal keluar*</span><strong>{metrics.active.toLocaleString('id-ID')}</strong><small>*Hanya episode dengan field tanggal keluar; bukan sensus bed aktif.</small></div><div className="hlMetric" style={{marginTop:8}}><span>Rata-rata Length of Stay</span><strong>{metrics.averageLos===null?'—':metrics.averageLos.toLocaleString('id-ID',{maximumFractionDigits:1})+' hari'}</strong><small>{metrics.losCount} episode dengan data LOS</small></div></section>
-      <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak (kode ICD-10 bila tersedia)</h3></header>{metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code+item.diagnosis}><span title={item.diagnosis}>{item.code==='Belum berkode'?item.diagnosis:item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
+      <div className="hlGrid"><section className="hlPanel"><header className="hlPanelHead"><h3>Indikator episode pasien</h3></header><div className="hlMetric"><span>Rawat inap tanpa tanggal keluar*</span><strong>{metrics.active===null?'—':metrics.active.toLocaleString('id-ID')}</strong><small>*Hanya episode dengan field tanggal keluar; bukan sensus bed aktif.</small></div><div className="hlMetric" style={{marginTop:8}}><span>Rata-rata Length of Stay</span><strong>{metrics.averageLos===null?'—':metrics.averageLos.toLocaleString('id-ID',{maximumFractionDigits:1})+' hari'}</strong><small>{metrics.losCount} episode dengan data LOS</small></div></section>
+      <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak (kode ICD-10 bila tersedia)</h3></header>{metrics.aggregateOnly?<div className="hlEmpty">Pilih satu unit di atas untuk melihat diagnosis terbanyak, lama rawat, dan pasien yang masih dirawat.</div>:metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code+item.diagnosis}><span title={item.diagnosis}>{item.code==='Belum berkode'?item.diagnosis:item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
       <p className="hlDate">Data mengikuti pilihan unit dan tahun berjalan. Episode terbuka tidak boleh ditafsirkan sebagai jumlah bed terisi tanpa integrasi sensus tempat tidur.</p>
     </>}
     {tab==='achievements'&&<>
