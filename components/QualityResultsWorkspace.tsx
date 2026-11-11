@@ -30,6 +30,7 @@ type Props = {
   rooms: Room[]
   canViewAllRooms: boolean
   onRoomChange?: (roomId: number | null) => void
+  lockRoomScope?: boolean
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
 type PathwayDataset = ClinicalPathwayRow[]
@@ -213,7 +214,7 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
   return { rows, capped: true }
 }
 
-export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange }: Props) {
+export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false }: Props) {
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
     const incoming = normalizeRoom(initialRoomId)
@@ -576,7 +577,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       className="qraHero"
       title={modeTitle(mode)}
       actions={<div className="qraActions">
-        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms} onChange={(event) => { const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
+        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms || lockRoomScope} onChange={(event) => { const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
           {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
         <label className="qraField"><span>Tahun</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>
