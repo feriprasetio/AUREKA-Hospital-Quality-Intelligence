@@ -14,7 +14,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path to 'pg_catalog', 'aureka_quality', 'aureka_system', 'auth', 'public'
-as $function$
+as $
 declare
   v_user_id uuid := auth.uid();
   v_role text := aureka_system.current_role_code();
@@ -245,7 +245,7 @@ begin
     'skipped_existing_count', v_skipped
   );
 end;
-$function$;
+$;
 
 revoke all on function aureka_quality.import_it_logbook_batch(jsonb) from public, anon;
 grant execute on function aureka_quality.import_it_logbook_batch(jsonb) to authenticated;
