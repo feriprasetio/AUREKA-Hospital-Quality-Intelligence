@@ -21,7 +21,7 @@ const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorks
 const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Manajemen Risiko')})
 const QualityHub=dynamic(()=>import('@/components/QualityHub'),{ssr:false,loading:()=>workspaceChunkLoading('Menu Mutu Klinis')})
 const GeneralSettings=dynamic(()=>import('@/components/GeneralSettings'),{ssr:false,loading:()=>workspaceChunkLoading('Administrasi')})
-const HomeLandingWorkspace=dynamic(()=>import('@/components/HomeLandingWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Beranda')}
+const HomeLandingWorkspace=dynamic(()=>import('@/components/HomeLandingWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Beranda')})
 const PatientRegistryWorkspace=dynamic(()=>import('@/components/PatientRegistryWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Register Pasien')})
 const MetadataStatisticsWorkspace=dynamic(()=>import('@/components/MetadataStatisticsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Metadata')})
 const OppeAuditWorkspace=dynamic(()=>import('@/components/OppeAuditWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('OPPE / FPPE')})
