@@ -98,12 +98,14 @@ export default function PatientRegistryWorkspace({
   isAdmin,
   isValidator,
   canViewAllRooms,
+  lockRoomScope = false,
 }: {
   rooms: Room[]
   initialRoomId: number | null
   isAdmin: boolean
   isValidator: boolean
   canViewAllRooms: boolean
+  lockRoomScope?: boolean
 }) {
   const [tab, setTab] = useState<'add' | 'records'>('add')
   const [roomFilter, setRoomFilter] = useState(String(initialRoomId ?? rooms[0]?.id ?? ''))
@@ -192,7 +194,7 @@ export default function PatientRegistryWorkspace({
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
       <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button></nav>
-      {tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+roomFilter} initialRoomId={Number(roomFilter)||null} rooms={rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
+      {tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+roomFilter} initialRoomId={Number(roomFilter)||null} rooms={rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <div>
           <h2>Register Pasien</h2>
