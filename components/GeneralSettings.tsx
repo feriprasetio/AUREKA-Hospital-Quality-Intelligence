@@ -52,6 +52,7 @@ export default function GeneralSettings({
   onNavigate,
   onRoomsChanged,
   openProfile,
+  initialTab,
 }: {
   profile: Profile | null
   role: string | null
@@ -60,10 +61,19 @@ export default function GeneralSettings({
   onRoomsChanged?: () => void
   /** Dibuka dari kartu nama di sidebar: langsung ke Akun Saya → Profil. */
   openProfile?: boolean
+  /** Dibuka dari tombol "Ubah password": langsung ke Keamanan & Password. */
+  initialTab?: 'security'
 }) {
   const [section, setSection] = useState<'general' | 'users' | 'mydata' | 'appearance'>('general')
   void openProfile
-  const [tab, setTab] = useState<'profile' | 'units' | 'security'>('profile')
+  const [tab, setTab] = useState<'profile' | 'units' | 'security'>(initialTab === 'security' ? 'security' : 'profile')
+  const [pwShow, setPwShow] = useState(false)
+  const [resetBusy, setResetBusy] = useState(false)
+  useEffect(() => {
+    if (initialTab !== 'security') return
+    const t = window.setTimeout(() => document.getElementById('aureka-password-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+    return () => window.clearTimeout(t)
+  }, [initialTab])
   const [me, setMe] = useState<Profile | null>(profile)
   const [users, setUsers] = useState<Profile[]>([])
   const [roles, setRoles] = useState<Role[]>([])
@@ -423,6 +433,29 @@ export default function GeneralSettings({
     return isNaN(d.getTime()) ? '—' : d.toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
+  const pwStrength = (v: string) => {
+    if (!v) return 0
+    let n = 0
+    if (v.length >= 6) n++
+    if (v.length >= 10) n++
+    if (/[a-z]/.test(v) && /[A-Z]/.test(v)) n++
+    if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) n++
+    return Math.max(1, n)
+  }
+  const sendResetLink = async () => {
+    setPwMsg(null)
+    const { data: authUser } = await sb.auth.getUser()
+    const email = authUser.user?.email || me?.email || profile?.email
+    if (!email) return setPwMsg({ ok: false, text: 'Email akun tidak ditemukan. Hubungi Super Admin untuk reset password.' })
+    setResetBusy(true)
+    const redirectTo = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : undefined
+    const { error } = await sb.auth.resetPasswordForEmail(email, redirectTo ? { redirectTo } : undefined)
+    setResetBusy(false)
+    if (error) return setPwMsg({ ok: false, text: `Link reset belum terkirim: ${toUserFacingError(error, { fallback: 'Coba lagi beberapa saat.' })}` })
+    const masked = email.replace(/^(.{2}).*(@.*)$/, '$1•••$2')
+    setPwMsg({ ok: true, text: `Link untuk membuat password baru sudah dikirim ke ${masked}. Cek kotak masuk/spam.` })
+  }
+
   const changePassword = async () => {
     setPwMsg(null)
     if (pw.next.length < 6) return setPwMsg({ ok: false, text: 'Password baru minimal 6 karakter.' })
@@ -679,16 +712,24 @@ export default function GeneralSettings({
 
           {tab === 'security' && (
             <LiquidGlass style={{ padding: 18 }}>
-              <h4 style={{ margin: '0 0 12px' }}>Ganti Password</h4>
-              <div className="pwForm">
-                <label className="field"><span>Password saat ini</span><input type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
-                <label className="field"><span>Password baru (min. 6 karakter)</span><input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
-                <label className="field"><span>Ulangi password baru</span><input type="password" autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
+              <div id="aureka-password-form" className="pwHead">
+                <span className="pwHeadIcon" aria-hidden="true"><SettingsIcon kind="lock" /></span>
+                <div><h4>Ubah Password Saya</h4><p>Ganti password akun Anda sendiri kapan saja. Berlaku untuk login berikutnya.</p></div>
               </div>
+              <div className="pwForm">
+                <label className="field"><span>Password saat ini</span><input type={pwShow ? 'text' : 'password'} autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
+                <label className="field"><span>Password baru (min. 6 karakter)</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
+                <label className="field"><span>Ulangi password baru</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
+              </div>
+              {pw.next && (() => { const lv = pwStrength(pw.next); const label = ['', 'Lemah', 'Cukup', 'Baik', 'Kuat'][lv]; return (
+                <div className={'pwMeter lv' + lv} aria-live="polite"><span className="pwMeterBar"><i style={{ width: lv * 25 + '%' }} /></span><small>Kekuatan: {label}{pw.confirm && pw.confirm !== pw.next ? ' · konfirmasi belum sama' : pw.confirm ? ' · konfirmasi cocok ✓' : ''}</small></div>
+              ) })()}
+              <label className="pwShowToggle"><input type="checkbox" checked={pwShow} onChange={(e) => setPwShow(e.target.checked)} /> Tampilkan password</label>
               {pwMsg && <p className={pwMsg.ok ? 'pwMsg ok' : 'pwMsg'} role={pwMsg.ok ? 'status' : 'alert'} aria-live={pwMsg.ok ? 'polite' : 'assertive'}>{pwMsg.text}</p>}
               <div style={{ marginTop: 10, marginBottom: 18 }}>
                 <LiquidGlassButton onClick={changePassword} disabled={busy || !pw.current || !pw.next || !pw.confirm}>{busy ? 'Memproses…' : 'Simpan password baru'}</LiquidGlassButton>
               </div>
+              <p className="pwForgot">Lupa password saat ini? <button type="button" className="uBtn outline sm" disabled={resetBusy} onClick={sendResetLink}>{resetBusy ? 'Mengirim…' : 'Kirim link reset ke email saya'}</button></p>
               <h4 style={{ margin: '0 0 12px' }}>Keamanan & Session</h4>
               <div style={{ display: 'grid', gap: 9 }}>
                 {[

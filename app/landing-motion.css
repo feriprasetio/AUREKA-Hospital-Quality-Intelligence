@@ -1,0 +1,198 @@
+/*
+ * Halaman sebelum login (beranda publik + halaman masuk): perbaikan tampilan + animasi.
+ * Animasi hanya translate/scale/opacity/rotate (ringan, dijalankan GPU) dan mati otomatis
+ * bila perangkat memilih "kurangi gerakan".
+ */
+
+/* ================= Perbaikan tampilan (selalu aktif) ================= */
+/* Kartu domain: teks & ikon tidak lagi menempel ke tepi kartu */
+html body .a2-landing .a2-domain-card { padding: 24px 24px 26px !important; }
+html body .a2-landing .a2-domain-card .a2-domain-icon { margin-bottom: 14px; }
+/* Judul tidak dipenggal "kehati-\nhatian" dan barisnya seimbang */
+html body .a2-landing :is(h1, h2, h3) { hyphens: manual !important; -webkit-hyphens: manual !important; text-wrap: balance; overflow-wrap: normal; }
+html body .a2-landing .a2-hero h1 { display: grid; gap: 0; }
+html body .a2-landing .a2-hero h1 > .a2-line:first-child span { color: inherit !important; }
+/* Pencarian modul selebar toolbar */
+html body .a2-landing .a2-module-search { flex: 1 1 auto; }
+/* Foto di panel kiri halaman masuk menutup penuh sampai tepi (tadinya ada celah di kanan) */
+html body .authPage.authProfessional .authAside { --ap: 42px; padding: var(--ap) !important; }
+html body .authPage.authProfessional .authAside .authArchitecture {
+  align-self: stretch; max-width: none !important;
+  width: calc(100% + 2 * var(--ap)) !important;
+  margin: 24px calc(-1 * var(--ap)) calc(-1 * var(--ap)) !important;
+}
+@media (max-width: 1100px) { html body .authPage.authProfessional .authAside { --ap: 32px; } }
+
+/* Lapisan cahaya latar (aurora) – hanya gradasi, tanpa filter blur yang berat */
+.a2-aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.a2-aurora i { position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%; opacity: .55; }
+.a2-aurora i:nth-child(1) { left: -12vmax; top: -14vmax; background: radial-gradient(closest-side, rgba(120, 190, 255, .55), transparent); }
+.a2-aurora i:nth-child(2) { right: -14vmax; top: 18vh; background: radial-gradient(closest-side, rgba(150, 232, 226, .5), transparent); }
+.a2-aurora i:nth-child(3) { left: 22vw; bottom: -22vmax; background: radial-gradient(closest-side, rgba(176, 186, 255, .45), transparent); }
+html body .a2-landing > .a2-container, html body .a2-landing > .a2-footer { position: relative; z-index: 1; }
+html[data-mode="gelap"] .a2-aurora i { opacity: .22; }
+
+/* Header saat halaman digulir: lebih ringkas dengan bayangan lembut */
+html body .a2-landing .a2-header { transition: box-shadow .35s ease, background-color .35s ease; }
+html body .a2-landing.a2-scrolled .a2-header { box-shadow: 0 10px 30px rgba(11, 36, 64, .08) !important; }
+html body .a2-landing .a2-header-inner { transition: min-height .35s cubic-bezier(.22, 1, .36, 1); }
+html body .a2-landing.a2-scrolled .a2-header-inner { min-height: 56px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes a2Rise { from { translate: 0 108%; } to { translate: 0 0; } }
+  @keyframes a2FadeUp { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes a2FadeDown { from { opacity: 0; translate: 0 -14px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes a2Pop { from { opacity: 0; scale: .9; } to { opacity: 1; scale: 1; } }
+  @keyframes a2ShowIn { from { opacity: 0; translate: 0 40px; scale: .94; rotate: x 10deg; } to { opacity: 1; translate: 0 0; scale: 1; rotate: x 0deg; } }
+  @keyframes a2SlideL { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
+  @keyframes a2SlideR { from { opacity: 0; translate: 40px 0; } to { opacity: 1; translate: 0 0; } }
+  @keyframes a2Float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+  @keyframes a2Drift1 { 0%, 100% { translate: 0 0; } 50% { translate: 8vw 6vh; } }
+  @keyframes a2Drift2 { 0%, 100% { translate: 0 0; } 50% { translate: -7vw 8vh; } }
+  @keyframes a2Drift3 { 0%, 100% { translate: 0 0; } 50% { translate: 5vw -7vh; } }
+  @keyframes a2Pulse { 0% { box-shadow: 0 0 0 0 rgba(43, 122, 196, .45); } 70%, 100% { box-shadow: 0 0 0 10px rgba(43, 122, 196, 0); } }
+  @keyframes a2Sheen { from { translate: -130% 0; } to { translate: 230% 0; } }
+  @keyframes a2Ken { from { scale: 1.02; } to { scale: 1.12; } }
+  @keyframes a2Wiggle { 0%, 100% { rotate: 0deg; } 20% { rotate: -12deg; } 40% { rotate: 10deg; } 60% { rotate: -6deg; } 80% { rotate: 3deg; } }
+  @keyframes a2Grow { from { scale: 0 1; } to { scale: 1 1; } }
+
+  /* Aurora bergerak sangat pelan */
+  .a2-aurora i:nth-child(1) { animation: a2Drift1 22s ease-in-out infinite; }
+  .a2-aurora i:nth-child(2) { animation: a2Drift2 26s ease-in-out infinite; }
+  .a2-aurora i:nth-child(3) { animation: a2Drift3 30s ease-in-out infinite; }
+
+  /* ---------- Hero: masuk bertahap ---------- */
+  html body .a2-landing .a2-header { animation: a2FadeDown .6s cubic-bezier(.22, 1, .36, 1) both; }
+  html body .a2-landing .a2-institution-chip { animation: a2FadeUp .6s cubic-bezier(.22, 1, .36, 1) .1s both; }
+  html body .a2-landing .a2-chip-dot { animation: a2Pulse 2.4s ease-out 1s infinite; }
+  html body .a2-landing .a2-hero h1 .a2-line { display: block; overflow: hidden; padding-bottom: .06em; margin-bottom: -.06em; }
+  html body .a2-landing .a2-hero h1 .a2-line > span { display: inline-block; animation: a2Rise .9s cubic-bezier(.22, 1, .36, 1) both; }
+  html body .a2-landing .a2-hero h1 .a2-line:nth-child(1) > span { animation-delay: .18s; }
+  html body .a2-landing .a2-hero h1 .a2-line:nth-child(2) > span { animation-delay: .3s; }
+  html body .a2-landing .a2-hero h1 .a2-line:nth-child(3) > span { animation-delay: .42s; }
+  html body .a2-landing .a2-hero-description { animation: a2FadeUp .7s cubic-bezier(.22, 1, .36, 1) .55s both; }
+  html body .a2-landing .a2-hero-links { animation: a2FadeUp .7s cubic-bezier(.22, 1, .36, 1) .68s both; }
+  html body .a2-landing .a2-hero-principles > span { animation: a2Pop .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+  html body .a2-landing .a2-hero-principles > span:nth-child(1) { animation-delay: .8s; }
+  html body .a2-landing .a2-hero-principles > span:nth-child(2) { animation-delay: .88s; }
+  html body .a2-landing .a2-hero-principles > span:nth-child(3) { animation-delay: .96s; }
+  html body .a2-landing .a2-hero-expansion { animation: a2FadeUp .7s ease 1.05s both; }
+
+  /* Pratinjau produk: muncul 3D, lalu miring mengikuti kursor */
+  html body .a2-landing .a2-product-showcase { perspective: 1400px; }
+  html body .a2-landing .a2-product-showcase > :first-child {
+    animation: a2ShowIn 1.1s cubic-bezier(.22, 1, .36, 1) .35s both;
+    transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transform-style: preserve-3d;
+    transition: transform .5s cubic-bezier(.22, 1, .36, 1), box-shadow .5s ease;
+  }
+  html body .a2-landing .a2-product-showcase:hover > :first-child { box-shadow: 0 40px 80px rgba(11, 36, 64, .16); }
+  html body .a2-landing .a2-product-note { animation: a2FadeUp .7s cubic-bezier(.22, 1, .36, 1) 1.1s both, a2Float 5s ease-in-out 1.9s infinite; }
+
+  /* ---------- Muncul saat di-scroll (dipasang lewat JS; tanpa JS semuanya tampil biasa) ---------- */
+  html body .a2-landing.a2-motion .a2-reveal {
+    opacity: 0; translate: 0 34px; scale: .985;
+    transition: opacity .8s cubic-bezier(.22, 1, .36, 1), translate .8s cubic-bezier(.22, 1, .36, 1), scale .8s cubic-bezier(.22, 1, .36, 1);
+    transition-delay: calc(var(--a2-i, 0) * 90ms);
+  }
+  html body .a2-landing.a2-motion .a2-reveal.is-in { opacity: 1; translate: 0 0; scale: 1; }
+  html body .a2-landing.a2-motion .a2-capa-step .a2-step-connector { transform-origin: left center; scale: 0 1; transition: scale .9s cubic-bezier(.22, 1, .36, 1) .35s; }
+  html body .a2-landing.a2-motion .a2-capa-step.is-in .a2-step-connector { scale: 1 1; }
+  html body .a2-landing.a2-motion .a2-capa-step .a2-step-number { scale: .6; transition: scale .6s cubic-bezier(.34, 1.56, .64, 1) .2s; }
+  html body .a2-landing.a2-motion .a2-capa-step.is-in .a2-step-number { scale: 1; }
+
+  /* ---------- Kartu: terangkat, ikon hidup ---------- */
+  html body .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card) {
+    transition: opacity .8s cubic-bezier(.22, 1, .36, 1), translate .45s cubic-bezier(.22, 1, .36, 1), scale .8s cubic-bezier(.22, 1, .36, 1), box-shadow .45s ease, border-color .45s ease !important;
+  }
+  html body .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card):hover {
+    translate: 0 -6px !important; transition-delay: 0s !important;
+    box-shadow: 0 24px 50px rgba(11, 36, 64, .12), 0 0 0 1px rgba(43, 122, 196, .18) !important;
+  }
+  html body .a2-landing :is(.a2-domain-icon, .a2-module-icon, .a2-workflow-icon) { transition: scale .4s cubic-bezier(.34, 1.56, .64, 1), rotate .4s cubic-bezier(.34, 1.56, .64, 1); }
+  html body .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card):hover :is(.a2-domain-icon, .a2-module-icon, .a2-workflow-icon) { scale: 1.12; rotate: -6deg; }
+  html body .a2-landing .a2-module-tags li { transition: translate .3s ease, background-color .3s ease; }
+  html body .a2-landing .a2-module-card:hover .a2-module-tags li { translate: 0 -2px; }
+
+  /* ---------- Tombol & tautan ---------- */
+  html body :is(.a2-landing, .authPage) :is(.a2-button-primary, .authForm button[type="submit"]) { position: relative; overflow: hidden; isolation: isolate; transition: translate .25s cubic-bezier(.22, 1, .36, 1), box-shadow .25s ease, scale .12s ease; }
+  html body :is(.a2-landing, .authPage) :is(.a2-button-primary, .authForm button[type="submit"])::after {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 45%; z-index: 1; pointer-events: none;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .32), transparent); translate: -130% 0;
+  }
+  html body :is(.a2-landing, .authPage) :is(.a2-button-primary, .authForm button[type="submit"]):hover { translate: 0 -2px; box-shadow: 0 14px 28px rgba(11, 70, 122, .28); }
+  html body :is(.a2-landing, .authPage) :is(.a2-button-primary, .authForm button[type="submit"]):hover::after { animation: a2Sheen .9s cubic-bezier(.22, 1, .36, 1); }
+  html body :is(.a2-landing, .authPage) :is(.a2-button-primary, .authForm button[type="submit"]):active { scale: .97; }
+  html body .a2-landing :is(.a2-button, .a2-hero-links a) svg { transition: translate .3s cubic-bezier(.22, 1, .36, 1); }
+  html body .a2-landing :is(.a2-button, .a2-hero-links a):hover svg { translate: 4px 0; }
+  html body .a2-landing .a2-desktop-nav a { position: relative; }
+  html body .a2-landing .a2-desktop-nav a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; border-radius: 2px;
+    background: currentColor; opacity: .7; scale: 0 1; transition: scale .3s cubic-bezier(.22, 1, .36, 1);
+  }
+  html body .a2-landing .a2-desktop-nav a:hover::after { scale: 1 1; }
+  html body .a2-landing .a2-mobile-nav { animation: a2FadeDown .3s cubic-bezier(.22, 1, .36, 1) both; }
+  html body .a2-landing .a2-mobile-nav a { animation: a2FadeUp .35s cubic-bezier(.22, 1, .36, 1) both; }
+  html body .a2-landing .a2-mobile-nav a:nth-child(2) { animation-delay: .04s; }
+  html body .a2-landing .a2-mobile-nav a:nth-child(3) { animation-delay: .08s; }
+  html body .a2-landing .a2-mobile-nav a:nth-child(4) { animation-delay: .12s; }
+
+  /* ================= Halaman masuk ================= */
+  html body .authPage .authTopbar { animation: a2FadeDown .6s cubic-bezier(.22, 1, .36, 1) both; }
+  html body .authPage .authAside { animation: a2SlideL .85s cubic-bezier(.22, 1, .36, 1) .1s both; }
+  html[data-skin="arktik"] body .authPage .authCard { animation: a2SlideR .85s cubic-bezier(.22, 1, .36, 1) .18s both !important; }
+  html body .authPage .authAside :is(h1, h2) { animation: a2FadeUp .8s cubic-bezier(.22, 1, .36, 1) .4s both; }
+  html body .authPage .authArchitecture img { animation: a2Ken 18s ease-in-out .3s infinite alternate both; }
+  html body .authPage .authArchitecture figcaption { animation: a2FadeUp .9s cubic-bezier(.22, 1, .36, 1) .7s both; }
+  html body .authPage .authAccessMark { animation: a2Pop .5s cubic-bezier(.34, 1.56, .64, 1) .45s both; }
+  html body .authPage .authAccessMark svg { animation: a2Wiggle .8s ease-in-out 1.1s 1 both; transform-origin: 50% 30%; }
+  html body .authPage .authForm > * { animation: a2FadeUp .6s cubic-bezier(.22, 1, .36, 1) both; }
+  html body .authPage .authForm > :nth-child(1) { animation-delay: .5s; }
+  html body .authPage .authForm > :nth-child(2) { animation-delay: .57s; }
+  html body .authPage .authForm > :nth-child(3) { animation-delay: .64s; }
+  html body .authPage .authForm > :nth-child(4) { animation-delay: .71s; }
+  html body .authPage .authForm > :nth-child(n+5) { animation-delay: .78s; }
+  html body .authPage .authSecureDot { animation: a2Pulse 2.4s ease-out 1s infinite; border-radius: 50%; }
+  html body .authPage :is(input, select) { transition: border-color .25s ease, box-shadow .3s cubic-bezier(.22, 1, .36, 1), background-color .25s ease; }
+  html body .authPage :is(input, select):focus { box-shadow: 0 0 0 4px rgba(43, 122, 196, .16) !important; }
+  html body .authPage .authBack svg, html body .authPage .authBack { transition: translate .3s cubic-bezier(.22, 1, .36, 1); }
+  html body .authPage .authBack:hover { translate: -3px 0; }
+  html body .authPage .authAlert { animation: a2Pop .4s cubic-bezier(.34, 1.56, .64, 1) both; }
+}
+
+/* HP: aurora diam & lebih kecil, tanpa efek miring */
+@media (max-width: 760px), (pointer: coarse) {
+  .a2-aurora i { animation: none !important; opacity: .4; }
+  html body .a2-landing .a2-product-showcase > :first-child { transform: none !important; }
+}
+
+/* ================= Ubah password mandiri (pengaturan + tombol di Welcome) ================= */
+.pwHead { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; scroll-margin-top: 140px; }
+.pwHead h4 { margin: 0 0 4px; }
+.pwHead p { margin: 0; font-size: 13px; opacity: .75; line-height: 1.5; }
+.pwHeadIcon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 12px; background: rgba(43, 122, 196, .12); color: #1d5f9e; }
+.pwHeadIcon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pwMeter { display: grid; gap: 6px; margin: 10px 0 4px; }
+.pwMeterBar { display: block; height: 6px; border-radius: 6px; background: rgba(120, 140, 160, .2); overflow: hidden; }
+.pwMeterBar i { display: block; height: 100%; border-radius: inherit; background: #d9534f; transition: width .4s cubic-bezier(.22, 1, .36, 1), background-color .3s ease; }
+.pwMeter.lv2 .pwMeterBar i { background: #e0a030; }
+.pwMeter.lv3 .pwMeterBar i { background: #3b8fd6; }
+.pwMeter.lv4 .pwMeterBar i { background: #2e9b6a; }
+.pwMeter small { font-size: 12px; opacity: .8; }
+.pwShowToggle { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; cursor: pointer; }
+.pwShowToggle input { width: 16px; height: 16px; }
+.pwForgot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: -6px 0 20px; font-size: 13px; opacity: .9; }
+html body .workspaceRoot .hlWelcomeCard { position: relative; }
+.hlPwBtn {
+  position: absolute; top: 16px; right: 16px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px;
+  border: 1px solid rgba(43, 122, 196, .28); background: rgba(255, 255, 255, .7); color: #1d5f9e;
+  font: 650 12.5px/1 inherit; cursor: pointer; transition: translate .25s cubic-bezier(.22, 1, .36, 1), background-color .25s ease, box-shadow .25s ease;
+}
+.hlPwBtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.hlPwBtn:hover { translate: 0 -2px; box-shadow: 0 8px 18px rgba(11, 70, 122, .15); background: #fff; }
+html[data-mode="gelap"] .hlPwBtn { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .18); color: #cfe2f7; }
+html[data-mode="gelap"] .pwHeadIcon { background: rgba(120, 170, 255, .16); color: #cfe2f7; }
+@media (max-width: 560px) {
+  .hlPwBtn { position: static; margin: 0 0 12px; }
+}
