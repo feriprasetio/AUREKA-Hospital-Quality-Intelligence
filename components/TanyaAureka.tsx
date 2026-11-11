@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 
 type Reminder = { units: string[]; message: string; selected?: string[]; status?: 'draft' | 'sending' | 'sent' | 'cancelled'; result?: string }
 type Msg = { role: 'user' | 'model'; text: string; error?: boolean; reminder?: Reminder }
@@ -118,9 +119,9 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     window.dispatchEvent(new CustomEvent('aureka-tanya-sync', { detail: { from: instanceId.current, msgs } }))
   }, [msgs])
 
-  const clearChat = () => {
+  const clearChat = async () => {
     if (!msgs.length) return
-    if (!window.confirm('Hapus seluruh riwayat chat Tanya AUREKA di perangkat ini?')) return
+    if (!(await aurekaConfirm('Hapus seluruh riwayat chat Tanya AUREKA di perangkat ini?', { danger: true }))) return
     setMsgs([])
   }
   const saveChat = () => {

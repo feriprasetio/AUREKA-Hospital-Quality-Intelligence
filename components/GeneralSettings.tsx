@@ -7,6 +7,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import AurekaModal from '@/components/ui/AurekaModal'
 
 function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' | 'palette' }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -673,9 +674,9 @@ export default function GeneralSettings({
 
               {isAdmin && !roomsSupported && <div className="userRowNote error" style={{ marginTop: 12 }}>Fitur tambah/edit unit belum tersedia.</div>}
 
+              <AurekaModal open={Boolean(roomEdit)} size="md" title={roomEdit?.id ? 'Edit unit' : 'Unit baru'} subtitle="Unit dipakai untuk hak akses, logbook, dan laporan." closeDisabled={busy} onClose={() => setRoomEdit(null)}>
               {roomEdit && (
-                <div className="roomEditor">
-                  <b>{roomEdit.id ? 'Edit unit' : 'Unit baru'}</b>
+                <div className="roomEditor akModalEditor">
                   <div className="roomEditorGrid">
                     <label className="field"><span>Nama unit</span><input autoFocus value={roomEdit.name} onChange={(e) => setRoomEdit({ ...roomEdit, name: e.target.value })} placeholder="mis. Kamar Jenazah" /></label>
                     <label className="field"><span>Kode (opsional)</span><input value={roomEdit.code} onChange={(e) => setRoomEdit({ ...roomEdit, code: e.target.value.toUpperCase() })} placeholder="Otomatis dari nama" /></label>
@@ -686,6 +687,7 @@ export default function GeneralSettings({
                   </div>
                 </div>
               )}
+              </AurekaModal>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
                 <input className="adminLocalSearch" type="search" name="aureka-admin-room-filter" autoComplete="off" autoCorrect="off" spellCheck={false} data-lpignore="true" data-1p-ignore="true" data-form-type="other" aria-label="Cari unit kerja" placeholder="Cari unit…" value={roomSearch} onChange={(e) => setRoomSearch(e.target.value)} style={{ maxWidth: 320, flex: '1 1 200px' }} />
