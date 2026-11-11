@@ -75,6 +75,7 @@ test('legacy responses remain readable as legacy while new response export carri
   const workspace = read('components/PatientSafetyWorkspace.tsx')
   assert.match(workspace, /row\.identity_mode \|\| 'legacy_anonymous'/)
   assert.match(workspace, /'Legacy anonim'/)
+  assert.match(workspace, /row\.identity_mode === 'named' \? \(respondent\?\.display_name \|\| 'Identitas tidak ditemukan'\) : 'Legacy anonim'/)
   assert.match(workspace, /'Akun Pengirim'/)
   assert.match(workspace, /'Waktu Konfirmasi Identitas'/)
   assert.match(workspace, /\.select\('\*'\)/)
