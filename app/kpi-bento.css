@@ -209,3 +209,5 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot :is(input, texta
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot :is(select option, select optgroup, datalist option) { background: #111a2e !important; color: #e6eef8 !important; -webkit-text-fill-color: #e6eef8 !important; }
 html[data-skin="arktik"][data-mode="gelap"]:root { color-scheme: dark; }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .moduleEnter .ovHero .ovHeroCopy :is(h3, p) { -webkit-text-fill-color: currentColor !important; }
+/* Tabel selalu selebar bingkainya (Register Pasien: tabel 1040px di dalam bingkai lebih lebar) */
+html[data-skin="arktik"]:root .workspaceRoot .workspaceTableViewport > table { width: 100% !important; }
