@@ -137,7 +137,7 @@ export default function ItExcelImportDialog({
     reset()
     onClose()
   }
-  const importDialogRef = useAccessibleDialog<HTMLElement>({ open, onClose: close, lockScroll: true })
+  const importDialogRef = useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
 
   const parseWorkbook = async (selectedFile: File) => {
     setFile(selectedFile)
