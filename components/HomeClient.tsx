@@ -19,7 +19,7 @@ const QualityResultsWorkspace=dynamic(()=>import('@/components/QualityResultsWor
 const ClinicalPathwayWorkspace=dynamic(()=>import('@/components/ClinicalPathwayWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Clinical Pathway')})
 const PatientSafetyWorkspace=dynamic(()=>import('@/components/PatientSafetyWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Keselamatan Pasien')})
 const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Manajemen Risiko')})
-const GeneralSettings=dynamic(()=>import('@/components/GeneralSettings'),{ssr:false,loading:()=>workspaceChunkLoading('Administrasi')})
+const GeneralSettings=dynamic(()=>import('@/components/GeneralSettings'),{ssr:false,loading:()=>workspaceChunkLoading('Pengaturan')})
 const HomeLandingWorkspace=dynamic(()=>import('@/components/HomeLandingWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Beranda')})
 const PatientRegistryWorkspace=dynamic(()=>import('@/components/PatientRegistryWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Register Pasien')})
 const MetadataStatisticsWorkspace=dynamic(()=>import('@/components/MetadataStatisticsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Program & Indikator')})
@@ -270,7 +270,7 @@ export default function HomeClient(){
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Laporan IKP',investigation:'Investigasi / RCA',survey:'Survei Budaya Keselamatan',responses:'Rekapan Survei'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register',mitigation:'RTP Terintegrasi',connections:'Konektor Risiko',fmea:'FMEA / HFMEA'} as Record<RiskWorkspaceTab,string>)[riskTab]
   if(active==='analytics')return analyticsTab==='oppe'?'OPPE / FPPE':({programs:'Program Kerja Tahunan',profiles:'Profil Indikator',directory:'Direktori Tenaga Kerja'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'>,string>)[analyticsTab]
-  if(active==='settings')return 'Administrasi & Konfigurasi'
+  if(active==='settings')return 'Pengaturan'
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
