@@ -58,6 +58,24 @@ function formatDate(value: string) {
 }
 const first = (...values: unknown[]) => { for (const v of values) { const t = text(v); if (t) return t } return '' }
 
+type PageRow = {
+  id: string; room_id: number; unit: string | null; record_date: string | null; status: string; nama_pasien: string | null
+  no_rm: string | null; no_rm_norm: string | null; masuk: string | null; keluar: string | null; diagnosis: string | null
+  dpjp: string | null; los: string | null; rawat_inap: boolean; total_count: number
+}
+function episodeFromPageRow(r: PageRow): Episode {
+  const discharge = text(r.keluar)
+  const los = text(r.los)
+  return {
+    id: r.id, roomId: Number(r.room_id), unit: text(r.unit) || 'Unit tidak diketahui',
+    name: text(r.nama_pasien), mrn: text(r.no_rm_norm) || text(r.no_rm).replace(/^'+/, ''),
+    admission: formatDate(text(r.masuk)), discharge: formatDate(discharge),
+    diagnosis: text(r.diagnosis), dpjp: text(r.dpjp),
+    los: r.rawat_inap && discharge && /^\d+(\.\d+)?$/.test(los) ? los : '',
+    status: r.status, updatedAt: '', inpatient: Boolean(r.rawat_inap),
+  }
+}
+
 function episodeFromRow(row: EpisodeRow, roomNames: Map<number, string>): Episode {
   const core = row.core_data ?? {}
   const fields = (core.form_fields ?? core.form_data ?? {}) as Record<string, unknown>
@@ -153,33 +171,34 @@ export default function PatientRegistryWorkspace({
     setLoading(true)
     setError('')
     try {
-      // Hitung pasti hanya bila dibatasi unit/pencarian; untuk Semua unit total diambil dari hitungan database (lebih cepat).
-      const exact = Boolean(effectiveRoom || query)
+      // Utama: fungsi database (cek akses sekali, kolom ringkas, cari No. RM ternormalisasi) — cepat untuk unit besar seperti IGD.
+      if (!effectiveRoom && (!canViewAllRooms || lockRoomScope)) throw new Error('Unit kerja belum tersedia untuk akun ini. Hubungi administrator untuk pemetaan unit.')
+      const rpc = await aurekaSupabase.rpc('aureka_patient_episodes_page', {
+        p_room: effectiveRoom ? Number(effectiveRoom) : null, p_year: Number(year), p_query: query || null, p_limit: PAGE_SIZE, p_offset: page * PAGE_SIZE,
+      })
+      if (!rpc.error) {
+        const list = (rpc.data ?? []) as PageRow[]
+        setRows(list.map(episodeFromPageRow))
+        setTotal(list.length ? Number(list[0].total_count) : 0)
+        return
+      }
+      const missing = rpc.error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(rpc.error.message || '')
+      if (!missing) throw rpc.error
+      // Cadangan sebelum fungsi dipasang: tanpa hitung total & tanpa pencarian (keduanya kehabisan waktu di unit besar).
+      if (query) throw new Error('Pencarian di seluruh data membutuhkan fungsi database Rekapan Pasien. Minta Super Admin menjalankan migrasi 20261111150000_patient_episodes_page.sql.')
       let request: any = db.from('quality_records')
-        .select('id,room_id,record_date,profile_year,status,core_data,created_at,updated_at', exact ? { count: 'exact' } : undefined)
+        .select('id,room_id,record_date,profile_year,status,core_data,created_at,updated_at')
         .eq('measurement_grain', 'patient_episode')
         .neq('status', 'archived')
         .eq('profile_year', Number(year))
         .order('record_date', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
-      // Cari di seluruh data (bukan hanya halaman aktif): No. RM (dengan/tanpa strip) atau nama pasien.
-      const safe = query.replace(/[,()*%\\]/g, ' ').trim()
-      if (safe) {
-        const digits = safe.replace(/[^0-9]/g, '')
-        // 36539 / 036539 -> 03-65-39 (format No. RM RSUD; Excel sering menghapus nol depan)
-        const dashed = digits.length >= 3 && digits.length <= 6 ? digits.padStart(6, '0').replace(/^(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3') : ''
-        const ors = [`core_data->>medical_record_no.ilike.*${safe}*`, `core_data->>patient_name.ilike.*${safe}*`]
-        if (digits && digits !== safe) ors.push(`core_data->>medical_record_no.ilike.*${digits}*`)
-        if (dashed) ors.push(`core_data->>medical_record_no.ilike.*${dashed}*`)
-        request = request.or(ors.join(','))
-      }
       if (effectiveRoom) request = request.eq('room_id', Number(effectiveRoom))
-      else if (!canViewAllRooms || lockRoomScope) throw new Error('Unit kerja belum tersedia untuk akun ini. Hubungi administrator untuk pemetaan unit.')
       const from = page * PAGE_SIZE
-      const { data, count, error: queryError } = await request.range(from, from + PAGE_SIZE - 1)
+      const { data, error: queryError } = await request.range(from, from + PAGE_SIZE - 1)
       if (queryError) throw queryError
       setRows(((data ?? []) as EpisodeRow[]).map((row) => episodeFromRow(row, roomNames)))
-      setTotal(exact ? (count ?? 0) : -1)
+      setTotal(-1)
     } catch (cause) {
       setRows([])
       setTotal(0)
@@ -191,7 +210,7 @@ export default function PatientRegistryWorkspace({
 
   // Jumlah episode per unit (untuk pilihan unit & unit bawaan formulir Tambah Pasien).
   useEffect(() => {
-    if (!canViewAllRooms || lockRoomScope) return
+    if (!canViewAllRooms && !lockRoomScope) return
     let cancelled = false
     ;(async () => {
       const counts = new Map<number, number>()
@@ -214,7 +233,7 @@ export default function PatientRegistryWorkspace({
 
   const filtered = rows
 
-  const allTotal = [...roomCounts.values()].reduce((a, b) => a + b, 0)
+  const allTotal = effectiveRoom ? (roomCounts.get(Number(effectiveRoom)) ?? 0) : [...roomCounts.values()].reduce((a, b) => a + b, 0)
   const shownTotal = total >= 0 ? total : allTotal
   const pageCount = Math.max(1, Math.ceil(shownTotal / PAGE_SIZE))
   const firstRow = rows.length ? page * PAGE_SIZE + 1 : 0
