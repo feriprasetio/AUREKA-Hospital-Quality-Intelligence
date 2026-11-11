@@ -39,13 +39,13 @@ html body .a2-landing .a2-header-inner { transition: min-height .35s cubic-bezie
 html body .a2-landing.a2-scrolled .a2-header-inner { min-height: 56px; }
 
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes a2Rise { from { translate: 0 108%; } to { translate: 0 0; } }
-  @keyframes a2FadeUp { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
-  @keyframes a2FadeDown { from { opacity: 0; translate: 0 -14px; } to { opacity: 1; translate: 0 0; } }
-  @keyframes a2Pop { from { opacity: 0; scale: .9; } to { opacity: 1; scale: 1; } }
-  @keyframes a2ShowIn { from { opacity: 0; translate: 0 40px; scale: .94; rotate: x 10deg; } to { opacity: 1; translate: 0 0; scale: 1; rotate: x 0deg; } }
-  @keyframes a2SlideL { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
-  @keyframes a2SlideR { from { opacity: 0; translate: 40px 0; } to { opacity: 1; translate: 0 0; } }
+  @keyframes a2Rise { from { translate: 0 108%; } to { translate: none; } }
+  @keyframes a2FadeUp { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: none; } }
+  @keyframes a2FadeDown { from { opacity: 0; translate: 0 -14px; } to { opacity: 1; translate: none; } }
+  @keyframes a2Pop { from { opacity: 0; scale: .9; } to { opacity: 1; scale: none; } }
+  @keyframes a2ShowIn { from { opacity: 0; translate: 0 40px; scale: .94; rotate: x 10deg; } to { opacity: 1; translate: none; scale: none; rotate: none; } }
+  @keyframes a2SlideL { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: none; } }
+  @keyframes a2SlideR { from { opacity: 0; translate: 40px 0; } to { opacity: 1; translate: none; } }
   @keyframes a2Float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
   @keyframes a2Drift1 { 0%, 100% { translate: 0 0; } 50% { translate: 8vw 6vh; } }
   @keyframes a2Drift2 { 0%, 100% { translate: 0 0; } 50% { translate: -7vw 8vh; } }
@@ -54,7 +54,7 @@ html body .a2-landing.a2-scrolled .a2-header-inner { min-height: 56px; }
   @keyframes a2Sheen { from { translate: -130% 0; } to { translate: 230% 0; } }
   @keyframes a2Ken { from { scale: 1.02; } to { scale: 1.12; } }
   @keyframes a2Wiggle { 0%, 100% { rotate: 0deg; } 20% { rotate: -12deg; } 40% { rotate: 10deg; } 60% { rotate: -6deg; } 80% { rotate: 3deg; } }
-  @keyframes a2Grow { from { scale: 0 1; } to { scale: 1 1; } }
+  @keyframes a2Grow { from { scale: 0 1; } to { scale: none; } }
 
   /* Aurora bergerak sangat pelan */
   .a2-aurora i:nth-child(1) { animation: a2Drift1 22s ease-in-out infinite; }

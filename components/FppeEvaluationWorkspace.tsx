@@ -6,6 +6,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 
 type Room = { id: number; name: string }
 type Staff = {
@@ -460,7 +461,7 @@ export default function FppeEvaluationWorkspace({
 
   const validateEvaluation = async () => {
     if (!activeEvaluation?.id || activeEvaluation.status !== 'submitted' || busy) return
-    if (!window.confirm('Validasi FPPE ini? Pastikan Anda bukan pembuat FPPE dan telah menelaah bukti/keputusan.')) return
+    if (!(await aurekaConfirm('Validasi FPPE ini? Pastikan Anda bukan pembuat FPPE dan telah menelaah bukti/keputusan.'))) return
     setBusy(true); setError(''); setNotice('')
     try {
       const { data: auth, error: authError } = await sb.auth.getUser()
@@ -488,7 +489,7 @@ export default function FppeEvaluationWorkspace({
       setError('Catatan pengembalian wajib minimal 10 karakter agar alasan revisi dapat ditelusuri.')
       return
     }
-    if (!window.confirm('Kembalikan FPPE untuk revisi? Formulir akan dibuka kembali untuk pengeditan.')) return
+    if (!(await aurekaConfirm('Kembalikan FPPE untuk revisi? Formulir akan dibuka kembali untuk pengeditan.'))) return
     setBusy(true); setError(''); setNotice('')
     try {
       const { data: auth, error: authError } = await sb.auth.getUser()

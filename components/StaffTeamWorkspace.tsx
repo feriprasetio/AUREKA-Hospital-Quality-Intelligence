@@ -4,6 +4,7 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
 
@@ -152,7 +153,7 @@ export default function StaffTeamWorkspace({
   const releaseStaff = async (assignment: Assignment, staff?: DirectoryStaff) => {
     if (busy || !canRelease) return
     const name = staff?.display_name || assignment.staff_id
-    if (!window.confirm(`Lepaskan ${name} dari tim ${roomName}? Tenaga ini baru dapat dipetakan ke tim lain setelah pelepasan tercatat.`)) return
+    if (!(await aurekaConfirm(`Lepaskan ${name} dari tim ${roomName}? Tenaga ini baru dapat dipetakan ke tim lain setelah pelepasan tercatat.`))) return
     setBusy(true); setError(''); setMessage('')
     try {
       const { data: authData, error: authError } = await aurekaSupabase.auth.getUser()

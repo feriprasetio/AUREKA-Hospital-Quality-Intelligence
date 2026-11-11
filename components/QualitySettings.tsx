@@ -6,6 +6,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
+import AurekaModal from '@/components/ui/AurekaModal'
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -128,7 +129,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   useEffect(() => {
     if (!editorOpen) return
     const frame = window.requestAnimationFrame(() => {
-      editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      void editorRef.current
     })
     return () => window.cancelAnimationFrame(frame)
   }, [editorOpen])
@@ -478,15 +479,21 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
               <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
-            {(edit || newOne) && (
-              <div ref={editorRef} style={{ scrollMarginTop: 18 }}>
+            <AurekaModal
+              open={Boolean(edit || newOne)}
+              title={edit ? 'Edit indikator' : 'Tambah indikator'}
+              subtitle={edit ? 'Perubahan diterbitkan sebagai versi baru; versi lama tetap tersimpan.' : 'Isi profil indikator mutu baru untuk unit dan tahun terpilih.'}
+              closeDisabled={saving}
+              onClose={() => { setEdit(null); setNewOne(null) }}
+            >
+              <div ref={editorRef} className="akModalEditor">
                 {edit
                   ? editor(edit, setEdit, () => void publish())
                   : newOne
                     ? editor(newOne, setNewOne, () => void add())
                     : null}
               </div>
-            )}
+            </AurekaModal>
             <div style={{ display: 'grid', gap: 7 }}>
               {filteredProfiles.map((profile) => (
                 <div key={profile.id} style={{ padding: 11, border: needsMetadataReview(profile) ? '1px solid rgba(184,52,52,.48)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>

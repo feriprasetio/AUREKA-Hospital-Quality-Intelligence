@@ -25,6 +25,7 @@ import './motion.css'
 import './mobile-nav.css'
 import './perf.css'
 import './landing-motion.css'
+import './modal.css'
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',

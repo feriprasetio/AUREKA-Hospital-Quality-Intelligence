@@ -6,13 +6,13 @@
  * - Dimuat paling akhir; prefiks html[data-skin="arktik"] mengalahkan "animation: none" lama.
  */
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes akFadeUp { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes akFadeUp { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: none; } }
   @keyframes akFade { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes akPop { from { opacity: 0; translate: 0 6px; scale: .97; } to { opacity: 1; translate: 0 0; scale: 1; } }
-  @keyframes akScaleIn { from { opacity: 0; translate: 0 14px; scale: .96; } to { opacity: 1; translate: 0 0; scale: 1; } }
-  @keyframes akDropIn { from { opacity: 0; translate: 0 -8px; scale: .97; } to { opacity: 1; translate: 0 0; scale: 1; } }
-  @keyframes akSlideLeft { from { opacity: 0; translate: 16px 0; } to { opacity: 1; translate: 0 0; } }
-  @keyframes akGrowX { from { scale: 0 1; } to { scale: 1 1; } }
+  @keyframes akPop { from { opacity: 0; translate: 0 6px; scale: .97; } to { opacity: 1; translate: none; scale: none; } }
+  @keyframes akScaleIn { from { opacity: 0; translate: 0 14px; scale: .96; } to { opacity: 1; translate: none; scale: none; } }
+  @keyframes akDropIn { from { opacity: 0; translate: 0 -8px; scale: .97; } to { opacity: 1; translate: none; scale: none; } }
+  @keyframes akSlideLeft { from { opacity: 0; translate: 16px 0; } to { opacity: 1; translate: none; } }
+  @keyframes akGrowX { from { scale: 0 1; } to { scale: none; } }
   @keyframes akDraw { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
   @keyframes akShimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
 
@@ -109,7 +109,7 @@
 /* ===== Tambahan animasi (tetap ringan: hanya opacity/translate/scale, dijalankan GPU) ===== */
 @media (prefers-reduced-motion: no-preference) {
   @keyframes akBounce { 0% { scale: 1; } 40% { scale: 1.18; } 70% { scale: .96; } 100% { scale: 1; } }
-  @keyframes akReveal { from { opacity: 0; translate: 0 24px; scale: .985; } to { opacity: 1; translate: 0 0; scale: 1; } }
+  @keyframes akReveal { from { opacity: 0; translate: 0 24px; scale: .985; } to { opacity: 1; translate: none; scale: none; } }
   @keyframes akBadge { 0%, 100% { scale: 1; } 50% { scale: 1.2; } }
   @keyframes akSheen { from { translate: -120% 0; } to { translate: 220% 0; } }
 

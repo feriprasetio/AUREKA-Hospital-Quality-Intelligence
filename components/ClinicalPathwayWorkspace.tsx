@@ -8,6 +8,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import ClinicalPathwayTextMiningPanel from '@/components/ClinicalPathwayTextMiningPanel'
 import type { ClinicalTextMiningItem, ClinicalTextMiningSuggestion } from '@/lib/clinical-pathway/text-mining'
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 
 type Policy = 'required' | 'conditional' | 'not_scheduled'
 type CellStatus = 'done' | 'not_done' | 'not_applicable' | ''
@@ -361,7 +362,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   async function importClinicalPathwaySourcePack(file: File | null) {
     if (!isAdmin || importingMaster || templates.length > 0) return
     if (!file) { setMessage('Pilih file JSON paket Clinical Pathway terlebih dahulu.'); setMessageKind('error'); return }
-    if (!window.confirm('Impor 8 format Clinical Pathway dari file yang dipilih?')) return
+    if (!(await aurekaConfirm('Impor 8 format Clinical Pathway dari file yang dipilih?'))) return
     setImportingMaster(true)
     setMessage('')
     try {
@@ -729,10 +730,10 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     if (nextDay && builder.days.some((day) => day !== oldDay && day.toLocaleLowerCase('id-ID') === nextDay.toLocaleLowerCase('id-ID'))) return
     patchBuilder({ days: builder.days.map((day) => day === oldDay ? nextDay : day), items: builder.items.map((item) => ({ ...item, schedule: item.schedule.map((cell) => cell.day === oldDay ? { ...cell, day: nextDay } : cell) })) })
   }
-  function removeBuilderDay(day: string) {
+  async function removeBuilderDay(day: string) {
     if (!builder) return
     if (builder.days.length <= 1) { setMessage('Clinical Pathway harus memiliki sekurang-kurangnya satu hari atau tahap.'); setMessageKind('error'); return }
-    if (!window.confirm('Hapus kolom ' + (day || 'hari/tahap ini') + ' beserta seluruh jadwalnya dari master CP?')) return
+    if (!(await aurekaConfirm('Hapus kolom ' + (day || 'hari/tahap ini') + ' beserta seluruh jadwalnya dari master CP?', { danger: true }))) return
     patchBuilder({ days: builder.days.filter((item) => item !== day), items: builder.items.map((item) => ({ ...item, schedule: item.schedule.filter((cell) => cell.day !== day) })) })
   }
   function addBuilderCriterion() {
@@ -779,9 +780,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     }] })
   }
 
-  function removeBuilderItem(id: string) {
+  async function removeBuilderItem(id: string) {
     if (!builder) return
-    if (!window.confirm('Hapus item ini dari format master CP baru? Audit yang sudah tersimpan tetap menggunakan versi lamanya.')) return
+    if (!(await aurekaConfirm('Hapus item ini dari format master CP baru? Audit yang sudah tersimpan tetap menggunakan versi lamanya.', { danger: true }))) return
     patchBuilder({ items: builder.items.filter((it) => it.id !== id) })
   }
 
