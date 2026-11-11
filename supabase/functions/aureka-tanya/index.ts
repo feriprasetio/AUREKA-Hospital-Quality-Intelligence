@@ -1,4 +1,4 @@
-// Tanya AUREKA — asisten tanya-jawab berbasis data AUREKA (Gemini).
+// Tanya AUREKA — asisten tanya-jawab berbasis data AUREKA (Gemini dan/atau Groq).
 // Kunci API disimpan sebagai secret Supabase (GROQ_API_KEY atau GEMINI_API_KEY), tidak pernah dikirim ke browser.
 // Data diambil dengan JWT pengguna sehingga RLS berlaku: AI hanya melihat data yang boleh dilihat pengguna itu.
 // Tidak ada data identitas pasien yang dikirim ke AI (ringkasan IKP hanya berupa hitungan).
@@ -52,53 +52,128 @@ const top = (o: Record<string, number>, n: number) => Object.fromEntries(Object.
 
 type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; status: string | null; due_date: string | null };
 type Plan = { status: string | null; target_date: string | null };
-type Incident = { incident_date: string | null; unit_name: string | null; incident_type: string | null; status: string | null };
+type Incident = Record<string, unknown>;
+type QRow = { room_id: number | null; record_date: string | null; period_start: string | null; measurement_grain: string | null };
+type Room = { id: number; name: string; is_active: boolean | null };
+
+const LEVELS = ["Sangat Tinggi", "Tinggi", "Sedang", "Rendah"];
+const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+const ROMAWI = ["I", "II", "III", "IV"];
+
+// Menu AUREKA yang benar-benar ada — AI hanya boleh merujuk menu ini.
+const MENU_AUREKA = [
+  "Halaman Utama → Welcome Page / Infografis / Capaian Unit (Ikhtisar, Indikator Mutu, Keselamatan Pasien, Manajemen Risiko)",
+  "Register Pasien → Tambah Pasien / Rekapan Pasien",
+  "Mutu Klinis → Audit Indikator Mutu (Form Logbook, Hasil Capaian) · Clinical Pathway (Form Logbook, Hasil Capaian) · Audit Klinis & Kematian (Form Logbook, Hasil Capaian)",
+  "Keselamatan Pasien → Ringkasan · Laporan IKP · Investigasi/RCA · Survei Budaya Keselamatan · Respons Survei",
+  "Manajemen Risiko → Ikhtisar Risiko · Register Risiko · Rencana Tindak · Konektor Risiko · FMEA",
+  "Metadata → profil indikator, program, direktori tenaga",
+  "Administrasi → pengaturan akun, pengguna, unit",
+];
 
 async function snapshot(db: SupabaseClient) {
-  const today = new Date().toISOString().slice(0, 10);
-  const year = new Date().getFullYear();
-  const [risks, plans, incidents, qAll, qReview] = await Promise.all([
+  const now = new Date(Date.now() + 7 * 3600 * 1000); // WIB/WIB-Pontianak
+  const today = now.toISOString().slice(0, 10);
+  const year = now.getUTCFullYear();
+  const monthNow = now.getUTCMonth(); // 0-11
+  const quarterNow = Math.floor(monthNow / 3); // 0-3
+  const [risks, plans, incidents, quality, roomsRes] = await Promise.all([
     fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register")
       .select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date")
       .order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
     fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans")
       .select("status,target_date").order("id", { ascending: true }).range(f, t)),
     fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents")
-      .select("incident_date,unit_name,incident_type,status").order("created_at", { ascending: false }).range(f, t)),
-    db.schema("aureka_quality").from("quality_records").select("id", { count: "exact", head: true }).eq("profile_year", year).is("archived_at", null),
-    db.schema("aureka_quality").from("quality_records").select("id", { count: "exact", head: true }).eq("profile_year", year).is("archived_at", null).eq("review_required", true),
+      .select("*").order("created_at", { ascending: false }).range(f, t), 3000),
+    fetchAll<QRow>((f, t) => db.schema("aureka_quality").from("quality_records")
+      .select("room_id,record_date,period_start,measurement_grain")
+      .eq("profile_year", year).is("archived_at", null).neq("status", "archived")
+      .order("id", { ascending: true }).range(f, t), 30000),
+    db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
   ]);
-  const high = risks.rows.filter((r) => r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi");
+  const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
+  const roomName = new Map(rooms.map((r) => [r.id, r.name]));
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
-  const month = (d: string | null) => (d || "").slice(0, 7) || "Tanpa tanggal";
+
+  // --- Manajemen risiko: jumlah per unit per level (semua unit, bukan sampel)
+  const perUnit: Record<string, Record<string, number>> = {};
+  for (const r of risks.rows) {
+    const u = (r.unit_name || "Tanpa unit").trim();
+    const row = perUnit[u] || (perUnit[u] = { "Sangat Tinggi": 0, "Tinggi": 0, "Sedang": 0, "Rendah": 0, total: 0 });
+    if (r.risk_level in row) row[r.risk_level]++;
+    row.total++;
+  }
+  const risikoPerUnit = Object.entries(perUnit)
+    .sort((a, b) => b[1]["Sangat Tinggi"] - a[1]["Sangat Tinggi"] || b[1]["Tinggi"] - a[1]["Tinggi"] || b[1].total - a[1].total)
+    .map(([unit, c]) => ({ unit, sangat_tinggi: c["Sangat Tinggi"], tinggi: c["Tinggi"], sedang: c["Sedang"], rendah: c["Rendah"], total: c.total }));
+
+  // --- Mutu klinis: entri logbook per unit per bulan tahun berjalan
+  const perRoom = new Map<number, number[]>();
+  for (const q of quality.rows) {
+    if (q.room_id == null) continue;
+    const d = q.record_date || q.period_start || "";
+    const m = Number(d.slice(5, 7)) - 1;
+    if (d.slice(0, 4) !== String(year) || m < 0 || m > 11) continue;
+    const arr = perRoom.get(q.room_id) || new Array(12).fill(0);
+    arr[m]++;
+    perRoom.set(q.room_id, arr);
+  }
+  const logbookPerUnit = rooms.map((r) => {
+    const arr = perRoom.get(r.id) || new Array(12).fill(0);
+    const tri = [0, 1, 2, 3].map((k) => arr.slice(k * 3, k * 3 + 3).reduce((a, b) => a + b, 0));
+    return {
+      unit: r.name,
+      total_entri: arr.reduce((a, b) => a + b, 0),
+      per_triwulan: Object.fromEntries(ROMAWI.slice(0, quarterNow + 1).map((q, k) => ["TW " + q, tri[k]])),
+      bulan_tanpa_entri: BULAN.slice(0, monthNow + 1).filter((_, k) => !arr[k]),
+    };
+  });
+  const belumInputPerTriwulan = Object.fromEntries(ROMAWI.slice(0, quarterNow + 1).map((q, k) => [
+    "Triwulan " + q, logbookPerUnit.filter((u) => !(u.per_triwulan["TW " + q] > 0)).map((u) => u.unit),
+  ]));
+
+  // --- Keselamatan pasien (hanya hitungan, tanpa identitas/kronologi)
+  const incUnit = (i: Incident) => String(i.unit_name ?? i.room_name ?? (i.room_id != null ? roomName.get(Number(i.room_id)) : "") ?? "").trim() || "Tanpa unit";
+  const incDate = (i: Incident) => String(i.incident_date ?? i.occurred_at ?? i.created_at ?? "").slice(0, 10);
+  const incType = (i: Incident) => String(i.incident_type ?? i.type ?? "").trim() || "Tidak diisi";
+
   return {
     tanggal_hari_ini: today,
-    catatan_sumber: [risks.error && "register risiko tidak dapat dibaca", plans.error && "rencana tindak tidak dapat dibaca", incidents.error && "IKP tidak dapat dibaca"].filter(Boolean),
+    triwulan_berjalan: "Triwulan " + ROMAWI[quarterNow] + " " + year,
+    catatan_sumber: [
+      risks.error && "register risiko tidak dapat dibaca",
+      plans.error && "rencana tindak tidak dapat dibaca",
+      incidents.error && "laporan IKP tidak dapat dibaca",
+      quality.error && "logbook mutu tidak dapat dibaca lengkap",
+      roomsRes.error && "daftar unit tidak dapat dibaca",
+    ].filter(Boolean),
+    daftar_unit_aktif: rooms.map((r) => r.name),
     manajemen_risiko: {
       total_risiko: risks.rows.length,
-      per_level: count(risks.rows, (r) => r.risk_level),
+      per_level: Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length])),
       per_status: count(risks.rows, (r) => r.status),
-      unit_terbanyak_risiko_tinggi: top(count(high, (r) => r.unit_name), 10),
-      risiko_tinggi_tanpa_tenggat: high.filter((r) => !r.due_date && open(r)).length,
+      risiko_tinggi_dan_sangat_tinggi_tanpa_tenggat: risks.rows.filter((r) => (r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi") && !r.due_date && open(r)).length,
       risiko_lewat_tenggat: risks.rows.filter((r) => r.due_date && r.due_date < today && open(r)).length,
-      risiko_teratas: risks.rows.slice(0, 15).map((r) => ({ kode: r.risk_code, unit: r.unit_name, peristiwa: (r.risk_event || "").slice(0, 160), level: r.risk_level, skor: r.risk_score, status: r.status, tenggat: r.due_date })),
+      jumlah_per_unit_per_level: risikoPerUnit,
+      contoh_risiko_skor_tertinggi: risks.rows.slice(0, 10).map((r) => ({ kode: r.risk_code, unit: r.unit_name, peristiwa: (r.risk_event || "").slice(0, 140), level: r.risk_level, skor: r.risk_score, status: r.status, tenggat: r.due_date })),
     },
     rencana_tindak: {
       total: plans.rows.length,
       per_status: count(plans.rows, (p) => p.status),
       lewat_target: plans.rows.filter((p) => p.target_date && p.target_date < today && !/selesai|done|completed|closed/i.test(p.status || "")).length,
     },
+    mutu_klinis_logbook: {
+      tahun: year,
+      arti: "Entri Form Logbook Mutu Klinis (semua program) per unit berdasarkan tanggal layanan/periode. Unit dianggap 'belum input/lapor' pada suatu triwulan bila tidak ada entri sama sekali di triwulan itu.",
+      total_entri: quality.rows.length,
+      unit_belum_input_per_triwulan: belumInputPerTriwulan,
+      per_unit: logbookPerUnit,
+    },
     keselamatan_pasien: {
       total_laporan_ikp: incidents.rows.length,
-      per_jenis: count(incidents.rows, (i) => i.incident_type),
-      per_status: count(incidents.rows, (i) => i.status),
-      per_unit_teratas: top(count(incidents.rows, (i) => i.unit_name), 10),
-      per_bulan_6_terakhir: top(Object.fromEntries(Object.entries(count(incidents.rows, (i) => month(i.incident_date))).sort((a, b) => b[0].localeCompare(a[0]))), 6),
-    },
-    mutu: {
-      tahun: year,
-      episode_logbook: qAll.count ?? null,
-      episode_perlu_validasi: qReview.count ?? null,
+      per_jenis: count(incidents.rows, incType),
+      per_unit: count(incidents.rows, incUnit),
+      per_bulan: Object.fromEntries(Object.entries(count(incidents.rows, (i) => incDate(i).slice(0, 7) || "Tanpa tanggal")).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12)),
     },
   };
 }
@@ -135,7 +210,7 @@ async function askGroq(apiKey: string, system: string, contents: Turn[]): Promis
     { role: "system", content: system },
     ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map((p) => p.text).join("\n") })),
   ];
-  const models = [Deno.env.get("GROQ_MODEL"), "llama-3.3-70b-versatile", "openai/gpt-oss-120b", "llama-3.1-8b-instant"].filter(Boolean) as string[];
+  const models = [Deno.env.get("GROQ_MODEL"), "openai/gpt-oss-120b", "llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant"].filter(Boolean) as string[];
   let last = 0;
   for (const model of [...new Set(models)]) {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -162,22 +237,23 @@ async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
 
-  // Toleran bila secret terisi utuh dengan perintah curl/header: ambil kodenya saja.
-  // Penyedia AI: Groq (GROQ_API_KEY) diutamakan bila ada, selain itu Gemini (GEMINI_API_KEY).
-  // Toleran bila secret terisi utuh dengan perintah curl/header: ambil kodenya saja.
+  // Banyak penyedia & banyak kunci: tiap secret boleh berisi beberapa kunci dipisah koma/baris baru.
+  // Urutan penyedia diatur AI_PROVIDER_ORDER (bawaan: gemini,groq); yang tidak punya kunci dilewati.
   const cleanKey = (raw: string) => {
     const v = raw.trim();
     return (/x-goog-api-key\s*:\s*([A-Za-z0-9._\-]+)/i.exec(v)?.[1] || /authorization\s*:\s*bearer\s+([A-Za-z0-9._\-]+)/i.exec(v)?.[1] || /[?&]key=([A-Za-z0-9._\-]+)/.exec(v)?.[1] || v).replace(/^['"]|['"]$/g, "");
   };
-  const groqKey = cleanKey(Deno.env.get("GROQ_API_KEY") || "");
-  const geminiKey = cleanKey(Deno.env.get("GEMINI_API_KEY") || "");
-  const provider = groqKey ? "groq" : geminiKey ? "gemini" : "";
-  const apiKey = provider === "groq" ? groqKey : geminiKey;
-  const secretName = provider === "groq" ? "GROQ_API_KEY" : "GEMINI_API_KEY";
-  if (apiKey && !/^[A-Za-z0-9._\-]{20,200}$/.test(apiKey)) return reply(500, { error: `Secret ${secretName} tidak valid. Isi hanya dengan kode kunci (tanpa curl, spasi, atau tanda kutip).` });
+  const keysOf = (name: string) => {
+    const raw = Deno.env.get(name) || "";
+    // Perintah curl utuh dianggap satu kunci; selain itu pisahkan dengan koma/baris baru.
+    const parts = /curl|x-goog-api-key|authorization/i.test(raw) ? [raw] : raw.split(/[\s,;]+/);
+    return [...new Set(parts.map(cleanKey).filter((k) => /^[A-Za-z0-9._\-]{20,200}$/.test(k)))];
+  };
+  const available: Record<string, string[]> = { gemini: keysOf("GEMINI_API_KEY"), groq: keysOf("GROQ_API_KEY") };
+  const order = (Deno.env.get("AI_PROVIDER_ORDER") || "gemini,groq").split(/[\s,]+/).map((x) => x.toLowerCase()).filter((x) => available[x]?.length);
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!apiKey || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GROQ_API_KEY atau GEMINI_API_KEY)." });
+  if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GROQ_API_KEY dan/atau GEMINI_API_KEY dengan kode kunci saja)." });
 
   stage = "cek-login";
   const authHeader = req.headers.get("Authorization") || "";
@@ -201,12 +277,18 @@ async function handle(req: Request): Promise<Response> {
   const data = await snapshot(db);
   stage = "susun-prompt";
   const system = [
-    "Anda adalah \"Tanya AUREKA\", asisten mutu dan keselamatan pasien di aplikasi AUREKA (Hospital Quality Intelligence) sebuah rumah sakit di Indonesia.",
-    "Jawab dalam Bahasa Indonesia yang ringkas, jelas, dan praktis untuk Komite PMKP, PIC unit, dan manajemen.",
-    "Gunakan HANYA angka dari DATA AUREKA di bawah untuk pertanyaan tentang data rumah sakit ini. Jika data tidak tersedia, katakan terus terang dan sarankan modul AUREKA yang relevan untuk dicek. Jangan mengarang angka.",
-    "Boleh menjelaskan konsep mutu (PMKP, SNARS/STARKES, IKP, KTD/KNC/KTC/KPC, RCA, FMEA, matriks risiko 5x5, PDSA) dari pengetahuan umum, dan beri tahu bila itu pengetahuan umum, bukan data AUREKA.",
-    "Bila memberi saran tindak lanjut, buat konkret dan berurutan. Gunakan poin-poin pendek bila membantu. Jangan pernah meminta atau menampilkan identitas pasien.",
+    "Anda adalah \"Tanya AUREKA\", asisten mutu dan keselamatan pasien di aplikasi AUREKA (Hospital Quality Intelligence) RSUD Sultan Syarif Mohamad Alkadrie, Pontianak.",
+    "ATURAN:",
+    "1. Selalu jawab dalam Bahasa Indonesia baku yang ringkas dan jelas. Jangan memakai kata/kalimat bahasa Inggris (mis. 'tied', 'overall'), kecuali istilah teknis baku seperti RCA atau FMEA.",
+    "2. Untuk pertanyaan tentang data rumah sakit ini, gunakan HANYA angka dari DATA AUREKA di bawah dan sebutkan angkanya persis. Jangan menghitung dari contoh/sampel bila tersedia data agregat. Jangan mengarang angka, unit, atau nama orang.",
+    "3. Pertanyaan 'unit mana yang belum lapor/belum input' untuk mutu klinis dijawab dari mutu_klinis_logbook.unit_belum_input_per_triwulan (sebutkan semua unitnya) dan jelaskan singkat bahwa ini berdasarkan entri Form Logbook.",
+    "4. Bila data yang ditanyakan memang tidak ada di DATA AUREKA, katakan terus terang dalam satu kalimat, lalu sebutkan menu AUREKA yang relevan. Hanya boleh menyebut menu dari DAFTAR MENU di bawah, jangan mengarang menu, filter, atau tombol.",
+    "5. Boleh menjelaskan konsep mutu (PMKP, STARKES/SNARS, IKP, KTD/KNC/KTC/KPC, RCA, FMEA, matriks risiko 5x5, PDSA) dari pengetahuan umum; tandai bahwa itu pengetahuan umum.",
+    "6. Saran tindak lanjut dibuat konkret dan berurutan, maksimal 5 poin. Format: paragraf pendek atau poin '-' ; boleh **tebal**. Jangan pakai tabel markdown.",
+    "7. Jangan pernah meminta atau menampilkan identitas pasien.",
     "Pengguna: " + (profile.full_name || "pengguna") + (page ? ". Sedang membuka halaman: " + page : "") + ".",
+    "DAFTAR MENU AUREKA:",
+    ...MENU_AUREKA.map((m) => "- " + m),
     "DATA AUREKA (sesuai hak akses pengguna, JSON):",
     JSON.stringify(data),
   ].join("\n");
@@ -217,9 +299,16 @@ async function handle(req: Request): Promise<Response> {
   ];
 
   stage = "panggil-ai";
-  const result = provider === "groq" ? await askGroq(apiKey, system, contents) : await askGemini(apiKey, system, contents);
-  if ("status" in result) return reply(result.status, { error: result.error });
-  return reply(200, { answer: result.answer, model: result.model });
+  let last: AiResult = { status: 502, error: BUSY };
+  for (const provider of order) {
+    for (const key of available[provider]) {
+      const result = provider === "groq" ? await askGroq(key, system, contents) : await askGemini(key, system, contents);
+      if (!("status" in result)) return reply(200, { answer: result.answer, model: provider + ":" + result.model });
+      last = result;
+      console.warn("aureka-tanya", provider, "gagal:", result.error);
+    }
+  }
+  return reply(last.status, { error: last.error });
 }
 
 // Semua error tak terduga tetap dibalas dengan header CORS + alasan singkat,
