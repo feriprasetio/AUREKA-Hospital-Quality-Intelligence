@@ -215,7 +215,7 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceTableViewport > table { w
 /* ---- Jarak dalam kotak: teks/tombol tidak menempel ke tepi kotak ----
    Lapisan kaca Arktik memberi latar & garis pada beberapa wadah yang aslinya polos tanpa padding. */
 /* Kepala bagian di dalam panel risiko: cukup judul + tombol, tanpa kotak di dalam kotak */
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmSectionHead {
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmSectionHead:not(.rmModalSheet .rmSectionHead) {
   background: transparent !important; border: 0 !important; box-shadow: none !important;
   -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important;
   padding: 4px 4px 14px !important; margin-bottom: 4px !important; gap: 14px !important;
@@ -233,3 +233,8 @@ html body .workspaceRoot .tanyaPanelEmbedded :is(.tanyaHead, .tanyaComposer) { p
 /* Tanya AI di Halaman Utama: panel tidak keluar dari kartunya */
 html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlAi { display: flex !important; flex-direction: column !important; overflow: hidden !important; }
 html body .workspaceRoot .homeLanding .hlAi .tanyaPanelEmbedded { height: min(560px, 70vh) !important; min-height: 380px !important; border-radius: 16px !important; overflow: hidden !important; flex: 0 0 auto !important; }
+/* Jendela formulir risiko/FMEA: kepala & kaki lengket diberi jarak tepi */
+html[data-skin="arktik"]:root .workspaceRoot .rmModalSheet .rmSectionHead { padding: 16px 20px 12px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .rmModalSheet .rmFormFooter { padding: 14px 20px !important; gap: 10px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .rmModalSheet .rmSubhead { padding-left: 4px !important; padding-right: 4px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .rmFormFooter { padding: 14px 20px !important; gap: 10px !important; }
