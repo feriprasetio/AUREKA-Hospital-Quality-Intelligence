@@ -152,3 +152,18 @@ html[data-skin]:root body .workspaceRoot .workspaceContent table.aqData .aqEmpty
 html { -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }
 html body .workspaceRoot :is(table, th, td, th *, td *) { -webkit-text-size-adjust: none !important; text-size-adjust: none !important; }
 html[data-skin]:root body .workspaceRoot .workspaceContent table.aqData thead th { max-width: 260px !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+
+/* Halaman tidak boleh melebar melebihi layar karena tabel lebar: tabel digulir di dalam kotaknya sendiri */
+html body .workspaceRoot .workspaceContent .piWrap { grid-template-columns: minmax(0, 1fr) !important; min-width: 0; max-width: 100%; }
+html body .workspaceRoot .workspaceContent .piWrap > *, html body .workspaceRoot .workspaceContent .moduleEnter { min-width: 0; max-width: 100%; }
+html body .workspaceRoot .workspaceContent :is(.prTableWrap, .aqWrap) { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 760px) {
+  html body .workspaceRoot .workspaceContent { max-width: 100vw !important; overflow-x: clip !important; }
+}
+
+/* Kartu program kerja: dua tombol rapi sejajar */
+.mpCardActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.mpCardActions > .textButton { flex: 1 1 140px; justify-content: center; text-align: center; margin: 0 !important; white-space: nowrap; }
+
+/* Kartu password di Akun & Akses */
+html body .workspaceRoot .pwShortcutCard { margin-bottom: 14px; }

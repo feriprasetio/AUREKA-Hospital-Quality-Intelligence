@@ -626,8 +626,15 @@ export default function GeneralSettings({
             </LiquidGlass>
           )}
 
-          {tab === 'profile' && (
-            <LiquidGlass style={{ padding: 18 }}>
+          {tab === 'profile' && (<>
+            <LiquidGlass className="pwShortcutCard" style={{ padding: 18 }}>
+                <div className="pwHead" style={{ marginBottom: 12 }}>
+                  <span className="pwHeadIcon" aria-hidden="true"><SettingsIcon kind="lock" /></span>
+                  <div><h4>Password</h4><p>Ganti password akun Anda sendiri. Lupa password lama? Bisa kirim link reset ke email.</p></div>
+                </div>
+                <button type="button" className="uBtn primary" onClick={() => { setSection('general'); setTab('security'); window.setTimeout(() => document.getElementById('aureka-password-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80) }}>Ubah password</button>
+              </LiquidGlass>
+              <LiquidGlass style={{ padding: 18 }}>
               <h4 style={{ margin: '0 0 4px' }}>Username & Email Login</h4>
               <p style={{ margin: '0 0 12px', color: 'var(--muted)', fontSize: 12 }}>Login bisa memakai username atau email. Email dipakai untuk verifikasi dan reset password, jadi pastikan email aktif.</p>
               {!myAccount.supported && <div className="userRowNote error" style={{ marginBottom: 10 }}>Fitur username belum tersedia.</div>}
@@ -650,7 +657,7 @@ export default function GeneralSettings({
               </div>
               {acctNote && <div className={`userRowNote ${acctNote.ok ? 'ok' : 'error'}`} role={acctNote.ok ? 'status' : 'alert'} aria-live={acctNote.ok ? 'polite' : 'assertive'} style={{ marginTop: 10 }}>{acctNote.text}</div>}
             </LiquidGlass>
-          )}
+          </>)}
 
           {tab === 'units' && (
             <LiquidGlass style={{ padding: 18 }}>
