@@ -145,7 +145,8 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
   useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }) }, [msgs, busy])
   useEffect(() => {
     if (!open) return
-    setTimeout(() => inputRef.current?.focus(), 50)
+    // Panel yang ditanam (Welcome Page/pusat komunikasi) tidak merebut fokus: fokus otomatis membuat halaman melompat ke bawah.
+    if (!embedded) setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 50)
     // Pemanasan: server menyiapkan ringkasan data selagi pengguna mengetik (paling sering 1x per 4 menit per tab).
     try {
       const lastWarm = Number(sessionStorage.getItem('aureka-tanya-warm') || 0)
