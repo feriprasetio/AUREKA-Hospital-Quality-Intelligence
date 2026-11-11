@@ -1,12 +1,11 @@
 export type WorkspaceRoom = { id: number | string; name?: string | null }
 
-/** Accept only active room identifiers that belong to the current room master. */
 export function normalizeWorkspaceRoomId(value: unknown): number | null {
   const parsed = Number(value)
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
 }
 
-/** Resolve a global workspace scope without ever returning an unknown room ID. */
+/** Resolve the global Super Admin room using only rooms in the active room master. */
 export function resolveAdminWorkspaceRoomId(
   rooms: readonly WorkspaceRoom[],
   candidates: readonly unknown[] = [],
@@ -17,10 +16,4 @@ export function resolveAdminWorkspaceRoomId(
     if (id !== null && available.has(id)) return id
   }
   return normalizeWorkspaceRoomId(rooms[0]?.id)
-}
-
-export function isWorkspaceRoomSelected(selectedRoomId: unknown, recordRoomId: unknown): boolean {
-  const selected = normalizeWorkspaceRoomId(selectedRoomId)
-  const record = normalizeWorkspaceRoomId(recordRoomId)
-  return selected !== null && record === selected
 }
