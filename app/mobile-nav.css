@@ -98,3 +98,12 @@
   }
   html[data-skin]:root body .workspaceRoot.workspaceRoot .workspaceHeaderBar > .workspaceGlobalSearch input { font-size: 14px !important; }
 }
+
+/* Konten bisa digulir sampai habis, tidak tertutup navigasi bawah (spacer nyata, bukan cuma padding) */
+@media (max-width: 720px) {
+  html body:not(#_) .workspaceRoot .workspaceContent { padding-bottom: 0 !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent::after {
+    content: ""; display: block !important; flex: 0 0 auto;
+    height: calc(104px + env(safe-area-inset-bottom, 0px)); width: 100%; pointer-events: none;
+  }
+}
