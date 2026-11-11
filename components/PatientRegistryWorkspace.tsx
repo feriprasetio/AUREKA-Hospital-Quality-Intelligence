@@ -98,16 +98,18 @@ export default function PatientRegistryWorkspace({
   isAdmin,
   isValidator,
   canViewAllRooms,
+  lockRoomScope = false,
 }: {
   rooms: Room[]
   initialRoomId: number | null
   isAdmin: boolean
   isValidator: boolean
   canViewAllRooms: boolean
+  lockRoomScope?: boolean
 }) {
   const [tab, setTab] = useState<'add' | 'records'>('add')
-  // Super Admin/PMKP: bawaan 'Semua unit' (''), unit lain tetap terkunci ke unit akunnya.
-  const [roomFilter, setRoomFilter] = useState(canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
+  // Super Admin mengikuti unit workspace aktif; PMKP tetap dapat memilih Semua unit.
+  const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [page, setPage] = useState(0)
@@ -149,7 +151,7 @@ export default function PatientRegistryWorkspace({
 
   // Jumlah episode per unit (untuk pilihan unit & unit bawaan formulir Tambah Pasien).
   useEffect(() => {
-    if (!canViewAllRooms) return
+    if (!canViewAllRooms || lockRoomScope) return
     let cancelled = false
     ;(async () => {
       const counts = new Map<number, number>()
@@ -164,10 +166,13 @@ export default function PatientRegistryWorkspace({
       if (!cancelled) setRoomCounts(counts)
     })()
     return () => { cancelled = true }
-  }, [canViewAllRooms, year])
+  }, [canViewAllRooms, lockRoomScope, year])
   const firstRoomWithData = useMemo(() => rooms.find((room) => (roomCounts.get(Number(room.id)) ?? 0) > 0)?.id ?? null, [rooms, roomCounts])
 
-  useEffect(() => { if (!canViewAllRooms && !roomFilter && rooms.length) setRoomFilter(String(initialRoomId ?? rooms[0].id)) }, [roomFilter, rooms, initialRoomId, canViewAllRooms])
+  useEffect(() => {
+    if (lockRoomScope && initialRoomId != null && roomFilter !== String(initialRoomId)) setRoomFilter(String(initialRoomId))
+    else if (!canViewAllRooms && !roomFilter && rooms.length) setRoomFilter(String(initialRoomId ?? rooms[0].id))
+  }, [roomFilter, rooms, initialRoomId, canViewAllRooms, lockRoomScope])
   useEffect(() => { void load() }, [load])
 
   const filtered = useMemo(() => {
@@ -214,7 +219,7 @@ export default function PatientRegistryWorkspace({
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
       <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button></nav>
-      {tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
+      {tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} forceRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <div>
           <h2>Register Pasien</h2>
@@ -234,7 +239,7 @@ export default function PatientRegistryWorkspace({
       </div>
 
       <div className="prPanel prFilters">
-        {canViewAllRooms
+        {canViewAllRooms && !lockRoomScope
           ? <label>Unit pelayanan
             <select value={roomFilter} onChange={(event) => { setRoomFilter(event.target.value); setPage(0) }}>
               <option value="">Semua unit{roomCounts.size ? ' (' + [...roomCounts.values()].reduce((a, b) => a + b, 0).toLocaleString('id-ID') + ')' : ''}</option>
