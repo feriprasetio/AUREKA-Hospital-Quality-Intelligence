@@ -3,7 +3,24 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-type Msg = { role: 'user' | 'model'; text: string; error?: boolean }
+type Reminder = { units: string[]; message: string; selected?: string[]; status?: 'draft' | 'sending' | 'sent' | 'cancelled'; result?: string }
+type Msg = { role: 'user' | 'model'; text: string; error?: boolean; reminder?: Reminder }
+type Room = { id: number; name: string }
+
+/** AI menandai draf pengingat dengan blok [[KIRIM_PENGINGAT]]{json}[[/KIRIM_PENGINGAT]]; dipisah dari teks jawaban. */
+function extractReminder(answer: string): { text: string; reminder?: Reminder } {
+  const m = /`{0,3}\s*\[\[KIRIM_PENGINGAT\]\]([\s\S]*?)\[\[\/KIRIM_PENGINGAT\]\]\s*`{0,3}/.exec(answer)
+  if (!m) return { text: answer }
+  const text = answer.replace(m[0], '').trim()
+  try {
+    const raw = JSON.parse(m[1].trim().replace(/^json\s*/i, ''))
+    const units = Array.isArray(raw.unit) ? raw.unit.map(String).filter(Boolean) : Array.isArray(raw.units) ? raw.units.map(String).filter(Boolean) : []
+    const message = String(raw.pesan ?? raw.message ?? '').trim()
+    if (!units.length || !message) return { text }
+    return { text, reminder: { units, message, selected: units, status: 'draft' } }
+  } catch { return { text } }
+}
+const norm = (v: string) => v.toLocaleLowerCase('id-ID').replace(/[^a-z0-9]+/g, ' ').trim()
 
 const SUGGESTIONS = [
   'Halo! Hari ini aku sebaiknya fokus ke mana dulu?',
@@ -60,6 +77,7 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [rooms, setRooms] = useState<Room[]>([])
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   // Riwayat disimpan per akun di browser ini (sampai logout / dihapus), dan disamakan antar-panel (tombol pojok, pusat komunikasi, Halaman Utama).
@@ -142,10 +160,48 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     return () => window.removeEventListener('keydown', onKey)
   }, [open, embedded])
 
+  const loadRooms = async () => {
+    if (rooms.length) return rooms
+    const { data } = await sb.from('master_rooms').select('id,name').eq('is_active', true).order('sort_order', { ascending: true })
+    const list = ((data ?? []) as Room[]).map(r => ({ id: Number(r.id), name: String(r.name) }))
+    setRooms(list)
+    return list
+  }
+  const updateReminder = (index: number, patch: Partial<Reminder>) =>
+    setMsgs(m => m.map((x, i) => i === index && x.reminder ? { ...x, reminder: { ...x.reminder, ...patch } } : x))
+  /** Kirim pengingat ke Chat tiap unit terpilih — hanya setelah pengguna menekan Kirim. Hak kirim mengikuti RLS (Super Admin). */
+  const sendReminder = async (index: number) => {
+    const r = msgs[index]?.reminder
+    if (!r || r.status === 'sending' || r.status === 'sent') return
+    const chosen = r.selected ?? r.units
+    const body = r.message.trim()
+    if (!chosen.length || !body) { updateReminder(index, { result: 'Pilih minimal satu unit dan isi pesannya.' }); return }
+    updateReminder(index, { status: 'sending', result: '' })
+    const list = await loadRooms()
+    const { data: auth } = await sb.auth.getUser()
+    const uid = auth.user?.id
+    let ok = 0
+    const failed: string[] = []
+    for (const name of chosen) {
+      const room = list.find(x => norm(x.name) === norm(name)) ?? list.find(x => norm(x.name).includes(norm(name)) || norm(name).includes(norm(x.name)))
+      if (!room || !uid) { failed.push(name); continue }
+      const conv = await sb.schema('aureka_system').from('support_conversations').insert({ room_id: room.id, created_by: uid, subject: 'Pengingat Komite PMKP' }).select('id').single()
+      if (conv.error || !conv.data) { failed.push(name); continue }
+      const msg = await sb.schema('aureka_system').from('support_messages').insert({ conversation_id: conv.data.id, sender_id: uid, body: body.slice(0, 4000) })
+      if (msg.error) failed.push(name); else ok++
+    }
+    updateReminder(index, {
+      status: ok ? 'sent' : 'draft',
+      result: ok
+        ? `Terkirim ke ${ok} unit lewat Chat (Pusat Komunikasi).` + (failed.length ? ` Gagal: ${failed.join(', ')}.` : '')
+        : 'Belum terkirim. Pastikan akun Anda Super Admin dan nama unit sesuai.' + (failed.length ? ` (${failed.join(', ')})` : ''),
+    })
+  }
+
   const ask = async (q: string) => {
     const question = q.trim()
     if (!question || busy) return
-    const history = msgs.filter(m => !m.error).slice(-10).map(m => ({ role: m.role, text: m.text }))
+    const history = msgs.filter(m => !m.error).slice(-10).map(m => ({ role: m.role, text: m.text + (m.reminder ? `\n(Draf pengingat untuk: ${(m.reminder.selected ?? m.reminder.units).join(', ')} — status: ${m.reminder.status === 'sent' ? 'sudah dikirim' : m.reminder.status === 'cancelled' ? 'dibatalkan' : 'belum dikirim'})` : '') }))
     setMsgs(m => [...m, { role: 'user', text: question }])
     setDraft('')
     setBusy(true)
@@ -156,7 +212,9 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
       setMsgs(m => [...m, { role: 'model', text, error: true }])
       return
     }
-    setMsgs(m => [...m, { role: 'model', text: String(data.answer) }])
+    const { text, reminder } = extractReminder(String(data.answer))
+    if (reminder) void loadRooms()
+    setMsgs(m => [...m, { role: 'model', text: text || 'Berikut draf pengingatnya.', reminder }])
   }
 
   const panel = open && <section className={embedded?"tanyaPanel tanyaPanelEmbedded":"tanyaPanel"} role="dialog" aria-label="Tanya AUREKA">
@@ -176,6 +234,23 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
       </div>}
       {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '')}>
         {m.role === 'model' && !m.error ? renderAnswer(m.text) : <p>{m.text}</p>}
+        {m.reminder && <div className="tanyaReminder">
+          <b>Draf pengingat ke PIC unit</b>
+          <div className="tanyaReminderUnits">{m.reminder.units.map(u => {
+            const on = (m.reminder!.selected ?? m.reminder!.units).includes(u)
+            return <label key={u} className={on ? 'on' : ''}><input type="checkbox" checked={on} disabled={m.reminder!.status === 'sent' || m.reminder!.status === 'sending'}
+              onChange={() => updateReminder(i, { selected: on ? (m.reminder!.selected ?? m.reminder!.units).filter(x => x !== u) : [...(m.reminder!.selected ?? m.reminder!.units), u] })} />{u}</label>
+          })}</div>
+          <textarea value={m.reminder.message} rows={4} maxLength={4000} disabled={m.reminder.status === 'sent' || m.reminder.status === 'sending'} aria-label="Isi pesan pengingat"
+            onChange={e => updateReminder(i, { message: e.target.value })} />
+          {m.reminder.status === 'cancelled' ? <small>Dibatalkan.</small>
+            : m.reminder.status === 'sent' ? null
+            : <div className="tanyaReminderActions">
+              <button type="button" className="primary" disabled={m.reminder.status === 'sending'} onClick={() => void sendReminder(i)}>{m.reminder.status === 'sending' ? 'Mengirim…' : `Kirim ke ${(m.reminder.selected ?? m.reminder.units).length} unit`}</button>
+              <button type="button" disabled={m.reminder.status === 'sending'} onClick={() => updateReminder(i, { status: 'cancelled' })}>Batal</button>
+            </div>}
+          {m.reminder.result && <small className={m.reminder.status === 'sent' ? 'ok' : 'err'}>{m.reminder.result}</small>}
+        </div>}
       </div>)}
       {busy && <div className="tanyaMsg model typing" aria-label="AUREKA sedang menjawab"><i /><i /><i /></div>}
     </div>

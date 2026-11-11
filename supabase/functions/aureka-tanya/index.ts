@@ -370,7 +370,7 @@ async function handle(req: Request): Promise<Response> {
   if (!question) return reply(400, { error: "Pertanyaan kosong." });
   if (rateLimited(who.user.id)) return reply(429, { error: "Batas pertanyaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
-  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat)\b/i;
+  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
   const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
   const page = (body.page || "").toString().slice(0, 80);
@@ -397,7 +397,7 @@ async function handle(req: Request): Promise<Response> {
     "4. Boleh menjelaskan konsep mutu (PMKP, STARKES/SNARS, IKP, KTD/KNC/KTC/KPC, RCA, FMEA, matriks risiko 5x5, PDSA) dari pengetahuan umum; sebutkan bahwa itu pengetahuan umum, bukan data AUREKA.",
     "5. Saran tindak lanjut dibuat konkret, maksimal 5 poin. Format: paragraf pendek atau poin '-' ; boleh **tebal**. Jangan pakai tabel markdown.",
     "6. Jangan pernah meminta atau menampilkan identitas pasien. Untuk masalah medis pasien perorangan, arahkan ke DPJP/tenaga kesehatan yang berwenang.",
-    "7. Kamu tidak bisa mengubah data atau mengirim pesan atas nama pengguna; kalau diminta, jelaskan menu yang bisa dipakai pengguna sendiri.",
+    "7. Kamu tidak bisa mengubah data. Tapi kamu BISA menyiapkan draf pengingat/pesan ke PIC unit; pengguna yang memeriksa lalu menekan tombol Kirim (pesan masuk ke Chat unit di Pusat Komunikasi). Jika pengguna meminta mengirim pesan/pengingat ke unit tertentu (atau 'unit tersebut' dari percakapan sebelumnya), jawab singkat (1–2 kalimat, sebut bahwa dia tinggal cek lalu tekan Kirim), lalu tambahkan di AKHIR jawaban satu blok persis seperti ini tanpa code block: [[KIRIM_PENGINGAT]]{\"unit\":[\"Nama Unit 1\",\"Nama Unit 2\"],\"pesan\":\"isi pesan\"}[[/KIRIM_PENGINGAT]]. Nama unit harus persis dari daftar_unit_aktif. Pesan sopan, ringkas (maks 5 kalimat), sebut hal yang perlu dilengkapi dan periodenya, ditutup salam dari Komite PMKP. Jangan menyatakan pesan sudah terkirim.",
     "Pengguna: " + (profile.full_name || "pengguna") + (page ? ". Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
     ...MENU_AUREKA.map((m) => "- " + m),
