@@ -27,7 +27,7 @@ export type AurekaModule = {
 export const AUREKA_MODULE_REGISTRY = [
   {
     id: 'home',
-    label: 'Halaman Utama',
+    label: 'Beranda',
     group: 'overview',
     status: 'beta',
     visibility: 'all-authenticated',
@@ -35,11 +35,11 @@ export const AUREKA_MODULE_REGISTRY = [
     routeHash: '#halaman-utama',
     owner: 'Komite PMKP',
     lastReviewed: '2026-10-29',
-    description: 'Welcome Page, infografis operasional, Tanya AI, dan capaian unit sesuai hak akses.',
+    description: 'Beranda personal dan satu halaman Infografis read-only sesuai hak akses.',
   },
   {
     id: 'patients',
-    label: 'Register Pasien',
+    label: 'Pasien',
     group: 'overview',
     status: 'beta',
     visibility: 'all-authenticated',
@@ -47,11 +47,11 @@ export const AUREKA_MODULE_REGISTRY = [
     routeHash: '#register-pasien',
     owner: 'Unit pelayanan / Komite PMKP',
     lastReviewed: '2026-11-11',
-    description: 'Rekapan episode pelayanan pasien yang terhubung dengan catatan unit dan dibatasi oleh hak akses.',
+    description: 'Register pasien dan akses menuju profil longitudinal berbasis Nomor Rekam Medis.',
   },
   {
     id: 'quality',
-    label: 'Mutu Klinis',
+    label: 'Indikator Mutu',
     group: 'clinical',
     status: 'beta',
     visibility: 'all-authenticated',
@@ -59,7 +59,7 @@ export const AUREKA_MODULE_REGISTRY = [
     routeHash: '#mutu-klinis',
     owner: 'Komite PMKP / pemilik indikator',
     lastReviewed: '2026-10-29',
-    description: 'Audit Indikator Mutu, Clinical Pathway, dan Audit Klinis dan Kematian.',
+    description: 'Form logbook, hasil capaian, dan profil indikator mutu.',
   },
   {
     id: 'safety',
@@ -87,7 +87,7 @@ export const AUREKA_MODULE_REGISTRY = [
   },
   {
     id: 'staff',
-    label: 'Tenaga Klinis',
+    label: 'Sumber Daya Manusia',
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
@@ -95,7 +95,7 @@ export const AUREKA_MODULE_REGISTRY = [
     routeHash: '#tenaga-klinis',
     owner: 'Super Admin / Komite PMKP',
     lastReviewed: '2026-10-29',
-    description: 'Direktori kanonik, tim dan penugasan, OPPE, FPPE, serta riwayat individu.',
+    description: 'Master SDM tunggal, tim dan penugasan, OPPE, FPPE, serta riwayat jabatan.'
   },
   {
     id: 'analytics',
@@ -111,7 +111,7 @@ export const AUREKA_MODULE_REGISTRY = [
   },
   {
     id: 'settings',
-    label: 'Administrasi',
+    label: 'Pengaturan',
     group: 'governance',
     status: 'beta',
     visibility: 'all-authenticated',
