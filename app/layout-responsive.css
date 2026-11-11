@@ -104,7 +104,7 @@
 }
 
 /* Mobile: the sidebar becomes a modal drawer; it is not a second page column. */
-@media (max-width: 760px) {
+@media (max-width: 720px) {
   .workspaceRoot {
     display: block !important;
     min-height: 100vh;

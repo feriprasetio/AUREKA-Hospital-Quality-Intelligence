@@ -13,13 +13,19 @@ test('shared dialog controller traps keyboard focus and restores focus', () => {
   assert.match(source, /previousFocus\.focus\(\)/)
 })
 
-test('mobile sidebar keeps Escape, focus trap, and trigger focus restoration', () => {
+test('mobile sidebar keeps Escape, traps focus in the drawer, and restores the visible invoking control', () => {
   const source = read('components/layout/useAccessibleSidebar.ts')
+  const home = read('components/HomeClient.tsx')
   assert.match(source, /event\.key === 'Escape'/)
   assert.match(source, /event\.key !== 'Tab'/)
+  assert.match(source, /panel\.contains\(activeElement\)/)
+  assert.match(source, /focusOutsidePanel/)
   assert.match(source, /lastElement\.focus\(\)/)
   assert.match(source, /firstElement\.focus\(\)/)
-  assert.match(source, /trigger\.focus\(\)/)
+  assert.match(source, /requestedTriggerRef/)
+  assert.match(source, /restoreTarget\?\.focus\(\)/)
+  assert.match(source, /getClientRects\(\)\.length === 0/)
+  assert.match(home, /mobileSidebar\.open\(event\.currentTarget\)/)
 })
 
 test('patient safety incident fields expose labels and required-field validation', () => {

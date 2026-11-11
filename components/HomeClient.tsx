@@ -739,7 +739,7 @@ export default function HomeClient(){
  </aside>
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
-   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={()=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 720px)').matches){mobileSidebar.open()}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} title={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen||!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 720px)').matches){mobileSidebar.open(event.currentTarget)}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} title={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen||!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
    <div className="workspaceContext" title={(admin?activeWorkspaceRoom?.name||'Unit belum dipetakan':manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
     {admin
      ? <label className="workspaceUnitSelect" title="Unit aktif untuk seluruh workspace">
@@ -871,7 +871,7 @@ export default function HomeClient(){
  </section>
  <nav className="mobileBottomNav" aria-label="Navigasi cepat">
   {[['home','Beranda'] as const,...(['quality','patients','safety','risk'] as const).filter(id=>visibleMods.some(([m])=>m===id)).slice(0,3).map(id=>[id,({quality:'Mutu',patients:'Pasien',safety:'IKP',risk:'Risiko'} as const)[id]] as const)].map(([id,label])=><button type="button" key={id} className={active===id?'active':''} aria-current={active===id?'page':undefined} onClick={()=>{toggleNav(id,true);openMainModule(id)}}><NavIcon id={id}/><span>{label}</span></button>)}
-  <button type="button" className={mobileSidebar.isOpen?'active':''} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen} onClick={()=>mobileSidebar.isOpen?mobileSidebar.close():mobileSidebar.open()}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg><span>Menu</span></button>
+  <button type="button" className={mobileSidebar.isOpen?'active':''} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen} onClick={event=>mobileSidebar.isOpen?mobileSidebar.close():mobileSidebar.open(event.currentTarget)}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg><span>Menu</span></button>
  </nav>
 </main>
  return <PublicLandingPage

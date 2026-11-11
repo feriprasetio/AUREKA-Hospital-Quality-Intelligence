@@ -34,3 +34,14 @@ test('sidebar redesign retains desktop and mobile navigation behavior', () => {
   assert.match(css, /\.workspaceRoot\.sidebarIsCollapsed\s*\{\s*grid-template-columns: 76px minmax\(0, 1fr\) !important/)
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceRoot:not\(\.sidebarIsCollapsed\)\s*\{\s*grid-template-columns: minmax\(0, 1fr\) !important/)
 })
+
+test('mobile drawer and bottom navigation share one breakpoint with no 721–760px dead zone', () => {
+  const responsive = read('app/layout-responsive.css')
+  const mobileNav = read('app/mobile-nav.css')
+  const home = read('components/HomeClient.tsx')
+
+  assert.match(responsive, /@media \(max-width: 720px\)\s*\{\s*\.workspaceRoot\s*\{/)
+  assert.doesNotMatch(responsive, /@media \(max-width: 760px\)/)
+  assert.match(mobileNav, /@media \(max-width: 720px\)/)
+  assert.match(home, /matchMedia\('\(max-width: 720px\)'\)/)
+})
