@@ -1,0 +1,59 @@
+/*
+ * Tampilan HP (≤720px): navigasi bawah ala Android + header yang tidak memotong pilihan unit.
+ * Di desktop/tablet navigasi bawah disembunyikan; sidebar tetap seperti biasa.
+ */
+.mobileBottomNav { display: none; }
+
+@media (max-width: 720px) {
+  /* --- Navigasi bawah --- */
+  html .workspaceRoot .mobileBottomNav {
+    position: fixed; z-index: 60; left: 10px; right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px;
+    padding: 6px; border-radius: 22px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(11, 70, 122, 0.12);
+    box-shadow: 0 12px 32px rgba(11, 36, 64, 0.16);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+  }
+  html .workspaceRoot .mobileBottomNav button {
+    display: grid; justify-items: center; align-content: center; gap: 3px;
+    min-width: 0; min-height: 52px; padding: 6px 2px; border: 0; border-radius: 16px;
+    background: transparent; color: #5d7187; font-size: 10.5px; font-weight: 700; line-height: 1.1;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background-color .2s ease, color .2s ease, scale .12s ease;
+  }
+  html .workspaceRoot .mobileBottomNav button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html .workspaceRoot .mobileBottomNav svg {
+    width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  html .workspaceRoot .mobileBottomNav button:last-child svg circle { fill: currentColor; stroke: none; }
+  html .workspaceRoot .mobileBottomNav button.active { background: rgba(11, 70, 122, 0.1); color: #0b467a; }
+  html .workspaceRoot .mobileBottomNav button:active { scale: .94; }
+  html[data-mode="gelap"] .workspaceRoot .mobileBottomNav {
+    background: rgba(14, 22, 40, 0.86); border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+  html[data-mode="gelap"] .workspaceRoot .mobileBottomNav button { color: #9fb0c6; }
+  html[data-mode="gelap"] .workspaceRoot .mobileBottomNav button.active { background: rgba(120, 170, 255, 0.16); color: #e6eef8; }
+
+  /* Ruang di bawah konten agar tidak tertutup navigasi bawah */
+  html .workspaceRoot .workspaceContent { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important; }
+  html .aurToast { bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important; }
+  html .workspaceRoot .workspaceScrim[data-open="true"] ~ .mobileBottomNav { z-index: 30; }
+
+  /* --- Header: tombol ☰ diganti tombol "Menu" di bawah, unit aktif tidak terpotong --- */
+  html[data-skin] .workspaceRoot .workspaceHeaderBar .workspaceSidebarMenuButton { display: none !important; }
+  html[data-skin] .workspaceRoot .workspaceHeaderBar .workspaceContext {
+    flex: 1 1 auto !important; min-width: 0 !important; max-width: none !important; overflow: visible !important;
+  }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar .workspaceContext .workspaceUnitSelect { width: 100%; max-width: 100%; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar .workspaceContext .workspaceUnitSelect select {
+    width: 100% !important; max-width: 100% !important; min-height: 36px !important;
+    font-size: 13px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  html[data-skin] .workspaceRoot .workspaceHeaderBar .workspaceContext strong {
+    max-width: 100% !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
