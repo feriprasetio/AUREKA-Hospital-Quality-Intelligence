@@ -15,7 +15,7 @@ test('home exposes only Beranda and one canonical Infografis entry', () => {
 
 test('primary navigation labels follow the approved domain terminology', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  for (const label of ["label: 'Beranda'", "label: 'Pasien'", "label: 'Indikator Mutu'", "label: 'Sumber Daya Manusia'", "label: 'Pengaturan'"]) {
+  for (const label of ["label: 'Beranda'", "label: 'Pasien'", "label: 'Peningkatan Kinerja Klinis'", "label: 'Sumber Daya Manusia'", "label: 'Administrasi & Konfigurasi'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
 })
@@ -40,14 +40,14 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
 test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
   const app = read('components/HomeClient.tsx')
   assert.ok(app.includes("'metadata':'analytics'"))
-  assert.ok(app.includes("analytics:'#tenaga-klinis'"))
+  assert.ok(app.includes("analytics:analyticsTab==='directory'||analyticsTab==='oppe'?'#tenaga-klinis':'#program-indikator'"))
   assert.ok(app.includes("'tenaga-klinis':'staff'"))
 })
 
 test('home parent and child navigation use the approved labels and canonical route', () => {
   const app = read('components/HomeClient.tsx')
-  assert.ok(app.includes('title="Halaman Utama"'))
-  assert.ok(app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
+  assert.ok(app.includes('title="Beranda"'))
+  assert.ok(app.includes("home:[{id:'infographics',label:'Infografis'}]"))
   assert.ok(app.includes("active==='home'?(homeTab==='infographics'?'infografis':'beranda')"))
   assert.ok(app.includes("initialTab={homeTab} onTabChange={setHomeTab}"))
 })
