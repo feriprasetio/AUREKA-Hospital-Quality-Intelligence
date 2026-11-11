@@ -11,7 +11,7 @@ test('interactive infographics expose selectors and responsive charts', () => {
   assert.match(home, /value="diagnosis">Distribusi diagnosis/)
   assert.match(home, /className="hlFilterGrid"/)
   assert.match(home, /<InfographicChart data=\{infographic.data\}/)
-  assert.match(home, /className="hlExplorer"/)
+  assert.match(home, //className="hlPanel hlExplorer"//)
   assert.match(polish, /\.homeLanding \.hlChart svg[\s\S]*width: 100% !important/)
   assert.match(polish, /max-height: 238px/)
 })
