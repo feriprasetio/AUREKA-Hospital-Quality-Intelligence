@@ -725,7 +725,7 @@ export default function HomeClient(){
   <div className="navLabel">Menu utama</div>
   <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'isCurrent ':'')+(active==='home'&&!closedNav.includes('home')?'expanded':'')} key="home">
-    <button type="button" title="Halaman Utama" className={active==='home'?'navActive':''} aria-expanded="true" aria-controls="sidebar-children-home" aria-current={active==='home'?'page':undefined} onClick={()=>{if(active==='home')toggleNav('home');else openMainModule('home',true)}}>
+    <button type="button" title="Halaman Utama" className={active==='home'?'navActive':''} aria-expanded={active==='home'&&!closedNav.includes('home')} aria-controls="sidebar-children-home" aria-current={active==='home'?'page':undefined} onClick={()=>{if(active==='home')toggleNav('home');else openMainModule('home',true)}}>
      <NavIcon id="home"/><span>Halaman Utama</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
     </button>
     <div className="sidebarTreeChildren" id="sidebar-children-home" hidden={active!=='home'||closedNav.includes('home')}>
