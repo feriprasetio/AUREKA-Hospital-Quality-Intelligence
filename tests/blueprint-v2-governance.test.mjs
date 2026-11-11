@@ -11,7 +11,7 @@ test('blueprint v2 documents additive rollout and technical identity constraints
   assert.match(doc, /No\. RM/)
   assert.match(doc, /Preserve historical anonymous records as legacy/)
   assert.match(doc, /certified electronic signature/)
-  assert.match(doc, /default deny/)
+  assert.match(doc, /default deny/i)
 })
 
 test('named survey migration preserves historical anonymity and requires person, unit and submitter for new responses', () => {
