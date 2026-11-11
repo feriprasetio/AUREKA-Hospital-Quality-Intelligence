@@ -105,3 +105,55 @@
   /* 11. Halaman login & landing: kartu masuk */
   html[data-skin="arktik"] .authPage .authCard { animation: akScaleIn .45s cubic-bezier(.22, 1, .36, 1) both; }
 }
+
+/* ===== Tambahan animasi (tetap ringan: hanya opacity/translate/scale, dijalankan GPU) ===== */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes akBounce { 0% { scale: 1; } 40% { scale: 1.18; } 70% { scale: .96; } 100% { scale: 1; } }
+  @keyframes akReveal { from { opacity: 0; translate: 0 24px; scale: .985; } to { opacity: 1; translate: 0 0; scale: 1; } }
+  @keyframes akBadge { 0%, 100% { scale: 1; } 50% { scale: 1.2; } }
+  @keyframes akSheen { from { translate: -120% 0; } to { translate: 220% 0; } }
+
+  /* 12. Panel muncul saat di-scroll ke layar (scroll-driven, tanpa JavaScript; browser lama cukup tampil biasa) */
+  @supports (animation-timeline: view()) {
+    html[data-skin="arktik"] .workspaceRoot .workspaceContent :is(.hlPanel, .rmPanel, .psPanel, .ovPanel, .prPanel, .sdPanel, .stPanel, .qraPanel, .aqPanel, .tableWrap, .rmTableWrap, .psTableWrap) {
+      animation: akReveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 38%;
+    }
+  }
+
+  /* 13. Navigasi bawah HP: ikon memantul saat dipilih, pil aktif muncul halus */
+  html .workspaceRoot .mobileBottomNav button { transition: background-color .28s cubic-bezier(.22, 1, .36, 1), color .28s ease, scale .14s ease !important; }
+  html .workspaceRoot .mobileBottomNav button.active svg { animation: akBounce .45s cubic-bezier(.22, 1, .36, 1); }
+  html .workspaceRoot .mobileBottomNav { animation: akFadeUp .45s cubic-bezier(.22, 1, .36, 1) .1s both; }
+
+  /* 14. Sidebar & laci menu: buka-tutup lebih lembut */
+  html[data-skin="arktik"] .workspaceRoot aside.sidebar { transition: transform .32s cubic-bezier(.22, 1, .36, 1), left .32s cubic-bezier(.22, 1, .36, 1), width .28s cubic-bezier(.22, 1, .36, 1) !important; }
+  html[data-skin="arktik"] .workspaceRoot .workspaceScrim[data-open="true"] { animation: akFade .25s ease both; }
+  html[data-skin="arktik"] .workspaceRoot .sidebarTreeChildren:not([hidden]) > * { animation: akPop .26s cubic-bezier(.22, 1, .36, 1) both; }
+  html[data-skin="arktik"] .workspaceRoot .sidebarTreeChildren:not([hidden]) > :nth-child(2) { animation-delay: .03s; }
+  html[data-skin="arktik"] .workspaceRoot .sidebarTreeChildren:not([hidden]) > :nth-child(3) { animation-delay: .06s; }
+  html[data-skin="arktik"] .workspaceRoot .sidebarTreeChildren:not([hidden]) > :nth-child(n+4) { animation-delay: .09s; }
+
+  /* 15. Badge notifikasi berdenyut sekali saat muncul */
+  html .workspaceRoot .workspaceHeaderBadge { animation: akBadge .6s cubic-bezier(.22, 1, .36, 1) 2; }
+
+  /* 16. Ikon header berputar/condong sedikit saat disentuh */
+  html .workspaceRoot .workspaceHeaderIcon svg { transition: rotate .35s cubic-bezier(.22, 1, .36, 1), scale .2s ease; }
+  html .workspaceRoot .workspaceThemeButton:hover svg { rotate: 25deg; }
+  html .workspaceRoot .workspaceHeaderIcon:active svg { scale: .88; }
+
+  /* 17. Kilau halus melintas di kartu sambutan */
+  html[data-skin="arktik"] .workspaceRoot .hlWelcomeCard { position: relative; overflow: hidden; }
+  html[data-skin="arktik"] .workspaceRoot .hlWelcomeCard::after {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 40%; pointer-events: none;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .18), transparent);
+    animation: akSheen 1.6s cubic-bezier(.22, 1, .36, 1) .35s 1 both;
+  }
+
+  /* 18. Input: garis fokus tumbuh lembut */
+  html[data-skin="arktik"] .workspaceRoot :is(input, select, textarea) { transition: border-color .2s ease, box-shadow .25s ease, background-color .2s ease; }
+
+  /* 19. Ganti tema terang/gelap: memudar halus (View Transitions, bila didukung) */
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+}
