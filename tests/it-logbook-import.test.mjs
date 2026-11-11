@@ -72,7 +72,7 @@ test('creates an activity import payload with source provenance and one indicato
     fileSha256: 'a'.repeat(64),
     profile: { id: '00000000-0000-4000-8000-000000000001' },
     userId: '00000000-0000-4000-8000-000000000002',
-  }) as any
+  })
 
   assert.equal(item.payload.room_id, 2)
   assert.equal(item.payload.measurement_grain, 'activity')
