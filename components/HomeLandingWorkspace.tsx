@@ -66,8 +66,30 @@ const losOf = (core: Record<string, any>) => {
 }
 function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
   const max = Math.max(1, ...values)
-  const points = values.map((v,i) => `${18 + i* (264/Math.max(1,values.length-1))},${104 - (v/max)*82}`).join(' ')
-  return <div className="hlChart"><svg viewBox="0 0 300 126" role="img" aria-label="Tren data bulanan"><line x1="16" y1="105" x2="284" y2="105" stroke="#dfe8e2"/><line x1="16" y1="63" x2="284" y2="63" stroke="#edf2ee"/><polyline points={points} fill="none" stroke="#24744f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>{values.map((v,i)=><circle key={labels[i]} cx={18+i*(264/Math.max(1,values.length-1))} cy={104-(v/max)*82} r="3.5" fill="#24744f"><title>{labels[i]}: {v}</title></circle>)}</svg><div className="hlAxis">{labels.map(label=><span key={label}>{label}</span>)}</div></div>
+  const plotLeft = 48
+  const plotRight = 620
+  const plotTop = 24
+  const plotBottom = 178
+  const xAt = (index: number) => plotLeft + index * ((plotRight - plotLeft) / Math.max(1, values.length - 1))
+  const yAt = (value: number) => plotBottom - (Math.max(0, value) / max) * (plotBottom - plotTop)
+  const points = values.map((value, index) => `${xAt(index)},${yAt(value)}`).join(' ')
+  const ticks = [max, max / 2, 0]
+  return (
+    <div className="hlChart">
+      <svg viewBox="0 0 640 218" role="img" aria-label="Tren data bulanan" preserveAspectRatio="xMidYMid meet">
+        {ticks.map((tick, index) => {
+          const y = plotTop + index * ((plotBottom - plotTop) / 2)
+          return <g key={index}>
+            <line x1={plotLeft} y1={y} x2={plotRight} y2={y} stroke={index === 2 ? '#d9e4dd' : '#edf2ee'} strokeWidth="1" />
+            <text x="36" y={y + 4} textAnchor="end" fill="#87948c" fontSize="10">{Math.round(tick).toLocaleString('id-ID')}</text>
+          </g>
+        })}
+        {values.length > 1 && <polyline points={points} fill="none" stroke="#24744f" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />}
+        {values.map((value, index) => <circle key={labels[index] ?? index} cx={xAt(index)} cy={yAt(value)} r="4" fill="#fff" stroke="#24744f" strokeWidth="2.5"><title>{labels[index] ?? `Periode ${index + 1}`}: {value.toLocaleString('id-ID')}</title></circle>)}
+      </svg>
+      <div className="hlAxis">{labels.map(label => <span key={label}>{label}</span>)}</div>
+    </div>
+  )
 }
 // Simpan sementara data per unit 10 menit: membuka ulang Infografis tidak menarik ulang ribuan baris.
 const unitRecordCache=new Map<string,{at:number;rows:RecordRow[]}>()
@@ -252,8 +274,10 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     </>}
     {tab==='infographics'&&<>
       {error&&<div className="hlNotice">{error}</div>}
-      <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas input data bulanan</h3><span>{infoRoomName||'Unit'} · {new Date().getFullYear()}</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:<LineChart values={metrics.months.map(m=>m.activity)} labels={metrics.months.map(m=>m.label)}/>}</section>
-      <section className="hlPanel"><header className="hlPanelHead"><h3>Episode pasien per bulan</h3><span>Berbasis Register Pasien</span></header>{loading?<div className="hlEmpty">Memuat data…</div>:metrics.episodeRows?<LineChart values={metrics.months.map(m=>m.count)} labels={metrics.months.map(m=>m.label)}/>:<div className="hlEmpty">Belum ada episode pasien pada pilihan unit ini. Aktivitas input unit tetap ditampilkan pada grafik di atas.</div>}</section>
+      <div className="hlChartGrid">
+        <section className="hlPanel"><header className="hlPanelHead"><div><h3>Aktivitas input data bulanan</h3><span>{infoRoomName||'Unit'} · {new Date().getFullYear()}</span></div></header>{loading?<div className="hlEmpty">Memuat data…</div>:<LineChart values={metrics.months.map(m=>m.activity)} labels={metrics.months.map(m=>m.label)}/>}</section>
+        <section className="hlPanel"><header className="hlPanelHead"><div><h3>Episode pasien per bulan</h3><span>Berbasis Register Pasien</span></div></header>{loading?<div className="hlEmpty">Memuat data…</div>:metrics.episodeRows?<LineChart values={metrics.months.map(m=>m.count)} labels={metrics.months.map(m=>m.label)}/>:<div className="hlEmpty">Belum ada episode pasien pada pilihan unit ini. Aktivitas input unit tetap ditampilkan pada grafik di atas.</div>}</section>
+      </div>
       <div className="hlGrid"><section className="hlPanel"><header className="hlPanelHead"><h3>Indikator episode pasien</h3></header><div className="hlMetric"><span>Rawat inap tanpa tanggal keluar*</span><strong>{metrics.active===null?'—':metrics.active.toLocaleString('id-ID')}</strong><small>*Hanya episode dengan field tanggal keluar; bukan sensus bed aktif.</small></div><div className="hlMetric" style={{marginTop:8}}><span>Rata-rata Length of Stay</span><strong>{metrics.averageLos===null?'—':metrics.averageLos.toLocaleString('id-ID',{maximumFractionDigits:1})+' hari'}</strong><small>{metrics.losCount} episode dengan data LOS</small></div></section>
       <section className="hlPanel"><header className="hlPanelHead"><h3>Diagnosis terbanyak (kode ICD-10 bila tersedia)</h3></header>{metrics.aggregateOnly?<div className="hlEmpty">Pilih satu unit di atas untuk melihat diagnosis terbanyak, lama rawat, dan pasien yang masih dirawat.</div>:metrics.topDiagnoses.length?<div className="hlBars">{metrics.topDiagnoses.map(item=><div className="hlBarRow" key={item.code+item.diagnosis}><span title={item.diagnosis}>{item.code==='Belum berkode'?item.diagnosis:item.code}</span><div className="hlBarTrack"><div className="hlBarFill" style={{width:(item.count/metrics.topDiagnoses[0].count*100)+'%'}}/></div><b>{item.count}</b></div>)}</div>:<div className="hlEmpty">Belum tersedia kode ICD-10 terstruktur pada episode pasien.</div>}</section></div>
       <p className="hlDate">Data mengikuti pilihan unit dan tahun berjalan. Episode terbuka tidak boleh ditafsirkan sebagai jumlah bed terisi tanpa integrasi sensus tempat tidur.</p>
