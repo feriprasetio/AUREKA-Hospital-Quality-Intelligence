@@ -80,10 +80,10 @@
   html[data-skin="arktik"] .workspaceRoot .hlChart circle { animation: akFade .4s ease .6s both; }
   html[data-skin="arktik"] .workspaceRoot :is(.hlBarFill, .ovBarFill) { transform-origin: left center; animation: akGrowX .7s cubic-bezier(.22, 1, .36, 1) both; }
   html[data-skin="arktik"] .workspaceRoot :is(.rmMatrixCell, .ovCell) { animation: akPop .35s cubic-bezier(.22, 1, .36, 1) both; }
-  html[data-skin="arktik"] .workspaceRoot :is.rmMatrixRow:nth-child(2) :is(.rmMatrixCell, .ovCell) { animation-delay: .04s; }
-  html[data-skin="arktik"] .workspaceRoot :is.rmMatrixRow:nth-child(3) :is(.rmMatrixCell, .ovCell) { animation-delay: .08s; }
-  html[data-skin="arktik"] .workspaceRoot :is.rmMatrixRow:nth-child(4) :is(.rmMatrixCell, .ovCell) { animation-delay: .12s; }
-  html[data-skin="arktik"] .workspaceRoot :is.rmMatrixRow:nth-child(n+5) :is(.rmMatrixCell, .ovCell) { animation-delay: .16s; }
+  html[data-skin="arktik"] .workspaceRoot .rmMatrixRow:nth-child(2) :is(.rmMatrixCell, .ovCell) { animation-delay: .04s; }
+  html[data-skin="arktik"] .workspaceRoot .rmMatrixRow:nth-child(3) :is(.rmMatrixCell, .ovCell) { animation-delay: .08s; }
+  html[data-skin="arktik"] .workspaceRoot .rmMatrixRow:nth-child(4) :is(.rmMatrixCell, .ovCell) { animation-delay: .12s; }
+  html[data-skin="arktik"] .workspaceRoot .rmMatrixRow:nth-child(n+5) :is(.rmMatrixCell, .ovCell) { animation-delay: .16s; }
   html[data-skin="arktik"] .workspaceRoot :is(.rmMatrixCell, .ovCell) { transition: scale .18s ease, box-shadow .18s ease; }
   html[data-skin="arktik"] .workspaceRoot :is(.rmMatrixCell, .ovCell):hover { scale: 1.06; z-index: 1; box-shadow: 0 8px 18px rgba(11, 36, 64, .18); }
 
