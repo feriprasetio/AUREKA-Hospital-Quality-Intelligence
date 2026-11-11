@@ -734,7 +734,7 @@ export default function PatientSafetyWorkspace({
       setLastResponseCode(identity.code)
       setSurveyAnswers(emptyRecord())
       setSurveyProfession(''); setSurveyHospitalTenure(''); setSurveyUnitTenure('')
-      setSurveyShift(''); setSurveyRole(''); setSurveyPatientContact(''); setSurveyUnit('')
+      setSurveyShift(''); setSurveyRole(''); setSurveyPatientContact(''); setSurveyUnit(scopeUnitName || '')
       if (isSuperAdmin) await loadData()
       notify('Respons anonim tersimpan sebagai record baru: ' + identity.code + '. Form siap untuk responden berikutnya.')
     } catch (e) {
