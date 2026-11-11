@@ -70,6 +70,7 @@ function LineChart({ values, labels }: { values: number[]; labels: string[] }) {
 }
 // Simpan sementara data per unit 10 menit: membuka ulang Infografis tidak menarik ulang ribuan baris.
 const unitRecordCache=new Map<string,{at:number;rows:RecordRow[]}>()
+type UnitStats={allowed?:boolean;episodes:number;active:number;avg_los:number|null;los_count:number;months:{month:number;count:number}[];top:{code:string;diagnosis:string;count:number}[]}
 
 export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,scopeToRoom=false,selectedRoomId,onRoomChange,onNavigate}:Props) {
   const [tab,setTab] = useState<'welcome'|'infographics'|'achievements'>('welcome')
@@ -79,6 +80,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const [error,setError] = useState('')
   const [refreshedAt,setRefreshedAt] = useState<Date|null>(null)
   const [countRows,setCountRows] = useState<RoomMonthCount[]|null>(null)
+  const [unitStats,setUnitStats] = useState<UnitStats|null>(null)
   // Pengingat dari Komite PMKP untuk unit pengguna (30 hari terakhir) — dibaca dari Chat unit.
   const [reminders,setReminders] = useState<{id:string;at:string;body:string}[]>([])
   useEffect(()=>{
@@ -113,10 +115,19 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       if(!infoRoomId){
         const rows=await fetchRoomMonthCounts(year)
         if(cancelled)return
-        setCountRows(rows);setRecords([]);setRefreshedAt(new Date());setLoading(false)
+        setUnitStats(null);setCountRows(rows);setRecords([]);setRefreshedAt(new Date());setLoading(false)
         return
       }
       // Satu unit: dibaca paralel per bulan (keyset id > terakhir di tiap bulan) agar cepat dan tidak terpotong.
+      // Ringkasan episode dihitung database (cepat). Bila fungsi belum dipasang, baca data per bulan (lebih lambat).
+      const stats=await supabase.rpc('aureka_patient_episode_stats',{p_room:infoRoomId,p_year:year})
+      if(!stats.error&&stats.data&&(stats.data as any).allowed!==false){
+        const counts=await fetchRoomMonthCounts(year)
+        if(cancelled)return
+        setUnitStats(stats.data as UnitStats);setCountRows(counts.filter(r=>r.room_id===infoRoomId));setRecords([]);setRefreshedAt(new Date());setLoading(false)
+        return
+      }
+      setUnitStats(null)
       const cacheKey=infoRoomId+'|'+year
       const cachedRows=unitRecordCache.get(cacheKey)
       let all:RecordRow[]
@@ -196,6 +207,12 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     const byCode=new Map<string,{code:string;diagnosis:string;count:number}>()
     const los:number[]=[]
     let active=0
+    if(unitStats&&countRows){
+      for(const r of countRows){if(r.month==null)continue;const m=months[r.month-1];if(m)m.activity+=r.total}
+      for(const r of unitStats.months||[]){const m=months[r.month-1];if(m)m.count=Number(r.count)||0}
+      return {months,episodeRows:Number(unitStats.episodes)||0,active:Number(unitStats.active)||0,averageLos:unitStats.avg_los==null?null:Number(unitStats.avg_los),
+        topDiagnoses:(unitStats.top||[]).map(t=>({code:t.code,diagnosis:t.diagnosis,count:Number(t.count)})),activity:countRows.reduce((a,b)=>a+b.total,0),losCount:Number(unitStats.los_count)||0,aggregateOnly:false}
+    }
     if(countRows){
       for(const r of countRows){if(r.month==null)continue;const m=months[r.month-1];if(!m)continue;m.activity+=r.total;if(r.measurement_grain==='patient_episode')m.count+=r.total}
       const episodes=countRows.filter(r=>r.measurement_grain==='patient_episode').reduce((a,b)=>a+b.total,0)
@@ -215,7 +232,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       if(hasDischargeField&&!discharged&&row.status!=='archived')active++
     }
     return {months,episodeRows:episodeRows.length,active,averageLos:los.length?los.reduce((a,b)=>a+b,0)/los.length:null,topDiagnoses:Array.from(byCode.values()).sort((a,b)=>b.count-a.count).slice(0,6),activity:records.length,losCount:los.length,aggregateOnly:false}
-  },[records,countRows])
+  },[records,countRows,unitStats])
   const tabButton=(id:typeof tab,label:string)=><button type="button" role="tab" aria-selected={tab===id} className={tab===id?'hlTab active':'hlTab'} onClick={()=>setTab(id)}>{label}</button>
   return <section className="homeLanding">
     <style>{`

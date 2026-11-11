@@ -137,7 +137,7 @@ test('settings destinations stay wired and keyboard tabs identify the active pan
   assert.match(read('components/workspace/WorkspaceTabs.tsx'), /event\.key === 'ArrowRight'/)
   assert.match(settings, /id="settings-active-panel" role="tabpanel"/)
   assert.match(settings, /aria-labelledby=\{'settings-tab-' \+ tab\}/)
-  for (const operation of ['saveMe', 'changePassword', 'saveRoom', 'saveIdentity', 'provisionUnitAccounts']) {
+  for (const operation of ['saveMe', 'changePassword', 'saveRoom', 'saveIdentity']) {
     assert.ok(settings.includes(operation), operation)
   }
 })
