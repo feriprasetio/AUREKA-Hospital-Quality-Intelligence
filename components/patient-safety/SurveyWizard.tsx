@@ -21,6 +21,7 @@ type Props = {
   meta: Meta
   roomOptions: string[]
   respondentOptions: { id: string; label: string }[]
+  professionFromRespondent: string
   selectedRespondentId: string
   onRespondentChange: (value: string) => void
   identityConfirmed: boolean
@@ -96,7 +97,7 @@ function Chips({ label, value, options, onChange, optional, name }: { label: str
 }
 
 export default function SurveyWizard(props: Props) {
-  const { meta, roomOptions, respondentOptions, selectedRespondentId, onRespondentChange, identityConfirmed, onIdentityConfirmedChange, dimensions, whoItems, required, answers, setAnswer, saving, error, lastResponseCode, onSubmit, onReset } = props
+  const { meta, roomOptions, respondentOptions, professionFromRespondent, selectedRespondentId, onRespondentChange, identityConfirmed, onIdentityConfirmedChange, dimensions, whoItems, required, answers, setAnswer, saving, error, lastResponseCode, onSubmit, onReset } = props
   const rootRef = useRef<HTMLDivElement>(null)
   const [stepIndex, setStepIndex] = useState(0)
   const [done, setDone] = useState(false)
@@ -241,7 +242,7 @@ export default function SurveyWizard(props: Props) {
                 <span><b>Konfirmasi identitas responden.</b> Saya telah memeriksa identitas dan sepengetahuan responden melakukan pencatatan ini. Akun login yang mengirim tetap dicatat sebagai submitter; konfirmasi ini bukan bukti biometrik siapa yang secara fisik mengetik jawaban.</span>
               </label>
             </div>
-            <Chips name="sv-prof" label="Profesi / kelompok jabatan" value={meta.profession} options={PROFESSIONS} onChange={meta.setProfession} />
+            <div className="svProfileReadonly"><span>Profesi / kelompok jabatan dari Direktori Induk SDM</span><b>{professionFromRespondent || 'Otomatis mengikuti tenaga kerja yang dipilih'}</b></div>
             <Chips name="sv-ht" label="Lama bekerja di RS" value={meta.hospitalTenure} options={TENURE} onChange={meta.setHospitalTenure} optional />
             <Chips name="sv-ut" label="Lama bekerja di unit saat ini" value={meta.unitTenure} options={TENURE} onChange={meta.setUnitTenure} optional />
             <Chips name="sv-shift" label="Pola kerja / shift" value={meta.shift} options={SHIFTS} onChange={meta.setShift} optional />
