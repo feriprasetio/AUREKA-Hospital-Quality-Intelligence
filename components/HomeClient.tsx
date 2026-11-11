@@ -273,7 +273,7 @@ export default function HomeClient(){
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
  const effectiveQualityRoomId=admin?activeWorkspaceRoomId:(selectedQualityRoomId??room?.id??null)
- const contextNavigation=active==='home'?[]:sidebarChildGroups[active]??[]
+ const contextNavigation:SidebarChild[]=[]
  const moduleLabel=active==='home'?'Beranda':active==='analytics'?(analyticsTab==='directory'||analyticsTab==='oppe'?'Sumber Daya Manusia':'Program & Indikator'):visibleMods.find(([id])=>id===active)?.[1]||'Workspace'
  const openMainModule=(id:string,keepMenuOpen=false)=>{
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
@@ -863,7 +863,7 @@ export default function HomeClient(){
     
    </div>
   </div>
-  {contextNavigation.length>0&&<div className="workspaceContextBar">
+  {(contextNavigation.length>0||(active==='quality'&&!qualityOppeOpen))&&<div className="workspaceContextBar">
    <nav className="workspaceContextNav" aria-label={'Bagian '+moduleLabel}>
     {contextNavigation.map(child=><button type="button" key={child.id} aria-current={selectedSidebarChild(active)===child.id?'page':undefined} onClick={()=>selectSidebarChild(active,child.id)}>{child.label}</button>)}
    </nav>
