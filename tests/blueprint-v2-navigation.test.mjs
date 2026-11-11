@@ -15,7 +15,7 @@ test('home exposes only Beranda and one canonical Infografis entry', () => {
 
 test('primary navigation labels follow the approved domain terminology', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  for (const label of ["label: 'Beranda'", "label: 'Pasien'", "label: 'Peningkatan Kinerja Klinis'", "label: 'Sumber Daya Manusia'", "label: 'Pengaturan'"]) {
+  for (const label of ["label: 'Beranda'", "label: 'Pasien'", "label: 'Peningkatan Kinerja Klinis'", "label: 'Sumber Daya Manusia'", "label: 'Administrasi & Konfigurasi'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
 })
