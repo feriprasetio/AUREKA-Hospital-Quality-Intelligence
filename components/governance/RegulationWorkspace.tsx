@@ -13,7 +13,7 @@ import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewpor
  * Persetujuan ini adalah persetujuan elektronik internal AUREKA, bukan TTE tersertifikasi.
  */
 type Room = { id: number; name: string }
-export type RegulationView = 'keputusan' | 'spo' | 'approval' | 'history'
+export type RegulationView = 'keputusan' | 'spo' | 'pedoman' | 'kebijakan' | 'approval' | 'history' | 'monitoring'
 type Approval = { decision: string; comments: string; approver_name: string | null; approver_role: string; approved_content_hash: string; decided_at: string }
 type Version = { id: string; version_no: number; summary: string; content: string; file_url: string | null; content_hash: string; change_note: string; status: string; effective_date: string | null; review_date: string | null; created_at: string; approvals: Approval[] }
 type Doc = { id: string; doc_type: string; doc_number: string | null; title: string; owner_room_id: number | null; room_name: string | null; legal_basis: string; status: string; current_version_id: string | null; published_version_id: string | null; updated_at: string; versions: Version[] }
@@ -60,7 +60,10 @@ export default function RegulationWorkspace({ view, rooms }: { view: RegulationV
     const all = data?.documents ?? []
     const q = search.trim().toLowerCase()
     const byView = view === 'keputusan' ? all.filter((d) => d.doc_type === 'keputusan_direktur')
-      : view === 'spo' ? all.filter((d) => d.doc_type !== 'keputusan_direktur')
+      : view === 'spo' ? all.filter((d) => d.doc_type === 'spo')
+      : view === 'pedoman' ? all.filter((d) => ['pedoman', 'panduan'].includes(d.doc_type))
+      : view === 'kebijakan' ? all.filter((d) => d.doc_type === 'kebijakan')
+      : view === 'monitoring' ? all.filter((d) => Boolean(d.published_version_id) && Boolean(d.versions.find((v) => v.id === d.published_version_id)?.review_date))
       : view === 'approval' ? all.filter((d) => ['menunggu_direktur', 'disetujui', 'dikembalikan'].includes(d.status) || d.versions.some((v) => ['menunggu_direktur', 'disetujui'].includes(v.status)))
       : all
     return q ? byView.filter((d) => (d.title + ' ' + (d.doc_number || '') + ' ' + (d.room_name || '')).toLowerCase().includes(q)) : byView
@@ -68,7 +71,7 @@ export default function RegulationWorkspace({ view, rooms }: { view: RegulationV
   const current = (d: Doc) => d.versions.find((v) => v.id === d.current_version_id) || d.versions[0]
   const published = (d: Doc) => d.versions.find((v) => v.id === d.published_version_id)
 
-  const title = { keputusan: 'Keputusan Direktur', spo: 'Standar Prosedur Operasional & dokumen lain', approval: 'Persetujuan Elektronik', history: 'Riwayat Versi' }[view]
+  const title = { keputusan: 'Keputusan Direktur', spo: 'Standar Prosedur Operasional', pedoman: 'Pedoman dan Panduan', kebijakan: 'Kebijakan Rumah Sakit', approval: 'Persetujuan Elektronik', history: 'Riwayat Versi', monitoring: 'Monitoring Regulasi' }[view]
   const history = useMemo(() => (data?.documents ?? []).flatMap((d) => d.versions.map((v) => ({ d, v }))).sort((a, b) => b.v.created_at.localeCompare(a.v.created_at)), [data])
 
   return (
@@ -81,7 +84,7 @@ export default function RegulationWorkspace({ view, rooms }: { view: RegulationV
         </div>
         <div className="govHeadTools">
           <input type="search" className="govSearch" placeholder="Cari judul / nomor…" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Cari regulasi" />
-          {data?.can_draft && view !== 'history' && view !== 'approval' && <button type="button" className="rmButton primary" onClick={() => setDraft(emptyDraft(view === 'keputusan' ? 'keputusan_direktur' : 'spo'))}>+ Dokumen baru</button>}
+          {data?.can_draft && !['history', 'approval', 'monitoring'].includes(view) && <button type="button" className="rmButton primary" onClick={() => setDraft(emptyDraft(view === 'keputusan' ? 'keputusan_direktur' : view === 'spo' ? 'spo' : view === 'pedoman' ? 'pedoman' : 'kebijakan'))}>+ Dokumen baru</button>}
         </div>
       </div>
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
@@ -98,7 +101,7 @@ export default function RegulationWorkspace({ view, rooms }: { view: RegulationV
             <td><b>{d.title}</b>{d.doc_number && <small className="rmCellSmall">{d.doc_number}</small>}</td>
             <td>{TYPE_LABEL[d.doc_type] || d.doc_type}</td>
             <td>{d.room_name || '—'}</td>
-            <td>{pub ? <>v{pub.version_no}<small className="rmCellSmall">berlaku {fmtDate(pub.effective_date)}</small></> : '—'}</td>
+            <td>{pub ? <>v{pub.version_no}<small className="rmCellSmall">berlaku {fmtDate(pub.effective_date)}</small>{pub.review_date && <small className="rmCellSmall">tinjau {fmtDate(pub.review_date)}</small>}</> : '—'}</td>
             <td>{cur ? 'v' + cur.version_no : '—'}</td>
             <td><span className={'govStatus ' + (cur?.status || d.status)}>{STATUS_LABEL[cur?.status || d.status] || d.status}</span></td>
             <td><div className="rmActions">
