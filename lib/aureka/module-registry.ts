@@ -5,7 +5,7 @@ export type AurekaRole =
 export type ModuleStatus = 'available' | 'beta' | 'maintenance' | 'planned'
 export type ModuleVisibility = 'all-authenticated' | 'management-only'
 export type AurekaModule = {
-  id: 'home' | 'patients' | 'quality' | 'clinical' | 'safety' | 'risk' | 'analytics' | 'regulation' | 'staff' | 'settings'
+  id: 'home' | 'patients' | 'quality' | 'clinical' | 'safety' | 'risk' | 'analytics' | 'staff' | 'settings'
   label: string
   group: 'overview' | 'clinical' | 'governance'
   status: ModuleStatus
@@ -30,7 +30,6 @@ export const AUREKA_MODULE_REGISTRY = [
   { id:'safety', label:'Keselamatan Pasien', group:'clinical', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC'], routeHash:'#keselamatan-pasien', owner:'Komite PMKP / Tim Keselamatan Pasien', lastReviewed:'2026-11-12', description:'Register insiden, investigasi/RCA, dan survei budaya keselamatan bernama.' },
   { id:'risk', label:'Manajemen Risiko', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:GOVERNANCE_ROLES, routeHash:'#manajemen-risiko', owner:'Manajemen risiko rumah sakit', lastReviewed:'2026-11-12', description:'Risk Register, konektor, profil risiko, FMEA, RTP, dan evaluasi efektivitas kontrol.' },
   { id:'analytics', label:'Program', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'], routeHash:'#program', owner:'Komite PMKP / Manajemen', lastReviewed:'2026-11-12', description:'Program kerja tahunan, rekomendasi, dan rencana tindak lanjut terintegrasi.' },
-  { id:'regulation', label:'Regulasi', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:ALL_ROLES, routeHash:'#regulasi', owner:'Direktur / Komite PMKP', lastReviewed:'2026-11-12', description:'E-Regulasi: Keputusan Direktur, SPO, persetujuan elektronik Direktur, dan riwayat versi (Blueprint v2 §8).' },
   { id:'staff', label:'Sumber Daya Manusia', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#sumber-daya-manusia', owner:'Super Admin / Komite PMKP', lastReviewed:'2026-11-12', description:'Master tenaga kerja, tim dan penugasan, OPPE, FPPE, serta riwayat jabatan.' },
   { id:'settings', label:'Pengaturan', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:ALL_ROLES, routeHash:'#pengaturan', owner:'Super Admin / Komite PMKP', lastReviewed:'2026-11-12', description:'Profil/akun, pengguna dan role, unit, keamanan, preferensi, konfigurasi, dan audit log.' },
 ] as const satisfies readonly AurekaModule[]
