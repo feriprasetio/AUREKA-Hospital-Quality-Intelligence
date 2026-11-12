@@ -171,7 +171,7 @@ export default function HomeClient(){
    if(next==='regulation')setRegulationView((['keputusan','spo','approval','history'].includes(section)?section:'keputusan') as RegulationView)
    if(next==='settings')setSettingsSection((section==='audit-log'?'audit':['profile','security','users','units','appearance','system','permissions','mydata'].includes(section)?section:'profile') as SettingsSection)
    if(next==='patients')setPatientsSection(section==='statistik'?'stats':section==='metadata-pasien'||section==='database-pasien'?'metadata':'register')
-   if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
+   if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'||role==='DIREKTUR'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
    if(next==='risk')setRiskTab((['overview','register','mitigation','connections','fmea','profile','evaluation'].includes(section)?section:'overview') as RiskWorkspaceTab)
    if(next==='analytics'){
     const legacySection=section==='metadata'?'profiles':section==='staff'?'directory':section
@@ -267,7 +267,7 @@ export default function HomeClient(){
    // Blueprint v2 §1: Insiden [Register; Investigasi]; Budaya [Form Survei Tahunan; Register Survei Tahunan]
    safety:[
     {id:'grp-incident',label:'Insiden',children:[{id:'incidents',label:'Register Insiden'},{id:'investigation',label:'Investigasi'}]},
-    {id:'grp-culture',label:'Budaya',children:[{id:'survey',label:'Form Survei Tahunan'},...(admin?[{id:'responses',label:'Register Survei Tahunan'}]:[])]},
+    {id:'grp-culture',label:'Budaya',children:[{id:'survey',label:'Form Survei Tahunan'},...(admin||role==='DIREKTUR'?[{id:'responses',label:'Register Survei Tahunan'}]:[])]},
    ],
    // Blueprint v2 §1: Risk Register [Daftar; Konektor; Profil]; FMEA [Analisis; Mitigasi & RTP; Evaluasi Keberhasilan]
    risk:[

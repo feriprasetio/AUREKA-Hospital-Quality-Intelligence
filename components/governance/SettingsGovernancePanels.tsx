@@ -103,7 +103,7 @@ export function PermissionMatrixPanel() {
         </tr>)}
       </tbody></table></div>}
       {matrix.length > 0 && !canEdit && <p className="stPanelHint">Hanya Super Admin yang dapat mengubah matriks ini.</p>}
-      <p className="stPanelHint">Catatan: matriks ini sudah dipakai untuk membuka identitas pasien dan fitur tata kelola baru (Program, Regulasi, Audit Log). Pembatasan data lama di modul lain masih mengikuti aturan akses unit yang berlaku dan akan disesuaikan bertahap.</p>
+      <p className="stPanelHint">Catatan: matriks ini dipakai untuk identitas pasien, fitur tata kelola (Program, Regulasi, Audit Log), serta tambahan akses baca rincian investigasi, respons survei bernama, dan OPPE/FPPE. Aturan akses lama tetap berlaku (tahap 1 hanya menambah akses, tidak mengurangi).</p>
     </section>
   )
 }

@@ -58,3 +58,13 @@ export async function requestSensitiveAccess(type: AccessType, objectId: string 
   await aurekaSupabase.rpc('aureka_gov_log_access', { p_object_type: type, p_object_id: objectId, p_purpose: purpose || null, p_detail: {} })
   return true
 }
+
+const viewLogged = new Map<string, number>()
+/** Catat (tanpa bertanya) bahwa pengguna membuka layar berisi data sensitif. Maksimal sekali per 10 menit per layar. */
+export function logSensitiveView(type: AccessType, objectId: string | null, detail: Record<string, unknown> = {}) {
+  const key = type + '|' + (objectId || '')
+  const last = viewLogged.get(key) || 0
+  if (Date.now() - last < 10 * 60 * 1000) return
+  viewLogged.set(key, Date.now())
+  void aurekaSupabase.rpc('aureka_gov_log_access', { p_object_type: type, p_object_id: objectId, p_purpose: 'membuka layar', p_detail: detail }).then(() => undefined, () => undefined)
+}
