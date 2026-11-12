@@ -139,3 +139,12 @@ test('PIC performance dashboard and indicator proposal workspaces are wired to a
   assert.match(scopeHotfix, /active_pic\.room_id = v\.room_id/)
   assert.match(scopeHotfix, /aureka_system\.user_room_assignments/)
 })
+
+
+test('indicator proposal foreign-key columns have covering indexes', () => {
+  const migration = read('supabase/migrations/20261112133038_index_indicator_proposal_audit_foreign_keys.sql')
+  assert.match(migration, /indicator_proposal_events_actor_user_id_idx/)
+  assert.match(migration, /indicator_proposals_reviewed_by_idx/)
+  assert.match(migration, /indicator_proposals_activated_by_idx/)
+  assert.match(migration, /indicator_proposals_activated_profile_id_idx/)
+})
