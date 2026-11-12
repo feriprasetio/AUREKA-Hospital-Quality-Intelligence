@@ -253,3 +253,31 @@ html body:not(#_) .cpRoot .cpKpi strong { font-size: 20px; margin-top: 2px; }
   html body:not(#_) .cpLibTools, html body:not(#_) .cpLibSel { width: 100%; }
   html body:not(#_) .cpLibSel select { flex: 1; max-width: none; }
 }
+
+/* ===== Manajemen Risiko: Register & Konektor ringkas, muat satu layar ===== */
+html body:not(#_) .rmFilterBar { display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+html body:not(#_) .rmFilterBar > select { flex: 1 1 150px; width: auto; height: 38px; min-height: 38px; }
+html body:not(#_) .rmFilterBar > select:first-of-type { flex: 2 1 240px; }
+html body:not(#_) .rmFilterBar .rmBarActions { margin-left: auto; flex-wrap: nowrap; }
+html body:not(#_) .rmFilterBar .rmButton { min-height: 38px; padding: 0 14px; white-space: nowrap; }
+html body:not(#_) .rmWorkspace .rmTableWrap { max-height: calc(100dvh - 330px) !important; min-height: 260px; }
+html body:not(#_) .rmWorkspace .rmTable td { padding-top: 6px !important; padding-bottom: 6px !important; }
+html body:not(#_) .rmWorkspace .rmRiskName small { margin-top: 1px; }
+html body:not(#_) .rmWorkspace .rmTableFooter { margin-top: 8px; }
+
+html body:not(#_) .rmLinkCompact .rmFormGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 10px; align-items: end; }
+html body:not(#_) .rmLinkCompact .rmFormGrid .rmLinkDesc { grid-column: 1 / 4; }
+html body:not(#_) .rmLinkCompact .rmLinkGo { min-height: 40px; align-self: end; }
+html body:not(#_) .rmLinkCompact { padding: 12px 14px !important; }
+html body:not(#_) .rmWorkspace .rmGraphLink { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto !important; padding: 8px 10px; gap: 10px; }
+html body:not(#_) .rmWorkspace .rmGraphLink:has(> .rmGraphNode + .rmConnector + .rmGraphNode) { grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1fr) auto !important; }
+html body:not(#_) .rmWorkspace .rmGraphNode { padding: 7px 10px; gap: 2px; }
+html body:not(#_) .rmWorkspace .rmConnector { justify-items: start; text-align: left; gap: 2px; }
+html body:not(#_) .rmWorkspace .rmConnector i { display: none; }
+html body:not(#_) .rmWorkspace .rmGraphList { gap: 6px; max-height: calc(100dvh - 420px); min-height: 200px; overflow: auto; }
+@media (max-width: 900px) {
+  html body:not(#_) .rmLinkCompact .rmFormGrid { grid-template-columns: 1fr 1fr; }
+  html body:not(#_) .rmLinkCompact .rmFormGrid .rmLinkDesc { grid-column: 1 / -1; }
+  html body:not(#_) .rmWorkspace .rmGraphLink, html body:not(#_) .rmWorkspace .rmGraphLink:has(> .rmGraphNode + .rmConnector + .rmGraphNode) { grid-template-columns: 1fr !important; }
+  html body:not(#_) .rmWorkspace :is(.rmTableWrap, .rmGraphList) { max-height: none !important; }
+}
