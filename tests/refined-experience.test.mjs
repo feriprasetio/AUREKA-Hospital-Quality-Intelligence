@@ -38,7 +38,7 @@ test('workspace header stays compact while retaining the actual navigation and d
 
 test('assets and account return URLs follow the configured deployment base path', () => {
   assert.match(source('../next.config.mjs'), /NEXT_PUBLIC_BASE_PATH: basePath/)
-  assert.match(home, /const LOGO=`\$\{BASE_PATH\}\/logo-aureka\.png`/)
+  assert.match(home, /const LOGO=`\$\{BASE_PATH\}\/logo-aureka-v2\.png`/)
   assert.doesNotMatch(home, /logo-aureka\.jpg/)
   assert.doesNotMatch(home, /\$\{window\.location\.origin\}\/AUREKA-Hospital-Quality-Intelligence\//)
   assert.match(source('../components/FppeEvaluationWorkspace.tsx'), /NEXT_PUBLIC_BASE_PATH/)
