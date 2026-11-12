@@ -566,8 +566,7 @@ export default function HomeClient(){
   setNotifications(current=>[item,...current].slice(0,40))
   setActiveToast(item)
  }
- useEffect(()=>{
-  const loadReminderHistory=useCallback(async()=>{
+ const loadReminderHistory=useCallback(async()=>{
   if(view!=='workspace'||!user?.id||admin){setReminderHistory([]);return}
   try{
    const {data:readRows,error:readError}=await sys().from('support_reminder_reads')
