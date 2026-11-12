@@ -71,3 +71,30 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
 })
+
+
+test('RTL is one workspace with a source dropdown, not three duplicated navigation entries', () => {
+  const app = read('components/HomeClient.tsx')
+  const workspace = read('components/governance/GovernanceProgramWorkspace.tsx')
+  assert.match(app, /\{id:'rtl',label:'Rencana Tindak Lanjut \(RTL\)'\}/)
+  assert.doesNotMatch(app, /\{id:'rtl-dewas'/)
+  assert.doesNotMatch(app, /\{id:'rtl-direktur'/)
+  assert.doesNotMatch(app, /\{id:'rtl-kabid'/)
+  assert.match(workspace, /view === 'rtl' && <label className="govYear">Sumber rekomendasi/)
+  assert.match(workspace, /value="DEWAN_PENGAWAS">Dewan Pengawas/)
+  assert.match(workspace, /value="DIREKTUR">Direktur/)
+  assert.match(workspace, /value="KABID">Kepala Bidang/)
+  assert.match(app, /legacySection\.startsWith\('rtl-'\)\?'rtl'/)
+})
+
+test('E-Regulation exposes distinct document classes and monitoring without treating drafts as active regulations', () => {
+  const app = read('components/HomeClient.tsx')
+  const workspace = read('components/governance/RegulationWorkspace.tsx')
+  assert.match(app, /label:'Pedoman dan Panduan'/)
+  assert.match(app, /label:'Kebijakan Rumah Sakit'/)
+  assert.match(app, /label:'Monitoring Regulasi'/)
+  assert.match(workspace, /view === 'pedoman' \? all\.filter\(\(d\) => \['pedoman', 'panduan'\]/)
+  assert.match(workspace, /view === 'kebijakan' \? all\.filter\(\(d\) => d\.doc_type === 'kebijakan'/)
+  assert.match(workspace, /view === 'monitoring' \? all\.filter/)
+  assert.match(workspace, /!\['history', 'approval', 'monitoring'\]\.includes\(view\)/)
+})
