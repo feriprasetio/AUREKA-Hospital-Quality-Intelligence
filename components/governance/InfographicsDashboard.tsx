@@ -119,14 +119,20 @@ function ChartGraphic({ model, type }: { model: ChartModel; type: 'column' | 'ba
     </svg>
   }
   if (type === 'bar') {
-    const rowH = Math.min(32, Math.max(19, plotH / model.labels.length))
+    const rowH = Math.min(44, Math.max(26, plotH / model.labels.length))
     const dynamicHeight = Math.max(height, top + model.labels.length * rowH + bottom)
+    const seriesH = (rowH - 8) / Math.max(1, model.series.length)
     return <svg className="ifChartSvg" viewBox={'0 0 ' + width + ' ' + dynamicHeight} role="img" aria-label={model.label + ', diagram batang horizontal'}>
       {model.labels.map((label, index) => {
-        const value = model.series[0]?.values[index] ?? null
         const y = top + index * rowH
-        const w = value === null ? 0 : Math.max(0, value / maxValue * (plotW - 8))
-        return <g key={label}><text x={left - 10} y={y + rowH * .68} textAnchor="end" fontSize="10" fill="#65778a">{label.length > 23 ? label.slice(0, 21) + '…' : label}</text><rect x={left} y={y + 4} width={plotW} height={Math.max(6, rowH - 9)} rx="4" fill="#eef2f5"/>{value !== null && <rect x={left} y={y + 4} width={w} height={Math.max(6, rowH - 9)} rx="4" fill={colors[0]}/>}<text x={left + w + 7} y={y + rowH * .68} fontSize="10" fontWeight="700" fill="#21374f">{value === null ? '—' : fmt(value)}</text></g>
+        return <g key={label}><text x={left - 10} y={y + rowH * .58} textAnchor="end" fontSize="10" fill="#65778a">{label.length > 23 ? label.slice(0, 21) + '…' : label}</text>
+          {model.series.map((series, seriesIndex) => {
+            const value = series.values[index]
+            const w = value === null ? 0 : Math.max(0, value / maxValue * (plotW - 8))
+            const barY = y + 4 + seriesIndex * seriesH
+            return <g key={series.label}><rect x={left} y={barY} width={plotW} height={Math.max(5, seriesH - 3)} rx="3" fill="#eef2f5"/>{value !== null && <rect x={left} y={barY} width={w} height={Math.max(5, seriesH - 3)} rx="3" fill={series.color}/>}<text x={left + w + 6} y={barY + Math.max(5, seriesH - 3) * .8} fontSize="9" fontWeight="700" fill="#21374f">{value === null ? '—' : fmt(value)}</text></g>
+          })}
+        </g>
       })}
     </svg>
   }
