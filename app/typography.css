@@ -261,8 +261,8 @@ html body:not(#_) .rmFilterBar > select:first-of-type { flex: 2 1 240px; }
 html body:not(#_) .rmFilterBar .rmBarActions { margin-left: auto; flex-wrap: nowrap; }
 html body:not(#_) .rmFilterBar .rmButton { min-height: 38px; padding: 0 14px; white-space: nowrap; }
 html body:not(#_) .rmWorkspace .rmTableWrap { max-height: calc(100dvh - 440px) !important; min-height: 240px; }
-html body:not(#_) .rmWorkspace .rmTable tbody td { padding-top: 5px !important; padding-bottom: 5px !important; height: auto !important; }
-html body:not(#_) .rmWorkspace .rmTable .rmRiskName { padding-top: 2px !important; padding-bottom: 2px !important; min-height: 0 !important; }
+html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td { padding-top: 5px !important; padding-bottom: 5px !important; height: auto !important; }
+html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable .rmRiskName { padding-top: 2px !important; padding-bottom: 2px !important; min-height: 0 !important; }
 html body:not(#_) .rmWorkspace .rmRiskName small { margin-top: 1px; }
 html body:not(#_) .rmWorkspace .rmTableFooter { margin-top: 8px; }
 
@@ -481,15 +481,15 @@ html body:not(#_) .workspaceRoot .homeLanding :is(.hlReminderBtn, .hlReminderRea
 
 /* ===== HP: tabel jadi kartu ringkas (Risk Register & Direktori Tenaga Kerja) ===== */
 @media (max-width: 640px) {
-  html body:not(#_) .rmWorkspace .rmTable tbody tr { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 6px 8px !important; padding: 12px !important; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td { padding: 0 !important; border: 0 !important; min-height: 0 !important; height: auto !important; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(1) { flex: 0 0 26px; align-self: flex-start; padding-top: 2px !important; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(2) { flex: 1 1 calc(100% - 40px); min-width: 0; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(3) { flex: 1 1 100%; padding-left: 34px !important; font-size: 12px; opacity: .75; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(4) { margin-left: 34px; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(n+4):nth-child(-n+6) { flex: 0 0 auto; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td:last-child { flex: 1 1 100%; padding-left: 34px !important; }
-  html body:not(#_) .rmWorkspace .rmTable tbody td:last-child > * { display: flex; gap: 6px; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody tr { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 6px 8px !important; padding: 12px !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td { padding: 0 !important; border: 0 !important; min-height: 0 !important; height: auto !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:nth-child(1) { flex: 0 0 26px; align-self: flex-start; padding-top: 2px !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:nth-child(2) { flex: 1 1 calc(100% - 40px); min-width: 0; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:nth-child(3) { flex: 1 1 100%; padding-left: 34px !important; font-size: 12px; opacity: .75; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:nth-child(4) { margin-left: 34px; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:nth-child(n+4):nth-child(-n+6) { flex: 0 0 auto; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:last-child { flex: 1 1 100%; padding-left: 34px !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:last-child > * { display: flex; gap: 6px; }
 
   html body:not(#_) .sdTableWrap { overflow: visible !important; }
   html body:not(#_) .sdTable, html body:not(#_) .sdTable tbody { display: block !important; width: 100% !important; min-width: 0 !important; }
@@ -511,4 +511,9 @@ html body:not(#_) .workspaceRoot .homeLanding :is(.hlReminderBtn, .hlReminderRea
   html body:not(#_) .fppeHeaderActions .fppeUnitChoice select { flex: 1; min-width: 0 !important; width: 100%; }
   html body:not(#_) .fppeHeaderActions > button { flex: 1 1 auto; }
   html body:not(#_) iframe { max-width: 100%; }
+}
+@media (max-width: 640px) {
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable .rmRiskName { padding: 0 !important; }
+  html body:not(#_) .sdActions { gap: 6px; }
+  html body:not(#_) .sdActions .sdBtn { white-space: nowrap; }
 }
