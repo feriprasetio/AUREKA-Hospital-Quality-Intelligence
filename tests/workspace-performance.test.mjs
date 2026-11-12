@@ -12,7 +12,6 @@ test('HomeClient lazy-loads heavy workspaces rather than importing them into the
     'ClinicalPathwayWorkspace',
     'PatientSafetyWorkspace',
     'RiskManagementWorkspace',
-    'QualityHub',
     'GeneralSettings',
     'MetadataStatisticsWorkspace',
     'OppeAuditWorkspace',
