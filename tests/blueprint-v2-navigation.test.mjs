@@ -66,42 +66,34 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(registry.includes("id:'clinical', label:'Peningkatan Kinerja Klinis'"))
   assert.ok(app.includes("clinical:["))
   assert.match(app, /quality:role==='DEWAN_PENGAWAS'/)
-  // Route kanonis Hasil Capaian membedakan Unit Keseluruhan dan Kategori Indikator
-  assert.ok(app.includes("hash='#indikator-mutu/'+(qualityProposalOpen?'usulan-indikator':qualityResultsView?'hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'form-logbook')"))
+  assert.ok(app.includes("hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'form-logbook')"))
+  assert.ok(app.includes("if(section==='usulan-indikator'){\n     setActive('analytics');setAnalyticsTab('programs')"))
   assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
 })
 
-
-test('RTL is one workspace with a source dropdown, not three duplicated navigation entries', () => {
+test('Program navigation combines stakeholder recommendations and RTL into one workspace', () => {
   const app = read('components/HomeClient.tsx')
   const workspace = read('components/governance/GovernanceProgramWorkspace.tsx')
-  assert.match(app, /\{id:'rtl',label:'Rencana Tindak Lanjut \(RTL\)'\}/)
-  assert.doesNotMatch(app, /\{id:'rtl-dewas'/)
-  assert.doesNotMatch(app, /\{id:'rtl-direktur'/)
-  assert.doesNotMatch(app, /\{id:'rtl-kabid'/)
-  assert.match(workspace, /view === 'rtl' && <label className="govYear">Sumber rekomendasi/)
-  assert.match(workspace, /value="DEWAN_PENGAWAS">Dewan Pengawas/)
-  assert.match(workspace, /value="DIREKTUR">Direktur/)
-  assert.match(workspace, /value="KABID">Kepala Bidang/)
-  assert.match(app, /legacySection\.startsWith\('rtl-'\)\?'rtl'/)
+  assert.match(app, /\{id:'programs',label:'Program Kerja Tahunan'\}/)
+  assert.match(app, /\{id:'recommendations',label:'Rekomendasi dan Rencana Tindak Lanjut'\}/)
+  assert.doesNotMatch(app, /\{id:'rtl',label:'Rencana Tindak Lanjut/)
+  assert.match(workspace, /Pemberi rekomendasi/)
+  for (const level of ['DEWAN_PENGAWAS','DIREKTUR','KETUA_PMKP','KABID']) assert.ok(workspace.includes(level))
+  assert.match(workspace, /value="PDSA"/)
+  assert.match(workspace, /value="PDCA"/)
 })
 
-test('E-Regulation exposes distinct document classes and monitoring without treating drafts as active regulations', () => {
+test('retired E-Regulasi is absent from application navigation and workspace source', () => {
   const app = read('components/HomeClient.tsx')
-  const workspace = read('components/governance/RegulationWorkspace.tsx')
-  assert.match(app, /label:'Pedoman dan Panduan'/)
-  assert.match(app, /label:'Kebijakan Rumah Sakit'/)
-  assert.match(app, /label:'Monitoring Regulasi'/)
-  assert.match(workspace, /view === 'pedoman' \? all\.filter\(\(d\) => \['pedoman', 'panduan'\]/)
-  assert.match(workspace, /view === 'kebijakan' \? all\.filter\(\(d\) => d\.doc_type === 'kebijakan'/)
-  assert.match(workspace, /view === 'monitoring' \? all\.filter/)
-  assert.match(workspace, /!\['history', 'approval', 'monitoring'\]\.includes\(view\)/)
+  const registry = read('lib/aureka/module-registry.ts')
+  assert.doesNotMatch(app, /RegulationWorkspace|regulation|regulasi/i)
+  assert.doesNotMatch(registry, /regulation|regulasi/i)
 })
 
-
-test('PIC performance dashboard and indicator proposal workspaces are wired to authorized navigation', () => {
+test('PIC performance remains in SDM while indicator proposals are accessed from annual Program', () => {
   const app = read('components/HomeClient.tsx')
+  const annualProgram = read('components/governance/AnnualProgramWorkspace.tsx')
   const performance = read('components/PicPerformanceWorkspace.tsx')
   const proposals = read('components/IndicatorProposalWorkspace.tsx')
   const migration = read('supabase/migrations/20261112131846_pic_performance_and_indicator_proposals.sql')
@@ -112,8 +104,10 @@ test('PIC performance dashboard and indicator proposal workspaces are wired to a
   assert.match(performance, /Data terakhir dibuat/)
   assert.match(performance, /records_validated/)
   assert.match(migration, /records_archived/)
-  assert.match(app, /id:'proposals',label:'Usulan Indikator Baru'/)
-  assert.match(app, /<IndicatorProposalWorkspace/)
+  assert.match(app, /AnnualProgramWorkspace/)
+  assert.match(annualProgram, /Usulan Indikator Baru/)
+  assert.match(annualProgram, /<IndicatorProposalWorkspace/)
+  assert.doesNotMatch(app, /id:'proposals',label:'Usulan Indikator Baru'/)
   assert.match(proposals, /aureka_gov_indicator_proposal_save/)
   assert.match(proposals, /aureka_gov_indicator_proposal_review/)
   assert.match(proposals, /aureka_gov_indicator_proposal_activate/)
@@ -142,7 +136,6 @@ test('PIC performance dashboard and indicator proposal workspaces are wired to a
   assert.match(scopeHotfix, /active_pic\.room_id = v\.room_id/)
   assert.match(scopeHotfix, /aureka_system\.user_room_assignments/)
 })
-
 
 test('indicator proposal foreign-key columns have covering indexes', () => {
   const migration = read('supabase/migrations/20261112133038_index_indicator_proposal_audit_foreign_keys.sql')
