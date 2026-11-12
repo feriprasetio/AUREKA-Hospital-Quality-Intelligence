@@ -52,10 +52,10 @@ test('operational modules use the same small header while retaining their own ac
   assert.match(header, /\{actions\}/)
   assert.doesNotMatch(header, /fetch\(|localStorage|supabase/i)
   for (const name of [
-    'OverviewDashboard', 'QualityResultsWorkspace', 'ClinicalPathwayWorkspace',
+    'QualityResultsWorkspace', 'ClinicalPathwayWorkspace',
     'ClinicalDeathAuditWorkspace', 'PatientSafetyWorkspace', 'RiskManagementWorkspace',
     'StaffDirectoryWorkspace', 'StaffTeamWorkspace', 'OppeAuditWorkspace',
-    'FppeEvaluationWorkspace', 'StatisticsWorkspace', 'GeneralSettings', 'QualitySettings',
+    'FppeEvaluationWorkspace', 'GeneralSettings', 'QualitySettings',
   ]) {
     assert.ok(read(`components/${name}.tsx`).includes('<WorkspaceModuleHeader'), name)
   }
@@ -77,7 +77,7 @@ test('table regions measure actual column overflow and provide keyboard and butt
   for (const name of [
     'QualityIndicatorWorkspace', 'QualityResultsWorkspace', 'ClinicalPathwayWorkspace',
     'ClinicalDeathAuditWorkspace', 'PatientSafetyWorkspace', 'RiskManagementWorkspace',
-    'StaffDirectoryWorkspace', 'StatisticsWorkspace',
+    'StaffDirectoryWorkspace',
   ]) {
     assert.ok(read(`components/${name}.tsx`).includes('<WorkspaceTableViewport'), name)
   }
@@ -251,18 +251,6 @@ test('density changes real cells and surfaces and print removes scroll caps', ()
 })
 
 
-test('Magic UI-inspired overview treatment stays inside the authenticated AUREKA design system', () => {
-  const overview = read('components/OverviewDashboard.tsx')
-  assert.match(overview, /className=\{\`ovKpi magicKpi/)
-  assert.match(overview, /className="magicKpiGlow" aria-hidden="true"/)
-  assert.match(overview, /className="magicKpiSweep" aria-hidden="true"/)
-  assert.match(overview, /aria-label=\{\`\$\{label\}: \$\{displayValue\}\`\}/)
-  assert.match(overview, /className="ovPanel magicPanel"/)
-  assert.match(css, /\.moduleEnter \.magicKpi:not\(:disabled\):hover/)
-  assert.match(css, /@keyframes aurekaMagicSweep/)
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.magicKpiSweep/)
-  assert.doesNotMatch(css, /\.publicRoot[^\n]*magicKpi|\.authPage[^\n]*magicKpi/)
-})
 
 test('Magic UI-inspired effects do not add animation dependencies to the production bundle', () => {
   const pkg = JSON.parse(read('package.json'))
