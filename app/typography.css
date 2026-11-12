@@ -759,17 +759,17 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
 @media (max-width: 720px) {
   html body:not(#_) .workspaceRoot .workspacePageHead { margin-bottom: 6px !important; }
   html body:not(#_) .mobileSubNav { margin: 0 16px 14px !important; padding: 8px !important; border-radius: 18px; background: rgba(255, 255, 255, .72); border: 1px solid rgba(11, 47, 82, .08); box-shadow: 0 4px 14px rgba(11, 47, 82, .06); gap: 8px !important; }
-  html body:not(#_) .mobileSubNavRow:not(.sub) { display: flex !important; flex-wrap: nowrap !important; gap: 4px !important; padding: 4px !important; border-radius: 14px; background: rgba(11, 47, 82, .06); }
-  html body:not(#_) .mobileSubNavRow:not(.sub) > button { flex: 1 1 0 !important; min-height: 38px; border: 0 !important; box-shadow: none !important; background: transparent !important; color: #33506e !important; border-radius: 11px !important; padding: 4px 8px !important; font-size: 13.5px !important; }
-  html body:not(#_) .mobileSubNavRow:not(.sub) > button.active { background: #fff !important; color: #0b1f33 !important; box-shadow: 0 2px 8px rgba(11, 47, 82, .12) !important; }
+  html body:not(#_) .mobileSubNavRow.seg { display: flex !important; flex-wrap: nowrap !important; gap: 4px !important; padding: 4px !important; border-radius: 14px; background: rgba(11, 47, 82, .06); }
+  html body:not(#_) .mobileSubNavRow.seg > button { flex: 1 1 0 !important; min-height: 38px; border: 0 !important; box-shadow: none !important; background: transparent !important; color: #33506e !important; border-radius: 11px !important; padding: 4px 8px !important; font-size: 13.5px !important; }
+  html body:not(#_) .mobileSubNavRow.seg > button.active { background: #fff !important; color: #0b1f33 !important; box-shadow: 0 2px 8px rgba(11, 47, 82, .12) !important; }
   html body:not(#_) .mobileSubNavRow.sub { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px !important; }
   html body:not(#_) .mobileSubNavRow.sub > button { width: 100%; min-height: 40px !important; border-radius: 12px !important; font-size: 13px !important; padding: 6px 10px !important; background: transparent !important; border: 1px solid rgba(11, 47, 82, .12) !important; box-shadow: none !important; color: #33506e !important; }
   html body:not(#_) .mobileSubNavRow.sub > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
   html body:not(#_) .mobileSubNavRow.sub > button.active { background: #0b1f33 !important; border-color: #0b1f33 !important; color: #fff !important; font-weight: 700; }
   html[data-mode="gelap"] body:not(#_) .mobileSubNav { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow:not(.sub) { background: rgba(255, 255, 255, .06); }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow:not(.sub) > button { color: #b9c7d8 !important; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow:not(.sub) > button.active { background: #1c2c44 !important; color: #fff !important; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.seg { background: rgba(255, 255, 255, .06); }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.seg > button { color: #b9c7d8 !important; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.seg > button.active { background: #1c2c44 !important; color: #fff !important; }
   html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.sub > button { color: #c9d6e6 !important; border-color: rgba(255, 255, 255, .12) !important; }
   html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.sub > button.active { background: #5aa9e6 !important; border-color: #5aa9e6 !important; color: #07101e !important; }
   /* KPI kartu ringkas */
@@ -794,4 +794,38 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
     -webkit-backdrop-filter: blur(22px) saturate(1.4) !important; backdrop-filter: blur(22px) saturate(1.4) !important;
   }
   html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen { background: rgba(13, 22, 38, .8) !important; }
+}
+
+@media (max-width: 720px) {
+  /* Submenu banyak (mis. Pengaturan): grid 2 kolom, tidak melebarkan halaman */
+  html body:not(#_) .mobileSubNavRow.grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px !important; }
+  html body:not(#_) .mobileSubNavRow.grid > button { width: 100%; min-height: 40px !important; border-radius: 12px !important; font-size: 13px !important; padding: 6px 10px !important; background: transparent !important; border: 1px solid rgba(11, 47, 82, .12) !important; box-shadow: none !important; color: #33506e !important; white-space: normal !important; }
+  html body:not(#_) .mobileSubNavRow.grid > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  html body:not(#_) .mobileSubNavRow.grid > button.active { background: #0b1f33 !important; border-color: #0b1f33 !important; color: #fff !important; font-weight: 700; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.grid > button { color: #c9d6e6 !important; border-color: rgba(255, 255, 255, .12) !important; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.grid > button.active { background: #5aa9e6 !important; border-color: #5aa9e6 !important; color: #07101e !important; }
+  html body:not(#_) .mobileSubNav { max-width: calc(100vw - 32px); box-sizing: border-box; }
+}
+
+/* ===== Formulir IKP & sejenisnya: lebih lega & modern ===== */
+html body:not(#_) :is(.psAlert, .psField, .psField *, .psHint, .psMuted, .psFormSection, .psFormSection *) { font-family: var(--font-aureka), "Plus Jakarta Sans", system-ui, sans-serif !important; }
+html body:not(#_) .psLabel { text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 700 !important; color: #0b2f52 !important; }
+html body:not(#_) .psField :is(small, em, i, .psHint) { font-style: normal !important; font-size: 12.5px !important; color: #5d7389 !important; }
+html body:not(#_) .psAlert { font-size: 13px !important; line-height: 1.5 !important; border-radius: 14px !important; }
+html body:not(#_) .psFormSection { margin-top: 22px !important; }
+html body:not(#_) .psFormGrid { gap: 16px !important; }
+@media (max-width: 720px) {
+  /* Kepala laporan: keterangan panjang diperkecil, status sejajar judul */
+  html body:not(#_) .psModalSheet .psSectionHead p, html body:not(#_) [aria-modal="true"] .psSectionHead p { font-size: 12.5px !important; line-height: 1.5 !important; color: #5d7389 !important; margin-top: 6px !important; }
+  html body:not(#_) [aria-modal="true"] .psSectionHead { padding-bottom: 12px !important; }
+  html body:not(#_) [aria-modal="true"] .psSectionHead .psActions { position: absolute; top: 0; right: 0; }
+  html body:not(#_) [aria-modal="true"] .psSectionHead { position: relative; padding-right: 64px !important; }
+  /* Ringkasan form: satu strip ringkas */
+  html body:not(#_) [aria-modal="true"] .psMetaGrid { display: flex !important; flex-wrap: wrap; gap: 6px !important; }
+  html body:not(#_) [aria-modal="true"] .psMeta { flex: 1 1 auto; display: flex !important; align-items: baseline; gap: 6px; padding: 8px 12px !important; border-radius: 999px !important; min-height: 0 !important; }
+  html body:not(#_) [aria-modal="true"] .psMeta span { font-size: 11px !important; text-transform: none !important; letter-spacing: 0 !important; }
+  html body:not(#_) [aria-modal="true"] .psMeta strong { font-size: 14px !important; }
+  html body:not(#_) [aria-modal="true"] .psMeta:nth-child(2) { display: none !important; }
+  html body:not(#_) [aria-modal="true"] .psFormHeading { padding: 12px 14px !important; border-radius: 16px !important; }
+  html body:not(#_) [aria-modal="true"] .psFormLetter { width: 38px !important; height: 38px !important; border-radius: 12px !important; }
 }
