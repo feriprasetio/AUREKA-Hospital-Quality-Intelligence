@@ -600,3 +600,14 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.sdBtn, .sdEditBtn, .sdM
   html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody tr { padding: 14px 16px !important; gap: 8px 10px !important; margin-bottom: 10px; border-radius: 16px; }
   html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td:last-child > * { gap: 8px; }
 }
+
+/* Mode gelap: panah pemilih unit tidak berulang (shorthand background mereset repeat) */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select {
+  background-repeat: no-repeat !important; background-position: right 12px center !important; background-size: 16px 16px !important;
+  background-color: rgba(255, 255, 255, .06) !important;
+}
+@media (max-width: 720px) {
+  html body:not(#_) .mobileSubNav { padding: 0 16px; }
+  html body:not(#_) .mobileSubNavRow { margin: 0 -16px; padding-left: 16px; padding-right: 16px; scroll-padding-left: 16px; }
+  html body:not(#_) .sdActions { flex-wrap: wrap !important; }
+}
