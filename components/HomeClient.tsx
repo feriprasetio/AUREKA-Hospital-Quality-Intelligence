@@ -34,7 +34,7 @@ const OppeAuditWorkspace=dynamic(()=>import('@/components/OppeAuditWorkspace'),{
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
 const BASE_PATH=process.env.NEXT_PUBLIC_BASE_PATH??'/AUREKA-Hospital-Quality-Intelligence'
-const LOGO=`${BASE_PATH}/logo-aureka.jpg`
+const LOGO=`${BASE_PATH}/logo-aureka.png`
 const PREVIEW_ONLY=process.env.NEXT_PUBLIC_SUPABASE_URL==='https://preview-disabled.invalid'
 const FALLBACK=['Informasi dan Pengaduan','Informatika dan Teknologi','Instalasi Ambulance','Instalasi Bedah Sentral','Instalasi Farmasi','Instalasi Gawat Darurat','Instalasi Gizi','Instalasi Hemodialisis','Instalasi Laboratorium','Instalasi Radiologi','Instalasi Rawat Jalan','Instalasi Rehab Medik','Instalasi Rekam Medis','Intensive Care Unit & High Care Unit','Komite Medik','Komite Pencegahan dan Pengendalian Infeksi','Manajemen rumah Sakit','Neonatal Intensive Care Unit & Pediatrics High Dependency Unit','Nifas Obstetrics & Gynecology','Perinatology & Neonatology','Promosi Kesehatan Rumah Sakit','Rawat Inap Anak','Rawat Inap Bedah','Rawat Inap Isolasi','Rawat Inap Penyakit Dalam','Rawat Inap Saraf','Rawat Inap VIP','Satuan Pengawas Intern','Tim Investigasi','Tim Koordinasi Pendidikan','Tim Pelayanan Human Immunodeficiency Virus','Tim Pelayanan Keluarga Berencana Rumah Sakit','Tim Pelayanan Obstetri Neonatal Emergensi Komprehensif','Tim Pelayanan Onkologi','Tim Pencegahan Resistensi Antimikroba','Tim Peningkatan Kinerja Klinis','Verlos Kamer']
 const MODS=AUREKA_PRIMARY_NAV.map(({id,label})=>[id,label] as const)
@@ -68,7 +68,7 @@ type SupportMessage={id:string;conversation_id:string;sender_id:string;body:stri
 
 type SidebarChild={id:string;label:string;children?:SidebarChild[]}
 type Room={id:number;name:string};type Profile={user_id:string;full_name:string;email:string;username?:string|null;primary_room_id:number|null;role_id:string|null;is_active:boolean;must_change_password?:boolean;role_code?:string|null;role_name?:string|null}
-const logo=(c='')=><span className={'brandLogoWrap '+c}><img className="brandLogoImage" src={LOGO} alt="Logo AUREKA Hospital Quality Intelligence" loading="eager" decoding="async" onError={e=>{e.currentTarget.style.display='none';const fallback=e.currentTarget.nextElementSibling as HTMLElement|null;if(fallback)fallback.style.display='grid'}}/><span className="brandLogoFallback" aria-hidden="true">A</span></span>
+const logo=(c='')=><span className={'brandLogoWrap '+c}><img className="brandLogoImage" src={LOGO} width={384} height={323} alt="Logo AUREKA Hospital Quality Intelligence" loading="eager" decoding="async" onError={e=>{e.currentTarget.style.display='none';const fallback=e.currentTarget.nextElementSibling as HTMLElement|null;if(fallback)fallback.style.display='grid'}}/><span className="brandLogoFallback" aria-hidden="true">A</span></span>
 async function rooms(){const {data,error}=await sb.from('master_rooms').select('id,name').eq('is_active',true).order('sort_order');return !error&&data?.length?data as Room[]:FALLBACK.map((name,i)=>({id:i+1,name}))}
 // RPC opsional: bila belum terpasang di database (404/PGRST202), jangan panggil lagi di perangkat ini.
 function syncMyEmail(){try{if(localStorage.getItem('aureka-sync-email-missing')==='1')return}catch{}sb.rpc('aureka_sync_my_email').then(({error}:{error:any})=>{if(error&&(error.code==='PGRST202'||/not find|404/i.test(String(error.message||'')))){try{localStorage.setItem('aureka-sync-email-missing','1')}catch{}}},()=>{})}

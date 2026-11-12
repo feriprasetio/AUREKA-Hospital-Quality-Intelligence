@@ -242,7 +242,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
         <div className="a2-container a2-header-inner">
           <a className="a2-brand" href="#top" aria-label="AUREKA — kembali ke awal halaman">
             <span className="a2-brand-mark">
-              <img src={logoSrc} alt="Logo AUREKA Hospital Quality Intelligence" />
+              <img src={logoSrc} width={384} height={323} alt="Logo AUREKA Hospital Quality Intelligence" />
             </span>
             <span className="a2-brand-copy">
               <strong>AUREKA</strong>
@@ -536,7 +536,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
       <footer className="a2-footer">
         <div className="a2-container a2-footer-main">
           <div className="a2-footer-brand">
-            <img src={logoSrc} alt="" aria-hidden="true" />
+            <img src={logoSrc} width={384} height={323} alt="" aria-hidden="true" />
             <span><strong>AUREKA</strong><small>Hospital Quality Intelligence</small></span>
           </div>
           <p>UPT RSUD Sultan Syarif Mohamad Alkadrie<br />Komite Peningkatan Mutu dan Keselamatan Pasien</p>
