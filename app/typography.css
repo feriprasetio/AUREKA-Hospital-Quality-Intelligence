@@ -467,3 +467,14 @@ html body:not(#_) .govPermMobile { display: none; }
   html body:not(#_) .govPermMobile li input { width: 22px; height: 22px; flex: 0 0 auto; }
   html[data-mode="gelap"] body:not(#_) .govPermMobile li label { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .1); }
 }
+
+/* Pengingat PMKP: teks lebar penuh, tombol di bawah (HP) / di kanan (layar lebar) */
+html body:not(#_) .workspaceRoot .homeLanding .hlReminderRow { display: flex !important; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+html body:not(#_) .workspaceRoot .homeLanding .hlReminderRow > :not(.hlReminderActions) { flex: 1 1 320px; min-width: 0; }
+html body:not(#_) .workspaceRoot .homeLanding .hlReminderActions { display: flex; flex-wrap: wrap; gap: 8px; flex: 0 1 auto; }
+html body:not(#_) .workspaceRoot .homeLanding :is(.hlReminderBtn, .hlReminderReadBtn) { white-space: nowrap; }
+@media (max-width: 640px) {
+  html body:not(#_) .workspaceRoot .homeLanding .hlReminderActions { flex: 1 1 100%; }
+  html body:not(#_) .workspaceRoot .homeLanding .hlReminderActions > * { flex: 1 1 0; min-height: 40px; }
+  html body:not(#_) .workspaceRoot .homeLanding .hlPanelHead { flex-wrap: wrap; gap: 4px 10px; }
+}
