@@ -478,3 +478,37 @@ html body:not(#_) .workspaceRoot .homeLanding :is(.hlReminderBtn, .hlReminderRea
   html body:not(#_) .workspaceRoot .homeLanding .hlReminderActions > * { flex: 1 1 0; min-height: 40px; }
   html body:not(#_) .workspaceRoot .homeLanding .hlPanelHead { flex-wrap: wrap; gap: 4px 10px; }
 }
+
+/* ===== HP: tabel jadi kartu ringkas (Risk Register & Direktori Tenaga Kerja) ===== */
+@media (max-width: 640px) {
+  html body:not(#_) .rmWorkspace .rmTable tbody tr { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 6px 8px !important; padding: 12px !important; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td { padding: 0 !important; border: 0 !important; min-height: 0 !important; height: auto !important; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(1) { flex: 0 0 26px; align-self: flex-start; padding-top: 2px !important; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(2) { flex: 1 1 calc(100% - 40px); min-width: 0; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(3) { flex: 1 1 100%; padding-left: 34px !important; font-size: 12px; opacity: .75; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(4) { margin-left: 34px; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td:nth-child(n+4):nth-child(-n+6) { flex: 0 0 auto; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td:last-child { flex: 1 1 100%; padding-left: 34px !important; }
+  html body:not(#_) .rmWorkspace .rmTable tbody td:last-child > * { display: flex; gap: 6px; }
+
+  html body:not(#_) .sdTableWrap { overflow: visible !important; }
+  html body:not(#_) .sdTable, html body:not(#_) .sdTable tbody { display: block !important; width: 100% !important; min-width: 0 !important; }
+  html body:not(#_) .sdTable thead { display: none !important; }
+  html body:not(#_) .sdTable tbody tr { display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 12px 4px; border-bottom: 1px solid rgba(11, 31, 51, .08); }
+  html body:not(#_) .sdTable tbody td { display: block !important; padding: 0 !important; border: 0 !important; width: auto !important; }
+  html body:not(#_) .sdTable tbody td:nth-child(1) { order: 2; font-size: 12px; opacity: .7; }
+  html body:not(#_) .sdTable tbody td:nth-child(2) { order: 1; flex: 1 1 100%; font-size: 14.5px; }
+  html body:not(#_) .sdTable tbody td:nth-child(3) { order: 3; font-size: 12px; opacity: .7; }
+  html body:not(#_) .sdTable tbody td:nth-child(4) { order: 5; flex: 1 1 100%; font-size: 12px; }
+  html body:not(#_) .sdTable tbody td:nth-child(5) { order: 4; margin-left: auto; }
+  html body:not(#_) .sdTable tbody td:nth-child(6) { order: 6; flex: 1 1 100%; }
+  html body:not(#_) .sdTable tbody td :is(.sdName, .sdSub) { white-space: normal; }
+
+  /* FPPE: baris alat header membungkus, tidak melebarkan halaman */
+  html body:not(#_) .workspaceModuleHeader, html body:not(#_) .workspaceModuleHeaderTools, html body:not(#_) .workspaceModuleActions { flex-wrap: wrap !important; min-width: 0 !important; max-width: 100% !important; }
+  html body:not(#_) .fppeHeaderActions { width: 100%; }
+  html body:not(#_) .fppeHeaderActions .fppeUnitChoice { flex: 1 1 100%; }
+  html body:not(#_) .fppeHeaderActions .fppeUnitChoice select { flex: 1; min-width: 0 !important; width: 100%; }
+  html body:not(#_) .fppeHeaderActions > button { flex: 1 1 auto; }
+  html body:not(#_) iframe { max-width: 100%; }
+}
