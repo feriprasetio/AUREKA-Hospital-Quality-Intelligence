@@ -32,6 +32,7 @@ test('recommendations and follow-up are one stakeholder-filtered workflow', () =
 test('each new follow-up captures a complete PDCA or PDSA cycle and evidence-based evaluation', () => {
   const workspace = read('components/governance/GovernanceProgramWorkspace.tsx')
   const migration = read('supabase/migrations/20261113060000_program_priority_and_pdsa_pdca.sql')
+  const cycleGuard = read('supabase/migrations/20261113064000_enforce_pdsa_pdca_cycle_completeness.sql')
   assert.match(workspace, /PDSA/)
   assert.match(workspace, /PDCA/)
   assert.match(workspace, /cycle_plan/)
@@ -41,6 +42,8 @@ test('each new follow-up captures a complete PDCA or PDSA cycle and evidence-bas
   assert.match(workspace, /Dasar penilaian \(bukti, data sebelum–sesudah\)/)
   assert.match(migration, /check \(improvement_method in \('PDSA','PDCA'\)\)/)
   assert.match(migration, /aureka_gov_save_action/)
+  assert.match(cycleGuard, /Lengkapi seluruh tahap Plan, Do, Study\/Check, dan Act/)
+  assert.match(workspace, /pasien\|klinis\|clinical\|indikator/)
 })
 
 test('annual priority areas are audited and protected behind a server-side management gate', () => {
