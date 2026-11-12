@@ -227,7 +227,7 @@ export default function HomeClient(){
     else if(legacySection==='fppe')setAnalyticsTab('fppe')
     else if(legacySection==='team'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('team')}
     else if(legacySection==='directory'){setAnalyticsTab('directory');setAnalyticsDirectoryTab('directory')}
-    else if(['programs','profiles','recommendations','rtl-dewas','rtl-direktur','rtl-kabid'].includes(legacySection))setAnalyticsTab(legacySection as AnalyticsWorkspaceTab)
+    else if(['programs','profiles','recommendations','rtl','rtl-dewas','rtl-direktur','rtl-kabid'].includes(legacySection))setAnalyticsTab(legacySection.startsWith('rtl-')?'rtl':legacySection as AnalyticsWorkspaceTab)
     else setAnalyticsTab('programs')
    }
    setActive(next)
