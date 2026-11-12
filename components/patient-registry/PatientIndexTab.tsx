@@ -85,7 +85,7 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
   }
 
   if (notReady) return <section className="piPanel">
-    <h3>Database Pasien belum diaktifkan</h3>
+    <h3>Metadata Pasien belum diaktifkan</h3>
     <p>Struktur database pasien (No. Rekam Medis sebagai kunci utama) perlu dipasang sekali oleh pemilik Supabase: jalankan
       <code> supabase/migrations/20261111140000_patient_index.sql</code> di SQL Editor. Setelah itu daftar pasien terisi otomatis dari Logbook yang sudah ada.</p>
   </section>
@@ -93,7 +93,7 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
   return <section className="piWrap">
     <header className="piHead">
       <div>
-        <h3>Database Pasien</h3>
+        <h3>Metadata Pasien</h3>
         <p>Indeks pasien unik dengan <b>No. Rekam Medis</b> sebagai kunci utama, diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.</p>
       </div>
       <div className="piActions">

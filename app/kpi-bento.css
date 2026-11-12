@@ -275,3 +275,35 @@ html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.ok { background: rgba(46, 
 html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.no { background: rgba(217, 83, 79, .2); color: #f4a6a2; }
 html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.pending { background: rgba(224, 160, 48, .2); color: #f3cf86; }
 @media (max-width: 560px) { .workspaceRoot .rmProfileLevel { grid-template-columns: 110px minmax(0, 1fr) 36px; gap: 8px; } }
+
+/* ===== Pasien › Statistik (Blueprint v2 §12) ===== */
+.workspaceRoot .psStats { display: grid; gap: 16px; }
+.workspaceRoot .psStatsHead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.workspaceRoot .psStatsHead h3 { margin: 0 0 4px; }
+.workspaceRoot .psStatsHead p { margin: 0; font-size: 13px; opacity: .75; max-width: 640px; line-height: 1.5; }
+.workspaceRoot .psStatsYear { display: grid; gap: 4px; font-size: 12px; font-weight: 650; }
+.workspaceRoot .psStatsYear select { min-height: 38px; padding: 0 12px; border-radius: 10px; }
+.workspaceRoot .psStatsCard { padding: 16px 18px; border-radius: 18px; border: 1px solid rgba(11, 70, 122, .1); background: rgba(255, 255, 255, .7); }
+.workspaceRoot .psStatsCard h4 { margin: 0 0 14px; font-size: 14px; }
+.workspaceRoot .psStatsBars { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; height: 180px; align-items: end; }
+.workspaceRoot .psStatsBar { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; padding-bottom: 20px; }
+.workspaceRoot .psStatsBar i { display: block; width: 70%; min-height: 2px; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #3b8fd6, #0b467a); transition: height .6s cubic-bezier(.22, 1, .36, 1); }
+.workspaceRoot .psStatsBar span { position: absolute; bottom: 0; font-size: 11px; opacity: .7; }
+.workspaceRoot .psStatsBar b { position: absolute; top: -2px; font-size: 10.5px; font-weight: 650; opacity: .8; }
+.workspaceRoot .psStatsRows { display: grid; gap: 8px; }
+.workspaceRoot .psStatsRow { display: grid; grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) 64px; align-items: center; gap: 10px; font-size: 13px; }
+.workspaceRoot .psStatsRow > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspaceRoot .psStatsRow > div { height: 10px; border-radius: 10px; background: rgba(11, 70, 122, .08); overflow: hidden; }
+.workspaceRoot .psStatsRow > div i { display: block; height: 100%; border-radius: inherit; background: #3b8fd6; }
+.workspaceRoot .psStatsRow > b { text-align: right; font-variant-numeric: tabular-nums; }
+.workspaceRoot .psStatsTable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.workspaceRoot .psStatsTable :is(th, td) { padding: 9px 10px; border-bottom: 1px solid rgba(11, 70, 122, .08); text-align: left; }
+.workspaceRoot .psStatsTable td:last-child, .workspaceRoot .psStatsTable th:last-child { text-align: right; }
+.workspaceRoot .psStatsNote { padding: 12px 14px; border-radius: 12px; background: rgba(59, 143, 214, .08); font-size: 13px; }
+.workspaceRoot .psStatsNote.error { background: #fdecea; color: #b3261e; }
+html[data-mode="gelap"] .workspaceRoot .psStatsCard { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
+@media (max-width: 560px) {
+  .workspaceRoot .psStatsBars { height: 140px; gap: 3px; }
+  .workspaceRoot .psStatsBar b { display: none; }
+  .workspaceRoot .psStatsRow { grid-template-columns: minmax(90px, 130px) minmax(0, 1fr) 48px; }
+}
