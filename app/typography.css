@@ -193,3 +193,21 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlShortcutIcon
   html body:not(#_) .workspaceRoot .homeLanding .hlShortcut { flex-direction: column; align-items: flex-start; padding: 12px; }
   html body:not(#_) .workspaceRoot .homeLanding .hlShortcut small { display: none; }
 }
+
+/* ===== Perbaikan lanjutan: kontras hero Beranda, pintasan penuh lebar, kartu unit rata kiri ===== */
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard :is(.hlHeroChip, .hlHeroChip *, .hlHeroEyebrow, .hlUnitHint, p, small, span) { color: #fff !important; -webkit-text-fill-color: #fff !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlHeroEyebrow { opacity: .8 !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlUnitHint { opacity: .78 !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlHeroChip { background: rgba(255, 255, 255, .18) !important; border-color: rgba(255, 255, 255, .32) !important; opacity: 1 !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcuts { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+@media (max-width: 1400px) { html body:not(#_) .workspaceRoot .homeLanding .hlShortcuts { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+@media (max-width: 560px) { html body:not(#_) .workspaceRoot .homeLanding .hlShortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcut { min-height: 76px; }
+
+html body:not(#_) .workspaceRoot .settingsWorkspace .roomGrid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; gap: 8px !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .roomCard { flex-direction: row !important; text-align: left !important; align-items: center !important; padding: 10px 10px 10px 14px !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardText { flex: 1 1 auto; text-align: left !important; justify-items: start !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardText b { max-width: 100%; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions { margin: 0 !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions .uBtn.outline { background: rgba(11, 70, 122, .06) !important; border: 1px solid rgba(11, 70, 122, .16) !important; color: #0b2f52 !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .roomCard:hover { border-color: rgba(59, 143, 214, .4) !important; }

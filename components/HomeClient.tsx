@@ -252,7 +252,7 @@ export default function HomeClient(){
  const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV.filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole)).map(({id,label})=>[id,label] as const),[role])
  const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
   const groups:Record<string,SidebarChild[]> = {
-   home:[{id:'infographics',label:'Infografis'}],
+   home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}],
    // Blueprint v2 §1: Pasien — Register Pasien; Statistik; Metadata Pasien
    patients:[{id:'register',label:'Register Pasien'},{id:'stats',label:'Statistik'},{id:'metadata',label:'Metadata Pasien'}],
    quality:[
