@@ -66,7 +66,7 @@ begin
             count(*) filter (where qr.status = 'validated')::integer as records_validated,
             count(*) filter (where qr.status = 'archived')::integer as records_archived,
             max(qr.created_at) as last_created_at,
-            max(qr.record_date) as last_record_date,
+            (array_agg(qr.record_date order by qr.created_at desc))[1] as last_record_date,
             (array_agg(qr.status order by qr.created_at desc))[1] as last_status
           from aureka_quality.quality_records qr
           where qr.entered_by = active_pic.assigned_user_id and qr.room_id = active_pic.room_id
@@ -262,18 +262,63 @@ $$;
 create or replace function public.aureka_gov_indicator_proposal_activate(p_id uuid,p_code text)
 returns uuid language plpgsql security definer
 set search_path = aureka_governance, aureka_quality, aureka_system, public, auth as $$
-declare v record; p aureka_governance.indicator_proposals%rowtype; v_profile_id uuid; v_unit text; v_code text;
+declare v record; p aureka_governance.indicator_proposals%rowtype; v_profile_id uuid; v_unit text; v_code text; v_version integer;
 begin
   select * into v from aureka_governance.me();
   if coalesce(v.role_code,'') not in ('ADMIN','PMKP') then raise exception 'Aktivasi katalog hanya oleh Komite PMKP/Super Admin.'; end if;
   select * into p from aureka_governance.indicator_proposals where id=p_id for update;
   if not found or p.status <> 'disetujui' then raise exception 'Hanya usulan yang telah disetujui yang dapat diaktifkan.'; end if;
   v_code := trim(coalesce(p_code,''));
-  if length(v_code)<1 or length(v_code)>40 then raise exception 'Kode indikator final wajib diisi (maksimal 40 karakter).'; end if;
-  perform pg_advisory_xact_lock(hashtext(p.room_id::text || ':' || p.profile_year::text || ':' || lower(v_code)));
-  if exists(select 1 from aureka_quality.indicator_profiles ip where ip.room_id=p.room_id and ip.profile_year=p.profile_year and lower(ip.code)=lower(v_code) and ip.is_active=true) then
-    raise exception 'Kode indikator sudah aktif pada unit dan tahun tersebut. Gunakan kode lain.';
+  if v_code !~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}
+  insert into aureka_quality.indicator_profiles(
+    profile_year,code,room_id,unit_name,title,indicator_type,category,unit_of_measure,
+    target_text,target_operator,target_value,numerator_definition,denominator_definition,
+    measurement_grain,schema_json,options_json,version,status,is_active,created_by,updated_by
+  ) values (
+    p.profile_year,v_code,p.room_id,v_unit,p.title,p.indicator_type,nullif(p.category,''),p.unit_of_measure,
+    nullif(p.target_text,''),p.target_operator,p.target_value,p.numerator_definition,p.denominator_definition,
+    p.measurement_grain,jsonb_build_object('indicator_direction',p.indicator_direction,'measurement_type',p.measurement_type),
+    '[]'::jsonb,v_version,'published',true,auth.uid(),auth.uid()
+  ) returning id into v_profile_id;
+  update aureka_governance.indicator_proposals set status='aktif',activated_by=auth.uid(),activated_at=now(),
+    activated_profile_id=v_profile_id,updated_at=now() where id=p_id;
+  perform aureka_governance.log_indicator_proposal_event(p_id,'diaktifkan','Profil indikator baru berhasil diaktifkan ke katalog mutu.',jsonb_build_object('profile_id',v_profile_id,'code',v_code));
+  return v_profile_id;
+end;
+$$;
+
+-- Audit event bersifat append-only.
+create or replace function aureka_governance.indicator_proposal_event_immutable()
+returns trigger language plpgsql as $$ begin raise exception 'Riwayat usulan indikator bersifat append-only.'; end $$;
+drop trigger if exists indicator_proposal_events_no_mutation on aureka_governance.indicator_proposal_events;
+create trigger indicator_proposal_events_no_mutation before update or delete on aureka_governance.indicator_proposal_events
+for each row execute function aureka_governance.indicator_proposal_event_immutable();
+
+revoke all on function public.aureka_pic_performance_dashboard(integer) from public,anon;
+revoke all on function public.aureka_gov_indicator_proposal_list() from public,anon;
+revoke all on function public.aureka_gov_indicator_proposal_save(jsonb) from public,anon;
+revoke all on function public.aureka_gov_indicator_proposal_review(uuid,text,text) from public,anon;
+revoke all on function public.aureka_gov_indicator_proposal_activate(uuid,text) from public,anon;
+grant execute on function public.aureka_pic_performance_dashboard(integer) to authenticated;
+grant execute on function public.aureka_gov_indicator_proposal_list() to authenticated;
+grant execute on function public.aureka_gov_indicator_proposal_save(jsonb) to authenticated;
+grant execute on function public.aureka_gov_indicator_proposal_review(uuid,text,text) to authenticated;
+grant execute on function public.aureka_gov_indicator_proposal_activate(uuid,text) to authenticated;
+
+commit;
+ then
+    raise exception 'Kode indikator final wajib 1–40 karakter dan hanya boleh memuat huruf, angka, titik, garis bawah, atau tanda hubung.';
   end if;
+  -- Katalog memiliki unique active published key pada (profile_year, code), lintas unit.
+  perform pg_advisory_xact_lock(hashtext(p.profile_year::text || ':' || lower(v_code)));
+  if exists(select 1 from aureka_quality.indicator_profiles ip
+            where ip.profile_year=p.profile_year and lower(ip.code)=lower(v_code)
+              and ip.is_active=true and ip.status='published') then
+    raise exception 'Kode indikator sudah aktif pada katalog tahun tersebut. Gunakan kode lain.';
+  end if;
+  select coalesce(max(ip.version),0)+1 into v_version
+    from aureka_quality.indicator_profiles ip
+    where ip.profile_year=p.profile_year and lower(ip.code)=lower(v_code);
   select name into v_unit from public.master_rooms where id=p.room_id;
   insert into aureka_quality.indicator_profiles(
     profile_year,code,room_id,unit_name,title,indicator_type,category,unit_of_measure,

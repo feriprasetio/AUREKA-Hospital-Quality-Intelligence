@@ -123,4 +123,8 @@ test('PIC performance dashboard and indicator proposal workspaces are wired to a
   assert.match(migration, /Pemisahan tugas: pengusul tidak boleh menelaah usulannya sendiri/)
   assert.match(migration, /Hanya usulan yang telah disetujui yang dapat diaktifkan/)
   assert.match(migration, /indicator_profiles/)
+  assert.match(migration, /unique active published key/)
+  assert.match(migration, /coalesce\(max\(ip\.version\),0\)\+1/)
+  assert.match(migration, /ip\.status='published'/)
+  assert.match(migration, /array_agg\(qr\.record_date order by qr\.created_at desc\)/)
 })
