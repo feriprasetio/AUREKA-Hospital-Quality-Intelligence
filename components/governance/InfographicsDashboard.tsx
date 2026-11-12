@@ -132,7 +132,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ringkasan indikator mutu' : 'Infografis kinerja rumah sakit'}>
     <style>{STYLES}</style>
     <header className="ifHead">
-      <div><h2>{qualityOnly ? 'Hasil Capaian Indikator Mutu' : 'Kinerja Mutu dan Keselamatan Rumah Sakit'}</h2>
+      <div><h2>{qualityOnly ? 'Hasil Capaian Indikator Mutu' : 'Ikhtisar Kinerja Mutu dan Keselamatan Rumah Sakit'}</h2>
         <p>{qualityOnly ? 'Tampilan agregat baca-saja untuk fungsi pengawasan; tidak menampilkan data pasien individual.' : 'Satu ringkasan baca-saja dari data indikator tervalidasi, insiden, risiko, program, RTL, dan regulasi.'}</p></div>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
