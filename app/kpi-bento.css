@@ -258,3 +258,20 @@ html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlUnitHint { font-siz
 @media (max-width: 720px) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContext .workspaceUnitSelect select { max-width: 46vw; font-size: 12px !important; }
 }
+
+/* ===== Manajemen Risiko · Profil Risiko & Evaluasi Keberhasilan (Blueprint v2 §5) ===== */
+.workspaceRoot .rmProfile, .workspaceRoot .rmEvaluation { display: grid; gap: 16px; }
+.workspaceRoot .rmProfileLevels { display: grid; gap: 8px; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(11, 70, 122, .1); background: rgba(255, 255, 255, .6); }
+.workspaceRoot .rmProfileLevel { display: grid; grid-template-columns: 130px minmax(0, 1fr) 44px; align-items: center; gap: 12px; }
+.workspaceRoot .rmProfileLevel b { text-align: right; font-variant-numeric: tabular-nums; }
+.workspaceRoot .rmProfileBar { height: 10px; border-radius: 10px; background: rgba(11, 70, 122, .08); overflow: hidden; }
+.workspaceRoot .rmProfileBar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #3b8fd6, #0b467a); transition: width .6s cubic-bezier(.22, 1, .36, 1); }
+.workspaceRoot .rmEvalVerdict { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.workspaceRoot .rmEvalVerdict.ok { background: #e3f5ec; color: #17734a; }
+.workspaceRoot .rmEvalVerdict.no { background: #fdecea; color: #b3261e; }
+.workspaceRoot .rmEvalVerdict.pending { background: #fff4dc; color: #8a5a00; }
+html[data-mode="gelap"] .workspaceRoot .rmProfileLevels { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
+html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.ok { background: rgba(46, 155, 106, .2); color: #8fe0b8; }
+html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.no { background: rgba(217, 83, 79, .2); color: #f4a6a2; }
+html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.pending { background: rgba(224, 160, 48, .2); color: #f3cf86; }
+@media (max-width: 560px) { .workspaceRoot .rmProfileLevel { grid-template-columns: 110px minmax(0, 1fr) 36px; gap: 8px; } }

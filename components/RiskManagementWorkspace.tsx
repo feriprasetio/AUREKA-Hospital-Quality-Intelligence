@@ -160,12 +160,12 @@ export default function RiskManagementWorkspace({
   userId: string
   userName: string
   focus?: RiskFocus | null
-  initialTab?: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'
+  initialTab?: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation'
   showTabs?: boolean
-  onTabChange?: (tab: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea') => void
+  onTabChange?: (tab: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation') => void
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
-  const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea'>(initialTab)
+  const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation'>(initialTab)
   useEffect(() => { setTab(initialTab) }, [initialTab])
   useEffect(() => { onTabChange?.(tab) }, [tab, onTabChange])
   const [risks, setRisks] = useState<RiskRow[]>([])
@@ -757,7 +757,7 @@ export default function RiskManagementWorkspace({
       {showTabs && <nav className="rmTabs" aria-label="Bagian Manajemen Risiko">
               {[
                 ['overview', '◫', 'Ikhtisar'], ['register', '▤', 'Risk Register'],
-                ['mitigation', '↗', 'RTP Terintegrasi'], ['connections', '⌘', 'Konektor Risiko'], ['fmea', '◎', 'FMEA / HFMEA'],
+                ['connections', '⌘', 'Konektor Risiko'], ['profile', '◔', 'Profil Risiko'], ['fmea', '◎', 'FMEA / HFMEA'], ['mitigation', '↗', 'Mitigasi & RTP'], ['evaluation', '✓', 'Evaluasi Keberhasilan'],
               ].map(([key, icon, label]) => <button type="button" key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key as typeof tab); clearMessages(); }}>
                 <span>{icon}</span>{label}
               </button>)}
@@ -984,6 +984,55 @@ export default function RiskManagementWorkspace({
           {pendingAction?.kind === 'delete-link' && <RmModal label="Konfirmasi"><div className="rmInlineConfirm rmConfirmCard"><div><b>Konfirmasi penghapusan konektor</b><p>Data risiko tetap dipertahankan; hanya relasi yang dihapus.</p></div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => setPendingAction(null)}>Batal</button><button type="button" className="rmButton danger" disabled={saving} onClick={() => void deleteLink(pendingAction.id)}>Hapus konektor</button></div></div></RmModal>}
         </LiquidGlass>
       </>}
+
+      {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'profile' && (() => {
+        const rows = filteredRisks
+        const levels: RiskLevel[] = ['Sangat Tinggi', 'Tinggi', 'Sedang', 'Rendah', 'Sangat Rendah']
+        const byCategory = Array.from(rows.reduce((m, r) => { const k = r.category || 'Tanpa kategori'; const e = m.get(k) || { n: 0, sum: 0, high: 0, residual: 0 }; e.n++; e.sum += r.risk_score; if (r.risk_level === 'Sangat Tinggi' || r.risk_level === 'Tinggi') e.high++; if (r.residual_score != null) e.residual++; m.set(k, e); return m }, new Map<string, { n: number; sum: number; high: number; residual: number }>())).sort((a, b) => b[1].n - a[1].n)
+        const moved = rows.filter(r => r.residual_score != null)
+        const down = moved.filter(r => (r.residual_score as number) < r.risk_score).length
+        return <section className="rmPanel rmProfile" aria-label="Profil risiko">
+          <div className="rmSectionHead"><div><span className="rmEyebrow">Profil Risiko</span><h3>Gambaran risiko unit terpilih</h3><p>Distribusi level, kategori, dan perubahan skor baseline ke residual. Baca-saja; data bersumber dari Risk Register.</p></div></div>
+          <div className="rmKpis">
+            <div className="rmKpi"><span>Total risiko</span><strong>{rows.length.toLocaleString('id-ID')}</strong></div>
+            <div className="rmKpi"><span>Rerata skor baseline</span><strong>{rows.length ? (rows.reduce((a, r) => a + r.risk_score, 0) / rows.length).toFixed(1).replace('.', ',') : '—'}</strong></div>
+            <div className="rmKpi"><span>Sudah dinilai residual</span><strong>{moved.length.toLocaleString('id-ID')}</strong></div>
+            <div className="rmKpi"><span>Skor turun setelah kontrol</span><strong>{down.toLocaleString('id-ID')}</strong></div>
+          </div>
+          <div className="rmProfileLevels">{levels.map(lv => { const n = rows.filter(r => r.risk_level === lv).length; return <div key={lv} className="rmProfileLevel"><span>{renderRiskBadge(lv)}</span><div className="rmProfileBar"><i style={{ width: rows.length ? (n / rows.length * 100) + '%' : '0%' }} /></div><b>{n}</b></div> })}</div>
+          <WorkspaceTableViewport label="Profil risiko per kategori" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Kategori</th><th>Jumlah</th><th>Rerata skor</th><th>Tinggi / Sangat Tinggi</th><th>Residual dinilai</th></tr></thead><tbody>
+            {byCategory.length ? byCategory.map(([k, e]) => <tr key={k}><td>{k}</td><td>{e.n}</td><td>{(e.sum / e.n).toFixed(1).replace('.', ',')}</td><td>{e.high}</td><td>{e.residual} dari {e.n}</td></tr>) : <tr><td colSpan={5}><div className="rmEmptySmall">Belum ada risiko pada filter ini.</div></td></tr>}
+          </tbody></table></WorkspaceTableViewport>
+          <WorkspaceTableViewport label="Perubahan skor risiko" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Peristiwa risiko</th><th>Unit</th><th>Pemilik</th><th>Baseline</th><th>Residual</th><th>Perubahan</th><th>Status</th></tr></thead><tbody>
+            {rows.length ? [...rows].sort((a, b) => b.risk_score - a.risk_score).slice(0, 100).map(r => <tr key={r.id}><td>{r.risk_event}</td><td>{r.unit_name || '—'}</td><td>{r.owner_name || '—'}</td><td>{r.risk_score}</td><td>{r.residual_score ?? '—'}</td><td>{r.residual_score == null ? 'Belum dinilai' : r.residual_score < r.risk_score ? `Turun ${r.risk_score - r.residual_score}` : r.residual_score > r.risk_score ? `Naik ${r.residual_score - r.risk_score}` : 'Tetap'}</td><td>{renderStatus(r.status)}</td></tr>) : <tr><td colSpan={7}><div className="rmEmptySmall">Belum ada risiko pada filter ini.</div></td></tr>}
+          </tbody></table></WorkspaceTableViewport>
+        </section>
+      })()}
+
+      {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'evaluation' && (() => {
+        const relevant = plans.filter(p => ['in_progress', 'evaluated', 'closed'].includes(p.status))
+        const rowsOf = (p: PlanRow) => planRisks.filter(pr => pr.plan_id === p.id).map(pr => ({ pr, risk: risks.find(r => r.id === pr.risk_id) })).filter((x): x is { pr: PlanRiskRow; risk: RiskRow } => Boolean(x.risk))
+        const verdict = (risk: RiskRow, pr: PlanRiskRow, p: PlanRow) => {
+          const tl = pr.target_likelihood ?? p.target_likelihood, ti = pr.target_impact ?? p.target_impact
+          const target = tl && ti ? riskScore(tl, ti) : null
+          if (risk.residual_score == null) return { target, label: 'Menunggu penilaian residual', cls: 'pending' }
+          if (target == null) return { target, label: risk.residual_score < risk.risk_score ? 'Skor turun' : 'Belum turun', cls: risk.residual_score < risk.risk_score ? 'ok' : 'no' }
+          return risk.residual_score <= target ? { target, label: 'Target tercapai', cls: 'ok' } : { target, label: 'Belum mencapai target', cls: 'no' }
+        }
+        const all = relevant.flatMap(p => rowsOf(p).map(x => verdict(x.risk, x.pr, p)))
+        return <section className="rmPanel rmEvaluation" aria-label="Evaluasi keberhasilan tindak pengendalian">
+          <div className="rmSectionHead"><div><span className="rmEyebrow">Evaluasi Keberhasilan</span><h3>Efektivitas tindak pengendalian</h3><p>Membandingkan skor residual terbaru dengan target RTP setelah pelaksanaan. Status selesai saja tidak dianggap efektif tanpa penilaian residual.</p></div></div>
+          <div className="rmKpis">
+            <div className="rmKpi"><span>RTP berjalan / dievaluasi</span><strong>{relevant.length.toLocaleString('id-ID')}</strong></div>
+            <div className="rmKpi"><span>Risiko target tercapai</span><strong>{all.filter(v => v.cls === 'ok').length.toLocaleString('id-ID')}</strong></div>
+            <div className="rmKpi"><span>Belum mencapai target</span><strong>{all.filter(v => v.cls === 'no').length.toLocaleString('id-ID')}</strong></div>
+            <div className="rmKpi"><span>Menunggu penilaian</span><strong>{all.filter(v => v.cls === 'pending').length.toLocaleString('id-ID')}</strong></div>
+          </div>
+          <WorkspaceTableViewport label="Evaluasi keberhasilan RTP" className="rmTableWrap"><table className="rmTable"><thead><tr><th>RTP</th><th>Status RTP</th><th>Risiko</th><th>Baseline</th><th>Target</th><th>Residual</th><th>Hasil</th></tr></thead><tbody>
+            {relevant.length ? relevant.flatMap(p => { const items = rowsOf(p); return items.length ? items.map(({ pr, risk }) => { const v = verdict(risk, pr, p); return <tr key={pr.id}><td><b>{p.plan_code || p.title}</b><small className="rmCellSmall">{p.title}</small></td><td>{PLAN_STATUS[p.status] || p.status}</td><td>{risk.risk_event}</td><td>{risk.risk_score}</td><td>{v.target ?? '—'}</td><td>{risk.residual_score ?? '—'}</td><td><span className={'rmEvalVerdict ' + v.cls}>{v.label}</span></td></tr> }) : [<tr key={p.id}><td><b>{p.plan_code || p.title}</b></td><td>{PLAN_STATUS[p.status] || p.status}</td><td colSpan={5}>Belum ada risiko tertaut</td></tr>] }) : <tr><td colSpan={7}><div className="rmEmptySmall">Belum ada RTP yang sedang berjalan atau sudah dievaluasi.</div></td></tr>}
+          </tbody></table></WorkspaceTableViewport>
+        </section>
+      })()}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'fmea' && <>
         <div className="rmKpis compact"><LiquidGlass className="rmKpi"><span>Analisis FMEA</span><strong>{fmeas.length}</strong><small>Modus kegagalan terdaftar</small></LiquidGlass><LiquidGlass className="rmKpi"><span>RPN ≥ 30 atau S ≥ 4</span><strong>{fmeas.filter(f => f.rpn >= 30 || f.severity >= 4).length}</strong><small>Prioritas penanganan tinggi</small></LiquidGlass><LiquidGlass className="rmKpi"><span>RPN maksimum</span><strong>{fmeas.length ? Math.max(...fmeas.map(f => f.rpn)) : '—'}</strong><small>Skor S × O × D</small></LiquidGlass><LiquidGlass className="rmKpi"><span>Target tindakan belum lewat</span><strong>{fmeas.filter(f => f.target_date && new Date(f.target_date + 'T23:59:59') < new Date() && f.status !== 'Closed').length}</strong><small>Perlu tindak lanjut pemilik</small></LiquidGlass></div>

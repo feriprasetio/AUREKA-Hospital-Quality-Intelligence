@@ -201,12 +201,15 @@ export default function OppeAuditWorkspace({
   isSuperAdmin,
   canManage,
   lockRoomScope = false,
+  initialScreen = 'assessment',
 }: {
   initialRoomId: number | null
   rooms: Room[]
   isSuperAdmin: boolean
   canManage: boolean
   lockRoomScope?: boolean
+  /** Blueprint v2: menu OPPE dan FPPE terpisah di Sumber Daya Manusia */
+  initialScreen?: 'assessment' | 'fppe'
 }) {
   const initialRoom = initialRoomId ?? rooms[0]?.id ?? 0
   const [year, setYear] = useState(() => new Date().getFullYear())
@@ -231,7 +234,7 @@ export default function OppeAuditWorkspace({
     const type = error || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'OPPE / FPPE' } }))
   }, [notice, error])
-  const [screen, setScreen] = useState<'assessment' | 'fppe' | 'rules' | 'history'>('assessment')
+  const [screen, setScreen] = useState<'assessment' | 'fppe' | 'rules' | 'history'>(initialScreen)
   const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, new Date().getFullYear(), Math.ceil((new Date().getMonth() + 1) / 3)))
   const [savedClinicalSnapshot, setSavedClinicalSnapshot] = useState<ClinicalIndicatorResult[] | null>(null)
   const [savedScoreSnapshot, setSavedScoreSnapshot] = useState<ReturnType<typeof buildOppeScore> | null>(null)
