@@ -188,7 +188,7 @@ export default function RiskManagementWorkspace({
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [unitFilter, setUnitFilter] = useState('all')
   const [registerListOpen, setRegisterListOpen] = useState(false)
-  useEffect(() => { if (tab === 'register') setRegisterListOpen(false) }, [tab])
+  useEffect(() => { if (tab !== 'register') setRegisterListOpen(false) }, [tab])
   const [levelFilter, setLevelFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
