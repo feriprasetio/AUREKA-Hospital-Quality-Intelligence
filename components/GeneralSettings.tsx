@@ -619,7 +619,7 @@ export default function GeneralSettings({
                   <span>Status akun</span>
                   <input value={me?.is_active ? 'Aktif' : 'Nonaktif'} disabled />
                 </label>
-                <label className="field" style={{ gridColumn: '1 / -1' }}>
+                <label className="field">
                   <span>Unit utama</span>
                   <select
                     value={me?.primary_room_id || ''}

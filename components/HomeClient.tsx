@@ -132,7 +132,7 @@ export default function HomeClient(){
  const [patientsSection,setPatientsSection]=useState<'register'|'stats'|'metadata'>('register')
  const [qualityResultsGroup,setQualityResultsGroup]=useState<'unit'|'category'>('unit')
  const [regulationView,setRegulationView]=useState<RegulationView>('keputusan')
- type SettingsSection='profile'|'security'|'users'|'units'|'appearance'|'system'|'permissions'|'audit'
+ type SettingsSection='profile'|'security'|'users'|'units'|'appearance'|'system'|'permissions'|'mydata'|'audit'
  const [settingsSection,setSettingsSection]=useState<SettingsSection>('profile')
  useEffect(()=>{const h=()=>{setSettingsSection('security');setSettingsTab('security');setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()};window.addEventListener('aureka-open-password',h);return()=>window.removeEventListener('aureka-open-password',h)},[])
  useEffect(()=>{if(active!=='settings')setSettingsTab(null)},[active])
@@ -169,7 +169,7 @@ export default function HomeClient(){
    if(next==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setQualityOpen(true);setClinicalPathwayOpen(false)}
    if(next==='home')setHomeTab(section==='infografis'?'infographics':'welcome')
    if(next==='regulation')setRegulationView((['keputusan','spo','approval','history'].includes(section)?section:'keputusan') as RegulationView)
-   if(next==='settings')setSettingsSection((section==='audit-log'?'audit':['profile','security','users','units','appearance','system','permissions'].includes(section)?section:'profile') as SettingsSection)
+   if(next==='settings')setSettingsSection((section==='audit-log'?'audit':['profile','security','users','units','appearance','system','permissions','mydata'].includes(section)?section:'profile') as SettingsSection)
    if(next==='patients')setPatientsSection(section==='statistik'?'stats':section==='metadata-pasien'||section==='database-pasien'?'metadata':'register')
    if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
    if(next==='risk')setRiskTab((['overview','register','mitigation','connections','fmea','profile','evaluation'].includes(section)?section:'overview') as RiskWorkspaceTab)
@@ -289,6 +289,7 @@ export default function HomeClient(){
     ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'permissions',label:'Hak Akses Role'}]:[]),
     {id:'security',label:'Keamanan'},
     {id:'appearance',label:'Preferensi Tampilan'},
+    ...(!admin?[{id:'mydata',label:'Data Saya untuk PMKP'}]:[]),
     ...(admin?[{id:'system',label:'Konfigurasi Sistem'}]:[]),
     ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'audit',label:'Audit Log'}]:[]),
    ],
@@ -308,7 +309,7 @@ export default function HomeClient(){
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register · Daftar Risiko',connections:'Risk Register · Konektor Risiko',profile:'Risk Register · Profil Risiko',fmea:'FMEA · Analisis',mitigation:'FMEA · Mitigasi & RTP',evaluation:'FMEA · Evaluasi Keberhasilan'} as Record<RiskWorkspaceTab,string>)[riskTab]
   if(active==='analytics')return analyticsTab==='oppe'?'OPPE':analyticsTab==='fppe'?'FPPE':({programs:'Program Kerja Tahunan',profiles:'Profil Indikator',directory:'Direktori Tenaga Kerja',recommendations:'Rekomendasi Ketua PMKP','rtl-dewas':'RTL · Dewan Pengawas','rtl-direktur':'RTL · Direktur','rtl-kabid':'RTL · Kepala Bidang'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'|'fppe'>,string>)[analyticsTab]
-  if(active==='settings')return ({profile:'Profil / Akun',security:'Keamanan',users:'Pengguna dan Role',units:'Unit dan Instalasi',appearance:'Preferensi Tampilan',system:'Konfigurasi Sistem',permissions:'Hak Akses Role',audit:'Audit Log'} as Record<SettingsSection,string>)[settingsSection]
+  if(active==='settings')return ({profile:'Profil / Akun',security:'Keamanan',users:'Pengguna dan Role',units:'Unit dan Instalasi',appearance:'Preferensi Tampilan',system:'Konfigurasi Sistem',permissions:'Hak Akses Role',mydata:'Data Saya untuk PMKP',audit:'Audit Log'} as Record<SettingsSection,string>)[settingsSection]
   if(active==='regulation')return 'E-Regulasi · '+({keputusan:'Keputusan Direktur',spo:'Standar Prosedur Operasional',approval:'Persetujuan Elektronik',history:'Riwayat Versi'} as Record<RegulationView,string>)[regulationView]
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab,patientsSection,regulationView,settingsSection])
@@ -333,7 +334,7 @@ export default function HomeClient(){
   setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId==='staff'?'analytics':moduleId)
   if(moduleId==='home')setHomeTab(childId==='infographics'?'infographics':'welcome')
   if(moduleId==='regulation')setRegulationView((['keputusan','spo','approval','history'].includes(childId)?childId:'keputusan') as RegulationView)
-  if(moduleId==='settings'){setSettingsSection((['profile','security','users','units','appearance','system','permissions','audit'].includes(childId)?childId:'profile') as SettingsSection);setSettingsTab(null)}
+  if(moduleId==='settings'){setSettingsSection((['profile','security','users','units','appearance','system','permissions','mydata','audit'].includes(childId)?childId:'profile') as SettingsSection);setSettingsTab(null)}
   if(moduleId==='patients')setPatientsSection(childId==='stats'?'stats':childId==='metadata'?'metadata':'register')
   if(moduleId==='quality'||moduleId==='clinical'){
    if(moduleId==='quality'&&childId==='profile-indicators'){setActive('analytics');setAnalyticsTab('profiles');setAnalyticsDirectoryTab('directory');setQualityOpen(false);setQualityResultsView(null);return}
@@ -830,7 +831,9 @@ export default function HomeClient(){
    <div className="workspaceContext" title={(admin?activeWorkspaceRoom?.name||'Unit belum dipetakan':manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
     {admin
      ? <label className="workspaceUnitSelect" title="Unit aktif untuk seluruh workspace">
+        <span className="workspaceUnitLabel" aria-hidden="true">Unit kerja aktif</span>
         <span className="srOnly">Unit aktif untuk seluruh workspace</span>
+        <span className="workspaceUnitChevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span>
         <select aria-label="Pilih unit aktif untuk seluruh modul AUREKA" value={String(activeWorkspaceRoomId??'')} onChange={e=>{const next=Number(e.target.value);if(Number.isSafeInteger(next)&&next>0)updateWorkspaceRoom(next)}}>
          <option value="" disabled>Pilih unit kerja</option>
          {roomsList.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
