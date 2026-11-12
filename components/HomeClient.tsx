@@ -13,6 +13,7 @@ import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import PublicLandingPage from '@/components/PublicLandingPage'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 import TableSortEnhancer from '@/components/TableSortEnhancer'
+import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
 import type { RegulationView } from '@/components/governance/RegulationWorkspace'
 const TanyaAureka=dynamic(()=>import('@/components/TanyaAureka'),{ssr:false})
 const workspaceChunkLoading=(label:string)=><AsyncStatePanel state="loading" title={`Memuat ${label}`} description="Menyiapkan ruang kerja." compact/>
@@ -957,7 +958,7 @@ export default function HomeClient(){
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
   </div>
  </section>
- <TableSortEnhancer/>
+ <TableSortEnhancer/><FormSpeedEnhancer/>
  <nav className="mobileBottomNav" aria-label="Navigasi cepat">
   {[['home','Beranda'] as const,...(['quality','patients','safety','risk'] as const).filter(id=>visibleMods.some(([m])=>m===id)).slice(0,3).map(id=>[id,({quality:'Mutu',patients:'Pasien',safety:'IKP',risk:'Risiko'} as const)[id]] as const)].map(([id,label])=><button type="button" key={id} className={active===id?'active':''} aria-current={active===id?'page':undefined} onClick={()=>{toggleNav(id,true);openMainModule(id)}}><NavIcon id={id}/><span>{label}</span></button>)}
   <button type="button" className={mobileSidebar.isOpen?'active':''} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen} onClick={event=>mobileSidebar.isOpen?mobileSidebar.close():mobileSidebar.open(event.currentTarget)}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg><span>Menu</span></button>
