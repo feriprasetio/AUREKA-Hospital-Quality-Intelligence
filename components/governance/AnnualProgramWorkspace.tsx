@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import AurekaModal from '@/components/ui/AurekaModal'
@@ -17,6 +18,8 @@ type PriorityArea = {
 type Draft = Partial<PriorityArea>
 type ProgramPayload = { can_manage: boolean; priority_areas: PriorityArea[] }
 type Screen = 'home'|'priorities'|'proposals'
+
+const AnnualQualitySettings = dynamic(() => import('@/components/QualitySettings'), { ssr: false, loading: () => <AsyncStatePanel state="loading" title="Memuat Program Kerja" compact /> })
 
 const STATUS:Record<PriorityArea['status'],string>={aktif:'Aktif',berjalan:'Berjalan',tercapai:'Tercapai',ditunda:'Ditunda',dibatalkan:'Dibatalkan'}
 const PRIORITY:Record<PriorityArea['priority'],string>={tinggi:'Tinggi',sedang:'Sedang',rendah:'Rendah'}
@@ -68,7 +71,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
     {error&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
     {notice&&<div className="rmNotice" role="status"><span>Informasi</span><p>{notice}</p></div>}
 
-    {screen==='home'&&<div className="annualProgramCards">
+    {screen==='home'&&<div className="annualProgramHome"><div className="annualProgramCards">
       <button type="button" className="annualProgramCard" onClick={()=>setScreen('priorities')}>
         <span className="annualProgramCardIcon" aria-hidden="true">◎</span>
         <span className="annualProgramCardBody"><strong>Area Prioritas</strong><small>Daftar masalah strategis, sasaran mutu, unit pemilik, dan rencana penyelesaian.</small><span className="annualProgramCardMeta">{loading?'Memuat…':`${rows.length} area · ${activeCount} masih berjalan`}</span></span>
@@ -79,6 +82,11 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
         <span className="annualProgramCardBody"><strong>Usulan Indikator Baru</strong><small>Ajukan, telaah, revisi, setujui, dan aktivasi indikator baru ke katalog mutu.</small><span className="annualProgramCardMeta">Workflow pengembangan indikator · jejak telaah tersimpan</span></span>
         <span className="annualProgramCardArrow" aria-hidden="true">→</span>
       </button>
+    </div>
+    {role==='ADMIN'&&<section className="annualProgramLegacy">
+      <div className="annualProgramLegacyHead"><span className="rmEyebrow">Klasifikasi Program</span><h4>Program Kerja Rumah Sakit</h4><p>Pengelolaan klasifikasi program kerja yang menjadi dasar pengelompokan indikator mutu tetap tersedia di sini.</p></div>
+      <AnnualQualitySettings rooms={rooms} initialTab="programs" showTabs={false} initialRoomId={currentRoomId} lockRoomScope={false}/>
+    </section>}
     </div>}
 
     {screen==='priorities'&&<div className="annualPriorityContent">
@@ -123,7 +131,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
     </AurekaModal>
 
     <style jsx>{`
-      .annualProgramCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+      .annualProgramHome{display:grid;gap:16px}.annualProgramLegacy{margin-top:4px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:11px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
       .annualProgramCard{display:flex;align-items:flex-start;gap:14px;text-align:left;padding:20px;border:1px solid var(--line,rgba(20,34,27,.12));border-radius:18px;background:var(--surface,#fff);color:var(--text,#20372d);cursor:pointer;min-width:0;transition:border-color .18s,transform .18s}
       .annualProgramCard:hover{border-color:var(--accent,#26866a);transform:translateY(-1px)}
       .annualProgramCardIcon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:var(--surface-soft,#eef5f1);font-size:22px}

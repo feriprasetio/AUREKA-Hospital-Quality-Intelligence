@@ -14,6 +14,8 @@ test('annual Program presents priority areas and new indicator proposals as firs
   assert.match(workspace, /Usulan Indikator Baru/)
   assert.match(workspace, /aureka_gov_save_priority_area/)
   assert.match(workspace, /IndicatorProposalWorkspace/)
+  assert.match(workspace, /AnnualQualitySettings/)
+  assert.match(workspace, /initialTab="programs" showTabs=\{false\}/)
 })
 
 test('recommendations and follow-up are one stakeholder-filtered workflow', () => {
