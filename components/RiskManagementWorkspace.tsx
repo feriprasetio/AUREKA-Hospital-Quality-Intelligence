@@ -167,6 +167,7 @@ export default function RiskManagementWorkspace({
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
   const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation'>(initialTab)
   useEffect(() => { setTab(initialTab) }, [initialTab])
+  useEffect(() => { if (tab === 'register') setRegisterListOpen(false) }, [tab])
   useEffect(() => { onTabChange?.(tab) }, [tab, onTabChange])
   const [risks, setRisks] = useState<RiskRow[]>([])
   const [plans, setPlans] = useState<PlanRow[]>([])
