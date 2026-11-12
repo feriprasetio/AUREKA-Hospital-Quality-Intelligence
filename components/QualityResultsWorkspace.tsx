@@ -31,6 +31,8 @@ type Props = {
   canViewAllRooms: boolean
   onRoomChange?: (roomId: number | null) => void
   lockRoomScope?: boolean
+  /** Blueprint v2 §3: pilih agregasi Unit Keseluruhan atau Kategori Indikator. */
+  groupBy?: 'unit' | 'category'
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
 type PathwayDataset = ClinicalPathwayRow[]
@@ -214,7 +216,7 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
   return { rows, capped: true }
 }
 
-export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false }: Props) {
+export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit' }: Props) {
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
     const incoming = normalizeRoom(initialRoomId)
@@ -350,6 +352,22 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   ), [indicatorData, year])
   const assessedIndicators = indicatorResults.filter((result) => result.observations > 0 && result.targetMet != null)
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
+  const categorySummary = useMemo(() => {
+    const categories = new Map<string, { name: string; indicators: number; assessed: number; met: number; observations: number }>()
+    for (const result of indicatorResults) {
+      const profile = result.profile as IndicatorProfileForResults & { indicator_type?: string | null }
+      const name = String(profile.indicator_type ?? '').trim() || 'Tanpa kategori'
+      const item = categories.get(name) ?? { name, indicators: 0, assessed: 0, met: 0, observations: 0 }
+      item.indicators += 1
+      item.observations += result.observations
+      if (result.observations > 0 && result.targetMet != null) {
+        item.assessed += 1
+        if (result.targetMet) item.met += 1
+      }
+      categories.set(name, item)
+    }
+    return Array.from(categories.values()).sort((left, right) => left.name.localeCompare(right.name, 'id'))
+  }, [indicatorResults])
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
   const readyCount = mode === 'indicators'
     ? 0
@@ -575,7 +593,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     <style>{pageCss}</style>
     <WorkspaceModuleHeader
       className="qraHero"
-      title={modeTitle(mode)}
+      title={modeTitle(mode) + (mode === 'indicators' ? (groupBy === 'category' ? ' · Kategori Indikator' : ' · Unit Keseluruhan') : '')}
       actions={<div className="qraActions">
         <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms || lockRoomScope} onChange={(event) => { const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
           {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
@@ -592,7 +610,32 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…" detail="" /></div>
       : loadingError
         ? null
-        : mode === 'indicators'
+        : mode === 'indicators' && groupBy === 'category'
+          ? <>
+            <div className="qraKpis">
+              <Kpi label="Kategori Indikator" value={formatCount(categorySummary.length)} detail="Kategori dari profil indikator unit yang dipilih" />
+              <Kpi label="Indikator aktif" value={formatCount(indicatorResults.length)} detail="Profil terbit dan aktif" />
+              <Kpi label="Indikator memenuhi target" value={formatCount(metIndicators)} detail={formatCount(assessedIndicators.length) + ' indikator dapat dinilai'} />
+              <Kpi label="Jumlah observasi" value={formatCount(indicatorResults.reduce((total, item) => total + item.observations, 0))} detail="Seluruh observasi indikator pada tahun terpilih" />
+            </div>
+            <section className="qraPanel">
+              <div className="qraPanelHead"><div><h3>Capaian menurut kategori indikator</h3><p>Ringkasan baca-saja dari hasil indikator yang dihitung menggunakan data logbook tervalidasi.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
+              {categorySummary.length === 0
+                ? <EmptyState title="Belum ada kategori indikator" detail="Profil indikator aktif belum tersedia untuk unit dan tahun yang dipilih." />
+                : <WorkspaceTableViewport label="Hasil capaian menurut kategori indikator" className="qraTableWrap"><table className="qraTable">
+                  <thead><tr><th>Kategori indikator</th><th>Jumlah indikator</th><th>Dapat dinilai</th><th>Memenuhi target</th><th>Capaian kategori</th><th>Jumlah observasi</th></tr></thead>
+                  <tbody>{categorySummary.map((item) => <tr key={item.name}>
+                    <td><strong>{item.name}</strong></td>
+                    <td>{formatCount(item.indicators)}</td>
+                    <td>{formatCount(item.assessed)}</td>
+                    <td>{formatCount(item.met)}</td>
+                    <td><strong>{item.assessed ? formatPct((item.met / item.assessed) * 100) : '—'}</strong></td>
+                    <td>{formatCount(item.observations)}</td>
+                  </tr>)}</tbody>
+                </table></WorkspaceTableViewport>}
+            </section>
+          </>
+          : mode === 'indicators'
           ? <>
             <div className="qraKpis">
               <Kpi label="Capaian Mutu Unit Secara Keseluruhan" value={overallIndicatorAchievement == null ? '—' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
