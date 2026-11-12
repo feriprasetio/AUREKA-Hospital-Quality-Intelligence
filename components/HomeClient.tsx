@@ -604,7 +604,8 @@ export default function HomeClient(){
  },[view,user?.id,admin])
  useEffect(()=>{void loadReminderHistory()},[loadReminderHistory])
 
- const receive=(event:Event)=>{
+ useEffect(()=>{
+  const receive=(event:Event)=>{
    const detail=(event as CustomEvent<{message?:string;type?:string;kind?:string;module?:string}>).detail
    const text=String(detail?.message??'').trim()
    if(!text)return
