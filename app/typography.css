@@ -781,3 +781,9 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
 @media (max-width: 720px) and (prefers-reduced-motion: no-preference) {
   html body:not(#_) .mobileSubNav button { transition: background .18s ease, color .18s ease, box-shadow .18s ease; }
 }
+@media (max-width: 900px) {
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen :is(.sidebarChild, .sidebarNavGroup > button) span { color: inherit !important; font-size: inherit !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup > button { font-size: 15.5px !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild { font-size: 14.5px !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarTreeNestedChildren .sidebarChild { font-size: 14px !important; }
+}
