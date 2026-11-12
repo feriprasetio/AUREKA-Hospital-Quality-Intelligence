@@ -349,3 +349,14 @@ html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(.rmButton.pri
   box-shadow: 0 8px 18px rgba(11, 31, 51, .22);
 }
 html body:not(#_) [aria-modal="true"] :is(.rmButton.primary, .psBtn.primary, .stBtn.primary, .akBtn.primary, .oppeBtn.primary, .uBtn.primary):not(:disabled):hover { translate: 0 -1px; }
+
+/* ===== Direktori Tenaga Kerja: satu scroll (halaman), kepala tabel menempel di bawah bar atas ===== */
+@media (min-width: 900px) {
+  html body:not(#_) .sdTableWrap { max-height: none !important; overflow: visible !important; }
+  html body:not(#_) .sdTable thead th { position: sticky; top: var(--aur-header-h, 72px); z-index: 4; box-shadow: 0 1px 0 rgba(11, 31, 51, .08); }
+}
+html body:not(#_) .sdActionsCell { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; }
+html body:not(#_) .sdActionsCell :is(.sdEditBtn, .sdMini) { min-height: 32px; padding: 0 10px; font-size: 12px; }
+html body:not(#_) .sdTable tbody td { padding-top: 8px; padding-bottom: 8px; }
+/* Bar atas: batas bawah lembut agar isi yang lewat di bawahnya tidak tampak "terpotong" */
+html body:not(#_) .workspaceRoot .workspaceHeaderBar { box-shadow: 0 6px 18px -10px rgba(11, 31, 51, .25) !important; }

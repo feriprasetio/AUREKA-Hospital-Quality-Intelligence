@@ -236,6 +236,9 @@ export default function OppeAuditWorkspace({
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'OPPE / FPPE' } }))
   }, [notice, error])
   const [screen, setScreen] = useState<'assessment' | 'fppe' | 'rules' | 'history'>(initialScreen)
+  // FPPE punya menu sendiri (SDM › FPPE): tampil mandiri tanpa header, filter, dan tab OPPE.
+  const fppeOnly = initialScreen === 'fppe'
+  useEffect(() => { if (!fppeOnly && screen === 'fppe') setScreen('assessment') }, [fppeOnly, screen])
   useEffect(() => { if (screen === 'assessment' || screen === 'fppe' || screen === 'history') logSensitiveView('hr_performance', 'oppe-' + screen) }, [screen])
   const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, new Date().getFullYear(), Math.ceil((new Date().getMonth() + 1) / 3)))
   const [savedClinicalSnapshot, setSavedClinicalSnapshot] = useState<ClinicalIndicatorResult[] | null>(null)
@@ -1144,6 +1147,13 @@ export default function OppeAuditWorkspace({
   return (
     <section className="oppeRoot">
       <style>{CSS}</style>
+      {fppeOnly ? <FppeEvaluationWorkspace
+          rooms={rooms}
+          teamStaff={teamStaff}
+          initialRoomId={roomFilter ?? form.roomId ?? initialRoom}
+          canManage={canManage}
+          lockRoomScope={lockRoomScope}
+        /> : <>
       <WorkspaceModuleHeader
         className="oppeHeader"
         title="Evaluasi praktik profesional"
@@ -1169,7 +1179,6 @@ export default function OppeAuditWorkspace({
         panelId="oppe-active-panel"
         items={[
           { value: 'assessment', label: 'Form & output OPPE' },
-          { value: 'fppe', label: 'FPPE terfokus' },
           { value: 'rules', label: 'Pemetaan indikator', count: selectedRuleCount },
           { value: 'history', label: 'Riwayat penilaian', count: assessments.length },
         ] as const}
@@ -1409,6 +1418,7 @@ export default function OppeAuditWorkspace({
         <div className="oppePrintSignatures"><div>Mengetahui,<br/>Ketua Sub Komite Mutu Profesi<br/><br/><br/>________________________</div><div>Penilai,<br/>Kepala KSM / evaluator<br/><br/><br/>________________________</div><div>Menyetujui,<br/>Ketua Komite Medik<br/><br/><br/>________________________</div><div>Menyetujui,<br/>Kepala Bidang Pelayanan Medik dan Keperawatan<br/><br/><br/>________________________</div></div>
         <p className="oppePrintFoot">Dokumen internal. Skor OPPE merupakan ringkasan penilaian dan bukan keputusan otomatis tentang kewenangan klinis. Indikator tim/unit tidak dimasukkan ke skor individu tanpa atribusi terverifikasi.</p>
       </section>
+      </>}
     </section>
   )
 }
