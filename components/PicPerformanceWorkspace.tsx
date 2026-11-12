@@ -15,6 +15,8 @@ type PicRow = {
   records_window: number
   records_draft: number
   records_ready: number
+  records_validated: number
+  records_archived: number
   last_created_at: string | null
   last_record_date: string | null
   last_status: string | null
@@ -44,7 +46,8 @@ export default function PicPerformanceWorkspace() {
     window: acc.window + Number(row.records_window || 0),
     draft: acc.draft + Number(row.records_draft || 0),
     ready: acc.ready + Number(row.records_ready || 0),
-  }), { pic: 0, total: 0, window: 0, draft: 0, ready: 0 }), [rows])
+    validated: acc.validated + Number(row.records_validated || 0),
+  }), { pic: 0, total: 0, window: 0, draft: 0, ready: 0, validated: 0 }), [rows])
   useEffect(() => {
     const message = error
     if (message) window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message, type: 'error', module: 'Kinerja PIC' } }))
@@ -85,12 +88,12 @@ export default function PicPerformanceWorkspace() {
         <div className="ppKpi"><span>PIC dengan penugasan aktif</span><strong>{number(totals.pic)}</strong></div>
         <div className="ppKpi"><span>Logbook dibuat (seluruh periode)</span><strong>{number(totals.total)}</strong></div>
         <div className="ppKpi"><span>Logbook {days} hari terakhir</span><strong>{number(totals.window)}</strong></div>
-        <div className="ppKpi"><span>Masih draft</span><strong>{number(totals.draft)}</strong></div>
+        <div className="ppKpi"><span>Sudah tervalidasi</span><strong>{number(totals.validated)}</strong></div>
       </div>
       <div className="ppPanel">
         <div className="ppHead"><div><strong>Daftar PIC dan aktivitas terakhir</strong><p className="ppIntro">Satu baris mewakili akun PIC dan unit penugasan aktif. Jika PIC belum membuat logbook, kolom aktivitas terakhir akan menampilkan keterangan tersebut.</p></div><span className="ppBadge">Diperbarui {fmtDate(data?.generated_at)}</span></div>
-        <div className="ppTableWrap"><table className="ppTable"><thead><tr><th>PIC</th><th>Unit</th><th>Total logbook</th><th>{days} hari</th><th>Draft / siap</th><th>Data terakhir dibuat</th></tr></thead><tbody>
-          {rows.map(row=><tr key={row.user_id+'-'+row.room_id}><td><strong>{row.pic_name}</strong><span className="ppSub">{row.email || row.user_id}</span></td><td>{row.room_name}</td><td>{number(row.records_total)}</td><td>{number(row.records_window)}</td><td>{number(row.records_draft)} / {number(row.records_ready)}</td><td><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date ? 'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID') : 'Tanggal data belum tersedia'}{row.last_status ? ' · Status: '+row.last_status : ''}</span></td></tr>)}
+        <div className="ppTableWrap"><table className="ppTable"><thead><tr><th>PIC</th><th>Unit</th><th>Total logbook</th><th>{days} hari</th><th>Draft / siap / tervalidasi / arsip</th><th>Data terakhir dibuat</th></tr></thead><tbody>
+          {rows.map(row=><tr key={row.user_id+'-'+row.room_id}><td><strong>{row.pic_name}</strong><span className="ppSub">{row.email || row.user_id}</span></td><td>{row.room_name}</td><td>{number(row.records_total)}</td><td>{number(row.records_window)}</td><td>{number(row.records_draft)} / {number(row.records_ready)} / {number(row.records_validated)} / {number(row.records_archived)}</td><td><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date ? 'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID') : 'Tanggal data belum tersedia'}{row.last_status ? ' · Status: '+row.last_status : ''}</span></td></tr>)}
           {rows.length===0&&<tr><td colSpan={6}><div className="ppEmpty">Belum ada akun PIC dengan penugasan aktif yang dapat ditampilkan.</div></td></tr>}
         </tbody></table></div>
       </div>

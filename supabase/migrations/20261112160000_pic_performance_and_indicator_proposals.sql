@@ -63,6 +63,8 @@ begin
             count(*) filter (where qr.created_at >= now() - make_interval(days => v_days))::integer as records_window,
             count(*) filter (where qr.status = 'draft')::integer as records_draft,
             count(*) filter (where qr.status = 'ready')::integer as records_ready,
+            count(*) filter (where qr.status = 'validated')::integer as records_validated,
+            count(*) filter (where qr.status = 'archived')::integer as records_archived,
             max(qr.created_at) as last_created_at,
             max(qr.record_date) as last_record_date,
             (array_agg(qr.status order by qr.created_at desc))[1] as last_status

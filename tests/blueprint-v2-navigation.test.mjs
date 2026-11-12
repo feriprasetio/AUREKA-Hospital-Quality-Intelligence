@@ -110,6 +110,8 @@ test('PIC performance dashboard and indicator proposal workspaces are wired to a
   assert.match(app, /<PicPerformanceWorkspace\/>/)
   assert.match(performance, /aureka_pic_performance_dashboard/)
   assert.match(performance, /Data terakhir dibuat/)
+  assert.match(performance, /records_validated/)
+  assert.match(migration, /records_archived/)
   assert.match(app, /id:'proposals',label:'Usulan Indikator Baru'/)
   assert.match(app, /<IndicatorProposalWorkspace/)
   assert.match(proposals, /aureka_gov_indicator_proposal_save/)
