@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 
 /**
  * Database Pasien (Master Patient Index).
@@ -97,7 +98,7 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
         <p>Indeks pasien unik dengan <b>No. Rekam Medis</b> sebagai kunci utama, diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.</p>
       </div>
       <div className="piActions">
-        <button type="button" className="prButton" onClick={() => setShowIdentity((v) => !v)}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>
+        <button type="button" className="prButton" onClick={async () => { if (showIdentity) { setShowIdentity(false); return } if (await requestSensitiveAccess('patient_identity', 'metadata-pasien', 'Tampilkan identitas pasien')) setShowIdentity(true) }}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>
         <button type="button" className="prButton" onClick={() => setShowSpec((v) => !v)}>{showSpec ? 'Tutup spesifikasi' : 'Spesifikasi bridging'}</button>
         {isAdmin && <button type="button" className="prButton primary" disabled={syncing} onClick={() => void sync()}>{syncing ? 'Menyinkronkan…' : 'Sinkron ulang dari Logbook'}</button>}
       </div>

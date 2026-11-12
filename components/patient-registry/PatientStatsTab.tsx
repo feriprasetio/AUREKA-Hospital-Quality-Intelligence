@@ -20,31 +20,33 @@ export default function PatientStatsTab({ rooms, roomId, year, onYearChange }: {
   const [counts, setCounts] = useState<RoomMonthCount[]>([])
   const [unit, setUnit] = useState<UnitStats | null>(null)
   const [summary, setSummary] = useState<IndexSummary | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState({ counts: true, summary: true, unit: true })
   const [error, setError] = useState('')
   const roomName = useMemo(() => new Map(rooms.map((r) => [Number(r.id), r.name])), [rooms])
 
+  // Tiga sumber dimuat paralel dan ditampilkan begitu masing-masing selesai (tidak saling menunggu).
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
+    setLoading({ counts: true, summary: true, unit: Boolean(roomId) })
     setError('')
-    ;(async () => {
-      try {
-        const [all, sum, st] = await Promise.all([
-          fetchRoomMonthCounts(year, 'patient_episode'),
-          aurekaSupabase.rpc('aureka_patient_index_summary'),
-          roomId ? aurekaSupabase.rpc('aureka_patient_episode_stats', { p_room: roomId, p_year: year }) : Promise.resolve({ data: null, error: null }),
-        ])
-        if (cancelled) return
-        setCounts(all.filter((r) => r.measurement_grain === 'patient_episode' || !r.measurement_grain))
-        setSummary(!sum.error && sum.data ? (sum.data as IndexSummary) : null)
-        setUnit(!st.error && st.data && (st.data as UnitStats).allowed !== false ? (st.data as UnitStats) : null)
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Statistik belum dapat dimuat.')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
+    const done = (k: 'counts' | 'summary' | 'unit') => { if (!cancelled) setLoading((l) => ({ ...l, [k]: false })) }
+    const summaryKey = 'aureka-ps-summary'
+    try { const c = JSON.parse(sessionStorage.getItem(summaryKey) || 'null'); if (c && Date.now() - c.at < 10 * 60 * 1000) { setSummary(c.data); done('summary') } } catch { /* abaikan */ }
+    aurekaSupabase.rpc('aureka_patient_index_summary').then(({ data, error: e }) => {
+      if (cancelled) return
+      setSummary(!e && data ? (data as IndexSummary) : null)
+      try { if (!e && data) sessionStorage.setItem(summaryKey, JSON.stringify({ at: Date.now(), data })) } catch { /* abaikan */ }
+      done('summary')
+    })
+    fetchRoomMonthCounts(year, 'patient_episode').then((all) => {
+      if (cancelled) return
+      setCounts(all.filter((r) => r.measurement_grain === 'patient_episode' || !r.measurement_grain)); done('counts')
+    }).catch((e) => { if (!cancelled) { setError(e instanceof Error ? e.message : 'Statistik belum dapat dimuat.'); done('counts') } })
+    if (roomId) aurekaSupabase.rpc('aureka_patient_episode_stats', { p_room: roomId, p_year: year }).then(({ data, error: e }) => {
+      if (cancelled) return
+      setUnit(!e && data && (data as UnitStats).allowed !== false ? (data as UnitStats) : null); done('unit')
+    })
+    else setUnit(null)
     return () => { cancelled = true }
   }, [roomId, year])
 
@@ -70,18 +72,18 @@ export default function PatientStatsTab({ rooms, roomId, year, onYearChange }: {
       </div>
 
       {error && <div className="psStatsNote error" role="alert">{error}</div>}
-      {loading ? <div className="psStatsNote">Memuat statistik…</div> : <>
+      {<>
         <div className="prKpis">
-          <div className="prKpi"><span>Pasien unik (No. RM) · semua unit yang dapat Anda akses</span><strong>{fmt(summary?.total)}</strong></div>
-          <div className="prKpi"><span>Pasien dengan kunjungan berulang</span><strong>{fmt(summary?.kunjungan_berulang)}</strong></div>
-          <div className="prKpi"><span>Episode {year}{roomId ? ' · ' + (roomName.get(roomId) || 'unit') : ' · semua unit'}</span><strong>{fmt(episodes)}</strong></div>
+          <div className="prKpi"><span>Pasien unik (No. RM) · semua unit yang dapat Anda akses</span><strong>{loading.summary ? <span className="psSkel" /> : fmt(summary?.total)}</strong></div>
+          <div className="prKpi"><span>Pasien dengan kunjungan berulang</span><strong>{loading.summary ? <span className="psSkel" /> : fmt(summary?.kunjungan_berulang)}</strong></div>
+          <div className="prKpi"><span>Episode {year}{roomId ? ' · ' + (roomName.get(roomId) || 'unit') : ' · semua unit'}</span><strong>{loading.counts ? <span className="psSkel" /> : fmt(episodes)}</strong></div>
           {unit ? <div className="prKpi"><span>Rerata lama rawat (hari) · {fmt(unit.los_count)} episode berdata LOS</span><strong>{unit.avg_los == null ? '—' : unit.avg_los.toFixed(1).replace('.', ',')}</strong></div>
-            : <div className="prKpi"><span>Unit dengan episode {year}</span><strong>{fmt(byUnit.length)}</strong></div>}
+            : <div className="prKpi"><span>{roomId ? 'Rerata lama rawat (hari)' : 'Unit dengan episode ' + year}</span><strong>{(roomId ? loading.unit : loading.counts) ? <span className="psSkel" /> : roomId ? '—' : fmt(byUnit.length)}</strong></div>}
         </div>
-        {!summary && <div className="psStatsNote">Jumlah pasien unik tersedia setelah Database Pasien (indeks No. RM) dipasang.</div>}
+        {!summary && !loading.summary && <div className="psStatsNote">Jumlah pasien unik tersedia setelah Database Pasien (indeks No. RM) dipasang.</div>}
 
         <div className="psStatsCard">
-          <h4>Episode per bulan · {year}</h4>
+          <h4>Episode per bulan · {year}{loading.counts && <small className="psLoadingHint"> · memuat…</small>}</h4>
           <div className="psStatsBars" role="img" aria-label={'Episode per bulan ' + byMonth.map((n, i) => MONTHS[i] + ' ' + n).join(', ')}>
             {byMonth.map((n, i) => <div key={i} className="psStatsBar" title={MONTHS[i] + ': ' + fmt(n) + ' episode'}><i style={{ height: (n / maxMonth * 100) + '%' }} /><span>{MONTHS[i]}</span><b>{n ? fmt(n) : ''}</b></div>)}
           </div>

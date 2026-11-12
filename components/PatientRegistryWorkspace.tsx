@@ -7,6 +7,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { fetchRoomMonthCounts } from '@/lib/aureka/quality-counts'
 import PatientIndexTab from '@/components/patient-registry/PatientIndexTab'
 import PatientStatsTab from '@/components/patient-registry/PatientStatsTab'
+import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 
 type Room = { id: number; name: string }
 type EpisodeRow = {
@@ -283,7 +284,7 @@ export default function PatientRegistryWorkspace({
           <p>Rekapan episode pelayanan pasien dari catatan unit yang telah dilaporkan. Identitas pasien disamarkan secara default.</p>
         </div>
         <div className="prActions">
-          <button className="prButton" type="button" onClick={() => setShowIdentity((value) => !value)}>{showIdentity ? 'Samarkan Identitas' : 'Tampilkan Identitas'}</button>
+          <button className="prButton" type="button" onClick={async () => { if (showIdentity) { setShowIdentity(false); return } if (await requestSensitiveAccess('patient_identity', 'register-pasien:' + (roomFilter || 'semua-unit'), 'Tampilkan identitas pasien')) setShowIdentity(true); else setError('Role Anda tidak memiliki izin melihat identitas pasien, atau permintaan dibatalkan.') }}>{showIdentity ? 'Samarkan Identitas' : 'Tampilkan Identitas'}</button>
           <button className="prButton" type="button" onClick={() => downloadCsv(filtered, showIdentity)} disabled={!filtered.length}>Ekspor CSV</button>
           <button className="prButton primary" type="button" onClick={() => setTab('add')}>Tambah Pasien</button>
         </div>

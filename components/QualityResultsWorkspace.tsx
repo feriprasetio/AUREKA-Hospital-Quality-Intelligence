@@ -31,6 +31,8 @@ type Props = {
   canViewAllRooms: boolean
   onRoomChange?: (roomId: number | null) => void
   lockRoomScope?: boolean
+  /** Blueprint v2 §3: Hasil Capaian — 'unit' (Unit Keseluruhan) atau 'category' (Kategori Indikator) */
+  groupBy?: 'unit' | 'category'
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
 type PathwayDataset = ClinicalPathwayRow[]
@@ -214,7 +216,8 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
   return { rows, capped: true }
 }
 
-export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false }: Props) {
+export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit' }: Props) {
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
     const incoming = normalizeRoom(initialRoomId)
@@ -349,6 +352,20 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     calculateIndicatorResult(profile, indicatorData.rows, year),
   ), [indicatorData, year])
   const assessedIndicators = indicatorResults.filter((result) => result.observations > 0 && result.targetMet != null)
+  const categoryOf = (result: { profile: IndicatorProfileForResults }) => String(result.profile.indicator_type || '').trim() || 'Tanpa kategori'
+  const categorySummary = useMemo(() => {
+    const map = new Map<string, { name: string; total: number; assessed: number; met: number; observations: number }>()
+    for (const result of indicatorResults) {
+      const name = categoryOf(result)
+      const entry = map.get(name) || { name, total: 0, assessed: 0, met: 0, observations: 0 }
+      entry.total++
+      entry.observations += result.observations
+      if (result.observations > 0 && result.targetMet != null) { entry.assessed++; if (result.targetMet) entry.met++ }
+      map.set(name, entry)
+    }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'))
+  }, [indicatorResults]) // eslint-disable-line react-hooks/exhaustive-deps
+  const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => categoryOf(result) === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
   const readyCount = mode === 'indicators'
@@ -603,13 +620,26 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             <div className="qraNotice" role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}><input type="checkbox" checked={includeReady} onChange={(event) => setIncludeReady(event.target.checked)} /> Hitung juga laporan yang belum divalidasi</label>
             </div>
+            {groupBy === 'category' && <section className="qraPanel" aria-label="Capaian per kategori indikator">
+              <div className="qraPanelHead"><div><h3>Capaian per kategori indikator</h3><p className="qraMuted">Kategori mengikuti program kerja pada Profil Indikator (mis. INM, IMP-RS, IMP-Unit). Klik kategori untuk menyaring tabel di bawah.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
+              {categorySummary.length === 0 ? <EmptyState title="Belum ada kategori" detail="Belum ada indikator aktif pada unit dan tahun ini." /> : <div className="qraCategoryGrid">
+                <button type="button" className={'qraCategoryCard' + (categoryFilter === '' ? ' active' : '')} onClick={() => setCategoryFilter('')}><span>Semua kategori</span><strong>{assessedIndicators.length ? formatPct(metIndicators / assessedIndicators.length * 100) : '—'}</strong><small>{metIndicators} dari {assessedIndicators.length} indikator berdata memenuhi target</small></button>
+                {categorySummary.map((cat) => <button type="button" key={cat.name} className={'qraCategoryCard' + (categoryFilter === cat.name ? ' active' : '')} onClick={() => setCategoryFilter(categoryFilter === cat.name ? '' : cat.name)}>
+                  <span>{cat.name}</span>
+                  <strong>{cat.assessed ? formatPct(cat.met / cat.assessed * 100) : '—'}</strong>
+                  <small>{cat.met} dari {cat.assessed} memenuhi target · {cat.total} indikator · n={formatCount(cat.observations)}</small>
+                  <i className="qraCategoryBar"><b style={{ width: (cat.assessed ? cat.met / cat.assessed * 100 : 0) + '%' }} /></i>
+                  {cat.assessed > 0 && cat.assessed < 3 && <em>Data sedikit — tafsirkan hati-hati</em>}
+                </button>)}
+              </div>}
+            </section>}
             <section className="qraPanel">
-              <div className="qraPanelHead"><div><h3>Hasil setiap indikator</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
-              {indicatorResults.length === 0
+              <div className="qraPanelHead"><div><h3>Hasil setiap indikator{groupBy === 'category' && categoryFilter ? ' · ' + categoryFilter : ''}</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
+              {visibleIndicatorResults.length === 0
                 ? <EmptyState title="Belum ada indikator aktif" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
                 : <WorkspaceTableViewport label="Hasil capaian mutu" className="qraTableWrap"><table className="qraTable qraIndicatorTable">
                   <thead><tr><th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
-                  <tbody>{indicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
+                  <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
                     {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '—'}</small></td>)}
                     <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
