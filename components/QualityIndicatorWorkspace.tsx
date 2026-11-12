@@ -934,6 +934,16 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
     const saved:Patient={...selected,id:recordId??selected.id,enteredBy:savedEnteredBy,databaseStatus:payloadStatus,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
    setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
    setSelected(saved);setPatientOpen(false);setMessage('Laporan final berhasil disimpan. PIC tetap dapat membuka dan mengedit laporan ini.');setBusy(false)
+   return true
+ }
+ // Simpan lalu langsung buka formulir baru di unit yang sama; DPJP/dokter & alur layanan terbawa agar pengisian berikutnya cepat.
+ const saveAndNew=async()=>{
+   if(!selected)return
+   const roomNow=Number(selected.roomId)
+   const carry:Record<string,any>={}
+   Object.entries((selected.formData??{}) as Record<string,any>).forEach(([field,value])=>{if(/^(dpjp|nama dokter|dokter|dokter penanggung jawab|alur layanan|ruangan|kelas|cara bayar|penjamin)$/i.test(field.trim())&&String(value??'').trim())carry[field]=value})
+   const ok=await save()
+   if(ok===true){newPatient(roomNow,carry);setMessage('Tersimpan ✓ Formulir berikutnya siap diisi.');window.setTimeout(()=>{const f=document.querySelector<HTMLElement>('.aqEditorDialog .aqEpisode input:not([readonly]):not([disabled]), .aqEditorDialog .aqEpisode select:not([disabled])');f?.focus()},120)}
  }
 
  const archivePatient=async(p:Patient)=>{
@@ -1130,7 +1140,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
           {!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator hijau pada layout unit ini.</div>}
         </div>
       </section>
-    </div><div className="aqFoot"><span style={{fontSize:11,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Gunakan pemeriksaan laporan bulanan untuk mencatat seluruh pemeriksaan.':`${source} · Laporan disimpan sebagai final dan tetap dapat diedit PIC sampai diarsipkan.`}</span><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="aqBtn" disabled={busy} onClick={requestCloseEditor}>{isValidator?'Tutup':'Batal'}</button>{!isValidator&&<><button type="button" className="aqBtn primary" onClick={()=>void save()} disabled={busy}>{busy?'Menyimpan…':'Simpan Laporan'}</button></>}</div></div></section>:null
+    </div><div className="aqFoot"><span style={{fontSize:11,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Gunakan pemeriksaan laporan bulanan untuk mencatat seluruh pemeriksaan.':`${source} · Laporan disimpan sebagai final dan tetap dapat diedit PIC sampai diarsipkan.`}</span><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="aqBtn" disabled={busy} onClick={requestCloseEditor}>{isValidator?'Tutup':'Batal'}</button>{!isValidator&&<><button type="button" className="aqBtn" title="Simpan lalu buka formulir baru (DPJP terbawa)" onClick={()=>void saveAndNew()} disabled={busy}>Simpan &amp; isi berikutnya</button><button type="button" className="aqBtn primary" title="Ctrl+S" onClick={()=>void save()} disabled={busy}>{busy?'Menyimpan…':'Simpan Laporan'}</button></>}</div></div></section>:null
 
   return <div className="aq aqAuditWorkspace">
    <style dangerouslySetInnerHTML={{__html:CSS}}/>
