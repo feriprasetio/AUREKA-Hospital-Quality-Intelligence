@@ -754,3 +754,30 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarTreeChildren:not([hidden]) { animation: navDrop .22s ease both; }
 }
 @keyframes navDrop { from { opacity: 0; translate: 0 -4px; } to { opacity: 1; translate: none; } }
+
+/* ===== HP: submenu jadi panel rapi (tidak menempel judul), KPI ringkas ===== */
+@media (max-width: 720px) {
+  html body:not(#_) .workspaceRoot .workspacePageHead { margin-bottom: 6px !important; }
+  html body:not(#_) .mobileSubNav { margin: 0 16px 14px !important; padding: 8px !important; border-radius: 18px; background: rgba(255, 255, 255, .72); border: 1px solid rgba(11, 47, 82, .08); box-shadow: 0 4px 14px rgba(11, 47, 82, .06); gap: 8px !important; }
+  html body:not(#_) .mobileSubNavRow:not(.sub) { display: flex !important; flex-wrap: nowrap !important; gap: 4px !important; padding: 4px !important; border-radius: 14px; background: rgba(11, 47, 82, .06); }
+  html body:not(#_) .mobileSubNavRow:not(.sub) > button { flex: 1 1 0 !important; min-height: 38px; border: 0 !important; box-shadow: none !important; background: transparent !important; color: #33506e !important; border-radius: 11px !important; padding: 4px 8px !important; font-size: 13.5px !important; }
+  html body:not(#_) .mobileSubNavRow:not(.sub) > button.active { background: #fff !important; color: #0b1f33 !important; box-shadow: 0 2px 8px rgba(11, 47, 82, .12) !important; }
+  html body:not(#_) .mobileSubNavRow.sub { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px !important; }
+  html body:not(#_) .mobileSubNavRow.sub > button { width: 100%; min-height: 40px !important; border-radius: 12px !important; font-size: 13px !important; padding: 6px 10px !important; background: transparent !important; border: 1px solid rgba(11, 47, 82, .12) !important; box-shadow: none !important; color: #33506e !important; }
+  html body:not(#_) .mobileSubNavRow.sub > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  html body:not(#_) .mobileSubNavRow.sub > button.active { background: #0b1f33 !important; border-color: #0b1f33 !important; color: #fff !important; font-weight: 700; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNav { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow:not(.sub) { background: rgba(255, 255, 255, .06); }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow:not(.sub) > button { color: #b9c7d8 !important; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow:not(.sub) > button.active { background: #1c2c44 !important; color: #fff !important; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.sub > button { color: #c9d6e6 !important; border-color: rgba(255, 255, 255, .12) !important; }
+  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.sub > button.active { background: #5aa9e6 !important; border-color: #5aa9e6 !important; color: #07101e !important; }
+  /* KPI kartu ringkas */
+  html body:not(#_) .workspaceRoot .rmKpis { gap: 8px !important; }
+  html body:not(#_) .workspaceRoot .rmKpi { padding: 12px 14px !important; min-height: 0 !important; gap: 6px !important; }
+  html body:not(#_) .workspaceRoot .rmKpi span { font-size: 12.5px !important; line-height: 1.35; }
+  html body:not(#_) .workspaceRoot .rmKpi strong { font-size: 22px !important; }
+}
+@media (max-width: 720px) and (prefers-reduced-motion: no-preference) {
+  html body:not(#_) .mobileSubNav button { transition: background .18s ease, color .18s ease, box-shadow .18s ease; }
+}
