@@ -1,0 +1,50 @@
+name: AUREKA Engineering Foundation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - 'chore/**'
+      - 'feat/**'
+      - 'fix/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: engineering-foundation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unit, data, type and static-export build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Run unit and regression tests
+        run: npm run test:unit
+
+      - name: Validate AUREKA master and fixture data
+        run: npm run test:data
+
+      - name: TypeScript validation
+        run: npm run typecheck
+
+      - name: Build static export (no deployment)
+        run: npm run build
+
+      - name: Confirm static export artifact exists
+        run: test -d out && test -f out/index.html
