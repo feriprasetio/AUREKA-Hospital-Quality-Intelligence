@@ -163,6 +163,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   const dateLabel = new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date())
   useEffect(() => {
     let cancelled=false
+    if(tab!=='infographics'){setLoading(false);return}
     if(!infoRoomId&&!manager){setRecords([]);setError('Unit kerja belum terhubung ke akun ini.');return}
     setLoading(true);setError('')
     const year=Number(infoYear)
@@ -218,7 +219,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       setLoading(false)
     })().catch(()=>{if(!cancelled){setError('Infografis belum dapat dimuat. Coba kembali.');setLoading(false)}})
     return()=>{cancelled=true}
-  },[supabase,infoRoomId,manager,infoYear])
+  },[supabase,infoRoomId,manager,infoYear,tab])
   useEffect(() => {
     let cancelled=false
     if(!userId){setActivity({lastAt:null,pending:[],partial:true});return}
