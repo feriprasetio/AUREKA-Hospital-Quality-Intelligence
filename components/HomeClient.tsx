@@ -910,18 +910,18 @@ export default function HomeClient(){
    {supportTab==='ai'&&<div className="workspaceCommunicationAi"><TanyaAureka sb={sb} page={currentContainer} embedded/></div>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>}
-  <div className="workspacePageHead">
+  {!(active==='home'&&homeTab==='welcome')&&  <div className="workspacePageHead">
    <div className="workspacePageIntro">
    <nav className="workspaceCrumbs" aria-label="Breadcrumb">
     <button type="button" onClick={()=>openMainModule('home')} aria-label="Beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
     {active!=='home'&&<><span aria-hidden="true">/</span><span>{isPrimaryNavActive('quality')?'Indikator Mutu':isPrimaryNavActive('staff')?'Sumber Daya Manusia':isPrimaryNavActive('analytics')?'Program':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
     {active!=='home'&&active!=='settings'&&<><span aria-hidden="true">/</span><b>{currentContainer.split(' · ')[0]}</b></>}
-    {active==='home'&&<><span aria-hidden="true">/</span><b>Beranda</b></>}
+    {active==='home'&&<><span aria-hidden="true">/</span><b>{homeTab==='infographics'?'Infografis':'Beranda'}</b></>}
    </nav>
-    <h1>{active==='home'?'Beranda':currentContainer.split(' · ')[0]}</h1>
+    <h1>{active==='home'?(homeTab==='infographics'?'Infografis':'Beranda'):currentContainer.split(' · ')[0]}</h1>
     
    </div>
-  </div>
+  </div>}
   {active==='quality'&&!qualityOppeOpen&&<div className="workspaceContextBar">
    <nav className="qualityWorkspaceTabs" aria-label="Tampilan audit mutu">
     <button type="button" className={!qualityResultsView?'active':''} aria-pressed={!qualityResultsView} onClick={()=>{
