@@ -640,3 +640,16 @@ html body:not(#_) .authBrandMark { width: 48px; margin-bottom: 16px; }
 @media (max-width: 720px) {
   html body:not(#_) .workspaceRoot .workspaceModuleHeader .psPill { display: none !important; }
 }
+
+/* HP: submenu dibungkus (semua pilihan terlihat, tanpa geser) */
+@media (max-width: 720px) {
+  html body:not(#_) .mobileSubNavRow { flex-wrap: wrap !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
+  html body:not(#_) .mobileSubNavRow > button { flex: 0 1 auto; white-space: normal; text-align: center; line-height: 1.25; padding-top: 6px; padding-bottom: 6px; }
+}
+/* Login: tombol kembali tidak menempel ke kartu atas */
+html body:not(#_) .authBack { margin: 18px 0 4px !important; }
+@media (max-width: 720px) {
+  /* Semua deretan tab di dalam modul ikut dibungkus, bukan digeser */
+  html body:not(#_) .workspaceRoot #workspace-main-content [role="tablist"] { flex-wrap: wrap !important; overflow: visible !important; row-gap: 6px !important; }
+  html body:not(#_) .workspaceRoot #workspace-main-content [role="tablist"] > * { flex: 0 1 auto !important; white-space: normal !important; }
+}
