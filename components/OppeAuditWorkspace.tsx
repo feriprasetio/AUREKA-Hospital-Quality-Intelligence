@@ -12,8 +12,8 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
-import {
 import { logSensitiveView } from '@/lib/aureka/sensitive-access'
+import {
   buildOppeResponseIndex,
   buildOppeScore,
   evaluateClinicalIndicator,
