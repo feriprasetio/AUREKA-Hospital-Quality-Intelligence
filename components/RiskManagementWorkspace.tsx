@@ -206,6 +206,7 @@ export default function RiskManagementWorkspace({
   })
   const [decisionNote, setDecisionNote] = useState('')
   const [linkForm, setLinkForm] = useState({ source: '', target: '', type: 'shared_cause', description: '' })
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false)
   const [fmeaEditorOpen, setFmeaEditorOpen] = useState(false)
   const [editingFmeaId, setEditingFmeaId] = useState('')
   const [fmeaForm, setFmeaForm] = useState<Partial<FmeaRow>>(() => emptyFmea(rooms.find(r => r.id === initialRoomId)?.name || ''))
@@ -956,18 +957,18 @@ export default function RiskManagementWorkspace({
             <div><b>Risiko utama · {connectorPrimary.risk_level}</b><span>{connectorPrimary.risk_event} · {connectorPrimary.unit_name} · sumber {connectorPrimary.source_sheet || 'Input AUREKA'}{connectorPrimary.source_row_number ? ' baris ' + connectorPrimary.source_row_number : ''}</span></div>
             <button type="button" className="rmButton primary" disabled={relatedRiskIds.length < 2} onClick={prepareIntegratedPlan}>Siapkan RTP gabungan ({relatedRiskIds.length} risiko) →</button>
           </div> : <div className="rmEmptySmall">Tidak ada risiko Sangat Tinggi pada kelompok sumber ini. Pilih kelompok lain atau periksa nilai risiko pada register.</div>}
-          <div className="rmSectionHead compactHead"><div><h4>Kandidat konektor yang disarankan</h4></div></div>
-          <div className="rmGraphList">{connectorPrimary && connectorSuggestions.map(suggestion => {
+          <div className="rmSectionHead compactHead"><div><h4>Kandidat konektor yang disarankan{connectorPrimary && connectorSuggestions.length ? ' · ' + connectorSuggestions.length : ''}</h4></div></div>
+          <div className="rmGraphList rmSuggestList">{connectorPrimary && (showAllSuggestions ? connectorSuggestions : connectorSuggestions.slice(0, 5)).map(suggestion => {
             const relationshipLabel = RELATION_TYPES.find(type => type.value === suggestion.recommendedType)?.label || suggestion.recommendedType
             const generatedDescription = 'Usulan kecocokan teks ' + suggestion.score + '%; bidang yang cocok: ' + suggestion.evidence.join(', ') + '; kata kunci: ' + suggestion.matchWords.join(', ') + '. Verifikasi hubungan proses sebelum mengaktifkan.'
             return <div className="rmGraphLink" key={suggestion.risk.id}>
               <button type="button" className="rmGraphNode" onClick={() => setLinkForm(f => ({ ...f, target: suggestion.risk.id, type: suggestion.recommendedType, description: generatedDescription }))}>
                 <span>{suggestion.risk.unit_name}</span><b>{suggestion.risk.risk_event}</b><small>{suggestion.risk.source_sheet ? 'Sumber ' + suggestion.risk.source_sheet + (suggestion.risk.source_row_number ? ' · baris ' + suggestion.risk.source_row_number : '') : 'Record AUREKA'} · {suggestion.risk.risk_level}</small>
               </button>
-              <div className="rmConnector"><span>Kecocokan teks {suggestion.score}%</span><i>→</i><small>{suggestion.evidence.join(', ')}<br />Kata kunci: {suggestion.matchWords.join(', ')}<br />Usulan: {relationshipLabel}</small></div>
+              <div className="rmConnector"><span>Cocok {suggestion.score}% · {relationshipLabel}</span><i>→</i><small title={suggestion.evidence.join(', ') + ' · Kata kunci: ' + suggestion.matchWords.join(', ')}>Kata kunci: {suggestion.matchWords.join(', ')}</small></div>
               <button type="button" className="rmButton subtle" onClick={() => { setLinkForm(f => ({ ...f, target: suggestion.risk.id, type: suggestion.recommendedType, description: generatedDescription })); setMessage('Kandidat dimasukkan ke form. Verifikasi jenis dan dasar hubungan, lalu aktifkan konektor.'); }}>Gunakan kandidat</button>
             </div>
-          })}{connectorPrimary && !connectorSuggestions.length && <div className="rmEmptySmall">Belum ada kandidat yang melewati ambang kecocokan teks. Hal ini tidak membuktikan tidak ada hubungan; tinjau record manual atau tambah kata kunci yang relevan.</div>}</div>
+          })}{connectorPrimary && connectorSuggestions.length > 5 && <button type="button" className="rmButton subtle rmShowMore" onClick={() => setShowAllSuggestions(v => !v)}>{showAllSuggestions ? 'Tampilkan 5 teratas' : 'Tampilkan semua ' + connectorSuggestions.length + ' kandidat'}</button>}{connectorPrimary && !connectorSuggestions.length && <div className="rmEmptySmall">Belum ada kandidat yang melewati ambang kecocokan teks. Hal ini tidak membuktikan tidak ada hubungan; tinjau record manual atau tambah kata kunci yang relevan.</div>}</div>
           <div className="rmSectionHead compactHead"><div><h4>Konektor aktif pada ruangan ini</h4></div></div>
           <div className="rmGraphList">{visibleLinks.map(link => {
             const a = risks.find(r => r.id === link.source_risk_id), b = risks.find(r => r.id === link.target_risk_id)
