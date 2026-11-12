@@ -687,3 +687,14 @@ html body:not(#_) .rmFilterToggle { display: none !important; }
   html body:not(#_) [aria-modal="true"] :is(.rmSectionHead, .akModalHead, .psModalBar, .oppeModalHeader) { flex-direction: row !important; align-items: flex-start !important; text-align: left !important; }
   html body:not(#_) [aria-modal="true"] .rmSectionHead > .rmButton { margin-left: auto !important; flex: 0 0 auto; }
 }
+
+/* Popup (HP & layar lebar): judul tidak terpotong, jarak antar-isian wajar */
+html body:not(#_) .akModalHead { flex: 0 0 auto !important; overflow: visible !important; }
+html body:not(#_) .akModalHead p { white-space: normal; }
+html body:not(#_) [aria-modal="true"] label.field { margin: 0 !important; min-height: 0 !important; display: grid !important; gap: 6px !important; align-content: start; }
+@media (max-width: 720px) {
+  html body:not(#_) .akModalHead::before { content: none !important; }
+  html body:not(#_) .akModalHead { padding: 12px 16px 12px 18px !important; }
+  html body:not(#_) .akModalBody { padding: 14px 16px 20px !important; }
+  html body:not(#_) .akModalBody [style*="grid"] { gap: 12px !important; }
+}
