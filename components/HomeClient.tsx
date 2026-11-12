@@ -912,12 +912,6 @@ export default function HomeClient(){
   </section>}
   {!(active==='home'&&homeTab==='welcome')&&  <div className="workspacePageHead">
    <div className="workspacePageIntro">
-   <nav className="workspaceCrumbs" aria-label="Breadcrumb">
-    <button type="button" onClick={()=>openMainModule('home')} aria-label="Beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
-    {active!=='home'&&<><span aria-hidden="true">/</span><span>{isPrimaryNavActive('quality')?'Indikator Mutu':isPrimaryNavActive('staff')?'Sumber Daya Manusia':isPrimaryNavActive('analytics')?'Program':(visibleMods.find(([id])=>id===active)?.[1]||'Workspace')}</span></>}
-    {active!=='home'&&active!=='settings'&&<><span aria-hidden="true">/</span><b>{currentContainer.split(' · ')[0]}</b></>}
-    {active==='home'&&<><span aria-hidden="true">/</span><b>{homeTab==='infographics'?'Infografis':'Beranda'}</b></>}
-   </nav>
     <h1>{active==='home'?(homeTab==='infographics'?'Infografis':'Beranda'):currentContainer.split(' · ')[0]}</h1>
     
    </div>

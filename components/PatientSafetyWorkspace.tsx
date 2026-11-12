@@ -930,7 +930,7 @@ export default function PatientSafetyWorkspace({
 
   return <div className="ps">
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
-    <WorkspaceModuleHeader
+    {tab !== 'survey' && <WorkspaceModuleHeader
       className="psHead"
       title="Alur kerja keselamatan pasien"
       description="Pelaporan IKP, investigasi dan pembelajaran insiden, serta pemetaan budaya keselamatan dan kesejahteraan staf dalam satu workspace."
@@ -938,9 +938,9 @@ export default function PatientSafetyWorkspace({
         <span className="psPill green">{canManageWorkflow ? 'Pengelola alur' : 'Ruang kerja PIC'}</span>
         <button type="button" className="psBtn" disabled={loading} onClick={() => void loadData()}>{loading ? 'Memuat…' : '↻ Refresh'}</button>
       </div>}
-    />
+    />}
 
-    <details className="workspaceSummary" open={tab === 'overview' ? true : undefined}>
+    {tab !== 'survey' && <details className="workspaceSummary" open={tab === 'overview' ? true : undefined}>
       <summary><b>Ringkasan keselamatan</b><span>{incidents.length} laporan · {openInvestigations.length} investigasi aktif</span></summary>
     <div className="psKpis">
       <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong></LiquidGlass>
@@ -948,7 +948,7 @@ export default function PatientSafetyWorkspace({
       <LiquidGlass className="psKpi"><span>Investigasi Aktif</span><strong>{openInvestigations.length}</strong><small>RCA belum closed</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{canReadResponses ? responses.length : '—'}</strong></LiquidGlass>
     </div>
-    </details>
+    </details>}
 
     {showTabs && <div className="psTabs glass">
           {([
