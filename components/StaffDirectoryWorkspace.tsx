@@ -90,20 +90,25 @@ export default function StaffDirectoryWorkspace() {
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
   const [draft, setDraft] = useState<StaffDraft | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [shown, setShown] = useState(120)
 
   const load = useCallback(async () => {
-    setLoading(true)
     setError('')
+    // Tampilkan salinan terakhir seketika (sesi ini), lalu perbarui dari server di belakang layar.
+    let cached = false
+    try { const c = JSON.parse(sessionStorage.getItem('aureka-staff-dir') || 'null'); if (c && Array.isArray(c.rows) && Date.now() - c.at < 15 * 60 * 1000) { setRows(c.rows); cached = true } } catch { /* abaikan */ }
+    setLoading(!cached)
     const { data, error: loadError } = await q().from('staff_directory')
       .select('id,employee_code,display_name,normalized_name,name_prefix,credentials,profession_group,position_title,source_unit,staff_group,source_sheet,source_year,directory_status,review_note,updated_at')
       .order('display_name', { ascending: true })
       .limit(5000)
     if (loadError) setError('Gagal memuat master tenaga kerja: ' + loadError.message)
-    else setRows((data || []) as Staff[])
+    else { setRows((data || []) as Staff[]); try { sessionStorage.setItem('aureka-staff-dir', JSON.stringify({ at: Date.now(), rows: data || [] })) } catch { /* abaikan */ } }
     setLoading(false)
   }, [])
 
   useEffect(() => { void load() }, [load])
+  useEffect(() => { setShown(120) }, [search, statusFilter, groupFilter])
 
   const groups = useMemo(() => [...new Set(rows.map((row) => row.profession_group).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id')), [rows])
   const filtered = useMemo(() => {
@@ -348,43 +353,35 @@ export default function StaffDirectoryWorkspace() {
           title="Direktori induk tenaga kerja"
           description="Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak digunakan sebagai identitas atau dasar penugasan AUREKA."
           actions={<div className="sdActions">
+            <span className="sdStat"><b>{rows.length.toLocaleString('id-ID')}</b> total</span>
+            <span className="sdStat ok"><b>{availableCount.toLocaleString('id-ID')}</b> siap dipetakan</span>
+            {reviewCount > 0 && <button type="button" className="sdStat warn" onClick={() => setStatusFilter('needs_review')}><b>{reviewCount.toLocaleString('id-ID')}</b> perlu verifikasi</button>}
+            {inactiveCount > 0 && <button type="button" className="sdStat" onClick={() => setStatusFilter('inactive')}><b>{inactiveCount.toLocaleString('id-ID')}</b> nonaktif</button>}
             <input ref={fileRef} type="file" aria-label="Pilih file CSV direktori tenaga kerja" accept=".csv,text/csv" hidden onChange={(e) => void importCsv(e.target.files?.[0])}/>
             <button type="button" className="sdBtn" disabled={busy} onClick={() => fileRef.current?.click()}>Impor CSV</button>
-            <button type="button" className="sdBtn" disabled={busy || loading} onClick={() => void load()}>↻ Segarkan</button>
+            <button type="button" className="sdBtn sdIconBtn" title="Segarkan" aria-label="Segarkan" disabled={busy || loading} onClick={() => void load()}>↻</button>
           </div>}
         />
-        <div className="sdKpis">
-          <div className="sdKpi"><span>Total direktori</span><strong>{rows.length.toLocaleString('id-ID')}</strong></div>
-          <div className="sdKpi"><span>Siap dipetakan</span><strong>{availableCount.toLocaleString('id-ID')}</strong></div>
-          <div className="sdKpi"><span>Perlu verifikasi</span><strong>{reviewCount.toLocaleString('id-ID')}</strong></div>
-          <div className="sdKpi"><span>Nonaktif</span><strong>{inactiveCount.toLocaleString('id-ID')}</strong></div>
-        </div>
         <div className="sdFilters">
-          <input className="staffLocalSearch" aria-label="Cari tenaga kerja" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode AUREKA, profesi, jabatan, atau unit…"/>
           <select aria-label="Filter kelayakan penugasan" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">Semua kelayakan</option><option value="available">Siap dipetakan</option><option value="needs_review">Perlu verifikasi</option><option value="inactive">Nonaktif</option>
           </select>
           <select aria-label="Filter kelompok profesi" value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)}>
             <option value="all">Semua kelompok profesi</option>{groups.map((group) => <option key={group} value={group}>{group}</option>)}
           </select>
+          <span className="sdCount">{filtered.length.toLocaleString('id-ID')} dari {rows.length.toLocaleString('id-ID')}</span>
+          <label className="sdSearch"><span aria-hidden="true">⌕</span><input type="search" aria-label="Cari tenaga kerja" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, profesi, jabatan…"/></label>
         </div>
         {message && <div className="sdNotice" role="status" aria-live="polite">{message}</div>}
         {error && <div className="sdError" role="alert">{error}</div>}
-      </div>
-
-      <div className="sdPanel">
-        <div className="sdHead" style={{alignItems:'center',marginBottom:12}}>
-          <div><div className="sdEyebrow">Direktori Terpadu</div><div style={{fontSize:13,fontWeight:900,marginTop:4}}>Menampilkan {filtered.length.toLocaleString('id-ID')} dari {rows.length.toLocaleString('id-ID')} rekam</div></div>
-          <div className="sdSub">Kesamaan nama tidak otomatis dianggap data ganda; gunakan kode AUREKA, gelar, kelompok profesi, dan jabatan untuk memastikan identitas yang tepat.</div>
-        </div>
         {loading ? <div className="sdEmpty">Memuat direktori tenaga kerja…</div> : (
           <WorkspaceTableViewport label="Direktori tenaga kerja" className="sdTableWrap">
             <table className="sdTable">
               <thead><tr><th>Kode AUREKA</th><th>Nama resmi dan gelar</th><th>Kelompok profesi</th><th>Jabatan / unit kerja</th><th>Kelayakan untuk pemetaan</th><th>Aksi</th></tr></thead>
               <tbody>
-                {filtered.map((staff) => (
+                {filtered.slice(0, shown).map((staff) => (
                   <tr key={staff.id}>
-                    <td><div className="sdName">{staff.employee_code}</div><div className="sdSub">Identitas internal AUREKA</div></td>
+                    <td><div className="sdName">{staff.employee_code}</div></td>
                     <td><div className="sdName">{staff.display_name}</div>{staff.review_note && <div className="sdSub">{staff.review_note}</div>}</td>
                     <td>{staff.profession_group}</td>
                     <td>{staff.position_title || '—'}<div className="sdSub">{staff.source_unit || 'Unit sumber belum dicantumkan'}</div></td>
@@ -398,6 +395,7 @@ export default function StaffDirectoryWorkspace() {
                   </tr>
                 ))}
                 {!filtered.length && <tr><td colSpan={6} className="sdEmpty">Tidak ada tenaga kerja yang cocok dengan filter ini.</td></tr>}
+                {filtered.length > shown && <tr><td colSpan={6} className="sdMoreCell"><button type="button" className="sdBtn" onClick={() => setShown(filtered.length)}>Tampilkan semua {filtered.length.toLocaleString('id-ID')} tenaga ({(filtered.length - shown).toLocaleString('id-ID')} lagi)</button></td></tr>}
               </tbody>
             </table>
           </WorkspaceTableViewport>
