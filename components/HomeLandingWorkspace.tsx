@@ -126,7 +126,7 @@ function InfographicChart({ data, type, category = false, unit = '' }: { data: I
 const unitRecordCache=new Map<string,{at:number;rows:RecordRow[]}>()
 type UnitStats={allowed?:boolean;episodes:number;active:number;avg_los:number|null;los_count:number;months:{month:number;count:number}[];top:{code:string;diagnosis:string;count:number}[]}
 
-export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,scopeToRoom=false,selectedRoomId,onRoomChange,onNavigate,initialTab='welcome',onTabChange}:Props) {
+export default function HomeLandingWorkspace({supabase,userName,userId,rooms,role,isAdmin,roomId,roomName,manager,scopeToRoom=false,selectedRoomId,onRoomChange,onNavigate,initialTab='welcome',onTabChange,onReminderRead}:Props) {
   const [tab,setTab] = useState<'welcome'|'infographics'>(initialTab)
   useEffect(()=>setTab(initialTab),[initialTab])
   const [records,setRecords] = useState<RecordRow[]>([])
