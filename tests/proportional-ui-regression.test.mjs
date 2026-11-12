@@ -6,14 +6,14 @@ const home = readFileSync(new URL('../components/HomeLandingWorkspace.tsx', impo
 const layout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8')
 const polish = readFileSync(new URL('../app/proportional-ui.css', import.meta.url), 'utf8')
 
-test('interactive infographics expose selectors and responsive charts', () => {
-  assert.match(home, /type InfographicChartType = 'line' \| 'area' \| 'bar' \| 'doughnut'/)
-  assert.match(home, /value="diagnosis">Distribusi diagnosis/)
-  assert.match(home, /className="hlFilterGrid"/)
-  assert.match(home, /<InfographicChart data=\{infographic.data\}/)
-  assert.match(home, /className="hlPanel hlExplorer"/)
-  assert.match(polish, /\.homeLanding \.hlChart svg[\s\S]*width: 100% !important/)
-  assert.match(polish, /max-height: 238px/)
+test('Beranda Infografis renders the integrated Ikhtisar dashboard', () => {
+  const dashboard = readFileSync(new URL('../components/governance/InfographicsDashboard.tsx', import.meta.url), 'utf8')
+  assert.match(home, /import InfographicsDashboard from '@\/components\/governance\/InfographicsDashboard'/)
+  assert.match(home, /tab==='infographics'[\s\S]*<InfographicsDashboard[\s\S]*mode="full"/)
+  assert.match(dashboard, /Ikhtisar Kinerja Mutu dan Keselamatan Rumah Sakit/)
+  assert.match(dashboard, /Tren data indikator/)
+  assert.match(dashboard, /Tren insiden keselamatan pasien/)
+  assert.match(dashboard, /Distribusi kategori indikator/)
 })
 
 test('shared controls and data cards have normalized dimensions', () => {
