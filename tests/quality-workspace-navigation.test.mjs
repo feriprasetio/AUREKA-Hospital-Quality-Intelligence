@@ -12,7 +12,7 @@ test('quality audit navigation keeps audit areas in the sidebar and moves views 
   // Blueprint v2 §1.1: tidak ada tab navigasi kedua di workspace; perpindahan hanya lewat sidebar
   assert.doesNotMatch(home, /aria-label="Tampilan audit mutu"/)
   assert.doesNotMatch(home, />Form Logbook<\/button>/)
-  assert.match(home, /if\(moduleId==='quality'\)return active==='analytics'&&analyticsTab==='profiles'\?'profile-indicators':qualityResultsView\?\(qualityResultsGroup==='category'\?'result-category':'result-unit'\):'audit-indicators'/)
+  assert.match(home, /if\(moduleId==='quality'\)return qualityProposalOpen\?'proposals':active==='analytics'&&analyticsTab==='profiles'\?'profile-indicators':qualityResultsView\?\(qualityResultsGroup==='category'\?'result-category':'result-unit'\):'audit-indicators'/)
   const staffStart = home.indexOf('staff:[')
   const staffEnd = home.indexOf('\\n   ],', staffStart)
   assert.ok(home.slice(staffStart, staffEnd).includes('oppe-fppe'))
