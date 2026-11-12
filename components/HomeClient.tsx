@@ -386,7 +386,7 @@ export default function HomeClient(){
   if(id!=='home'){
    const module=AUREKA_PRIMARY_NAV.find(item=>item.id===id)
    if(!module||!module.requiredRoles.includes((role||'') as AurekaRole))return
-   if(id==='staff'&&!permissionFlags.readDirectory&&!permissionFlags.readPerformance)return
+   if(id==='staff'&&!permissionFlags.readDirectory&&!permissionFlags.readPerformance&&!permissionFlags.readPicPerformance)return
    if(id==='quality'&&role==='DEWAN_PENGAWAS'&&!permissionFlags.readQualityAggregate)return
   }
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.

@@ -55,12 +55,8 @@ begin
           from aureka_quality.staff_team_assignments sta2
           where sta2.assignment_status = 'active' and sta2.is_locked = true
         ) active_pic
-        join aureka_quality.staff_team_assignments sta
-          on sta.assigned_user_id = active_pic.assigned_user_id
-         and sta.room_id = active_pic.room_id
-         and sta.assignment_status = 'active' and sta.is_locked = true
-        join aureka_system.user_profiles up on up.user_id = sta.assigned_user_id and up.is_active = true
-        join public.master_rooms mr on mr.id = sta.room_id
+        join aureka_system.user_profiles up on up.user_id = active_pic.assigned_user_id and up.is_active = true
+        join public.master_rooms mr on mr.id = active_pic.room_id
         left join lateral (
           select
             count(*)::integer as records_total,
@@ -71,9 +67,9 @@ begin
             max(qr.record_date) as last_record_date,
             (array_agg(qr.status order by qr.created_at desc))[1] as last_status
           from aureka_quality.quality_records qr
-          where qr.entered_by = sta.assigned_user_id and qr.room_id = sta.room_id
+          where qr.entered_by = active_pic.assigned_user_id and qr.room_id = active_pic.room_id
         ) stats on true
-        where (v.role_code <> 'PIC' or sta.assigned_user_id = auth.uid())
+        where (v.role_code <> 'PIC' or active_pic.assigned_user_id = auth.uid())
           and v.role_code in ('ADMIN','PMKP','MANAGEMENT','KABID','PIC')
       ) x
     ), '[]'::jsonb)
@@ -86,14 +82,14 @@ create table if not exists aureka_governance.indicator_proposals (
   id uuid primary key default gen_random_uuid(),
   room_id bigint not null references public.master_rooms(id) on delete restrict,
   profile_year integer not null check (profile_year between 2024 and 2200),
-  proposed_code text,
+  proposed_code text check (proposed_code is null or length(trim(proposed_code)) <= 40),
   title text not null check (length(trim(title)) >= 5),
   indicator_type text not null,
   category text not null default '',
   rationale text not null check (length(trim(rationale)) >= 20),
   unit_of_measure text not null,
   target_text text not null default '',
-  target_operator text not null default '>=',
+  target_operator text not null default '>=' check (target_operator in ('>=','<=','=','>','<')),
   target_value numeric,
   numerator_definition text not null,
   denominator_definition text not null,
@@ -185,7 +181,7 @@ begin
   if coalesce(v.role_code,'') not in ('ADMIN','PMKP','PIC') then
     raise exception 'Pengajuan indikator hanya dapat dilakukan PIC, Komite PMKP, atau Super Admin.';
   end if;
-  if coalesce(p->>'title','') !~ '.{5,}' or length(trim(coalesce(p->>'rationale',''))) < 20
+  if length(trim(coalesce(p->>'title',''))) < 5 or length(trim(coalesce(p->>'rationale',''))) < 20
      or length(trim(coalesce(p->>'numerator_definition',''))) < 5
      or length(trim(coalesce(p->>'denominator_definition',''))) < 5
      or length(trim(coalesce(p->>'unit_of_measure',''))) < 1 then
@@ -202,7 +198,8 @@ begin
   if v.role_code='PIC' and v_room is distinct from v.room_id then
     raise exception 'PIC hanya dapat mengajukan indikator untuk unit penugasannya sendiri.';
   end if;
-  if coalesce(p->>'measurement_grain','') not in ('patient_episode','provider_day','daily_metric','event','activity','aggregate')
+  if coalesce(p->>'target_operator','>=') not in ('>=','<=','=','>','<')
+     or coalesce(p->>'measurement_grain','') not in ('patient_episode','provider_day','daily_metric','event','activity','aggregate')
      or coalesce(p->>'indicator_direction','') not in ('positive','negative')
      or coalesce(p->>'measurement_type','') not in ('ratio','compliance','visit','door','minutes','numeric','occurrence') then
     raise exception 'Metode pengukuran atau arah indikator tidak valid.';
@@ -229,7 +226,7 @@ begin
            target_value=nullif(p->>'target_value','')::numeric,numerator_definition=trim(p->>'numerator_definition'),
            denominator_definition=trim(p->>'denominator_definition'),measurement_grain=p->>'measurement_grain',
            indicator_direction=p->>'indicator_direction',measurement_type=p->>'measurement_type',
-           status='diajukan',review_note='',reviewed_by=null,reviewer_name=null,reviewed_at=null,updated_at=now()
+           profile_year=v_year,status='diajukan',review_note='',reviewed_by=null,reviewer_name=null,reviewed_at=null,updated_at=now()
      where id=v_id and submitted_by=auth.uid() and status='perlu_revisi' and room_id=v_room;
     if not found then raise exception 'Usulan tidak dapat diubah. Hanya usulan milik Anda yang dikembalikan untuk revisi yang dapat diajukan ulang.'; end if;
     perform aureka_governance.log_indicator_proposal_event(v_id,'diperbarui','Usulan direvisi dan diajukan ulang.',jsonb_build_object('room_id',v_room,'profile_year',v_year));

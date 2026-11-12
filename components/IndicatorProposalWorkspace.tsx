@@ -50,7 +50,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
   useEffect(()=>{void load()},[load])
   useEffect(()=>{const text=error||message;if(text)window.dispatchEvent(new CustomEvent('aureka:notification',{detail:{message:text,type:error?'error':'success',module:'Usulan Indikator'}}))},[error,message])
   const visible=useMemo(()=>rows.filter(r=>filter==='all'||r.status===filter),[rows,filter])
-  const startNew=()=>{setEditingId(null);setForm(EMPTY(Number(roomChoices[0]?.id||currentRoomId||0),2026));setError('');setMessage('')}
+  const startNew=()=>{const selectedRoom=Number(roomChoices[0]?.id||currentRoomId||0);if(!selectedRoom){setError('Unit kerja akun belum terpetakan. Hubungi Super Admin/Komite PMKP sebelum mengajukan indikator.');return}setEditingId(null);setForm(EMPTY(selectedRoom,new Date().getFullYear()));setError('');setMessage('')}
   const editAgain=(row:Proposal)=>{setEditingId(row.id);setForm({...row});setError('');setMessage('')}
   const closeForm=()=>{if(!busy){setForm(null);setEditingId(null)}}
   const save=async()=>{
@@ -118,6 +118,8 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       .ipActivation input{min-width:0;border:1px solid #dce6df;border-radius:9px;padding:9px;font-size:11px}
       .ipError{border:1px solid #efcfca;background:#fff5f3;color:#903c32;border-radius:10px;padding:10px;font-size:11px}
       .ipSuccess{border:1px solid #d6e9dc;background:#f4faf5;color:#276341;border-radius:10px;padding:10px;font-size:11px}
+      .ipOverlay{position:fixed;inset:0;z-index:1200;background:rgba(15,29,22,.48);backdrop-filter:blur(4px);display:grid;place-items:center;padding:18px;overflow:auto}
+      .ipModal{width:min(900px,100%);max-height:min(92vh,900px);overflow:auto;box-shadow:0 24px 80px rgba(10,30,20,.25)}
       @media(max-width:640px){.ipPanel{padding:13px}.ipFormGrid{grid-template-columns:1fr}.ipField.full{grid-column:auto}.ipActivation{grid-template-columns:1fr}}
     `}</style>
     <div className="ipPanel">
