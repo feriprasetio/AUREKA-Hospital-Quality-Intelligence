@@ -10,6 +10,7 @@ type MonthItem = { month: number; total: number; validated?: number }
 type Summary = {
   year: number; room_id: number | null; room_name: string
   quality: { active_indicators: number; records: number; validated: number; validation_rate: number; monthly: MonthItem[]; categories: CountItem[] }
+  clinical: { episodes: number; validated_episodes: number; validation_rate: number; monthly: MonthItem[]; categories: CountItem[]; clinical_pathway_audits: number; clinical_pathway_validated: number; clinical_death_audits: number; clinical_death_validated: number }
   incidents: { total: number; open: number; closed: number; monthly: MonthItem[] }
   risk: { total: number; very_high: number; open: number; relationships: number; monthly: MonthItem[]; levels: CountItem[]; categories: CountItem[] }
   program: { recommendations: number; actions: number; open_actions: number; overdue_actions: number; completed_actions: number }
@@ -214,10 +215,15 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       series: [{ label: 'Jumlah', color: '#4b8b75', values: items.map((item) => n(item.count)) }],
     })
     const result: ChartModel[] = [
-      { id: 'quality-trend', label: 'Tren pengumpulan dan validasi indikator', description: 'Perbandingan catatan indikator yang masuk dan yang telah tervalidasi per bulan.', insight: 'Catatan tervalidasi merupakan bagian dari keseluruhan catatan. Bulan dengan 0 catatan berarti belum ada record yang masuk pada bulan tersebut; angka ini bukan capaian 0%.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
+      { id: 'quality-trend', label: 'Tren pengumpulan dan validasi indikator', description: 'Perbandingan catatan indikator yang masuk dan yang telah tervalidasi per bulan.', insight: 'Catatan tervalidasi merupakan bagian dari keseluruhan catatan. Bulan dengan 0 catatan berarti belum ada record yang masuk pada bulan tersebut; angka ini bukan capaian 0%. Untuk patient_episode tersedia grafik terpisah.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
         { label: 'Seluruh catatan', color: '#77a9c7', values: monthData(summary.quality.monthly || [], 'total') },
         { label: 'Tervalidasi', color: '#286d91', values: monthData(summary.quality.monthly || [], 'validated') },
       ] },
+      { id: 'clinical-episode-trend', label: 'Tren episode pelayanan klinis', description: 'Jumlah catatan patient_episode dan episode yang telah tervalidasi per bulan.', insight: 'Episode dihitung sebagai record agregat berdasarkan grain patient_episode. Tidak ada nama, nomor rekam medis, subject key, atau rincian klinis individual yang dikirim ke grafik.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
+        { label: 'Episode tercatat', color: '#83a78c', values: monthData(summary.clinical.monthly || [], 'total') },
+        { label: 'Episode tervalidasi', color: '#327354', values: monthData(summary.clinical.monthly || [], 'validated') },
+      ] },
+      distribution('clinical-episode-categories', 'Kategori episode pelayanan klinis', 'Jumlah episode yang memiliki respons pada indikator menurut kategori indikator.', 'Satu episode dapat muncul pada lebih dari satu kategori bila episode tersebut memuat beberapa indikator lintas kategori. Karena itu jumlah kategori tidak harus sama dengan total episode.', summary.clinical.categories || []),
       distribution('quality-categories', 'Sebaran kategori indikator mutu', 'Jumlah master indikator menurut kategori yang tercatat.', 'Grafik menunjukkan komposisi master indikator, bukan tingkat pencapaian target mutu.', summary.quality.categories || []),
     ]
     if (!qualityOnly) result.push(
@@ -256,8 +262,11 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     {!loading && summary && <>
       <div className="ifKpiGrid">
         <Kpi label="Indikator aktif" value={summary.quality.active_indicators} note="Master indikator pada periode terpilih"/>
-        <Kpi label="Catatan indikator" value={summary.quality.records} note="Jumlah catatan pada periode terpilih"/>
+        <Kpi label="Catatan indikator" value={summary.quality.records} note="Tidak termasuk grain patient_episode"/>
         <Kpi label="Catatan tervalidasi" value={summary.quality.validated} note={'Tingkat validasi ' + pct(validationRate)}/>
+        <Kpi label="Episode klinis" value={summary.clinical.episodes} note={pct(summary.clinical.validation_rate) + ' tervalidasi'}/>
+        <Kpi label="Audit Clinical Pathway" value={summary.clinical.clinical_pathway_audits} note={fmt(summary.clinical.clinical_pathway_validated) + ' tervalidasi'}/>
+        <Kpi label="Audit Kematian Klinis" value={summary.clinical.clinical_death_audits} note={fmt(summary.clinical.clinical_death_validated) + ' tervalidasi'}/>
         {!qualityOnly && <Kpi label="Laporan insiden" value={summary.incidents.total} note={fmt(summary.incidents.open) + ' masih terbuka'}/>}
         {!qualityOnly && <Kpi label="Risiko sangat tinggi" value={summary.risk.very_high} note={fmt(summary.risk.open) + ' berstatus Open'}/>}
         {!qualityOnly && <Kpi label="RTL belum selesai" value={summary.program.open_actions} note={fmt(summary.program.overdue_actions) + ' melewati tenggat'}/>}
@@ -278,6 +287,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         <div className="ifInsight"><b>Catatan interpretasi:</b> {activeChart.insight}</div>
       </section>}
       <div className="ifLowerGrid">
+        <section className="ifMiniCard"><h3>Episode klinis menurut kategori indikator</h3><p>Distribusi agregat patient_episode. Satu episode dapat dihitung pada lebih dari satu kategori.</p><Distribution items={summary.clinical.categories || []}/></section>
         <section className="ifMiniCard"><h3>Distribusi indikator menurut kategori</h3><p>Jumlah master indikator per kategori; bukan nilai capaian indikator.</p><Distribution items={summary.quality.categories || []}/></section>
         {!qualityOnly && <section className="ifMiniCard"><h3>Profil tingkat risiko</h3><p>Jumlah risiko pada tiap level yang tercatat.</p><Distribution items={summary.risk.levels || []}/></section>}
         {!qualityOnly && <section className="ifMiniCard"><h3>Komposisi kategori risiko</h3><p>Kategori dengan jumlah register terbesar.</p><Distribution items={summary.risk.categories || []}/></section>}
@@ -292,6 +302,6 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       </div>
     </>}
     {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label} →</button>)}</nav>}
-    <p className="ifNote">Sumber: agregasi server-side AUREKA. Nilai mengikuti filter periode, unit, dan hak akses. Bulan dengan 0 catatan menunjukkan belum ada record yang masuk, bukan nilai capaian 0%. Volume laporan insiden tidak dapat ditafsirkan sebagai angka insidensi tanpa denominator paparan yang sesuai.</p>
+    <p className="ifNote">Sumber: agregasi server-side AUREKA. Nilai mengikuti filter periode, unit, dan hak akses. Bulan dengan 0 catatan menunjukkan belum ada record yang masuk, bukan nilai capaian 0%. Episode patient_episode ditampilkan sebagai domain klinis tersendiri. Volume laporan insiden tidak dapat ditafsirkan sebagai angka insidensi tanpa denominator paparan yang sesuai.</p>
   </section>
 }
