@@ -52,9 +52,10 @@ test('home parent and child navigation use the approved labels and canonical rou
   assert.ok(app.includes('title="Beranda"'))
   assert.ok(app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
   assert.ok(app.includes("active==='home'?(homeTab==='infographics'?'infografis':'beranda')"))
-  // Infografis kini dashboard terpadu tersendiri; Beranda tetap HomeLandingWorkspace
-  assert.ok(app.includes("homeTab==='infographics'\n     ? <InfographicsDashboard"))
-  assert.ok(app.includes('initialTab="welcome" onTabChange={setHomeTab}'))
+  // Infografis dirender sebagai tab di dalam workspace Beranda, bukan komponen duplikat di HomeClient.
+  assert.ok(app.includes('<HomeLandingWorkspace supabase={sb}'))
+  assert.ok(app.includes('initialTab={homeTab} onTabChange={setHomeTab}'))
+  assert.ok(!app.includes("homeTab==='infographics'\n     ? <InfographicsDashboard"))
 })
 
 
