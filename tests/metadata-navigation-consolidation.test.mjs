@@ -55,7 +55,7 @@ test('OPPE / FPPE is nested under Sumber Daya Manusia and uses the canonical rou
   const staffEnd = home.indexOf('\n   ],', staffStart)
   assert.ok(!home.slice(qualityStart, qualityEnd).includes('oppe-fppe'))
   assert.ok(home.slice(staffStart, staffEnd).includes('oppe-fppe'))
-  assert.ok(home.includes("analyticsTab==='oppe'?<OppeAuditWorkspace"))
+  assert.ok(home.includes("(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace"))
   assert.ok(home.includes("'tenaga-klinis':'staff'"))
   // Blueprint v2: rute hash per modul ditetapkan di satu peta
   assert.ok(home.includes("staff:'#sumber-daya-manusia'"))

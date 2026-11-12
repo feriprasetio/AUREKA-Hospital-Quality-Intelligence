@@ -32,9 +32,11 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(staffGroup.includes('Daftar Tenaga Kerja'))
   assert.ok(staffGroup.includes('Tim dan Penugasan'))
   assert.ok(staffGroup.includes('oppe-fppe'))
-  assert.ok(app.includes("active==='analytics'&&analyticsTab==='oppe'?<OppeAuditWorkspace"))
+  // Blueprint v2 §9: OPPE dan FPPE menu terpisah, satu workspace dengan layar awal berbeda
+  assert.ok(app.includes("active==='analytics'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace"))
+  assert.ok(staffGroup.includes("{id:'fppe',label:'FPPE'}"))
   assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
-  assert.ok(app.includes("if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'?'oppe':'directory')"))
+  assert.ok(app.includes("if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':'directory')"))
 })
 
 test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
