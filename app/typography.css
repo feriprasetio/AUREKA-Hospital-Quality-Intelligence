@@ -787,3 +787,11 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild { font-size: 14.5px !important; }
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarTreeNestedChildren .sidebarChild { font-size: 14px !important; }
 }
+/* Menu samping HP: efek kaca buram dikembalikan (hanya pada panel, isi tetap tajam & terbaca) */
+@media (max-width: 900px) {
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen {
+    background: rgba(244, 248, 252, .78) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(1.4) !important; backdrop-filter: blur(22px) saturate(1.4) !important;
+  }
+  html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen { background: rgba(13, 22, 38, .8) !important; }
+}
