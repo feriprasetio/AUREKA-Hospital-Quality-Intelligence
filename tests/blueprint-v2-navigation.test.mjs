@@ -36,7 +36,7 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(app.includes("active==='analytics'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace"))
   assert.ok(staffGroup.includes("{id:'fppe',label:'FPPE'}"))
   assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
-  assert.ok(app.includes("if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':'directory')"))
+  assert.ok(app.includes("if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory')"))
 })
 
 test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
@@ -67,7 +67,7 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(app.includes("clinical:["))
   assert.match(app, /quality:role==='DEWAN_PENGAWAS'/)
   // Route kanonis Hasil Capaian membedakan Unit Keseluruhan dan Kategori Indikator
-  assert.ok(app.includes("hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'form-logbook')"))
+  assert.ok(app.includes("hash='#indikator-mutu/'+(qualityProposalOpen?'usulan-indikator':qualityResultsView?'hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'form-logbook')"))
   assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
 })
