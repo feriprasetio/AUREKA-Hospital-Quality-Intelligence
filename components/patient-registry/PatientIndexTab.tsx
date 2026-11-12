@@ -93,10 +93,7 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
 
   return <section className="piWrap">
     <header className="piHead">
-      <div>
-        <h3>Metadata Pasien</h3>
-        <p>Indeks pasien unik dengan <b>No. Rekam Medis</b> sebagai kunci utama, diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.</p>
-      </div>
+      <p className="psStatsLead" title="Diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.">Satu baris per pasien · kunci: No. Rekam Medis</p>
       <div className="piActions">
         <button type="button" className="prButton" onClick={async () => { if (showIdentity) { setShowIdentity(false); return } if (await requestSensitiveAccess('patient_identity', 'metadata-pasien', 'Tampilkan identitas pasien')) setShowIdentity(true) }}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>
         <button type="button" className="prButton" onClick={() => setShowSpec((v) => !v)}>{showSpec ? 'Tutup spesifikasi' : 'Spesifikasi bridging'}</button>

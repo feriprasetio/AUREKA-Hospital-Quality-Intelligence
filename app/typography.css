@@ -211,3 +211,22 @@ html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardText b { max-width:
 html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions { margin: 0 !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions .uBtn.outline { background: rgba(11, 70, 122, .06) !important; border: 1px solid rgba(11, 70, 122, .16) !important; color: #0b2f52 !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace .roomCard:hover { border-color: rgba(59, 143, 214, .4) !important; }
+
+/* ===== Hindari judul & navigasi ganda; kurangi teks; hilangkan garis biru penuh ===== */
+html body:not(#_) .workspaceRoot .patientRegistry { border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; border-radius: 0 !important; }
+html body:not(#_) .workspaceRoot .patientRegistry::before, html body:not(#_) .workspaceRoot .patientRegistry::after { display: none !important; }
+html body:not(#_) .workspaceRoot :is(.psStatsLead) { margin: 0 !important; font-size: 13px !important; opacity: .7; }
+html body:not(#_) .workspaceRoot .psStatsHead { align-items: center !important; }
+html body:not(#_) .workspaceRoot :is(.prHead, .piHead) { align-items: center !important; margin: 0 !important; }
+html body:not(#_) .workspaceRoot .psStatsEmpty { margin: 0; padding: 28px 16px; text-align: center; font-size: 13.5px; opacity: .75; border: 1px dashed rgba(11, 70, 122, .2); border-radius: 14px; }
+/* Tab Form Logbook / Hasil Capaian sudah ada di sidebar */
+html body:not(#_) .workspaceRoot .workspaceContextBar .qualityWorkspaceTabs { display: none !important; }
+html body:not(#_) .workspaceRoot .workspaceContextBar:not(:has(> :not(.qualityWorkspaceTabs))) { display: none !important; }
+
+/* ===== Baris alat modul (Panduan + tombol) ringkas: tidak menambah jarak kosong di bawah judul ===== */
+html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) {
+  margin: 0 0 12px !important; padding: 0 !important; min-height: 0 !important; display: flex !important; justify-content: flex-end !important; align-items: center !important;
+}
+html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) .workspaceModuleHeaderTools { display: flex !important; align-items: center !important; gap: 8px !important; flex-wrap: wrap; margin: 0 0 0 auto !important; }
+html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero):not(:has(.workspaceModuleActions, .workspaceModuleGuide)) { display: none !important; }
+html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter > :first-child { margin-top: 0 !important; }

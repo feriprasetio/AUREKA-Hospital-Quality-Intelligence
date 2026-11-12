@@ -216,6 +216,8 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
   return { rows, capped: true }
 }
 
+const RESULTS_CACHE = new Map<string, { at: number; indicator?: IndicatorDataset; pathway?: PathwayDataset; clinical?: ClinicalDataset }>()
+
 export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit' }: Props) {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
@@ -253,12 +255,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
+    // Tampilkan hasil terakhir (≤5 menit) seketika saat kembali ke unit/tahun yang sama; data tetap dimuat ulang di belakang.
+    const cacheKey = mode + '|' + String(roomId) + '|' + year
+    const cached = RESULTS_CACHE.get(cacheKey)
+    const fresh = cached && Date.now() - cached.at < 5 * 60 * 1000
+    setLoading(!fresh)
     setError('')
     setCapped(false)
-    setIndicatorData({ profiles: [], rows: [] })
-    setPathwayData([])
-    setClinicalData([])
+    if (fresh && cached) { if (cached.indicator) setIndicatorData(cached.indicator); if (cached.pathway) setPathwayData(cached.pathway); if (cached.clinical) setClinicalData(cached.clinical) }
+    else { setIndicatorData({ profiles: [], rows: [] }); setPathwayData([]); setClinicalData([]) }
 
     const load = async () => {
       const selectedRoom = normalizeRoom(roomId)
@@ -302,7 +307,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           }))
         }
         if (cancelled) return
-        setIndicatorData({ profiles: (profileResult.data ?? []) as IndicatorProfileForResults[], rows: recordResult.rows })
+        const indicatorDataset = { profiles: (profileResult.data ?? []) as IndicatorProfileForResults[], rows: recordResult.rows }
+        RESULTS_CACHE.set(cacheKey, { at: Date.now(), indicator: indicatorDataset })
+        setIndicatorData(indicatorDataset)
         setCapped(recordResult.capped)
       } else if (mode === 'pathway') {
         const start = String(year) + '-01-01'
@@ -316,6 +323,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           .order('admission_date', { ascending: false })
           .range(from, to))
         if (cancelled) return
+        RESULTS_CACHE.set(cacheKey, { at: Date.now(), pathway: result.rows })
         setPathwayData(result.rows)
         setCapped(result.capped)
       } else {
