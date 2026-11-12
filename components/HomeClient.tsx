@@ -56,8 +56,8 @@ function NavIcon({id}:{id:string}){
 }
 type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
 type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'|'profile'|'evaluation'
-type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'|'oppe'|'fppe'|'recommendations'|'rtl-dewas'|'rtl-direktur'|'rtl-kabid'
-const GOV_PROGRAM_TABS=['recommendations','rtl-dewas','rtl-direktur','rtl-kabid'] as const
+type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'|'oppe'|'fppe'|'recommendations'|'rtl'
+const GOV_PROGRAM_TABS=['recommendations','rtl'] as const
 type GovProgramTab=typeof GOV_PROGRAM_TABS[number]
 const isGovProgramTab=(t:string):t is GovProgramTab=>(GOV_PROGRAM_TABS as readonly string[]).includes(t)
 type AnalyticsDirectoryTab='directory'|'team'
@@ -335,10 +335,10 @@ export default function HomeClient(){
    analytics:[
     {id:'programs',label:'Program Kerja Tahunan'},
     {id:'recommendations',label:'Rekomendasi Ketua PMKP'},
-    {id:'grp-rtl',label:'Rencana Tindak Lanjut',children:[{id:'rtl-dewas',label:'Dewan Pengawas'},{id:'rtl-direktur',label:'Direktur'},{id:'rtl-kabid',label:'Kepala Bidang'}]},
+    {id:'rtl',label:'Rencana Tindak Lanjut (RTL)'},
    ],
    // Blueprint v2 §1/§8: Regulasi — E-Regulasi
-   regulation:[{id:'grp-ereg',label:'E-Regulasi',children:[{id:'keputusan',label:'Keputusan Direktur'},{id:'spo',label:'Standar Prosedur Operasional'},{id:'approval',label:'Persetujuan Elektronik'},{id:'history',label:'Riwayat Versi'}]}],
+   regulation:[{id:'grp-ereg',label:'E-Regulasi',children:[{id:'keputusan',label:'Keputusan Direktur'},{id:'spo',label:'Standar Prosedur Operasional'},{id:'pedoman',label:'Pedoman dan Panduan'},{id:'kebijakan',label:'Kebijakan Rumah Sakit'},{id:'approval',label:'Persetujuan Elektronik'},{id:'history',label:'Riwayat Versi'},{id:'monitoring',label:'Monitoring Regulasi'}]}],
    // Blueprint v2 §1/§10: Pengaturan — Profil/Akun; Pengguna dan Role; Unit dan Instalasi; Keamanan; Preferensi Tampilan; Konfigurasi Sistem; Audit Log
    settings:[
     {id:'profile',label:'Profil / Akun'},
@@ -364,9 +364,9 @@ export default function HomeClient(){
   if(active==='clinical')return qualityResultsView?({pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<string,string>)[qualityResultsView]:(clinicalPathwayOpen?'Audit Clinical Pathway':'Audit Klinis dan Kematian')
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Risk Register · Daftar Risiko',connections:'Risk Register · Konektor Risiko',profile:'Risk Register · Profil Risiko',fmea:'FMEA · Analisis',mitigation:'FMEA · Mitigasi & RTP',evaluation:'FMEA · Evaluasi Keberhasilan'} as Record<RiskWorkspaceTab,string>)[riskTab]
-  if(active==='analytics')return analyticsTab==='oppe'?'OPPE':analyticsTab==='fppe'?'FPPE':({programs:'Program Kerja Tahunan',profiles:'Profil Indikator',directory:'Direktori Tenaga Kerja',recommendations:'Rekomendasi Ketua PMKP','rtl-dewas':'RTL · Dewan Pengawas','rtl-direktur':'RTL · Direktur','rtl-kabid':'RTL · Kepala Bidang'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'|'fppe'>,string>)[analyticsTab]
+  if(active==='analytics')return analyticsTab==='oppe'?'OPPE':analyticsTab==='fppe'?'FPPE':({programs:'Program Kerja Tahunan',profiles:'Profil Indikator',directory:'Direktori Tenaga Kerja',recommendations:'Rekomendasi Ketua PMKP',rtl:'Rencana Tindak Lanjut'} as Record<Exclude<AnalyticsWorkspaceTab,'oppe'|'fppe'>,string>)[analyticsTab]
   if(active==='settings')return ({profile:'Profil / Akun',security:'Keamanan',users:'Pengguna dan Role',units:'Unit dan Instalasi',appearance:'Preferensi Tampilan',system:'Konfigurasi Sistem',permissions:'Hak Akses Role',mydata:'Data Saya untuk PMKP',audit:'Audit Log'} as Record<SettingsSection,string>)[settingsSection]
-  if(active==='regulation')return 'E-Regulasi · '+({keputusan:'Keputusan Direktur',spo:'Standar Prosedur Operasional',approval:'Persetujuan Elektronik',history:'Riwayat Versi'} as Record<RegulationView,string>)[regulationView]
+  if(active==='regulation')return 'E-Regulasi · '+({keputusan:'Keputusan Direktur',spo:'Standar Prosedur Operasional',pedoman:'Pedoman dan Panduan',kebijakan:'Kebijakan Rumah Sakit',approval:'Persetujuan Elektronik',history:'Riwayat Versi',monitoring:'Monitoring Regulasi'} as Record<RegulationView,string>)[regulationView]
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab,patientsSection,regulationView,settingsSection])
  const selectedQualityMode=qualityResultsView??(clinicalPathwayOpen?'pathway':qualityInitialContainer==='Audit Klinis dan Kematian'?'clinical-death':'indicators')
@@ -396,7 +396,7 @@ export default function HomeClient(){
  const selectSidebarChild=(moduleId:string,childId:string)=>{
   setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId==='staff'?'analytics':moduleId)
   if(moduleId==='home')setHomeTab(childId==='infographics'?'infographics':'welcome')
-  if(moduleId==='regulation')setRegulationView((['keputusan','spo','approval','history'].includes(childId)?childId:'keputusan') as RegulationView)
+  if(moduleId==='regulation')setRegulationView((['keputusan','spo','pedoman','kebijakan','approval','history','monitoring'].includes(childId)?childId:'keputusan') as RegulationView)
   if(moduleId==='settings'){setSettingsSection((['profile','security','users','units','appearance','system','permissions','mydata','audit'].includes(childId)?childId:'profile') as SettingsSection);setSettingsTab(null)}
   if(moduleId==='patients')setPatientsSection(childId==='stats'?'stats':childId==='metadata'?'metadata':'register')
   if(moduleId==='quality'||moduleId==='clinical'){
