@@ -6,13 +6,14 @@ const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf
 
 test('quality audit navigation keeps audit areas in the sidebar and moves views into workspace tabs', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /quality:\s*\[\s*\{id:'audit-indicators',label:'Audit Indikator Mutu'\}/)
-  assert.doesNotMatch(home, /id:'result-indicators'|id:'logbook-indicators'/)
+  // Blueprint v2: Indikator Mutu berisi Form Logbook, Hasil Capaian, dan Profil Indikator langsung di sidebar
+  assert.match(home, /quality:\s*\[\s*\{id:'audit-indicators',label:'Form Logbook'\},\s*\{id:'result-indicators',label:'Hasil Capaian'\},\s*\{id:'profile-indicators',label:'Profil Indikator'\}/)
+  assert.doesNotMatch(home, /id:'logbook-indicators'/)
   assert.match(home, /aria-label="Tampilan audit mutu"/)
   assert.match(home, />Form Logbook<\/button>/)
   assert.match(home, />Hasil Capaian<\/button>/)
   assert.match(home, /setQualityResultsView\(mode\)/)
-  assert.match(home, /if\(moduleId==='quality'\)return qualityOppeOpen\?'oppe-fppe':qualityResultsView==='pathway'\|\|clinicalPathwayOpen\?'audit-pathway'/)
+  assert.match(home, /if\(moduleId==='quality'\)return active==='analytics'&&analyticsTab==='profiles'\?'profile-indicators':qualityResultsView\?'result-indicators':'audit-indicators'/)
   const staffStart = home.indexOf('staff:[')
   const staffEnd = home.indexOf('\\n   ],', staffStart)
   assert.ok(home.slice(staffStart, staffEnd).includes('oppe-fppe'))

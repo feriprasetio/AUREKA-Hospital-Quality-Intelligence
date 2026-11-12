@@ -9,9 +9,10 @@ test('Sumber Daya Manusia is the primary entry point for workforce and OPPE func
   const registry = read('lib/aureka/module-registry.ts')
   const metadata = read('components/MetadataStatisticsWorkspace.tsx')
 
-  assert.ok(registry.includes("id: 'staff'"))
-  assert.ok(registry.includes("label: 'Sumber Daya Manusia'"))
-  assert.ok(registry.includes("routeHash: '#tenaga-klinis'"))
+  // Blueprint v2: registri ditulis rapat (id:'staff') dan rute kanonik #sumber-daya-manusia
+  assert.match(registry, /id:\s*'staff'/)
+  assert.match(registry, /label:\s*'Sumber Daya Manusia'/)
+  assert.match(registry, /routeHash:\s*'#sumber-daya-manusia'/)
   assert.ok(home.includes("AUREKA_PRIMARY_NAV.filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole))"))
   assert.ok(home.includes("staff:["))
   assert.ok(home.includes("id:'directory',label:'Daftar Tenaga Kerja'"))
@@ -56,5 +57,7 @@ test('OPPE / FPPE is nested under Sumber Daya Manusia and uses the canonical rou
   assert.ok(home.slice(staffStart, staffEnd).includes('oppe-fppe'))
   assert.ok(home.includes("analyticsTab==='oppe'?<OppeAuditWorkspace"))
   assert.ok(home.includes("'tenaga-klinis':'staff'"))
-  assert.ok(home.includes("analytics:analyticsTab==='directory'||analyticsTab==='oppe'?'#tenaga-klinis':'#program-indikator'"))
+  // Blueprint v2: rute hash per modul ditetapkan di satu peta
+  assert.ok(home.includes("staff:'#sumber-daya-manusia'"))
+  assert.ok(home.includes("analytics:'#program'"))
 })
