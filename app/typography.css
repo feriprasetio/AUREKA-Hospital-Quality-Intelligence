@@ -275,7 +275,10 @@ html body:not(#_) .rmWorkspace .rmGraphLink:has(> .rmGraphNode + .rmConnector + 
 html body:not(#_) .rmWorkspace .rmGraphNode { padding: 7px 10px; gap: 2px; }
 html body:not(#_) .rmWorkspace .rmConnector { justify-items: start; text-align: left; gap: 2px; }
 html body:not(#_) .rmWorkspace .rmConnector i { display: none; }
-html body:not(#_) .rmWorkspace .rmGraphList { gap: 6px; max-height: calc(100dvh - 420px); min-height: 200px; overflow: auto; }
+html body:not(#_) .rmWorkspace .rmGraphList { gap: 6px; max-height: none !important; overflow: visible !important; }
+html body:not(#_) .rmWorkspace .rmConnector small { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+html body:not(#_) .rmWorkspace .rmGraphNode small { font-size: 11.5px; }
+html body:not(#_) .rmWorkspace .rmShowMore { justify-self: center; min-height: 36px; }
 @media (max-width: 900px) {
   html body:not(#_) .rmLinkCompact .rmFormGrid { grid-template-columns: 1fr 1fr; }
   html body:not(#_) .rmLinkCompact .rmFormGrid .rmLinkDesc { grid-column: 1 / -1; }
