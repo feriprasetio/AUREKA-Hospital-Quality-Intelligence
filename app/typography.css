@@ -70,3 +70,51 @@ html body:not(#_) .workspaceRoot .workspaceContent .rmTable td .rmIconButton {
 html body:not(#_) .workspaceRoot .workspaceContent .rmTable td .rmIconButton:hover { translate: 0 -1px; }
 html body:not(#_) .workspaceRoot .workspaceContent .rmTable td { padding-top: 14px !important; padding-bottom: 14px !important; }
 html body:not(#_) .workspaceRoot .workspaceContent .rmTable .rmScore { border-radius: 10px !important; font-weight: 700 !important; }
+
+/* ===== Judul halaman tidak menempel ke garis/konten di bawahnya ===== */
+html body:not(#_) .workspaceRoot .workspacePageHead { padding: 8px 0 18px !important; margin: 0 0 18px !important; }
+html body:not(#_) .workspaceRoot .workspacePageHead h1 { margin: 6px 0 0 !important; line-height: 1.25 !important; }
+html body:not(#_) .workspaceRoot .workspaceCrumbs { margin-bottom: 2px !important; }
+
+/* ===== Dropdown: teks tidak tertimpa panah (mis. pilihan Tahun "2026") ===== */
+html body:not(#_) .workspaceRoot .workspaceContent select:not([multiple]) {
+  padding-right: 36px !important; text-overflow: ellipsis; min-width: 92px;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235d6f80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important; background-position: right 10px center !important; background-size: 16px 16px !important;
+}
+
+/* ===== Pemilih unit kerja Super Admin: jelas sebagai dropdown ===== */
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect { position: relative; display: grid !important; gap: 2px; }
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitLabel { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .6; padding-left: 2px; }
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select {
+  -webkit-appearance: none; appearance: none; min-height: 38px !important; padding: 0 40px 0 12px !important;
+  border: 1.5px solid rgba(43, 122, 196, .45) !important; border-radius: 12px !important;
+  background: #fff !important; box-shadow: 0 1px 2px rgba(11, 47, 82, .06) !important;
+  font-size: 14px !important; font-weight: 700 !important; cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease;
+}
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select:hover { border-color: #2b7ac4 !important; box-shadow: 0 0 0 4px rgba(43, 122, 196, .12) !important; }
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitChevron {
+  position: absolute; right: 8px; bottom: 7px; width: 24px; height: 24px; display: grid; place-items: center;
+  border-radius: 8px; background: rgba(43, 122, 196, .12); color: #1d5f9e; pointer-events: none;
+}
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitChevron svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select { background: rgba(255, 255, 255, .06) !important; border-color: rgba(140, 195, 255, .45) !important; color: #e6eef8 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitChevron { background: rgba(140, 195, 255, .16); color: #b9dbff; }
+@media (max-width: 720px) { html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitLabel { display: none; } html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitChevron { bottom: 7px; } }
+
+/* ===== Pengaturan: satu navigasi saja (submenu di sidebar), tata letak form rapi ===== */
+html body:not(#_) .workspaceRoot .settingsWorkspace .stNav { display: none !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .stLayout { display: block !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .stMain { display: grid; gap: 16px; max-width: 1080px; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .stMain > .workspaceModuleHeader { display: none !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace label.field { display: grid !important; gap: 6px !important; align-items: stretch !important; margin: 0 !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace label.field > span { font-size: 13px; font-weight: 650; }
+html body:not(#_) .workspaceRoot .settingsWorkspace label.field :is(input, select) { min-height: 42px; }
+html body:not(#_) .workspaceRoot .settingsWorkspace :is(.liquidGlass, .stPanel, .stHeroCard) { border-radius: 18px !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .stHeroCard { display: flex !important; align-items: center !important; gap: 18px !important; padding: 18px 20px !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .stHeroText h3 { margin: 0 0 2px; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .stHeroText p { margin: 0 0 10px; }
+html body:not(#_) .workspaceRoot .settingsWorkspace h4 { font-size: 16px; margin: 0 0 14px !important; }
+html body:not(#_) .workspaceRoot .settingsWorkspace .stNavIcon svg,
+html body:not(#_) .workspaceRoot .settingsWorkspace .pwHeadIcon svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

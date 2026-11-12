@@ -280,7 +280,7 @@ export default function PatientRegistryWorkspace({
       {tab === 'database' ? <PatientIndexTab isAdmin={isAdmin} /> : tab === 'stats' ? <PatientStatsTab rooms={rooms} roomId={Number(roomFilter) || null} year={Number(year)} onYearChange={(y) => setYear(String(y))} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <div>
-          <h2>Register Pasien</h2>
+          <h2>{tab === 'records' ? 'Rekapan Pasien' : 'Register Pasien'}</h2>
           <p>Rekapan episode pelayanan pasien dari catatan unit yang telah dilaporkan. Identitas pasien disamarkan secara default.</p>
         </div>
         <div className="prActions">
