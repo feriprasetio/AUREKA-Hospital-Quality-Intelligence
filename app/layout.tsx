@@ -28,6 +28,7 @@ import './modal.css'
 import './landing-motion.css'
 import './proportional-ui.css'
 import './typography.css'
+import './dark-solid.css'
 import './motion.css'
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], display: 'swap', variable: '--font-aureka' })
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="id" data-skin="solid" data-mode="terang" className={jakarta.variable} suppressHydrationWarning>
       <head>
         {/* AUREKA Solid Default: workspace selalu dimulai dalam tema terang yang konsisten. */}
-        <script dangerouslySetInnerHTML={{ __html: "try{localStorage.setItem('aureka-mode','terang');document.documentElement.setAttribute('data-mode','terang')}catch(e){}window.addEventListener('error',function(e){var t=String((e&&e.message)||'')+String(e&&e.error&&e.error.name||'');if(/ChunkLoadError|Loading chunk|Failed to load chunk/i.test(t)){try{if(!sessionStorage.getItem('aureka-chunk-reload')){sessionStorage.setItem('aureka-chunk-reload','1');location.reload()}}catch(x){}}});window.addEventListener('load',function(){setTimeout(function(){try{sessionStorage.removeItem('aureka-chunk-reload')}catch(x){}},10000)});" }} />
+        <script dangerouslySetInnerHTML={{ __html: "try{localStorage.setItem('aureka-mode','terang');document.documentElement.setAttribute('data-mode','terang');if(localStorage.getItem('aureka-dark')==='1')document.documentElement.setAttribute('data-dark','1')}catch(e){}window.addEventListener('error',function(e){var t=String((e&&e.message)||'')+String(e&&e.error&&e.error.name||'');if(/ChunkLoadError|Loading chunk|Failed to load chunk/i.test(t)){try{if(!sessionStorage.getItem('aureka-chunk-reload')){sessionStorage.setItem('aureka-chunk-reload','1');location.reload()}}catch(x){}}});window.addEventListener('load',function(){setTimeout(function(){try{sessionStorage.removeItem('aureka-chunk-reload')}catch(x){}},10000)});" }} />
       </head>
       <body>{children}</body>
     </html>
