@@ -97,7 +97,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       </article>)}</div>}
     </div>}
 
-    {screen==='proposals'&&<IndicatorProposalWorkspace rooms={rooms} role={role} currentRoomId={currentRoomId}/ >}
+    {screen==='proposals'&&<IndicatorProposalWorkspace rooms={rooms} role={role} currentRoomId={currentRoomId}/>}
 
     <AurekaModal open={Boolean(draft)} title={draft?.id?'Edit Area Prioritas':'Tambah Area Prioritas'} subtitle="Rumusan masalah dan sasaran hasil menjadi dasar penetapan intervensi." closeDisabled={busy} onClose={()=>setDraft(null)}
       footer={<><button type="button" className="akBtn akBtnGhost" onClick={()=>setDraft(null)}>Batal</button><button type="button" className="akBtn akBtnPrimary" disabled={busy||String(draft?.title||'').trim().length<5||String(draft?.problem_statement||'').trim().length<10} onClick={()=>void save()}>{busy?'Menyimpan…':'Simpan Area Prioritas'}</button></>}>
