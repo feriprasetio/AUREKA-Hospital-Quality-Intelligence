@@ -663,7 +663,8 @@ html body:not(#_) .rmFilterToggle { display: none !important; }
   html body:not(#_) .rmFilterBar.open > select:nth-of-type(n+2) { display: block; }
   html body:not(#_) .rmFilterBar .rmFilterToggle { display: inline-flex !important; grid-column: 1; justify-self: start; }
   html body:not(#_) .rmFilterBar .rmBarActions { grid-column: 2; margin: 0 !important; }
-  html body:not(#_) .rmFilterBar .rmBarActions .rmButton.subtle { display: none !important; }
+  html body:not(#_) .rmFilterBar .rmBarActions { grid-column: 1 / -1 !important; display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px !important; }
+  html body:not(#_) .rmFilterBar .rmBarActions .rmButton { width: 100%; justify-content: center; }
   html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td,
   html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td *:not(.rmBadge):not(.rmStatus):not(.rmScore):not(.rmButton):not(button) { background-color: transparent !important; }
   html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable .rmRiskName small { font-weight: 500 !important; font-size: 12.5px !important; opacity: .75; }
