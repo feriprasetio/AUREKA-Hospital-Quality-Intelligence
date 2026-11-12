@@ -187,6 +187,7 @@ export default function RiskManagementWorkspace({
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [unitFilter, setUnitFilter] = useState('all')
+  const [registerListOpen, setRegisterListOpen] = useState(false)
   const [levelFilter, setLevelFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -721,7 +722,7 @@ export default function RiskManagementWorkspace({
             {[1, 2, 3, 4, 5].map(d => {
               const score = riskScore(p, d)
               const matching = risks.filter(r => r.likelihood === p && r.impact === d && (unitFilter === 'all' || sourceUnitLabel(r) === unitFilter))
-              return <button type="button" key={d} className={'rmMatrixCell ' + scoreBand(levelFor(score))} onClick={() => { setTab('register'); setPage(0); setLevelFilter('all'); setSearch(''); setCategoryFilter('all'); setStatusFilter('all'); setMatrixFilter({ likelihood: p, impact: d }); setSelectedRiskIds([]); setError(''); setMessage('Filter matriks P' + p + ' × D' + d + ' aktif: skor ' + score + ', ' + levelFor(score) + '. ' + matching.length + ' risiko terdaftar.'); }} title={'P' + p + ', D' + d + ' — skor ' + score}>
+              return <button type="button" key={d} className={'rmMatrixCell ' + scoreBand(levelFor(score))} onClick={() => { setTab('register'); setRegisterListOpen(true); setPage(0); setLevelFilter('all'); setSearch(''); setCategoryFilter('all'); setStatusFilter('all'); setMatrixFilter({ likelihood: p, impact: d }); setSelectedRiskIds([]); setError(''); setMessage('Filter matriks P' + p + ' × D' + d + ' aktif: skor ' + score + ', ' + levelFor(score) + '. ' + matching.length + ' risiko terdaftar.'); }} title={'P' + p + ', D' + d + ' — skor ' + score}>
                 <b>{score}</b><small>{matching.length ? matching.length + ' risiko' : '—'}</small>
               </button>
             })}
@@ -806,7 +807,12 @@ export default function RiskManagementWorkspace({
       </>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'register' && <>
-        <LiquidGlass className="rmPanel">
+        {!registerListOpen && <LiquidGlass className="rmPanel rmMatrixLanding">
+          <div className="rmSectionHead"><div><span className="rmEyebrow">PEMETAAN RISIKO · MATRIKS 5 × 5</span><h3>Peta Risiko Rumah Sakit</h3><p>Pilih sel matriks untuk menelusuri risiko berdasarkan kemungkinan dan dampak. Cakupan mengikuti hak akses akun.</p></div></div>
+          {renderMatrix(true)}
+          <div className="rmActions"><button type="button" className="rmButton primary" onClick={() => { setRegisterListOpen(true); setPage(0); setMatrixFilter(null); }}>Lihat daftar risiko lengkap →</button></div>
+        </LiquidGlass>}
+        {registerListOpen && <LiquidGlass className="rmPanel">
           <div className={'rmFilterGrid rmFilterBar' + (filtersOpen ? ' open' : '')}>
             <button type="button" className="rmButton rmFilterToggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(v => !v)}>⚙ Filter{[levelFilter, categoryFilter, statusFilter].filter(v => v !== 'all').length ? ' (' + [levelFilter, categoryFilter, statusFilter].filter(v => v !== 'all').length + ')' : ''}</button>
             <label className="rmSearch">⌕ <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Cari risiko, unit, atau penyebab…" /></label>
@@ -828,7 +834,7 @@ export default function RiskManagementWorkspace({
                 {!pageRisks.length && <tr><td colSpan={7}><div className="rmEmptySmall">Tidak ada risiko yang sesuai filter. Ubah filter atau tambahkan risiko baru.</div></td></tr>}
               </tbody></table></WorkspaceTableViewport>
           <div className="rmTableFooter"><span>Menampilkan {filteredRisks.length ? page * pageSize + 1 : 0}–{Math.min((page + 1) * pageSize, filteredRisks.length)} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span><div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
-        </LiquidGlass>
+        </LiquidGlass>}
 
         {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className="rmPanel rmEditor">
           <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
