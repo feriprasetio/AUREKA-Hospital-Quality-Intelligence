@@ -6,7 +6,7 @@
  */
 html[data-dark="1"] {
   background: #fff;
-  filter: invert(.92) hue-rotate(180deg);
+  filter: invert(.86) hue-rotate(180deg) contrast(.96);
 }
 html[data-dark="1"] :is(img, video, picture, canvas, iframe, object, embed),
 html[data-dark="1"] [style*="background-image"] {
