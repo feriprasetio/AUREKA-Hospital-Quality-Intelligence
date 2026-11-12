@@ -698,3 +698,59 @@ html body:not(#_) [aria-modal="true"] label.field { margin: 0 !important; min-he
   html body:not(#_) .akModalBody { padding: 14px 16px 20px !important; }
   html body:not(#_) .akModalBody [style*="grid"] { gap: 12px !important; }
 }
+
+/* ===== Popup formulir mengikuti tema (huruf Plus Jakarta, warna Arktik) ===== */
+html body:not(#_) :is([aria-modal="true"], [role="dialog"]), html body:not(#_) :is([aria-modal="true"], [role="dialog"]) :is(button, input, select, textarea, h1, h2, h3, h4, p, span, label, strong, b) {
+  font-family: var(--font-aureka), "Plus Jakarta Sans", system-ui, sans-serif !important;
+}
+html body:not(#_) .psModalBar { display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 12px !important; }
+html body:not(#_) .psModalBar .psBackBtn { min-height: 40px !important; padding: 0 14px !important; border-radius: 999px !important; background: #fff !important; border: 1.5px solid #c6d6e8 !important; color: #0b2f52 !important; font-weight: 700 !important; font-size: 14px !important; box-shadow: 0 2px 6px rgba(11, 47, 82, .07) !important; }
+html body:not(#_) .psModalBar .psModalTitle { flex: 1; min-width: 0; font-weight: 700; color: #0b2f52; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html body:not(#_) .psModalBar .psCloseBtn { margin-left: auto; width: 40px; height: 40px; border-radius: 12px !important; display: grid; place-items: center; }
+html body:not(#_) .psSectionHead .psEyebrow { letter-spacing: .1em; color: #2c6aa0 !important; font-size: 11px !important; }
+html body:not(#_) .psSectionHead h4 { color: #0b1f33 !important; letter-spacing: -.01em; }
+html body:not(#_) .psSectionHead p { font-size: 13px !important; line-height: 1.55 !important; }
+html body:not(#_) .psMetaGrid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; gap: 8px !important; }
+html body:not(#_) .psMeta { padding: 10px 12px !important; border-radius: 14px !important; }
+html body:not(#_) .psMeta span { font-size: 11px !important; letter-spacing: .04em; }
+html body:not(#_) .psMeta strong { font-size: 16px !important; color: #0b1f33 !important; }
+html body:not(#_) .psFormLetter { background: linear-gradient(135deg, #0b2f52, #2c6aa0) !important; }
+html body:not(#_) .psFormGrid label > :first-child, html body:not(#_) .psFormGrid .psFieldLabel { letter-spacing: .02em !important; text-transform: none !important; font-size: 13px !important; color: #1f3a55 !important; }
+@media (max-width: 720px) {
+  html body:not(#_) .psModalBar .psBackBtn { font-size: 13px !important; }
+  html body:not(#_) .psModalBar .psModalTitle { display: none; }
+  html body:not(#_) .psMetaGrid { grid-template-columns: 1fr 1fr !important; }
+  html body:not(#_) .psSectionHead { flex-direction: column !important; }
+}
+html[data-mode="gelap"] body:not(#_) .psModalBar .psBackBtn { background: rgba(255,255,255,.06) !important; color: #e3edf8 !important; border-color: rgba(140,195,255,.3) !important; }
+html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { color: #eef4fb !important; }
+
+/* ===== Menu samping di HP: jelas bertingkat, solid, animasi ringan ===== */
+@media (max-width: 900px) {
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen {
+    background: #f7fafd !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    box-shadow: 12px 0 40px rgba(11, 31, 51, .22) !important;
+  }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen *, html body:not(#_) .workspaceRoot .sidebar.mobileOpen *::before, html body:not(#_) .workspaceRoot .sidebar.mobileOpen *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; filter: none !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup { margin-bottom: 2px; }
+  /* Induk: ikon + teks tebal; grup aktif berlatar biru muda */
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup > button { min-height: 48px; border-radius: 14px !important; font-weight: 700 !important; color: #1f3a55 !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup.isCurrent > button { background: #e6f0fa !important; color: #0b2f52 !important; box-shadow: none !important; }
+  /* Anak & cucu: garis panduan kiri, teks lebih kecil, aktif = pil navy */
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild { min-height: 42px; border-radius: 12px !important; font-size: 14.5px !important; color: #33506e !important; background: transparent !important; box-shadow: none !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.sidebarTreeParent { font-weight: 700 !important; color: #0b2f52 !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.sidebarTreeParent.active { background: transparent !important; color: #0b2f52 !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.sidebarTreeParent .sidebarChevron { background: transparent !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.active:not(.sidebarTreeParent) { background: #0b1f33 !important; color: #fff !important; font-weight: 700 !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarTreeNestedChildren .sidebarChild { font-size: 14px !important; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChevron { transition: rotate .2s ease; }
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen [aria-expanded="true"] > .sidebarChevron { rotate: 180deg; }
+  html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen { background: #0d1626 !important; }
+  html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup.isCurrent > button { background: rgba(90, 169, 230, .14) !important; color: #e6f0fb !important; }
+  html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen :is(.sidebarChild, .sidebarNavGroup > button) { color: #c9d6e6 !important; }
+  html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.active:not(.sidebarTreeParent) { background: #5aa9e6 !important; color: #07101e !important; }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarTreeChildren:not([hidden]) { animation: navDrop .22s ease both; }
+}
+@keyframes navDrop { from { opacity: 0; translate: 0 -4px; } to { opacity: 1; translate: none; } }
