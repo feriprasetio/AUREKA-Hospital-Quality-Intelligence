@@ -611,3 +611,8 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspa
   html body:not(#_) .mobileSubNavRow { margin: 0 -16px; padding-left: 16px; padding-right: 16px; scroll-padding-left: 16px; }
   html body:not(#_) .sdActions { flex-wrap: wrap !important; }
 }
+@media (max-width: 640px) {
+  html body:not(#_) .tanyaHead > div:not([class]) { flex: 1 1 calc(100% - 52px) !important; }
+  html body:not(#_) .tanyaHead > .tanyaGhost:first-of-type { margin-left: 48px !important; }
+  html body:not(#_) .tanyaHead > .tanyaGhost + .tanyaGhost { margin-left: 0 !important; }
+}

@@ -207,7 +207,12 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     setMsgs(m => [...m, { role: 'user', text: question }])
     setDraft('')
     setBusy(true)
-    const { data, error } = await sb.functions.invoke('aureka-tanya', { body: { question, history, page } })
+    // Penyedia AI gratis kadang menolak sesaat (sibuk/kuota per menit): coba ulang otomatis hingga 2× sebelum menampilkan galat.
+    let { data, error } = await sb.functions.invoke('aureka-tanya', { body: { question, history, page } })
+    for (let attempt = 1; attempt <= 2 && error && [429, 500, 502, 503, 504].includes(Number((error as { context?: { status?: number } }).context?.status)); attempt++) {
+      await new Promise((r) => setTimeout(r, attempt * 2500))
+      ;({ data, error } = await sb.functions.invoke('aureka-tanya', { body: { question, history, page } }))
+    }
     setBusy(false)
     if (error || !data?.answer) {
       const text = error ? await errorText(error) : 'AI tidak memberikan jawaban.'
