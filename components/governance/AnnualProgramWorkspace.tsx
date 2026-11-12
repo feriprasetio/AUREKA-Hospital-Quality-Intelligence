@@ -71,7 +71,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
     {error&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
     {notice&&<div className="rmNotice" role="status"><span>Informasi</span><p>{notice}</p></div>}
 
-    {screen==='home'&&<div className="annualProgramCards">
+    {screen==='home'&&<div className="annualProgramHome"><div className="annualProgramCards">
       <button type="button" className="annualProgramCard" onClick={()=>setScreen('priorities')}>
         <span className="annualProgramCardIcon" aria-hidden="true">◎</span>
         <span className="annualProgramCardBody"><strong>Area Prioritas</strong><small>Daftar masalah strategis, sasaran mutu, unit pemilik, dan rencana penyelesaian.</small><span className="annualProgramCardMeta">{loading?'Memuat…':`${rows.length} area · ${activeCount} masih berjalan`}</span></span>
@@ -131,7 +131,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
     </AurekaModal>
 
     <style jsx>{`
-      .annualProgramLegacy{margin-top:20px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:11px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+      .annualProgramHome{display:grid;gap:16px}.annualProgramLegacy{margin-top:4px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:11px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
       .annualProgramCard{display:flex;align-items:flex-start;gap:14px;text-align:left;padding:20px;border:1px solid var(--line,rgba(20,34,27,.12));border-radius:18px;background:var(--surface,#fff);color:var(--text,#20372d);cursor:pointer;min-width:0;transition:border-color .18s,transform .18s}
       .annualProgramCard:hover{border-color:var(--accent,#26866a);transform:translateY(-1px)}
       .annualProgramCardIcon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:var(--surface-soft,#eef5f1);font-size:22px}
