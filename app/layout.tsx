@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import './clinical-ui.css'
 import './medidash-ui.css'
@@ -27,6 +28,9 @@ import './modal.css'
 import './landing-motion.css'
 import './proportional-ui.css'
 import './motion.css'
+import './typography.css'
+
+const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], display: 'swap', variable: '--font-aureka' })
 
 export const metadata: Metadata = {
   title: 'AUREKA — Hospital Quality Intelligence',
@@ -35,7 +39,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="id" data-skin="solid" data-mode="terang" suppressHydrationWarning>
+    <html lang="id" data-skin="solid" data-mode="terang" className={jakarta.variable} suppressHydrationWarning>
       <head>
         {/* AUREKA Solid Default: workspace selalu dimulai dalam tema terang yang konsisten. */}
         <script dangerouslySetInnerHTML={{ __html: "try{localStorage.setItem('aureka-mode','terang');document.documentElement.setAttribute('data-mode','terang')}catch(e){}window.addEventListener('error',function(e){var t=String((e&&e.message)||'')+String(e&&e.error&&e.error.name||'');if(/ChunkLoadError|Loading chunk|Failed to load chunk/i.test(t)){try{if(!sessionStorage.getItem('aureka-chunk-reload')){sessionStorage.setItem('aureka-chunk-reload','1');location.reload()}}catch(x){}}});window.addEventListener('load',function(){setTimeout(function(){try{sessionStorage.removeItem('aureka-chunk-reload')}catch(x){}},10000)});" }} />
