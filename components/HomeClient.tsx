@@ -213,7 +213,7 @@ export default function HomeClient(){
     }
     return
    }
-   const routes:Record<string,string>={'ringkasan':'home','halaman-utama':'home','beranda':'home','register-pasien':'patients','pasien':'patients','mutu-klinis':'quality','indikator-mutu':'quality','peningkatan-kinerja-klinis':'clinical','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','sumber-daya-manusia':'staff','program':'analytics','program-indikator':'analytics','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings','pengaturan':'settings','regulasi':'regulation','e-regulasi':'regulation'}
+   const routes:Record<string,string>={'ringkasan':'home','halaman-utama':'home','beranda':'home','register-pasien':'patients','pasien':'patients','mutu-klinis':'quality','indikator-mutu':'quality','peningkatan-kinerja-klinis':'clinical','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','sumber-daya-manusia':'staff','program':'analytics','program-indikator':'analytics','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings','pengaturan':'settings'}
    const [modulePath,section]=path.split('/')
    let next=routes[modulePath]||'home'
    if(next!=='home'&&!AUREKA_PRIMARY_NAV.some(module=>module.id===next&&module.requiredRoles.includes((role||'') as AurekaRole)))next='home'
@@ -347,8 +347,6 @@ export default function HomeClient(){
     {id:'recommendations',label:'Rekomendasi Ketua PMKP'},
     {id:'rtl',label:'Rencana Tindak Lanjut (RTL)'},
    ],
-   // Blueprint v2 §1/§8: Regulasi — E-Regulasi
-   regulation:[{id:'grp-ereg',label:'E-Regulasi',children:[{id:'keputusan',label:'Keputusan Direktur'},{id:'spo',label:'Standar Prosedur Operasional'},{id:'pedoman',label:'Pedoman dan Panduan'},{id:'kebijakan',label:'Kebijakan Rumah Sakit'},{id:'approval',label:'Persetujuan Elektronik'},{id:'history',label:'Riwayat Versi'},{id:'monitoring',label:'Monitoring Regulasi'}]}],
    // Blueprint v2 §1/§10: Pengaturan — Profil/Akun; Pengguna dan Role; Unit dan Instalasi; Keamanan; Preferensi Tampilan; Konfigurasi Sistem; Audit Log
    settings:[
     {id:'profile',label:'Profil / Akun'},
@@ -407,7 +405,6 @@ export default function HomeClient(){
  const selectSidebarChild=(moduleId:string,childId:string)=>{
   setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId==='staff'?'analytics':moduleId)
   if(moduleId==='home')setHomeTab(childId==='infographics'?'infographics':'welcome')
-  if(moduleId==='regulation')setRegulationView((['keputusan','spo','pedoman','kebijakan','approval','history','monitoring'].includes(childId)?childId:'keputusan') as RegulationView)
   if(moduleId==='settings'){setSettingsSection((['profile','security','users','units','appearance','system','permissions','mydata','audit'].includes(childId)?childId:'profile') as SettingsSection);setSettingsTab(null)}
   if(moduleId==='patients')setPatientsSection(childId==='stats'?'stats':childId==='metadata'?'metadata':'register')
   if(moduleId==='quality'||moduleId==='clinical'){
@@ -1042,7 +1039,7 @@ export default function HomeClient(){
    :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={qualityInitialContainer+'-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom} initialContainer={qualityInitialContainer} showContainerTabs={false} hidePatientEpisodeEntry/>
    :active==='quality'?<AsyncStatePanel state="empty" title="Pilih ruang kerja Indikator Mutu" description="Gunakan Form Logbook atau Hasil Capaian pada navigasi Indikator Mutu." compact/>
    :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab}/>
-   :active==='risk'?<RiskManagementWorkspace key={'risk-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab}/>
+   :active==='risk'?<RiskManagementWorkspace key={'risk-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={false} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab}/>
    :active==='analytics'&&isGovProgramTab(analyticsTab)?<GovernanceProgramWorkspace view={analyticsTab} rooms={roomsList}/>
    :active==='analytics'&&analyticsTab==='pic-performance'?<PicPerformanceWorkspace/>
    :active==='analytics'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace key={'staff-'+analyticsTab} initialScreen={analyticsTab==='fppe'?'fppe':'assessment'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin}/>:active==='analytics'?<MetadataStatisticsWorkspace key={'metadata-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin} initialContainer={analyticsTab==='oppe'||analyticsTab==='fppe'||analyticsTab==='pic-performance'||isGovProgramTab(analyticsTab)?'directory':analyticsTab} initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
