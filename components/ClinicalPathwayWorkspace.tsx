@@ -888,33 +888,29 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     {!masterReady && screen !== 'library' && <div className="cpNotice error">Format Clinical Pathway belum lengkap. Audit belum dapat disimpan.</div>}
 
     {screen === 'library' && <>
-      <div className="cpGrid">
-        <LiquidGlass className="cpKpi"><span>Format CP tersedia</span><strong>{templates.filter((t) => t.status === 'published').length}</strong><small>Diagnosis sumber dan CP tambahan</small></LiquidGlass>
-        <LiquidGlass className="cpKpi"><span>Total item master</span><strong>{templates.filter((t) => t.status === 'published').reduce((a, t) => a + t.items.length, 0).toLocaleString('id-ID')}</strong><small>Item dan jadwal dari dokumen sumber</small></LiquidGlass>
-        <LiquidGlass className="cpKpi"><span>Unit / ruangan</span><strong>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</strong></LiquidGlass>
-      </div>
-      {isAdmin && <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Pengelolaan master Clinical Pathway</h4></div><span className="cpBadge">Super Admin</span></div>
-        <div className="cpToolbar" style={{ padding: 0 }}>
-          <div className="cpField cpSearch"><label>Format CP yang akan diedit</label><select value={selectedCode} onChange={(e) => setSelectedCode(e.target.value)}><option value="">Pilih diagnosis / format CP</option>{templates.map((template) => <option key={template.code} value={template.code}>{template.name} · {template.status === 'published' ? 'Aktif' : template.status === 'draft' ? 'Draf' : 'Tidak aktif'} · v{template.version}</option>)}</select></div>
-          <button type="button" className="cpBtn" disabled={!selectedTemplate} onClick={() => beginBuilder(selectedTemplate, 'library')}>✎ Edit format terpilih</button>
-          <button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ Tambah CP baru</button>
-          {templates.length === 0 && <div className="cpField" style={{minWidth:260}}>
+      <div className="cpGlass cpLibBar">
+        <div className="cpLibStats" aria-label="Ringkasan master Clinical Pathway">
+          <span><b>{templates.filter((t) => t.status === 'published').length}</b> format CP aktif</span>
+          <span><b>{templates.filter((t) => t.status === 'published').reduce((a, t) => a + t.items.length, 0).toLocaleString('id-ID')}</b> item master</span>
+          <span><b>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</b> unit</span>
+        </div>
+        <div className="cpLibTools">
+          <div className="cpField cpSearch cpLocalSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
+          {isAdmin && !lockRoomScope && <label className="cpLibSel" title="Unit untuk audit baru"><span>Unit audit</span><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></label>}
+          {isAdmin && <label className="cpLibSel" title="Super Admin: pilih format untuk langsung membuka editor"><span>Edit format</span><select value={selectedCode} onChange={(e) => { const code = e.target.value; setSelectedCode(code); const t = templates.find((x) => x.code === code); if (t) beginBuilder(t, 'library') }}><option value="">Pilih format untuk diedit…</option>{templates.map((template) => <option key={template.code} value={template.code}>{template.name} · {template.status === 'published' ? 'Aktif' : template.status === 'draft' ? 'Draf' : 'Tidak aktif'} · v{template.version}</option>)}</select></label>}
+          {isAdmin && <button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ CP baru</button>}
+          <button type="button" className="cpBtn cpIconBtn" title="Muat ulang master" aria-label="Muat ulang master" onClick={() => void loadTemplates()}>↻</button>
+        </div>
+            {isAdmin && templates.length === 0 && <div className="cpField" style={{minWidth:260}}>
             <label htmlFor="cp-source-json">Paket JSON Clinical Pathway (8 format)</label>
             <input id="cp-source-json" className="cpInput" type="file" accept=".json,application/json" disabled={importingMaster} onChange={(event) => setImportFile(event.target.files?.[0] || null)} />
             {importFile && <small className="cpTiny">{importFile.name} · {(importFile.size / 1024).toFixed(0)} KB</small>}
             <button type="button" className="cpBtn primary" disabled={importingMaster || !importFile} onClick={() => void importClinicalPathwaySourcePack(importFile)}>{importingMaster ? 'Mengimpor paket…' : '↓ Impor 8 format CP sumber baru'}</button>
           </div>}
-        </div>
-      </div>}
-      <div className="cpGlass cpToolbar">
-        <div className="cpField cpSearch cpLocalSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
-        {isAdmin && !lockRoomScope && <div className="cpField cpSelect"><label>Unit untuk audit baru</label><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></div>}
-        <button type="button" className="cpBtn" onClick={() => void loadTemplates()}>↻ Muat ulang master</button>
       </div>
-      <div className="cpGrid">
+      <div className="cpGrid cpTiles">
         {filteredTemplates.map((t) => <button key={t.code} type="button" className="cpGlass cpTile" onClick={() => chooseTemplate(t)}>
-          <span className="cpTileTop"><span className="cpTileIcon">▤</span><span className={'cpBadge ' + (t.status === 'draft' ? 'draft' : t.status === 'retired' ? 'retired' : '')}>{t.status === 'published' ? 'Aktif' : t.status === 'draft' ? 'Draf' : 'Tidak aktif'}</span></span>
+          <span className="cpTileTop"><span className={'cpBadge ' + (t.status === 'draft' ? 'draft' : t.status === 'retired' ? 'retired' : '')}>{t.status === 'published' ? 'Aktif' : t.status === 'draft' ? 'Draf' : 'Tidak aktif'}</span></span>
           <h4>{t.name}</h4><p>{t.icd10 ? 'ICD-10: ' + t.icd10 : 'Kode ICD-10 belum dicantumkan pada dokumen sumber'} · Versi {t.version}</p>
           <div className="cpTileFoot"><span>{t.items.length} item · {t.days.length} hari/tahap</span><span>Buka diagnosis →</span></div>
         </button>)}
