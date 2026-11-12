@@ -658,61 +658,73 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    if(typeof window!=='undefined'){try{window.localStorage.removeItem('aureka-quality-episode-cache-v3');window.localStorage.removeItem('aureka-quality-audit-v3')}catch{}}
    try{
      if(roomId==null){setProfiles([]);setStaffOptions([]);setPatients([]);setSource('Unit belum dipilih');setMessage('Unit kerja belum tersedia. Pilih unit pertama yang tersedia sebelum membuka logbook.');return}
-     let pq=q().from('indicator_profiles').select('*').eq('room_id',roomId).eq('profile_year',year).eq('status','published').eq('is_active',true).order('code')
-     const {data:pd,error:pe}=await pq
-     if(pe) throw pe
-     setProfiles(pd??[])
+     // Profil, roster tenaga, dan catatan dimuat paralel (sebelumnya berurutan sehingga terasa lama).
+     const profilesTask=(async()=>{
+       const {data:pd,error:pe}=await q().from('indicator_profiles').select('*').eq('room_id',roomId).eq('profile_year',year).eq('status','published').eq('is_active',true).order('code')
+       if(pe) throw pe
+       setProfiles(pd??[])
+     })()
      // Personnel fields are linked only to the locked roster for the current unit.
-     const assignedPairs=await readAllPages<{staff_id:string;room_id:number}>((from,to)=>q().from('staff_team_assignments')
-       .select('staff_id,room_id')
-       .eq('room_id',roomId)
-       .eq('assignment_status','active')
-       .order('staff_id',{ascending:true})
-       .range(from,to))
-     const roomByStaff=new Map<string,number>(assignedPairs.map((a:any)=>[String(a.staff_id),Number(a.room_id)]))
-     const assignedStaffIds=Array.from(roomByStaff.keys())
-     const staffRows:TeamStaffOption[]=[]
-     for(let offset=0;offset<assignedStaffIds.length;offset+=100){
-       const batch=assignedStaffIds.slice(offset,offset+100)
-       const {data:sd,error:staffError}=await q().from('staff_directory')
-         .select('id,employee_code,display_name,profession_group,position_title,directory_status')
-         .eq('directory_status','available')
-         .in('id',batch)
-         .order('display_name')
-       if(staffError) throw staffError
-       staffRows.push(...(sd??[]).map((s:any)=>({...s,id:String(s.id),room_id:Number(roomByStaff.get(String(s.id)))})))
-     }
-     setStaffOptions(staffRows)
-     const rows:any[]=[]
-     let from=0
-     while(true){
-       let rq=q().from('quality_records').select('*').eq('room_id',roomId).eq('profile_year',year).order('created_at',{ascending:false}).range(from,from+499)
-       if(patientRegistryMode)rq=rq.eq('measurement_grain','patient_episode')
-       const {data,error}=await rq
-       if(error) throw error
-       rows.push(...(data??[]))
-       if((data??[]).length<500) break
-       from+=500
-     }
+     const staffTask=(async()=>{
+       const assignedPairs=await readAllPages<{staff_id:string;room_id:number}>((from,to)=>q().from('staff_team_assignments')
+         .select('staff_id,room_id')
+         .eq('room_id',roomId)
+         .eq('assignment_status','active')
+         .order('staff_id',{ascending:true})
+         .range(from,to))
+       const roomByStaff=new Map<string,number>(assignedPairs.map((a:any)=>[String(a.staff_id),Number(a.room_id)]))
+       const assignedStaffIds=Array.from(roomByStaff.keys())
+       const batches:string[][]=[]
+       for(let offset=0;offset<assignedStaffIds.length;offset+=100)batches.push(assignedStaffIds.slice(offset,offset+100))
+       const results=await Promise.all(batches.map(async batch=>{
+         const {data:sd,error:staffError}=await q().from('staff_directory')
+           .select('id,employee_code,display_name,profession_group,position_title,directory_status')
+           .eq('directory_status','available')
+           .in('id',batch)
+           .order('display_name')
+         if(staffError) throw staffError
+         return (sd??[]).map((s:any)=>({...s,id:String(s.id),room_id:Number(roomByStaff.get(String(s.id)))})) as TeamStaffOption[]
+       }))
+       setStaffOptions(results.flat())
+     })()
+     const recordsTask=(async()=>{
+       const out:any[]=[]
+       let from=0
+       while(true){
+         let rq=q().from('quality_records').select('*').eq('room_id',roomId).eq('profile_year',year).order('created_at',{ascending:false}).range(from,from+499)
+         if(patientRegistryMode)rq=rq.eq('measurement_grain','patient_episode')
+         const {data,error}=await rq
+         if(error) throw error
+         out.push(...(data??[]))
+         if((data??[]).length<500) break
+         from+=500
+       }
+       return out
+     })()
+     const [,,rows]=await Promise.all([profilesTask,staffTask,recordsTask])
      const attributionByRecord=new Map<string,Record<string,string>>()
      const databaseRecordIds=rows.map((r:any)=>String(r.id)).filter(Boolean)
-     for(let offset=0;offset<databaseRecordIds.length;offset+=100){
-       const batch=databaseRecordIds.slice(offset,offset+100)
-       let attrFrom=0
-       while(true){
-         const {data:attributions,error:attributionError}=await q().from('quality_record_staff_attributions')
-           .select('record_id,staff_id,field_key')
-           .in('record_id',batch)
-           .range(attrFrom,attrFrom+499)
-         if(attributionError) throw attributionError
-         ;(attributions??[]).forEach((a:any)=>{
-           const key=String(a.record_id)
-           if(!attributionByRecord.has(key)) attributionByRecord.set(key,{})
-           attributionByRecord.get(key)![String(a.field_key)]=String(a.staff_id)
-         })
-         if(!attributions||attributions.length<500) break
-         attrFrom+=500
-       }
+     const attrBatches:string[][]=[]
+     for(let offset=0;offset<databaseRecordIds.length;offset+=100)attrBatches.push(databaseRecordIds.slice(offset,offset+100))
+     // Atribusi tenaga dimuat paralel per kelompok (maks. 6 permintaan bersamaan).
+     for(let i=0;i<attrBatches.length;i+=6){
+       await Promise.all(attrBatches.slice(i,i+6).map(async batch=>{
+         let attrFrom=0
+         while(true){
+           const {data:attributions,error:attributionError}=await q().from('quality_record_staff_attributions')
+             .select('record_id,staff_id,field_key')
+             .in('record_id',batch)
+             .range(attrFrom,attrFrom+499)
+           if(attributionError) throw attributionError
+           ;(attributions??[]).forEach((a:any)=>{
+             const key=String(a.record_id)
+             if(!attributionByRecord.has(key)) attributionByRecord.set(key,{})
+             attributionByRecord.get(key)![String(a.field_key)]=String(a.staff_id)
+           })
+           if(!attributions||attributions.length<500) break
+           attrFrom+=500
+         }
+       }))
      }
      const db=rows.filter(r=>r.status!=='archived').map((r:any)=>{
        const c=r.core_data??r.subject_json??{}
