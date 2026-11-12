@@ -268,7 +268,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         <div className="ifChartToolbar">
           <label className="ifChartChoice">Pilih grafik<select value={activeChart.id} onChange={(event) => { const next = chartModels.find((model) => model.id === event.target.value); setChartId(event.target.value); setChartType(next?.kind === 'trend' ? 'line' : 'column') }}>{chartModels.map((model) => <option key={model.id} value={model.id}>{model.label}</option>)}</select></label>
           <div><span style={{display:'block',marginBottom:5,color:'var(--ak-muted,#73849a)',fontSize:10,fontWeight:750}}>Bentuk grafik</span><div className="ifTypeSwitch" role="group" aria-label="Pilih bentuk grafik">
-            {([['column','Kolom'],['bar','Batang'],['line','Garis'],['donut','Donat']] as const).map(([type,label]) => <button type="button" key={type} aria-pressed={chartType===type} onClick={() => setChartType(type)}>{label}</button>)}
+            {(activeChart.kind === 'trend' ? ([['column','Kolom'],['bar','Batang'],['line','Garis']] as const) : ([['column','Kolom'],['bar','Batang'],['donut','Donat']] as const)).map(([type,label]) => <button type="button" key={type} aria-pressed={chartType===type} onClick={() => setChartType(type)}>{label}</button>)}
           </div></div>
         </div>
         <div className="ifSectionHead"><div><h3>{activeChart.label}</h3><p>{activeChart.description}</p></div></div>
