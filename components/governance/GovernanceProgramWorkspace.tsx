@@ -19,7 +19,7 @@ type IssuerFilter = 'ALL'|Issuer
 const ISSUER_LABEL:Record<Issuer,string>={DEWAN_PENGAWAS:'Dewan Pengawas',DIREKTUR:'Direktur',KETUA_PMKP:'Ketua PMKP',KABID:'Kepala Bidang'}
 const LEVEL_LABEL:Record<Level,string>={DEWAN_PENGAWAS:'Dewan Pengawas',DIREKTUR:'Direktur',KABID:'Kepala Bidang',UNIT:'Unit'}
 const STATUS_LABEL:Record<string,string>={terbuka:'Terbuka',berjalan:'Berjalan',selesai:'Selesai · menunggu verifikasi',terverifikasi:'Terverifikasi efektif',dibatalkan:'Dibatalkan'}
-const SOURCE_LABEL:Record<string,string>={ketua_pmkp:'Rekomendasi PMKP',audit:'Hasil audit',risiko:'Manajemen risiko',insiden:'Insiden keselamatan pasien',program:'Program kerja',lainnya:'Lainnya'}
+const SOURCE_LABEL:Record<string,string>={ketua_pmkp:'Pembahasan internal PMKP',audit:'Hasil audit',risiko:'Manajemen risiko',insiden:'Insiden keselamatan pasien',program:'Program kerja',lainnya:'Lainnya'}
 const fmtDate=(v?:string|null)=>(v?new Date(v.length===10?v+'T12:00:00':v).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'—')
 const overdue=(a:Action)=>Boolean(a.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(a.status)&&new Date(a.due_date+'T23:59:59')<new Date())
 const suggestMethod=(text:string):Method=>/\b(sop|kebijakan|administrasi|alur|prosedur|dokumentasi|jadwal|formulir|standarisasi|standarisasi|kepatuhan proses)\b/i.test(text)?'PDCA':'PDSA'
@@ -32,6 +32,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
   const [busy,setBusy]=useState(false)
+  const [methodManuallySet,setMethodManuallySet]=useState(false)
   const [recDraft,setRecDraft]=useState<Partial<Recommendation>|null>(null)
   const [actDraft,setActDraft]=useState<Partial<Action>|null>(null)
   const [progress,setProgress]=useState<Action|null>(null)
@@ -64,7 +65,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
   const openAction=(seed:Partial<Action>={})=>{
     const rec=data?.recommendations.find(r=>r.id===seed.recommendation_id)
     const method=suggestMethod([rec?.title,rec?.description,seed.title,seed.description].filter(Boolean).join(' '))
-    setActDraft({responsible_level:'KABID',improvement_method:method,cycle_plan:'',cycle_do:'',cycle_study_check:'',cycle_act:'',...seed})
+    setMethodManuallySet(Boolean(seed.id&&seed.improvement_method));setActDraft({responsible_level:'KABID',improvement_method:method,cycle_plan:'',cycle_do:'',cycle_study_check:'',cycle_act:'',...seed})
   }
 
   const actionTable=(list:Action[])=><WorkspaceTableViewport label="Rencana tindak lanjut" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Tindak lanjut dan siklus perbaikan</th><th>Metode</th><th>Penanggung jawab</th><th>Tenggat</th><th>Status</th><th>Evaluasi</th><th>Aksi</th></tr></thead><tbody>
@@ -91,7 +92,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
       <div className="govHeadTools">
         <label className="govYear">Pemberi rekomendasi <select value={issuerFilter} onChange={e=>setIssuerFilter(e.target.value as IssuerFilter)}><option value="ALL">Semua</option><option value="DEWAN_PENGAWAS">Dewan Pengawas</option><option value="DIREKTUR">Direktur</option><option value="KETUA_PMKP">Ketua PMKP</option><option value="KABID">Kepala Bidang</option></select></label>
         <label className="govYear">Tahun <select value={year} onChange={e=>setYear(Number(e.target.value))}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
-        {canManage&&<><button type="button" className="rmButton primary" onClick={()=>setRecDraft({source:'ketua_pmkp',issued_by_level:'KETUA_PMKP',priority:'sedang',program_year:year,given_at:new Date().toISOString().slice(0,10)})}>+ Rekomendasi</button><button type="button" className="rmButton" onClick={()=>openAction()}>+ Tindak lanjut</button></>}
+        {canManage&&<><button type="button" className="rmButton primary" onClick={()=>setRecDraft({source:'lainnya',issued_by_level:'KETUA_PMKP',priority:'sedang',program_year:year,given_at:new Date().toISOString().slice(0,10)})}>+ Rekomendasi</button><button type="button" className="rmButton" onClick={()=>openAction()}>+ Tindak lanjut</button></>}
       </div>
     </div>
     {error&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
@@ -144,11 +145,11 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
     <AurekaModal open={Boolean(actDraft)} title={actDraft?.id?'Edit rencana tindak lanjut':'Rencana tindak lanjut baru'} subtitle="Pilih metode berdasarkan karakter masalah, lalu lengkapi empat tahap siklus." closeDisabled={busy} onClose={()=>setActDraft(null)}
       footer={<><button type="button" className="akBtn akBtnGhost" onClick={()=>setActDraft(null)}>Batal</button><button type="button" className="akBtn akBtnPrimary" disabled={busy||!actDraft?.title||actDraft.title.trim().length<5||(!actDraft.id&&![actDraft.cycle_plan,actDraft.cycle_do,actDraft.cycle_study_check,actDraft.cycle_act].every(x=>String(x||'').trim().length>=5))} onClick={async()=>{if(await run(()=>aurekaSupabase.rpc('aureka_gov_save_action',{p:actDraft}),'Rencana tindak lanjut tersimpan.'))setActDraft(null)}}>{busy?'Menyimpan…':'Simpan RTL'}</button></>}>
       {actDraft&&<div className="govForm">
-        <label>Rekomendasi induk<select value={actDraft.recommendation_id||''} onChange={e=>setActDraft({...actDraft,recommendation_id:e.target.value||null,improvement_method:suggestMethod(data?.recommendations.find(r=>r.id===e.target.value)?.title||'')})}><option value="">— Tanpa rekomendasi —</option>{(data?.recommendations??[]).map(r=><option key={r.id} value={r.id}>{r.code} · {r.title}</option>)}</select></label>
-        <label>Rencana tindak lanjut<input value={actDraft.title||''} onChange={e=>setActDraft({...actDraft,title:e.target.value})} placeholder="Rumusan intervensi/perubahan yang akan dilakukan"/></label>
-        <label>Uraian<textarea rows={3} value={actDraft.description||''} onChange={e=>setActDraft({...actDraft,description:e.target.value})}/></label>
+        <label>Rekomendasi induk<select value={actDraft.recommendation_id||''} onChange={e=>{setMethodManuallySet(false);const rec=data?.recommendations.find(r=>r.id===e.target.value);setActDraft({...actDraft,recommendation_id:e.target.value||null,improvement_method:suggestMethod([rec?.title,rec?.description,actDraft.title,actDraft.description].filter(Boolean).join(' '))})}}><option value="">— Tanpa rekomendasi —</option>{(data?.recommendations??[]).map(r=><option key={r.id} value={r.id}>{r.code} · {r.title}</option>)}</select></label>
+        <label>Rencana tindak lanjut<input value={actDraft.title||''} onChange={e=>setActDraft({...actDraft,title:e.target.value,...(!methodManuallySet?{improvement_method:suggestMethod([e.target.value,actDraft.description,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.title,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.description].filter(Boolean).join(' '))}:{})})} placeholder="Rumusan intervensi/perubahan yang akan dilakukan"/></label>
+        <label>Uraian<textarea rows={3} value={actDraft.description||''} onChange={e=>setActDraft({...actDraft,description:e.target.value,...(!methodManuallySet?{improvement_method:suggestMethod([actDraft.title,e.target.value,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.title,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.description].filter(Boolean).join(' '))}:{})})}/></label>
         <div className="govFormRow">
-          <label>Metode perbaikan<select value={actDraft.improvement_method||'PDSA'} onChange={e=>setActDraft({...actDraft,improvement_method:e.target.value as Method})}><option value="PDSA">PDSA · uji perubahan berbasis data</option><option value="PDCA">PDCA · kendali dan standardisasi proses</option></select></label>
+          <label>Metode perbaikan<select value={actDraft.improvement_method||'PDSA'} onChange={e=>{setMethodManuallySet(true);setActDraft({...actDraft,improvement_method:e.target.value as Method})}}><option value="PDSA">PDSA · uji perubahan berbasis data</option><option value="PDCA">PDCA · kendali dan standardisasi proses</option></select></label>
           <label>Level penanggung jawab<select value={actDraft.responsible_level||'KABID'} onChange={e=>setActDraft({...actDraft,responsible_level:e.target.value as Level})}>{(Object.keys(LEVEL_LABEL) as Level[]).map(k=><option key={k} value={k}>{LEVEL_LABEL[k]}</option>)}</select></label>
         </div>
         <div className="rmNotice"><span>{actDraft.improvement_method==='PDCA'?'PDCA disarankan untuk standardisasi dan kendali proses.':'PDSA disarankan untuk uji perubahan, pembelajaran, dan pengukuran hasil.'}</span><p>{actDraft.improvement_method==='PDCA'?'Plan–Do–Check–Act: rencanakan standar, jalankan, periksa kesesuaian, lalu tindak lanjuti.':'Plan–Do–Study–Act: rumuskan hipotesis, uji perubahan, pelajari data, lalu adopsi/adaptasi/hentikan.'}</p></div>
