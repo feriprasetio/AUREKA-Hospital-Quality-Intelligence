@@ -653,3 +653,25 @@ html body:not(#_) .authBack { margin: 18px 0 4px !important; }
   html body:not(#_) .workspaceRoot #workspace-main-content [role="tablist"] { flex-wrap: wrap !important; overflow: visible !important; row-gap: 6px !important; }
   html body:not(#_) .workspaceRoot #workspace-main-content [role="tablist"] > * { flex: 0 1 auto !important; white-space: normal !important; }
 }
+
+/* HP Risk Register: filter dilipat, kartu bersih tanpa blok warna, tidak bertumpuk kotak */
+html body:not(#_) .rmFilterToggle { display: none !important; }
+@media (max-width: 720px) {
+  html body:not(#_) .rmFilterBar { display: grid !important; grid-template-columns: 1fr auto; gap: 8px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+  html body:not(#_) .rmFilterBar > select { grid-column: 1 / -1; }
+  html body:not(#_) .rmFilterBar > select:nth-of-type(n+2) { display: none; }
+  html body:not(#_) .rmFilterBar.open > select:nth-of-type(n+2) { display: block; }
+  html body:not(#_) .rmFilterBar .rmFilterToggle { display: inline-flex !important; grid-column: 1; justify-self: start; }
+  html body:not(#_) .rmFilterBar .rmBarActions { grid-column: 2; margin: 0 !important; }
+  html body:not(#_) .rmFilterBar .rmBarActions .rmButton.subtle { display: none !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td,
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody td *:not(.rmBadge):not(.rmStatus):not(.rmScore):not(.rmButton):not(button) { background-color: transparent !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable .rmRiskName small { font-weight: 500 !important; font-size: 12.5px !important; opacity: .75; }
+  html body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody tr { background: #fff !important; border: 1px solid rgba(11, 31, 51, .08) !important; box-shadow: 0 2px 10px rgba(11, 47, 82, .05); }
+  html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceContent .rmWorkspace .rmTable tbody tr { background: rgba(255,255,255,.04) !important; border-color: rgba(255,255,255,.08) !important; }
+  html body:not(#_) .rmWorkspace :is(.rmTableWrap, .workspaceTableViewport) { border: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
+  html body:not(#_) .rmWorkspace .rmTable thead { display: none !important; }
+  /* Login: kepala kartu di tengah */
+  html body:not(#_) .authFormIntro { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  html body:not(#_) .authBrandMark { margin-left: auto; margin-right: auto; }
+}
