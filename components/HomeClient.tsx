@@ -216,7 +216,7 @@ export default function HomeClient(){
    if(next==='clinical'){setQualityInitialContainer('Audit Clinical Pathway');setClinicalPathwayOpen(true);setQualityOpen(false)}
    if(next==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);if(role==='DEWAN_PENGAWAS'&&permissionFlags.readQualityAggregate){setQualityResultsView('indicators');setQualityResultsGroup('unit');setQualityOpen(false)}else{setQualityResultsView(null);setQualityOpen(true)}}
    if(next==='home')setHomeTab(section==='infografis'?'infographics':'welcome')
-   if(next==='regulation')setRegulationView((['keputusan','spo','approval','history'].includes(section)?section:'keputusan') as RegulationView)
+   if(next==='regulation')setRegulationView((['keputusan','spo','pedoman','kebijakan','approval','history','monitoring'].includes(section)?section:'keputusan') as RegulationView)
    if(next==='settings')setSettingsSection((section==='audit-log'?'audit':['profile','security','users','units','appearance','system','permissions','mydata'].includes(section)?section:'profile') as SettingsSection)
    if(next==='patients')setPatientsSection(section==='statistik'?'stats':section==='metadata-pasien'||section==='database-pasien'?'metadata':'register')
    if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'||role==='DIREKTUR'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
