@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 type Room = { id: number; name: string }
 type Proposal = {
@@ -53,6 +54,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
   const startNew=()=>{const selectedRoom=Number(roomChoices[0]?.id||currentRoomId||0);if(!selectedRoom){setError('Unit kerja akun belum terpetakan. Hubungi Super Admin/Komite PMKP sebelum mengajukan indikator.');return}setEditingId(null);setForm(EMPTY(selectedRoom,new Date().getFullYear()));setError('');setMessage('')}
   const editAgain=(row:Proposal)=>{setEditingId(row.id);setForm({...row});setError('');setMessage('')}
   const closeForm=()=>{if(!busy){setForm(null);setEditingId(null)}}
+  const proposalDialogRef=useAccessibleDialog<HTMLDivElement>({open:Boolean(form),onClose:closeForm,lockScroll:true})
   const save=async()=>{
     if(!form||busy)return
     if(!form.room_id||form.title.trim().length<5||form.rationale.trim().length<20||form.numerator_definition.trim().length<5||form.denominator_definition.trim().length<5||!form.unit_of_measure.trim()){
@@ -140,7 +142,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       </article>)}
       {visible.length===0&&<div className="ipPanel"><AsyncStatePanel state="empty" title="Tidak ada usulan pada filter ini" description="Ubah filter status atau ajukan indikator baru." compact/></div>}
     </div>}
-    {form&&<div className="ipOverlay" role="presentation"><div className="ipPanel ipModal" role="dialog" aria-modal="true" aria-labelledby="ip-form-title"><div className="ipCardHead"><div><h3 id="ip-form-title" className="ipFormTitle">{editingId?'Revisi usulan indikator':'Form pengajuan indikator baru'}</h3><p className="ipIntro">Lengkapi definisi indikator agar dapat ditelaah secara metodologis.</p></div><button className="ipBtn" type="button" onClick={closeForm} disabled={busy}>Tutup</button></div>
+    {form&&<div className="ipOverlay" role="presentation"><div ref={proposalDialogRef} tabIndex={-1} className="ipPanel ipModal" role="dialog" aria-modal="true" aria-labelledby="ip-form-title"><div className="ipCardHead"><div><h3 id="ip-form-title" className="ipFormTitle">{editingId?'Revisi usulan indikator':'Form pengajuan indikator baru'}</h3><p className="ipIntro">Lengkapi definisi indikator agar dapat ditelaah secara metodologis.</p></div><button className="ipBtn" type="button" data-dialog-autofocus onClick={closeForm} disabled={busy}>Tutup</button></div>
       <div className="ipFormGrid">
         <label className="ipField"><span>Unit pemilik</span><select value={String(form.room_id)} disabled={role==='PIC'} onChange={e=>setForm(v=>v?{...v,room_id:Number(e.target.value)}:v)}>{roomChoices.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
         {field('profile_year','Tahun profil','number')}
