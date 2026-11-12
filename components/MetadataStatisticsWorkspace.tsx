@@ -29,6 +29,7 @@ export default function MetadataStatisticsWorkspace({
   initialContainer,
   initialDirectoryTab = 'directory',
   showTabs = true,
+  showDirectoryTabs = true,
   lockRoomScope = false,
 }: {
   rooms: Room[]
@@ -38,6 +39,7 @@ export default function MetadataStatisticsWorkspace({
   initialContainer?: MetadataTab
   initialDirectoryTab?: DirectoryTab
   showTabs?: boolean
+  showDirectoryTabs?: boolean
   lockRoomScope?: boolean
 }) {
   const canOpenTeam = ['ADMIN', 'PMKP', 'PIC', 'VALIDATOR'].includes(role || '')
@@ -142,7 +144,7 @@ export default function MetadataStatisticsWorkspace({
           <div className="mswAccessNote">
             <span><strong>Direktori Induk SDM.</strong> Daftar tenaga kerja merupakan master identitas kanonik. Tim & Penugasan mengelola keterikatan tenaga pada unit kerja tanpa membuat identitas pegawai baru.</span>
           </div>
-          {directoryTabs.length > 1 && (
+          {showDirectoryTabs && directoryTabs.length > 1 && (
             <div className="mswDirectoryTabs" role="tablist" aria-label="Bagian Direktori Induk SDM">
               {directoryTabs.map((item) => (
                 <button
