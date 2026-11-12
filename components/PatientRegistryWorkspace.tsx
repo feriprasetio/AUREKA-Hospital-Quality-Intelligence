@@ -6,6 +6,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { fetchRoomMonthCounts } from '@/lib/aureka/quality-counts'
 import PatientIndexTab from '@/components/patient-registry/PatientIndexTab'
+import PatientStatsTab from '@/components/patient-registry/PatientStatsTab'
 
 type Room = { id: number; name: string }
 type EpisodeRow = {
@@ -142,6 +143,7 @@ export default function PatientRegistryWorkspace({
   isValidator,
   canViewAllRooms,
   lockRoomScope = false,
+  section,
 }: {
   rooms: Room[]
   initialRoomId: number | null
@@ -149,8 +151,11 @@ export default function PatientRegistryWorkspace({
   isValidator: boolean
   canViewAllRooms: boolean
   lockRoomScope?: boolean
+  /** Blueprint v2 §1/§2: submenu Pasien — Register Pasien, Statistik, Metadata Pasien */
+  section?: 'register' | 'stats' | 'metadata'
 }) {
-  const [tab, setTab] = useState<'add' | 'records' | 'database'>('add')
+  const [tab, setTab] = useState<'add' | 'records' | 'database' | 'stats'>(section === 'stats' ? 'stats' : section === 'metadata' ? 'database' : 'add')
+  useEffect(() => { if (section === 'stats') setTab('stats'); else if (section === 'metadata') setTab('database'); else if (section === 'register') setTab((t) => (t === 'records' ? 'records' : 'add')) }, [section])
   // Super Admin mengikuti unit global; PMKP dapat memilih Semua Unit atau unit tertentu.
   const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
@@ -270,8 +275,8 @@ export default function PatientRegistryWorkspace({
         .prAlert{padding:12px 14px;border-radius:12px;background:#fff5e8;color:#825a20;font-size:12px}
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button><button type="button" role="tab" aria-selected={tab === 'database'} className={tab === 'database' ? 'active' : ''} onClick={() => setTab('database')}>Database Pasien</button></nav>
-      {tab === 'database' ? <PatientIndexTab isAdmin={isAdmin} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
+      {(!section || section === 'register') && <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button>{!section && <><button type="button" role="tab" aria-selected={tab === 'stats'} className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}>Statistik</button><button type="button" role="tab" aria-selected={tab === 'database'} className={tab === 'database' ? 'active' : ''} onClick={() => setTab('database')}>Metadata Pasien</button></>}</nav>}
+      {tab === 'database' ? <PatientIndexTab isAdmin={isAdmin} /> : tab === 'stats' ? <PatientStatsTab rooms={rooms} roomId={Number(roomFilter) || null} year={Number(year)} onYearChange={(y) => setYear(String(y))} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(roomFilter||firstRoomWithData||'all')} initialRoomId={Number(roomFilter)||firstRoomWithData||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <div>
           <h2>Register Pasien</h2>

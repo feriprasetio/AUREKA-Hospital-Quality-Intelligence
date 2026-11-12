@@ -121,6 +121,7 @@ export default function HomeClient(){
  useEffect(()=>{const h=(e:Event)=>{const d=(e as CustomEvent).detail;if(d==='gelap'||d==='terang')setUiMode(d)};window.addEventListener('aureka-mode-change',h);return()=>window.removeEventListener('aureka-mode-change',h)},[])
  useEffect(()=>{if(typeof document==='undefined')return;document.documentElement.setAttribute('data-skin','arktik');document.documentElement.removeAttribute('data-dark');document.documentElement.style.colorScheme='';try{localStorage.removeItem('aureka-theme');localStorage.removeItem('aureka-dark')}catch{}if(document.documentElement.getAttribute('data-mode')==='gelap')setUiMode('gelap')},[])
  const [settingsTab,setSettingsTab]=useState<'security'|null>(null)
+ const [patientsSection,setPatientsSection]=useState<'register'|'stats'|'metadata'>('register')
  useEffect(()=>{const h=()=>{setSettingsTab('security');setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()};window.addEventListener('aureka-open-password',h);return()=>window.removeEventListener('aureka-open-password',h)},[])
  useEffect(()=>{if(active!=='settings')setSettingsTab(null)},[active])
  const toggleUiMode=()=>{const next=uiMode==='terang'?'gelap':'terang';const apply=()=>{document.documentElement.setAttribute('data-mode',next);try{localStorage.setItem('aureka-mode',next)}catch{}};const doc=document as Document&{startViewTransition?:(cb:()=>void)=>unknown};if(doc.startViewTransition&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){try{doc.startViewTransition(apply)}catch{apply()}}else apply();setUiMode(next)}
@@ -155,6 +156,7 @@ export default function HomeClient(){
    if(next==='clinical'){setQualityInitialContainer('Audit Clinical Pathway');setClinicalPathwayOpen(true);setQualityOpen(false)}
    if(next==='quality'){setQualityInitialContainer('Audit Indikator Mutu');setQualityOpen(true);setClinicalPathwayOpen(false)}
    if(next==='home')setHomeTab(section==='infografis'?'infographics':'welcome')
+   if(next==='patients')setPatientsSection(section==='statistik'?'stats':section==='metadata-pasien'||section==='database-pasien'?'metadata':'register')
    if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
    if(next==='risk')setRiskTab((['overview','register','mitigation','connections','fmea','profile','evaluation'].includes(section)?section:'overview') as RiskWorkspaceTab)
    if(next==='analytics'){
@@ -187,11 +189,11 @@ export default function HomeClient(){
   else{
    const routes:Record<string,string>={home:'#beranda',patients:'#pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#program',staff:'#sumber-daya-manusia',settings:'#pengaturan'}
    hash=isPrimaryNavActive('staff')?'#sumber-daya-manusia':routes[active]||'#ringkasan'
-   const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='patients'?'register-pasien':active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(isPrimaryNavActive('staff')?(analyticsTab==='oppe'?'oppe':analyticsTab==='fppe'?'fppe':analyticsDirectoryTab):analyticsTab):active==='staff'?(analyticsTab==='oppe'?'oppe':analyticsTab==='fppe'?'fppe':analyticsDirectoryTab):null
+   const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='patients'?({register:'register-pasien',stats:'statistik',metadata:'metadata-pasien'} as const)[patientsSection]:active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(isPrimaryNavActive('staff')?(analyticsTab==='oppe'?'oppe':analyticsTab==='fppe'?'fppe':analyticsDirectoryTab):analyticsTab):active==='staff'?(analyticsTab==='oppe'?'oppe':analyticsTab==='fppe'?'fppe':analyticsDirectoryTab):null
    if(section)hash+='/'+section
   }
   if(window.location.hash!==hash)window.location.hash=hash
- },[view,routeReady,active,homeTab,qualityOpen,qualityOppeOpen,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab,analyticsDirectoryTab])
+ },[view,routeReady,active,homeTab,patientsSection,qualityOpen,qualityOppeOpen,clinicalPathwayOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,analyticsTab,analyticsDirectoryTab])
 
  const resolveLoginEmail=async(input:string)=>{const v=input.trim();if(!v)throw new Error('Isi username atau email.');if(v.includes('@'))return v;const {data,error}=await sb.rpc('aureka_login_email',{p_username:v});if(error){if(error.code==='PGRST202'||/Could not find the function|schema cache/i.test(error.message))throw new Error('Login dengan username belum aktif. Silakan masuk memakai email.');throw error}if(!data)throw new Error('Username tidak ditemukan. Periksa ejaan atau masuk memakai email.');return String(data)}
  const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return toUserFacingError(e,{fallback:'Autentikasi belum berhasil. Periksa informasi akun, lalu coba lagi.'})}
@@ -235,6 +237,8 @@ export default function HomeClient(){
  const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
   const groups:Record<string,SidebarChild[]> = {
    home:[{id:'infographics',label:'Infografis'}],
+   // Blueprint v2 §1: Pasien — Register Pasien; Statistik; Metadata Pasien
+   patients:[{id:'register',label:'Register Pasien'},{id:'stats',label:'Statistik'},{id:'metadata',label:'Metadata Pasien'}],
    quality:[
     {id:'audit-indicators',label:'Form Logbook'},
     {id:'result-indicators',label:'Hasil Capaian'},
@@ -265,6 +269,7 @@ export default function HomeClient(){
  },[admin,manager,role])
  const currentContainer=useMemo(()=>{
   if(active==='home')return 'Beranda'
+  if(active==='patients')return ({register:'Register Pasien',stats:'Statistik Pasien',metadata:'Metadata Pasien'} as const)[patientsSection]
   if(active==='quality')return qualityResultsView?'Hasil Capaian · Indikator Mutu':qualityInitialContainer+' · Form Logbook'
   if(active==='clinical')return qualityResultsView?({pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<string,string>)[qualityResultsView]:(clinicalPathwayOpen?'Audit Clinical Pathway':'Audit Klinis dan Kematian')
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
@@ -279,6 +284,7 @@ export default function HomeClient(){
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
   setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id==='staff'?'analytics':id)
   if(id==='home')setHomeTab('welcome')
+  if(id==='patients')setPatientsSection('register')
   if(id==='quality'){setQualityOppeOpen(false);setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);setQualityResultsView(null);setQualityOpen(true)}
   else if(id==='clinical'){setQualityOppeOpen(false);setQualityInitialContainer('Audit Clinical Pathway');setClinicalPathwayOpen(true);setQualityResultsView(null);setQualityOpen(false)}
   else {setQualityOppeOpen(false);setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null)}
@@ -290,6 +296,7 @@ export default function HomeClient(){
  const selectSidebarChild=(moduleId:string,childId:string)=>{
   setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId==='staff'?'analytics':moduleId)
   if(moduleId==='home')setHomeTab(childId==='infographics'?'infographics':'welcome')
+  if(moduleId==='patients')setPatientsSection(childId==='stats'?'stats':childId==='metadata'?'metadata':'register')
   if(moduleId==='quality'||moduleId==='clinical'){
    if(moduleId==='quality'&&childId==='profile-indicators'){setActive('analytics');setAnalyticsTab('profiles');setAnalyticsDirectoryTab('directory');setQualityOpen(false);setQualityResultsView(null);return}
    if(childId==='oppe-fppe'){setQualityOppeOpen(true);setQualityResultsView(null);setClinicalPathwayOpen(false);setQualityOpen(false);return}
@@ -322,6 +329,7 @@ export default function HomeClient(){
  }
  const selectedSidebarChild=(moduleId:string)=>{
   if(moduleId==='home')return homeTab
+  if(moduleId==='patients')return patientsSection
   if(moduleId==='quality')return active==='analytics'&&analyticsTab==='profiles'?'profile-indicators':qualityResultsView?'result-indicators':'audit-indicators'
   if(moduleId==='clinical')return clinicalPathwayOpen?'audit-pathway':'audit-clinical-death'
   if(moduleId==='safety')return safetyTab
@@ -889,7 +897,7 @@ export default function HomeClient(){
   </div>}
   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} roomId={activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin} scopeToRoom={admin} selectedRoomId={admin?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
-   :active==='patients'?<PatientRegistryWorkspace key={'patient-registry-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??null} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin}/>
+   :active==='patients'?<PatientRegistryWorkspace key={'patient-registry-'+String(activeWorkspaceRoomId??'profile')} section={patientsSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??null} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin}/>
    :active==='clinical'&&qualityResultsView?<QualityResultsWorkspace key={'clinical-results-'+qualityResultsView+'-'+String(activeWorkspaceRoomId??'profile')} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom}/>
    :active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} lockRoomScope={admin} onBack={()=>openMainModule('clinical')}/>
    :active==='clinical'&&qualityOpen?<QualityIndicatorWorkspace key={'clinical-death-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom} initialContainer="Audit Klinis dan Kematian" showContainerTabs={false} hidePatientEpisodeEntry/>
