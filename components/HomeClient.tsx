@@ -14,6 +14,7 @@ import PublicLandingPage from '@/components/PublicLandingPage'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 import TableSortEnhancer from '@/components/TableSortEnhancer'
 import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
+import WorkspaceModuleMap from '@/components/workspace/WorkspaceModuleMap'
 const PicPerformanceWorkspace=dynamic(()=>import('@/components/PicPerformanceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Monitoring Kinerja PIC')})
 const TanyaAureka=dynamic(()=>import('@/components/TanyaAureka'),{ssr:false})
 const InfographicsDashboard=dynamic(()=>import('@/components/governance/InfographicsDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Infografis')})
@@ -1010,7 +1011,18 @@ export default function HomeClient(){
    {kids.length>1&&<div className={'mobileSubNavRow'+(kids.length<=3?' seg':' grid')}>{kids.map(k=><button key={k.id} type="button" className={isOn(k)?'active':''} aria-current={isOn(k)?'page':undefined} onClick={()=>selectSidebarChild(mid,(mid==='quality'||mid==='clinical')?k.id:(k.children?.[0]?.id??k.id))}>{k.label}</button>)}</div>}
    {parent&&<div className="mobileSubNavRow sub">{parent.children!.map(n=><button key={n.id} type="button" className={sel===n.id?'active':''} aria-current={sel===n.id?'page':undefined} onClick={()=>selectSidebarChild(mid,n.id)}>{n.label}</button>)}</div>}
   </nav>})()}
-  <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
+     {(()=>{
+     const current=visibleMods.find(([id])=>isPrimaryNavActive(id));
+     if(!current)return null;
+     const moduleId=current[0];
+     const groups=sidebarChildGroups[moduleId]||[];
+     const nodes=groups.flatMap(group=>group.children?.length?group.children.map(child=>({id:child.id,label:child.label,detail:group.label})): [{id:group.id,label:group.label,detail:'Ruang kerja'}]);
+     if(nodes.length<2)return null;
+     const selected=selectedSidebarChild(moduleId);
+     const activeNode=nodes.some(node=>node.id===selected)?selected:(nodes[0]?.id||'');
+     return <WorkspaceModuleMap title={'Peta '+current[1]} description={'Peta navigasi seluruh area kerja pada modul ini. Pilih salah satu area untuk langsung membuka sub-tab terkait; cakupan data tetap mengikuti hak akses dan filter unit.'} nodes={nodes} activeId={activeNode} onSelect={(id)=>selectSidebarChild(moduleId,id)}/>;
+   })()}
+<div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<>
     <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin} selectedRoomId={admin?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    </>
