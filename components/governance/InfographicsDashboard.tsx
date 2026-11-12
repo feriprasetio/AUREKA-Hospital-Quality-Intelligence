@@ -108,7 +108,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         if (rpcError) {
           const missing = rpcError.code === 'PGRST202' || /Could not find the function|schema cache/i.test(rpcError.message || '')
           setSummary(null)
-          setError(missing ? 'Ringkasan lintas domain belum aktif. Jalankan migrasi 20261112140000_aureka_infographics_aggregate.sql dan 20261112150000_infographics_permission_guard.sql pada database.' : rpcError.message || 'Infografis lintas domain belum dapat dimuat.')
+          setError(missing ? 'Ringkasan lintas domain belum aktif. Jalankan migrasi 20261112140000_aureka_infographics_aggregate.sql lalu 20261112044800_infographics_permission_guard.sql (urutan ini) pada database.' : rpcError.message || 'Infografis lintas domain belum dapat dimuat.')
         } else setSummary(data as Summary)
         setLoading(false)
       })
