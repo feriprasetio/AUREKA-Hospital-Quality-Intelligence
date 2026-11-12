@@ -12,7 +12,7 @@ import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewpor
  * tampilan terfilter atas data yang sama. Hak akses diperiksa di server (public.aureka_gov_*).
  */
 type Room = { id: number; name: string }
-export type GovernanceProgramView = 'recommendations' | 'rtl-dewas' | 'rtl-direktur' | 'rtl-kabid'
+export type GovernanceProgramView = 'recommendations' | 'rtl'
 type Level = 'DEWAN_PENGAWAS' | 'DIREKTUR' | 'KABID' | 'UNIT'
 type Recommendation = { id: string; code: string; source: string; title: string; description: string; priority: string; program_year: number; given_by_name: string | null; given_at: string; status: string }
 type Evaluation = { result: string; decision: string; note: string; evaluator_name: string | null; evaluated_at: string }
@@ -20,7 +20,6 @@ type Action = { id: string; recommendation_id: string | null; title: string; des
 type Payload = { role: string; can_manage: boolean; can_evaluate: boolean; recommendations: Recommendation[]; actions: Action[] }
 
 const LEVEL_LABEL: Record<Level, string> = { DEWAN_PENGAWAS: 'Dewan Pengawas', DIREKTUR: 'Direktur', KABID: 'Kepala Bidang', UNIT: 'Unit' }
-const VIEW_LEVEL: Record<Exclude<GovernanceProgramView, 'recommendations'>, Level> = { 'rtl-dewas': 'DEWAN_PENGAWAS', 'rtl-direktur': 'DIREKTUR', 'rtl-kabid': 'KABID' }
 const STATUS_LABEL: Record<string, string> = { terbuka: 'Terbuka', berjalan: 'Berjalan', selesai: 'Selesai (menunggu verifikasi)', terverifikasi: 'Terverifikasi efektif', dibatalkan: 'Dibatalkan' }
 const SOURCE_LABEL: Record<string, string> = { ketua_pmkp: 'Ketua PMKP', audit: 'Hasil audit', risiko: 'Manajemen risiko', insiden: 'Insiden', program: 'Program kerja', lainnya: 'Lainnya' }
 const fmtDate = (v?: string | null) => (v ? new Date(v.length === 10 ? v + 'T12:00:00' : v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
@@ -28,6 +27,7 @@ const overdue = (a: Action) => a.due_date && !['terverifikasi', 'dibatalkan', 's
 
 export default function GovernanceProgramWorkspace({ view, rooms }: { view: GovernanceProgramView; rooms: Room[] }) {
   const [year, setYear] = useState(new Date().getFullYear())
+  const [rtlLevel, setRtlLevel] = useState<Level>('DIREKTUR')
   const [data, setData] = useState<Payload | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -56,12 +56,12 @@ export default function GovernanceProgramWorkspace({ view, rooms }: { view: Gove
     setNotice(ok); await load(); return true
   }
 
-  const level = view === 'recommendations' ? null : VIEW_LEVEL[view]
+  const level = view === 'recommendations' ? null : rtlLevel
   const actions = useMemo(() => (data?.actions ?? []).filter((a) => !level || a.responsible_level === level), [data, level])
   const recTitle = useMemo(() => new Map((data?.recommendations ?? []).map((r) => [r.id, r.code + ' · ' + r.title])), [data])
   const canManage = Boolean(data?.can_manage)
   const canEvaluate = Boolean(data?.can_evaluate)
-  const canUpdateProgress = (a: Action) => canManage || data?.role === a.responsible_level
+  const canUpdateProgress = (a: Action) => canManage || data?.role === a.responsible_level || (data?.role === 'PIC' && a.responsible_level === 'UNIT')
 
   const actionTable = (list: Action[]) => (
     <WorkspaceTableViewport label="Rencana tindak lanjut" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Tindak lanjut</th><th>Level</th><th>Penanggung jawab</th><th>Tenggat</th><th>Status</th><th>Evaluasi</th><th>Aksi</th></tr></thead><tbody>
@@ -86,10 +86,11 @@ export default function GovernanceProgramWorkspace({ view, rooms }: { view: Gove
       <div className="rmSectionHead">
         <div>
           <span className="rmEyebrow">Program</span>
-          <h3>{view === 'recommendations' ? 'Rekomendasi Ketua PMKP' : 'Rencana Tindak Lanjut · ' + LEVEL_LABEL[level as Level]}</h3>
-          <p>{view === 'recommendations' ? 'Rekomendasi resmi beserta tindak lanjut yang diturunkan ke Dewan Pengawas, Direktur, Kepala Bidang, atau unit.' : 'Tampilan terfilter dari tindak lanjut yang sama; pembaruan progres oleh penanggung jawab, verifikasi efektivitas oleh Komite PMKP/Direktur.'}</p>
+          <h3>{view === 'recommendations' ? 'Rekomendasi Ketua PMKP' : 'Rencana Tindak Lanjut'}</h3>
+          <p>{view === 'recommendations' ? 'Rekomendasi resmi beserta tindak lanjut yang diturunkan ke Dewan Pengawas, Direktur, Kepala Bidang, atau unit.' : 'Pilih sumber rekomendasi untuk menampilkan RTL terkait; seluruh kategori menggunakan satu modul dan satu sumber data.'}</p>
         </div>
         <div className="govHeadTools">
+          {view === 'rtl' && <label className="govYear">Sumber rekomendasi <select value={rtlLevel} onChange={(e) => setRtlLevel(e.target.value as Level)}><option value="DIREKTUR">Direktur</option><option value="DEWAN_PENGAWAS">Dewan Pengawas</option><option value="KABID">Kepala Bidang</option></select></label>}
           <label className="govYear">Tahun <select value={year} onChange={(e) => setYear(Number(e.target.value))}>{[0, 1, 2].map((d) => new Date().getFullYear() + 1 - d).map((y) => <option key={y} value={y}>{y}</option>)}</select></label>
           {canManage && view === 'recommendations' && <button type="button" className="rmButton primary" onClick={() => setRecDraft({ source: 'ketua_pmkp', priority: 'sedang', program_year: year })}>+ Rekomendasi</button>}
           {canManage && <button type="button" className="rmButton" onClick={() => setActDraft({ responsible_level: level || 'KABID' })}>+ Tindak lanjut</button>}
