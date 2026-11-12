@@ -588,7 +588,7 @@ export default function GeneralSettings({
 
       {section === 'general' && (
         <>
-          <LiquidGlass className="stHeroCard">
+          {tab === 'profile' && <LiquidGlass className="stHeroCard">
             <span className="stAvatar lg" aria-hidden="true">{(me?.full_name || 'A').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}</span>
             <div className="stHeroText">
               <h3>{me?.full_name || 'Akun AUREKA'}</h3>
@@ -599,7 +599,7 @@ export default function GeneralSettings({
                 <span className={'stChip ' + (me?.is_active ? 'ok' : 'warn')}>{me?.is_active ? 'Akun aktif' : 'Akun nonaktif'}</span>
               </div>
             </div>
-          </LiquidGlass>
+          </LiquidGlass>}
 
 
           <div id="settings-active-panel" role="tabpanel" aria-labelledby={'settings-tab-' + tab} tabIndex={0} className="settingsActivePanel">
