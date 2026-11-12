@@ -65,7 +65,7 @@ export default function GeneralSettings({
   /** Dibuka dari tombol "Ubah password": langsung ke Keamanan & Password. */
   initialTab?: 'security'
 }) {
-  const [section, setSection] = useState<'general' | 'users' | 'mydata' | 'appearance'>('general')
+  const [section, setSection] = useState<'general' | 'users' | 'mydata' | 'appearance' | 'config' | 'audit'>('general')
   void openProfile
   const [tab, setTab] = useState<'profile' | 'units' | 'security'>(initialTab === 'security' ? 'security' : 'profile')
   const [pwShow, setPwShow] = useState(false)
@@ -558,12 +558,13 @@ export default function GeneralSettings({
           <span className="stNavWho"><b>{me?.full_name || 'Akun AUREKA'}</b><small>{roleLabel}</small></span>
         </div>
         {([
-          ['general', 'profile', 'Akun & Akses', 'profile', true],
-          ['general', 'security', 'Keamanan & Password', 'lock', true],
-          ['appearance', null, 'Tampilan', 'palette', true],
-          ['general', 'units', 'Unit & Instalasi', 'unit', isAdmin],
-          ['users', null, 'Manajemen User / PIC', 'users', isAdmin],
-          ['mydata', null, 'Data Saya untuk PMKP', 'data', !isAdmin],
+          ['general', 'profile', 'Profil/Akun', 'profile', true],
+          ['users', null, 'Pengguna dan Role', 'users', isAdmin],
+          ['general', 'units', 'Unit dan Instalasi', 'unit', isAdmin],
+          ['general', 'security', 'Keamanan', 'lock', true],
+          ['appearance', null, 'Preferensi Tampilan', 'palette', true],
+          ['config', null, 'Konfigurasi Sistem', 'settings', isAdmin],
+          ['audit', null, 'Audit Log', 'data', isAdmin],
         ] as const).filter(item => item[4]).map(([sec, t, label, icon]) => {
           const current = section === sec && (t === null || tab === t)
           return <button key={label} type="button" id={t ? 'settings-tab-' + t : undefined} className={'stNavItem settingsDestination' + (current ? ' on' : '')} aria-current={current ? 'page' : undefined}
@@ -575,6 +576,18 @@ export default function GeneralSettings({
       <div className="stMain">
       <WorkspaceModuleHeader title="Pengaturan" />
       {section === 'appearance' && <AppearancePanel />}
+      {section === 'config' && (
+        <LiquidGlass className="stPanel">
+          <h4>Konfigurasi Sistem</h4>
+          <p className="stPanelHint">Kerangka navigasi sudah disiapkan mengikuti Blueprint v2. Engine konfigurasi sistem terpusat belum tersedia; tidak ada pengaturan operasional yang dibuat seolah-olah sudah aktif.</p>
+        </LiquidGlass>
+      )}
+      {section === 'audit' && (
+        <LiquidGlass className="stPanel">
+          <h4>Audit Log</h4>
+          <p className="stPanelHint">Menu Audit Log telah ditempatkan sesuai Blueprint v2. Pembacaan log lintas domain belum ditautkan ke sumber audit terpadu, sehingga halaman ini belum menampilkan data.</p>
+        </LiquidGlass>
+      )}
 
       {section === 'general' && (
         <>
