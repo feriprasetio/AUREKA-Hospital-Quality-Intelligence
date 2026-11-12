@@ -139,10 +139,10 @@ export default function MetadataStatisticsWorkspace({
 
       {activeTab === 'directory' && (canOpenDirectory || canOpenTeam) && (
         <div className="mswDirectoryPanel" role="tabpanel" aria-label="Direktori Induk SDM">
-          <div className="mswAccessNote">
+          {showTabs && <div className="mswAccessNote">
             <span><strong>Direktori Induk SDM.</strong> Daftar tenaga kerja merupakan master identitas kanonik. Tim & Penugasan mengelola keterikatan tenaga pada unit kerja tanpa membuat identitas pegawai baru.</span>
-          </div>
-          {directoryTabs.length > 1 && (
+          </div>}
+          {showTabs && directoryTabs.length > 1 && (
             <div className="mswDirectoryTabs" role="tablist" aria-label="Bagian Direktori Induk SDM">
               {directoryTabs.map((item) => (
                 <button

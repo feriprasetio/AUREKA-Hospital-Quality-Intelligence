@@ -281,3 +281,67 @@ html body:not(#_) .rmWorkspace .rmGraphList { gap: 6px; max-height: calc(100dvh 
   html body:not(#_) .rmWorkspace .rmGraphLink, html body:not(#_) .rmWorkspace .rmGraphLink:has(> .rmGraphNode + .rmConnector + .rmGraphNode) { grid-template-columns: 1fr !important; }
   html body:not(#_) .rmWorkspace :is(.rmTableWrap, .rmGraphList) { max-height: none !important; }
 }
+
+/* ===== SDM › Tim & Penugasan: satu panel ringkas ===== */
+html body:not(#_) .staffTeam .stStatBar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+html body:not(#_) .staffTeam .stStat { display: inline-flex; align-items: baseline; gap: 5px; padding: 5px 11px; border-radius: 999px; background: rgba(11, 31, 51, .05); font-size: 12.5px; color: #3d5670; white-space: nowrap; }
+html body:not(#_) .staffTeam .stStat b { font-size: 15px; color: #0b1f33; font-variant-numeric: tabular-nums; }
+html body:not(#_) .staffTeam .stStat.ok { background: #e6f4ec; color: #1f6a45; font-weight: 600; }
+html body:not(#_) .staffTeam .stIconBtn { width: 36px; min-height: 36px; padding: 0; font-size: 16px; }
+html body:not(#_) .staffTeam .stForm { grid-template-columns: minmax(0, 1fr) auto !important; margin-top: 10px; }
+html body:not(#_) .staffTeam .stForm .stBtn { grid-column: auto !important; min-height: 42px; padding: 0 20px; }
+html body:not(#_) .staffTeam .stRosterHead { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 8px; padding-top: 14px; border-top: 1px solid rgba(11, 31, 51, .08); font-size: 14px; }
+html body:not(#_) .staffTeam .stRosterHead span { font-size: 12px; color: #3d5670; }
+html body:not(#_) .staffTeam .stEmpty { padding: 14px; font-size: 13px; }
+html body:not(#_) .staffTeam .stEmpty svg, html body:not(#_) .staffTeam .stEmpty .emptyIcon { display: none; }
+
+/* ===== Formulir tambah/edit dalam popup: tampil hidup, tidak datar ===== */
+html:not([data-mode="gelap"]) body:not(#_) :is(.rmEditor > .rmSectionHead:first-child, .akModalHead, .oppeModalHeader, .psModalBar) {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(90, 169, 230, .22), transparent 55%),
+    radial-gradient(80% 120% at 0% 100%, rgba(122, 214, 196, .16), transparent 60%),
+    linear-gradient(135deg, #eef5fc 0%, #f8fbff 100%);
+  border-bottom: 1px solid rgba(11, 70, 122, .10);
+}
+html body:not(#_) .rmEditor > .rmSectionHead:first-child { margin: -4px -4px 14px; padding: 16px 18px 14px 22px; border-radius: 16px; }
+html body:not(#_) :is(.rmEditor > .rmSectionHead:first-child, .akModalHead, .oppeModalHeader)::before {
+  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, #2c6aa0, #5aa9e6);
+}
+html body:not(#_) .rmEditor > .rmSectionHead:first-child h4 { font-size: 19px; letter-spacing: -.01em; }
+html body:not(#_) .rmEditor > .rmSectionHead:first-child .rmEyebrow { color: #2c6aa0; letter-spacing: .12em; }
+
+/* Judul bagian di dalam form */
+html body:not(#_) [aria-modal="true"] :is(.rmSubhead, .psFormHeading) {
+  position: relative; padding: 9px 12px 9px 16px; border-radius: 12px; margin-top: 6px;
+  background: linear-gradient(90deg, rgba(44, 106, 160, .08), rgba(44, 106, 160, 0));
+}
+html body:not(#_) [aria-modal="true"] .rmSubhead::before {
+  content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: #2c6aa0;
+}
+html body:not(#_) [aria-modal="true"] .rmSubhead b { color: #0b1f33; font-size: 14px; }
+
+/* Kolom isian */
+html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select, textarea) {
+  background-color: #f5f8fc !important;
+  border: 1.5px solid #d9e4ef !important;
+  border-radius: 12px !important;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(input, select, textarea):hover:not(:disabled):not(:focus) { border-color: #b7cbe0 !important; }
+html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  background-color: #fff !important; border-color: #2c6aa0 !important; outline: none !important;
+  box-shadow: 0 0 0 4px rgba(44, 106, 160, .14) !important;
+}
+html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(input, select, textarea):disabled { background-color: #eef2f6 !important; opacity: .8; }
+html body:not(#_) [aria-modal="true"] :is(.rmFormGrid, .psFormGrid, .akModalBody) label { font-weight: 600; color: #1f3a55; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(.rmFormGrid, .psFormGrid, .akModalBody) label { color: #cfdbea; }
+
+/* Kartu skor & tombol utama */
+html body:not(#_) [aria-modal="true"] .rmScoreBox, html body:not(#_) [aria-modal="true"] [class*="ScoreCard"] { box-shadow: 0 8px 22px rgba(11, 70, 122, .08); }
+html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(.rmButton.primary, .psBtn.primary, .stBtn.primary, .akBtn.primary, .oppeBtn.primary, .uBtn.primary):not(:disabled) {
+  background: linear-gradient(135deg, #0b1f33, #1e4f7c) !important; border-color: transparent !important; color: #fff !important;
+  box-shadow: 0 8px 18px rgba(11, 31, 51, .22);
+}
+html body:not(#_) [aria-modal="true"] :is(.rmButton.primary, .psBtn.primary, .stBtn.primary, .akBtn.primary, .oppeBtn.primary, .uBtn.primary):not(:disabled):hover { translate: 0 -1px; }
