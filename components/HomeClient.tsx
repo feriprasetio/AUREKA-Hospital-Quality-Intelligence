@@ -168,7 +168,7 @@ export default function HomeClient(){
      if(!permissionFlags.readPerformance){setActive('home');return}
      setActive('analytics');setAnalyticsTab('oppe');setAnalyticsDirectoryTab('directory')
      setQualityOppeOpen(false);setQualityResultsView(null);setQualityOpen(false);setClinicalPathwayOpen(false)
-     if(path!=='sumber-daya-manusia/oppe')window.location.hash='#sumber-daya-manusia/oppe'
+     window.location.hash='#sumber-daya-manusia/oppe'
      return
     }
    const auditMatch=/^mutu-klinis\/(audit-indikator|clinical-pathway|audit-klinis-dan-kematian)(?:\/(hasil-capaian|form-logbook))?$/.exec(path)
