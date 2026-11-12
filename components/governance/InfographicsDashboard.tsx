@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
+import type { NavigateFn } from '@/lib/aureka/focus'
 
 type Room = { id: number; name: string }
 type CountItem = { label: string; count: number }
@@ -13,7 +15,7 @@ type Summary = {
   program: { recommendations: number; actions: number; open_actions: number; overdue_actions: number; completed_actions: number }
   regulation: { published: number; pending_approval: number; review_due: number }
 }
-type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean }
+type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn }
 const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
 const GLOBAL_ROLES = ['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS']
 const n = (v: unknown) => Number.isFinite(Number(v)) ? Number(v) : 0
@@ -52,6 +54,9 @@ const STYLES = [
 '.ifEmpty{margin:0;padding:18px 8px;color:var(--ak-muted,#73849a);font-size:11px;text-align:center}',
 '.ifLoading,.ifError{padding:12px 14px;border-radius:10px;font-size:11px}.ifLoading{background:rgba(112,139,166,.08);color:var(--ak-muted,#73849a)}.ifError{background:#fff5e8;color:#88591e}',
 '.ifNote{margin:0;color:var(--ak-muted,#73849a);font-size:10px;line-height:1.5}',
+'.ifLinks{display:flex;gap:8px;flex-wrap:wrap}',
+'.ifLink{border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;padding:8px 11px;background:#fff;color:var(--arktik-ink,#21374f);font-size:10px;font-weight:750;cursor:pointer}',
+'.ifLink:hover{border-color:#6d9ab8;background:#f4f8fb}',
 '@media(max-width:980px){.ifMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}}',
 '@media(max-width:620px){.ifHead{display:grid}.ifMetrics,.ifSplit{grid-template-columns:1fr}.ifMonth{grid-template-rows:75px auto}.ifMonthTrack{height:75px}.ifMonthly{gap:3px}.ifMonth small{font-size:8px}.ifFilters{width:100%}.ifFilters label{flex:1}.ifFilters select{width:100%;min-width:0}}'
 ].join('')
@@ -81,7 +86,7 @@ function MonthlyBars({ items, validated = false }: { items: MonthItem[]; validat
   </div>)}</div>
 }
 
-export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false }: Props) {
+export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate }: Props) {
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [roomValue, setRoomValue] = useState(unitLocked && initialRoomId != null ? String(initialRoomId) : '')
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -97,13 +102,13 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   useEffect(() => {
     let cancelled = false
     setLoading(true); setError('')
-    aurekaSupabase.rpc('aureka_gov_infographics_summary', { p_year: Number(year), p_room: roomId })
+    aurekaSupabase.rpc('aureka_gov_infographics_summary_secure', { p_year: Number(year), p_room: roomId })
       .then(({ data, error: rpcError }) => {
         if (cancelled) return
         if (rpcError) {
           const missing = rpcError.code === 'PGRST202' || /Could not find the function|schema cache/i.test(rpcError.message || '')
           setSummary(null)
-          setError(missing ? 'Ringkasan lintas domain belum aktif. Jalankan migrasi 20261112140000_aureka_infographics_aggregate.sql pada database.' : rpcError.message || 'Infografis lintas domain belum dapat dimuat.')
+          setError(missing ? 'Ringkasan lintas domain belum aktif. Jalankan migrasi 20261112140000_aureka_infographics_aggregate.sql dan 20261112150000_infographics_permission_guard.sql pada database.' : rpcError.message || 'Infografis lintas domain belum dapat dimuat.')
         } else setSummary(data as Summary)
         setLoading(false)
       })
@@ -117,6 +122,13 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   const validationRate = useMemo(() => n(summary?.quality.validation_rate), [summary])
   const years = Array.from({ length: 5 }, (_, index) => String(new Date().getFullYear() - index))
   const qualityOnly = mode === 'quality'
+  const sourceLinks = [
+    { id: 'quality', label: 'Indikator Mutu' },
+    { id: 'safety', label: 'Keselamatan Pasien' },
+    { id: 'risk', label: 'Manajemen Risiko' },
+    { id: 'analytics', label: 'Program dan RTL' },
+    { id: 'regulation', label: 'Regulasi' },
+  ].filter((link) => AUREKA_PRIMARY_NAV.some((module) => module.id === link.id && module.requiredRoles.includes((role || '') as AurekaRole)))
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ringkasan indikator mutu' : 'Infografis kinerja rumah sakit'}>
     <style>{STYLES}</style>
     <header className="ifHead">
@@ -168,6 +180,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         </section>
       </div>}
     </>}
+    {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label} →</button>)}</nav>}
     <p className="ifNote">Sumber: agregasi server-side dari record domain AUREKA. Ringkasan ini bukan pengganti laporan indikator terperinci; angka mengikuti filter tahun/unit dan ruang lingkup akses pengguna.</p>
   </section>
 }
