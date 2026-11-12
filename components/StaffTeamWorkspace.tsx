@@ -210,7 +210,12 @@ export default function StaffTeamWorkspace({
           className="stHead"
           title="Roster & penugasan unit"
           description="Pilih tenaga dari master AUREKA untuk mengunci ke tim/unit kerja. Identitas tidak dapat ditetapkan ke dua tim aktif sekaligus. Nama dengan status perlu verifikasi belum dapat dipilih. Pelepasan atau perpindahan hanya dapat dilakukan Super Admin/Komite PMKP dan meninggalkan jejak audit."
-          actions={<button type="button" className="stBtn" onClick={() => void load()} disabled={loading || busy}>↻ Segarkan</button>}
+          actions={<div className="stStatBar">
+            <span className="stStat"><b>{assignments.length.toLocaleString('id-ID')}</b> anggota tim</span>
+            <span className="stStat"><b>{directory.filter((row) => row.directory_status === 'available' && !row.already_locked_here).length.toLocaleString('id-ID')}</b> kandidat</span>
+            <span className="stStat ok" title="Satu identitas hanya dapat terkunci pada satu tim aktif">🔒 Identitas dilindungi</span>
+            <button type="button" className="stBtn stIconBtn" title="Segarkan" aria-label="Segarkan" onClick={() => void load()} disabled={loading || busy}>↻</button>
+          </div>}
         />
         {canChooseRoom ? (
           <label className="stField" style={{maxWidth:520,marginTop:14}}>
@@ -222,11 +227,6 @@ export default function StaffTeamWorkspace({
         ) : (
           <div className="stNotice" style={{marginTop:14}}>{lockRoomScope ? 'Tim dan roster difokuskan pada unit workspace yang dipilih:' : 'Tim yang ditampilkan terikat pada unit akun Anda:'} <strong>{roomName}</strong>. Nama yang sudah terkunci pada unit lain tidak dapat diambil ulang.</div>
         )}
-        <div className="stKpis">
-          <div className="stKpi"><span>Anggota tim terkunci</span><strong>{assignments.length.toLocaleString('id-ID')}</strong></div>
-          <div className="stKpi"><span>Kandidat yang belum terkunci</span><strong>{directory.filter((row) => row.directory_status === 'available' && !row.already_locked_here).length.toLocaleString('id-ID')}</strong></div>
-          <div className="stKpi"><span>Perlindungan identitas</span><strong>Aktif</strong></div>
-        </div>
         {message && <div className="stNotice" role="status" aria-live="polite">{message}</div>}
         {error && <div className="stError" role="alert">{error}</div>}
         {!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Metadata → Tenaga Kerja terlebih dahulu.</div>}
@@ -241,13 +241,7 @@ export default function StaffTeamWorkspace({
           </label>
           <button type="button" className="stBtn primary" onClick={() => void addStaff()} disabled={loading || busy || !roomId || !selectedStaffId}>{busy ? 'Memproses…' : '＋ Kunci ke tim'}</button>
         </div>
-      </div>
-
-      <div className="stPanel">
-        <div className="stHead" style={{alignItems:'center',marginBottom:13}}>
-          <div><div className="stEyebrow">Daftar Tim Aktif</div><div style={{fontSize:13,fontWeight:900,marginTop:4}}>{roomName}</div></div>
-          <span className="stLock">Identitas terkunci</span>
-        </div>
+        <div className="stRosterHead"><b>Daftar tim aktif · {roomName}</b><span>{roster.length.toLocaleString('id-ID')} orang</span></div>
         {loading ? <div className="stEmpty">Memuat daftar tim…</div> : roster.length ? (
           <div className="stRows">
             {roster.map(({assignment,staff}) => (
