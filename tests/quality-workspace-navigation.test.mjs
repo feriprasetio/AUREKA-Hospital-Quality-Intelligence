@@ -7,12 +7,11 @@ const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf
 test('quality audit navigation keeps audit areas in the sidebar and moves views into workspace tabs', () => {
   const home = read('components/HomeClient.tsx')
   // Blueprint v2: Indikator Mutu berisi Form Logbook, Hasil Capaian, dan Profil Indikator langsung di sidebar
-  assert.match(home, /quality:\s*\[\s*\{id:'audit-indicators',label:'Form Logbook'\},\s*\{id:'result-indicators',label:'Hasil Capaian',children:\[\{id:'result-unit',label:'Unit Keseluruhan'\},\{id:'result-category',label:'Kategori Indikator'\}\]\},\s*\{id:'profile-indicators',label:'Profil Indikator'\}/)
+  assert.match(home, /quality:role==='DEWAN_PENGAWAS'[\s\S]{0,260}:\s*\[\s*\{id:'audit-indicators',label:'Form Logbook'\},\s*\{id:'result-indicators',label:'Hasil Capaian',children:\[\{id:'result-unit',label:'Unit Keseluruhan'\},\{id:'result-category',label:'Kategori Indikator'\}\]\},\s*\{id:'profile-indicators',label:'Profil Indikator'\}/)
   assert.doesNotMatch(home, /id:'logbook-indicators'/)
-  assert.match(home, /aria-label="Tampilan audit mutu"/)
-  assert.match(home, />Form Logbook<\/button>/)
-  assert.match(home, />Hasil Capaian<\/button>/)
-  assert.match(home, /setQualityResultsView\(mode\)/)
+  // Blueprint v2 §1.1: tidak ada tab navigasi kedua di workspace; perpindahan hanya lewat sidebar
+  assert.doesNotMatch(home, /aria-label="Tampilan audit mutu"/)
+  assert.doesNotMatch(home, />Form Logbook<\/button>/)
   assert.match(home, /if\(moduleId==='quality'\)return active==='analytics'&&analyticsTab==='profiles'\?'profile-indicators':qualityResultsView\?\(qualityResultsGroup==='category'\?'result-category':'result-unit'\):'audit-indicators'/)
   const staffStart = home.indexOf('staff:[')
   const staffEnd = home.indexOf('\\n   ],', staffStart)

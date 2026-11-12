@@ -25,7 +25,7 @@ test('phone frame reset has the same specificity as the desktop grid', () => {
 test('context navigation reuses authorized sidebar destinations and includes a native phone selector', () => {
   assert.doesNotMatch(home, /contextNavigation=active==='home'\?\[\]:sidebarChildGroups\[active\]\?\?\[\]/)
   assert.doesNotMatch(home, /className="workspaceContextNav"/)
-  assert.match(home, /className="qualityWorkspaceTabs"/)
+  assert.doesNotMatch(home, /className="qualityWorkspaceTabs"/)
   assert.doesNotMatch(home, /className="workspaceContextSelect"/)
   assert.doesNotMatch(home, /value=\{selectedSidebarChild\(active\)\}/)
   assert.doesNotMatch(home, /onChange=\{event=>selectSidebarChild\(active,event\.target\.value\)\}/)

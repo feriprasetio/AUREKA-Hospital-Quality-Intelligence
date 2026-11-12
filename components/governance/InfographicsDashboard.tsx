@@ -102,7 +102,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   useEffect(() => {
     let cancelled = false
     setLoading(true); setError('')
-    aurekaSupabase.rpc('aureka_gov_infographics_summary_secure', { p_year: Number(year), p_room: roomId })
+    Promise.resolve(aurekaSupabase.rpc('aureka_gov_infographics_summary_secure', { p_year: Number(year), p_room: roomId }))
       .then(({ data, error: rpcError }) => {
         if (cancelled) return
         if (rpcError) {
