@@ -22,7 +22,7 @@ const STATUS_LABEL:Record<string,string>={terbuka:'Terbuka',berjalan:'Berjalan',
 const SOURCE_LABEL:Record<string,string>={ketua_pmkp:'Pembahasan internal PMKP',audit:'Hasil audit',risiko:'Manajemen risiko',insiden:'Insiden keselamatan pasien',program:'Program kerja',lainnya:'Lainnya'}
 const fmtDate=(v?:string|null)=>(v?new Date(v.length===10?v+'T12:00:00':v).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'—')
 const overdue=(a:Action)=>Boolean(a.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(a.status)&&new Date(a.due_date+'T23:59:59')<new Date())
-const suggestMethod=(text:string):Method=>/\b(sop|kebijakan|administrasi|alur|prosedur|dokumentasi|jadwal|formulir|standarisasi|standarisasi|kepatuhan proses)\b/i.test(text)?'PDCA':'PDSA'
+const suggestMethod=(text:string):Method=>/\b(pasien|klinis|clinical|indikator|mutu|outcome|insiden|keselamatan|infeksi|jatuh|mortalitas|stroke|sepsis|hand hygiene|kepatuhan|angka|rate|readmission)\b/i.test(text)?'PDSA':/\b(sop|kebijakan|administrasi|alur|prosedur|dokumentasi|jadwal|formulir|standarisasi|standar proses)\b/i.test(text)?'PDCA':'PDSA'
 
 export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
   const [year,setYear]=useState(new Date().getFullYear())
