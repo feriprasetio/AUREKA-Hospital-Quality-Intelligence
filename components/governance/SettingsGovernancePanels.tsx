@@ -71,6 +71,7 @@ export function PermissionMatrixPanel() {
   const [canEdit, setCanEdit] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
+  const [mobileRole, setMobileRole] = useState('DIREKTUR')
   const load = useCallback(async () => {
     const { data, error: e } = await aurekaSupabase.rpc('aureka_gov_perm_matrix')
     if (e) { setError(isMissing(e.message) ? missingMsg : toUserFacingError(e, { fallback: 'Hak akses belum dapat dimuat.' })); return }
@@ -95,7 +96,14 @@ export function PermissionMatrixPanel() {
         <p className="stPanelHint">Hak akses role Anda ({role}):</p>
         <ul className="govPermMine">{perms.map((p) => <li key={p.code} className={mine.includes(p.code) ? 'on' : ''}>{mine.includes(p.code) ? '✓' : '—'} {p.label}{p.sensitive ? ' · sensitif' : ''}</li>)}</ul>
       </>}
-      {matrix.length > 0 && <div className="govPermWrap"><table className="govPermTable"><thead><tr><th>Hak akses</th>{ROLES.map(([k, l]) => <th key={k}>{l}</th>)}</tr></thead><tbody>
+      {matrix.length > 0 && <div className="govPermMobile">
+        <select aria-label="Pilih role" value={mobileRole} onChange={(e) => setMobileRole(e.target.value)}>{ROLES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
+        <ul>{perms.map((p) => { const k = mobileRole + '|' + p.code; const on = granted.has(k); return <li key={p.code}><label>
+          <span><b>{p.label}</b><small>{p.code}{p.sensitive ? ' · sensitif' : ''}</small></span>
+          <input type="checkbox" checked={on} disabled={!canEdit || busy === k || (mobileRole === 'ADMIN' && p.code === 'regulation.approve')} onChange={(e) => void toggle(mobileRole, p.code, e.target.checked)} />
+        </label></li> })}</ul>
+      </div>}
+      {matrix.length > 0 && <div className="govPermWrap" data-ak-sort="off"><table className="govPermTable"><thead><tr><th>Hak akses</th>{ROLES.map(([k, l]) => <th key={k}>{l}</th>)}</tr></thead><tbody>
         {perms.map((p) => <tr key={p.code}><td><b>{p.label}</b><small>{p.code}{p.sensitive ? ' · sensitif' : ''}</small></td>
           {ROLES.map(([r]) => { const on = granted.has(r + '|' + p.code); const k = r + '|' + p.code; return <td key={r}>
             <input type="checkbox" aria-label={p.label + ' untuk ' + r} checked={on} disabled={!canEdit || busy === k || (r === 'ADMIN' && p.code === 'regulation.approve')} onChange={(e) => void toggle(r, p.code, e.target.checked)} />
