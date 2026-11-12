@@ -441,3 +441,29 @@ html body:not(#_) .aqAuditWorkspace .aqResultSummary strong { font-size: 13px; }
   html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions { flex: 1 1 100% !important; }
   html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions .uBtn { flex: 1 1 0; min-height: 38px; }
 }
+
+/* Pemilih unit: panah dropdown menjadi bagian dari kotak (selalu di tengah, di HP maupun laptop) */
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitChevron { display: none !important; }
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d5f9e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important; background-position: right 12px center !important; background-size: 16px 16px !important;
+  padding-right: 36px !important;
+}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9dbff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+}
+
+/* Hak Akses Role: di HP tampil per role (kartu), tabel matriks hanya di layar lebar */
+html body:not(#_) .govPermMobile { display: none; }
+@media (max-width: 760px) {
+  html body:not(#_) .govPermWrap { display: none; }
+  html body:not(#_) .govPermMobile { display: grid; gap: 10px; }
+  html body:not(#_) .govPermMobile > select { min-height: 42px; font-size: 15px; font-weight: 700; }
+  html body:not(#_) .govPermMobile ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  html body:not(#_) .govPermMobile li label { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid rgba(11, 31, 51, .1); border-radius: 12px; background: #fff; }
+  html body:not(#_) .govPermMobile li label span { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  html body:not(#_) .govPermMobile li label b { font-size: 14px; line-height: 1.35; }
+  html body:not(#_) .govPermMobile li label small { font-size: 12px; opacity: .65; word-break: break-word; }
+  html body:not(#_) .govPermMobile li input { width: 22px; height: 22px; flex: 0 0 auto; }
+  html[data-mode="gelap"] body:not(#_) .govPermMobile li label { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .1); }
+}
