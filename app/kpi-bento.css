@@ -307,3 +307,45 @@ html[data-mode="gelap"] .workspaceRoot .psStatsCard { background: rgba(255, 255,
   .workspaceRoot .psStatsBar b { display: none; }
   .workspaceRoot .psStatsRow { grid-template-columns: minmax(90px, 130px) minmax(0, 1fr) 48px; }
 }
+
+/* ===== Program (Rekomendasi/RTL), E-Regulasi, Audit Log (Blueprint v2 §7, §8, §13) ===== */
+.workspaceRoot .govWorkspace { display: grid; gap: 16px; }
+.workspaceRoot .govHeadTools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.workspaceRoot .govYear { display: grid; gap: 4px; font-size: 12px; font-weight: 650; }
+.workspaceRoot :is(.govYear select, .govHeadTools > select, .govSearch) { min-height: 38px; padding: 0 12px; border-radius: 10px; }
+.workspaceRoot .govSearch { min-width: 220px; }
+.workspaceRoot .govRecList { display: grid; gap: 14px; }
+.workspaceRoot .govRec { display: grid; gap: 10px; padding: 16px 18px; border-radius: 18px; border: 1px solid rgba(11, 70, 122, .1); background: rgba(255, 255, 255, .7); }
+.workspaceRoot .govRec header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.workspaceRoot .govRec h4 { margin: 4px 0 2px; font-size: 15.5px; }
+.workspaceRoot .govRec small { opacity: .7; }
+.workspaceRoot .govRec > p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+.workspaceRoot .govCode { display: inline-block; padding: 2px 8px; border-radius: 6px; background: rgba(11, 70, 122, .08); font-size: 11.5px; font-weight: 700; letter-spacing: .02em; }
+.workspaceRoot .govStatus { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 650; background: rgba(11, 70, 122, .08); white-space: nowrap; }
+.workspaceRoot .govStatus:is(.terverifikasi, .terbit, .disetujui) { background: #e3f5ec; color: #17734a; }
+.workspaceRoot .govStatus:is(.selesai, .menunggu_direktur) { background: #fff4dc; color: #8a5a00; }
+.workspaceRoot .govStatus:is(.ditolak, .dibatalkan, .dicabut) { background: #fdecea; color: #b3261e; }
+.workspaceRoot .govStatus:is(.dikembalikan) { background: #fde9d9; color: #a2501a; }
+.workspaceRoot .govStatus:is(.digantikan) { opacity: .65; }
+.workspaceRoot .govOverdue { color: #b3261e !important; font-weight: 650; }
+.workspaceRoot .govCallout { padding: 12px 14px; border-radius: 12px; background: rgba(59, 143, 214, .08); font-size: 13px; line-height: 1.5; }
+.workspaceRoot .govDetail { max-width: 420px; white-space: normal; }
+.govForm { display: grid; gap: 12px; }
+.govForm label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 650; }
+.govForm :is(input, select, textarea) { width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid rgba(11, 70, 122, .2); border-radius: 10px; font: 400 14px/1.45 inherit; background: #fff; color: inherit; }
+.govForm textarea { resize: vertical; }
+.govFormRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.govSegment { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(11, 70, 122, .07); }
+.govSegment button { min-height: 34px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; font: 650 13px/1 inherit; cursor: pointer; color: inherit; }
+.govSegment button.active { background: #fff; box-shadow: 0 2px 6px rgba(8, 20, 36, .12); }
+.govVersions { display: grid; gap: 12px; }
+.govVersion { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(11, 70, 122, .1); }
+.govVersion header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.govVersion p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.govContent { margin: 0; padding: 12px; max-height: 320px; overflow: auto; border-radius: 10px; background: rgba(11, 70, 122, .05); white-space: pre-wrap; font: 400 13px/1.55 inherit; }
+.govMuted { opacity: .7; font-size: 12.5px !important; }
+.govHash { font-family: ui-monospace, Menlo, monospace !important; }
+html[data-mode="gelap"] .govForm :is(input, select, textarea) { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .14); }
+html[data-mode="gelap"] .workspaceRoot .govRec { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
+html[data-mode="gelap"] .govSegment button.active { background: rgba(255, 255, 255, .12); }
+@media (max-width: 560px) { .govFormRow { grid-template-columns: minmax(0, 1fr); } .workspaceRoot .govSearch { min-width: 0; width: 100%; } }
