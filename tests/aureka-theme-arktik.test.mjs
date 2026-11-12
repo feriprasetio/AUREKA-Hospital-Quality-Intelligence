@@ -7,12 +7,11 @@ const layout = read('app/layout.tsx')
 const client = read('components/HomeClient.tsx')
 const infographic = read('components/governance/InfographicsDashboard.tsx')
 
-test('Solid Default is the canonical document skin and cannot be overridden by the legacy Arktik skin', () => {
-  assert.match(layout, /<html lang="id" data-skin="solid"/)
-  assert.match(layout, /localStorage\.setItem\('aureka-mode','terang'\)/)
-  assert.match(client, /setAttribute\('data-skin','solid'\)/)
-  assert.doesNotMatch(client, /setAttribute\('data-skin','arktik'\)/)
-  assert.match(client, /setAttribute\('data-mode','terang'\)/)
+test('Arktik adalah tema baku (pilihan Feri) dan tidak ditimpa tema Solid lama', () => {
+  assert.match(layout, /<html lang="id" data-skin="arktik"/)
+  assert.match(client, /setAttribute\('data-skin','arktik'\)/)
+  assert.doesNotMatch(client, /setAttribute\('data-skin','solid'\)/)
+  assert.doesNotMatch(layout, /data-skin="solid"/)
 })
 
 test('Infografis diagnostic points to the deployed aggregate and permission-guard migrations in execution order', () => {
