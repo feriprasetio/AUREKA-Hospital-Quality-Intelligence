@@ -225,3 +225,42 @@ html[data-skin="arktik"][data-mode="gelap"] .svWizard :is(.svDot.on, .svChip.on,
 html[data-skin="arktik"][data-mode="gelap"] .svWizard .svRing { background: radial-gradient(closest-side, #0e1426 78%, transparent 79%), conic-gradient(var(--sv-accent) calc(var(--p) * 1%), rgba(255,255,255,.1) 0); }
 html[data-skin="arktik"][data-mode="gelap"] .svWizard :is(.svBar, .svStepDot:not(.ok):not(.now), .svQCode) { background: rgba(255, 255, 255, 0.12); }
 html[data-skin="arktik"][data-mode="gelap"] .svWizard .svError { background: rgba(179, 53, 46, 0.25); color: #ffb4ad; }
+
+/* ===== Tata letak ringkas (lebar penuh, minim scroll) ===== */
+html body:not(#_) .svWizard { max-width: 1180px; gap: 10px; }
+html body:not(#_) .svTop { display: grid; grid-template-columns: auto minmax(120px, 1fr) auto; align-items: center; gap: 6px 14px; padding: 10px 14px; border-radius: 14px; }
+html body:not(#_) .svTop .svTopRow { display: contents; }
+html body:not(#_) .svTop .svEyebrow { grid-column: 1; grid-row: 1; }
+html body:not(#_) .svTop .svBar { grid-column: 2; grid-row: 1; height: 6px; }
+html body:not(#_) .svTop .svCount { grid-column: 3; grid-row: 1; font-size: 12.5px; }
+html body:not(#_) .svTop .svSteps { grid-column: 1 / -1; gap: 4px; }
+html body:not(#_) .svCard { padding: 16px 18px; border-radius: 18px; }
+html body:not(#_) .svHead { margin-bottom: 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+html body:not(#_) .svHead h3 { margin: 0; font-size: 19px; order: 1; }
+html body:not(#_) .svHead .svStepNo { order: 2; }
+html body:not(#_) .svHead p { order: 3; flex-basis: 100%; font-size: 13px; }
+html body:not(#_) .svList { gap: 6px; }
+html body:not(#_) .svQ { padding: 10px 12px; border-radius: 12px; }
+html body:not(#_) .svQ p { margin: 4px 0 8px; font-size: 14.5px; line-height: 1.45; }
+html body:not(#_) .svDot { min-height: 40px; border-radius: 10px; font-size: 14.5px; }
+html body:not(#_) .svNav { padding: 8px; border-radius: 14px; }
+html body:not(#_) .svBtn { min-height: 42px; }
+
+/* Identitas responden: dua kolom */
+@media (min-width: 900px) {
+  html body:not(#_) .svProfile { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; align-items: start; }
+  html body:not(#_) .svProfile > :is(.svPrivacy, .svMore) { grid-column: 1 / -1; }
+  html body:not(#_) .svPrivacy { padding: 10px 12px; font-size: 13px; }
+  html body:not(#_) .svProfile .svField > span, html body:not(#_) .svProfile .svField legend { margin-bottom: 2px; font-size: 13px; }
+  html body:not(#_) .svChip { min-height: 36px; padding: 0 12px; font-size: 13.5px; }
+
+  /* Pertanyaan skala: teks di kiri, pilihan di kanan — satu baris per pertanyaan */
+  html body:not(#_) .svQ:has(.svScaleWrap) { display: grid; grid-template-columns: minmax(0, 1fr) 330px; column-gap: 18px; align-items: center; }
+  html body:not(#_) .svQ:has(.svScaleWrap) > header { grid-column: 1; }
+  html body:not(#_) .svQ:has(.svScaleWrap) > p { grid-column: 1; margin: 2px 0 0; }
+  html body:not(#_) .svQ:has(.svScaleWrap) > .svScaleWrap { grid-column: 2; grid-row: 1 / span 2; }
+  html body:not(#_) .svQ:has(.svScaleWrap) .svScaleEnds { display: none; }
+  html body:not(#_) .svQ:has(.svScaleWrap) .svScale { gap: 5px; }
+  html body:not(#_) .svLegend { position: sticky; top: 84px; z-index: 3; justify-content: flex-end; padding: 6px 10px; border-radius: 10px; background: var(--sv-card); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  html body:not(#_) .svBurnout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
