@@ -350,14 +350,37 @@ html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(.rmButton.pri
 }
 html body:not(#_) [aria-modal="true"] :is(.rmButton.primary, .psBtn.primary, .stBtn.primary, .akBtn.primary, .oppeBtn.primary, .uBtn.primary):not(:disabled):hover { translate: 0 -1px; }
 
-/* ===== Direktori Tenaga Kerja: satu scroll (halaman), kepala tabel menempel di bawah bar atas ===== */
-@media (min-width: 900px) {
-  html body:not(#_) .sdTableWrap { max-height: none !important; overflow: visible !important; }
-  html body:not(#_) .sdTable thead th { position: sticky; top: var(--aur-header-h, 72px); z-index: 4; box-shadow: 0 1px 0 rgba(11, 31, 51, .08); }
-}
+/* ===== Direktori Tenaga Kerja: ringkas, pencarian di kanan, tabel muat layar ===== */
+html body:not(#_) .sdActions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+html body:not(#_) .sdStat { display: inline-flex; align-items: baseline; gap: 5px; padding: 5px 11px; border-radius: 999px; border: 0; background: rgba(11, 31, 51, .05); font: inherit; font-size: 12.5px; color: #3d5670; white-space: nowrap; }
+html body:not(#_) .sdStat b { font-size: 15px; color: #0b1f33; font-variant-numeric: tabular-nums; }
+html body:not(#_) .sdStat.ok { background: #e6f4ec; }
+html body:not(#_) .sdStat.warn { background: #fff3dc; cursor: pointer; }
+html body:not(#_) button.sdStat { cursor: pointer; }
+html body:not(#_) .sdIconBtn { width: 38px; padding: 0 !important; font-size: 16px; }
+html body:not(#_) .sdFilters { display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+html body:not(#_) .sdFilters > select { flex: 0 1 220px; width: auto; min-height: 38px; }
+html body:not(#_) .sdFilters .sdCount { font-size: 12.5px; color: #3d5670; white-space: nowrap; }
+html body:not(#_) .sdFilters .sdSearch { margin-left: auto; flex: 0 1 340px; display: flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border: 1.5px solid #d6e2ee; border-radius: 12px; background: #fff; }
+html body:not(#_) .sdFilters .sdSearch:focus-within { border-color: #2c6aa0; box-shadow: 0 0 0 4px rgba(44, 106, 160, .12); }
+html body:not(#_) .sdFilters .sdSearch span { color: #5d7389; font-size: 16px; }
+html body:not(#_) .sdFilters .sdSearch input { flex: 1; min-width: 0; min-height: 34px !important; border: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; font-size: 13.5px; outline: none; }
+html body:not(#_) .sdTableWrap { max-height: calc(100dvh - 300px) !important; margin-top: 10px; }
 html body:not(#_) .sdActionsCell { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; }
 html body:not(#_) .sdActionsCell :is(.sdEditBtn, .sdMini) { min-height: 32px; padding: 0 10px; font-size: 12px; }
-html body:not(#_) .sdTable tbody td { padding-top: 8px; padding-bottom: 8px; }
+html body:not(#_) .sdTable tbody td { padding-top: 7px; padding-bottom: 7px; }
+html body:not(#_) .sdMoreCell { text-align: center; padding: 12px !important; }
+html[data-mode="gelap"] body:not(#_) .sdFilters .sdSearch { background: rgba(255, 255, 255, .06); border-color: rgba(140, 195, 255, .3); }
+html[data-mode="gelap"] body:not(#_) .sdStat { background: rgba(255, 255, 255, .07); color: #b9c3d6; }
+html[data-mode="gelap"] body:not(#_) .sdStat b { color: #eef2fa; }
+@media (max-width: 720px) { html body:not(#_) .sdFilters .sdSearch { margin-left: 0; flex: 1 1 100%; } html body:not(#_) .sdTableWrap { max-height: none !important; } }
+
+/* FPPE: baris alat header rapi sejajar */
+html body:not(#_) .fppeHeaderActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+html body:not(#_) .fppeHeaderActions .fppeUnitChoice { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 12.5px; font-weight: 600; color: #3d5670; }
+html body:not(#_) .fppeHeaderActions .fppeUnitChoice select { min-height: 38px; min-width: 200px; margin: 0; }
+html body:not(#_) .fppeHeaderActions > button { min-height: 38px; padding: 0 14px; border-radius: 10px; font-size: 13px; }
+
 /* Bar atas: batas bawah lembut agar isi yang lewat di bawahnya tidak tampak "terpotong" */
 html body:not(#_) .workspaceRoot .workspaceHeaderBar { box-shadow: 0 6px 18px -10px rgba(11, 31, 51, .25) !important; }
 
