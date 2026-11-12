@@ -219,6 +219,7 @@ function fromDatabase(row: any, fallback: Template | null, roomName: string): Au
 }
 
 export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin, userName, onBack, lockRoomScope = false }: Props) {
+  void onBack
   const [templates, setTemplates] = useState<Template[]>([])
   const [masterReady, setMasterReady] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -874,7 +875,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       className="cpHead"
       title={screen === 'library' ? 'Pustaka diagnosis & format CP' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
       actions={<div className="cpActions">
-        <button type="button" className="cpBtn" onClick={onBack}>← Audit Indikator Mutu</button>
+        {/* Tombol kembali ke Audit Indikator Mutu dihapus: Clinical Pathway kini menu tersendiri di Peningkatan Kinerja Klinis (Blueprint v2). */}
         {screen !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(screen === 'audit' ? 'diagnosis' : screen === 'builder' ? builderReturnScreen : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
         {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit Form CP</button>}
         {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={beginNewBuilder}>＋ Tambah CP baru</button>}
