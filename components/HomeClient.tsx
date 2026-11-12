@@ -402,7 +402,6 @@ export default function HomeClient(){
    if(childId==='oppe-fppe'){setQualityOppeOpen(true);setQualityResultsView(null);setClinicalPathwayOpen(false);setQualityOpen(false);return}
    setQualityOppeOpen(false)
    if(moduleId==='clinical'){setQualityResultsView(null);setClinicalPathwayOpen(childId==='audit-pathway');setQualityInitialContainer('Audit Klinis dan Kematian');setQualityOpen(childId==='audit-clinical-death');return}
-   if(moduleId==='quality')setQualityProposalOpen(false)
    if(moduleId==='quality'&&(childId==='result-unit'||childId==='result-category')){setQualityResultsGroup(childId==='result-category'?'category':'unit');childId='result-indicators'}
    else if(childId==='result-indicators')setQualityResultsGroup('unit')
    const resultMatch=/^result-(indicators|pathway|clinical-death)$/.exec(childId)
