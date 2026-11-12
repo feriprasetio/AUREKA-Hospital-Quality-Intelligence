@@ -732,7 +732,7 @@ export default function RiskManagementWorkspace({
 
   return (
     <div className="rmWorkspace">
-      <WorkspaceModuleHeader
+      {tab === 'overview' && <WorkspaceModuleHeader
         className="rmHero"
         title="Pengelolaan risiko"
         description="Identifikasi, pemetaan selera risiko, analisis HFMEA, konektor antar-risiko, dan rencana mitigasi dengan alur persetujuan berjenjang."
@@ -740,7 +740,7 @@ export default function RiskManagementWorkspace({
           <span className="rmRoleChip">{roleLabel(role)}{scopedToUnit && currentRoom ? ' · ' + currentRoom.name : ''}</span>
           <button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Risiko baru</button>
         </div>}
-      />
+      />}
 
       {unitMissing && <div className="rmNotice error" role="alert">
         <span>Unit belum dipetakan</span><p>Akun Anda belum terhubung ke ruangan/unit kerja, sehingga register risiko unit belum dapat ditampilkan atau diisi. Hubungi Super Admin untuk memetakan unit utama akun Anda di menu Pengaturan.</p>
@@ -805,15 +805,13 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'register' && <>
         <LiquidGlass className="rmPanel">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">REGISTER TERKENDALI</span><h4>Risk Register</h4></div>
-            <div className="rmActions"><button type="button" className="rmButton subtle" onClick={exportCsv}>Ekspor CSV</button><button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Tambah risiko</button></div>
-          </div>
-          <div className="rmFilterGrid">
+          <div className="rmFilterGrid rmFilterBar">
             <label className="rmSearch">⌕ <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Cari risiko, unit, atau penyebab…" /></label>
             <select aria-label="Ruangan atau kelompok sumber" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setPage(0); setSelectedRiskIds([]); }}><option value="">Pilih ruangan/kelompok sumber</option>{canManageAll && !lockRoomScope && <option value="all">Semua ruangan / unit · {risks.length.toLocaleString('id-ID')} risiko</option>}{sourceUnitOptions.map(renderSourceUnitOption)}</select>
             <select aria-label="Filter level risiko" value={levelFilter} onChange={e => { setLevelFilter(e.target.value); setPage(0); }}><option value="all">Semua level</option>{LEVELS.map(x => <option key={x}>{x}</option>)}</select>
             <select aria-label="Filter kategori" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(0); }}><option value="all">Semua kategori</option>{Array.from(new Set([...CATEGORIES, ...risks.map(r => r.category)])).map(x => <option key={x}>{x}</option>)}</select>
             <select aria-label="Filter status" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(0); }}><option value="all">Semua status</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x}>{x}</option>)}</select>
+            <div className="rmActions rmBarActions"><button type="button" className="rmButton subtle" onClick={exportCsv}>Ekspor CSV</button><button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Tambah risiko</button></div>
           </div>
           {matrixFilter && <div className="rmSelectionBar"><div><b>Filter matriks aktif · P{matrixFilter.likelihood} × D{matrixFilter.impact}</b><span>Register hanya menampilkan risiko pada kombinasi ini.</span></div><button type="button" className="rmButton subtle" onClick={() => setMatrixFilter(null)}>Hapus filter matriks</button></div>}
           {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan →</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
@@ -944,16 +942,15 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'connections' && <>
         <LiquidGlass className="rmPanel">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">GRAPH RISIKO</span><h4>Konektor risiko utama</h4></div></div>
-          <div className="rmLinkComposer">
+          <div className="rmLinkComposer rmLinkCompact">
             <div className="rmFormGrid">
               <label>Ruangan / kelompok risiko utama <select aria-label="Unit risiko utama" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setSelectedRiskIds([]); setLinkForm(f => ({ ...f, source: '', target: '', description: '' })); }}><option value="">Pilih ruangan/kelompok sumber</option>{canManageAll && !lockRoomScope && <option value="all">Semua ruangan / unit</option>}{sourceUnitOptions.map(renderSourceUnitOption)}</select></label>
               <label>Risiko utama · Sangat Tinggi <select value={linkForm.source} onChange={e => setLinkForm(f => ({ ...f, source: e.target.value, target: f.target === e.target.value ? '' : f.target, description: '' }))}><option value="">Pilih risiko utama</option>{primaryRisksInUnit.map(renderRiskOption)}</select></label>
               <label>Risiko terkait <select value={linkForm.target} onChange={e => setLinkForm(f => ({ ...f, target: e.target.value }))}><option value="">Pilih target dari seluruh register</option>{risks.filter(r => !connectorPrimary || r.id !== connectorPrimary.id).map(renderRiskOption)}</select></label>
               <label>Jenis hubungan <select value={linkForm.type} onChange={e => setLinkForm(f => ({ ...f, type: e.target.value }))}>{RELATION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select></label>
-              <label className="full">Dasar / penjelasan relasi <input value={linkForm.description} onChange={e => setLinkForm(f => ({ ...f, description: e.target.value }))} placeholder="Tinjau bukti relasi atau gunakan salah satu kandidat berikut" /></label>
+              <label className="rmLinkDesc">Dasar / penjelasan relasi <input value={linkForm.description} onChange={e => setLinkForm(f => ({ ...f, description: e.target.value }))} placeholder="Tinjau bukti relasi atau gunakan salah satu kandidat berikut" /></label>
+              <button type="button" className="rmButton primary rmLinkGo" disabled={saving || !connectorPrimary || !linkForm.target} onClick={() => void addLink()}>＋ Aktifkan konektor</button>
             </div>
-            <div className="rmFormFooter"><button type="button" className="rmButton primary" disabled={saving || !connectorPrimary || !linkForm.target} onClick={() => void addLink()}>＋ Aktifkan konektor</button></div>
           </div>
           {connectorPrimary ? <div className="rmSelectionBar">
             <div><b>Risiko utama · {connectorPrimary.risk_level}</b><span>{connectorPrimary.risk_event} · {connectorPrimary.unit_name} · sumber {connectorPrimary.source_sheet || 'Input AUREKA'}{connectorPrimary.source_row_number ? ' baris ' + connectorPrimary.source_row_number : ''}</span></div>
