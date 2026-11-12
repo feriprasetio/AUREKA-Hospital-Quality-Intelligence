@@ -13,7 +13,9 @@ test('Sumber Daya Manusia is the primary entry point for workforce and OPPE func
   assert.match(registry, /id:\s*'staff'/)
   assert.match(registry, /label:\s*'Sumber Daya Manusia'/)
   assert.match(registry, /routeHash:\s*'#sumber-daya-manusia'/)
-  assert.ok(home.includes("AUREKA_PRIMARY_NAV.filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole))"))
+  assert.ok(home.includes(".filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole))"))
+  // Menu SDM mengikuti permission aktual (direktori / kinerja), bukan hanya daftar role
+  assert.ok(home.includes("if(id==='staff')return permissionFlags.readDirectory||permissionFlags.readPerformance"))
   assert.ok(home.includes("staff:["))
   assert.ok(home.includes("id:'directory',label:'Daftar Tenaga Kerja'"))
   assert.ok(home.includes("id:'team',label:'Tim dan Penugasan'"))

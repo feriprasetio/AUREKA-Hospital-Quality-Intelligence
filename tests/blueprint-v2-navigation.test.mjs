@@ -52,7 +52,9 @@ test('home parent and child navigation use the approved labels and canonical rou
   assert.ok(app.includes('title="Beranda"'))
   assert.ok(app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
   assert.ok(app.includes("active==='home'?(homeTab==='infographics'?'infografis':'beranda')"))
-  assert.ok(app.includes("initialTab={homeTab} onTabChange={setHomeTab}"))
+  // Infografis kini dashboard terpadu tersendiri; Beranda tetap HomeLandingWorkspace
+  assert.ok(app.includes("homeTab==='infographics'\n     ? <InfographicsDashboard"))
+  assert.ok(app.includes('initialTab="welcome" onTabChange={setHomeTab}'))
 })
 
 
@@ -62,8 +64,9 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(registry.includes("id:'quality', label:'Indikator Mutu'"))
   assert.ok(registry.includes("id:'clinical', label:'Peningkatan Kinerja Klinis'"))
   assert.ok(app.includes("clinical:["))
-  assert.ok(app.includes("quality:["))
-  assert.ok(app.includes("hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian':'form-logbook')"))
+  assert.match(app, /quality:role==='DEWAN_PENGAWAS'/)
+  // Route kanonis Hasil Capaian membedakan Unit Keseluruhan dan Kategori Indikator
+  assert.ok(app.includes("hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'form-logbook')"))
   assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
 })
