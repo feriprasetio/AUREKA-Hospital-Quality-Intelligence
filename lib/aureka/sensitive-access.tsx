@@ -16,6 +16,10 @@ const PERMISSION: Record<AccessType, string> = {
   incident_investigation: 'incident.read.investigation_detail', survey_named_response: 'survey.read.named_response',
   hr_performance: 'hr.read.performance', data_export: 'data.export.sensitive',
 }
+const LABEL: Record<AccessType, string> = {
+  patient_identity: 'Melihat identitas pasien', patient_profile: 'Melihat identitas pasien', incident_investigation: 'Melihat rincian investigasi',
+  survey_named_response: 'Melihat respons survei bernama', hr_performance: 'Melihat OPPE/FPPE', data_export: 'Mengekspor data sensitif',
+}
 const missing = (msg?: string) => Boolean(msg && /function .* does not exist|Could not find the function|schema cache/i.test(msg))
 let purposeCache: { type: string; purpose: string; at: number } | null = null
 
@@ -41,7 +45,14 @@ function askPurpose(title: string): Promise<string | null> {
 export async function requestSensitiveAccess(type: AccessType, objectId: string | null, label = 'Tampilkan data sensitif'): Promise<boolean> {
   const perm = await aurekaSupabase.rpc('aureka_has_permission', { p_permission: PERMISSION[type] })
   if (perm.error) return missing(perm.error.message)
-  if (perm.data !== true) return false
+  if (perm.data !== true) {
+    // Jangan diam saja: jelaskan mengapa data tidak ditampilkan dan di mana hak aksesnya diatur.
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: {
+      kind: 'error',
+      message: 'Role Anda belum memiliki hak "' + (LABEL[type] || 'akses data sensitif') + '". Super Admin dapat mengaktifkannya di Pengaturan › Hak Akses Role.',
+    } }))
+    return false
+  }
   let needPurpose = true
   const cfg = await aurekaSupabase.rpc('aureka_gov_settings_get')
   if (!cfg.error) needPurpose = ((cfg.data as { settings?: { key: string; value: unknown }[] })?.settings || []).find((s) => s.key === 'sensitive_access_requires_purpose')?.value !== false
