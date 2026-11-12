@@ -62,6 +62,7 @@ const isGovProgramTab=(t:string):t is GovProgramTab=>(GOV_PROGRAM_TABS as readon
 type AnalyticsDirectoryTab='directory'|'team'
 type WorkspaceSearchResult={node:HTMLElement;text:string;tag:string}
 type WorkspaceNotification={id:number;message:string;kind:'success'|'error'|'info';createdAt:number;module?:string}
+type ReminderHistoryItem={id:string;body:string;createdAt:string;readAt:string}
 type SupportConversation={id:string;room_id:number;created_by:string;subject:string;status:'open'|'closed';created_at:string;updated_at:string}
 type SupportMessage={id:string;conversation_id:string;sender_id:string;body:string;created_at:string}
 
@@ -74,7 +75,7 @@ function syncMyEmail(){try{if(localStorage.getItem('aureka-sync-email-missing')=
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[homeTab,setHomeTab]=useState<'welcome'|'infographics'>('welcome'),[qualityOpen,setQualityOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[selectedWorkspaceRoomId,setSelectedWorkspaceRoomId]=useState<number|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('incidents'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('register'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('programs'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportTab,setSupportTab]=useState<'admin'|'ai'|'broadcast'>('admin'),[broadcastDraft,setBroadcastDraft]=useState(''),[broadcastSending,setBroadcastSending]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[homeTab,setHomeTab]=useState<'welcome'|'infographics'>('welcome'),[qualityOpen,setQualityOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[selectedWorkspaceRoomId,setSelectedWorkspaceRoomId]=useState<number|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('incidents'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('register'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('programs'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[reminderHistory,setReminderHistory]=useState<ReminderHistoryItem[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportTab,setSupportTab]=useState<'admin'|'ai'|'broadcast'>('admin'),[broadcastDraft,setBroadcastDraft]=useState(''),[broadcastSending,setBroadcastSending]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const updateWorkspaceRoom=useCallback((nextRoomId:number)=>{
   const normalized=Number(nextRoomId)
   const valid=resolveAdminWorkspaceRoomId(roomsList,[normalized])
@@ -566,7 +567,45 @@ export default function HomeClient(){
   setActiveToast(item)
  }
  useEffect(()=>{
-  const receive=(event:Event)=>{
+  const loadReminderHistory=useCallback(async()=>{
+  if(view!=='workspace'||!user?.id||admin){setReminderHistory([]);return}
+  try{
+   const {data:readRows,error:readError}=await sys().from('support_reminder_reads')
+    .select('conversation_id,read_at')
+    .eq('user_id',user.id)
+    .order('read_at',{ascending:false})
+    .limit(40)
+   if(readError)throw readError
+   const rows=(readRows??[]) as {conversation_id:string;read_at:string}[]
+   const ids=Array.from(new Set(rows.map(row=>String(row.conversation_id)).filter(Boolean)))
+   if(!ids.length){setReminderHistory([]);return}
+   const [conversationResult,messageResult]=await Promise.all([
+    sys().from('support_conversations').select('id,created_at')
+     .eq('subject','Pengingat Komite PMKP').in('id',ids),
+    sys().from('support_messages').select('conversation_id,body,created_at')
+     .in('conversation_id',ids).order('created_at',{ascending:true})
+   ])
+   if(conversationResult.error)throw conversationResult.error
+   if(messageResult.error)throw messageResult.error
+   const conversations=new Map((conversationResult.data??[]).map((row:any)=>[String(row.id),String(row.created_at)]))
+   const messages=new Map<string,string>()
+   for(const row of (messageResult.data??[]) as any[]){
+    const id=String(row.conversation_id)
+    if(!messages.has(id))messages.set(id,String(row.body||''))
+   }
+   setReminderHistory(rows.flatMap(row=>{
+    const id=String(row.conversation_id)
+    const createdAt=conversations.get(id)
+    const body=messages.get(id)
+    return createdAt&&body?[{id,body,createdAt,readAt:String(row.read_at)}]:[]
+   }))
+  }catch{
+   setReminderHistory([])
+  }
+ },[view,user?.id,admin])
+ useEffect(()=>{void loadReminderHistory()},[loadReminderHistory])
+
+ const receive=(event:Event)=>{
    const detail=(event as CustomEvent<{message?:string;type?:string;kind?:string;module?:string}>).detail
    const text=String(detail?.message??'').trim()
    if(!text)return
@@ -627,26 +666,7 @@ export default function HomeClient(){
   setSupportOpen(true)
   if(tab==='admin')void loadSupportConversations()
  }
- // Pengingat dari Komite PMKP (dikirim lewat Tanya AUREKA/Chat): tampil di lonceng notifikasi saat PIC membuka AUREKA.
- useEffect(()=>{
-  if(view!=='workspace'||!user?.id||admin)return
-  let cancelled=false
-  const seenKey='aureka-reminder-seen:'+String(user.id)
-  ;(async()=>{
-   let since='1970-01-01T00:00:00Z'
-   try{since=localStorage.getItem(seenKey)||new Date(Date.now()-30*86400000).toISOString()}catch{}
-   const {data:convs,error}=await sys().from('support_conversations').select('id,created_at').eq('subject','Pengingat Komite PMKP').gt('created_at',since).order('created_at',{ascending:false}).limit(5)
-   if(cancelled||error||!convs?.length)return
-   const {data:msgs}=await sys().from('support_messages').select('conversation_id,body,created_at').in('conversation_id',convs.map((c:any)=>c.id)).order('created_at',{ascending:true})
-   if(cancelled)return
-   for(const c of convs.slice(0,3) as any[]){
-    const body=String((msgs??[]).find((m:any)=>m.conversation_id===c.id)?.body||'').replace(/\s+/g,' ').trim()
-    pushWorkspaceNotification('Pengingat dari Komite PMKP: '+(body.length>160?body.slice(0,157)+'…':body||'buka Chat untuk membaca.'),'info','Pengingat')
-   }
-   try{localStorage.setItem(seenKey,String((convs[0] as any).created_at))}catch{}
-  })()
-  return()=>{cancelled=true}
- },[view,user?.id,admin])
+ // Riwayat pengingat tidak lagi menjadi notifikasi sesi sementara; sumber arsipnya adalah support_reminder_reads.
  // Tombol "Buka Chat" dari kartu pengingat di Welcome Page.
  useEffect(()=>{
   const onOpen=(e:Event)=>{const id=String((e as CustomEvent<{id?:string}>).detail?.id||'');if(id)setSupportConversationId(id);openSupportChat('admin')}
@@ -946,8 +966,17 @@ export default function HomeClient(){
    <button type="button" aria-label="Tutup notifikasi" onClick={()=>setActiveToast(null)}>×</button>
   </div>}
   {notificationHistoryOpen&&<section className="workspaceNotificationPanel" aria-label="Riwayat notifikasi">
-   <div className="workspacePopoverHead"><div><strong>Riwayat notifikasi</strong><span>{notifications.length} notifikasi sesi ini</span></div><button type="button" aria-label="Tutup riwayat" onClick={()=>setNotificationHistoryOpen(false)}>×</button></div>
-   {notifications.length===0?<div className="workspacePopoverEmpty">Belum ada notifikasi.</div>:<div className="workspaceNotificationList">{notifications.map(item=><article key={item.id} className={'workspaceNotificationItem '+item.kind}><span className="workspaceNotificationDot"/><div><strong>{item.module||'AUREKA'}</strong><p>{item.message}</p><time>{new Date(item.createdAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</time></div></article>)}</div>}
+   <div className="workspacePopoverHead"><div><strong>Riwayat notifikasi</strong><span>{notifications.length} notifikasi sesi ini · {reminderHistory.length} riwayat pengingat</span></div><button type="button" aria-label="Tutup riwayat" onClick={()=>setNotificationHistoryOpen(false)}>×</button></div>
+   {notifications.length===0&&reminderHistory.length===0?<div className="workspacePopoverEmpty">Belum ada notifikasi.</div>:<>
+    {reminderHistory.length>0&&<div className="workspaceNotificationList">
+     <div className="workspacePopoverEmpty"><strong>Riwayat Pengingat Komite PMKP</strong></div>
+     {reminderHistory.map(item=><article key={'reminder-'+item.id} className="workspaceNotificationItem info"><span className="workspaceNotificationDot"/><div><strong>Pengingat dari Komite PMKP</strong><p>{item.body}</p><time>Dikirim {new Date(item.createdAt).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})} · Dibaca {new Date(item.readAt).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})}</time></div></article>)}
+    </div>}
+    {notifications.length>0&&<div className="workspaceNotificationList">
+     <div className="workspacePopoverEmpty"><strong>Notifikasi sesi ini</strong></div>
+     {notifications.map(item=><article key={item.id} className={'workspaceNotificationItem '+item.kind}><span className="workspaceNotificationDot"/><div><strong>{item.module||'AUREKA'}</strong><p>{item.message}</p><time>{new Date(item.createdAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</time></div></article>)}
+    </div>}
+   </>}
    {notifications.length>0&&<button type="button" className="workspaceClearHistory" onClick={()=>setNotifications([])}>Hapus riwayat sesi</button>}
   </section>}
   {supportOpen&&<section className="workspaceSupportPanel workspaceCommunicationPanel" aria-label="Pusat komunikasi AUREKA">
@@ -977,7 +1006,7 @@ export default function HomeClient(){
   </div>}
   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<>
-    <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} roomId={role==='DEWAN_PENGAWAS'?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin} selectedRoomId={admin?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
+    <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin} selectedRoomId={admin?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    </>
    :active==='patients'?<PatientRegistryWorkspace key={'patient-registry-'+String(activeWorkspaceRoomId??'profile')} section={patientsSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??null} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin}/>
    :active==='clinical'&&qualityResultsView?<QualityResultsWorkspace key={'clinical-results-'+qualityResultsView+'-'+String(activeWorkspaceRoomId??'profile')} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom}/>
