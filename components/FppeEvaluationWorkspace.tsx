@@ -67,7 +67,7 @@ export default function FppeEvaluationWorkspace({
   const rosterRef = useRef<any[]>([])
   const [roomId, setRoomId] = useState<number>(defaultRoom)
   const [frameReady, setFrameReady] = useState(false)
-  const [frameHeight, setFrameHeight] = useState(1700)
+  const [frameHeight, setFrameHeight] = useState(1100)
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -177,7 +177,7 @@ export default function FppeEvaluationWorkspace({
         })
       } else if (message.type === 'AUREKA_FPPE_RESIZE') {
         const height = Number(message.height)
-        if (Number.isFinite(height)) setFrameHeight(Math.max(1300, Math.min(8000, height + 28)))
+        if (Number.isFinite(height)) setFrameHeight(Math.max(480, Math.min(9000, height + 8)))
       } else if (message.type === 'AUREKA_FPPE_SAVE') {
         void saveFromFrameRef.current(message)
       }
