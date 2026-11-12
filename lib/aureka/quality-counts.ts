@@ -11,13 +11,29 @@ export type RoomMonthCount = { room_id: number; month: number | null; measuremen
 const CACHE_MS = 10 * 60 * 1000
 const cache = new Map<string, { at: number; rows: RoomMonthCount[] }>()
 
+const inflight = new Map<string, Promise<RoomMonthCount[]>>()
+const STORE_KEY = 'aureka-room-month-counts:'
+
 export async function fetchRoomMonthCounts(year: number, grain?: string): Promise<RoomMonthCount[]> {
   const cacheKey = year + '|' + (grain ?? '*')
   const hit = cache.get(cacheKey)
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.rows
-  const rows = await loadRoomMonthCounts(year, grain)
-  cache.set(cacheKey, { at: Date.now(), rows })
-  return rows
+  // Salinan sesi (hanya angka agregat, tanpa identitas) agar pindah halaman / muat ulang tidak menghitung ulang ±1,5 detik.
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(STORE_KEY + cacheKey) || 'null')
+    if (stored && Date.now() - stored.at < CACHE_MS && Array.isArray(stored.rows)) { cache.set(cacheKey, stored); return stored.rows }
+  } catch { /* abaikan */ }
+  // Permintaan yang sama dari beberapa komponen sekaligus dibagi (tidak dikirim dua kali).
+  const pending = inflight.get(cacheKey)
+  if (pending) return pending
+  const task = loadRoomMonthCounts(year, grain).then((rows) => {
+    const entry = { at: Date.now(), rows }
+    cache.set(cacheKey, entry)
+    try { sessionStorage.setItem(STORE_KEY + cacheKey, JSON.stringify(entry)) } catch { /* abaikan */ }
+    return rows
+  }).finally(() => inflight.delete(cacheKey))
+  inflight.set(cacheKey, task)
+  return task
 }
 
 async function loadRoomMonthCounts(year: number, grain?: string): Promise<RoomMonthCount[]> {
