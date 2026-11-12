@@ -190,6 +190,7 @@ export default function RiskManagementWorkspace({
   const [levelFilter, setLevelFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [matrixFilter, setMatrixFilter] = useState<{ likelihood: number; impact: number } | null>(null)
   const [page, setPage] = useState(0)
   const [selectedRiskId, setSelectedRiskId] = useState('')
@@ -806,7 +807,8 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'register' && <>
         <LiquidGlass className="rmPanel">
-          <div className="rmFilterGrid rmFilterBar">
+          <div className={'rmFilterGrid rmFilterBar' + (filtersOpen ? ' open' : '')}>
+            <button type="button" className="rmButton rmFilterToggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(v => !v)}>⚙ Filter{[levelFilter, categoryFilter, statusFilter].filter(v => v !== 'all').length ? ' (' + [levelFilter, categoryFilter, statusFilter].filter(v => v !== 'all').length + ')' : ''}</button>
             <label className="rmSearch">⌕ <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Cari risiko, unit, atau penyebab…" /></label>
             <select aria-label="Ruangan atau kelompok sumber" value={unitFilter} disabled={scopedToUnit} onChange={e => { setUnitFilter(e.target.value); setPage(0); setSelectedRiskIds([]); }}><option value="">Pilih ruangan/kelompok sumber</option>{canManageAll && !lockRoomScope && <option value="all">Semua ruangan / unit · {risks.length.toLocaleString('id-ID')} risiko</option>}{sourceUnitOptions.map(renderSourceUnitOption)}</select>
             <select aria-label="Filter level risiko" value={levelFilter} onChange={e => { setLevelFilter(e.target.value); setPage(0); }}><option value="all">Semua level</option>{LEVELS.map(x => <option key={x}>{x}</option>)}</select>
