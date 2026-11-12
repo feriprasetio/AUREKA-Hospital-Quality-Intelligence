@@ -72,8 +72,12 @@ html body:not(#_) .workspaceRoot .workspaceContent .rmTable td { padding-top: 14
 html body:not(#_) .workspaceRoot .workspaceContent .rmTable .rmScore { border-radius: 10px !important; font-weight: 700 !important; }
 
 /* ===== Judul halaman tidak menempel ke garis/konten di bawahnya ===== */
-html body:not(#_) .workspaceRoot .workspacePageHead { padding: 8px 0 18px !important; margin: 0 0 18px !important; }
-html body:not(#_) .workspaceRoot .workspacePageHead h1 { margin: 6px 0 0 !important; line-height: 1.25 !important; }
+/* Judul sejajar dengan konten (tidak menempel ke kiri) dan tidak ada ruang kosong berlebih di bawahnya */
+html body:not(#_) .workspaceRoot .workspacePageHead { padding: 18px 24px 10px !important; margin: 0 !important; min-height: 0 !important; }
+html body:not(#_) .workspaceRoot .workspacePageHead h1 { margin: 4px 0 0 !important; line-height: 1.2 !important; font-size: clamp(22px, 1.9vw, 28px) !important; font-weight: 750 !important; letter-spacing: -.02em !important; }
+html body:not(#_) .workspaceRoot .workspacePageHead + * { margin-top: 0 !important; }
+html body:not(#_) .workspaceRoot .workspaceCrumbs { font-size: 12px !important; }
+@media (max-width: 720px) { html body:not(#_) .workspaceRoot .workspacePageHead { padding: 14px 16px 8px !important; } }
 html body:not(#_) .workspaceRoot .workspaceCrumbs { margin-bottom: 2px !important; }
 
 /* ===== Dropdown: teks tidak tertimpa panah (mis. pilihan Tahun "2026") ===== */
@@ -148,3 +152,44 @@ html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions .uBtn {
 html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions .uBtn.danger { background: transparent !important; color: #b3261e !important; border: 1px solid rgba(179, 38, 30, .3) !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace .roomCardActions .uBtn.danger:hover { background: #fdecea !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace .adminLocalSearch { display: block !important; min-height: 40px; padding: 0 12px; border-radius: 10px; }
+
+/* ===== Beranda: hero menyambut + pintasan modul; tanpa judul & tab ganda ===== */
+html body:not(#_) .workspaceRoot .homeLanding .hlTabsHidden { display: none !important; }
+html body:not(#_) .workspaceRoot .homeLanding { padding-top: 18px; }
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard {
+  position: relative; overflow: hidden; display: grid !important; gap: 10px !important; padding: 26px 28px !important;
+  border-radius: 22px !important; border: 0 !important; color: #fff !important;
+  background: radial-gradient(120% 140% at 100% 0%, rgba(120, 190, 255, .45), transparent 55%), linear-gradient(125deg, #0b2f52, #1d5f9e 60%, #3b8fd6) !important;
+  box-shadow: 0 18px 40px rgba(11, 47, 82, .22) !important;
+}
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard::before {
+  content: ""; position: absolute; right: -60px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .16), transparent); pointer-events: none;
+}
+html body:not(#_) .workspaceRoot .homeLanding .hlHeroEyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting { color: #fff !important; font-size: clamp(26px, 2.6vw, 34px) !important; font-weight: 800 !important; letter-spacing: -.02em !important; line-height: 1.15; }
+html body:not(#_) .workspaceRoot .homeLanding .hlHeroMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+html body:not(#_) .workspaceRoot .homeLanding .hlHeroChip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .22); font-size: 13px; font-weight: 600; }
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlUnitHint { color: rgba(255, 255, 255, .7) !important; font-size: 12px; }
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn { background: rgba(255, 255, 255, .14) !important; color: #fff !important; border-color: rgba(255, 255, 255, .3) !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn:hover { background: rgba(255, 255, 255, .24) !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcuts { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin: 16px 0; }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcut {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; text-align: left; cursor: pointer; color: inherit; font: inherit;
+  border-radius: 16px; border: 1px solid rgba(11, 70, 122, .1); background: rgba(255, 255, 255, .8);
+  transition: translate .2s cubic-bezier(.22, 1, .36, 1), box-shadow .2s ease, border-color .2s ease;
+}
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcut:hover { translate: 0 -2px; border-color: rgba(59, 143, 214, .45); box-shadow: 0 12px 26px rgba(11, 47, 82, .1); }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcut > span:last-child { display: grid; gap: 2px; min-width: 0; }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcut b { font-size: 14px; }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcut small { font-size: 12px; opacity: .7; }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcutIcon { flex: 0 0 40px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: rgba(59, 143, 214, .12); color: #1d5f9e; }
+html body:not(#_) .workspaceRoot .homeLanding .hlShortcutIcon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlShortcut { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .1); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlShortcutIcon { background: rgba(140, 195, 255, .14); color: #b9dbff; }
+@media (max-width: 560px) {
+  html body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard { padding: 20px !important; }
+  html body:not(#_) .workspaceRoot .homeLanding .hlShortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html body:not(#_) .workspaceRoot .homeLanding .hlShortcut { flex-direction: column; align-items: flex-start; padding: 12px; }
+  html body:not(#_) .workspaceRoot .homeLanding .hlShortcut small { display: none; }
+}
