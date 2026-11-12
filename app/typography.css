@@ -375,3 +375,12 @@ html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select
 html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select:focus-visible { outline: none !important; box-shadow: none !important; }
 html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select:focus-visible { border-color: #2b7ac4 !important; }
 html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect, html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect:focus-within { outline: none !important; box-shadow: none !important; border: 0 !important; background: transparent !important; }
+
+/* Kartu Program: tombol aksi jelas terlihat */
+html body:not(#_) .mpCardActions > .textButton { min-height: 38px; border-radius: 10px !important; font-weight: 700 !important; font-size: 13.5px !important; transition: background .15s, border-color .15s, translate .15s; }
+html body:not(#_) .mpCardActions > .textButton:first-child { background: #0b1f33 !important; color: #fff !important; border: 1px solid #0b1f33 !important; box-shadow: 0 6px 14px rgba(11, 31, 51, .18); }
+html body:not(#_) .mpCardActions > .textButton:first-child:hover { background: #1e4f7c !important; translate: 0 -1px; }
+html body:not(#_) .mpCardActions > .textButton:not(:first-child) { background: #eaf3fb !important; color: #0b467a !important; border: 1.5px solid #9cc3e6 !important; }
+html body:not(#_) .mpCardActions > .textButton:not(:first-child):hover { background: #dcebf8 !important; border-color: #2c6aa0 !important; }
+html[data-mode="gelap"] body:not(#_) .mpCardActions > .textButton:first-child { background: #5aa9e6 !important; color: #07101e !important; border-color: #5aa9e6 !important; }
+html[data-mode="gelap"] body:not(#_) .mpCardActions > .textButton:not(:first-child) { background: rgba(90, 169, 230, .12) !important; color: #b9dbff !important; border-color: rgba(140, 195, 255, .35) !important; }
