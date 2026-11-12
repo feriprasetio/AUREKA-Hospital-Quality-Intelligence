@@ -360,3 +360,18 @@ html body:not(#_) .sdActionsCell :is(.sdEditBtn, .sdMini) { min-height: 32px; pa
 html body:not(#_) .sdTable tbody td { padding-top: 8px; padding-bottom: 8px; }
 /* Bar atas: batas bawah lembut agar isi yang lewat di bawahnya tidak tampak "terpotong" */
 html body:not(#_) .workspaceRoot .workspaceHeaderBar { box-shadow: 0 6px 18px -10px rgba(11, 31, 51, .25) !important; }
+
+/* Mode gelap: hero Beranda memakai navy gelap yang menyatu dengan permukaan, bukan biru terang */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard {
+  background: radial-gradient(110% 130% at 100% 0%, rgba(90, 169, 230, .16), transparent 55%), linear-gradient(125deg, #0d1b2e, #12294a 65%, #173459) !important;
+  box-shadow: 0 0 0 1px rgba(140, 195, 255, .10), 0 18px 40px rgba(0, 0, 0, .35) !important;
+}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard::before { background: radial-gradient(closest-side, rgba(140, 195, 255, .08), transparent); }
+
+/* Pemilih unit: satu garis tepi saja (tanpa cincin/garis ganda) */
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select,
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select:hover,
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select:focus,
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select:focus-visible { outline: none !important; box-shadow: none !important; }
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select:focus-visible { border-color: #2b7ac4 !important; }
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect, html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect:focus-within { outline: none !important; box-shadow: none !important; border: 0 !important; background: transparent !important; }
