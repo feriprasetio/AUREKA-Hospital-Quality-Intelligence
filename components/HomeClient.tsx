@@ -772,7 +772,7 @@ export default function HomeClient(){
    </header>
    <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
    <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}>
-    <span aria-hidden="true">←</span> Kembali ke beranda
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Kembali ke beranda
    </button>
    <div className={'authShell '+(!l?'authShellRegistration':'')}>
     <aside className="authAside">
@@ -800,7 +800,7 @@ export default function HomeClient(){
       <button type="button" className="landingCta big authWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login <span aria-hidden="true">→</span></button>
      </div>:<form className="authForm" onSubmit={submit} noValidate>
       <div className="authFormIntro">
-       <span className="authAccessMark" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span>
+       <img className="authBrandMark" src={LOGO} alt="" width={160} height={136} aria-hidden="true"/>
        <span className="authFormEyebrow">{l?'AKSES WORKSPACE':'REGISTRASI PENGGUNA'}</span>
        <h1>{l?'Selamat datang kembali.':'Daftar Akun Unit'}</h1>
        <p>{l?'Masuk ke AUREKA dan lanjutkan langkah perbaikan Anda.':'Lengkapi identitas dan unit kerja. Pengajuan akun akan diperiksa sebelum aktivasi.'}</p>
@@ -851,7 +851,7 @@ export default function HomeClient(){
        <button type="button" onClick={()=>{setMessage('');setView(l?'signup':'login')}}>{l?'Daftar akun unit':'Masuk di sini'}</button>
       </div>
       <div className="authFormFootnote">
-       <span aria-hidden="true">⌑</span>
+       <span aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z"/></svg></span>
        <p>{l?'Akses hanya untuk pengguna yang telah memiliki akun dan kewenangan.':'Akun baru dapat digunakan setelah verifikasi dan aktivasi oleh Komite PMKP.'}</p>
       </div>
      </form>}

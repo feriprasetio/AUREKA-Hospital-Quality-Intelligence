@@ -525,3 +525,32 @@ html body:not(#_) .tanyaHead > div:not([class]) { flex: 1 1 150px !important; mi
   html body:not(#_) .tanyaHead > .tanyaGhost { flex: 0 0 auto; margin-left: auto; }
   html body:not(#_) .tanyaHead > .tanyaGhost + .tanyaGhost { margin-left: 0; }
 }
+
+/* Login: tombol kembali tegas (berbentuk tombol), ikon catatan rapi */
+html body:not(#_) .authBack {
+  display: inline-flex !important; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px 0 10px !important;
+  border-radius: 999px !important; border: 1.5px solid rgba(11, 70, 122, .22) !important; background: rgba(255, 255, 255, .85) !important;
+  color: #0b2f52 !important; font-weight: 700 !important; font-size: 14px !important; text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(11, 47, 82, .08); cursor: pointer; transition: background .15s, border-color .15s, translate .15s;
+}
+html body:not(#_) .authBack:hover { background: #fff !important; border-color: #2c6aa0 !important; translate: -2px 0; }
+html body:not(#_) .authBack:focus-visible { outline: 3px solid rgba(44, 106, 160, .35); outline-offset: 2px; }
+html body:not(#_) .authFormFootnote > span[aria-hidden] { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; color: #2c6aa0; }
+
+/* Login dipercantik: aksen gradasi, logo, isian & tombol lebih hidup */
+html body:not(#_) .authForm { position: relative; overflow: hidden; }
+html body:not(#_) .authForm::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, #1d4f80, #3fa0e0 55%, #3fd2b0); }
+html body:not(#_) .authBrandMark { display: block; width: 52px; height: auto; margin-bottom: 14px; filter: drop-shadow(0 6px 12px rgba(11, 47, 82, .18)); }
+html body:not(#_) .authFormIntro h1 { background: linear-gradient(120deg, #0b1f33 30%, #1d5f9e); -webkit-background-clip: text; background-clip: text; color: transparent !important; }
+html body:not(#_) .authForm :is(input[type="text"], input[type="email"], input[type="password"], input:not([type])) { background: #f7fafd !important; border: 1.5px solid #d6e2ee !important; border-radius: 14px !important; transition: border-color .15s, box-shadow .15s, background .15s; }
+html body:not(#_) .authForm :is(input[type="text"], input[type="email"], input[type="password"], input:not([type])):focus { background: #fff !important; border-color: #2c6aa0 !important; box-shadow: 0 0 0 4px rgba(44, 106, 160, .14) !important; outline: none !important; }
+html body:not(#_) .authForm button[type="submit"] { background: linear-gradient(135deg, #0b2f52, #1e5f99) !important; box-shadow: 0 12px 26px rgba(11, 47, 82, .28) !important; transition: translate .15s, box-shadow .15s !important; }
+html body:not(#_) .authForm button[type="submit"]:hover:not(:disabled) { translate: 0 -2px; box-shadow: 0 16px 32px rgba(11, 47, 82, .32) !important; }
+@media (prefers-reduced-motion: no-preference) {
+  html body:not(#_) .authForm { animation: authRise .5s cubic-bezier(.2, .8, .2, 1) both; }
+  html body:not(#_) .authBrandMark { animation: authRise .6s .08s cubic-bezier(.2, .8, .2, 1) both; }
+}
+@keyframes authRise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: none; } }
+html[data-mode="gelap"] body:not(#_) .authFormIntro h1 { background: linear-gradient(120deg, #eef4fb 30%, #8cc3ff); -webkit-background-clip: text; background-clip: text; }
+html[data-mode="gelap"] body:not(#_) .authForm :is(input[type="text"], input[type="email"], input[type="password"], input:not([type])) { background: rgba(255,255,255,.06) !important; border-color: rgba(140,195,255,.3) !important; }
+html[data-mode="gelap"] body:not(#_) .authBack { background: rgba(255,255,255,.08) !important; color: #dbe8f6 !important; border-color: rgba(140,195,255,.3) !important; }
