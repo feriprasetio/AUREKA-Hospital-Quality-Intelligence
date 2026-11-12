@@ -119,7 +119,7 @@ export default function HomeClient(){
  },[])
  const [uiMode,setUiMode]=useState<'terang'|'gelap'>('terang')
  useEffect(()=>{const h=(e:Event)=>{const d=(e as CustomEvent).detail;if(d==='gelap'||d==='terang')setUiMode(d)};window.addEventListener('aureka-mode-change',h);return()=>window.removeEventListener('aureka-mode-change',h)},[])
- useEffect(()=>{if(typeof document==='undefined')return;document.documentElement.setAttribute('data-skin','arktik');document.documentElement.removeAttribute('data-dark');document.documentElement.style.colorScheme='';try{localStorage.removeItem('aureka-theme');localStorage.removeItem('aureka-dark')}catch{}if(document.documentElement.getAttribute('data-mode')==='gelap')setUiMode('gelap')},[])
+ useEffect(()=>{if(typeof document==='undefined')return;document.documentElement.setAttribute('data-skin','solid');document.documentElement.setAttribute('data-mode','terang');document.documentElement.style.colorScheme='light';setUiMode('terang');try{localStorage.removeItem('aureka-theme');localStorage.setItem('aureka-mode','terang')}catch{}},[])
  const [settingsTab,setSettingsTab]=useState<'security'|null>(null)
  const [patientsSection,setPatientsSection]=useState<'register'|'stats'|'metadata'>('register')
  useEffect(()=>{const h=()=>{setSettingsTab('security');setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()};window.addEventListener('aureka-open-password',h);return()=>window.removeEventListener('aureka-open-password',h)},[])
