@@ -57,7 +57,7 @@ tr:last-child td{border-bottom:0}
   .header h1{font-size:15px;text-align:center}
   .header p{font-size:9px;text-align:center;color:#111}
   .grid{display:block}
-  .sidebar{display:none!important}
+  .sidebar,.flow-card,.flow-actions{display:none!important}
   .maincard{border:0;box-shadow:none;border-radius:0}
   .maincard>.hd{padding:0 0 4px;border:0;font-size:11px}
   .maincard>.bd{padding:0}
@@ -215,6 +215,11 @@ tr:last-child td{border-bottom:0}
   @media(max-width:1100px){.sidebar>.bd,.sign-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.sidebar>.bd,.sign-fields{grid-template-columns:minmax(0,1fr)}.sidebar>.bd>*{grid-column:auto!important}}
   @media print{.sign-block .sign-fields{display:grid}}
+
+  .flow-card{padding:0}
+  .flow-card .sign-block{border:0!important;background:#fff;border-radius:18px}
+  .flow-actions{display:flex!important;flex-wrap:wrap;gap:8px;padding:12px 14px;background:#fff;border:1px solid var(--border);border-radius:16px;position:sticky;bottom:0;box-shadow:0 -6px 18px rgba(11,47,82,.06)}
+  .flow-actions #resetFppeBtn{margin-left:auto}
 </style>
 </head>
 <body>
@@ -665,7 +670,7 @@ function applyRoster(roster) {
 
 function setReadOnly(value) {
   fppeReadOnly = !!value;
-  document.querySelectorAll(".sidebar input, .sidebar select, .sidebar textarea, .maincard input, .maincard select, .maincard textarea").forEach(el => { el.disabled = fppeReadOnly; });
+  document.querySelectorAll(".sidebar input, .sidebar select, .sidebar textarea, .flow-card input, .flow-card select, .flow-card textarea, .maincard input, .maincard select, .maincard textarea").forEach(el => { el.disabled = fppeReadOnly; });
   ["saveFppeBtn","submitFppeBtn","resetFppeBtn"].forEach(id => { const el=$(id); if(el) el.style.display = fppeReadOnly ? "none" : ""; });
   const picker = $("staffPicker");
   if (picker) picker.disabled = fppeReadOnly || fppeRoster.length === 0;
@@ -834,8 +839,23 @@ window.addEventListener("message", event => {
 });
 
 function notifyFrameHeight() {
-  if (EMBEDDED && window.parent) window.parent.postMessage({type:"AUREKA_FPPE_RESIZE",height:document.documentElement.scrollHeight},window.location.origin);
+  // Ukur tinggi isi sebenarnya (bukan tinggi jendela) agar iframe tidak menyisakan ruang kosong di bawah.
+  const box = document.querySelector(".container");
+  const h = box ? Math.ceil(box.getBoundingClientRect().height) : document.body.scrollHeight;
+  if (EMBEDDED && window.parent) window.parent.postMessage({type:"AUREKA_FPPE_RESIZE",height:h},window.location.origin);
 }
+// Urutan pengisian untuk pengguna awam: 1) identitas → 2) penilaian → 3) pengesahan → simpan/ajukan di paling bawah.
+(function reorderFlow(){
+  const grid = document.querySelector(".grid");
+  const sign = document.querySelector(".sign-block");
+  const actions = document.querySelector(".sidebar .actions");
+  if (!grid) return;
+  if (sign) { const wrap = document.createElement("section"); wrap.className = "card flow-card"; wrap.appendChild(sign); grid.appendChild(wrap); sign.open = true; }
+  if (actions) { actions.classList.add("flow-actions"); grid.appendChild(actions); }
+  const hd = document.querySelector(".sidebar > .hd"); if (hd) hd.textContent = "Langkah 1 · Identitas & jenis FPPE";
+  if (sign) { const sum = sign.querySelector("summary"); if (sum) sum.innerHTML = "Langkah 3 · Pengesahan (penanda tangan)"; }
+})();
+if (window.ResizeObserver) { const box = document.querySelector(".container"); if (box) new ResizeObserver(notifyFrameHeight).observe(box); }
 window.addEventListener("resize", notifyFrameHeight);
 window.addEventListener("load", notifyFrameHeight);
 
