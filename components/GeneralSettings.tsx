@@ -8,6 +8,7 @@ import { readAllPages } from '@/lib/aureka/pagination'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import AurekaModal from '@/components/ui/AurekaModal'
+import { SystemConfigPanel, PermissionMatrixPanel } from '@/components/governance/SettingsGovernancePanels'
 
 function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' | 'palette' }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -54,6 +55,7 @@ export default function GeneralSettings({
   onRoomsChanged,
   openProfile,
   initialTab,
+  startAt,
 }: {
   profile: Profile | null
   role: string | null
@@ -64,10 +66,14 @@ export default function GeneralSettings({
   openProfile?: boolean
   /** Dibuka dari tombol "Ubah password": langsung ke Keamanan & Password. */
   initialTab?: 'security'
+  /** Blueprint v2 §1: submenu Pengaturan di sidebar membuka bagian yang sesuai. */
+  startAt?: 'profile' | 'security' | 'units' | 'users' | 'appearance' | 'system' | 'permissions' | 'mydata'
 }) {
-  const [section, setSection] = useState<'general' | 'users' | 'mydata' | 'appearance'>('general')
+  const startSection = startAt === 'users' ? 'users' : startAt === 'appearance' ? 'appearance' : startAt === 'system' ? 'system' : startAt === 'permissions' ? 'permissions' : startAt === 'mydata' ? 'mydata' : 'general'
+  const [section, setSection] = useState<'general' | 'users' | 'mydata' | 'appearance' | 'system' | 'permissions'>(startSection)
   void openProfile
-  const [tab, setTab] = useState<'profile' | 'units' | 'security'>(initialTab === 'security' ? 'security' : 'profile')
+  const [tab, setTab] = useState<'profile' | 'units' | 'security'>(initialTab === 'security' || startAt === 'security' ? 'security' : startAt === 'units' ? 'units' : 'profile')
+  useEffect(() => { setSection(startSection); setTab(initialTab === 'security' || startAt === 'security' ? 'security' : startAt === 'units' ? 'units' : 'profile') }, [startAt]) // eslint-disable-line react-hooks/exhaustive-deps
   const [pwShow, setPwShow] = useState(false)
   const [resetBusy, setResetBusy] = useState(false)
   useEffect(() => {
@@ -562,7 +568,9 @@ export default function GeneralSettings({
           ['general', 'security', 'Keamanan & Password', 'lock', true],
           ['appearance', null, 'Tampilan', 'palette', true],
           ['general', 'units', 'Unit & Instalasi', 'unit', isAdmin],
-          ['users', null, 'Manajemen User / PIC', 'users', isAdmin],
+          ['users', null, 'Pengguna & Role', 'users', isAdmin],
+          ['permissions', null, 'Hak Akses Role', 'lock', ['ADMIN', 'DIREKTUR', 'PMKP'].includes(effectiveRole || '')],
+          ['system', null, 'Konfigurasi Sistem', 'unit', isAdmin],
           ['mydata', null, 'Data Saya untuk PMKP', 'data', !isAdmin],
         ] as const).filter(item => item[4]).map(([sec, t, label, icon]) => {
           const current = section === sec && (t === null || tab === t)
@@ -575,6 +583,8 @@ export default function GeneralSettings({
       <div className="stMain">
       <WorkspaceModuleHeader title="Pengaturan" />
       {section === 'appearance' && <AppearancePanel />}
+      {section === 'system' && <SystemConfigPanel />}
+      {section === 'permissions' && <PermissionMatrixPanel />}
 
       {section === 'general' && (
         <>
@@ -980,6 +990,26 @@ function AppearancePanel() {
           </button>
         ))}
       </div>
+      <PreferenceExtras />
     </LiquidGlass>
+  )
+}
+
+/** Preferensi per perangkat: ukuran teks & animasi (Blueprint v2 §1 · Preferensi Tampilan). */
+function PreferenceExtras() {
+  const read = (k: string, d: string) => { try { return localStorage.getItem(k) || d } catch { return d } }
+  const [size, setSize] = useState(() => (typeof window === 'undefined' ? 'normal' : read('aureka-text-size', 'normal')))
+  const [motion, setMotion] = useState(() => (typeof window === 'undefined' ? 'on' : read('aureka-motion', 'on')))
+  const apply = (k: string, attr: string, v: string, def: string) => {
+    try { localStorage.setItem(k, v) } catch { /* abaikan */ }
+    if (v === def) document.documentElement.removeAttribute(attr); else document.documentElement.setAttribute(attr, v)
+  }
+  return (
+    <div className="stPrefExtras">
+      <div className="stPrefRow"><div><b>Ukuran teks</b><small>Memperbesar seluruh teks dan kontrol aplikasi di perangkat ini.</small></div>
+        <div className="govSegment" role="radiogroup" aria-label="Ukuran teks">{([['normal', 'Normal'], ['besar', 'Besar'], ['sangat-besar', 'Sangat besar']] as const).map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={size === v} className={size === v ? 'active' : ''} onClick={() => { setSize(v); apply('aureka-text-size', 'data-text-size', v, 'normal') }}>{l}</button>)}</div></div>
+      <div className="stPrefRow"><div><b>Animasi</b><small>Matikan bila perangkat terasa lambat atau Anda lebih suka tampilan tanpa gerakan.</small></div>
+        <div className="govSegment" role="radiogroup" aria-label="Animasi">{([['on', 'Aktif'], ['off', 'Nonaktif']] as const).map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={motion === v} className={motion === v ? 'active' : ''} onClick={() => { setMotion(v); apply('aureka-motion', 'data-motion', v, 'on') }}>{l}</button>)}</div></div>
+    </div>
   )
 }
