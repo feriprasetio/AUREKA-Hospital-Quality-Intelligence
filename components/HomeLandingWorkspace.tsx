@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NavigateFn } from '@/lib/aureka/focus'
 import TanyaAureka from '@/components/TanyaAureka'
+import InfographicsDashboard from '@/components/governance/InfographicsDashboard'
 import { fetchRoomMonthCounts, type RoomMonthCount } from '@/lib/aureka/quality-counts'
 
 type Room = { id:number; name:string }
@@ -319,30 +320,14 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
       <section className="hlPanel hlAi"><header className="hlPanelHead"><h3>Tanya AI</h3><span>Asisten mutu dan keselamatan pasien</span></header><TanyaAureka sb={supabase} page="Beranda" embedded/></section>
     </div>}
     {tab==='infographics'&&<div id="home-panel-infographics" role="tabpanel">
-      {error&&<div className="hlNotice">{error}</div>}
-      <section className="hlPanel hlExplorer">
-        <div className="hlExplorerHead"><div><h3>Eksplorasi data rumah sakit</h3><p>Pilih indikator, unit, periode, dan bentuk visualisasi untuk menelaah data.</p></div><span className="hlDataScope">{infoRoomId?infoRoomName:'Seluruh unit'}</span></div>
-        <div className="hlFilterGrid">
-          <label><span>Data yang ditampilkan</span><select value={infoMetric} onChange={e=>setInfoMetric(e.target.value as typeof infoMetric)}>
-            <option value="activity">Aktivitas input data</option><option value="episodes">Episode pasien</option><option value="diagnosis">Distribusi diagnosis</option><option value="avg_los">Rata-rata Length of Stay</option><option value="active">Episode rawat inap terbuka</option>
-          </select></label>
-          <label><span>Jenis chart</span><select value={effectiveChart} onChange={e=>setInfoChart(e.target.value as InfographicChartType)}>
-            {chartOptions.map(type=><option key={type} value={type}>{type==='line'?'Line chart':type==='area'?'Area chart':type==='bar'?'Bar chart':'Doughnut chart'}</option>)}
-          </select></label>
-          <label><span>Periode data</span><select value={infoYear} onChange={e=>setInfoYear(e.target.value)}>
-            {Array.from({length:5},(_,i)=>String(new Date().getFullYear()-i)).map(year=><option key={year} value={year}>{year}</option>)}
-          </select></label>
-          {manager&&!scopeToRoom&&<label><span>Unit pelayanan</span><select value={infoRoom} onChange={e=>setInfoRoom(e.target.value)}><option value="">Seluruh unit</option>{rooms.map(room=><option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
-        </div>
-        <div className="hlSummaryGrid">
-          <div className="hlSummaryMetric"><span>Total data tertampil</span><strong>{loading?'—':infographicTotal.toLocaleString('id-ID',{maximumFractionDigits:1})}</strong><small>{infographic.unit}</small></div>
-          <div className="hlSummaryMetric"><span>Rata-rata per kategori/periode</span><strong>{loading?'—':infographicAverage.toLocaleString('id-ID',{maximumFractionDigits:1})}</strong><small>{infographic.data.length} kategori/periode</small></div>
-          <div className="hlSummaryMetric"><span>Nilai tertinggi</span><strong>{loading?'—':infographicPeak.value.toLocaleString('id-ID',{maximumFractionDigits:1})}</strong><small>{infographicPeak.label}</small></div>
-        </div>
-        <div className="hlVisualizationHead"><div><h4>{infographic.title}</h4><p>{infographic.description}</p></div><span>{infoRoomId?infoRoomName:'Seluruh unit'} · {infoYear}</span></div>
-        {loading?<div className="hlEmpty">Memuat data untuk pilihan Anda…</div>:!infographic.available?<div className="hlEmpty">{infoMetric==='diagnosis'&&metrics.aggregateOnly?'Distribusi diagnosis memerlukan pilihan satu unit karena ringkasan lintas unit saat ini hanya menyediakan agregat jumlah.':infoMetric==='avg_los'||infoMetric==='active'?'Pilih satu unit untuk menampilkan metrik episode pasien secara terperinci.':'Belum ada data untuk indikator dan periode yang dipilih.'}</div>:<InfographicChart data={infographic.data} type={effectiveChart} category={infographic.kind==='category'} unit={infographic.unit}/>}
-        <p className="hlDate">Sumber: data AUREKA pada periode profil terpilih. Angka merupakan agregat catatan yang tersedia, bukan otomatis jumlah pasien unik. Data episode terbuka bukan pengganti sensus tempat tidur.</p>
-      </section>
+      <InfographicsDashboard
+        mode="full"
+        rooms={rooms}
+        role={role}
+        initialRoomId={isAdmin ? (selectedRoomId ?? roomId) : (manager || role==='DEWAN_PENGAWAS' ? null : roomId)}
+        unitLocked={isAdmin || !['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role || '')}
+        onNavigate={onNavigate}
+      />
     </div>}
   </section>
 }
