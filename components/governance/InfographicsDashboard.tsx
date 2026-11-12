@@ -21,6 +21,7 @@ type ChartModel = { id: string; label: string; description: string; insight: str
 
 const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
 const GLOBAL_ROLES = ['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS']
+const DONUT_COLORS = ['#4b8b75','#638ba8','#c58a48','#8b79ad','#6e9d9a','#b97878','#8a9a58','#7a91b8','#ad8b63','#6d9b83','#9b83a8','#8c9ca8','#b28a91']
 const n = (v: unknown) => Number.isFinite(Number(v)) ? Number(v) : 0
 const fmt = (v: unknown) => n(v).toLocaleString('id-ID')
 const pct = (v: unknown) => n(v).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'
@@ -107,19 +108,14 @@ function ChartGraphic({ model, type }: { model: ChartModel; type: 'column' | 'ba
       <circle cx="380" cy="145" r="78" fill="none" stroke="#edf1f4" strokeWidth="28"/>
       {values.map((value, index) => {
         const length = value / total * circumference
-        const circle = <circle key={model.labels[index]} cx="380" cy="145" r="78" fill="none" stroke={colors[index % colors.length] || '#4b8b75'} strokeWidth="28" strokeDasharray={String(length) + ' ' + String(circumference - length)} strokeDashoffset={String(-offset)} transform="rotate(-90 380 145)"/>
+        const circle = <circle key={model.labels[index]} cx="380" cy="145" r="78" fill="none" stroke={DONUT_COLORS[index % DONUT_COLORS.length]} strokeWidth="28" strokeDasharray={String(length) + ' ' + String(circumference - length)} strokeDashoffset={String(-offset)} transform="rotate(-90 380 145)"/>
         offset += length
         return circle
       })}
       <text x="380" y="140" textAnchor="middle" fontSize="27" fontWeight="850" fill="#21374f">{fmt(total)}</text>
       <text x="380" y="161" textAnchor="middle" fontSize="11" fill="#73849a">Total</text>
-      {model.labels.map((label, index) => {
-        const col = index % 2
-        const row = Math.floor(index / 2)
-        const x = 40 + col * 385
-        const y = 270 + row * 18
-        return <g key={label}><rect x={x} y={y - 8} width="9" height="9" rx="2" fill={colors[index % colors.length] || '#4b8b75'}/><text x={x + 15} y={y} fontSize="10" fill="#65778a">{label.length > 34 ? label.slice(0, 32) + '…' : label} · {fmt(values[index])}</text></g>
-      })}
+      <text x="380" y="270" textAnchor="middle" fontSize="10" fill="#73849a">Rincian kategori tersedia pada legenda di bawah grafik</text>
+
     </svg>
   }
   if (type === 'bar') {
@@ -271,7 +267,8 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         </div>
         <div className="ifSectionHead"><div><h3>{activeChart.label}</h3><p>{activeChart.description}</p></div></div>
         <ChartGraphic model={activeChart} type={chartType}/>
-        <ChartLegend series={activeChart.series}/>
+        {chartType === 'donut' && <div className="ifMiniCard" style={{marginTop:8}}><Distribution items={activeChart.labels.map((label,index)=>({label,count:activeChart.series.reduce((sum,series)=>sum+Math.max(0,series.values[index]??0),0)}))}/></div>}
+        {chartType !== 'donut' && <ChartLegend series={activeChart.series}/>}
         <div className="ifInsight"><b>Catatan interpretasi:</b> {activeChart.insight}</div>
       </section>}
       <div className="ifLowerGrid">
