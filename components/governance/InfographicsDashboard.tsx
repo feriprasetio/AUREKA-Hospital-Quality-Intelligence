@@ -214,7 +214,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       series: [{ label: 'Jumlah', color: '#4b8b75', values: items.map((item) => n(item.count)) }],
     })
     const result: ChartModel[] = [
-      { id: 'quality-trend', label: 'Tren pengumpulan dan validasi indikator', description: 'Perbandingan catatan indikator yang masuk dan yang telah tervalidasi per bulan.', insight: 'Catatan tervalidasi merupakan bagian dari keseluruhan catatan. Bulan tanpa baris observasi ditampilkan sebagai celah, bukan dianggap bernilai nol.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
+      { id: 'quality-trend', label: 'Tren pengumpulan dan validasi indikator', description: 'Perbandingan catatan indikator yang masuk dan yang telah tervalidasi per bulan.', insight: 'Catatan tervalidasi merupakan bagian dari keseluruhan catatan. Bulan dengan 0 catatan berarti belum ada record yang masuk pada bulan tersebut; angka ini bukan capaian 0%.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
         { label: 'Seluruh catatan', color: '#77a9c7', values: monthData(summary.quality.monthly || [], 'total') },
         { label: 'Tervalidasi', color: '#286d91', values: monthData(summary.quality.monthly || [], 'validated') },
       ] },
@@ -292,6 +292,6 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       </div>
     </>}
     {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label} →</button>)}</nav>}
-    <p className="ifNote">Sumber: agregasi server-side AUREKA. Nilai mengikuti filter periode, unit, dan hak akses. Bulan tanpa observasi ditampilkan sebagai celah, bukan nol. Grafik volume pelaporan tidak dapat ditafsirkan sebagai angka insidensi tanpa denominator paparan yang sesuai.</p>
+    <p className="ifNote">Sumber: agregasi server-side AUREKA. Nilai mengikuti filter periode, unit, dan hak akses. Bulan dengan 0 catatan menunjukkan belum ada record yang masuk, bukan nilai capaian 0%. Volume laporan insiden tidak dapat ditafsirkan sebagai angka insidensi tanpa denominator paparan yang sesuai.</p>
   </section>
 }
