@@ -12,6 +12,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
+import { logSensitiveView } from '@/lib/aureka/sensitive-access'
 import {
   buildOppeResponseIndex,
   buildOppeScore,
@@ -235,6 +236,7 @@ export default function OppeAuditWorkspace({
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'OPPE / FPPE' } }))
   }, [notice, error])
   const [screen, setScreen] = useState<'assessment' | 'fppe' | 'rules' | 'history'>(initialScreen)
+  useEffect(() => { if (screen === 'assessment' || screen === 'fppe' || screen === 'history') logSensitiveView('hr_performance', 'oppe-' + screen) }, [screen])
   const [form, setForm] = useState<FormState>(() => defaultForm(initialRoom, new Date().getFullYear(), Math.ceil((new Date().getMonth() + 1) / 3)))
   const [savedClinicalSnapshot, setSavedClinicalSnapshot] = useState<ClinicalIndicatorResult[] | null>(null)
   const [savedScoreSnapshot, setSavedScoreSnapshot] = useState<ReturnType<typeof buildOppeScore> | null>(null)

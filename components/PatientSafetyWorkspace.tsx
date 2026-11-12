@@ -13,6 +13,8 @@ import SurveyWizard from '@/components/patient-safety/SurveyWizard'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
+import { logSensitiveView } from '@/lib/aureka/sensitive-access'
+import { aurekaSupabase } from '@/lib/aureka/supabase'
 
 type Room = { id: number; name: string }
 type StaffOption = {
@@ -291,11 +293,21 @@ export default function PatientSafetyWorkspace({
   const scopeUnitName = scopeRoomId == null ? '' : (rooms.find((room) => Number(room.id) === Number(scopeRoomId))?.name ?? '')
   const normalizeUnitName = (value: unknown) => String(value ?? '').trim().toLocaleLowerCase('id-ID')
   const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>(initialTab)
+  // Blueprint v2 §13: akses layar investigasi dan respons survei bernama dicatat di audit log
+  useEffect(() => { if (tab === 'investigation') logSensitiveView('incident_investigation', 'workspace-investigasi'); else if (tab === 'responses') logSensitiveView('survey_named_response', 'rekapan-survei') }, [tab])
   useEffect(() => { setTab(initialTab) }, [initialTab])
   useEffect(() => { onTabChange?.(tab) }, [tab, onTabChange])
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
   const [responses, setResponses] = useState<CultureResponse[]>([])
+  // Blueprint v2 §10: selain Super Admin, role yang diberi izin 'survey.read.named_response' (mis. Direktur) dapat membuka rekapan survei.
+  const [canReadResponses, setCanReadResponses] = useState(isSuperAdmin)
+  useEffect(() => {
+    if (isSuperAdmin) { setCanReadResponses(true); return }
+    let cancelled = false
+    aurekaSupabase.rpc('aureka_has_permission', { p_permission: 'survey.read.named_response' }).then(({ data, error }) => { if (!cancelled && !error) setCanReadResponses(data === true) }, () => undefined)
+    return () => { cancelled = true }
+  }, [isSuperAdmin])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -465,7 +477,7 @@ export default function PatientSafetyWorkspace({
         setStaffEntityLinks([])
       }
 
-      if (isSuperAdmin) {
+      if (canReadResponses) {
         const allResponses = await readAllPages<CultureResponse>((from, to) => db.from('culture_responses')
           .select('*')
           .order('submitted_at', { ascending: false })
@@ -480,7 +492,7 @@ export default function PatientSafetyWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin, scopeRoomId, scopeUnitName])
+  }, [db, qualityDb, rooms, canManageWorkflow, isSuperAdmin, canReadResponses, scopeRoomId, scopeUnitName])
 
   useEffect(() => { void loadData() }, [loadData])
   useEffect(() => {
@@ -934,7 +946,7 @@ export default function PatientSafetyWorkspace({
       <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Belum Closed</span><strong>{incidents.filter(row => row.status !== 'closed').length}</strong><small>Perlu pemantauan</small></LiquidGlass>
       <LiquidGlass className="psKpi"><span>Investigasi Aktif</span><strong>{openInvestigations.length}</strong><small>RCA belum closed</small></LiquidGlass>
-      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{isSuperAdmin ? responses.length : '—'}</strong></LiquidGlass>
+      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{canReadResponses ? responses.length : '—'}</strong></LiquidGlass>
     </div>
     </details>
 
@@ -944,7 +956,7 @@ export default function PatientSafetyWorkspace({
             { value: 'incidents' as const, label: 'Laporan IKP' },
             { value: 'investigation' as const, label: 'Investigasi / RCA' },
             { value: 'survey' as const, label: 'Survey Budaya' },
-            ...(isSuperAdmin ? [{ value: 'responses' as const, label: 'Rekapan Survey' }] : []),
+            ...(canReadResponses ? [{ value: 'responses' as const, label: 'Rekapan Survey' }] : []),
           ]).map(item =>
             <button type="button" key={item.value} className={'psTab' + (tab === item.value ? ' active' : '')} onClick={() => { setTab(item.value); setError(''); setMessage('') }}>{item.label}</button>
           )}
@@ -1090,7 +1102,7 @@ export default function PatientSafetyWorkspace({
       onReset={resetSurvey}
     /> : null}
 
-    {tab === 'responses' && isSuperAdmin ? <>
+    {tab === 'responses' && canReadResponses ? <>
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><div className="psEyebrow">SUPERADMIN · RESPONSE REPOSITORY</div><h4>Rekapan Survey Budaya Keselamatan</h4></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
         <div className="psFilterGrid">
@@ -1111,7 +1123,7 @@ export default function PatientSafetyWorkspace({
       </LiquidGlass>
     </> : null}
 
-    {tab === 'responses' && !isSuperAdmin ? <LiquidGlass className="psPanel"><div className="psEmpty">Rekapan jawaban mentah hanya tersedia bagi Superadmin.</div></LiquidGlass> : null}
+    {tab === 'responses' && !canReadResponses ? <LiquidGlass className="psPanel"><div className="psEmpty">Rekapan respons survei hanya untuk role yang diberi izin (Super Admin, Direktur, atau sesuai Hak Akses Role).</div></LiquidGlass> : null}
     
   </div>
 }
