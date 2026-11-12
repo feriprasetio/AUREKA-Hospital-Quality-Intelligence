@@ -260,8 +260,9 @@ html body:not(#_) .rmFilterBar > select { flex: 1 1 150px; width: auto; height: 
 html body:not(#_) .rmFilterBar > select:first-of-type { flex: 2 1 240px; }
 html body:not(#_) .rmFilterBar .rmBarActions { margin-left: auto; flex-wrap: nowrap; }
 html body:not(#_) .rmFilterBar .rmButton { min-height: 38px; padding: 0 14px; white-space: nowrap; }
-html body:not(#_) .rmWorkspace .rmTableWrap { max-height: calc(100dvh - 330px) !important; min-height: 260px; }
-html body:not(#_) .rmWorkspace .rmTable td { padding-top: 6px !important; padding-bottom: 6px !important; }
+html body:not(#_) .rmWorkspace .rmTableWrap { max-height: calc(100dvh - 440px) !important; min-height: 240px; }
+html body:not(#_) .rmWorkspace .rmTable tbody td { padding-top: 5px !important; padding-bottom: 5px !important; height: auto !important; }
+html body:not(#_) .rmWorkspace .rmTable .rmRiskName { padding-top: 2px !important; padding-bottom: 2px !important; min-height: 0 !important; }
 html body:not(#_) .rmWorkspace .rmRiskName small { margin-top: 1px; }
 html body:not(#_) .rmWorkspace .rmTableFooter { margin-top: 8px; }
 
