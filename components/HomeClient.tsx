@@ -859,7 +859,7 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="solid-white" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
+ if(view==='workspace')return <main data-aureka-theme="arktik-glass" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
