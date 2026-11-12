@@ -130,4 +130,7 @@ test('PIC performance dashboard and indicator proposal workspaces are wired to a
   const dashboardHotfix = read('supabase/migrations/20261112131952_fix_pic_performance_dashboard_alias.sql')
   assert.match(dashboardHotfix, /active_pic\.room_id/)
   assert.doesNotMatch(dashboardHotfix, /sta\.room_id/)
+  const triggerHotfix = read('supabase/migrations/20261112132415_fix_indicator_proposal_trigger_search_path.sql')
+  assert.match(triggerHotfix, /set search_path = aureka_governance, pg_temp/)
+  assert.match(triggerHotfix, /revoke all on function aureka_governance\.indicator_proposal_event_immutable/)
 })
