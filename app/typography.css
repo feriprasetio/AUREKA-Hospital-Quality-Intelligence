@@ -517,3 +517,11 @@ html body:not(#_) .workspaceRoot .homeLanding :is(.hlReminderBtn, .hlReminderRea
   html body:not(#_) .sdActions { gap: 6px; }
   html body:not(#_) .sdActions .sdBtn { white-space: nowrap; }
 }
+
+/* Tanya AUREKA: judul tidak terjepit tombol Simpan/Hapus */
+html body:not(#_) .tanyaHead { flex-wrap: wrap !important; row-gap: 6px; }
+html body:not(#_) .tanyaHead > div:not([class]) { flex: 1 1 150px !important; min-width: 0 !important; }
+@media (max-width: 640px) {
+  html body:not(#_) .tanyaHead > .tanyaGhost { flex: 0 0 auto; margin-left: auto; }
+  html body:not(#_) .tanyaHead > .tanyaGhost + .tanyaGhost { margin-left: 0; }
+}
