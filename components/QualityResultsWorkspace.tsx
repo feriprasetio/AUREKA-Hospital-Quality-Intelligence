@@ -15,6 +15,7 @@ import {
   aggregateClinicalPathwayRows,
   aggregatePathwayByMonth,
   calculateIndicatorResult,
+  calculateIndicatorResultsForProfiles,
   type ClinicalDeathAuditResultRow,
   type ClinicalPathwayRow,
   type IndicatorProfileForResults,
@@ -121,10 +122,7 @@ function normalizeRoom(value: unknown): number | null {
 function defaultRoom(rooms: Room[], initialRoomId: number | null, canViewAllRooms: boolean): number | null {
   const initial = normalizeRoom(initialRoomId)
   if (initial != null) return initial
-  if (canViewAllRooms) {
-    const firstUnit = rooms.find((room) => /informasi\s+dan\s+pengaduan/i.test(room.name))
-    if (firstUnit) return normalizeRoom(firstUnit.id)
-  }
+  if (canViewAllRooms) return null
   return normalizeRoom(rooms[0]?.id)
 }
 
@@ -223,7 +221,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
     const incoming = normalizeRoom(initialRoomId)
-    if (incoming != null && incoming !== roomId) setRoomId(incoming)
+    if (incoming !== roomId) setRoomId(incoming)
   }, [initialRoomId])
   useEffect(() => {
     if (roomId == null) {
@@ -233,8 +231,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }, [roomId, rooms, initialRoomId, canViewAllRooms])
 
   useEffect(() => {
-    if (roomId != null && (initialRoomId != null || !canViewAllRooms)) onRoomChange?.(roomId)
-  }, [roomId, onRoomChange, initialRoomId, canViewAllRooms])
+    if (canViewAllRooms) onRoomChange?.(roomId)
+    else if (roomId != null) onRoomChange?.(roomId)
+  }, [roomId, onRoomChange, canViewAllRooms])
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
   const [rawIndicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
@@ -267,7 +266,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
 
     const load = async () => {
       const selectedRoom = normalizeRoom(roomId)
-      if (selectedRoom == null) {
+      if (selectedRoom == null && !canViewAllRooms) {
         throw new Error('Unit kerja belum terpetakan. Pilih unit yang valid sebelum melihat hasil audit.')
       }
 
@@ -277,22 +276,23 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           (includeOperationalFields
             ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit,source_import:core_data->source_import'
             : '')
-        const [profileResult, recordResult] = await Promise.all([
-          q().from('indicator_profiles')
-            .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
-            .eq('room_id', selectedRoom)
-            .eq('profile_year', year)
-            .eq('status', 'published')
-            .eq('is_active', true)
-            .order('code'),
-          readPaged<ResultRecord>((from, to) => q().from('quality_records')
+        let profileQuery: any = q().from('indicator_profiles')
+          .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
+          .eq('profile_year', year)
+          .eq('status', 'published')
+          .eq('is_active', true)
+          .order('room_id')
+          .order('code')
+        if (selectedRoom != null) profileQuery = profileQuery.eq('room_id', selectedRoom)
+        const recordQuery = readPaged<ResultRecord>((from, to) => {
+          let request: any = q().from('quality_records')
             .select(indicatorRecordSelect)
-            .eq('room_id', selectedRoom)
             .eq('profile_year', year)
             .neq('status', 'archived')
-            .order('created_at', { ascending: false })
-            .range(from, to)),
-        ])
+          if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
+          return request.order('created_at', { ascending: false }).range(from, to)
+        })
+        const [profileResult, recordResult] = await Promise.all([profileQuery, recordQuery])
         if (profileResult.error) throw profileResult.error
         if (recordResult.rows.length > 0) {
           recordResult.rows = recordResult.rows.map((row: any) => ({
@@ -314,26 +314,28 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       } else if (mode === 'pathway') {
         const start = String(year) + '-01-01'
         const end = String(year + 1) + '-01-01'
-        const result = await readPaged<ClinicalPathwayRow>((from, to) => q().from('clinical_pathway_audits')
-          .select('room_id,template_code,template_name,admission_date,created_at,updated_at,status,template_snapshot,selected_items_json,additional_phases_json,inclusion_json,answers_json,variations_json,calculation_json')
-          .eq('room_id', selectedRoom)
-          .gte('admission_date', start)
-          .lt('admission_date', end)
-          .neq('status', 'archived')
-          .order('admission_date', { ascending: false })
-          .range(from, to))
+        const result = await readPaged<ClinicalPathwayRow>((from, to) => {
+          let request: any = q().from('clinical_pathway_audits')
+            .select('room_id,template_code,template_name,admission_date,created_at,updated_at,status,template_snapshot,selected_items_json,additional_phases_json,inclusion_json,answers_json,variations_json,calculation_json')
+            .gte('admission_date', start)
+            .lt('admission_date', end)
+            .neq('status', 'archived')
+          if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
+          return request.order('admission_date', { ascending: false }).range(from, to)
+        })
         if (cancelled) return
         RESULTS_CACHE.set(cacheKey, { at: Date.now(), pathway: result.rows })
         setPathwayData(result.rows)
         setCapped(result.capped)
       } else {
-        const result = await readPaged<ClinicalDeathAuditResultRow>((from, to) => q().from('clinical_death_audits')
-          .select('room_id,audit_type,review_period,review_phases:review_json->phases,review_recommended_actions:review_json->>recommended_actions,review_learning_points:review_json->>learning_points,overall_care_score,care_issue_identified,contribution_to_outcome,avoidability_score,status,created_at,updated_at,validated_at')
-          .eq('room_id', selectedRoom)
-          .eq('review_period', String(year))
-          .neq('status', 'archived')
-          .order('updated_at', { ascending: false })
-          .range(from, to))
+        const result = await readPaged<ClinicalDeathAuditResultRow>((from, to) => {
+          let request: any = q().from('clinical_death_audits')
+            .select('room_id,audit_type,review_period,review_phases:review_json->phases,review_recommended_actions:review_json->>recommended_actions,review_learning_points:review_json->>learning_points,overall_care_score,care_issue_identified,contribution_to_outcome,avoidability_score,status,created_at,updated_at,validated_at')
+            .eq('review_period', String(year))
+            .neq('status', 'archived')
+          if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
+          return request.order('updated_at', { ascending: false }).range(from, to)
+        })
         if (cancelled) return
         setClinicalData(result.rows.map((row) => ({
           ...row,
@@ -356,8 +358,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     return () => { cancelled = true }
   }, [mode, roomId, year, reload])
 
-  const indicatorResults = useMemo(() => indicatorData.profiles.map((profile) =>
-    calculateIndicatorResult(profile, indicatorData.rows, year),
+  const indicatorResults = useMemo(() => calculateIndicatorResultsForProfiles(
+    indicatorData.profiles, indicatorData.rows, year,
   ), [indicatorData, year])
   const assessedIndicators = indicatorResults.filter((result) => result.observations > 0 && result.targetMet != null)
   const categoryOf = (result: { profile: IndicatorProfileForResults }) => String(result.profile.indicator_type || '').trim() || 'Tanpa kategori'
@@ -491,7 +493,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     return candidates.filter((value): value is string => !!value).sort().at(-1) ?? null
   }, [mode, indicatorResults, pathwayData, clinicalData])
 
-  const selectedRoomName = rooms.find((room) => Number(room.id) === Number(roomId))?.name ?? 'Unit tidak diketahui'
+  const selectedRoomName = roomId == null
+    ? 'Seluruh unit'
+    : rooms.find((room) => Number(room.id) === Number(roomId))?.name ?? 'Unit tidak diketahui'
 
   const pageCss = `
     .qra{display:grid;gap:14px;color:var(--ink)}
@@ -602,7 +606,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       className="qraHero"
       title={modeTitle(mode)}
       actions={<div className="qraActions">
-        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms || lockRoomScope} onChange={(event) => { const next = normalizeRoom(event.target.value); if (next != null) { setRoomId(next); onRoomChange?.(next) } }}>
+        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms || lockRoomScope} onChange={(event) => { const next = normalizeRoom(event.target.value); { setRoomId(next); onRoomChange?.(next) } }}>
+          {canViewAllRooms && !lockRoomScope && <option value="">Semua unit · lintas ruangan</option>}
           {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
         <label className="qraField"><span>Tahun</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>
@@ -646,8 +651,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               {visibleIndicatorResults.length === 0
                 ? <EmptyState title="Belum ada indikator aktif" detail="Master indikator tahun ini belum memiliki profil aktif dan terbit untuk unit yang dipilih." />
                 : <WorkspaceTableViewport label="Hasil capaian mutu" className="qraTableWrap"><table className="qraTable qraIndicatorTable">
-                  <thead><tr><th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
+                  <thead><tr>{roomId == null && <th>Unit kerja</th>}<th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
+                    {roomId == null && <td><strong>{rooms.find((room) => Number(room.id) === Number(result.profile.room_id))?.name ?? 'Unit tidak diketahui'}</strong></td>}
                     <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
                     {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '—'}</small></td>)}
                     <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
