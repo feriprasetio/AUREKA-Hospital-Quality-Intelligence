@@ -369,7 +369,7 @@ export default function GeneralSettings({
         ? `Gagal menyetel password: ${serverText}`
         : `Gagal menyetel password: ${toUserFacingError(error, { fallback: 'Password sementara belum dapat disetel.' })}`
       if ((context && context.status === 404) || (error as { name?: string }).name === 'FunctionsFetchError') {
-        note = 'Fitur reset password belum aktif di server. Minta pemilik Supabase men-deploy Edge Function "aureka-admin-reset-unit-password".'
+        note = 'Fitur reset password belum aktif di server. Hubungi admin AUREKA (perlu mengaktifkan fungsi aureka-admin-reset-unit-password).'
       } else if (/PASSWORD_TOO_SHORT/.test(detail)) {
         note = 'Password sementara minimal 12 karakter.'
       }
@@ -755,7 +755,7 @@ export default function GeneralSettings({
                   ['Authentication', 'Supabase Auth'],
                   ['Session', 'Persistent session + automatic refresh'],
                   ['Authorization', `Role-based access · ${roleLabel}`],
-                  ['Password', 'Dikelola oleh Supabase Auth, bukan disimpan di halaman Pengaturan.'],
+                  ['Password', 'Dikelola oleh sistem login AUREKA, bukan disimpan di halaman Pengaturan.'],
                   ['Kepadatan tampilan', 'Gunakan tombol Nyaman / Ringkas di atas area kerja.'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>

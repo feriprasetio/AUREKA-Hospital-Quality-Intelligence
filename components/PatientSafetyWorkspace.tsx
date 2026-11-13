@@ -867,7 +867,7 @@ export default function PatientSafetyWorkspace({
           </select> :
           <input id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
       }
-      {fieldInvalid ? <small id={fieldErrorId} className="psHint" style={{ color: '#b42318', fontWeight: 700 }}>Field ini wajib diisi.</small> : null}
+      {fieldInvalid ? <small id={fieldErrorId} className="psHint" style={{ color: '#b42318', fontWeight: 700 }}>Isian ini wajib diisi.</small> : null}
     </div>
   }
   const renderInvestigationField = (field: IncidentField) => {
@@ -987,7 +987,7 @@ export default function PatientSafetyWorkspace({
             <td>{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td>
             <td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td>
           </tr>)}
-        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Silakan muat ulang atau hubungi administrator.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Silakan muat ulang atau hubungi administrator.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
     </> : null}
 
@@ -1002,7 +1002,7 @@ export default function PatientSafetyWorkspace({
         </div>
         {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
-        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
       {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'} onClose={() => closeForm()}>
       <div className="psModalTop">
@@ -1023,9 +1023,9 @@ export default function PatientSafetyWorkspace({
           <div className="psMeta"><span>Kode Laporan</span><strong>{incidentCode || 'Dibuat saat disimpan'}</strong></div>
           <div className="psMeta"><span>Status Form</span><strong>{statusLabel(incidentStatus)}</strong></div>
           <div className="psMeta"><span>Kelengkapan</span><strong>{incidentCompletion}%</strong></div>
-          <div className="psMeta"><span>Field wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
+          <div className="psMeta"><span>Isian wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
         </div>
-        <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; akses rekaman dibatasi oleh row-level security.</div>
+        <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
         {INCIDENT_SECTIONS.map(section => <section className="psFormSection" key={section.letter}>
           <div className="psFormHeading"><span className="psFormLetter">{section.letter}</span><div><h4>{section.title}</h4><p>Formulir sumber · Bagian {section.letter}</p></div></div>
           <div className="psFormGrid">{section.fields.map(renderIncidentField)}</div>

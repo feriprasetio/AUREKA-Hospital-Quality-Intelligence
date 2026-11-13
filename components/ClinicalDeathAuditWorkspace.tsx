@@ -607,7 +607,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
                 <td><button type="button" className="acdBtn primary" disabled={episode.roomId == null || (isValidator && (!previous || previous.status !== 'submitted'))} onClick={() => openReview(episode, previous)}>{previous ? 'Buka telaah' : 'Mulai telaah'}</button><span className="acdSource">{episode.source === 'local' ? 'Cache perangkat' : 'Database'}</span></td>
               </tr>
             })}
-            {!filteredEpisodes.length && <tr><td colSpan={8}><div className="acdEmpty">{loading ? 'Memuat episode pasien…' : auditType === 'death' ? 'Tidak ditemukan episode dengan hasil akhir kematian yang eksplisit pada sumber dan filter ini. Pastikan status hasil akhir sudah tercatat; diagnosis atau status logbook tidak digunakan sebagai pengganti status kematian.' : 'Belum ada episode pasien yang sesuai. Pastikan catatan logbook menggunakan measurement grain patient_episode atau tunggu sumber episode SIMRS terhubung.'}</div></td></tr>}
+            {!filteredEpisodes.length && <tr><td colSpan={8}><div className="acdEmpty">{loading ? 'Memuat episode pasien…' : auditType === 'death' ? 'Tidak ditemukan episode dengan hasil akhir kematian yang eksplisit pada sumber dan filter ini. Pastikan status hasil akhir sudah tercatat; diagnosis atau status logbook tidak digunakan sebagai pengganti status kematian.' : 'Belum ada episode pasien yang sesuai. Episode muncul setelah logbook pasien diisi di Register Pasien, atau setelah data SIMRS terhubung.'}</div></td></tr>}
           </tbody>
         </table></WorkspaceTableViewport>
       </section>

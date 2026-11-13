@@ -221,7 +221,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         { label: 'Seluruh catatan', color: '#77a9c7', values: monthData(summary.quality.monthly || [], 'total') },
         { label: 'Tervalidasi', color: '#286d91', values: monthData(summary.quality.monthly || [], 'validated') },
       ] },
-      { id: 'clinical-episode-trend', label: 'Tren episode pelayanan klinis', description: 'Jumlah catatan patient_episode dan episode yang telah tervalidasi per bulan.', insight: 'Episode dihitung sebagai record agregat berdasarkan grain patient_episode. Tidak ada nama, nomor rekam medis, subject key, atau rincian klinis individual yang dikirim ke grafik.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
+      { id: 'clinical-episode-trend', label: 'Tren episode pelayanan klinis', description: 'Jumlah catatan per pasien dan episode yang telah tervalidasi per bulan.', insight: 'Episode dihitung sebagai record agregat berdasarkan grain patient_episode. Tidak ada nama, nomor rekam medis, subject key, atau rincian klinis individual yang dikirim ke grafik.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
         { label: 'Episode tercatat', color: '#83a78c', values: monthData(summary.clinical.monthly || [], 'total') },
         { label: 'Episode tervalidasi', color: '#327354', values: monthData(summary.clinical.monthly || [], 'validated') },
       ] },
@@ -262,7 +262,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     {!loading && summary && <>
       <div className="ifKpiGrid">
         <Kpi label="Indikator aktif" value={summary.quality.active_indicators} note="Master indikator pada periode terpilih"/>
-        <Kpi label="Catatan indikator" value={summary.quality.records} note="Tidak termasuk grain patient_episode"/>
+        <Kpi label="Catatan indikator" value={summary.quality.records} note="Di luar catatan per pasien"/>
         <Kpi label="Catatan tervalidasi" value={summary.quality.validated} note={'Tingkat validasi ' + pct(validationRate)}/>
         <Kpi label="Episode klinis" value={summary.clinical.episodes} note={pct(summary.clinical.validation_rate) + ' tervalidasi'}/>
         <Kpi label="Audit Clinical Pathway" value={summary.clinical.clinical_pathway_audits} note={fmt(summary.clinical.clinical_pathway_validated) + ' tervalidasi'}/>

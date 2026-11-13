@@ -83,7 +83,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
         {canManage&&<button type="button" className="rmIconButton" onClick={()=>openAction({...a})}>Edit</button>}
         {canEvaluate&&a.status==='selesai'&&<button type="button" className="rmIconButton" onClick={()=>{setEvalFor(a);setEvalForm({result:'efektif',decision:'ditutup',note:'',evidence_url:a.evidence_url||''})}}>Evaluasi</button>}
       </div></td>
-    </tr>):<tr><td colSpan={7}><div className="rmEmptySmall">Belum ada rencana tindak lanjut.</div></td></tr>}
+    </tr>):<tr><td colSpan={7}><div className="rmEmptySmall">Belum ada rencana tindak lanjut. Tekan "+ Tambah tindak lanjut" pada rekomendasi untuk menyusunnya.</div></td></tr>}
   </tbody></table></WorkspaceTableViewport>
 
   const selectedLabel=issuerFilter==='ALL'?'Semua pemberi rekomendasi':ISSUER_LABEL[issuerFilter]
