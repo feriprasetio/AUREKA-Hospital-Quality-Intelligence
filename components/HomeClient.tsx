@@ -827,7 +827,7 @@ export default function HomeClient(){
    </button>
    <div className={'authShell '+(!l?'authShellRegistration':'')}>
     <aside className="authAside">
-     <span className="authAsideEyebrow">BERSAMA, MENINGKATKAN KUALITAS PELAYANAN</span>
+     <span className="authAsideEyebrow">Bersama, meningkatkan kualitas pelayanan</span>
      <h2>{l?'Setiap perbaikan dimulai dari Anda.':'Peran Anda. Dampak yang lebih besar.'}</h2>
      
      

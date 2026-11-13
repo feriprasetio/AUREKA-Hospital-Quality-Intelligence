@@ -131,7 +131,7 @@ function ChartGraphic({ model, type }: { model: ChartModel; type: 'column' | 'ba
             const value = series.values[index]
             const w = value === null ? 0 : Math.max(0, value / maxValue * (plotW - 8))
             const barY = y + 4 + seriesIndex * seriesH
-            return <g key={series.label}><rect x={left} y={barY} width={plotW} height={Math.max(5, seriesH - 3)} rx="3" fill="#eef2f5"/>{value !== null && <rect x={left} y={barY} width={w} height={Math.max(5, seriesH - 3)} rx="3" fill={series.color}/>}<text x={left + w + 6} y={barY + Math.max(5, seriesH - 3) * .8} fontSize="9" fontWeight="700" fill="#21374f">{value === null ? '-' : fmt(value)}</text></g>
+            return <g key={series.label}><rect x={left} y={barY} width={plotW} height={Math.max(5, seriesH - 3)} rx="3" fill="#eef2f5"/>{value !== null && <rect x={left} y={barY} width={w} height={Math.max(5, seriesH - 3)} rx="3" fill={series.color}/>}<text x={left + w + 6} y={barY + Math.max(5, seriesH - 3) * .8} fontSize="11" fontWeight="700" fill="#21374f">{value === null ? '-' : fmt(value)}</text></g>
           })}
         </g>
       })}
@@ -141,7 +141,7 @@ function ChartGraphic({ model, type }: { model: ChartModel; type: 'column' | 'ba
     const xAt = (index: number) => left + (model.labels.length <= 1 ? plotW / 2 : index / (model.labels.length - 1) * plotW)
     const yAt = (value: number) => top + plotH - value / maxValue * plotH
     return <svg className="ifChartSvg" viewBox={'0 0 ' + width + ' ' + height} role="img" aria-label={model.label + ', diagram garis'}>
-      {[0, .25, .5, .75, 1].map((fraction) => <g key={fraction}><line x1={left} x2={width - right} y1={top + plotH * fraction} y2={top + plotH * fraction} stroke="#e9eef2" strokeDasharray="3 4"/><text x={left - 8} y={top + plotH * fraction + 3} textAnchor="end" fontSize="9" fill="#8190a0">{fmt(maxValue * (1 - fraction))}</text></g>)}
+      {[0, .25, .5, .75, 1].map((fraction) => <g key={fraction}><line x1={left} x2={width - right} y1={top + plotH * fraction} y2={top + plotH * fraction} stroke="#e9eef2" strokeDasharray="3 4"/><text x={left - 8} y={top + plotH * fraction + 3} textAnchor="end" fontSize="11" fill="#5b6b7f">{fmt(maxValue * (1 - fraction))}</text></g>)}
       {model.series.map((series) => {
         const points = series.values.map((value, index) => value === null ? null : [xAt(index), yAt(value)] as const)
         const segments: string[] = []
@@ -150,20 +150,20 @@ function ChartGraphic({ model, type }: { model: ChartModel; type: 'column' | 'ba
         if (current) segments.push(current)
         return <g key={series.label}><path d={segments.join(' ')} fill="none" stroke={series.color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>{points.map((point, index) => point ? <circle key={index} cx={point[0]} cy={point[1]} r="3.5" fill="#fff" stroke={series.color} strokeWidth="2"><title>{model.labels[index]} · {series.label}: {fmt(series.values[index])}</title></circle> : null)}</g>
       })}
-      {model.labels.map((label, index) => <text key={label} x={xAt(index)} y={height - 14} textAnchor="middle" fontSize="9" fill="#8190a0">{label}</text>)}
+      {model.labels.map((label, index) => <text key={label} x={xAt(index)} y={height - 14} textAnchor="middle" fontSize="11" fill="#5b6b7f">{label}</text>)}
     </svg>
   }
   const groupW = plotW / model.labels.length
   const groupGap = Math.min(8, groupW * .16)
   const barW = Math.max(4, (groupW - groupGap * 2) / Math.max(1, model.series.length))
   return <svg className="ifChartSvg" viewBox={'0 0 ' + width + ' ' + height} role="img" aria-label={model.label + ', diagram kolom'}>
-    {[0, .25, .5, .75, 1].map((fraction) => <g key={fraction}><line x1={left} x2={width - right} y1={top + plotH * fraction} y2={top + plotH * fraction} stroke="#e9eef2" strokeDasharray="3 4"/><text x={left - 8} y={top + plotH * fraction + 3} textAnchor="end" fontSize="9" fill="#8190a0">{fmt(maxValue * (1 - fraction))}</text></g>)}
+    {[0, .25, .5, .75, 1].map((fraction) => <g key={fraction}><line x1={left} x2={width - right} y1={top + plotH * fraction} y2={top + plotH * fraction} stroke="#e9eef2" strokeDasharray="3 4"/><text x={left - 8} y={top + plotH * fraction + 3} textAnchor="end" fontSize="11" fill="#5b6b7f">{fmt(maxValue * (1 - fraction))}</text></g>)}
     {model.labels.map((label, index) => <g key={label}>{model.series.map((series, seriesIndex) => {
       const value = series.values[index]
       const h = value === null ? 0 : value / maxValue * plotH
       const x = left + index * groupW + groupGap + seriesIndex * barW
       return <g key={series.label}><rect x={x} y={top + plotH - h} width={barW - 3} height={h} rx="3" fill={series.color}><title>{label} · {series.label}: {value === null ? 'Belum ada observasi' : fmt(value)}</title></rect></g>
-    })}<text x={left + index * groupW + groupW / 2} y={height - 14} textAnchor="middle" fontSize="9" fill="#8190a0">{label.length > 9 ? label.slice(0, 8) : label}</text></g>)}
+    })}<text x={left + index * groupW + groupW / 2} y={height - 14} textAnchor="middle" fontSize="11" fill="#5b6b7f">{label.length > 9 ? label.slice(0, 8) : label}</text></g>)}
   </svg>
 }
 function ChartLegend({ series }: { series: ChartSeries[] }) {

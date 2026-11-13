@@ -1026,11 +1026,12 @@ export default function PatientSafetyWorkspace({
           <div className="psMeta"><span>Isian wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
         </div>
         <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
-        {INCIDENT_SECTIONS.map(section => <section className="psFormSection" key={section.letter}>
+        <nav className="psSectionJump" aria-label="Loncat ke bagian formulir">{INCIDENT_SECTIONS.map(section => <button type="button" key={section.letter} onClick={() => document.getElementById('ikp-sec-' + section.letter)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><b>{section.letter}</b>{section.title}</button>)}</nav>
+        {INCIDENT_SECTIONS.map(section => <section className="psFormSection" id={'ikp-sec-' + section.letter} key={section.letter}>
           <div className="psFormHeading"><span className="psFormLetter">{section.letter}</span><div><h4>{section.title}</h4><p>Formulir sumber · Bagian {section.letter}</p></div></div>
           <div className="psFormGrid">{section.fields.map(renderIncidentField)}</div>
         </section>)}
-        <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 11 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Draft baru, kode dibuat oleh backend saat tersimpan.'}</div>
+        <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 11 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Laporan baru, kode dibuat otomatis saat disimpan.'}</div>
           <div className="psActions">
             {canManageWorkflow && incidentId ? <>
               <select aria-label="Status workflow insiden" value={incidentStatus} disabled={saving} onChange={event => setIncidentStatus(event.target.value as IncidentStatus)} style={{ minHeight: 41, border: '1px solid rgba(35,63,50,.12)', borderRadius: 12, background: 'rgba(255,255,255,.72)', padding: '8px 10px', fontSize: 11 }}>

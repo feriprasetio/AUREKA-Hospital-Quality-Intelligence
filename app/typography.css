@@ -935,3 +935,13 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch, 
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .aqRoomOverviewCard:hover { background: rgba(30, 45, 70, .95) !important; border-color: rgba(124, 196, 255, .35) !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .acdInfo.warn { background: rgba(120, 80, 10, .28) !important; border-color: rgba(251, 191, 36, .35) !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch) :is(select, button) { background: rgba(30, 41, 59, .9) !important; color: #e2e8f0 !important; border-color: rgba(148, 163, 184, .25) !important; }
+/* Form IKP: pintasan bagian A-E, menempel di atas saat menggulir */
+html body:not(#_) .psSectionJump { position: sticky; top: 0; z-index: 4; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 8px 0 10px; margin-bottom: 6px; background: var(--ps-surface, rgba(246, 249, 252, .96)); -webkit-backdrop-filter: blur(12px) !important; backdrop-filter: blur(12px) !important; }
+html body:not(#_) .psSectionJump::-webkit-scrollbar { display: none; }
+html body:not(#_) .psSectionJump button { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border-radius: 10px; border: 1px solid rgba(15, 42, 68, .14); background: #fff; color: #2e4a66; font: 600 13px/1.2 var(--font-aureka); cursor: pointer; white-space: nowrap; }
+html body:not(#_) .psSectionJump button b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: #0f2a44; color: #fff; font-size: 12px; }
+html body:not(#_) .psSectionJump button:hover { border-color: rgba(22, 80, 122, .4); color: #0f2a44; }
+html body:not(#_) .psFormSection { scroll-margin-top: 64px; }
+html[data-mode="gelap"] body:not(#_) .psSectionJump { background: rgba(13, 22, 38, .94); }
+html[data-mode="gelap"] body:not(#_) .psSectionJump button { background: rgba(30, 41, 59, .8); color: #cbd5e1; border-color: rgba(148, 163, 184, .2); }
+html[data-mode="gelap"] body:not(#_) .psSectionJump button b { background: #3b82c4; }

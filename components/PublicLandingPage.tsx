@@ -332,19 +332,19 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
           <div className="a2-domain-grid">
             <article className="a2-domain-card">
               <span className="a2-domain-icon"><Icon name="chart" size={22} /></span>
-              <p className="a2-eyebrow">MEASUREMENT</p>
+              <p className="a2-eyebrow">Measurement</p>
               <h3>Pengukuran dan audit mutu</h3>
               <p>Definisi indikator, periode pengukuran, numerator-denominator, hasil audit, dan status validasi dikelola secara terstruktur.</p>
             </article>
             <article className="a2-domain-card">
               <span className="a2-domain-icon a2-domain-blue"><Icon name="heart" size={22} /></span>
-              <p className="a2-eyebrow">LEARNING</p>
+              <p className="a2-eyebrow">Learning</p>
               <h3>Keselamatan dan pembelajaran</h3>
               <p>Pelaporan insiden, investigasi, analisis akar masalah, rekomendasi, serta pembelajaran menjadi bagian dari siklus perbaikan.</p>
             </article>
             <article className="a2-domain-card">
               <span className="a2-domain-icon a2-domain-amber"><Icon name="risk" size={22} /></span>
-              <p className="a2-eyebrow">GOVERNANCE</p>
+              <p className="a2-eyebrow">Governance</p>
               <h3>Risiko dan akuntabilitas</h3>
               <p>Risiko, pengendalian, penugasan tenaga klinis, dan pemantauan tindakan dapat dikelola dengan jejak yang jelas.</p>
             </article>
