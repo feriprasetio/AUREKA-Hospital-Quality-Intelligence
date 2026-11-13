@@ -27,6 +27,25 @@ export type IcuSourceAnswer = {
 
 const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?'])
 
+function normalizeWorkbookHeader(value: string): string {
+  return String(value ?? '')
+    .normalize('NFKC')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('id-ID')
+}
+
+export function isNicuSourceHeaderSet(headers: readonly string[]): boolean {
+  const normalized = new Set(headers.map(normalizeWorkbookHeader))
+  return [
+    'Visite Spesialis',
+    'Validitas Asesmen Keperawatan',
+    'Transfer IGD',
+    'Unplanned Extubation',
+    'LOS NICU Panjang',
+  ].every(header => normalized.has(normalizeWorkbookHeader(header)))
+}
+
 export function normalizeIcuDate(value: unknown): string | null {
   const valid = (year: number, month: number, day: number): string | null => {
     const date = new Date(Date.UTC(year, month - 1, day))
