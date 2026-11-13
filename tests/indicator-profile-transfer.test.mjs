@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import {
   buildIndicatorProfileBackup,
   parseIndicatorProfileBackup,
@@ -108,4 +109,32 @@ test('rejects duplicate indicator codes and malformed source identities', () => 
     ...backup,
     profiles: [{ ...backup.profiles[0], source_id: 'not-a-uuid' }],
   }), /identitas sumber/i)
+})
+
+
+const migrationSource = await readFile(new URL('../supabase/migrations/20261113090000_indicator_profile_set_transfer.sql', import.meta.url), 'utf8')
+const settingsSource = await readFile(new URL('../components/QualitySettings.tsx', import.meta.url), 'utf8')
+const auditWorkspaceSource = await readFile(new URL('../components/QualityIndicatorWorkspace.tsx', import.meta.url), 'utf8')
+
+test('replacement RPC is invoker-secured, transactional, and retains historical profile rows', () => {
+  assert.match(migrationSource, /SECURITY INVOKER/i)
+  assert.match(migrationSource, /aureka_system\.is_superadmin\(\)/)
+  assert.match(migrationSource, /FOR v_old_profile_id IN[\s\S]+?ip\.code = v_previous_code/)
+  assert.match(migrationSource, /UPDATE aureka_quality\.quality_record_responses/)
+  assert.match(migrationSource, /jsonb_each\(qr\.core_data->'indicator_values'\)/)
+  assert.doesNotMatch(migrationSource, /DELETE\s+FROM\s+aureka_quality\.indicator_profiles/i)
+  assert.doesNotMatch(migrationSource, /DELETE\s+FROM\s+aureka_quality\.quality_records/i)
+})
+
+test('profile workspace provides export, guarded import confirmation, and one atomic replacement RPC', () => {
+  assert.match(settingsSource, /Export profil/)
+  assert.match(settingsSource, /Import profil/)
+  assert.match(settingsSource, /Ganti seluruh profil/)
+  assert.match(settingsSource, /replace_indicator_profile_set/)
+  assert.match(settingsSource, /Saya memahami bahwa seluruh profil aktif/)
+})
+
+test('audit workspace invalidates and reloads cached profile snapshots after replacement', () => {
+  assert.match(auditWorkspaceSource, /aureka:indicator-profiles-updated/)
+  assert.match(auditWorkspaceSource, /QIW_MEMORY_CACHE\.clear\(\)/)
 })
