@@ -477,7 +477,8 @@ export default function HomeClient(){
   if(moduleId==='home')return homeTab
   if(moduleId==='patients')return patientsSection
   if(moduleId==='settings')return settingsSection
-  if(moduleId==='quality')return active==='analytics'&&analyticsTab==='profiles'?'profile-indicators':qualityMonitorOpen?'quality-monitoring':qualityResultsView?(qualityResultsGroup==='category'?'result-category':'result-unit'):'audit-indicators'
+  if(moduleId==='quality'&&qualityMonitorOpen)return 'quality-monitoring'
+  if(moduleId==='quality')return active==='analytics'&&analyticsTab==='profiles'?'profile-indicators':qualityResultsView?(qualityResultsGroup==='category'?'result-category':'result-unit'):'audit-indicators'
   if(moduleId==='clinical')return clinicalPathwayOpen?'audit-pathway':'audit-clinical-death'
   if(moduleId==='safety')return safetyTab
   if(moduleId==='risk')return riskTab
