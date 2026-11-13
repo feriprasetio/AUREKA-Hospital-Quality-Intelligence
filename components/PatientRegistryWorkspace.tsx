@@ -260,6 +260,7 @@ export default function PatientRegistryWorkspace({
         .prButton{border:1px solid var(--line,rgba(30,60,45,.14));background:#fff;color:#264438;border-radius:11px;padding:10px 13px;min-height:40px;font-size:12px;font-weight:750;cursor:pointer}
         .prButton.primary{background:var(--accent,#23694a);border-color:var(--accent,#23694a);color:#fff}
         .prButton:disabled{opacity:.45;cursor:not-allowed}
+        .prUnitDistribution{display:grid;gap:10px;padding:14px 16px;background:var(--surface,#fff);border:1px solid var(--line,rgba(15,42,68,.14));border-radius:14px}.prUnitDistributionHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.prUnitDistributionHead h3{margin:0;font-size:13px;color:var(--ink,#0b1f33)}.prUnitDistributionHead p{margin:4px 0 0;color:var(--muted,#64748b);font-size:11px}.prUnitDistributionList{display:grid;gap:8px}.prUnitDistributionRow{display:grid;grid-template-columns:minmax(110px,190px) minmax(80px,1fr) auto;align-items:center;gap:10px;min-width:0}.prUnitDistributionRow button{padding:0;border:0;background:transparent;text-align:left;color:var(--ink,#0b1f33);font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.prUnitDistributionTrack{height:8px;border-radius:99px;background:var(--surface-soft,#e8f2fa);overflow:hidden}.prUnitDistributionTrack i{display:block;height:100%;border-radius:99px;background:#3977b8}.prUnitDistributionRow strong{font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink,#0b1f33)}.prUnitDistributionNote{margin:0;color:var(--muted,#64748b);font-size:10px;line-height:1.45}@media(max-width:640px){.prUnitDistributionRow{grid-template-columns:minmax(90px,120px) minmax(55px,1fr) auto;gap:7px}.prUnitDistribution{padding:12px}}
         .prKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
         .prKpi,.prPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px}
         .prKpi{padding:14px 16px}.prKpi span{display:block;color:var(--muted,#718078);font-size:11px}.prKpi strong{display:block;font-size:25px;margin-top:5px}
@@ -295,6 +296,11 @@ export default function PatientRegistryWorkspace({
         <div className="prKpi"><span>Kunjungan (IGD/rawat jalan/tindakan) · halaman ini</span><strong>{visits.toLocaleString('id-ID')}</strong></div>
       </div>
 
+      {canViewAllRooms && !lockRoomScope && <section className="prUnitDistribution" aria-label="Distribusi episode pasien per unit">
+        <div className="prUnitDistributionHead"><div><h3>Distribusi episode pelayanan per unit</h3><p>Tahun {year} · jumlah episode pasien pada seluruh unit yang dapat diakses.</p></div><strong>{allTotal.toLocaleString('id-ID')} episode</strong></div>
+        {roomCounts.size ? <div className="prUnitDistributionList">{rooms.map((item) => { const count=roomCounts.get(Number(item.id))??0; const pct=allTotal?count/allTotal*100:0; return <div className="prUnitDistributionRow" key={item.id}><button type="button" title={'Tampilkan '+item.name} onClick={()=>{setRoomFilter(String(item.id));setPage(0)}}>{item.name}</button><div className="prUnitDistributionTrack"><i style={{width:pct+'%'}}/></div><strong>{count.toLocaleString('id-ID')} · {pct.toFixed(1).replace('.',',')}%</strong></div> })}</div> : <div className="prEmpty">Agregat episode per unit belum tersedia untuk tahun ini.</div>}
+        <p className="prUnitDistributionNote">Denominator: {allTotal.toLocaleString('id-ID')} episode dalam cakupan unit dan tahun terpilih. Pilih nama unit untuk membuka register terfilter. Visual ini menggunakan agregat hitungan episode yang sama dengan pilihan unit, bukan data identitas pasien.</p>
+      </section>}
       <div className="prPanel prFilters">
         {canViewAllRooms && !lockRoomScope
           ? <label>Unit pelayanan
