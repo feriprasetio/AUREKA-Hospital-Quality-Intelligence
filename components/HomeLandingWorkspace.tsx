@@ -369,9 +369,8 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
           </div>
         </div>)}</div>
       </section>}
-      <QualityReportingMonitor supabase={supabase} rooms={rooms} isAdmin={isAdmin} roomId={roomId} roomName={roomName}/>
+      <div className="hlDuo"><QualityReportingMonitor supabase={supabase} rooms={rooms} isAdmin={isAdmin} roomId={roomId} roomName={roomName}/><section className="hlPanel hlAi" aria-label="Tanya AUREKA"><TanyaAureka sb={supabase} page="Beranda" embedded/></section></div>
       <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas terakhir Anda</h3><span>{activity.lastAt?new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(activity.lastAt)):'Belum ada aktivitas tercatat'}</span></header>{activity.pending.length?<div className="hlBars">{activity.pending.map(item=><button type="button" className="hlPendingRow" key={item.module+item.label} onClick={()=>onNavigate(item.module==='Keselamatan Pasien'?'safety':item.module==='Manajemen Risiko'?'risk':'quality')}><span><b>{item.label}</b><small>{item.module}</small></span><strong>{item.count}</strong></button>)}</div>:<p className="hlEmpty">Tidak ada pekerjaan tertunda yang ditemukan pada sumber aktivitas yang terhubung.</p>}{activity.partial&&<p className="hlDate">Sebagian sumber aktivitas belum dapat dibaca. Periksa kembali modul terkait untuk memastikan daftar pekerjaan lengkap.</p>}</section>
-      <section className="hlPanel hlAi"><header className="hlPanelHead"><h3>Tanya AI</h3><span>Asisten mutu dan keselamatan pasien</span></header><TanyaAureka sb={supabase} page="Beranda" embedded/></section>
     </div>}
     {tab==='infographics'&&<div id="home-panel-infographics" role="tabpanel">
       <InfographicsDashboard
