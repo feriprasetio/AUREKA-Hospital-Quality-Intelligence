@@ -30,6 +30,7 @@ DECLARE
   v_previous_id uuid;
   v_previous_code text;
   v_previous_version integer;
+  v_old_profile_id uuid;
   v_new_id uuid;
   v_next_version integer;
   v_retired integer := 0;
@@ -166,6 +167,21 @@ BEGIN
        FOR UPDATE;
     END IF;
 
+    -- Also allow a backup from another year to match the target year's current code.
+    IF v_previous_id IS NULL AND v_source_code IS DISTINCT FROM v_code THEN
+      SELECT ip.id, ip.code, ip.version
+        INTO v_previous_id, v_previous_code, v_previous_version
+        FROM aureka_quality.indicator_profiles ip
+       WHERE ip.profile_year = p_profile_year
+         AND ip.room_id = v_room_id
+         AND ip.code = v_code
+         AND ip.is_active = true
+         AND ip.status IN ('published', 'draft')
+       ORDER BY ip.version DESC
+       LIMIT 1
+       FOR UPDATE;
+    END IF;
+
     IF v_previous_id IS NOT NULL THEN
       IF v_previous_id::text = ANY(v_matched_old_ids) THEN
         RAISE EXCEPTION 'Satu profil lama dipetakan ke lebih dari satu indikator baru (%).', v_code USING ERRCODE = '23505';
@@ -243,11 +259,22 @@ BEGIN
       v_previous_id := (v_item->>'_matched_profile_id')::uuid;
       v_previous_code := v_item->>'_matched_profile_code';
 
-      v_id_map := v_id_map || jsonb_build_array(jsonb_build_object(
-        'old_id', v_previous_id,
-        'new_id', v_new_id,
-        'room_id', v_room_id
-      ));
+      -- Versioned profiles can have audit responses linked to any historical ID.
+      -- Relink every same-code version for this room/year, not only the active row.
+      FOR v_old_profile_id IN
+        SELECT ip.id
+          FROM aureka_quality.indicator_profiles ip
+         WHERE ip.profile_year = p_profile_year
+           AND ip.room_id = v_room_id
+           AND ip.code = v_previous_code
+           AND ip.id <> v_new_id
+      LOOP
+        v_id_map := v_id_map || jsonb_build_array(jsonb_build_object(
+          'old_id', v_old_profile_id,
+          'new_id', v_new_id,
+          'room_id', v_room_id
+        ));
+      END LOOP;
 
       IF v_previous_code IS DISTINCT FROM v_code THEN
         v_code_map := v_code_map || jsonb_build_array(jsonb_build_object(
