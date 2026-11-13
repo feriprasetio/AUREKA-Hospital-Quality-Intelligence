@@ -27,9 +27,11 @@ test('Late global styles enforce the balanced table, modal, and compact sidebar 
 test('The all-unit presentation change does not alter indicator calculation or persistence implementations', () => {
   const workspace = read('components/QualityIndicatorWorkspace.tsx')
   const results = read('components/QualityResultsWorkspace.tsx')
+  const engine = read('lib/aureka/quality-results-engine.ts')
   assert.match(workspace, /const save=async\(\)=>/)
   assert.match(workspace, /reviewRecord\(/)
   assert.match(workspace, /openImportDialog\(/)
-  assert.match(results, /calculateIndicatorResult\(/)
+  assert.match(results, /calculateIndicatorResultsForProfiles\(/)
+  assert.match(engine, /export function calculateIndicatorResult\(/)
   assert.match(results, /aggregateClinicalPathwayRows\(/)
 })

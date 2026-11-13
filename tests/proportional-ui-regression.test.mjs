@@ -38,7 +38,7 @@ test('Super Admin defaults to hospital-wide room scope and uses the workspace ma
   assert.match(homeClient, /\[allRoomsScope,setAllRoomsScope\]=useState\(true\)/)
   assert.match(homeClient, /Semua ruangan · lintas unit/)
   assert.match(homeClient, /const nodes=groups\.flatMap/)
-  assert.match(homeClient, /if\(!nodes\.length\)return null/)
+  assert.match(homeClient, /const mapNodes=nodes\.length\?nodes:/)
   assert.match(homeClient, /return <WorkspaceModuleMap/)
   assert.doesNotMatch(homeClient, /nodes\.length<2/)
   assert.doesNotMatch(typography, /\.wmmRoot\s*\{\s*display:\s*none/)

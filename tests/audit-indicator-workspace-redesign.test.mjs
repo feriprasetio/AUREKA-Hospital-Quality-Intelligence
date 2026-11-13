@@ -30,9 +30,11 @@ test('Logbook editor remains an accessible centered modal with responsive intern
   assert.match(source, /\.aqAuditWorkspace \.aqEditorDialog \.aqBody\{flex:1 1 auto;min-height:0;overflow:auto/)
 })
 
-test('Results tab retains the validated indicator calculation engine and balanced presentation', () => {
+test('Results tab retains the validated room-aware indicator engine and balanced presentation', () => {
   const source = read('components/QualityResultsWorkspace.tsx')
-  assert.match(source, /calculateIndicatorResult\(/)
+  const engine = read('lib/aureka/quality-results-engine.ts')
+  assert.match(source, /calculateIndicatorResultsForProfiles\(/)
+  assert.match(engine, /export function calculateIndicatorResult\(/)
   assert.match(source, /aggregateClinicalPathwayRows\(/)
   assert.match(source, /aggregateClinicalDeathAudits\(/)
   assert.match(source, /\.qraHero\{padding:14px 16px/)

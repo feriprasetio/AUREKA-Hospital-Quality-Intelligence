@@ -62,8 +62,8 @@ test('indicator results pool numerators and denominators instead of averaging mo
 
 test('hospital-wide indicator aggregation isolates reused indicator codes by room', () => {
   const profiles = [
-    { id: 'p-room-1', room_id: 1, code: '1.1', title: 'Respon unit 1', measurement_grain: 'daily_metric', target_text: '≥ 80%', target_operator: '>=', target_value: 80 },
-    { id: 'p-room-2', room_id: 2, code: '1.1', title: 'Respon unit 2', measurement_grain: 'daily_metric', target_text: '≥ 80%', target_operator: '>=', target_value: 80 },
+    { id: 'p-room-1', room_id: 1, code: '1.1', title: 'Respon unit 1', measurement_grain: 'daily_metric', numerator_definition: 'Respon tepat waktu', denominator_definition: 'Seluruh komplain', target_text: '≥ 80%', target_operator: '>=', target_value: 80 },
+    { id: 'p-room-2', room_id: 2, code: '1.1', title: 'Respon unit 2', measurement_grain: 'daily_metric', numerator_definition: 'Respon tepat waktu', denominator_definition: 'Seluruh komplain', target_text: '≥ 80%', target_operator: '>=', target_value: 80 },
   ]
   const rows = [
     { room_id: 1, record_date: '2026-01-01', status: 'validated', core_data: { indicator_values: { '1.1': { numerator: 1, denominator: 2 } } } },

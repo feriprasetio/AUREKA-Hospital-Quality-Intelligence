@@ -9,7 +9,7 @@ const audit = readFileSync(new URL('../components/QualityIndicatorWorkspace.tsx'
 const patientRegistry = readFileSync(new URL('../components/PatientRegistryWorkspace.tsx', import.meta.url), 'utf8')
 
 test('Superadmin starts with whole-hospital scope and can choose any room', () => {
-  assert.match(home, /const \[allRoomsScope,setAllRoomsScope\]=useState\(true\)/)
+  assert.match(home, /\[allRoomsScope,setAllRoomsScope\]=useState\(true\)/)
   assert.match(home, /if\(raw==='all'\)\{updateWorkspaceRoom\(null\);return\}/)
   assert.match(home, /lockRoomScope=\{admin&&!allRoomsScope\}/)
 })
