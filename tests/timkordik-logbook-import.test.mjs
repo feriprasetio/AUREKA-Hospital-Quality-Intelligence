@@ -87,7 +87,7 @@ test('builds an activity payload with five profile responses and source provenan
     fileSha256: 'a'.repeat(64),
     profiles,
     userId: '00000000-0000-4000-8000-000000000099',
-  }) as any
+  })
 
   assert.equal(result.payload.room_id, 30)
   assert.equal(result.payload.profile_year, 2026)
