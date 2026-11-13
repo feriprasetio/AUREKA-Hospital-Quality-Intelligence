@@ -789,6 +789,23 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
 
  useEffect(()=>{void load()},[load])
 
+ // Invalidate the in-memory audit snapshot whenever Superadmin replaces the yearly indicator set.
+ useEffect(()=>{
+  const handleProfileSetChanged=(event:Event)=>{
+   const detail=(event as CustomEvent<{year?:number;scopeRoomId?:number|null}>).detail
+   QIW_MEMORY_CACHE.clear()
+   if(Number(detail?.year)!==Number(year))return
+   if(detail?.scopeRoomId!=null&&roomId!=null&&Number(detail.scopeRoomId)!==Number(roomId))return
+   if(patientOpen){
+    setMessage('Profil indikator telah diperbarui. Form audit yang sedang terbuka masih menggunakan snapshot sebelumnya; tutup dan buka kembali form setelah memastikan draf tersimpan.')
+    return
+   }
+   if(roomId!=null)void load()
+  }
+  window.addEventListener('aureka:indicator-profiles-updated',handleProfileSetChanged)
+  return()=>window.removeEventListener('aureka:indicator-profiles-updated',handleProfileSetChanged)
+ },[load,year,roomId,patientOpen])
+
  const filtered=useMemo(()=>patients.filter(p=>{
    const roomOk=roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId))
    const monthOk=!monthFilter||mon(p.admit)===monthFilter
