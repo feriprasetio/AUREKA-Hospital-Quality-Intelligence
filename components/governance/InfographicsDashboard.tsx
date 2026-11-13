@@ -14,7 +14,6 @@ type Summary = {
   incidents: { total: number; open: number; closed: number; monthly: MonthItem[] }
   risk: { total: number; very_high: number; open: number; relationships: number; monthly: MonthItem[]; levels: CountItem[]; categories: CountItem[] }
   program: { recommendations: number; actions: number; open_actions: number; overdue_actions: number; completed_actions: number }
-  regulation: { published: number; pending_approval: number; review_due: number }
 }
 type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn; onRoomChange?: (roomId: number | null) => void }
 type ChartSeries = { label: string; color: string; values: Array<number | null> }
@@ -233,7 +232,6 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       distribution('risk-levels', 'Distribusi tingkat risiko', 'Jumlah risiko pada setiap tingkat risiko sesuai klasifikasi register.', 'Gunakan distribusi ini untuk melihat konsentrasi risiko. Penilaian prioritas tetap mempertimbangkan skor, residual, kontrol, dan selera risiko.', summary.risk.levels || []),
       distribution('risk-categories', 'Distribusi kategori risiko', 'Jumlah risiko menurut kelompok kategori risiko rumah sakit.', 'Kategori dengan jumlah terbesar menunjukkan area dengan beban register tertinggi, bukan dengan sendirinya tingkat risiko tertinggi.', summary.risk.categories || []),
       { id: 'rtl-status', label: 'Status rencana tindak lanjut', description: 'Perbandingan jumlah RTL selesai, belum selesai, dan yang melewati tenggat.', insight: 'RTL melewati tenggat merupakan bagian dari RTL belum selesai; kategori tersebut ditampilkan sebagai penanda perhatian dan tidak boleh dijumlahkan kembali sebagai kelompok terpisah.', kind: 'progress', labels: ['Selesai', 'Belum selesai', 'Lewat tenggat'], series: [{ label: 'Jumlah RTL', color: '#4b8b75', values: [n(summary.program.completed_actions), n(summary.program.open_actions), n(summary.program.overdue_actions)] }] },
-      { id: 'regulation-status', label: 'Status tata kelola regulasi', description: 'Ringkasan regulasi berlaku, menunggu persetujuan, dan perlu ditinjau.', insight: 'Status ini membantu memantau siklus regulasi. Regulasi yang perlu ditinjau tidak selalu berarti sudah tidak berlaku.', kind: 'progress', labels: ['Berlaku', 'Menunggu persetujuan', 'Perlu ditinjau'], series: [{ label: 'Jumlah regulasi', color: '#638ba8', values: [n(summary.regulation.published), n(summary.regulation.pending_approval), n(summary.regulation.review_due)] }] },
     )
     return result
   }, [summary, qualityOnly])
@@ -245,14 +243,13 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     { id: 'safety', label: 'Keselamatan Pasien' },
     { id: 'risk', label: 'Manajemen Risiko' },
     { id: 'analytics', label: 'Program dan RTL' },
-    { id: 'regulation', label: 'Regulasi' },
   ].filter((link) => AUREKA_PRIMARY_NAV.some((module) => module.id === link.id && module.requiredRoles.includes((role || '') as AurekaRole)))
 
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ikhtisar indikator mutu' : 'Ikhtisar kinerja rumah sakit'}>
     <style>{css}</style>
     <header className="ifHero">
       <div><span className="ifEyebrow">AUREKA · EXECUTIVE OVERVIEW</span><h2>{qualityOnly ? 'Ikhtisar Indikator Mutu' : 'Ikhtisar Mutu dan Keselamatan Rumah Sakit'}</h2>
-        <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Gambaran terpadu indikator mutu, insiden keselamatan pasien, manajemen risiko, program, RTL, dan regulasi. Pilih grafik untuk menelusuri pola data.'}</p></div>
+        <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Gambaran terpadu indikator mutu, insiden keselamatan pasien, manajemen risiko, program, dan rencana tindak lanjut. Pilih grafik untuk menelusuri pola data.'}</p></div>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
         {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => { const next = event.target.value; setRoomValue(next); onRoomChange?.(next ? Number(next) : null) }}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
@@ -272,7 +269,6 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         {!qualityOnly && <Kpi label="Laporan insiden" value={summary.incidents.total} note={fmt(summary.incidents.open) + ' masih terbuka'}/>}
         {!qualityOnly && <Kpi label="Risiko sangat tinggi" value={summary.risk.very_high} note={fmt(summary.risk.open) + ' berstatus Open'}/>}
         {!qualityOnly && <Kpi label="RTL belum selesai" value={summary.program.open_actions} note={fmt(summary.program.overdue_actions) + ' melewati tenggat'}/>}
-        {!qualityOnly && <Kpi label="Regulasi berlaku" value={summary.regulation.published} note={fmt(summary.regulation.review_due) + ' perlu ditinjau'}/>}
       </div>
       {activeChart && <section className="ifChartCard" aria-label="Eksplorasi grafik ikhtisar">
         <div className="ifSectionHead"><div><span className="ifEyebrow">DATA EXPLORER</span><h3>Eksplorasi Ikhtisar</h3><p>Pilih topik dan bentuk visualisasi untuk membaca pola data yang sama dari sudut berbeda.</p></div></div>
@@ -298,7 +294,6 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
             <Kpi label="Rekomendasi" value={summary.program.recommendations}/>
             <Kpi label="Total RTL" value={summary.program.actions}/>
             <Kpi label="RTL selesai" value={summary.program.completed_actions}/>
-            <Kpi label="Regulasi menunggu persetujuan" value={summary.regulation.pending_approval}/>
           </div>
         </section>}
       </div>
