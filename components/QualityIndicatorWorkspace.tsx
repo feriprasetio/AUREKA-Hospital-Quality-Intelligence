@@ -325,6 +325,8 @@ function validResponseCode(value:unknown):number|null{
  return Number.isInteger(n)&&n>=1&&n<=3?n:null
 }
 const QUALITY_AUDIT_LAYOUTS=qualityAuditLayout2026 as AuditLayout[]
+// Cache memori per tab (tidak disimpan ke browser storage) agar pindah menu/unit terasa instan.
+const QIW_MEMORY_CACHE=new Map<string,{profiles:any[];staff:any[];patients:any[]}>()
 function getLayout(roomId:number|null|undefined){return roomId==null?undefined:QUALITY_AUDIT_LAYOUTS.find(x=>Number(x.roomId)===Number(roomId))}
 function normHeader(v:unknown){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
 function getLayoutForRoom(roomId:number|null|undefined,roomName?:string|null){
@@ -610,7 +612,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
 
- const roomMap=useMemo(()=>new Map(rooms.map(r=>[Number(r.id),r.name])),[rooms])
+ // Kunci stabil: induk sering mengirim array rooms baru (hasil filter) di setiap render; tanpa ini logbook dimuat ulang terus-menerus.
+ const roomKey=rooms.map(r=>r.id+':'+r.name).join('|')
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ const roomMap=useMemo(()=>new Map(rooms.map(r=>[Number(r.id),r.name])),[roomKey])
  const activeLayout=useMemo(()=>getLayout(roomId),[roomId])
  const activeGrain=useMemo(()=>dominantGrain(profiles,activeLayout),[profiles,activeLayout])
  const selectedLayout=useMemo(()=>selected?(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??'')):activeLayout,[selected,activeLayout])
@@ -652,17 +657,22 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
 
  const load=useCallback(async()=>{
-   setBusy(true)
+   const cacheKey=[roomId,year,patientRegistryMode?1:0].join('|')
+   const cached=QIW_MEMORY_CACHE.get(cacheKey)
+   // Tampilkan data terakhir (hanya di memori tab ini) seketika, lalu segarkan di latar belakang.
+   if(cached){setProfiles(cached.profiles);setStaffOptions(cached.staff);setPatients(cached.patients);setSource('Supabase')}else setBusy(true)
    setMessage('')
    // Remove legacy PHI caches without reading or restoring their contents.
    if(typeof window!=='undefined'){try{window.localStorage.removeItem('aureka-quality-episode-cache-v3');window.localStorage.removeItem('aureka-quality-audit-v3')}catch{}}
    try{
      if(roomId==null){setProfiles([]);setStaffOptions([]);setPatients([]);setSource('Unit belum dipilih');setMessage('Unit kerja belum tersedia. Pilih unit pertama yang tersedia sebelum membuka logbook.');return}
+     let loadedProfiles:any[]=[],loadedStaff:TeamStaffOption[]=[]
      // Profil, roster tenaga, dan catatan dimuat paralel (sebelumnya berurutan sehingga terasa lama).
      const profilesTask=(async()=>{
        const {data:pd,error:pe}=await q().from('indicator_profiles').select('*').eq('room_id',roomId).eq('profile_year',year).eq('status','published').eq('is_active',true).order('code')
        if(pe) throw pe
-       setProfiles(pd??[])
+       loadedProfiles=pd??[]
+       setProfiles(loadedProfiles)
      })()
      // Personnel fields are linked only to the locked roster for the current unit.
      const staffTask=(async()=>{
@@ -685,7 +695,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
          if(staffError) throw staffError
          return (sd??[]).map((s:any)=>({...s,id:String(s.id),room_id:Number(roomByStaff.get(String(s.id)))})) as TeamStaffOption[]
        }))
-       setStaffOptions(results.flat())
+       loadedStaff=results.flat()
+       setStaffOptions(loadedStaff)
      })()
      const recordsTask=(async()=>{
        const out:any[]=[]
@@ -740,9 +751,12 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        const dpjp=String(c.dpjp??formData['DPJP']??formData['Dpjp']??'')
        return {id:String(r.id),recordId:String(r.id),enteredBy:String(r.entered_by??''),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,allowCrossYear:c.source_import?.allow_cross_year===true,excludeFromYearMetrics:c.source_import?.exclude_from_profile_year_metrics===true,staffIdByField:attributionByRecord.get(String(r.id))??{},measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
      })
-     setPatients(db.filter((row:Patient)=>String(row.databaseStatus??'')!=='archived'))
+     const finalPatients=db.filter((row:Patient)=>String(row.databaseStatus??'')!=='archived')
+     setPatients(finalPatients)
      setSource('Supabase')
+     QIW_MEMORY_CACHE.set(cacheKey,{profiles:loadedProfiles,staff:loadedStaff,patients:finalPatients})
    }catch(e){
+     QIW_MEMORY_CACHE.delete(cacheKey)
      setPatients([])
      setProfiles([])
      setSource('Supabase tidak tersedia')

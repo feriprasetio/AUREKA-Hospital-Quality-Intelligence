@@ -102,6 +102,18 @@ export default function HomeClient(){
    }
   }catch{}
  },[user?.id,role])
+ // Sat-set: setelah login, unduh kode semua menu di waktu senggang agar pindah menu tidak menunggu unduhan.
+ useEffect(()=>{
+  if(!user?.id||typeof window==='undefined')return
+  const loaders=[()=>import('@/components/PatientRegistryWorkspace'),()=>import('@/components/QualityIndicatorWorkspace'),()=>import('@/components/HomeLandingWorkspace'),()=>import('@/components/QualityResultsWorkspace'),()=>import('@/components/RiskManagementWorkspace'),()=>import('@/components/PatientSafetyWorkspace'),()=>import('@/components/ClinicalPathwayWorkspace'),()=>import('@/components/MetadataStatisticsWorkspace'),()=>import('@/components/OppeAuditWorkspace'),()=>import('@/components/governance/AnnualProgramWorkspace'),()=>import('@/components/governance/GovernanceProgramWorkspace'),()=>import('@/components/governance/InfographicsDashboard'),()=>import('@/components/GeneralSettings'),()=>import('@/components/governance/AuditLogWorkspace'),()=>import('@/components/PicPerformanceWorkspace'),()=>import('@/components/TanyaAureka')]
+  const conn=(navigator as any).connection
+  if(conn?.saveData)return
+  let cancelled=false,i=0
+  const idle=(cb:()=>void)=>((window as any).requestIdleCallback?(window as any).requestIdleCallback(cb,{timeout:2500}):window.setTimeout(cb,350))
+  const next=()=>{if(cancelled||i>=loaders.length)return;const fn=loaders[i++];fn().catch(()=>{}).finally(()=>idle(next))}
+  const start=window.setTimeout(()=>idle(next),1200)
+  return()=>{cancelled=true;window.clearTimeout(start)}
+ },[user?.id])
  useEffect(()=>{
   if(typeof window==='undefined'||!user?.id||!roomsList.length)return
   if(role==='ADMIN'){
