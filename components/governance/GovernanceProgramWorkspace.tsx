@@ -197,6 +197,6 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
 .govVisualHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.govVisualHead h4{margin:3px 0;font-size:16px}.govVisualHead p{margin:0;color:var(--muted);font-size:11px}.govVisualTotal{font-weight:850;font-size:18px;color:var(--accent2)}
 .govVisualBars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px;margin-top:15px}.govVisualRow>div:first-child{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:6px}.govVisualRow b{font-variant-numeric:tabular-nums}.govVisualTrack{height:9px;border-radius:20px;background:var(--surface-muted,#edf2f7);overflow:hidden}.govVisualTrack i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#3977b8,#6ca5d8)}.govVisualFoot{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:14px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}.govVisualFoot b{color:var(--ink)}
 @media(max-width:640px){.govVisualBars{grid-template-columns:1fr}.govVisualSummary{padding:13px}.govVisualHead{display:block}.govVisualTotal{display:inline-block;margin-top:8px}}
-</style>
+    `}</style>
   </section>
 }
