@@ -968,6 +968,13 @@ export default function PatientSafetyWorkspace({
 
     {tab === 'overview' ? <>
       <LiquidGlass className="psPanel">
+        <div className="psSectionHead"><div><h4>Distribusi status pelaporan insiden</h4><p>Jumlah laporan pada setiap tahap alur; volume laporan bukan angka insidensi.</p></div><span className="psPill">{incidents.length} laporan</span></div>
+        <div className="psBars">{[
+          ['Draft','draft'],['Dikirim','submitted'],['Dalam review','under_review'],['Investigasi','investigation'],['Closed','closed']
+        ].map(([label,status])=>{const n=incidents.filter(row=>row.status===status).length;const pct=incidents.length?n/incidents.length*100:0;return <div className="psBarRow" key={status}><span>{label}</span><div className="psBar"><i style={{width:pct+'%'}}/></div><b>{n}</b></div>})}</div>
+        <p className="psMuted" style={{fontSize:11,margin:'10px 0 0'}}>Denominator: {incidents.length} laporan yang dapat diakses pada ruang lingkup akun. Status dihitung dari data register, bukan interpretasi tingkat keparahan.</p>
+      </LiquidGlass>
+      <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Alur Kerja Keselamatan Pasien</h4></div><span className="psPill green">WORKFLOW</span></div>
         <div className="psRcaMap">
           <div className="psRcaNode"><b>01 · Pelaporan</b><span>IKP dibuat dan dikirim oleh pelapor.</span></div>
