@@ -606,7 +606,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       className="qraHero"
       title={modeTitle(mode)}
       actions={<div className="qraActions">
-        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms || lockRoomScope} onChange={(event) => { const next = normalizeRoom(event.target.value); { setRoomId(next); onRoomChange?.(next) } }}>
+        <label className="qraField"><span>Unit kerja</span><select value={roomId ?? ''} disabled={!canViewAllRooms || lockRoomScope} onChange={(event) => { const next = normalizeRoom(event.target.value); setRoomId(next); onRoomChange?.(next) }}>
           {canViewAllRooms && !lockRoomScope && <option value="">Semua unit · lintas ruangan</option>}
           {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
         </select></label>
