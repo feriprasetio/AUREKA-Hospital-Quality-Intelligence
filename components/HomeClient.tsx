@@ -14,7 +14,6 @@ import PublicLandingPage from '@/components/PublicLandingPage'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 import TableSortEnhancer from '@/components/TableSortEnhancer'
 import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
-import WorkspaceModuleMap from '@/components/workspace/WorkspaceModuleMap'
 const PicPerformanceWorkspace=dynamic(()=>import('@/components/PicPerformanceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Monitoring Kinerja PIC')})
 const TanyaAureka=dynamic(()=>import('@/components/TanyaAureka'),{ssr:false})
 const InfographicsDashboard=dynamic(()=>import('@/components/governance/InfographicsDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Infografis')})
@@ -160,8 +159,6 @@ export default function HomeClient(){
   }catch{}
  },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id,allRoomsScope])
  const mobileSidebar=useAccessibleSidebar()
- const [closedNav,setClosedNav]=useState<string[]>([])
- const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
  useEffect(()=>{
   if(typeof document==='undefined')return
   window.localStorage.removeItem('aureka-theme-mode')
@@ -489,6 +486,14 @@ export default function HomeClient(){
   if(id==='analytics')return active==='analytics'&&analyticsTab!=='directory'&&analyticsTab!=='oppe'&&analyticsTab!=='fppe'&&analyticsTab!=='pic-performance'&&analyticsTab!=='profiles'
   return active===id
  }
+ const activeNavEntry=visibleMods.find(([id])=>isPrimaryNavActive(id))
+ const activeNavModuleId=activeNavEntry?.[0]||(active==='home'?'home':'')
+ const activeNavModuleLabel=activeNavEntry?.[1]||(active==='home'?'Beranda':'')
+ const activeNavGroups=sidebarChildGroups[activeNavModuleId]||[]
+ const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
+ const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
+ const activeRailTitle=activeNestedNavGroup?.label||activeNavModuleLabel
+ const activeRailItems=activeNestedNavGroup?.children||activeNavGroups
  const dispatchWorkspaceSearch=(query:string)=>{
   setGlobalSearch(query)
  }
@@ -910,38 +915,20 @@ export default function HomeClient(){
    <button type="button" className="workspaceDrawerClose" aria-label="Tutup menu navigasi" onClick={mobileSidebar.close}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
   </div>
   <div className="navLabel">Menu utama</div>
-  <nav className="sidebarNav" aria-label="Navigasi utama AUREKA">
-   <div className={'sidebarNavGroup '+(active==='home'?'isCurrent ':'')+(active==='home'&&!closedNav.includes('home')?'expanded':'')} key="home">
-    <button type="button" title="Beranda" className={active==='home'?'navActive':''} aria-expanded={active==='home'&&!closedNav.includes('home')} aria-controls="sidebar-children-home" aria-current={active==='home'?'page':undefined} onClick={()=>{if(active==='home')toggleNav('home');else openMainModule('home',true)}}>
-     <NavIcon id="home"/><span>Beranda</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
+  <nav className="sidebarNav" aria-label="Navigasi modul AUREKA">
+   <div className={'sidebarNavGroup '+(active==='home'?'isCurrent':'')} key="home">
+    <button type="button" title="Beranda" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
+     <NavIcon id="home"/><span>Beranda</span>
     </button>
-    <div className="sidebarTreeChildren" id="sidebar-children-home" hidden={active!=='home'||closedNav.includes('home')}>
-     {sidebarChildGroups.home.map(child=><button type="button" key={child.id} className={homeTab===child.id?'sidebarChild active':'sidebarChild'} aria-current={homeTab===child.id?'page':undefined} onClick={()=>selectSidebarChild('home',child.id)}>
-      <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span>
-     </button>)}
-    </div>
    </div>
-   {visibleMods.map(([id,n])=>{const hasKids=Boolean(sidebarChildGroups[id]?.length);const selected=isPrimaryNavActive(id);const groupOpen=selected&&!closedNav.includes(id);return <div className={'sidebarNavGroup '+(selected?'isCurrent ':'')+(groupOpen?'expanded':'')} key={id}>
-    <button type="button" title={n} className={selected?'navActive':''} aria-expanded={hasKids?groupOpen:undefined} aria-controls={hasKids?`sidebar-children-${id}`:undefined} aria-current={selected?'page':undefined} onClick={()=>{if(hasKids&&selected){toggleNav(id);return}toggleNav(id,true);openMainModule(id,hasKids)}}>
-     <NavIcon id={id}/><span>{n}</span>{sidebarChildGroups[id]?.length?<span className="sidebarChevron" aria-hidden="true">⌄</span>:null}
-    </button>
-    {hasKids?<div className="sidebarTreeChildren" id={`sidebar-children-${id}`} hidden={!groupOpen}>
-     {sidebarChildGroups[id].map(child=>child.children?.length
-      ? (()=>{const pActive=Boolean(child.children.some(n=>selectedSidebarChild(id)===n.id)||(id==='quality'||id==='clinical')&&(qualityResultsView===child.id.replace('audit-','')||(clinicalPathwayOpen&&child.id==='audit-pathway')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer==='Audit Klinis dan Kematian'&&child.id==='audit-clinical-death')||(!qualityResultsView&&!clinicalPathwayOpen&&qualityInitialContainer!=='Audit Klinis dan Kematian'&&child.id==='audit-indicators')));const nKey='n:'+child.id;const nOpen=!closedNav.includes(nKey);return <div className={'sidebarNestedGroup '+(nOpen?'open':'closed')} key={child.id}>
-         <button type="button" className={'sidebarChild sidebarTreeParent '+(pActive?'active':'')} aria-expanded={nOpen} aria-controls={`sidebar-children-${id}-${child.id}`} aria-current={pActive?'page':undefined} onClick={()=>{if(pActive){toggleNav(nKey);return}toggleNav(nKey,true);selectSidebarChild(id,(id==='quality'||id==='clinical')?child.id:(child.children?.[0]?.id??child.id))}}>
-          <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span><span className="sidebarChevron" aria-hidden="true">⌄</span>
-         </button>
-         <div className="sidebarTreeChildren sidebarTreeNestedChildren" id={`sidebar-children-${id}-${child.id}`} hidden={!nOpen}>
-          {child.children.map(nested=><button type="button" key={nested.id} className={selectedSidebarChild(id)===nested.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===nested.id?'page':undefined} onClick={()=>selectSidebarChild(id,nested.id)}>
-           <span className="sidebarChildMark" aria-hidden="true"/><span>{nested.label}</span>
-          </button>)}
-         </div>
-        </div>})()
-      : <button type="button" key={child.id} className={selectedSidebarChild(id)===child.id?'sidebarChild active':'sidebarChild'} aria-current={selectedSidebarChild(id)===child.id?'page':undefined} onClick={()=>selectSidebarChild(id,child.id)}>
-         <span className="sidebarChildMark" aria-hidden="true"/><span>{child.label}</span>
-        </button>)}
-    </div>:null}
-   </div>})}
+   {visibleMods.map(([id,label])=>{
+    const selected=isPrimaryNavActive(id)
+    return <div className={'sidebarNavGroup '+(selected?'isCurrent':'')} key={id}>
+     <button type="button" title={label} className={selected?'navActive':''} aria-current={selected?'page':undefined} onClick={()=>openMainModule(id)}>
+      <NavIcon id={id}/><span>{label}</span>
+     </button>
+    </div>
+   })}
   </nav>
   <div className="sidebarFooter">
    <LiquidGlassButton onClick={logout}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton>
@@ -1040,24 +1027,17 @@ export default function HomeClient(){
    {supportTab==='ai'&&<div className="workspaceCommunicationAi"><TanyaAureka sb={sb} page={currentContainer} embedded/></div>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>}
-  {(()=>{
-    const current=visibleMods.find(([id])=>isPrimaryNavActive(id))
-    if(!current)return null
-    const moduleId=current[0]
-    const groups=sidebarChildGroups[moduleId]||[]
-    const nodes=groups.flatMap(group=>group.children?.length
-      ? group.children.map(child=>({id:child.id,label:child.label,detail:group.label}))
-      : [{id:group.id,label:group.label,detail:'Ruang kerja'}])
-    const selected=selectedSidebarChild(moduleId)
-    const mapNodes=nodes.length?nodes:[{id:selected||'overview',label:currentContainer,detail:'Ruang kerja aktif'}]
-    const activeNode=mapNodes.some(node=>node.id===selected)?selected:(mapNodes[0]?.id||'')
-    return <WorkspaceModuleMap title={'Peta '+current[1]} description={'Pilih area kerja untuk membuka sub-tab. Cakupan data mengikuti hak akses dan filter ruangan yang sedang aktif.'} nodes={mapNodes} activeId={activeNode} onSelect={(id)=>selectSidebarChild(moduleId,id)}/>
-   })()}
-   {!(active==='home'&&homeTab==='welcome')&&<div className="workspacePageHead">
-    <div className="workspacePageIntro">
-     <h1>{active==='home'?(homeTab==='infographics'?'Infografis':'Beranda'):currentContainer.split(' · ')[0]}</h1>
+  {activeNavModuleId&&<nav className="workspaceNavigationRail" aria-label={'Navigasi '+activeNavModuleLabel}>
+   <span className="workspaceNavigationRailTitle">{activeRailTitle}</span>
+   {activeRailItems.length>0&&<>
+    <span className="workspaceNavigationRailDivider" aria-hidden="true">|</span>
+    <div className="workspaceNavigationRailItems">
+     {activeRailItems.map(item=>{
+      const activeItem=item.id===activeNavSelectedId
+      return <button key={item.id} type="button" className={'workspaceNavigationRailItem'+(activeItem?' active':'')} aria-current={activeItem?'page':undefined} onClick={()=>selectSidebarChild(activeNavModuleId,item.id)}>{item.label}</button>
+     })}
     </div>
-   </div>}
+   </nav>}
    <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<>
     <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} selectedRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
@@ -1085,7 +1065,7 @@ export default function HomeClient(){
  </section>
  <TableSortEnhancer/><FormSpeedEnhancer/>
  <nav className="mobileBottomNav" aria-label="Navigasi cepat">
-  {[['home','Beranda'] as const,...(['quality','patients','safety','risk'] as const).filter(id=>visibleMods.some(([m])=>m===id)).slice(0,3).map(id=>[id,({quality:'Mutu',patients:'Pasien',safety:'IKP',risk:'Risiko'} as const)[id]] as const)].map(([id,label])=><button type="button" key={id} className={active===id?'active':''} aria-current={active===id?'page':undefined} onClick={()=>{toggleNav(id,true);openMainModule(id)}}><NavIcon id={id}/><span>{label}</span></button>)}
+  {[['home','Beranda'] as const,...(['quality','patients','safety','risk'] as const).filter(id=>visibleMods.some(([m])=>m===id)).slice(0,3).map(id=>[id,({quality:'Mutu',patients:'Pasien',safety:'IKP',risk:'Risiko'} as const)[id]] as const)].map(([id,label])=><button type="button" key={id} className={active===id?'active':''} aria-current={active===id?'page':undefined} onClick={()=>openMainModule(id)}><NavIcon id={id}/><span>{label}</span></button>)}
   <button type="button" className={mobileSidebar.isOpen?'active':''} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen} onClick={event=>mobileSidebar.isOpen?mobileSidebar.close():mobileSidebar.open(event.currentTarget)}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg><span>Menu</span></button>
  </nav>
 </main>
