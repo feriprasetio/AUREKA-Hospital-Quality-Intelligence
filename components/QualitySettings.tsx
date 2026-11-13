@@ -448,7 +448,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                       <span>{program.total} profil</span><span>·</span><span>{program.active} aktif</span>{program.retired > 0 && <><span>·</span><span>{program.retired} dipensiunkan</span></>}
                     </div>
                     <div className="mpCardActions">
-                      <button type="button" className="textButton" onClick={() => { setProgramFilter(program.name); setSearch(''); setTab('profiles'); onTabChange?.('profiles') }}>Kelola indikator →</button>
+                      <button type="button" className="textButton" onClick={() => { setProgramFilter(program.name); setSearch(''); setTab('profiles'); onTabChange?.('profiles') }}>Kelola indikator</button>
                       <button type="button" className="textButton" onClick={() => openNew(program.name)}>+ Tambah ke program</button>
                     </div>
                   </div>

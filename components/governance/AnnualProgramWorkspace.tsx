@@ -75,12 +75,12 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       <button type="button" className="annualProgramCard" onClick={()=>setScreen('priorities')}>
         <span className="annualProgramCardIcon" aria-hidden="true">◎</span>
         <span className="annualProgramCardBody"><strong>Area Prioritas</strong><small>Daftar masalah strategis, sasaran mutu, unit pemilik, dan rencana penyelesaian.</small><span className="annualProgramCardMeta">{loading?'Memuat…':`${rows.length} area · ${activeCount} masih berjalan`}</span></span>
-        <span className="annualProgramCardArrow" aria-hidden="true">→</span>
+        
       </button>
       <button type="button" className="annualProgramCard" onClick={()=>setScreen('proposals')}>
         <span className="annualProgramCardIcon" aria-hidden="true">▤</span>
         <span className="annualProgramCardBody"><strong>Usulan Indikator Baru</strong><small>Ajukan, telaah, revisi, setujui, dan aktivasi indikator baru ke katalog mutu.</small><span className="annualProgramCardMeta">Workflow pengembangan indikator · jejak telaah tersimpan</span></span>
-        <span className="annualProgramCardArrow" aria-hidden="true">→</span>
+        
       </button>
     </div>
     {role==='ADMIN'&&<section className="annualProgramLegacy">

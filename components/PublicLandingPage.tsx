@@ -289,10 +289,6 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
       <div className="a2-container" id="main-content" tabIndex={-1}>
         <section className="a2-hero" aria-labelledby="a2-hero-title">
           <div className="a2-hero-copy">
-            <div className="a2-institution-chip">
-              <span className="a2-chip-dot" />
-              PLATFORM MUTU & KESELAMATAN PASIEN
-            </div>
             <h1 id="a2-hero-title">
               <span className="a2-line"><span>Pelayanan lebih baik.</span></span>
               <span className="a2-line a2-accent-line"><span>Dimulai dari mutu</span></span>
@@ -304,7 +300,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
             </p>
             <div className="a2-hero-links">
               <a href="#modules">Kenali ruang kerja <Icon name="arrow" size={17} /></a>
-              <a href="#workflow">Lihat cara kerjanya <span aria-hidden="true">↗</span></a>
+              <a href="#workflow">Lihat cara kerjanya</a>
             </div>
             <div className="a2-hero-principles" aria-label="Fokus utama AUREKA">
               <span><Icon name="chart" size={15} /> Evaluasi kualitas</span>

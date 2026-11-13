@@ -213,7 +213,7 @@ export default function StaffTeamWorkspace({
           actions={<div className="stStatBar">
             <span className="stStat"><b>{assignments.length.toLocaleString('id-ID')}</b> anggota tim</span>
             <span className="stStat"><b>{directory.filter((row) => row.directory_status === 'available' && !row.already_locked_here).length.toLocaleString('id-ID')}</b> kandidat</span>
-            <span className="stStat ok" title="Satu identitas hanya dapat terkunci pada satu tim aktif">🔒 Identitas dilindungi</span>
+            <span className="stStat ok" title="Satu identitas hanya dapat terkunci pada satu tim aktif">Identitas dilindungi</span>
             <button type="button" className="stBtn stIconBtn" title="Segarkan" aria-label="Segarkan" onClick={() => void load()} disabled={loading || busy}>↻</button>
           </div>}
         />
@@ -249,7 +249,7 @@ export default function StaffTeamWorkspace({
                 <div><div className="stName">{staff!.display_name}</div><div className="stSub"><span className="stCode">{staff!.employee_code}</span> · ID {staff!.id.slice(0,8).toUpperCase()}</div></div>
                 <div><div className="stName">{staff!.profession_group}</div><div className="stSub">{staff!.staff_group || 'Kategori belum diisi'}</div></div>
                 <div><div className="stName">{staff!.position_title || 'Jabatan belum dicantumkan'}</div><div className="stSub">{staff!.source_unit || 'Unit sumber belum dicantumkan'}</div></div>
-                <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}><span className="stLock">🔒 Terkunci</span>{canRelease && <button type="button" className="stRelease" disabled={busy} onClick={() => void releaseStaff(assignment,staff)}>Lepaskan</button>}</div>
+                <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}><span className="stLock">Terkunci</span>{canRelease && <button type="button" className="stRelease" disabled={busy} onClick={() => void releaseStaff(assignment,staff)}>Lepaskan</button>}</div>
               </div>
             ))}
           </div>

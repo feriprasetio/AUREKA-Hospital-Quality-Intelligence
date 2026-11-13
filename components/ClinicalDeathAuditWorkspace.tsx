@@ -563,7 +563,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       <p className="workspaceClinicalDisclaimer" role="note">Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>
 
       <div className="acdPanel acdMode" role="tablist" aria-label="Jenis audit">
-        <button type="button" role="tab" aria-selected={auditType === 'clinical'} className={auditType === 'clinical' ? 'active' : ''} onClick={() => setAuditType('clinical')}>🩺 Audit klinis<span>Semua episode dalam ruang lingkup yang dipilih; gunakan kata kunci untuk topik audit tertentu.</span></button>
+        <button type="button" role="tab" aria-selected={auditType === 'clinical'} className={auditType === 'clinical' ? 'active' : ''} onClick={() => setAuditType('clinical')}>Audit klinis<span>Semua episode dalam ruang lingkup yang dipilih; gunakan kata kunci untuk topik audit tertentu.</span></button>
         <button type="button" role="tab" aria-selected={auditType === 'death'} className={auditType === 'death' ? 'active' : ''} onClick={() => setAuditType('death')}>♡ Audit kematian<span>Hanya episode dengan status akhir yang secara eksplisit menyatakan pasien meninggal.</span></button>
       </div>
 

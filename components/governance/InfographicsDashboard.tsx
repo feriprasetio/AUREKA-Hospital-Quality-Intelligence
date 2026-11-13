@@ -298,7 +298,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         </section>}
       </div>
     </>}
-    {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label} →</button>)}</nav>}
+    {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label}</button>)}</nav>}
     <p className="ifNote">Sumber: agregasi server-side AUREKA. Nilai mengikuti filter periode, unit, dan hak akses. Bulan dengan 0 catatan menunjukkan belum ada record yang masuk, bukan nilai capaian 0%. Episode patient_episode ditampilkan sebagai domain klinis tersendiri. Volume laporan insiden tidak dapat ditafsirkan sebagai angka insidensi tanpa denominator paparan yang sesuai.</p>
   </section>
 }

@@ -915,7 +915,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         {filteredTemplates.map((t) => <button key={t.code} type="button" className="cpGlass cpTile" onClick={() => chooseTemplate(t)}>
           <span className="cpTileTop"><span className={'cpBadge ' + (t.status === 'draft' ? 'draft' : t.status === 'retired' ? 'retired' : '')}>{t.status === 'published' ? 'Aktif' : t.status === 'draft' ? 'Draf' : 'Tidak aktif'}</span></span>
           <h4>{t.name}</h4><p>{t.icd10 ? 'ICD-10: ' + t.icd10 : 'Kode ICD-10 belum dicantumkan pada dokumen sumber'} · Versi {t.version}</p>
-          <div className="cpTileFoot"><span>{t.items.length} item · {t.days.length} hari/tahap</span><span>Buka diagnosis →</span></div>
+          <div className="cpTileFoot"><span>{t.items.length} item · {t.days.length} hari/tahap</span><span>Buka diagnosis</span></div>
         </button>)}
       </div>
       {filteredTemplates.length === 0 && <div className="cpGlass cpEmpty">Tidak ada CP yang cocok dengan pencarian.</div>}
@@ -1094,7 +1094,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
                         </label>
                         {!item.choice && <small className="cpChoiceHint">Aktifkan untuk mengisi hari perawatan.</small>}
                       </td>
-                      <td><div className="cpItemLabel">{item.label || 'Nama item belum diisi'}</div>{item.substage && <div className="cpTiny">{item.substage}</div>}{item.detail && <div className="cpItemDetail">{item.detail}</div>}{item.oppe && <div className="cpTiny">↗ Bukti OPPE</div>}</td>
+                      <td><div className="cpItemLabel">{item.label || 'Nama item belum diisi'}</div>{item.substage && <div className="cpTiny">{item.substage}</div>}{item.detail && <div className="cpItemDetail">{item.detail}</div>}{item.oppe && <div className="cpTiny">Bukti OPPE</div>}</td>
                       {checklistDays.map((day) => {
                         const phase = activeAdditionalPhases.find((item) => item.key === day)
                         const sched = item.schedule.find((s) => s.day === day) || { day, policy: 'not_scheduled' as Policy }
