@@ -83,3 +83,12 @@ test('patient-entry workspace does not silently choose the first room', () => {
   assert.ok(patientRegistry.includes('initialRoomId||null'))
   assert.ok(!patientRegistry.includes('initialRoomId||firstRoomWithData||null'))
 })
+
+
+test('navigation rail is condensed for table-first workflows without removing tab affordances', () => {
+  assert.match(navCss, /AUREKA table-first logbook density/)
+  assert.match(navCss, /\.workspaceNavigationRailTitle \{[\s\S]*min-height: 24px !important/)
+  assert.match(navCss, /\.workspaceNavigationRailItem \{[\s\S]*min-height: 23px !important/)
+  assert.ok(navCss.includes('background: #fff !important;'))
+  assert.ok(navCss.includes('color: #205f46 !important;'))
+})
