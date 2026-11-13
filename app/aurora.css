@@ -277,3 +277,13 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero 
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem { background: transparent !important; border-color: transparent !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem:is(.active, [aria-current="page"], [aria-selected="true"]) { background: #eef2f7 !important; color: #0f1218 !important; }
 }
+
+/* ── Audit kontras ── */
+/* Menu aktif sidebar (terang, desktop): teks label ikut gelap, sebelumnya putih di atas pil putih */
+@media (min-width: 721px) {
+  html[data-skin="arktik"]:not([data-mode="gelap"]) body:not(#_) .workspaceRoot :is(.sidebarNav, .sidebarNavGroup) > button.navActive :is(span, b, small) { color: #1f2430 !important; -webkit-text-fill-color: currentColor !important; }
+}
+/* Mode gelap: chip & label yang masih berlatar putih atau berteks gelap */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifLink, .stStat.ok, .ppBadge, .piBridge) { background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.16) !important; color: #e2e8f0 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .ifLink * { color: inherit !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .psLabel { color: #cbd5e1 !important; }
