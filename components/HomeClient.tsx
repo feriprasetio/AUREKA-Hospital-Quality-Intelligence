@@ -493,7 +493,11 @@ export default function HomeClient(){
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
  const activeRailTitle=activeNestedNavGroup?.label||activeNavModuleLabel
- const activeRailItems=activeNestedNavGroup?.children||activeNavGroups
+ const activeRailItems=activeNavGroups.flatMap(group=>{
+  if(!group.children?.length)return [group]
+  if(group.id===activeNestedNavGroup?.id)return group.children
+  return [{...group,id:group.children[0].id}]
+ })
  const dispatchWorkspaceSearch=(query:string)=>{
   setGlobalSearch(query)
  }
