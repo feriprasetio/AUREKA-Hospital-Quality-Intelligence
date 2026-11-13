@@ -35,6 +35,12 @@ export const NICU_SOURCE_INDICATORS = [
 
 const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?'])
 
+export function hasNicuEpisodeData(values: readonly unknown[]): boolean {
+  return values.some(value => value instanceof Date
+    ? !Number.isNaN(value.getTime())
+    : value != null && String(value).trim() !== '')
+}
+
 export function normalizeNicuDate(value: unknown): string | null {
   const valid = (year: number, month: number, day: number): string | null => {
     const date = new Date(Date.UTC(year, month - 1, day))
