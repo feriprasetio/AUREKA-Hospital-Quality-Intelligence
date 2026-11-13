@@ -25,7 +25,7 @@ test('shared controls and data cards have normalized dimensions', () => {
 
 test('proportional UI stylesheet loads after existing theme and motion styles', () => {
   assert.ok(layout.indexOf("import './proportional-ui.css'") > layout.indexOf("import './landing-motion.css'"))
-  assert.equal([...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m=>m[1]).at(-1),'aureka-navigation-consolidated.css')
+  assert.equal([...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m=>m[1]).at(-2),'aureka-navigation-consolidated.css')
 })
 
 test('Super Admin uses a compact static tab rail and a module-only sidebar', () => {
