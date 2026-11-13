@@ -1108,7 +1108,7 @@ export default function PatientSafetyWorkspace({
         <div className="psFilterGrid">
           <div className="psFilter"><label>Periode</label><select value={responsePeriodFilter} onChange={event => setResponsePeriodFilter(event.target.value)}><option value="">Semua periode</option>{Array.from(new Set(responses.map(row => row.survey_period))).sort().map(period => <option key={period}>{period}</option>)}</select></div>
           <div className="psFilter"><label>Unit</label>{scopeUnitName ? <div className="psPill green">{scopeUnitName}</div> : <select value={responseUnitFilter} onChange={event => setResponseUnitFilter(event.target.value)}><option value="">Semua unit</option>{Array.from(new Set(responses.map(row => row.unit_name))).sort().map(unit => <option key={unit}>{unit}</option>)}</select>}</div>
-          <div className="psFilter"><label>Cari Response ID</label><input value={responseSearch} onChange={event => setResponseSearch(event.target.value)} placeholder="SC-YYYYMMDD-…" /></div>
+          <div className="psFilter psLocalSearch"><label>Cari Response ID</label><input value={responseSearch} onChange={event => setResponseSearch(event.target.value)} placeholder="SC-YYYYMMDD-…" /></div>
           <div className="psFilter"><label>Jumlah Respons</label><div className="psPill green">{responseRows.length} dari {responses.length}</div></div>
         </div>
       </LiquidGlass>
