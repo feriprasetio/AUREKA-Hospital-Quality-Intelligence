@@ -386,7 +386,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
         <section className="a2-capa-section" id="capa" aria-labelledby="a2-capa-title">
           <div className="a2-capa-copy">
-            <p className="a2-eyebrow">CONTINUOUS IMPROVEMENT</p>
+            <p className="a2-eyebrow">Continuous improvement</p>
             <h2 id="a2-capa-title">Temuan tidak berhenti pada laporan.</h2>
             <p>
               CAPA dirancang sebagai jalur tindak lanjut lintas modul. Temuan dapat ditelusuri ke sumbernya,
@@ -503,7 +503,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
         <section className="a2-faq-section" aria-labelledby="a2-faq-title">
           <div className="a2-faq-intro">
-            <p className="a2-eyebrow">INFORMASI PENGGUNA</p>
+            <p className="a2-eyebrow">Informasi pengguna</p>
             <h2 id="a2-faq-title">Pertanyaan yang sering diajukan</h2>
             <p>Informasi singkat bagi pengguna internal dan pengunjung halaman publik.</p>
           </div>

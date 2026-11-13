@@ -248,7 +248,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ikhtisar indikator mutu' : 'Ikhtisar kinerja rumah sakit'}>
     <style>{css}</style>
     <header className="ifHero">
-      <div><span className="ifEyebrow">AUREKA · EXECUTIVE OVERVIEW</span><h2>{qualityOnly ? 'Ikhtisar Indikator Mutu' : 'Ikhtisar Mutu dan Keselamatan Rumah Sakit'}</h2>
+      <div><span className="ifEyebrow">AUREKA · Executive overview</span><h2>{qualityOnly ? 'Ikhtisar Indikator Mutu' : 'Ikhtisar Mutu dan Keselamatan Rumah Sakit'}</h2>
         <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Gambaran terpadu indikator mutu, insiden keselamatan pasien, manajemen risiko, program, dan rencana tindak lanjut. Pilih grafik untuk menelusuri pola data.'}</p></div>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
@@ -271,7 +271,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         {!qualityOnly && <Kpi label="RTL belum selesai" value={summary.program.open_actions} note={fmt(summary.program.overdue_actions) + ' melewati tenggat'}/>}
       </div>
       {activeChart && <section className="ifChartCard" aria-label="Eksplorasi grafik ikhtisar">
-        <div className="ifSectionHead"><div><span className="ifEyebrow">DATA EXPLORER</span><h3>Eksplorasi Ikhtisar</h3><p>Pilih topik dan bentuk visualisasi untuk membaca pola data yang sama dari sudut berbeda.</p></div></div>
+        <div className="ifSectionHead"><div><span className="ifEyebrow">Data explorer</span><h3>Eksplorasi Ikhtisar</h3><p>Pilih topik dan bentuk visualisasi untuk membaca pola data yang sama dari sudut berbeda.</p></div></div>
         <div className="ifChartToolbar">
           <label className="ifChartChoice">Pilih grafik<select value={activeChart.id} onChange={(event) => { const next = chartModels.find((model) => model.id === event.target.value); setChartId(event.target.value); setChartType(next?.kind === 'trend' ? 'line' : 'column') }}>{chartModels.map((model) => <option key={model.id} value={model.id}>{model.label}</option>)}</select></label>
           <div><span style={{display:'block',marginBottom:5,color:'var(--ak-muted,#73849a)',fontSize: 11,fontWeight:750}}>Bentuk grafik</span><div className="ifTypeSwitch" role="group" aria-label="Pilih bentuk grafik">

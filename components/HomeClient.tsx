@@ -793,7 +793,7 @@ export default function HomeClient(){
      <button type="button" className="landingCta big authWide" onClick={()=>{setResetSent(false);setMessage('');setAuthMode('normal')}}>Kembali ke login</button>
     </div>:<form onSubmit={(e)=>{e.preventDefault();rec?saveNewPassword():sendReset()}} noValidate>
      <div className="authLogo">{logo()}</div>
-     <div className="eyebrow authEyebrow">AUREKA WORKSPACE</div>
+     <div className="eyebrow authEyebrow">AUREKA workspace</div>
      <h1>{rec?'Buat password baru':'Lupa password'}</h1>
      <p>{rec?'Masukkan password baru untuk akun Anda.':'Masukkan username atau email akun. Jika akun memiliki email, tautan reset akan dikirim ke sana. Untuk akun unit tanpa email, hubungi Super Admin.'}</p>
      {rec?<>
@@ -818,7 +818,7 @@ export default function HomeClient(){
     </div>
     <div className="authTopbarMeta">
      <span className="authSecureDot" aria-hidden="true"/>
-     <span>PORTAL INTERNAL · RSUD SSMA</span>
+     <span>Portal internal · RSUD SSMA</span>
     </div>
    </header>
    <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
@@ -840,7 +840,7 @@ export default function HomeClient(){
     <LiquidGlass className="authCard">
      {!l&&signupDone?<div className="authSuccess">
       <div className="authSuccessIcon" aria-hidden="true">✓</div>
-      <span className="authFormEyebrow">REGISTRASI AKUN UNIT</span>
+      <span className="authFormEyebrow">Registrasi akun unit</span>
       <h1>Akun berhasil dibuat</h1>
       <p>Akun <b>{email.trim()}</b> untuk unit <b>{roomsList.find(r=>String(r.id)===String(signupRoom))?.name||'-'}</b> sudah terdaftar dan sedang <b>menunggu aktivasi</b>.</p>
       <ol className="authSteps">

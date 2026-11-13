@@ -74,7 +74,7 @@ export default function LandingProductPreview() {
           <span className="ap-rail-avatar">A</span>
         </div>
         <div className="ap-main">
-          <div className="ap-context"><span>HOSPITAL QUALITY INTELLIGENCE</span><span className="ap-context-lock"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="9" rx="2" /><path d="M6 9V6a4 4 0 0 1 8 0v3" /></svg> Akses berbasis peran</span></div>
+          <div className="ap-context"><span>Hospital Quality Intelligence</span><span className="ap-context-lock"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="9" rx="2" /><path d="M6 9V6a4 4 0 0 1 8 0v3" /></svg> Akses berbasis peran</span></div>
           <div className="ap-tabs" role="tablist" aria-label="Jelajahi alur AUREKA">
             {previews.map((item, index) => (
               <button type="button" role="tab" id={`product-tab-${item.id}`} key={item.id}
@@ -84,12 +84,12 @@ export default function LandingProductPreview() {
             ))}
           </div>
           {previews.map((preview, index) => <div className="ap-panel" role="tabpanel" key={preview.id} id={`product-panel-${preview.id}`} aria-labelledby={`product-tab-${preview.id}`} hidden={selected !== index}>
-            <div className="ap-heading"><span>RUANG KERJA TERINTEGRASI</span><h2>{preview.heading}</h2><p>{preview.subtitle}</p></div>
+            <div className="ap-heading"><span>Ruang kerja terintegrasi</span><h2>{preview.heading}</h2><p>{preview.subtitle}</p></div>
             <div className="ap-process" aria-label="Tahapan proses">
               {preview.columns.map((column, index) => <div key={column}><span>{String(index + 1).padStart(2, '0')}</span><b>{column}</b>{index < 2 && <i aria-hidden="true">→</i>}</div>)}
             </div>
             <div className="ap-records">
-              <div className="ap-records-head"><span>FOKUS PENGELOLAAN</span><span>PENDEKATAN</span></div>
+              <div className="ap-records-head"><span>Fokus pengelolaan</span><span>Pendekatan</span></div>
               {preview.items.map((item, index) => <div className="ap-record" key={item.title}><span className="ap-record-icon" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><strong>{item.title}</strong><small>{item.description}</small></div><span className="ap-record-badge">{item.badge}</span></div>)}
             </div>
             <p className="ap-footnote"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2 7 3v5c0 4-4 6-7 8-3-2-7-4-7-8V5zM7 10l2 2 4-4" /></svg>{preview.foot}</p>

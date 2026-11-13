@@ -773,7 +773,7 @@ export default function GeneralSettings({
       {section === 'mydata' && (
         <>
           <LiquidGlass style={{ padding: 18 }}>
-            <div className="eyebrow">DATA SAYA UNTUK PMKP</div>
+            <div className="eyebrow">Data saya untuk PMKP</div>
             <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</h3>
             <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
             <div className="myDataGrid">
@@ -901,7 +901,7 @@ export default function GeneralSettings({
                   {detailId === u.user_id && typeof document !== 'undefined' && createPortal(
                     <div className="moduleEnter settingsWorkspace aurModalLayer"><div className="rmModalBackdrop" role="presentation" onKeyDown={(e) => { if (e.key === 'Escape') setDetailId(null) }}>
                     <section className="rmModalSheet userDetailSheet" role="dialog" aria-modal="true" aria-label={`Detail akun ${u.full_name || u.email || ''}`}>
-                    <div className="userDetailHead"><div><span>DETAIL AKUN</span><h4>{u.full_name || u.username || u.email || 'Pengguna'}</h4><p>{u.username ? '@' + u.username + ' · ' : ''}{u.email || 'Email belum diisi'}</p></div><button type="button" className="uBtn outline" autoFocus onClick={() => setDetailId(null)}>Tutup</button></div>
+                    <div className="userDetailHead"><div><span>Detail akun</span><h4>{u.full_name || u.username || u.email || 'Pengguna'}</h4><p>{u.username ? '@' + u.username + ' · ' : ''}{u.email || 'Email belum diisi'}</p></div><button type="button" className="uBtn outline" autoFocus onClick={() => setDetailId(null)}>Tutup</button></div>
                     {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'}>{rowNote.text}</div>}
                     <div className="userDetail">
                       <div className="userDetailCol">

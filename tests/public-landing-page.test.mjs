@@ -64,7 +64,7 @@ test('public transparency never invents operational values', () => {
 })
 
 test('landing page contains integrated CAPA and workflow explanations', () => {
-  assert.match(component, /CONTINUOUS IMPROVEMENT/)
+  assert.match(component, /Continuous improvement/)
   assert.match(component, /Temuan tidak berhenti pada laporan/)
   assert.match(component, /Verifikasi efektivitas/)
   assert.match(component, /Dari pencatatan menuju peningkatan/)

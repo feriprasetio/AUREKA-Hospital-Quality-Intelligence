@@ -1016,7 +1016,7 @@ export default function PatientSafetyWorkspace({
       {error ? <div className="psAlert error">{error}</div> : null}
       {message ? <div className="psAlert">{message}</div> : null}
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><div className="psEyebrow">FORMULIR LAPORAN · INSIDEN KESELAMATAN PASIEN</div><h4>{incidentId ? 'Laporan ' + incidentCode : 'Laporan Insiden Keselamatan Pasien'}</h4><p>RAHASIA, UNTUK KEPENTINGAN INTERNAL. Pelaporan untuk pembelajaran dan perbaikan sistem, bukan untuk mencari kesalahan atau menghukum individu (non-punitive). Mohon laporkan maksimal 2×24 jam setelah kejadian.</p></div>
+        <div className="psSectionHead"><div><div className="psEyebrow">Formulir laporan · Insiden keselamatan pasien</div><h4>{incidentId ? 'Laporan ' + incidentCode : 'Laporan Insiden Keselamatan Pasien'}</h4><p>RAHASIA, UNTUK KEPENTINGAN INTERNAL. Pelaporan untuk pembelajaran dan perbaikan sistem, bukan untuk mencari kesalahan atau menghukum individu (non-punitive). Mohon laporkan maksimal 2×24 jam setelah kejadian.</p></div>
           <div className="psActions"><span className="psPill green">{incidentStatus === 'draft' ? 'Draft' : statusLabel(incidentStatus)}</span></div>
         </div>
         <div className="psMetaGrid">
@@ -1049,7 +1049,7 @@ export default function PatientSafetyWorkspace({
 
     {tab === 'investigation' ? <>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><div className="psEyebrow">INVESTIGATION WORKSPACE</div><h4>Hasil Investigasi / Root Cause Analysis</h4></div>
+        <div className="psSectionHead"><div><div className="psEyebrow">Investigation workspace</div><h4>Hasil Investigasi / Root Cause Analysis</h4></div>
           <span className="psPill amber">{canManageWorkflow ? 'Pengelola Investigasi' : 'Akses Baca'}</span>
         </div>
         {!canManageWorkflow ? <div className="psAlert warn">Akses penyuntingan investigasi dibatasi untuk Admin, Komite PMKP, dan Manajemen. Pelapor tetap dapat melihat investigasi yang terkait dengan laporan miliknya.</div> : null}
@@ -1104,7 +1104,7 @@ export default function PatientSafetyWorkspace({
 
     {tab === 'responses' && canReadResponses ? <>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><div className="psEyebrow">SUPERADMIN · RESPONSE REPOSITORY</div><h4>Rekapan Survey Budaya Keselamatan</h4></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
+        <div className="psSectionHead"><div><div className="psEyebrow">Superadmin · Response repository</div><h4>Rekapan Survey Budaya Keselamatan</h4></div><div className="psActions"><button type="button" className="psBtn primary" onClick={exportResponses}>Unduh Excel (.xls)</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter"><label>Periode</label><select value={responsePeriodFilter} onChange={event => setResponsePeriodFilter(event.target.value)}><option value="">Semua periode</option>{Array.from(new Set(responses.map(row => row.survey_period))).sort().map(period => <option key={period}>{period}</option>)}</select></div>
           <div className="psFilter"><label>Unit</label>{scopeUnitName ? <div className="psPill green">{scopeUnitName}</div> : <select value={responseUnitFilter} onChange={event => setResponseUnitFilter(event.target.value)}><option value="">Semua unit</option>{Array.from(new Set(responses.map(row => row.unit_name))).sort().map(unit => <option key={unit}>{unit}</option>)}</select>}</div>
