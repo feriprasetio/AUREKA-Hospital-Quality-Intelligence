@@ -16,9 +16,9 @@ html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavig
   margin: 0 !important;
   padding: 4px !important;
   overflow: hidden !important;
-  border: 1px solid var(--desk-line, #dfe7e2) !important;
+  border: 1px solid #e0e7dc !important;
   border-radius: 6px !important;
-  background: var(--desk-soft, #f4f7f5) !important;
+  background: #f1f5ef !important;
   box-shadow: none !important;
   color: var(--desk-ink, #203b34) !important;
   font-family: inherit !important;
@@ -29,7 +29,7 @@ html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavig
   align-items: center !important;
   min-width: 0 !important;
   max-width: min(32%, 230px) !important;
-  min-height: 30px !important;
+  min-height: 34px !important;
   padding: 6px 10px !important;
   overflow: hidden !important;
   border-radius: 4px !important;
