@@ -92,3 +92,13 @@ test('navigation rail is condensed for table-first workflows without removing ta
   assert.ok(navCss.includes('background: #fff !important;'))
   assert.ok(navCss.includes('color: #205f46 !important;'))
 })
+
+
+test('Arktik navigation uses a darker blue module shape and lighter blue sub-tab shapes', () => {
+  const navigation = read('app/aureka-navigation-consolidated.css')
+  assert.match(navigation, /AUREKA Arktik blue tab hierarchy/)
+  assert.match(navigation, /workspaceNavigationRailTitle \{[\s\S]*background: #d7e5f2 !important/)
+  assert.match(navigation, /workspaceNavigationRailItem \{[\s\S]*background: #edf4fa !important/)
+  assert.match(navigation, /workspaceNavigationRailItem\.active \{[\s\S]*background: #dce9f5 !important/)
+  assert.match(navigation, /data-mode="gelap"[\s\S]*workspaceNavigationRailItem\.active/)
+})
