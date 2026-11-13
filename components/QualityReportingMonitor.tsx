@@ -1,5 +1,5 @@
 'use client'
-import {useEffect,useMemo,useState} from 'react'
+import {Fragment,useEffect,useMemo,useState} from 'react'
 import type {SupabaseClient} from '@supabase/supabase-js'
 
 type Room={id:number;name:string}
@@ -39,7 +39,7 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
    <div className="hlReportingMatrix">
     <div className="hlReportingCorner">Nama ruangan</div>
     {MONTHS.map(m=><div className="hlReportingMonth" key={m}>{m}</div>)}
-    {[...visibleRooms].sort((a,b)=>a.name.localeCompare(b.name,'id')).map(room=>{const rr=byRoom(room.id);const reported=new Set(rr.map(r=>r.month));return <React.Fragment key={room.id}><div className="hlReportingRoom"><button type="button" onClick={()=>setExpanded(true)} title={'Lihat detail '+room.name}>{room.name}</button></div>{MONTHS.map((m,i)=><div key={m} className={'hlReportingCell'+(reported.has(i+1)?' hasData':'')} title={room.name+' · '+m+': '+(reported.has(i+1)?'Ada laporan':'Belum ada laporan')}><span>{reported.has(i+1)?'✓':''}</span></div>)}</React.Fragment>})}
+    {[...visibleRooms].sort((a,b)=>a.name.localeCompare(b.name,'id')).map(room=>{const rr=byRoom(room.id);const reported=new Set(rr.map(r=>r.month));return <Fragment key={room.id}><div className="hlReportingRoom"><button type="button" onClick={()=>setExpanded(true)} title={'Lihat detail '+room.name}>{room.name}</button></div>{MONTHS.map((m,i)=><div key={m} className={'hlReportingCell'+(reported.has(i+1)?' hasData':'')} title={room.name+' · '+m+': '+(reported.has(i+1)?'Ada laporan':'Belum ada laporan')}><span>{reported.has(i+1)?'✓':''}</span></div>)}</Fragment>})}
    </div>
   </div>}
   {!busy&&!error&&visibleRooms.length>0&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div>}
