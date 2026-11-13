@@ -898,3 +898,10 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmNode.active{background:l
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmMarker{background:rgba(124,196,255,.12)!important;color:#bfe3ff!important}
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmNode.active .wmmMarker{background:#3b82c4!important;color:#fff!important}
 @media (prefers-reduced-motion:reduce){html body:not(#_) .workspaceRoot .wmmNode{transition:none!important}}
+
+/* CP popup: judul putih terbaca, footer simpan solid */
+html body:not(#_) .cpRoot .cpBuilderModalHead h3,html body:not(#_) .cpRoot .cpBuilderModalHead .cpEyebrow{color:#fff!important;-webkit-text-fill-color:#fff!important;background:none!important}
+html body:not(#_) .cpRoot .cpBuilderModalHead .cpEyebrow{opacity:.75}
+html body:not(#_) .cpRoot .cpBuilderModalBody>.cpFooter{background:#fff!important;backdrop-filter:none!important;padding:12px 20px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;flex-wrap:wrap}
+html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalBody>.cpFooter{background:#13213a!important}
+html body:not(#_) .workspaceRoot .wmmRoot{margin-left:24px!important;margin-right:24px!important}
