@@ -223,3 +223,13 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKp
 
 /* Monitoring di samping Tanya AUREKA: isi rapat ke atas, tidak meregang */
 html body:not(#_) .workspaceRoot .homeLanding .hlDuo .hlReportingPanel { align-content: start !important; }
+
+/* Logo AUREKA di sidebar: tanpa kotak abu-abu, gambar asli transparan */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .brandLogoWrap.workspaceLogo,
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .brandLogoWrap.workspaceLogo .brandLogoImage {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
