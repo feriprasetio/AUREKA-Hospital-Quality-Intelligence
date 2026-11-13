@@ -163,6 +163,7 @@ export default function PatientRegistryWorkspace({
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [query, setQuery] = useState('')
   useEffect(() => { const t = window.setTimeout(() => { setQuery(search.trim()); setPage(0) }, 400); return () => window.clearTimeout(t) }, [search])
   const [showIdentity, setShowIdentity] = useState(false)
