@@ -17,7 +17,9 @@ export default function WorkspaceModuleMap({
   activeId: string
   onSelect?: (id: string) => void
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [pinned, setPinned] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const expanded = pinned || hovered
   const activeIndex = nodes.findIndex((node) => node.id === activeId)
   const activeNode = activeIndex >= 0 ? nodes[activeIndex] : null
 
@@ -25,8 +27,10 @@ export default function WorkspaceModuleMap({
 
   return (
     <section
-      className={'wmmMap' + (expanded ? ' isPinned' : '')}
+      className={'wmmMap' + (pinned ? ' isPinned' : '') + (hovered ? ' isHovered' : '')}
       aria-label={title}
+      onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHovered(true) }}
+      onPointerLeave={(event) => { if (event.pointerType === 'mouse') setHovered(false) }}
     >
       <button
         type="button"
@@ -34,7 +38,7 @@ export default function WorkspaceModuleMap({
         aria-expanded={expanded}
         aria-controls="wmm-map-panel"
         aria-label={'Peta navigasi. Area aktif: ' + (activeNode?.label || 'belum dipilih') + '. Tekan untuk membuka atau menahan panel.'}
-        onClick={() => setExpanded((current) => !current)}
+        onClick={() => setPinned((current) => !current)}
       >
         <span className="wmmMapRailIcon" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none">
@@ -401,8 +405,10 @@ export default function WorkspaceModuleMap({
           border-radius: 50%;
           background: #4a9b87;
         }
-        .wmmMap.isPinned .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
-        .wmmMap.isPinned .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
+        .wmmMap.isPinned .wmmMapPanel,
+        .wmmMap.isHovered .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
+        .wmmMap.isPinned .wmmMapRailChevron,
+        .wmmMap.isHovered .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
         .wmmMap:has(:focus-visible) .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
         .wmmMap:has(:focus-visible) .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
         @media (hover: hover) and (pointer: fine) {
