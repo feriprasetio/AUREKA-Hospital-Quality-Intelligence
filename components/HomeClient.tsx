@@ -1048,10 +1048,10 @@ export default function HomeClient(){
     const nodes=groups.flatMap(group=>group.children?.length
       ? group.children.map(child=>({id:child.id,label:child.label,detail:group.label}))
       : [{id:group.id,label:group.label,detail:'Ruang kerja'}])
-    if(!nodes.length)return null
     const selected=selectedSidebarChild(moduleId)
-    const activeNode=nodes.some(node=>node.id===selected)?selected:(nodes[0]?.id||'')
-    return <WorkspaceModuleMap title={'Peta '+current[1]} description={'Pilih area kerja untuk membuka sub-tab. Cakupan data mengikuti hak akses dan filter ruangan yang sedang aktif.'} nodes={nodes} activeId={activeNode} onSelect={(id)=>selectSidebarChild(moduleId,id)}/>
+    const mapNodes=nodes.length?nodes:[{id:selected||'overview',label:currentContainer,detail:'Ruang kerja aktif'}]
+    const activeNode=mapNodes.some(node=>node.id===selected)?selected:(mapNodes[0]?.id||'')
+    return <WorkspaceModuleMap title={'Peta '+current[1]} description={'Pilih area kerja untuk membuka sub-tab. Cakupan data mengikuti hak akses dan filter ruangan yang sedang aktif.'} nodes={mapNodes} activeId={activeNode} onSelect={(id)=>selectSidebarChild(moduleId,id)}/>
    })()}
    {!(active==='home'&&homeTab==='welcome')&&<div className="workspacePageHead">
     <div className="workspacePageIntro">

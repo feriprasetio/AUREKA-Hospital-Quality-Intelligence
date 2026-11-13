@@ -271,7 +271,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       }
 
       if (mode === 'indicators') {
-        const includeOperationalFields = selectedRoom === 5 || selectedRoom === 11
+        const includeOperationalFields = selectedRoom == null || selectedRoom === 5 || selectedRoom === 11
         const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values' +
           (includeOperationalFields
             ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit,source_import:core_data->source_import'
