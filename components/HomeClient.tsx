@@ -76,11 +76,24 @@ function syncMyEmail(){try{if(localStorage.getItem('aureka-sync-email-missing')=
 async function prof(_uid:string){const {data,error}=await sb.rpc('aureka_get_my_profile');if(error)throw error;const row=(Array.isArray(data)?data[0]:data) as (Profile&{role_code?:string|null;role_name?:string|null})|null;return row}
 async function roleCode(profile:Profile|null){return profile?.role_code||null}
 export default function HomeClient(){
- const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[homeTab,setHomeTab]=useState<'welcome'|'infographics'>('welcome'),[qualityOpen,setQualityOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[selectedWorkspaceRoomId,setSelectedWorkspaceRoomId]=useState<number|null>(null),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('incidents'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('register'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('programs'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[reminderHistory,setReminderHistory]=useState<ReminderHistoryItem[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportTab,setSupportTab]=useState<'admin'|'ai'|'broadcast'>('admin'),[broadcastDraft,setBroadcastDraft]=useState(''),[broadcastSending,setBroadcastSending]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
- const updateWorkspaceRoom=useCallback((nextRoomId:number)=>{
+ const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[homeTab,setHomeTab]=useState<'welcome'|'infographics'>('welcome'),[qualityOpen,setQualityOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[selectedWorkspaceRoomId,setSelectedWorkspaceRoomId]=useState<number|null>(null),[allRoomsScope,setAllRoomsScope]=useState(true),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('incidents'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('register'),[analyticsTab,setAnalyticsTab]=useState<AnalyticsWorkspaceTab>('programs'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[reminderHistory,setReminderHistory]=useState<ReminderHistoryItem[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportTab,setSupportTab]=useState<'admin'|'ai'|'broadcast'>('admin'),[broadcastDraft,setBroadcastDraft]=useState(''),[broadcastSending,setBroadcastSending]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
+ const updateWorkspaceRoom=useCallback((nextRoomId:number|null)=>{
+  if(nextRoomId==null){
+   setAllRoomsScope(true)
+   setSelectedWorkspaceRoomId(null)
+   setSelectedQualityRoomId(null)
+   if(typeof window!=='undefined'&&user?.id){
+    try{
+     window.sessionStorage.setItem('aureka-workspace-room:'+String(user.id),'all')
+     window.sessionStorage.setItem('aureka-quality-room:'+String(user.id),'all')
+    }catch{}
+   }
+   return
+  }
   const normalized=Number(nextRoomId)
   const valid=resolveAdminWorkspaceRoomId(roomsList,[normalized])
   if(valid==null||valid!==normalized)return
+  setAllRoomsScope(false)
   setSelectedWorkspaceRoomId(valid)
   setSelectedQualityRoomId(valid)
   if(typeof window==='undefined'||!user?.id)return
@@ -90,18 +103,29 @@ export default function HomeClient(){
   }catch{}
  },[roomsList,user?.id])
  const updateSelectedQualityRoom=useCallback((nextRoomId:number|null)=>{
+  if(nextRoomId!=null){
+   const valid=resolveAdminWorkspaceRoomId(roomsList,[nextRoomId])
+   if(valid==null||valid!==Number(nextRoomId))return
+   nextRoomId=valid
+  }
   setSelectedQualityRoomId(nextRoomId)
+  if(role==='ADMIN'){
+   setAllRoomsScope(nextRoomId==null)
+   setSelectedWorkspaceRoomId(nextRoomId)
+  }
   if(typeof window==='undefined'||!user?.id)return
   try{
-   const storageKey='aureka-quality-room:'+String(user.id)
-   if(nextRoomId==null)window.sessionStorage.removeItem(storageKey)
-   else window.sessionStorage.setItem(storageKey,String(nextRoomId))
-   if(role==='ADMIN'){
-    if(nextRoomId==null){window.sessionStorage.removeItem('aureka-workspace-room:'+String(user.id));setSelectedWorkspaceRoomId(null)}
-    else{setSelectedWorkspaceRoomId(nextRoomId);window.sessionStorage.setItem('aureka-workspace-room:'+String(user.id),String(nextRoomId))}
+   const qualityKey='aureka-quality-room:'+String(user.id)
+   const workspaceKey='aureka-workspace-room:'+String(user.id)
+   if(nextRoomId==null){
+    window.sessionStorage.setItem(qualityKey,'all')
+    if(role==='ADMIN')window.sessionStorage.setItem(workspaceKey,'all')
+   }else{
+    window.sessionStorage.setItem(qualityKey,String(nextRoomId))
+    if(role==='ADMIN')window.sessionStorage.setItem(workspaceKey,String(nextRoomId))
    }
   }catch{}
- },[user?.id,role])
+ },[user?.id,role,roomsList])
  // Sat-set: setelah login, unduh kode semua menu di waktu senggang agar pindah menu tidak menunggu unduhan.
  useEffect(()=>{
   if(!user?.id||typeof window==='undefined')return
@@ -117,6 +141,11 @@ export default function HomeClient(){
  useEffect(()=>{
   if(typeof window==='undefined'||!user?.id||!roomsList.length)return
   if(role==='ADMIN'){
+   if(allRoomsScope){
+    if(selectedWorkspaceRoomId!=null)setSelectedWorkspaceRoomId(null)
+    if(selectedQualityRoomId!=null)setSelectedQualityRoomId(null)
+    return
+   }
    let stored:number|null=null
    try{stored=Number(window.sessionStorage.getItem('aureka-workspace-room:'+String(user.id)))||Number(window.sessionStorage.getItem('aureka-quality-room:'+String(user.id)))||null}catch{}
    const resolved=resolveAdminWorkspaceRoomId(roomsList,[stored,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id])
@@ -129,7 +158,7 @@ export default function HomeClient(){
    const stored=Number(window.sessionStorage.getItem('aureka-quality-room:'+String(user.id)))
    if(Number.isSafeInteger(stored)&&stored>0&&roomsList.some(item=>Number(item.id)===stored))setSelectedQualityRoomId(stored)
   }catch{}
- },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id])
+ },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id,allRoomsScope])
  const mobileSidebar=useAccessibleSidebar()
  const [closedNav,setClosedNav]=useState<string[]>([])
  const toggleNav=(key:string,open?:boolean)=>setClosedNav(c=>{const isClosed=c.includes(key);const shouldOpen=open??isClosed;return shouldOpen?c.filter(x=>x!==key):(isClosed?c:[...c,key])})
@@ -307,12 +336,12 @@ export default function HomeClient(){
    setBusy(false);setMessage(toUserFacingError(e,{fallback:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.'}))
   }
  }
- const logout=async()=>{intentionalLogoutRef.current=true;try{Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut();setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setQualityOppeOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);}
+ const logout=async()=>{intentionalLogoutRef.current=true;try{Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut();setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setQualityOppeOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);}
   const admin=role==='ADMIN'
  const manager=MANAGER_ROLES.includes(role||'')
  const validator=role==='VALIDATOR'
- const activeWorkspaceRoomId=admin?resolveAdminWorkspaceRoomId(roomsList,[selectedWorkspaceRoomId,selectedQualityRoomId,room?.id]):(room?.id??null)
- const activeWorkspaceRoom=roomsList.find(item=>Number(item.id)===Number(activeWorkspaceRoomId))??room
+ const activeWorkspaceRoomId=admin?(allRoomsScope?null:resolveAdminWorkspaceRoomId(roomsList,[selectedWorkspaceRoomId,selectedQualityRoomId,room?.id])):(room?.id??null)
+ const activeWorkspaceRoom=admin&&allRoomsScope?null:(roomsList.find(item=>Number(item.id)===Number(activeWorkspaceRoomId))??room)
  const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV
   .filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole))
   .filter(({id})=>{
@@ -921,21 +950,20 @@ export default function HomeClient(){
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
    <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 720px)').matches){mobileSidebar.open(event.currentTarget)}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} title={sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen||!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-   <div className="workspaceContext" title={(admin?activeWorkspaceRoom?.name||'Unit belum dipetakan':manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
-    {admin
-     ? <label className="workspaceUnitSelect" title="Unit aktif untuk seluruh workspace">
-        <span className="workspaceUnitLabel" aria-hidden="true">Unit kerja aktif</span>
-        <span className="srOnly">Unit aktif untuk seluruh workspace</span>
-        <span className="workspaceUnitChevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span>
-        <select aria-label="Pilih unit aktif untuk seluruh modul AUREKA" value={String(activeWorkspaceRoomId??'')} onChange={e=>{const next=Number(e.target.value);if(Number.isSafeInteger(next)&&next>0)updateWorkspaceRoom(next)}}>
-         <option value="" disabled>Pilih unit kerja</option>
-         {roomsList.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
-        </select>
-       </label>
-     : <strong>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>}
-    <span>{currentContainer}</span>
-   </div>
-
+   <div className="workspaceContext" title={(admin?(allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name||'Unit belum dipetakan'):manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
+     {admin
+      ? <label className="workspaceUnitSelect" title="Cakupan ruangan untuk workspace">
+         <span className="workspaceUnitLabel" aria-hidden="true">Cakupan ruangan</span>
+         <span className="srOnly">Pilih cakupan ruangan untuk seluruh modul AUREKA</span>
+         <span className="workspaceUnitChevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span>
+         <select aria-label="Pilih cakupan ruangan seluruh modul AUREKA" value={allRoomsScope?'all':String(activeWorkspaceRoomId??'')} onChange={e=>{const raw=e.target.value;if(raw==='all'){updateWorkspaceRoom(null);return}const next=Number(raw);if(Number.isSafeInteger(next)&&next>0)updateWorkspaceRoom(next)}}>
+          <option value="all">Semua ruangan · lintas unit</option>
+          {roomsList.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
+         </select>
+        </label>
+      : <strong>{manager?"Seluruh rumah sakit":room?.name||"Unit belum dipetakan"}</strong>}
+     <span>{currentContainer}</span>
+    </div>
    <div className="workspaceGlobalSearch" onKeyDown={event=>{
     if(event.key==='Escape'){event.preventDefault();dispatchWorkspaceSearch('');document.getElementById('workspaceGlobalSearchInput')?.focus();return}
     if(!['ArrowDown','ArrowUp'].includes(event.key))return
@@ -1012,48 +1040,44 @@ export default function HomeClient(){
    {supportTab==='ai'&&<div className="workspaceCommunicationAi"><TanyaAureka sb={sb} page={currentContainer} embedded/></div>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>}
-  {!(active==='home'&&homeTab==='welcome')&&  <div className="workspacePageHead">
-   <div className="workspacePageIntro">
-    <h1>{active==='home'?(homeTab==='infographics'?'Infografis':'Beranda'):currentContainer.split(' · ')[0]}</h1>
-    
-   </div>
-  </div>}
-  {/* HP: submenu modul aktif tampil sebagai tombol geser (sidebar tersembunyi di HP) */}
-  {(()=>{const cur=visibleMods.find(([id])=>isPrimaryNavActive(id));if(!cur)return null;const mid=cur[0];const kids=sidebarChildGroups[mid]||[];if(kids.length<2&&!kids.some(k=>(k.children?.length??0)>1))return null;const sel=selectedSidebarChild(mid);const anyOn=kids.some(k=>sel===k.id||Boolean(k.children?.some(n=>n.id===sel)));const isOn=(k:SidebarChild)=>sel===k.id||Boolean(k.children?.some(n=>n.id===sel))||(!anyOn&&k===kids[0]);const parent=kids.find(k=>k.children?.length&&isOn(k));return <nav className="mobileSubNav" aria-label={'Submenu '+cur[1]}>
-   {kids.length>1&&<div className={'mobileSubNavRow'+(kids.length<=3?' seg':' grid')}>{kids.map(k=><button key={k.id} type="button" className={isOn(k)?'active':''} aria-current={isOn(k)?'page':undefined} onClick={()=>selectSidebarChild(mid,(mid==='quality'||mid==='clinical')?k.id:(k.children?.[0]?.id??k.id))}>{k.label}</button>)}</div>}
-   {parent&&<div className="mobileSubNavRow sub">{parent.children!.map(n=><button key={n.id} type="button" className={sel===n.id?'active':''} aria-current={sel===n.id?'page':undefined} onClick={()=>selectSidebarChild(mid,n.id)}>{n.label}</button>)}</div>}
-  </nav>})()}
-     {(()=>{
-     const current=visibleMods.find(([id])=>isPrimaryNavActive(id));
-     if(!current)return null;
-     const moduleId=current[0];
-     const groups=sidebarChildGroups[moduleId]||[];
-     const nodes=groups.flatMap(group=>group.children?.length?group.children.map(child=>({id:child.id,label:child.label,detail:group.label})): [{id:group.id,label:group.label,detail:'Ruang kerja'}]);
-     if(nodes.length<2)return null;
-     const selected=selectedSidebarChild(moduleId);
-     const activeNode=nodes.some(node=>node.id===selected)?selected:(nodes[0]?.id||'');
-     return <WorkspaceModuleMap title={'Peta '+current[1]} description={'Peta navigasi seluruh area kerja pada modul ini. Pilih salah satu area untuk langsung membuka sub-tab terkait; cakupan data tetap mengikuti hak akses dan filter unit.'} nodes={nodes} activeId={activeNode} onSelect={(id)=>selectSidebarChild(moduleId,id)}/>;
+  {(()=>{
+    const current=visibleMods.find(([id])=>isPrimaryNavActive(id))
+    if(!current)return null
+    const moduleId=current[0]
+    const groups=sidebarChildGroups[moduleId]||[]
+    const nodes=groups.flatMap(group=>group.children?.length
+      ? group.children.map(child=>({id:child.id,label:child.label,detail:group.label}))
+      : [{id:group.id,label:group.label,detail:'Ruang kerja'}])
+    if(!nodes.length)return null
+    const selected=selectedSidebarChild(moduleId)
+    const activeNode=nodes.some(node=>node.id===selected)?selected:(nodes[0]?.id||'')
+    return <WorkspaceModuleMap title={'Peta '+current[1]} description={'Pilih area kerja untuk membuka sub-tab. Cakupan data mengikuti hak akses dan filter ruangan yang sedang aktif.'} nodes={nodes} activeId={activeNode} onSelect={(id)=>selectSidebarChild(moduleId,id)}/>
    })()}
-<div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
+   {!(active==='home'&&homeTab==='welcome')&&<div className="workspacePageHead">
+    <div className="workspacePageIntro">
+     <h1>{active==='home'?(homeTab==='infographics'?'Infografis':'Beranda'):currentContainer.split(' · ')[0]}</h1>
+    </div>
+   </div>}
+   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
    {active==='home'?<>
-    <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin} selectedRoomId={admin?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
+    <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} selectedRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    </>
-   :active==='patients'?<PatientRegistryWorkspace key={'patient-registry-'+String(activeWorkspaceRoomId??'profile')} section={patientsSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??null} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin}/>
-   :active==='clinical'&&qualityResultsView?<QualityResultsWorkspace key={'clinical-results-'+qualityResultsView+'-'+String(activeWorkspaceRoomId??'profile')} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom}/>
-   :active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} lockRoomScope={admin} onBack={()=>openMainModule('clinical')}/>
-   :active==='clinical'&&qualityOpen?<QualityIndicatorWorkspace key={'clinical-death-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom} initialContainer="Audit Klinis dan Kematian" showContainerTabs={false} hidePatientEpisodeEntry/>
+   :active==='patients'?<PatientRegistryWorkspace key={'patient-registry-'+String(activeWorkspaceRoomId??'profile')} section={patientsSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??null} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
+   :active==='clinical'&&qualityResultsView?<QualityResultsWorkspace key={'clinical-results-'+qualityResultsView+'-'+String(activeWorkspaceRoomId??'profile')} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom}/>
+   :active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} lockRoomScope={admin&&!allRoomsScope} onBack={()=>openMainModule('clinical')}/>
+   :active==='clinical'&&qualityOpen?<QualityIndicatorWorkspace key={'clinical-death-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} initialContainer="Audit Klinis dan Kematian" showContainerTabs={false} hidePatientEpisodeEntry/>
    :active==='quality'&&role==='DEWAN_PENGAWAS'?<InfographicsDashboard mode="quality" role={role} rooms={roomsList} initialRoomId={null} unitLocked={false}/>
    :active==='quality'&&qualityOppeOpen?<OppeAuditWorkspace key="quality-oppe-fppe" initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin}/>
    :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView+'-'+qualityResultsGroup+'-'+String(activeWorkspaceRoomId??'profile')} groupBy={qualityResultsGroup} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom}/>
    :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} lockRoomScope={admin} onBack={()=>openMainModule('quality')}/>
       :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={qualityInitialContainer+'-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin} onRoomChange={updateSelectedQualityRoom} initialContainer={qualityInitialContainer} showContainerTabs={false} hidePatientEpisodeEntry/>
    :active==='quality'?<AsyncStatePanel state="empty" title="Pilih ruang kerja Indikator Mutu" description="Gunakan Form Logbook atau Hasil Capaian pada navigasi Indikator Mutu." compact/>
-   :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab}/>
+   :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab}/>
    :active==='risk'?<RiskManagementWorkspace key={'risk-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={false} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab}/>
-   :active==='analytics'&&analyticsTab==='programs'?<AnnualProgramWorkspace rooms={roomsList} role={role} currentRoomId={room?.id??null}/>
+   :active==='analytics'&&analyticsTab==='programs'?<AnnualProgramWorkspace rooms={roomsList} role={role} currentRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):(room?.id??null)}/>
    :active==='analytics'&&isGovProgramTab(analyticsTab)?<GovernanceProgramWorkspace rooms={roomsList}/>
    :active==='analytics'&&analyticsTab==='pic-performance'?<PicPerformanceWorkspace/>
-   :active==='analytics'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace key={'staff-'+analyticsTab} initialScreen={analyticsTab==='fppe'?'fppe':'assessment'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin}/>:active==='analytics'?<MetadataStatisticsWorkspace key={'metadata-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin} initialContainer={analyticsTab==='oppe'||analyticsTab==='fppe'||analyticsTab==='pic-performance'||isGovProgramTab(analyticsTab)?'directory':analyticsTab} initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
+   :active==='analytics'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace key={'staff-'+analyticsTab} initialScreen={analyticsTab==='fppe'?'fppe':'assessment'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>:active==='analytics'?<MetadataStatisticsWorkspace key={'metadata-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin&&!allRoomsScope} initialContainer={analyticsTab==='oppe'||analyticsTab==='fppe'||analyticsTab==='pic-performance'||isGovProgramTab(analyticsTab)?'directory':analyticsTab} initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
    :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace/>
    :active==='settings'?<GeneralSettings key={profileFocus+(settingsTab||'')} startAt={settingsSection==='audit'?'profile':settingsSection} openProfile={profileFocus>0} initialTab={settingsTab||undefined} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
