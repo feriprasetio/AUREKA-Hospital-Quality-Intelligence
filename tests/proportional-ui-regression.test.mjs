@@ -27,3 +27,31 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.ok(layout.indexOf("import './proportional-ui.css'") > layout.indexOf("import './landing-motion.css'"))
   assert.equal([...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m=>m[1]).at(-1),'motion.css')
 })
+
+test('Super Admin defaults to hospital-wide room scope and uses the workspace map on every module', () => {
+  const homeClient = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
+  const map = readFileSync(new URL('../components/workspace/WorkspaceModuleMap.tsx', import.meta.url), 'utf8')
+  const typography = readFileSync(new URL('../app/typography.css', import.meta.url), 'utf8')
+
+  assert.match(homeClient, /\[allRoomsScope,setAllRoomsScope\]=useState\(true\)/)
+  assert.match(homeClient, /Semua ruangan · lintas unit/)
+  assert.match(homeClient, /const nodes=groups\.flatMap/)
+  assert.match(homeClient, /if\(!nodes\.length\)return null/)
+  assert.match(homeClient, /return <WorkspaceModuleMap/)
+  assert.doesNotMatch(homeClient, /nodes\.length<2/)
+  assert.doesNotMatch(typography, /\.wmmRoot\s*\{\s*display:\s*none/)
+  assert.match(map, /wmmMapGrid/)
+  assert.match(map, /@media \(max-width: 760px\)/)
+  assert.match(map, /@media \(max-width: 480px\)/)
+})
+
+test('Super Admin quality results can aggregate every room without mixing reused indicator codes', () => {
+  const results = readFileSync(new URL('../components/QualityResultsWorkspace.tsx', import.meta.url), 'utf8')
+  const engine = readFileSync(new URL('../lib/aureka/quality-results-engine.ts', import.meta.url), 'utf8')
+
+  assert.match(results, /if \(selectedRoom != null\) request = request\.eq\('room_id', selectedRoom\)/)
+  assert.match(results, /selectedRoom == null && !canViewAllRooms/)
+  assert.match(results, /calculateIndicatorResultsForProfiles/)
+  assert.match(results, /roomId == null && <th>Unit kerja<\/th>/)
+  assert.match(engine, /rows\.filter\(\(row\) => Number\(row\.room_id\) === Number\(profileRoomId\)\)/)
+})
