@@ -28,12 +28,18 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   klpcm: ['KLPCM'],
 }
 
+type ProfileInput = Partial<RekamMedisIndicatorProfile> & {
+  room_id?: number
+  profile_year?: number
+  is_active?: boolean
+  status?: string
+}
 type Props = {
   open: boolean
   roomId: number | null
   year: number
   authorized: boolean
-  profiles: RekamMedisIndicatorProfile[]
+  profiles: ProfileInput[]
   onClose: () => void
   onImported: (summary: { imported: number; skipped: number; received: number }) => void | Promise<void>
 }
@@ -100,11 +106,13 @@ export default function RekamMedisExcelImportDialog({
   const [fileKey, setFileKey] = useState(0)
 
   const eligible = open && authorized && roomId === 13 && year === 2026
-  const activeProfiles = useMemo(() => profiles.filter(profile =>
-    Number((profile as any).room_id) === 13 &&
-    Number((profile as any).profile_year) === 2026 &&
-    (profile as any).is_active === true &&
-    (profile as any).status === 'published',
+  const activeProfiles = useMemo(() => profiles.filter((profile): profile is RekamMedisIndicatorProfile & ProfileInput =>
+    typeof profile.id === 'string' &&
+    typeof profile.code === 'string' &&
+    Number(profile.room_id) === 13 &&
+    Number(profile.profile_year) === 2026 &&
+    profile.is_active === true &&
+    profile.status === 'published',
   ), [profiles])
   const profileByCode = useMemo(() => {
     const map = new Map<string, RekamMedisIndicatorProfile>()
