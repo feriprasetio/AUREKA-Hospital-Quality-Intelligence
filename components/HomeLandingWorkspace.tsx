@@ -377,7 +377,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
         rooms={rooms}
         role={role}
         initialRoomId={isAdmin ? (selectedRoomId ?? roomId) : (manager || role==='DEWAN_PENGAWAS' ? null : roomId)}
-        unitLocked={isAdmin || !['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role || '')}
+        unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role || '')}
         onNavigate={onNavigate}
       />
     </div>}
