@@ -419,7 +419,7 @@ export default function HomeClient(){
   }
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
   setProfileFocus(0);if(!keepMenuOpen)mobileSidebar.close();setGlobalSearch('');setActive(id==='staff'?'analytics':id)
-  if(id==='home')setHomeTab(role==='ADMIN'?'infographics':'welcome')
+  if(id==='home')setHomeTab('welcome')
   if(id==='patients')setPatientsSection('register')
   if(id==='settings')setSettingsSection('profile')
   if(id==='quality'&&role==='DEWAN_PENGAWAS'){setQualityOppeOpen(false);setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);setQualityResultsView('indicators');setQualityResultsGroup('unit');setQualityOpen(false)}

@@ -967,3 +967,12 @@ html[data-mode="gelap"] body:not(#_) .cpBadge { background: rgba(59, 130, 196, .
 @media (min-width: 721px) {
   html body:not(#_) .workspaceRoot .workspaceNavigationRail { margin-top: 18px !important; }
 }
+/* Submenu: hapus garis putih tipis (inset shadow tema Arktik) di atas baris tab */
+html body:not(#_) .workspaceRoot .workspaceNavigationRail { box-shadow: none !important; }
+/* Infografis: 9 kartu KPI dibagi 3 kolom rata, tidak ada kartu sendirian */
+@media (min-width: 721px) {
+  html body:not(#_) .workspaceRoot .ifKpiGrid:has(> :nth-child(9):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+/* Direktori tenaga kerja: kode tidak terpotong dua baris, kolom aksi tidak memakan sepertiga tabel */
+html body:not(#_) .sdTable td:first-child .sdName { white-space: nowrap; }
+html body:not(#_) .sdTable .sdActionsCell { display: flex; flex-wrap: wrap; gap: 6px; max-width: 220px; }

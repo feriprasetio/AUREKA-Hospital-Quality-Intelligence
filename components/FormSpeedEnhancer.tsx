@@ -18,7 +18,7 @@ const visible = (el: Element) => {
   const r = (el as HTMLElement).getBoundingClientRect()
   return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'
 }
-const dialogOf = (el: Element | null) => el?.closest('[aria-modal="true"]') as HTMLElement | null
+const dialogOf = (el: EventTarget | Element | null) => (el instanceof Element ? el.closest('[aria-modal="true"]') : null) as HTMLElement | null
 const topDialog = () => {
   const all = Array.from(document.querySelectorAll<HTMLElement>('[aria-modal="true"]')).filter(visible)
   return all[all.length - 1] || null
