@@ -358,8 +358,8 @@ export default function HomeClient(){
     : [
        {id:'audit-indicators',label:'Form Logbook'},
        {id:'result-indicators',label:'Hasil Capaian',children:[{id:'result-unit',label:'Unit Keseluruhan'},{id:'result-category',label:'Kategori Indikator'}]},
-       {id:'quality-monitoring',label:'Monitoring Pelaporan'},
        {id:'profile-indicators',label:'Profil Indikator'},
+       {id:'quality-monitoring',label:'Monitoring Pelaporan'},
       ],
    clinical:[
     {id:'audit-pathway',label:'Audit Clinical Pathway'},
