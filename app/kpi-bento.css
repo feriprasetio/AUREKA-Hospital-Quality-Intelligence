@@ -125,10 +125,10 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspa
 /* HP: label baris peta risiko tidak menabrak sel */
 @media (max-width: 760px) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood { min-width: 0 !important; overflow: hidden !important; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood small { font-size: 10.5px !important; line-height: 1.2 !important; overflow-wrap: break-word !important; hyphens: auto; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixHeader small { font-size: 10.5px !important; line-height: 1.2 !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood small { font-size: 11px !important; line-height: 1.2 !important; overflow-wrap: break-word !important; hyphens: auto; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixHeader small { font-size: 11px !important; line-height: 1.2 !important; }
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell { padding: 4px 2px !important; font-size: 12px !important; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-size: 10px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-size: 11px !important; }
 }
 
 /* HP: kolom kiri peta risiko cukup angka (nama level dijelaskan di keterangan atas) */
@@ -289,7 +289,7 @@ html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.pending { background: rgba
 .workspaceRoot .psStatsBar { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; padding-bottom: 20px; }
 .workspaceRoot .psStatsBar i { display: block; width: 70%; min-height: 2px; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #3b8fd6, #0b467a); transition: height .6s cubic-bezier(.22, 1, .36, 1); }
 .workspaceRoot .psStatsBar span { position: absolute; bottom: 0; font-size: 11px; opacity: .7; }
-.workspaceRoot .psStatsBar b { position: absolute; top: -2px; font-size: 10.5px; font-weight: 650; opacity: .8; }
+.workspaceRoot .psStatsBar b { position: absolute; top: -2px; font-size: 11px; font-weight: 650; opacity: .8; }
 .workspaceRoot .psStatsRows { display: grid; gap: 8px; }
 .workspaceRoot .psStatsRow { display: grid; grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) 64px; align-items: center; gap: 10px; font-size: 13px; }
 .workspaceRoot .psStatsRow > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

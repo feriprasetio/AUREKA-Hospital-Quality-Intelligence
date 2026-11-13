@@ -130,7 +130,7 @@ function formulaErrorCount(sheet: any): number {
 
 function maskName(value: string): string {
   const parts = value.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return '—'
+  if (!parts.length) return '-'
   return parts.length === 1
     ? parts[0].slice(0, 1) + '•••'
     : parts[0].slice(0, 1) + '••• ' + parts[parts.length - 1].slice(0, 1) + '•••'
@@ -661,10 +661,10 @@ export default function PonekExcelImportDialog({
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
     <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqPonekImport" role="dialog" aria-modal="true" aria-labelledby="aqPonekImportTitle">
-      <style>{'.aqPonekImport .aqBody{display:grid;align-content:start;gap:12px}.aqPonekImport .poBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqPonekImport .poError{background:#fff1f0;color:#8b2822}.aqPonekImport .poWarn{background:#fff8e8;color:#795c26}.aqPonekImport .poSuccess{background:#ebf8ef;color:#1e6544}.aqPonekImport .poTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqPonekImport table{width:100%;border-collapse:collapse;font-size:10px}.aqPonekImport th,.aqPonekImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqPonekImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqPonekImport .poStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqPonekImport .poStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqPonekImport .poStat span{display:block;color:#65736b;font-size:9px}.aqPonekImport .poStat strong{display:block;font-size:17px;margin-top:4px}.aqPonekImport .poFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqPonekImport .poProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqPonekImport .poProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqPonekImport .poTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqPonekImport .poTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqPonekImport .poStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqPonekImport .poFooter{display:grid}}'}</style>
+      <style>{'.aqPonekImport .aqBody{display:grid;align-content:start;gap:12px}.aqPonekImport .poBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqPonekImport .poError{background:#fff1f0;color:#8b2822}.aqPonekImport .poWarn{background:#fff8e8;color:#795c26}.aqPonekImport .poSuccess{background:#ebf8ef;color:#1e6544}.aqPonekImport .poTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqPonekImport table{width:100%;border-collapse:collapse;font-size:11px}.aqPonekImport th,.aqPonekImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqPonekImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqPonekImport .poStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqPonekImport .poStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqPonekImport .poStat span{display:block;color:#65736b;font-size:11px}.aqPonekImport .poStat strong{display:block;font-size:17px;margin-top:4px}.aqPonekImport .poFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqPonekImport .poProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqPonekImport .poProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqPonekImport .poTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:11px;margin:1px}.aqPonekImport .poTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqPonekImport .poStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqPonekImport .poFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>
-          <div className="eyebrow">AUDIT INDIKATOR MUTU · PONEK</div>
+          <div className="eyebrow">Audit indikator mutu · Ponek</div>
           <h4 id="aqPonekImportTitle">Import workbook PONEK 2026</h4>
           <p>Pratinjau 215 episode, empat indikator aktif, dan pemeriksaan konsistensi sebelum penyimpanan.</p>
         </div>
@@ -722,7 +722,7 @@ export default function PonekExcelImportDialog({
         </div>}
 
         {errors.length > 0 && <div className="poBox poError">
-          <strong>{errors.length} baris belum valid — seluruh impor ditahan.</strong>
+          <strong>{errors.length} baris belum valid, seluruh impor ditahan.</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {errors.slice(0, 40).map((error, index) => <li key={index}>{error}</li>)}
           </ul>

@@ -42,7 +42,7 @@ type Profile = {
 type Role = { id: string; code: string; name: string; description?: string | null }
 
 const friendlyRole = (r?: Role | null) => {
-  if (!r) return '—'
+  if (!r) return '-'
   if (r.code === 'ADMIN') return 'Super Admin'
   return r.name || r.code
 }
@@ -435,9 +435,9 @@ export default function GeneralSettings({
   }
 
   const fmtDate = (v?: string | null) => {
-    if (!v) return '—'
+    if (!v) return '-'
     const d = new Date(v)
-    return isNaN(d.getTime()) ? '—' : d.toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return isNaN(d.getTime()) ? '-' : d.toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
   const pwStrength = (v: string) => {
@@ -546,7 +546,7 @@ export default function GeneralSettings({
     return () => { cancelled = true }
   }, [section, me?.primary_room_id, me?.user_id, rooms])
 
-  const roleLabel = friendlyRole(roleMeta) !== '—' ? friendlyRole(roleMeta) : effectiveRole === 'ADMIN' ? 'Super Admin' : (role || '—')
+  const roleLabel = friendlyRole(roleMeta) !== '-' ? friendlyRole(roleMeta) : effectiveRole === 'ADMIN' ? 'Super Admin' : (role || '-')
 
   return (
     <div className="settingsWorkspace" style={{ display: 'grid', gap: 14 }}>
@@ -759,8 +759,8 @@ export default function GeneralSettings({
                   ['Kepadatan tampilan', 'Gunakan tombol Nyaman / Ringkas di atas area kerja.'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>
-                    <b style={{ fontSize: 10 }}>{label}</b>
-                    <span style={{ fontSize: 10, color: 'var(--muted)' }}>{value}</span>
+                    <b style={{ fontSize: 11 }}>{label}</b>
+                    <span style={{ fontSize: 11, color: 'var(--muted)' }}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -773,9 +773,9 @@ export default function GeneralSettings({
       {section === 'mydata' && (
         <>
           <LiquidGlass style={{ padding: 18 }}>
-            <div className="eyebrow">DATA SAYA UNTUK PMKP</div>
+            <div className="eyebrow">Data saya untuk PMKP</div>
             <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</h3>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
             <div className="myDataGrid">
               {([
                 ['Risiko unit terdaftar', myData?.risks, 'risk'],
@@ -786,7 +786,7 @@ export default function GeneralSettings({
               ] as const).map(([label, value, mod]) => (
                 <button key={label} type="button" className="ovKpi" onClick={() => onNavigate?.(mod)} disabled={!onNavigate}>
                   <span className="ovKpiLabel">{label}</span>
-                  {myData === null ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value == null ? '—' : value.toLocaleString('id-ID')}</b>}
+                  {myData === null ? <span className="ovSkeleton ovSkeletonNum" /> : <b>{value == null ? '-' : value.toLocaleString('id-ID')}</b>}
                 </button>
               ))}
             </div>
@@ -819,7 +819,7 @@ export default function GeneralSettings({
           <LiquidGlass style={{ padding: 18 }}>
             <div className="eyebrow">Manajemen pengguna</div>
             <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>Pengguna dan akun unit</h3>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 10 }}>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11 }}>
               Kelola role, unit utama, status, dan penggantian password untuk akun AUREKA.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
@@ -837,7 +837,7 @@ export default function GeneralSettings({
                 </button>
               ))}
             </div>
-            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 10, color: '#9a6b13' }}>
+            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 11, color: '#9a6b13' }}>
               {pendingCount} akun baru menunggu aktivasi. Periksa unit dan role, lalu klik “Aktifkan”. Akun ruangan cukup diberi role PIC Pelaporan.
             </p>}
           </LiquidGlass>
@@ -849,7 +849,7 @@ export default function GeneralSettings({
                   <div className="userRowGrid">
                     <div>
                       <b className="userName">{u.full_name} <span className={`userStatus ${u.is_active ? 'on' : u.deactivated_at ? 'off' : 'pending'}`}>{u.is_active ? 'Aktif' : u.deactivated_at ? 'Nonaktif' : 'Menunggu aktivasi'}</span></b>
-                      <span className="userEmail">{u.username ? <b className="userHandle">@{u.username}</b> : null}{u.username ? ' · ' : ''}{u.email || '—'}{u.must_change_password ? <b style={{ marginLeft: 6, color: '#946b20' }}>· Wajib ganti password</b> : null}</span>
+                      <span className="userEmail">{u.username ? <b className="userHandle">@{u.username}</b> : null}{u.username ? ' · ' : ''}{u.email || '-'}{u.must_change_password ? <b style={{ marginLeft: 6, color: '#946b20' }}>· Wajib ganti password</b> : null}</span>
                     </div>
 
                     <select
@@ -901,14 +901,14 @@ export default function GeneralSettings({
                   {detailId === u.user_id && typeof document !== 'undefined' && createPortal(
                     <div className="moduleEnter settingsWorkspace aurModalLayer"><div className="rmModalBackdrop" role="presentation" onKeyDown={(e) => { if (e.key === 'Escape') setDetailId(null) }}>
                     <section className="rmModalSheet userDetailSheet" role="dialog" aria-modal="true" aria-label={`Detail akun ${u.full_name || u.email || ''}`}>
-                    <div className="userDetailHead"><div><span>DETAIL AKUN</span><h4>{u.full_name || u.username || u.email || 'Pengguna'}</h4><p>{u.username ? '@' + u.username + ' · ' : ''}{u.email || 'Email belum diisi'}</p></div><button type="button" className="uBtn outline" autoFocus onClick={() => setDetailId(null)}>Tutup</button></div>
+                    <div className="userDetailHead"><div><span>Detail akun</span><h4>{u.full_name || u.username || u.email || 'Pengguna'}</h4><p>{u.username ? '@' + u.username + ' · ' : ''}{u.email || 'Email belum diisi'}</p></div><button type="button" className="uBtn outline" autoFocus onClick={() => setDetailId(null)}>Tutup</button></div>
                     {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'}>{rowNote.text}</div>}
                     <div className="userDetail">
                       <div className="userDetailCol">
                         <h5>Data akun</h5>
                         <dl className="userDetailInfo">
-                          <dt>Username</dt><dd>{u.username || '—'}</dd>
-                          <dt>Email</dt><dd>{u.email || '—'}</dd>
+                          <dt>Username</dt><dd>{u.username || '-'}</dd>
+                          <dt>Email</dt><dd>{u.email || '-'}</dd>
                           <dt>Status</dt><dd>{u.is_active ? 'Aktif' : u.deactivated_at ? `Nonaktif sejak ${fmtDate(u.deactivated_at)}` : 'Menunggu aktivasi'}</dd>
                           <dt>Unit utama</dt><dd>{rooms.find((r) => r.id === u.primary_room_id)?.name || 'Belum dipetakan'}</dd>
                           <dt>Role</dt><dd>{friendlyRole(roles.find((r) => r.id === u.role_id))}</dd>
@@ -934,7 +934,7 @@ export default function GeneralSettings({
                       </div>
                       <div className="userDetailCol">
                         <h5>Reset password <span>untuk user yang lupa password</span></h5>
-                        <p className="userDetailHint" style={{ marginTop: 0 }}><b>Cara 1 — Password sementara.</b> Buat password baru, lalu sampaikan ke user (WA/langsung). Akun dan datanya tetap utuh.</p>
+                        <p className="userDetailHint" style={{ marginTop: 0 }}><b>Cara 1, Password sementara.</b> Buat password baru, lalu sampaikan ke user (WA/langsung). Akun dan datanya tetap utuh.</p>
                         <div className="userDetailInline">
                           <input aria-label={`Password sementara untuk ${u.full_name || u.email || 'pengguna'}`} placeholder="Password sementara (min. 12 karakter)" value={tempPw} onChange={(e) => setTempPw(e.target.value)} autoComplete="new-password" />
                           <button type="button" className="uBtn outline" onClick={generateTempPw} title="Buat password acak">Buat acak</button>
@@ -949,7 +949,7 @@ export default function GeneralSettings({
                             <button type="button" className="uBtn ghost" onClick={() => { navigator.clipboard?.writeText(tempPwDone.pw); setRowNote({ id: u.user_id, ok: true, text: 'Password disalin.' }) }}>Salin</button>
                           </div>
                         )}
-                        <p className="userDetailHint"><b>Cara 2 — Email reset.</b> User menerima tautan di email untuk membuat password sendiri.</p>
+                        <p className="userDetailHint"><b>Cara 2, Email reset.</b> User menerima tautan di email untuk membuat password sendiri.</p>
                         <button type="button" className="uBtn outline" disabled={busy || !u.email} onClick={() => sendResetEmail(u)}>Kirim email reset password</button>
                       </div>
                     </div>
@@ -958,7 +958,7 @@ export default function GeneralSettings({
                   )}
                 </div>
               ))}
-              {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 10 }}>Tidak ada pengguna yang cocok.</div>}
+              {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 11 }}>Tidak ada pengguna yang cocok.</div>}
             </div>
           </LiquidGlass>
         </>

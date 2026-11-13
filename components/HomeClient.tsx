@@ -775,7 +775,7 @@ export default function HomeClient(){
 
  useEffect(()=>{if(!manager&&MANAGER_ONLY_MODULES.includes(active))setActive('home')},[manager,active])
  const title=useMemo(()=>isPrimaryNavActive('quality')?'Indikator Mutu':isPrimaryNavActive('staff')?'Sumber Daya Manusia':MODS.find(([id])=>id===active)?.[1]||(active==='home'?'Beranda':'Workspace'),[active,analyticsTab])
- if(view==='force-password')return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||roomsList.find(r=>Number(r.id)===Number(profile?.primary_room_id))?.name||'belum ditetapkan, hubungi Super Admin'}<br/>Gunakan password baru minimal 6 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={6} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 6 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={6} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'} {!busy&&<span aria-hidden="true">→</span>}</button></form><button type="button" className="authBack authLogoutInline" onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
+ if(view==='force-password')return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||roomsList.find(r=>Number(r.id)===Number(profile?.primary_room_id))?.name||'belum ditetapkan, hubungi Super Admin'}<br/>Gunakan password baru minimal 6 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={6} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 6 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={6} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'}</button></form><button type="button" className="authBack authLogoutInline" onClick={logout} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
  if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
   {!rec&&<button type="button" className="authBack" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('normal')}}><span aria-hidden="true">←</span> Kembali ke login</button>}
@@ -790,10 +790,10 @@ export default function HomeClient(){
       <li><b>Klik tautan reset</b><span>Anda akan dibawa kembali ke AUREKA untuk membuat password baru.</span></li>
       <li><b>Tidak menerima email?</b><span>Hubungi Super Admin/Komite PMKP untuk dibuatkan password sementara.</span></li>
      </ol>
-     <button type="button" className="landingCta big authWide" onClick={()=>{setResetSent(false);setMessage('');setAuthMode('normal')}}>Kembali ke login <span aria-hidden="true">→</span></button>
+     <button type="button" className="landingCta big authWide" onClick={()=>{setResetSent(false);setMessage('');setAuthMode('normal')}}>Kembali ke login</button>
     </div>:<form onSubmit={(e)=>{e.preventDefault();rec?saveNewPassword():sendReset()}} noValidate>
      <div className="authLogo">{logo()}</div>
-     <div className="eyebrow authEyebrow">AUREKA WORKSPACE</div>
+     <div className="eyebrow authEyebrow">AUREKA workspace</div>
      <h1>{rec?'Buat password baru':'Lupa password'}</h1>
      <p>{rec?'Masukkan password baru untuk akun Anda.':'Masukkan username atau email akun. Jika akun memiliki email, tautan reset akan dikirim ke sana. Untuk akun unit tanpa email, hubungi Super Admin.'}</p>
      {rec?<>
@@ -801,7 +801,7 @@ export default function HomeClient(){
       <div className="field"><label htmlFor="newPassword2">Ulangi password baru</label><input id="newPassword2" type={showPw?'text':'password'} autoComplete="new-password" value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru"/></div>
      </>:<div className="field"><label htmlFor="forgotEmail">Username atau email</label><input id="forgotEmail" type="text" autoCapitalize="none" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="pic.isolasi atau nama@email.com"/></div>}
      {message&&<div className="authAlert" role="alert">{message}</div>}
-     <button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Memproses…':rec?'Simpan password baru':'Kirim tautan reset'} {!busy&&<span aria-hidden="true">→</span>}</button>
+     <button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Memproses…':rec?'Simpan password baru':'Kirim tautan reset'}</button>
      {!rec&&<div className="authSwitch">Ingat password? <button type="button" onClick={()=>{setMessage('');setAuthMode('normal')}}>Masuk di sini</button></div>}
     </form>}
    </LiquidGlass>
@@ -818,7 +818,7 @@ export default function HomeClient(){
     </div>
     <div className="authTopbarMeta">
      <span className="authSecureDot" aria-hidden="true"/>
-     <span>PORTAL INTERNAL · RSUD SSMA</span>
+     <span>Portal internal · RSUD SSMA</span>
     </div>
    </header>
    <div className="landingAura" aria-hidden="true"><span/><span/><span/></div>
@@ -840,7 +840,7 @@ export default function HomeClient(){
     <LiquidGlass className="authCard">
      {!l&&signupDone?<div className="authSuccess">
       <div className="authSuccessIcon" aria-hidden="true">✓</div>
-      <span className="authFormEyebrow">REGISTRASI AKUN UNIT</span>
+      <span className="authFormEyebrow">Registrasi akun unit</span>
       <h1>Akun berhasil dibuat</h1>
       <p>Akun <b>{email.trim()}</b> untuk unit <b>{roomsList.find(r=>String(r.id)===String(signupRoom))?.name||'-'}</b> sudah terdaftar dan sedang <b>menunggu aktivasi</b>.</p>
       <ol className="authSteps">
@@ -848,7 +848,7 @@ export default function HomeClient(){
        <li><b>Aktivasi oleh Komite PMKP</b><span>Super Admin akan memeriksa unit dan mengaktifkan akun Anda.</span></li>
        <li><b>Masuk ke workspace</b><span>Setelah aktif, login dengan username <i className="authStrong">{username||'-'}</i> (atau email) dan password Anda.</span></li>
       </ol>
-      <button type="button" className="landingCta big authWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login <span aria-hidden="true">→</span></button>
+      <button type="button" className="landingCta big authWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login</button>
      </div>:<form className="authForm" onSubmit={submit} noValidate>
       <div className="authFormIntro">
        <img className="authBrandMark" src={LOGO} alt="" width={160} height={136} aria-hidden="true"/>
@@ -895,7 +895,7 @@ export default function HomeClient(){
       {l&&needVerify&&<button type="button" className="authResend" disabled={busy} onClick={resendVerify}>Kirim ulang email verifikasi</button>}
       <button type="submit" className="landingCta big authWide" disabled={busy}>
        {busy?(l?'Memeriksa akun…':'Mengirim pendaftaran…'):l?'Masuk ke Workspace':'Kirim Pendaftaran'}
-       {!busy&&<span aria-hidden="true">→</span>}
+      
       </button>
       <div className="authSwitch">
        {l?'Belum memiliki akun unit?':'Sudah memiliki akun?'}
@@ -971,7 +971,7 @@ export default function HomeClient(){
     {globalSearch.trim()&&<div id="workspace-search-results" className="workspaceSearchResults" role="listbox" aria-label="Hasil pencarian">
      <div className="workspaceSearchResultsHead"><b>Hasil dalam {currentContainer}</b><span>{searchResultsQuery===globalSearch.trim()?searchResults.length+' hasil':'Mencari…'}</span></div>
      {searchResults.length?searchResults.map((result,index)=><button type="button" role="option" aria-selected="false" key={index+'-'+result.text} onClick={()=>jumpToSearchResult(result)}>
-      <span className="workspaceSearchResultTag">{result.tag}</span><span>{result.text}</span><span className="workspaceSearchResultArrow" aria-hidden="true">↗</span>
+      <span className="workspaceSearchResultTag">{result.tag}</span><span>{result.text}</span>
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
    </div>

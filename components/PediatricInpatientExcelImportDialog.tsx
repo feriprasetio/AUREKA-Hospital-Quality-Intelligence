@@ -151,7 +151,7 @@ function formulaErrorCount(sheet: any): number {
 
 function maskName(value: string): string {
   const parts = value.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return '—'
+  if (!parts.length) return '-'
   return parts.length === 1
     ? parts[0].slice(0, 1) + '•••'
     : parts[0].slice(0, 1) + '••• ' + parts[parts.length - 1].slice(0, 1) + '•••'
@@ -791,10 +791,10 @@ export default function PediatricInpatientExcelImportDialog({
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
     <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqPediatricImport" role="dialog" aria-modal="true" aria-labelledby="aqPediatricImportTitle">
-      <style>{'.aqPediatricImport .aqBody{display:grid;align-content:start;gap:12px}.aqPediatricImport .paBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqPediatricImport .paError{background:#fff1f0;color:#8b2822}.aqPediatricImport .paWarn{background:#fff8e8;color:#795c26}.aqPediatricImport .paSuccess{background:#ebf8ef;color:#1e6544}.aqPediatricImport .paTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqPediatricImport table{width:100%;border-collapse:collapse;font-size:10px}.aqPediatricImport th,.aqPediatricImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqPediatricImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqPediatricImport .paStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqPediatricImport .paStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqPediatricImport .paStat span{display:block;color:#65736b;font-size:9px}.aqPediatricImport .paStat strong{display:block;font-size:17px;margin-top:4px}.aqPediatricImport .paFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqPediatricImport .paProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqPediatricImport .paProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqPediatricImport .paTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqPediatricImport .paTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqPediatricImport .paStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqPediatricImport .paFooter{display:grid}}'}</style>
+      <style>{'.aqPediatricImport .aqBody{display:grid;align-content:start;gap:12px}.aqPediatricImport .paBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqPediatricImport .paError{background:#fff1f0;color:#8b2822}.aqPediatricImport .paWarn{background:#fff8e8;color:#795c26}.aqPediatricImport .paSuccess{background:#ebf8ef;color:#1e6544}.aqPediatricImport .paTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqPediatricImport table{width:100%;border-collapse:collapse;font-size:11px}.aqPediatricImport th,.aqPediatricImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqPediatricImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqPediatricImport .paStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqPediatricImport .paStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqPediatricImport .paStat span{display:block;color:#65736b;font-size:11px}.aqPediatricImport .paStat strong{display:block;font-size:17px;margin-top:4px}.aqPediatricImport .paFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqPediatricImport .paProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqPediatricImport .paProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqPediatricImport .paTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:11px;margin:1px}.aqPediatricImport .paTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqPediatricImport .paStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqPediatricImport .paFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>
-          <div className="eyebrow">AUDIT INDIKATOR MUTU · RAWAT INAP ANAK</div>
+          <div className="eyebrow">Audit indikator mutu · Rawat inap anak</div>
           <h4 id="aqPediatricImportTitle">Import workbook Rawat Inap Anak 2026</h4>
           <p>Pratinjau episode rawat inap, enam indikator terpetakan, serta pemisahan data sumber Linen dan Obat yang belum dapat dipetakan.</p>
         </div>
@@ -846,7 +846,7 @@ export default function PediatricInpatientExcelImportDialog({
                   <td>{maskName(row.patientName)}</td>
                   <td>{row.admissionDate}</td>
                   <td>{row.dischargeDate ?? 'Masih dirawat'}</td>
-                  <td>{row.computedLos == null ? '—' : row.computedLos + ' hari'}</td>
+                  <td>{row.computedLos == null ? '-' : row.computedLos + ' hari'}</td>
                   <td>{Object.keys(row.indicators).length}/6</td>
                   <td>{row.warnings.length ? <details><summary className="paTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="paTag">OK</span>}</td>
                 </tr>)}
@@ -856,7 +856,7 @@ export default function PediatricInpatientExcelImportDialog({
         </div>}
 
         {errors.length > 0 && <div className="paBox paError">
-          <strong>{errors.length} baris belum valid — impor ditahan.</strong>
+          <strong>{errors.length} baris belum valid, impor ditahan.</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {errors.slice(0, 40).map((error, index) => <li key={index}>{error}</li>)}
           </ul>

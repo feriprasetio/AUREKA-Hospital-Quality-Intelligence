@@ -27,7 +27,7 @@ function cellText(row: HTMLTableRowElement, col: number) {
 
 function parseValue(raw: string): { n: number | null; s: string } {
   const s = raw.trim()
-  if (!s || s === '—' || s === '-') return { n: null, s: '' }
+  if (!s || s === '-' || s === '-') return { n: null, s: '' }
   // Tanggal: 2026-10-30 / 30/10/2026 / 30 Okt 2026
   let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (m) return { n: Date.UTC(+m[1], +m[2] - 1, +m[3]), s }

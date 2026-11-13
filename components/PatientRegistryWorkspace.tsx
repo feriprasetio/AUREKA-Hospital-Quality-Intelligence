@@ -106,11 +106,11 @@ function episodeFromRow(row: EpisodeRow, roomNames: Map<number, string>): Episod
 
 function maskName(value: string) {
   const parts = value.split(/\s+/).filter(Boolean)
-  return parts.length ? parts.map((part) => part.length > 1 ? part[0] + '•••' : '•').join(' ') : '—'
+  return parts.length ? parts.map((part) => part.length > 1 ? part[0] + '•••' : '•').join(' ') : '-'
 }
 
 function maskMrn(value: string) {
-  if (!value) return '—'
+  if (!value) return '-'
   return value.length <= 4 ? '••••' : '••••' + value.slice(-4)
 }
 
@@ -263,15 +263,15 @@ export default function PatientRegistryWorkspace({
         .prKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
         .prKpi,.prPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px}
         .prKpi{padding:14px 16px}.prKpi span{display:block;color:var(--muted,#718078);font-size:11px}.prKpi strong{display:block;font-size:25px;margin-top:5px}
-        .prFilters{padding:14px}.prFilters label{display:grid;gap:5px;color:var(--muted,#718078);font-size:10px;font-weight:700}.prUnitScope{display:grid;gap:5px;min-width:170px;padding:3px 0}.prUnitScope span{color:var(--muted,#718078);font-size:10px;font-weight:700}.prUnitScope strong{font-size:12px;color:var(--ink,#18372b)}
+        .prFilters{padding:14px}.prFilters label{display:grid;gap:5px;color:var(--muted,#718078);font-size:11px;font-weight:700}.prUnitScope{display:grid;gap:5px;min-width:170px;padding:3px 0}.prUnitScope span{color:var(--muted,#718078);font-size:11px;font-weight:700}.prUnitScope strong{font-size:12px;color:var(--ink,#18372b)}
         .prFilters input,.prFilters select{min-height:39px;min-width:145px;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink,#18372b);font-size:12px}
         .prSearch{flex:1;min-width:210px}
         .prTableWrap{overflow:auto;max-width:100%;border-radius:15px}
         .prTable{width:100%;min-width:930px;border-collapse:collapse;font-size:12px}
         .prTable th,.prTable td{padding:12px 11px;text-align:left;border-bottom:1px solid var(--line,rgba(30,60,45,.1));vertical-align:top}
-        .prTable th{font-size:10px;color:var(--muted,#718078);font-weight:800;background:#f8faf8;white-space:nowrap}
+        .prTable th{font-size:11px;color:var(--muted,#718078);font-weight:800;background:#f8faf8;white-space:nowrap}
         .prTable td{line-height:1.45}.prStrong{font-weight:800;color:#244638}.prMuted{color:var(--muted,#718078);font-size:11px}
-        .prStatus{display:inline-flex;padding:5px 8px;border-radius:999px;background:#e9f5ee;color:#286346;font-size:10px;font-weight:800}.prStatus.in{background:#fff4e0;color:#8a5a12}.prStatus.visit{background:#e8f0fb;color:#1e4f86}
+        .prStatus{display:inline-flex;padding:5px 8px;border-radius:999px;background:#e9f5ee;color:#286346;font-size:11px;font-weight:800}.prStatus.in{background:#fff4e0;color:#8a5a12}.prStatus.visit{background:#e8f0fb;color:#1e4f86}
         .prFoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px}
         .prEmpty{padding:35px 16px;text-align:center;color:var(--muted,#718078);font-size:12px}
         .prAlert{padding:12px 14px;border-radius:12px;background:#fff5e8;color:#825a20;font-size:12px}
@@ -324,9 +324,9 @@ export default function PatientRegistryWorkspace({
               {loading ? <tr><td colSpan={9}><div className="prEmpty">Memuat rekapan pasien…</div></td></tr>
                 : filtered.length ? filtered.map((row, index) => <tr key={row.id}>
                   <td>{firstRow + index}</td>
-                  <td><div className="prStrong">{showIdentity ? row.name || '—' : maskName(row.name)}</div><div className="prMuted">{showIdentity ? row.mrn || '—' : maskMrn(row.mrn)}</div></td>
-                  <td>{row.unit}</td><td>{row.admission || '—'}</td><td>{row.discharge || '—'}</td>
-                  <td>{row.diagnosis || '—'}</td><td>{row.dpjp || '—'}</td><td>{row.los ? row.los + ' hari' : '—'}</td>
+                  <td><div className="prStrong">{showIdentity ? row.name || '-' : maskName(row.name)}</div><div className="prMuted">{showIdentity ? row.mrn || '-' : maskMrn(row.mrn)}</div></td>
+                  <td>{row.unit}</td><td>{row.admission || '-'}</td><td>{row.discharge || '-'}</td>
+                  <td>{row.diagnosis || '-'}</td><td>{row.dpjp || '-'}</td><td>{row.los ? row.los + ' hari' : '-'}</td>
                   <td><span className={'prStatus ' + (row.inpatient ? (row.discharge ? 'out' : 'in') : 'visit')}>{row.inpatient ? (row.discharge ? 'Pulang' : 'Dirawat') : 'Kunjungan'}</span><div className="prMuted">{row.status === 'validated' ? 'Tervalidasi' : row.status === 'ready' ? 'Menunggu validasi' : row.status === 'draft' ? 'Draf' : row.status}</div></td>
                 </tr>) : <tr><td colSpan={9}><div className="prEmpty">{query ? 'Tidak ada pasien yang cocok dengan pencarian.' : 'Belum ada catatan episode pasien untuk filter yang dipilih.'}</div></td></tr>}
             </tbody>

@@ -83,7 +83,7 @@ export default function MetadataStatisticsWorkspace({
       <style>{`
         .msw{display:grid;gap:14px;min-width:0}
         .mswHeader{padding:16px 18px;display:grid;gap:14px;background:#fff;border:1px solid var(--line,#e5ebe7);border-radius:14px}
-        .mswEyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--accent,#0f7656)}
+        .mswEyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--accent,#0f7656)}
         .mswTitle{margin:4px 0 0;font-size:clamp(20px,2.5vw,26px);letter-spacing:-.035em;color:var(--text,#21372c)}
         .mswDescription{margin:5px 0 0;max-width:850px;color:var(--muted,#64756b);font-size:12px;line-height:1.6}
         .mswTabs,.mswDirectoryTabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #e8eeea;padding-bottom:8px}

@@ -136,7 +136,7 @@ function formulaErrorCount(sheet: any): number {
 
 function maskName(value: string): string {
   const parts = value.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return '—'
+  if (!parts.length) return '-'
   return parts.length === 1
     ? parts[0].slice(0, 1) + '•••'
     : parts[0].slice(0, 1) + '••• ' + parts[parts.length - 1].slice(0, 1) + '•••'
@@ -715,10 +715,10 @@ export default function SurgicalInpatientExcelImportDialog({
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
     <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqSurgicalImport" role="dialog" aria-modal="true" aria-labelledby="aqSurgicalImportTitle">
-      <style>{'.aqSurgicalImport .aqBody{display:grid;align-content:start;gap:12px}.aqSurgicalImport .suBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqSurgicalImport .suError{background:#fff1f0;color:#8b2822}.aqSurgicalImport .suWarn{background:#fff8e8;color:#795c26}.aqSurgicalImport .suSuccess{background:#ebf8ef;color:#1e6544}.aqSurgicalImport .suTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqSurgicalImport table{width:100%;border-collapse:collapse;font-size:10px}.aqSurgicalImport th,.aqSurgicalImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqSurgicalImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqSurgicalImport .suStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqSurgicalImport .suStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqSurgicalImport .suStat span{display:block;color:#65736b;font-size:9px}.aqSurgicalImport .suStat strong{display:block;font-size:17px;margin-top:4px}.aqSurgicalImport .suFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqSurgicalImport .suProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqSurgicalImport .suProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqSurgicalImport .suTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqSurgicalImport .suTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqSurgicalImport .suStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqSurgicalImport .suFooter{display:grid}}'}</style>
+      <style>{'.aqSurgicalImport .aqBody{display:grid;align-content:start;gap:12px}.aqSurgicalImport .suBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqSurgicalImport .suError{background:#fff1f0;color:#8b2822}.aqSurgicalImport .suWarn{background:#fff8e8;color:#795c26}.aqSurgicalImport .suSuccess{background:#ebf8ef;color:#1e6544}.aqSurgicalImport .suTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqSurgicalImport table{width:100%;border-collapse:collapse;font-size:11px}.aqSurgicalImport th,.aqSurgicalImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqSurgicalImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqSurgicalImport .suStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqSurgicalImport .suStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqSurgicalImport .suStat span{display:block;color:#65736b;font-size:11px}.aqSurgicalImport .suStat strong{display:block;font-size:17px;margin-top:4px}.aqSurgicalImport .suFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqSurgicalImport .suProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqSurgicalImport .suProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqSurgicalImport .suTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:11px;margin:1px}.aqSurgicalImport .suTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqSurgicalImport .suStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqSurgicalImport .suFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>
-          <div className="eyebrow">AUDIT INDIKATOR MUTU · RAWAT INAP BEDAH</div>
+          <div className="eyebrow">Audit indikator mutu · Rawat inap bedah</div>
           <h4 id="aqSurgicalImportTitle">Import workbook Rawat Inap Bedah 2026</h4>
           <p>Pratinjau 932 episode, tujuh indikator, pemeriksaan tanggal, DPJP, dan konsistensi periode rawat.</p>
         </div>
@@ -768,7 +768,7 @@ export default function SurgicalInpatientExcelImportDialog({
                   <td>{row.admissionDate}</td>
                   <td>{row.dischargeDate}</td>
                   <td>{row.computedLos}</td>
-                  <td>{row.patientCategory ?? '—'}</td>
+                  <td>{row.patientCategory ?? '-'}</td>
                   <td>{Object.keys(row.indicators).length}/7</td>
                   <td>{row.warnings.length ? <details><summary className="suTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="suTag">OK</span>}</td>
                 </tr>)}
@@ -778,7 +778,7 @@ export default function SurgicalInpatientExcelImportDialog({
         </div>}
 
         {errors.length > 0 && <div className="suBox suError">
-          <strong>{errors.length} baris bermasalah — seluruh impor ditahan.</strong>
+          <strong>{errors.length} baris bermasalah, seluruh impor ditahan.</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {errors.slice(0, 50).map((error, index) => <li key={index}>{error}</li>)}
           </ul>

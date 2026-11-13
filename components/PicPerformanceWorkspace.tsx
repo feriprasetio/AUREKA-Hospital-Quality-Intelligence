@@ -62,15 +62,15 @@ export default function PicPerformanceWorkspace() {
       .ppSelect{border:1px solid #dce6df;background:#fff;border-radius:9px;padding:9px 11px;color:var(--text,#20372d);font-size:12px;min-height:38px}
       .ppKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
       .ppKpi{border:1px solid #e5ece7;border-radius:12px;padding:13px;background:#fbfdfb;min-width:0}
-      .ppKpi span{display:block;font-size:10px;color:#66766d;font-weight:750}
+      .ppKpi span{display:block;font-size:11px;color:#66766d;font-weight:750}
       .ppKpi strong{display:block;font-size:23px;line-height:1.2;margin-top:5px;font-variant-numeric:tabular-nums}
       .ppTableWrap{overflow:auto;max-width:100%}
       .ppTable{width:100%;border-collapse:collapse;min-width:760px;font-size:11px}
       .ppTable th,.ppTable td{padding:11px 10px;border-bottom:1px solid #edf1ee;text-align:left;vertical-align:top}
-      .ppTable th{font-size:9px;color:#718078;text-transform:uppercase;letter-spacing:.06em;background:#f8faf8;white-space:nowrap}
+      .ppTable th{font-size:11px;color:#718078;text-transform:uppercase;letter-spacing:.06em;background:#f8faf8;white-space:nowrap}
       .ppTable td strong{display:block;font-size:11px;color:#24382d}
-      .ppSub{display:block;color:#78867e;font-size:9px;margin-top:3px}
-      .ppBadge{display:inline-flex;border-radius:999px;padding:4px 7px;background:#eef4ef;color:#46634f;font-size:9px;font-weight:800}
+      .ppSub{display:block;color:#78867e;font-size:11px;margin-top:3px}
+      .ppBadge{display:inline-flex;border-radius:999px;padding:4px 7px;background:#eef4ef;color:#46634f;font-size:11px;font-weight:800}
       .ppActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
       .ppBtn{border:1px solid #dce6df;background:#fff;border-radius:9px;padding:8px 11px;font-size:11px;font-weight:750;color:#284235;min-height:36px;cursor:pointer}
       .ppEmpty{padding:28px;text-align:center;color:#738178;font-size:12px}

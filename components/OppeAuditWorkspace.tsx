@@ -118,8 +118,8 @@ const today = () => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 const asObject = (value: unknown): Record<string, any> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, any> : {}
-const fmtNum = (value: number | null | undefined) => value == null || !Number.isFinite(value) ? '—' : value.toLocaleString('id-ID', { maximumFractionDigits: 2 })
-const fmtPct = (value: number | null | undefined) => value == null || !Number.isFinite(value) ? '—' : `${value.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`
+const fmtNum = (value: number | null | undefined) => value == null || !Number.isFinite(value) ? '-' : value.toLocaleString('id-ID', { maximumFractionDigits: 2 })
+const fmtPct = (value: number | null | undefined) => value == null || !Number.isFinite(value) ? '-' : `${value.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`
 const displayMethod = (method: string) => ({
   numerator_denominator: 'Pembilang / penyebut',
   option_response: 'Pilihan respons berkode',
@@ -1038,32 +1038,32 @@ export default function OppeAuditWorkspace({
     const professionalism = Array.isArray(assessment.professionalism_json) ? assessment.professionalism_json : []
     const canonical = teamStaff.find((item) => String(item.id) === String(assessment.staff_id))
     const currentName = canonical?.display_name || String(assessment.staff_name || 'Nama tidak tersedia')
-    const currentCode = canonical?.employee_code || String(assessment.staff_identifier || '—')
-    const currentTitle = canonical?.position_title || '—'
+    const currentCode = canonical?.employee_code || String(assessment.staff_identifier || '-')
+    const currentTitle = canonical?.position_title || '-'
     const scoreDomain = (key: string) => {
       const domain = asObject(snapshot[key])
       return fmtPct(domain.score)
     }
     const manualRows = (items: any[]) => items.map((item) => [
-      item.label || item.id || '—',
-      item.target || '—',
-      item.count ?? '—',
-      statusOptions.find((option) => option.value === item.status)?.label || item.status || '—',
-      item.evidence || '—',
-      item.notes || '—',
+      item.label || item.id || '-',
+      item.target || '-',
+      item.count ?? '-',
+      statusOptions.find((option) => option.value === item.status)?.label || item.status || '-',
+      item.evidence || '-',
+      item.notes || '-',
     ])
     const clinicalRows = clinical.map((item: any) => [
-      item.code || '—',
-      item.title || '—',
-      item.numerator == null || item.denominator == null ? '—' : String(item.numerator) + ' / ' + String(item.denominator),
+      item.code || '-',
+      item.title || '-',
+      item.numerator == null || item.denominator == null ? '-' : String(item.numerator) + ' / ' + String(item.denominator),
       item.measurementMethod === 'numeric_target'
-        ? (item.numericMean == null ? '—' : fmtNum(item.numericMean) + (item.unitOfMeasure ? ' ' + item.unitOfMeasure : ''))
+        ? (item.numericMean == null ? '-' : fmtNum(item.numericMean) + (item.unitOfMeasure ? ' ' + item.unitOfMeasure : ''))
         : fmtPct(item.rate),
-      item.targetText || '—',
+      item.targetText || '-',
       item.observations ?? 0,
       item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target'
         : item.status === 'manual_review' ? 'Telaah manual' : item.status === 'not_applicable' ? 'Tidak berlaku' : 'Data belum memadai',
-      item.reason || '—',
+      item.reason || '-',
     ])
     const opened = openPrintableIndividualReport({
       title: 'Ongoing Professional Practice Evaluation (OPPE)',
@@ -1074,28 +1074,28 @@ export default function OppeAuditWorkspace({
         ['Kode tenaga AUREKA', currentCode],
         ['Jabatan Metadata', currentTitle],
         ['Profesi / SMF', assessment.profession],
-        ['Unit kerja', roomMap.get(Number(assessment.room_id)) || '—'],
+        ['Unit kerja', roomMap.get(Number(assessment.room_id)) || '-'],
         ['Periode', (quarters.find((item) => item.value === Number(assessment.period_quarter))?.label || ('TW ' + assessment.period_quarter)) + ' ' + assessment.period_year],
         ['Status', statusLabel[String(assessment.status)] || assessment.status],
-        ['Evaluator', assessment.evaluator_name || '—'],
-        ['Jabatan evaluator', assessment.evaluator_role || '—'],
+        ['Evaluator', assessment.evaluator_name || '-'],
+        ['Jabatan evaluator', assessment.evaluator_role || '-'],
         ['Logbook tervalidasi yang dipakai', Number(assessment.source_records_count || 0)],
         ['Skor perilaku profesional', scoreDomain('behavior')],
         ['Skor pengembangan profesional', scoreDomain('professionalism')],
         ['Skor kinerja klinis/profesional', scoreDomain('clinical')],
         ['Skor total OPPE', fmtPct(snapshot.overall)],
-        ['Kategori', snapshot.category || '—'],
-        ['Metode skoring', snapshot.method || '—'],
-        ['Dibuat', assessment.created_at ? new Date(assessment.created_at).toLocaleString('id-ID') : '—'],
-        ['Divalidasi pada', assessment.validated_at ? new Date(assessment.validated_at).toLocaleString('id-ID') : '—'],
+        ['Kategori', snapshot.category || '-'],
+        ['Metode skoring', snapshot.method || '-'],
+        ['Dibuat', assessment.created_at ? new Date(assessment.created_at).toLocaleString('id-ID') : '-'],
+        ['Divalidasi pada', assessment.validated_at ? new Date(assessment.validated_at).toLocaleString('id-ID') : '-'],
       ],
       sections: [
         { title: 'I. Perilaku profesional', columns: ['Butir', 'Target', 'Jumlah', 'Status', 'Sumber bukti', 'Catatan'], rows: manualRows(behaviour) },
         { title: 'II. Pengembangan profesionalisme', columns: ['Butir', 'Target', 'Jumlah', 'Status', 'Sumber bukti', 'Catatan'], rows: manualRows(professionalism) },
         { title: 'III. Kinerja klinis / profesional', columns: ['Kode', 'Indikator', 'N / D', 'Capaian / nilai aktual', 'Target', 'Observasi', 'Hasil', 'Keterangan'], rows: clinicalRows },
         { title: 'IV. Catatan evaluasi', columns: ['Komponen', 'Isi'], rows: [
-          ['Catatan / alasan telaah', assessment.assessment_notes || '—'],
-          ['Rencana pengembangan / tindak lanjut', assessment.development_plan || '—'],
+          ['Catatan / alasan telaah', assessment.assessment_notes || '-'],
+          ['Rencana pengembangan / tindak lanjut', assessment.development_plan || '-'],
         ] },
       ],
       footer: 'Snapshot OPPE adalah hasil penilaian tersimpan. Nama terkini ditampilkan dari Metadata bila tenaga masih tersedia; identitas historis tidak diubah. Skor bukan keputusan otomatis tentang kewenangan klinis.',
@@ -1140,7 +1140,7 @@ export default function OppeAuditWorkspace({
   const scoreStatus = score.overall === null ? 'Belum dapat dihitung' : score.needsReview ? 'Memerlukan telaah khusus' : score.complete ? 'Siap ditinjau' : 'Nilai sementara'
 
   if (!canManage) {
-    return <section className="oppeRoot"><style>{CSS}</style><div className="oppeGlass oppeDenied"><div className="oppeEyebrow">AUREKA · AUDIT OPPE</div><h3>Audit OPPE terbatas</h3><p>Kontainer ini memuat evaluasi kinerja profesional individu. Akses saat ini dibatasi untuk Superadmin/Komite PMKP yang diberi wewenang. PIC tetap mengisi logbook mutu pada kontainer Audit Indikator Mutu.</p></div></section>
+    return <section className="oppeRoot"><style>{CSS}</style><div className="oppeGlass oppeDenied"><div className="oppeEyebrow">AUREKA · Audit OPPE</div><h3>Audit OPPE terbatas</h3><p>Kontainer ini memuat evaluasi kinerja profesional individu. Akses saat ini dibatasi untuk Superadmin/Komite PMKP yang diberi wewenang. PIC tetap mengisi logbook mutu pada kontainer Audit Indikator Mutu.</p></div></section>
   }
 
   const scopeFilters = (
@@ -1197,7 +1197,7 @@ export default function OppeAuditWorkspace({
         <div className="oppeWorkGrid">
           <main className="oppeMain">
             <section className="oppeGlass oppeSection">
-              <div className="oppeSectionHead"><div><div className="oppeEyebrow">IDENTITAS PENILAIAN</div><h4>Profil tenaga kesehatan</h4></div><span className={`oppeStatus ${statusTone[form.status] || 'oppeNeutral'}`}>{statusLabel[form.status] || statusLabel.draft}</span></div>
+              <div className="oppeSectionHead"><div><div className="oppeEyebrow">Identitas penilaian</div><h4>Profil tenaga kesehatan</h4></div><span className={`oppeStatus ${statusTone[form.status] || 'oppeNeutral'}`}>{statusLabel[form.status] || statusLabel.draft}</span></div>
               <div className="oppeFormGrid">
                 <label className="oppeField"><span>Nama staf yang dinilai *</span>
                   {currentReadOnly ? (
@@ -1214,7 +1214,7 @@ export default function OppeAuditWorkspace({
                       }))
                     }}>
                       <option value="">Pilih tenaga yang terkunci pada unit ini…</option>
-                      {assignableStaff.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+                      {assignableStaff.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name}, {staff.employee_code} · {staff.profession_group}</option>)}
                     </select>
                   )}
                   
@@ -1248,7 +1248,7 @@ export default function OppeAuditWorkspace({
             </section>
 
             <section className="oppeGlass oppeSection">
-              <div className="oppeSectionHead"><div><div className="oppeEyebrow">RANAH III</div><h4>Kinerja klinis / profesional otomatis</h4></div><span className="oppeDomainScore">{fmtPct(score.clinical.score)}</span></div>
+              <div className="oppeSectionHead"><div><div className="oppeEyebrow">Ranah III</div><h4>Kinerja klinis / profesional otomatis</h4></div><span className="oppeDomainScore">{fmtPct(score.clinical.score)}</span></div>
               {clinicalResultsForDisplay.length === 0 ? (
                 <div className="oppeEmpty"><strong>Belum ada indikator klinis yang terhubung ke profesi ini.</strong><span>Pastikan nama dan profesi benar, pilih unit yang sesuai, lalu atur indikator pada tab Pemetaan indikator. Indikator unit/tim tidak otomatis dimasukkan ke skor individu.</span><button type="button" className="oppeBtn" onClick={() => setScreen('rules')}>Buka pemetaan indikator</button></div>
               ) : (
@@ -1265,7 +1265,7 @@ export default function OppeAuditWorkspace({
 
             {form.id && (
               <section className="oppeGlass oppeSection">
-                <div className="oppeSectionHead"><div><div className="oppeEyebrow">AUDIT TRAIL</div><h4>Riwayat proses OPPE</h4><p>Jejak status disimpan terpisah dan tidak dapat diubah melalui antarmuka ini.</p></div><button type="button" className="oppeBtn" disabled={eventsLoading} onClick={() => void loadAssessmentEvents(form.id!)}>{eventsLoading ? 'Memuat…' : 'Perbarui riwayat'}</button></div>
+                <div className="oppeSectionHead"><div><div className="oppeEyebrow">Audit trail</div><h4>Riwayat proses OPPE</h4><p>Jejak status disimpan terpisah dan tidak dapat diubah melalui antarmuka ini.</p></div><button type="button" className="oppeBtn" disabled={eventsLoading} onClick={() => void loadAssessmentEvents(form.id!)}>{eventsLoading ? 'Memuat…' : 'Perbarui riwayat'}</button></div>
                 <div className="oppeEventList">
                   {assessmentEvents.map((event) => (
                     <article className="oppeEventItem" key={event.id}>
@@ -1293,7 +1293,7 @@ export default function OppeAuditWorkspace({
 
           <aside className="oppeAside">
             <section className="oppeGlass oppeScorePanel">
-              <div className="oppeEyebrow">RINGKASAN PENILAIAN</div>
+              <div className="oppeEyebrow">Ringkasan penilaian</div>
               <h4>{score.overall == null ? 'Belum final' : fmtPct(score.overall)}</h4>
               <span className={`oppeStatus ${score.needsReview ? 'oppeWarn' : score.complete ? 'oppeGood' : 'oppeNeutral'}`}>{scoreStatus}</span>
               
@@ -1315,7 +1315,7 @@ export default function OppeAuditWorkspace({
               </div>
             </section>
             <section className="oppeGlass oppeScorePanel">
-              <div className="oppeEyebrow">KELENGKAPAN DATA</div>
+              <div className="oppeEyebrow">Kelengkapan data</div>
               <div className="oppeMiniMetric"><span>Aturan indikator aktif</span><strong>{selectedRuleCount}</strong></div>
               <div className="oppeMiniMetric"><span>Logbook tervalidasi tahun ini</span><strong>{records.filter((item) => item.status === 'validated').length}</strong></div>
               <div className="oppeMiniMetric"><span>Staf terdeteksi dari logbook</span><strong>{staffSuggestions.length}</strong></div>
@@ -1337,7 +1337,7 @@ export default function OppeAuditWorkspace({
 
       {screen === 'rules' && (
         <section className="oppeGlass oppeSection">
-          <div className="oppeSectionHead"><div><div className="oppeEyebrow">GOVERNANCE · MASTER MUTU AUREKA</div><h4>Pemetaan indikator ke OPPE individual</h4></div>{isSuperAdmin && <LiquidGlassButton onClick={() => { const roomId = roomFilter ?? initialRoom; setGapDraft({ title: '', professionLabel: '', roomId, measurementGrain: suggestedMeasurementGrain(profiles, roomId), targetText: '', targetOperator: '>=', targetValue: '', unitOfMeasure: 'Persentase (%)', numeratorDefinition: '', denominatorDefinition: '', responsibilityField: staffFieldOptions(roomId)[0] || '', notes: '' }); setError(''); setNotice('') }}>＋ Draf indikator yang belum ada</LiquidGlassButton>}</div>
+          <div className="oppeSectionHead"><div><div className="oppeEyebrow">Governance · Master mutu AUREKA</div><h4>Pemetaan indikator ke OPPE individual</h4></div>{isSuperAdmin && <LiquidGlassButton onClick={() => { const roomId = roomFilter ?? initialRoom; setGapDraft({ title: '', professionLabel: '', roomId, measurementGrain: suggestedMeasurementGrain(profiles, roomId), targetText: '', targetOperator: '>=', targetValue: '', unitOfMeasure: 'Persentase (%)', numeratorDefinition: '', denominatorDefinition: '', responsibilityField: staffFieldOptions(roomId)[0] || '', notes: '' }); setError(''); setNotice('') }}>＋ Draf indikator yang belum ada</LiquidGlassButton>}</div>
           <div className="oppeRuleToolbar"><input className="oppeLocalSearch" aria-label="Cari kode, indikator, unit, atau profesi pada aturan OPPE" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari kode, indikator, unit, profesi…" /><span>{filteredProfiles.length} profil master · {rules.filter((rule) => rule.status === 'active' && rule.is_oppe_eligible).length} aturan aktif pada hasil pemuatan</span></div>
           <div className="oppeRuleList">{filteredProfiles.map((profile) => {
             const profileRules = rules.filter((item) => item.profile_id === String(profile.id))
@@ -1351,7 +1351,7 @@ export default function OppeAuditWorkspace({
                 <div className="oppeRuleMappings">
                   {profileRules.map((rule) => (
                     <div className="oppeRuleMapping" key={rule.id}>
-                      <div><b>{rule.profession_label || 'Profesi belum diatur'}</b><span>Field: {rule.responsibility_field || '—'} · {displayMethod(rule.measurement_method)} · Minimum {rule.minimum_observations}</span></div>
+                      <div><b>{rule.profession_label || 'Profesi belum diatur'}</b><span>Field: {rule.responsibility_field || '-'} · {displayMethod(rule.measurement_method)} · Minimum {rule.minimum_observations}</span></div>
                       <div className="oppeRuleMappingActions"><span className={`oppeStatus ${rule.status === 'active' && rule.is_oppe_eligible ? 'oppeGood' : 'oppeNeutral'}`}>{rule.status === 'active' && rule.is_oppe_eligible ? 'Aktif' : 'Draf / nonaktif'}</span><button type="button" className="oppeBtn" onClick={() => startRuleEdit(profile, rule)}>Ubah</button></div>
                     </div>
                   ))}
@@ -1370,7 +1370,7 @@ export default function OppeAuditWorkspace({
                 <label className="oppeField"><span>Field penanggung jawab logbook *</span><select value={ruleDraft.responsibilityField} onChange={(e) => setRuleDraft((current) => current ? { ...current, responsibilityField: e.target.value } : current)}><option value="">Pilih field yang tersedia</option>{staffFieldOptions(Number(ruleProfile.room_id)).map((field) => <option key={field} value={field}>{field}</option>)}</select></label>
                 <label className="oppeField"><span>Metode pengukuran</span><select value={ruleDraft.measurementMethod} onChange={(e) => setRuleDraft((current) => current ? { ...current, measurementMethod: e.target.value as RuleDraft['measurementMethod'] } : current)}><option value="numerator_denominator">Pembilang / penyebut (rasio)</option><option value="option_response">Pilihan respons berkode</option><option value="numeric_target">Nilai numerik dibanding target</option><option value="manual_review">Telaah manual, tidak masuk skor otomatis</option></select></label>
                 <label className="oppeField"><span>Minimum observasi</span><input type="number" min={1} max={5000} value={ruleDraft.minimumObservations} onChange={(e) => setRuleDraft((current) => current ? { ...current, minimumObservations: Number(e.target.value) } : current)} /></label>
-                <label className="oppeField"><span>Tingkat telaah</span><select value={ruleDraft.criticality} onChange={(e) => setRuleDraft((current) => current ? { ...current, criticality: e.target.value as RuleDraft['criticality'] } : current)}><option value="standard">Standar</option><option value="high">Tinggi — perlu telaah bila target gagal</option><option value="critical">Kritis — wajib telaah terpisah bila target gagal</option></select></label>
+                <label className="oppeField"><span>Tingkat telaah</span><select value={ruleDraft.criticality} onChange={(e) => setRuleDraft((current) => current ? { ...current, criticality: e.target.value as RuleDraft['criticality'] } : current)}><option value="standard">Standar</option><option value="high">Tinggi, perlu telaah bila target gagal</option><option value="critical">Kritis, wajib telaah terpisah bila target gagal</option></select></label>
                 <label className="oppeField oppeWide"><span>Dasar pemetaan / validasi definisi *</span><textarea value={ruleDraft.notes} onChange={(e) => setRuleDraft((current) => current ? { ...current, notes: e.target.value } : current)} placeholder="Contoh: indikator mengukur aktivitas perawat yang tercatat pada field Perawat Penerima; numerator dan denominator telah diverifikasi oleh pemilik indikator." /></label>
               </div>
               <div className="oppeNotice oppeNoticeInfo">Satu indikator dapat memiliki beberapa pemetaan profesi; untuk satu staf, aturan profesi yang persis akan mengalahkan aturan kelompok umum agar indikator tidak terhitung ganda. Skor otomatis hanya akan memakai catatan dengan status Validated, pada unit/tahun/triwulan terpilih dan nama yang cocok persis dengan field penanggung jawab. Data draf, data lokal, dan catatan tanpa atribusi tidak masuk skor.</div>
@@ -1378,7 +1378,7 @@ export default function OppeAuditWorkspace({
             <footer className="oppeModalFooter"><button type="button" className="oppeBtn" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>Batal</button><LiquidGlassButton disabled={busy} onClick={() => void saveRule()}>{busy ? 'Menyimpan…' : 'Simpan pemetaan'}</LiquidGlassButton></footer>
           </section></div>}
           {gapDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setGapDraft(null) }}><section ref={gapDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-gap-dialog-title" tabIndex={-1}>
-            <header className="oppeModalHeader"><div><div className="oppeEyebrow">MASTER INDIKATOR · DRAF KESENJANGAN</div><h4 id="oppe-gap-dialog-title">Usulkan indikator profesional baru</h4><p>Draf tidak masuk kalkulasi sampai ditelaah, diterbitkan dan dipetakan.</p></div><button type="button" className="oppeClose" data-dialog-autofocus aria-label="Tutup draf indikator OPPE" onClick={() => setGapDraft(null)}>×</button></header>
+            <header className="oppeModalHeader"><div><div className="oppeEyebrow">Master indikator · Draf kesenjangan</div><h4 id="oppe-gap-dialog-title">Usulkan indikator profesional baru</h4><p>Draf tidak masuk kalkulasi sampai ditelaah, diterbitkan dan dipetakan.</p></div><button type="button" className="oppeClose" data-dialog-autofocus aria-label="Tutup draf indikator OPPE" onClick={() => setGapDraft(null)}>×</button></header>
             <div className="oppeModalBody"><div className="oppeFormGrid">
               <label className="oppeField"><span>Unit pemilik</span><select value={gapDraft.roomId} disabled={lockRoomScope} onChange={(e) => { const value = Number(e.target.value); setGapDraft((current) => current ? { ...current, roomId: value, measurementGrain: suggestedMeasurementGrain(profiles, value), responsibilityField: staffFieldOptions(value)[0] || '' } : current) }}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
               <label className="oppeField"><span>Profesi/SMF *</span><input value={gapDraft.professionLabel} onChange={(e) => setGapDraft((current) => current ? { ...current, professionLabel: e.target.value } : current)} placeholder="Contoh: Dokter Spesialis Anestesiologi" /></label>
@@ -1402,27 +1402,27 @@ export default function OppeAuditWorkspace({
         <section className="oppeGlass oppeSection">
           <div className="oppeSectionHead"><div><div className="oppeEyebrow">RIWAYAT &amp; OUTPUT</div><h4>Penilaian tersimpan</h4></div></div>
           <div className="oppeRuleToolbar"><input className="oppeLocalSearch" aria-label="Cari nama, profesi, atau evaluator pada riwayat OPPE" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="Cari nama, profesi, ID pegawai, evaluator…" /><span>{filteredAssessments.length} penilaian pada filter aktif</span><button type="button" className="oppeBtn" onClick={exportOppeListCsv} disabled={!filteredAssessments.length}>Ekspor daftar CSV</button></div>
-          <div className="oppeRuleList">{filteredAssessments.map((assessment) => <article className="oppeRuleRow" key={assessment.id}><div className="oppeRuleTitle"><strong>{assessment.staff_name} · {assessment.profession}</strong><span>{roomMap.get(Number(assessment.room_id)) || 'Unit'} · {quarters.find((item) => item.value === Number(assessment.period_quarter))?.label} {assessment.period_year}</span><span className="oppeRuleDescription">Nilai: {fmtPct(asObject(assessment.score_json).overall)} · {asObject(assessment.score_json).category || 'Belum dinilai'} · Evaluator: {assessment.evaluator_name || '—'}</span></div><div className="oppeRuleActions"><span className={`oppeStatus ${statusTone[assessment.status] || 'oppeNeutral'}`}>{statusLabel[assessment.status] || assessment.status}</span><button type="button" className="oppeBtn" onClick={() => openSaved(assessment)}>Buka penilaian</button><button type="button" className="oppeBtn" onClick={() => exportOppePdf(assessment)}>Ekspor PDF</button><button type="button" className="oppeBtn" onClick={() => exportOppeJson(assessment)}>JSON</button></div></article>)}{!filteredAssessments.length && <div className="oppeEmpty">{loading ? 'Memuat riwayat…' : 'Belum ada penilaian tersimpan untuk periode ini. Gunakan Form & output OPPE untuk memulai draf.'}</div>}</div>
+          <div className="oppeRuleList">{filteredAssessments.map((assessment) => <article className="oppeRuleRow" key={assessment.id}><div className="oppeRuleTitle"><strong>{assessment.staff_name} · {assessment.profession}</strong><span>{roomMap.get(Number(assessment.room_id)) || 'Unit'} · {quarters.find((item) => item.value === Number(assessment.period_quarter))?.label} {assessment.period_year}</span><span className="oppeRuleDescription">Nilai: {fmtPct(asObject(assessment.score_json).overall)} · {asObject(assessment.score_json).category || 'Belum dinilai'} · Evaluator: {assessment.evaluator_name || '-'}</span></div><div className="oppeRuleActions"><span className={`oppeStatus ${statusTone[assessment.status] || 'oppeNeutral'}`}>{statusLabel[assessment.status] || assessment.status}</span><button type="button" className="oppeBtn" onClick={() => openSaved(assessment)}>Buka penilaian</button><button type="button" className="oppeBtn" onClick={() => exportOppePdf(assessment)}>Ekspor PDF</button><button type="button" className="oppeBtn" onClick={() => exportOppeJson(assessment)}>JSON</button></div></article>)}{!filteredAssessments.length && <div className="oppeEmpty">{loading ? 'Memuat riwayat…' : 'Belum ada penilaian tersimpan untuk periode ini. Gunakan Form & output OPPE untuk memulai draf.'}</div>}</div>
         </section>
       )}
 
       </div>
       <section className="oppePrintOnly">
-        <div className="oppePrintHeader"><h2>ON-GOING PROFESSIONAL PRACTICE EVALUATION (OPPE)</h2><p>Rumah Sakit Umum Daerah Sultan Syarif Mohamad Alkadrie</p></div>
+        <div className="oppePrintHeader"><h2>On-Going Professional Practice Evaluation (OPPE)</h2><p>Rumah Sakit Umum Daerah Sultan Syarif Mohamad Alkadrie</p></div>
         <table className="oppePrintMeta"><tbody>
-          <tr><th>Nama staf</th><td>{form.staffName || '—'}</td><th>Profesi / SMF</th><td>{form.profession || '—'}</td></tr>
+          <tr><th>Nama staf</th><td>{form.staffName || '-'}</td><th>Profesi / SMF</th><td>{form.profession || '-'}</td></tr>
           <tr><th>Unit kerja</th><td>{selectedRoomName}</td><th>Periode</th><td>{quarters.find((item) => item.value === form.quarter)?.label} {form.year}</td></tr>
-          <tr><th>Evaluator</th><td>{form.evaluatorName || '—'}</td><th>Status</th><td>{statusLabel[form.status] || form.status}</td></tr>
+          <tr><th>Evaluator</th><td>{form.evaluatorName || '-'}</td><th>Status</th><td>{statusLabel[form.status] || form.status}</td></tr>
         </tbody></table>
         <h3>I. Perilaku profesional</h3><PrintManualTable items={form.behavior} />
         <h3>II. Pengembangan profesionalisme</h3><PrintManualTable items={professionalismForScore} />
         <h3>III. Kinerja klinis/profesional</h3>
-        <table className="oppePrintTable"><thead><tr><th>Kode</th><th>Indikator</th><th>N / D</th><th>Capaian / nilai aktual</th><th>Target</th><th>Jumlah observasi</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody>{clinicalResultsForDisplay.map((item) => <tr key={item.profileId}><td>{item.code}</td><td>{item.title}</td><td>{item.numerator !== null && item.denominator !== null ? `${fmtNum(item.numerator)}/${fmtNum(item.denominator)}` : '—'}</td><td>{item.measurementMethod === 'numeric_target' ? (item.numericMean === null ? '—' : `${fmtNum(item.numericMean)}${item.unitOfMeasure ? ` ${item.unitOfMeasure}` : ''}`) : fmtPct(item.rate)}</td><td>{item.targetText || '—'}</td><td>{item.observations}</td><td>{item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target' : item.status === 'manual_review' ? 'Telaah manual' : 'Data belum memadai'}</td><td>{item.reason}</td></tr>)}</tbody></table>
+        <table className="oppePrintTable"><thead><tr><th>Kode</th><th>Indikator</th><th>N / D</th><th>Capaian / nilai aktual</th><th>Target</th><th>Jumlah observasi</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody>{clinicalResultsForDisplay.map((item) => <tr key={item.profileId}><td>{item.code}</td><td>{item.title}</td><td>{item.numerator !== null && item.denominator !== null ? `${fmtNum(item.numerator)}/${fmtNum(item.denominator)}` : '-'}</td><td>{item.measurementMethod === 'numeric_target' ? (item.numericMean === null ? '-' : `${fmtNum(item.numericMean)}${item.unitOfMeasure ? ` ${item.unitOfMeasure}` : ''}`) : fmtPct(item.rate)}</td><td>{item.targetText || '-'}</td><td>{item.observations}</td><td>{item.status === 'meets_target' ? 'Memenuhi target' : item.status === 'below_target' ? 'Di bawah target' : item.status === 'manual_review' ? 'Telaah manual' : 'Data belum memadai'}</td><td>{item.reason}</td></tr>)}</tbody></table>
         <h3>IV. Ringkasan hasil</h3>
         <table className="oppePrintMeta"><tbody><tr><th>Skor perilaku</th><td>{fmtPct(score.behavior.score)}</td><th>Skor pengembangan</th><td>{fmtPct(score.professionalism.score)}</td></tr><tr><th>Skor klinis</th><td>{fmtPct(score.clinical.score)}</td><th>Total OPPE</th><td>{fmtPct(score.overall)} · {score.category}</td></tr></tbody></table>
         <p><strong>Metode:</strong> {score.method}</p>
-        <p><strong>Catatan evaluasi:</strong> {form.assessmentNotes || '—'}</p>
-        <p><strong>Rencana pengembangan:</strong> {form.developmentPlan || '—'}</p>
+        <p><strong>Catatan evaluasi:</strong> {form.assessmentNotes || '-'}</p>
+        <p><strong>Rencana pengembangan:</strong> {form.developmentPlan || '-'}</p>
         <div className="oppePrintSignatures"><div>Mengetahui,<br/>Ketua Sub Komite Mutu Profesi<br/><br/><br/>________________________</div><div>Penilai,<br/>Kepala KSM / evaluator<br/><br/><br/>________________________</div><div>Menyetujui,<br/>Ketua Komite Medik<br/><br/><br/>________________________</div><div>Menyetujui,<br/>Kepala Bidang Pelayanan Medik dan Keperawatan<br/><br/><br/>________________________</div></div>
         <p className="oppePrintFoot">Dokumen internal. Skor OPPE merupakan ringkasan penilaian dan bukan keputusan otomatis tentang kewenangan klinis. Indikator tim/unit tidak dimasukkan ke skor individu tanpa atribusi terverifikasi.</p>
       </section>
@@ -1445,7 +1445,7 @@ function ManualItemCard({ item, disabled, statusDisabled = false, onChange }: { 
 }
 
 function ClinicalResultCard({ item }: { item: ClinicalIndicatorResult }) {
-  const numericValue = item.numericMean === null ? '—' : `${fmtNum(item.numericMean)}${item.unitOfMeasure ? ` ${item.unitOfMeasure}` : ''}`
+  const numericValue = item.numericMean === null ? '-' : `${fmtNum(item.numericMean)}${item.unitOfMeasure ? ` ${item.unitOfMeasure}` : ''}`
   const primaryValue = item.measurementMethod === 'numeric_target' ? numericValue : fmtPct(item.rate)
   const stateLabel = item.status === 'meets_target' ? 'Memenuhi target'
     : item.status === 'below_target' ? 'Di bawah target'
@@ -1456,16 +1456,16 @@ function ClinicalResultCard({ item }: { item: ClinicalIndicatorResult }) {
     <div className="oppeClinicalHead"><div><strong>{item.code} · {item.title}</strong><span>{item.unitName} · {item.grain} · atribusi: {item.attributionField} = profesi/nama yang dipilih</span></div><span className={`oppeStatus ${tone}`}>{stateLabel}</span></div>
     <div className="oppeClinicalStats">
       <div><span>{item.measurementMethod === 'numeric_target' ? 'Nilai aktual' : 'Capaian'}</span><strong>{primaryValue}</strong></div>
-      <div><span>N / D</span><strong>{item.numerator == null ? '—' : `${fmtNum(item.numerator)} / ${fmtNum(item.denominator)}`}</strong></div>
+      <div><span>N / D</span><strong>{item.numerator == null ? '-' : `${fmtNum(item.numerator)} / ${fmtNum(item.denominator)}`}</strong></div>
       <div><span>Observasi</span><strong>{item.observations}</strong></div>
-      <div><span>Target</span><strong>{item.targetText || '—'}</strong></div>
+      <div><span>Target</span><strong>{item.targetText || '-'}</strong></div>
     </div>
     <div className="oppeClinicalReason">{item.reason}{item.missingResponses > 0 ? ` ${item.missingResponses} respons/atribusi tidak dapat dihitung.` : ''}{item.criticality !== 'standard' ? ` Tingkat telaah: ${item.criticality === 'critical' ? 'kritis' : 'tinggi'}.` : ''}</div>
   </article>
 }
 
 function PrintManualTable({ items }: { items: ManualAssessmentItem[] }) {
-  return <table className="oppePrintTable"><thead><tr><th>Indikator</th><th>Trigger / target</th><th>Jumlah</th><th>Status</th><th>Sumber bukti</th><th>Catatan</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td>{item.label}</td><td>{item.target}</td><td>{item.count || '—'}</td><td>{statusOptions.find((option) => option.value === item.status)?.label || item.status}</td><td>{item.evidence || '—'}</td><td>{item.notes || '—'}</td></tr>)}</tbody></table>
+  return <table className="oppePrintTable"><thead><tr><th>Indikator</th><th>Trigger / target</th><th>Jumlah</th><th>Status</th><th>Sumber bukti</th><th>Catatan</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td>{item.label}</td><td>{item.target}</td><td>{item.count || '-'}</td><td>{statusOptions.find((option) => option.value === item.status)?.label || item.status}</td><td>{item.evidence || '-'}</td><td>{item.notes || '-'}</td></tr>)}</tbody></table>
 }
 
 const CSS = `

@@ -191,8 +191,8 @@ export default function FppeEvaluationWorkspace({
     const current = teamStaff.find((staff) => String(staff.id) === String(record.staff_id))
     return {
       name: current?.display_name || String(record.staff_name_snapshot || 'Nama tidak tersedia'),
-      code: current?.employee_code || String(record.staff_code_snapshot || '—'),
-      title: current?.position_title || String(record.position_snapshot || record.profession_snapshot || '—'),
+      code: current?.employee_code || String(record.staff_code_snapshot || '-'),
+      title: current?.position_title || String(record.position_snapshot || record.profession_snapshot || '-'),
     }
   }, [teamStaff])
 
@@ -239,17 +239,17 @@ export default function FppeEvaluationWorkspace({
         ['Kode tenaga AUREKA', staff.code],
         ['Jabatan Metadata', staff.title],
         ['Profesi / SMF / area praktik', record.profession_snapshot || meta.profession],
-        ['Unit penilaian', roomMap.get(Number(record.room_id)) || record.unit_snapshot || '—'],
+        ['Unit penilaian', roomMap.get(Number(record.room_id)) || record.unit_snapshot || '-'],
         ['Jenis FPPE', record.evaluation_type === 'triggered' ? 'FPPE Triggered' : 'FPPE Initial'],
         ['Status', STATUS_LABEL[String(record.status)] || record.status],
         ['Alasan / trigger', record.trigger_reason || meta.trigger],
         ['Uraian trigger', record.trigger_detail || meta.triggerDetail],
-        ['Periode evaluasi', (record.period_start || meta.startDate || '—') + ' s.d. ' + (record.period_end || meta.endDate || '—')],
+        ['Periode evaluasi', (record.period_start || meta.startDate || '-') + ' s.d. ' + (record.period_end || meta.endDate || '-')],
         ['Ruang lingkup / privilege', record.scope_text || meta.scope],
         ['Kompetensi dinilai', String(summary.assessed ?? 0) + ' / ' + String(summary.totalCompetencies ?? competencyRows.length)],
         ['Keputusan ringkas', summary.decision || evidence.overallDecision],
-        ['Diajukan pada', record.submitted_at ? new Date(record.submitted_at).toLocaleString('id-ID') : '—'],
-        ['Divalidasi pada', record.validated_at ? new Date(record.validated_at).toLocaleString('id-ID') : '—'],
+        ['Diajukan pada', record.submitted_at ? new Date(record.submitted_at).toLocaleString('id-ID') : '-'],
+        ['Divalidasi pada', record.validated_at ? new Date(record.validated_at).toLocaleString('id-ID') : '-'],
       ],
       sections: [
         { title: 'Hasil kompetensi', columns: ['No.', 'Domain / kompetensi', 'Hasil'], rows: competencyRows },
@@ -262,7 +262,7 @@ export default function FppeEvaluationWorkspace({
           ['Perlu remediasi', summary.remedial ?? 0],
           ['Belum kompeten', summary.notCompetent ?? 0],
         ] },
-        { title: 'Catatan reviewer', columns: ['Catatan'], rows: [[record.review_note || '—']] },
+        { title: 'Catatan reviewer', columns: ['Catatan'], rows: [[record.review_note || '-']] },
       ],
       footer: 'Snapshot nama dan kode saat evaluasi dipertahankan untuk audit trail; identitas tenaga terkini diambil dari Metadata berdasarkan UUID tenaga.',
     })
@@ -545,7 +545,7 @@ export default function FppeEvaluationWorkspace({
       <details className="workspaceSummary fppeHistorySummary" open={search.trim() ? true : undefined}>
         <summary><b>Riwayat & ekspor evaluasi</b><span>{roster.length} tenaga pada roster unit · {loading ? 'Memuat riwayat…' : `${filtered.length} rekaman FPPE`}</span></summary>
         <aside className="fppePanel fppeHistory">
-          <div className="fppeHistoryHead"><div><div className="fppeEyebrow">ARSIP FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
+          <div className="fppeHistoryHead"><div><div className="fppeEyebrow">Arsip FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
           <input className="fppeLocalSearch" aria-label="Cari arsip FPPE berdasarkan nama, kode, jabatan, atau trigger" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
           {loading ? <p className="fppeMuted">Memuat riwayat…</p> : <div className="fppeHistoryList">
             {filtered.map((record) => {
@@ -594,7 +594,7 @@ export default function FppeEvaluationWorkspace({
           </div>
           {activeEvaluation && (
             <div className="fppePanel fppeReviewPanel">
-              <div><div className="fppeEyebrow">VALIDASI & REVISI</div><h4>Alur penelaahan</h4><p>FPPE yang diajukan hanya dapat divalidasi oleh pengguna selain pembuatnya. Pengembalian membutuhkan catatan alasan dan meninggalkan jejak audit.</p></div>
+              <div><div className="fppeEyebrow">Validasi & revisi</div><h4>Alur penelaahan</h4><p>FPPE yang diajukan hanya dapat divalidasi oleh pengguna selain pembuatnya. Pengembalian membutuhkan catatan alasan dan meninggalkan jejak audit.</p></div>
               <label><span>Catatan reviewer / alasan pengembalian</span><textarea value={reviewNote} onChange={(e) => setReviewNote(e.target.value)} placeholder="Tuliskan temuan, kekurangan bukti, atau koreksi yang perlu dilakukan. Wajib minimal 10 karakter jika dikembalikan." disabled={activeEvaluation.status === 'archived'} /></label>
               <div className="fppeReviewActions">
                 {activeEvaluation.status === 'submitted' && <button type="button" className="fppePrimary" onClick={() => void validateEvaluation()} disabled={busy}>✓ Validasi FPPE</button>}
@@ -603,7 +603,7 @@ export default function FppeEvaluationWorkspace({
               </div>
             </div>
           )}
-          {activeEvaluation && events.length > 0 && <div className="fppePanel fppeEvents"><div className="fppeEyebrow">AUDIT TRAIL</div><h4>Riwayat proses FPPE</h4><div className="fppeEventList">{events.map((event) => <div className="fppeEvent" key={String(event.id)}><span className="fppeDot" /><div><strong>{eventName(String(event.event_type))}</strong><small>{event.created_at ? new Date(event.created_at).toLocaleString('id-ID') : 'Waktu tidak tersedia'} · {event.actor_id ? 'Akun ' + String(event.actor_id).slice(0, 8) + '…' : 'Akun tidak tercatat'}</small><small>{event.from_status ? (STATUS_LABEL[String(event.from_status)] || event.from_status) + ' → ' : ''}{STATUS_LABEL[String(event.to_status)] || event.to_status} · {String(event.summary_snapshot_json?.decision || 'Ringkasan tersimpan')}</small></div></div>)}</div></div>}
+          {activeEvaluation && events.length > 0 && <div className="fppePanel fppeEvents"><div className="fppeEyebrow">Audit trail</div><h4>Riwayat proses FPPE</h4><div className="fppeEventList">{events.map((event) => <div className="fppeEvent" key={String(event.id)}><span className="fppeDot" /><div><strong>{eventName(String(event.event_type))}</strong><small>{event.created_at ? new Date(event.created_at).toLocaleString('id-ID') : 'Waktu tidak tersedia'} · {event.actor_id ? 'Akun ' + String(event.actor_id).slice(0, 8) + '…' : 'Akun tidak tercatat'}</small><small>{event.from_status ? (STATUS_LABEL[String(event.from_status)] || event.from_status) + ' → ' : ''}{STATUS_LABEL[String(event.to_status)] || event.to_status} · {String(event.summary_snapshot_json?.decision || 'Ringkasan tersimpan')}</small></div></div>)}</div></div>}
         </div>
       </div>
     </section>

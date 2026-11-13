@@ -90,7 +90,7 @@ html body:not(#_) .workspaceRoot .workspaceContent select:not([multiple]) {
 
 /* ===== Pemilih unit kerja Super Admin: jelas sebagai dropdown ===== */
 html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect { position: relative; display: grid !important; gap: 2px; }
-html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitLabel { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .6; padding-left: 2px; }
+html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitLabel { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .6; padding-left: 2px; }
 html body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitSelect select {
   -webkit-appearance: none; appearance: none; min-height: 38px !important; padding: 0 40px 0 12px !important;
   border: 1.5px solid rgba(43, 122, 196, .45) !important; border-radius: 12px !important;
@@ -872,3 +872,32 @@ html body:not(#_) .cpRoot .cpBuilderModalHead h3,html body:not(#_) .cpRoot .cpBu
 html body:not(#_) .cpRoot .cpBuilderModalHead .cpEyebrow{opacity:.75}
 html body:not(#_) .cpRoot .cpBuilderModalBody>.cpFooter{background:#fff!important;backdrop-filter:none!important;padding:12px 20px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;flex-wrap:wrap}
 html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalBody>.cpFooter{background:#13213a!important}
+
+/* ═══ Audit antislop #001 (lihat DESIGN.md) ═══ */
+/* #6 Blur hanya di header & menu samping HP (dan latar popup); kartu/panel lain solid supaya hierarki jelas. */
+html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing) *:not(.workspaceHeaderBar):not(.sidebar.mobileOpen) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+/* #8 Label tidak lagi huruf kapital berjarak lebar. */
+html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) * { text-transform: none !important; }
+html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) :is([class*="Eyebrow"], [class*="eyebrow"], .navLabel, .workspaceUnitLabel, .sideProfileText, .themeModeLabel, .quickDockCaption, .workspaceSearchResultTag, th) { letter-spacing: normal !important; }
+/* #11 Bayangan hanya untuk elemen yang benar-benar melayang (popup, menu, toast); kartu di halaman rata. */
+html body:not(#_) .workspaceRoot .workspaceContent :is(section, article, [class*="Card"], [class*="card"], [class*="Panel"], [class*="panel"], [class*="Glass"], [class*="glass"], [class*="Kpi"], [class*="Tile"], [class*="Stat"]):not([aria-modal] *):not([role="dialog"] *) { box-shadow: none !important; }
+/* #4 Tidak ada animasi hiasan yang berulang tanpa henti (spinner/shimmer loading tetap). */
+html body:not(#_) :is(.a2-aurora i, .landingAura span, .landingPulse, .a2-chip-dot, .authSecureDot) { animation: none !important; }
+/* #1 Kontras judul kolom tabel (sebelumnya 4,2:1). */
+html body:not(#_) .workspaceRoot table thead th { color: #3f4c5e !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot table thead th { color: #c4d0de !important; }
+/* #12 Peta Kerja jadi baris tab ringkas (isi sama dengan submenu, tidak makan tempat). */
+html body:not(#_) .workspaceRoot .wmmRoot { padding: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; margin-bottom: 14px !important; }
+html body:not(#_) .workspaceRoot .wmmHead, html body:not(#_) .workspaceRoot .wmmArrow, html body:not(#_) .workspaceRoot .wmmMarker, html body:not(#_) .workspaceRoot .wmmNodeText small, html body:not(#_) .workspaceRoot .wmmConnector { display: none !important; }
+html body:not(#_) .workspaceRoot .wmmTrack { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+html body:not(#_) .workspaceRoot .wmmNodeWrap { flex: 0 0 auto !important; }
+html body:not(#_) .workspaceRoot .wmmNode { display: inline-flex !important; min-height: 40px !important; padding: 8px 16px !important; border-radius: 10px !important; grid-template-columns: none !important; transform: none !important; box-shadow: none !important; }
+html body:not(#_) .workspaceRoot .wmmNodeText b { font-size: 14px !important; font-weight: 600 !important; white-space: nowrap; }
+html body:not(#_) .workspaceRoot .wmmNode.active { background: #16507a !important; border-color: #16507a !important; color: #fff !important; }
+html body:not(#_) .workspaceRoot .wmmNode.active .wmmNodeText b { color: #fff !important; }
+/* #2 Target sentuh minimal 44px di HP. */
+@media (max-width: 720px), (pointer: coarse) {
+  html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) :is(button, select, [role="tab"], [role="button"], input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])) { min-height: 44px !important; }
+  html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) :is(button, [role="tab"], [role="button"]) { min-width: 44px !important; }
+  html body:not(#_) .authPage :is(.authForgot, a, button.authLink), html body:not(#_) .a2-landing :is(.a2-hero-links a, .a2-mobile-nav a, .a2-header a, .a2-footer a) { display: inline-flex !important; align-items: center !important; min-height: 44px !important; }
+}

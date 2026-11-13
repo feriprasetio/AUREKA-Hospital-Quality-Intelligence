@@ -111,7 +111,7 @@ function rowHasData(row: any, columns: Map<string, number>): boolean {
 
 function maskChoiceCode(value: string): string {
   const match = value.match(/\(code\s*(\d+)\)\s*$/i)
-  return match ? 'Kode ' + match[1] : value ? 'Pilihan terisi' : '—'
+  return match ? 'Kode ' + match[1] : value ? 'Pilihan terisi' : '-'
 }
 
 function parseSourceNo(value: unknown): number | null {
@@ -478,7 +478,7 @@ export default function IbsExcelImportDialog({
   return (
     <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqIbsImport" role="dialog" aria-modal="true" aria-labelledby="aqIbsImportTitle">
-        <style>{'.aqIbsImport .aqBody{display:grid;align-content:start;gap:12px}.aqIbsImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIbsImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIbsImport .ciUpload input{width:100%;font-size:12px}.aqIbsImport .ciStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.aqIbsImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIbsImport .ciStat span{display:block;color:var(--muted);font-size:10px}.aqIbsImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIbsImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIbsImport .ciError{background:#fff0ef;color:#8b2822}.aqIbsImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIbsImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIbsImport .ciTable{overflow:auto;max-height:310px;border:1px solid var(--line);border-radius:11px}.aqIbsImport table{width:100%;border-collapse:collapse;font-size:10px}.aqIbsImport th,.aqIbsImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqIbsImport th{position:sticky;top:0;background:#f7faf8}.aqIbsImport td.ciWrap{white-space:normal;min-width:200px}.aqIbsImport .ciPrivacy{font-size:10px;color:var(--muted);line-height:1.5}.aqIbsImport .ciCode{font-size:9px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block}@media(max-width:560px){.aqIbsImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
+        <style>{'.aqIbsImport .aqBody{display:grid;align-content:start;gap:12px}.aqIbsImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIbsImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIbsImport .ciUpload input{width:100%;font-size:12px}.aqIbsImport .ciStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.aqIbsImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIbsImport .ciStat span{display:block;color:var(--muted);font-size:11px}.aqIbsImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIbsImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIbsImport .ciError{background:#fff0ef;color:#8b2822}.aqIbsImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIbsImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIbsImport .ciTable{overflow:auto;max-height:310px;border:1px solid var(--line);border-radius:11px}.aqIbsImport table{width:100%;border-collapse:collapse;font-size:11px}.aqIbsImport th,.aqIbsImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqIbsImport th{position:sticky;top:0;background:#f7faf8}.aqIbsImport td.ciWrap{white-space:normal;min-width:200px}.aqIbsImport .ciPrivacy{font-size:11px;color:var(--muted);line-height:1.5}.aqIbsImport .ciCode{font-size:11px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block}@media(max-width:560px){.aqIbsImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
         <div className="aqDHead">
           <div>
             <div className="eyebrow">Audit Indikator Mutu · Impor Terarah</div>
@@ -516,7 +516,7 @@ export default function IbsExcelImportDialog({
           </div>}
           {excludedRows.length > 0 && <div className="ciMessage ciWarning" role="alert">
             <strong>{excludedRows.length} baris tidak ikut diimpor.</strong> Tanggal masuk atau pilihan indikator tidak valid. Lengkapi tanggal dari sumber resmi atau koreksi label sumber; sistem tidak menebak nilai. {'\n'}
-            {excludedRows.slice(0, 50).map(row => 'Baris Excel ' + row.sourceRow + ' (No. ' + (row.sourceNo || '—') + '): ' + row.reasons.join(' ')).join('\n')}
+            {excludedRows.slice(0, 50).map(row => 'Baris Excel ' + row.sourceRow + ' (No. ' + (row.sourceNo || '-') + '): ' + row.reasons.join(' ')).join('\n')}
             {excludedRows.length > 50 ? '\n… dan ' + (excludedRows.length - 50) + ' baris lainnya.' : ''}
           </div>}
           {rows.length > 0 && <div className="ciTable">
@@ -528,7 +528,7 @@ export default function IbsExcelImportDialog({
                   <td>{maskIbsPatientName(row.patientName)}</td>
                   <td>{maskIbsMedicalRecord(row.medicalRecordNo)}</td>
                   {INDICATORS.map(item => <td key={item.code}><span className="ciCode">{maskChoiceCode(row.rawAnswers[item.code])}</span></td>)}
-                  <td className="ciWrap" style={{ color: row.warnings.length ? '#8b5b13' : 'var(--muted)' }}>{row.warnings.length ? row.warnings.join(' ') : '—'}</td>
+                  <td className="ciWrap" style={{ color: row.warnings.length ? '#8b5b13' : 'var(--muted)' }}>{row.warnings.length ? row.warnings.join(' ') : '-'}</td>
                 </tr>
               ))}</tbody>
             </table>

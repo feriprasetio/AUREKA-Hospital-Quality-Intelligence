@@ -124,7 +124,7 @@ function formulaValue(cell: any): unknown {
 
 function maskName(value: string): string {
   const parts = value.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return '—'
+  if (!parts.length) return '-'
   return parts.length === 1 ? parts[0].slice(0, 1) + '•••' : parts[0].slice(0, 1) + '••• ' + parts[parts.length - 1].slice(0, 1) + '•••'
 }
 
@@ -539,10 +539,10 @@ export default function PerinatologyExcelImportDialog({
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
     <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqPerinatologyImport" role="dialog" aria-modal="true" aria-labelledby="aqPerinatologyImportTitle">
-      <style>{'.aqPerinatologyImport .aqBody{display:grid;align-content:start;gap:12px}.aqPerinatologyImport .piBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqPerinatologyImport .piError{background:#fff1f0;color:#8b2822}.aqPerinatologyImport .piWarn{background:#fff8e8;color:#795c26}.aqPerinatologyImport .piSuccess{background:#ebf8ef;color:#1e6544}.aqPerinatologyImport .piTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqPerinatologyImport table{width:100%;border-collapse:collapse;font-size:10px}.aqPerinatologyImport th,.aqPerinatologyImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqPerinatologyImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqPerinatologyImport .piStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqPerinatologyImport .piStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqPerinatologyImport .piStat span{display:block;color:#65736b;font-size:9px}.aqPerinatologyImport .piStat strong{display:block;font-size:17px;margin-top:4px}.aqPerinatologyImport .piFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqPerinatologyImport .piProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqPerinatologyImport .piProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqPerinatologyImport .piTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqPerinatologyImport .piTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqPerinatologyImport .piStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqPerinatologyImport .piFooter{display:grid}}'}</style>
+      <style>{'.aqPerinatologyImport .aqBody{display:grid;align-content:start;gap:12px}.aqPerinatologyImport .piBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqPerinatologyImport .piError{background:#fff1f0;color:#8b2822}.aqPerinatologyImport .piWarn{background:#fff8e8;color:#795c26}.aqPerinatologyImport .piSuccess{background:#ebf8ef;color:#1e6544}.aqPerinatologyImport .piTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqPerinatologyImport table{width:100%;border-collapse:collapse;font-size:11px}.aqPerinatologyImport th,.aqPerinatologyImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqPerinatologyImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqPerinatologyImport .piStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqPerinatologyImport .piStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqPerinatologyImport .piStat span{display:block;color:#65736b;font-size:11px}.aqPerinatologyImport .piStat strong{display:block;font-size:17px;margin-top:4px}.aqPerinatologyImport .piFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqPerinatologyImport .piProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqPerinatologyImport .piProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqPerinatologyImport .piTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:11px;margin:1px}.aqPerinatologyImport .piTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqPerinatologyImport .piStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqPerinatologyImport .piFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>
-          <div className="eyebrow">AUDIT INDIKATOR MUTU · PERINATOLOGY & NEONATOLOGY</div>
+          <div className="eyebrow">Audit indikator mutu · Perinatology & neonatology</div>
           <h4 id="aqPerinatologyImportTitle">Import workbook Perinatologi 2026</h4>
           <p>Pratinjau episode dari Logbook, pemetaan 10 indikator aktif, serta telaah klasifikasi sebelum pelaporan mutu.</p>
         </div>
@@ -586,7 +586,7 @@ export default function PerinatologyExcelImportDialog({
                   <td>{maskMedicalRecord(row.medicalRecordNo)}</td>
                   <td>{maskName(row.patientName)}</td>
                   <td>{row.admissionDate} – {row.dischargeDate ?? 'Belum pulang'}</td>
-                  <td>{row.computedLos == null ? '—' : row.computedLos + ' hari'}</td>
+                  <td>{row.computedLos == null ? '-' : row.computedLos + ' hari'}</td>
                   <td>{Object.keys(row.indicators).length}/10 tersinkron</td>
                   <td>{row.warnings.length ? <details><summary className="piTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="piTag">OK</span>}</td>
                 </tr>)}
@@ -596,7 +596,7 @@ export default function PerinatologyExcelImportDialog({
         </div>}
 
         {errors.length > 0 && <div className="piBox piError">
-          <strong>{errors.length} baris belum valid — impor ditahan.</strong>
+          <strong>{errors.length} baris belum valid, impor ditahan.</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {errors.slice(0, 40).map((error, index) => <li key={index}>{error}</li>)}
           </ul>

@@ -301,7 +301,7 @@ export default function StaffDirectoryWorkspace() {
         .staffDirectory{display:grid;gap:14px;min-width:0}
         .sdPanel{padding:18px 20px;border:1px solid rgba(255,255,255,.74);border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.26));box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(22px) saturate(150%)}
         .sdHead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
-        .sdEyebrow{font-size:9px;letter-spacing:.15em;text-transform:uppercase;font-weight:900;color:var(--accent,#0f7656)}
+        .sdEyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:900;color:var(--accent,#0f7656)}
         .sdTitle{font-size:23px;letter-spacing:-.04em;font-weight:950;margin:5px 0;color:var(--text,#20372d)}
         .sdDesc{font-size:11px;line-height:1.55;color:var(--muted,#64756b);max-width:780px;margin:0}
         .sdActions{display:flex;gap:8px;flex-wrap:wrap}
@@ -310,7 +310,7 @@ export default function StaffDirectoryWorkspace() {
         .sdBtn:disabled{opacity:.55;cursor:wait}
         .sdKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:15px}
         .sdKpi{padding:12px;border:1px solid rgba(255,255,255,.74);background:rgba(255,255,255,.32);border-radius:15px;min-width:0}
-        .sdKpi span{font-size:9px;font-weight:850;color:var(--muted,#64756b);display:block}
+        .sdKpi span{font-size:11px;font-weight:850;color:var(--muted,#64756b);display:block}
         .sdKpi strong{font-size:23px;letter-spacing:-.03em;color:var(--text,#20372d);display:block;margin-top:3px}
         .sdFilters{display:grid;grid-template-columns:minmax(220px,1fr) minmax(160px,.45fr) minmax(190px,.65fr);gap:9px;margin-top:14px}
         .sdFilters input,.sdFilters select{width:100%;min-width:0;min-height:42px;padding:10px 12px;border-radius:12px;border:1px solid rgba(35,63,50,.14);background:rgba(255,255,255,.72);color:var(--text,#20372d);font-size:12px}
@@ -318,14 +318,14 @@ export default function StaffDirectoryWorkspace() {
         .sdError{padding:10px 12px;border-radius:12px;background:#fff0ef;border:1px solid #f3c6c1;color:#97372e;font-size:11px;line-height:1.5;margin-top:10px}
         .sdTableWrap{overflow:auto;max-height:65vh;border-radius:16px;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.25)}
         .sdTable{width:100%;min-width:1120px;border-collapse:separate;border-spacing:0;font-size:11px}
-        .sdTable th{position:sticky;top:0;z-index:2;background:#eff6f2;text-align:left;color:#5a6f63;font-size:9px;text-transform:uppercase;letter-spacing:.04em;padding:11px 10px;border-bottom:1px solid #d8e7de}
+        .sdTable th{position:sticky;top:0;z-index:2;background:#eff6f2;text-align:left;color:#5a6f63;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:11px 10px;border-bottom:1px solid #d8e7de}
         .sdTable td{padding:11px 10px;vertical-align:top;border-bottom:1px solid rgba(37,67,51,.09);color:var(--text,#20372d);background:rgba(255,255,255,.2)}
         .sdName{font-weight:900;font-size:12px;color:var(--text,#20372d)}
-        .sdSub{font-size:9px;color:var(--muted,#64756b);margin-top:3px;line-height:1.4}
-        .sdPill{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;white-space:nowrap}
+        .sdSub{font-size:11px;color:var(--muted,#64756b);margin-top:3px;line-height:1.4}
+        .sdPill{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;white-space:nowrap}
         .sdPill.available{background:#dcf4e7;color:#16643e}.sdPill.needs_review{background:#fff0d2;color:#835313}.sdPill.inactive{background:#e8ece9;color:#68756e}
         .sdActionsCell{display:flex;gap:5px;flex-wrap:wrap}
-        .sdMini{border:1px solid #d7e2db;background:#fff;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:850;cursor:pointer;color:#335143;white-space:nowrap}
+        .sdMini{border:1px solid #d7e2db;background:#fff;border-radius:9px;padding:6px 8px;font-size:11px;font-weight:850;cursor:pointer;color:#335143;white-space:nowrap}
         .sdMini:disabled{opacity:.55;cursor:wait}
         .sdEditBackdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:rgba(17,33,25,.48);backdrop-filter:blur(8px)}
         .sdEditDialog{width:min(880px,100%);max-height:min(92vh,920px);overflow:auto;padding:22px;border:1px solid rgba(255,255,255,.8);border-radius:22px;background:#f8fbf9;color:#20372d;box-shadow:0 24px 80px rgba(0,0,0,.24)}
@@ -333,14 +333,14 @@ export default function StaffDirectoryWorkspace() {
         .sdEditGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
         .sdEditField{display:grid;gap:6px;min-width:0}
         .sdEditField.full{grid-column:1/-1}
-        .sdEditField span{font-size:10px;font-weight:900;color:#596f63}
+        .sdEditField span{font-size:11px;font-weight:900;color:#596f63}
         .sdEditField input,.sdEditField select,.sdEditField textarea{width:100%;min-width:0;padding:11px 12px;border:1px solid #d4e1d8;border-radius:11px;background:#fff;color:#20372d;font:inherit;font-size:12px}
         .sdEditField textarea{min-height:82px;resize:vertical;line-height:1.5}
-        .sdEditHelp{margin:0;font-size:10px;line-height:1.5;color:#65776c}
+        .sdEditHelp{margin:0;font-size:11px;line-height:1.5;color:#65776c}
         .sdEditFooter{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid #dce7df}
         .sdCodeLock{padding:11px 12px;border:1px dashed #b8cdbf;border-radius:11px;background:#edf5ef;font-size:12px;font-weight:900}
         .sdModalTitle{font-size:19px;font-weight:950;letter-spacing:-.03em;margin:4px 0;color:#20372d}
-        .sdEditBtn{border:1px solid #cfded4;background:#fff;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:900;cursor:pointer;color:#335143;white-space:nowrap}
+        .sdEditBtn{border:1px solid #cfded4;background:#fff;border-radius:9px;padding:6px 8px;font-size:11px;font-weight:900;cursor:pointer;color:#335143;white-space:nowrap}
         .sdEditBtn:disabled{opacity:.55;cursor:wait}
         .sdEmpty{padding:35px;text-align:center;color:var(--muted,#64756b);font-size:12px}
         @media(max-width:900px){.sdKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sdFilters{grid-template-columns:1fr 1fr}.sdFilters input{grid-column:1/-1}}
@@ -384,7 +384,7 @@ export default function StaffDirectoryWorkspace() {
                     <td><div className="sdName">{staff.employee_code}</div></td>
                     <td><div className="sdName">{staff.display_name}</div>{staff.review_note && <div className="sdSub">{staff.review_note}</div>}</td>
                     <td>{staff.profession_group}</td>
-                    <td>{staff.position_title || '—'}<div className="sdSub">{staff.source_unit || 'Unit sumber belum dicantumkan'}</div></td>
+                    <td>{staff.position_title || '-'}<div className="sdSub">{staff.source_unit || 'Unit sumber belum dicantumkan'}</div></td>
                     <td><span className={`sdPill ${staff.directory_status}`}>{statusLabel[staff.directory_status]}</span></td>
                     <td><div className="sdActionsCell">
                       <button type="button" className="sdEditBtn" disabled={busy} onClick={() => beginEdit(staff)}>Edit metadata</button>
@@ -411,7 +411,7 @@ export default function StaffDirectoryWorkspace() {
                 <h4 id="sd-edit-title" className="sdModalTitle">Edit tenaga kerja</h4>
                 <p className="sdDesc">Perubahan nama, profesi, gelar, jabatan, dan unit sumber berlaku sebagai master identitas lintas modul. ID internal serta kode AUREKA tidak dapat diedit agar riwayat OPPE dan audit tetap konsisten.</p>
               </div>
-              <div className="sdCodeLock">{editingStaff.employee_code}<br/><span style={{fontSize:9,fontWeight:700}}>Kode identitas permanen</span></div>
+              <div className="sdCodeLock">{editingStaff.employee_code}<br/><span style={{fontSize: 11,fontWeight:700}}>Kode identitas permanen</span></div>
             </div>
             <div className="sdEditGrid">
               <label className="sdEditField full"><span>Nama lengkap untuk ditampilkan di AUREKA *</span><input data-dialog-autofocus value={draft.display_name} onChange={(e) => setDraft((current) => current ? {...current,display_name:e.target.value} : current)} /></label>

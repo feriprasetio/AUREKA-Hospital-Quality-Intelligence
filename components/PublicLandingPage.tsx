@@ -240,7 +240,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
       <header className="a2-header">
         <div className="a2-container a2-header-inner">
-          <a className="a2-brand" href="#top" aria-label="AUREKA — kembali ke awal halaman">
+          <a className="a2-brand" href="#top" aria-label="AUREKA: kembali ke awal halaman">
             <span className="a2-brand-mark">
               <img src={logoSrc} width={160} height={136} alt="Logo AUREKA Hospital Quality Intelligence" />
             </span>
@@ -289,10 +289,6 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
       <div className="a2-container" id="main-content" tabIndex={-1}>
         <section className="a2-hero" aria-labelledby="a2-hero-title">
           <div className="a2-hero-copy">
-            <div className="a2-institution-chip">
-              <span className="a2-chip-dot" />
-              PLATFORM MUTU & KESELAMATAN PASIEN
-            </div>
             <h1 id="a2-hero-title">
               <span className="a2-line"><span>Pelayanan lebih baik.</span></span>
               <span className="a2-line a2-accent-line"><span>Dimulai dari mutu</span></span>
@@ -304,7 +300,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
             </p>
             <div className="a2-hero-links">
               <a href="#modules">Kenali ruang kerja <Icon name="arrow" size={17} /></a>
-              <a href="#workflow">Lihat cara kerjanya <span aria-hidden="true">↗</span></a>
+              <a href="#workflow">Lihat cara kerjanya</a>
             </div>
             <div className="a2-hero-principles" aria-label="Fokus utama AUREKA">
               <span><Icon name="chart" size={15} /> Evaluasi kualitas</span>
@@ -390,7 +386,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
         <section className="a2-capa-section" id="capa" aria-labelledby="a2-capa-title">
           <div className="a2-capa-copy">
-            <p className="a2-eyebrow">CONTINUOUS IMPROVEMENT</p>
+            <p className="a2-eyebrow">Continuous improvement</p>
             <h2 id="a2-capa-title">Temuan tidak berhenti pada laporan.</h2>
             <p>
               CAPA dirancang sebagai jalur tindak lanjut lintas modul. Temuan dapat ditelusuri ke sumbernya,
@@ -507,7 +503,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
         <section className="a2-faq-section" aria-labelledby="a2-faq-title">
           <div className="a2-faq-intro">
-            <p className="a2-eyebrow">INFORMASI PENGGUNA</p>
+            <p className="a2-eyebrow">Informasi pengguna</p>
             <h2 id="a2-faq-title">Pertanyaan yang sering diajukan</h2>
             <p>Informasi singkat bagi pengguna internal dan pengunjung halaman publik.</p>
           </div>

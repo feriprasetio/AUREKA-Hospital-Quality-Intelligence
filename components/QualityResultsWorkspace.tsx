@@ -127,11 +127,11 @@ function defaultRoom(rooms: Room[], initialRoomId: number | null, canViewAllRoom
 }
 
 function formatCount(value: number | null | undefined): string {
-  return value == null ? '—' : Number(value).toLocaleString('id-ID')
+  return value == null ? '-' : Number(value).toLocaleString('id-ID')
 }
 
 function formatPct(value: number | null | undefined): string {
-  return value == null || !Number.isFinite(Number(value)) ? '—' : Number(value).toFixed(2).replace('.', ',') + '%'
+  return value == null || !Number.isFinite(Number(value)) ? '-' : Number(value).toFixed(2).replace('.', ',') + '%'
 }
 
 function formatDateTime(value: string | null | undefined): string {
@@ -154,10 +154,10 @@ function targetLabel(profile: IndicatorProfileForResults): string {
 
 function indicatorMonthlyLabel(result: ReturnType<typeof calculateIndicatorResult>, month: number): string {
   const item = result.monthly[month - 1]
-  if (!item || item.observations === 0) return '—'
+  if (!item || item.observations === 0) return '-'
   if (result.continuous) {
     const unit = result.unit ? ' ' + result.unit : ''
-    const mean = item.mean == null ? '—' : item.mean.toFixed(2).replace('.', ',') + unit
+    const mean = item.mean == null ? '-' : item.mean.toFixed(2).replace('.', ',') + unit
     return mean + (item.targetAttainment == null ? '' : ' · ' + formatPct(item.targetAttainment) + ' target')
   }
   return formatPct(item.rate)
@@ -188,7 +188,7 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
 
 function Bar({ value, max = 100, label, sublabel, suffix = '%' }: { value: number | null; max?: number; label: string; sublabel?: string; suffix?: string }) {
   const width = value == null || !Number.isFinite(value) || max <= 0 ? 0 : Math.max(0, Math.min(100, (value / max) * 100))
-  const display = value == null || !Number.isFinite(value) ? '—' : Number(value).toFixed(suffix === '%' ? 1 : 0).replace('.', ',') + suffix
+  const display = value == null || !Number.isFinite(value) ? '-' : Number(value).toFixed(suffix === '%' ? 1 : 0).replace('.', ',') + suffix
   return <div className="qraBarRow"><div className="qraBarLabel"><span>{label}</span><strong>{display}</strong></div><div className="qraBarTrack"><span style={{ width: width + '%' }} /></div>{sublabel && <small>{sublabel}</small>}</div>
 }
 
@@ -501,62 +501,62 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qra{display:grid;gap:14px;color:var(--ink)}
     .qraHero,.qraPanel{background:var(--surface,#fff);border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 3px rgba(18,47,34,.045)}
     .qraHero{padding:18px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
-    .qraEyebrow{font-size:9px;font-weight:900;letter-spacing:.1em;color:var(--accent2)}
+    .qraEyebrow{font-size:11px;font-weight:900;letter-spacing:.1em;color:var(--accent2)}
     .qraHero h2{font-size:24px;letter-spacing:-.045em;margin:5px 0}
     .qraHero p{margin:0;max-width:850px;color:var(--muted);font-size:11px;line-height:1.6}
     .qraActions{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
-    .qraField{display:grid;gap:5px;min-width:145px}.qraField span{font-size:9px;color:var(--muted);font-weight:850}
+    .qraField{display:grid;gap:5px;min-width:145px}.qraField span{font-size:11px;color:var(--muted);font-weight:850}
     .qraField select{min-height:39px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--ink);padding:8px 10px;font-size:11px}
-    .qraBtn{min-height:39px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--accent2);font-size:10px;font-weight:850;padding:8px 12px;cursor:pointer}
+    .qraBtn{min-height:39px;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--accent2);font-size:11px;font-weight:850;padding:8px 12px;cursor:pointer}
     .qraKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
     .qraKpis.qraKpisThree{grid-template-columns:repeat(3,minmax(0,1fr))}
     .qraNestedTable{min-width:560px}
     .qraKpi{padding:14px 15px;min-width:0;background:var(--surface,#fff);border:1px solid var(--line);border-radius:15px}
-    .qraKpi span{display:block;font-size:9px;color:var(--muted);font-weight:850}
+    .qraKpi span{display:block;font-size:11px;color:var(--muted);font-weight:850}
     .qraKpi strong{display:block;margin:5px 0 2px;font-size:23px;letter-spacing:-.035em}
-    .qraKpi small{display:block;color:var(--muted);font-size:9px;line-height:1.45}
-    .qraPill{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;background:#edf1ee;color:#5f7066;font-size:9px;font-weight:850;white-space:nowrap}
+    .qraKpi small{display:block;color:var(--muted);font-size:11px;line-height:1.45}
+    .qraPill{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;background:#edf1ee;color:#5f7066;font-size:11px;font-weight:850;white-space:nowrap}
     .qraPill.good{background:#e8f7ef;color:#216b49}.qraPill.poor{background:#fff0ed;color:#923e34}.qraPill.muted{background:#edf1ee;color:#63716a}
     .qraPanel{overflow:hidden}.qraPanelHead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 15px;border-bottom:1px solid var(--line)}
-    .qraPanelHead h3{margin:0;font-size:14px}.qraPanelHead p{margin:3px 0 0;color:var(--muted);font-size:9px;line-height:1.45}
-    .qraNotice{padding:10px 14px;background:#f5f8f6;color:#51655a;font-size:10px;line-height:1.5;border-top:1px solid var(--line)}
-    .qraTableWrap{overflow:auto;max-width:100%}.qraTable{width:100%;min-width:980px;border-collapse:collapse;font-size:10px}
+    .qraPanelHead h3{margin:0;font-size:14px}.qraPanelHead p{margin:3px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+    .qraNotice{padding:10px 14px;background:#f5f8f6;color:#51655a;font-size:11px;line-height:1.5;border-top:1px solid var(--line)}
+    .qraTableWrap{overflow:auto;max-width:100%}.qraTable{width:100%;min-width:980px;border-collapse:collapse;font-size:11px}
     .qraTable th,.qraTable td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-    .qraTable th{background:#f7faf8;color:#66766d;font-size:8px;white-space:nowrap;position:sticky;top:0;z-index:1}
-    .qraTable td strong{display:block;font-size:10px}.qraTable td small{display:block;color:var(--muted);font-size:8px;margin-top:3px;line-height:1.4}
+    .qraTable th{background:#f7faf8;color:#66766d;font-size:11px;white-space:nowrap;position:sticky;top:0;z-index:1}
+    .qraTable td strong{display:block;font-size:11px}.qraTable td small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
     .qraMonthly{display:grid;grid-template-columns:repeat(12,minmax(13px,1fr));gap:3px;align-items:end;min-width:190px;height:44px}
     .qraMonthly span{display:block;background:var(--accent-soft);border-radius:4px 4px 2px 2px;min-height:2px;position:relative}
     .qraMonthly span.empty{background:#eef1ef}
     .qraMonthlyLabels{display:grid;grid-template-columns:repeat(12,minmax(13px,1fr));gap:3px;margin-top:4px}
-    .qraMonthlyLabels span{text-align:center;color:var(--muted);font-size:7px}
+    .qraMonthlyLabels span{text-align:center;color:var(--muted);font-size:11px}
     .qraMonthMatrix{display:grid;grid-template-columns:repeat(12,minmax(44px,1fr));gap:3px;min-width:550px}
     .qraMonthCell{padding:6px 4px;background:#f8faf9;border-radius:7px;text-align:center;min-height:42px}
-    .qraMonthCell strong{display:block;font-size:9px}.qraMonthCell small{display:block;color:var(--muted);font-size:7px;margin-top:3px}
+    .qraMonthCell strong{display:block;font-size:11px}.qraMonthCell small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
     .qraMonthCell.empty{color:#a2ada6;background:#f4f6f5}
     .qraEmpty{display:grid;place-items:center;text-align:center;min-height:145px;padding:24px;color:var(--muted)}
-    .qraEmptyIcon{font-size:24px;color:#9aa9a0}.qraDim{opacity:.48}.qraEmpty strong{font-size:12px;color:var(--ink);margin-top:8px}.qraEmpty p{max-width:520px;margin:5px 0 0;font-size:10px;line-height:1.55}
+    .qraEmptyIcon{font-size:24px;color:#9aa9a0}.qraDim{opacity:.48}.qraEmpty strong{font-size:12px;color:var(--ink);margin-top:8px}.qraEmpty p{max-width:520px;margin:5px 0 0;font-size:11px;line-height:1.55}
     .qraBars{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end;padding:15px}
     .qraBarsItem{display:grid;gap:5px;text-align:center;min-width:0}.qraBarsTrack{height:112px;border-radius:8px;background:#eef2ef;display:flex;align-items:flex-end;overflow:hidden}
     .qraBarsTrack span{display:block;width:100%;border-radius:7px 7px 0 0;background:linear-gradient(180deg,#54a783,#197653);min-height:0}
-    .qraBarsItem b{font-size:8px}.qraBarsItem small{font-size:8px;color:var(--muted)}
-    .qraLegend{display:flex;gap:12px;flex-wrap:wrap;padding:0 15px 12px;color:var(--muted);font-size:9px}
+    .qraBarsItem b{font-size:11px}.qraBarsItem small{font-size:11px;color:var(--muted)}
+    .qraLegend{display:flex;gap:12px;flex-wrap:wrap;padding:0 15px 12px;color:var(--muted);font-size:11px}
     .qraLegend span{display:inline-flex;align-items:center;gap:5px}.qraDot{width:9px;height:9px;border-radius:3px;background:#197653}
     .qraStatusGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px}
-    .qraStatusBox{background:#f7faf8;border:1px solid var(--line);border-radius:11px;padding:10px}.qraStatusBox span{display:block;font-size:8px;color:var(--muted)}.qraStatusBox strong{font-size:16px;display:block;margin-top:4px}
+    .qraStatusBox{background:#f7faf8;border:1px solid var(--line);border-radius:11px;padding:10px}.qraStatusBox span{display:block;font-size:11px;color:var(--muted)}.qraStatusBox strong{font-size:16px;display:block;margin-top:4px}
     .qraSplit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .qraContent{padding:14px}
     .qraBarRow{display:grid;gap:4px;padding:9px 0;border-bottom:1px solid var(--line)}.qraBarRow:last-child{border-bottom:0}
-    .qraBarLabel{display:flex;justify-content:space-between;gap:8px;font-size:9px}.qraBarLabel strong{font-size:9px}
+    .qraBarLabel{display:flex;justify-content:space-between;gap:8px;font-size:11px}.qraBarLabel strong{font-size:11px}
     .qraBarTrack{height:8px;background:#eef2ef;border-radius:99px;overflow:hidden}.qraBarTrack span{display:block;height:100%;background:linear-gradient(90deg,#76b995,#176b4d);border-radius:99px}
     .qraDistribution{display:grid;gap:7px;padding:12px 14px}
-    .qraDistributionItem{display:grid;grid-template-columns:18px minmax(0,1fr) 28px;gap:7px;align-items:center;font-size:9px}
+    .qraDistributionItem{display:grid;grid-template-columns:18px minmax(0,1fr) 28px;gap:7px;align-items:center;font-size:11px}
     .qraDistributionItem>div{height:9px;background:#eff2f0;border-radius:99px;overflow:hidden}.qraDistributionItem i{display:block;height:100%;background:#4c9a76;border-radius:99px}
     .qraDistributionItem b{text-align:right}
     .qraTabs{display:flex;gap:6px;padding:7px;background:#f6f8f7;border-radius:12px}
-    .qraTabs button{border:1px solid transparent;background:transparent;border-radius:9px;padding:8px 12px;font-size:10px;font-weight:850;color:var(--muted);cursor:pointer}
+    .qraTabs button{border:1px solid transparent;background:transparent;border-radius:9px;padding:8px 12px;font-size:11px;font-weight:850;color:var(--muted);cursor:pointer}
     .qraTabs button.active{background:#fff;border-color:var(--line);color:var(--accent2)}
-    .qraError{padding:12px 14px;border-radius:12px;border:1px solid #f1d1cb;background:#fff0ed;color:#8e3e34;font-size:10px;line-height:1.5}
-    .qraInfo{padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#f7faf8;color:var(--muted);font-size:10px;line-height:1.55}
+    .qraError{padding:12px 14px;border-radius:12px;border:1px solid #f1d1cb;background:#fff0ed;color:#8e3e34;font-size:11px;line-height:1.5}
+    .qraInfo{padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#f7faf8;color:var(--muted);font-size:11px;line-height:1.55}
     @media(max-width:1050px){.qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qraKpis.qraKpisThree{grid-template-columns:repeat(2,minmax(0,1fr))}.qraSplit{grid-template-columns:1fr}.qraStatusGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:650px){.qraHero{display:grid}.qraActions{width:100%}.qraField{flex:1;min-width:120px}.qraKpis{grid-template-columns:1fr 1fr}.qraKpis.qraKpisThree{grid-template-columns:1fr 1fr}.qraKpi strong{font-size:19px}.qraBars{gap:3px;padding:10px}.qraBarsTrack{height:80px}.qraStatusGrid{grid-template-columns:1fr 1fr}}
 
@@ -564,22 +564,22 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qra{gap:10px}
     .qraHero{padding:14px 16px;border-radius:13px;box-shadow:0 1px 2px rgba(18,47,34,.035)}
     .qraHero h2{font-size:21px;margin:4px 0}
-    .qraHero p{font-size:10px;line-height:1.5}
+    .qraHero p{font-size:11px;line-height:1.5}
     .qraActions{gap:7px}
     .qraField{min-width:135px}
-    .qraField select,.qraBtn{min-height:36px;border-radius:9px;font-size:10px}
+    .qraField select,.qraBtn{min-height:36px;border-radius:9px;font-size:11px}
     .qraKpis{gap:8px}
     .qraKpi{padding:11px 12px;border-radius:12px}
     .qraKpi strong{font-size:20px;margin:4px 0 2px}
-    .qraKpi small{font-size:8px;line-height:1.4}
+    .qraKpi small{font-size:11px;line-height:1.4}
     .qraPanel{border-radius:13px;box-shadow:0 1px 2px rgba(18,47,34,.035)}
     .qraPanelHead{padding:11px 13px}
     .qraPanelHead h3{font-size:13px}
     .qraTableWrap{max-width:100%;overflow:auto}
-    .qraTable{min-width:1080px;font-size:9px}
+    .qraTable{min-width:1080px;font-size:11px}
     .qraTable th,.qraTable td{padding:8px 7px}
-    .qraTable th{font-size:8px}
-    .qraNotice,.qraInfo{font-size:9px;line-height:1.45;padding:9px 12px}
+    .qraTable th{font-size:11px}
+    .qraNotice,.qraInfo{font-size:11px;line-height:1.45;padding:9px 12px}
     @media(max-width:650px){
       .qraHero{padding:12px}
       .qraHero h2{font-size:18px}
@@ -625,7 +625,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         : mode === 'indicators'
           ? <>
             <div className="qraKpis">
-              <Kpi label="Capaian Mutu Unit Secara Keseluruhan" value={overallIndicatorAchievement == null ? '—' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
+              <Kpi label="Capaian Mutu Unit Secara Keseluruhan" value={overallIndicatorAchievement == null ? '-' : formatPct(overallIndicatorAchievement)} detail={assessedIndicators.length ? metIndicators + ' dari ' + assessedIndicators.length + ' indikator dengan target terukur memenuhi target' : 'Belum ada indikator dengan data yang dapat dinilai'} />
               <Kpi label="Indikator aktif" value={formatCount(indicatorResults.length)} detail="Profil terbit dan aktif pada tahun terpilih" />
               <Kpi label="Laporan masuk" value={formatCount(rawReadyCount + rawValidatedCount)} detail={formatCount(rawValidatedCount) + ' sudah divalidasi · ' + formatCount(rawReadyCount) + ' belum divalidasi'} />
               
@@ -636,13 +636,13 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             {groupBy === 'category' && <section className="qraPanel" aria-label="Capaian per kategori indikator">
               <div className="qraPanelHead"><div><h3>Capaian per kategori indikator</h3><p className="qraMuted">Kategori mengikuti program kerja pada Profil Indikator (mis. INM, IMP-RS, IMP-Unit). Klik kategori untuk menyaring tabel di bawah.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
               {categorySummary.length === 0 ? <EmptyState title="Belum ada kategori" detail="Belum ada indikator aktif pada unit dan tahun ini." /> : <div className="qraCategoryGrid">
-                <button type="button" className={'qraCategoryCard' + (categoryFilter === '' ? ' active' : '')} onClick={() => setCategoryFilter('')}><span>Semua kategori</span><strong>{assessedIndicators.length ? formatPct(metIndicators / assessedIndicators.length * 100) : '—'}</strong><small>{metIndicators} dari {assessedIndicators.length} indikator berdata memenuhi target</small></button>
+                <button type="button" className={'qraCategoryCard' + (categoryFilter === '' ? ' active' : '')} onClick={() => setCategoryFilter('')}><span>Semua kategori</span><strong>{assessedIndicators.length ? formatPct(metIndicators / assessedIndicators.length * 100) : '-'}</strong><small>{metIndicators} dari {assessedIndicators.length} indikator berdata memenuhi target</small></button>
                 {categorySummary.map((cat) => <button type="button" key={cat.name} className={'qraCategoryCard' + (categoryFilter === cat.name ? ' active' : '')} onClick={() => setCategoryFilter(categoryFilter === cat.name ? '' : cat.name)}>
                   <span>{cat.name}</span>
-                  <strong>{cat.assessed ? formatPct(cat.met / cat.assessed * 100) : '—'}</strong>
+                  <strong>{cat.assessed ? formatPct(cat.met / cat.assessed * 100) : '-'}</strong>
                   <small>{cat.met} dari {cat.assessed} memenuhi target · {cat.total} indikator · n={formatCount(cat.observations)}</small>
                   <i className="qraCategoryBar"><b style={{ width: (cat.assessed ? cat.met / cat.assessed * 100 : 0) + '%' }} /></i>
-                  {cat.assessed > 0 && cat.assessed < 3 && <em>Data sedikit — tafsirkan hati-hati</em>}
+                  {cat.assessed > 0 && cat.assessed < 3 && <em>Data sedikit, tafsirkan hati-hati</em>}
                 </button>)}
               </div>}
             </section>}
@@ -655,8 +655,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     {roomId == null && <td><strong>{rooms.find((room) => Number(room.id) === Number(result.profile.room_id))?.name ?? 'Unit tidak diketahui'}</strong></td>}
                     <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
-                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '—'}</small></td>)}
-                    <td><strong>{result.continuous ? (result.annualMean == null ? '—' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
+                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '-'}</small></td>)}
+                    <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
                     <td>{formatDateTime(result.latestInputAt)}</td>
                     <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small></td>
@@ -687,7 +687,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                         <td>{sourceCount(item.outpatient)}</td><td><strong>{formatPct(item.outpatient.rate)}</strong></td>
                         <td>{sourceCount(item.inpatient)}</td><td><strong>{formatPct(item.inpatient.rate)}</strong></td>
                         <td><strong>{sourceCount(item.combined)}</strong></td><td><strong>{formatPct(item.combined.rate)}</strong></td>
-                        <td>{item.profile ? targetLabel(item.profile) : '—'}</td>
+                        <td>{item.profile ? targetLabel(item.profile) : '-'}</td>
                         <td><StatusPill value={item.meets} /></td>
                       </tr>
                     })}</tbody>
@@ -702,7 +702,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <span className="qraPill">{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.validatedRecords} tervalidasi</span>
                 </div>
                 <div className="qraKpis qraKpisThree">
-                  <Kpi label="Rata-rata waktu tunggu antar-klinik" value={outpatientClinicSummary.averageWaitingMinutes == null ? '—' : outpatientClinicSummary.averageWaitingMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' menit'} detail={outpatientClinicSummary.clinicsWithData + ' klinik dengan data tervalidasi'} />
+                  <Kpi label="Rata-rata waktu tunggu antar-klinik" value={outpatientClinicSummary.averageWaitingMinutes == null ? '-' : outpatientClinicSummary.averageWaitingMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' menit'} detail={outpatientClinicSummary.clinicsWithData + ' klinik dengan data tervalidasi'} />
                   <Kpi label="Klinik memenuhi target" value={formatCount(outpatientClinicSummary.clinicsBelowThreshold) + ' / ' + formatCount(outpatientClinicSummary.operationalClinicCount)} detail={outpatientClinicSummary.compliancePercent == null ? 'Roster klinik belum tersedia' : formatPct(outpatientClinicSummary.compliancePercent) + ' dari seluruh klinik operasional'} />
                   <Kpi label="Klinik dengan data" value={formatCount(outpatientClinicSummary.clinicsWithData) + ' / ' + formatCount(outpatientClinicSummary.operationalClinicCount)} detail={formatCount(outpatientClinicSummary.clinicsWithoutData) + ' klinik belum memiliki pengukuran tervalidasi'} />
                 </div>
@@ -714,10 +714,10 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                       <td>{formatCount(item.doctorsWithData)} / {formatCount(item.rosterDoctorCount)}</td>
                       <td>{formatCount(item.recordCount)}</td>
                       <td>{formatCount(item.daysCount)}</td>
-                      <td><strong>{item.averageMinutes == null ? '—' : item.averageMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' menit'}</strong></td>
+                      <td><strong>{item.averageMinutes == null ? '-' : item.averageMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' menit'}</strong></td>
                       <td><strong>{item.averageMinutes == null ? 'Belum ada data' : item.averageMinutes < outpatientClinicSummary.thresholdMinutes ? 'Memenuhi' : 'Tidak memenuhi'}</strong></td>
                       <td>{formatDateTime(item.lastObserved)}</td>
-                      <td><details><summary>Rincian ({item.doctorSummaries.length})</summary><WorkspaceTableViewport label={'Rincian dokter ' + item.clinic} className="qraTableWrap"><table className="qraTable qraNestedTable"><thead><tr><th>Dokter</th><th>Catatan berangka</th><th>Rata-rata (menit)</th><th>Terakhir dicatat</th></tr></thead><tbody>{item.doctorSummaries.map((doctor) => <tr key={doctor.doctor}><td>{doctor.doctor}</td><td>{formatCount(doctor.measurementCount)}</td><td>{doctor.averageMinutes == null ? '—' : doctor.averageMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td><td>{formatDateTime(doctor.lastObserved)}</td></tr>)}</tbody></table></WorkspaceTableViewport></details></td>
+                      <td><details><summary>Rincian ({item.doctorSummaries.length})</summary><WorkspaceTableViewport label={'Rincian dokter ' + item.clinic} className="qraTableWrap"><table className="qraTable qraNestedTable"><thead><tr><th>Dokter</th><th>Catatan berangka</th><th>Rata-rata (menit)</th><th>Terakhir dicatat</th></tr></thead><tbody>{item.doctorSummaries.map((doctor) => <tr key={doctor.doctor}><td>{doctor.doctor}</td><td>{formatCount(doctor.measurementCount)}</td><td>{doctor.averageMinutes == null ? '-' : doctor.averageMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td><td>{formatDateTime(doctor.lastObserved)}</td></tr>)}</tbody></table></WorkspaceTableViewport></details></td>
                     </tr>)}</tbody>
                   </table>
                 </div>
@@ -738,7 +738,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   ? <EmptyState title="Belum ada hasil Clinical Pathway tervalidasi" detail="Grafik dan capaian akan tersedia setelah audit Clinical Pathway disimpan dan divalidasi. Data draf tidak diperlakukan sebagai capaian." />
                   : <>
                     <div className="qraBars">{pathwayMonthly.map((month) => <div className="qraBarsItem" key={month.month}>
-                      <div className="qraBarsTrack"><span style={{ height: (month.compliancePct ?? 0) + '%' }} /></div><b>{month.compliancePct == null ? '—' : Math.round(month.compliancePct) + '%'}</b><small>{MONTHS[month.month - 1]}</small>
+                      <div className="qraBarsTrack"><span style={{ height: (month.compliancePct ?? 0) + '%' }} /></div><b>{month.compliancePct == null ? '-' : Math.round(month.compliancePct) + '%'}</b><small>{MONTHS[month.month - 1]}</small>
                     </div>)}</div>
                     <div className="qraLegend"><span><i className="qraDot"/>Kepatuhan CP tervalidasi</span></div>
                   </>}
@@ -766,14 +766,14 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               <div className="qraKpis">
                 <Kpi label="Telaah tercatat" value={formatCount(selectedClinical.totalRecords)} detail="Draf, diajukan, dibuka kembali, dan tervalidasi" />
                 <Kpi label="Telaah tervalidasi" value={formatCount(selectedClinical.validatedRecords)} detail="Satu-satunya status yang masuk ringkasan skor" />
-                <Kpi label="Median skor mutu pelayanan" value={selectedClinical.overallScore.median == null ? '—' : String(selectedClinical.overallScore.median).replace('.', ',') + ' / 5'} detail={selectedClinical.overallScore.n ? 'IQR ' + selectedClinical.overallScore.q1 + '–' + selectedClinical.overallScore.q3 + ' · n=' + selectedClinical.overallScore.n : 'Belum ada skor tervalidasi'} />
+                <Kpi label="Median skor mutu pelayanan" value={selectedClinical.overallScore.median == null ? '-' : String(selectedClinical.overallScore.median).replace('.', ',') + ' / 5'} detail={selectedClinical.overallScore.n ? 'IQR ' + selectedClinical.overallScore.q1 + '–' + selectedClinical.overallScore.q3 + ' · n=' + selectedClinical.overallScore.n : 'Belum ada skor tervalidasi'} />
                 <Kpi label="Rekomendasi tindak lanjut" value={formatCount(selectedClinical.createdActions)} detail="Telaah tervalidasi dengan rekomendasi terdokumentasi" />
               </div>
               <div className="qraSplit">
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Skor per fase perawatan</h3></div></div>
                   {selectedClinical.validatedRecords === 0
                     ? <EmptyState title="Belum ada telaah tervalidasi" detail="" />
-                    : <div className="qraContent">{selectedClinical.phases.map((phase) => <Bar key={phase.id} label={phase.label} value={phase.summary.median} max={5} suffix=" / 5" sublabel={'Median ordinal · IQR ' + (phase.summary.q1 ?? '—') + '–' + (phase.summary.q3 ?? '—') + ' · n=' + phase.summary.n} />)}</div>}
+                    : <div className="qraContent">{selectedClinical.phases.map((phase) => <Bar key={phase.id} label={phase.label} value={phase.summary.median} max={5} suffix=" / 5" sublabel={'Median ordinal · IQR ' + (phase.summary.q1 ?? '-') + '–' + (phase.summary.q3 ?? '-') + ' · n=' + phase.summary.n} />)}</div>}
                 </section>
                 <section className="qraPanel"><div className="qraPanelHead"><div><h3>Masalah mutu pelayanan</h3></div></div>
                   {selectedClinical.validatedRecords === 0

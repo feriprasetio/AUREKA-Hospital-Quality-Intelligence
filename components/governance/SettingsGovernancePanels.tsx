@@ -94,7 +94,7 @@ export function PermissionMatrixPanel() {
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
       {matrix.length === 0 && perms.length > 0 && <>
         <p className="stPanelHint">Hak akses role Anda ({role}):</p>
-        <ul className="govPermMine">{perms.map((p) => <li key={p.code} className={mine.includes(p.code) ? 'on' : ''}>{mine.includes(p.code) ? '✓' : '—'} {p.label}{p.sensitive ? ' · sensitif' : ''}</li>)}</ul>
+        <ul className="govPermMine">{perms.map((p) => <li key={p.code} className={mine.includes(p.code) ? 'on' : ''}>{mine.includes(p.code) ? '✓' : '-'} {p.label}{p.sensitive ? ' · sensitif' : ''}</li>)}</ul>
       </>}
       {matrix.length > 0 && <div className="govPermMobile">
         <select aria-label="Pilih role" value={mobileRole} onChange={(e) => setMobileRole(e.target.value)}>{ROLES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>

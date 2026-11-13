@@ -75,12 +75,12 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       <button type="button" className="annualProgramCard" onClick={()=>setScreen('priorities')}>
         <span className="annualProgramCardIcon" aria-hidden="true">◎</span>
         <span className="annualProgramCardBody"><strong>Area Prioritas</strong><small>Daftar masalah strategis, sasaran mutu, unit pemilik, dan rencana penyelesaian.</small><span className="annualProgramCardMeta">{loading?'Memuat…':`${rows.length} area · ${activeCount} masih berjalan`}</span></span>
-        <span className="annualProgramCardArrow" aria-hidden="true">→</span>
+        
       </button>
       <button type="button" className="annualProgramCard" onClick={()=>setScreen('proposals')}>
         <span className="annualProgramCardIcon" aria-hidden="true">▤</span>
         <span className="annualProgramCardBody"><strong>Usulan Indikator Baru</strong><small>Ajukan, telaah, revisi, setujui, dan aktivasi indikator baru ke katalog mutu.</small><span className="annualProgramCardMeta">Workflow pengembangan indikator · jejak telaah tersimpan</span></span>
-        <span className="annualProgramCardArrow" aria-hidden="true">→</span>
+        
       </button>
     </div>
     {role==='ADMIN'&&<section className="annualProgramLegacy">
@@ -138,7 +138,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       .annualProgramCardBody{display:grid;gap:7px;min-width:0}
       .annualProgramCardBody strong{font-size:14px;font-weight:800}
       .annualProgramCardBody small{font-size:11px;line-height:1.55;color:var(--muted,#718078)}
-      .annualProgramCardMeta{font-size:10px;color:var(--accent,#26866a);font-weight:700}
+      .annualProgramCardMeta{font-size:11px;color:var(--accent,#26866a);font-weight:700}
       .annualProgramCardArrow{margin-left:auto;font-size:20px;color:var(--muted,#718078)}
       .annualPriorityToolbar{justify-content:space-between;margin:14px 0}
       .annualPriorityGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
@@ -148,8 +148,8 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       .annualPriorityCard p{font-size:11px;line-height:1.6;color:var(--muted,#65756c);white-space:pre-wrap}
       .annualPriorityProblem{font-weight:650;color:var(--text,#20372d)!important}
       .annualPriorityOutcome{display:grid;gap:4px;border-left:3px solid var(--accent,#26866a);padding-left:10px;font-size:11px;line-height:1.5}
-      .annualPriorityMeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:13px;font-size:10px;color:var(--muted,#718078)}
-      .annualPriorityCard footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line,rgba(20,34,27,.1));padding-top:10px;margin-top:12px;font-size:10px;color:var(--muted,#718078)}
+      .annualPriorityMeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:13px;font-size:11px;color:var(--muted,#718078)}
+      .annualPriorityCard footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line,rgba(20,34,27,.1));padding-top:10px;margin-top:12px;font-size:11px;color:var(--muted,#718078)}
       @media(max-width:700px){.annualProgramCards{grid-template-columns:1fr}.annualProgramCard{padding:15px}}
     `}</style>
   </section>
