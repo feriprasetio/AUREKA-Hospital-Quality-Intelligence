@@ -53,8 +53,8 @@ test('subject keys are stable by worksheet row and reject invalid rows', () => {
 })
 
 test('builds a 2026 event payload with two indicator responses and idempotent provenance', () => {
-  const claimResponse = resolveRekamMedisIndicatorOption('Klaim Layak / Lolos Verifikasi (Code 1)', claimOptions)!
-  const klpcmResponse = resolveRekamMedisIndicatorOption('Lengkap (Terisi lengkap ≤ 24 jam setelah pasien pulang) (Code 1)', klpcmOptions)!
+  const claimResponse = resolveRekamMedisIndicatorOption('Klaim Layak / Lolos Verifikasi (Code 1)', claimOptions)
+  const klpcmResponse = resolveRekamMedisIndicatorOption('Lengkap (Terisi lengkap ≤ 24 jam setelah pasien pulang) (Code 1)', klpcmOptions)
   const payload = buildRekamMedisImportPayload({
     row: {
       sourceRow: 3,
@@ -77,16 +77,16 @@ test('builds a 2026 event payload with two indicator responses and idempotent pr
     ],
     userId: '00000000-0000-4000-8000-000000000099',
   })
-  assert.equal((payload as any).payload.room_id, 13)
-  assert.equal((payload as any).payload.measurement_grain, 'event')
-  assert.equal((payload as any).payload.status, 'ready')
-  assert.equal((payload as any).payload.review_required, false)
-  assert.equal((payload as any).payload.record_date, '2026-03-03')
-  assert.equal((payload as any).payload.subject_key, createRekamMedisSubjectKey(3))
-  assert.equal((payload as any).payload.core_data.indicator_values['13.1'].code, 1)
-  assert.equal((payload as any).payload.core_data.indicator_values['13.2'].code, 1)
-  assert.equal((payload as any).responses.length, 2)
-  assert.equal((payload as any).responses[0].indicator_id, '00000000-0000-4000-8000-000000000013')
-  assert.equal((payload as any).responses[1].indicator_id, '00000000-0000-4000-8000-000000000014')
-  assert.equal((payload as any).attributions.length, 0)
+  assert.equal(payload.payload.room_id, 13)
+  assert.equal(payload.payload.measurement_grain, 'event')
+  assert.equal(payload.payload.status, 'ready')
+  assert.equal(payload.payload.review_required, false)
+  assert.equal(payload.payload.record_date, '2026-03-03')
+  assert.equal(payload.payload.subject_key, createRekamMedisSubjectKey(3))
+  assert.equal(payload.payload.core_data.indicator_values['13.1'].code, 1)
+  assert.equal(payload.payload.core_data.indicator_values['13.2'].code, 1)
+  assert.equal(payload.responses.length, 2)
+  assert.equal(payload.responses[0].indicator_id, '00000000-0000-4000-8000-000000000013')
+  assert.equal(payload.responses[1].indicator_id, '00000000-0000-4000-8000-000000000014')
+  assert.equal(payload.attributions.length, 0)
 })
