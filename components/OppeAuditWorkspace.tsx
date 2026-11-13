@@ -569,8 +569,16 @@ export default function OppeAuditWorkspace({
     setSavedClinicalSnapshot(null)
     setSavedScoreSnapshot(null)
     setScreen('assessment')
-    setNotice('')
     setError('')
+    // Umpan balik jelas: formulir kosong siap diisi, gulir ke identitas & fokus ke kolom pertama.
+    setNotice('Formulir penilaian baru siap diisi. Mulai dengan memilih staf yang dinilai.')
+    window.setTimeout(() => {
+      const head = document.querySelector<HTMLElement>('.oppeRoot .oppeSectionHead')
+      head?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      const field = head?.parentElement?.querySelector<HTMLElement>('select, input:not([readonly])')
+      field?.focus({ preventScroll: true })
+      head?.parentElement?.classList.add('oppeFlash'); window.setTimeout(() => head?.parentElement?.classList.remove('oppeFlash'), 1400)
+    }, 80)
   }
 
   const changeScope = (nextYear: number, nextQuarter: number, nextRoom: number | null) => {
