@@ -483,3 +483,74 @@ html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter > .aq.aqAuditWorkspac
     max-height: calc(100dvh - 300px) !important;
   }
 }
+
+
+/* AUREKA Arktik blue tab hierarchy: darker module chip, lighter contextual sub-tabs. */
+html[data-skin="arktik"] .workspaceRoot.workspaceDesk .workspaceNavigationRail {
+  background: #f3f7fb !important;
+  border-color: #d7e3ee !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+html[data-skin="arktik"] .workspaceRoot.workspaceDesk .workspaceNavigationRailTitle {
+  background: #d7e5f2 !important;
+  border: 1px solid #b9cde0 !important;
+  color: #174268 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.82), 0 1px 2px rgba(11,70,122,.07) !important;
+}
+html[data-skin="arktik"] .workspaceRoot.workspaceDesk .workspaceNavigationRailDivider {
+  color: #8ba7c1 !important;
+}
+html[data-skin="arktik"] .workspaceRoot.workspaceDesk .workspaceNavigationRailItem {
+  background: #edf4fa !important;
+  border-color: #d6e3ef !important;
+  color: #385a78 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 1px 1px rgba(11,70,122,.035) !important;
+}
+html[data-skin="arktik"] .workspaceRoot.workspaceDesk .workspaceNavigationRailItem:hover {
+  background: #e4eef7 !important;
+  border-color: #bfd2e4 !important;
+  color: #0b467a !important;
+}
+html[data-skin="arktik"] .workspaceRoot.workspaceDesk .workspaceNavigationRailItem.active {
+  background: #dce9f5 !important;
+  border-color: #a9c4dd !important;
+  color: #0b467a !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 1px 3px rgba(11,70,122,.10) !important;
+  font-weight: 700 !important;
+}
+html[data-skin="arktik"] .workspaceRoot.workspaceDesk .workspaceNavigationRailItem:focus-visible {
+  outline-color: rgba(11,70,122,.4) !important;
+}
+
+/* Keep the blue hierarchy legible when the user selects Arktik dark mode. */
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot.workspaceDesk .workspaceNavigationRail {
+  background: #14283c !important;
+  border-color: #304b65 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot.workspaceDesk .workspaceNavigationRailTitle {
+  background: #244563 !important;
+  border-color: #3d5f7e !important;
+  color: #edf5fc !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot.workspaceDesk .workspaceNavigationRailDivider {
+  color: #7695b3 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot.workspaceDesk .workspaceNavigationRailItem {
+  background: #1c354e !important;
+  border-color: #34516d !important;
+  color: #c6d9ea !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot.workspaceDesk .workspaceNavigationRailItem:hover {
+  background: #294965 !important;
+  border-color: #4a6b89 !important;
+  color: #f4f9ff !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot.workspaceDesk .workspaceNavigationRailItem.active {
+  background: #315b80 !important;
+  border-color: #6085a6 !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 4px rgba(0,0,0,.14) !important;
+}
