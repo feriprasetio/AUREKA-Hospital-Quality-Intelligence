@@ -1,0 +1,122 @@
+/*
+ * Aurora AUREKA: lapisan warna di atas tema Arktik.
+ * Palet diambil dari logo AUREKA: cyan dan hijau garis sirkuit, perak, dan arang.
+ * Latar memakai radial-gradient (ringan, tanpa filter blur) supaya tetap cepat di ponsel.
+ * Mode terang = "Aurora terang", mode gelap = "Aurora malam".
+ */
+html[data-skin="arktik"]:root {
+  --aurora-cyan: #22d3ee;
+  --aurora-green: #4ade80;
+  --aurora-cyan-ink: #0e7490;
+  --aurora-ink: #1f2430;
+  --aurora-ink-2: #4b5565;
+  --arktik-bg: #eef1f5;
+  --arktik-ink: #1f2430;
+  --arktik-ink-2: #4b5565;
+  --arktik-edge: rgba(255, 255, 255, 0.8);
+  --arktik-shadow: 0 14px 34px rgba(31, 36, 48, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+html[data-skin="arktik"]:root body:not(#_) {
+  background-color: #eef1f5 !important;
+  background-image:
+    radial-gradient(44rem 30rem at 4% -6%, rgba(34, 211, 238, 0.42), transparent 70%),
+    radial-gradient(38rem 32rem at 102% 6%, rgba(74, 222, 128, 0.30), transparent 70%),
+    radial-gradient(46rem 30rem at 50% 110%, rgba(186, 198, 214, 0.80), transparent 70%) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"]:root {
+  --arktik-bg: #0f1218;
+  --arktik-ink: #eef2f7;
+  --arktik-ink-2: #c3ccd8;
+  --arktik-edge: rgba(255, 255, 255, 0.13);
+}
+html[data-skin="arktik"][data-mode="gelap"]:root body:not(#_) {
+  background-color: #0f1218 !important;
+  background-image:
+    radial-gradient(42rem 28rem at 12% -8%, rgba(34, 211, 238, 0.26), transparent 70%),
+    radial-gradient(36rem 30rem at 104% 30%, rgba(74, 222, 128, 0.16), transparent 70%),
+    radial-gradient(40rem 28rem at -6% 104%, rgba(100, 116, 139, 0.30), transparent 70%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Sidebar: menu aktif arang dengan ikon cyan, seperti logo */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebarNav > button.navActive,
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebarNavGroup > button.navActive {
+  background: var(--aurora-ink) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 8px 20px rgba(31, 36, 48, 0.18) !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot :is(.sidebarNav, .sidebarNavGroup) > button.navActive svg { color: var(--aurora-cyan) !important; stroke: currentColor; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot :is(.sidebarNav, .sidebarNavGroup) > button.navActive {
+  background: rgba(34, 211, 238, 0.14) !important;
+  color: #ecfeff !important;
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.35) !important;
+}
+
+/* Submenu modul: tab aktif arang (terang) / cyan kaca (gelap) */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem:is(.active, [aria-current="page"], [aria-selected="true"]) {
+  background: var(--aurora-ink) !important;
+  border-color: var(--aurora-ink) !important;
+  color: #ffffff !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem { background: rgba(255, 255, 255, 0.6) !important; border-color: rgba(255, 255, 255, 0.85) !important; color: var(--aurora-ink) !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem { background: rgba(255, 255, 255, 0.06) !important; border-color: rgba(255, 255, 255, 0.12) !important; color: #c3ccd8 !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem:is(.active, [aria-current="page"], [aria-selected="true"]) {
+  background: rgba(34, 211, 238, 0.16) !important;
+  border-color: rgba(34, 211, 238, 0.45) !important;
+  color: #ecfeff !important;
+}
+
+/* Beranda: kartu sapaan jadi kaca terang, nama bergradasi cyan ke hijau */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard {
+  background: rgba(255, 255, 255, 0.42) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 18px 40px rgba(31, 36, 48, 0.08) !important;
+  color: var(--aurora-ink) !important;
+  border-radius: 28px !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard::before { display: none; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard :is(.hlHeroChip, .hlHeroChip *, .hlHeroEyebrow, .hlUnitHint, p, small, span) { color: var(--aurora-ink-2) !important; -webkit-text-fill-color: currentColor !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting { color: var(--aurora-ink) !important; -webkit-text-fill-color: currentColor !important; font-size: clamp(28px, 3vw, 42px) !important; letter-spacing: -0.03em !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting .hlGreetName {
+  background: linear-gradient(90deg, #0891b2, #16a34a);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent !important; -webkit-text-fill-color: transparent !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlHeroEyebrow { display: inline-flex; align-items: center; gap: 10px; text-transform: none !important; letter-spacing: 0 !important; font-size: 13px !important; opacity: 1 !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlHeroEyebrow::before { content: ""; width: 28px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--aurora-cyan), var(--aurora-green)); }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlHeroChip { background: rgba(255, 255, 255, 0.7) !important; border-color: rgba(255, 255, 255, 0.9) !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn { background: rgba(255, 255, 255, 0.7) !important; border-color: rgba(255, 255, 255, 0.9) !important; color: var(--aurora-ink) !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn * { color: var(--aurora-ink) !important; -webkit-text-fill-color: currentColor !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn:hover { background: #ffffff !important; }
+
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard { background: rgba(255, 255, 255, 0.06) !important; border-color: rgba(255, 255, 255, 0.13) !important; box-shadow: none !important; color: #eef2f7 !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard :is(.hlHeroChip, .hlHeroChip *, .hlHeroEyebrow, .hlUnitHint, p, small, span) { color: #c3ccd8 !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting { color: #eef2f7 !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting .hlGreetName { background: linear-gradient(90deg, var(--aurora-cyan), var(--aurora-green)); -webkit-background-clip: text; background-clip: text; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard :is(.hlHeroChip, .hlPwBtn) { background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.16) !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn,
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn * { color: #eef2f7 !important; }
+
+/* Panel Beranda: kaca dengan sudut lebih bulat */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlPanel:not(.hlReminder) { background: rgba(255, 255, 255, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; border-radius: 24px !important; box-shadow: none !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlPanel:not(.hlReminder) { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.12) !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlReminder { border-radius: 22px !important; background: rgba(253, 230, 138, 0.38) !important; border-color: rgba(255, 255, 255, 0.85) !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlReminder { background: rgba(251, 191, 36, 0.1) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
+
+/* Monitoring pelaporan: warna "ada laporan" mengikuti cyan logo */
+html[data-skin="arktik"] body:not(#_) :is(.hlRepBar i, .hlReportingCell.hasData, .hlReportingLegend i.hasData) { background: linear-gradient(90deg, #0891b2, #16a34a) !important; }
+html[data-skin="arktik"] body:not(#_) .hlReportingCell:not(.hasData):not(.future) { background: rgba(255, 255, 255, 0.65) !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .hlReportingCell:not(.hasData):not(.future) { background: rgba(255, 255, 255, 0.08) !important; }
+html[data-skin="arktik"] body:not(#_) .hlReportingMonth.now { color: var(--aurora-cyan-ink) !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .hlReportingMonth.now { color: var(--aurora-cyan) !important; }
+
+/* Navigasi bawah ponsel: kaca arang dengan tab aktif cyan */
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .mobileBottomNav { background: rgba(31, 36, 48, 0.82) !important; border-color: rgba(255, 255, 255, 0.14) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .mobileBottomNav button { color: #c3ccd8 !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .mobileBottomNav button.active { background: rgba(34, 211, 238, 0.18) !important; color: #67e8f9 !important; }
+}
