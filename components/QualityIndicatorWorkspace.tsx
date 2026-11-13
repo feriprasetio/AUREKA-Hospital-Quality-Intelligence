@@ -1199,7 +1199,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
        onRoomChange?.(nextRoomId)
       }}>
        <span className="aqRoomOverviewIndex">{String(index+1).padStart(2,'0')}</span>
-       <span className="aqRoomOverviewName"><strong>{room.name}</strong><small>{summary?.records==null?'Logbook unit':summary.records?summary.records.toLocaleString('id-ID')+' catatan':'Belum ada catatan'}</small></span>
+       <span className="aqRoomOverviewName"><strong>{room.name}</strong><small>{summary?.records==null?'Buka untuk mengisi catatan':summary.records?summary.records.toLocaleString('id-ID')+' catatan':'Belum ada catatan'}</small></span>
       </button>
      })}
     </div>
