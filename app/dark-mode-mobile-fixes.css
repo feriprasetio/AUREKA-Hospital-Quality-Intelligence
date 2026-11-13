@@ -1,0 +1,73 @@
+/* AUREKA Arktik — mobile dark-mode contrast and opaque surfaces.
+   Loaded last so component-level legacy declarations cannot reintroduce pale text on white controls
+   or translucent panels that disappear over the page background. */
+html[data-skin="arktik"][data-mode="gelap"] {
+  color-scheme: dark;
+  --surface: #111827;
+  --surface-raised: #172235;
+  --page-bg: #080d18;
+  --ink: #e5edf6;
+  --text: #e5edf6;
+  --muted: #b7c4d2;
+  --border: rgba(180, 198, 219, .2);
+}
+@media (max-width: 760px) {
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot :is(
+    .workspaceNotificationPanel,.workspaceSupportPanel,.workspacePopoverHead,
+    .workspaceCommunicationPanel,.workspaceCommunicationTabs,
+    .workspaceRoot .moduleEnter :is(.modal,.dialog,.popover,.dropdownMenu,.menuPanel,[role="dialog"],[role="menu"],[role="listbox"]),
+    .workspaceRoot .moduleEnter :is(.ovPanel,.ovKpi,.aqPanel,.psPanel,.rmPanel,.cpPanel,.oppePanel,.qraPanel,.sdPanel,.stPanel)
+  ) {
+    background-color: #111827 !important;
+    background-image: none !important;
+    color: #e5edf6 !important;
+    border-color: rgba(180,198,219,.22) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceNotificationPanel,
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceSupportPanel {
+    z-index: 260 !important;
+    box-shadow: 0 18px 48px rgba(0,0,0,.62) !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceNotificationPanel :is(strong,p,span,time,button),
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceSupportPanel :is(strong,p,span,time,button) {
+    color: #dce6f1 !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceNotificationItem,
+  html[data-skin="arktik"][data-mode="gelap"] .workspacePopoverHead {
+    border-color: rgba(180,198,219,.18) !important;
+  }
+  /* Overview navigation tiles: never pair near-white text with a white tile. */
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .moduleEnter .ovDashboardTabs button {
+    color: #dce9f6 !important;
+    background: #1b2b42 !important;
+    border: 1px solid #314967 !important;
+    box-shadow: none !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .moduleEnter .ovDashboardTabs button:is(.active,[aria-selected="true"],[aria-current="page"]) {
+    color: #ffffff !important;
+    background: #27649a !important;
+    border-color: #4388bf !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .workspaceContextNav button {
+    color: #dce6f1 !important;
+    background: transparent !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .workspaceContextNav button[aria-current="page"] {
+    color: #ffffff !important;
+    background: #27649a !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .moduleEnter :is(button,a,[role="button"],[role="tab"]) {
+    text-shadow: none !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .moduleEnter :is(input,select,textarea) {
+    background-color: #172235 !important;
+    color: #e5edf6 !important;
+    border-color: rgba(180,198,219,.28) !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .moduleEnter :is(input,select,textarea)::placeholder {
+    color: #9eafc2 !important;
+    opacity: 1 !important;
+  }
+}
