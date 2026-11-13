@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type PicRow = {
   user_id: string
@@ -34,7 +35,7 @@ export default function PicPerformanceWorkspace() {
   const load = useCallback(async () => {
     setLoading(true); setError('')
     const { data: result, error: rpcError } = await aurekaSupabase.rpc('aureka_pic_performance_dashboard', { p_days: days })
-    if (rpcError) setError('Monitoring kinerja PIC belum dapat dimuat: ' + rpcError.message)
+    if (rpcError) setError('Monitoring kinerja PIC belum dapat dimuat: ' + toUserFacingError(rpcError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
     else setData(result as Dashboard)
     setLoading(false)
   }, [days])

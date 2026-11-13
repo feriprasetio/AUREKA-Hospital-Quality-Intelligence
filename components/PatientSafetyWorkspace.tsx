@@ -551,13 +551,13 @@ export default function PatientSafetyWorkspace({
     const allowedIds = new Set(staffOptions.filter(staff => staff.room_name === unitName).map(staff => staff.id))
     if (uniqueIds.some(id => !allowedIds.has(id))) return 'Data tersimpan, tetapi tautan identitas tidak diubah karena tenaga tidak lagi berada pada roster terkunci unit. Minta Admin/PMKP meninjau pemetaan tim.'
     const { error: deleteError } = await qualityDb.from('staff_entity_attributions').delete().eq('entity_type', entityType).eq('entity_id', entityId).eq('field_key', fieldKey)
-    if (deleteError) return 'Data form tersimpan, tetapi tautan identitas lama tidak dapat diperbarui: ' + deleteError.message
+    if (deleteError) return 'Data form tersimpan, tetapi tautan identitas lama tidak dapat diperbarui: ' + toUserFacingError(deleteError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
     if (!uniqueIds.length) return ''
     const { data: authData, error: authError } = await supabase.auth.getUser()
     if (authError || !authData.user) return 'Data form tersimpan, tetapi sesi login tidak tersedia untuk mencatat atribusi identitas.'
     const payload = uniqueIds.map(staffId => ({ entity_type: entityType, entity_id: entityId, staff_id: staffId, field_key: fieldKey, attribution_type: attributionType, created_by: authData.user.id, updated_by: authData.user.id }))
     const { error: insertError } = await qualityDb.from('staff_entity_attributions').insert(payload)
-    return insertError ? 'Data form tersimpan, tetapi atribusi identitas gagal disimpan: ' + insertError.message : ''
+    return insertError ? 'Data form tersimpan, tetapi atribusi identitas gagal disimpan: ' + toUserFacingError(insertError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }) : ''
   }
   const openIncident = (row: IncidentRow) => {
     setIncidentId(row.id)
@@ -867,7 +867,7 @@ export default function PatientSafetyWorkspace({
           </select> :
           <input id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
       }
-      {fieldInvalid ? <small id={fieldErrorId} className="psHint" style={{ color: '#b42318', fontWeight: 700 }}>Field ini wajib diisi.</small> : null}
+      {fieldInvalid ? <small id={fieldErrorId} className="psHint" style={{ color: '#b42318', fontWeight: 700 }}>Isian ini wajib diisi.</small> : null}
     </div>
   }
   const renderInvestigationField = (field: IncidentField) => {
@@ -987,7 +987,7 @@ export default function PatientSafetyWorkspace({
             <td>{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td>
             <td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td>
           </tr>)}
-        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Silakan muat ulang atau hubungi administrator.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Silakan muat ulang atau hubungi administrator.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
     </> : null}
 
@@ -1002,7 +1002,7 @@ export default function PatientSafetyWorkspace({
         </div>
         {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
-        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP yang dapat ditampilkan.'}</div>}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
       {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'} onClose={() => closeForm()}>
       <div className="psModalTop">
@@ -1023,14 +1023,15 @@ export default function PatientSafetyWorkspace({
           <div className="psMeta"><span>Kode Laporan</span><strong>{incidentCode || 'Dibuat saat disimpan'}</strong></div>
           <div className="psMeta"><span>Status Form</span><strong>{statusLabel(incidentStatus)}</strong></div>
           <div className="psMeta"><span>Kelengkapan</span><strong>{incidentCompletion}%</strong></div>
-          <div className="psMeta"><span>Field wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
+          <div className="psMeta"><span>Isian wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
         </div>
-        <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; akses rekaman dibatasi oleh row-level security.</div>
-        {INCIDENT_SECTIONS.map(section => <section className="psFormSection" key={section.letter}>
+        <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
+        <nav className="psSectionJump" aria-label="Loncat ke bagian formulir">{INCIDENT_SECTIONS.map(section => <button type="button" key={section.letter} onClick={() => document.getElementById('ikp-sec-' + section.letter)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><b>{section.letter}</b>{section.title}</button>)}</nav>
+        {INCIDENT_SECTIONS.map(section => <section className="psFormSection" id={'ikp-sec-' + section.letter} key={section.letter}>
           <div className="psFormHeading"><span className="psFormLetter">{section.letter}</span><div><h4>{section.title}</h4><p>Formulir sumber · Bagian {section.letter}</p></div></div>
           <div className="psFormGrid">{section.fields.map(renderIncidentField)}</div>
         </section>)}
-        <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 11 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Draft baru, kode dibuat oleh backend saat tersimpan.'}</div>
+        <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 11 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Laporan baru, kode dibuat otomatis saat disimpan.'}</div>
           <div className="psActions">
             {canManageWorkflow && incidentId ? <>
               <select aria-label="Status workflow insiden" value={incidentStatus} disabled={saving} onChange={event => setIncidentStatus(event.target.value as IncidentStatus)} style={{ minHeight: 41, border: '1px solid rgba(35,63,50,.12)', borderRadius: 12, background: 'rgba(255,255,255,.72)', padding: '8px 10px', fontSize: 11 }}>

@@ -875,7 +875,7 @@ html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalBody>.cpFooter{backg
 
 /* ═══ Audit antislop #001 (lihat DESIGN.md) ═══ */
 /* #6 Blur hanya di header & menu samping HP (dan latar popup); kartu/panel lain solid supaya hierarki jelas. */
-html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing) *:not(.workspaceHeaderBar):not(.sidebar.mobileOpen) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing) *:not(:is(.workspaceHeaderBar, .sidebar.mobileOpen, .mobileBottomNav, .a2-header, .akModalRoot, .aqEditorBack, .aqFoot, .cpBuilderOverlay, .overviewOverlay, .rmModalBackdrop, .stNav, .svLegend, .svNav, .svTop, .tanyaPanel, .workspaceScrim)) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 /* #8 Label tidak lagi huruf kapital berjarak lebar. */
 html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) * { text-transform: none !important; }
 html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) :is([class*="Eyebrow"], [class*="eyebrow"], .navLabel, .workspaceUnitLabel, .sideProfileText, .themeModeLabel, .quickDockCaption, .workspaceSearchResultTag, th) { letter-spacing: normal !important; }
@@ -906,7 +906,42 @@ html body:not(#_) .workspaceRoot .mobileBottomNav { -webkit-backdrop-filter: blu
 @media (max-width: 900px) {
   html body:not(#_) .workspaceRoot .workspaceContent { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
 }
-/* Baris submenu (navigation rail) lebih terbaca di PC. */
-@media (min-width: 721px) {
-  html body:not(#_) .workspaceRoot .workspaceNavigationRail :is(.workspaceNavigationRailItem, .workspaceNavigationRailTitle) { font-size: 13px !important; min-height: 34px !important; padding: 6px 14px !important; }
+
+
+/* ── Submenu (navigation rail): tombol modern berjarak, tidak perlu digeser, menempel rapi pada konten ── */
+html body:not(#_) .workspaceRoot .workspaceNavigationRail { border: 0 !important; background: transparent !important; padding: 0 !important; min-height: 0 !important; overflow: visible !important; gap: 10px !important; margin: 0 0 14px !important; }
+html body:not(#_) .workspaceRoot .workspaceNavigationRailTitle { font-size: 13px !important; font-weight: 700 !important; color: #2e4a66 !important; padding: 0 2px !important; min-height: 0 !important; max-width: none !important; }
+html body:not(#_) .workspaceRoot .workspaceNavigationRailDivider { display: none !important; }
+html body:not(#_) .workspaceRoot .workspaceNavigationRailItems { flex-wrap: wrap !important; overflow: visible !important; gap: 8px !important; }
+html body:not(#_) .workspaceRoot .workspaceNavigationRailItem { min-height: 36px !important; padding: 0 16px !important; border-radius: 10px !important; border: 1px solid rgba(15, 42, 68, .14) !important; background: rgba(255, 255, 255, .85) !important; color: #2e4a66 !important; font-size: 13.5px !important; font-weight: 600 !important; transition: background .15s, color .15s, border-color .15s !important; }
+html body:not(#_) .workspaceRoot .workspaceNavigationRailItem:hover { border-color: rgba(22, 80, 122, .4) !important; color: #0f2a44 !important; }
+html body:not(#_) .workspaceRoot .workspaceNavigationRailItem:is(.active, [aria-current="page"], [aria-selected="true"]) { background: #0f2a44 !important; border-color: #0f2a44 !important; color: #fff !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailTitle { color: #b9c3d6 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem { background: rgba(30, 41, 59, .7) !important; border-color: rgba(148, 163, 184, .2) !important; color: #cbd5e1 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem:is(.active, [aria-current="page"], [aria-selected="true"]) { background: #3b82c4 !important; border-color: #3b82c4 !important; color: #fff !important; }
+@media (max-width: 720px) {
+  html body:not(#_) .workspaceRoot .workspaceNavigationRail { margin: 4px 16px 14px !important; width: auto !important; flex-direction: column !important; align-items: stretch !important; gap: 8px !important; }
+  html body:not(#_) .workspaceRoot .workspaceNavigationRailTitle { display: none !important; }
+  html body:not(#_) .workspaceRoot .workspaceNavigationRailItems { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  html body:not(#_) .workspaceRoot .workspaceNavigationRailItem { min-height: 44px !important; width: 100% !important; padding: 0 10px !important; font-size: 14px !important; white-space: normal !important; text-align: center !important; line-height: 1.2 !important; }
+  /* Tombol Kembali/Lanjut survei di atas navigasi bawah, tidak saling menutupi. */
+  html body:not(#_) .svNav { bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
 }
+
+/* ── Mode gelap: panel yang sebelumnya tetap putih (Infografis, daftar ruangan logbook, info Audit Klinis, kartu unit) ── */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch, .aqRoomOverview, .aqRoomOverviewCard, .acdInfo, .roomCard) { background: rgba(17, 28, 46, .88) !important; background-image: none !important; border-color: rgba(148, 163, 184, .18) !important; color: #e2e8f0 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch, .aqRoomOverview, .aqRoomOverviewCard, .acdInfo, .roomCard) :is(h1, h2, h3, h4, strong, b) { color: #f1f5f9 !important; -webkit-text-fill-color: currentColor !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch, .aqRoomOverview, .aqRoomOverviewCard, .acdInfo, .roomCard) :is(p, span, small, label, em) { color: #b9c3d6 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .aqRoomOverviewCard:hover { background: rgba(30, 45, 70, .95) !important; border-color: rgba(124, 196, 255, .35) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .acdInfo.warn { background: rgba(120, 80, 10, .28) !important; border-color: rgba(251, 191, 36, .35) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch) :is(select, button) { background: rgba(30, 41, 59, .9) !important; color: #e2e8f0 !important; border-color: rgba(148, 163, 184, .25) !important; }
+/* Form IKP: pintasan bagian A-E, menempel di atas saat menggulir */
+html body:not(#_) .psSectionJump { position: sticky; top: 0; z-index: 4; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 8px 0 10px; margin-bottom: 6px; background: var(--ps-surface, rgba(246, 249, 252, .96)); -webkit-backdrop-filter: blur(12px) !important; backdrop-filter: blur(12px) !important; }
+html body:not(#_) .psSectionJump::-webkit-scrollbar { display: none; }
+html body:not(#_) .psSectionJump button { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border-radius: 10px; border: 1px solid rgba(15, 42, 68, .14); background: #fff; color: #2e4a66; font: 600 13px/1.2 var(--font-aureka); cursor: pointer; white-space: nowrap; }
+html body:not(#_) .psSectionJump button b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: #0f2a44; color: #fff; font-size: 12px; }
+html body:not(#_) .psSectionJump button:hover { border-color: rgba(22, 80, 122, .4); color: #0f2a44; }
+html body:not(#_) .psFormSection { scroll-margin-top: 64px; }
+html[data-mode="gelap"] body:not(#_) .psSectionJump { background: rgba(13, 22, 38, .94); }
+html[data-mode="gelap"] body:not(#_) .psSectionJump button { background: rgba(30, 41, 59, .8); color: #cbd5e1; border-color: rgba(148, 163, 184, .2); }
+html[data-mode="gelap"] body:not(#_) .psSectionJump button b { background: #3b82c4; }

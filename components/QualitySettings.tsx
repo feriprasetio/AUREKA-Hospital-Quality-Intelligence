@@ -257,7 +257,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         .select('id,code,version,status,is_active')
         .eq('id', String(publishedId))
         .maybeSingle()
-      if (verifyError) throw new Error('Versi baru sudah dikirim ke server, tetapi verifikasi baca gagal: ' + verifyError.message)
+      if (verifyError) throw new Error('Versi baru sudah dikirim ke server, tetapi verifikasi baca gagal: ' + toUserFacingError(verifyError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       if (!savedProfile || savedProfile.status !== 'published' || savedProfile.is_active !== true) {
         throw new Error('RPC mengembalikan ID, tetapi versi baru belum terbaca sebagai profil aktif. Mohon muat ulang dan periksa riwayat versi.')
       }

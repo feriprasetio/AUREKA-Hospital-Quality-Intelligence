@@ -784,7 +784,7 @@ export default function RiskManagementWorkspace({
         </div>
         <div className="rmOverviewGrid">
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">Profil risiko</span><h4>Peta risiko dan selera risiko</h4><p>Area Rendah/Sangat Rendah dapat diterima; level Sedang ke atas menjadi risiko utama yang perlu mitigasi.</p></div><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Lihat register</button></div>{renderMatrix()}</LiquidGlass>
-          <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">PENGENDALIAN</span><h4>Status tindak pengendalian</h4><p>Ringkasan untuk membantu penentuan prioritas dan pemantauan.</p></div></div>
+          <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">Pengendalian</span><h4>Status tindak pengendalian</h4><p>Ringkasan untuk membantu penentuan prioritas dan pemantauan.</p></div></div>
             <div className="rmProgressList">
               {[
                 ['Perlu mitigasi', counts.needsMitigation, counts.total, 'moderate'],
@@ -809,7 +809,7 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'register' && <>
         {!registerListOpen && <LiquidGlass className="rmPanel rmMatrixLanding">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">PEMETAAN RISIKO · MATRIKS 5 × 5</span><h3>Peta Risiko Rumah Sakit</h3><p>Pilih sel matriks untuk menelusuri risiko berdasarkan kemungkinan dan dampak. Cakupan mengikuti hak akses akun.</p></div></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">Pemetaan risiko · Matriks 5 × 5</span><h3>Peta Risiko Rumah Sakit</h3><p>Pilih sel matriks untuk menelusuri risiko berdasarkan kemungkinan dan dampak. Cakupan mengikuti hak akses akun.</p></div></div>
           {renderMatrix(true)}
           <div className="rmActions"><button type="button" className="rmButton primary" onClick={() => { setRegisterListOpen(true); setPage(0); setMatrixFilter(null); }}>Lihat daftar risiko lengkap</button></div>
         </LiquidGlass>}
