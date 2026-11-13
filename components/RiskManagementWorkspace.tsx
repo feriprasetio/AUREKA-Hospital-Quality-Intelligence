@@ -1019,6 +1019,22 @@ export default function RiskManagementWorkspace({
             <div className="rmKpi"><span>Skor turun setelah kontrol</span><strong>{down.toLocaleString('id-ID')}</strong></div>
           </div>
           <div className="rmProfileLevels">{levels.map(lv => { const n = rows.filter(r => r.risk_level === lv).length; return <div key={lv} className="rmProfileLevel"><span>{renderRiskBadge(lv)}</span><div className="rmProfileBar"><i style={{ width: rows.length ? (n / rows.length * 100) + '%' : '0%' }} /></div><b>{n}</b></div> })}</div>
+          <div className="rmProfileVisualGrid">
+            <section className="rmProfileVisual">
+              <div className="rmSectionHead compactHead"><div><span className="rmEyebrow">Taksonomi risiko</span><h4>Distribusi kategori</h4><p>Jumlah record pada kategori yang tercatat di Risk Register.</p></div></div>
+              {byCategory.length ? byCategory.slice(0,13).map(([category,entry])=><div className="rmCategoryBar" key={category}><div><span>{category}</span><b>{entry.n.toLocaleString('id-ID')} · {rows.length?(entry.n/rows.length*100).toFixed(1).replace('.',','):'0,0'}%</b></div><i><em style={{width:(rows.length?entry.n/rows.length*100:0)+'%'}}/></i></div>) : <div className="rmEmptySmall">Belum ada data kategori pada filter ini.</div>}
+              <p className="rmTiny">Denominator: {rows.length.toLocaleString('id-ID')} risiko dalam cakupan filter. Kategori ditampilkan sesuai nilai master yang tersimpan.</p>
+            </section>
+            <section className="rmProfileVisual">
+              <div className="rmSectionHead compactHead"><div><span className="rmEyebrow">Efek pengendalian</span><h4>Perbandingan skor inheren dan residual</h4><p>Rerata hanya dihitung pada record yang memiliki skor residual.</p></div></div>
+              <div className="rmResidualCompare">
+                <div><span>Rerata skor inheren · seluruh risiko</span><b>{rows.length?(rows.reduce((sum,x)=>sum+x.risk_score,0)/rows.length).toFixed(1).replace('.',','):'-'}</b></div>
+                <div><span>Rerata skor residual · telah dinilai</span><b>{moved.length?(moved.reduce((sum,x)=>sum+(x.residual_score||0),0)/moved.length).toFixed(1).replace('.',','):'-'}</b></div>
+              </div>
+              <div className="rmResidualMeta"><span>Skor residual dinilai: <b>{moved.length}</b> dari {rows.length}</span><span>Skor menurun: <b>{down}</b> record</span></div>
+              <p className="rmTiny">Perbandingan ini bersifat deskriptif; bukan bukti kausal efektivitas kontrol. Interpretasi perlu mempertimbangkan perubahan paparan dan validitas penilaian residual.</p>
+            </section>
+          </div>
           <WorkspaceTableViewport label="Profil risiko per kategori" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Kategori</th><th>Jumlah</th><th>Rerata skor</th><th>Tinggi / Sangat Tinggi</th><th>Residual dinilai</th></tr></thead><tbody>
             {byCategory.length ? byCategory.map(([k, e]) => <tr key={k}><td>{k}</td><td>{e.n}</td><td>{(e.sum / e.n).toFixed(1).replace('.', ',')}</td><td>{e.high}</td><td>{e.residual} dari {e.n}</td></tr>) : <tr><td colSpan={5}><div className="rmEmptySmall">Belum ada risiko pada filter ini.</div></td></tr>}
           </tbody></table></WorkspaceTableViewport>
