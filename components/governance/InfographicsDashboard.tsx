@@ -16,7 +16,7 @@ type Summary = {
   program: { recommendations: number; actions: number; open_actions: number; overdue_actions: number; completed_actions: number }
   regulation: { published: number; pending_approval: number; review_due: number }
 }
-type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn }
+type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn; onRoomChange?: (roomId: number | null) => void }
 type ChartSeries = { label: string; color: string; values: Array<number | null> }
 type ChartModel = { id: string; label: string; description: string; insight: string; labels: string[]; series: ChartSeries[]; kind: 'trend' | 'distribution' | 'progress' }
 
@@ -170,7 +170,7 @@ function ChartLegend({ series }: { series: ChartSeries[] }) {
   return <div className="ifChartLegend">{series.map((item) => <span key={item.label}><i style={{ background: item.color }}/>{item.label}</span>)}</div>
 }
 
-export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate }: Props) {
+export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate, onRoomChange }: Props) {
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [roomValue, setRoomValue] = useState(initialRoomId == null ? '' : String(initialRoomId))
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -255,7 +255,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Gambaran terpadu indikator mutu, insiden keselamatan pasien, manajemen risiko, program, RTL, dan regulasi. Pilih grafik untuk menelusuri pola data.'}</p></div>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-        {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => setRoomValue(event.target.value)}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
+        {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => { const next = event.target.value; setRoomValue(next); onRoomChange?.(next ? Number(next) : null) }}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
         {!canChooseRoom && <span className="ifScope">{selectedRoomName}</span>}
       </div>
     </header>
