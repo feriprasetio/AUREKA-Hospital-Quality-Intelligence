@@ -19,10 +19,10 @@ html[data-skin="arktik"]:root {
 html[data-skin="arktik"]:root body:not(#_) {
   background-color: #eef1f5 !important;
   background-image:
-    radial-gradient(52rem 40rem at -6% -12%, rgba(34, 211, 238, 0.62), transparent 68%),
-    radial-gradient(46rem 38rem at 106% -6%, rgba(74, 222, 128, 0.50), transparent 68%),
+    radial-gradient(52rem 40rem at -6% -12%, rgba(34, 211, 238, 0.85), transparent 70%),
+    radial-gradient(46rem 38rem at 106% -6%, rgba(74, 222, 128, 0.70), transparent 70%),
     radial-gradient(60rem 36rem at 46% 118%, rgba(186, 198, 214, 0.95), transparent 70%),
-    radial-gradient(30rem 24rem at 70% 50%, rgba(165, 243, 252, 0.35), transparent 70%) !important;
+    radial-gradient(30rem 24rem at 70% 50%, rgba(165, 243, 252, 0.45), transparent 70%) !important;
   background-attachment: fixed !important;
 }
 
@@ -73,7 +73,7 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspa
 
 /* Beranda: kartu sapaan jadi kaca terang, nama bergradasi cyan ke hijau */
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard {
-  background: rgba(255, 255, 255, 0.42) !important;
+  background: rgba(255, 255, 255, 0.34) !important;
   border: 1px solid rgba(255, 255, 255, 0.85) !important;
   box-shadow: 0 18px 40px rgba(31, 36, 48, 0.08) !important;
   color: var(--aurora-ink) !important;
@@ -99,7 +99,7 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLan
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn * { color: #eef2f7 !important; }
 
 /* Panel Beranda: kaca dengan sudut lebih bulat */
-html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlPanel:not(.hlReminder) { background: rgba(255, 255, 255, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; border-radius: 24px !important; box-shadow: none !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlPanel:not(.hlReminder) { background: rgba(255, 255, 255, 0.4) !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; border-radius: 24px !important; box-shadow: none !important; }
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlPanel:not(.hlReminder) { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.12) !important; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlReminder { border-radius: 22px !important; background: rgba(253, 230, 138, 0.38) !important; border-color: rgba(255, 255, 255, 0.85) !important; }
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlReminder { background: rgba(251, 191, 36, 0.1) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
@@ -172,8 +172,8 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleE
 
 /* Header & sidebar: kaca terang menyatu dengan latar aurora */
 @media (min-width: 721px) {
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(255, 255, 255, 0.5) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.45) !important; border-right: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(255, 255, 255, 0.42) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.42) !important; border-right: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(15, 18, 24, 0.6) !important; border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.04) !important; border-right-color: rgba(255, 255, 255, 0.08) !important; }
 }
@@ -193,7 +193,7 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLan
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero :is(.hlHeroSub) { color: #c3ccd8 !important; }
 
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
-html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { display: grid; gap: 8px; padding: 18px 20px; border-radius: 22px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.85); }
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { display: grid; gap: 8px; padding: 18px 20px; border-radius: 22px; background: rgba(255, 255, 255, 0.42); border: 1px solid rgba(255, 255, 255, 0.85); }
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard span { font-size: 13px; font-weight: 700; color: #4b5565; }
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #1f2430; font-variant-numeric: tabular-nums; }
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard small { font-size: 12px; color: #4b5565; }
