@@ -59,7 +59,7 @@ test('selected quality unit is shared by Form Logbook and Hasil Capaian', () => 
 test('IT workbook upload is visible from the main quality audit workspace', () => {
   const quality = read('components/QualityIndicatorWorkspace.tsx')
   const home = read('components/HomeClient.tsx')
-  assert.match(quality, /\{!isValidator&&year>=2026&&\[1,2,3,4,5,6,7,9,11,12,14,18,19,20,22,23,24,25,26,33\]/)
+  assert.match(quality, /\{!isValidator&&year>=2026&&\[1,2,3,4,5,6,7,9,11,12,13,14,18,19,20,22,23,24,25,26,33\]/)
   assert.match(quality, /else if\(id===2\)openImportDialog\('it'\)/)
   assert.match(quality, /loadedImportDialogs\.has\('it'\).*ItExcelImportDialog/)
   assert.doesNotMatch(quality, /patientRegistryMode&&!isValidator&&year>=2026/)
