@@ -40,6 +40,7 @@ const maskNik = (v: string | null) => v ? v.slice(0, 4) + '•••••••
 
 export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
   const [search, setSearch] = useState('')
+  useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(0)
   const [rows, setRows] = useState<PatientRow[]>([])
