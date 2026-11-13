@@ -102,7 +102,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       .ipBtn:disabled{opacity:.55;cursor:wait}
       .ipFilters{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
       .ipFilters select,.ipField input,.ipField select,.ipField textarea{width:100%;min-width:0;border:1px solid #dce6df;border-radius:9px;background:#fff;padding:10px 11px;color:#263a2f;font-size:12px;min-height:39px}
-      .ipField{display:grid;gap:5px;font-size:10px;font-weight:800;color:#63736a}
+      .ipField{display:grid;gap:5px;font-size:11px;font-weight:800;color:#63736a}
       .ipField textarea{resize:vertical;min-height:80px}
       .ipFormGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}
       .ipField.full{grid-column:1/-1}
@@ -111,8 +111,8 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       .ipCard{border:1px solid #e4ebe6;border-radius:13px;padding:14px;background:#fff;min-width:0}
       .ipCardHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
       .ipCard h4{font-size:14px;margin:0;color:#24382d}
-      .ipMeta{font-size:10px;color:#718078;line-height:1.6;margin-top:5px}
-      .ipStatus{display:inline-flex;border-radius:999px;padding:5px 8px;background:#eef3ef;color:#43634e;font-size:9px;font-weight:850}
+      .ipMeta{font-size:11px;color:#718078;line-height:1.6;margin-top:5px}
+      .ipStatus{display:inline-flex;border-radius:999px;padding:5px 8px;background:#eef3ef;color:#43634e;font-size:11px;font-weight:850}
       .ipDetail{font-size:11px;line-height:1.55;color:#4e6156;margin-top:10px}
       .ipReview{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #edf1ee}
       .ipReview textarea{width:100%;border:1px solid #dce6df;border-radius:9px;padding:10px;font-size:11px;min-height:62px}

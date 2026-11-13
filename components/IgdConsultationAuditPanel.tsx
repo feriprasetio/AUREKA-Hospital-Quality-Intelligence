@@ -117,8 +117,8 @@ export default function IgdConsultationAuditPanel({ roomId, year }: { roomId: nu
           <div className="glass"><span>Relasi episode unik</span><strong>{stats.linked}</strong><small>RM + tanggal + episode</small></div>
           <div className="glass"><span>RM/tanggal ambigu</span><strong>{stats.ambiguous}</strong><small>tidak ditautkan paksa</small></div>
           <div className="glass"><span>Belum cocok</span><strong>{stats.unmatched}</strong><small>perlu verifikasi sumber</small></div>
-          <div className="glass"><span>Median durasi sumber</span><strong>{stats.medianReported == null ? '—' : stats.medianReported.toFixed(1) + '′'}</strong><small>kolom Target capaian</small></div>
-          <div className="glass"><span>Median timestamp</span><strong>{stats.medianCalculated == null ? '—' : stats.medianCalculated.toFixed(1) + '′'}</strong><small>registrasi ke konsultasi</small></div>
+          <div className="glass"><span>Median durasi sumber</span><strong>{stats.medianReported == null ? '-' : stats.medianReported.toFixed(1) + '′'}</strong><small>kolom Target capaian</small></div>
+          <div className="glass"><span>Median timestamp</span><strong>{stats.medianCalculated == null ? '-' : stats.medianCalculated.toFixed(1) + '′'}</strong><small>registrasi ke konsultasi</small></div>
         </div>}
         {loading && rows.length === 0 && <div className="aqEmpty">Memuat audit konsultasi DPJP…</div>}
         {!loading && !error && rows.length === 0 && <div className="aqEmpty">Belum ada audit konsultasi DPJP yang diimpor.</div>}
@@ -127,14 +127,14 @@ export default function IgdConsultationAuditPanel({ roomId, year }: { roomId: nu
             <thead><tr><th>Bulan</th><th>Waktu registrasi</th><th>Nama pasien</th><th>No. RM</th><th>Dokter IGD</th><th>Dokter spesialis</th><th>Durasi sumber</th><th>Durasi hitung</th><th>Ya/Tidak</th><th>Relasi</th></tr></thead>
             <tbody>{visibleRows.map(row => <tr key={row.id}>
               <td>{MONTHS[(Number(row.source_period_month)||1)-1]}</td>
-              <td>{row.registration_at ? String(row.registration_at).replace('T',' ').slice(0,19) : '—'}</td>
+              <td>{row.registration_at ? String(row.registration_at).replace('T',' ').slice(0,19) : '-'}</td>
               <td>{maskIgdPatientName(row.patient_name)}</td>
               <td>{maskIgdMedicalRecord(row.medical_record_no)}</td>
-              <td>{row.requesting_doctor || '—'}</td>
-              <td>{row.specialist || '—'}</td>
-              <td>{row.reported_elapsed_minutes == null ? '—' : Number(row.reported_elapsed_minutes).toFixed(1) + ' menit'}</td>
-              <td>{row.calculated_elapsed_minutes == null ? '—' : Number(row.calculated_elapsed_minutes).toFixed(1) + ' menit'}</td>
-              <td>{row.source_performance_label || '—'}</td>
+              <td>{row.requesting_doctor || '-'}</td>
+              <td>{row.specialist || '-'}</td>
+              <td>{row.reported_elapsed_minutes == null ? '-' : Number(row.reported_elapsed_minutes).toFixed(1) + ' menit'}</td>
+              <td>{row.calculated_elapsed_minutes == null ? '-' : Number(row.calculated_elapsed_minutes).toFixed(1) + ' menit'}</td>
+              <td>{row.source_performance_label || '-'}</td>
               <td>{row.match_status}</td>
             </tr>)}</tbody>
           </table>

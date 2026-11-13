@@ -271,7 +271,7 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .ovRoot .ovContex
   align-items: center !important; border-radius: 16px !important;
 }
 html[data-skin="arktik"]:root .workspaceRoot .ovRoot .ovContextBar > div { display: flex !important; align-items: baseline !important; gap: 8px !important; padding: 0 !important; border: 0 !important; min-height: 0 !important; }
-html[data-skin="arktik"]:root .workspaceRoot .ovRoot .ovContextBar span { font-size: 10.5px !important; margin: 0 !important; }
+html[data-skin="arktik"]:root .workspaceRoot .ovRoot .ovContextBar span { font-size: 11px !important; margin: 0 !important; }
 html[data-skin="arktik"]:root .workspaceRoot .ovRoot .ovContextBar b { font-size: 13px !important; }
 html[data-skin="arktik"]:root .workspaceRoot .ovRoot .ovContextBar .ovContextStatus { margin-left: auto !important; }
 html[data-skin="arktik"]:root .workspaceRoot .ovRoot .ovScopeNote { font-size: 11.5px !important; margin-top: -4px !important; opacity: 0.85; }

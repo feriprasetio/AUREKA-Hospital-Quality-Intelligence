@@ -36,7 +36,7 @@ export default function AuditLogWorkspace() {
         <WorkspaceTableViewport label="Audit log" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Role</th><th>Tindakan</th><th>Objek</th><th>Rincian</th></tr></thead><tbody>
           {rows.length ? rows.map((r) => <tr key={r.id}>
             <td>{new Date(r.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
-            <td>{r.actor_name || '—'}</td><td>{r.actor_role || '—'}</td><td>{r.action}</td>
+            <td>{r.actor_name || '-'}</td><td>{r.actor_role || '-'}</td><td>{r.action}</td>
             <td>{OBJECT_LABEL[r.object_type] || r.object_type}<small className="rmCellSmall">{r.object_id?.slice(0, 8)}</small></td>
             <td><small className="rmCellSmall govDetail">{Object.entries(r.detail || {}).filter(([, v]) => v != null && v !== '').slice(0, 4).map(([k, v]) => k + ': ' + (typeof v === 'string' ? v : JSON.stringify(v))).join(' · ').slice(0, 220)}</small></td>
           </tr>) : <tr><td colSpan={6}><div className="rmEmptySmall">Belum ada catatan.</div></td></tr>}

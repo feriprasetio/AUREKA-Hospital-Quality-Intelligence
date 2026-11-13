@@ -28,47 +28,47 @@ const pct = (v: unknown) => n(v).toLocaleString('id-ID', { maximumFractionDigits
 const css = [
 '.infographicsDashboard{display:grid;gap:14px;color:var(--arktik-ink,#21374f)}',
 '.ifHero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:18px;background:linear-gradient(120deg,rgba(239,247,243,.94),rgba(247,250,253,.98));}',
-'.ifEyebrow{display:block;margin-bottom:5px;color:#4b8b75;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}',
+'.ifEyebrow{display:block;margin-bottom:5px;color:#4b8b75;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}',
 '.ifHero h2{margin:0;color:var(--arktik-ink,#21374f);font-size:20px;font-weight:850;letter-spacing:-.03em}',
 '.ifHero p{max-width:720px;margin:6px 0 0;color:var(--ak-muted,#73849a);font-size:11px;line-height:1.6}',
 '.ifFilters{display:flex;align-items:end;gap:9px;flex-wrap:wrap}',
-'.ifFilters label{display:grid;gap:5px;color:var(--ak-muted,#73849a);font-size:10px;font-weight:750}',
+'.ifFilters label{display:grid;gap:5px;color:var(--ak-muted,#73849a);font-size:11px;font-weight:750}',
 '.ifFilters select,.ifChartToolbar select{min-width:132px;min-height:36px;padding:7px 30px 7px 10px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;background:#fff;color:var(--arktik-ink,#21374f);font-size:11px}',
-'.ifScope{padding:9px 11px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;background:var(--arktik-glass,#f6f9fc);color:var(--ak-muted,#73849a);font-size:10px;font-weight:750}',
+'.ifScope{padding:9px 11px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;background:var(--arktik-glass,#f6f9fc);color:var(--ak-muted,#73849a);font-size:11px;font-weight:750}',
 '.ifKpiGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}',
 '.ifKpi{min-width:0;padding:13px 14px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:13px;background:var(--surface,#fff);box-shadow:0 5px 18px rgba(29,55,81,.035)}',
-'.ifKpi span,.ifKpi small{display:block;color:var(--ak-muted,#73849a);font-size:10px;line-height:1.45}',
+'.ifKpi span,.ifKpi small{display:block;color:var(--ak-muted,#73849a);font-size:11px;line-height:1.45}',
 '.ifKpi strong{display:block;margin:6px 0 3px;color:var(--arktik-ink,#21374f);font-size:25px;font-weight:850;line-height:1.1;font-variant-numeric:tabular-nums}',
-'.ifKpi small{font-size:9px}',
+'.ifKpi small{font-size:11px}',
 '.ifSectionHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}',
 '.ifSectionHead h3{margin:0;color:var(--arktik-ink,#21374f);font-size:14px;font-weight:850}',
-'.ifSectionHead p{margin:4px 0 0;color:var(--ak-muted,#73849a);font-size:10px;line-height:1.5}',
+'.ifSectionHead p{margin:4px 0 0;color:var(--ak-muted,#73849a);font-size:11px;line-height:1.5}',
 '.ifChartCard{min-width:0;padding:16px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:16px;background:var(--surface,#fff);box-shadow:0 5px 18px rgba(29,55,81,.035)}',
 '.ifChartToolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:0 0 13px}',
-'.ifChartToolbar label{display:grid;gap:5px;color:var(--ak-muted,#73849a);font-size:10px;font-weight:750}',
+'.ifChartToolbar label{display:grid;gap:5px;color:var(--ak-muted,#73849a);font-size:11px;font-weight:750}',
 '.ifChartToolbar .ifChartChoice{flex:1;min-width:220px}',
 '.ifChartToolbar .ifChartChoice select{width:100%}',
 '.ifTypeSwitch{display:flex;gap:4px;padding:3px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:10px;background:#f5f8fa}',
-'.ifTypeSwitch button{min-height:29px;padding:5px 9px;border:0;border-radius:7px;background:transparent;color:var(--ak-muted,#73849a);font-size:9px;font-weight:800;cursor:pointer}',
+'.ifTypeSwitch button{min-height:29px;padding:5px 9px;border:0;border-radius:7px;background:transparent;color:var(--ak-muted,#73849a);font-size:11px;font-weight:800;cursor:pointer}',
 '.ifTypeSwitch button[aria-pressed=true]{background:#fff;color:#326d55;box-shadow:0 1px 4px rgba(20,50,35,.1)}',
 '.ifChartSvg{display:block;width:100%;height:auto;min-height:190px;overflow:visible}',
-'.ifChartLegend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;color:var(--ak-muted,#73849a);font-size:10px}',
+'.ifChartLegend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;color:var(--ak-muted,#73849a);font-size:11px}',
 '.ifChartLegend span{display:inline-flex;align-items:center;gap:5px}',
 '.ifChartLegend i{display:inline-block;width:9px;height:9px;border-radius:3px}',
-'.ifInsight{margin-top:12px;padding:10px 12px;border-left:3px solid #4b8b75;border-radius:0 9px 9px 0;background:rgba(75,139,117,.07);color:var(--ak-muted,#65786f);font-size:10px;line-height:1.55}',
+'.ifInsight{margin-top:12px;padding:10px 12px;border-left:3px solid #4b8b75;border-radius:0 9px 9px 0;background:rgba(75,139,117,.07);color:var(--ak-muted,#65786f);font-size:11px;line-height:1.55}',
 '.ifInsight b{color:var(--arktik-ink,#21374f)}',
 '.ifLowerGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}',
 '.ifMiniCard{min-width:0;padding:14px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:14px;background:var(--surface,#fff)}',
 '.ifMiniCard h3{margin:0;color:var(--arktik-ink,#21374f);font-size:12px;font-weight:850}',
-'.ifMiniCard p{margin:4px 0 10px;color:var(--ak-muted,#73849a);font-size:9px;line-height:1.5}',
-'.ifMiniRow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(70px,1.6fr) auto;gap:8px;align-items:center;margin:8px 0;font-size:9px}',
+'.ifMiniCard p{margin:4px 0 10px;color:var(--ak-muted,#73849a);font-size:11px;line-height:1.5}',
+'.ifMiniRow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(70px,1.6fr) auto;gap:8px;align-items:center;margin:8px 0;font-size:11px}',
 '.ifMiniRow>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ak-muted,#73849a)}',
 '.ifMiniTrack{height:8px;overflow:hidden;border-radius:99px;background:rgba(112,139,166,.12)}.ifMiniTrack i{display:block;height:100%;border-radius:99px;background:#4b8b75}',
 '.ifMiniRow b{color:var(--arktik-ink,#21374f);font-variant-numeric:tabular-nums}',
 '.ifLinks{display:flex;gap:8px;flex-wrap:wrap}',
-'.ifLink{border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;padding:8px 11px;background:#fff;color:var(--arktik-ink,#21374f);font-size:10px;font-weight:750;cursor:pointer}',
+'.ifLink{border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;padding:8px 11px;background:#fff;color:var(--arktik-ink,#21374f);font-size:11px;font-weight:750;cursor:pointer}',
 '.ifLink:hover{border-color:#6d9ab8;background:#f4f8fb}',
-'.ifNote,.ifEmpty{margin:0;color:var(--ak-muted,#73849a);font-size:10px;line-height:1.55}',
+'.ifNote,.ifEmpty{margin:0;color:var(--ak-muted,#73849a);font-size:11px;line-height:1.55}',
 '.ifLoading,.ifError{padding:12px 14px;border-radius:10px;font-size:11px}.ifLoading{background:rgba(112,139,166,.08);color:var(--ak-muted,#73849a)}.ifError{background:#fff5e8;color:#88591e}',
 '@media(max-width:980px){.ifKpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}',
 '@media(max-width:620px){.ifHero{display:grid;padding:14px}.ifHero h2{font-size:17px}.ifKpiGrid,.ifLowerGrid{grid-template-columns:1fr 1fr}.ifFilters{width:100%}.ifFilters label{flex:1}.ifFilters select{width:100%;min-width:0}.ifChartToolbar{display:grid}.ifChartToolbar .ifChartChoice{min-width:0}.ifTypeSwitch{width:100%;justify-content:space-between}.ifTypeSwitch button{flex:1}.ifChartSvg{min-height:160px}}',
@@ -130,7 +130,7 @@ function ChartGraphic({ model, type }: { model: ChartModel; type: 'column' | 'ba
             const value = series.values[index]
             const w = value === null ? 0 : Math.max(0, value / maxValue * (plotW - 8))
             const barY = y + 4 + seriesIndex * seriesH
-            return <g key={series.label}><rect x={left} y={barY} width={plotW} height={Math.max(5, seriesH - 3)} rx="3" fill="#eef2f5"/>{value !== null && <rect x={left} y={barY} width={w} height={Math.max(5, seriesH - 3)} rx="3" fill={series.color}/>}<text x={left + w + 6} y={barY + Math.max(5, seriesH - 3) * .8} fontSize="9" fontWeight="700" fill="#21374f">{value === null ? '—' : fmt(value)}</text></g>
+            return <g key={series.label}><rect x={left} y={barY} width={plotW} height={Math.max(5, seriesH - 3)} rx="3" fill="#eef2f5"/>{value !== null && <rect x={left} y={barY} width={w} height={Math.max(5, seriesH - 3)} rx="3" fill={series.color}/>}<text x={left + w + 6} y={barY + Math.max(5, seriesH - 3) * .8} fontSize="9" fontWeight="700" fill="#21374f">{value === null ? '-' : fmt(value)}</text></g>
           })}
         </g>
       })}
@@ -274,7 +274,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         <div className="ifSectionHead"><div><span className="ifEyebrow">DATA EXPLORER</span><h3>Eksplorasi Ikhtisar</h3><p>Pilih topik dan bentuk visualisasi untuk membaca pola data yang sama dari sudut berbeda.</p></div></div>
         <div className="ifChartToolbar">
           <label className="ifChartChoice">Pilih grafik<select value={activeChart.id} onChange={(event) => { const next = chartModels.find((model) => model.id === event.target.value); setChartId(event.target.value); setChartType(next?.kind === 'trend' ? 'line' : 'column') }}>{chartModels.map((model) => <option key={model.id} value={model.id}>{model.label}</option>)}</select></label>
-          <div><span style={{display:'block',marginBottom:5,color:'var(--ak-muted,#73849a)',fontSize:10,fontWeight:750}}>Bentuk grafik</span><div className="ifTypeSwitch" role="group" aria-label="Pilih bentuk grafik">
+          <div><span style={{display:'block',marginBottom:5,color:'var(--ak-muted,#73849a)',fontSize: 11,fontWeight:750}}>Bentuk grafik</span><div className="ifTypeSwitch" role="group" aria-label="Pilih bentuk grafik">
             {(activeChart.kind === 'trend' ? ([['column','Kolom'],['bar','Batang'],['line','Garis']] as const) : ([['column','Kolom'],['bar','Batang'],['donut','Donat']] as const)).map(([type,label]) => <button type="button" key={type} aria-pressed={chartType===type} onClick={() => setChartType(type)}>{label}</button>)}
           </div></div>
         </div>

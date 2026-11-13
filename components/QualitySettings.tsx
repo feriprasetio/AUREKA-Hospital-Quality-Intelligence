@@ -33,10 +33,10 @@ const empty = (room: Room | undefined, year: number, indicatorType = ''): Model 
   denominator_definition: '',
   measurement_grain: 'activity',
   schema_json: {},
-  options_json: [{ label: 'Lainnya — tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }],
+  options_json: [{ label: 'Lainnya, tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }],
   _indicator_direction: '',
   _schema_text: '{}',
-  _options_text: JSON.stringify([{ label: 'Lainnya — tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }], null, 2),
+  _options_text: JSON.stringify([{ label: 'Lainnya, tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }], null, 2),
   version: 1,
   status: 'published',
   is_active: true,
@@ -365,7 +365,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const fieldStyle: CSSProperties = {
     display: 'grid',
     gap: 5,
-    fontSize: 10,
+    fontSize: 11,
     color: 'var(--muted)',
   }
   const editor = (model: Model, setModel: (value: Model) => void, onSave: () => void) => (
@@ -383,17 +383,17 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <label className="field" style={fieldStyle}><span>Operator target</span><select value={model.target_operator || '>='} onChange={(e) => setModel({ ...model, target_operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value="=">=</option><option value=">">&gt;</option><option value="<">&lt;</option></select></label>
         <label className="field" style={fieldStyle}><span>Nilai target numerik</span><input type="number" value={model.target_value ?? ''} onChange={(e) => setModel({ ...model, target_value: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Measurement grain</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{grain}</option>)}</select></label>
-        <label className="field" style={fieldStyle}><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif — semakin tinggi semakin baik</option><option value="negative">Negatif — semakin rendah semakin baik</option></select></label>
+        <label className="field" style={fieldStyle}><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif, semakin tinggi semakin baik</option><option value="negative">Negatif, semakin rendah semakin baik</option></select></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi numerator</span><textarea value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi denominator</span><textarea value={model.denominator_definition || ''} onChange={(e) => setModel({ ...model, denominator_definition: e.target.value })} /></label>
-        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Struktur instrumen (JSON object)</span><textarea style={{ minHeight: 95, fontFamily: 'ui-monospace,monospace', fontSize: 10 }} value={model._schema_text ?? '{}'} onChange={(e) => setModel({ ...model, _schema_text: e.target.value })} /></label>
-        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Opsi / kamus respons (JSON array)</span><textarea style={{ minHeight: 150, fontFamily: 'ui-monospace,monospace', fontSize: 10 }} value={model._options_text ?? '[]'} onChange={(e) => setModel({ ...model, _options_text: e.target.value })} /></label>
+        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Struktur instrumen (JSON object)</span><textarea style={{ minHeight: 95, fontFamily: 'ui-monospace,monospace', fontSize: 11 }} value={model._schema_text ?? '{}'} onChange={(e) => setModel({ ...model, _schema_text: e.target.value })} /></label>
+        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Opsi / kamus respons (JSON array)</span><textarea style={{ minHeight: 150, fontFamily: 'ui-monospace,monospace', fontSize: 11 }} value={model._options_text ?? '[]'} onChange={(e) => setModel({ ...model, _options_text: e.target.value })} /></label>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(null); setNewOne(null) }}>Batal</button>
         <LiquidGlassButton onClick={onSave} disabled={saving}>{saving ? 'Menyimpan…' : model.id ? 'Terbitkan versi baru' : 'Tambah indikator'}</LiquidGlassButton>
       </div>
-      <div style={{ marginTop: 7, fontSize: 10, color: 'var(--muted)' }}>
+      <div style={{ marginTop: 7, fontSize: 11, color: 'var(--muted)' }}>
         Perubahan pada indikator yang sudah terbit dibuat sebagai versi baru. Opsi JSON harus berupa array dan struktur instrumen harus berupa objek.
       </div>
     </div>
@@ -425,9 +425,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         {msg && <div className="msg visible" role={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'alert' : 'status'} aria-live={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'assertive' : 'polite'} style={{ color: /gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? '#9c3f32' : '#0f7656', marginTop: 12 }}>{msg}</div>}
 
         <div className="metadataScopeFilters" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Tahun metadata</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 10, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} disabled={lockRoomScope} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}>{!lockRoomScope && <option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <div style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
+          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 11, color: 'var(--muted)' }}><span>Tahun metadata</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 11, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} disabled={lockRoomScope} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}>{!lockRoomScope && <option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
         <div id="metadata-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'metadata-tab-' + tab} tabIndex={0}>
@@ -444,7 +444,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 {programStats.map((program) => (
                   <div key={program.name} style={{ padding: 13, border: '1px solid rgba(20,34,27,.09)', borderRadius: 16, background: 'rgba(255,255,255,.25)', minWidth: 0 }}>
                     <div style={{ fontWeight: 850, fontSize: 12, lineHeight: 1.5, overflowWrap: 'anywhere' }}>{program.name}</div>
-                    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', margin: '10px 0 12px', fontSize: 10, color: 'var(--muted)' }}>
+                    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', margin: '10px 0 12px', fontSize: 11, color: 'var(--muted)' }}>
                       <span>{program.total} profil</span><span>·</span><span>{program.active} aktif</span>{program.retired > 0 && <><span>·</span><span>{program.retired} dipensiunkan</span></>}
                     </div>
                     <div className="mpCardActions">
@@ -468,8 +468,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 onChange={(e) => setProfileViewFilter(e.target.value as ProfileViewFilter)}
               >
                 <option value="active">Indikator aktif ({activeProfileCount})</option>
-                <option value="needs_review">Perlu perbaikan teknis — merah ({activeReviewCount})</option>
-                <option value="target_pending">Target/definisi menunggu pengesahan — kuning ({activeTargetPendingCount})</option>
+                <option value="needs_review">Perlu perbaikan teknis, merah ({activeReviewCount})</option>
+                <option value="target_pending">Target/definisi menunggu pengesahan, kuning ({activeTargetPendingCount})</option>
                 <option value="complete">Metadata siap digunakan</option>
                 <option value="draft">Draf</option>
                 <option value="retired">Riwayat versi (retired)</option>
@@ -499,22 +499,22 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 <div key={profile.id} style={{ padding: 11, border: needsMetadataReview(profile) ? '1px solid rgba(184,52,52,.48)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
                   <div style={{ minWidth: 0, flex: '1 1 260px' }}>
                     <div style={{ fontSize: 11, fontWeight: 850, overflowWrap: 'anywhere' }}>{profile.code} · {profile.title || '(Tanpa nama)'}</div>
-                    <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7, marginTop: 4, overflowWrap: 'anywhere' }}>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.7, marginTop: 4, overflowWrap: 'anywhere' }}>
                       {(profile.indicator_type || 'Tanpa program')} · {profile.unit_name || 'Unit belum ditentukan'} · {profile.category || 'Kategori belum diisi'}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7 }}>
-                      Target: {profile.target_text || '—'} · Satuan: {profile.unit_of_measure || '—'} · Grain: {profile.measurement_grain || '—'} · v{profile.version || 1} · {profile.status || '—'}
+                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.7 }}>
+                      Target: {profile.target_text || '-'} · Satuan: {profile.unit_of_measure || '-'} · Grain: {profile.measurement_grain || '-'} · v{profile.version || 1} · {profile.status || '-'}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7 }}>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.7 }}>
                       Arah capaian: {profile.schema_json?.indicator_direction === 'positive' ? 'Positif' : profile.schema_json?.indicator_direction === 'negative' ? 'Negatif' : 'Belum ditetapkan'}
                     </div>
-                    {needsMetadataReview(profile) && <div style={{ marginTop: 5, color: '#a83232', fontSize: 10, fontWeight: 750 }}>Perlu perbaikan teknis: {metadataReviewReasons(profile).join(', ')}.</div>}
-                    {!needsMetadataReview(profile) && needsTargetApproval(profile) && <div style={{ marginTop: 5, color: '#9a6700', fontSize: 10, fontWeight: 750 }}>Perlu pengesahan pemilik indikator: {targetApprovalReasons(profile).join(', ')}. Indikator tetap dapat dipetakan dan dicatat; target belum dihitung sebagai target resmi.</div>}
+                    {needsMetadataReview(profile) && <div style={{ marginTop: 5, color: '#a83232', fontSize: 11, fontWeight: 750 }}>Perlu perbaikan teknis: {metadataReviewReasons(profile).join(', ')}.</div>}
+                    {!needsMetadataReview(profile) && needsTargetApproval(profile) && <div style={{ marginTop: 5, color: '#9a6700', fontSize: 11, fontWeight: 750 }}>Perlu pengesahan pemilik indikator: {targetApprovalReasons(profile).join(', ')}. Indikator tetap dapat dipetakan dan dicatat; target belum dihitung sebagai target resmi.</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
                     {isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
-                    {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 9, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
+                    {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 11, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
                   </div>
                 </div>
               ))}

@@ -203,7 +203,7 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
   const ask = async (q: string) => {
     const question = q.trim()
     if (!question || busy) return
-    const history = msgs.filter(m => !m.error).slice(-10).map(m => ({ role: m.role, text: m.text + (m.reminder ? `\n(Draf pengingat untuk: ${(m.reminder.selected ?? m.reminder.units).join(', ')} — status: ${m.reminder.status === 'sent' ? 'sudah dikirim' : m.reminder.status === 'cancelled' ? 'dibatalkan' : 'belum dikirim'})` : '') }))
+    const history = msgs.filter(m => !m.error).slice(-10).map(m => ({ role: m.role, text: m.text + (m.reminder ? `\n(Draf pengingat untuk: ${(m.reminder.selected ?? m.reminder.units).join(', ')}, status: ${m.reminder.status === 'sent' ? 'sudah dikirim' : m.reminder.status === 'cancelled' ? 'dibatalkan' : 'belum dikirim'})` : '') }))
     setMsgs(m => [...m, { role: 'user', text: question }])
     setDraft('')
     setBusy(true)
@@ -269,7 +269,7 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
       </button>
     </form>
-    <p className="tanyaNote">Jawaban AI bisa keliru — cek kembali angka penting di modul terkait. Identitas pasien tidak dikirim ke AI.</p>
+    <p className="tanyaNote">Jawaban AI bisa keliru, cek kembali angka penting di modul terkait. Identitas pasien tidak dikirim ke AI.</p>
   </section>
 
   const fab = <button type="button" className={'tanyaFab' + (open ? ' on' : '')} title="Tanya AUREKA" aria-label={open ? 'Tutup Tanya AUREKA' : 'Tanya AUREKA'} aria-expanded={open} onClick={() => setOpen(v => !v)}>

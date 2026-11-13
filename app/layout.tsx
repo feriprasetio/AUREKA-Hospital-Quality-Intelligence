@@ -35,7 +35,7 @@ import './aureka-navigation-consolidated.css'
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], display: 'swap', variable: '--font-aureka' })
 
 export const metadata: Metadata = {
-  title: 'AUREKA — Hospital Quality Intelligence',
+  title: 'AUREKA: Hospital Quality Intelligence',
   description: 'AUREKA Hospital Quality Intelligence Platform',
 }
 

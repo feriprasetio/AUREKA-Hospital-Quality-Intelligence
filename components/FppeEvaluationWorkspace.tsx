@@ -191,8 +191,8 @@ export default function FppeEvaluationWorkspace({
     const current = teamStaff.find((staff) => String(staff.id) === String(record.staff_id))
     return {
       name: current?.display_name || String(record.staff_name_snapshot || 'Nama tidak tersedia'),
-      code: current?.employee_code || String(record.staff_code_snapshot || '—'),
-      title: current?.position_title || String(record.position_snapshot || record.profession_snapshot || '—'),
+      code: current?.employee_code || String(record.staff_code_snapshot || '-'),
+      title: current?.position_title || String(record.position_snapshot || record.profession_snapshot || '-'),
     }
   }, [teamStaff])
 
@@ -239,17 +239,17 @@ export default function FppeEvaluationWorkspace({
         ['Kode tenaga AUREKA', staff.code],
         ['Jabatan Metadata', staff.title],
         ['Profesi / SMF / area praktik', record.profession_snapshot || meta.profession],
-        ['Unit penilaian', roomMap.get(Number(record.room_id)) || record.unit_snapshot || '—'],
+        ['Unit penilaian', roomMap.get(Number(record.room_id)) || record.unit_snapshot || '-'],
         ['Jenis FPPE', record.evaluation_type === 'triggered' ? 'FPPE Triggered' : 'FPPE Initial'],
         ['Status', STATUS_LABEL[String(record.status)] || record.status],
         ['Alasan / trigger', record.trigger_reason || meta.trigger],
         ['Uraian trigger', record.trigger_detail || meta.triggerDetail],
-        ['Periode evaluasi', (record.period_start || meta.startDate || '—') + ' s.d. ' + (record.period_end || meta.endDate || '—')],
+        ['Periode evaluasi', (record.period_start || meta.startDate || '-') + ' s.d. ' + (record.period_end || meta.endDate || '-')],
         ['Ruang lingkup / privilege', record.scope_text || meta.scope],
         ['Kompetensi dinilai', String(summary.assessed ?? 0) + ' / ' + String(summary.totalCompetencies ?? competencyRows.length)],
         ['Keputusan ringkas', summary.decision || evidence.overallDecision],
-        ['Diajukan pada', record.submitted_at ? new Date(record.submitted_at).toLocaleString('id-ID') : '—'],
-        ['Divalidasi pada', record.validated_at ? new Date(record.validated_at).toLocaleString('id-ID') : '—'],
+        ['Diajukan pada', record.submitted_at ? new Date(record.submitted_at).toLocaleString('id-ID') : '-'],
+        ['Divalidasi pada', record.validated_at ? new Date(record.validated_at).toLocaleString('id-ID') : '-'],
       ],
       sections: [
         { title: 'Hasil kompetensi', columns: ['No.', 'Domain / kompetensi', 'Hasil'], rows: competencyRows },
@@ -262,7 +262,7 @@ export default function FppeEvaluationWorkspace({
           ['Perlu remediasi', summary.remedial ?? 0],
           ['Belum kompeten', summary.notCompetent ?? 0],
         ] },
-        { title: 'Catatan reviewer', columns: ['Catatan'], rows: [[record.review_note || '—']] },
+        { title: 'Catatan reviewer', columns: ['Catatan'], rows: [[record.review_note || '-']] },
       ],
       footer: 'Snapshot nama dan kode saat evaluasi dipertahankan untuk audit trail; identitas tenaga terkini diambil dari Metadata berdasarkan UUID tenaga.',
     })

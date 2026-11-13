@@ -92,7 +92,7 @@
 }
 .workspaceRoot .sideBrand .brandLogoImage{width:100%!important;height:100%!important;object-fit:contain!important;padding:3px!important}
 .workspaceRoot .sideBrand b{font-size:19px!important;line-height:1.12!important;font-weight:850!important;letter-spacing:-.035em!important;color:#1c3329!important}
-.workspaceRoot .sideBrand small{margin-top:3px!important;font-size:9px!important;line-height:1.2!important;color:#8582aa!important;letter-spacing:.025em!important}
+.workspaceRoot .sideBrand small{margin-top:3px!important;font-size:11px!important;line-height:1.2!important;color:#8582aa!important;letter-spacing:.025em!important}
 .workspaceRoot .sidebarToggle{
   position:static!important;display:grid!important;place-items:center!important;
   flex:0 0 30px!important;width:30px!important;height:30px!important;min-width:30px!important;
@@ -105,7 +105,7 @@
 .workspaceRoot .sidebarToggle svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important}
 .workspaceRoot .navLabel{
   margin:0 0 9px!important;padding:0 10px!important;
-  color:#aaa7c8!important;font-size:9px!important;font-weight:850!important;
+  color:#aaa7c8!important;font-size:11px!important;font-weight:850!important;
   letter-spacing:.15em!important;text-transform:uppercase!important;
 }
 .workspaceRoot .sidebarNav{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;gap:5px!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;padding:0 1px 10px!important}
@@ -152,7 +152,7 @@
   width:100%!important;min-width:0!important;min-height:32px!important;
   padding:6px 8px!important;border:1px solid transparent!important;border-radius:9px!important;
   background:transparent!important;color:#8280a1!important;text-align:left!important;
-  font-size:10px!important;font-weight:580!important;line-height:1.3!important;white-space:normal!important;
+  font-size:11px!important;font-weight:580!important;line-height:1.3!important;white-space:normal!important;
   box-shadow:none!important;
 }
 .workspaceRoot .sidebarChild:hover{background:rgba(255,255,255,.76)!important;color:#574bb4!important}
@@ -179,8 +179,8 @@
 }
 .workspaceRoot .profileText{display:grid!important;gap:2px!important;min-width:0!important}
 .workspaceRoot .profileText b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#393566!important;font-size:11px!important}
-.workspaceRoot .profileText span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#9290ae!important;font-size:9px!important}
-.workspaceRoot .profileChipHint{color:#7164d4!important;font-size:9px!important}
+.workspaceRoot .profileText span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#9290ae!important;font-size:11px!important}
+.workspaceRoot .profileChipHint{color:#7164d4!important;font-size:11px!important}
 .workspaceRoot .sidebarFooter>.liquidButton{display:block!important;width:100%!important;margin:0!important;padding:0!important}
 .workspaceRoot .sidebarFooter>.liquidButton button{
   display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;
@@ -203,7 +203,7 @@
 }
 .workspaceRoot .workspaceContext{display:grid!important;gap:2px!important;min-width:165px!important;max-width:230px!important}
 .workspaceRoot .workspaceContext strong{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#1f3b31!important;font-size:12px!important;font-weight:800!important}
-.workspaceRoot .workspaceContext span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#9996b6!important;font-size:9px!important}
+.workspaceRoot .workspaceContext span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#9996b6!important;font-size:11px!important}
 .workspaceRoot .workspaceGlobalSearch{
   display:flex!important;align-items:center!important;gap:9px!important;
   width:min(390px,36vw)!important;min-width:120px!important;min-height:41px!important;
@@ -220,7 +220,7 @@
 .workspaceRoot .workspaceGlobalSearch input::placeholder{color:#a3a0bd!important;opacity:1!important}
 .workspaceRoot .workspaceGlobalSearch kbd{
   flex:0 0 auto!important;padding:3px 6px!important;border:1px solid #e9e7f7!important;
-  border-radius:6px!important;background:#eef7f2!important;color:#9692b5!important;font-size:9px!important;
+  border-radius:6px!important;background:#eef7f2!important;color:#9692b5!important;font-size:11px!important;
 }
 .workspaceRoot .workspaceHeaderIcon,
 .workspaceRoot .workspaceHeaderBar .themeModeSwitch{
@@ -240,7 +240,7 @@
 .workspaceRoot .workspaceHeaderBadge{
   top:1px!important;right:0!important;min-width:15px!important;height:15px!important;
   padding:0 3px!important;border:2px solid #faf9ff!important;border-radius:9px!important;
-  background:#e7779b!important;font-size:8px!important;
+  background:#e7779b!important;font-size:11px!important;
 }
 .workspaceRoot .workspaceHeaderProfile{
   display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;padding:3px 0 3px 5px!important;
@@ -249,12 +249,12 @@
 .workspaceRoot .workspaceHeaderAvatar{
   display:grid!important;place-items:center!important;width:36px!important;height:36px!important;flex:0 0 36px!important;
   border:2px solid rgba(255,255,255,.94)!important;border-radius:50%!important;
-  background:linear-gradient(145deg,#b7aafa,#776be2)!important;color:#fff!important;font-size:10px!important;font-weight:850!important;
+  background:linear-gradient(145deg,#b7aafa,#776be2)!important;color:#fff!important;font-size:11px!important;font-weight:850!important;
   box-shadow:0 3px 10px rgba(15,118,86,.16)!important;
 }
 .workspaceRoot .workspaceHeaderProfileText{display:grid!important;gap:1px!important;min-width:0!important}
-.workspaceRoot .workspaceHeaderProfileText b{max-width:130px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#413b78!important;font-size:10px!important}
-.workspaceRoot .workspaceHeaderProfileText small{font-size:9px!important;color:#7f8f88!important}
+.workspaceRoot .workspaceHeaderProfileText b{max-width:130px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#413b78!important;font-size:11px!important}
+.workspaceRoot .workspaceHeaderProfileText small{font-size:11px!important;color:#7f8f88!important}
 .workspaceRoot .mobileMenuButton{
   display:none!important;place-items:center!important;width:37px!important;height:37px!important;flex:0 0 37px!important;
   border:1px solid rgba(15,118,86,.2)!important;border-radius:11px!important;background:rgba(255,255,255,.78)!important;color:#746cb0!important;
@@ -311,7 +311,7 @@
 .workspaceRoot .moduleEnter :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.cpButton.primary,.oppeBtn.primary,.oppeButton.primary,.sdBtn.primary,.stBtn.primary):hover{filter:brightness(1.04)!important;transform:translateY(-1px)!important}
 .workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){
   padding:10px 11px!important;background:#eef7f2!important;color:#68638f!important;
-  border-color:rgba(15,118,86,.16)!important;font-size:10px!important;font-weight:800!important;
+  border-color:rgba(15,118,86,.16)!important;font-size:11px!important;font-weight:800!important;
 }
 .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){
   padding:10px 11px!important;background:rgba(255,255,255,.68)!important;color:#4c4a70!important;
@@ -319,7 +319,7 @@
 }
 .workspaceRoot .moduleEnter :is(.aqTable,.psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap){overflow:hidden!important;border-radius:13px!important}
 .workspaceRoot .moduleEnter :is(.aqStatus,.rmBadge,.psBadge,.cpBadge,.oppeBadge){
-  border-radius:20px!important;font-size:9px!important;font-weight:800!important;
+  border-radius:20px!important;font-size:11px!important;font-weight:800!important;
 }
 .workspaceRoot .moduleEnter :is(.aqNotice,.psAlert,.rmNotice,.cpNotice,.oppeNotice,.sdNotice,.stNotice){
   padding:11px 13px!important;border-radius:11px!important;font-size:11px!important;
@@ -334,12 +334,12 @@
   box-shadow:0 12px 26px rgba(15,118,86,.18)!important;color:#fff!important;
 }
 .workspaceRoot .moduleEnter .ovHero :is(h3,p,.ovEyebrow){color:#fff!important}
-.workspaceRoot .moduleEnter .ovHero .ovEyebrow{font-size:9px!important;letter-spacing:.14em!important;opacity:.82!important}
+.workspaceRoot .moduleEnter .ovHero .ovEyebrow{font-size:11px!important;letter-spacing:.14em!important;opacity:.82!important}
 .workspaceRoot .moduleEnter .ovHero h3{margin:5px 0 4px!important;font-size:23px!important;font-weight:820!important;line-height:1.2!important}
 .workspaceRoot .moduleEnter .ovHero p{max-width:760px!important;margin:0!important;font-size:11px!important;line-height:1.5!important;opacity:.88!important}
 .workspaceRoot .moduleEnter .ovRefresh{
   min-height:37px!important;padding:8px 13px!important;border:1px solid rgba(255,255,255,.4)!important;border-radius:10px!important;
-  background:rgba(255,255,255,.18)!important;color:#fff!important;box-shadow:none!important;font-size:10px!important;font-weight:750!important;
+  background:rgba(255,255,255,.18)!important;color:#fff!important;box-shadow:none!important;font-size:11px!important;font-weight:750!important;
   backdrop-filter:blur(8px)!important;
 }
 .workspaceRoot .moduleEnter .ovRefresh:hover{background:rgba(255,255,255,.28)!important}
@@ -349,11 +349,11 @@
   background:rgba(255,255,255,.67)!important;box-shadow:0 4px 13px rgba(15,118,86,.045)!important;
 }
 .workspaceRoot .moduleEnter .ovContextBar>div{display:grid!important;gap:3px!important;min-width:0!important}
-.workspaceRoot .moduleEnter .ovContextBar span{color:#aaa6c5!important;font-size:8px!important;font-weight:850!important;letter-spacing:.11em!important}
-.workspaceRoot .moduleEnter .ovContextBar b{color:#625e8e!important;font-size:10px!important;font-weight:800!important;overflow-wrap:anywhere!important}
+.workspaceRoot .moduleEnter .ovContextBar span{color:#aaa6c5!important;font-size:11px!important;font-weight:850!important;letter-spacing:.11em!important}
+.workspaceRoot .moduleEnter .ovContextBar b{color:#625e8e!important;font-size:11px!important;font-weight:800!important;overflow-wrap:anywhere!important}
 .workspaceRoot .moduleEnter .ovContextStatus b.ok{color:#269b7d!important}
 .workspaceRoot .moduleEnter .ovContextStatus b.error{color:#d46c82!important}
-.workspaceRoot .moduleEnter .ovScopeNote{margin:0!important;padding:0 2px!important;color:#8582a5!important;font-size:9px!important;line-height:1.45!important}
+.workspaceRoot .moduleEnter .ovScopeNote{margin:0!important;padding:0 2px!important;color:#8582a5!important;font-size:11px!important;line-height:1.45!important}
 .workspaceRoot .moduleEnter .ovDashboardTabs{
   display:flex!important;align-items:center!important;gap:6px!important;width:max-content!important;max-width:100%!important;
   padding:5px!important;border:1px solid rgba(255,255,255,.86)!important;border-radius:13px!important;
@@ -372,8 +372,8 @@
   background:#eef7f2!important;color:#7467df!important;font-size:15px!important;
 }
 .workspaceRoot .moduleEnter .ovDashboardTabs>button span:last-child{display:grid!important;gap:1px!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs b{font-size:10px!important;font-weight:800!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:8px!important;color:#aaa6c2!important}
+.workspaceRoot .moduleEnter .ovDashboardTabs b{font-size:11px!important;font-weight:800!important}
+.workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:11px!important;color:#aaa6c2!important}
 .workspaceRoot .moduleEnter .ovKpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important}
 .workspaceRoot .moduleEnter .ovKpi{
   position:relative!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
@@ -395,9 +395,9 @@
 .workspaceRoot .moduleEnter .ovKpi:nth-child(4):before{background:linear-gradient(180deg,#f0cf88,#dca64b)!important}
 .workspaceRoot .moduleEnter .ovKpi.warn:before{background:linear-gradient(180deg,#efcf83,#dba34d)!important}
 .workspaceRoot .moduleEnter .ovKpi.danger:before{background:linear-gradient(180deg,#ef9faf,#d9637e)!important}
-.workspaceRoot .moduleEnter .ovKpiLabel{position:relative;z-index:1;color:#8884a8!important;font-size:10px!important;font-weight:750!important}
+.workspaceRoot .moduleEnter .ovKpiLabel{position:relative;z-index:1;color:#8884a8!important;font-size:11px!important;font-weight:750!important}
 .workspaceRoot .moduleEnter .ovKpi b{position:relative;z-index:1;color:#1c3329!important;font-size:29px!important;font-weight:850!important;line-height:1.05!important;letter-spacing:-.045em!important}
-.workspaceRoot .moduleEnter .ovKpi small{position:relative;z-index:1;color:#a09dbc!important;font-size:9px!important;line-height:1.3!important}
+.workspaceRoot .moduleEnter .ovKpi small{position:relative;z-index:1;color:#a09dbc!important;font-size:11px!important;line-height:1.3!important}
 .workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;
 }
@@ -408,10 +408,10 @@
 }
 .workspaceRoot .moduleEnter .ovPanelHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin-bottom:14px!important}
 .workspaceRoot .moduleEnter .ovPanelHead h4{margin:3px 0 0!important;color:#393466!important;font-size:14px!important;font-weight:820!important;line-height:1.25!important}
-.workspaceRoot .moduleEnter .ovPanelHead .ovEyebrow{color:#aaa6c4!important;font-size:8px!important;font-weight:850!important;letter-spacing:.12em!important}
-.workspaceRoot .moduleEnter .ovLink{padding:5px 2px!important;border:0!important;background:transparent!important;color:#7165d2!important;font-size:9px!important;font-weight:800!important}
+.workspaceRoot .moduleEnter .ovPanelHead .ovEyebrow{color:#aaa6c4!important;font-size:11px!important;font-weight:850!important;letter-spacing:.12em!important}
+.workspaceRoot .moduleEnter .ovLink{padding:5px 2px!important;border:0!important;background:transparent!important;color:#7165d2!important;font-size:11px!important;font-weight:800!important}
 .workspaceRoot .moduleEnter .ovBars{display:grid!important;gap:10px!important}
-.workspaceRoot .moduleEnter .ovBarRow{display:grid!important;grid-template-columns:minmax(94px,1fr) minmax(60px,2fr) 30px!important;align-items:center!important;gap:9px!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovBarRow{display:grid!important;grid-template-columns:minmax(94px,1fr) minmax(60px,2fr) 30px!important;align-items:center!important;gap:9px!important;font-size:11px!important}
 .workspaceRoot .moduleEnter .ovBarTrack,.workspaceRoot .moduleEnter .ovColumnTrack{
   overflow:hidden!important;border-radius:20px!important;background:#eef7f2!important;
 }
@@ -422,14 +422,14 @@
 .workspaceRoot .moduleEnter .ovBarFill.lvl-low{background:linear-gradient(90deg,#89c7e9,#5b98dc)!important}
 .workspaceRoot .moduleEnter .ovBarFill.lvl-very-low{background:linear-gradient(90deg,#8ed6c0,#42a98b)!important}
 .workspaceRoot .moduleEnter .ovBarFill.lvl-very-high{background:linear-gradient(90deg,#ea7f9a,#c94e72)!important}
-.workspaceRoot .moduleEnter .ovUnitName{color:#6c688f!important;font-size:9px!important}
+.workspaceRoot .moduleEnter .ovUnitName{color:#6c688f!important;font-size:11px!important}
 .workspaceRoot .moduleEnter .ovMatrix{gap:4px!important}
-.workspaceRoot .moduleEnter .ovCell{min-height:36px!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:7px!important;color:#46416f!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovCell{min-height:36px!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:7px!important;color:#46416f!important;font-size:11px!important}
 .workspaceRoot .moduleEnter .ovColumns{min-height:150px!important;padding-top:8px!important}
 .workspaceRoot .moduleEnter .ovColumnTrack{width:23px!important;background:#eef7f2!important}
 .workspaceRoot .moduleEnter .ovColumnFill{border-radius:7px 7px 2px 2px!important;background:linear-gradient(180deg,#ad9cf5,#7064df)!important}
-.workspaceRoot .moduleEnter .ovColumnLabel{color:#7f8f88!important;font-size:8px!important}
-.workspaceRoot .moduleEnter .ovColumnValue{color:#6b65a1!important;font-size:9px!important}
+.workspaceRoot .moduleEnter .ovColumnLabel{color:#7f8f88!important;font-size:11px!important}
+.workspaceRoot .moduleEnter .ovColumnValue{color:#6b65a1!important;font-size:11px!important}
 .workspaceRoot .moduleEnter .ovList{display:grid!important;gap:3px!important;padding:0!important;margin:0!important;list-style:none!important}
 .workspaceRoot .moduleEnter .ovList li button{
   display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:57px!important;padding:9px 7px!important;
@@ -437,33 +437,33 @@
 }
 .workspaceRoot .moduleEnter .ovScore{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;flex:0 0 34px!important;border-radius:11px!important;background:#eef7f2!important;color:#6559ce!important;font-size:12px!important}
 .workspaceRoot .moduleEnter .ovListText{display:grid!important;gap:3px!important;min-width:0!important;flex:1!important}
-.workspaceRoot .moduleEnter .ovListText b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#494570!important;font-size:10px!important}
-.workspaceRoot .moduleEnter .ovListText small{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#a09db8!important;font-size:8px!important}
-.workspaceRoot .moduleEnter .ovStatus{color:#7e79a2!important;font-size:9px!important}
-.workspaceRoot .moduleEnter .ovEmpty{display:grid!important;gap:4px!important;padding:17px!important;border:1px dashed rgba(15,118,86,.3)!important;border-radius:12px!important;background:rgba(244,242,255,.45)!important;color:#77739c!important;font-size:10px!important}
+.workspaceRoot .moduleEnter .ovListText b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#494570!important;font-size:11px!important}
+.workspaceRoot .moduleEnter .ovListText small{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#a09db8!important;font-size:11px!important}
+.workspaceRoot .moduleEnter .ovStatus{color:#7e79a2!important;font-size:11px!important}
+.workspaceRoot .moduleEnter .ovEmpty{display:grid!important;gap:4px!important;padding:17px!important;border:1px dashed rgba(15,118,86,.3)!important;border-radius:12px!important;background:rgba(244,242,255,.45)!important;color:#77739c!important;font-size:11px!important}
 .workspaceRoot .moduleEnter .ovEmpty b{color:#5a548b!important;font-size:11px!important}
-.workspaceRoot .moduleEnter .ovNotice{padding:12px 14px!important;border:1px solid rgba(227,181,101,.35)!important;border-radius:11px!important;background:rgba(255,247,229,.8)!important;color:#95702b!important;font-size:10px!important}
-.workspaceRoot .moduleEnter .ovFoot{margin:0!important;padding:0 2px!important;color:#a09db9!important;font-size:9px!important;line-height:1.5!important}
+.workspaceRoot .moduleEnter .ovNotice{padding:12px 14px!important;border:1px solid rgba(227,181,101,.35)!important;border-radius:11px!important;background:rgba(255,247,229,.8)!important;color:#95702b!important;font-size:11px!important}
+.workspaceRoot .moduleEnter .ovFoot{margin:0!important;padding:0 2px!important;color:#a09db9!important;font-size:11px!important;line-height:1.5!important}
 .workspaceRoot .moduleEnter .ovExecutive{display:grid!important;gap:14px!important}
 .workspaceRoot .moduleEnter .ovExecutiveAlerts{display:grid!important;gap:9px!important}
 .workspaceRoot .moduleEnter .ovExecutiveAlert{
   display:grid!important;gap:3px!important;width:100%!important;padding:13px!important;
   border:1px solid transparent!important;border-radius:12px!important;background:#fff!important;color:#4b4774!important;text-align:left!important;box-shadow:none!important;
 }
-.workspaceRoot .moduleEnter .ovExecutiveAlert b{font-size:10px!important;font-weight:820!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert span{font-size:9px!important;line-height:1.45!important;color:#8b88a7!important}
+.workspaceRoot .moduleEnter .ovExecutiveAlert b{font-size:11px!important;font-weight:820!important}
+.workspaceRoot .moduleEnter .ovExecutiveAlert span{font-size:11px!important;line-height:1.45!important;color:#8b88a7!important}
 .workspaceRoot .moduleEnter .ovExecutiveAlert.danger{background:linear-gradient(120deg,#fff2f5,#fff)!important;border-color:#f4d7e0!important;color:#c75e79!important}
 .workspaceRoot .moduleEnter .ovExecutiveAlert.warning{background:linear-gradient(120deg,#fff8e9,#fff)!important;border-color:#f4e4c4!important;color:#b18132!important}
 .workspaceRoot .moduleEnter .ovExecutiveAlert.success{background:linear-gradient(120deg,#edf9f4,#fff)!important;border-color:#d7eee4!important;color:#39957c!important}
 .workspaceRoot .moduleEnter .ovExecPerformance{display:grid!important;gap:8px!important}
 .workspaceRoot .moduleEnter .ovExecHeadline{display:grid!important;gap:4px!important;padding:14px!important;border-radius:12px!important;background:linear-gradient(120deg,#eef7f2,#eef7f2)!important}
 .workspaceRoot .moduleEnter .ovExecHeadline strong{font-size:27px!important;color:#6b5fda!important;line-height:1.05!important}
-.workspaceRoot .moduleEnter .ovExecHeadline span{font-size:9px!important;color:#8985aa!important;line-height:1.45!important}
+.workspaceRoot .moduleEnter .ovExecHeadline span{font-size:11px!important;color:#8985aa!important;line-height:1.45!important}
 .workspaceRoot .moduleEnter .ovExecMetric,.workspaceRoot .moduleEnter .ovExecRtp>div{
   display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;
   padding:9px 2px!important;border-bottom:1px solid rgba(15,118,86,.14)!important;
 }
-.workspaceRoot .moduleEnter .ovExecMetric span,.workspaceRoot .moduleEnter .ovExecRtp span{font-size:9px!important;color:#9290ad!important}
+.workspaceRoot .moduleEnter .ovExecMetric span,.workspaceRoot .moduleEnter .ovExecRtp span{font-size:11px!important;color:#9290ad!important}
 .workspaceRoot .moduleEnter .ovExecMetric b,.workspaceRoot .moduleEnter .ovExecRtp b{font-size:11px!important;color:#4c4777!important}
 .workspaceRoot .moduleEnter .ovExecRtp{display:grid!important;gap:3px!important}
 .workspaceRoot .moduleEnter .ovSkeletonBlock{border-radius:12px!important;background:linear-gradient(90deg,#eef7f2,#fff,#eef7f2)!important}
@@ -530,7 +530,7 @@
   .workspaceRoot .mobileMenuButton{display:grid!important;place-items:center!important}
   .workspaceRoot .workspaceContext{display:none!important}
   .workspaceRoot .workspaceGlobalSearch{width:auto!important;flex:1 1 auto!important;max-width:none!important;min-width:65px!important;min-height:35px!important;padding:0 8px!important}
-  .workspaceRoot .workspaceGlobalSearch input{font-size:10px!important}
+  .workspaceRoot .workspaceGlobalSearch input{font-size:11px!important}
   .workspaceRoot .workspaceHeaderIcon,.workspaceRoot .workspaceHeaderBar .themeModeSwitch{width:30px!important;height:30px!important;flex-basis:30px!important}
   .workspaceRoot .workspaceHeaderProfile{display:none!important}
   .workspaceRoot .moduleEnter .ovHero{align-items:flex-start!important;flex-direction:column!important;gap:11px!important;padding:17px!important}
@@ -541,7 +541,7 @@
   .workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{grid-template-columns:1fr!important;gap:10px!important}
   .workspaceRoot .moduleEnter .ovDashboardTabs{width:100%!important}
   .workspaceRoot .moduleEnter .ovDashboardTabs>button{flex:1 1 0!important;padding:6px 8px!important}
-  .workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:8px!important}
+  .workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:11px!important}
   .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:10px!important}
   .workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){display:flex!important;overflow-x:auto!important;flex-wrap:nowrap!important}
   .workspaceRoot .moduleEnter :is(.aqTable,.psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap){max-width:100%!important;overflow-x:auto!important}
@@ -614,7 +614,7 @@ html[data-theme="amoled"] .workspaceRoot .workspaceSupportPanel{background:rgba(
 .workspaceRoot .moduleEnter .ovHeroDate{
   display:inline-flex!important;align-items:center!important;min-height:35px!important;padding:7px 11px!important;
   border:1px solid rgba(255,255,255,.28)!important;border-radius:10px!important;background:rgba(255,255,255,.13)!important;
-  color:rgba(255,255,255,.9)!important;font-size:9px!important;font-weight:700!important;white-space:nowrap!important;
+  color:rgba(255,255,255,.9)!important;font-size:11px!important;font-weight:700!important;white-space:nowrap!important;
 }
 .workspaceRoot .moduleEnter .ovKpiHeader{position:relative!important;z-index:1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important}
 .workspaceRoot .moduleEnter .ovKpiIcon{
@@ -629,7 +629,7 @@ html[data-theme="amoled"] .workspaceRoot .workspaceSupportPanel{background:rgba(
 .workspaceRoot .moduleEnter .ovPanel:hover{box-shadow:var(--md-shadow-hover)!important}
 @media(max-width:760px){
   .workspaceRoot .moduleEnter .ovHeroMeta{width:100%!important;justify-content:space-between!important}
-  .workspaceRoot .moduleEnter .ovHeroDate{font-size:8px!important}
+  .workspaceRoot .moduleEnter .ovHeroDate{font-size:11px!important}
   .workspaceRoot .moduleEnter .ovKpiIcon{width:27px!important;height:27px!important;flex-basis:27px!important}
   .workspaceRoot .moduleEnter .ovKpiIcon svg{width:15px!important;height:15px!important}
 }

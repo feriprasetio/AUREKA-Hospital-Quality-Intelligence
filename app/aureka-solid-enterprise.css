@@ -116,7 +116,7 @@ body:has(.workspaceRoot) {
 
 .workspaceRoot .sideBrand small {
   color: var(--aureka-muted) !important;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: .015em;
 }
 
@@ -143,7 +143,7 @@ body:has(.workspaceRoot) {
 .workspaceRoot .navLabel {
   margin: 19px 14px 8px !important;
   color: #87978f !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   letter-spacing: .095em !important;
   text-transform: uppercase;
@@ -356,7 +356,7 @@ body:has(.workspaceRoot) {
 
 .workspaceRoot .workspaceHeaderProfileText small {
   color: var(--aureka-muted) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 
 /* Main content rhythm and module typography */
@@ -442,7 +442,7 @@ body:has(.workspaceRoot) {
 
 .workspaceRoot .moduleEnter .ovEyebrow {
   color: var(--aureka-green) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   letter-spacing: .09em !important;
 }
@@ -800,7 +800,7 @@ body:has(.workspaceRoot) {
   color: #52665c !important;
   background: #f5f8f6 !important;
   border-color: var(--aureka-line) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   letter-spacing: .045em;
   text-transform: uppercase;
@@ -1011,7 +1011,7 @@ body:has(.workspaceRoot) {
     font-size: 11px !important;
   }
   .workspaceRoot .workspaceContext span {
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
   .workspaceRoot .workspaceGlobalSearch {
     min-width: 0;
@@ -1084,7 +1084,7 @@ body:has(.workspaceRoot) {
   -webkit-backdrop-filter:none!important;
 }
 .publicRoot .brand b {color:var(--aureka-ink)!important;font-size:15px;font-weight:800!important;letter-spacing:.025em}
-.publicRoot .brand small {color:var(--aureka-muted)!important;font-size:10px}
+.publicRoot .brand small {color:var(--aureka-muted)!important;font-size:11px}
 .publicRoot .landingGhost {
   min-height:38px;padding:0 14px!important;color:#40584d!important;background:#fff!important;
   border:1px solid var(--aureka-line-strong)!important;border-radius:8px!important;
@@ -1108,7 +1108,7 @@ body:has(.workspaceRoot) {
 .publicRoot .landingBadge {
   display:inline-flex;align-items:center;gap:8px;color:#0d6848!important;
   background:var(--aureka-green-soft)!important;border:1px solid #d8eade!important;
-  border-radius:999px!important;box-shadow:none!important;font-size:10px!important;font-weight:750!important;
+  border-radius:999px!important;box-shadow:none!important;font-size:11px!important;font-weight:750!important;
 }
 .publicRoot .landingPulse {background:var(--aureka-green)!important;box-shadow:none!important}
 .publicRoot .landingModules {gap:12px!important}
@@ -1124,7 +1124,7 @@ body:has(.workspaceRoot) {
 }
 .publicRoot .quickDockIcon {color:var(--aureka-green)!important;background:var(--aureka-green-soft)!important;border:1px solid #e0eee5!important;border-radius:10px!important;box-shadow:none!important}
 .publicRoot .landingModuleText b {color:var(--aureka-ink)!important;font-size:13px!important;font-weight:750!important}
-.publicRoot .landingModuleText small {color:var(--aureka-muted)!important;font-size:10px!important}
+.publicRoot .landingModuleText small {color:var(--aureka-muted)!important;font-size:11px!important}
 .publicRoot .landingModuleArrow {color:#71847a!important}
 .publicRoot .overviewOverlay {background:rgba(17,33,25,.43)!important;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 .publicRoot :is(.overviewModal,.landingModal,.publicMetricsPanel) {
@@ -1139,11 +1139,11 @@ body:has(.workspaceRoot) {
 .publicRoot .landingClose:hover {color:var(--aureka-green)!important;background:#f5f9f6!important}
 .publicRoot .publicMetricsPanel {padding:18px!important;box-shadow:none!important}
 .publicRoot .publicMetricsHeading h3 {color:var(--aureka-ink)!important;font-size:17px!important;font-weight:750!important}
-.publicRoot .publicMetricKicker {color:var(--aureka-green)!important;font-size:9px!important;font-weight:850!important;letter-spacing:.095em!important}
-.publicRoot .publicAggregatePill {color:#0d6848!important;background:var(--aureka-green-soft)!important;border:1px solid #d8eade!important;border-radius:999px!important;font-size:10px!important;font-weight:700!important}
+.publicRoot .publicMetricKicker {color:var(--aureka-green)!important;font-size:11px!important;font-weight:850!important;letter-spacing:.095em!important}
+.publicRoot .publicAggregatePill {color:#0d6848!important;background:var(--aureka-green-soft)!important;border:1px solid #d8eade!important;border-radius:999px!important;font-size:11px!important;font-weight:700!important}
 .publicRoot .publicMonthlyChart {display:grid;align-items:end;gap:10px}
 .publicRoot .publicMonthlyPoint {min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px}
-.publicRoot :is(.publicChartValue,.publicChartLabel) {color:var(--aureka-muted)!important;font-size:10px!important}
+.publicRoot :is(.publicChartValue,.publicChartLabel) {color:var(--aureka-muted)!important;font-size:11px!important}
 .publicRoot .publicChartTrack {width:min(100%,34px);height:138px;display:flex;align-items:flex-end;overflow:hidden;background:#edf3ef!important;border:1px solid #e4ece7!important;border-radius:999px!important}
 .publicRoot .publicChartBar {width:100%;min-height:0;background:var(--aureka-green)!important;border-radius:999px!important}
 .publicRoot .publicCategoryChart {display:grid;gap:12px}
@@ -1151,13 +1151,13 @@ body:has(.workspaceRoot) {
 .publicRoot :is(.publicCategoryLabel,.publicCategoryPoint b) {color:var(--aureka-ink-2)!important;font-size:11px!important}
 .publicRoot .publicCategoryTrack {height:9px;overflow:hidden;background:#edf3ef!important;border-radius:999px!important}
 .publicRoot .publicCategoryBar {height:100%;background:var(--aureka-green)!important;border-radius:999px!important}
-.publicRoot .publicMetricsPrivacy {color:var(--aureka-muted)!important;background:#f8faf9!important;border:1px solid var(--aureka-line)!important;border-radius:8px!important;font-size:10px!important;line-height:1.55}
-.publicRoot .publicMetricsUpdated {color:#75857d!important;font-size:10px!important}
-.publicRoot .landingModalFoot {color:var(--aureka-muted)!important;border-top:1px solid var(--aureka-line)!important;font-size:10px!important;line-height:1.5}
+.publicRoot .publicMetricsPrivacy {color:var(--aureka-muted)!important;background:#f8faf9!important;border:1px solid var(--aureka-line)!important;border-radius:8px!important;font-size:11px!important;line-height:1.55}
+.publicRoot .publicMetricsUpdated {color:#75857d!important;font-size:11px!important}
+.publicRoot .landingModalFoot {color:var(--aureka-muted)!important;border-top:1px solid var(--aureka-line)!important;font-size:11px!important;line-height:1.5}
 @media(max-width:720px) {
   .publicRoot .landingTopbar {min-height:62px;padding:0 12px!important;gap:8px}
   .publicRoot .landingTopActions {gap:7px!important}
-  .publicRoot .landingGhost,.publicRoot .landingCta {min-height:34px;padding:0 9px!important;font-size:10px!important}
+  .publicRoot .landingGhost,.publicRoot .landingCta {min-height:34px;padding:0 9px!important;font-size:11px!important}
   .publicRoot .landingHero {padding:28px 16px!important}
   .publicRoot .heroCopy h1 {font-size:clamp(28px,8vw,42px)!important}
   .publicRoot .heroCopy p {font-size:12px!important}

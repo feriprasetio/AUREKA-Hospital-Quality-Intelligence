@@ -20,7 +20,7 @@ const ISSUER_LABEL:Record<Issuer,string>={DEWAN_PENGAWAS:'Dewan Pengawas',DIREKT
 const LEVEL_LABEL:Record<Level,string>={DEWAN_PENGAWAS:'Dewan Pengawas',DIREKTUR:'Direktur',KABID:'Kepala Bidang',UNIT:'Unit'}
 const STATUS_LABEL:Record<string,string>={terbuka:'Terbuka',berjalan:'Berjalan',selesai:'Selesai · menunggu verifikasi',terverifikasi:'Terverifikasi efektif',dibatalkan:'Dibatalkan'}
 const SOURCE_LABEL:Record<string,string>={ketua_pmkp:'Pembahasan internal PMKP',audit:'Hasil audit',risiko:'Manajemen risiko',insiden:'Insiden keselamatan pasien',program:'Program kerja',lainnya:'Lainnya'}
-const fmtDate=(v?:string|null)=>(v?new Date(v.length===10?v+'T12:00:00':v).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'—')
+const fmtDate=(v?:string|null)=>(v?new Date(v.length===10?v+'T12:00:00':v).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'-')
 const overdue=(a:Action)=>Boolean(a.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(a.status)&&new Date(a.due_date+'T23:59:59')<new Date())
 const suggestMethod=(text:string):Method=>/\b(pasien|klinis|clinical|indikator|mutu|outcome|insiden|keselamatan|infeksi|jatuh|mortalitas|stroke|sepsis|hand hygiene|kepatuhan|angka|rate|readmission)\b/i.test(text)?'PDSA':/\b(sop|kebijakan|administrasi|alur|prosedur|dokumentasi|jadwal|formulir|standarisasi|standar proses)\b/i.test(text)?'PDCA':'PDSA'
 
@@ -77,7 +77,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
       <td>{LEVEL_LABEL[a.responsible_level]}{a.assigned_to_name&&<small className="rmCellSmall">{a.assigned_to_name}</small>}{a.room_name&&<small className="rmCellSmall">{a.room_name}</small>}</td>
       <td>{fmtDate(a.due_date)}{overdue(a)&&<small className="rmCellSmall govOverdue">Lewat tenggat</small>}</td>
       <td><span className={'govStatus '+a.status}>{STATUS_LABEL[a.status]||a.status}</span></td>
-      <td>{a.last_evaluation?<><b>{a.last_evaluation.result.replace('_',' ')}</b><small className="rmCellSmall">{a.last_evaluation.decision} · {fmtDate(a.last_evaluation.evaluated_at)}</small></>:'—'}</td>
+      <td>{a.last_evaluation?<><b>{a.last_evaluation.result.replace('_',' ')}</b><small className="rmCellSmall">{a.last_evaluation.decision} · {fmtDate(a.last_evaluation.evaluated_at)}</small></>:'-'}</td>
       <td><div className="rmActions">
         {canUpdateProgress(a)&&!['terverifikasi','dibatalkan'].includes(a.status)&&<button type="button" className="rmIconButton" onClick={()=>setProgress({...a})}>Progres</button>}
         {canManage&&<button type="button" className="rmIconButton" onClick={()=>openAction({...a})}>Edit</button>}
@@ -145,7 +145,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
     <AurekaModal open={Boolean(actDraft)} title={actDraft?.id?'Edit rencana tindak lanjut':'Rencana tindak lanjut baru'} subtitle="Pilih metode berdasarkan karakter masalah, lalu lengkapi empat tahap siklus." closeDisabled={busy} onClose={()=>setActDraft(null)}
       footer={<><button type="button" className="akBtn akBtnGhost" onClick={()=>setActDraft(null)}>Batal</button><button type="button" className="akBtn akBtnPrimary" disabled={busy||!actDraft?.title||actDraft.title.trim().length<5||(!actDraft.id&&![actDraft.cycle_plan,actDraft.cycle_do,actDraft.cycle_study_check,actDraft.cycle_act].every(x=>String(x||'').trim().length>=5))} onClick={async()=>{if(await run(()=>aurekaSupabase.rpc('aureka_gov_save_action',{p:actDraft}),'Rencana tindak lanjut tersimpan.'))setActDraft(null)}}>{busy?'Menyimpan…':'Simpan RTL'}</button></>}>
       {actDraft&&<div className="govForm">
-        <label>Rekomendasi induk<select value={actDraft.recommendation_id||''} onChange={e=>{setMethodManuallySet(false);const rec=data?.recommendations.find(r=>r.id===e.target.value);setActDraft({...actDraft,recommendation_id:e.target.value||null,improvement_method:suggestMethod([rec?.title,rec?.description,actDraft.title,actDraft.description].filter(Boolean).join(' '))})}}><option value="">— Tanpa rekomendasi —</option>{(data?.recommendations??[]).map(r=><option key={r.id} value={r.id}>{r.code} · {r.title}</option>)}</select></label>
+        <label>Rekomendasi induk<select value={actDraft.recommendation_id||''} onChange={e=>{setMethodManuallySet(false);const rec=data?.recommendations.find(r=>r.id===e.target.value);setActDraft({...actDraft,recommendation_id:e.target.value||null,improvement_method:suggestMethod([rec?.title,rec?.description,actDraft.title,actDraft.description].filter(Boolean).join(' '))})}}><option value="">Tanpa rekomendasi</option>{(data?.recommendations??[]).map(r=><option key={r.id} value={r.id}>{r.code} · {r.title}</option>)}</select></label>
         <label>Rencana tindak lanjut<input value={actDraft.title||''} onChange={e=>setActDraft({...actDraft,title:e.target.value,...(!methodManuallySet?{improvement_method:suggestMethod([e.target.value,actDraft.description,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.title,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.description].filter(Boolean).join(' '))}:{})})} placeholder="Rumusan intervensi/perubahan yang akan dilakukan"/></label>
         <label>Uraian<textarea rows={3} value={actDraft.description||''} onChange={e=>setActDraft({...actDraft,description:e.target.value,...(!methodManuallySet?{improvement_method:suggestMethod([actDraft.title,e.target.value,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.title,data?.recommendations.find(r=>r.id===actDraft.recommendation_id)?.description].filter(Boolean).join(' '))}:{})})}/></label>
         <div className="govFormRow">
@@ -178,11 +178,11 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
       <div className="govForm"><div className="govFormRow"><label>Hasil<select value={evalForm.result} onChange={e=>setEvalForm({...evalForm,result:e.target.value})}><option value="efektif">Efektif</option><option value="sebagian">Efektif sebagian</option><option value="tidak_efektif">Tidak efektif</option></select></label><label>Keputusan<select value={evalForm.decision} onChange={e=>setEvalForm({...evalForm,decision:e.target.value})}><option value="ditutup">Ditutup</option><option value="dilanjutkan">Dilanjutkan</option></select></label></div><label>Dasar penilaian (bukti, data sebelum–sesudah)<textarea rows={4} value={evalForm.note} onChange={e=>setEvalForm({...evalForm,note:e.target.value})}/></label><label>Tautan bukti (opsional)<input value={evalForm.evidence_url} onChange={e=>setEvalForm({...evalForm,evidence_url:e.target.value})}/></label></div>
     </AurekaModal>
     <style jsx>{`
-      .govCycleDetails{margin-top:7px;font-size:10px;color:var(--muted,#65756c)}
+      .govCycleDetails{margin-top:7px;font-size:11px;color:var(--muted,#65756c)}
       .govCycleDetails summary{cursor:pointer;color:var(--accent,#26866a);font-weight:700}
       .govCycleDetails div{padding:8px 10px;margin-top:6px;border-radius:9px;background:var(--surface-soft,#f2f6f3);line-height:1.5}
       .govCycleDetails p{margin:2px 0 7px;white-space:pre-wrap}
-      .govMethodTag{display:inline-block;padding:4px 7px;border-radius:7px;background:var(--surface-soft,#eef5f1);font-size:10px;font-weight:800}
+      .govMethodTag{display:inline-block;padding:4px 7px;border-radius:7px;background:var(--surface-soft,#eef5f1);font-size:11px;font-weight:800}
       .govOrphanActions{margin-top:18px}
       .govOrphanActions h4{font-size:13px}
     `}</style>

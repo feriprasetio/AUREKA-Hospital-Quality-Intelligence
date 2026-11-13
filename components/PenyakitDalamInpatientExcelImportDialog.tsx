@@ -141,7 +141,7 @@ function formulaErrorCount(sheet: any): number {
 
 function maskName(value: string): string {
   const parts = value.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return '—'
+  if (!parts.length) return '-'
   return parts.length === 1
     ? parts[0].slice(0, 1) + '•••'
     : parts[0].slice(0, 1) + '••• ' + parts[parts.length - 1].slice(0, 1) + '•••'
@@ -724,7 +724,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
     <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqInternalMedicineImport" role="dialog" aria-modal="true" aria-labelledby="aqInternalMedicineImportTitle">
-      <style>{'.aqInternalMedicineImport .aqBody{display:grid;align-content:start;gap:12px}.aqInternalMedicineImport .imBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqInternalMedicineImport .imError{background:#fff1f0;color:#8b2822}.aqInternalMedicineImport .imWarn{background:#fff8e8;color:#795c26}.aqInternalMedicineImport .imSuccess{background:#ebf8ef;color:#1e6544}.aqInternalMedicineImport .imTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqInternalMedicineImport table{width:100%;border-collapse:collapse;font-size:10px}.aqInternalMedicineImport th,.aqInternalMedicineImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqInternalMedicineImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqInternalMedicineImport .imStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqInternalMedicineImport .imStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqInternalMedicineImport .imStat span{display:block;color:#65736b;font-size:9px}.aqInternalMedicineImport .imStat strong{display:block;font-size:17px;margin-top:4px}.aqInternalMedicineImport .imFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqInternalMedicineImport .imProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqInternalMedicineImport .imProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqInternalMedicineImport .imTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqInternalMedicineImport .imTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqInternalMedicineImport .imStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqInternalMedicineImport .imFooter{display:grid}}'}</style>
+      <style>{'.aqInternalMedicineImport .aqBody{display:grid;align-content:start;gap:12px}.aqInternalMedicineImport .imBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqInternalMedicineImport .imError{background:#fff1f0;color:#8b2822}.aqInternalMedicineImport .imWarn{background:#fff8e8;color:#795c26}.aqInternalMedicineImport .imSuccess{background:#ebf8ef;color:#1e6544}.aqInternalMedicineImport .imTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqInternalMedicineImport table{width:100%;border-collapse:collapse;font-size:11px}.aqInternalMedicineImport th,.aqInternalMedicineImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqInternalMedicineImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqInternalMedicineImport .imStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqInternalMedicineImport .imStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqInternalMedicineImport .imStat span{display:block;color:#65736b;font-size:11px}.aqInternalMedicineImport .imStat strong{display:block;font-size:17px;margin-top:4px}.aqInternalMedicineImport .imFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqInternalMedicineImport .imProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqInternalMedicineImport .imProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqInternalMedicineImport .imTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:11px;margin:1px}.aqInternalMedicineImport .imTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqInternalMedicineImport .imStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqInternalMedicineImport .imFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>
           <div className="eyebrow">AUDIT INDIKATOR MUTU · RAWAT INAP PENYAKIT DALAM</div>
@@ -779,8 +779,8 @@ export default function PenyakitDalamInpatientExcelImportDialog({
                 <td>{maskName(row.patientName)}</td>
                 <td>{row.admissionDate}</td>
                 <td>{row.dischargeDate ?? 'Rawat berjalan'}</td>
-                <td>{row.computedLos ?? '—'}</td>
-                <td>{row.patientCategory ?? '—'}</td>
+                <td>{row.computedLos ?? '-'}</td>
+                <td>{row.patientCategory ?? '-'}</td>
                 <td>{Object.keys(row.indicators).length}/18</td>
                 <td>{row.warnings.length ? <details><summary className="imTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="imTag">OK</span>}</td>
               </tr>)}</tbody>
@@ -789,7 +789,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
         </div>}
 
         {errors.length > 0 && <div className="imBox imError">
-          <strong>{errors.length} baris bermasalah — seluruh impor ditahan.</strong>
+          <strong>{errors.length} baris bermasalah, seluruh impor ditahan.</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {errors.slice(0, 50).map((error, index) => <li key={index}>{error}</li>)}
           </ul>

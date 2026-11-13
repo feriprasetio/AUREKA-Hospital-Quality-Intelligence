@@ -34,9 +34,9 @@ const PAGE = 50
 const BRIDGING_LABEL: Record<string, string> = {
   belum_terhubung: 'Belum terhubung', menunggu: 'Menunggu', terhubung: 'Terhubung', gagal: 'Gagal', konflik: 'Konflik data',
 }
-const fmt = (d: string | null) => d ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(d + 'T00:00:00')) : '—'
-const maskName = (v: string | null) => (v || '').split(/\s+/).filter(Boolean).map((p) => p[0] + '•••').join(' ') || '—'
-const maskNik = (v: string | null) => v ? v.slice(0, 4) + '••••••••' + v.slice(-4) : '—'
+const fmt = (d: string | null) => d ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(d + 'T00:00:00')) : '-'
+const maskName = (v: string | null) => (v || '').split(/\s+/).filter(Boolean).map((p) => p[0] + '•••').join(' ') || '-'
+const maskNik = (v: string | null) => v ? v.slice(0, 4) + '••••••••' + v.slice(-4) : '-'
 
 export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
   const [search, setSearch] = useState('')
@@ -107,7 +107,7 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
       <h4>Spesifikasi data &amp; bridging SIMRS</h4>
       <ul>
         <li><b>Kunci utama:</b> No. RM dinormalisasi ke 6 digit <code>XX-XX-XX</code> (nol depan dikembalikan; 36539 = 03-65-39). 7–12 digit disimpan angka saja.</li>
-        <li><b>Ditolak sebagai No. RM:</b> nilai berisi huruf atau berbentuk tanggal (mis. hasil salah format Excel) — tampil di daftar &ldquo;No. RM bermasalah&rdquo;.</li>
+        <li><b>Ditolak sebagai No. RM:</b> nilai berisi huruf atau berbentuk tanggal (mis. hasil salah format Excel), tampil di daftar &ldquo;No. RM bermasalah&rdquo;.</li>
         <li><b>Kolom dari AUREKA:</b> nama, kunjungan pertama/terakhir, jumlah episode, unit &amp; diagnosis terakhir.</li>
         <li><b>Kolom diisi SIMRS saat bridging:</b> NIK (16 digit), No. IHS SATUSEHAT, ID pasien SIMRS, tanggal lahir, jenis kelamin (L/P), alamat, telepon.</li>
         <li><b>Status bridging:</b> Belum terhubung → Menunggu → Terhubung / Gagal / Konflik data.</li>
@@ -148,11 +148,11 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
             {loading ? <tr><td colSpan={9}><div className="prEmpty">Memuat database pasien…</div></td></tr>
               : rows.length ? rows.map((r) => <tr key={r.no_rm}>
                 <td><b className="piRm">{r.no_rm}</b></td>
-                <td>{showIdentity ? r.nama_pasien || '—' : maskName(r.nama_pasien)}</td>
-                <td>{showIdentity ? r.nik || '—' : maskNik(r.nik)}</td>
+                <td>{showIdentity ? r.nama_pasien || '-' : maskName(r.nama_pasien)}</td>
+                <td>{showIdentity ? r.nik || '-' : maskNik(r.nik)}</td>
                 <td>{r.total_episode.toLocaleString('id-ID')}</td>
                 <td>{fmt(r.first_seen)}</td><td>{fmt(r.last_seen)}</td>
-                <td>{r.unit_terakhir || '—'}</td><td>{r.diagnosis_terakhir || '—'}</td>
+                <td>{r.unit_terakhir || '-'}</td><td>{r.diagnosis_terakhir || '-'}</td>
                 <td><span className={'piBridge ' + r.bridging_status}>{BRIDGING_LABEL[r.bridging_status] || r.bridging_status}</span></td>
               </tr>) : <tr><td colSpan={9}><div className="prEmpty">{query ? 'Tidak ada pasien yang cocok.' : 'Belum ada pasien di database.'}</div></td></tr>}
           </tbody>
@@ -175,7 +175,7 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
       .piPanel h3,.piPanel h4{margin:0 0 8px}.piPanel p{margin:6px 0;font-size:12.5px;line-height:1.55}
       .piSpec ul{margin:6px 0;padding-left:18px;font-size:12.5px;line-height:1.6}
       .piRm{font-variant-numeric:tabular-nums;letter-spacing:.02em}
-      .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:10.5px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}
+      .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}
       .piBridge.terhubung{background:#e3f4ea;color:#1f6b43}.piBridge.menunggu{background:#fff4e0;color:#8a5a12}
       .piBridge.gagal,.piBridge.konflik{background:#fde8e8;color:#9b2c2c}
       html[data-mode="gelap"] .piPanel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}

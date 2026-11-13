@@ -180,7 +180,7 @@ export default function StaffTeamWorkspace({
       <style>{`
         .staffTeam{display:grid;gap:14px;min-width:0}
         .stPanel{padding:18px 20px;border:1px solid rgba(255,255,255,.74);border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.26));box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(22px) saturate(150%)}
-        .stEyebrow{font-size:9px;letter-spacing:.15em;text-transform:uppercase;font-weight:900;color:var(--accent,#0f7656)}
+        .stEyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:900;color:var(--accent,#0f7656)}
         .stTitle{font-size:23px;letter-spacing:-.04em;font-weight:950;margin:5px 0;color:var(--text,#20372d)}
         .stDesc{font-size:11px;line-height:1.6;color:var(--muted,#64756b);max-width:820px;margin:0}
         .stHead{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap}
@@ -188,18 +188,18 @@ export default function StaffTeamWorkspace({
         .stBtn.primary{background:linear-gradient(135deg,var(--accent,#0f7656),var(--accent2,#084f3a));color:#fff;border-color:transparent}
         .stBtn:disabled{opacity:.55;cursor:wait}
         .stForm{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(260px,1.5fr) auto;gap:9px;margin-top:15px;align-items:end}
-        .stField{display:grid;gap:6px;color:var(--muted,#64756b);font-size:10px;font-weight:850}
+        .stField{display:grid;gap:6px;color:var(--muted,#64756b);font-size:11px;font-weight:850}
         .stField input,.stField select{width:100%;min-width:0;min-height:42px;border-radius:12px;border:1px solid rgba(35,63,50,.14);background:rgba(255,255,255,.76);padding:10px 12px;font-size:12px;color:var(--text,#20372d)}
         .stKpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}
         .stKpi{padding:12px;border:1px solid rgba(255,255,255,.74);background:rgba(255,255,255,.32);border-radius:15px}
-        .stKpi span{font-size:9px;font-weight:850;color:var(--muted,#64756b);display:block}.stKpi strong{font-size:22px;color:var(--text,#20372d);display:block;margin-top:3px}
+        .stKpi span{font-size:11px;font-weight:850;color:var(--muted,#64756b);display:block}.stKpi strong{font-size:22px;color:var(--text,#20372d);display:block;margin-top:3px}
         .stNotice{padding:10px 12px;border-radius:12px;background:rgba(15,118,86,.08);border:1px solid rgba(15,118,86,.14);font-size:11px;line-height:1.5;color:var(--text,#20372d);margin-top:10px}
         .stError{padding:10px 12px;border-radius:12px;background:#fff0ef;border:1px solid #f3c6c1;color:#97372e;font-size:11px;line-height:1.5;margin-top:10px}
         .stRows{display:grid;gap:9px}.stRow{display:grid;grid-template-columns:minmax(170px,1.2fr) minmax(150px,.75fr) minmax(190px,1.3fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid rgba(255,255,255,.82);border-radius:15px;background:rgba(255,255,255,.38)}
-        .stName{font-size:12px;font-weight:900;color:var(--text,#20372d)}.stSub{font-size:9px;line-height:1.45;color:var(--muted,#64756b);margin-top:3px}
-        .stCode{display:inline-flex;border-radius:9px;padding:5px 7px;background:rgba(15,118,86,.09);color:var(--accent2,#084f3a);font-size:9px;font-weight:950}
-        .stLock{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:900;border-radius:999px;padding:6px 8px;background:#dcf4e7;color:#16643e;white-space:nowrap}
-        .stRelease{border:1px solid #e2c9c6;background:#fff5f4;color:#8c3931;border-radius:9px;padding:7px 9px;font-size:9px;font-weight:900;cursor:pointer}
+        .stName{font-size:12px;font-weight:900;color:var(--text,#20372d)}.stSub{font-size:11px;line-height:1.45;color:var(--muted,#64756b);margin-top:3px}
+        .stCode{display:inline-flex;border-radius:9px;padding:5px 7px;background:rgba(15,118,86,.09);color:var(--accent2,#084f3a);font-size:11px;font-weight:950}
+        .stLock{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:900;border-radius:999px;padding:6px 8px;background:#dcf4e7;color:#16643e;white-space:nowrap}
+        .stRelease{border:1px solid #e2c9c6;background:#fff5f4;color:#8c3931;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:900;cursor:pointer}
         .stEmpty{padding:28px;text-align:center;color:var(--muted,#64756b);font-size:12px}
         @media(max-width:900px){.stForm{grid-template-columns:1fr 1fr}.stForm .stBtn{grid-column:1/-1}.stRow{grid-template-columns:1fr 1fr}.stRow > :last-child{justify-self:start}}
         @media(max-width:560px){.stPanel{padding:14px}.stForm{grid-template-columns:1fr}.stForm .stBtn{grid-column:auto}.stKpis{grid-template-columns:1fr}.stRow{grid-template-columns:1fr;gap:8px}.stTitle{font-size:21px}}
@@ -236,7 +236,7 @@ export default function StaffTeamWorkspace({
           <label className="stField"><span>Tenaga yang akan ditambahkan</span>
             <select value={selectedStaffId} onChange={(e) => setSelectedStaffId(e.target.value)} disabled={loading || busy || !roomId}>
               <option value="">Pilih tenaga dari direktori…</option>
-              {availableToChoose.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name} — {staff.employee_code} · {staff.profession_group}</option>)}
+              {availableToChoose.map((staff) => <option key={staff.id} value={staff.id}>{staff.display_name}, {staff.employee_code} · {staff.profession_group}</option>)}
             </select>
           </label>
           <button type="button" className="stBtn primary" onClick={() => void addStaff()} disabled={loading || busy || !roomId || !selectedStaffId}>{busy ? 'Memproses…' : '＋ Kunci ke tim'}</button>

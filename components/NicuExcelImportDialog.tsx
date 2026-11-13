@@ -187,7 +187,7 @@ function formulaValue(cell: any): unknown {
 
 function maskName(value: string): string {
   const parts = value.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return '—'
+  if (!parts.length) return '-'
   return parts.length === 1 ? parts[0].slice(0, 1) + '•••' : parts[0].slice(0, 1) + '••• ' + parts[parts.length - 1].slice(0, 1) + '•••'
 }
 
@@ -634,7 +634,7 @@ export default function NicuExcelImportDialog({
 
   return <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
     <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqNicuImport" role="dialog" aria-modal="true" aria-labelledby="aqNicuImportTitle">
-      <style>{'.aqNicuImport .aqBody{display:grid;align-content:start;gap:12px}.aqNicuImport .piBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqNicuImport .piError{background:#fff1f0;color:#8b2822}.aqNicuImport .piWarn{background:#fff8e8;color:#795c26}.aqNicuImport .piSuccess{background:#ebf8ef;color:#1e6544}.aqNicuImport .piTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqNicuImport table{width:100%;border-collapse:collapse;font-size:10px}.aqNicuImport th,.aqNicuImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqNicuImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqNicuImport .piStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqNicuImport .piStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqNicuImport .piStat span{display:block;color:#65736b;font-size:9px}.aqNicuImport .piStat strong{display:block;font-size:17px;margin-top:4px}.aqNicuImport .piFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqNicuImport .piProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqNicuImport .piProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqNicuImport .piTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:9px;margin:1px}.aqNicuImport .piTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqNicuImport .piStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqNicuImport .piFooter{display:grid}}'}</style>
+      <style>{'.aqNicuImport .aqBody{display:grid;align-content:start;gap:12px}.aqNicuImport .piBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:11px;line-height:1.55}.aqNicuImport .piError{background:#fff1f0;color:#8b2822}.aqNicuImport .piWarn{background:#fff8e8;color:#795c26}.aqNicuImport .piSuccess{background:#ebf8ef;color:#1e6544}.aqNicuImport .piTable{max-height:340px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqNicuImport table{width:100%;border-collapse:collapse;font-size:11px}.aqNicuImport th,.aqNicuImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;vertical-align:top}.aqNicuImport th{position:sticky;top:0;background:#f5f8f6;z-index:1}.aqNicuImport .piStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqNicuImport .piStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff;min-width:0}.aqNicuImport .piStat span{display:block;color:#65736b;font-size:11px}.aqNicuImport .piStat strong{display:block;font-size:17px;margin-top:4px}.aqNicuImport .piFooter{position:sticky;bottom:0;background:rgba(255,255,255,.96);padding:12px 0 0;border-top:1px solid #e2e8e4;display:flex;justify-content:space-between;gap:10px;align-items:center}.aqNicuImport .piProgress{height:7px;background:#e7ece9;border-radius:999px;overflow:hidden}.aqNicuImport .piProgress>span{display:block;height:100%;background:var(--accent);transition:width .2s}.aqNicuImport .piTag{display:inline-block;padding:3px 6px;border-radius:6px;background:#eef4f0;font-size:11px;margin:1px}.aqNicuImport .piTag.pending{background:#fff1d6;color:#805d16}@media(max-width:850px){.aqNicuImport .piStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqNicuImport .piFooter{display:grid}}'}</style>
       <div className="aqDHead">
         <div>
           <div className="eyebrow">AUDIT INDIKATOR MUTU · NICU & PEDIATRICS HIGH DEPENDENCY UNIT</div>
@@ -683,7 +683,7 @@ export default function NicuExcelImportDialog({
                   <td>{maskName(row.patientName)}</td>
                   <td>{row.admissionDate} – {row.dischargeDate ?? 'Belum pulang'}</td>
                   <td>{row.effectiveDate}</td>
-                  <td>{row.computedLos == null ? '—' : row.computedLos + ' hari'}</td>
+                  <td>{row.computedLos == null ? '-' : row.computedLos + ' hari'}</td>
                   <td>{Object.keys(row.indicators).length}/5</td>
                   <td>{row.warnings.length ? <details><summary className="piTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="piTag">OK</span>}</td>
                 </tr>)}
@@ -693,7 +693,7 @@ export default function NicuExcelImportDialog({
         </div>}
 
         {errors.length > 0 && <div className="piBox piError">
-          <strong>{errors.length} baris belum valid — impor ditahan.</strong>
+          <strong>{errors.length} baris belum valid, impor ditahan.</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {errors.slice(0, 40).map((error, index) => <li key={index}>{error}</li>)}
           </ul>

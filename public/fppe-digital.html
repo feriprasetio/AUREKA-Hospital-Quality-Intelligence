@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FPPE — RSUD Sultan Syarif Mohamad Alkadrie</title>
+<title>FPPE: RSUD Sultan Syarif Mohamad Alkadrie</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
 :root{--navy:#17324d;--blue:#246b9c;--border:#cfd8df;--text:#202a33;--muted:#657483;--light:#f5f8fa;--good:#18864b;--warn:#9a6800;--bad:#b22c2c}
@@ -191,7 +191,7 @@ tr:last-child td{border-bottom:0}
   @media(prefers-reduced-motion:no-preference){.card{animation:fppeIn .45s cubic-bezier(.22,1,.36,1) both}.maincard{animation-delay:.06s}@keyframes fppeIn{from{opacity:0;translate:0 10px}to{opacity:1;translate:none}}}
 }
 
-  /* ===== Tata letak lebar: identitas di atas (multi-kolom), penilaian di bawah — tanpa kolom sempit panjang ===== */
+  /* ===== Tata letak lebar: identitas di atas (multi-kolom), penilaian di bawah: tanpa kolom sempit panjang ===== */
   .header{display:none}
   .container{padding:12px 14px 20px}
   .grid{grid-template-columns:minmax(0,1fr)!important;gap:14px}
@@ -289,8 +289,8 @@ tr:last-child td{border-bottom:0}
         <details class="section-mini sign-block">
           <summary class="mini-title">Pengesahan · penanda tangan <small class="muted">(klik untuk mengisi / mengubah)</small></summary>
           <div class="sign-fields">
-          <div class="field"><label for="directSupervisor">Atasan Langsung / Evaluator — Nama</label><input id="directSupervisor"></div>
-          <div class="field"><label for="directSupervisorNip">Atasan Langsung / Evaluator — NIP</label><input id="directSupervisorNip"></div>
+          <div class="field"><label for="directSupervisor">Atasan Langsung / Evaluator: Nama</label><input id="directSupervisor"></div>
+          <div class="field"><label for="directSupervisorNip">Atasan Langsung / Evaluator: NIP</label><input id="directSupervisorNip"></div>
 
           <div class="field"><label for="headDivisionRole">Kepala Bidang Atasan Langsung</label>
             <select id="headDivisionRole">
@@ -298,8 +298,8 @@ tr:last-child td{border-bottom:0}
               <option>Kepala Bidang Penunjang Medik dan Non-Medik</option>
             </select>
           </div>
-          <div class="field"><label for="headDivisionName">Kepala Bidang — Nama</label><input id="headDivisionName"></div>
-          <div class="field"><label for="headDivisionNip">Kepala Bidang — NIP</label><input id="headDivisionNip"></div>
+          <div class="field"><label for="headDivisionName">Kepala Bidang: Nama</label><input id="headDivisionName"></div>
+          <div class="field"><label for="headDivisionNip">Kepala Bidang: NIP</label><input id="headDivisionNip"></div>
 
           <div class="field"><label id="subcommitteeLabel" for="subcommitteeName">Ketua Sub Komite Mutu</label><input id="subcommitteeName"></div>
           <div class="field"><label id="subcommitteeNipLabel" for="subcommitteeNip">NIP Ketua Sub Komite Mutu</label><input id="subcommitteeNip"></div>
@@ -328,7 +328,7 @@ tr:last-child td{border-bottom:0}
           <div class="kpi"><div class="n" id="competent">0</div><div class="l">Kompeten</div></div>
           <div class="kpi"><div class="n" id="supervised">0</div><div class="l">Kompeten + Supervisi</div></div>
           <div class="kpi"><div class="n" id="remedial">0</div><div class="l">Perlu Remediasi</div></div>
-          <div class="kpi"><div class="n" id="status">—</div><div class="l">Status FPPE</div></div>
+          <div class="kpi"><div class="n" id="status">-</div><div class="l">Status FPPE</div></div>
         </div>
 
         <div class="section">
@@ -450,7 +450,7 @@ function scoreSummary() {
 
 function overallStatus() {
   const s = scoreSummary();
-  if (!s.assessed) return "—";
+  if (!s.assessed) return "-";
   if (s.notCompetent > 0) return "Belum Kompeten";
   if (s.remedial > 0) return "Remediasi";
   if (s.supervised > 0) return "Supervisi";
@@ -495,7 +495,7 @@ function esc(s) { return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"
 function escJs(s) { return String(s||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
 
 function render() {
-  $("profileTitle").textContent = state.meta.profession ? "FPPE — " + state.meta.profession : "Pilih profesi untuk memuat FPPE";
+  $("profileTitle").textContent = state.meta.profession ? "FPPE · " + state.meta.profession : "Pilih profesi untuk memuat FPPE";
   renderCompetency();
 
   const s = scoreSummary();
@@ -526,7 +526,7 @@ function saveState(show=true) {
 
   if (!EMBEDDED) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   if (show && !EMBEDDED) {
-    const old = document.title; document.title = "✓ Tersimpan — " + old;
+    const old = document.title; document.title = "✓ Tersimpan · " + old;
     setTimeout(() => document.title = old, 700);
   }
 }
@@ -551,8 +551,8 @@ function syncInputs() {
 
 function updateCommitteeLabels() {
   const c = committeeForProfession(state.meta.profession);
-  $("subcommitteeLabel").textContent = "Ketua Sub Komite Mutu — " + c;
-  $("subcommitteeNipLabel").textContent = "NIP Ketua Sub Komite Mutu — " + c;
+  $("subcommitteeLabel").textContent = "Ketua Sub Komite Mutu · " + c;
+  $("subcommitteeNipLabel").textContent = "NIP Ketua Sub Komite Mutu · " + c;
   $("committeeLabel").textContent = "Ketua " + c;
   $("committeeNipLabel").textContent = "NIP Ketua " + c;
 }
@@ -650,7 +650,7 @@ function applyRoster(roster) {
   const picker = $("staffPicker");
   const previous = selectedId;
   picker.innerHTML = '<option value="">Pilih tenaga dari Metadata…</option>' + fppeRoster.map(staff =>
-    '<option value="' + esc(staff.id) + '">' + esc(staff.display_name) + ' — ' + esc(staff.employee_code) + ' · ' + esc(staff.position_title || staff.profession_group || "Jabatan belum dipetakan") + '</option>'
+    '<option value="' + esc(staff.id) + '">' + esc(staff.display_name) + ' · ' + esc(staff.employee_code) + ' · ' + esc(staff.position_title || staff.profession_group || "Jabatan belum dipetakan") + '</option>'
   ).join("");
   const selected = fppeRoster.find(item=>String(item.id)===previous);
   if (selected) {

@@ -278,7 +278,7 @@
   background:#fff!important;box-shadow:none!important;
 }
 .workspaceRoot .moduleEnter .ovContextBar>div{display:grid;gap:4px;min-width:0}
-.workspaceRoot .moduleEnter .ovContextBar span{font-size:10px!important;line-height:1.2!important;letter-spacing:.07em!important;font-weight:800!important;color:#687a6f!important}
+.workspaceRoot .moduleEnter .ovContextBar span{font-size:11px!important;line-height:1.2!important;letter-spacing:.07em!important;font-weight:800!important;color:#687a6f!important}
 .workspaceRoot .moduleEnter .ovContextBar b{font-size:13px!important;line-height:1.35!important;font-weight:750!important;color:#26392e!important;overflow-wrap:anywhere}
 .workspaceRoot .moduleEnter .ovContextBar .ovContextStatus b{display:inline-flex;align-items:center;justify-content:center;width:max-content;max-width:100%;padding:6px 10px;border-radius:999px;font-size:11px!important;letter-spacing:0!important}
 .workspaceRoot .moduleEnter .ovContextBar .ok{background:#e1f3e9;color:#146444}

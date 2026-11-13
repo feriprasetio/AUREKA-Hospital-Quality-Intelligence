@@ -14,7 +14,7 @@ type UnitStats = { allowed?: boolean; episodes: number; active: number; avg_los:
 type IndexSummary = { total: number; kunjungan_berulang: number; dengan_nik: number; terhubung_simrs: number; terakhir_diperbarui: string | null }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-const fmt = (n: number | null | undefined) => (n == null ? '—' : Number(n).toLocaleString('id-ID'))
+const fmt = (n: number | null | undefined) => (n == null ? '-' : Number(n).toLocaleString('id-ID'))
 
 export default function PatientStatsTab({ rooms, roomId, year, onYearChange }: { rooms: Room[]; roomId: number | null; year: number; onYearChange: (y: number) => void }) {
   const [counts, setCounts] = useState<RoomMonthCount[]>([])
@@ -78,14 +78,14 @@ export default function PatientStatsTab({ rooms, roomId, year, onYearChange }: {
           <div className="prKpi"><span>Pasien unik</span><strong>{loading.summary ? <span className="psSkel" /> : fmt(summary?.total)}</strong></div>
           <div className="prKpi"><span>Kunjungan berulang</span><strong>{loading.summary ? <span className="psSkel" /> : fmt(summary?.kunjungan_berulang)}</strong></div>
           <div className="prKpi"><span>Episode {year}</span><strong>{loading.counts || loading.unit ? <span className="psSkel" /> : fmt(roomId && unit ? unit.episodes : episodes)}</strong></div>
-          {unit ? <div className="prKpi"><span>Rerata LOS (hari)</span><strong>{unit.avg_los == null ? '—' : unit.avg_los.toFixed(1).replace('.', ',')}</strong></div>
-            : <div className="prKpi"><span>{roomId ? 'Rerata lama rawat (hari)' : 'Unit dengan episode ' + year}</span><strong>{(roomId ? loading.unit : loading.counts) ? <span className="psSkel" /> : roomId ? '—' : fmt(byUnit.length)}</strong></div>}
+          {unit ? <div className="prKpi"><span>Rerata LOS (hari)</span><strong>{unit.avg_los == null ? '-' : unit.avg_los.toFixed(1).replace('.', ',')}</strong></div>
+            : <div className="prKpi"><span>{roomId ? 'Rerata lama rawat (hari)' : 'Unit dengan episode ' + year}</span><strong>{(roomId ? loading.unit : loading.counts) ? <span className="psSkel" /> : roomId ? '-' : fmt(byUnit.length)}</strong></div>}
         </div>
         {!summary && !loading.summary && <div className="psStatsNote">Jumlah pasien unik tersedia setelah Database Pasien (indeks No. RM) dipasang.</div>}
 
         <div className="psStatsCard">
           <h4>Episode per bulan · {year}{roomId ? ' · ' + (roomName.get(roomId) || '') : ''}{(loading.counts || loading.unit) && <small className="psLoadingHint"> · memuat…</small>}</h4>
-          {!(loading.counts || loading.unit) && byMonth.every((n) => n === 0) ? <p className="psStatsEmpty">Belum ada episode pasien pada {roomId ? 'unit ini' : 'tahun ini'}. Unit non-pelayanan (mis. Informasi dan Pengaduan) memang tidak mencatat episode — pilih unit pelayanan di kiri atas.</p> :
+          {!(loading.counts || loading.unit) && byMonth.every((n) => n === 0) ? <p className="psStatsEmpty">Belum ada episode pasien pada {roomId ? 'unit ini' : 'tahun ini'}. Unit non-pelayanan (mis. Informasi dan Pengaduan) memang tidak mencatat episode, pilih unit pelayanan di kiri atas.</p> :
           <div className="psStatsBars" role="img" aria-label={'Episode per bulan ' + byMonth.map((n, i) => MONTHS[i] + ' ' + n).join(', ')}>
             {byMonth.map((n, i) => <div key={i} className="psStatsBar" title={MONTHS[i] + ': ' + fmt(n) + ' episode'}><i style={{ height: (n / maxMonth * 100) + '%' }} /><span>{MONTHS[i]}</span><b>{n ? fmt(n) : ''}</b></div>)}
           </div>}

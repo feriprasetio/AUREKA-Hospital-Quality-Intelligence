@@ -240,7 +240,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
       <header className="a2-header">
         <div className="a2-container a2-header-inner">
-          <a className="a2-brand" href="#top" aria-label="AUREKA — kembali ke awal halaman">
+          <a className="a2-brand" href="#top" aria-label="AUREKA: kembali ke awal halaman">
             <span className="a2-brand-mark">
               <img src={logoSrc} width={160} height={136} alt="Logo AUREKA Hospital Quality Intelligence" />
             </span>
