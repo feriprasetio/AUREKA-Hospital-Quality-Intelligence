@@ -19,9 +19,10 @@ html[data-skin="arktik"]:root {
 html[data-skin="arktik"]:root body:not(#_) {
   background-color: #eef1f5 !important;
   background-image:
-    radial-gradient(44rem 30rem at 4% -6%, rgba(34, 211, 238, 0.42), transparent 70%),
-    radial-gradient(38rem 32rem at 102% 6%, rgba(74, 222, 128, 0.30), transparent 70%),
-    radial-gradient(46rem 30rem at 50% 110%, rgba(186, 198, 214, 0.80), transparent 70%) !important;
+    radial-gradient(52rem 40rem at -6% -12%, rgba(34, 211, 238, 0.62), transparent 68%),
+    radial-gradient(46rem 38rem at 106% -6%, rgba(74, 222, 128, 0.50), transparent 68%),
+    radial-gradient(60rem 36rem at 46% 118%, rgba(186, 198, 214, 0.95), transparent 70%),
+    radial-gradient(30rem 24rem at 70% 50%, rgba(165, 243, 252, 0.35), transparent 70%) !important;
   background-attachment: fixed !important;
 }
 
@@ -81,11 +82,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard::before { display: none; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard :is(.hlHeroChip, .hlHeroChip *, .hlHeroEyebrow, .hlUnitHint, p, small, span) { color: var(--aurora-ink-2) !important; -webkit-text-fill-color: currentColor !important; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting { color: var(--aurora-ink) !important; -webkit-text-fill-color: currentColor !important; font-size: clamp(28px, 3vw, 42px) !important; letter-spacing: -0.03em !important; }
-html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting .hlGreetName {
-  background: linear-gradient(90deg, #0891b2, #16a34a);
-  -webkit-background-clip: text; background-clip: text;
-  color: transparent !important; -webkit-text-fill-color: transparent !important;
-}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting .hlGreetName { color: inherit !important; -webkit-text-fill-color: currentColor !important; background: none !important; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlHeroEyebrow { display: inline-flex; align-items: center; gap: 10px; text-transform: none !important; letter-spacing: 0 !important; font-size: 13px !important; opacity: 1 !important; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlHeroEyebrow::before { content: ""; width: 28px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--aurora-cyan), var(--aurora-green)); }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlHeroChip { background: rgba(255, 255, 255, 0.7) !important; border-color: rgba(255, 255, 255, 0.9) !important; }
@@ -96,7 +93,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard { background: rgba(255, 255, 255, 0.06) !important; border-color: rgba(255, 255, 255, 0.13) !important; box-shadow: none !important; color: #eef2f7 !important; }
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard :is(.hlHeroChip, .hlHeroChip *, .hlHeroEyebrow, .hlUnitHint, p, small, span) { color: #c3ccd8 !important; }
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting { color: #eef2f7 !important; }
-html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting .hlGreetName { background: linear-gradient(90deg, var(--aurora-cyan), var(--aurora-green)); -webkit-background-clip: text; background-clip: text; }
+
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard :is(.hlHeroChip, .hlPwBtn) { background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.16) !important; }
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn,
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlPwBtn * { color: #eef2f7 !important; }
@@ -200,11 +197,11 @@ html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { display: grid; gap: 8
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard span { font-size: 13px; font-weight: 700; color: #4b5565; }
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #1f2430; font-variant-numeric: tabular-nums; }
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard small { font-size: 12px; color: #4b5565; }
-html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKpiDanger strong { color: #b42318; }
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKpiDanger strong { color: #b42318 !important; -webkit-text-fill-color: currentColor !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.12); }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard :is(span, small) { color: #c3ccd8; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong { color: #eef2f7; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKpiDanger strong { color: #fca5a5; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKpiDanger strong { color: #fca5a5 !important; -webkit-text-fill-color: currentColor !important; }
 @media (max-width: 720px) {
   html body:not(#_) .workspaceRoot .homeLanding .hlKpiRow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { padding: 14px; }
@@ -223,3 +220,6 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKp
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitLabel { display: none !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceContext > :last-child:not(label) { display: none !important; }
 }
+
+/* Monitoring di samping Tanya AUREKA: isi rapat ke atas, tidak meregang */
+html body:not(#_) .workspaceRoot .homeLanding .hlDuo .hlReportingPanel { align-content: start !important; }
