@@ -102,3 +102,15 @@ test('Arktik navigation uses a darker blue module shape and lighter blue sub-tab
   assert.match(navigation, /workspaceNavigationRailItem\.active \{[\s\S]*background: #dce9f5 !important/)
   assert.match(navigation, /data-mode="gelap"[\s\S]*workspaceNavigationRailItem\.active/)
 })
+
+
+test('Arktik module tabs use blue shapes and lighter blue subtabs', () => {
+  const css = read('app/aureka-navigation-consolidated.css')
+  const start = css.indexOf('AUREKA Arktik navigation blue hierarchy')
+  assert.ok(start >= 0)
+  const blue = css.slice(start)
+  assert.match(blue, /workspaceNavigationRail \.workspaceNavigationRailTitle \{[\s\S]*background: #d4e4f2 !important/)
+  assert.match(blue, /workspaceNavigationRail \.workspaceNavigationRailItem \{[\s\S]*background: #edf5fb !important/)
+  assert.match(blue, /workspaceNavigationRail \.workspaceNavigationRailItem\.active \{[\s\S]*background: #dcebf8 !important/)
+  assert.match(blue, /data-mode="gelap"[\s\S]*workspaceNavigationRailItem\.active/)
+})
