@@ -829,3 +829,8 @@ html body:not(#_) .psFormGrid { gap: 16px !important; }
   html body:not(#_) [aria-modal="true"] .psFormHeading { padding: 12px 14px !important; border-radius: 16px !important; }
   html body:not(#_) [aria-modal="true"] .psFormLetter { width: 38px !important; height: 38px !important; border-radius: 12px !important; }
 }
+
+/* HP: satu navigasi saja — kotak "Peta" disembunyikan karena isinya sama dengan submenu ringkas (di laptop tetap tampil) */
+@media (max-width: 720px) {
+  html body:not(#_) .workspaceRoot .wmmRoot { display: none !important; }
+}
