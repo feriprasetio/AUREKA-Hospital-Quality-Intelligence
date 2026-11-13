@@ -838,3 +838,26 @@ html body:not(#_) .psFormGrid { gap: 16px !important; }
 /* Sorotan singkat saat formulir baru dibuka (OPPE/FPPE) */
 @keyframes formFlash { 0% { box-shadow: 0 0 0 0 rgba(44, 106, 160, .45); } 100% { box-shadow: 0 0 0 14px rgba(44, 106, 160, 0); } }
 html body:not(#_) :is(.oppeFlash, .fppeFlash) { animation: formFlash 1.2s ease-out 1; border-radius: 16px; }
+
+/* ── Clinical Pathway: editor format (CP baru / Edit) sebagai popup ── */
+html body:not(#_) .cpBuilderOverlay{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:24px;background:rgba(15,23,42,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:cpOvIn .18s ease-out}
+html body:not(#_) .cpBuilderModal{width:min(1180px,100%);max-height:calc(100dvh - 48px);display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:var(--aur-surface,#f6f9fc);box-shadow:0 30px 80px rgba(15,23,42,.28);border:1px solid rgba(148,163,184,.25);animation:cpMdIn .22s cubic-bezier(.2,.8,.2,1)}
+html body:not(#_) .cpBuilderModalHead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px;background:linear-gradient(135deg,#0f2a44,#16507a);color:#fff}
+html body:not(#_) .cpBuilderModalHead h3{margin:2px 0 0;font-size:1.15rem;color:#fff;font-family:var(--font-aureka)}
+html body:not(#_) .cpBuilderModalHead .cpEyebrow{color:rgba(255,255,255,.75)}
+html body:not(#_) .cpBuilderClose{flex:0 0 auto;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:1rem;cursor:pointer;transition:background .15s}
+html body:not(#_) .cpBuilderClose:hover{background:rgba(255,255,255,.24)}
+html body:not(#_) .cpBuilderModalBody{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px 0;display:flex;flex-direction:column;gap:14px}
+html body:not(#_) .cpBuilderModalBody>.cpFooter{position:sticky;bottom:0;z-index:2;margin:0 -20px;border-radius:0;box-shadow:0 -8px 24px rgba(15,23,42,.08)}
+html[data-mode="gelap"] body:not(#_) .cpBuilderModal{background:#0f1a2a;border-color:rgba(148,163,184,.18)}
+html[data-mode="gelap"] body:not(#_) .cpBuilderModalBody>.cpFooter{background:#13213a}
+@keyframes cpOvIn{from{opacity:0}to{opacity:1}}
+@keyframes cpMdIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html body:not(#_) .cpBuilderOverlay,html body:not(#_) .cpBuilderModal{animation:none}}
+@media (max-width:720px){
+  html body:not(#_) .cpBuilderOverlay{padding:0;place-items:stretch}
+  html body:not(#_) .cpBuilderModal{max-height:100dvh;height:100dvh;border-radius:0}
+  html body:not(#_) .cpBuilderModalHead{padding:12px 16px}
+  html body:not(#_) .cpBuilderModalBody{padding:12px 12px 0}
+  html body:not(#_) .cpBuilderModalBody>.cpFooter{margin:0 -12px}
+}
