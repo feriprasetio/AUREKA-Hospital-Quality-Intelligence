@@ -42,6 +42,19 @@ test('sidebar only renders module buttons and contains no tree or child-menu sta
   assert.ok(!home.includes("aria-expanded={hasKids"))
 })
 
+test('navigation rail visually follows the current AUREKA workspace tabs', () => {
+  const navigation = read('app/aureka-navigation-consolidated.css')
+  const workspace = read('app/workspace-desk.css')
+  assert.ok(navigation.includes('background: #f1f5ef !important;'))
+  assert.ok(navigation.includes('border: 1px solid #e0e7dc !important;'))
+  assert.ok(navigation.includes('border-radius: 6px !important;'))
+  assert.ok(navigation.includes('background: #fff !important;'))
+  assert.ok(navigation.includes('color: #205f46 !important;'))
+  assert.ok(navigation.includes('min-height: 34px !important;'))
+  assert.ok(workspace.includes('background: #f1f5ef !important;'))
+  assert.ok(workspace.includes('border-color: #dce5d8 !important; background: #fff !important; color: #205f46 !important;'))
+})
+
 test('module-local search controls are hidden while header search dispatch remains available', () => {
   assert.ok(home.includes('workspaceGlobalSearchInput'))
   assert.ok(home.includes('dispatchWorkspaceSearch(e.target.value)'))
