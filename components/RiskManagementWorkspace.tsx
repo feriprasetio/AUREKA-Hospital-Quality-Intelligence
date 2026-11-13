@@ -782,6 +782,18 @@ export default function RiskManagementWorkspace({
           <LiquidGlass className="rmKpi"><span>Risiko Tinggi / Sangat Tinggi</span><strong>{counts.high.toLocaleString('id-ID')}</strong><small>Prioritas perhatian manajemen</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Residual telah dinilai</span><strong>{counts.residualComplete.toLocaleString('id-ID')}</strong><small>{counts.total ? Math.round(counts.residualComplete / counts.total * 100) : 0}% register</small></LiquidGlass>
         </div>
+        <div className="rmOverviewGrid rmBlueprintVisuals">
+          <LiquidGlass className="rmPanel">
+            <div className="rmSectionHead"><div><span className="rmEyebrow">Distribusi risiko</span><h4>Profil tingkat risiko</h4><p>Distribusi berdasarkan skor risiko inheren pada register aktif.</p></div></div>
+            <div className="rmProgressList">{LEVELS.map((level) => { const n = risks.filter((risk) => risk.risk_level === level).length; const pct = counts.total ? n / counts.total * 100 : 0; return <div className="rmProgressItem" key={level}><div><span>{level}</span><b>{n.toLocaleString('id-ID')} · {pct.toFixed(1).replace('.', ',')}%</b></div><div className="rmProgressTrack"><i className={'rmProgressBar ' + scoreBand(level)} style={{width:pct+'%'}} /></div></div> })}</div>
+            <p className="rmTiny">Denominator: {counts.total.toLocaleString('id-ID')} risiko dalam cakupan akun aktif.</p>
+          </LiquidGlass>
+          <LiquidGlass className="rmPanel">
+            <div className="rmSectionHead"><div><span className="rmEyebrow">Status pengendalian</span><h4>Posisi tindak lanjut risiko</h4><p>Status register saat ini; bukan penilaian efektivitas kontrol.</p></div></div>
+            <div className="rmProgressList">{(['Open','In Progress','Controlled','Accepted'] as RiskStatus[]).map((status) => { const n = risks.filter((risk) => risk.status === status).length; const pct = counts.total ? n / counts.total * 100 : 0; return <div className="rmProgressItem" key={status}><div><span>{{Open:'Terbuka','In Progress':'Dalam proses',Controlled:'Terkendali',Accepted:'Diterima'}[status]}</span><b>{n.toLocaleString('id-ID')} · {pct.toFixed(1).replace('.', ',')}%</b></div><div className="rmProgressTrack"><i className={'rmProgressBar ' + (status === 'Controlled' ? 'low' : status === 'Open' ? 'high' : 'moderate')} style={{width:pct+'%'}} /></div></div> })}</div>
+            <p className="rmTiny">Jumlah kategori status dijumlahkan dari register yang sama dengan KPI di atas.</p>
+          </LiquidGlass>
+        </div>
         <div className="rmOverviewGrid">
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">Profil risiko</span><h4>Peta risiko dan selera risiko</h4><p>Area Rendah/Sangat Rendah dapat diterima; level Sedang ke atas menjadi risiko utama yang perlu mitigasi.</p></div><button type="button" className="rmButton subtle" onClick={() => setTab('register')}>Lihat register</button></div>{renderMatrix()}</LiquidGlass>
           <LiquidGlass className="rmPanel"><div className="rmSectionHead"><div><span className="rmEyebrow">Pengendalian</span><h4>Status tindak pengendalian</h4><p>Ringkasan untuk membantu penentuan prioritas dan pemantauan.</p></div></div>
