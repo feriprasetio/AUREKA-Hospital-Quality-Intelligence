@@ -32,6 +32,7 @@ test('Super Admin defaults to hospital-wide room scope and uses the workspace ma
   const homeClient = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
   const map = readFileSync(new URL('../components/workspace/WorkspaceModuleMap.tsx', import.meta.url), 'utf8')
   const typography = readFileSync(new URL('../app/typography.css', import.meta.url), 'utf8')
+  const infographics = readFileSync(new URL('../components/governance/InfographicsDashboard.tsx', import.meta.url), 'utf8')
 
   assert.match(homeClient, /\[allRoomsScope,setAllRoomsScope\]=useState\(true\)/)
   assert.match(homeClient, /Semua ruangan · lintas unit/)
@@ -43,6 +44,8 @@ test('Super Admin defaults to hospital-wide room scope and uses the workspace ma
   assert.match(map, /wmmMapGrid/)
   assert.match(map, /@media \(max-width: 760px\)/)
   assert.match(map, /@media \(max-width: 480px\)/)
+  assert.match(infographics, /useState\(initialRoomId == null \? '' : String\(initialRoomId\)\)/)
+  assert.match(infographics, /setRoomValue\(initialRoomId == null \? '' : String\(initialRoomId\)\)/)
 })
 
 test('Super Admin quality results can aggregate every room without mixing reused indicator codes', () => {
