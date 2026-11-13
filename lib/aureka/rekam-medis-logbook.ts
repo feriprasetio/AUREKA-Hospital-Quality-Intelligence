@@ -103,7 +103,7 @@ export function resolveRekamMedisIndicatorOption(
 
 export function createRekamMedisSubjectKey(sourceRow: number | string): string {
   const normalized = String(sourceRow ?? '').trim()
-  if (!/^[3-9]\d{0,3}$/.test(normalized) || Number(normalized) > 5003) {
+  if (!/^[1-9]\d{0,3}$/.test(normalized) || Number(normalized) < 3 || Number(normalized) > 5003) {
     throw new Error('Nomor baris sumber Excel harus berada pada rentang 3–5003.')
   }
   return SOURCE_KEY_PREFIX + normalized
