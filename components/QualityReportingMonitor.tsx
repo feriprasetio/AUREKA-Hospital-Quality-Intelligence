@@ -12,11 +12,15 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
  const [error,setError]=useState('')
  const [expanded,setExpanded]=useState(false)
  useEffect(()=>{let cancelled=false;setBusy(true);setError('')
-  supabase.rpc('aureka_quality_room_reporting_status',{p_year:year}).then(({data,error})=>{
-   if(cancelled)return
-   if(error)throw error
-   setRows((Array.isArray(data)?data:[]).map((r:any)=>({room_id:Number(r.room_id),month:Number(r.month),total:Number(r.total)||0,latest_report_at:r.latest_report_at?String(r.latest_report_at):null,latest_period:r.latest_period?String(r.latest_period):null})))
-  }).catch(()=>{if(!cancelled)setError('Ringkasan belum tersedia. Pastikan migrasi monitoring pelaporan indikator mutu sudah diterapkan.')}).finally(()=>{if(!cancelled)setBusy(false)})
+  void (async()=>{
+   try{
+    const {data,error}=await supabase.rpc('aureka_quality_room_reporting_status',{p_year:year})
+    if(error)throw error
+    if(!cancelled)setRows((Array.isArray(data)?data:[]).map((r:any)=>({room_id:Number(r.room_id),month:Number(r.month),total:Number(r.total)||0,latest_report_at:r.latest_report_at?String(r.latest_report_at):null,latest_period:r.latest_period?String(r.latest_period):null})))
+   }catch{
+    if(!cancelled)setError('Ringkasan belum tersedia. Pastikan migrasi monitoring pelaporan indikator mutu sudah diterapkan.')
+   }finally{if(!cancelled)setBusy(false)}
+  })()
   return()=>{cancelled=true}
  },[supabase,year])
  const visibleRooms=useMemo(()=>isAdmin?rooms:rooms.filter(r=>Number(r.id)===Number(roomId)),[rooms,isAdmin,roomId])
