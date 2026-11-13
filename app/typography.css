@@ -871,3 +871,30 @@ html body:not(#_) .roomGrid .roomCardText span{white-space:normal!important;font
 html body:not(#_) .roomGrid .roomCardActions{display:flex!important;flex-wrap:wrap;gap:8px!important;justify-content:flex-start!important;margin:0!important;position:static!important}
 html body:not(#_) .roomGrid .roomCardActions .uBtn{flex:1 1 0;min-width:0}
 @media (max-width:720px){html body:not(#_) .roomGrid{grid-template-columns:1fr!important}}
+
+/* ── Peta Kerja (WorkspaceModuleMap): sejajar konten, teks terbaca, mode gelap benar ── */
+html body:not(#_) .workspaceRoot .wmmRoot{margin:0 20px 16px!important;padding:16px 18px!important;border-radius:18px!important;border:1px solid rgba(148,163,184,.22)!important;background:rgba(255,255,255,.72)!important;box-shadow:0 10px 30px rgba(15,23,42,.06)!important;color:#0f2a44!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+html body:not(#_) .workspaceRoot .wmmHead{margin-bottom:12px!important;align-items:center!important}
+html body:not(#_) .workspaceRoot .wmmEyebrow{font-size:10.5px!important;letter-spacing:.08em!important;color:#2f6f9f!important}
+html body:not(#_) .workspaceRoot .wmmHead h2{font-size:17px!important;font-weight:750!important;color:inherit!important}
+html body:not(#_) .workspaceRoot .wmmHead p{font-size:12.5px!important;color:#5b6b7f!important}
+html body:not(#_) .workspaceRoot .wmmCurrent{font-size:11.5px!important;padding:6px 12px!important;color:#16507a!important;background:rgba(22,80,122,.08)!important;border-color:rgba(22,80,122,.16)!important}
+html body:not(#_) .workspaceRoot .wmmTrack{gap:10px!important;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))!important}
+html body:not(#_) .workspaceRoot .wmmNode{min-height:58px!important;padding:11px 12px!important;align-items:center!important;border-radius:14px!important;border:1px solid rgba(148,163,184,.25)!important;background:rgba(255,255,255,.6)!important;color:#0f2a44!important;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,border-color .18s,background .18s!important}
+html body:not(#_) .workspaceRoot .wmmNode:hover:not(:disabled){transform:translateY(-2px)!important;background:#fff!important;border-color:rgba(22,80,122,.35)!important;box-shadow:0 8px 20px rgba(15,23,42,.08)!important}
+html body:not(#_) .workspaceRoot .wmmNode.active{background:linear-gradient(135deg,rgba(22,80,122,.10),rgba(255,255,255,.9))!important;border-color:rgba(22,80,122,.45)!important}
+html body:not(#_) .workspaceRoot .wmmMarker{width:30px!important;height:30px!important;border-radius:10px!important;font-size:11px!important;background:rgba(22,80,122,.09)!important;color:#16507a!important}
+html body:not(#_) .workspaceRoot .wmmNode.active .wmmMarker{background:#16507a!important;color:#fff!important}
+html body:not(#_) .workspaceRoot .wmmNodeText b{font-size:13px!important;font-weight:700!important;color:inherit!important}
+html body:not(#_) .workspaceRoot .wmmNodeText small{font-size:11.5px!important;color:#64748b!important}
+html body:not(#_) .workspaceRoot .wmmArrow{color:#94a3b8!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmRoot{background:rgba(17,28,46,.78)!important;border-color:rgba(148,163,184,.16)!important;color:#e2e8f0!important;box-shadow:0 10px 30px rgba(0,0,0,.25)!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmEyebrow{color:#7cc4ff!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmHead p,html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmNodeText small{color:#94a3b8!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmCurrent{color:#bfe3ff!important;background:rgba(124,196,255,.10)!important;border-color:rgba(124,196,255,.22)!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmNode{background:rgba(30,41,59,.6)!important;border-color:rgba(148,163,184,.16)!important;color:#e2e8f0!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmNode:hover:not(:disabled){background:rgba(39,54,78,.9)!important;border-color:rgba(124,196,255,.35)!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmNode.active{background:linear-gradient(135deg,rgba(56,130,200,.28),rgba(30,41,59,.7))!important;border-color:rgba(124,196,255,.5)!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmMarker{background:rgba(124,196,255,.12)!important;color:#bfe3ff!important}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .wmmNode.active .wmmMarker{background:#3b82c4!important;color:#fff!important}
+@media (prefers-reduced-motion:reduce){html body:not(#_) .workspaceRoot .wmmNode{transition:none!important}}
