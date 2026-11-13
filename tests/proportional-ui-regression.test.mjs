@@ -10,10 +10,10 @@ test('Beranda Infografis renders the integrated Ikhtisar dashboard', () => {
   const dashboard = readFileSync(new URL('../components/governance/InfographicsDashboard.tsx', import.meta.url), 'utf8')
   assert.match(home, /import InfographicsDashboard from '@\/components\/governance\/InfographicsDashboard'/)
   assert.match(home, /tab==='infographics'[\s\S]*<InfographicsDashboard[\s\S]*mode="full"/)
-  assert.match(dashboard, /Ikhtisar Kinerja Mutu dan Keselamatan Rumah Sakit/)
-  assert.match(dashboard, /Tren data indikator/)
-  assert.match(dashboard, /Tren insiden keselamatan pasien/)
-  assert.match(dashboard, /Distribusi kategori indikator/)
+  assert.match(dashboard, /Ikhtisar Mutu dan Keselamatan Rumah Sakit/)
+  assert.match(dashboard, /Tren pengumpulan dan validasi indikator/)
+  assert.match(dashboard, /Tren laporan insiden keselamatan pasien/)
+  assert.match(dashboard, /Distribusi indikator menurut kategori/)
 })
 
 test('shared controls and data cards have normalized dimensions', () => {
