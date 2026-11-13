@@ -976,3 +976,18 @@ html body:not(#_) .workspaceRoot .workspaceNavigationRail { box-shadow: none !im
 /* Direktori tenaga kerja: kode tidak terpotong dua baris, kolom aksi tidak memakan sepertiga tabel */
 html body:not(#_) .sdTable td:first-child .sdName { white-space: nowrap; }
 html body:not(#_) .sdTable .sdActionsCell { display: flex; flex-wrap: wrap; gap: 6px; max-width: 220px; }
+/* Area kerja utama: tanpa cincin fokus bawaan browser (muncul sebagai garis biru di bawah submenu) */
+html body:not(#_) #workspace-main-content:focus, html body:not(#_) #workspace-main-content:focus-visible { outline: none !important; }
+/* Beranda: pengingat Komite PMKP tampil sebagai banner di atas, bukan panel biasa di bawah */
+html body:not(#_) .hlReminder { background: #fffbf2 !important; border: 1px solid #f3d9a4 !important; box-shadow: none !important; padding: 14px 16px !important; display: grid; gap: 10px; }
+html body:not(#_) .hlReminderHead { display: flex; align-items: center; gap: 12px; }
+html body:not(#_) .hlReminderHead h3 { margin: 0; font-size: 15px; font-weight: 700; color: #5a3d0a; }
+html body:not(#_) .hlReminderHead span:not(.hlReminderIcon) { font-size: 12px; color: #8a6a2a; }
+html body:not(#_) .hlReminderIcon { flex: 0 0 auto; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: #fde7b8; color: #8a5a00; }
+html body:not(#_) .hlReminderIcon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html body:not(#_) .hlReminder .hlReminderRow { background: #fff !important; border-color: #f3e1b8 !important; }
+html[data-mode="gelap"] body:not(#_) .hlReminder { background: rgba(120, 80, 10, .18) !important; border-color: rgba(251, 191, 36, .3) !important; }
+html[data-mode="gelap"] body:not(#_) .hlReminderHead h3 { color: #fde68a; }
+html[data-mode="gelap"] body:not(#_) .hlReminderHead span:not(.hlReminderIcon) { color: #e3c27f; }
+html[data-mode="gelap"] body:not(#_) .hlReminderIcon { background: rgba(251, 191, 36, .2); color: #fde68a; }
+html[data-mode="gelap"] body:not(#_) .hlReminder .hlReminderRow { background: rgba(15, 23, 42, .5) !important; border-color: rgba(251, 191, 36, .22) !important; }
