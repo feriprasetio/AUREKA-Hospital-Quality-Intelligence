@@ -23,26 +23,83 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
   })()
   return()=>{cancelled=true}
  },[supabase,year])
- const visibleRooms=useMemo(()=>isAdmin?rooms:rooms.filter(r=>Number(r.id)===Number(roomId)),[rooms,isAdmin,roomId])
+ const visibleRooms=useMemo(()=>roomId!=null?rooms.filter(r=>Number(r.id)===Number(roomId)):isAdmin?rooms:[],[rooms,isAdmin,roomId])
+ const sortedRooms=useMemo(()=>[...visibleRooms].sort((a,b)=>a.name.localeCompare(b.name,'id')),[visibleRooms])
+ const [showAll,setShowAll]=useState(false)
+ const LIMIT=8
+ const shownRooms=showAll?sortedRooms:sortedRooms.slice(0,LIMIT)
  const byRoom=(id:number)=>rows.filter(r=>r.room_id===Number(id))
  const latest=(id:number)=>byRoom(id).reduce<Row|null>((best,r)=>!best||String(r.latest_report_at||'')>String(best.latest_report_at||'')?r:best,null)
  const date=(v:string|null|undefined)=>v?new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(v)):'Belum ada laporan'
  const period=(v:string|null|undefined)=>v?new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date(v+'T12:00:00')):'Belum ada periode'
+ const nowMonth=new Date().getMonth()+1
+ const reportedThisMonth=sortedRooms.filter(room=>rows.some(r=>r.room_id===Number(room.id)&&r.month===nowMonth)).length
+ const pct=sortedRooms.length?Math.round(reportedThisMonth/sortedRooms.length*100):0
+ const ready=!busy&&!error&&sortedRooms.length>0
  return <section className="hlPanel hlReportingPanel" aria-label="Monitoring pelaporan indikator mutu">
-  <style>{`.hlReportingPanel{display:grid;gap:10px;border-color:#cfe0ee;box-shadow:0 7px 22px rgba(22,80,122,.07)}.hlReportingPanel .hlPanelHead{margin:0}.hlReportingAxis{margin:0;color:#647b8f;font-size:11px}.hlReportingChartWrap{overflow-x:auto;padding:5px 2px 2px}.hlReportingMatrix{min-width:680px;display:grid;grid-template-columns:minmax(145px,1.35fr) repeat(12,minmax(34px,1fr));align-items:stretch;gap:4px 5px}.hlReportingCorner{font-size:10px;font-weight:800;color:#647b8f;display:flex;align-items:end;padding:0 6px 7px}.hlReportingMonth{font-size:10px;font-weight:750;color:#536b80;text-align:center;padding:0 1px 7px;border-bottom:1px solid #dce6ee}.hlReportingRoom{min-height:30px;display:flex;align-items:center;min-width:0}.hlReportingRoom button{border:0;background:transparent;text-align:left;padding:5px 6px;color:#29465e;font-size:11px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;cursor:pointer;border-radius:6px}.hlReportingRoom button:hover{background:#edf5fb}.hlReportingCell{min-height:30px;border-radius:5px;background:#e8eef3;border:1px solid #dfe7ed;display:flex;align-items:center;justify-content:center}.hlReportingCell.hasData{background:#2877b4;border-color:#2877b4}.hlReportingCell span{font-size:9px;color:#fff;font-weight:800}.hlReportingLegend{display:flex;align-items:center;gap:15px;flex-wrap:wrap;color:#61788c;font-size:10px}.hlReportingLegend span{display:flex;align-items:center;gap:6px}.hlReportingLegend i{width:11px;height:11px;border-radius:3px;background:#e8eef3;border:1px solid #dfe7ed}.hlReportingLegend i.hasData{background:#2877b4;border-color:#2877b4}.hlReportingDetailBtn{margin-left:auto;border:1px solid #cbddea;border-radius:8px;background:#f2f7fb;color:#16507a;padding:7px 11px;font-size:11px;font-weight:750;cursor:pointer}.hlReportingTableWrap{overflow:auto;border:1px solid #e1eaf1;border-radius:10px}.hlReportingTableTitle{padding:10px 12px;background:#f4f8fb;color:#24445f;font-size:11px;font-weight:800}.hlReportingTable{width:100%;min-width:760px;border-collapse:collapse;font-size:11px}.hlReportingTable th,.hlReportingTable td{padding:9px 11px;border-top:1px solid #e7edf2;text-align:left;vertical-align:top}.hlReportingTable th{background:#f9fbfd;color:#667d90;font-size:10px}.hlReportingStatus{display:inline-block;padding:4px 7px;border-radius:20px;background:#f0f2f4;color:#6f7c86;font-size:10px;font-weight:750}.hlReportingStatus.reported{background:#e4f2ea;color:#26734c}@media(max-width:640px){.hlReportingPanel{padding:12px}.hlReportingDetailBtn{margin-left:0}}`}</style>
-  <header className="hlPanelHead"><div><h3>Monitoring Pelaporan Indikator Mutu</h3><span>Periode 1 Januari – 31 Desember {year}</span></div><span>{isAdmin?'Seluruh rumah sakit':roomName||'Ruangan saya'}</span></header>
-  <p className="hlReportingAxis">Baris vertikal: nama ruangan (urut alfabetis) · Kolom horizontal: bulan Januari–Desember</p>
+  <style>{`.hlReportingPanel{display:grid;gap:14px}
+.hlReportingPanel .hlPanelHead{margin:0}
+.hlRepSummary{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hlRepSummary strong{font-size:22px;line-height:1;color:#0f2a44;font-variant-numeric:tabular-nums}
+.hlRepSummary p{margin:0;color:#4a6378;font-size:13px}
+.hlRepBar{flex:1 1 180px;max-width:320px;height:8px;border-radius:99px;background:#e4ecf3;overflow:hidden}
+.hlRepBar i{display:block;height:100%;border-radius:inherit;background:#2877b4;transition:width .4s cubic-bezier(.23,1,.32,1)}
+.hlReportingChartWrap{overflow-x:auto}
+.hlReportingMatrix{min-width:560px;display:grid;grid-template-columns:minmax(150px,220px) repeat(12,minmax(26px,1fr));align-items:center;gap:3px 4px}
+.hlReportingCorner{font-size:11px;font-weight:600;color:#647b8f;padding:0 6px 4px}
+.hlReportingMonth{font-size:11px;font-weight:600;color:#647b8f;text-align:center;padding-bottom:4px}
+.hlReportingMonth.now{color:#0f2a44;font-weight:800}
+.hlReportingRoom{min-width:0}
+.hlReportingRoom button{display:block;border:0;background:transparent;text-align:left;padding:3px 6px;color:#29465e;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;cursor:pointer;border-radius:6px;font-family:inherit}
+.hlReportingRoom button:hover{background:#edf5fb}
+.hlReportingCell{height:20px;border-radius:5px;background:#e9eff5;display:flex;align-items:center;justify-content:center}
+.hlReportingCell.future{background:transparent;border:1px dashed #dbe5ee}
+.hlReportingCell.hasData{background:#2877b4}
+.hlReportingCell span{font-size:11px;color:#fff;font-weight:800;line-height:1}
+.hlReportingLegend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;color:#61788c;font-size:12px}
+.hlReportingLegend span{display:flex;align-items:center;gap:6px}
+.hlReportingLegend i{width:12px;height:12px;border-radius:3px;background:#e9eff5}
+.hlReportingLegend i.hasData{background:#2877b4}
+.hlRepActions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hlReportingDetailBtn{border:1px solid #cbddea;border-radius:10px;background:#fff;color:#16507a;min-height:36px;padding:0 12px;font-family:inherit;font-size:12px;font-weight:600;line-height:1;cursor:pointer}
+.hlReportingDetailBtn:hover{background:#f2f7fb}
+.hlReportingTableWrap{overflow:auto;border:1px solid #e1eaf1;border-radius:10px}
+.hlReportingTableTitle{padding:10px 12px;background:#f4f8fb;color:#24445f;font-size:12px;font-weight:700}
+.hlReportingTable{width:100%;min-width:720px;border-collapse:collapse;font-size:12px}
+.hlReportingTable th,.hlReportingTable td{padding:9px 11px;border-top:1px solid #e7edf2;text-align:left;vertical-align:top}
+.hlReportingTable th{background:#f9fbfd;color:#667d90;font-size:11px}
+.hlReportingStatus{display:inline-block;padding:4px 8px;border-radius:20px;background:#f0f2f4;color:#6f7c86;font-size:11px;font-weight:700}
+.hlReportingStatus.reported{background:#e4f2ea;color:#26734c}
+html[data-mode="gelap"] .hlRepSummary strong{color:#f1f5f9}
+html[data-mode="gelap"] .hlRepSummary p,html[data-mode="gelap"] .hlReportingLegend{color:#b9c3d6}
+html[data-mode="gelap"] .hlRepBar{background:rgba(148,163,184,.18)}
+html[data-mode="gelap"] :is(.hlRepBar i,.hlReportingCell.hasData,.hlReportingLegend i.hasData){background:#3b82c4}
+html[data-mode="gelap"] :is(.hlReportingCorner,.hlReportingMonth){color:#94a3b8}
+html[data-mode="gelap"] .hlReportingMonth.now{color:#f1f5f9}
+html[data-mode="gelap"] .hlReportingRoom button{color:#cbd5e1}
+html[data-mode="gelap"] .hlReportingRoom button:hover{background:rgba(148,163,184,.12)}
+html[data-mode="gelap"] :is(.hlReportingCell,.hlReportingLegend i){background:rgba(148,163,184,.14)}
+html[data-mode="gelap"] .hlReportingCell.future{background:transparent;border-color:rgba(148,163,184,.18)}
+html[data-mode="gelap"] .hlReportingDetailBtn{background:rgba(30,41,59,.8);border-color:rgba(148,163,184,.25);color:#cbd5e1}
+html[data-mode="gelap"] .hlReportingTableWrap{border-color:rgba(148,163,184,.18)}
+html[data-mode="gelap"] :is(.hlReportingTableTitle,.hlReportingTable th){background:rgba(30,41,59,.8);color:#cbd5e1}
+html[data-mode="gelap"] .hlReportingTable td{color:#e2e8f0;border-color:rgba(148,163,184,.14)}
+@media(max-width:640px){.hlRepActions{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.hlRepBar i{transition:none}}
+`}</style>
+  <header className="hlPanelHead"><div><h3>Monitoring pelaporan indikator mutu</h3><span>1 Januari – 31 Desember {year}</span></div><span>{roomId!=null?(roomName||'Ruangan terpilih'):isAdmin?'Seluruh rumah sakit':'Ruangan saya'}</span></header>
   {busy&&<p className="hlEmpty" role="status">Memuat progres pelaporan ruangan…</p>}
   {error&&<p className="hlNotice" role="alert">{error}</p>}
-  {!busy&&!error&&!visibleRooms.length&&<p className="hlEmpty">Ruangan belum terhubung ke akun ini.</p>}
-  {!busy&&!error&&visibleRooms.length>0&&<div className="hlReportingChartWrap" role="group" aria-label="Matriks pelaporan indikator mutu per ruangan dan bulan">
+  {!busy&&!error&&!sortedRooms.length&&<p className="hlEmpty">Ruangan belum terhubung ke akun ini.</p>}
+  {ready&&<div className="hlRepSummary"><strong>{reportedThisMonth}/{sortedRooms.length}</strong><p>ruangan sudah melapor bulan {MONTHS[nowMonth-1]}</p><div className="hlRepBar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Persentase ruangan yang sudah melapor bulan ini"><i style={{width:pct+'%'}}/></div></div>}
+  {ready&&<div className="hlReportingChartWrap" role="group" aria-label="Matriks pelaporan indikator mutu per ruangan dan bulan">
    <div className="hlReportingMatrix">
-    <div className="hlReportingCorner">Nama ruangan</div>
-    {MONTHS.map(m=><div className="hlReportingMonth" key={m}>{m}</div>)}
-    {[...visibleRooms].sort((a,b)=>a.name.localeCompare(b.name,'id')).map(room=>{const rr=byRoom(room.id);const reported=new Set(rr.map(r=>r.month));return <Fragment key={room.id}><div className="hlReportingRoom"><button type="button" onClick={()=>setExpanded(true)} title={'Lihat detail '+room.name}>{room.name}</button></div>{MONTHS.map((m,i)=><div key={m} className={'hlReportingCell'+(reported.has(i+1)?' hasData':'')} title={room.name+' · '+m+': '+(reported.has(i+1)?'Ada laporan':'Belum ada laporan')}><span>{reported.has(i+1)?'✓':''}</span></div>)}</Fragment>})}
+    <div className="hlReportingCorner">Ruangan</div>
+    {MONTHS.map((m,i)=><div className={i+1===nowMonth?'hlReportingMonth now':'hlReportingMonth'} key={m}>{m}</div>)}
+    {shownRooms.map(room=>{const reported=new Set(byRoom(room.id).map(r=>r.month));return <Fragment key={room.id}><div className="hlReportingRoom"><button type="button" onClick={()=>setExpanded(true)} title={room.name}>{room.name}</button></div>{MONTHS.map((m,i)=>{const has=reported.has(i+1);const future=i+1>nowMonth;return <div key={m} className={'hlReportingCell'+(has?' hasData':future?' future':'')} title={room.name+' · '+m+': '+(has?'Ada laporan':future?'Belum periode':'Belum ada laporan')}><span>{has?'✓':''}</span></div>})}</Fragment>})}
    </div>
   </div>}
-  {!busy&&!error&&visibleRooms.length>0&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div>}
-  {expanded&&!error&&<div className="hlReportingTableWrap"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable"><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{[...visibleRooms].sort((a,b)=>a.name.localeCompare(b.name,'id')).map(room=>{const rr=byRoom(room.id);const last=latest(room.id);return <tr key={room.id}><td>{room.name}</td><td>{[...new Set(rr.map(r=>r.month))].sort((a,b)=>a-b).map(m=>MONTHS[m-1]).join(', ')||'—'}</td><td>{period(last?.latest_period)}</td><td>{date(last?.latest_report_at)}</td><td><span className={last?'hlReportingStatus reported':'hlReportingStatus'}>{last?'Sudah melapor':'Belum melapor'}</span></td></tr>})}</tbody></table></div>}
+  {ready&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><div className="hlRepActions">{sortedRooms.length>LIMIT&&<button type="button" className="hlReportingDetailBtn" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Tampilkan semua (${sortedRooms.length})`}</button>}<button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div></div>}
+  {expanded&&!error&&<div className="hlReportingTableWrap"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable"><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{sortedRooms.map(room=>{const rr=byRoom(room.id);const last=latest(room.id);return <tr key={room.id}><td>{room.name}</td><td>{[...new Set(rr.map(r=>r.month))].sort((a,b)=>a-b).map(m=>MONTHS[m-1]).join(', ')||'Belum ada'}</td><td>{period(last?.latest_period)}</td><td>{date(last?.latest_report_at)}</td><td><span className={last?'hlReportingStatus reported':'hlReportingStatus'}>{last?'Sudah melapor':'Belum melapor'}</span></td></tr>})}</tbody></table></div>}
  </section>
 }
