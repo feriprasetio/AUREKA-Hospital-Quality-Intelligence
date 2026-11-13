@@ -26,7 +26,7 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
  const visibleRooms=useMemo(()=>roomId!=null?rooms.filter(r=>Number(r.id)===Number(roomId)):isAdmin?rooms:[],[rooms,isAdmin,roomId])
  const sortedRooms=useMemo(()=>[...visibleRooms].sort((a,b)=>a.name.localeCompare(b.name,'id')),[visibleRooms])
  const [showAll,setShowAll]=useState(false)
- const LIMIT=8
+ const LIMIT=5
  const shownRooms=showAll?sortedRooms:sortedRooms.slice(0,LIMIT)
  const byRoom=(id:number)=>rows.filter(r=>r.room_id===Number(id))
  const latest=(id:number)=>byRoom(id).reduce<Row|null>((best,r)=>!best||String(r.latest_report_at||'')>String(best.latest_report_at||'')?r:best,null)
@@ -34,11 +34,12 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
  const period=(v:string|null|undefined)=>v?new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date(v+'T12:00:00')):'Belum ada periode'
  const nowMonth=new Date().getMonth()+1
  const reportedThisMonth=sortedRooms.filter(room=>rows.some(r=>r.room_id===Number(room.id)&&r.month===nowMonth)).length
- const pct=sortedRooms.length?Math.round(reportedThisMonth/sortedRooms.length*100):0
  const ready=!busy&&!error&&sortedRooms.length>0
  return <section className="hlPanel hlReportingPanel" aria-label="Monitoring pelaporan indikator mutu">
   <style>{`.hlReportingPanel{display:grid;gap:14px}
-.hlReportingPanel .hlPanelHead{margin:0}
+.hlReportingPanel .hlPanelHead{margin:0;align-items:baseline}
+.hlRepLink{border:0;background:none;padding:6px 2px;color:#0e7490;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+html[data-mode="gelap"] .hlRepLink{color:#67e8f9}
 .hlRepSummary{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .hlRepSummary strong{font-size:22px;line-height:1;color:#0f2a44;font-variant-numeric:tabular-nums}
 .hlRepSummary p{margin:0;color:#4a6378;font-size:13px}
@@ -87,11 +88,10 @@ html[data-mode="gelap"] .hlReportingTable td{color:#e2e8f0;border-color:rgba(148
 @media(max-width:640px){.hlRepActions{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.hlRepBar i{transition:none}}
 `}</style>
-  <header className="hlPanelHead"><div><h3>Monitoring pelaporan indikator mutu</h3><span>1 Januari – 31 Desember {year}</span></div><span>{roomId!=null?(roomName||'Ruangan terpilih'):isAdmin?'Seluruh rumah sakit':'Ruangan saya'}</span></header>
+  <header className="hlPanelHead"><div><h3>Pelaporan indikator {year}</h3><span>{ready?`${reportedThisMonth} dari ${sortedRooms.length} ruangan lapor ${MONTHS[nowMonth-1]}`:(roomId!=null?(roomName||'Ruangan terpilih'):isAdmin?'Seluruh rumah sakit':'Ruangan saya')}</span></div>{ready&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}</header>
   {busy&&<p className="hlEmpty" role="status">Memuat progres pelaporan ruangan…</p>}
   {error&&<p className="hlNotice" role="alert">{error}</p>}
   {!busy&&!error&&!sortedRooms.length&&<p className="hlEmpty">Ruangan belum terhubung ke akun ini.</p>}
-  {ready&&<div className="hlRepSummary"><strong>{reportedThisMonth}/{sortedRooms.length}</strong><p>ruangan sudah melapor bulan {MONTHS[nowMonth-1]}</p><div className="hlRepBar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Persentase ruangan yang sudah melapor bulan ini"><i style={{width:pct+'%'}}/></div></div>}
   {ready&&<div className="hlReportingChartWrap" role="group" aria-label="Matriks pelaporan indikator mutu per ruangan dan bulan">
    <div className="hlReportingMatrix">
     <div className="hlReportingCorner">Ruangan</div>
@@ -99,7 +99,7 @@ html[data-mode="gelap"] .hlReportingTable td{color:#e2e8f0;border-color:rgba(148
     {shownRooms.map(room=>{const reported=new Set(byRoom(room.id).map(r=>r.month));return <Fragment key={room.id}><div className="hlReportingRoom"><button type="button" onClick={()=>setExpanded(true)} title={room.name}>{room.name}</button></div>{MONTHS.map((m,i)=>{const has=reported.has(i+1);const future=i+1>nowMonth;return <div key={m} className={'hlReportingCell'+(has?' hasData':future?' future':'')} title={room.name+' · '+m+': '+(has?'Ada laporan':future?'Belum periode':'Belum ada laporan')}><span>{has?'✓':''}</span></div>})}</Fragment>})}
    </div>
   </div>}
-  {ready&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><div className="hlRepActions">{sortedRooms.length>LIMIT&&<button type="button" className="hlReportingDetailBtn" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Tampilkan semua (${sortedRooms.length})`}</button>}<button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div></div>}
+  {ready&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><div className="hlRepActions"><button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div></div>}
   {expanded&&!error&&<div className="hlReportingTableWrap"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable"><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{sortedRooms.map(room=>{const rr=byRoom(room.id);const last=latest(room.id);return <tr key={room.id}><td>{room.name}</td><td>{[...new Set(rr.map(r=>r.month))].sort((a,b)=>a-b).map(m=>MONTHS[m-1]).join(', ')||'Belum ada'}</td><td>{period(last?.latest_period)}</td><td>{date(last?.latest_report_at)}</td><td><span className={last?'hlReportingStatus reported':'hlReportingStatus'}>{last?'Sudah melapor':'Belum melapor'}</span></td></tr>})}</tbody></table></div>}
  </section>
 }

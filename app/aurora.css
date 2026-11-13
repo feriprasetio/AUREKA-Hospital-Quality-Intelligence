@@ -180,3 +180,46 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleE
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(15, 18, 24, 0.6) !important; border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.04) !important; border-right-color: rgba(255, 255, 255, 0.08) !important; }
 }
+
+/* ── Aurora: tata letak Beranda mengikuti gambaran (sapaan + aksi cepat, 4 angka utama) ── */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero { display: flex !important; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px 24px !important; padding: 28px 30px !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroText { display: grid; gap: 8px; min-width: 0; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroSub { font-size: 14px !important; font-weight: 500; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlPwBtn { position: static !important; order: -1; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn { min-height: 46px; padding: 0 20px; border-radius: 14px; border: 1px solid rgba(31, 36, 48, 0.14); background: rgba(255, 255, 255, 0.75); color: var(--aurora-ink); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background-color .15s ease, translate .15s cubic-bezier(.22, 1, .36, 1); }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn.primary { background: var(--aurora-ink); border-color: var(--aurora-ink); color: #ffffff; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn:active { translate: 0 1px; }
+@media (hover: hover) and (pointer: fine) { html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn:hover { background: #ffffff; } html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn.primary:hover { background: #2d3443; } }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.16); color: #eef2f7; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn.primary { background: linear-gradient(90deg, var(--aurora-cyan), var(--aurora-green)); border: 0; color: #0f1218; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero :is(.hlHeroSub) { color: #c3ccd8 !important; }
+
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { display: grid; gap: 8px; padding: 18px 20px; border-radius: 22px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.85); }
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard span { font-size: 13px; font-weight: 700; color: #4b5565; }
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #1f2430; font-variant-numeric: tabular-nums; }
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard small { font-size: 12px; color: #4b5565; }
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKpiDanger strong { color: #b42318; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.12); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard :is(span, small) { color: #c3ccd8; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong { color: #eef2f7; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKpiDanger strong { color: #fca5a5; }
+@media (max-width: 720px) {
+  html body:not(#_) .workspaceRoot .homeLanding .hlKpiRow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { padding: 14px; }
+  html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong { font-size: 26px; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero { padding: 20px !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions { width: 100%; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn { flex: 1 1 0; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { html body:not(#_) .workspaceRoot .homeLanding .hlHeroBtn { transition: none; } }
+
+/* ── Aurora desktop: sidebar dan header melayang seperti kartu kaca ── */
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar { margin: 16px 0 16px 16px !important; width: calc(100% - 16px) !important; height: calc(100dvh - 32px) !important; top: 16px !important; border-radius: 26px !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar { margin: 16px 24px 0 !important; top: 16px !important; border-radius: 22px !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot :is(aside.sidebar, .workspaceHeaderBar) { border-color: rgba(255, 255, 255, 0.1) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitLabel { display: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceContext > :last-child:not(label) { display: none !important; }
+}
