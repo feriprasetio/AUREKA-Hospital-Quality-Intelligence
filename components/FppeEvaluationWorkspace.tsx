@@ -441,6 +441,13 @@ export default function FppeEvaluationWorkspace({
       postToFrame({ type: 'AUREKA_FPPE_ROSTER', roster: nextRoster })
       postToFrame({ type: 'AUREKA_FPPE_NEW', roster: nextRoster })
     }
+    setNotice(frameReady ? 'Formulir FPPE baru siap diisi. Mulai dari Langkah 1 · pilih tenaga.' : 'Formulir FPPE sedang dimuat…')
+    window.setTimeout(() => {
+      const frame = frameRef.current
+      frame?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      frame?.classList.add('fppeFlash'); window.setTimeout(() => frame?.classList.remove('fppeFlash'), 1400)
+      try { frame?.contentWindow?.document.querySelector<HTMLElement>('select, input')?.focus({ preventScroll: true }) } catch { /* abaikan */ }
+    }, 120)
   }
 
   const openEvaluation = (record: FppeRecord) => {
