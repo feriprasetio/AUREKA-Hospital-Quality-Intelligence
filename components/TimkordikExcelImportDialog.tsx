@@ -189,7 +189,6 @@ export default function TimkordikExcelImportDialog({
       setErrorMessage('Ukuran workbook harus lebih besar dari 0 dan maksimal 15 MB.')
       return
     }
-    const expectedCodes = new Set(TIMKORDIK_INDICATORS.map(item => item.code))
     if (profileByCode.size !== 5 || TIMKORDIK_INDICATORS.some(item => !profileByCode.get(item.code)?.id)) {
       setErrorMessage('Lima master indikator Timkordik (30.1–30.5) harus aktif dan terbit pada profil 2026.')
       return
