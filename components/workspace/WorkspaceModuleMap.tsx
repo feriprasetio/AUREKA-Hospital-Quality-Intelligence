@@ -27,11 +27,6 @@ export default function WorkspaceModuleMap({
     <section
       className={'wmmMap' + (expanded ? ' isPinned' : '')}
       aria-label={title}
-      onFocusCapture={() => setExpanded(true)}
-      onBlurCapture={(event) => {
-        const next = event.relatedTarget as Node | null
-        if (!next || !event.currentTarget.contains(next)) setExpanded(false)
-      }}
     >
       <button
         type="button"
@@ -408,6 +403,8 @@ export default function WorkspaceModuleMap({
         }
         .wmmMap.isPinned .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
         .wmmMap.isPinned .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
+        .wmmMap:has(:focus-visible) .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
+        .wmmMap:has(:focus-visible) .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
         @media (hover: hover) and (pointer: fine) {
           .wmmMap:hover .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
           .wmmMap:hover .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
