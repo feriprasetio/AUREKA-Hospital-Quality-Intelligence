@@ -27,3 +27,12 @@ test('Infografis remain aggregate and never present individual patient-level det
   assert.ok(!dashboard.includes('medical_record_number'))
   assert.ok(!dashboard.includes('patient_name'))
 })
+
+
+test('Infographics no longer depends on the decommissioned regulation schema', () => {
+  const migration = readFileSync(new URL('../supabase/migrations/20261113074223_infographics_remove_decommissioned_regulation_dependencies.sql', import.meta.url), 'utf8')
+  assert.doesNotMatch(dashboard, /summary\.regulation|regulation-status|label: 'Regulasi'/)
+  assert.doesNotMatch(migration, /aureka_governance\.regulation_documents|aureka_governance\.regulation_versions/)
+  assert.match(migration, /'regulation', jsonb_build_object\('published', 0, 'pending_approval', 0, 'review_due', 0\)/)
+  assert.match(migration, /security definer[\s\S]*set search_path = ''/)
+})
