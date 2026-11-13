@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
@@ -88,7 +89,8 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
     else{setMessage('Indikator berhasil diaktifkan ke katalog. ID profil: '+profileId);await load()}
     setBusy(false)
   }
-  const field=(key:keyof Payload,label:string,kind:'text'|'number'|'textarea'|'select'='text',options?:string[])=><label className="ipField"><span>{label}</span>{kind==='textarea'?<textarea rows={3} value={String(form?.[key]??'')} onChange={e=>setForm(v=>v?{...v,[key]:e.target.value}:v)}/>:kind==='select'?<select value={String(form?.[key]??'')} onChange={e=>setForm(v=>v?{...v,[key]:e.target.value}:v)}>{(options||[]).map(o=><option key={o} value={o}>{o}</option>)}</select>:<input type={kind} value={form?.[key]===null?'':String(form?.[key]??'')} onChange={e=>setForm(v=>v?{...v,[key]:kind==='number'?(e.target.value===''?null:Number(e.target.value)):e.target.value}:v)}/>}</label>
+  const OPTION_LABEL:Record<string,string>={patient_episode:'Per episode pasien',provider_day:'Per tenaga per hari',daily_metric:'Angka harian',event:'Per kejadian',activity:'Per kegiatan',aggregate:'Agregat',positive:'Makin tinggi makin baik',negative:'Makin rendah makin baik',ratio:'Rasio (N/D)',compliance:'Kepatuhan',visit:'Kunjungan',door:'Waktu tunggu (door-to)',minutes:'Durasi (menit)',numeric:'Angka',occurrence:'Kejadian'}
+  const field=(key:keyof Payload,label:string,kind:'text'|'number'|'textarea'|'select'='text',options?:string[])=><label className="ipField"><span>{label}</span>{kind==='textarea'?<textarea rows={3} value={String(form?.[key]??'')} onChange={e=>setForm(v=>v?{...v,[key]:e.target.value}:v)}/>:kind==='select'?<select value={String(form?.[key]??'')} onChange={e=>setForm(v=>v?{...v,[key]:e.target.value}:v)}>{(options||[]).map(o=><option key={o} value={o}>{OPTION_LABEL[o]||o}</option>)}</select>:<input type={kind} value={form?.[key]===null?'':String(form?.[key]??'')} onChange={e=>setForm(v=>v?{...v,[key]:kind==='number'?(e.target.value===''?null:Number(e.target.value)):e.target.value}:v)}/>}</label>
 
   return <section className="indicatorProposals">
     <style>{`
@@ -143,7 +145,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       </article>)}
       {visible.length===0&&<div className="ipPanel"><AsyncStatePanel state="empty" title="Tidak ada usulan pada filter ini" description="Ubah filter status atau ajukan indikator baru." compact/></div>}
     </div>}
-    {form&&<div className="ipOverlay" role="presentation"><div ref={proposalDialogRef} tabIndex={-1} className="ipPanel ipModal" role="dialog" aria-modal="true" aria-labelledby="ip-form-title"><div className="ipCardHead"><div><h3 id="ip-form-title" className="ipFormTitle">{editingId?'Revisi usulan indikator':'Form pengajuan indikator baru'}</h3><p className="ipIntro">Lengkapi definisi indikator agar dapat ditelaah secara metodologis.</p></div><button className="ipBtn" type="button" data-dialog-autofocus onClick={closeForm} disabled={busy}>Tutup</button></div>
+    {form&&typeof document!=='undefined'&&createPortal(<div className="ipOverlay" role="presentation"><div ref={proposalDialogRef} tabIndex={-1} className="ipPanel ipModal" role="dialog" aria-modal="true" aria-labelledby="ip-form-title"><div className="ipCardHead"><div><h3 id="ip-form-title" className="ipFormTitle">{editingId?'Revisi usulan indikator':'Form pengajuan indikator baru'}</h3><p className="ipIntro">Lengkapi definisi indikator agar dapat ditelaah secara metodologis.</p></div><button className="ipBtn" type="button" data-dialog-autofocus onClick={closeForm} disabled={busy}>Tutup</button></div>
       <div className="ipFormGrid">
         <label className="ipField"><span>Unit pemilik</span><select value={String(form.room_id)} disabled={role==='PIC'} onChange={e=>setForm(v=>v?{...v,room_id:Number(e.target.value)}:v)}>{roomChoices.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
         {field('profile_year','Tahun profil','number')}
@@ -155,7 +157,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
         {field('target_text','Target teks')}
         {field('target_operator','Operator target','select',['>=','<=','=','>','<'])}
         {field('target_value','Nilai target (angka, opsional)','number')}
-        {field('measurement_grain','Grain pengukuran','select',['patient_episode','provider_day','daily_metric','event','activity','aggregate'])}
+        {field('measurement_grain','Unit analisis','select',['patient_episode','provider_day','daily_metric','event','activity','aggregate'])}
         {field('indicator_direction','Arah indikator','select',['positive','negative'])}
         {field('measurement_type','Tipe pengukuran','select',['ratio','compliance','visit','door','minutes','numeric','occurrence'])}
         {field('numerator_definition','Definisi pembilang (N)','textarea')}
@@ -163,6 +165,6 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
         <label className="ipField full"><span>Justifikasi / latar belakang masalah (minimal 20 karakter)</span><textarea rows={4} value={form.rationale} onChange={e=>setForm(v=>v?{...v,rationale:e.target.value}:v)}/></label>
       </div>
       <div className="ipToolbar" style={{justifyContent:'flex-end',marginTop:13}}><button className="ipBtn" type="button" onClick={closeForm} disabled={busy}>Batal</button><button className="ipBtn primary" type="button" onClick={()=>void save()} disabled={busy}>{busy?'Mengirim…':'Kirim usulan'}</button></div>
-    </div></div>}
+    </div></div>,document.body)}
   </section>
 }
