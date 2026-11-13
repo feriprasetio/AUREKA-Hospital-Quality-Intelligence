@@ -20,7 +20,7 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
   assert.ok(home.includes('workspaceNavigationRail'))
   assert.ok(home.includes('activeNestedNavGroup'))
   assert.ok(home.includes('activeRailTitle'))
-  assert.ok(home.includes('activeRailItems'))
+  assert.ok(home.includes('const activeRailItems=activeNavGroups.flatMap(group=>'))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'wmmMap']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(!/onPointerEnter|onPointerLeave|wmmMapPanel/.test(navCss))
@@ -30,7 +30,7 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes("{id:'result-indicators',label:'Hasil Capaian',children:[{id:'result-unit',label:'Unit Keseluruhan'},{id:'result-category',label:'Kategori Indikator'}]}"))
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
   assert.ok(home.includes("const activeRailTitle=activeNestedNavGroup?.label||activeNavModuleLabel"))
-  assert.ok(home.includes("const activeRailItems=activeNestedNavGroup?.children||activeNavGroups"))
+  assert.ok(home.includes("const activeRailItems=activeNavGroups.flatMap(group=>"))
   assert.ok(home.includes("onClick={()=>selectSidebarChild(activeNavModuleId,item.id)}"))
 })
 
