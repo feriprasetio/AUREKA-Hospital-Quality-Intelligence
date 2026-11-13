@@ -409,8 +409,6 @@ export default function WorkspaceModuleMap({
         .wmmMap.isHovered .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
         .wmmMap.isPinned .wmmMapRailChevron,
         .wmmMap.isHovered .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
-        .wmmMap:has(:focus-visible) .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
-        .wmmMap:has(:focus-visible) .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
         @media (hover: hover) and (pointer: fine) {
           .wmmMap:hover .wmmMapPanel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
           .wmmMap:hover .wmmMapRailChevron { transform: rotate(180deg); background: rgba(105,143,161,.16); }
