@@ -554,3 +554,75 @@ html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot.workspaceDesk .worksp
   color: #ffffff !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 4px rgba(0,0,0,.14) !important;
 }
+
+
+/* AUREKA Arktik navigation blue hierarchy.
+   The module label is the deeper blue shape; its contextual sub-tabs stay lighter.
+   Higher specificity intentionally supersedes the older green workspace-tab skin. */
+html[data-skin="arktik"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  background: #e7f0f8 !important;
+  border: 1px solid #c8d9e8 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92) !important;
+}
+html[data-skin="arktik"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+  background: #d4e4f2 !important;
+  border: 1px solid #b6cde0 !important;
+  color: #174268 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.78), 0 1px 2px rgba(11,70,122,.08) !important;
+}
+html[data-skin="arktik"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailDivider {
+  color: #7798b5 !important;
+}
+html[data-skin="arktik"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem {
+  background: #edf5fb !important;
+  border-color: #d0e0ee !important;
+  color: #355a79 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 1px 1px rgba(11,70,122,.035) !important;
+}
+html[data-skin="arktik"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem:hover {
+  background: #e3eef7 !important;
+  border-color: #b9d0e3 !important;
+  color: #0b467a !important;
+}
+html[data-skin="arktik"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem.active {
+  background: #dcebf8 !important;
+  border-color: #a9c7df !important;
+  color: #0b467a !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.96), 0 1px 3px rgba(11,70,122,.11) !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem:focus-visible {
+  outline: 2px solid rgba(11,70,122,.42) !important;
+  outline-offset: 1px !important;
+}
+
+/* Dark Arktik uses the same hierarchy with a higher-contrast blue scale. */
+html[data-skin="arktik"][data-mode="gelap"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  background: #142a40 !important;
+  border-color: #34516c !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+  background: #284d6e !important;
+  border-color: #456b8a !important;
+  color: #f0f7fc !important;
+}
+html[data-skin="arktik"][data-mode="gelap"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailDivider {
+  color: #87a7c4 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem {
+  background: #1b3853 !important;
+  border-color: #355674 !important;
+  color: #d1e2f0 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem:hover {
+  background: #294c69 !important;
+  border-color: #4b6f8c !important;
+  color: #ffffff !important;
+}
+html[data-skin="arktik"][data-mode="gelap"][data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem.active {
+  background: #315f86 !important;
+  border-color: #6a91b3 !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 4px rgba(0,0,0,.16) !important;
+}
