@@ -5,6 +5,7 @@ import {
   aggregateClinicalPathwayRows,
   aggregatePathwayByMonth,
   calculateIndicatorResult,
+  calculateIndicatorResultsForProfiles,
   calculatePathwayAuditMetrics,
 } from '../lib/aureka/quality-results-engine.ts'
 
@@ -57,6 +58,23 @@ test('indicator results pool numerators and denominators instead of averaging mo
   assert.equal(result.monthly[0].validatedRecords, 0)
   assert.equal(result.monthly[1].validatedRecords, 1)
   assert.equal(result.monthly[2].rate, null)
+})
+
+test('hospital-wide indicator aggregation isolates reused indicator codes by room', () => {
+  const profiles = [
+    { id: 'p-room-1', room_id: 1, code: '1.1', title: 'Respon unit 1', measurement_grain: 'daily_metric', target_text: '≥ 80%', target_operator: '>=', target_value: 80 },
+    { id: 'p-room-2', room_id: 2, code: '1.1', title: 'Respon unit 2', measurement_grain: 'daily_metric', target_text: '≥ 80%', target_operator: '>=', target_value: 80 },
+  ]
+  const rows = [
+    { room_id: 1, record_date: '2026-01-01', status: 'validated', core_data: { indicator_values: { '1.1': { numerator: 1, denominator: 2 } } } },
+    { room_id: 2, record_date: '2026-01-01', status: 'validated', core_data: { indicator_values: { '1.1': { numerator: 9, denominator: 10 } } } },
+  ]
+  const results = calculateIndicatorResultsForProfiles(profiles, rows, 2026)
+  assert.equal(results.length, 2)
+  assert.equal(results[0].annualRate, 50)
+  assert.equal(results[1].annualRate, 90)
+  assert.equal(results[0].observations, 1)
+  assert.equal(results[1].observations, 1)
 })
 
 test('option results use the published numerator mapping, not the option code alone', () => {
