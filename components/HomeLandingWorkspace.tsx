@@ -379,6 +379,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
         initialRoomId={isAdmin ? (selectedRoomId ?? roomId) : (manager || role==='DEWAN_PENGAWAS' ? null : roomId)}
         unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role || '')}
         onNavigate={onNavigate}
+        onRoomChange={onRoomChange}
       />
     </div>}
   </section>
