@@ -60,17 +60,14 @@ test('primary navigation uses one white surface rather than glossy menu cards', 
 
 })
 
-test('nested sidebar menus expose expanded state and connected submenu controls', () => {
+test('sidebar contains module buttons only; contextual sub-tabs live in the static rail', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /aria-controls=.*sidebar-children-/)
-  assert.match(home, /aria-current=\{active===id\?'page':undefined\}/)
-  assert.match(home, /id=.*sidebar-children-/)
-  assert.match(home, /hidden=\{!groupOpen\}/)
-  assert.match(home, /hidden=\{!nOpen\}/)
-
+  const navCss = read('app/aureka-navigation-consolidated.css')
+  assert.match(home, /aria-label="Navigasi modul AUREKA"/)
+  assert.match(home, /visibleMods\\.map/)
+  assert.match(home, /workspaceNavigationRail/)
+  assert.match(home, /activeNestedNavGroup/)
+  assert.doesNotMatch(home, /sidebarTreeChildren|sidebarNestedGroup|closedNav|toggleNav\\(/)
+  assert.match(navCss, /\\.workspaceNavigationRail/)
+  assert.match(navCss, /\\.workspaceRoot \\.sidebar \\.sidebarTreeChildren/)
 })
-
-
-
-
-
