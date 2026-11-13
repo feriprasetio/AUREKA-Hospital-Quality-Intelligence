@@ -1,5 +1,6 @@
 'use client'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
@@ -311,7 +312,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       ;(episodeResult.data ?? []).forEach((row: any) => databaseEpisodes.push(buildEpisode(row, roomMap)))
     }
     if (auditResult.error) {
-      setMessage('Data telaah belum dapat dimuat: ' + auditResult.error.message)
+      setMessage('Data telaah belum dapat dimuat: ' + toUserFacingError(auditResult.error, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
     } else {
       const nextAudits = (auditResult.data ?? []) as AuditRow[]
       setAudits(nextAudits)
@@ -491,7 +492,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         const { error: deleteLinkError } = await q().from('staff_entity_attributions').delete()
           .eq('entity_type', 'clinical_death_audit').eq('entity_id', savedAuditId).eq('field_key', 'dpjp')
         if (deleteLinkError) {
-          identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP tidak dapat diperbarui: ' + deleteLinkError.message
+          identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP tidak dapat diperbarui: ' + toUserFacingError(deleteLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
         } else if (dpjpStaffId) {
           const { error: insertLinkError } = await q().from('staff_entity_attributions').insert({
             entity_type: 'clinical_death_audit',
@@ -502,7 +503,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
             created_by: userData.user.id,
             updated_by: userData.user.id,
           })
-          if (insertLinkError) identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP gagal disimpan: ' + insertLinkError.message
+          if (insertLinkError) identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP gagal disimpan: ' + toUserFacingError(insertLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
         }
       }
       await load()

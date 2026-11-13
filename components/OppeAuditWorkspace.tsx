@@ -309,7 +309,7 @@ export default function OppeAuditWorkspace({
           .eq('directory_status', 'available')
           .in('id', batch)
           .order('display_name')
-        if (directoryError) throw new Error('Master tenaga kerja OPPE: ' + directoryError.message)
+        if (directoryError) throw new Error('Master tenaga kerja OPPE: ' + toUserFacingError(directoryError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
         directoryRows.push(...(directoryBatch || []))
       }
       const nextTeamStaff: AssignedStaff[] = directoryRows.flatMap((staff: any) =>

@@ -927,3 +927,11 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem
   /* Tombol Kembali/Lanjut survei di atas navigasi bawah, tidak saling menutupi. */
   html body:not(#_) .svNav { bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
 }
+
+/* ── Mode gelap: panel yang sebelumnya tetap putih (Infografis, daftar ruangan logbook, info Audit Klinis, kartu unit) ── */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch, .aqRoomOverview, .aqRoomOverviewCard, .acdInfo, .roomCard) { background: rgba(17, 28, 46, .88) !important; background-image: none !important; border-color: rgba(148, 163, 184, .18) !important; color: #e2e8f0 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch, .aqRoomOverview, .aqRoomOverviewCard, .acdInfo, .roomCard) :is(h1, h2, h3, h4, strong, b) { color: #f1f5f9 !important; -webkit-text-fill-color: currentColor !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch, .aqRoomOverview, .aqRoomOverviewCard, .acdInfo, .roomCard) :is(p, span, small, label, em) { color: #b9c3d6 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .aqRoomOverviewCard:hover { background: rgba(30, 45, 70, .95) !important; border-color: rgba(124, 196, 255, .35) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .acdInfo.warn { background: rgba(120, 80, 10, .28) !important; border-color: rgba(251, 191, 36, .35) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifHero, .ifTypeSwitch) :is(select, button) { background: rgba(30, 41, 59, .9) !important; color: #e2e8f0 !important; border-color: rgba(148, 163, 184, .25) !important; }

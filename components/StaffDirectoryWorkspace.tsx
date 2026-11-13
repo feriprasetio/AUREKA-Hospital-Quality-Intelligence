@@ -102,7 +102,7 @@ export default function StaffDirectoryWorkspace() {
       .select('id,employee_code,display_name,normalized_name,name_prefix,credentials,profession_group,position_title,source_unit,staff_group,source_sheet,source_year,directory_status,review_note,updated_at')
       .order('display_name', { ascending: true })
       .limit(5000)
-    if (loadError) setError('Gagal memuat master tenaga kerja: ' + loadError.message)
+    if (loadError) setError('Gagal memuat master tenaga kerja: ' + toUserFacingError(loadError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
     else { setRows((data || []) as Staff[]); try { sessionStorage.setItem('aureka-staff-dir', JSON.stringify({ at: Date.now(), rows: data || [] })) } catch { /* abaikan */ } }
     setLoading(false)
   }, [])
@@ -175,7 +175,7 @@ export default function StaffDirectoryWorkspace() {
           updated_by: authData.user.id,
         })
         .eq('id', editingStaff.id)
-      if (updateError) throw new Error('Metadata tenaga tidak dapat disimpan: ' + updateError.message)
+      if (updateError) throw new Error('Metadata tenaga tidak dapat disimpan: ' + toUserFacingError(updateError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setMessage(`Metadata ${editingStaff.employee_code} berhasil diperbarui. Kode AUREKA dan ID riwayat tidak berubah.`)
       setEditingStaff(null)
       setDraft(null)
@@ -199,7 +199,7 @@ export default function StaffDirectoryWorkspace() {
     const { error: updateError } = await q().from('staff_directory')
       .update({ directory_status: next, updated_by: authData.user.id })
       .eq('id', staff.id)
-    if (updateError) setError('Perubahan kelayakan tenaga gagal disimpan: ' + updateError.message)
+    if (updateError) setError('Perubahan kelayakan tenaga gagal disimpan: ' + toUserFacingError(updateError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
     else {
       setMessage(`${staff.display_name}: ${statusLabel[next].toLowerCase()}.`)
       await load()
@@ -267,7 +267,7 @@ export default function StaffDirectoryWorkspace() {
         const { data: existingRows, error: lookupError } = await q().from('staff_directory')
           .select('id,employee_code')
           .in('employee_code', batchCodes)
-        if (lookupError) throw new Error('Gagal mencocokkan kode Tenaga AUREKA yang sudah ada: ' + lookupError.message)
+        if (lookupError) throw new Error('Gagal mencocokkan kode Tenaga AUREKA yang sudah ada: ' + toUserFacingError(lookupError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
         for (const row of existingRows || []) existingByCode.set(String(row.employee_code), String(row.id))
       }
       const stableImported = imported.map((item) => ({

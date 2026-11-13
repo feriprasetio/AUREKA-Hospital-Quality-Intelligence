@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 import type { NavigateFn } from '@/lib/aureka/focus'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Room = { id: number; name: string }
 type CountItem = { label: string; count: number }
@@ -194,7 +195,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         if (rpcError) {
           const missing = rpcError.code === 'PGRST202' || /Could not find the function|schema cache/i.test(rpcError.message || '')
           setSummary(null)
-          setError(missing ? 'Ringkasan lintas domain belum aktif. Jalankan migrasi 20261112140000_aureka_infographics_aggregate.sql lalu 20261112044800_infographics_permission_guard.sql (urutan ini) pada database.' : rpcError.message || 'Ikhtisar belum dapat dimuat.')
+          setError(missing ? 'Ringkasan lintas unit belum aktif di server. Admin AUREKA perlu menjalankan pembaruan database Infografis (20261112140000_aureka_infographics_aggregate.sql, lalu 20261112044800_infographics_permission_guard.sql).' : toUserFacingError(rpcError, { fallback: 'Ikhtisar belum dapat dimuat. Periksa koneksi lalu coba lagi.' }))
         } else setSummary(data as Summary)
         setLoading(false)
       })

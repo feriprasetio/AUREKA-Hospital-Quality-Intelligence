@@ -5,6 +5,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Room = { id: number; name: string }
 type Proposal = {
@@ -42,7 +43,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
   const load=useCallback(async()=>{
     setLoading(true);setError('')
     const {data,error:rpcError}=await aurekaSupabase.rpc('aureka_gov_indicator_proposal_list')
-    if(rpcError){setError('Daftar usulan indikator belum dapat dimuat: '+rpcError.message);setLoading(false);return}
+    if(rpcError){setError('Daftar usulan indikator belum dapat dimuat: '+toUserFacingError(rpcError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }));setLoading(false);return}
     const list=(data?.rows||[]) as Proposal[]
     setRows(list)
     setActivationCodes(prev=>{const next={...prev};for(const item of list)if(!next[item.id])next[item.id]=item.proposed_code||'';return next})

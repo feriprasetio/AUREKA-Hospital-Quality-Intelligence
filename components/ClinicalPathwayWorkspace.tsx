@@ -1,5 +1,6 @@
 'use client'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
@@ -252,6 +253,20 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [builder, setBuilder] = useState<Template | null>(null)
   const [builderIsNew, setBuilderIsNew] = useState(false)
   const [builderReturnScreen, setBuilderReturnScreen] = useState<'library' | 'diagnosis'>('diagnosis')
+  // Esc menutup popup editor format (dengan konfirmasi agar isian tidak hilang tanpa sengaja).
+  useEffect(() => {
+    if (screen !== 'builder') return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || saving || event.defaultPrevented) return
+      if (document.querySelector('.akConfirmText, [role="alertdialog"]')) return
+      event.preventDefault()
+      void (async () => {
+        if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) { setBuilder(null); setBuilderIsNew(false); setMessage(''); setScreen(builderReturnScreen) }
+      })()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [screen, saving, builderReturnScreen])
   const [patientPanelCollapsed, setPatientPanelCollapsed] = useState(false)
   const [teamStaff, setTeamStaff] = useState<StaffOption[]>([])
   const [staffLoading, setStaffLoading] = useState(false)
@@ -353,7 +368,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       setTemplates([])
       setSelectedCode('')
       setMasterReady(false)
-      setMessage('Format Clinical Pathway tidak dapat dimuat. Silakan muat ulang atau hubungi administrator. ' + (e?.message || ''))
+      setMessage('Format Clinical Pathway tidak dapat dimuat. Silakan muat ulang atau hubungi administrator. ' + toUserFacingError(e, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setMessageKind('error')
     } finally {
       setLoading(false)
@@ -395,7 +410,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       setMessage('Berhasil mengimpor 8 format Clinical Pathway.')
       setMessageKind('info')
     } catch (error: any) {
-      setMessage('Impor master Clinical Pathway gagal: ' + (error?.message || 'Kesalahan tidak diketahui.'))
+      setMessage('Impor master Clinical Pathway gagal: ' + toUserFacingError(error, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setMessageKind('error')
     } finally {
       setImportingMaster(false)
@@ -415,7 +430,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       if (error) throw error
       setAudits((data || []) as AuditRow[])
     } catch (e: any) {
-      setMessage('Gagal memuat daftar audit CP: ' + (e?.message || 'Kesalahan server.'))
+      setMessage('Gagal memuat daftar audit CP: ' + toUserFacingError(e, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setMessageKind('error')
     } finally {
       setAuditLoading(false)
@@ -473,7 +488,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       setPatientPanelCollapsed(false)
       setScreen('audit')
     } catch (e: any) {
-      setMessage('Tidak dapat membuka audit: ' + (e?.message || 'Kesalahan server.'))
+      setMessage('Tidak dapat membuka audit: ' + toUserFacingError(e, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setMessageKind('error')
     } finally {
       setSaving(false)
@@ -658,7 +673,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         const { error: deleteLinkError } = await q().from('staff_entity_attributions')
           .delete().eq('entity_type', 'clinical_pathway_audit').eq('entity_id', auditId).eq('field_key', fieldKey)
         if (deleteLinkError) {
-          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga tidak dapat diperbarui: ' + deleteLinkError.message
+          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga tidak dapat diperbarui: ' + toUserFacingError(deleteLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
           break
         }
         const staffId = staffAttributions[fieldKey]
@@ -673,7 +688,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           updated_by: auth.data.user.id,
         })
         if (insertLinkError) {
-          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga gagal disimpan: ' + insertLinkError.message
+          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga gagal disimpan: ' + toUserFacingError(insertLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
           break
         }
       }
@@ -685,7 +700,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       setMessageKind(identityWarning ? 'error' : 'info')
       if (screen === 'diagnosis') await loadAudits(result.data.template_code)
     } catch (e: any) {
-      setMessage('Audit Clinical Pathway belum berhasil disimpan: ' + (e?.message || 'Kesalahan server.'))
+      setMessage('Audit Clinical Pathway belum berhasil disimpan: ' + toUserFacingError(e, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setMessageKind('error')
     } finally {
       setSaving(false)
@@ -824,7 +839,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       setTemplates((old)=>[...old.filter((item)=>item.code!==normalized.code),normalized].sort((a,b)=>a.name.localeCompare(b.name,'id')))
       setMasterReady(true);setSelectedCode(normalized.code);setBuilder(null);setBuilderIsNew(false);setScreen(builderReturnScreen)
       setMessage((builderIsNew?'Clinical Pathway baru':'Format CP')+' versi '+nextVersion+' berhasil disimpan. Audit terdahulu tetap memakai snapshot versi sebelumnya.');setMessageKind('info')
-    } catch(e:any){setMessage('Gagal menyimpan format CP: '+(e?.message||'Kesalahan server.'));setMessageKind('error')}
+    } catch(e:any){setMessage('Gagal menyimpan format CP: '+toUserFacingError(e, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }));setMessageKind('error')}
     finally{setSaving(false)}
   }
 
@@ -1150,17 +1165,17 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Identitas format Clinical Pathway</h4><p>Lengkapi identitas diagnosis, status publikasi, ambang penilaian, dan definisi perhitungan.</p></div><span className="cpBadge">{builderIsNew ? 'Master baru' : 'Versi ' + builder.version}</span></div>
         <div className="cpFormGrid">
-          <div className="cpField"><label>Kode internal</label><input value={builder.code} readOnly={!builderIsNew} onChange={(e) => patchBuilder({ code: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-') })} placeholder="mis. cp-diagnosis-baru" /><small className="cpTiny">Huruf kecil, angka, dan tanda hubung. Kode format lama dikunci untuk menjaga tautan audit.</small></div>
-          <div className="cpField span2"><label>Nama diagnosis / Clinical Pathway *</label><input value={builder.name} onChange={(e) => patchBuilder({ name: e.target.value })} placeholder="Nama diagnosis atau tindakan" /></div>
-          <div className="cpField"><label>Kode ICD-10</label><input value={builder.icd10} onChange={(e) => patchBuilder({ icd10: e.target.value })} placeholder="Kode ICD-10" /></div>
-          <div className="cpField"><label>Status master</label><select value={builder.status} onChange={(e) => patchBuilder({ status: e.target.value })}><option value="draft">Draf</option><option value="published">Aktif / diterbitkan</option><option value="retired">Tidak aktif</option></select></div>
-          <div className="cpField span2"><label>Nama dokumen sumber / rujukan</label><input value={builder.source_filename} onChange={(e) => patchBuilder({ source_filename: e.target.value })} placeholder="Nama dokumen atau sumber penyusunan" /></div>
-          <div className="cpField"><label>Standar keterisian (%)</label><input type="number" min="0" max="100" value={builder.scoring_rules.completion_threshold_pct} onChange={(e) => patchBuilderScoring({ completion_threshold_pct: n(e.target.value) })} /></div>
-          <div className="cpField"><label>Target kepatuhan (%)</label><input type="number" min="0" max="100" value={builder.scoring_rules.compliance_target_pct} onChange={(e) => patchBuilderScoring({ compliance_target_pct: n(e.target.value) })} /></div>
-          <div className="cpField span2"><label>Definisi persentase keterisian</label><textarea rows={2} value={builder.scoring_rules.completion_definition} onChange={(e) => patchBuilderScoring({ completion_definition: e.target.value })} /></div>
-          <div className="cpField span2"><label>Definisi persentase kepatuhan</label><textarea rows={2} value={builder.scoring_rules.compliance_definition} onChange={(e) => patchBuilderScoring({ compliance_definition: e.target.value })} /></div>
-          <div className="cpField"><label>Variasi pelayanan wajib diisi?</label><select value={builder.scoring_rules.variation_required === false ? 'false' : 'true'} onChange={(e) => patchBuilderScoring({ variation_required: e.target.value === 'true' })}><option value="true">Ya, wajib dinyatakan</option><option value="false">Tidak diwajibkan</option></select></div>
-          <div className="cpField span2"><label>Ketentuan variasi pelayanan</label><textarea rows={2} value={builder.scoring_rules.variation_definition} onChange={(e) => patchBuilderScoring({ variation_definition: e.target.value })} /></div>
+          <div className="cpField"><label>Kode internal</label><input aria-label="Kode internal" value={builder.code} readOnly={!builderIsNew} onChange={(e) => patchBuilder({ code: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-') })} placeholder="mis. cp-diagnosis-baru" /><small className="cpTiny">Huruf kecil, angka, dan tanda hubung. Kode format lama dikunci untuk menjaga tautan audit.</small></div>
+          <div className="cpField span2"><label>Nama diagnosis / Clinical Pathway *</label><input aria-label="Nama diagnosis atau Clinical Pathway" value={builder.name} onChange={(e) => patchBuilder({ name: e.target.value })} placeholder="Nama diagnosis atau tindakan" /></div>
+          <div className="cpField"><label>Kode ICD-10</label><input aria-label="Kode ICD-10" value={builder.icd10} onChange={(e) => patchBuilder({ icd10: e.target.value })} placeholder="Kode ICD-10" /></div>
+          <div className="cpField"><label>Status master</label><select aria-label="Status master" value={builder.status} onChange={(e) => patchBuilder({ status: e.target.value })}><option value="draft">Draf</option><option value="published">Aktif / diterbitkan</option><option value="retired">Tidak aktif</option></select></div>
+          <div className="cpField span2"><label>Nama dokumen sumber / rujukan</label><input aria-label="Nama dokumen sumber" value={builder.source_filename} onChange={(e) => patchBuilder({ source_filename: e.target.value })} placeholder="Nama dokumen atau sumber penyusunan" /></div>
+          <div className="cpField"><label>Standar keterisian (%)</label><input aria-label="Standar keterisian persen" type="number" min="0" max="100" value={builder.scoring_rules.completion_threshold_pct} onChange={(e) => patchBuilderScoring({ completion_threshold_pct: n(e.target.value) })} /></div>
+          <div className="cpField"><label>Target kepatuhan (%)</label><input aria-label="Target kepatuhan persen" type="number" min="0" max="100" value={builder.scoring_rules.compliance_target_pct} onChange={(e) => patchBuilderScoring({ compliance_target_pct: n(e.target.value) })} /></div>
+          <div className="cpField span2"><label>Definisi persentase keterisian</label><textarea aria-label="Definisi persentase keterisian" rows={2} value={builder.scoring_rules.completion_definition} onChange={(e) => patchBuilderScoring({ completion_definition: e.target.value })} /></div>
+          <div className="cpField span2"><label>Definisi persentase kepatuhan</label><textarea aria-label="Definisi persentase kepatuhan" rows={2} value={builder.scoring_rules.compliance_definition} onChange={(e) => patchBuilderScoring({ compliance_definition: e.target.value })} /></div>
+          <div className="cpField"><label>Variasi pelayanan wajib diisi?</label><select aria-label="Variasi pelayanan wajib diisi" value={builder.scoring_rules.variation_required === false ? 'false' : 'true'} onChange={(e) => patchBuilderScoring({ variation_required: e.target.value === 'true' })}><option value="true">Ya, wajib dinyatakan</option><option value="false">Tidak diwajibkan</option></select></div>
+          <div className="cpField span2"><label>Ketentuan variasi pelayanan</label><textarea aria-label="Ketentuan variasi pelayanan" rows={2} value={builder.scoring_rules.variation_definition} onChange={(e) => patchBuilderScoring({ variation_definition: e.target.value })} /></div>
         </div>
       </div>
       <div className="cpGlass cpPanel">
@@ -1170,14 +1185,14 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           <table className="cpTable cpBuilderMatrix" style={{ width: 951 + builder.days.length * 90, minWidth: 951 + builder.days.length * 90, tableLayout: 'fixed' }}>
             <colgroup><col style={{ width: 170 }} /><col style={{ width: 145 }} /><col style={{ width: 180 }} /><col style={{ width: 300 }} />{builder.days.map((day,index)=><col key={'builder-col-'+index} style={{ width: 90 }} />)}<col style={{ width: 76 }} /><col style={{ width: 80 }} /></colgroup>
             <thead><tr><th>Profesi / bagian</th><th>Pilihan PPA</th><th>Kelompok / tahap</th><th>Item / tindakan dan keterangan</th>
-              {builder.days.map((day,index)=><th key={'builder-day-'+index} className="cpBuilderDayHead"><input className="cpBuilderDayName" value={day} onChange={(e)=>renameBuilderDay(day,e.target.value)} aria-label={'Nama hari atau tahap '+(index+1)} title="Ubah nama hari/tahap"/><button type="button" className="cpBuilderDayRemove" disabled={builder.days.length<=1} onClick={()=>removeBuilderDay(day)} title="Hapus hari/tahap" aria-label={'Hapus '+day}>×</button></th>)}
+              {builder.days.map((day,index)=><th key={'builder-day-'+index} className="cpBuilderDayHead"><input aria-label="Nama hari atau tahap" className="cpBuilderDayName" value={day} onChange={(e)=>renameBuilderDay(day,e.target.value)} aria-label={'Nama hari atau tahap '+(index+1)} title="Ubah nama hari/tahap"/><button type="button" className="cpBuilderDayRemove" disabled={builder.days.length<=1} onClick={()=>removeBuilderDay(day)} title="Hapus hari/tahap" aria-label={'Hapus '+day}>×</button></th>)}
               <th>Bukti OPPE</th><th>Hapus</th></tr></thead>
             <tbody>{builder.items.map((item)=><tr key={item.id}>
-              <td className="cpBuilderTextCell"><input className="cpInput" value={item.profession} onChange={(e)=>patchBuilderItem(item.id,{profession:e.target.value})} placeholder="Profesi / kelompok PPA" aria-label="Profesi PPA"/><input className="cpInput" value={item.section} onChange={(e)=>patchBuilderItem(item.id,{section:e.target.value})} placeholder="Bagian (A, B, C…)" aria-label="Bagian pathway"/></td>
-              <td><input className="cpInput" value={item.choice} onChange={(e)=>patchBuilderItem(item.id,{choice:e.target.value})} placeholder="Pilih item ini" aria-label="Label pilihan PPA"/></td>
-              <td><input className="cpInput" value={item.stage} onChange={(e)=>patchBuilderItem(item.id,{stage:e.target.value})} placeholder="Kelompok / tahap" aria-label="Kelompok atau tahap"/></td>
-              <td className="cpBuilderItemCell"><input className="cpInput" value={item.label} onChange={(e)=>patchBuilderItem(item.id,{label:e.target.value})} placeholder="Nama item / tindakan *" aria-label="Nama item atau tindakan"/><textarea className="cpInput" value={item.detail} onChange={(e)=>patchBuilderItem(item.id,{detail:e.target.value})} placeholder="Keterangan, dosis, atau detail" aria-label="Keterangan atau dosis"/><textarea className="cpInput cpBuilderAlias" value={(item.text_mining?.aliases || []).join(', ')} onChange={(e)=>patchBuilderItem(item.id,{text_mining:{...(item.text_mining || {}),aliases:e.target.value.split(',').map((value)=>value.trim()).filter(Boolean)}})} placeholder="Sinonim / alias text mining (pisahkan dengan koma)" aria-label="Sinonim text mining"/></td>
-              {builder.days.map((day,index)=>{const policy=item.schedule.find((cell)=>cell.day===day)?.policy||'not_scheduled';return <td key={item.id+'-schedule-'+index} className={'cpCell cpBuilderScheduleCell '+policy}><select className={'cpInput cpBuilderPolicy '+policy} value={policy} onChange={(e)=>patchBuilderSchedule(item.id,day,e.target.value as Policy)} aria-label={'Jadwal '+day+' · '+item.label}><option value="required">Wajib · hijau</option><option value="conditional">Kondisional · kuning</option><option value="not_scheduled">Tidak dijadwalkan</option></select></td>})}
+              <td className="cpBuilderTextCell"><input aria-label="Profesi atau bagian" className="cpInput" value={item.profession} onChange={(e)=>patchBuilderItem(item.id,{profession:e.target.value})} placeholder="Profesi / kelompok PPA" aria-label="Profesi PPA"/><input aria-label="Bagian" className="cpInput" value={item.section} onChange={(e)=>patchBuilderItem(item.id,{section:e.target.value})} placeholder="Bagian (A, B, C…)" aria-label="Bagian pathway"/></td>
+              <td><input aria-label="Pilihan PPA" className="cpInput" value={item.choice} onChange={(e)=>patchBuilderItem(item.id,{choice:e.target.value})} placeholder="Pilih item ini" aria-label="Label pilihan PPA"/></td>
+              <td><input aria-label="Kelompok atau tahap" className="cpInput" value={item.stage} onChange={(e)=>patchBuilderItem(item.id,{stage:e.target.value})} placeholder="Kelompok / tahap" aria-label="Kelompok atau tahap"/></td>
+              <td className="cpBuilderItemCell"><input aria-label="Item tindakan" className="cpInput" value={item.label} onChange={(e)=>patchBuilderItem(item.id,{label:e.target.value})} placeholder="Nama item / tindakan *" aria-label="Nama item atau tindakan"/><textarea aria-label="Keterangan item" className="cpInput" value={item.detail} onChange={(e)=>patchBuilderItem(item.id,{detail:e.target.value})} placeholder="Keterangan, dosis, atau detail" aria-label="Keterangan atau dosis"/><textarea aria-label="Kata kunci text mining" className="cpInput cpBuilderAlias" value={(item.text_mining?.aliases || []).join(', ')} onChange={(e)=>patchBuilderItem(item.id,{text_mining:{...(item.text_mining || {}),aliases:e.target.value.split(',').map((value)=>value.trim()).filter(Boolean)}})} placeholder="Sinonim / alias text mining (pisahkan dengan koma)" aria-label="Sinonim text mining"/></td>
+              {builder.days.map((day,index)=>{const policy=item.schedule.find((cell)=>cell.day===day)?.policy||'not_scheduled';return <td key={item.id+'-schedule-'+index} className={'cpCell cpBuilderScheduleCell '+policy}><select aria-label="Aturan jadwal" className={'cpInput cpBuilderPolicy '+policy} value={policy} onChange={(e)=>patchBuilderSchedule(item.id,day,e.target.value as Policy)} aria-label={'Jadwal '+day+' · '+item.label}><option value="required">Wajib · hijau</option><option value="conditional">Kondisional · kuning</option><option value="not_scheduled">Tidak dijadwalkan</option></select></td>})}
               <td><label className="cpOppe"><input type="checkbox" checked={!!item.oppe} onChange={(e)=>patchBuilderItem(item.id,{oppe:e.target.checked})}/>Ya</label></td><td><button type="button" className="cpBtn cpBuilderDelete" onClick={()=>removeBuilderItem(item.id)}>Hapus</button></td>
             </tr>)}</tbody>
           </table>

@@ -79,14 +79,14 @@ export default function StaffTeamWorkspace({
       }
       // The database RPC deliberately omits staff locked to other teams.
       const { data: directoryRows, error: directoryError } = await q().rpc('list_assignable_staff', { p_room_id: roomId })
-      if (directoryError) throw new Error('Daftar tenaga yang dapat dipetakan: ' + directoryError.message)
+      if (directoryError) throw new Error('Daftar tenaga yang dapat dipetakan: ' + toUserFacingError(directoryError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setDirectory((directoryRows || []) as DirectoryStaff[])
       const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
         .select('id,staff_id,room_id,assignment_status,is_locked,assigned_at,assigned_user_id')
         .eq('room_id', roomId)
         .eq('assignment_status', 'active')
         .order('assigned_at', { ascending: true })
-      if (assignmentError) throw new Error('Daftar tim: ' + assignmentError.message)
+      if (assignmentError) throw new Error('Daftar tim: ' + toUserFacingError(assignmentError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
       setAssignments((assignmentRows || []) as Assignment[])
     } catch (e) {
       setError(toUserFacingError(e, { fallback: 'Daftar tim belum dapat dimuat. Coba muat ulang.' }))
