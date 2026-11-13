@@ -30,7 +30,7 @@ type Props = {
   manager: boolean
   scopeToRoom?: boolean
   selectedRoomId?: number | null
-  onRoomChange?: (roomId: number) => void
+  onRoomChange?: (roomId: number | null) => void
   onNavigate: NavigateFn
   onReminderRead?: () => void
   initialTab?: 'welcome' | 'infographics'
