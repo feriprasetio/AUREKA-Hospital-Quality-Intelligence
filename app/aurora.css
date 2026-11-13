@@ -130,3 +130,53 @@ html body:not(#_) .workspaceRoot .homeLanding .hlDuo .hlAi .tanyaPanelEmbedded {
   html body:not(#_) .workspaceRoot .homeLanding .hlDuo { grid-template-columns: minmax(0, 1fr); }
   html body:not(#_) .workspaceRoot .homeLanding .hlDuo .hlAi .tanyaPanelEmbedded { height: min(520px, 70vh) !important; }
 }
+
+/* ── Aurora di semua modul: panel kaca rapi, sudut seragam, tanpa bayangan berat ── */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(.liquidGlass, .cpGlass, .oppeGlass, .acdPanel, .workspaceTableFrame, .oppeManualCard, .qraPanel, .stPanel, .settingsActivePanel, .prPanel, .workspaceSummary, .rmPanel, .workspaceActivePanel, .ppPanel, .fppePanel, .sdPanel, .psStatsCard, .ifHero, .ifPanel, .aqRoomOverview, .svCard) {
+  background: rgba(255, 255, 255, 0.5) !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 10px 30px rgba(31, 36, 48, 0.05) !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(.prKpi, .qraKpi, .rmKpi, .ppKpi, .ifKpi, .psKpi, .acdKpi, .oppeKpi) {
+  background: rgba(255, 255, 255, 0.55) !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard) {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  transition: background-color .18s ease, border-color .18s ease, translate .18s cubic-bezier(.22, 1, .36, 1) !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard):hover { background: rgba(255, 255, 255, 0.9) !important; border-color: rgba(34, 211, 238, 0.55) !important; translate: 0 -2px; }
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewIndex) { background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(74, 222, 128, 0.18)) !important; color: #0e7490 !important; border: 0 !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(table) thead th { background: rgba(255, 255, 255, 0.55) !important; }
+
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter :is(.liquidGlass, .cpGlass, .oppeGlass, .acdPanel, .workspaceTableFrame, .oppeManualCard, .qraPanel, .stPanel, .settingsActivePanel, .prPanel, .workspaceSummary, .rmPanel, .workspaceActivePanel, .ppPanel, .fppePanel, .sdPanel, .psStatsCard, .ifHero, .ifPanel, .aqRoomOverview, .svCard, .prKpi, .qraKpi, .rmKpi, .ppKpi, .ifKpi, .psKpi, .acdKpi, .oppeKpi, .aqRoomOverviewCard, .roomCard) {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewIndex) { color: #67e8f9 !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter :is(table) thead th { background: rgba(255, 255, 255, 0.06) !important; }
+@media (hover: hover) and (pointer: fine) {
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard):hover { background: rgba(255, 255, 255, 0.09) !important; border-color: rgba(34, 211, 238, 0.4) !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard) { transition: none !important; }
+}
+
+/* Header & sidebar: kaca terang menyatu dengan latar aurora */
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(255, 255, 255, 0.5) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.45) !important; border-right: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(15, 18, 24, 0.6) !important; border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.04) !important; border-right-color: rgba(255, 255, 255, 0.08) !important; }
+}
