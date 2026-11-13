@@ -271,6 +271,23 @@ function emptyMonthly(month: number): MonthlyIndicatorResult {
   return { month, numerator: 0, denominator: 0, rate: null, mean: null, targetAttainment: null, observations: 0, readyRecords: 0, validatedRecords: 0 }
 }
 
+/** Calculate each unit's indicator profile only from records belonging to that unit.
+ *  Required for hospital-wide dashboards: indicator codes are commonly reused across units.
+ */
+export function calculateIndicatorResultsForProfiles(
+  profiles: IndicatorProfileForResults[],
+  rows: ResultRecord[],
+  year: number,
+): IndicatorResult[] {
+  return profiles.map((profile) => {
+    const profileRoomId = profile.room_id
+    const unitRows = profileRoomId == null
+      ? rows
+      : rows.filter((row) => Number(row.room_id) === Number(profileRoomId))
+    return calculateIndicatorResult(profile, unitRows, year)
+  })
+}
+
 export function calculateIndicatorResult(
   profile: IndicatorProfileForResults,
   rows: ResultRecord[],
