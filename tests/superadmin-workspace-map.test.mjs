@@ -21,7 +21,7 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
   assert.ok(home.includes('activeNestedNavGroup'))
   assert.ok(home.includes('activeRailTitle'))
   assert.ok(home.includes('activeRailItems'))
-  assert.ok(!/WorkspaceModuleMap|mapNodes|wmmMap/.test(home))
+  for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'wmmMap']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(!/onPointerEnter|onPointerLeave|wmmMapPanel/.test(navCss))
 })
@@ -38,7 +38,7 @@ test('sidebar only renders module buttons and contains no tree or child-menu sta
   assert.ok(home.includes('aria-label="Navigasi modul AUREKA"'))
   assert.ok(home.includes("visibleMods.map(([id,label])=>"))
   assert.ok(home.includes("onClick={()=>openMainModule(id)}"))
-  assert.ok(!/sidebarTreeChildren|sidebarNestedGroup|closedNav|toggleNav\(/.test(home))
+  for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.ok(!home.includes("aria-expanded={hasKids"))
 })
 
