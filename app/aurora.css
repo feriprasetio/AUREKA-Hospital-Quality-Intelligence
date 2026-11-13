@@ -287,3 +287,13 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero 
 html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifLink, .stStat.ok, .ppBadge, .piBridge) { background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.16) !important; color: #e2e8f0 !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .ifLink * { color: inherit !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .psLabel { color: #cbd5e1 !important; }
+
+/* Sidebar desktop sedikit lebih lebar agar "RSUD SSMA Pontianak" dan "Peningkatan Kinerja Klinis" muat utuh */
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk:not(.sidebarIsCollapsed) { grid-template-columns: 256px minmax(0, 1fr) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot:not(.sidebarIsCollapsed) aside.sidebar { min-width: 0 !important; max-width: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sideBrand { min-width: 0; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sideBrand > div { min-width: 0; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sideBrand small { white-space: normal !important; line-height: 1.3; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button > span { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.25; }
+}
