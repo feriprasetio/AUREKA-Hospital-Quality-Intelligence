@@ -120,3 +120,13 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .hlReportingMonth.now {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .mobileBottomNav button { color: #c3ccd8 !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .mobileBottomNav button.active { background: rgba(34, 211, 238, 0.18) !important; color: #67e8f9 !important; }
 }
+
+/* Beranda: Tanya AUREKA berdampingan dengan monitoring pelaporan (desktop), bertumpuk di ponsel */
+html body:not(#_) .workspaceRoot .homeLanding .hlDuo { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr); gap: 16px; align-items: stretch; }
+html body:not(#_) .workspaceRoot .homeLanding .hlDuo > * { margin: 0 !important; min-width: 0; }
+html body:not(#_) .workspaceRoot .homeLanding .hlDuo .hlAi { padding: 0 !important; min-height: 0 !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlDuo .hlAi .tanyaPanelEmbedded { height: 100% !important; min-height: 420px !important; max-height: 560px !important; border-radius: 24px !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+@media (max-width: 1180px) {
+  html body:not(#_) .workspaceRoot .homeLanding .hlDuo { grid-template-columns: minmax(0, 1fr); }
+  html body:not(#_) .workspaceRoot .homeLanding .hlDuo .hlAi .tanyaPanelEmbedded { height: min(520px, 70vh) !important; }
+}
