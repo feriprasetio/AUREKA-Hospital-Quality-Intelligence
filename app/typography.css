@@ -901,3 +901,12 @@ html body:not(#_) .workspaceRoot .wmmNode.active .wmmNodeText b { color: #fff !i
   html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) :is(button, [role="tab"], [role="button"]) { min-width: 44px !important; }
   html body:not(#_) .authPage :is(.authForgot, a, button.authLink), html body:not(#_) .a2-landing :is(.a2-hero-links a, .a2-mobile-nav a, .a2-header a, .a2-footer a) { display: inline-flex !important; align-items: center !important; min-height: 44px !important; }
 }
+/* Navigasi bawah HP: tetap kaca buram (navigasi, bukan kartu) dan tidak menutupi isi paling bawah. */
+html body:not(#_) .workspaceRoot .mobileBottomNav { -webkit-backdrop-filter: blur(18px) saturate(1.4) !important; backdrop-filter: blur(18px) saturate(1.4) !important; }
+@media (max-width: 900px) {
+  html body:not(#_) .workspaceRoot .workspaceContent { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+/* Baris submenu (navigation rail) lebih terbaca di PC. */
+@media (min-width: 721px) {
+  html body:not(#_) .workspaceRoot .workspaceNavigationRail :is(.workspaceNavigationRailItem, .workspaceNavigationRailTitle) { font-size: 13px !important; min-height: 34px !important; padding: 6px 14px !important; }
+}
