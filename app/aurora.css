@@ -297,3 +297,21 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .psLabel { color: #cbd5e1 !i
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sideBrand small { white-space: normal !important; line-height: 1.3; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button > span { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.25; }
 }
+
+/* Pengaturan › Unit dan Instalasi: nama unit di atas, tombol di bawah (sebelumnya nama tergencet jadi satu huruf per baris) */
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid .roomCard { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; align-items: start !important; gap: 12px !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid .roomCardText { min-width: 0 !important; width: auto !important; display: grid !important; gap: 4px; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid .roomCardText b { word-break: normal !important; overflow-wrap: anywhere; writing-mode: horizontal-tb !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid .roomCardActions { display: flex !important; gap: 8px; flex-wrap: wrap; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid .roomCardActions > * { flex: 1 1 0; min-width: 0; }
+
+/* Pengaturan › Hak Akses Role: penjelasan peran dan label sensitif */
+html body:not(#_) .govRoleInfo { margin: 4px 0 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.85); padding: 10px 14px; }
+html body:not(#_) .govRoleInfo summary { cursor: pointer; font-weight: 700; font-size: 13px; min-height: 32px; display: flex; align-items: center; }
+html body:not(#_) .govRoleInfo dl { margin: 8px 0 4px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px 18px; }
+html body:not(#_) .govRoleInfo dt { font-weight: 700; font-size: 13px; }
+html body:not(#_) .govRoleInfo dd { margin: 2px 0 0; font-size: 12px; color: #4b5565; line-height: 1.45; }
+html body:not(#_) .govSensitive { display: inline-block; margin-top: 3px; padding: 1px 8px; border-radius: 99px; background: rgba(217, 119, 6, 0.12); color: #92400e !important; font-size: 11px; font-weight: 700; }
+html[data-mode="gelap"] body:not(#_) .govRoleInfo { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.12); }
+html[data-mode="gelap"] body:not(#_) .govRoleInfo dd { color: #c3ccd8; }
+html[data-mode="gelap"] body:not(#_) .govSensitive { background: rgba(251, 191, 36, 0.16); color: #fde68a !important; }

@@ -128,11 +128,11 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
       <label className="prSearch">Cari No. RM, nama, atau NIK
         <input type="search" name="aureka-patient-index-search" autoComplete="off" data-lpignore="true" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="mis. 03-65-39, 36539, atau nama pasien" />
       </label>
-      <button type="button" className="prButton" onClick={() => void loadInvalid()}>No. RM bermasalah</button>
+      <button type="button" className="prButton" aria-expanded={invalid !== null} aria-controls="pi-invalid-rm" onClick={() => { if (invalid !== null) setInvalid(null); else void loadInvalid() }}>{invalid !== null ? 'Tutup No. RM bermasalah' : 'No. RM bermasalah'}</button>
     </div>
 
-    {invalid && <div className="piPanel">
-      <h4>Episode dengan No. RM kosong / tidak valid ({invalid.length}{invalid.length >= 100 ? '+' : ''})</h4>
+    {invalid && <div className="piPanel" id="pi-invalid-rm">
+      <div className="piPanelHead"><h4>Episode dengan No. RM kosong / tidak valid ({invalid.length}{invalid.length >= 100 ? '+' : ''})</h4><button type="button" className="prButton" onClick={() => setInvalid(null)} aria-label="Tutup daftar No. RM bermasalah">Tutup</button></div>
       {invalid.length ? <div className="prTableWrap"><table className="prTable"><thead><tr><th>Unit</th><th>Tanggal</th><th>Isi No. RM</th></tr></thead>
         <tbody>{invalid.map((r) => <tr key={r.record_id}><td>{r.room_name}</td><td>{fmt(r.record_date)}</td><td><code>{r.no_rm_asli || '(kosong)'}</code></td></tr>)}</tbody></table></div>
         : <p className="prMuted">Tidak ada. Semua episode punya No. RM yang valid.</p>}
@@ -172,7 +172,7 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
       .piHead h3{margin:0;font-size:20px}.piHead p{margin:6px 0 0;font-size:12.5px;color:#5b6b7c;max-width:640px;line-height:1.55}
       .piActions{display:flex;gap:8px;flex-wrap:wrap}
       .piPanel{padding:16px 18px;border-radius:16px;border:1px solid rgba(11,70,122,.14);background:rgba(255,255,255,.7)}
-      .piPanel h3,.piPanel h4{margin:0 0 8px}.piPanel p{margin:6px 0;font-size:12.5px;line-height:1.55}
+      .piPanel h3,.piPanel h4{margin:0 0 8px}.piPanelHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.piPanel p{margin:6px 0;font-size:12.5px;line-height:1.55}
       .piSpec ul{margin:6px 0;padding-left:18px;font-size:12.5px;line-height:1.6}
       .piRm{font-variant-numeric:tabular-nums;letter-spacing:.02em}
       .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}

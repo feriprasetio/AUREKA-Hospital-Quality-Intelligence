@@ -62,6 +62,16 @@ export function SystemConfigPanel() {
 type Perm = { code: string; label: string; sensitive: boolean }
 type Cell = { role_code: string; permission: string; granted: boolean }
 const ROLES: [string, string][] = [['DIREKTUR', 'Direktur'], ['PMKP', 'Komite PMKP'], ['ADMIN', 'Super Admin'], ['MANAGEMENT', 'Manajemen'], ['KABID', 'Kepala Bidang'], ['DEWAN_PENGAWAS', 'Dewan Pengawas'], ['PIC', 'PIC Unit'], ['VALIDATOR', 'Validator']]
+const ROLE_INFO: Record<string, string> = {
+  DIREKTUR: 'Pimpinan rumah sakit; melihat seluruh modul.',
+  PMKP: 'Komite Mutu dan Keselamatan Pasien; mengelola mutu, insiden, dan risiko.',
+  ADMIN: 'Pengelola aplikasi; mengatur akun, unit, dan konfigurasi.',
+  MANAGEMENT: 'Manajemen rumah sakit; memantau kinerja lintas unit.',
+  KABID: 'Kepala bidang; memantau unit di bawah bidangnya.',
+  DEWAN_PENGAWAS: 'Pengawas; hanya ringkasan agregat tanpa data pribadi.',
+  PIC: 'Petugas penanggung jawab unit; mengisi logbook dan laporan unitnya.',
+  VALIDATOR: 'Petugas yang memeriksa dan mengesahkan data unit.'
+}
 
 export function PermissionMatrixPanel() {
   const [perms, setPerms] = useState<Perm[]>([])
@@ -90,7 +100,8 @@ export function PermissionMatrixPanel() {
   return (
     <section className="stPanel govSettingsPanel" aria-label="Hak akses role">
       <h4>Hak Akses Role</h4>
-      <p className="stPanelHint">Permission granular sesuai Blueprint v2 §10.4. Bawaan: Direktur lintas modul; Dewan Pengawas dan Kepala Bidang tanpa akses data sensitif individual. Hak bertanda <b>sensitif</b> dicatat setiap kali dipakai.</p>
+      <p className="stPanelHint">Halaman ini menentukan <b>siapa boleh melihat atau melakukan apa</b> di AUREKA. Setiap baris adalah satu jenis akses, setiap kolom adalah peran pengguna. Centang berarti peran tersebut boleh. Peran tiap akun diatur di <b>Pengguna dan Role</b>. Akses bertanda <b>sensitif</b> (data pribadi pasien atau pegawai) dicatat di Audit Log setiap kali dipakai.</p>
+      <details className="govRoleInfo"><summary>Arti tiap peran</summary><dl>{ROLES.map(([k, l]) => <div key={k}><dt>{l}</dt><dd>{ROLE_INFO[k]}</dd></div>)}</dl></details>
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
       {matrix.length === 0 && perms.length > 0 && <>
         <p className="stPanelHint">Hak akses role Anda ({role}):</p>
@@ -99,14 +110,14 @@ export function PermissionMatrixPanel() {
       {matrix.length > 0 && <div className="govPermMobile">
         <select aria-label="Pilih role" value={mobileRole} onChange={(e) => setMobileRole(e.target.value)}>{ROLES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
         <ul>{perms.map((p) => { const k = mobileRole + '|' + p.code; const on = granted.has(k); return <li key={p.code}><label>
-          <span><b>{p.label}</b><small>{p.code}{p.sensitive ? ' · sensitif' : ''}</small></span>
+          <span><b>{p.label}</b>{p.sensitive && <small className="govSensitive">sensitif</small>}</span>
           <input type="checkbox" checked={on} disabled={!canEdit || busy === k || (mobileRole === 'ADMIN' && p.code === 'regulation.approve')} onChange={(e) => void toggle(mobileRole, p.code, e.target.checked)} />
         </label></li> })}</ul>
       </div>}
-      {matrix.length > 0 && <div className="govPermWrap" data-ak-sort="off"><table className="govPermTable"><thead><tr><th>Hak akses</th>{ROLES.map(([k, l]) => <th key={k}>{l}</th>)}</tr></thead><tbody>
-        {perms.map((p) => <tr key={p.code}><td><b>{p.label}</b><small>{p.code}{p.sensitive ? ' · sensitif' : ''}</small></td>
+      {matrix.length > 0 && <div className="govPermWrap" data-ak-sort="off"><table className="govPermTable"><thead><tr><th>Hak akses</th>{ROLES.map(([k, l]) => <th key={k} title={ROLE_INFO[k]}>{l}</th>)}</tr></thead><tbody>
+        {perms.map((p) => <tr key={p.code}><td><b>{p.label}</b>{p.sensitive && <small className="govSensitive">sensitif</small>}</td>
           {ROLES.map(([r]) => { const on = granted.has(r + '|' + p.code); const k = r + '|' + p.code; return <td key={r}>
-            <input type="checkbox" aria-label={p.label + ' untuk ' + r} checked={on} disabled={!canEdit || busy === k || (r === 'ADMIN' && p.code === 'regulation.approve')} onChange={(e) => void toggle(r, p.code, e.target.checked)} />
+            <input type="checkbox" aria-label={p.label + ' untuk ' + (ROLES.find(([k]) => k === r)?.[1] || r)} checked={on} disabled={!canEdit || busy === k || (r === 'ADMIN' && p.code === 'regulation.approve')} onChange={(e) => void toggle(r, p.code, e.target.checked)} />
           </td> })}
         </tr>)}
       </tbody></table></div>}
