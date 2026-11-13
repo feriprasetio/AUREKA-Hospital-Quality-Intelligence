@@ -67,7 +67,7 @@ test('sidebar contains module buttons only; contextual sub-tabs live in the stat
   assert.ok(home.includes('visibleMods.map'))
   assert.ok(home.includes('workspaceNavigationRail'))
   assert.ok(home.includes('activeNestedNavGroup'))
-  assert.ok(!/sidebarTreeChildren|sidebarNestedGroup|closedNav|toggleNav\(/.test(home))
+  for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(navCss.includes('.workspaceRoot .sidebar .sidebarTreeChildren'))
 })
