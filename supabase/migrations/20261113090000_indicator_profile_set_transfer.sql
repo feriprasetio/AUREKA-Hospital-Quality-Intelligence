@@ -57,13 +57,9 @@ BEGIN
     RAISE EXCEPTION 'Impor profil kosong ditolak. Tidak ada profil aktif yang diubah.' USING ERRCODE = '22023';
   END IF;
 
-  -- Serialize replacement operations for the same year and unit scope.
+  -- Serialize every replacement operation for the same year, including overlapping unit/all-unit scopes.
   PERFORM pg_advisory_xact_lock(
-    hashtextextended(
-      'aureka_quality.indicator_profile_set:' || p_profile_year::text || ':' ||
-      coalesce(p_scope_room_id::text, 'all'),
-      0
-    )
+    hashtextextended('aureka_quality.indicator_profile_set:' || p_profile_year::text, 0)
   );
 
   IF p_scope_room_id IS NOT NULL AND NOT EXISTS (
