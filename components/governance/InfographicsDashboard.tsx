@@ -22,14 +22,14 @@ type ChartModel = { id: string; label: string; description: string; insight: str
 
 const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
 const GLOBAL_ROLES = ['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS']
-const DONUT_COLORS = ['#4b8b75','#638ba8','#c58a48','#8b79ad','#6e9d9a','#b97878','#8a9a58','#7a91b8','#ad8b63','#6d9b83','#9b83a8','#8c9ca8','#b28a91']
+const DONUT_COLORS = ['#16507a','#2d6e9e','#4f86b5','#6d9fc7','#8bb8d8','#326d91','#557f9f','#7898b3','#9ab1c5','#42627f','#6b88a4','#a9bfd1','#c4d5e2']
 const n = (v: unknown) => Number.isFinite(Number(v)) ? Number(v) : 0
 const fmt = (v: unknown) => n(v).toLocaleString('id-ID')
 const pct = (v: unknown) => n(v).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'
 const css = [
 '.infographicsDashboard{display:grid;gap:14px;color:var(--arktik-ink,#21374f)}',
-'.ifHero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:18px;background:linear-gradient(120deg,rgba(239,247,243,.94),rgba(247,250,253,.98));}',
-'.ifEyebrow{display:block;margin-bottom:5px;color:#4b8b75;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}',
+'.ifHero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:18px;background:linear-gradient(120deg,rgba(232,242,250,.94),rgba(247,250,253,.98));}',
+'.ifEyebrow{display:block;margin-bottom:5px;color:#16507A;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}',
 '.ifHero h2{margin:0;color:var(--arktik-ink,#21374f);font-size:20px;font-weight:850;letter-spacing:-.03em}',
 '.ifHero p{max-width:720px;margin:6px 0 0;color:var(--ak-muted,#73849a);font-size:11px;line-height:1.6}',
 '.ifFilters{display:flex;align-items:end;gap:9px;flex-wrap:wrap}',
@@ -51,12 +51,12 @@ const css = [
 '.ifChartToolbar .ifChartChoice select{width:100%}',
 '.ifTypeSwitch{display:flex;gap:4px;padding:3px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:10px;background:#f5f8fa}',
 '.ifTypeSwitch button{min-height:29px;padding:5px 9px;border:0;border-radius:7px;background:transparent;color:var(--ak-muted,#73849a);font-size:11px;font-weight:800;cursor:pointer}',
-'.ifTypeSwitch button[aria-pressed=true]{background:#fff;color:#326d55;box-shadow:0 1px 4px rgba(20,50,35,.1)}',
+'.ifTypeSwitch button[aria-pressed=true]{background:#fff;color:#16507A;box-shadow:0 1px 4px rgba(20,50,35,.1)}',
 '.ifChartSvg{display:block;width:100%;height:auto;min-height:190px;overflow:visible}',
 '.ifChartLegend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;color:var(--ak-muted,#73849a);font-size:11px}',
 '.ifChartLegend span{display:inline-flex;align-items:center;gap:5px}',
 '.ifChartLegend i{display:inline-block;width:9px;height:9px;border-radius:3px}',
-'.ifInsight{margin-top:12px;padding:10px 12px;border-left:3px solid #4b8b75;border-radius:0 9px 9px 0;background:rgba(75,139,117,.07);color:var(--ak-muted,#65786f);font-size:11px;line-height:1.55}',
+'.ifInsight{margin-top:12px;padding:10px 12px;border-left:3px solid #16507A;border-radius:0 9px 9px 0;background:rgba(22,80,122,.07);color:var(--ak-muted,#65786f);font-size:11px;line-height:1.55}',
 '.ifInsight b{color:var(--arktik-ink,#21374f)}',
 '.ifLowerGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}',
 '.ifMiniCard{min-width:0;padding:14px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:14px;background:var(--surface,#fff)}',
@@ -64,7 +64,7 @@ const css = [
 '.ifMiniCard p{margin:4px 0 10px;color:var(--ak-muted,#73849a);font-size:11px;line-height:1.5}',
 '.ifMiniRow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(70px,1.6fr) auto;gap:8px;align-items:center;margin:8px 0;font-size:11px}',
 '.ifMiniRow>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ak-muted,#73849a)}',
-'.ifMiniTrack{height:8px;overflow:hidden;border-radius:99px;background:rgba(112,139,166,.12)}.ifMiniTrack i{display:block;height:100%;border-radius:99px;background:#4b8b75}',
+'.ifMiniTrack{height:8px;overflow:hidden;border-radius:99px;background:rgba(112,139,166,.12)}.ifMiniTrack i{display:block;height:100%;border-radius:99px;background:#16507A}',
 '.ifMiniRow b{color:var(--arktik-ink,#21374f);font-variant-numeric:tabular-nums}',
 '.ifLinks{display:flex;gap:8px;flex-wrap:wrap}',
 '.ifLink{border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;padding:8px 11px;background:#fff;color:var(--arktik-ink,#21374f);font-size:11px;font-weight:750;cursor:pointer}',
@@ -214,7 +214,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     })
     const distribution = (id: string, label: string, description: string, insight: string, items: CountItem[], kind: ChartModel['kind'] = 'distribution'): ChartModel => ({
       id, label, description, insight, kind, labels: items.map((item) => item.label),
-      series: [{ label: 'Jumlah', color: '#4b8b75', values: items.map((item) => n(item.count)) }],
+      series: [{ label: 'Jumlah', color: '#16507A', values: items.map((item) => n(item.count)) }],
     })
     const result: ChartModel[] = [
       { id: 'quality-trend', label: 'Tren pengumpulan dan validasi indikator', description: 'Perbandingan catatan indikator yang masuk dan yang telah tervalidasi per bulan.', insight: 'Catatan tervalidasi merupakan bagian dari keseluruhan catatan. Bulan dengan 0 catatan berarti belum ada record yang masuk pada bulan tersebut; angka ini bukan capaian 0%. Untuk patient_episode tersedia grafik terpisah.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [
@@ -232,7 +232,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       { id: 'incident-trend', label: 'Tren laporan insiden keselamatan pasien', description: 'Jumlah laporan insiden per bulan berdasarkan agregasi server.', insight: 'Grafik ini menggambarkan volume pelaporan, bukan tingkat insiden per jumlah pasien atau patient-days. Kenaikan laporan tidak otomatis berarti keselamatan memburuk.', kind: 'trend', labels: months.map((month) => MONTHS[month - 1]), series: [{ label: 'Laporan insiden', color: '#c58a48', values: monthData(summary.incidents.monthly || [], 'total') }] },
       distribution('risk-levels', 'Distribusi tingkat risiko', 'Jumlah risiko pada setiap tingkat risiko sesuai klasifikasi register.', 'Gunakan distribusi ini untuk melihat konsentrasi risiko. Penilaian prioritas tetap mempertimbangkan skor, residual, kontrol, dan selera risiko.', summary.risk.levels || []),
       distribution('risk-categories', 'Distribusi kategori risiko', 'Jumlah risiko menurut kelompok kategori risiko rumah sakit.', 'Kategori dengan jumlah terbesar menunjukkan area dengan beban register tertinggi, bukan dengan sendirinya tingkat risiko tertinggi.', summary.risk.categories || []),
-      { id: 'rtl-status', label: 'Status rencana tindak lanjut', description: 'Perbandingan jumlah RTL selesai, belum selesai, dan yang melewati tenggat.', insight: 'RTL melewati tenggat merupakan bagian dari RTL belum selesai; kategori tersebut ditampilkan sebagai penanda perhatian dan tidak boleh dijumlahkan kembali sebagai kelompok terpisah.', kind: 'progress', labels: ['Selesai', 'Belum selesai', 'Lewat tenggat'], series: [{ label: 'Jumlah RTL', color: '#4b8b75', values: [n(summary.program.completed_actions), n(summary.program.open_actions), n(summary.program.overdue_actions)] }] },
+      { id: 'rtl-status', label: 'Status rencana tindak lanjut', description: 'Perbandingan jumlah RTL selesai, belum selesai, dan yang melewati tenggat.', insight: 'RTL melewati tenggat merupakan bagian dari RTL belum selesai; kategori tersebut ditampilkan sebagai penanda perhatian dan tidak boleh dijumlahkan kembali sebagai kelompok terpisah.', kind: 'progress', labels: ['Selesai', 'Belum selesai', 'Lewat tenggat'], series: [{ label: 'Jumlah RTL', color: '#16507A', values: [n(summary.program.completed_actions), n(summary.program.open_actions), n(summary.program.overdue_actions)] }] },
     )
     return result
   }, [summary, qualityOnly])
