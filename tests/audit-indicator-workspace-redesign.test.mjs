@@ -101,3 +101,15 @@ test('Operational pharmacy and outpatient calculations live in Hasil Capaian, no
   assert.match(results, /form_fields:core_data->form_fields/)
   assert.match(results, /String\(row\.status \?\? ''\)\.toLowerCase\(\) === 'validated'/)
 })
+
+
+test('Logbook chrome is reduced to preserve the table as the dominant work area', () => {
+  const navigation = read('app/aureka-navigation-consolidated.css')
+  assert.match(navigation, /AUREKA table-first logbook density/)
+  assert.match(navigation, /grid-template-columns: minmax\(160px, 1fr\) 76px 128px max-content !important/)
+  assert.match(navigation, /grid-template-areas: "unit year month actions" !important/)
+  assert.match(navigation, /grid-template-columns: repeat\(6, minmax\(0, 1fr\)\) !important/)
+  assert.match(navigation, /min-height: 46px !important/)
+  assert.match(navigation, /max-height: calc\(100dvh - 205px\) !important/)
+  assert.match(navigation, /grid-template-areas: "unit year month" "actions actions actions" !important/)
+})
