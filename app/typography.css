@@ -908,5 +908,5 @@ html body:not(#_) .workspaceRoot .mobileBottomNav { -webkit-backdrop-filter: blu
 }
 /* Baris submenu (navigation rail) lebih terbaca di PC. */
 @media (min-width: 721px) {
-  html body:not(#_) .workspaceRoot .workspaceNavigationRail :is(.workspaceNavigationRailItem, .workspaceNavigationRailParent, [class*="RailParent"]) { font-size: 13px !important; min-height: 34px !important; padding: 6px 14px !important; }
+  html body:not(#_) .workspaceRoot .workspaceNavigationRail :is(.workspaceNavigationRailItem, .workspaceNavigationRailTitle) { font-size: 13px !important; min-height: 34px !important; padding: 6px 14px !important; }
 }
