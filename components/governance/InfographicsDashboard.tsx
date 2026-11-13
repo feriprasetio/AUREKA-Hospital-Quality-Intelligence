@@ -172,7 +172,7 @@ function ChartLegend({ series }: { series: ChartSeries[] }) {
 
 export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate }: Props) {
   const [year, setYear] = useState(String(new Date().getFullYear()))
-  const [roomValue, setRoomValue] = useState(unitLocked && initialRoomId != null ? String(initialRoomId) : '')
+  const [roomValue, setRoomValue] = useState(initialRoomId == null ? '' : String(initialRoomId))
   const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -183,7 +183,9 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   const selectedRoomName = roomId == null ? 'Seluruh rumah sakit' : rooms.find((room) => Number(room.id) === roomId)?.name || 'Unit terpilih'
   const qualityOnly = mode === 'quality'
 
-  useEffect(() => { if (unitLocked) setRoomValue(initialRoomId == null ? '' : String(initialRoomId)) }, [unitLocked, initialRoomId])
+  useEffect(() => {
+    setRoomValue(initialRoomId == null ? '' : String(initialRoomId))
+  }, [initialRoomId])
   useEffect(() => {
     let cancelled = false
     setLoading(true); setError('')
