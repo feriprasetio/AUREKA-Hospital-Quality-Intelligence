@@ -869,25 +869,28 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
   if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Menyiapkan master Clinical Pathway…</h3></div></div></div>
 
+  // Editor format CP tampil sebagai popup di atas layar asal (pustaka/diagnosis).
+  const view = screen === 'builder' ? builderReturnScreen : screen
+  const closeBuilder = () => { setBuilder(null); setBuilderIsNew(false); setMessage(''); setScreen(builderReturnScreen) }
   return <div className="cpRoot">
     <style>{CSS}</style>
     <WorkspaceModuleHeader
       className="cpHead"
-      title={screen === 'library' ? 'Pustaka diagnosis & format CP' : screen === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
+      title={view === 'library' ? 'Pustaka diagnosis & format CP' : view === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
       actions={<div className="cpActions">
         {/* Tombol kembali ke Audit Indikator Mutu dihapus: Clinical Pathway kini menu tersendiri di Peningkatan Kinerja Klinis (Blueprint v2). */}
-        {screen !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(screen === 'audit' ? 'diagnosis' : screen === 'builder' ? builderReturnScreen : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
-        {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit Form CP</button>}
-        {screen === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={beginNewBuilder}>＋ Tambah CP baru</button>}
-        {screen === 'diagnosis' && <button type="button" className="cpBtn primary" onClick={newAudit}>＋ Audit pasien baru</button>}
+        {view !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(view === 'audit' ? 'diagnosis' : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
+        {view === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit Form CP</button>}
+        {view === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={beginNewBuilder}>＋ Tambah CP baru</button>}
+        {view === 'diagnosis' && <button type="button" className="cpBtn primary" onClick={newAudit}>＋ Audit pasien baru</button>}
         {screen === 'audit' && <button type="button" className="cpBtn" onClick={() => window.print()}>Cetak / PDF</button>}
       </div>}
     />
 
-    {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'} aria-live={messageKind === 'error' ? 'assertive' : 'polite'}>{message}</div>}
-    {!masterReady && screen !== 'library' && <div className="cpNotice error">Format Clinical Pathway belum lengkap. Audit belum dapat disimpan.</div>}
+    {message && screen !== 'builder' && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'} aria-live={messageKind === 'error' ? 'assertive' : 'polite'}>{message}</div>}
+    {!masterReady && view !== 'library' && <div className="cpNotice error">Format Clinical Pathway belum lengkap. Audit belum dapat disimpan.</div>}
 
-    {screen === 'library' && <>
+    {view === 'library' && <>
       <div className="cpGlass cpLibBar">
         <div className="cpLibStats" aria-label="Ringkasan master Clinical Pathway">
           <span><b>{templates.filter((t) => t.status === 'published').length}</b> format CP aktif</span>
@@ -919,7 +922,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       
     </>}
 
-    {screen === 'diagnosis' && selectedTemplate && <>
+    {view === 'diagnosis' && selectedTemplate && <>
       <div className="cpGrid">
         <LiquidGlass className="cpKpi"><span>Item dalam format</span><strong>{selectedTemplate.items.length}</strong><small>Baris checklist dari sumber</small></LiquidGlass>
         <LiquidGlass className="cpKpi"><span>Hari / tahap</span><strong>{selectedTemplate.days.length}</strong><small>{selectedTemplate.days.join(' · ')}</small></LiquidGlass>
@@ -1138,7 +1141,11 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>
     </>}
 
-    {screen === 'builder' && builder && isAdmin && <>
+    {screen === 'builder' && builder && isAdmin && <div className="cpBuilderOverlay" onMouseDown={(e) => { if (e.target === e.currentTarget && !saving) void (async () => { if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) closeBuilder() })() }}>
+      <div className="cpBuilderModal" role="dialog" aria-modal="true" aria-labelledby="cpBuilderTitle">
+      <div className="cpBuilderModalHead"><div><span className="cpEyebrow">Master Clinical Pathway</span><h3 id="cpBuilderTitle">{builderIsNew ? 'Tambah Clinical Pathway baru' : 'Edit format · ' + builder.name}</h3></div><button type="button" className="cpBuilderClose" aria-label="Tutup editor" disabled={saving} onClick={() => void (async () => { if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) closeBuilder() })()}>✕</button></div>
+      <div className="cpBuilderModalBody">
+      {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'}>{message}</div>}
       
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Identitas format Clinical Pathway</h4><p>Lengkapi identitas diagnosis, status publikasi, ambang penilaian, dan definisi perhitungan.</p></div><span className="cpBadge">{builderIsNew ? 'Master baru' : 'Versi ' + builder.version}</span></div>
@@ -1189,9 +1196,11 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       </div>
       <div className="cpGlass cpFooter">
         <div><span className="cpTiny">Format ini dapat dipublikasikan setelah ditinjau dan disahkan. Pilihan jadwal berwarna hijau/kuning akan tampil pada checklist audit.</span><div className="cpTiny">{builder.items.length} item · {builder.days.length} hari/tahap</div></div>
-        <div className="cpActions"><button type="button" className="cpBtn" onClick={()=>{setBuilder(null);setBuilderIsNew(false);setScreen(builderReturnScreen)}}>Batal</button><button type="button" className="cpBtn primary" disabled={saving} onClick={()=>void saveBuilder()}>{saving?'Menyimpan…':builderIsNew?'Simpan Clinical Pathway baru':'Simpan versi master baru'}</button></div>
+        <div className="cpActions"><button type="button" className="cpBtn" onClick={closeBuilder}>Batal</button><button type="button" className="cpBtn primary" disabled={saving} onClick={()=>void saveBuilder()}>{saving?'Menyimpan…':builderIsNew?'Simpan Clinical Pathway baru':'Simpan versi master baru'}</button></div>
       </div>
-    </>}
+      </div>
+      </div>
+    </div>}
 
   </div>
 }
