@@ -261,8 +261,9 @@ async function askGemini(apiKey: string, system: string, contents: Turn[]): Prom
       if (answer) return { answer, model };
       continue;
     }
+    const errorBody = (await res.text()).slice(0, 300);
     console.warn("gemini", model, "provider status", res.status);
-    if (res.status === 404 || (res.status === 400 && /model.*(not found|not supported)/i.test(body))) markDead("gemini:" + model);
+    if (res.status === 404 || (res.status === 400 && /model.*(not found|not supported)/i.test(errorBody))) markDead("gemini:" + model);
     if (res.status === 503) markDead("gemini:" + model, 2);
     if (![400, 404, 429, 500, 503, 504].includes(res.status)) break;
   }
@@ -313,9 +314,10 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
       if (answer) return { answer, model };
       continue;
     }
+    const errorBody = (await res.text()).slice(0, 300);
     console.warn(p.label, model, "provider status", res.status);
     if (res.status === 401 || res.status === 403) return { status: 502, error: `Kunci ${p.label} ditolak. Periksa atau buat ulang kuncinya.` };
-    if (res.status === 404 || (res.status === 400 && /model|decommission|not.*(found|exist|support)/i.test(body))) markDead(tag);
+    if (res.status === 404 || (res.status === 400 && /model|decommission|not.*(found|exist|support)/i.test(errorBody))) markDead(tag);
     // Model dihentikan/tidak ada (400/404/422), kuota (429), terlalu besar (413), server sibuk: coba model berikutnya.
     if (![400, 404, 413, 422, 429, 500, 502, 503, 504].includes(res.status)) break;
   }
