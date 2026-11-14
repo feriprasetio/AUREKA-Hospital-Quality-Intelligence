@@ -19,9 +19,9 @@ html[data-skin="arktik"]:root {
 html[data-skin="arktik"]:root body:not(#_) {
   background-color: #eef1f5 !important;
   background-image:
-    radial-gradient(62vw 80vh at -4% -6%, rgba(34, 211, 238, 0.72), transparent 70%),
-    radial-gradient(56vw 72vh at 104% -4%, rgba(74, 222, 128, 0.58), transparent 70%),
-    radial-gradient(70vw 60vh at 50% 108%, rgba(160, 196, 232, 0.65), transparent 72%) !important;
+    radial-gradient(62vw 80vh at -4% -6%, rgba(94, 196, 207, 0.43), transparent 70%),
+    radial-gradient(56vw 72vh at 104% -4%, rgba(125, 211, 168, 0.35), transparent 70%),
+    radial-gradient(70vw 60vh at 50% 108%, rgba(160, 196, 232, 0.4), transparent 72%) !important;
   background-attachment: fixed !important;
 }
 
@@ -34,8 +34,8 @@ html[data-skin="arktik"][data-mode="gelap"]:root {
 html[data-skin="arktik"][data-mode="gelap"]:root body:not(#_) {
   background-color: #0f1218 !important;
   background-image:
-    radial-gradient(42rem 28rem at 12% -8%, rgba(34, 211, 238, 0.26), transparent 70%),
-    radial-gradient(36rem 30rem at 104% 30%, rgba(74, 222, 128, 0.16), transparent 70%),
+    radial-gradient(42rem 28rem at 12% -8%, rgba(94, 196, 207, 0.2), transparent 70%),
+    radial-gradient(36rem 30rem at 104% 30%, rgba(125, 211, 168, 0.12), transparent 70%),
     radial-gradient(40rem 28rem at -6% 104%, rgba(100, 116, 139, 0.30), transparent 70%) !important;
   background-attachment: fixed !important;
 }
@@ -329,9 +329,9 @@ html[data-mode="gelap"] body:not(#_) .govSensitive { background: rgba(251, 191, 
 /* Lapisan cahaya: radial-gradient (tanpa filter blur) supaya ringan di ponsel */
 html body:not(#_) .auroraBg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 html body:not(#_) .auroraBg span { position: absolute; border-radius: 50%; will-change: transform; }
-html body:not(#_) .auroraBg span:nth-child(1) { left: -18vw; top: -24vh; width: 70vw; height: 80vh; background: radial-gradient(closest-side, rgba(34, 211, 238, 0.62), rgba(34, 211, 238, 0)); animation: auroraDriftA 22s ease-in-out infinite; }
-html body:not(#_) .auroraBg span:nth-child(2) { right: -16vw; top: -18vh; width: 62vw; height: 72vh; background: radial-gradient(closest-side, rgba(74, 222, 128, 0.5), rgba(74, 222, 128, 0)); animation: auroraDriftB 26s ease-in-out infinite; }
-html body:not(#_) .auroraBg span:nth-child(3) { left: 22vw; bottom: -36vh; width: 72vw; height: 70vh; background: radial-gradient(closest-side, rgba(160, 196, 232, 0.65), rgba(160, 196, 232, 0)); }
+html body:not(#_) .auroraBg span:nth-child(1) { left: -18vw; top: -24vh; width: 70vw; height: 80vh; background: radial-gradient(closest-side, rgba(94, 196, 207, 0.37), rgba(94, 196, 207, 0)); animation: auroraDriftA 22s ease-in-out infinite; }
+html body:not(#_) .auroraBg span:nth-child(2) { right: -16vw; top: -18vh; width: 62vw; height: 72vh; background: radial-gradient(closest-side, rgba(125, 211, 168, 0.3), rgba(125, 211, 168, 0)); animation: auroraDriftB 26s ease-in-out infinite; }
+html body:not(#_) .auroraBg span:nth-child(3) { left: 22vw; bottom: -36vh; width: 72vw; height: 70vh; background: radial-gradient(closest-side, rgba(160, 196, 232, 0.4), rgba(160, 196, 232, 0)); }
 html body:not(#_) .auroraDot { display: inline-block; flex: 0 0 auto; width: 9px; height: 9px; border-radius: 99px; background: #22d3ee; animation: auroraPulse 2s ease-out infinite; }
 
 /* Halaman awal */
@@ -362,9 +362,9 @@ html body:not(#_) .a2-landing .a2-hero-copy > :nth-child(n+5) { animation-delay:
 
 /* Halaman masuk */
 html body:not(#_) .authPage.authProfessional { background: #eef1f5 !important; color: #1f2430; isolation: isolate; }
-html body:not(#_) .authPage.authProfessional .landingAura span:nth-child(1) { background: radial-gradient(closest-side, rgba(34, 211, 238, 0.62), rgba(34, 211, 238, 0)) !important; filter: none !important; }
-html body:not(#_) .authPage.authProfessional .landingAura span:nth-child(2) { background: radial-gradient(closest-side, rgba(74, 222, 128, 0.48), rgba(74, 222, 128, 0)) !important; filter: none !important; }
-html body:not(#_) .authPage.authProfessional .landingAura span:nth-child(3) { background: radial-gradient(closest-side, rgba(160, 196, 232, 0.65), rgba(160, 196, 232, 0)) !important; filter: none !important; }
+html body:not(#_) .authPage.authProfessional .landingAura span:nth-child(1) { background: radial-gradient(closest-side, rgba(94, 196, 207, 0.37), rgba(94, 196, 207, 0)) !important; filter: none !important; }
+html body:not(#_) .authPage.authProfessional .landingAura span:nth-child(2) { background: radial-gradient(closest-side, rgba(125, 211, 168, 0.3), rgba(125, 211, 168, 0)) !important; filter: none !important; }
+html body:not(#_) .authPage.authProfessional .landingAura span:nth-child(3) { background: radial-gradient(closest-side, rgba(160, 196, 232, 0.4), rgba(160, 196, 232, 0)) !important; filter: none !important; }
 html body:not(#_) .authPage.authProfessional .authArchitecture { display: none !important; }
 html body:not(#_) .authPage.authProfessional .authAside { background: transparent !important; border: 0 !important; box-shadow: none !important; color: #1f2430 !important; }
 html body:not(#_) .authPage.authProfessional .authAside :is(h2, small, span) { color: #1f2430 !important; -webkit-text-fill-color: currentColor !important; }
