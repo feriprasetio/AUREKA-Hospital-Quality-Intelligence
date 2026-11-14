@@ -87,3 +87,11 @@ test('global navigation uses balanced one-line smart overflow and keeps the acti
   assert.match(css, /@media \(max-width: 720px\)/)
   assert.doesNotMatch(css, /position:\s*sticky/)
 })
+
+test('primary module navigation is text-only under the global icon-none rule', () => {
+  const home = read('components/HomeClient.tsx')
+  assert.doesNotMatch(home, /function NavIcon/)
+  assert.doesNotMatch(home, /<NavIcon/)
+  assert.match(home, /aria-label="Navigasi modul AUREKA"/)
+  assert.match(home, /<UnifiedModuleNavigation/)
+})
