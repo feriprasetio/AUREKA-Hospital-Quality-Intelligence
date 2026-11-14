@@ -249,6 +249,19 @@ export default function PatientRegistryWorkspace({
   const activeEpisodes = rows.filter((row) => row.inpatient && !row.discharge).length
   const visits = rows.filter((row) => !row.inpatient).length
 
+  const pageEpisodeDistribution = [
+    { label: 'Rawat inap pulang', count: discharged },
+    { label: 'Masih dirawat', count: activeEpisodes },
+    { label: 'Kunjungan non-rawat inap', count: visits },
+  ]
+  const pageEpisodeMax = Math.max(1, ...pageEpisodeDistribution.map((item) => item.count))
+  const pageWorkflowDistribution = [
+    { label: 'Tervalidasi', count: rows.filter((row) => row.status === 'validated').length },
+    { label: 'Menunggu validasi', count: rows.filter((row) => row.status === 'ready' || row.status === 'submitted').length },
+    { label: 'Draf', count: rows.filter((row) => row.status === 'draft').length },
+    { label: 'Status lain', count: rows.filter((row) => !['validated', 'ready', 'submitted', 'draft'].includes(row.status)).length },
+  ]
+
   return (
     <section className="patientRegistry">
       <style>{`
@@ -275,6 +288,12 @@ export default function PatientRegistryWorkspace({
         .prFoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px}
         .prEmpty{padding:35px 16px;text-align:center;color:var(--muted,#718078);font-size:12px}
         .prAlert{padding:12px 14px;border-radius:12px;background:#fff5e8;color:#825a20;font-size:12px}
+        .prAnalytics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+        .prAnalyticsCard{min-width:0;padding:15px 17px;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px;background:#fff}
+        .prAnalyticsHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.prAnalyticsHead h3{margin:0;font-size:13px}.prAnalyticsHead p{margin:5px 0 0;color:var(--muted,#718078);font-size:11px;line-height:1.45}.prAnalyticsHead>b{font-size:11px;white-space:nowrap;color:var(--accent,#23694a)}
+        .prAnalyticsBars{display:grid;gap:10px;margin-top:14px}.prAnalyticsRow{display:grid;grid-template-columns:minmax(110px,1fr) minmax(60px,2fr) 34px;align-items:center;gap:9px;font-size:11px}.prAnalyticsRow>span{color:var(--ink,#18372b)}.prAnalyticsRow>b{text-align:right;font-variant-numeric:tabular-nums}.prAnalyticsRow>div{height:9px;overflow:hidden;border-radius:99px;background:#e8eef4}.prAnalyticsRow i{display:block;height:100%;border-radius:inherit;background:#236a9b}
+        .prAnalyticsStatuses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.prAnalyticsStatuses>div{display:flex;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line,rgba(30,60,45,.1));border-radius:10px;font-size:11px}.prAnalyticsStatuses strong{font-variant-numeric:tabular-nums}
+        @media(max-width:760px){.prAnalytics{grid-template-columns:1fr}.prAnalyticsHead{display:block}.prAnalyticsHead>b{display:inline-block;margin-top:6px}}
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
       {(!section || section === 'register') && <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button>{!section && <><button type="button" role="tab" aria-selected={tab === 'stats'} className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}>Statistik</button><button type="button" role="tab" aria-selected={tab === 'database'} className={tab === 'database' ? 'active' : ''} onClick={() => setTab('database')}>Metadata Pasien</button></>}</nav>}
@@ -293,6 +312,17 @@ export default function PatientRegistryWorkspace({
         <div className="prKpi"><span>Rawat inap pulang · halaman ini</span><strong>{discharged.toLocaleString('id-ID')}</strong></div>
         <div className="prKpi"><span>Masih dirawat · halaman ini</span><strong>{activeEpisodes.toLocaleString('id-ID')}</strong></div>
         <div className="prKpi"><span>Kunjungan (IGD/rawat jalan/tindakan) · halaman ini</span><strong>{visits.toLocaleString('id-ID')}</strong></div>
+      </div>
+
+      <div className="prAnalytics" aria-label="Analisis episode pasien">
+        <section className="prAnalyticsCard">
+          <div className="prAnalyticsHead"><div><h3>Komposisi episode pelayanan</h3><p>Distribusi data pada halaman aktif; bukan distribusi seluruh tahun.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
+          {loading ? <p className="prMuted">Memuat distribusi…</p> : rows.length ? <div className="prAnalyticsBars">{pageEpisodeDistribution.map((item) => <div className="prAnalyticsRow" key={item.label}><span>{item.label}</span><div><i style={{width:(item.count/pageEpisodeMax*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="prMuted">Belum ada episode pada halaman ini.</p>}
+        </section>
+        <section className="prAnalyticsCard">
+          <div className="prAnalyticsHead"><div><h3>Status kelengkapan workflow</h3><p>Status dari record episode yang sedang ditampilkan.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
+          {loading ? <p className="prMuted">Memuat status…</p> : rows.length ? <div className="prAnalyticsStatuses">{pageWorkflowDistribution.map((item) => <div key={item.label}><span>{item.label}</span><strong>{item.count.toLocaleString('id-ID')}</strong></div>)}</div> : <p className="prMuted">Belum ada status untuk ditampilkan.</p>}
+        </section>
       </div>
 
       <div className="prPanel prFilters">
