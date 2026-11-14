@@ -121,3 +121,14 @@ test('Arktik module tabs use blue shapes and lighter blue subtabs', () => {
   assert.match(blue, /workspaceNavigationRail \.workspaceNavigationRailItem\.active \{[\s\S]*background: #dcebf8 !important/)
   assert.match(blue, /data-mode="gelap"[\s\S]*workspaceNavigationRailItem\.active/)
 })
+
+
+test('global contextual navigation cannot disappear when a module route lacks a registry match', () => {
+  assert.ok(home.includes("const activeNavModuleId=activeNavEntry?.[0]||(active==='home'?'home':active)"))
+  assert.ok(home.includes("(MODS.find(([id])=>id===active)?.[1])"))
+  const globalNavigation = read('app/aureka-global-navigation.css')
+  assert.match(globalNavigation, /html\\[data-skin="arktik"\\] body \\.workspaceRoot\\.workspaceDesk\\[data-aureka-theme\\] \\.workspaceNavigationRail \\{[\\s\\S]*display: flex !important;[\\s\\S]*visibility: visible !important;/)
+  assert.match(globalNavigation, /workspaceNavigationRailTitle \\{[\\s\\S]*background: #172a40 !important;/)
+  assert.match(globalNavigation, /workspaceNavigationRailItem\\.active \\{[\\s\\S]*background: #dcebf8 !important;/)
+  assert.match(globalNavigation, /workspaceNavigationSubRail \\{[\\s\\S]*background: #edf4fa !important;/)
+})
