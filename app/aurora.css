@@ -680,3 +680,7 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot :is(.wor
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .mobileBottomNav { background: rgba(14, 19, 27, 0.88) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .mobileBottomNav button.active { color: #8ee3ea !important; background: rgba(94, 196, 207, 0.18) !important; }
 }
+
+/* Angka KPI: aturan label ".hlKpiCard span" ikut mengecilkan <span> angka di dalam <strong>. Angka mewarisi ukuran strong. */
+html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong span:not(.hlKpiSkel) { font-size: inherit !important; font-weight: inherit !important; color: inherit !important; letter-spacing: inherit; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong span:not(.hlKpiSkel) { color: inherit !important; }
