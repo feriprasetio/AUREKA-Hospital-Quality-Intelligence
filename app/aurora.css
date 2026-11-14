@@ -790,3 +790,13 @@ html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn { w
   html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRow .roomRowBtn.quiet { display: none; }
   html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRow:is(:hover, :focus-within) .roomRowBtn.quiet { display: inline-block; opacity: 1; }
 }
+/* Baris unit stabil: tombol Nonaktifkan selalu tampil (abu tenang) supaya kartu tidak berubah ukuran saat disorot. */
+@media (hover: hover) and (pointer: fine) {
+  html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRow .roomRowBtn.quiet,
+  html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRow:is(:hover, :focus-within) .roomRowBtn.quiet { display: inline-block !important; opacity: 1 !important; }
+}
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.quiet { padding: 0 8px !important; color: #7a8594 !important; background: transparent !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.quiet:hover { color: #b42318 !important; background: #fdecea !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.quiet { color: #9aa6b6 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.quiet:hover { color: #fda4af !important; background: rgba(244, 63, 94, 0.15) !important; }
