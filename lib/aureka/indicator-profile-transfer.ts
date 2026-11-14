@@ -352,7 +352,7 @@ export async function buildIndicatorProfileXlsx(backup: IndicatorProfileBackup):
 
 export async function parseIndicatorProfileXlsx(data: ArrayBuffer | Uint8Array): Promise<IndicatorProfileBackup> {
   const workbook = new ExcelJS.Workbook()
-  await workbook.xlsx.load(data as unknown as Buffer)
+  await workbook.xlsx.load(data as unknown as Parameters<typeof workbook.xlsx.load>[0])
   const meta = workbook.getWorksheet(XLSX_META_SHEET)
   const sheet = workbook.getWorksheet(XLSX_PROFILE_SHEET)
   if (!meta || !sheet) {
