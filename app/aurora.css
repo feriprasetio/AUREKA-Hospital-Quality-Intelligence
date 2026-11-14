@@ -684,3 +684,13 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot :is(.wor
 /* Angka KPI: aturan label ".hlKpiCard span" ikut mengecilkan <span> angka di dalam <strong>. Angka mewarisi ukuran strong. */
 html body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong span:not(.hlKpiSkel) { font-size: inherit !important; font-weight: inherit !important; color: inherit !important; letter-spacing: inherit; }
 html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong span:not(.hlKpiSkel) { color: inherit !important; }
+
+/* Popup Master Clinical Pathway: kepala pita terang → teks gelap (sebelumnya putih di atas putih); footer di atas tabel. */
+html body:not(#_) .cpRoot .cpBuilderModalHead :is(h3, .cpEyebrow) { color: #0b1f33 !important; -webkit-text-fill-color: #0b1f33 !important; opacity: 1 !important; }
+html body:not(#_) .cpRoot .cpBuilderModalHead .cpEyebrow { color: #2c6aa0 !important; -webkit-text-fill-color: #2c6aa0 !important; }
+html body:not(#_) .cpRoot .cpBuilderModalHead button { color: #0b1f33 !important; background: rgba(255, 255, 255, 0.8) !important; border: 1px solid #d9e4ef !important; }
+html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalHead :is(h3, .cpEyebrow) { color: #eef2f7 !important; -webkit-text-fill-color: #eef2f7 !important; }
+html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalHead .cpEyebrow { color: #8ee3ea !important; -webkit-text-fill-color: #8ee3ea !important; }
+html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalHead button { color: #eef2f7 !important; background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.16) !important; }
+html body:not(#_) .cpRoot .cpBuilderModalBody > .cpFooter { z-index: 8 !important; }
+html body:not(#_) table.cpTable.cpBuilderMatrix th.cpBuilderDayHeadCell { display: table-cell !important; text-align: center; }
