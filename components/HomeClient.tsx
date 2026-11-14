@@ -488,6 +488,7 @@ export default function HomeClient(){
  const activeNavGroups=sidebarChildGroups[activeNavModuleId]||[]
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
+ const activeRailTitle=activeNavModuleLabel
  const activeRailItems=activeNavGroups.flatMap(group=>{
   if(!group.children?.length)return [group]
   if(group.id===activeNestedNavGroup?.id)return group.children
@@ -1028,7 +1029,7 @@ export default function HomeClient(){
   </section>}
   {activeNavModuleId&&<UnifiedModuleNavigation
    ariaLabel={'Navigasi '+activeNavModuleLabel}
-   title={activeNavModuleLabel}
+   title={activeRailTitle}
    items={activeRailItems}
    activeId={activeNavSelectedId}
    onSelect={childId=>selectSidebarChild(activeNavModuleId,childId)}
