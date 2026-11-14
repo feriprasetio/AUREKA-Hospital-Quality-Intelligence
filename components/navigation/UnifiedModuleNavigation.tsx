@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export type UnifiedNavigationItem = {
   id: string
@@ -34,7 +34,7 @@ export default function UnifiedModuleNavigation({
   const overflowRef = useRef<HTMLDetailsElement>(null)
   const [visibleIds, setVisibleIds] = useState<string[]>(() => items.map((item) => item.id))
 
-  const itemWidths = useMemo(() => items.map((item) => item.id), [items])
+  const itemsSignature = items.map((item) => item.id + ':' + item.label).join('|')
 
   useEffect(() => {
     const rail = railRef.current
@@ -56,7 +56,8 @@ export default function UnifiedModuleNavigation({
       const fullBudget = availableWidth - titleWidth - dividerWidth - gapBudget
 
       if (allItemsWidth + allGaps <= fullBudget) {
-        setVisibleIds(items.map((item) => item.id))
+        const next = items.map((item) => item.id)
+        setVisibleIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
         return
       }
 
@@ -76,7 +77,8 @@ export default function UnifiedModuleNavigation({
         }
       }
 
-      setVisibleIds(items.filter((item) => chosen.has(item.id)).map((item) => item.id))
+      const next = items.filter((item) => chosen.has(item.id)).map((item) => item.id)
+      setVisibleIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
     }
 
     calculate()
@@ -87,7 +89,7 @@ export default function UnifiedModuleNavigation({
       observer?.disconnect()
       window.removeEventListener('resize', calculate)
     }
-  }, [activeId, itemWidths, items, title])
+  }, [activeId, itemsSignature, title])
 
   const visibleItems = items.filter((item) => visibleIds.includes(item.id))
   const overflowItems = items.filter((item) => !visibleIds.includes(item.id))
