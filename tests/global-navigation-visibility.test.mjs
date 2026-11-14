@@ -1,3 +1,8 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
 test('global navigation module identity chip remains visible above contextual tabs', () => {
   const globalNavigation = read('app/aureka-global-navigation.css')
