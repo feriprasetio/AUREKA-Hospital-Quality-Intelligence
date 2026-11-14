@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 export type UnifiedNavigationItem = {
   id: string
@@ -32,6 +32,7 @@ export default function UnifiedModuleNavigation({
   const titleRef = useRef<HTMLSpanElement>(null)
   const measureRef = useRef<HTMLDivElement>(null)
   const overflowRef = useRef<HTMLDetailsElement>(null)
+  const itemsRef = useRef<HTMLDivElement>(null)
   const [visibleIds, setVisibleIds] = useState<string[]>(() => items.map((item) => item.id))
 
   const itemsSignature = items.map((item) => item.id + ':' + item.label).join('|')
@@ -91,6 +92,28 @@ export default function UnifiedModuleNavigation({
     }
   }, [activeId, itemsSignature, title])
 
+  // Pil aktif yang meluncur: ukur tombol aktif lalu geser satu latar bersama (CSS variables).
+  useLayoutEffect(() => {
+    const box = itemsRef.current
+    if (!box) return
+    const place = () => {
+      const active = box.querySelector<HTMLElement>('.workspaceNavigationRailItem.active')
+      if (!active) { box.classList.remove('hasPill'); return }
+      box.style.setProperty('--pill-x', active.offsetLeft + 'px')
+      box.style.setProperty('--pill-y', active.offsetTop + 'px')
+      box.style.setProperty('--pill-w', active.offsetWidth + 'px')
+      box.style.setProperty('--pill-h', active.offsetHeight + 'px')
+      if (!box.classList.contains('hasPill')) {
+        box.classList.add('hasPill')
+        requestAnimationFrame(() => box.classList.add('pillReady'))
+      }
+    }
+    place()
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null
+    observer?.observe(box)
+    return () => observer?.disconnect()
+  }, [activeId, visibleIds])
+
   const visibleItems = items.filter((item) => visibleIds.includes(item.id))
   const overflowItems = items.filter((item) => !visibleIds.includes(item.id))
 
@@ -103,7 +126,7 @@ export default function UnifiedModuleNavigation({
     <nav ref={railRef} className="workspaceNavigationRail" aria-label={ariaLabel}>
       <span ref={titleRef} className="workspaceNavigationRailTitle">{title}</span>
       {items.length > 0 && <span className="workspaceNavigationRailDivider" aria-hidden="true" />}
-      <div className="workspaceNavigationRailItems">
+      <div ref={itemsRef} className="workspaceNavigationRailItems">
         {visibleItems.map((item) => {
           const selected = item.id === activeId
           return (
