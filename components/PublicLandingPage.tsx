@@ -309,7 +309,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
               <span><Icon name="shield" size={15} /> Keselamatan pasien</span>
               <span><Icon name="risk" size={15} /> Unifikasi risiko</span>
             </div>
-            <p className="a2-hero-expansion">Alkadrie · Unifikasi Risiko, Evaluasi Kualitas, dan Asesmen</p>
+            <p className="a2-hero-expansion"><b>AUREKA</b> adalah singkatan dari Alkadrie · Unifikasi Risiko, Evaluasi Kualitas, dan Asesmen</p>
           </div>
 
           <aside className="a2-hero-showcase a2-product-showcase" aria-label="Tur produk interaktif AUREKA">
