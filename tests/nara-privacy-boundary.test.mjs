@@ -30,7 +30,7 @@ test('external AI context excludes incident unit/month detail and free-text risk
   assert.doesNotMatch(gateway, /per_bulan: Object\.fromEntries\(Object\.entries\(count\(incidents/)
 })
 
-test('DeepSeek and LLM7 require explicit server-side opt-in', () => {
+test('DeepSeek and LLM7 are enabled by default when keys exist', () => {
   assert.match(gateway, /x === "deepseek" && Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) !== "true"/)
   assert.match(gateway, /x === "llm7" && Deno\.env\.get\("AI_ENABLE_LLM7"\) !== "true"/)
 })
