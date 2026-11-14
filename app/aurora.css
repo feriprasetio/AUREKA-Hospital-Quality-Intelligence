@@ -694,3 +694,7 @@ html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalHead .cpEyebrow { co
 html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalHead button { color: #eef2f7 !important; background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.16) !important; }
 html body:not(#_) .cpRoot .cpBuilderModalBody > .cpFooter { z-index: 8 !important; }
 html body:not(#_) table.cpTable.cpBuilderMatrix th.cpBuilderDayHeadCell { display: table-cell !important; text-align: center; }
+/* Kolom hari builder Clinical Pathway: pilihan jadwal terbaca penuh ("Wajib · hijau"), nama hari tidak terpotong. */
+html body:not(#_) table.cpTable.cpBuilderMatrix .cpBuilderPolicy { min-height: 38px !important; padding: 4px 22px 4px 8px !important; font-size: 12px !important; text-overflow: ellipsis; }
+html body:not(#_) table.cpTable.cpBuilderMatrix .cpBuilderDayHead { display: grid; grid-template-columns: minmax(0, 1fr) 24px; align-items: center; gap: 4px; }
+html body:not(#_) table.cpTable.cpBuilderMatrix .cpBuilderDayName { min-height: 34px !important; padding: 4px 6px !important; font-size: 12px !important; text-align: center; }
