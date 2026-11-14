@@ -7,6 +7,7 @@ import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 import AurekaModal from '@/components/ui/AurekaModal'
+import { buildIndicatorProfileBackup, parseIndicatorProfileBackup, type IndicatorProfileBackup } from '@/lib/aureka/indicator-profile-transfer'
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -116,6 +117,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [programFilter, setProgramFilter] = useState('')
   const [profileViewFilter, setProfileViewFilter] = useState<ProfileViewFilter>('active')
   const editorRef = useRef<HTMLDivElement | null>(null)
+  const importFileRef = useRef<HTMLInputElement | null>(null)
+  const [importPreview, setImportPreview] = useState<IndicatorProfileBackup | null>(null)
+  const [replaceConfirmed, setReplaceConfirmed] = useState(false)
   const [msg, setMsg] = useState('')
   useEffect(() => {
     if (!msg || typeof window === 'undefined') return
@@ -362,7 +366,106 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     setSaving(false)
   }
 
-  const fieldStyle: CSSProperties = {
+  const exportProfileSet = () => {
+    try {
+      const selectedRoom = rooms.find((item) => String(item.id) === room)
+      const backup = buildIndicatorProfileBackup({
+        profileYear: year,
+        scopeRoomId: room ? Number(room) : null,
+        scopeName: selectedRoom?.name || 'Semua unit',
+        profiles,
+      })
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      const scopePart = selectedRoom
+        ? selectedRoom.name.toLocaleLowerCase('id').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        : 'semua-unit'
+      anchor.href = url
+      anchor.download = 'aureka-profil-indikator-' + year + '-' + scopePart + '.json'
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setMsg('Ekspor ' + backup.profiles.length.toLocaleString('id-ID') + ' profil aktif tahun ' + year + ' berhasil dibuat.')
+    } catch (error) {
+      setMsg('Profil indikator gagal diekspor: ' + toUserFacingError(error, { fallback: 'Periksa cakupan tahun dan unit.' }))
+    }
+  }
+
+  const readProfileImportFile = async (file?: File) => {
+    if (!file) return
+    setMsg('')
+    try {
+      const parsed = parseIndicatorProfileBackup(JSON.parse(await file.text()))
+      const selectedScopeRoomId = room ? Number(room) : null
+      if (parsed.scope.room_id !== selectedScopeRoomId) {
+        throw new Error(
+          parsed.scope.room_id === null
+            ? 'Berkas ini mencakup semua unit. Pilih Semua unit sebelum mengimpor.'
+            : 'Berkas ini hanya untuk ' + parsed.scope.unit_name + '. Pilih unit tersebut sebelum mengimpor.',
+        )
+      }
+      setImportPreview(parsed)
+      setReplaceConfirmed(false)
+      setMsg('Berkas ' + file.name + ' tervalidasi. Periksa ringkasan dan konfirmasi sebelum penggantian profil.')
+    } catch (error) {
+      setImportPreview(null)
+      setReplaceConfirmed(false)
+      setMsg('Berkas profil indikator tidak dapat digunakan: ' + toUserFacingError(error, { fallback: 'Pastikan berkas merupakan ekspor JSON Profil Indikator AUREKA.' }))
+    }
+  }
+
+  const replaceProfileSet = async () => {
+    if (!importPreview || !replaceConfirmed || saving) return
+    setSaving(true)
+    setMsg('')
+    try {
+      const { data, error } = await q().rpc('replace_indicator_profile_set', {
+        p_profile_year: year,
+        p_scope_room_id: room ? Number(room) : null,
+        p_profiles: importPreview.profiles,
+      })
+      if (error) throw error
+      if (!data || typeof data !== 'object') {
+        throw new Error('Server tidak mengembalikan ringkasan hasil impor yang valid.')
+      }
+      const result = data as Record<string, unknown>
+      const imported = Number(result.imported_profiles)
+      if (!Number.isInteger(imported) || imported !== importPreview.profiles.length) {
+        throw new Error('Jumlah profil yang diterbitkan tidak sesuai dengan berkas. Muat ulang dan periksa hasil impor.')
+      }
+
+      const auditRemapped = Number(result.relinked_responses || 0)
+      const recordsRekeyed = Number(result.rekeyed_audit_records || 0)
+      const retired = Number(result.retired_profiles || 0)
+      const importedSourceYear = importPreview.profile_year
+      const targetScopeRoomId = room ? Number(room) : null
+      window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', {
+        detail: { year, scopeRoomId: targetScopeRoomId },
+      }))
+      setImportPreview(null)
+      setReplaceConfirmed(false)
+      setSearch('')
+      setProgramFilter('')
+      setProfileViewFilter('active')
+      await load()
+      setMsg(
+        'Penggantian profil tahun ' + year + ' berhasil: ' + imported.toLocaleString('id-ID') +
+        ' profil diterbitkan dan ' + retired.toLocaleString('id-ID') + ' versi lama dipensiunkan. ' +
+        auditRemapped.toLocaleString('id-ID') + ' respons audit ditautkan ulang dan ' +
+        recordsRekeyed.toLocaleString('id-ID') + ' catatan audit disesuaikan kodenya. ' +
+        (importedSourceYear !== year ? 'Sumber berkas tahun ' + importedSourceYear + ' diterapkan ke tahun tujuan ' + year + '. ' : '') +
+        'Riwayat dan nilai audit tetap dipertahankan.',
+      )
+    } catch (error) {
+      setMsg('Impor tidak berhasil. Tidak ada penggantian parsial yang diterapkan: ' + toUserFacingError(error, { fallback: 'Periksa validitas berkas, konflik kode, dan hak akses Superadmin.' }))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+    const fieldStyle: CSSProperties = {
     display: 'grid',
     gap: 5,
     fontSize: 11,
@@ -477,7 +580,66 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
-              <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
+              <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import profil</LiquidGlassButton>
+              <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export profil</LiquidGlassButton>
+              
+            </div>
+            <input
+              ref={importFileRef}
+              type="file"
+              accept=".json,application/json"
+              aria-label="Pilih berkas ekspor profil indikator AUREKA"
+              style={{ display: 'none' }}
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0]
+                event.currentTarget.value = ''
+                void readProfileImportFile(file)
+              }}
+            />
+            <AurekaModal
+              open={Boolean(importPreview)}
+              title="Konfirmasi penggantian Profil Indikator"
+              subtitle="Periksa tahun tujuan dan cakupan unit sebelum menerapkan seluruh isi berkas."
+              closeDisabled={saving}
+              onClose={() => { setImportPreview(null); setReplaceConfirmed(false) }}
+            >
+              {importPreview && (
+                <div style={{ display: 'grid', gap: 12, padding: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 8 }}>
+                    <div style={{ padding: 10, border: '1px solid var(--line, rgba(20,34,27,.12))', borderRadius: 10 }}>
+                      <div style={{ fontSize: 9, color: 'var(--muted)' }}>Tahun sumber</div>
+                      <strong style={{ fontSize: 15 }}>{importPreview.profile_year}</strong>
+                    </div>
+                    <div style={{ padding: 10, border: '1px solid var(--line, rgba(20,34,27,.12))', borderRadius: 10 }}>
+                      <div style={{ fontSize: 9, color: 'var(--muted)' }}>Tahun tujuan</div>
+                      <strong style={{ fontSize: 15 }}>{year}</strong>
+                    </div>
+                    <div style={{ padding: 10, border: '1px solid var(--line, rgba(20,34,27,.12))', borderRadius: 10 }}>
+                      <div style={{ fontSize: 9, color: 'var(--muted)' }}>Profil dalam berkas</div>
+                      <strong style={{ fontSize: 15 }}>{importPreview.profiles.length.toLocaleString('id-ID')}</strong>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                    Cakupan: <strong style={{ color: 'var(--text, inherit)' }}>{importPreview.scope.unit_name}</strong>.
+                    Seluruh profil aktif/draf pada tahun dan cakupan tujuan akan dipensiunkan, lalu diganti dengan isi berkas ini.
+                  </div>
+                  <div style={{ border: '1px solid rgba(190,125,35,.35)', background: 'rgba(190,125,35,.07)', borderRadius: 10, padding: 11, fontSize: 10, lineHeight: 1.6 }}>
+                    Data audit tidak dihapus. Sistem akan menautkan ulang ID indikator dan mengganti kode pada nilai audit lama yang memiliki pasangan pemetaan. Jika pemetaan berpotensi menimpa nilai indikator lain, seluruh transaksi impor akan dibatalkan.
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 11, lineHeight: 1.5 }}>
+                    <input type="checkbox" checked={replaceConfirmed} onChange={(event) => setReplaceConfirmed(event.target.checked)} style={{ marginTop: 2 }} />
+                    Saya memahami bahwa seluruh profil aktif pada cakupan tahun tujuan akan diganti dengan isi berkas ini.
+                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                    <button type="button" className="textButton" disabled={saving} onClick={() => { setImportPreview(null); setReplaceConfirmed(false) }}>Batal</button>
+                    <LiquidGlassButton onClick={() => void replaceProfileSet()} disabled={saving || !replaceConfirmed}>
+                      {saving ? 'Mengganti profil…' : 'Ganti seluruh profil'}
+                    </LiquidGlassButton>
+                  </div>
+                </div>
+              )}
+            </AurekaModal>
+            <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
             <AurekaModal
               open={Boolean(edit || newOne)}
