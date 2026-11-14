@@ -376,7 +376,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         profiles,
       })
       const bytes = await buildIndicatorProfileXlsx(backup)
-      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      const blobBytes = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer
+      const blob = new Blob([blobBytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
       const scopePart = selectedRoom
