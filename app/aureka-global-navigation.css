@@ -292,7 +292,7 @@ html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem.active {
    The older consolidated stylesheet contains higher-specificity !important
    rules. These final selectors deliberately outrank them so the global
    navigation tokens are the effective production styles. */
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
   position: relative !important;
   z-index: 12 !important;
   display: flex !important;
@@ -308,7 +308,7 @@ html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aure
   background: #f5f8fb !important;
   box-shadow: none !important;
 }
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
   display: inline-flex !important;
   flex: 0 1 auto !important;
   align-items: center !important;
@@ -328,7 +328,7 @@ html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aure
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailDivider {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailDivider {
   display: block !important;
   flex: 0 0 1px !important;
   width: 1px !important;
@@ -339,7 +339,7 @@ html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aure
   color: transparent !important;
   font-size: 0 !important;
 }
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems {
   display: flex !important;
   flex: 1 1 auto !important;
   flex-wrap: nowrap !important;
@@ -348,8 +348,8 @@ html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aure
   min-width: 0 !important;
   overflow: hidden !important;
 }
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
   display: inline-flex !important;
   flex: 0 0 auto !important;
   align-items: center !important;
@@ -369,17 +369,17 @@ html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aure
   line-height: 1.3 !important;
   white-space: nowrap !important;
 }
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem.active {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem.active {
   border-color: #b8d0e5 !important;
   background: #dcebf8 !important;
   color: #164b7a !important;
   font-weight: 750 !important;
 }
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow {
   position: relative !important;
   flex: 0 0 auto !important;
 }
-html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflowMenu {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflowMenu {
   position: absolute !important;
   top: calc(100% + 7px) !important;
   right: 0 !important;
@@ -397,18 +397,18 @@ html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aure
   box-shadow: 0 12px 30px rgba(23,42,64,.16) !important;
 }
 @media (max-width: 720px) {
-  html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
     min-height: 42px !important;
     gap: 5px !important;
     padding: 4px !important;
   }
-  html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
     min-height: 32px !important;
     padding-inline: 9px !important;
     font-size: 11px !important;
   }
-  html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
-  html[data-skin="arktik"][data-theme] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
     min-height: 32px !important;
     max-width: 160px !important;
     padding-inline: 9px !important;
