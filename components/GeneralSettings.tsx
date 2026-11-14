@@ -281,7 +281,7 @@ export default function GeneralSettings({
     await loadRooms()
     onRoomsChanged?.()
   }
-  const roomUserCount = (id: number) => users.filter((u) => u.primary_room_id === id && u.is_active).length
+  const roomUserCount = (id: number) => users.filter((u) => u.primary_room_id != null && Number(u.primary_room_id) === Number(id) && u.is_active).length
   const picRoleId = roles.find((r) => r.code === 'PIC')?.id || null
 
   const updateUser = async (u: Profile, patch: Partial<Profile>) => {
