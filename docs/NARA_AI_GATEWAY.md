@@ -1,59 +1,77 @@
-# NARA AI Gateway — Implementasi AUREKA
+# NARA AI Gateway — Production Configuration
 
-## Tujuan
-NARA adalah intelligence layer di belakang antarmuka Tanya AUREKA yang sudah ada. Implementasi ini sengaja tidak mengubah UI, navigasi, stylesheet, layout, atau modul AUREKA.
+## Architecture
+- GitHub Pages serves only the static AUREKA frontend.
+- The authenticated frontend calls the Supabase Edge Function `aureka-tanya`.
+- All five provider adapters run server-side: Groq, NVIDIA NIM, Gemini, DeepSeek, and LLM7.io.
+- Provider credentials are Supabase Edge Function secrets only. Never expose them in the browser, GitHub Pages, source code, or build variables.
+- Database reads use the authenticated user's JWT and existing RLS policies. The provider receives only the minimized aggregate snapshot.
 
-## Arsitektur
-- Frontend yang ada tetap memanggil Supabase Edge Function `aureka-tanya`.
-- Semua provider dipanggil hanya dari Edge Function.
-- API key tidak pernah dikirim ke browser.
-- Database diakses menggunakan JWT pengguna sehingga RLS tetap berlaku.
-- LLM menerima ringkasan agregat yang diminimalkan; tidak ada akses database langsung bagi provider.
-- Perhitungan statistik deterministik tetap dikerjakan oleh backend/SQL, bukan diserahkan ke LLM.
+## Provider matrix
 
-## Provider
-| Provider | Secret | Model override | Kebijakan |
+| Provider | Secret | Model override | Endpoint |
 |---|---|---|---|
-| Gemini | `GEMINI_API_KEY` | `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL` | Default-eligible; gunakan payload aman saja |
-| Groq | `GROQ_API_KEY` | `GROQ_MODEL` | Default-eligible; fast inference |
-| NVIDIA NIM | `NVIDIA_API_KEY` | `NVIDIA_MODEL` | Default-eligible; pastikan endpoint/model sesuai entitlement |
-| DeepSeek | `DEEPSEEK_API_KEY` | `DEEPSEEK_MODEL` | Opt-in melalui `AI_ENABLE_DEEPSEEK=true`; perlu review vendor/data transfer |
-| LLM7.io | `LLM7_API_KEY` (alias lama didukung) | `LLM7_MODEL` | Development sandbox saja; tidak eligible di production |
+| Groq | `GROQ_API_KEY` | `GROQ_MODEL` | `https://api.groq.com/openai/v1/chat/completions` |
+| NVIDIA NIM | `NVIDIA_API_KEY` | `NVIDIA_MODEL` | `https://integrate.api.nvidia.com/v1/chat/completions` |
+| Gemini | `GEMINI_API_KEY` | `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL` | Google generateContent |
+| DeepSeek | `DEEPSEEK_API_KEY` | `DEEPSEEK_MODEL` | `https://api.deepseek.com/chat/completions` |
+| LLM7.io | `LLM7_API_KEY` (aliases supported) | `LLM7_MODEL` | `https://api.llm7.io/v1/chat/completions` |
 
-## Secrets Supabase
-Set secrets di Supabase Edge Functions (jangan commit ke GitHub dan jangan masukkan ke .env publik):
-- `GEMINI_API_KEY`
-- `GROQ_API_KEY`
-- `NVIDIA_API_KEY`
-- `DEEPSEEK_API_KEY` (opsional)
-- `LLM7_API_KEY` (development saja)
-- `AI_PROVIDER_ORDER=groq,nvidia,gemini`
-- `AI_ENVIRONMENT=production`
-- `AI_ENABLE_DEEPSEEK=false`
-- `AI_ENABLE_LLM7=false`
-- `GROQ_MODEL`, `NVIDIA_MODEL`, `DEEPSEEK_MODEL`, `LLM7_MODEL`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL` (opsional, isi hanya model ID yang sudah diverifikasi)
+## Production secrets
 
-Jangan mengirim nilai API key melalui chat, issue, commit, log, atau browser. Jangan menyimpan secrets di GitHub Pages karena frontend bersifat publik.
+Set these in Supabase Dashboard → Edge Functions → Secrets:
 
-## Privacy boundary
-1. Prompt dan 10 pesan histori terakhir diperiksa untuk pola pengenal langsung seperti NIK 16 digit, nomor RM berlabel, email, nomor telepon, serta label identitas pasien/petugas.
-2. Permintaan yang terdeteksi ditolak sebelum panggilan provider.
-3. Snapshot hanya berisi statistik teragregasi. Deskripsi bebas risiko, kode register, dan rincian insiden per unit/per bulan tidak dikirim ke LLM.
-4. Sel agregat dengan n<5 disembunyikan pada tabel hitungan kategori. Agregat per unit yang ditampilkan juga memakai ambang minimum.
-5. Ambang n<5 adalah mitigasi dasar, bukan jaminan anonimitas. Rare-event dan quasi-identifiers tetap perlu dinilai.
-6. Bila tidak aman, jangan mengaktifkan provider/fallback; gunakan internal-only workflow.
-7. Provider eksternal tidak memperoleh Supabase service-role key, anon key tambahan, SQL credential, atau akses Storage.
+```dotenv
+AI_ENVIRONMENT=production
+AI_PROVIDER_ORDER=groq,nvidia,gemini,deepseek,llm7
+AI_PROVIDER_TIMEOUT_MS=18000
+AI_ENABLE_DEEPSEEK=false
+AI_ENABLE_LLM7=false
+GROQ_API_KEY=<your Groq key>
+NVIDIA_API_KEY=<your NVIDIA key>
+GEMINI_API_KEY=<your Gemini key>
+```
 
-## Routing
-Default `AI_PROVIDER_ORDER=groq,nvidia,gemini`. DeepSeek hanya aktif jika eksplisit di-enable. LLM7 hanya aktif bila `AI_ENVIRONMENT=development` dan `AI_ENABLE_LLM7=true`. Fallback berjalan berurutan dan hanya untuk provider yang memenuhi allowlist.
+Optional provider secrets:
+- `DEEPSEEK_API_KEY`
+- `LLM7_API_KEY` (or legacy aliases `LLM7.IO_API_KEY`, `LLM7_IO_API_KEY`)
 
-## Deploy
-1. Review dan merge PR setelah CI hijau.
-2. Deploy Edge Function: `supabase functions deploy aureka-tanya`.
-3. Set secrets menggunakan Supabase Dashboard/CLI pada project yang benar.
-4. Uji login, warmup, pertanyaan ringan, query agregat mutu/risiko, rate limit, provider timeout, dan privacy guard.
-5. Jangan jalankan migration baru untuk perubahan ini; tidak ada perubahan schema.
-6. Frontend GitHub Pages tetap dibangun melalui workflow yang sudah ada.
+Optional model overrides should be set only to model IDs verified in the corresponding provider account/documentation. `AI_PROVIDER_ORDER` changes provider priority; the gateway automatically appends any other enabled provider so an older three-provider value cannot silently omit DeepSeek/LLM7. The function tries up to three configured models per provider and applies a bounded total provider-route budget.
 
-## Batasan yang harus dipahami
-Regex Privacy Guard bukan DLP penuh dan tidak dapat menjamin pendeteksian semua nama orang dalam teks bebas. Sebelum produksi, lakukan uji red-team dengan prompt sintetis dan lengkapi deteksi sesuai format identitas yang digunakan rumah sakit. Data klinis individual tetap dilarang untuk dikirim ke provider eksternal.
+### Provider activation policy
+
+Groq, NVIDIA, and Gemini are the default eligible providers. DeepSeek and LLM7 are implemented and routable, but require explicit server-side opt-in:
+- `AI_ENABLE_DEEPSEEK=true`
+- `AI_ENABLE_LLM7=true`
+
+Keep both `false` until hospital governance has approved the provider, contractual privacy terms, data residency/transfer, retention, and security review. A key being present does not enable either provider. The frontend cannot change these flags.
+
+## Privacy and security controls
+1. Edge Function JWT verification remains enabled.
+2. The handler independently validates the user JWT and active AUREKA profile.
+3. All database access is scoped to the caller JWT so RLS applies.
+4. Direct identifiers in question/history are blocked before provider calls.
+5. Incident reads are restricted to `incident_type`, `type`, and `created_at`; no incident free text or patient identifiers are fetched for the AI snapshot.
+6. Small aggregate cells are suppressed; suppression is a risk reduction, not a guarantee of anonymity.
+7. Request size and request rate are bounded. The in-memory limiter is per function isolate and is not a globally consistent quota; implement a persistent limiter before high-volume public exposure.
+8. Internal server/provider errors are not echoed to the browser.
+9. No service-role key is sent to a provider or browser.
+
+## GitHub Actions deployment
+- Frontend: `.github/workflows/deploy-pages.yml` publishes static output to GitHub Pages from `main`.
+- Backend: `.github/workflows/deploy-nara-function.yml` is manual-only and refuses to deploy from a non-main branch.
+- GitHub repository secret required: `SUPABASE_ACCESS_TOKEN`.
+- Optional repository variable: `SUPABASE_PROJECT_REF`; fallback is `ktukmjscopggkzrkgnzp`.
+- The deployment command does not disable JWT verification.
+
+## Verification
+After a deployment:
+1. Confirm Supabase Edge Function `aureka-tanya` is ACTIVE and `verify_jwt=true`.
+2. Confirm required provider secret names exist; never print secret values.
+3. Test with a logged-in test account and synthetic data only.
+4. Test valid question, invalid JWT, inactive profile, privacy guard, warmup, request limit, timeout, and fallback.
+5. Verify provider identity in successful response metadata without exposing API keys.
+6. Inspect Edge Function logs for provider status codes, not raw prompts or secret values.
+
+## Incident response
+If a provider key may be exposed, revoke/rotate it at the provider and update the Supabase secret. If patient-identifiable data may have been sent externally, disable the relevant provider, preserve logs under access control, assess impact, and follow hospital incident/privacy governance.

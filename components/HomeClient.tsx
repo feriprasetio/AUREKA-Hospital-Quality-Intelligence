@@ -22,6 +22,7 @@ import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
 import {useIdleLogout} from '@/components/layout/useIdleLogout'
 const PicPerformanceWorkspace=dynamic(()=>import('@/components/PicPerformanceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Monitoring Kinerja PIC')})
 const TanyaAureka=dynamic(()=>import('@/components/TanyaAureka'),{ssr:false})
+const NaraAIWorkspace=dynamic(()=>import('@/components/NaraAIWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('NARA AI')})
 const InfographicsDashboard=dynamic(()=>import('@/components/governance/InfographicsDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Infografis')})
 const workspaceChunkLoading=(label:string)=><WorkspaceSkeleton label={label}/>
 const QualityIndicatorWorkspace=dynamic(()=>import('@/components/QualityIndicatorWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Audit Indikator Mutu')})
@@ -135,7 +136,7 @@ export default function HomeClient(){
  // Sat-set: setelah login, unduh kode semua menu di waktu senggang agar pindah menu tidak menunggu unduhan.
  useEffect(()=>{
   if(!user?.id||typeof window==='undefined')return
-  const loaders=[()=>import('@/components/PatientRegistryWorkspace'),()=>import('@/components/QualityIndicatorWorkspace'),()=>import('@/components/HomeLandingWorkspace'),()=>import('@/components/QualityResultsWorkspace'),()=>import('@/components/RiskManagementWorkspace'),()=>import('@/components/PatientSafetyWorkspace'),()=>import('@/components/ClinicalPathwayWorkspace'),()=>import('@/components/MetadataStatisticsWorkspace'),()=>import('@/components/OppeAuditWorkspace'),()=>import('@/components/governance/AnnualProgramWorkspace'),()=>import('@/components/governance/GovernanceProgramWorkspace'),()=>import('@/components/governance/InfographicsDashboard'),()=>import('@/components/GeneralSettings'),()=>import('@/components/governance/AuditLogWorkspace'),()=>import('@/components/PicPerformanceWorkspace'),()=>import('@/components/TanyaAureka')]
+  const loaders=[()=>import('@/components/PatientRegistryWorkspace'),()=>import('@/components/QualityIndicatorWorkspace'),()=>import('@/components/HomeLandingWorkspace'),()=>import('@/components/QualityResultsWorkspace'),()=>import('@/components/RiskManagementWorkspace'),()=>import('@/components/PatientSafetyWorkspace'),()=>import('@/components/ClinicalPathwayWorkspace'),()=>import('@/components/MetadataStatisticsWorkspace'),()=>import('@/components/OppeAuditWorkspace'),()=>import('@/components/governance/AnnualProgramWorkspace'),()=>import('@/components/governance/GovernanceProgramWorkspace'),()=>import('@/components/governance/InfographicsDashboard'),()=>import('@/components/GeneralSettings'),()=>import('@/components/governance/AuditLogWorkspace'),()=>import('@/components/PicPerformanceWorkspace'),()=>import('@/components/TanyaAureka'),()=>import('@/components/NaraAIWorkspace')]
   const conn=(navigator as any).connection
   if(conn?.saveData)return
   let cancelled=false,i=0
@@ -254,7 +255,7 @@ export default function HomeClient(){
     }
     return
    }
-   const routes:Record<string,string>={'ringkasan':'home','halaman-utama':'home','beranda':'home','register-pasien':'patients','pasien':'patients','mutu-klinis':'quality','indikator-mutu':'quality','peningkatan-kinerja-klinis':'clinical','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','sumber-daya-manusia':'staff','program':'analytics','program-indikator':'analytics','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings','pengaturan':'settings'}
+   const routes:Record<string,string>={'ringkasan':'home','halaman-utama':'home','beranda':'home','nara-ai':'nara','nara':'nara','register-pasien':'patients','pasien':'patients','mutu-klinis':'quality','indikator-mutu':'quality','peningkatan-kinerja-klinis':'clinical','keselamatan-pasien':'safety','manajemen-risiko':'risk','tenaga-klinis':'staff','sumber-daya-manusia':'staff','program':'analytics','program-indikator':'analytics','analitik-laporan':'analytics','metadata':'analytics','administrasi':'settings','pengaturan':'settings'}
    const [modulePath,section]=path.split('/')
    let next=routes[modulePath]||'home'
    if(next!=='home'&&!AUREKA_PRIMARY_NAV.some(module=>module.id===next&&module.requiredRoles.includes((role||'') as AurekaRole)))next='home'
@@ -298,7 +299,7 @@ export default function HomeClient(){
   else if(active==='analytics'&&analyticsTab==='profiles')hash='#indikator-mutu/profil-indikator'
   else if(active==='clinical'){const audit=qualityResultsView==='pathway'||clinicalPathwayOpen?'clinical-pathway':'audit-klinis-dan-kematian';hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')}
   else{
-   const routes:Record<string,string>={home:'#beranda',patients:'#pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#program',staff:'#sumber-daya-manusia',settings:'#pengaturan'}
+   const routes:Record<string,string>={home:'#beranda',nara:'#nara-ai',patients:'#pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#program',staff:'#sumber-daya-manusia',settings:'#pengaturan'}
    hash=isPrimaryNavActive('staff')?'#sumber-daya-manusia':routes[active]||'#ringkasan'
    const section=active==='home'?(homeTab==='infographics'?'infografis':'beranda'):active==='patients'?({register:'register-pasien',stats:'statistik',metadata:'metadata-pasien'} as const)[patientsSection]:active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?(isPrimaryNavActive('staff')?(analyticsTab==='oppe'?'oppe':analyticsTab==='fppe'?'fppe':analyticsTab==='pic-performance'?'kinerja-pic':analyticsDirectoryTab):analyticsTab):active==='staff'?(analyticsTab==='oppe'?'oppe':analyticsTab==='fppe'?'fppe':analyticsTab==='pic-performance'?'kinerja-pic':analyticsDirectoryTab):null
    const extra=active==='settings'?(settingsSection==='audit'?'audit-log':settingsSection):null
@@ -1065,6 +1066,7 @@ export default function HomeClient(){
    {active==='home'?<>
     <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} selectedRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    </>
+   :active==='nara'?<NaraAIWorkspace sb={sb} page={currentContainer}/>
    :active==='patients'?<PatientRegistryWorkspace key={'patient-registry-'+String(activeWorkspaceRoomId??'profile')} section={patientsSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??null} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
    :active==='clinical'&&qualityResultsView?<QualityResultsWorkspace key={'clinical-results-'+qualityResultsView+'-'+String(activeWorkspaceRoomId??'profile')} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom}/>
    :active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} lockRoomScope={admin&&!allRoomsScope} onBack={()=>openMainModule('clinical')}/>
