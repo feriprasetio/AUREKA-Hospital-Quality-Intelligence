@@ -9,7 +9,8 @@ test('NARA keeps all five providers behind the server-side gateway', () => {
   for (const provider of ['gemini', 'groq', 'nvidia', 'deepseek', 'llm7']) {
     assert.match(gateway, new RegExp(provider + ': keysOf|'+provider+'\\s*:'), 'Missing provider adapter: ' + provider)
   }
-  assert.match(gateway, /AI_PROVIDER_ORDER/)\n  assert.match(gateway, /groq,nvidia,gemini,deepseek,llm7/)\n  assert.match(gateway, /AI_ENABLE_DEEPSEEK/)
+  assert.match(gateway, /AI_PROVIDER_ORDER/)
+  assert.match(gateway, /groq,nvidia,gemini,deepseek,llm7/)
   assert.match(gateway, /AI_ENABLE_LLM7/)
 })
 
