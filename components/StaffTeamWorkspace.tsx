@@ -114,6 +114,14 @@ export default function StaffTeamWorkspace({
       .filter((item) => !!item.staff)
       .sort((a, b) => (a.staff?.display_name || '').localeCompare(b.staff?.display_name || '', 'id'))
   }, [assignments, directory])
+  const professionSummary = useMemo(() => {
+    const counts = new Map<string, number>()
+    roster.forEach(({ staff }) => {
+      const label = String(staff?.profession_group || 'Profesi belum diisi').trim() || 'Profesi belum diisi'
+      counts.set(label, (counts.get(label) || 0) + 1)
+    })
+    return Array.from(counts.entries()).map(([label, count]) => ({ label, count })).sort((x, y) => y.count - x.count || x.label.localeCompare(y.label, 'id')).slice(0, 8)
+  }, [roster])
 
   const addStaff = async () => {
     if (busy) return
@@ -241,6 +249,15 @@ export default function StaffTeamWorkspace({
           </label>
           <button type="button" className="stBtn primary" onClick={() => void addStaff()} disabled={loading || busy || !roomId || !selectedStaffId}>{busy ? 'Memproses…' : '＋ Kunci ke tim'}</button>
         </div>
+        <section className="stPanel" aria-label="Komposisi roster berdasarkan profesi" style={{marginTop:14,padding:14,boxShadow:'none'}}>
+          <div className="stRosterHead"><b>Komposisi roster menurut kelompok profesi</b><span>{roster.length.toLocaleString('id-ID')} penugasan aktif</span></div>
+          {professionSummary.length ? professionSummary.map(item=><div key={item.label} style={{display:'grid',gridTemplateColumns:'minmax(110px,1fr) minmax(80px,2fr) 34px',gap:9,alignItems:'center',margin:'9px 0',fontSize:11}}>
+            <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={item.label}>{item.label}</span>
+            <span style={{height:8,borderRadius:99,background:'rgba(80,110,130,.13)',overflow:'hidden'}}><i style={{display:'block',height:'100%',width:(roster.length?item.count/roster.length*100:0)+'%',background:'#16507a',borderRadius:99}}/></span>
+            <b>{item.count}</b>
+          </div>) : <div className="stEmpty">Belum ada anggota roster untuk diringkas.</div>}
+          <p className="stSub">Denominator: {roster.length} tenaga yang terpetakan pada roster unit ini. Grafik menunjukkan komposisi penugasan, bukan kecukupan tenaga atau beban kerja; kebutuhan formasi/slot belum dihitung karena standar kebutuhan tidak tersedia pada sumber ini.</p>
+        </section>
         <div className="stRosterHead"><b>Daftar tim aktif · {roomName}</b><span>{roster.length.toLocaleString('id-ID')} orang</span></div>
         {loading ? <div className="stEmpty">Memuat daftar tim…</div> : roster.length ? (
           <div className="stRows">
