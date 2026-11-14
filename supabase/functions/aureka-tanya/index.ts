@@ -15,6 +15,7 @@ const FALLBACK_MODEL = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-la
 const LIMIT_PER_WINDOW = 20;
 const WINDOW_MS = 10 * 60 * 1000;
 const PROVIDER_TIMEOUT_MS = Math.max(5000, Math.min(Number(Deno.env.get("AI_PROVIDER_TIMEOUT_MS")) || 18000, 30000));
+const PROVIDER_ROUTE_BUDGET_MS = Math.max(20000, Math.min(Number(Deno.env.get("AI_ROUTE_BUDGET_MS")) || 65000, 90000));
 const hits = new Map<string, number[]>();
 
 function reply(status: number, body: unknown) {
@@ -243,16 +244,17 @@ const BUSY = "Layanan AI sedang sibuk. Coba lagi sebentar lagi.";
 const QUOTA = "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi.";
 
 /** Gemini: model utama, lalu model cadangan bila sibuk/kuota habis. */
-async function askGemini(apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
+async function askGemini(apiKey: string, system: string, contents: Turn[], deadline: number): Promise<AiResult> {
   const payload = JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.6, maxOutputTokens: 1200 } });
   let last = 0;
   for (const model of [...new Set([MODEL, FALLBACK_MODEL])]) {
+    if (Date.now() >= deadline) break;
     if (isDead("gemini:" + model)) continue;
     let res: Response;
     try {
       res = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
-      }, 15000);
+      }, Math.min(PROVIDER_TIMEOUT_MS, Math.max(1, deadline - Date.now())));
     } catch (e) { console.warn("gemini", model, "timeout", String(e).slice(0, 120)); last = 504; continue; }
     last = res.status;
     if (res.ok) {
@@ -284,13 +286,14 @@ const OPENAI_PROVIDERS: Record<string, OpenAiProvider> = {
     models: [Deno.env.get("LLM7_MODEL") || "", "default", "fast"] },
 };
 
-async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
+async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, contents: Turn[], deadline: number): Promise<AiResult> {
   const messages = [
     { role: "system", content: system },
     ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map((x) => x.text).join("\n") })),
   ];
   let last = 0;
   for (const model of [...new Set(p.models.filter(Boolean))].slice(0, 3)) {
+    if (Date.now() >= deadline) break;
     const tag = p.label + ":" + model;
     if (isDead(tag)) continue;
     // Model "berpikir" (gpt-oss) diminta berpikir singkat agar jawaban cepat.
@@ -301,7 +304,7 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1200, ...extra }),
-      }, PROVIDER_TIMEOUT_MS);
+      }, Math.min(PROVIDER_TIMEOUT_MS, Math.max(1, deadline - Date.now())));
     } catch (e) {
       console.warn(p.label, model, "jaringan/timeout", String(e).slice(0, 200));
       last = 504;
@@ -440,9 +443,12 @@ async function handle(req: Request): Promise<Response> {
   ];
 
   let last: AiResult = { status: 502, error: BUSY };
+  const providerDeadline = Date.now() + PROVIDER_ROUTE_BUDGET_MS;
   for (const provider of order) {
+    if (Date.now() >= providerDeadline) break;
     for (const key of available[provider]) {
-      const result = provider === "gemini" ? await askGemini(key, system, contents) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents);
+      if (Date.now() >= providerDeadline) break;
+      const result = provider === "gemini" ? await askGemini(key, system, contents, providerDeadline) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, providerDeadline);
       if (!("status" in result)) return reply(200, { answer: result.answer, model: provider + ":" + result.model });
       last = result;
       console.warn("aureka-tanya", provider, "gagal:", result.error);
