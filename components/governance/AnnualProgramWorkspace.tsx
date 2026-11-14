@@ -55,6 +55,15 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
   }
   const startNew=()=>setDraft({program_year:year,priority:'tinggi',status:'aktif',owner_room_id:null,responsible_person:''})
   const activeCount=useMemo(()=>rows.filter(x=>!['tercapai','dibatalkan'].includes(x.status)).length,[rows])
+  const statusSummary=useMemo(()=>[
+    {key:'aktif',label:'Belum mulai / aktif',count:rows.filter(x=>x.status==='aktif').length},
+    {key:'berjalan',label:'Berjalan',count:rows.filter(x=>x.status==='berjalan').length},
+    {key:'tercapai',label:'Tercapai',count:rows.filter(x=>x.status==='tercapai').length},
+    {key:'ditunda',label:'Ditunda',count:rows.filter(x=>x.status==='ditunda').length},
+    {key:'dibatalkan',label:'Dibatalkan',count:rows.filter(x=>x.status==='dibatalkan').length},
+  ],[rows])
+  const overdueCount=useMemo(()=>{const today=new Date();today.setHours(0,0,0,0);return rows.filter(x=>x.due_date&&!['tercapai','dibatalkan'].includes(x.status)&&new Date(x.due_date+'T00:00:00')<today).length},[rows])
+  const quarterDeadlines=useMemo(()=>[1,2,3,4].map(q=>({quarter:'TW '+q,count:rows.filter(x=>{if(!x.due_date)return false;const month=Number(x.due_date.slice(5,7));return Math.ceil(month/3)===q}).length})),[rows])
   const roomLabel=(id:number|null)=>id==null?'Rumah Sakit':rooms.find(x=>Number(x.id)===Number(id))?.name||'Unit tidak ditemukan'
 
   return <section className="rmPanel govWorkspace annualProgramWorkspace" aria-label="Program kerja tahunan">
@@ -71,7 +80,16 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
     {error&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
     {notice&&<div className="rmNotice" role="status"><span>Informasi</span><p>{notice}</p></div>}
 
-    {screen==='home'&&<div className="annualProgramHome"><div className="annualProgramCards">
+    {screen==='home'&&<div className="annualProgramHome">
+    <section className="annualProgramVisual" aria-label="Ringkasan status program tahunan">
+      <div className="annualProgramVisualHead"><div><span className="rmEyebrow">Ikhtisar program</span><h4>Pelaksanaan area prioritas · {year}</h4><p>Status berdasarkan data area prioritas yang tersimpan, bukan estimasi progres.</p></div><strong>{loading?'…':rows.length.toLocaleString('id-ID')} area</strong></div>
+      <div className="annualProgramVisualKpis"><div><span>Masih aktif / berjalan</span><b>{loading?'…':activeCount.toLocaleString('id-ID')}</b></div><div><span>Tercapai</span><b>{loading?'…':(statusSummary.find(x=>x.key==='tercapai')?.count||0).toLocaleString('id-ID')}</b></div><div><span>Lewat tenggat</span><b>{loading?'…':overdueCount.toLocaleString('id-ID')}</b></div></div>
+      <div className="annualProgramVisualGrid">
+        <div><h5>Distribusi status</h5>{statusSummary.map(item=><div className="annualProgramStatusRow" key={item.key}><span>{item.label}</span><b>{loading?'…':item.count.toLocaleString('id-ID')}</b><i><em style={{width:(rows.length?item.count/rows.length*100:0)+'%'}}/></i></div>)}</div>
+        <div><h5>Tenggat berdasarkan triwulan</h5><div className="annualProgramQuarterGrid">{quarterDeadlines.map(item=><div key={item.quarter}><span>{item.quarter}</span><b>{loading?'…':item.count.toLocaleString('id-ID')}</b><small>area dengan tenggat</small></div>)}</div><p className="annualProgramVisualNote">Area tanpa tanggal tenggat tidak dimasukkan ke distribusi triwulan.</p></div>
+      </div>
+    </section>
+    <div className="annualProgramCards">
       <button type="button" className="annualProgramCard" onClick={()=>setScreen('priorities')}>
         <span className="annualProgramCardIcon" aria-hidden="true">◎</span>
         <span className="annualProgramCardBody"><strong>Area Prioritas</strong><small>Daftar masalah strategis, sasaran mutu, unit pemilik, dan rencana penyelesaian.</small><span className="annualProgramCardMeta">{loading?'Memuat…':`${rows.length} area · ${activeCount} masih berjalan`}</span></span>
@@ -94,6 +112,10 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
         <span className="rmCellSmall">Area prioritas tahun {year} · {rows.length} entri</span>
         {canManage&&<button type="button" className="rmButton primary" onClick={startNew}>+ Tambah Area Prioritas</button>}
       </div>
+      <section className="annualProgramVisual annualProgramVisualCompact" aria-label="Ringkasan area prioritas">
+        <div className="annualProgramVisualKpis"><div><span>Aktif / berjalan</span><b>{activeCount}</b></div><div><span>Tercapai</span><b>{statusSummary.find(x=>x.key==='tercapai')?.count||0}</b></div><div><span>Lewat tenggat</span><b>{overdueCount}</b></div></div>
+        <div className="annualProgramStatusStrip">{statusSummary.map(item=><span key={item.key}>{item.label}<b>{item.count}</b></span>)}</div>
+      </section>
       {loading?<div className="rmLoading"><span className="rmSpinner"/>Memuat area prioritas…</div>:rows.length===0?<AsyncStatePanel state="empty" title="Belum ada area prioritas" description={canManage?'Tambahkan masalah prioritas rumah sakit untuk mulai menyusun program kerja tahunan.':'Belum ada area prioritas yang ditetapkan untuk tahun ini.'} compact/>:
       <div className="annualPriorityGrid">{rows.map(row=><article key={row.id} className="annualPriorityCard">
         <header><div><span className="govCode">{row.code||'AREA PRIORITAS'}</span><h4>{row.title}</h4></div>{canManage&&<button type="button" className="rmIconButton" onClick={()=>setDraft({...row})}>Edit</button>}</header>
