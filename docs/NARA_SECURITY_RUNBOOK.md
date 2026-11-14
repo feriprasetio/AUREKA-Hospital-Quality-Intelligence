@@ -29,7 +29,7 @@ Optional:
 - `LLM7_API_KEY` (aliases `LLM7.IO_API_KEY` and `LLM7_IO_API_KEY` are supported)
 - Provider-specific model override variables.
 
-DeepSeek and LLM7 adapters are available but deliberately disabled by default. Enable only after written approval for external processing, data transfer, contractual privacy, retention, and security review. To opt in, set the respective secret to the exact lowercase string `true`. Do not enable by merely adding an API key.
+DeepSeek and LLM7 adapters are available but deliberately disabled by default. Enable only after written approval for external processing, data transfer, contractual privacy, retention, and security review. To opt in, set the respective secret to the exact lowercase string `true`. Do not enable by merely adding an API key. `AI_PROVIDER_ORDER` changes priority only; the gateway appends other enabled providers automatically.
 
 ## 4. GitHub configuration
 - GitHub Pages source: GitHub Actions.
