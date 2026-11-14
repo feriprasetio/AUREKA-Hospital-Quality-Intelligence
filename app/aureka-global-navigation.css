@@ -1,0 +1,288 @@
+/* AUREKA global navigation baseline: balanced density, smart overflow,
+   relevant counters only (no fabricated counts), normal document position,
+   and text-only navigation. Loaded after legacy navigation layers. */
+:root {
+  --aureka-nav-primary: #172a40;
+  --aureka-nav-primary-text: #ffffff;
+  --aureka-nav-secondary: #dcebf8;
+  --aureka-nav-secondary-text: #164b7a;
+  --aureka-nav-hover: #edf3f8;
+  --aureka-nav-divider: #a0a8b2;
+  --aureka-nav-border: #cbd8e4;
+  --aureka-nav-focus: #397db5;
+}
+
+.workspaceRoot .workspaceNavigationRail {
+  position: relative !important;
+  z-index: 12 !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 7px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  margin: 0 0 12px !important;
+  padding: 5px 7px !important;
+  overflow: visible !important;
+  border: 1px solid var(--aureka-nav-border) !important;
+  border-radius: 10px !important;
+  background: #f5f8fb !important;
+  box-shadow: none !important;
+  color: #263d53 !important;
+  font-family: inherit !important;
+}
+
+.workspaceRoot .workspaceNavigationRailTitle {
+  display: inline-flex !important;
+  flex: 0 1 auto !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  max-width: min(30%, 250px) !important;
+  min-height: 34px !important;
+  padding: 0 13px !important;
+  overflow: hidden !important;
+  border: 1px solid #172a40 !important;
+  border-radius: 8px !important;
+  background: var(--aureka-nav-primary) !important;
+  color: var(--aureka-nav-primary-text) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.workspaceRoot .workspaceNavigationRailDivider {
+  display: block !important;
+  flex: 0 0 1px !important;
+  width: 1px !important;
+  min-height: 25px !important;
+  margin: 0 2px !important;
+  padding: 0 !important;
+  background: var(--aureka-nav-divider) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+.workspaceRoot .workspaceNavigationRailItems {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+
+.workspaceRoot .workspaceNavigationRailItems::-webkit-scrollbar { display: none !important; }
+
+.workspaceRoot .workspaceNavigationRailItem,
+.workspaceRoot .workspaceNavigationOverflow summary {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  max-width: 230px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #52677b !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  line-height: 1.3 !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  list-style: none !important;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease !important;
+}
+
+.workspaceRoot .workspaceNavigationRailItem:hover,
+.workspaceRoot .workspaceNavigationOverflow summary:hover {
+  border-color: #d7e3ed !important;
+  background: var(--aureka-nav-hover) !important;
+  color: var(--aureka-nav-primary) !important;
+}
+
+.workspaceRoot .workspaceNavigationRailItem.active {
+  border-color: #b8d0e5 !important;
+  background: var(--aureka-nav-secondary) !important;
+  color: var(--aureka-nav-secondary-text) !important;
+  font-weight: 750 !important;
+}
+
+.workspaceRoot .workspaceNavigationRailItem:focus-visible,
+.workspaceRoot .workspaceNavigationOverflow summary:focus-visible,
+.workspaceRoot .workspaceNavigationOverflowItem:focus-visible {
+  outline: 2px solid var(--aureka-nav-focus) !important;
+  outline-offset: 2px !important;
+}
+
+.workspaceRoot .workspaceNavigationOverflow {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+
+.workspaceRoot .workspaceNavigationOverflow summary {
+  min-width: 76px !important;
+  border-color: #cbd8e4 !important;
+  background: #ffffff !important;
+  color: #27445f !important;
+  font-weight: 650 !important;
+}
+
+.workspaceRoot .workspaceNavigationOverflow summary::-webkit-details-marker { display: none !important; }
+.workspaceRoot .workspaceNavigationOverflow[open] summary {
+  border-color: #9bb9d2 !important;
+  background: #e8f1f8 !important;
+  color: #164b7a !important;
+}
+
+.workspaceRoot .workspaceNavigationOverflowMenu {
+  position: absolute !important;
+  top: calc(100% + 7px) !important;
+  right: 0 !important;
+  z-index: 100 !important;
+  display: grid !important;
+  grid-template-columns: minmax(160px, 1fr) !important;
+  gap: 3px !important;
+  width: max-content !important;
+  min-width: 190px !important;
+  max-width: min(320px, calc(100vw - 28px)) !important;
+  max-height: min(60vh, 420px) !important;
+  padding: 6px !important;
+  overflow: auto !important;
+  border: 1px solid #d5e0e9 !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 30px rgba(23, 42, 64, .16) !important;
+}
+
+.workspaceRoot .workspaceNavigationOverflowItem {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 36px !important;
+  padding: 7px 11px !important;
+  border: 1px solid transparent !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #43596e !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.workspaceRoot .workspaceNavigationOverflowItem:hover,
+.workspaceRoot .workspaceNavigationOverflowItem.active {
+  border-color: #c5d9e9 !important;
+  background: #e7f1f9 !important;
+  color: #164b7a !important;
+}
+
+.workspaceRoot .workspaceNavigationMeasure {
+  position: absolute !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  display: flex !important;
+  width: max-content !important;
+  gap: 5px !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.workspaceRoot .workspaceNavigationMeasure span {
+  display: inline-flex !important;
+  min-height: 34px !important;
+  padding: 0 24px !important;
+  align-items: center !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  white-space: nowrap !important;
+}
+
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationRail {
+  border-color: #354c62 !important;
+  background: #17283a !important;
+  color: #e5edf5 !important;
+}
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationRailTitle {
+  border-color: #284765 !important;
+  background: #172a40 !important;
+  color: #ffffff !important;
+}
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationRailDivider { background: #66829d !important; }
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationRailItem { color: #c0d0df !important; }
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationRailItem:hover {
+  border-color: #405b74 !important;
+  background: #243d55 !important;
+  color: #ffffff !important;
+}
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationRailItem.active {
+  border-color: #4d7292 !important;
+  background: #315573 !important;
+  color: #ffffff !important;
+}
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflow summary {
+  border-color: #405b74 !important;
+  background: #20374d !important;
+  color: #e2edf7 !important;
+}
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowMenu {
+  border-color: #405b74 !important;
+  background: #1b2e42 !important;
+}
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem { color: #d5e2ee !important; }
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem:hover,
+html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem.active {
+  border-color: #4d7292 !important;
+  background: #315573 !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 1024px) {
+  .workspaceRoot .workspaceNavigationRail { gap: 5px !important; }
+  .workspaceRoot .workspaceNavigationRailTitle { max-width: 34% !important; }
+}
+@media (max-width: 720px) {
+  .workspaceRoot .workspaceNavigationRail {
+    min-height: 42px !important;
+    gap: 5px !important;
+    margin-bottom: 10px !important;
+    padding: 4px !important;
+  }
+  .workspaceRoot .workspaceNavigationRailTitle {
+    max-width: 38% !important;
+    min-height: 32px !important;
+    padding-inline: 9px !important;
+    font-size: 11px !important;
+  }
+  .workspaceRoot .workspaceNavigationRailItems { gap: 3px !important; }
+  .workspaceRoot .workspaceNavigationRailItem,
+  .workspaceRoot .workspaceNavigationOverflow summary {
+    min-height: 32px !important;
+    max-width: 160px !important;
+    padding-inline: 9px !important;
+    font-size: 11px !important;
+  }
+  .workspaceRoot .workspaceNavigationOverflow summary { min-width: 64px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspaceRoot .workspaceNavigationRailItem,
+  .workspaceRoot .workspaceNavigationOverflow summary { transition: none !important; }
+}
