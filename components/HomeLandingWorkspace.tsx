@@ -5,7 +5,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NavigateFn } from '@/lib/aureka/focus'
 import TanyaAureka from '@/components/TanyaAureka'
 import InfographicsDashboard from '@/components/governance/InfographicsDashboard'
-import QualityReportingMonitor from '@/components/QualityReportingMonitor'
 import HomeKpis from '@/components/HomeKpis'
 import { fetchRoomMonthCounts, type RoomMonthCount } from '@/lib/aureka/quality-counts'
 
@@ -393,7 +392,7 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
         </div>
       </section>})()}
       <HomeKpis supabase={supabase} rooms={rooms} isAdmin={isAdmin} roomId={roomId} showSafety={isAdmin||manager}/>
-      <div className="hlDuo"><QualityReportingMonitor supabase={supabase} rooms={rooms} isAdmin={isAdmin} roomId={roomId} roomName={roomName}/><section className="hlPanel hlAi" aria-label="Tanya AUREKA"><TanyaAureka sb={supabase} page="Beranda" embedded/></section></div>
+      <section className="hlPanel hlAi" aria-label="Tanya AUREKA"><TanyaAureka sb={supabase} page="Beranda" embedded/></section>
       <section className="hlPanel"><header className="hlPanelHead"><h3>Aktivitas terakhir Anda</h3><span>{activity.lastAt?new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(activity.lastAt)):'Belum ada aktivitas tercatat'}</span></header>{activity.pending.length?<div className="hlBars">{activity.pending.map(item=><button type="button" className="hlPendingRow" key={item.module+item.label} onClick={()=>onNavigate(item.module==='Keselamatan Pasien'?'safety':item.module==='Manajemen Risiko'?'risk':'quality')}><span><b>{item.label}</b><small>{item.module}</small></span><strong>{item.count}</strong></button>)}</div>:<p className="hlEmpty">Tidak ada pekerjaan tertunda yang ditemukan pada sumber aktivitas yang terhubung.</p>}{activity.partial&&<p className="hlDate">Sebagian sumber aktivitas belum dapat dibaca. Periksa kembali modul terkait untuk memastikan daftar pekerjaan lengkap.</p>}</section>
     </div>}
     {tab==='infographics'&&<div id="home-panel-infographics" role="tabpanel">
