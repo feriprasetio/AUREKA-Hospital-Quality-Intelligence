@@ -737,3 +737,15 @@ html[data-mode="gelap"] body:not(#_) .idleWarn p b { color: #fcd34d; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: none !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem:is(.active, [aria-current="page"]) { background: #eef2f7 !important; color: #0f1218 !important; }
 }
+
+/* Kartu unit/ruangan terlihat jelas: putih solid, garis tepi abu-biru, bayangan tipis (sebelumnya garis putih di atas panel putih → tak terlihat). */
+html[data-skin="arktik"]:not([data-mode="gelap"]) body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard) {
+  background: #ffffff !important; border: 1px solid #dfe7f0 !important; box-shadow: 0 1px 2px rgba(15, 35, 60, 0.05), 0 6px 18px rgba(15, 35, 60, 0.05) !important; padding: 16px !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  html[data-skin="arktik"]:not([data-mode="gelap"]) body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard):hover { background: #ffffff !important; border-color: rgba(14, 116, 144, 0.45) !important; box-shadow: 0 10px 26px rgba(15, 35, 60, 0.1) !important; }
+}
+html[data-skin="arktik"]:not([data-mode="gelap"]) body:not(#_) .workspaceRoot .moduleEnter .roomCard.off { background: #f6f8fb !important; border-style: dashed !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid .roomCardText :is(small, span) { color: #5b6878 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard) { background: rgba(20, 27, 38, 0.75) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .roomGrid .roomCardText :is(small, span) { color: #aab6c6 !important; }
