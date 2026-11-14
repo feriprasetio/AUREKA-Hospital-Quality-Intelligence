@@ -582,7 +582,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
               <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import profil</LiquidGlassButton>
               <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export profil</LiquidGlassButton>
-              
+              <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
             <input
               ref={importFileRef}
@@ -639,7 +639,6 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 </div>
               )}
             </AurekaModal>
-            <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
             <AurekaModal
               open={Boolean(edit || newOne)}
