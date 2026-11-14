@@ -657,3 +657,26 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationSubItem.
 /* Submenu sejajar dengan pil menu induk (rail memakai margin samping 24px desktop / 16px ponsel + padding 5px). */
 @media (min-width: 721px) { html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { margin: -2px 24px 16px; padding: 0 5px; } }
 @media (max-width: 720px) { html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { margin: 0 16px 12px; padding: 0 0 2px; } }
+
+/* Mode gelap tidak pucat: latar lebih pekat tanpa kabut abu-abu, kartu bernuansa teal, nama sapaan berwarna. */
+html[data-skin="arktik"][data-mode="gelap"]:root body:not(#_) {
+  background-color: #0a0d13 !important;
+  background-image:
+    radial-gradient(44rem 30rem at 10% -10%, rgba(94, 196, 207, 0.22), transparent 70%),
+    radial-gradient(38rem 30rem at 106% 28%, rgba(125, 211, 168, 0.13), transparent 70%),
+    radial-gradient(42rem 30rem at -8% 106%, rgba(37, 78, 130, 0.32), transparent 70%) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard.hlAuroraHero { background: linear-gradient(150deg, rgba(94, 196, 207, 0.14), rgba(16, 22, 32, 0.6) 60%) !important; border-color: rgba(94, 196, 207, 0.22) !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting { color: #f4f7fb !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlWelcomeCard .hlGreeting .hlGreetName { color: #8ee3ea !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroBtn.primary { background: linear-gradient(90deg, #5ec4cf, #7dd3a8) !important; color: #0a0d13 !important; border: 0 !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { background: rgba(20, 27, 38, 0.7); border-color: rgba(255, 255, 255, 0.1); }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard strong { color: #f4f7fb; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard :is(span, small) { color: #aab6c6; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKpiDanger strong { color: #ff8a7a !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlReminderBar { background: rgba(251, 191, 36, 0.1); }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot :is(.workspaceHeaderBar) { background: rgba(10, 13, 19, 0.72) !important; }
+@media (max-width: 720px) {
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .mobileBottomNav { background: rgba(14, 19, 27, 0.88) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .mobileBottomNav button.active { color: #8ee3ea !important; background: rgba(94, 196, 207, 0.18) !important; }
+}
