@@ -208,7 +208,7 @@
 .workspaceRoot .workspaceNavigationMeasure span {
   display: inline-flex !important;
   min-height: 34px !important;
-  padding: 0 24px !important;
+  padding: 0 12px !important;
   align-items: center !important;
   font-family: inherit !important;
   font-size: 12px !important;
