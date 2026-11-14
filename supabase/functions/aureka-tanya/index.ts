@@ -356,8 +356,8 @@ async function handle(req: Request): Promise<Response> {
   const requestedOrder = (Deno.env.get("AI_PROVIDER_ORDER") || "groq,nvidia,gemini,deepseek,llm7").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, ""));
   const order = requestedOrder.filter((x) => {
     if (!available[x]?.length) return false;
-    if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") !== "true") return false;
-    if (x === "llm7" && Deno.env.get("AI_ENABLE_LLM7") !== "true") return false;
+    if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") === "false") return false;
+    if (x === "llm7" && Deno.env.get("AI_ENABLE_LLM7") === "false") return false;
     return ["groq", "nvidia", "gemini", "deepseek", "llm7"].includes(x);
   });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
