@@ -1,11 +1,13 @@
 'use client'
 import {useEffect,useState} from 'react'
 import type {SupabaseClient} from '@supabase/supabase-js'
+import type {ReactNode} from 'react'
+import CountUp from '@/components/CountUp'
 
 type Room={id:number;name:string}
-type Totals={reported:number|null;rooms:number;riskTotal:number|null;riskVeryHigh:number|null;incidentsOpen:number|null}
+type Totals={done?:boolean;reported:number|null;rooms:number;riskTotal:number|null;riskVeryHigh:number|null;incidentsOpen:number|null}
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-const fmt=(v:number|null)=>v==null?'–':v.toLocaleString('id-ID')
+const fmt=(v:number|null,done?:boolean):ReactNode=>v==null?(done?'–':<span className="hlKpiSkel" aria-label="Memuat"/>):<CountUp value={v}/>
 
 /** Empat angka utama Beranda: pelaporan bulan ini, risiko, risiko sangat tinggi, IKP terbuka. */
 export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety}:{supabase:SupabaseClient;rooms:Room[];isAdmin:boolean;roomId:number|null;showSafety:boolean}){
@@ -26,17 +28,17 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety}:{sup
     reported=new Set((rep.value.data as any[]).filter(r=>Number(r.month)===month&&ids.has(Number(r.room_id))).map(r=>Number(r.room_id))).size
    }
    const s:any=sum.status==='fulfilled'&&!sum.value.error?sum.value.data:null
-   setT({reported,rooms:ids.size,riskTotal:s?.risk?.total??null,riskVeryHigh:s?.risk?.very_high??null,incidentsOpen:s?.incidents?.open??null})
+   setT({done:true,reported,rooms:ids.size,riskTotal:s?.risk?.total??null,riskVeryHigh:s?.risk?.very_high??null,incidentsOpen:s?.incidents?.open??null})
   })()
   return()=>{cancelled=true}
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[supabase,year,month,roomId,isAdmin,rooms.length,showSafety])
  const cards=[
-  {label:`Ruangan lapor ${MONTHS[month-1]}`,value:t.reported==null?'–':`${t.reported}/${t.rooms}`,note:'Periode berjalan',tone:''},
+  {label:`Ruangan lapor ${MONTHS[month-1]}`,value:t.reported==null?(t.done?'–':<span className="hlKpiSkel" aria-label="Memuat"/>):<><CountUp value={t.reported}/>/{t.rooms}</>,note:'Periode berjalan',tone:''},
   ...(showSafety?[
-   {label:'Risiko terdaftar',value:fmt(t.riskTotal),note:roomId!=null?'Ruangan terpilih':'Seluruh unit kerja',tone:''},
-   {label:'Risiko sangat tinggi',value:fmt(t.riskVeryHigh),note:'Prioritas manajemen',tone:'hlKpiDanger'},
-   {label:'Laporan IKP terbuka',value:fmt(t.incidentsOpen),note:t.incidentsOpen===0?'Tidak ada yang tertunda':'Perlu tindak lanjut',tone:''}
+   {label:'Risiko terdaftar',value:fmt(t.riskTotal,t.done),note:roomId!=null?'Ruangan terpilih':'Seluruh unit kerja',tone:''},
+   {label:'Risiko sangat tinggi',value:fmt(t.riskVeryHigh,t.done),note:'Prioritas manajemen',tone:'hlKpiDanger'},
+   {label:'Laporan IKP terbuka',value:fmt(t.incidentsOpen,t.done),note:t.incidentsOpen===0?'Tidak ada yang tertunda':'Perlu tindak lanjut',tone:''}
   ]:[])
  ]
  return <div className="hlKpiRow" role="list" aria-label="Ringkasan angka utama">
