@@ -473,3 +473,44 @@ html body:not(#_) .a2-landing .a2-capa-section {
   border: 1px solid rgba(255, 255, 255, 0.12) !important; border-radius: 28px !important; box-shadow: 0 30px 70px rgba(31, 36, 48, 0.18) !important;
 }
 html body:not(#_) .a2-landing #main-content:focus, html body:not(#_) .a2-landing #main-content:focus-visible { outline: none !important; box-shadow: none !important; }
+
+/* ── Halaman masuk: tombol "Kembali ke beranda" tidak lagi tertutup header ── */
+@media (min-width: 721px) {
+  html body:not(#_) .authPage.authProfessional { padding-top: 186px !important; }
+  html body:not(#_) .authPage.authProfessional .authBack { margin: 0 auto 18px !important; position: static !important; }
+}
+@media (max-width: 720px) {
+  html body:not(#_) .authPage.authProfessional { padding-top: 128px !important; }
+}
+
+/* ── Submenu modul: teks tab tidak terpotong, tanpa garis/cincin ganda ── */
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems { overflow: visible !important; flex-wrap: wrap !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem { max-width: none !important; overflow: visible !important; text-overflow: clip !important; padding: 0 16px !important; font-size: 13px !important; border: 0 !important; box-shadow: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRail { border: 0 !important; background: transparent !important; padding: 0 !important; }
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem:focus { outline: none !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItem:focus-visible { outline: 2px solid rgba(34, 211, 238, 0.7) !important; outline-offset: 1px !important; }
+
+/* ── Halaman awal: animasi yang mengikuti gulir (scroll-driven, hanya peramban yang mendukung) ── */
+@keyframes auroraProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes auroraParallaxA { to { translate: 0 28vh; } }
+@keyframes auroraParallaxB { to { translate: 0 -18vh; } }
+@keyframes auroraHeroAway { to { translate: 0 -60px; opacity: .35; } }
+@keyframes auroraShowcaseAway { to { translate: 0 -120px; } }
+@keyframes auroraTiltIn { from { transform: perspective(1000px) rotateX(10deg) scale(.96); } to { transform: none; } }
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html body:not(#_) .a2-landing .a2-header::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; transform-origin: 0 50%;
+      background: linear-gradient(90deg, #22d3ee, #4ade80); animation: auroraProgress linear both; animation-timeline: scroll(root);
+    }
+    html body:not(#_) .a2-landing .auroraBg span:nth-child(1) { animation: auroraDriftA 22s ease-in-out infinite, auroraParallaxA linear both; animation-timeline: auto, scroll(root); }
+    html body:not(#_) .a2-landing .auroraBg span:nth-child(2) { animation: auroraDriftB 26s ease-in-out infinite, auroraParallaxB linear both; animation-timeline: auto, scroll(root); }
+    html body:not(#_) .a2-landing .a2-hero-copy { animation: auroraHeroAway linear both; animation-timeline: scroll(root); animation-range: 0 70vh; }
+    html body:not(#_) .a2-landing .a2-hero-showcase { animation: auroraFloatIn .8s cubic-bezier(.22, 1, .36, 1) .35s both, auroraShowcaseAway linear both; animation-timeline: auto, scroll(root); animation-range: normal, 0 90vh; }
+    html body:not(#_) .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card, .a2-capa-section, .a2-governance-panel, .a2-transparency-panel) {
+      animation: auroraTiltIn linear both; animation-timeline: view(); animation-range: entry 0% cover 35%;
+    }
+  }
+}
