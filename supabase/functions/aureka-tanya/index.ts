@@ -184,8 +184,14 @@ async function snapshot(db: SupabaseClient) {
       bulan_tanpa_entri: BULAN.slice(0, monthNow + 1).filter((_, k) => !arr[k]),
     };
   });
+  // Determine zero-submission units from raw internal counts before n<5 suppression.
+  // Never infer operational presence from the masked strings sent to the model.
   const belumInputPerTriwulan = Object.fromEntries(ROMAWI.slice(0, quarterNow + 1).map((q, k) => [
-    "Triwulan " + q, logbookPerUnit.filter((u) => !(u.per_triwulan["TW " + q] > 0)).map((u) => u.unit),
+    "Triwulan " + q,
+    rooms.filter((room) => {
+      const raw = perRoom.get(room.id) || new Array(12).fill(0);
+      return raw.slice(k * 3, k * 3 + 3).reduce((a, b) => a + b, 0) === 0;
+    }).map((room) => room.name),
   ]));
 
   // --- Keselamatan pasien (hanya hitungan, tanpa identitas/kronologi)
@@ -424,7 +430,7 @@ async function handle(req: Request): Promise<Response> {
     "7. DATA BOUNDARY: data yang tersedia di prompt telah diagregasi dan diminimalkan oleh backend. Jangan meminta data mentah, jangan menyarankan mengirim identitas, dan jangan mencoba merekonstruksi individu dari agregat.",
     "8. Angka kecil yang ditandai disembunyikan tidak boleh ditebak, dihitung balik, atau diungkap melalui kombinasi kategori.",
     "9. Anda tidak memiliki akses database langsung dan tidak boleh mengklaim telah mengubah data atau menjalankan tindakan yang tidak dilakukan backend.",
-    "7. Kamu tidak bisa mengubah data. Tapi kamu BISA menyiapkan draf pengingat/pesan ke PIC unit; pengguna yang memeriksa lalu menekan tombol Kirim (pesan masuk ke Chat unit di Pusat Komunikasi). Jika pengguna meminta mengirim pesan/pengingat ke unit tertentu (atau 'unit tersebut' dari percakapan sebelumnya), jawab singkat (1–2 kalimat, sebut bahwa dia tinggal cek lalu tekan Kirim), lalu tambahkan di AKHIR jawaban satu blok persis seperti ini tanpa code block: [[KIRIM_PENGINGAT]]{\"unit\":[\"Nama Unit 1\",\"Nama Unit 2\"],\"pesan\":\"isi pesan\"}[[/KIRIM_PENGINGAT]]. Nama unit harus persis dari daftar_unit_aktif. Pesan sopan, ringkas (maks 5 kalimat), sebut hal yang perlu dilengkapi dan periodenya, ditutup salam dari Komite PMKP. Jangan menyatakan pesan sudah terkirim.",
+    "10. Kamu tidak bisa mengubah data. Tapi kamu BISA menyiapkan draf pengingat/pesan ke PIC unit; pengguna yang memeriksa lalu menekan tombol Kirim (pesan masuk ke Chat unit di Pusat Komunikasi). Jika pengguna meminta mengirim pesan/pengingat ke unit tertentu (atau 'unit tersebut' dari percakapan sebelumnya), jawab singkat (1–2 kalimat, sebut bahwa dia tinggal cek lalu tekan Kirim), lalu tambahkan di AKHIR jawaban satu blok persis seperti ini tanpa code block: [[KIRIM_PENGINGAT]]{\"unit\":[\"Nama Unit 1\",\"Nama Unit 2\"],\"pesan\":\"isi pesan\"}[[/KIRIM_PENGINGAT]]. Nama unit harus persis dari daftar_unit_aktif. Pesan sopan, ringkas (maks 5 kalimat), sebut hal yang perlu dilengkapi dan periodenya, ditutup salam dari Komite PMKP. Jangan menyatakan pesan sudah terkirim.",
     "Pengguna adalah akun AUREKA yang telah terautentikasi; identitas akun tidak dikirim ke model." + (page ? " Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
     ...MENU_AUREKA.map((m) => "- " + m),
