@@ -9,7 +9,7 @@ test('quality audit navigation uses a compact contextual rail instead of a sideb
   // The contextual rail reuses the authorized module group definitions.
   assert.match(home, /quality:role==='DEWAN_PENGAWAS'[\s\S]{0,260}:\s*\[\s*\{id:'audit-indicators',label:'Form Logbook'\},\s*\{id:'result-indicators',label:'Hasil Capaian',children:\[\{id:'result-unit',label:'Unit Keseluruhan'\},\{id:'result-category',label:'Kategori Indikator'\}\]\},\s*\{id:'profile-indicators',label:'Profil Indikator'\}/)
   assert.doesNotMatch(home, /id:'logbook-indicators'/)
-  assert.match(home, /workspaceNavigationRail/)
+  assert.ok(home.includes('UnifiedModuleNavigation'))
   assert.match(home, /activeNestedNavGroup/)
   for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.doesNotMatch(home, /aria-label="Tampilan audit mutu"/)
