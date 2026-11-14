@@ -144,6 +144,55 @@ function RmModal({ label, error, children }: { label: string; error?: string; ch
   return createPortal(<div className="moduleEnter rmWorkspace aurModalLayer">{content}</div>, host)
 }
 
+function RiskNetworkGraph({ links, risks }: { links: LinkRow[]; risks: RiskRow[] }) {
+  const nodes = Array.from(new Set(links.flatMap(link => [link.source_risk_id, link.target_risk_id])))
+    .map(id => risks.find(risk => risk.id === id))
+    .filter((risk): risk is RiskRow => Boolean(risk))
+  if (!links.length || nodes.length < 2) return null
+  const width = 760
+  const height = Math.max(220, Math.ceil(nodes.length / 3) * 132 + 44)
+  const positions = new Map(nodes.map((node, index) => [node.id, {
+    x: 126 + (index % 3) * 254,
+    y: 64 + Math.floor(index / 3) * 132,
+  }]))
+  const colors: Record<RiskLevel, string> = {
+    'Sangat Rendah': '#4b9b78', Rendah: '#78a96c', Sedang: '#d1a33b',
+    Tinggi: '#d47a37', 'Sangat Tinggi': '#c94b4b',
+  }
+  return <section className="rmNetworkPanel" aria-label="Grafik jaringan konektor risiko">
+    <div className="rmSectionHead compactHead">
+      <div><span className="rmEyebrow">Peta relasi tervalidasi</span><h4>Jaringan keterkaitan risiko</h4>
+        <p>Garis menunjukkan relasi yang telah dicatat dan diaktifkan; kandidat otomatis tidak ditampilkan sebagai hubungan faktual.</p></div>
+      <span className="rmNetworkCount">{nodes.length} risiko · {links.length} relasi</span>
+    </div>
+    <div className="rmNetworkViewport">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Jaringan ${nodes.length} risiko dan ${links.length} relasi tervalidasi`}>
+        <defs><marker id="rm-network-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#7790a8" strokeWidth="1.2"/></marker></defs>
+        {links.map(link => {
+          const a = positions.get(link.source_risk_id), b = positions.get(link.target_risk_id)
+          if (!a || !b) return null
+          return <g key={link.id}>
+            <path d={`M ${a.x} ${a.y} L ${b.x} ${b.y}`} fill="none" stroke="#7790a8" strokeWidth="2" strokeOpacity=".8" markerEnd="url(#rm-network-arrow)"/>
+            <text x={(a.x+b.x)/2} y={(a.y+b.y)/2-7} textAnchor="middle" className="rmNetworkEdgeLabel">{RELATION_TYPES.find(type => type.value === link.relationship_type)?.label || link.relationship_type}</text>
+          </g>
+        })}
+        {nodes.map(node => {
+          const p = positions.get(node.id)!
+          const label = node.risk_event.length > 34 ? node.risk_event.slice(0, 31) + '…' : node.risk_event
+          return <g key={node.id}>
+            <rect x={p.x-108} y={p.y-29} width="216" height="58" rx="11" fill="var(--surface,#fff)" stroke={colors[node.risk_level]} strokeWidth="2"/>
+            <circle cx={p.x-94} cy={p.y-14} r="5" fill={colors[node.risk_level]}/>
+            <text x={p.x-82} y={p.y-10} className="rmNetworkLevel">{node.risk_level}</text>
+            <text x={p.x-94} y={p.y+10} className="rmNetworkLabel">{label}</text>
+            <text x={p.x-94} y={p.y+22} className="rmNetworkUnit">{node.unit_name || 'Unit tidak tercatat'}</text>
+          </g>
+        })}
+      </svg>
+    </div>
+    <p className="rmTiny">Interpretasi: relasi adalah hubungan yang dicatat pengguna, bukan bukti kausalitas. Verifikasi dasar dan arah relasi tetap diperlukan.</p>
+  </section>
+}
+
 const roleLabel = (role: string | null) => ({
   ADMIN: 'Super Admin', PIC: 'PIC Unit', PMKP: 'Komite PMKP', MANAGEMENT: 'Manajemen',
   KABID: 'Kepala Bidang', DIREKTUR: 'Direktur', DEWAN_PENGAWAS: 'Dewan Pengawas',
@@ -998,7 +1047,8 @@ export default function RiskManagementWorkspace({
               <button type="button" className="rmButton subtle" onClick={() => { setLinkForm(f => ({ ...f, target: suggestion.risk.id, type: suggestion.recommendedType, description: generatedDescription })); setMessage('Kandidat dimasukkan ke form. Verifikasi jenis dan dasar hubungan, lalu aktifkan konektor.'); }}>Gunakan kandidat</button>
             </div>
           })}{connectorPrimary && connectorSuggestions.length > 5 && <button type="button" className="rmButton subtle rmShowMore" onClick={() => setShowAllSuggestions(v => !v)}>{showAllSuggestions ? 'Tampilkan 5 teratas' : 'Tampilkan semua ' + connectorSuggestions.length + ' kandidat'}</button>}{connectorPrimary && !connectorSuggestions.length && <div className="rmEmptySmall">Belum ada kandidat yang melewati ambang kecocokan teks. Hal ini tidak membuktikan tidak ada hubungan; tinjau record manual atau tambah kata kunci yang relevan.</div>}</div>
-          <div className="rmSectionHead compactHead"><div><h4>Konektor aktif pada ruangan ini</h4></div></div>
+          <RiskNetworkGraph links={visibleLinks} risks={risks}/>
+          <div className="rmSectionHead compactHead"><div><h4>Detail konektor aktif pada ruangan ini</h4></div></div>
           <div className="rmGraphList">{visibleLinks.map(link => {
             const a = risks.find(r => r.id === link.source_risk_id), b = risks.find(r => r.id === link.target_risk_id)
             return <div className="rmGraphLink" key={link.id}>
