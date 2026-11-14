@@ -29,7 +29,7 @@ test('the refined theme reaches every operational module without recoloring clin
 })
 
 test('workspace header stays compact while retaining the actual navigation and data controls', () => {
-  assert.match(home, /workspaceNavigationRail/)
+  assert.ok(home.includes('UnifiedModuleNavigation'))
   assert.doesNotMatch(home, /workspacePageIntro/)
   assert.doesNotMatch(home, /Gambaran yang jelas|Pencatatan, pemeriksaan, dan evaluasi mutu pelayanan/)
   for (const control of ['selectSidebarChild', 'triggerWorkspaceExport', 'dispatchWorkspaceSearch', 'saveFirstPassword', 'resendVerify', 'sendReset']) {
