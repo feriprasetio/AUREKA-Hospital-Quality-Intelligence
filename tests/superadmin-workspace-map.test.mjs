@@ -45,6 +45,11 @@ test('sidebar only renders module buttons and contains no tree or child-menu sta
 })
 
 test('navigation rail visually follows the current AUREKA workspace tabs', () => {
+  const globalNavigation = read('app/aureka-global-navigation.css')
+  const rootLayout = read('app/layout.tsx')
+  assert.ok(rootLayout.includes('<html lang="id" data-skin="arktik"'))
+  assert.ok(!globalNavigation.includes('html[data-skin="arktik"][data-theme]'))
+  assert.ok(globalNavigation.includes('html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme]'))
   const navigation = read('app/aureka-navigation-consolidated.css')
   const workspace = read('app/workspace-desk.css')
   assert.ok(navigation.includes('background: #f1f5ef !important;'))
