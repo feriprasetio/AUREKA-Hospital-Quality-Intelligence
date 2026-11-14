@@ -351,13 +351,13 @@ async function handle(req: Request): Promise<Response> {
     llm7: [...new Set([...keysOf("LLM7_API_KEY"), ...keysOf("LLM7.IO_API_KEY"), ...keysOf("LLM7_IO_API_KEY")])],
   };
   // Default route uses Groq/NVIDIA/Gemini. DeepSeek requires explicit opt-in.
-  // LLM7 is sandbox-only and is never eligible in production.
+  // LLM7 is enabled only by explicit server-side opt-in; production use requires vendor/privacy approval.
   const environment = (Deno.env.get("AI_ENVIRONMENT") || "production").toLowerCase();
-  const requestedOrder = (Deno.env.get("AI_PROVIDER_ORDER") || "groq,nvidia,gemini").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, ""));
+  const requestedOrder = (Deno.env.get("AI_PROVIDER_ORDER") || "groq,nvidia,gemini,deepseek,llm7").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, ""));
   const order = requestedOrder.filter((x) => {
     if (!available[x]?.length) return false;
     if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") !== "true") return false;
-    if (x === "llm7" && !(environment === "development" && Deno.env.get("AI_ENABLE_LLM7") === "true")) return false;
+    if (x === "llm7" && Deno.env.get("AI_ENABLE_LLM7") !== "true") return false;
     return ["groq", "nvidia", "gemini", "deepseek", "llm7"].includes(x);
   });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
