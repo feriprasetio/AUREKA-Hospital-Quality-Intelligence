@@ -537,3 +537,10 @@ html body:not(#_) .a2-landing .a2-header-inner, html body:not(#_) .a2-landing.a2
     html body:not(#_) .a2-landing .a2-footer-main > * { animation: auRevealUp linear both; animation-timeline: view(); animation-range: entry 0% cover 20%; }
   }
 }
+
+/* Pengingat Beranda: ikon lonceng amber lembut (bukan kotak hitam) */
+html body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon { background: rgba(255, 255, 255, 0.7) !important; color: #b45309 !important; border: 1px solid rgba(217, 119, 6, 0.25) !important; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12) !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon svg { stroke: #b45309 !important; fill: none !important; width: 20px !important; height: 20px !important; }
+html body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon svg path { stroke: #b45309 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon { background: rgba(251, 191, 36, 0.16) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon :is(svg, svg path) { stroke: #fde68a !important; }
