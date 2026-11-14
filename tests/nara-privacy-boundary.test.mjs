@@ -40,3 +40,9 @@ test('NARA identity is the intelligence layer; existing Tanya AUREKA UI remains 
   const ui = read('components/TanyaAureka.tsx')
   assert.match(ui, /Tanya AUREKA/)
 })
+
+test('logbook non-submission is calculated from raw counts before suppression', () => {
+  assert.match(gateway, /Determine zero-submission units from raw internal counts before n<5 suppression/)
+  assert.match(gateway, /return raw\.slice\(k \* 3, k \* 3 \+ 3\)\.reduce\(\(a, b\) => a \+ b, 0\) === 0/)
+  assert.doesNotMatch(gateway, /logbookPerUnit\.filter\(\(u\) => !\(u\.per_triwulan/)
+})
