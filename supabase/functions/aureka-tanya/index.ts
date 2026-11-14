@@ -164,7 +164,7 @@ async function snapshot(db: SupabaseClient) {
   }
   const risikoPerUnit = Object.entries(perUnit)
     .sort((a, b) => b[1]["Sangat Tinggi"] - a[1]["Sangat Tinggi"] || b[1]["Tinggi"] - a[1]["Tinggi"] || b[1].total - a[1].total)
-    .map(([unit, c]) => ({ unit, sangat_tinggi: c["Sangat Tinggi"], tinggi: c["Tinggi"], sedang: c["Sedang"], rendah: c["Rendah"], total: c.total }));
+    .map(([unit, c]) => ({ unit, sangat_tinggi: safeScalar(c["Sangat Tinggi"]), tinggi: safeScalar(c["Tinggi"]), sedang: safeScalar(c["Sedang"]), rendah: safeScalar(c["Rendah"]), total: c.total }));
 
   // --- Mutu klinis: entri logbook per unit per bulan tahun berjalan
   const perRoom = new Map<number, number[]>();
@@ -180,7 +180,7 @@ async function snapshot(db: SupabaseClient) {
     return {
       unit: r.name,
       total_entri: arr.reduce((a, b) => a + b, 0),
-      per_triwulan: Object.fromEntries(ROMAWI.slice(0, quarterNow + 1).map((q, k) => ["TW " + q, tri[k]])),
+      per_triwulan: Object.fromEntries(ROMAWI.slice(0, quarterNow + 1).map((q, k) => ["TW " + q, safeScalar(tri[k])])),
       bulan_tanpa_entri: BULAN.slice(0, monthNow + 1).filter((_, k) => !arr[k]),
     };
   });
