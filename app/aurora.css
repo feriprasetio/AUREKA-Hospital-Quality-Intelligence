@@ -410,3 +410,13 @@ html body:not(#_) .a2-landing .a2-brand-mark img, html body:not(#_) .authPage .a
   html body:not(#_) .authPage.authProfessional :is(.authCard, .authAside h2) { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+
+/* Halaman masuk: lapisan aurora sendiri (landingAura disembunyikan tema lama), shell & kartu kaca */
+html body:not(#_) .authPage:is(.authProfessional, .authRedesigned) { position: relative; isolation: isolate; background: #eef1f5 !important; }
+html body:not(#_) .authPage:is(.authProfessional, .authRedesigned) > .auroraBg { z-index: -1; }
+html body:not(#_) .authPage.authProfessional .authShell { background: rgba(255, 255, 255, 0.32) !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; border-radius: 30px !important; box-shadow: 0 30px 70px rgba(31, 36, 48, 0.12) !important; }
+html body:not(#_) .authPage.authProfessional .authTopbar { background: rgba(255, 255, 255, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; box-shadow: none !important; border-radius: 22px !important; }
+html body:not(#_) .authPage.authProfessional .authBack { margin-top: 14px !important; background: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.9) !important; color: #1f2430 !important; }
+html body:not(#_) .authPage.authProfessional .authCard { border-radius: 0 30px 30px 0 !important; box-shadow: none !important; background: rgba(255, 255, 255, 0.6) !important; }
+@media (max-width: 900px) { html body:not(#_) .authPage.authProfessional .authCard { border-radius: 26px !important; } }
+html[data-mode="gelap"] body:not(#_) .authPage:is(.authProfessional, .authRedesigned) { background: #0f1218 !important; }
