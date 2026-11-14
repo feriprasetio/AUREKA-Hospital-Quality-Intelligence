@@ -30,10 +30,12 @@ test('external AI context excludes incident unit/month detail and free-text risk
   assert.doesNotMatch(gateway, /per_bulan: Object\.fromEntries\(Object\.entries\(count\(incidents/)
 })
 
-test('DeepSeek is opt-in and LLM7 is development-only', () => {
+test('DeepSeek and LLM7 are opt-in and disabled unless explicitly enabled server-side', () => {
   assert.match(gateway, /x === "deepseek" && Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) !== "true"/)
-  assert.match(gateway, /environment === "development" && Deno\.env\.get\("AI_ENABLE_LLM7"\) === "true"/)
+  assert.match(gateway, /x === "llm7" && Deno\.env\.get\("AI_ENABLE_LLM7"\) !== "true"/)
+  assert.match(gateway, /groq,nvidia,gemini,deepseek,llm7/)
 })
+
 
 test('NARA identity is the intelligence layer; existing Tanya AUREKA UI remains unchanged', () => {
   assert.match(gateway, /NARA \(AUREKA Intelligence\)/)
