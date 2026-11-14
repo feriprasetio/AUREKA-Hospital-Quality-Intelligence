@@ -80,7 +80,7 @@ test('production validates its Supabase configuration before build and deploy', 
 
 test('production Pages refuses manual dispatch from non-main refs before checkout', () => {
   const guard = production.indexOf('name: Enforce production branch')
-  const checkout = production.indexOf('uses: actions/checkout@v4')
+  const checkout = production.search(/uses: actions\/checkout@[0-9a-f]{40} # v4\.\d+\.\d+/)
   assert.notEqual(guard, -1)
   assert.notEqual(checkout, -1)
   assert.ok(guard < checkout, 'production ref guard must run before checkout and build steps')
