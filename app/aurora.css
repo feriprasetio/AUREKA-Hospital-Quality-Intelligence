@@ -544,3 +544,38 @@ html body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon svg
 html body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon svg path { stroke: #b45309 !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon { background: rgba(251, 191, 36, 0.16) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlReminderBar .hlReminderIcon :is(svg, svg path) { stroke: #fde68a !important; }
+
+/* ══════════ Form seragam seperti "Analisis FMEA baru" di semua modul ══════════ */
+/* Label di atas kolom: 12,5px tebal sedang, gelap, jarak 6px */
+html body:not(#_) .workspaceRoot :is(.oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .cpClinicalField, .rmFormGrid > label, .psFormGrid > label, .oppeFormGrid > label, .cpFormGrid > label, .ipFormGrid > label),
+html body:not(#_) [aria-modal="true"] :is(.oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .cpClinicalField, .rmFormGrid > label, .psFormGrid > label, .oppeFormGrid > label, .cpFormGrid > label, .ipFormGrid > label) {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  font-size: 12.5px !important; font-weight: 600 !important; color: #1f3a55 !important; letter-spacing: 0 !important; text-transform: none !important;
+}
+html body:not(#_) :is(.workspaceRoot, [aria-modal="true"]) :is(.oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .cpClinicalField, .govFormRow) > :is(span, b, small):first-child { font-size: 12.5px !important; font-weight: 600 !important; color: #1f3a55 !important; text-transform: none !important; letter-spacing: 0 !important; }
+html body:not(#_) :is(.workspaceRoot, [aria-modal="true"]) :is(.oppeFormGrid, .cpFormGrid, .ipFormGrid, .psFormGrid, .rmFormGrid) { gap: 14px 14px !important; }
+
+/* Kolom isian di form modul (di luar popup juga), sama dengan popup */
+html:not([data-mode="gelap"]) body:not(#_) .workspaceRoot .moduleEnter :is(.oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .cpClinicalField, .govFormRow, .rmFormGrid, .psFormGrid, .oppeFormGrid, .cpFormGrid, .ipFormGrid, form) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select, textarea) {
+  background-color: #f5f8fc !important; border: 1.5px solid #d9e4ef !important; border-radius: 12px !important; color: #1f2430 !important;
+  min-height: 42px; padding-inline: 12px !important; font-size: 14px !important;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+html:not([data-mode="gelap"]) body:not(#_) .workspaceRoot .moduleEnter :is(form, .oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .govFormRow) textarea { padding-block: 10px !important; line-height: 1.55 !important; }
+html:not([data-mode="gelap"]) body:not(#_) .workspaceRoot .moduleEnter :is(form, .oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .govFormRow) :is(input, select, textarea):focus {
+  background-color: #fff !important; border-color: #2c6aa0 !important; outline: none !important; box-shadow: 0 0 0 4px rgba(44, 106, 160, .14) !important;
+}
+html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select) { min-height: 42px; font-size: 14px !important; }
+
+/* Kepala popup: pita terang, label kecil biru, judul tegas (seperti FMEA) */
+html body:not(#_) [aria-modal="true"] :is(.akModalHead, .oppeModalHeader, .ipCardHead, .cpBuilderModalHead) {
+  position: relative; margin: -4px -4px 14px; padding: 16px 18px 14px 22px !important; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(236, 243, 250, 0.95), rgba(255, 255, 255, 0.6)) !important; border-bottom: 1px solid #e3eaf1 !important;
+}
+html body:not(#_) [aria-modal="true"] :is(.akModalHead, .oppeModalHeader, .ipCardHead, .cpBuilderModalHead) :is(h2, h3, h4) { font-size: 19px !important; letter-spacing: -.01em; color: #0b1f33 !important; margin: 0; }
+
+/* Mode gelap */
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, [aria-modal="true"]) :is(.oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .cpClinicalField, .govFormRow, .rmFormGrid > label, .psFormGrid > label, .oppeFormGrid > label, .cpFormGrid > label, .ipFormGrid > label),
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, [aria-modal="true"]) :is(.oppeField, .cpField, .aqField, .acdEditorField, .sdEditField, .psField, .ipField, .stField, .qraField, .acdField, .svField, .cpClinicalField, .govFormRow) > :is(span, b, small):first-child { color: #cfdbea !important; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(.akModalHead, .oppeModalHeader, .ipCardHead, .cpBuilderModalHead) { background: rgba(255, 255, 255, 0.05) !important; border-bottom-color: rgba(255, 255, 255, 0.1) !important; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(.akModalHead, .oppeModalHeader, .ipCardHead, .cpBuilderModalHead) :is(h2, h3, h4) { color: #eef2f7 !important; }
