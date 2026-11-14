@@ -72,7 +72,22 @@ async function errorText(error: unknown): Promise<string> {
   return 'Pertanyaan belum dapat dijawab. Coba lagi sebentar lagi.'
 }
 
-export default function TanyaAureka({ sb, page, embedded = false }: { sb: SupabaseClient; page?: string; embedded?: boolean }) {
+function NaraAvatar({ size = 34 }: { size?: number }) {
+  return <span className="naraAvatar" style={{ width: size, height: size }} aria-label="Avatar NARA AI" role="img">
+    <svg viewBox="0 0 48 48" width="100%" height="100%" aria-hidden="true">
+      <defs><linearGradient id="naraAvatarGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#36d6c5"/><stop offset="1" stopColor="#2876bd"/></linearGradient></defs>
+      <rect x="1" y="1" width="46" height="46" rx="15" fill="#102d4c"/>
+      <path d="M24 5 39 13.5v17L24 39 9 30.5v-17L24 5Z" fill="url(#naraAvatarGradient)" opacity=".22"/>
+      <path d="M14 18.5c0-5.4 4.3-9.5 10-9.5s10 4.1 10 9.5v9c0 5.1-4.3 9-10 9s-10-3.9-10-9v-9Z" fill="#e8f8ff"/>
+      <path d="M18 23h.2M29.8 23h.2" stroke="#153e61" strokeWidth="3.5" strokeLinecap="round"/>
+      <path d="M19 29c1.4 1.7 2.9 2.5 5 2.5s3.6-.8 5-2.5" fill="none" stroke="#2876bd" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M24 4v5M21 4h6" stroke="#45d9ca" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="10" cy="22" r="2" fill="#45d9ca"/><circle cx="38" cy="22" r="2" fill="#45d9ca"/>
+    </svg>
+  </span>
+}
+
+export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'Tanya AUREKA', assistantSubtitle = 'Asisten AI · membaca data sesuai hak akses Anda', showAvatar = false, initialPrompt }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string }) {
   const [open, setOpen] = useState(embedded)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')
@@ -128,10 +143,10 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     if (!msgs.length) return
     const stamp = new Date()
     const lines = [
-      'Percakapan Tanya AUREKA',
+      'Percakapan ' + assistantName,
       'Disimpan: ' + stamp.toLocaleString('id-ID'),
       '',
-      ...msgs.map(m => (m.role === 'user' ? 'Anda' : 'AUREKA') + ':\n' + m.text.trim() + '\n'),
+      ...msgs.map(m => (m.role === 'user' ? 'Anda' : assistantName) + ':\n' + m.text.trim() + '\n'),
     ]
     const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
@@ -224,10 +239,12 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
     setMsgs(m => [...m, { role: 'model', text: text || 'Berikut draf pengingatnya.', reminder }])
   }
 
+  useEffect(() => { if (initialPrompt?.trim()) void ask(initialPrompt) }, [initialPrompt])
+
   const panel = open && <section className={embedded?"tanyaPanel tanyaPanelEmbedded":"tanyaPanel"} role="dialog" aria-label="Tanya AUREKA">
     <header className="tanyaHead">
-      <span className="tanyaMark" aria-hidden="true">✦</span>
-      <div><strong>Tanya AUREKA</strong><span>Asisten AI · membaca data sesuai hak akses Anda</span></div>
+      {showAvatar ? <NaraAvatar size={40}/> : <span className="tanyaMark" aria-hidden="true">✦</span>}
+      <div><strong>{assistantName}</strong><span>{assistantSubtitle}</span></div>
       {msgs.length > 0 && <>
         <button type="button" className="tanyaGhost" onClick={saveChat} title="Unduh percakapan sebagai file teks">Simpan</button>
         <button type="button" className="tanyaGhost danger" onClick={clearChat} title="Hapus riwayat chat di perangkat ini">Hapus</button>
@@ -239,8 +256,8 @@ export default function TanyaAureka({ sb, page, embedded = false }: { sb: Supaba
         <p>Halo, Aku AUREKA, rekan kerjamu untuk urusan mutu, keselamatan pasien, dan risiko. Mau ngobrol, tanya istilah, atau cek data unit, langsung tulis aja ya.</p>
         <div className="tanyaChips">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => void ask(s)}>{s}</button>)}</div>
       </div>}
-      {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '')}>
-        {m.role === 'model' && !m.error ? renderAnswer(m.text) : <p>{m.text}</p>}
+      {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '') + (showAvatar && m.role === 'model' ? ' naraModelMsg' : '')}>
+        {m.role === 'model' && !m.error ? <>{showAvatar && <NaraAvatar size={28}/>}<div className="naraAnswerBody">{renderAnswer(m.text)}</div></> : <p>{m.text}</p>}
         {m.reminder && <div className="tanyaReminder">
           <b>Draf pengingat ke PIC unit</b>
           <div className="tanyaReminderUnits">{m.reminder.units.map(u => {
