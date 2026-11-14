@@ -11,6 +11,8 @@ test('all five AI providers have server-side adapters and a deterministic fallba
   }
   assert.match(gateway, /groq,nvidia,gemini,deepseek,llm7/)
   assert.match(gateway, /AI_PROVIDER_ORDER/)
+  assert.match(gateway, /PROVIDER_NAMES/)
+  assert.match(gateway, /requestedOrder, \.\.\.PROVIDER_NAMES/)
 })
 
 test('DeepSeek and LLM7 require explicit server-side opt-in', () => {
