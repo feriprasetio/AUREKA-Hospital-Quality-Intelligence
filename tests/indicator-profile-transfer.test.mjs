@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises'
 import {
   buildIndicatorProfileBackup,
   parseIndicatorProfileBackup,
+  buildIndicatorProfileXlsx,
+  parseIndicatorProfileXlsx,
 } from '../lib/aureka/indicator-profile-transfer.ts'
 
 const uuidA = '11111111-1111-4111-8111-111111111111'
@@ -127,8 +129,8 @@ test('replacement RPC is invoker-secured, transactional, and retains historical 
 })
 
 test('profile workspace provides export, guarded import confirmation, and one atomic replacement RPC', () => {
-  assert.match(settingsSource, /Export profil/)
-  assert.match(settingsSource, /Import profil/)
+  assert.match(settingsSource, /Export XLSX/)
+  assert.match(settingsSource, /Import XLSX/)
   assert.match(settingsSource, /Ganti seluruh profil/)
   assert.match(settingsSource, /replace_indicator_profile_set/)
   assert.match(settingsSource, /Saya memahami bahwa seluruh profil aktif/)
@@ -137,4 +139,50 @@ test('profile workspace provides export, guarded import confirmation, and one at
 test('audit workspace invalidates and reloads cached profile snapshots after replacement', () => {
   assert.match(auditWorkspaceSource, /aureka:indicator-profiles-updated/)
   assert.match(auditWorkspaceSource, /QIW_MEMORY_CACHE\.clear\(\)/)
+})
+
+
+test('exports and reimports an XLSX workbook without losing profile or instrument metadata', async () => {
+  const backup = buildIndicatorProfileBackup({
+    profileYear: 2026,
+    scopeRoomId: 14,
+    scopeName: 'ICU',
+    profiles: [profile()],
+  })
+  const bytes = await buildIndicatorProfileXlsx(backup)
+  assert.ok(bytes instanceof Uint8Array)
+  assert.ok(bytes.byteLength > 1000)
+  const parsed = await parseIndicatorProfileXlsx(bytes)
+  assert.equal(parsed.profile_year, 2026)
+  assert.equal(parsed.scope.room_id, 14)
+  assert.equal(parsed.profiles[0].code, '14.1')
+  assert.equal(parsed.profiles[0].target_value, 0)
+  assert.equal(parsed.profiles[0].source_id, uuidA)
+  assert.deepEqual(parsed.profiles[0].schema_json, profile().schema_json)
+  assert.deepEqual(parsed.profiles[0].options_json, profile().options_json)
+})
+
+test('XLSX workbook contains editable profile, metadata, and instruction sheets', async () => {
+  const backup = buildIndicatorProfileBackup({
+    profileYear: 2026,
+    scopeRoomId: 14,
+    scopeName: 'ICU',
+    profiles: [profile()],
+  })
+  const bytes = await buildIndicatorProfileXlsx(backup)
+  const ExcelJS = (await import('exceljs-hardened')).default
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(bytes)
+  assert.ok(workbook.getWorksheet('Profil Indikator'))
+  assert.ok(workbook.getWorksheet('Metadata'))
+  assert.ok(workbook.getWorksheet('Petunjuk'))
+  assert.equal(workbook.getWorksheet('Profil Indikator').rowCount, 2)
+})
+
+test('profile workspace accepts XLSX only and no longer advertises JSON transfer', () => {
+  assert.match(settingsSource, /accept="\.xlsx,application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet"/)
+  assert.match(settingsSource, /Export XLSX/)
+  assert.match(settingsSource, /Import XLSX/)
+  assert.match(settingsSource, /parseIndicatorProfileXlsx/)
+  assert.doesNotMatch(settingsSource, /JSON Profil Indikator AUREKA/)
 })
