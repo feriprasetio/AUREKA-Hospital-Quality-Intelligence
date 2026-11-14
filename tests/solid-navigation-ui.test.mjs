@@ -72,3 +72,18 @@ test('sidebar contains module buttons only; contextual sub-tabs live in the stat
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(navCss.includes('.workspaceRoot .sidebar .sidebarTreeChildren'))
 })
+
+test('global navigation uses balanced one-line smart overflow and keeps the active tab visible', () => {
+  const component = read('components/navigation/UnifiedModuleNavigation.tsx')
+  const css = read('app/aureka-global-navigation.css')
+  assert.ok(component.includes('new ResizeObserver(calculate)'))
+  assert.ok(component.includes("const activeWidth = measured.get(activeId)"))
+  assert.ok(component.includes('overflowItems.map'))
+  assert.ok(component.includes('<summary aria-label='))
+  assert.ok(component.includes("onClick={() => select(item.id)}"))
+  assert.match(css, /--aureka-nav-primary:\s*#172a40/)
+  assert.match(css, /--aureka-nav-secondary:\s*#dcebf8/)
+  assert.match(css, /workspaceNavigationOverflowMenu/)
+  assert.match(css, /@media \(max-width: 720px\)/)
+  assert.doesNotMatch(css, /position:\s*sticky/)
+})
