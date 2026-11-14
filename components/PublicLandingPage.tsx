@@ -235,6 +235,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
   return (
     <main className={'a2-landing' + (scrolled ? ' a2-scrolled' : '')} id="top" ref={rootRef}>
+      <div className="auroraBg" aria-hidden="true"><span /><span /><span /></div>
       <div className="a2-aurora" aria-hidden="true"><i /><i /><i /></div>
       <a className="a2-skip-link" href="#main-content">Lewati ke konten utama</a>
 
@@ -289,6 +290,7 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
       <div className="a2-container" id="main-content" tabIndex={-1}>
         <section className="a2-hero" aria-labelledby="a2-hero-title">
           <div className="a2-hero-copy">
+            <p className="a2-hero-eyebrow"><span className="auroraDot" aria-hidden="true" />0° Khatulistiwa · Sistem mutu RSUD Sultan Syarif Mohamad Alkadrie</p>
             <h1 id="a2-hero-title">
               <span className="a2-line"><span>Pelayanan lebih baik.</span></span>
               <span className="a2-line a2-accent-line"><span>Dimulai dari mutu</span></span>

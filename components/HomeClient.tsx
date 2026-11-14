@@ -1,6 +1,7 @@
 'use client'
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import dynamic from 'next/dynamic'
+import {flushSync} from 'react-dom'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import {sanitizeNotificationText,toUserFacingError} from '@/lib/ui/error-feedback'
@@ -823,7 +824,7 @@ export default function HomeClient(){
    </button>
    <div className={'authShell '+(!l?'authShellRegistration':'')}>
     <aside className="authAside">
-     <span className="authAsideEyebrow">Bersama, meningkatkan kualitas pelayanan</span>
+     <span className="authAsideEyebrow"><span className="auroraDot" aria-hidden="true"/>0° Khatulistiwa · Kota Pontianak</span>
      <h2>{l?'Setiap perbaikan dimulai dari Anda.':'Peran Anda. Dampak yang lebih besar.'}</h2>
      
      
@@ -848,7 +849,7 @@ export default function HomeClient(){
      </div>:<form className="authForm" onSubmit={submit} noValidate>
       <div className="authFormIntro">
        <img className="authBrandMark" src={LOGO} alt="" width={160} height={136} aria-hidden="true"/>
-       <span className="authFormEyebrow">{l?'AKSES WORKSPACE':'REGISTRASI PENGGUNA'}</span>
+       <span className="authFormEyebrow">{l?'Akses workspace':'Registrasi pengguna'}</span>
        <h1>{l?'Selamat datang kembali.':'Daftar Akun Unit'}</h1>
        <p>{l?'Masuk ke AUREKA dan lanjutkan langkah perbaikan Anda.':'Lengkapi identitas dan unit kerja. Pengajuan akun akan diperiksa sebelum aktivasi.'}</p>
       </div>
@@ -890,7 +891,7 @@ export default function HomeClient(){
       {message&&<div className={/tersimpan|dikirim ulang/.test(message)?'authAlert ok':'authAlert'} role="alert">{message}</div>}
       {l&&needVerify&&<button type="button" className="authResend" disabled={busy} onClick={resendVerify}>Kirim ulang email verifikasi</button>}
       <button type="submit" className="landingCta big authWide" disabled={busy}>
-       {busy?(l?'Memeriksa akun…':'Mengirim pendaftaran…'):l?'Masuk ke Workspace':'Kirim Pendaftaran'}
+       {busy&&<span className="authSpin" aria-hidden="true"/>}{busy?(l?'Memeriksa akun…':'Mengirim pendaftaran…'):l?'Masuk ke Workspace':'Kirim Pendaftaran'}
       
       </button>
       <div className="authSwitch">
@@ -1068,6 +1069,6 @@ export default function HomeClient(){
 </main>
  return <PublicLandingPage
   logoSrc={LOGO}
-  onLogin={()=>{setMessage('');setAuthMode('normal');setView('login')}}
+  onLogin={()=>{const go=()=>{setMessage('');setAuthMode('normal');setView('login')};const d=document as any;if(d.startViewTransition&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)d.startViewTransition(()=>flushSync(go));else go()}}
  />
 }
