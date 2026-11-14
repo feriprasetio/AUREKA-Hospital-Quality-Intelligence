@@ -45,16 +45,6 @@ const MANAGER_ONLY_MODULES:string[]=AUREKA_PRIMARY_NAV.filter(({visibility})=>vi
 const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR']
 const ROLE_LABEL:Record<string,string>={ADMIN:'Super Admin',PMKP:'Komite PMKP',MANAGEMENT:'Manajemen',PIC:'PIC Unit',VALIDATOR:'Validator Unit',KABID:'Kepala Bidang',DIREKTUR:'Direktur',DEWAN_PENGAWAS:'Dewan Pengawas'}
 const initials=(name?:string|null)=>{const parts=String(name||'').split('@')[0].replace(/[^A-Za-z0-9\u00C0-\u024F ]/g,' ').trim().split(/\s+/).filter(Boolean);return ((parts[0]?.[0]||'A')+(parts.length>1?parts[parts.length-1][0]:'')).toUpperCase()}
-function NavIcon({id}:{id:string}){
- if(id==='home')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10.5 8.5-7 8.5 7"/><path d="M5.5 9.5v10h13v-10M9 19.5v-6h6v6"/></svg>
- if(id==='patients')return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-3.2 2.2-5 5.5-5 1.5 0 2.8.4 3.8 1.2M16 8v6m-3-3h6M15 19h5"/></svg>
- if(id==='quality')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7"/><path d="M3.5 19.5h17"/></svg>
- if(id==='safety')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.7 7.9-7 9.3-4.3-1.4-7-4.9-7-9.3V6l7-2.5Z"/><path d="m8.8 12.1 2.1 2.1 4.5-4.7"/></svg>
- if(id==='risk')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7 4v7.9l-7 4-7-4V7l7-4Z"/><path d="M5 7 12 11l7-4M12 11v8.7"/></svg>
- if(id==='staff')return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c.6-3.4 3-5.2 7-5.2s6.4 1.8 7 5.2"/></svg>
- if(id==='analytics')return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-8"/><path d="M3 19.5h18"/></svg>
- return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 13.7 5l2.3-.2.9 2.1 2 1.2-.7 2.2 1.1 2-1.5 1.8.2 2.3-2.1.9-1.2 2-2.2-.7-2 1.1-1.8-1.5-2.3.2-.9-2.1-2-1.2.7-2.2-1.1-2 1.5-1.8-.2-2.3 2.1-.9 1.2-2 2.2.7 2-1.1Z"/><circle cx="12" cy="12" r="3"/></svg>
-}
 type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
 type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'|'profile'|'evaluation'
 type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'|'oppe'|'fppe'|'recommendations'|'pic-performance'
@@ -928,14 +918,14 @@ export default function HomeClient(){
   <nav className="sidebarNav" aria-label="Navigasi modul AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'isCurrent':'')} key="home">
     <button type="button" title="Beranda" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
-     <NavIcon id="home"/><span>Beranda</span>
+     <span>Beranda</span>
     </button>
    </div>
    {visibleMods.map(([id,label])=>{
     const selected=isPrimaryNavActive(id)
     return <div className={'sidebarNavGroup '+(selected?'isCurrent':'')} key={id}>
      <button type="button" title={label} className={selected?'navActive':''} aria-current={selected?'page':undefined} onClick={()=>openMainModule(id)}>
-      <NavIcon id={id}/><span>{label}</span>
+      <span>{label}</span>
      </button>
     </div>
    })}
