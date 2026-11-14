@@ -32,8 +32,8 @@ test('external AI context excludes incident unit/month detail and free-text risk
 })
 
 test('DeepSeek and LLM7 are enabled by default unless explicitly disabled', () => {
-  assert.match(gateway, /x === "deepseek" && Deno\\.env\\.get\\("AI_ENABLE_DEEPSEEK"\\) === "false"/)
-  assert.match(gateway, /x === "llm7" && Deno\\.env\\.get\\("AI_ENABLE_LLM7"\\) === "false"/)
+  assert.ok(gateway.includes('if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") === "false")'))
+  assert.ok(gateway.includes('if (x === "llm7" && Deno.env.get("AI_ENABLE_LLM7") === "false")'))
 })
 
 test('NARA identity is the intelligence layer; existing Tanya AUREKA UI remains unchanged', () => {
