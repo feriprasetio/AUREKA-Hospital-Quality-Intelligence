@@ -780,3 +780,13 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .roomRowBtn.quiet:hover { ba
 @media (max-width: 720px) {
   html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList { grid-template-columns: 1fr !important; }
 }
+/* Baris unit: nama mendapat ruang utama, tombol ringkas di kanan (aturan lama .roomCardText/.roomCardActions sempat menjepit nama jadi vertikal). */
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomCard.roomRow { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomCard.roomRow > .roomCardText { width: auto !important; min-width: 0 !important; max-width: none !important; flex: none !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomCard.roomRow > .roomCardText b { display: block; white-space: normal !important; word-break: normal !important; overflow-wrap: break-word; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomCard.roomRow > .roomCardActions { width: auto !important; margin: 0 !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn { width: auto !important; min-width: 0 !important; min-height: 32px !important; padding: 0 10px !important; }
+@media (hover: hover) and (pointer: fine) {
+  html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRow .roomRowBtn.quiet { display: none; }
+  html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRow:is(:hover, :focus-within) .roomRowBtn.quiet { display: inline-block; opacity: 1; }
+}
