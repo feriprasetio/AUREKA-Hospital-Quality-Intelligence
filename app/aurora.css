@@ -635,3 +635,22 @@ html body:not(#_) .wsSkeleton i.w50 { width: 50%; } html body:not(#_) .wsSkeleto
 html[data-mode="gelap"] body:not(#_) :is(.wsSkeleton i, .hlKpiSkel) { background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.13) 37%, rgba(255, 255, 255, 0.06) 63%); }
 html[data-mode="gelap"] body:not(#_) .wsSkeleton :is(.wsSkHero, .wsSkCard, .wsSkPanel) { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
 @media (prefers-reduced-motion: reduce) { html body:not(#_) :is(.wsSkeleton i, .hlKpiSkel) { animation: none; } }
+
+/* Submenu baris kedua: anak dari grup aktif (mis. Budaya → Form Survei Tahunan, Register Survei Tahunan). Grup induk tetap tampil di baris utama. */
+html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -4px 0 14px; padding: 0 4px; }
+html body:not(#_) .workspaceRoot .workspaceNavigationSubItem { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(31, 36, 48, 0.1); background: rgba(255, 255, 255, 0.55); color: var(--aurora-ink-2, #4b5565); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
+html body:not(#_) .workspaceRoot .workspaceNavigationSubItem:hover { background: rgba(255, 255, 255, 0.85); color: var(--aurora-ink, #1f2430); }
+html body:not(#_) .workspaceRoot .workspaceNavigationSubItem.active { background: rgba(94, 196, 207, 0.18); border-color: rgba(14, 116, 144, 0.35); color: #0e5566; font-weight: 700; }
+html body:not(#_) .workspaceRoot .workspaceNavigationSubItem:focus { outline: none; }
+html body:not(#_) .workspaceRoot .workspaceNavigationSubItem:focus-visible { outline: 2px solid rgba(34, 211, 238, 0.7); outline-offset: 2px; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationSubItem { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.12); color: #c3ccd8; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationSubItem:hover { background: rgba(255, 255, 255, 0.1); color: #eef2f7; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationSubItem.active { background: rgba(94, 196, 207, 0.2); border-color: rgba(94, 196, 207, 0.5); color: #bdf0f5; }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes auSubRailIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { animation: auSubRailIn .25s cubic-bezier(.22, 1, .36, 1) both; }
+}
+@media (max-width: 720px) {
+  html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 0 12px; padding: 0 2px 2px; }
+  html body:not(#_) .workspaceRoot .workspaceNavigationSubItem { flex: 0 0 auto; min-height: 40px; }
+}

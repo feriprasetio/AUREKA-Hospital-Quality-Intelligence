@@ -13,6 +13,9 @@ type UnifiedModuleNavigationProps = {
   items: UnifiedNavigationItem[]
   activeId: string
   onSelect: (id: string) => void
+  /** Anak dari grup aktif (mis. Budaya → Form Survei, Register Survei), tampil di baris kedua. */
+  subTitle?: string
+  subItems?: UnifiedNavigationItem[]
 }
 
 /**
@@ -27,6 +30,8 @@ export default function UnifiedModuleNavigation({
   items,
   activeId,
   onSelect,
+  subTitle,
+  subItems = [],
 }: UnifiedModuleNavigationProps) {
   const railRef = useRef<HTMLElement>(null)
   const titleRef = useRef<HTMLSpanElement>(null)
@@ -123,6 +128,7 @@ export default function UnifiedModuleNavigation({
   }
 
   return (
+    <>
     <nav ref={railRef} className="workspaceNavigationRail" aria-label={ariaLabel}>
       <span ref={titleRef} className="workspaceNavigationRailTitle">{title}</span>
       {items.length > 0 && <span className="workspaceNavigationRailDivider" aria-hidden="true" />}
@@ -167,5 +173,24 @@ export default function UnifiedModuleNavigation({
         {items.map((item) => <span key={item.id} data-nav-measure={item.id}>{item.label}</span>)}
       </div>
     </nav>
+    {subItems.length > 0 && (
+      <div className="workspaceNavigationSubRail" role="group" aria-label={'Submenu ' + (subTitle || title)}>
+        {subItems.map((item) => {
+          const selected = item.id === activeId
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={'workspaceNavigationSubItem' + (selected ? ' active' : '')}
+              aria-current={selected ? 'page' : undefined}
+              onClick={() => onSelect(item.id)}
+            >
+              {item.label}
+            </button>
+          )
+        })}
+      </div>
+    )}
+    </>
   )
 }
