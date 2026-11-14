@@ -73,6 +73,9 @@ const count = <T,>(rows: T[], key: (r: T) => string | null | undefined) => {
   for (const r of rows) { const k = (key(r) || "Tidak diisi").toString().trim() || "Tidak diisi"; m[k] = (m[k] || 0) + 1; }
   return Object.fromEntries(Object.entries(m).sort((a, b) => b[1] - a[1]));
 };
+// Suppress small cells to reduce disclosure risk in unit/month/type aggregates.
+const safeCount = (values: Record<string, number>, threshold = 5) =>
+  Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v >= threshold ? v : "disembunyikan (<" + threshold + ")"]));
 const top = (o: Record<string, number>, n: number) => Object.fromEntries(Object.entries(o).slice(0, n));
 
 type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; status: string | null; due_date: string | null };
@@ -206,8 +209,8 @@ async function snapshot(db: SupabaseClient) {
       per_status: count(risks.rows, (r) => r.status),
       risiko_tinggi_dan_sangat_tinggi_tanpa_tenggat: risks.rows.filter((r) => (r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi") && !r.due_date && open(r)).length,
       risiko_lewat_tenggat: risks.rows.filter((r) => r.due_date && r.due_date < today && open(r)).length,
-      jumlah_per_unit_per_level: risikoPerUnit,
-      contoh_risiko_skor_tertinggi: risks.rows.slice(0, 10).map((r) => ({ kode: r.risk_code, unit: r.unit_name, peristiwa: (r.risk_event || "").slice(0, 140), level: r.risk_level, skor: r.risk_score, status: r.status, tenggat: r.due_date })),
+      jumlah_per_unit_per_level: risikoPerUnit.filter((r) => r.total >= 5),
+      catatan_disclosure: "Rincian peristiwa risiko dan kode register tidak dikirim ke model; unit dengan sel kecil disembunyikan.",
     },
     rencana_tindak: {
       total: plans.rows.length,
@@ -219,14 +222,13 @@ async function snapshot(db: SupabaseClient) {
       arti: "Entri Form Logbook Mutu Klinis (semua program) per unit berdasarkan tanggal layanan/periode. Unit dianggap 'belum input/lapor' pada suatu triwulan bila tidak ada entri sama sekali di triwulan itu.",
       total_entri: quality.rows.reduce((a, b) => a + b.total, 0),
       unit_belum_input_per_triwulan: belumInputPerTriwulan,
-      per_unit: logbookPerUnit.filter((u) => u.total_entri > 0),
+      per_unit: logbookPerUnit.filter((u) => u.total_entri >= 5),
       unit_tanpa_entri_sama_sekali: logbookPerUnit.filter((u) => u.total_entri === 0).map((u) => u.unit),
     },
     keselamatan_pasien: {
       total_laporan_ikp: incidents.rows.length,
-      per_jenis: count(incidents.rows, incType),
-      per_unit: count(incidents.rows, incUnit),
-      per_bulan: Object.fromEntries(Object.entries(count(incidents.rows, (i) => incDate(i).slice(0, 7) || "Tanpa tanggal")).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12)),
+      per_jenis: safeCount(count(incidents.rows, incType)),
+      catatan_disclosure: "Rincian per unit dan per bulan tidak dikirim ke model. Sel dengan jumlah kurang dari 5 disembunyikan.",
     },
   };
 }
@@ -341,9 +343,16 @@ async function handle(req: Request): Promise<Response> {
     deepseek: keysOf("DEEPSEEK_API_KEY"),
     llm7: [...new Set([...keysOf("LLM7_API_KEY"), ...keysOf("LLM7.IO_API_KEY"), ...keysOf("LLM7_IO_API_KEY")])],
   };
-  // Bawaan hanya penyedia langsung (Google, Groq, NVIDIA). DeepSeek (server di Tiongkok) & LLM7 (perantara pihak ketiga)
-  // dipakai hanya bila dicantumkan sendiri di AI_PROVIDER_ORDER, karena data mutu RS ikut terkirim.
-  const order = (Deno.env.get("AI_PROVIDER_ORDER") || "gemini,groq,nvidia").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, "")).filter((x) => available[x]?.length);
+  // Default route uses Groq/NVIDIA/Gemini. DeepSeek requires explicit opt-in.
+  // LLM7 is sandbox-only and is never eligible in production.
+  const environment = (Deno.env.get("AI_ENVIRONMENT") || "production").toLowerCase();
+  const requestedOrder = (Deno.env.get("AI_PROVIDER_ORDER") || "groq,nvidia,gemini").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, ""));
+  const order = requestedOrder.filter((x) => {
+    if (!available[x]?.length) return false;
+    if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") !== "true") return false;
+    if (x === "llm7" && !(environment === "development" && Deno.env.get("AI_ENABLE_LLM7") === "true")) return false;
+    return ["groq", "nvidia", "gemini", "deepseek", "llm7"].includes(x);
+  });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GEMINI_API_KEY, GROQ_API_KEY, atau NVIDIA_API_KEY dengan kode kunci saja)." });
@@ -368,11 +377,24 @@ async function handle(req: Request): Promise<Response> {
   }
   const question = (body.question || "").toString().trim().slice(0, 1500);
   if (!question) return reply(400, { error: "Pertanyaan kosong." });
+  // Fail closed when a user includes likely patient/staff identifiers in a prompt or chat history.
+  const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
+  const outboundText = [question, ...history.map((h) => String(h?.text || ""))].join("\n");
+  const sensitivePatterns = [
+    /\b\d{16}\b/,                                      // NIK
+    /\b(?:no\.?\s*rm|nomor\s*rekam\s*medis|no\.?\s*rekam\s*medis)\s*[:#-]?\s*[a-z0-9-]{4,}\b/i,
+    /\b(?:nama\s*pasien|identitas\s*pasien|nama\s*petugas|identitas\s*petugas)\s*[:=]/i,
+    /\b(?:08|\+62|62)\d{8,13}\b/,                    // phone
+    /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,     // email
+    /\b(?:tanggal\s*lahir|tempat\s*tanggal\s*lahir|alamat\s*pasien)\s*[:=]/i,
+  ];
+  if (sensitivePatterns.some((pattern) => pattern.test(outboundText))) {
+    return reply(422, { error: "Permintaan ditahan oleh NARA Privacy Guard. Hapus identitas pasien/petugas, nomor rekam medis, NIK, kontak, dan detail pengenal dari pertanyaan maupun riwayat sebelum mencoba kembali." });
+  }
   if (rateLimited(who.user.id)) return reply(429, { error: "Batas pertanyaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
   const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
-  const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
   const page = (body.page || "").toString().slice(0, 80);
 
   stage = "ambil-data";
@@ -383,7 +405,7 @@ async function handle(req: Request): Promise<Response> {
   stage = "susun-prompt";
   const firstName = String(profile.full_name || "").split(/[\s,]+/)[0] || "";
   const system = [
-    "Kamu adalah AUREKA, rekan kerja virtual di Komite PMKP RSUD Sultan Syarif Mohamad Alkadrie, Pontianak, yang tinggal di aplikasi AUREKA (Hospital Quality Intelligence).",
+    "Kamu adalah NARA (AUREKA Intelligence), mesin kecerdasan internal AUREKA untuk membantu mutu, keselamatan pasien, manajemen risiko, statistik rumah sakit, dan tata kelola. Antarmuka tetap bernama Tanya AUREKA.",
     "GAYA BICARA:",
     "- Ngobrol seperti rekan kerja yang ramah sekaligus petugas layanan (CS) yang sigap: hangat, natural, sopan, tidak kaku, tidak seperti robot atau laporan resmi.",
     "- Ikuti gaya pengguna: kalau pengguna santai (mis. 'gimana', 'nggak', 'dong'), jawab santai juga; kalau formal, jawab lebih formal. Sapa dengan nama depannya sesekali" + (firstName ? " (nama depan: " + firstName + ")" : "") + ", jangan di setiap pesan.",
@@ -396,7 +418,10 @@ async function handle(req: Request): Promise<Response> {
     "3. Bila data yang ditanyakan memang tidak ada di DATA AUREKA, bilang terus terang dengan santai, lalu sebutkan menu AUREKA yang relevan. Hanya boleh menyebut menu dari DAFTAR MENU di bawah; jangan mengarang menu, filter, atau tombol.",
     "4. Boleh menjelaskan konsep mutu (PMKP, STARKES/SNARS, IKP, KTD/KNC/KTC/KPC, RCA, FMEA, matriks risiko 5x5, PDSA) dari pengetahuan umum; sebutkan bahwa itu pengetahuan umum, bukan data AUREKA.",
     "5. Saran tindak lanjut dibuat konkret, maksimal 5 poin. Format: paragraf pendek atau poin '-' ; boleh **tebal**. Jangan pakai tabel markdown.",
-    "6. Jangan pernah meminta atau menampilkan identitas pasien. Untuk masalah medis pasien perorangan, arahkan ke DPJP/tenaga kesehatan yang berwenang.",
+    "6. Jangan pernah meminta, menebak, mengulang, atau menampilkan identitas pasien maupun petugas. Untuk masalah medis pasien perorangan, arahkan ke DPJP/tenaga kesehatan yang berwenang.",
+    "7. DATA BOUNDARY: data yang tersedia di prompt telah diagregasi dan diminimalkan oleh backend. Jangan meminta data mentah, jangan menyarankan mengirim identitas, dan jangan mencoba merekonstruksi individu dari agregat.",
+    "8. Angka kecil yang ditandai disembunyikan tidak boleh ditebak, dihitung balik, atau diungkap melalui kombinasi kategori.",
+    "9. Anda tidak memiliki akses database langsung dan tidak boleh mengklaim telah mengubah data atau menjalankan tindakan yang tidak dilakukan backend.",
     "7. Kamu tidak bisa mengubah data. Tapi kamu BISA menyiapkan draf pengingat/pesan ke PIC unit; pengguna yang memeriksa lalu menekan tombol Kirim (pesan masuk ke Chat unit di Pusat Komunikasi). Jika pengguna meminta mengirim pesan/pengingat ke unit tertentu (atau 'unit tersebut' dari percakapan sebelumnya), jawab singkat (1–2 kalimat, sebut bahwa dia tinggal cek lalu tekan Kirim), lalu tambahkan di AKHIR jawaban satu blok persis seperti ini tanpa code block: [[KIRIM_PENGINGAT]]{\"unit\":[\"Nama Unit 1\",\"Nama Unit 2\"],\"pesan\":\"isi pesan\"}[[/KIRIM_PENGINGAT]]. Nama unit harus persis dari daftar_unit_aktif. Pesan sopan, ringkas (maks 5 kalimat), sebut hal yang perlu dilengkapi dan periodenya, ditutup salam dari Komite PMKP. Jangan menyatakan pesan sudah terkirim.",
     "Pengguna: " + (profile.full_name || "pengguna") + (page ? ". Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
