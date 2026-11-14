@@ -18,6 +18,8 @@ import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registr
 import TableSortEnhancer from '@/components/TableSortEnhancer'
 import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
+import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
+import {useIdleLogout} from '@/components/layout/useIdleLogout'
 const PicPerformanceWorkspace=dynamic(()=>import('@/components/PicPerformanceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Monitoring Kinerja PIC')})
 const TanyaAureka=dynamic(()=>import('@/components/TanyaAureka'),{ssr:false})
 const InfographicsDashboard=dynamic(()=>import('@/components/governance/InfographicsDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Infografis')})
@@ -337,6 +339,8 @@ export default function HomeClient(){
   }
  }
  const logout=async()=>{intentionalLogoutRef.current=true;try{Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut();setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setQualityOppeOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);setHomeTab('welcome');}
+ // Keluar otomatis setelah 30 menit tidak dipakai (peringatan 2 menit sebelumnya) — melindungi data pasien di komputer bersama.
+ const idle=useIdleLogout({enabled:view==='workspace',timeoutMs:30*60_000,warnMs:2*60_000,onTimeout:()=>{void logout().then(()=>{setView('login');setAuthInfo('Anda keluar otomatis karena AUREKA tidak dipakai selama 30 menit. Silakan masuk kembali.')})}})
   const admin=role==='ADMIN'
  const manager=MANAGER_ROLES.includes(role||'')
  const validator=role==='VALIDATOR'
@@ -1002,6 +1006,11 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
+  {idle.secondsLeft!=null&&<div className="idleWarnBackdrop"><div className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
+   <strong id="idle-warn-title">Masih di sana?</strong>
+   <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
+   <div className="idleWarnActions"><button type="button" onClick={()=>void logout()}>Keluar sekarang</button><button type="button" className="primary" autoFocus onClick={idle.stay}>Tetap masuk</button></div>
+  </div></div>}
   {activeToast&&<div className={'dynamicIslandToast '+activeToast.kind} role={activeToast.kind==='error'?'alert':'status'}>
    <span className="dynamicIslandIcon">{activeToast.kind==='error'?'!':activeToast.kind==='success'?'✓':'i'}</span>
    <div className="dynamicIslandText"><strong>{activeToast.kind==='error'?'Perlu perhatian':activeToast.kind==='success'?'Berhasil':'Informasi'}</strong><span>{activeToast.message}</span></div>
@@ -1049,7 +1058,7 @@ export default function HomeClient(){
    subItems={activeRailSubItems}
    onSelect={childId=>selectSidebarChild(activeNavModuleId,childId)}
   />}
-   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
+   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><ModuleErrorBoundary moduleLabel={activeNavModuleLabel||'Modul'} onHome={()=>openMainModule('home')}>
    {active==='home'?<>
     <HomeLandingWorkspace supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} role={role} isAdmin={admin} initialTab={homeTab} onTabChange={setHomeTab} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??(manager?roomsList[0]?.id??null:null)} roomName={role==='DEWAN_PENGAWAS'?'Seluruh unit':admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??(manager?roomsList[0]?.name??null:null)} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} selectedRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} onRoomChange={admin?updateWorkspaceRoom:undefined} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('quality','logbook-pathway');else openMainModule(id)}}}/>
    </>
@@ -1073,7 +1082,7 @@ export default function HomeClient(){
    :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace/>
    :active==='settings'?<GeneralSettings key={profileFocus+(settingsTab||'')} startAt={settingsSection==='audit'?'profile':settingsSection} openProfile={profileFocus>0} initialTab={settingsTab||undefined} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
-  </div>
+  </ModuleErrorBoundary></div>
  </section>
  <TableSortEnhancer/><FormSpeedEnhancer/>
  <nav className="mobileBottomNav" aria-label="Navigasi cepat">

@@ -186,7 +186,7 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter td:i
 
 /* ---------- Teks kecil & eyebrow lebih terbaca ---------- */
 html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is([class$="Eyebrow"], [class*="Eyebrow "], [class$="Kicker"]) {
-  font-size: 11px !important;
+  font-size: 12px !important;
   letter-spacing: .08em !important;
   color: var(--ak-muted) !important;
   opacity: 1 !important;
@@ -217,7 +217,7 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter :is(
   background: rgba(127, 150, 175, 0.18) !important;
   border-radius: 999px !important;
   padding: 1px 7px !important;
-  font-size: 11.5px !important;
+  font-size: 12.5px !important;
 }
 
 /* Teks sel tabel boleh turun baris agar tidak menimpa kolom sebelahnya

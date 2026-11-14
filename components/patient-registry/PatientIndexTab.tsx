@@ -202,13 +202,13 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
       .piPanel h3,.piPanel h4{margin:0 0 8px}.piPanelHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.piPanel p{margin:6px 0;font-size:12.5px;line-height:1.55}
       .piSpec ul{margin:6px 0;padding-left:18px;font-size:12.5px;line-height:1.6}
       .piRm{font-variant-numeric:tabular-nums;letter-spacing:.02em}
-      .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}
+      .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}
       .piBridge.terhubung{background:#e3f4ea;color:#1f6b43}.piBridge.menunggu{background:#fff4e0;color:#8a5a12}
       .piBridge.gagal,.piBridge.konflik{background:#fde8e8;color:#9b2c2c}
       .piAnalytics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
       .piAnalyticsCard{min-width:0;padding:15px 17px;border:1px solid rgba(11,70,122,.14);border-radius:15px;background:#fff}
-      .piAnalyticsHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.piAnalyticsHead h4{margin:0;font-size:13px}.piAnalyticsHead p{margin:5px 0 0;color:#64748b;font-size:11px;line-height:1.45}.piAnalyticsHead>b{font-size:11px;white-space:nowrap;color:#315b80}
-      .piBars{display:grid;gap:10px;margin-top:14px}.piBarRow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(60px,2fr) 34px;align-items:center;gap:9px;font-size:11px}.piBarRow>span{color:var(--ink,#0b1f33)}.piBarRow>b{text-align:right;font-variant-numeric:tabular-nums}
+      .piAnalyticsHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.piAnalyticsHead h4{margin:0;font-size:13px}.piAnalyticsHead p{margin:5px 0 0;color:#64748b;font-size:12px;line-height:1.45}.piAnalyticsHead>b{font-size:12px;white-space:nowrap;color:#315b80}
+      .piBars{display:grid;gap:10px;margin-top:14px}.piBarRow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(60px,2fr) 34px;align-items:center;gap:9px;font-size:12px}.piBarRow>span{color:var(--ink,#0b1f33)}.piBarRow>b{text-align:right;font-variant-numeric:tabular-nums}
       .piBarTrack{height:9px;overflow:hidden;border-radius:99px;background:#e8eef4}.piBarTrack i{display:block;height:100%;border-radius:inherit;background:#236a9b}
       html[data-mode="gelap"] .piAnalyticsCard{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12)}html[data-mode="gelap"] .piAnalyticsHead p{color:#a8b8ca}html[data-mode="gelap"] .piBarTrack{background:#26364a}
       @media(max-width:760px){.piAnalytics{grid-template-columns:1fr}.piAnalyticsHead{display:block}.piAnalyticsHead>b{display:inline-block;margin-top:6px}}
