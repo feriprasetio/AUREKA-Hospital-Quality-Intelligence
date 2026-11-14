@@ -126,6 +126,10 @@ export default function StaffDirectoryWorkspace() {
   const reviewCount = rows.filter((row) => row.directory_status === 'needs_review').length
   const inactiveCount = rows.filter((row) => row.directory_status === 'inactive').length
 
+  const professionDistribution = groups.map((group) => ({ label: group, count: rows.filter((row) => row.profession_group === group).length }))
+    .sort((a, b) => b.count - a.count).slice(0, 6)
+  const professionMax = Math.max(1, ...professionDistribution.map((item) => item.count))
+
   const beginEdit = (staff: Staff) => {
     setEditingStaff(staff)
     setDraft({
@@ -312,6 +316,12 @@ export default function StaffDirectoryWorkspace() {
         .sdKpi{padding:12px;border:1px solid rgba(255,255,255,.74);background:rgba(255,255,255,.32);border-radius:15px;min-width:0}
         .sdKpi span{font-size:11px;font-weight:850;color:var(--muted,#64756b);display:block}
         .sdKpi strong{font-size:23px;letter-spacing:-.03em;color:var(--text,#20372d);display:block;margin-top:3px}
+        .sdBlueprintVisuals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+        .sdBlueprintCard{min-width:0;padding:14px 15px;border:1px solid rgba(35,63,50,.12);border-radius:14px;background:rgba(255,255,255,.46)}
+        .sdBlueprintHead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sdBlueprintHead h3{margin:0;font-size:13px;color:var(--text,#20372d)}.sdBlueprintHead p{margin:5px 0 0;font-size:11px;line-height:1.45;color:var(--muted,#64756b)}.sdBlueprintHead>b{font-size:11px;white-space:nowrap}
+        .sdBlueprintStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:13px}.sdBlueprintStats>div{padding:9px;border:1px solid rgba(35,63,50,.1);border-radius:10px}.sdBlueprintStats span{display:block;font-size:10px;color:var(--muted,#64756b)}.sdBlueprintStats strong{display:block;font-size:20px;margin-top:4px;color:var(--text,#20372d)}
+        .sdBlueprintBars{display:grid;gap:9px;margin-top:13px}.sdBlueprintBar{display:grid;grid-template-columns:minmax(100px,1fr) minmax(50px,1.5fr) 35px;gap:8px;align-items:center;font-size:11px}.sdBlueprintBar>span{overflow-wrap:anywhere}.sdBlueprintBar>b{text-align:right;font-variant-numeric:tabular-nums}.sdBlueprintBar>div{height:8px;border-radius:99px;background:#e3eaf0;overflow:hidden}.sdBlueprintBar i{display:block;height:100%;border-radius:inherit;background:#236a9b}
+        @media(max-width:760px){.sdBlueprintVisuals{grid-template-columns:1fr}.sdBlueprintStats{grid-template-columns:repeat(3,minmax(0,1fr))}}
         .sdFilters{display:grid;grid-template-columns:minmax(220px,1fr) minmax(160px,.45fr) minmax(190px,.65fr);gap:9px;margin-top:14px}
         .sdFilters input,.sdFilters select{width:100%;min-width:0;min-height:42px;padding:10px 12px;border-radius:12px;border:1px solid rgba(35,63,50,.14);background:rgba(255,255,255,.72);color:var(--text,#20372d);font-size:12px}
         .sdNotice{padding:10px 12px;border-radius:12px;background:rgba(15,118,86,.08);border:1px solid rgba(15,118,86,.14);font-size:11px;line-height:1.5;color:var(--text,#20372d);margin-top:10px}
@@ -362,6 +372,20 @@ export default function StaffDirectoryWorkspace() {
             <button type="button" className="sdBtn sdIconBtn" title="Segarkan" aria-label="Segarkan" disabled={busy || loading} onClick={() => void load()}>↻</button>
           </div>}
         />
+        <section className="sdBlueprintVisuals" aria-label="Komposisi direktori tenaga kerja">
+          <div className="sdBlueprintCard">
+            <div className="sdBlueprintHead"><div><h3>Status verifikasi direktori</h3><p>Seluruh record yang berhasil dimuat pada direktori ini.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
+            <div className="sdBlueprintStats">
+              <div><span>Siap dipetakan</span><strong>{availableCount.toLocaleString('id-ID')}</strong></div>
+              <div><span>Perlu verifikasi</span><strong>{reviewCount.toLocaleString('id-ID')}</strong></div>
+              <div><span>Nonaktif</span><strong>{inactiveCount.toLocaleString('id-ID')}</strong></div>
+            </div>
+          </div>
+          <div className="sdBlueprintCard">
+            <div className="sdBlueprintHead"><div><h3>Kelompok profesi terbanyak</h3><p>Maksimal enam kelompok berdasarkan jumlah record.</p></div><b>{groups.length} kelompok</b></div>
+            {loading ? <p className="sdDesc">Memuat komposisi…</p> : professionDistribution.length ? <div className="sdBlueprintBars">{professionDistribution.map((item) => <div className="sdBlueprintBar" key={item.label}><span>{item.label}</span><div><i style={{width:(item.count/professionMax*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="sdDesc">Belum ada data profesi.</p>}
+          </div>
+        </section>
         <div className="sdFilters">
           <select aria-label="Filter kelayakan penugasan" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">Semua kelayakan</option><option value="available">Siap dipetakan</option><option value="needs_review">Perlu verifikasi</option><option value="inactive">Nonaktif</option>
