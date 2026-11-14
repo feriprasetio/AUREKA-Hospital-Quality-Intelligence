@@ -20,10 +20,10 @@
     "exceljs-hardened": "5.1.0"
   },
   "devDependencies": {
-    "@types/node": "22.18.0",
+    "@types/node": "26.6.6",
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   },
   "overrides": {
     "minimatch": "11.0.1"
