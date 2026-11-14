@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import './clinical-ui.css'
@@ -37,9 +37,21 @@ import './aureka-global-navigation.css'
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], display: 'swap', variable: '--font-aureka' })
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+
 export const metadata: Metadata = {
   title: 'AUREKA: Hospital Quality Intelligence',
   description: 'AUREKA Hospital Quality Intelligence Platform',
+  // Bisa dipasang di HP/PC seperti aplikasi ("Tambah ke layar utama").
+  manifest: BASE_PATH + '/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'AUREKA', statusBarStyle: 'default' },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#eef1f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0d13' },
+  ],
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

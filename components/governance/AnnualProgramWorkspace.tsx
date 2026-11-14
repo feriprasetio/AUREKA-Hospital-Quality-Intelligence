@@ -153,25 +153,25 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
     </AurekaModal>
 
     <style jsx>{`
-      .annualProgramHome{display:grid;gap:16px}.annualProgramLegacy{margin-top:4px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:11px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+      .annualProgramHome{display:grid;gap:16px}.annualProgramLegacy{margin-top:4px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:12px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
       .annualProgramCard{display:flex;align-items:flex-start;gap:14px;text-align:left;padding:20px;border:1px solid var(--line,rgba(20,34,27,.12));border-radius:18px;background:var(--surface,#fff);color:var(--text,#20372d);cursor:pointer;min-width:0;transition:border-color .18s,transform .18s}
       .annualProgramCard:hover{border-color:var(--accent,#26866a);transform:translateY(-1px)}
       .annualProgramCardIcon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:var(--surface-soft,#eef5f1);font-size:22px}
       .annualProgramCardBody{display:grid;gap:7px;min-width:0}
       .annualProgramCardBody strong{font-size:14px;font-weight:800}
-      .annualProgramCardBody small{font-size:11px;line-height:1.55;color:var(--muted,#718078)}
-      .annualProgramCardMeta{font-size:11px;color:var(--accent,#26866a);font-weight:700}
+      .annualProgramCardBody small{font-size:12px;line-height:1.55;color:var(--muted,#718078)}
+      .annualProgramCardMeta{font-size:12px;color:var(--accent,#26866a);font-weight:700}
       .annualProgramCardArrow{margin-left:auto;font-size:20px;color:var(--muted,#718078)}
       .annualPriorityToolbar{justify-content:space-between;margin:14px 0}
       .annualPriorityGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
       .annualPriorityCard{border:1px solid var(--line,rgba(20,34,27,.12));border-radius:16px;padding:15px;background:var(--surface,#fff);min-width:0}
       .annualPriorityCard header{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
       .annualPriorityCard h4{margin:5px 0 0;font-size:14px;line-height:1.4}
-      .annualPriorityCard p{font-size:11px;line-height:1.6;color:var(--muted,#65756c);white-space:pre-wrap}
+      .annualPriorityCard p{font-size:12px;line-height:1.6;color:var(--muted,#65756c);white-space:pre-wrap}
       .annualPriorityProblem{font-weight:650;color:var(--text,#20372d)!important}
-      .annualPriorityOutcome{display:grid;gap:4px;border-left:3px solid var(--accent,#26866a);padding-left:10px;font-size:11px;line-height:1.5}
-      .annualPriorityMeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:13px;font-size:11px;color:var(--muted,#718078)}
-      .annualPriorityCard footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line,rgba(20,34,27,.1));padding-top:10px;margin-top:12px;font-size:11px;color:var(--muted,#718078)}
+      .annualPriorityOutcome{display:grid;gap:4px;border-left:3px solid var(--accent,#26866a);padding-left:10px;font-size:12px;line-height:1.5}
+      .annualPriorityMeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:13px;font-size:12px;color:var(--muted,#718078)}
+      .annualPriorityCard footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line,rgba(20,34,27,.1));padding-top:10px;margin-top:12px;font-size:12px;color:var(--muted,#718078)}
       @media(max-width:700px){.annualProgramCards{grid-template-columns:1fr}.annualProgramCard{padding:15px}}
     `}</style>
   </section>

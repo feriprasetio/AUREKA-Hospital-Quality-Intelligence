@@ -45,7 +45,7 @@ html[data-mode="gelap"] .tanyaMsg.error { color: #ff9b9b; }
 .tanyaComposer button { width: 42px; height: 42px; flex: 0 0 42px; border: 0; border-radius: 14px; background: var(--tn-user); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .tanyaComposer button:disabled { opacity: .45; cursor: default; }
 .tanyaComposer svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.tanyaNote { margin: 0; padding: 4px 16px 12px; font-size: 11px; color: var(--tn-muted); }
+.tanyaNote { margin: 0; padding: 4px 16px 12px; font-size: 12px; color: var(--tn-muted); }
 .tanyaHead .tanyaClose { display: none; }
 /* Tombol mengambang pojok kanan bawah */
 .tanyaFab {

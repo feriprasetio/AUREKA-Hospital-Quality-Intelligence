@@ -675,7 +675,7 @@ export default function GeneralSettings({
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div>
                   <h4 style={{ margin: 0 }}>Unit & Instalasi</h4>
-                  <p style={{ margin: '5px 0 0', fontSize: 11, color: 'var(--muted)' }}>
+                  <p style={{ margin: '5px 0 0', fontSize: 12, color: 'var(--muted)' }}>
                     {isAdmin ? 'Tambah, ubah nama/kode, atau nonaktifkan unit kerja. Unit tidak dihapus permanen karena masih dipakai data risiko dan akun.' : 'Daftar unit kerja aktif.'}
                   </p>
                 </div>
@@ -759,8 +759,8 @@ export default function GeneralSettings({
                   ['Kepadatan tampilan', 'Gunakan tombol Nyaman / Ringkas di atas area kerja.'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>
-                    <b style={{ fontSize: 11 }}>{label}</b>
-                    <span style={{ fontSize: 11, color: 'var(--muted)' }}>{value}</span>
+                    <b style={{ fontSize: 12 }}>{label}</b>
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -775,7 +775,7 @@ export default function GeneralSettings({
           <LiquidGlass style={{ padding: 18 }}>
             <div className="eyebrow">Data saya untuk PMKP</div>
             <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</h3>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
             <div className="myDataGrid">
               {([
                 ['Risiko unit terdaftar', myData?.risks, 'risk'],
@@ -819,7 +819,7 @@ export default function GeneralSettings({
           <LiquidGlass style={{ padding: 18 }}>
             <div className="eyebrow">Manajemen pengguna</div>
             <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>Pengguna dan akun unit</h3>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11 }}>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12 }}>
               Kelola role, unit utama, status, dan penggantian password untuk akun AUREKA.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
@@ -837,7 +837,7 @@ export default function GeneralSettings({
                 </button>
               ))}
             </div>
-            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 11, color: '#9a6b13' }}>
+            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 12, color: '#9a6b13' }}>
               {pendingCount} akun baru menunggu aktivasi. Periksa unit dan role, lalu klik “Aktifkan”. Akun ruangan cukup diberi role PIC Pelaporan.
             </p>}
           </LiquidGlass>
@@ -958,7 +958,7 @@ export default function GeneralSettings({
                   )}
                 </div>
               ))}
-              {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 11 }}>Tidak ada pengguna yang cocok.</div>}
+              {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>Tidak ada pengguna yang cocok.</div>}
             </div>
           </LiquidGlass>
         </>

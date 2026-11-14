@@ -1,5 +1,6 @@
 'use client'
 
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -82,7 +83,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
     if(busy)return
     const code=(activationCodes[row.id]||'').trim()
     if(!code){setError('Tetapkan kode indikator final sebelum aktivasi.');return}
-    if(!window.confirm('Aktifkan indikator '+code+' ke katalog Profil Indikator Mutu untuk '+row.room_name+' tahun '+row.profile_year+'?'))return
+    if(!(await aurekaConfirm('Indikator '+code+' akan masuk ke katalog Profil Indikator Mutu untuk '+row.room_name+' tahun '+row.profile_year+'.',{title:'Aktifkan indikator?',confirmLabel:'Ya, aktifkan'})))return
     setBusy(true);setError('');setMessage('')
     const {data:profileId,error:rpcError}=await aurekaSupabase.rpc('aureka_gov_indicator_proposal_activate',{p_id:row.id,p_code:code})
     if(rpcError)setError(rpcError.message)
@@ -96,16 +97,16 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
     <style>{`
       .indicatorProposals{display:grid;gap:14px;min-width:0;color:var(--text,#20372d)}
       .ipPanel{background:#fff;border:1px solid var(--line,#e4ebe6);border-radius:15px;padding:16px;min-width:0}
-      .ipIntro{font-size:11px;line-height:1.6;color:var(--muted,#66776d);margin:5px 0 0;max-width:900px}
+      .ipIntro{font-size:12px;line-height:1.6;color:var(--muted,#66776d);margin:5px 0 0;max-width:900px}
       .ipToolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-      .ipBtn{border:1px solid #dce6df;background:#fff;border-radius:9px;padding:9px 12px;font-size:11px;font-weight:800;color:#294436;min-height:37px;cursor:pointer}
+      .ipBtn{border:1px solid #dce6df;background:#fff;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:800;color:#294436;min-height:37px;cursor:pointer}
       .ipBtn.primary{background:#145b42;color:#fff;border-color:#145b42}
       .ipBtn.warn{background:#fff8e8;border-color:#ead9b4;color:#795b20}
       .ipBtn.danger{background:#fff4f2;border-color:#ebd0cc;color:#8c3931}
       .ipBtn:disabled{opacity:.55;cursor:wait}
       .ipFilters{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
       .ipFilters select,.ipField input,.ipField select,.ipField textarea{width:100%;min-width:0;border:1px solid #dce6df;border-radius:9px;background:#fff;padding:10px 11px;color:#263a2f;font-size:12px;min-height:39px}
-      .ipField{display:grid;gap:5px;font-size:11px;font-weight:800;color:#63736a}
+      .ipField{display:grid;gap:5px;font-size:12px;font-weight:800;color:#63736a}
       .ipField textarea{resize:vertical;min-height:80px}
       .ipFormGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}
       .ipField.full{grid-column:1/-1}
@@ -114,15 +115,15 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       .ipCard{border:1px solid #e4ebe6;border-radius:13px;padding:14px;background:#fff;min-width:0}
       .ipCardHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
       .ipCard h4{font-size:14px;margin:0;color:#24382d}
-      .ipMeta{font-size:11px;color:#718078;line-height:1.6;margin-top:5px}
-      .ipStatus{display:inline-flex;border-radius:999px;padding:5px 8px;background:#eef3ef;color:#43634e;font-size:11px;font-weight:850}
-      .ipDetail{font-size:11px;line-height:1.55;color:#4e6156;margin-top:10px}
+      .ipMeta{font-size:12px;color:#718078;line-height:1.6;margin-top:5px}
+      .ipStatus{display:inline-flex;border-radius:999px;padding:5px 8px;background:#eef3ef;color:#43634e;font-size:12px;font-weight:850}
+      .ipDetail{font-size:12px;line-height:1.55;color:#4e6156;margin-top:10px}
       .ipReview{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #edf1ee}
-      .ipReview textarea{width:100%;border:1px solid #dce6df;border-radius:9px;padding:10px;font-size:11px;min-height:62px}
+      .ipReview textarea{width:100%;border:1px solid #dce6df;border-radius:9px;padding:10px;font-size:12px;min-height:62px}
       .ipActivation{display:grid;grid-template-columns:minmax(130px,1fr) auto;gap:8px;margin-top:12px}
-      .ipActivation input{min-width:0;border:1px solid #dce6df;border-radius:9px;padding:9px;font-size:11px}
-      .ipError{border:1px solid #efcfca;background:#fff5f3;color:#903c32;border-radius:10px;padding:10px;font-size:11px}
-      .ipSuccess{border:1px solid #d6e9dc;background:#f4faf5;color:#276341;border-radius:10px;padding:10px;font-size:11px}
+      .ipActivation input{min-width:0;border:1px solid #dce6df;border-radius:9px;padding:9px;font-size:12px}
+      .ipError{border:1px solid #efcfca;background:#fff5f3;color:#903c32;border-radius:10px;padding:10px;font-size:12px}
+      .ipSuccess{border:1px solid #d6e9dc;background:#f4faf5;color:#276341;border-radius:10px;padding:10px;font-size:12px}
       .ipOverlay{position:fixed;inset:0;z-index:1200;background:rgba(15,29,22,.48);backdrop-filter:blur(4px);display:grid;place-items:center;padding:18px;overflow:auto}
       .ipModal{width:min(900px,100%);max-height:min(92vh,900px);overflow:auto;box-shadow:0 24px 80px rgba(10,30,20,.25)}
       @media(max-width:640px){.ipPanel{padding:13px}.ipFormGrid{grid-template-columns:1fr}.ipField.full{grid-column:auto}.ipActivation{grid-template-columns:1fr}}

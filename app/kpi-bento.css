@@ -125,10 +125,10 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspa
 /* HP: label baris peta risiko tidak menabrak sel */
 @media (max-width: 760px) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood { min-width: 0 !important; overflow: hidden !important; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood small { font-size: 11px !important; line-height: 1.2 !important; overflow-wrap: break-word !important; hyphens: auto; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixHeader small { font-size: 11px !important; line-height: 1.2 !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixLikelihood small { font-size: 12px !important; line-height: 1.2 !important; overflow-wrap: break-word !important; hyphens: auto; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixHeader small { font-size: 12px !important; line-height: 1.2 !important; }
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell { padding: 4px 2px !important; font-size: 12px !important; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-size: 11px !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmMatrixCell small { font-size: 12px !important; }
 }
 
 /* HP: kolom kiri peta risiko cukup angka (nama level dijelaskan di keterangan atas) */
@@ -144,11 +144,11 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .settingsWorkspa
 html[data-skin="arktik"]:root .workspaceRoot .settingsWorkspace .stNavItem.on * { color: inherit !important; }
 
 /* Konektor risiko: teks kartu terbaca (sebelumnya 8–9px) */
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode span { font-size: 11px !important; letter-spacing: .02em; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode span { font-size: 12px !important; letter-spacing: .02em; }
 html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode b { font-size: 13px !important; line-height: 1.4 !important; }
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode small { font-size: 11.5px !important; }
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector span { font-size: 11px !important; }
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector small { font-size: 11.5px !important; line-height: 1.45 !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphNode small { font-size: 12.5px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector span { font-size: 12px !important; }
+html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink .rmConnector small { font-size: 12.5px !important; line-height: 1.45 !important; }
 /* HP: kartu konektor ditumpuk satu kolom, tombol selebar kartu */
 @media (max-width: 620px) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .rmGraphLink { grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; padding: 12px !important; }
@@ -254,7 +254,7 @@ html[data-skin="arktik"]:root .workspaceRoot .workspaceContext .workspaceUnitSel
 }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .workspaceContext .workspaceUnitSelect select { background-color: rgba(255, 255, 255, 0.06) !important; color: #e6eef8 !important; }
 html .workspaceRoot .srOnly { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlUnitHint { font-size: 11px; color: var(--ak-muted, #6b7f93); }
+html[data-skin="arktik"]:root .workspaceRoot .homeLanding .hlUnitHint { font-size: 12px; color: var(--ak-muted, #6b7f93); }
 @media (max-width: 720px) {
   html[data-skin="arktik"]:root .workspaceRoot .workspaceContext .workspaceUnitSelect select { max-width: 46vw; font-size: 12px !important; }
 }
@@ -288,8 +288,8 @@ html[data-mode="gelap"] .workspaceRoot .rmEvalVerdict.pending { background: rgba
 .workspaceRoot .psStatsBars { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; height: 180px; align-items: end; }
 .workspaceRoot .psStatsBar { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; padding-bottom: 20px; }
 .workspaceRoot .psStatsBar i { display: block; width: 70%; min-height: 2px; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #3b8fd6, #0b467a); transition: height .6s cubic-bezier(.22, 1, .36, 1); }
-.workspaceRoot .psStatsBar span { position: absolute; bottom: 0; font-size: 11px; opacity: .7; }
-.workspaceRoot .psStatsBar b { position: absolute; top: -2px; font-size: 11px; font-weight: 650; opacity: .8; }
+.workspaceRoot .psStatsBar span { position: absolute; bottom: 0; font-size: 12px; opacity: .7; }
+.workspaceRoot .psStatsBar b { position: absolute; top: -2px; font-size: 12px; font-weight: 650; opacity: .8; }
 .workspaceRoot .psStatsRows { display: grid; gap: 8px; }
 .workspaceRoot .psStatsRow { display: grid; grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) 64px; align-items: center; gap: 10px; font-size: 13px; }
 .workspaceRoot .psStatsRow > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -320,7 +320,7 @@ html[data-mode="gelap"] .workspaceRoot .psStatsCard { background: rgba(255, 255,
 .workspaceRoot .govRec h4 { margin: 4px 0 2px; font-size: 15.5px; }
 .workspaceRoot .govRec small { opacity: .7; }
 .workspaceRoot .govRec > p { margin: 0; font-size: 13.5px; line-height: 1.55; }
-.workspaceRoot .govCode { display: inline-block; padding: 2px 8px; border-radius: 6px; background: rgba(11, 70, 122, .08); font-size: 11.5px; font-weight: 700; letter-spacing: .02em; }
+.workspaceRoot .govCode { display: inline-block; padding: 2px 8px; border-radius: 6px; background: rgba(11, 70, 122, .08); font-size: 12.5px; font-weight: 700; letter-spacing: .02em; }
 .workspaceRoot .govStatus { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 650; background: rgba(11, 70, 122, .08); white-space: nowrap; }
 .workspaceRoot .govStatus:is(.terverifikasi, .terbit, .disetujui) { background: #e3f5ec; color: #17734a; }
 .workspaceRoot .govStatus:is(.selesai, .menunggu_direktur) { background: #fff4dc; color: #8a5a00; }
@@ -358,7 +358,7 @@ html[data-mode="gelap"] .govSegment button.active { background: rgba(255, 255, 2
 .workspaceRoot .qraCategoryCard > span { font-size: 12.5px; font-weight: 700; }
 .workspaceRoot .qraCategoryCard > strong { font-size: 22px; line-height: 1.1; }
 .workspaceRoot .qraCategoryCard > small { font-size: 12px; opacity: .72; line-height: 1.4; }
-.workspaceRoot .qraCategoryCard > em { font-size: 11.5px; font-style: normal; color: #8a5a00; }
+.workspaceRoot .qraCategoryCard > em { font-size: 12.5px; font-style: normal; color: #8a5a00; }
 .workspaceRoot .qraCategoryBar { display: block; height: 8px; border-radius: 8px; background: rgba(11, 70, 122, .08); overflow: hidden; }
 .workspaceRoot .qraCategoryBar b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #2e9b6a, #17734a); }
 .workspaceRoot .qraMuted { margin: 4px 0 0; font-size: 12.5px; opacity: .72; }
@@ -388,7 +388,7 @@ html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="
 .govPermTable { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
 .govPermTable :is(th, td) { padding: 9px 10px; border-bottom: 1px solid rgba(11, 70, 122, .08); text-align: center; }
 .govPermTable :is(th, td):first-child { text-align: left; position: sticky; left: 0; background: #fff; z-index: 1; }
-.govPermTable td:first-child small { display: block; font-size: 11.5px; opacity: .6; }
+.govPermTable td:first-child small { display: block; font-size: 12.5px; opacity: .6; }
 .govPermTable th { font-size: 12px; position: sticky; top: 0; background: #f5f8fc; }
 .govPermMine { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
 .govPermMine li { opacity: .55; }

@@ -270,7 +270,7 @@ html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem.active {
     max-width: 38% !important;
     min-height: 32px !important;
     padding-inline: 9px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
   .workspaceRoot .workspaceNavigationRailItems { gap: 3px !important; }
   .workspaceRoot .workspaceNavigationRailItem,
@@ -278,7 +278,7 @@ html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem.active {
     min-height: 32px !important;
     max-width: 160px !important;
     padding-inline: 9px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
   .workspaceRoot .workspaceNavigationOverflow summary { min-width: 64px !important; }
 }
@@ -405,13 +405,13 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
     min-height: 32px !important;
     padding-inline: 9px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
     min-height: 32px !important;
     max-width: 160px !important;
     padding-inline: 9px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 }

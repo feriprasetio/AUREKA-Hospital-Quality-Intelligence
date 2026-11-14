@@ -10,6 +10,7 @@ import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { downloadAssessmentCsv, downloadAssessmentJson, openPrintableIndividualReport } from '@/lib/aureka/individual-assessment-export'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import { logSensitiveView } from '@/lib/aureka/sensitive-access'
@@ -557,13 +558,13 @@ export default function OppeAuditWorkspace({
     || form.developmentPlan.trim()
   )
 
-  const confirmLeavingForm = () => {
+  const confirmLeavingForm = async () => {
     if (!hasCurrentFormContent()) return true
-    return typeof window === 'undefined' || window.confirm('Formulir OPPE yang sedang terbuka akan ditinggalkan. Simpan draf terlebih dahulu jika ingin mempertahankan perubahan. Lanjutkan?')
+    return aurekaConfirm('Formulir OPPE yang sedang terbuka akan ditinggalkan. Simpan draf terlebih dahulu jika ingin mempertahankan perubahan.', { title: 'Tinggalkan formulir?', confirmLabel: 'Ya, tinggalkan', cancelLabel: 'Kembali ke formulir' })
   }
 
-  const resetNew = () => {
-    if (!confirmLeavingForm()) return
+  const resetNew = async () => {
+    if (!(await confirmLeavingForm())) return
     const nextRoom = roomFilter ?? initialRoom
     setForm(defaultForm(nextRoom, year, quarter, form.evaluatorName))
     setSavedClinicalSnapshot(null)
@@ -581,8 +582,8 @@ export default function OppeAuditWorkspace({
     }, 80)
   }
 
-  const changeScope = (nextYear: number, nextQuarter: number, nextRoom: number | null) => {
-    if (!confirmLeavingForm()) return
+  const changeScope = async (nextYear: number, nextQuarter: number, nextRoom: number | null) => {
+    if (!(await confirmLeavingForm())) return
     const nextFormRoom = nextRoom ?? (form.roomId || initialRoom)
     setYear(nextYear)
     setQuarter(nextQuarter)
@@ -1509,7 +1510,7 @@ const CSS = `
 .oppeManualTitle>div{display:grid;gap:4px}
 .oppeManualTitle strong{font-size:13px;line-height:1.5}
 .oppeManualTitle span{font-size:12px;color:var(--muted);line-height:1.5}
-.oppeTinyTag{padding:5px 7px;border-radius:999px;background:#e8efff;color:#455c9a;font-weight:900;font-size:11.5px!important;white-space:nowrap}
+.oppeTinyTag{padding:5px 7px;border-radius:999px;background:#e8efff;color:#455c9a;font-weight:900;font-size:12.5px!important;white-space:nowrap}
 .oppeManualGrid{grid-template-columns:minmax(160px,.65fr) minmax(110px,.35fr)}
 .oppeScorePanel{padding:17px;display:grid;gap:10px}
 .oppeScorePanel h4{font-size:32px;letter-spacing:-.055em;margin:0}
@@ -1527,7 +1528,7 @@ const CSS = `
 .oppeClinicalHead>div{display:grid;gap:5px;min-width:0}.oppeClinicalHead strong{font-size:13px;line-height:1.45}.oppeClinicalHead span:not(.oppeStatus){font-size:12px;color:var(--muted);line-height:1.5}
 .oppeClinicalStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
 .oppeClinicalStats>div{padding:8px;background:rgba(255,255,255,.54);border-radius:10px;min-width:0}
-.oppeClinicalStats span{display:block;color:var(--muted);font-size:11.5px;font-weight:850}.oppeClinicalStats strong{display:block;margin-top:4px;font-size:12.5px;overflow-wrap:anywhere}
+.oppeClinicalStats span{display:block;color:var(--muted);font-size:12.5px;font-weight:850}.oppeClinicalStats strong{display:block;margin-top:4px;font-size:12.5px;overflow-wrap:anywhere}
 .oppeClinicalReason{font-size:12px;color:var(--muted);line-height:1.6;margin-top:9px}
 .oppeDataSummary{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .oppeDataSummary span{padding:7px 9px;background:rgba(255,255,255,.43);border-radius:10px;font-size:12px;color:var(--muted)}
