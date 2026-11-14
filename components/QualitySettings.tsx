@@ -7,7 +7,7 @@ import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 import AurekaModal from '@/components/ui/AurekaModal'
-import { buildIndicatorProfileBackup, parseIndicatorProfileBackup, type IndicatorProfileBackup } from '@/lib/aureka/indicator-profile-transfer'
+import { buildIndicatorProfileBackup, buildIndicatorProfileXlsx, parseIndicatorProfileXlsx, type IndicatorProfileBackup } from '@/lib/aureka/indicator-profile-transfer'
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -366,7 +366,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     setSaving(false)
   }
 
-  const exportProfileSet = () => {
+  const exportProfileSet = async () => {
     try {
       const selectedRoom = rooms.find((item) => String(item.id) === room)
       const backup = buildIndicatorProfileBackup({
@@ -375,19 +375,20 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         scopeName: selectedRoom?.name || 'Semua unit',
         profiles,
       })
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' })
+      const bytes = await buildIndicatorProfileXlsx(backup)
+      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
       const scopePart = selectedRoom
         ? selectedRoom.name.toLocaleLowerCase('id').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
         : 'semua-unit'
       anchor.href = url
-      anchor.download = 'aureka-profil-indikator-' + year + '-' + scopePart + '.json'
+      anchor.download = 'aureka-profil-indikator-' + year + '-' + scopePart + '.xlsx'
       document.body.appendChild(anchor)
       anchor.click()
       anchor.remove()
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-      setMsg('Ekspor ' + backup.profiles.length.toLocaleString('id-ID') + ' profil aktif tahun ' + year + ' berhasil dibuat.')
+      setMsg('Ekspor ' + backup.profiles.length.toLocaleString('id-ID') + ' profil aktif tahun ' + year + ' ke XLSX berhasil dibuat.')
     } catch (error) {
       setMsg('Profil indikator gagal diekspor: ' + toUserFacingError(error, { fallback: 'Periksa cakupan tahun dan unit.' }))
     }
@@ -397,7 +398,10 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     if (!file) return
     setMsg('')
     try {
-      const parsed = parseIndicatorProfileBackup(JSON.parse(await file.text()))
+      if (!/\\.xlsx$/i.test(file.name)) {
+        throw new Error('Format impor harus .xlsx. Berkas JSON tidak lagi didukung.')
+      }
+      const parsed = await parseIndicatorProfileXlsx(await file.arrayBuffer())
       const selectedScopeRoomId = room ? Number(room) : null
       if (parsed.scope.room_id !== selectedScopeRoomId) {
         throw new Error(
@@ -408,11 +412,11 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       }
       setImportPreview(parsed)
       setReplaceConfirmed(false)
-      setMsg('Berkas ' + file.name + ' tervalidasi. Periksa ringkasan dan konfirmasi sebelum penggantian profil.')
+      setMsg('Workbook ' + file.name + ' tervalidasi. Periksa ringkasan dan konfirmasi sebelum penggantian profil.')
     } catch (error) {
       setImportPreview(null)
       setReplaceConfirmed(false)
-      setMsg('Berkas profil indikator tidak dapat digunakan: ' + toUserFacingError(error, { fallback: 'Pastikan berkas merupakan ekspor JSON Profil Indikator AUREKA.' }))
+      setMsg('Workbook profil indikator tidak dapat digunakan: ' + toUserFacingError(error, { fallback: 'Pastikan workbook sesuai template XLSX Profil Indikator AUREKA.' }))
     }
   }
 
@@ -580,15 +584,15 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
-              <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import profil</LiquidGlassButton>
-              <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export profil</LiquidGlassButton>
+              <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX</LiquidGlassButton>
+              <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
               <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
             <input
               ref={importFileRef}
               type="file"
-              accept=".json,application/json"
-              aria-label="Pilih berkas ekspor profil indikator AUREKA"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              aria-label="Pilih workbook XLSX Profil Indikator AUREKA"
               style={{ display: 'none' }}
               onChange={(event) => {
                 const file = event.currentTarget.files?.[0]
