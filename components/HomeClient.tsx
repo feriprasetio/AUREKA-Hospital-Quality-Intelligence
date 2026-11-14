@@ -502,8 +502,11 @@ export default function HomeClient(){
   return active===id
  }
  const activeNavEntry=visibleMods.find(([id])=>isPrimaryNavActive(id))
- const activeNavModuleId=activeNavEntry?.[0]||(active==='home'?'home':'')
- const activeNavModuleLabel=activeNavEntry?.[1]||(active==='home'?'Beranda':'')
+ // Keep contextual navigation mounted for every authenticated workspace module.
+ // The sidebar and route state are the source of truth; a missing registry match
+ // must not silently remove the horizontal navigation rail.
+ const activeNavModuleId=activeNavEntry?.[0]||(active==='home'?'home':active)
+ const activeNavModuleLabel=activeNavEntry?.[1]||(MODS.find(([id])=>id===active)?.[1])||(active==='home'?'Beranda':active)
  const activeNavGroups=sidebarChildGroups[activeNavModuleId]||[]
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
