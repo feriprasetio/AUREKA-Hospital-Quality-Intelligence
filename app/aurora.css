@@ -420,3 +420,49 @@ html body:not(#_) .authPage.authProfessional .authBack { margin-top: 14px !impor
 html body:not(#_) .authPage.authProfessional .authCard { border-radius: 0 30px 30px 0 !important; box-shadow: none !important; background: rgba(255, 255, 255, 0.6) !important; }
 @media (max-width: 900px) { html body:not(#_) .authPage.authProfessional .authCard { border-radius: 26px !important; } }
 html[data-mode="gelap"] body:not(#_) .authPage:is(.authProfessional, .authRedesigned) { background: #0f1218 !important; }
+
+/* ── Sidebar lebih tegas + efek kaca buram (desktop) ── */
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar {
+    background: rgba(255, 255, 255, 0.34) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(160%) !important; backdrop-filter: blur(24px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.78) !important;
+    box-shadow: 0 20px 50px rgba(31, 36, 48, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sidebarNav { display: flex !important; flex-direction: column !important; gap: 4px !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button {
+    position: relative !important; display: flex !important; align-items: center !important; gap: 10px !important;
+    min-height: 44px !important; padding: 0 14px !important; border-radius: 14px !important; border: 1px solid transparent !important;
+    background: transparent !important; color: #1f2430 !important; font-size: 14px !important; font-weight: 600 !important; letter-spacing: -0.005em !important;
+    transition: background-color .16s ease, border-color .16s ease !important;
+  }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button > span { color: inherit !important; -webkit-text-fill-color: currentColor !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button::before {
+    content: ""; flex: 0 0 8px; width: 8px; height: 8px; border-radius: 99px; background: rgba(31, 36, 48, 0.22); transition: background-color .16s ease, transform .2s cubic-bezier(.22, 1, .36, 1);
+  }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button.navActive {
+    background: rgba(255, 255, 255, 0.95) !important; border-color: rgba(255, 255, 255, 1) !important; color: #11151d !important; font-weight: 800 !important;
+    box-shadow: 0 6px 18px rgba(31, 36, 48, 0.1) !important;
+  }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button.navActive::before { background: linear-gradient(135deg, #22d3ee, #4ade80); transform: scale(1.25); }
+  @media (hover: hover) and (pointer: fine) {
+    html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button:not(.navActive):hover { background: rgba(255, 255, 255, 0.55) !important; border-color: rgba(255, 255, 255, 0.8) !important; }
+    html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button:not(.navActive):hover::before { background: #0e7490; }
+  }
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.1) !important; box-shadow: none !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button { color: #d6dde7 !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button::before { background: rgba(255, 255, 255, 0.25); }
+  html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button.navActive { background: rgba(34, 211, 238, 0.14) !important; border-color: rgba(34, 211, 238, 0.4) !important; color: #ecfeff !important; box-shadow: none !important; }
+
+  /* Kaca buram pada header, submenu, dan kartu Beranda */
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot :is(.workspaceHeaderBar, .workspaceNavigationRailItems) { -webkit-backdrop-filter: blur(20px) saturate(160%) !important; backdrop-filter: blur(20px) saturate(160%) !important; }
+}
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding :is(.hlAuroraHero, .hlReminderBar, .hlKpiCard, .hlPanel) {
+    -webkit-backdrop-filter: blur(18px) saturate(150%) !important; backdrop-filter: blur(18px) saturate(150%) !important;
+    box-shadow: 0 14px 34px rgba(31, 36, 48, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button, html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button::before { transition: none !important; }
+}
