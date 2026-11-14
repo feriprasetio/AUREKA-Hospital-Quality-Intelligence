@@ -654,3 +654,6 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationSubItem.
   html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 0 12px; padding: 0 2px 2px; }
   html body:not(#_) .workspaceRoot .workspaceNavigationSubItem { flex: 0 0 auto; min-height: 40px; }
 }
+/* Submenu sejajar dengan pil menu induk (rail memakai margin samping 24px desktop / 16px ponsel + padding 5px). */
+@media (min-width: 721px) { html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { margin: -2px 24px 16px; padding: 0 5px; } }
+@media (max-width: 720px) { html body:not(#_) .workspaceRoot .workspaceNavigationSubRail { margin: 0 16px 12px; padding: 0 0 2px; } }
