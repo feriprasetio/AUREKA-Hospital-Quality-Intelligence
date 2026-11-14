@@ -18,7 +18,7 @@ NARA adalah intelligence layer di belakang antarmuka Tanya AUREKA yang sudah ada
 | Groq | `GROQ_API_KEY` | `GROQ_MODEL` | Default-eligible; fast inference |
 | NVIDIA NIM | `NVIDIA_API_KEY` | `NVIDIA_MODEL` | Default-eligible; pastikan endpoint/model sesuai entitlement |
 | DeepSeek | `DEEPSEEK_API_KEY` | `DEEPSEEK_MODEL` | Opt-in melalui `AI_ENABLE_DEEPSEEK=true`; perlu review vendor/data transfer |
-| LLM7.io | `LLM7_API_KEY` (alias lama didukung) | `LLM7_MODEL` | Development sandbox saja; tidak eligible di production |
+| LLM7.io | `LLM7_API_KEY` (alias lama didukung) | `LLM7_MODEL` | Opt-in eksplisit; aktifkan hanya setelah evaluasi privasi/vendor dan uji model |
 
 ## Secrets Supabase
 Set secrets di Supabase Edge Functions (jangan commit ke GitHub dan jangan masukkan ke .env publik):
@@ -27,10 +27,10 @@ Set secrets di Supabase Edge Functions (jangan commit ke GitHub dan jangan masuk
 - `NVIDIA_API_KEY`
 - `DEEPSEEK_API_KEY` (opsional)
 - `LLM7_API_KEY` (development saja)
-- `AI_PROVIDER_ORDER=groq,nvidia,gemini`
+- `AI_PROVIDER_ORDER=groq,nvidia,gemini,deepseek,llm7`
 - `AI_ENVIRONMENT=production`
-- `AI_ENABLE_DEEPSEEK=false`
-- `AI_ENABLE_LLM7=false`
+- `AI_ENABLE_DEEPSEEK=true`
+- `AI_ENABLE_LLM7=true`
 - `GROQ_MODEL`, `NVIDIA_MODEL`, `DEEPSEEK_MODEL`, `LLM7_MODEL`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL` (opsional, isi hanya model ID yang sudah diverifikasi)
 
 Jangan mengirim nilai API key melalui chat, issue, commit, log, atau browser. Jangan menyimpan secrets di GitHub Pages karena frontend bersifat publik.
@@ -45,7 +45,7 @@ Jangan mengirim nilai API key melalui chat, issue, commit, log, atau browser. Ja
 7. Provider eksternal tidak memperoleh Supabase service-role key, anon key tambahan, SQL credential, atau akses Storage.
 
 ## Routing
-Default `AI_PROVIDER_ORDER=groq,nvidia,gemini`. DeepSeek hanya aktif jika eksplisit di-enable. LLM7 hanya aktif bila `AI_ENVIRONMENT=development` dan `AI_ENABLE_LLM7=true`. Fallback berjalan berurutan dan hanya untuk provider yang memenuhi allowlist.
+Default `AI_PROVIDER_ORDER=groq,nvidia,gemini`. DeepSeek hanya aktif jika eksplisit di-enable. LLM7 aktif bila `AI_ENABLE_LLM7=true`; aktifkan hanya setelah persetujuan tata kelola transfer data dan validasi endpoint/model. Fallback berjalan berurutan dan hanya untuk provider yang memenuhi allowlist.
 
 ## Deploy
 1. Review dan merge PR setelah CI hijau.
