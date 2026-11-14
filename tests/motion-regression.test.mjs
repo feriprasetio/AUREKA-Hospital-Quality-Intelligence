@@ -9,8 +9,8 @@ test('animation layers load after visual theme and component styles', () => {
   const imports = [...layout.matchAll(/import ['"]\.\/([^'"]+\.css)['"]/g)].map((match) => match[1])
   assert.ok(imports.indexOf('landing-motion.css') > imports.indexOf('modal.css'))
   assert.ok(imports.indexOf('motion.css') < imports.indexOf('aureka-navigation-consolidated.css'), 'motion layer loads before final navigation overrides')
-  assert.equal(imports.at(-2), 'aureka-navigation-consolidated.css', 'navigation overrides must win after all theme and motion layers')
-  assert.equal(imports.at(-1), 'dark-mode-mobile-fixes.css', 'mobile dark-mode contrast fixes load last')
+  assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'), 'global navigation tokens supersede legacy navigation rules')
+  assert.equal(imports.at(-1), 'aureka-global-navigation.css', 'global navigation styles load after legacy and mobile theme layers')
 })
 
 test('risk-matrix animation selectors are valid and cover staggered rows', () => {
