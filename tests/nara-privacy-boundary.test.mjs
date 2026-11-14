@@ -9,7 +9,7 @@ test('NARA keeps all five providers behind the server-side gateway', () => {
   for (const provider of ['gemini', 'groq', 'nvidia', 'deepseek', 'llm7']) {
     assert.match(gateway, new RegExp(provider + ': keysOf|'+provider+'\\s*:'), 'Missing provider adapter: ' + provider)
   }
-  assert.match(gateway, /AI_PROVIDER_ORDER/)
+  assert.match(gateway, /AI_PROVIDER_ORDER \|\| "groq,nvidia,gemini,deepseek,llm7"/)
   assert.match(gateway, /AI_ENABLE_DEEPSEEK/)
   assert.match(gateway, /AI_ENABLE_LLM7/)
 })
@@ -30,9 +30,9 @@ test('external AI context excludes incident unit/month detail and free-text risk
   assert.doesNotMatch(gateway, /per_bulan: Object\.fromEntries\(Object\.entries\(count\(incidents/)
 })
 
-test('DeepSeek is opt-in and LLM7 is development-only', () => {
+test('DeepSeek and LLM7 require explicit server-side opt-in', () => {
   assert.match(gateway, /x === "deepseek" && Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) !== "true"/)
-  assert.match(gateway, /environment === "development" && Deno\.env\.get\("AI_ENABLE_LLM7"\) === "true"/)
+  assert.match(gateway, /x === "llm7" && Deno\.env\.get\("AI_ENABLE_LLM7"\) !== "true"/)
 })
 
 test('NARA identity is the intelligence layer; existing Tanya AUREKA UI remains unchanged', () => {
