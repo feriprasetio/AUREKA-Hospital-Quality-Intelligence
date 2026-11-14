@@ -527,7 +527,7 @@ export default function FppeEvaluationWorkspace({
   const evaluationStatusSummary = useMemo(() => {
     const statuses = ['draft','submitted','validated','reopened','archived']
     return statuses.map(status => ({ status, label: STATUS_LABEL[status] || status, count: filtered.filter(row => String(row.status) === status).length }))
-      .filter(item => item.count > 0 || status => false)
+      .filter(item => item.count > 0)
   }, [filtered])
 
   if (!canManage) return <section className="fppeWorkspace"><div className="fppePanel">Akses FPPE hanya tersedia bagi Superadmin/Komite PMKP yang berwenang.</div></section>
