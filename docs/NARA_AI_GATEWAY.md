@@ -36,7 +36,7 @@ Optional provider secrets:
 - `DEEPSEEK_API_KEY`
 - `LLM7_API_KEY` (or legacy aliases `LLM7.IO_API_KEY`, `LLM7_IO_API_KEY`)
 
-Optional model overrides should be set only to model IDs verified in the corresponding provider account/documentation. The function tries up to three configured models per provider and continues to the next provider on retryable failure.
+Optional model overrides should be set only to model IDs verified in the corresponding provider account/documentation. `AI_PROVIDER_ORDER` changes provider priority; the gateway automatically appends any other enabled provider so an older three-provider value cannot silently omit DeepSeek/LLM7. The function tries up to three configured models per provider and applies a bounded total provider-route budget.
 
 ### Provider activation policy
 
