@@ -76,6 +76,7 @@ const count = <T,>(rows: T[], key: (r: T) => string | null | undefined) => {
 // Suppress small cells to reduce disclosure risk in unit/month/type aggregates.
 const safeCount = (values: Record<string, number>, threshold = 5) =>
   Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v >= threshold ? v : "disembunyikan (<" + threshold + ")"]));
+const safeScalar = (value: number, threshold = 5) => value >= threshold ? value : "disembunyikan (<" + threshold + ")";
 const top = (o: Record<string, number>, n: number) => Object.fromEntries(Object.entries(o).slice(0, n));
 
 type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; status: string | null; due_date: string | null };
@@ -204,18 +205,18 @@ async function snapshot(db: SupabaseClient) {
     ].filter(Boolean),
     daftar_unit_aktif: rooms.map((r) => r.name),
     manajemen_risiko: {
-      total_risiko: risks.rows.length,
+      total_risiko: safeScalar(risks.rows.length),
       per_level: safeCount(Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length]))),
       per_status: safeCount(count(risks.rows, (r) => r.status)),
-      risiko_tinggi_dan_sangat_tinggi_tanpa_tenggat: risks.rows.filter((r) => (r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi") && !r.due_date && open(r)).length,
-      risiko_lewat_tenggat: risks.rows.filter((r) => r.due_date && r.due_date < today && open(r)).length,
+      risiko_tinggi_dan_sangat_tinggi_tanpa_tenggat: safeScalar(risks.rows.filter((r) => (r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi") && !r.due_date && open(r)).length),
+      risiko_lewat_tenggat: safeScalar(risks.rows.filter((r) => r.due_date && r.due_date < today && open(r)).length),
       jumlah_per_unit_per_level: risikoPerUnit.filter((r) => r.total >= 5),
       catatan_disclosure: "Rincian peristiwa risiko dan kode register tidak dikirim ke model; unit dengan sel kecil disembunyikan.",
     },
     rencana_tindak: {
-      total: plans.rows.length,
+      total: safeScalar(plans.rows.length),
       per_status: safeCount(count(plans.rows, (p) => p.status)),
-      lewat_target: plans.rows.filter((p) => p.target_date && p.target_date < today && !/selesai|done|completed|closed/i.test(p.status || "")).length,
+      lewat_target: safeScalar(plans.rows.filter((p) => p.target_date && p.target_date < today && !/selesai|done|completed|closed/i.test(p.status || "")).length),
     },
     mutu_klinis_logbook: {
       tahun: year,
@@ -404,12 +405,12 @@ async function handle(req: Request): Promise<Response> {
   const data = fresh ? cached!.data : smallTalk ? null : await snapshot(db);
   if (!fresh && data) snapshotCache.set(who.user.id, { at: Date.now(), data });
   stage = "susun-prompt";
-  const firstName = String(profile.full_name || "").split(/[\s,]+/)[0] || "";
+  // Account identity is intentionally excluded from external model context.
   const system = [
     "Kamu adalah NARA (AUREKA Intelligence), mesin kecerdasan internal AUREKA untuk membantu mutu, keselamatan pasien, manajemen risiko, statistik rumah sakit, dan tata kelola. Antarmuka tetap bernama Tanya AUREKA.",
     "GAYA BICARA:",
     "- Ngobrol seperti rekan kerja yang ramah sekaligus petugas layanan (CS) yang sigap: hangat, natural, sopan, tidak kaku, tidak seperti robot atau laporan resmi.",
-    "- Ikuti gaya pengguna: kalau pengguna santai (mis. 'gimana', 'nggak', 'dong'), jawab santai juga; kalau formal, jawab lebih formal. Sapa dengan nama depannya sesekali" + (firstName ? " (nama depan: " + firstName + ")" : "") + ", jangan di setiap pesan.",
+    "- Ikuti gaya pengguna: kalau pengguna santai, jawab natural; kalau formal, jawab formal. Jangan menyebut nama pribadi pengguna.",
     "- Obrolan ringan (salam, terima kasih, curhat kerja, basa-basi) dijawab wajar dan singkat seperti teman, tanpa membeberkan data kalau tidak diminta. Boleh menawarkan bantuan di akhir.",
     "- Jawaban pendek dulu (1–4 kalimat) lalu poin seperlunya. Kalau pertanyaan kurang jelas, tanya balik satu pertanyaan singkat. Boleh menawarkan langkah berikutnya ('Mau aku rinci per unit?').",
     "- Emoji boleh sesekali (maksimal satu per pesan), jangan berlebihan. Jangan memakai kata/kalimat bahasa Inggris kecuali istilah baku (RCA, FMEA).",
@@ -424,7 +425,7 @@ async function handle(req: Request): Promise<Response> {
     "8. Angka kecil yang ditandai disembunyikan tidak boleh ditebak, dihitung balik, atau diungkap melalui kombinasi kategori.",
     "9. Anda tidak memiliki akses database langsung dan tidak boleh mengklaim telah mengubah data atau menjalankan tindakan yang tidak dilakukan backend.",
     "7. Kamu tidak bisa mengubah data. Tapi kamu BISA menyiapkan draf pengingat/pesan ke PIC unit; pengguna yang memeriksa lalu menekan tombol Kirim (pesan masuk ke Chat unit di Pusat Komunikasi). Jika pengguna meminta mengirim pesan/pengingat ke unit tertentu (atau 'unit tersebut' dari percakapan sebelumnya), jawab singkat (1–2 kalimat, sebut bahwa dia tinggal cek lalu tekan Kirim), lalu tambahkan di AKHIR jawaban satu blok persis seperti ini tanpa code block: [[KIRIM_PENGINGAT]]{\"unit\":[\"Nama Unit 1\",\"Nama Unit 2\"],\"pesan\":\"isi pesan\"}[[/KIRIM_PENGINGAT]]. Nama unit harus persis dari daftar_unit_aktif. Pesan sopan, ringkas (maks 5 kalimat), sebut hal yang perlu dilengkapi dan periodenya, ditutup salam dari Komite PMKP. Jangan menyatakan pesan sudah terkirim.",
-    "Pengguna: " + (profile.full_name || "pengguna") + (page ? ". Sedang membuka halaman: " + page : "") + ".",
+    "Pengguna adalah akun AUREKA yang telah terautentikasi; identitas akun tidak dikirim ke model." + (page ? " Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
     ...MENU_AUREKA.map((m) => "- " + m),
     data ? "DATA AUREKA (sesuai hak akses pengguna, JSON):" : "DATA AUREKA: tidak dimuat karena ini obrolan ringan. Kalau pengguna ternyata menanyakan angka, minta dia mengulang pertanyaannya dengan menyebut data yang dimaksud.",
