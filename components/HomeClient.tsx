@@ -488,7 +488,7 @@ export default function HomeClient(){
  const activeNavGroups=sidebarChildGroups[activeNavModuleId]||[]
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
- const activeRailTitle=activeNestedNavGroup?.label||activeNavModuleLabel
+ const activeRailTitle=activeNavModuleLabel
  const activeRailItems=activeNavGroups.flatMap(group=>{
   if(!group.children?.length)return [group]
   if(group.id===activeNestedNavGroup?.id)return group.children
