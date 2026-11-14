@@ -112,7 +112,7 @@ test('rejects duplicate indicator codes and malformed source identities', () => 
 })
 
 
-const migrationSource = await readFile(new URL('../supabase/migrations/20261113090000_indicator_profile_set_transfer.sql', import.meta.url), 'utf8')
+const migrationSource = await readFile(new URL('../supabase/migrations/20261114080000_indicator_profile_set_transfer.sql', import.meta.url), 'utf8')
 const settingsSource = await readFile(new URL('../components/QualitySettings.tsx', import.meta.url), 'utf8')
 const auditWorkspaceSource = await readFile(new URL('../components/QualityIndicatorWorkspace.tsx', import.meta.url), 'utf8')
 
