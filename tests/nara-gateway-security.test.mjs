@@ -30,6 +30,12 @@ test('rate limit is applied before warmup and oversized requests are rejected', 
   assert.match(gateway, /contentLength > 32768/)
 })
 
+test('provider fallback has a bounded total route budget', () => {
+  assert.match(gateway, /PROVIDER_ROUTE_BUDGET_MS/)
+  assert.match(gateway, /Date\.now\(\) \+ PROVIDER_ROUTE_BUDGET_MS/)
+  assert.match(gateway, /if \(Date\.now\(\) >= deadline\) break/)
+})
+
 test('browser receives generic internal errors without server detail', () => {
   assert.match(gateway, /NARA AI sedang mengalami gangguan/)
   assert.doesNotMatch(gateway, /detail: detail\.slice/)
