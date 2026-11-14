@@ -491,11 +491,13 @@ export default function HomeClient(){
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
  const activeRailTitle=activeNavModuleLabel
+ // Grup (mis. Insiden, Budaya) tetap tampil di baris utama; anak dari grup aktif tampil di baris kedua.
  const activeRailItems=activeNavGroups.flatMap(group=>{
   if(!group.children?.length)return [group]
-  if(group.id===activeNestedNavGroup?.id)return group.children
-  return [{...group,id:group.children[0].id}]
+  if(group.id===activeNestedNavGroup?.id)return [{id:activeNavSelectedId,label:group.label}]
+  return [{id:group.children[0].id,label:group.label}]
  })
+ const activeRailSubItems=activeNestedNavGroup?.children||[]
  const dispatchWorkspaceSearch=(query:string)=>{
   setGlobalSearch(query)
  }
@@ -982,7 +984,7 @@ export default function HomeClient(){
    <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="notifications" title="Riwayat notifikasi" aria-label="Riwayat notifikasi" aria-expanded={notificationHistoryOpen} onClick={()=>{setNotificationHistoryOpen(v=>!v);setSupportOpen(false)}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>{notifications.length>0&&<span className="workspaceHeaderBadge">{notifications.length>9?'9+':notifications.length}</span>}
    </button>
-    <button type="button" className="workspaceHeaderIcon workspaceCommunicationTrigger" data-workspace-popover-trigger="support" title="Tanya AUREKA · Komunikasi" aria-label="Buka pusat komunikasi AUREKA" aria-expanded={supportOpen} onClick={()=>openSupportChat('ai')}>
+    <button type="button" className="workspaceHeaderIcon workspaceCommunicationTrigger" data-workspace-popover-trigger="support" title="Tanya AUREKA · Komunikasi" aria-label="Buka pusat komunikasi AUREKA" aria-expanded={supportOpen} onClick={()=>{if(supportOpen){setSupportOpen(false);return}openSupportChat('ai')}}>
      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.2 8l5.1 2-5.1 2L12 17.2 9.8 12 4.7 10l5.1-2z"/><path d="m19 15 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>
     </button>
 
@@ -1034,6 +1036,8 @@ export default function HomeClient(){
    title={activeRailTitle}
    items={activeRailItems}
    activeId={activeNavSelectedId}
+   subTitle={activeNestedNavGroup?.label}
+   subItems={activeRailSubItems}
    onSelect={childId=>selectSidebarChild(activeNavModuleId,childId)}
   />}
    <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}>
