@@ -1,5 +1,6 @@
 'use client'
 
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -273,6 +274,7 @@ export default function GeneralSettings({
     onRoomsChanged?.()
   }
   const toggleRoom = async (r: Room) => {
+    if (r.is_active !== false && !(await aurekaConfirm('Unit ' + r.name + ' tidak akan muncul di pilihan unit. Data risiko dan akun yang sudah ada tetap tersimpan, dan unit bisa diaktifkan lagi kapan saja.', { title: 'Nonaktifkan unit?', confirmLabel: 'Ya, nonaktifkan', danger: true }))) return
     setBusy(true)
     const { error } = await sb.rpc('aureka_admin_save_room', { p_id: r.id, p_name: r.name, p_code: r.code || null, p_is_active: !(r.is_active ?? true) })
     setBusy(false)
@@ -707,25 +709,44 @@ export default function GeneralSettings({
                 </>}
               </div>
 
-              <div className="roomGrid">
-                {(adminRooms || rooms)
+              {(() => {
+                const list = (adminRooms || rooms)
                   .filter((r) => showInactiveRooms || r.is_active !== false)
                   .filter((r) => !roomSearch.trim() || `${r.name} ${r.code || ''}`.toLowerCase().includes(roomSearch.trim().toLowerCase()))
-                  .map((r) => (
-                  <div key={r.id} className={r.is_active === false ? 'roomCard off' : 'roomCard'}>
-                    <div className="roomCardText">
-                      <b>{r.name}</b>
-                      <span>{r.code || `ROOM-${r.id}`} · {r.is_active === false ? 'Nonaktif' : 'Aktif'}{isAdmin && users.length ? ` · ${roomUserCount(r.id)} user aktif` : ''}</span>
+                // Dikelompokkan supaya 30+ unit tidak tampil sebagai dinding kartu yang padat.
+                const groupOf = (name: string) => /^instalasi/i.test(name) ? 'Instalasi'
+                  : /^rawat inap/i.test(name) ? 'Rawat Inap'
+                  : /intensive|neonatal|perinatolog|nifas|obstetri|high care/i.test(name) ? 'Perawatan Intensif & Maternal'
+                  : /^(komite|tim |satuan|manajemen)/i.test(name) ? 'Komite, Tim & Manajemen'
+                  : 'Unit Lainnya'
+                const order = ['Instalasi', 'Rawat Inap', 'Perawatan Intensif & Maternal', 'Komite, Tim & Manajemen', 'Unit Lainnya']
+                const groups = order.map((g) => ({ g, items: list.filter((r) => groupOf(r.name) === g) })).filter((x) => x.items.length)
+                if (!list.length) return <div className="roomEmpty">Tidak ada unit yang cocok dengan “{roomSearch}”.</div>
+                return <div className="roomGroups">{groups.map(({ g, items }) => (
+                  <section key={g} className="roomGroup" aria-label={g}>
+                    <h5 className="roomGroupHead">{g}<span>{items.length}</span></h5>
+                    <div className="roomGrid roomList">
+                      {items.map((r) => {
+                        const count = isAdmin && users.length ? roomUserCount(r.id) : null
+                        return (
+                          <div key={r.id} className={r.is_active === false ? 'roomCard roomRow off' : 'roomCard roomRow'}>
+                            <div className="roomCardText">
+                              <b>{r.name}</b>
+                              <span>{r.code || `ROOM-${r.id}`}{r.is_active === false ? ' · Nonaktif' : ''}{count != null ? ` · ${count} user aktif` : ''}</span>
+                            </div>
+                            {isAdmin && adminRooms && (
+                              <div className="roomCardActions">
+                                <button type="button" className="roomRowBtn" onClick={() => setRoomEdit({ id: r.id, name: r.name, code: r.code || '', is_active: r.is_active !== false })} aria-label={'Edit ' + r.name}>Edit</button>
+                                <button type="button" className={r.is_active === false ? 'roomRowBtn activate' : 'roomRowBtn quiet'} disabled={busy} onClick={() => toggleRoom(r)} aria-label={(r.is_active === false ? 'Aktifkan ' : 'Nonaktifkan ') + r.name}>{r.is_active === false ? 'Aktifkan' : 'Nonaktifkan'}</button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
-                    {isAdmin && adminRooms && (
-                      <div className="roomCardActions">
-                        <button type="button" className="uBtn outline sm" onClick={() => setRoomEdit({ id: r.id, name: r.name, code: r.code || '', is_active: r.is_active !== false })}>Edit</button>
-                        <button type="button" className={r.is_active === false ? 'uBtn primary sm' : 'uBtn danger sm'} disabled={busy} onClick={() => toggleRoom(r)}>{r.is_active === false ? 'Aktifkan' : 'Nonaktifkan'}</button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  </section>
+                ))}</div>
+              })()}
             </LiquidGlass>
           )}
 
