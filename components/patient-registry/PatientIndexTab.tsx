@@ -86,6 +86,22 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
     setInvalid(e ? [] : (data ?? []) as InvalidRm[])
   }
 
+  // Distribusi hanya dari baris yang sedang ditampilkan; ringkasan populasi tetap berasal dari RPC server-side.
+  const pageBridgeCounts = [
+    { key: 'belum_terhubung', label: 'Belum terhubung' },
+    { key: 'menunggu', label: 'Menunggu' },
+    { key: 'terhubung', label: 'Terhubung' },
+    { key: 'gagal', label: 'Gagal' },
+    { key: 'konflik', label: 'Konflik data' },
+  ].map((item) => ({ ...item, count: rows.filter((row) => row.bridging_status === item.key).length }))
+  const pageBridgeMax = Math.max(1, ...pageBridgeCounts.map((item) => item.count))
+  const pageCompleteness = [
+    { label: 'Nama pasien', count: rows.filter((row) => Boolean(row.nama_pasien?.trim())).length },
+    { label: 'NIK', count: rows.filter((row) => Boolean(row.nik?.trim())).length },
+    { label: 'No. IHS', count: rows.filter((row) => Boolean(row.no_ihs?.trim())).length },
+    { label: 'ID pasien SIMRS', count: rows.filter((row) => Boolean(row.simrs_patient_id?.trim())).length },
+  ]
+
   if (notReady) return <section className="piPanel">
     <h3>Metadata Pasien belum diaktifkan</h3>
     <p>Struktur database pasien (No. Rekam Medis sebagai kunci utama) perlu dipasang sekali oleh pemilik Supabase: jalankan
@@ -122,6 +138,17 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
       <div className="prKpi"><span>Kunjungan berulang</span><strong>{(summary?.kunjungan_berulang ?? 0).toLocaleString('id-ID')}</strong></div>
       <div className="prKpi"><span>Sudah ada NIK</span><strong>{(summary?.dengan_nik ?? 0).toLocaleString('id-ID')}</strong></div>
       <div className="prKpi"><span>Terhubung SIMRS</span><strong>{(summary?.terhubung_simrs ?? 0).toLocaleString('id-ID')}</strong></div>
+    </div>
+
+    <div className="piAnalytics" aria-label="Analisis metadata pasien">
+      <section className="piAnalyticsCard">
+        <div className="piAnalyticsHead"><div><h4>Status bridging SIMRS</h4><p>Distribusi halaman yang sedang ditampilkan, bukan estimasi seluruh populasi.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
+        {loading ? <p className="prMuted">Memuat distribusi…</p> : rows.length ? <div className="piBars">{pageBridgeCounts.map((item) => <div className="piBarRow" key={item.key}><span>{item.label}</span><div className="piBarTrack"><i style={{width:(item.count/pageBridgeMax*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="prMuted">Belum ada pasien pada halaman ini.</p>}
+      </section>
+      <section className="piAnalyticsCard">
+        <div className="piAnalyticsHead"><div><h4>Kelengkapan elemen metadata</h4><p>Jumlah record terisi pada halaman saat ini; denominator ditampilkan eksplisit.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
+        {loading ? <p className="prMuted">Memuat kelengkapan…</p> : rows.length ? <div className="piBars">{pageCompleteness.map((item) => <div className="piBarRow" key={item.label}><span>{item.label}</span><div className="piBarTrack"><i style={{width:(item.count/Math.max(1,rows.length)*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="prMuted">Belum ada metadata untuk dianalisis.</p>}
+      </section>
     </div>
 
     <div className="prPanel prFilters">
@@ -178,6 +205,13 @@ export default function PatientIndexTab({ isAdmin }: { isAdmin: boolean }) {
       .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}
       .piBridge.terhubung{background:#e3f4ea;color:#1f6b43}.piBridge.menunggu{background:#fff4e0;color:#8a5a12}
       .piBridge.gagal,.piBridge.konflik{background:#fde8e8;color:#9b2c2c}
+      .piAnalytics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      .piAnalyticsCard{min-width:0;padding:15px 17px;border:1px solid rgba(11,70,122,.14);border-radius:15px;background:#fff}
+      .piAnalyticsHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.piAnalyticsHead h4{margin:0;font-size:13px}.piAnalyticsHead p{margin:5px 0 0;color:#64748b;font-size:11px;line-height:1.45}.piAnalyticsHead>b{font-size:11px;white-space:nowrap;color:#315b80}
+      .piBars{display:grid;gap:10px;margin-top:14px}.piBarRow{display:grid;grid-template-columns:minmax(90px,1fr) minmax(60px,2fr) 34px;align-items:center;gap:9px;font-size:11px}.piBarRow>span{color:var(--ink,#0b1f33)}.piBarRow>b{text-align:right;font-variant-numeric:tabular-nums}
+      .piBarTrack{height:9px;overflow:hidden;border-radius:99px;background:#e8eef4}.piBarTrack i{display:block;height:100%;border-radius:inherit;background:#236a9b}
+      html[data-mode="gelap"] .piAnalyticsCard{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12)}html[data-mode="gelap"] .piAnalyticsHead p{color:#a8b8ca}html[data-mode="gelap"] .piBarTrack{background:#26364a}
+      @media(max-width:760px){.piAnalytics{grid-template-columns:1fr}.piAnalyticsHead{display:block}.piAnalyticsHead>b{display:inline-block;margin-top:6px}}
       html[data-mode="gelap"] .piPanel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
       html[data-mode="gelap"] .piHead p{color:#9fb3c8}
     `}</style>

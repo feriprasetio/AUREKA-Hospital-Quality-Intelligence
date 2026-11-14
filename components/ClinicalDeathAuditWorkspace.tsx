@@ -581,6 +581,14 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         <div className="acdPanel acdKpi"><span>Belum diajukan / perlu perbaikan</span><strong>{pendingCount}</strong><small>Draf, dibuka kembali, atau belum ditelaah.</small></div>
       </section>
 
+      <section className="acdPanel" style={{padding:14}}>
+        <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:10}}>
+          <div><strong>Status telaah klinis dan kematian</strong><div className="acdSmall">Distribusi status audit pada episode yang sedang terfilter.</div></div>
+          <span className="acdPill">{filteredEpisodes.length} episode eligible</span>
+        </div>
+        {(['Belum ditelaah','Draf / perlu perbaikan','Menunggu telaah','Tervalidasi'] as const).map((label,index)=>{const count=filteredEpisodes.filter(episode=>{const audit=existingFor(episode);if(index===0)return !audit;if(index===1)return !!audit&&['draft','reopened'].includes(String(audit.status));if(index===2)return !!audit&&audit.status==='submitted';return !!audit&&audit.status==='validated'}).length;const share=filteredEpisodes.length?count/filteredEpisodes.length*100:0;return <div key={label} className="acdStatusRow" style={{display:'grid',gridTemplateColumns:'minmax(125px,1fr) minmax(90px,2fr) 34px',gap:8,alignItems:'center',margin:'8px 0',fontSize:11}}><span>{label}</span><span style={{height:8,borderRadius:99,background:'var(--line)',overflow:'hidden'}}><i style={{display:'block',height:'100%',width:share+'%',background:'#16507a',borderRadius:99}}/></span><b>{count}</b></div>})}
+        <div className="acdSmall">Denominator: {filteredEpisodes.length} episode eligible setelah filter unit, tahun, jenis audit, diagnosis, dan pencarian. Status tidak menyatakan ketercegahan atau mutu klinis.</div>
+      </section>
       <div className="acdInfo">Pemilihan kasus bersifat otomatis berdasarkan filter. Reviewer tetap wajib memeriksa kebenaran data episode dan catatan klinis sebelum memberi penilaian.</div>
       <div className="acdInfo warn">Sumber saat ini adalah logbook AUREKA dengan grain <b>patient_episode</b> dan cache pada perangkat ini. Bridging SIMRS Emesys belum diaktifkan; pasien yang belum ada dalam sumber episode tersebut belum akan muncul di daftar ini.</div>
       {loadWarning && <div className="acdInfo warn" role="status">{loadWarning}</div>}

@@ -1007,6 +1007,11 @@ export default function PatientSafetyWorkspace({
           <div className="psFilter"><label>Unit</label>{scopeUnitName ? <div className="psPill green">{scopeUnitName}</div> : <select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select>}</div>
           <div className="psFilter"><label>Data tersedia</label><div className="psPill green">{incidents.length} record</div></div>
         </div>
+        <div className="psPanel" style={{padding:14,marginTop:12}}>
+          <div className="psSectionHead"><div><h4>Distribusi status pada hasil filter</h4><p>Komposisi workflow register sesuai filter unit, status, dan pencarian saat ini.</p></div><span className="psPill">{filteredIncidents.length} laporan</span></div>
+          {(['draft','submitted','under_review','investigation','closed'] as const).map(status=>{const count=filteredIncidents.filter(row=>row.status===status).length;const share=filteredIncidents.length?count/filteredIncidents.length*100:0;return <div className="psBarRow" key={status}><span>{statusLabel(status)}</span><div className="psBar"><i style={{width:share+'%'}}/></div><b>{count}</b></div>})}
+          <p className="psMuted" style={{fontSize:11,margin:'8px 0 0'}}>Denominator: {filteredIncidents.length} laporan hasil filter. Ini merupakan distribusi status laporan, bukan rate insiden.</p>
+        </div>
         {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
@@ -1059,6 +1064,11 @@ export default function PatientSafetyWorkspace({
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><div className="psEyebrow">Investigation workspace</div><h4>Hasil Investigasi / Root Cause Analysis</h4></div>
           <span className="psPill amber">{canManageWorkflow ? 'Pengelola Investigasi' : 'Akses Baca'}</span>
+        </div>
+        <div className="psPanel" style={{padding:14,marginBottom:12}}>
+          <div className="psSectionHead"><div><h4>Funnel status investigasi / RCA</h4><p>Jumlah rekam investigasi menurut status penyelesaian yang tersimpan.</p></div><span className="psPill">{investigations.length} investigasi</span></div>
+          {(['draft','active','action_planned','closed'] as const).map(status=>{const count=investigations.filter(row=>row.status===status).length;const share=investigations.length?count/investigations.length*100:0;const label=status==='draft'?'Draft':status==='active'?'Investigasi berjalan':status==='action_planned'?'Rencana tindakan':'Closed';return <div className="psBarRow" key={status}><span>{label}</span><div className="psBar"><i style={{width:share+'%'}}/></div><b>{count}</b></div>})}
+          <p className="psMuted" style={{fontSize:11,margin:'8px 0 0'}}>Denominator: {investigations.length} rekam investigasi dalam cakupan akses. Tahapan analisis akar masalah/faktor kontributor belum dipetakan sebagai status tersendiri karena tidak disimpan sebagai workflow state.</p>
         </div>
         {!canManageWorkflow ? <div className="psAlert warn">Akses penyuntingan investigasi dibatasi untuk Admin, Komite PMKP, dan Manajemen. Pelapor tetap dapat melihat investigasi yang terkait dengan laporan miliknya.</div> : null}
         <div className="psFormGrid" style={{ marginBottom: 14 }}>
