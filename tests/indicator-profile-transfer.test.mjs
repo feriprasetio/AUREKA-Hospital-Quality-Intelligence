@@ -129,8 +129,8 @@ test('replacement RPC is invoker-secured, transactional, and retains historical 
 })
 
 test('profile workspace provides export, guarded import confirmation, and one atomic replacement RPC', () => {
-  assert.match(settingsSource, /Export profil/)
-  assert.match(settingsSource, /Import profil/)
+  assert.match(settingsSource, /Export XLSX/)
+  assert.match(settingsSource, /Import XLSX/)
   assert.match(settingsSource, /Ganti seluruh profil/)
   assert.match(settingsSource, /replace_indicator_profile_set/)
   assert.match(settingsSource, /Saya memahami bahwa seluruh profil aktif/)
