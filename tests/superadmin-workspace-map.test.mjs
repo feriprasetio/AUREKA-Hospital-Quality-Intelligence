@@ -17,7 +17,8 @@ test('Superadmin starts with whole-hospital scope and can choose any room', () =
 })
 
 test('workspace uses one static contextual tab rail; navigation maps are removed', () => {
-  assert.ok(home.includes('workspaceNavigationRail'))
+  assert.ok(home.includes("import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'"))
+  assert.ok(home.includes('<UnifiedModuleNavigation'))
   assert.ok(home.includes('activeNestedNavGroup'))
   assert.ok(home.includes('activeRailTitle'))
   assert.ok(home.includes('const activeRailItems=activeNavGroups.flatMap(group=>'))
@@ -31,7 +32,7 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
   assert.ok(home.includes("const activeRailTitle=activeNestedNavGroup?.label||activeNavModuleLabel"))
   assert.ok(home.includes("const activeRailItems=activeNavGroups.flatMap(group=>"))
-  assert.ok(home.includes("onClick={()=>selectSidebarChild(activeNavModuleId,item.id)}"))
+  assert.ok(home.includes('onSelect={childId=>selectSidebarChild(activeNavModuleId,childId)}'))
 })
 
 test('sidebar only renders module buttons and contains no tree or child-menu state', () => {
