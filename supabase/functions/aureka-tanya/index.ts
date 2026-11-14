@@ -205,8 +205,8 @@ async function snapshot(db: SupabaseClient) {
     daftar_unit_aktif: rooms.map((r) => r.name),
     manajemen_risiko: {
       total_risiko: risks.rows.length,
-      per_level: Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length])),
-      per_status: count(risks.rows, (r) => r.status),
+      per_level: safeCount(Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length]))),
+      per_status: safeCount(count(risks.rows, (r) => r.status)),
       risiko_tinggi_dan_sangat_tinggi_tanpa_tenggat: risks.rows.filter((r) => (r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi") && !r.due_date && open(r)).length,
       risiko_lewat_tenggat: risks.rows.filter((r) => r.due_date && r.due_date < today && open(r)).length,
       jumlah_per_unit_per_level: risikoPerUnit.filter((r) => r.total >= 5),
@@ -214,7 +214,7 @@ async function snapshot(db: SupabaseClient) {
     },
     rencana_tindak: {
       total: plans.rows.length,
-      per_status: count(plans.rows, (p) => p.status),
+      per_status: safeCount(count(plans.rows, (p) => p.status)),
       lewat_target: plans.rows.filter((p) => p.target_date && p.target_date < today && !/selesai|done|completed|closed/i.test(p.status || "")).length,
     },
     mutu_klinis_logbook: {
@@ -226,7 +226,7 @@ async function snapshot(db: SupabaseClient) {
       unit_tanpa_entri_sama_sekali: logbookPerUnit.filter((u) => u.total_entri === 0).map((u) => u.unit),
     },
     keselamatan_pasien: {
-      total_laporan_ikp: incidents.rows.length,
+      total_laporan_ikp: incidents.rows.length >= 5 ? incidents.rows.length : "disembunyikan (<5)",
       per_jenis: safeCount(count(incidents.rows, incType)),
       catatan_disclosure: "Rincian per unit dan per bulan tidak dikirim ke model. Sel dengan jumlah kurang dari 5 disembunyikan.",
     },
@@ -382,7 +382,8 @@ async function handle(req: Request): Promise<Response> {
   const outboundText = [question, ...history.map((h) => String(h?.text || ""))].join("\n");
   const sensitivePatterns = [
     /\b\d{16}\b/,                                      // NIK
-    /\b(?:no\.?\s*rm|nomor\s*rekam\s*medis|no\.?\s*rekam\s*medis)\s*[:#-]?\s*[a-z0-9-]{4,}\b/i,
+    /\b(?:no\.?\s*rm|nomor\s*rekam\s*medis|no\.?\s*rekam\s*medis|rm|mrn)\s*[:#-]?\s*[a-z0-9-]{4,}\b/i,
+    /\b(?:pasien|petugas|dokter|perawat)\s+(?:bernama|atas\s+nama)\s+\p{L}{2,}/iu,
     /\b(?:nama\s*pasien|identitas\s*pasien|nama\s*petugas|identitas\s*petugas)\s*[:=]/i,
     /\b(?:08|\+62|62)\d{8,13}\b/,                    // phone
     /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,     // email
