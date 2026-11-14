@@ -38,7 +38,8 @@ export default function UnifiedModuleNavigation({
   const measureRef = useRef<HTMLDivElement>(null)
   const overflowRef = useRef<HTMLDetailsElement>(null)
   const itemsRef = useRef<HTMLDivElement>(null)
-  const [visibleIds, setVisibleIds] = useState<string[]>(() => items.map((item) => item.id))
+  // Simpan yang DISEMBUNYIKAN, bukan yang tampil: id baru (mis. grup yang berganti anak aktif) otomatis tampil.
+  const [hiddenIds, setHiddenIds] = useState<string[]>([])
 
   const itemsSignature = items.map((item) => item.id + ':' + item.label).join('|')
 
@@ -47,7 +48,11 @@ export default function UnifiedModuleNavigation({
     if (!rail) return
 
     const calculate = () => {
-      const availableWidth = rail.clientWidth
+      // Rail selebar isinya; ukur dari lebar induk supaya tidak terkunci di mode "Lainnya" setelah menyusut.
+      const parent = rail.parentElement
+      const style = getComputedStyle(rail)
+      const margins = (parseFloat(style.marginLeft) || 0) + (parseFloat(style.marginRight) || 0)
+      const availableWidth = parent ? Math.max(rail.clientWidth, parent.clientWidth - margins) : rail.clientWidth
       const titleWidth = titleRef.current?.getBoundingClientRect().width ?? 0
       const dividerWidth = items.length ? 18 : 0
       const measured = new Map<string, number>()
@@ -62,8 +67,7 @@ export default function UnifiedModuleNavigation({
       const fullBudget = availableWidth - titleWidth - dividerWidth - gapBudget
 
       if (allItemsWidth + allGaps <= fullBudget) {
-        const next = items.map((item) => item.id)
-        setVisibleIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
+        setHiddenIds((previous) => previous.length === 0 ? previous : [])
         return
       }
 
@@ -83,8 +87,8 @@ export default function UnifiedModuleNavigation({
         }
       }
 
-      const next = items.filter((item) => chosen.has(item.id)).map((item) => item.id)
-      setVisibleIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
+      const next = items.filter((item) => !chosen.has(item.id)).map((item) => item.id)
+      setHiddenIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
     }
 
     calculate()
@@ -117,10 +121,10 @@ export default function UnifiedModuleNavigation({
     const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null
     observer?.observe(box)
     return () => observer?.disconnect()
-  }, [activeId, visibleIds])
+  }, [activeId, hiddenIds, itemsSignature])
 
-  const visibleItems = items.filter((item) => visibleIds.includes(item.id))
-  const overflowItems = items.filter((item) => !visibleIds.includes(item.id))
+  const visibleItems = items.filter((item) => item.id === activeId || !hiddenIds.includes(item.id))
+  const overflowItems = items.filter((item) => item.id !== activeId && hiddenIds.includes(item.id))
 
   const select = (id: string) => {
     onSelect(id)
