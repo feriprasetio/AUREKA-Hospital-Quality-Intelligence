@@ -4,6 +4,11 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 const gateway = read('supabase/functions/aureka-tanya/index.ts')
+const supabaseConfig = read('supabase/config.toml')
+
+test('production Edge Function explicitly retains JWT verification', () => {
+  assert.match(supabaseConfig, /\[functions\.aureka-tanya\][\s\S]*?verify_jwt = true/)
+})
 
 test('all five AI providers have server-side adapters and a deterministic fallback order', () => {
   for (const provider of ['groq', 'nvidia', 'gemini', 'deepseek', 'llm7']) {
