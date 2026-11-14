@@ -25,7 +25,9 @@ test('shared controls and data cards have normalized dimensions', () => {
 
 test('proportional UI stylesheet loads after existing theme and motion styles', () => {
   assert.ok(layout.indexOf("import './proportional-ui.css'") > layout.indexOf("import './landing-motion.css'"))
-  assert.equal([...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m=>m[1]).at(-2),'aureka-navigation-consolidated.css')
+  const imports = [...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m=>m[1])
+  assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'))
+  assert.equal(imports.at(-1), 'aureka-global-navigation.css')
 })
 
 test('Super Admin uses a compact static tab rail and a module-only sidebar', () => {
@@ -37,7 +39,7 @@ test('Super Admin uses a compact static tab rail and a module-only sidebar', () 
 
   assert.ok(homeClient.includes("[allRoomsScope,setAllRoomsScope]=useState(true)"))
   assert.ok(homeClient.includes("Semua ruangan · lintas unit"))
-  assert.ok(homeClient.includes("workspaceNavigationRail"))
+  assert.ok(homeClient.includes('UnifiedModuleNavigation'))
   assert.ok(homeClient.includes("activeNestedNavGroup"))
   assert.ok(homeClient.includes("activeRailTitle"))
   assert.ok(homeClient.includes("const activeRailItems=activeNavGroups.flatMap(group=>"))
