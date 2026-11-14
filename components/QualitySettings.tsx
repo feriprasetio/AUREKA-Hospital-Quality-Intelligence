@@ -639,7 +639,6 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 </div>
               )}
             </AurekaModal>
-            </div>
             <AurekaModal
               open={Boolean(edit || newOne)}
               title={edit ? 'Edit indikator' : 'Tambah indikator'}
