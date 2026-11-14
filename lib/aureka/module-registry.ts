@@ -5,7 +5,7 @@ export type AurekaRole =
 export type ModuleStatus = 'available' | 'beta' | 'maintenance' | 'planned'
 export type ModuleVisibility = 'all-authenticated' | 'management-only'
 export type AurekaModule = {
-  id: 'home' | 'patients' | 'quality' | 'clinical' | 'safety' | 'risk' | 'analytics' | 'staff' | 'settings'
+  id: 'home' | 'nara' | 'patients' | 'quality' | 'clinical' | 'safety' | 'risk' | 'analytics' | 'staff' | 'settings'
   label: string
   group: 'overview' | 'clinical' | 'governance'
   status: ModuleStatus
@@ -24,7 +24,7 @@ const QUALITY_ACCESS_ROLES = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DE
 
 export const AUREKA_MODULE_REGISTRY = [
   { id:'home', label:'Beranda', group:'overview', status:'available', visibility:'all-authenticated', requiredRoles:ALL_ROLES, routeHash:'#beranda', owner:'Komite PMKP', lastReviewed:'2026-11-12', description:'Landing page personal, shortcut, tugas, dan notifikasi sesuai kewenangan.' },
-  { id:'patients', label:'Pasien', group:'overview', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#pasien', owner:'Unit pelayanan / Komite PMKP', lastReviewed:'2026-11-12', description:'Register episode pelayanan dan penelusuran identitas pasien berbasis Nomor Rekam Medis.' },
+  { id:'nara', label:'NARA AI', group:'overview', status:'available', visibility:'all-authenticated', requiredRoles:ALL_ROLES, routeHash:'#nara-ai', owner:'AUREKA Intelligence', lastReviewed:'2026-11-14', description:'Asisten kecerdasan rumah sakit dengan orkestrasi lima penyedia AI dan analisis mutu, keselamatan pasien, serta risiko berbasis data agregat.' },\n  { id:'patients', label:'Pasien', group:'overview', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#pasien', owner:'Unit pelayanan / Komite PMKP', lastReviewed:'2026-11-12', description:'Register episode pelayanan dan penelusuran identitas pasien berbasis Nomor Rekam Medis.' },
   { id:'quality', label:'Indikator Mutu', group:'clinical', status:'beta', visibility:'all-authenticated', requiredRoles:QUALITY_ACCESS_ROLES, routeHash:'#indikator-mutu', owner:'Komite PMKP / pemilik indikator', lastReviewed:'2026-11-12', description:'Form logbook dan profil indikator untuk pelaksana; hasil capaian agregat baca-saja untuk Dewan Pengawas.' },
   { id:'clinical', label:'Peningkatan Kinerja Klinis', group:'clinical', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#peningkatan-kinerja-klinis', owner:'Komite PMKP / Komite Medik', lastReviewed:'2026-11-12', description:'Audit Clinical Pathway serta Audit Klinis dan Kematian berbasis episode.' },
   { id:'safety', label:'Keselamatan Pasien', group:'clinical', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC'], routeHash:'#keselamatan-pasien', owner:'Komite PMKP / Tim Keselamatan Pasien', lastReviewed:'2026-11-12', description:'Register insiden, investigasi/RCA, dan survei budaya keselamatan bernama.' },
