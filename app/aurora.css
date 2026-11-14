@@ -348,7 +348,7 @@ html body:not(#_) .a2-landing .a2-hero-links a:first-child { display: inline-fle
 html body:not(#_) .a2-landing .a2-hero-links a:first-child:active { transform: scale(0.98); }
 html body:not(#_) .a2-landing .a2-hero-links a:not(:first-child) { display: inline-flex; align-items: center; min-height: 52px; padding: 0 22px; border-radius: 16px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.9); color: #1f2430 !important; font-weight: 700; text-decoration: none; }
 html body:not(#_) .a2-landing .a2-hero-principles span { background: rgba(255, 255, 255, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; color: #1f2430 !important; border-radius: 14px !important; }
-html body:not(#_) .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card, .a2-governance-panel, .a2-transparency-panel, .a2-institution-strip, .a2-capa-section, .a2-product-note, .a2-faq-list > *) {
+html body:not(#_) .a2-landing :is(.a2-domain-card, .a2-module-card, .a2-workflow-card, .a2-governance-panel, .a2-transparency-panel, .a2-institution-strip, .a2-product-note, .a2-faq-list > *) {
   background: rgba(255, 255, 255, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; box-shadow: none !important; border-radius: 24px !important;
 }
 html body:not(#_) .a2-landing .a2-hero-showcase { animation: auroraFloatIn .8s cubic-bezier(.22, 1, .36, 1) .35s both; }
@@ -466,3 +466,10 @@ html[data-mode="gelap"] body:not(#_) .authPage:is(.authProfessional, .authRedesi
 @media (prefers-reduced-motion: reduce) {
   html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button, html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button::before { transition: none !important; }
 }
+
+/* Halaman awal: blok CAPA tetap gelap (teksnya putih), tanpa garis fokus di kontainer utama */
+html body:not(#_) .a2-landing .a2-capa-section {
+  background: radial-gradient(60% 80% at 0% 0%, rgba(34, 211, 238, 0.22), transparent 70%), radial-gradient(50% 70% at 100% 100%, rgba(74, 222, 128, 0.16), transparent 70%), #1f2430 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important; border-radius: 28px !important; box-shadow: 0 30px 70px rgba(31, 36, 48, 0.18) !important;
+}
+html body:not(#_) .a2-landing #main-content:focus, html body:not(#_) .a2-landing #main-content:focus-visible { outline: none !important; box-shadow: none !important; }
