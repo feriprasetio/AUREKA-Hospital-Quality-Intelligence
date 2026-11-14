@@ -756,11 +756,13 @@ export default function GeneralSettings({
                 <span className="pwHeadIcon" aria-hidden="true"><SettingsIcon kind="lock" /></span>
                 <div><h4>Ubah Password Saya</h4><p>Ganti password akun Anda sendiri kapan saja. Berlaku untuk login berikutnya.</p></div>
               </div>
-              <div className="pwForm">
+              {/* Form + kolom username tersembunyi: pengelola password browser mengisi username di sini, bukan di kotak cari header. */}
+              <form className="pwForm" onSubmit={(e) => e.preventDefault()}>
+                <input type="text" name="username" autoComplete="username" value={me?.email || profile?.email || ''} readOnly tabIndex={-1} aria-hidden="true" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', border: 0, opacity: 0, pointerEvents: 'none' }} />
                 <label className="field"><span>Password saat ini</span><input type={pwShow ? 'text' : 'password'} autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
                 <label className="field"><span>Password baru (min. 6 karakter)</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
                 <label className="field"><span>Ulangi password baru</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
-              </div>
+              </form>
               {pw.next && (() => { const lv = pwStrength(pw.next); const label = ['', 'Lemah', 'Cukup', 'Baik', 'Kuat'][lv]; return (
                 <div className={'pwMeter lv' + lv} aria-live="polite"><span className="pwMeterBar"><i style={{ width: lv * 25 + '%' }} /></span><small>Kekuatan: {label}{pw.confirm && pw.confirm !== pw.next ? ' · konfirmasi belum sama' : pw.confirm ? ' · konfirmasi cocok ✓' : ''}</small></div>
               ) })()}
