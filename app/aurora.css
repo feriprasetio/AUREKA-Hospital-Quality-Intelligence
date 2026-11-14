@@ -336,7 +336,7 @@ html body:not(#_) .auroraDot { display: inline-block; flex: 0 0 auto; width: 9px
 
 /* Halaman awal */
 html body:not(#_) .a2-landing { position: relative; background: #eef1f5 !important; color: #1f2430; isolation: isolate; }
-html body:not(#_) .a2-landing > :not(.auroraBg) { position: relative; z-index: 1; }
+html body:not(#_) .a2-landing > .auroraBg { z-index: -1; }
 html body:not(#_) .a2-landing .a2-header { background: rgba(255, 255, 255, 0.42) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
 html body:not(#_) .a2-landing .a2-button-primary { background: #1f2430 !important; border-color: #1f2430 !important; color: #fff !important; border-radius: 14px !important; box-shadow: 0 12px 26px rgba(31, 36, 48, 0.18) !important; transition: transform .12s ease, background-color .2s ease; }
 html body:not(#_) .a2-landing .a2-button-primary:active { transform: scale(0.98); }
