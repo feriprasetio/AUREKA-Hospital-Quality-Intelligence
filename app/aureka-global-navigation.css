@@ -270,7 +270,7 @@ html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem.active {
     max-width: 38% !important;
     min-height: 32px !important;
     padding-inline: 9px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
   .workspaceRoot .workspaceNavigationRailItems { gap: 3px !important; }
   .workspaceRoot .workspaceNavigationRailItem,
@@ -278,7 +278,7 @@ html[data-mode="gelap"] .workspaceRoot .workspaceNavigationOverflowItem.active {
     min-height: 32px !important;
     max-width: 160px !important;
     padding-inline: 9px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
   .workspaceRoot .workspaceNavigationOverflow summary { min-width: 64px !important; }
 }
@@ -405,13 +405,116 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
     min-height: 32px !important;
     padding-inline: 9px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
     min-height: 32px !important;
     max-width: 160px !important;
     padding-inline: 9px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Final production guard: the contextual rail is a first-class row directly
+   below the workspace header, never hidden or positioned over module content. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  inset: auto !important;
+  float: none !important;
+  flex: 0 0 auto !important;
+  align-self: stretch !important;
+  order: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  margin: 0 0 10px !important;
+  padding: 4px 6px !important;
+  overflow: visible !important;
+  border: 1px solid #cbd8e4 !important;
+  border-radius: 10px !important;
+  background: #f5f8fb !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  max-width: min(30%, 240px) !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  border: 1px solid #172a40 !important;
+  border-radius: 8px !important;
+  background: #172a40 !important;
+  color: #fff !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem.active {
+  border-color: #b8d0e5 !important;
+  background: #dcebf8 !important;
+  color: #164b7a !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubRail {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 5px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 0 10px !important;
+  padding: 3px 5px !important;
+  overflow-x: auto !important;
+  border: 1px solid #d7e3ee !important;
+  border-radius: 9px !important;
+  background: #edf4fa !important;
+}
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+    min-height: 40px !important;
+    gap: 4px !important;
+    margin-bottom: 8px !important;
+    padding: 3px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+    max-width: 34% !important;
+    min-height: 30px !important;
+    padding-inline: 8px !important;
     font-size: 11px !important;
   }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
+    min-height: 30px !important;
+    max-width: 150px !important;
+    padding-inline: 8px !important;
+    font-size: 11px !important;
+  }
+}
+/* Ensure the module identity chip itself is visible above contextual tabs. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: min(30%, 240px) !important;
+  min-height: 32px !important;
+  background: #172a40 !important;
+  border: 1px solid #172a40 !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
 }

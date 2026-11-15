@@ -83,7 +83,7 @@ export default function MetadataStatisticsWorkspace({
       <style>{`
         .msw{display:grid;gap:14px;min-width:0}
         .mswHeader{padding:16px 18px;display:grid;gap:14px;background:#fff;border:1px solid var(--line,#e5ebe7);border-radius:14px}
-        .mswEyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--accent,#0f7656)}
+        .mswEyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--accent,#0f7656)}
         .mswTitle{margin:4px 0 0;font-size:clamp(20px,2.5vw,26px);letter-spacing:-.035em;color:var(--text,#21372c)}
         .mswDescription{margin:5px 0 0;max-width:850px;color:var(--muted,#64756b);font-size:12px;line-height:1.6}
         .mswTabs,.mswDirectoryTabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #e8eeea;padding-bottom:8px}
@@ -92,10 +92,10 @@ export default function MetadataStatisticsWorkspace({
         .mswTab[aria-selected="true"],.mswDirectoryTab[aria-selected="true"]{background:#102b42;border-color:#102b42;color:#fff}
         .mswTabIcon{font-size:13px;opacity:.82}
         .mswContent{min-width:0}
-        .mswAccessNote{display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;padding:10px 12px;border:1px solid #e5eee8;border-radius:10px;background:#f8fbf9;color:var(--muted,#64756b);font-size:11px;line-height:1.55}
+        .mswAccessNote{display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;padding:10px 12px;border:1px solid #e5eee8;border-radius:10px;background:#f8fbf9;color:var(--muted,#64756b);font-size:12px;line-height:1.55}
         .mswAccessNote strong{color:var(--text,#21372c)}
         .mswDirectoryPanel{display:grid;gap:12px;min-width:0}
-        @media(max-width:640px){.mswHeader{padding:13px}.mswTab,.mswDirectoryTab{flex:1;justify-content:center;padding:9px 8px}.mswDescription{font-size:11px}}
+        @media(max-width:640px){.mswHeader{padding:13px}.mswTab,.mswDirectoryTab{flex:1;justify-content:center;padding:9px 8px}.mswDescription{font-size:12px}}
       `}</style>
 
       {showTabs && (

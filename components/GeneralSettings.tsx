@@ -1,5 +1,6 @@
 'use client'
 
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -273,6 +274,7 @@ export default function GeneralSettings({
     onRoomsChanged?.()
   }
   const toggleRoom = async (r: Room) => {
+    if (r.is_active !== false && !(await aurekaConfirm('Unit ' + r.name + ' tidak akan muncul di pilihan unit. Data risiko dan akun yang sudah ada tetap tersimpan, dan unit bisa diaktifkan lagi kapan saja.', { title: 'Nonaktifkan unit?', confirmLabel: 'Ya, nonaktifkan', danger: true }))) return
     setBusy(true)
     const { error } = await sb.rpc('aureka_admin_save_room', { p_id: r.id, p_name: r.name, p_code: r.code || null, p_is_active: !(r.is_active ?? true) })
     setBusy(false)
@@ -281,7 +283,7 @@ export default function GeneralSettings({
     await loadRooms()
     onRoomsChanged?.()
   }
-  const roomUserCount = (id: number) => users.filter((u) => u.primary_room_id === id && u.is_active).length
+  const roomUserCount = (id: number) => users.filter((u) => u.primary_room_id != null && Number(u.primary_room_id) === Number(id) && u.is_active).length
   const picRoleId = roles.find((r) => r.code === 'PIC')?.id || null
 
   const updateUser = async (u: Profile, patch: Partial<Profile>) => {
@@ -675,7 +677,7 @@ export default function GeneralSettings({
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div>
                   <h4 style={{ margin: 0 }}>Unit & Instalasi</h4>
-                  <p style={{ margin: '5px 0 0', fontSize: 11, color: 'var(--muted)' }}>
+                  <p style={{ margin: '5px 0 0', fontSize: 12, color: 'var(--muted)' }}>
                     {isAdmin ? 'Tambah, ubah nama/kode, atau nonaktifkan unit kerja. Unit tidak dihapus permanen karena masih dipakai data risiko dan akun.' : 'Daftar unit kerja aktif.'}
                   </p>
                 </div>
@@ -707,25 +709,44 @@ export default function GeneralSettings({
                 </>}
               </div>
 
-              <div className="roomGrid">
-                {(adminRooms || rooms)
+              {(() => {
+                const list = (adminRooms || rooms)
                   .filter((r) => showInactiveRooms || r.is_active !== false)
                   .filter((r) => !roomSearch.trim() || `${r.name} ${r.code || ''}`.toLowerCase().includes(roomSearch.trim().toLowerCase()))
-                  .map((r) => (
-                  <div key={r.id} className={r.is_active === false ? 'roomCard off' : 'roomCard'}>
-                    <div className="roomCardText">
-                      <b>{r.name}</b>
-                      <span>{r.code || `ROOM-${r.id}`} · {r.is_active === false ? 'Nonaktif' : 'Aktif'}{isAdmin && users.length ? ` · ${roomUserCount(r.id)} user aktif` : ''}</span>
+                // Dikelompokkan supaya 30+ unit tidak tampil sebagai dinding kartu yang padat.
+                const groupOf = (name: string) => /^instalasi/i.test(name) ? 'Instalasi'
+                  : /^rawat inap/i.test(name) ? 'Rawat Inap'
+                  : /intensive|neonatal|perinatolog|nifas|obstetri|high care/i.test(name) ? 'Perawatan Intensif & Maternal'
+                  : /^(komite|tim |satuan|manajemen)/i.test(name) ? 'Komite, Tim & Manajemen'
+                  : 'Unit Lainnya'
+                const order = ['Instalasi', 'Rawat Inap', 'Perawatan Intensif & Maternal', 'Komite, Tim & Manajemen', 'Unit Lainnya']
+                const groups = order.map((g) => ({ g, items: list.filter((r) => groupOf(r.name) === g) })).filter((x) => x.items.length)
+                if (!list.length) return <div className="roomEmpty">Tidak ada unit yang cocok dengan “{roomSearch}”.</div>
+                return <div className="roomGroups">{groups.map(({ g, items }) => (
+                  <section key={g} className="roomGroup" aria-label={g}>
+                    <h5 className="roomGroupHead">{g}<span>{items.length}</span></h5>
+                    <div className="roomGrid roomList">
+                      {items.map((r) => {
+                        const count = isAdmin && users.length ? roomUserCount(r.id) : null
+                        return (
+                          <div key={r.id} className={r.is_active === false ? 'roomCard roomRow off' : 'roomCard roomRow'}>
+                            <div className="roomCardText">
+                              <b>{r.name}</b>
+                              <span>{r.code || `ROOM-${r.id}`}{r.is_active === false ? ' · Nonaktif' : ''}{count != null ? ` · ${count} user aktif` : ''}</span>
+                            </div>
+                            {isAdmin && adminRooms && (
+                              <div className="roomCardActions">
+                                <button type="button" className="roomRowBtn" onClick={() => setRoomEdit({ id: r.id, name: r.name, code: r.code || '', is_active: r.is_active !== false })} aria-label={'Edit ' + r.name}>Edit</button>
+                                <button type="button" className={r.is_active === false ? 'roomRowBtn activate' : 'roomRowBtn quiet'} disabled={busy} onClick={() => toggleRoom(r)} aria-label={(r.is_active === false ? 'Aktifkan ' : 'Nonaktifkan ') + r.name}>{r.is_active === false ? 'Aktifkan' : 'Nonaktifkan'}</button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
-                    {isAdmin && adminRooms && (
-                      <div className="roomCardActions">
-                        <button type="button" className="uBtn outline sm" onClick={() => setRoomEdit({ id: r.id, name: r.name, code: r.code || '', is_active: r.is_active !== false })}>Edit</button>
-                        <button type="button" className={r.is_active === false ? 'uBtn primary sm' : 'uBtn danger sm'} disabled={busy} onClick={() => toggleRoom(r)}>{r.is_active === false ? 'Aktifkan' : 'Nonaktifkan'}</button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  </section>
+                ))}</div>
+              })()}
             </LiquidGlass>
           )}
 
@@ -735,11 +756,13 @@ export default function GeneralSettings({
                 <span className="pwHeadIcon" aria-hidden="true"><SettingsIcon kind="lock" /></span>
                 <div><h4>Ubah Password Saya</h4><p>Ganti password akun Anda sendiri kapan saja. Berlaku untuk login berikutnya.</p></div>
               </div>
-              <div className="pwForm">
+              {/* Form + kolom username tersembunyi: pengelola password browser mengisi username di sini, bukan di kotak cari header. */}
+              <form className="pwForm" onSubmit={(e) => e.preventDefault()}>
+                <input type="text" name="username" autoComplete="username" value={me?.email || profile?.email || ''} readOnly tabIndex={-1} aria-hidden="true" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', border: 0, opacity: 0, pointerEvents: 'none' }} />
                 <label className="field"><span>Password saat ini</span><input type={pwShow ? 'text' : 'password'} autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
                 <label className="field"><span>Password baru (min. 6 karakter)</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
                 <label className="field"><span>Ulangi password baru</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
-              </div>
+              </form>
               {pw.next && (() => { const lv = pwStrength(pw.next); const label = ['', 'Lemah', 'Cukup', 'Baik', 'Kuat'][lv]; return (
                 <div className={'pwMeter lv' + lv} aria-live="polite"><span className="pwMeterBar"><i style={{ width: lv * 25 + '%' }} /></span><small>Kekuatan: {label}{pw.confirm && pw.confirm !== pw.next ? ' · konfirmasi belum sama' : pw.confirm ? ' · konfirmasi cocok ✓' : ''}</small></div>
               ) })()}
@@ -759,8 +782,8 @@ export default function GeneralSettings({
                   ['Kepadatan tampilan', 'Gunakan tombol Nyaman / Ringkas di atas area kerja.'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>
-                    <b style={{ fontSize: 11 }}>{label}</b>
-                    <span style={{ fontSize: 11, color: 'var(--muted)' }}>{value}</span>
+                    <b style={{ fontSize: 12 }}>{label}</b>
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -775,7 +798,7 @@ export default function GeneralSettings({
           <LiquidGlass style={{ padding: 18 }}>
             <div className="eyebrow">Data saya untuk PMKP</div>
             <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</h3>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12 }}>{me?.full_name} · {roleLabel} · {me?.email}</p>
             <div className="myDataGrid">
               {([
                 ['Risiko unit terdaftar', myData?.risks, 'risk'],
@@ -819,7 +842,7 @@ export default function GeneralSettings({
           <LiquidGlass style={{ padding: 18 }}>
             <div className="eyebrow">Manajemen pengguna</div>
             <h3 style={{ margin: '5px 0 4px', fontSize: 24 }}>Pengguna dan akun unit</h3>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 11 }}>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12 }}>
               Kelola role, unit utama, status, dan penggantian password untuk akun AUREKA.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
@@ -837,7 +860,7 @@ export default function GeneralSettings({
                 </button>
               ))}
             </div>
-            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 11, color: '#9a6b13' }}>
+            {pendingCount > 0 && <p style={{ margin: '10px 0 0', fontSize: 12, color: '#9a6b13' }}>
               {pendingCount} akun baru menunggu aktivasi. Periksa unit dan role, lalu klik “Aktifkan”. Akun ruangan cukup diberi role PIC Pelaporan.
             </p>}
           </LiquidGlass>
@@ -958,7 +981,7 @@ export default function GeneralSettings({
                   )}
                 </div>
               ))}
-              {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 11 }}>Tidak ada pengguna yang cocok.</div>}
+              {!filtered.length && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>Tidak ada pengguna yang cocok.</div>}
             </div>
           </LiquidGlass>
         </>

@@ -45,7 +45,7 @@ html[data-mode="gelap"] .tanyaMsg.error { color: #ff9b9b; }
 .tanyaComposer button { width: 42px; height: 42px; flex: 0 0 42px; border: 0; border-radius: 14px; background: var(--tn-user); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .tanyaComposer button:disabled { opacity: .45; cursor: default; }
 .tanyaComposer svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.tanyaNote { margin: 0; padding: 4px 16px 12px; font-size: 11px; color: var(--tn-muted); }
+.tanyaNote { margin: 0; padding: 4px 16px 12px; font-size: 12px; color: var(--tn-muted); }
 .tanyaHead .tanyaClose { display: none; }
 /* Tombol mengambang pojok kanan bawah */
 .tanyaFab {
@@ -100,3 +100,14 @@ html[data-mode="gelap"] .tanyaGhost.danger { color: #ff9b9b; }
 .tanyaReminder small.ok { color: #1f7a4a; } .tanyaReminder small.err { color: #b33a3a; }
 html[data-mode="gelap"] .tanyaReminder small.ok { color: #7fd8a6; } html[data-mode="gelap"] .tanyaReminder small.err { color: #ff9b9b; }
 html body .tanyaPanel .tanyaMsg.model .tanyaReminder :is(b, label, small) { -webkit-text-fill-color: currentColor !important; }
+
+
+/* NARA AI identity and assistant message avatar */
+.naraAvatar{display:inline-grid;place-items:center;flex:0 0 auto;overflow:hidden;border-radius:14px;box-shadow:0 4px 12px rgba(20,76,112,.16)}
+.naraAvatar svg{display:block;width:100%;height:100%}
+.tanyaPanelEmbedded .tanyaHead .naraAvatar{width:40px;height:40px;border-radius:13px}
+.tanyaPanelEmbedded .tanyaMsg.naraModelMsg{display:flex;align-items:flex-start;gap:9px}
+.tanyaPanelEmbedded .tanyaMsg.naraModelMsg>.naraAvatar{width:28px;height:28px;margin-top:2px;border-radius:10px}
+.tanyaPanelEmbedded .tanyaMsg.naraModelMsg .naraAnswerBody{min-width:0;flex:1}
+.tanyaPanelEmbedded .tanyaMsg.naraModelMsg .naraAnswerBody p:first-child{margin-top:0}
+.tanyaPanelEmbedded .tanyaMsg.naraModelMsg .naraAnswerBody p:last-child{margin-bottom:0}

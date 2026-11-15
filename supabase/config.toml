@@ -24,3 +24,6 @@ site_url = "http://localhost:3000"
 
 [realtime]
 enabled = true
+
+[functions.aureka-tanya]
+verify_jwt = true

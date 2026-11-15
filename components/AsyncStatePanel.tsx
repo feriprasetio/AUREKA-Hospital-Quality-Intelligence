@@ -75,7 +75,7 @@ export default function AsyncStatePanel({
         }
         .stateBody { flex: 1 1 auto; min-width: 0; }
         .stateTitle { display: block; font-size: 12px; line-height: 1.45; font-weight: 800; }
-        .stateDescription { display: block; margin-top: 3px; color: var(--aureka-color-foreground-secondary, #475569); font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+        .stateDescription { display: block; margin-top: 3px; color: var(--aureka-color-foreground-secondary, #475569); font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
         .stateAction {
           flex: 0 0 auto;
           min-height: 36px;
@@ -85,7 +85,7 @@ export default function AsyncStatePanel({
           background: var(--aureka-color-surface, #fff);
           color: var(--aureka-color-foreground, #1e293b);
           font: inherit;
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 800;
           cursor: pointer;
         }

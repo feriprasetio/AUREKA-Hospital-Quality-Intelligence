@@ -12,10 +12,11 @@ const corsHeaders = {
 };
 const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
 const FALLBACK_MODEL = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-latest";
-const LIMIT_PER_WINDOW = 20;           // pertanyaan per pengguna
-const WINDOW_MS = 10 * 60 * 1000;      // per 10 menit (perkiraan; per instance fungsi)
+const LIMIT_PER_WINDOW = 20;
+const WINDOW_MS = 10 * 60 * 1000;
+const PROVIDER_TIMEOUT_MS = Math.max(5000, Math.min(Number(Deno.env.get("AI_PROVIDER_TIMEOUT_MS")) || 18000, 30000));
+const PROVIDER_ROUTE_BUDGET_MS = Math.max(20000, Math.min(Number(Deno.env.get("AI_ROUTE_BUDGET_MS")) || 65000, 90000));
 const hits = new Map<string, number[]>();
-let stage = "mulai";
 
 function reply(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -146,12 +147,11 @@ async function snapshot(db: SupabaseClient) {
     fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans")
       .select("status,target_date").order("id", { ascending: true }).range(f, t)),
     fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents")
-      .select("*").order("created_at", { ascending: false }).range(f, t), 3000),
+      .select("incident_type,type,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
-  const roomName = new Map(rooms.map((r) => [r.id, r.name]));
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
 
   // --- Manajemen risiko: jumlah per unit per level (semua unit, bukan sampel)
@@ -195,8 +195,6 @@ async function snapshot(db: SupabaseClient) {
   ]));
 
   // --- Keselamatan pasien (hanya hitungan, tanpa identitas/kronologi)
-  const incUnit = (i: Incident) => String(i.unit_name ?? i.room_name ?? (i.room_id != null ? roomName.get(Number(i.room_id)) : "") ?? "").trim() || "Tanpa unit";
-  const incDate = (i: Incident) => String(i.incident_date ?? i.occurred_at ?? i.created_at ?? "").slice(0, 10);
   const incType = (i: Incident) => String(i.incident_type ?? i.type ?? "").trim() || "Tidak diisi";
 
   return {
@@ -246,16 +244,17 @@ const BUSY = "Layanan AI sedang sibuk. Coba lagi sebentar lagi.";
 const QUOTA = "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi.";
 
 /** Gemini: model utama, lalu model cadangan bila sibuk/kuota habis. */
-async function askGemini(apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
+async function askGemini(apiKey: string, system: string, contents: Turn[], deadline: number): Promise<AiResult> {
   const payload = JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.6, maxOutputTokens: 1200 } });
   let last = 0;
   for (const model of [...new Set([MODEL, FALLBACK_MODEL])]) {
+    if (Date.now() >= deadline) break;
     if (isDead("gemini:" + model)) continue;
     let res: Response;
     try {
       res = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: "POST", headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey }, body: payload,
-      }, 15000);
+      }, Math.min(PROVIDER_TIMEOUT_MS, Math.max(1, deadline - Date.now())));
     } catch (e) { console.warn("gemini", model, "timeout", String(e).slice(0, 120)); last = 504; continue; }
     last = res.status;
     if (res.ok) {
@@ -264,9 +263,9 @@ async function askGemini(apiKey: string, system: string, contents: Turn[]): Prom
       if (answer) return { answer, model };
       continue;
     }
-    const body = (await res.text()).slice(0, 300);
-    console.warn("gemini", model, res.status, body);
-    if (res.status === 404 || (res.status === 400 && /model.*(not found|not supported)/i.test(body))) markDead("gemini:" + model);
+    const errorBody = (await res.text()).slice(0, 300);
+    console.warn("gemini", model, "provider status", res.status);
+    if (res.status === 404 || (res.status === 400 && /model.*(not found|not supported)/i.test(errorBody))) markDead("gemini:" + model);
     if (res.status === 503) markDead("gemini:" + model, 2);
     if (![400, 404, 429, 500, 503, 504].includes(res.status)) break;
   }
@@ -278,22 +277,23 @@ async function askGemini(apiKey: string, system: string, contents: Turn[]): Prom
 type OpenAiProvider = { label: string; url: string; models: string[] };
 const OPENAI_PROVIDERS: Record<string, OpenAiProvider> = {
   groq: { label: "Groq", url: "https://api.groq.com/openai/v1/chat/completions",
-    models: [Deno.env.get("GROQ_MODEL") || "", "openai/gpt-oss-120b", "llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant"] },
+    models: [Deno.env.get("GROQ_MODEL") || "", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"] },
   nvidia: { label: "NVIDIA", url: "https://integrate.api.nvidia.com/v1/chat/completions",
-    models: [Deno.env.get("NVIDIA_MODEL") || "", "meta/llama-3.3-70b-instruct", "openai/gpt-oss-120b", "meta/llama-3.1-70b-instruct"] },
+    models: [Deno.env.get("NVIDIA_MODEL") || "", "meta/llama-3.3-70b-instruct", "deepseek-ai/deepseek-v4-flash", "openai/gpt-oss-120b"] },
   deepseek: { label: "DeepSeek", url: "https://api.deepseek.com/chat/completions",
     models: [Deno.env.get("DEEPSEEK_MODEL") || "", "deepseek-flash", "deepseek-chat"] },
   llm7: { label: "LLM7", url: "https://api.llm7.io/v1/chat/completions",
     models: [Deno.env.get("LLM7_MODEL") || "", "default", "fast"] },
 };
 
-async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, contents: Turn[]): Promise<AiResult> {
+async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, contents: Turn[], deadline: number): Promise<AiResult> {
   const messages = [
     { role: "system", content: system },
     ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map((x) => x.text).join("\n") })),
   ];
   let last = 0;
-  for (const model of [...new Set(p.models.filter(Boolean))]) {
+  for (const model of [...new Set(p.models.filter(Boolean))].slice(0, 3)) {
+    if (Date.now() >= deadline) break;
     const tag = p.label + ":" + model;
     if (isDead(tag)) continue;
     // Model "berpikir" (gpt-oss) diminta berpikir singkat agar jawaban cepat.
@@ -304,7 +304,7 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1200, ...extra }),
-      }, 30000);
+      }, Math.min(PROVIDER_TIMEOUT_MS, Math.max(1, deadline - Date.now())));
     } catch (e) {
       console.warn(p.label, model, "jaringan/timeout", String(e).slice(0, 200));
       last = 504;
@@ -317,10 +317,10 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
       if (answer) return { answer, model };
       continue;
     }
-    const body = (await res.text()).slice(0, 300);
-    console.warn(p.label, model, res.status, body);
+    const errorBody = (await res.text()).slice(0, 300);
+    console.warn(p.label, model, "provider status", res.status);
     if (res.status === 401 || res.status === 403) return { status: 502, error: `Kunci ${p.label} ditolak. Periksa atau buat ulang kuncinya.` };
-    if (res.status === 404 || (res.status === 400 && /model|decommission|not.*(found|exist|support)/i.test(body))) markDead(tag);
+    if (res.status === 404 || (res.status === 400 && /model|decommission|not.*(found|exist|support)/i.test(errorBody))) markDead(tag);
     // Model dihentikan/tidak ada (400/404/422), kuota (429), terlalu besar (413), server sibuk: coba model berikutnya.
     if (![400, 404, 413, 422, 429, 500, 502, 503, 504].includes(res.status)) break;
   }
@@ -350,32 +350,36 @@ async function handle(req: Request): Promise<Response> {
     deepseek: keysOf("DEEPSEEK_API_KEY"),
     llm7: [...new Set([...keysOf("LLM7_API_KEY"), ...keysOf("LLM7.IO_API_KEY"), ...keysOf("LLM7_IO_API_KEY")])],
   };
-  // Default route uses Groq/NVIDIA/Gemini. DeepSeek requires explicit opt-in.
-  // LLM7 is sandbox-only and is never eligible in production.
-  const environment = (Deno.env.get("AI_ENVIRONMENT") || "production").toLowerCase();
-  const requestedOrder = (Deno.env.get("AI_PROVIDER_ORDER") || "groq,nvidia,gemini").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, ""));
-  const order = requestedOrder.filter((x) => {
+  // Lima provider didukung. DeepSeek dan LLM7 memerlukan opt-in eksplisit di Supabase secrets.
+  // Default production hanya memakai provider yang telah disetujui: Groq, NVIDIA, dan Gemini.
+  const PROVIDER_NAMES = ["groq", "nvidia", "gemini", "deepseek", "llm7"];
+  const requestedOrder = (Deno.env.get("AI_PROVIDER_ORDER") || "groq,nvidia,gemini,deepseek,llm7").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, ""));
+  // AI_PROVIDER_ORDER mengatur prioritas; provider lain tetap dicoba sebagai fallback bila memenuhi gate.
+  const order = [...new Set([...requestedOrder, ...PROVIDER_NAMES])].filter((x) => {
     if (!available[x]?.length) return false;
     if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") !== "true") return false;
-    if (x === "llm7" && !(environment === "development" && Deno.env.get("AI_ENABLE_LLM7") === "true")) return false;
+    if (x === "llm7" && Deno.env.get("AI_ENABLE_LLM7") !== "true") return false;
     return ["groq", "nvidia", "gemini", "deepseek", "llm7"].includes(x);
   });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GEMINI_API_KEY, GROQ_API_KEY, atau NVIDIA_API_KEY dengan kode kunci saja)." });
 
-  stage = "cek-login";
   const authHeader = req.headers.get("Authorization") || "";
   if (!/^Bearer\s+\S+/i.test(authHeader)) return reply(401, { error: "Sesi tidak ditemukan. Silakan masuk kembali." });
   const db = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } }, auth: { autoRefreshToken: false, persistSession: false } });
   const { data: who, error: whoError } = await db.auth.getUser();
   if (whoError || !who.user) return reply(401, { error: "Sesi tidak valid. Silakan masuk kembali." });
 
-  const { data: profile } = await db.schema("aureka_system").from("user_profiles").select("full_name,is_active").eq("user_id", who.user.id).maybeSingle();
+  const { data: profile } = await db.schema("aureka_system").from("user_profiles").select("is_active").eq("user_id", who.user.id).maybeSingle();
   if (!profile?.is_active) return reply(403, { error: "Akun belum aktif." });
 
+  const contentLength = Number(req.headers.get("content-length") || 0);
+  if (contentLength > 32768) return reply(413, { error: "Permintaan terlalu besar." });
   let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string; warmup?: boolean };
   try { body = await req.json(); } catch { return reply(400, { error: "Format permintaan tidak valid." }); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return reply(400, { error: "Format permintaan tidak valid." });
+  if (rateLimited(who.user.id)) return reply(429, { error: "Batas permintaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
   // Pemanasan saat panel dibuka: siapkan ringkasan data di cache, tanpa memanggil AI.
   if (body.warmup) {
     const c = snapshotCache.get(who.user.id);
@@ -399,18 +403,15 @@ async function handle(req: Request): Promise<Response> {
   if (sensitivePatterns.some((pattern) => pattern.test(outboundText))) {
     return reply(422, { error: "Permintaan ditahan oleh NARA Privacy Guard. Hapus identitas pasien/petugas, nomor rekam medis, NIK, kontak, dan detail pengenal dari pertanyaan maupun riwayat sebelum mencoba kembali." });
   }
-  if (rateLimited(who.user.id)) return reply(429, { error: "Batas pertanyaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
   const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
   const page = (body.page || "").toString().slice(0, 80);
 
-  stage = "ambil-data";
   const cached = snapshotCache.get(who.user.id);
   const fresh = cached && Date.now() - cached.at < SNAPSHOT_TTL;
   const data = fresh ? cached!.data : smallTalk ? null : await snapshot(db);
   if (!fresh && data) snapshotCache.set(who.user.id, { at: Date.now(), data });
-  stage = "susun-prompt";
   // Account identity is intentionally excluded from external model context.
   const system = [
     "Kamu adalah NARA (AUREKA Intelligence), mesin kecerdasan internal AUREKA untuk membantu mutu, keselamatan pasien, manajemen risiko, statistik rumah sakit, dan tata kelola. Antarmuka tetap bernama Tanya AUREKA.",
@@ -443,11 +444,13 @@ async function handle(req: Request): Promise<Response> {
     { role: "user", parts: [{ text: question }] },
   ];
 
-  stage = "panggil-ai";
   let last: AiResult = { status: 502, error: BUSY };
+  const providerDeadline = Date.now() + PROVIDER_ROUTE_BUDGET_MS;
   for (const provider of order) {
+    if (Date.now() >= providerDeadline) break;
     for (const key of available[provider]) {
-      const result = provider === "gemini" ? await askGemini(key, system, contents) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents);
+      if (Date.now() >= providerDeadline) break;
+      const result = provider === "gemini" ? await askGemini(key, system, contents, providerDeadline) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, providerDeadline);
       if (!("status" in result)) return reply(200, { answer: result.answer, model: provider + ":" + result.model });
       last = result;
       console.warn("aureka-tanya", provider, "gagal:", result.error);
@@ -456,15 +459,12 @@ async function handle(req: Request): Promise<Response> {
   return reply(last.status, { error: last.error });
 }
 
-// Semua error tak terduga tetap dibalas dengan header CORS + alasan singkat,
-// supaya browser tidak hanya melihat "Failed to fetch" dan penyebabnya bisa dilacak.
+// Error internal dicatat secara minimal; browser tidak menerima detail runtime/provider.
 Deno.serve(async (req) => {
   try {
     return await handle(req);
   } catch (error) {
-    // Jangan pernah memantulkan isi header/secret ke browser.
-    const detail = (error instanceof Error ? error.message : String(error)).replace(/Invalid header value[\s\S]*/i, "Invalid header value (isi secret kunci AI tidak valid)");
-    console.error("aureka-tanya", stage, detail);
-    return reply(500, { error: "Tanya AUREKA mengalami gangguan di server.", stage, detail: detail.slice(0, 300) });
+    console.error("aureka-tanya internal error", error instanceof Error ? error.name : "UnknownError");
+    return reply(500, { error: "NARA AI sedang mengalami gangguan. Silakan coba kembali." });
   }
 });

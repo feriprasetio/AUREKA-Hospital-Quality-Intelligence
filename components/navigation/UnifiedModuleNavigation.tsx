@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 export type UnifiedNavigationItem = {
   id: string
@@ -13,6 +13,9 @@ type UnifiedModuleNavigationProps = {
   items: UnifiedNavigationItem[]
   activeId: string
   onSelect: (id: string) => void
+  /** Anak dari grup aktif (mis. Budaya → Form Survei, Register Survei), tampil di baris kedua. */
+  subTitle?: string
+  subItems?: UnifiedNavigationItem[]
 }
 
 /**
@@ -27,12 +30,16 @@ export default function UnifiedModuleNavigation({
   items,
   activeId,
   onSelect,
+  subTitle,
+  subItems = [],
 }: UnifiedModuleNavigationProps) {
   const railRef = useRef<HTMLElement>(null)
   const titleRef = useRef<HTMLSpanElement>(null)
   const measureRef = useRef<HTMLDivElement>(null)
   const overflowRef = useRef<HTMLDetailsElement>(null)
-  const [visibleIds, setVisibleIds] = useState<string[]>(() => items.map((item) => item.id))
+  const itemsRef = useRef<HTMLDivElement>(null)
+  // Simpan yang DISEMBUNYIKAN, bukan yang tampil: id baru (mis. grup yang berganti anak aktif) otomatis tampil.
+  const [hiddenIds, setHiddenIds] = useState<string[]>([])
 
   const itemsSignature = items.map((item) => item.id + ':' + item.label).join('|')
 
@@ -41,7 +48,11 @@ export default function UnifiedModuleNavigation({
     if (!rail) return
 
     const calculate = () => {
-      const availableWidth = rail.clientWidth
+      // Rail selebar isinya; ukur dari lebar induk supaya tidak terkunci di mode "Lainnya" setelah menyusut.
+      const parent = rail.parentElement
+      const style = getComputedStyle(rail)
+      const margins = (parseFloat(style.marginLeft) || 0) + (parseFloat(style.marginRight) || 0)
+      const availableWidth = parent ? Math.max(rail.clientWidth, parent.clientWidth - margins) : rail.clientWidth
       const titleWidth = titleRef.current?.getBoundingClientRect().width ?? 0
       const dividerWidth = items.length ? 18 : 0
       const measured = new Map<string, number>()
@@ -56,8 +67,7 @@ export default function UnifiedModuleNavigation({
       const fullBudget = availableWidth - titleWidth - dividerWidth - gapBudget
 
       if (allItemsWidth + allGaps <= fullBudget) {
-        const next = items.map((item) => item.id)
-        setVisibleIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
+        setHiddenIds((previous) => previous.length === 0 ? previous : [])
         return
       }
 
@@ -77,8 +87,8 @@ export default function UnifiedModuleNavigation({
         }
       }
 
-      const next = items.filter((item) => chosen.has(item.id)).map((item) => item.id)
-      setVisibleIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
+      const next = items.filter((item) => !chosen.has(item.id)).map((item) => item.id)
+      setHiddenIds((previous) => previous.length === next.length && previous.every((id, index) => id === next[index]) ? previous : next)
     }
 
     calculate()
@@ -91,8 +101,30 @@ export default function UnifiedModuleNavigation({
     }
   }, [activeId, itemsSignature, title])
 
-  const visibleItems = items.filter((item) => visibleIds.includes(item.id))
-  const overflowItems = items.filter((item) => !visibleIds.includes(item.id))
+  // Pil aktif yang meluncur: ukur tombol aktif lalu geser satu latar bersama (CSS variables).
+  useLayoutEffect(() => {
+    const box = itemsRef.current
+    if (!box) return
+    const place = () => {
+      const active = box.querySelector<HTMLElement>('.workspaceNavigationRailItem.active')
+      if (!active) { box.classList.remove('hasPill'); return }
+      box.style.setProperty('--pill-x', active.offsetLeft + 'px')
+      box.style.setProperty('--pill-y', active.offsetTop + 'px')
+      box.style.setProperty('--pill-w', active.offsetWidth + 'px')
+      box.style.setProperty('--pill-h', active.offsetHeight + 'px')
+      if (!box.classList.contains('hasPill')) {
+        box.classList.add('hasPill')
+        requestAnimationFrame(() => box.classList.add('pillReady'))
+      }
+    }
+    place()
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null
+    observer?.observe(box)
+    return () => observer?.disconnect()
+  }, [activeId, hiddenIds, itemsSignature])
+
+  const visibleItems = items.filter((item) => item.id === activeId || !hiddenIds.includes(item.id))
+  const overflowItems = items.filter((item) => item.id !== activeId && hiddenIds.includes(item.id))
 
   const select = (id: string) => {
     onSelect(id)
@@ -100,10 +132,11 @@ export default function UnifiedModuleNavigation({
   }
 
   return (
+    <>
     <nav ref={railRef} className="workspaceNavigationRail" aria-label={ariaLabel}>
       <span ref={titleRef} className="workspaceNavigationRailTitle">{title}</span>
       {items.length > 0 && <span className="workspaceNavigationRailDivider" aria-hidden="true" />}
-      <div className="workspaceNavigationRailItems">
+      <div ref={itemsRef} className="workspaceNavigationRailItems">
         {visibleItems.map((item) => {
           const selected = item.id === activeId
           return (
@@ -144,5 +177,24 @@ export default function UnifiedModuleNavigation({
         {items.map((item) => <span key={item.id} data-nav-measure={item.id}>{item.label}</span>)}
       </div>
     </nav>
+    {subItems.length > 0 && (
+      <div className="workspaceNavigationSubRail" role="group" aria-label={'Submenu ' + (subTitle || title)}>
+        {subItems.map((item) => {
+          const selected = item.id === activeId
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={'workspaceNavigationSubItem' + (selected ? ' active' : '')}
+              aria-current={selected ? 'page' : undefined}
+              onClick={() => onSelect(item.id)}
+            >
+              {item.label}
+            </button>
+          )
+        })}
+      </div>
+    )}
+    </>
   )
 }
