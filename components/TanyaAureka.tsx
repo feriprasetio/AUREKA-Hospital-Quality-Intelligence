@@ -87,7 +87,10 @@ function NaraAvatar({ size = 34 }: { size?: number }) {
   </span>
 }
 
-export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'Tanya AUREKA', assistantSubtitle = 'Asisten AI · membaca data sesuai hak akses Anda', showAvatar = false, initialPrompt }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string }) {
+export type TanyaStage = { title: string; subtitle: string; starters: { label: string; prompt: string; icon?: ReactNode }[] }
+export type TanyaMessage = Msg
+
+export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'Tanya AUREKA', assistantSubtitle = 'Asisten AI · membaca data sesuai hak akses Anda', showAvatar = false, initialPrompt, storageScope, onMessages, stage }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string; /** Riwayat terpisah (mis. satu percakapan NARA); tanpa ini riwayat dibagi dengan Tanya AUREKA. */ storageScope?: string; onMessages?: (msgs: Msg[]) => void; /** Tampilan awal ala aplikasi chat: sapaan besar + kotak tanya di tengah. */ stage?: TanyaStage }) {
   const [open, setOpen] = useState(embedded)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')
@@ -109,30 +112,33 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     void sb.auth.getSession().then(({ data }) => {
       if (cancelled) return
       const uid = data.session?.user?.id
-      storeKey.current = uid ? STORE_KEY + ':' + uid : null
+      storeKey.current = uid ? STORE_KEY + ':' + uid + (storageScope ? ':' + storageScope : '') : null
       try {
-        const raw = (storeKey.current && localStorage.getItem(storeKey.current)) || sessionStorage.getItem(STORE_KEY)
+        const raw = (storeKey.current && localStorage.getItem(storeKey.current)) || (storageScope ? null : sessionStorage.getItem(STORE_KEY))
         if (raw) { applyingRemote.current = true; setMsgs(JSON.parse(raw)) }
-        sessionStorage.removeItem(STORE_KEY)
+        if (!storageScope) sessionStorage.removeItem(STORE_KEY)
       } catch { /* abaikan */ }
       hydrated.current = true
     })
     const onSync = (e: Event) => {
-      const d = (e as CustomEvent<{ from: string; msgs: Msg[] }>).detail
-      if (!d || d.from === instanceId.current) return
+      const d = (e as CustomEvent<{ from: string; msgs: Msg[]; scope?: string }>).detail
+      if (!d || d.from === instanceId.current || (d.scope || '') !== (storageScope || '')) return
       applyingRemote.current = true
       setMsgs(d.msgs)
     }
     window.addEventListener('aureka-tanya-sync', onSync)
     return () => { cancelled = true; window.removeEventListener('aureka-tanya-sync', onSync) }
-  }, [embedded, sb])
+  }, [embedded, sb, storageScope])
   useEffect(() => {
     // Jangan simpan/siarkan sebelum riwayat dimuat (panel baru tidak boleh menghapus riwayat panel lain).
     if (!hydrated.current) { applyingRemote.current = false; return }
     if (applyingRemote.current) { applyingRemote.current = false; return }
     try { if (storeKey.current) { if (msgs.length) localStorage.setItem(storeKey.current, JSON.stringify(msgs.slice(-60))); else localStorage.removeItem(storeKey.current) } } catch { /* abaikan */ }
-    window.dispatchEvent(new CustomEvent('aureka-tanya-sync', { detail: { from: instanceId.current, msgs } }))
+    window.dispatchEvent(new CustomEvent('aureka-tanya-sync', { detail: { from: instanceId.current, msgs, scope: storageScope || '' } }))
   }, [msgs])
+  const onMessagesRef = useRef(onMessages)
+  onMessagesRef.current = onMessages
+  useEffect(() => { if (hydrated.current) onMessagesRef.current?.(msgs) }, [msgs])
 
   const clearChat = async () => {
     if (!msgs.length) return
@@ -241,8 +247,14 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
 
   useEffect(() => { if (initialPrompt?.trim()) void ask(initialPrompt) }, [initialPrompt])
 
-  const panel = open && <section className={embedded?"tanyaPanel tanyaPanelEmbedded":"tanyaPanel"} role="dialog" aria-label="Tanya AUREKA">
-    <header className="tanyaHead">
+  const staged = Boolean(stage) && msgs.length === 0 && !busy
+  const panel = open && <section className={(embedded ? 'tanyaPanel tanyaPanelEmbedded' : 'tanyaPanel') + (staged ? ' tanyaStaged' : '')} role={embedded ? 'region' : 'dialog'} aria-label={assistantName}>
+    {staged && stage && <div className="tanyaStage">
+      {showAvatar && <NaraAvatar size={56}/>}
+      <h2>{stage.title}</h2>
+      <p>{stage.subtitle}</p>
+    </div>}
+    {!staged && <header className="tanyaHead">
       {showAvatar ? <NaraAvatar size={40}/> : <span className="tanyaMark" aria-hidden="true">✦</span>}
       <div><strong>{assistantName}</strong><span>{assistantSubtitle}</span></div>
       {msgs.length > 0 && <>
@@ -250,8 +262,8 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
         <button type="button" className="tanyaGhost danger" onClick={clearChat} title="Hapus riwayat chat di perangkat ini">Hapus</button>
       </>}
       <button type="button" className="tanyaClose" aria-label="Tutup Tanya AUREKA" onClick={() => setOpen(false)}>×</button>
-    </header>
-    <div className="tanyaList" ref={listRef} aria-live="polite">
+    </header>}
+    {!staged && <div className="tanyaList" ref={listRef} aria-live="polite">
       {msgs.length === 0 && <div className="tanyaWelcome">
         <p>Halo, Aku {assistantName === 'Tanya AUREKA' ? 'AUREKA' : assistantName}, rekan kerjamu untuk urusan mutu, keselamatan pasien, dan risiko. Mau ngobrol, tanya istilah, atau cek data unit, langsung tulis aja ya.</p>
         <div className="tanyaChips">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => void ask(s)}>{s}</button>)}</div>
@@ -277,15 +289,16 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
         </div>}
       </div>)}
       {busy && <div className="tanyaMsg model typing" aria-label="AUREKA sedang menjawab"><i /><i /><i /></div>}
-    </div>
+    </div>}
     <form className="tanyaComposer" onSubmit={e => { e.preventDefault(); void ask(draft) }}>
-      <textarea ref={inputRef} rows={1} value={draft} maxLength={1500} placeholder="Tulis pertanyaan…" aria-label="Pertanyaan untuk AUREKA"
+      <textarea ref={inputRef} rows={staged ? 2 : 1} value={draft} maxLength={1500} placeholder={staged ? 'Tanyakan apa saja, mis. “Indikator mana yang turun triwulan ini?”' : 'Tulis pertanyaan…'} aria-label={'Pertanyaan untuk ' + assistantName}
         onChange={e => setDraft(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void ask(draft) } }} />
       <button type="submit" disabled={busy || !draft.trim()} aria-label="Kirim pertanyaan">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
       </button>
     </form>
+    {staged && stage && <div className="tanyaStageChips">{stage.starters.map((st) => <button type="button" key={st.label} onClick={() => void ask(st.prompt)}>{st.icon}{st.label}</button>)}</div>}
     <p className="tanyaNote">Jawaban AI bisa keliru, cek kembali angka penting di modul terkait. Identitas pasien tidak dikirim ke AI.</p>
   </section>
 
