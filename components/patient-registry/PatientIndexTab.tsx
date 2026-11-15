@@ -219,9 +219,6 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
         <button type="button" className={'piChip' + (invalid !== null ? ' active' : '')} aria-expanded={invalid !== null} aria-controls="pi-invalid-rm" onClick={() => { if (invalid !== null) setInvalid(null); else void loadInvalid() }}>{invalid !== null ? 'Tutup No. RM bermasalah' : 'No. RM bermasalah'}</button>
       </div>
       <div className="piFilters">
-        <label className="piSearch"><span className="piSr">Cari No. RM atau nama</span>
-          <input type="search" name="aureka-patient-index-search" autoComplete="off" data-lpignore="true" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari No. RM (03-65-39 / 36539) atau nama" />
-        </label>
         <label className="piSelect"><span className="piSr">Unit</span>
           <select value={roomId ?? ''} disabled={v2 === false} onChange={(e) => { setRoomId(e.target.value ? Number(e.target.value) : null); setPage(0) }} aria-label="Filter unit">
             <option value="">Semua unit</option>
@@ -233,9 +230,9 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
           <i aria-hidden="true">–</i>
           <input type="date" value={to} min={from || undefined} disabled={v2 === false} onChange={(e) => { setTo(e.target.value); setPage(0) }} aria-label="Kunjungan terakhir sampai tanggal" />
         </label>
-        {(filter !== 'semua' || roomId != null || from || to || search) && <button type="button" className="piReset" onClick={() => { setFilter('semua'); setRoomId(null); setFrom(''); setTo(''); setSearch(''); setPage(0) }}>Reset filter</button>}
+        {(filter !== 'semua' || roomId != null || from || to) && <button type="button" className="piReset" onClick={() => { setFilter('semua'); setRoomId(null); setFrom(''); setTo(''); setPage(0) }}>Reset filter</button>}
       </div>
-      {v2 === false && <p className="piHint">Filter unit, tanggal, kunjungan berulang, dan readmisi aktif setelah migrasi <code>20261115090000_patient_index_v2_filters_readmission.sql</code> dijalankan di Supabase.</p>}
+      {v2 === false && <p className="piHint">Filter unit, tanggal, kunjungan berulang, dan readmisi akan aktif setelah pembaruan database oleh admin AUREKA. Untuk mencari No. RM atau nama, pakai kotak cari di bagian atas.</p>}
     </div>
 
     {invalid && <div className="piPanel" id="pi-invalid-rm">
@@ -305,10 +302,10 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piChip{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(31,36,48,.12);background:#fff;color:#334155;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
       .piChip span{min-width:22px;padding:2px 7px;border-radius:999px;background:rgba(31,36,48,.07);font-size:12px;font-variant-numeric:tabular-nums}
       .piChip:hover:not(:disabled){border-color:rgba(14,116,144,.45)}
-      .piChip.active{background:#1f2430;border-color:#1f2430;color:#fff}.piChip.active span{background:rgba(255,255,255,.18)}
+      .piChip.active{background:#1f2430!important;border-color:#1f2430!important;color:#fff!important}.piChip.active span{background:rgba(255,255,255,.2)!important;color:#fff!important}
       .piChip.warn:not(.active) span{background:#fff1d6;color:#8a5207}
       .piChip:disabled{opacity:.45;cursor:not-allowed}
-      .piFilters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+      .piFilters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start}
       .piSearch{flex:1 1 260px;min-width:0}.piSearch input,.piSelect select,.piDate input{width:100%;min-height:40px;padding:0 12px;border-radius:12px;border:1.5px solid #d9e4ef;background:#f5f8fc;font:inherit;font-size:13px;color:#1f2430}
       .piSelect{flex:0 1 220px;min-width:160px}
       .piDate{display:flex;align-items:center;gap:6px;flex:0 1 auto;font-size:12px;font-weight:700;color:#4b5565}.piDate input{width:auto;min-width:138px}.piDate i{font-style:normal;color:#94a3b8}
@@ -321,7 +318,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piReadmit{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#fff1d6;color:#8a5207;font-style:normal;font-size:12px;font-weight:800}
       .piDiag{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:420px}
       html[data-mode="gelap"] .piAnalyticsCard,html[data-mode="gelap"] .piToolbar{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12)}html[data-mode="gelap"] .piAnalyticsHead p{color:#a8b8ca}html[data-mode="gelap"] .piBarTrack{background:#26364a}
-      html[data-mode="gelap"] .piChip{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#dbe3ee}html[data-mode="gelap"] .piChip.active{background:#eef2f7;color:#0f1218}
+      html[data-mode="gelap"] .piChip{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#dbe3ee}html[data-mode="gelap"] .piChip.active{background:#eef2f7!important;color:#0f1218!important}html[data-mode="gelap"] .piChip.active span{background:rgba(15,18,24,.12)!important;color:#0f1218!important}
       html[data-mode="gelap"] :is(.piSearch input,.piSelect select,.piDate input){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
       html[data-mode="gelap"] .piColNote{background:rgba(255,255,255,.05);color:#aab6c6}html[data-mode="gelap"] .piVisits span{color:#aab6c6}
       html[data-mode="gelap"] .piReadmit,html[data-mode="gelap"] .piChip.warn:not(.active) span{background:rgba(251,191,36,.16);color:#fcd34d}
