@@ -67,8 +67,10 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       setUid(id)
       try {
         const raw = id ? localStorage.getItem(LIST_KEY + ':' + id) : null
-        const list = raw ? (JSON.parse(raw) as Convo[]) : []
+        // Buang percakapan yang isinya sudah tidak ada (mis. terhapus saat logout), supaya tidak ada riwayat kosong yang tak bisa dibuka.
+        const list = (raw ? (JSON.parse(raw) as Convo[]) : []).filter((c) => id && localStorage.getItem('aureka-tanya-history:' + id + ':nara:' + c.id))
         setConvos(list)
+        if (id) localStorage.setItem(LIST_KEY + ':' + id, JSON.stringify(list))
         if (list[0] && Date.now() - list[0].updatedAt < 6 * 3_600_000) setActiveId(list[0].id) // lanjutkan percakapan terakhir (<6 jam)
       } catch { /* penyimpanan tidak tersedia */ }
     })
@@ -156,11 +158,11 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraItem{display:flex;align-items:center;min-width:0;max-width:100%;overflow:hidden;border-radius:11px;transition:background-color .15s ease}
       .naraItem:hover{background:rgba(255,255,255,.7)}
       .naraItem.on{background:#fff;box-shadow:0 4px 12px rgba(15,35,60,.06)}
-      .naraItemOpen{display:block;flex:1 1 0;width:0;min-width:0;min-height:38px;padding:0 6px 0 10px;border:0;background:transparent;text-align:left;font:inherit;font-size:13px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+      .naraItemOpen{display:block;flex:1 1 0;width:0;min-width:0;min-height:38px;padding:0 6px 0 10px!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;text-align:left;font:inherit;font-size:13px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
       .naraItem.on .naraItemOpen{color:#1f2430;font-weight:700}
-      .naraItemDel{width:30px;height:30px;flex:0 0 30px;margin-right:4px;border:0;border-radius:8px;background:transparent;color:#94a3b8;font-size:16px;cursor:pointer;opacity:0;transition:opacity .15s ease,background-color .15s ease,color .15s ease}
+      .naraItemDel{width:30px;height:30px;min-width:30px;flex:0 0 30px;margin-right:4px;padding:0!important;border:0!important;border-radius:8px!important;background:transparent!important;box-shadow:none!important;color:#94a3b8;font-size:16px;cursor:pointer;opacity:0;transition:opacity .15s ease,background-color .15s ease,color .15s ease}
       .naraItem:hover .naraItemDel,.naraItem.on .naraItemDel,.naraItemDel:focus-visible{opacity:1}
-      .naraItemDel:hover{background:#fdecea;color:#b42318}
+      .naraItemDel:hover{background:#fdecea!important;color:#b42318}
       @media(hover:none){.naraItemDel{opacity:1}}
       .naraNew:focus-visible,.naraItemOpen:focus-visible,.naraItemDel:focus-visible,.naraEngines summary:focus-visible{outline:2px solid rgba(34,211,238,.7);outline-offset:2px}
       .naraEngines{position:relative}
