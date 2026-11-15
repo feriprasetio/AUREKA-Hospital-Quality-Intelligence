@@ -55,7 +55,7 @@ test('production Pages builds the current AUREKA application directly at the pub
   const validation = production.indexOf('Validate production Supabase configuration')
   const build = production.indexOf('Build AUREKA directly for the public project root')
   const upload = production.indexOf('Upload Pages artifact')
-  const deploy = production.indexOf('uses: actions/deploy-pages@v4')
+  const deploy = production.indexOf('uses: actions/deploy-pages@v5')
 
   assert.ok(checkout >= 0 && validation > checkout)
   assert.ok(validation < build && build < upload && upload < deploy)
@@ -69,7 +69,7 @@ test('production deployment blocks moderate, high, and critical dependency findi
 test('production validates its Supabase configuration before build and deploy', () => {
   const validation = production.indexOf('Validate production Supabase configuration')
   const build = production.indexOf('Build AUREKA directly for the public project root')
-  const deploy = production.indexOf('uses: actions/deploy-pages@v4')
+  const deploy = production.indexOf('uses: actions/deploy-pages@v5')
   assert.notEqual(validation, -1)
   assert.notEqual(build, -1)
   assert.notEqual(deploy, -1)
@@ -80,7 +80,7 @@ test('production validates its Supabase configuration before build and deploy', 
 
 test('production Pages refuses manual dispatch from non-main refs before checkout', () => {
   const guard = production.indexOf('name: Enforce production branch')
-  const checkout = production.search(/uses: actions\/checkout@[0-9a-f]{40} # v4\.\d+\.\d+/)
+  const checkout = production.search(/uses: actions\/checkout@[0-9a-f]{40} # v7\.\d+\.\d+/)
   assert.notEqual(guard, -1)
   assert.notEqual(checkout, -1)
   assert.ok(guard < checkout, 'production ref guard must run before checkout and build steps')
@@ -92,7 +92,7 @@ const dependencyLockValidation = readFileSync('.github/workflows/dependency-lock
 
 test('dependency lock automation is restricted to feature branches before checkout', () => {
   const guard = dependencyLockValidation.indexOf('name: Restrict dependency lock automation to feature branches')
-  const checkout = dependencyLockValidation.indexOf('uses: actions/checkout@v4')
+  const checkout = dependencyLockValidation.indexOf('uses: actions/checkout@v7')
   assert.notEqual(guard, -1)
   assert.notEqual(checkout, -1)
   assert.ok(guard < checkout, 'feature-branch guard must run before checkout or lockfile mutation')
