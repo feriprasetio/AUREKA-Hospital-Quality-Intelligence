@@ -253,7 +253,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     </header>
     <div className="tanyaList" ref={listRef} aria-live="polite">
       {msgs.length === 0 && <div className="tanyaWelcome">
-        <p>Halo, Aku AUREKA, rekan kerjamu untuk urusan mutu, keselamatan pasien, dan risiko. Mau ngobrol, tanya istilah, atau cek data unit, langsung tulis aja ya.</p>
+        <p>Halo, Aku {assistantName === 'Tanya AUREKA' ? 'AUREKA' : assistantName}, rekan kerjamu untuk urusan mutu, keselamatan pasien, dan risiko. Mau ngobrol, tanya istilah, atau cek data unit, langsung tulis aja ya.</p>
         <div className="tanyaChips">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => void ask(s)}>{s}</button>)}</div>
       </div>}
       {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '') + (showAvatar && m.role === 'model' ? ' naraModelMsg' : '')}>
