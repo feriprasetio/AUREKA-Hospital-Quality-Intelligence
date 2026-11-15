@@ -1,0 +1,67 @@
+name: Supabase Isolated Migration CI
+
+# Validate the complete migration history against a disposable local Postgres
+# instance. This workflow never links to or connects to the production project.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/supabase-migration-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-migrations-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  migration-replay:
+    name: Replay Supabase migrations on isolated local database
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.1.0
+
+      - name: Verify CLI and Docker runtime
+        run: |
+          supabase --version
+          docker version
+
+      - name: Reject duplicate migration versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          duplicates="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
+            | sed -E 's/^([0-9]+)_.*/\1/' \
+            | sort | uniq -d)"
+          if [[ -n "$duplicates" ]]; then
+            echo "::error::Duplicate Supabase migration version(s):"
+            printf '%s\n' "$duplicates"
+            echo "Each migration filename must have a unique timestamp/version."
+            exit 1
+          fi
+          echo "Migration versions are unique."
+
+      - name: Start isolated local Supabase database and replay migrations
+        run: supabase db start
+
+      - name: Rebuild local database from migration history
+        run: supabase db reset --no-seed
+
+      - name: Verify migration history is applied locally
+        run: supabase migration list
+
+      - name: Stop local Supabase services
+        if: always()
+        run: supabase stop --no-backup
