@@ -808,3 +808,21 @@ html body:not(#_) .workspaceRoot .workspaceNavigationRailItems:empty { display: 
 /* Cincin fokus keyboard di menu kiri: tipis, di dalam tombol (tidak terpotong jadi garis biru di bawah pil aktif). */
 html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button:focus-visible { outline: 2px solid rgba(34, 211, 238, 0.75) !important; outline-offset: -2px !important; }
 html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button:focus:not(:focus-visible) { outline: none !important; }
+
+/* Pusat Komunikasi & Notifikasi: muncul di bawah header (tidak menutupi header), latar solid, tab satu baris. */
+html body:not(#_) .workspaceRoot :is(.workspaceNotificationPanel, .workspaceSupportPanel) {
+  top: 100px !important; right: 24px !important; width: min(400px, calc(100vw - 32px)) !important; max-height: calc(100dvh - 120px) !important;
+  background: rgba(255, 255, 255, 0.97) !important; border: 1px solid #dfe7f0 !important; border-radius: 22px !important;
+  box-shadow: 0 24px 60px rgba(15, 35, 60, 0.18) !important; backdrop-filter: blur(20px) saturate(140%) !important; -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.workspaceNotificationPanel, .workspaceSupportPanel) { background: rgba(20, 27, 38, 0.97) !important; border-color: rgba(255, 255, 255, 0.12) !important; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45) !important; }
+html body:not(#_) .workspaceRoot .workspaceCommunicationTabs { display: grid !important; grid-auto-flow: column !important; grid-auto-columns: minmax(0, 1fr) !important; gap: 4px !important; margin: 8px 14px !important; padding: 4px !important; border-radius: 14px !important; background: rgba(31, 36, 48, 0.06) !important; border: 0 !important; }
+html body:not(#_) .workspaceRoot .workspaceCommunicationTabs > button { min-width: 0 !important; min-height: 36px !important; padding: 0 8px !important; border: 0 !important; border-radius: 10px !important; background: transparent !important; box-shadow: none !important; color: #4b5565 !important; font-size: 13px !important; font-weight: 700 !important; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+html body:not(#_) .workspaceRoot .workspaceCommunicationTabs > button.selected { background: #ffffff !important; color: #1f2430 !important; box-shadow: 0 2px 8px rgba(31, 36, 48, 0.1) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceCommunicationTabs { background: rgba(255, 255, 255, 0.06) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceCommunicationTabs > button { color: #aab6c6 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceCommunicationTabs > button.selected { background: rgba(255, 255, 255, 0.12) !important; color: #eef2f7 !important; box-shadow: none !important; }
+/* Ponsel: jadi lembar penuh di atas navigasi bawah, header tetap terlihat di atasnya. */
+@media (max-width: 720px) {
+  html body:not(#_) .workspaceRoot :is(.workspaceNotificationPanel, .workspaceSupportPanel) { top: auto !important; bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; left: 10px !important; right: 10px !important; width: auto !important; max-height: calc(100dvh - 200px) !important; }
+}
