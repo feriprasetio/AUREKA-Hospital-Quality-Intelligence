@@ -586,13 +586,13 @@ html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(.akModalHead, .oppe
 
 @media (prefers-reduced-motion: no-preference) {
   /* 1. Pindah modul/sub-tab: blok-blok isi naik berurutan */
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter > * > :is(section, header, div, article, nav, form):nth-child(-n+8) { animation: auModIn .45s cubic-bezier(.22, 1, .36, 1) both; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter > * > :is(section, header, div, article, nav, form):nth-child(-n+8) { animation: auModIn .45s cubic-bezier(.22, 1, .36, 1) backwards; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter > * > :nth-child(2) { animation-delay: .05s; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter > * > :nth-child(3) { animation-delay: .1s; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter > * > :nth-child(4) { animation-delay: .15s; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter > * > :nth-child(5) { animation-delay: .2s; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter > * > :nth-child(n+6) { animation-delay: .25s; }
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { animation: auModIn .45s cubic-bezier(.22, 1, .36, 1) both; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard { animation: auModIn .45s cubic-bezier(.22, 1, .36, 1) backwards; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard:nth-child(2) { animation-delay: .06s; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard:nth-child(3) { animation-delay: .12s; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard:nth-child(4) { animation-delay: .18s; }
@@ -826,3 +826,22 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceCommunicationTabs 
 @media (max-width: 720px) {
   html body:not(#_) .workspaceRoot :is(.workspaceNotificationPanel, .workspaceSupportPanel) { top: auto !important; bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; left: 10px !important; right: 10px !important; width: auto !important; max-height: calc(100dvh - 200px) !important; }
 }
+
+/* Catatan: animasi masuk modul memakai fill "backwards" (bukan "both"). Animasi transform yang terus "menempel" membuat
+   elemen jadi containing block untuk position:fixed, sehingga popup (mis. Edit tenaga kerja) terkurung di tengah halaman. */
+
+/* Mode gelap: kartu ringkasan Program dan panel Direktori SDM tidak lagi terang dengan teks pucat. */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .annualProgramVisualKpis > div { background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .annualProgramVisualKpis span { color: #aab6c6 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .annualProgramVisualKpis b { color: #eef2f7 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .annualProgramStatusRow > i { background: rgba(255, 255, 255, 0.1) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .sdBlueprintCard { background: rgba(20, 27, 38, 0.8) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .sdBlueprintCard :is(h3, b, strong) { color: #eef2f7 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .sdBlueprintCard :is(p, span, small) { color: #aab6c6 !important; }
+html[data-mode="gelap"] body:not(#_) .sdEditDialog { background: #141b26 !important; color: #eef2f7 !important; border-color: rgba(255, 255, 255, 0.12) !important; }
+html[data-mode="gelap"] body:not(#_) .sdEditDialog :is(.sdModalTitle, label, h4) { color: #eef2f7 !important; }
+html[data-mode="gelap"] body:not(#_) .sdEditBackdrop { background: rgba(5, 8, 12, 0.6) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.sdPanel, .sdKpi, .sdTableWrap) { background: rgba(20, 27, 38, 0.72) !important; border-color: rgba(255, 255, 255, 0.1) !important; box-shadow: none !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.sdBtn, .sdMini, .sdEditBtn) { background: rgba(255, 255, 255, 0.06) !important; border-color: rgba(255, 255, 255, 0.14) !important; color: #eef2f7 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .sdNotice { background: rgba(94, 196, 207, 0.1) !important; border-color: rgba(94, 196, 207, 0.2) !important; color: #dbe3ee !important; }
+html[data-mode="gelap"] body:not(#_) .sdCodeLock { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.18) !important; color: #eef2f7 !important; }
