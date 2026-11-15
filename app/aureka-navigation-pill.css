@@ -15,10 +15,10 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   top: var(--pill-y, 0) !important;
   width: var(--pill-w, 0) !important;
   height: var(--pill-h, 0) !important;
-  border: 1px solid #a9c4dd !important;
-  border-radius: 8px !important;
-  background: #dcebf8 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 1px 3px rgba(11,70,122,.09) !important;
+  border: 1px solid #1f2430 !important;
+  border-radius: 12px !important;
+  background: #1f2430 !important; /* tinta Aurora, sama dengan tombol utama */
+  box-shadow: 0 6px 16px rgba(31,36,48,.16) !important;
   opacity: 0 !important;
   pointer-events: none !important;
   transition: left 180ms cubic-bezier(.2,.75,.25,1), top 180ms cubic-bezier(.2,.75,.25,1), width 180ms cubic-bezier(.2,.75,.25,1), height 180ms cubic-bezier(.2,.75,.25,1), opacity 120ms ease !important;
@@ -37,18 +37,18 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
 }
 
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
-  color: #164b7a !important;
+  color: #ffffff !important;
   font-weight: 750 !important;
 }
 
 html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before {
-  border-color: #4d7292 !important;
-  background: #315573 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 1px 3px rgba(0,0,0,.18) !important;
+  border-color: #eef2f7 !important;
+  background: #eef2f7 !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,.3) !important;
 }
 
 html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
-  color: #ffffff !important;
+  color: #0f1218 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
