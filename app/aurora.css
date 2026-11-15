@@ -800,3 +800,6 @@ html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.qui
 html body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.quiet:hover { color: #b42318 !important; background: #fdecea !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.quiet { color: #9aa6b6 !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomList .roomRowBtn.quiet:hover { color: #fda4af !important; background: rgba(244, 63, 94, 0.15) !important; }
+
+/* Modul tanpa submenu (mis. NARA AI): wadah pil kosong tidak tampil sebagai titik bulat. */
+html body:not(#_) .workspaceRoot .workspaceNavigationRailItems:empty { display: none !important; }

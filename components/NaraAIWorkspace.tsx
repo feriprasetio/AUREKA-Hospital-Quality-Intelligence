@@ -1,16 +1,29 @@
 'use client'
 
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import TanyaAureka from '@/components/TanyaAureka'
 
+const ENGINES = ['Groq', 'NVIDIA', 'Gemini', 'DeepSeek', 'LLM7'] as const
+
+// Ikon garis seragam (stroke 1.8) untuk tiap fokus analisis.
+const GLYPH: Record<string, ReactNode> = {
+  executive: <><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M8 9h8M8 13h8M8 17h5" /></>,
+  quality: <><path d="M5 19V11" /><path d="M10 19V7" /><path d="M15 19v-5" /><path d="M20 19V5" /></>,
+  safety: <><path d="M12 3.5 19 6v5.5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z" /><path d="m9 12 2 2 4-4" /></>,
+  risk: <><path d="M12 4 21 19.5H3z" /><path d="M12 10v4.5" /><path d="M12 17.2v.3" /></>,
+  strategy: <><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r=".6" /></>,
+  research: <><path d="M9 4h6" /><path d="M10 4v5.5L5.2 18a1.5 1.5 0 0 0 1.3 2.2h11a1.5 1.5 0 0 0 1.3-2.2L14 9.5V4" /><path d="M7.5 15h9" /></>,
+}
+
 const MODES = [
-  { id:'executive', label:'Executive Brief', detail:'Ringkasan prioritas manajemen', prompt:'Susun executive brief kondisi mutu, keselamatan pasien, dan manajemen risiko rumah sakit saat ini. Tampilkan temuan utama, prioritas, dan keputusan yang perlu diambil manajemen.' },
-  { id:'quality', label:'Quality Intelligence', detail:'Analisis indikator dan tren mutu', prompt:'Analisis capaian indikator mutu rumah sakit. Identifikasi indikator yang belum mencapai target, pola penting, kemungkinan penyebab, dan rekomendasi perbaikannya.' },
-  { id:'safety', label:'Patient Safety', detail:'Analisis insiden dan pembelajaran', prompt:'Buat analisis keselamatan pasien berdasarkan data agregat yang tersedia. Identifikasi pola, prioritas pembelajaran, dan rekomendasi penguatan sistem.' },
-  { id:'risk', label:'Risk Intelligence', detail:'Prioritas risiko, FMEA, dan RTP', prompt:'Analisis profil manajemen risiko rumah sakit. Prioritaskan risiko tinggi dan sangat tinggi, evaluasi tindak pengendalian, dan berikan rekomendasi.' },
-  { id:'strategy', label:'Strategic Advisor', detail:'Rekomendasi strategis berbasis data', prompt:'Bertindak sebagai strategic advisor rumah sakit. Rumuskan 5 prioritas strategis berbasis data mutu, keselamatan pasien, dan manajemen risiko, lengkap dengan indikator keberhasilan.' },
-  { id:'research', label:'Research & Evidence', detail:'Dukungan analisis ilmiah dan statistik', prompt:'Bantu saya melakukan analisis ilmiah dan statistik untuk peningkatan mutu rumah sakit. Jelaskan metode, asumsi, keterbatasan data, dan interpretasi secara akademik.' },
+  { id:'executive', label:'Ringkasan eksekutif', detail:'Prioritas dan keputusan untuk manajemen', prompt:'Susun executive brief kondisi mutu, keselamatan pasien, dan manajemen risiko rumah sakit saat ini. Tampilkan temuan utama, prioritas, dan keputusan yang perlu diambil manajemen.' },
+  { id:'quality', label:'Analisis mutu', detail:'Indikator yang belum capai target dan trennya', prompt:'Analisis capaian indikator mutu rumah sakit. Identifikasi indikator yang belum mencapai target, pola penting, kemungkinan penyebab, dan rekomendasi perbaikannya.' },
+  { id:'safety', label:'Keselamatan pasien', detail:'Pola insiden dan bahan pembelajaran', prompt:'Buat analisis keselamatan pasien berdasarkan data agregat yang tersedia. Identifikasi pola, prioritas pembelajaran, dan rekomendasi penguatan sistem.' },
+  { id:'risk', label:'Analisis risiko', detail:'Prioritas risiko, FMEA, dan RTP', prompt:'Analisis profil manajemen risiko rumah sakit. Prioritaskan risiko tinggi dan sangat tinggi, evaluasi tindak pengendalian, dan berikan rekomendasi.' },
+  { id:'strategy', label:'Saran strategis', detail:'Lima prioritas berbasis data', prompt:'Bertindak sebagai strategic advisor rumah sakit. Rumuskan 5 prioritas strategis berbasis data mutu, keselamatan pasien, dan manajemen risiko, lengkap dengan indikator keberhasilan.' },
+  { id:'research', label:'Riset & statistik', detail:'Metode, asumsi, dan interpretasi', prompt:'Bantu saya melakukan analisis ilmiah dan statistik untuk peningkatan mutu rumah sakit. Jelaskan metode, asumsi, keterbatasan data, dan interpretasi secara akademik.' },
 ] as const
 
 function NaraAvatar({ size = 58 }: { size?: number }) {
@@ -27,38 +40,129 @@ function NaraAvatar({ size = 58 }: { size?: number }) {
 export default function NaraAIWorkspace({ sb, page }: { sb: SupabaseClient; page?: string }) {
   const [prompt, setPrompt] = useState<string | undefined>()
   const [activeMode, setActiveMode] = useState<string | null>(null)
-  const selectMode = (mode: typeof MODES[number]) => { setActiveMode(mode.id); setPrompt(mode.prompt) }
-  return <main className="naraWorkspace" aria-label="NARA AI">
-    <header className="naraHero"><div className="naraHeroIdentity"><NaraAvatar size={64}/><div><small>AUREKA INTELLIGENCE</small><h1>NARA AI</h1><p>Hospital Intelligence & Decision Support</p></div></div>
-      <div className="naraHeroStatus"><span className="naraLiveDot"/> Multi-provider orchestration <b>5 engines</b></div>
-      <p className="naraHeroDescription">Asisten intelijen rumah sakit untuk mengubah data mutu, keselamatan pasien, dan manajemen risiko menjadi insight dan rekomendasi yang dapat ditindaklanjuti.</p>
+  const selectMode = (mode: typeof MODES[number]) => {
+    setActiveMode(mode.id)
+    setPrompt(mode.prompt)
+    window.setTimeout(() => document.querySelector('.naraChat')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
+  return <div className="naraWorkspace" aria-label="NARA AI">
+    <header className="naraHero">
+      <div className="naraHeroIdentity">
+        <NaraAvatar size={60}/>
+        <div>
+          <span className="naraEyebrow">Kecerdasan AUREKA</span>
+          <h1>NARA AI</h1>
+          <p>Asisten analisis mutu, keselamatan pasien, dan manajemen risiko. Mengubah data jadi temuan dan rekomendasi yang bisa langsung ditindaklanjuti.</p>
+        </div>
+      </div>
+      <details className="naraEngines">
+        <summary><span className="naraLiveDot" aria-hidden="true"/> {ENGINES.length} mesin AI aktif</summary>
+        <div className="naraEnginesMenu">
+          <ul>{ENGINES.map((name) => <li key={name}><span className="naraLiveDot" aria-hidden="true"/>{name}</li>)}</ul>
+          <p>Dipilih otomatis lewat gateway AUREKA. Kunci API tersimpan aman di server.</p>
+        </div>
+      </details>
     </header>
-    <section className="naraEngineRail" aria-label="Mesin AI terintegrasi"><div className="naraRailTitle"><strong>AI ENGINE LAYER</strong><span>Gateway terpusat · kredensial aman di server</span></div>
-      <div className="naraEngineList">{['Groq','NVIDIA','Gemini','DeepSeek','LLM7'].map((name,i)=><div className="naraEngine" key={name}><span className="naraEngineIndex">0{i+1}</span><b>{name}</b><span className="naraEngineState">Terintegrasi</span></div>)}</div>
-    </section>
-    <section className="naraWorkspaceGrid"><div className="naraMainColumn"><div className="naraSectionHeading"><div><small>INTELLIGENCE WORKSPACE</small><h2>Apa yang ingin dianalisis?</h2></div><span>AI-assisted decision support</span></div>
-      <div className="naraModeGrid">{MODES.map(mode=><button type="button" key={mode.id} className={'naraModeCard '+(activeMode===mode.id?'selected':'')} onClick={()=>selectMode(mode)}><span className="naraModeGlyph" aria-hidden="true">{mode.id==='executive'?'▤':mode.id==='quality'?'◫':mode.id==='safety'?'✚':mode.id==='risk'?'⌁':mode.id==='strategy'?'◎':'∑'}</span><span><b>{mode.label}</b><small>{mode.detail}</small></span><span className="naraModeArrow">↗</span></button>)}</div>
-      <section className="naraChatSurface"><div className="naraChatIntro"><NaraAvatar size={38}/><div><b>Ruang Analisis NARA</b><span>Pilih fokus analisis di atas atau ajukan pertanyaan secara langsung.</span></div><span className="naraSecureLabel">PRIVATE · RLS</span></div>
-        <TanyaAureka sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Hospital Intelligence Assistant · Data sesuai hak akses" showAvatar initialPrompt={prompt}/>
-      </section></div>
-      <aside className="naraSideColumn"><section className="naraSideCard"><small>CORE INTELLIGENCE</small><h3>Kapabilitas NARA</h3><ul><li>Analisis indikator mutu dan tren capaian</li><li>Identifikasi pola keselamatan pasien</li><li>Prioritisasi risiko dan tindak pengendalian</li><li>Executive brief dan rekomendasi strategis</li><li>Dukungan metodologi statistik dan riset</li></ul></section>
-        <section className="naraSideCard naraPrivacyCard"><small>DATA GOVERNANCE</small><h3>Privasi & Keamanan</h3><p>Permintaan diproses melalui gateway Supabase terautentikasi. Akses data mengikuti RLS, dan konteks AI menggunakan ringkasan agregat tanpa identitas pasien.</p><span><i/> Server-side API keys</span><span><i/> Role-based data access</span><span><i/> No patient identifiers</span></section></aside>
-    </section>
+
+    <div className="naraGrid">
+      <div className="naraMain">
+        <section aria-labelledby="nara-modes-title">
+          <h2 id="nara-modes-title" className="naraSectionTitle">Mau analisis apa hari ini?</h2>
+          <div className="naraModeGrid">{MODES.map((mode) => <button type="button" key={mode.id} className={'naraModeCard' + (activeMode === mode.id ? ' selected' : '')} aria-pressed={activeMode === mode.id} onClick={() => selectMode(mode)}>
+            <span className="naraModeGlyph" aria-hidden="true"><svg viewBox="0 0 24 24">{GLYPH[mode.id]}</svg></span>
+            <span className="naraModeText"><b>{mode.label}</b><small>{mode.detail}</small></span>
+          </button>)}</div>
+        </section>
+        <section className="naraChat" aria-label="Ruang analisis NARA">
+          <TanyaAureka sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar initialPrompt={prompt}/>
+        </section>
+      </div>
+
+      <aside className="naraSide" aria-label="Tentang NARA">
+        <section className="naraSideCard">
+          <h3>Yang bisa NARA bantu</h3>
+          <ul className="naraList">
+            <li>Membaca capaian dan tren indikator mutu</li>
+            <li>Menemukan pola insiden keselamatan pasien</li>
+            <li>Memprioritaskan risiko dan tindak pengendalian</li>
+            <li>Menyusun ringkasan dan rekomendasi untuk manajemen</li>
+            <li>Membantu metode statistik dan riset</li>
+          </ul>
+        </section>
+        <section className="naraSideCard naraPrivacy">
+          <h3>Privasi data</h3>
+          <p>NARA hanya membaca ringkasan agregat sesuai hak akses Anda. Identitas pasien tidak dikirim ke AI.</p>
+          <ul className="naraChecks">
+            <li>Kunci API di server</li>
+            <li>Akses sesuai peran dan unit</li>
+            <li>Tanpa identitas pasien</li>
+          </ul>
+        </section>
+        <p className="naraNote">Jawaban AI bisa keliru. Cek kembali angka penting di modul terkait sebelum dipakai untuk keputusan.</p>
+      </aside>
+    </div>
+
     <style jsx>{`
-      .naraWorkspace{display:flex;flex-direction:column;gap:17px;min-width:0;color:var(--text-primary,#243447)}
-      .naraHero{padding:22px 24px;border:1px solid var(--border-color,rgba(128,128,128,.2));border-radius:18px;background:linear-gradient(115deg,#f9fcff 0%,#edf7fb 58%,#eaf8f5 100%)}
-      .naraHeroIdentity{display:flex;align-items:center;gap:16px}.naraHeroAvatar{display:grid;place-items:center;flex:0 0 auto;filter:drop-shadow(0 7px 14px rgba(20,76,112,.16))}
-      .naraHeroIdentity small,.naraSectionHeading small,.naraSideCard>small{font-size:10px;letter-spacing:.14em;font-weight:850;color:#4e809c}.naraHeroIdentity h1{margin:2px 0;font-size:25px;line-height:1.2;font-weight:850;color:#1b344a}.naraHeroIdentity p{margin:3px 0 0;font-size:12px;color:#64748b}
-      .naraHeroStatus{float:right;display:flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid #d8e7ed;border-radius:99px;background:#fff;font-size:11px;color:#536779}.naraHeroStatus b{padding-left:8px;border-left:1px solid #dce6eb;color:#1d526d}.naraLiveDot{width:7px;height:7px;border-radius:50%;background:#12a879}
-      .naraHeroDescription{max-width:850px;margin:16px 0 0 80px;font-size:13px;line-height:1.65;color:#526779}.naraEngineRail,.naraSideCard,.naraChatSurface{border:1px solid var(--border-color,rgba(128,128,128,.2));border-radius:15px;background:var(--surface-card,#fff)}
-      .naraEngineRail{padding:14px 16px}.naraRailTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.naraRailTitle strong{font-size:10px;letter-spacing:.14em;color:#4e809c}.naraRailTitle span{font-size:10px;color:#778797}
-      .naraEngineList{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.naraEngine{display:flex;align-items:center;gap:7px;min-width:0;padding:9px;border-radius:10px;background:#f4f7fa}.naraEngineIndex{font-size:9px;color:#8a9bab}.naraEngine b{font-size:11px;color:#263e52}.naraEngineState{margin-left:auto;font-size:9px;color:#25856e}
-      .naraWorkspaceGrid{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px;align-items:start}.naraMainColumn{display:flex;flex-direction:column;gap:12px;min-width:0}.naraSectionHeading{display:flex;align-items:end;justify-content:space-between;gap:10px}.naraSectionHeading h2{margin:3px 0 0;font-size:19px;color:var(--text-primary,#26394a)}.naraSectionHeading>span{font-size:10px;color:#778797}
-      .naraModeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.naraModeCard{display:flex;align-items:center;gap:11px;text-align:left;padding:12px;border:1px solid var(--border-color,rgba(128,128,128,.2));border-radius:12px;background:var(--surface-card,#fff);color:inherit;cursor:pointer;transition:border-color .15s,transform .15s}.naraModeCard:hover,.naraModeCard.selected{border-color:#4a9caa;transform:translateY(-1px);background:#f4fbfb}.naraModeGlyph{width:32px;height:32px;display:grid;place-items:center;flex:0 0 32px;border-radius:10px;background:#e8f4f7;color:#276c86;font-size:18px}.naraModeCard b,.naraModeCard small{display:block}.naraModeCard b{font-size:12px}.naraModeCard small{margin-top:3px;font-size:10px;color:#738393}.naraModeArrow{margin-left:auto;color:#7792a3}
-      .naraChatSurface{overflow:hidden}.naraChatIntro{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--border-color,rgba(128,128,128,.15))}.naraChatIntro>div{display:flex;flex-direction:column;gap:3px}.naraChatIntro b{font-size:12px}.naraChatIntro span{font-size:10px;color:#778797}.naraSecureLabel{margin-left:auto;padding:5px 8px;border-radius:7px;background:#eef7f3;color:#26866a!important;font-size:9px!important;font-weight:800}
-      .naraSideColumn{display:flex;flex-direction:column;gap:12px}.naraSideCard{padding:15px}.naraSideCard h3{margin:5px 0 10px;font-size:14px}.naraSideCard ul{margin:0;padding-left:17px}.naraSideCard li{margin:7px 0;font-size:11px;line-height:1.5;color:#5d6f80}.naraPrivacyCard p{font-size:11px;line-height:1.6;color:#607182}.naraPrivacyCard>span{display:block;margin-top:9px;font-size:10px;color:#516777}.naraPrivacyCard i{display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:#19a47a}
-      @media(max-width:950px){.naraWorkspaceGrid{grid-template-columns:1fr}.naraSideColumn{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:650px){.naraHero{padding:16px}.naraHeroStatus{float:none;width:max-content;margin:13px 0 0 78px}.naraHeroDescription{margin:12px 0 0;font-size:12px}.naraEngineList{grid-template-columns:repeat(2,minmax(0,1fr))}.naraEngineList .naraEngine:last-child{grid-column:span 2}.naraRailTitle{align-items:flex-start;flex-direction:column}.naraModeGrid{grid-template-columns:1fr}.naraSideColumn{grid-template-columns:1fr}.naraSectionHeading>span{display:none}}
+      .naraWorkspace{display:flex;flex-direction:column;gap:18px;min-width:0;color:#1f2430}
+      .naraHero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;padding:24px 26px;border-radius:24px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.06)}
+      .naraHeroIdentity{display:flex;align-items:center;gap:16px;min-width:0;flex:1 1 420px}
+      .naraHeroAvatar{display:grid;place-items:center;flex:0 0 auto;filter:drop-shadow(0 8px 16px rgba(20,76,112,.18))}
+      .naraEyebrow{display:block;font-size:13px;font-weight:700;color:#0e7490}
+      .naraHeroIdentity h1{margin:2px 0 4px;font-size:30px;line-height:1.1;font-weight:800;letter-spacing:-.02em;color:#1f2430}
+      .naraHeroIdentity p{margin:0;max-width:620px;font-size:14px;line-height:1.6;color:#4b5565}
+      .naraEngines{position:relative;flex:0 0 auto}
+      .naraEngines summary{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:999px;background:#fff;border:1px solid #dfe7f0;font-size:13px;font-weight:700;color:#1f2430;cursor:pointer;list-style:none}
+      .naraEngines summary::-webkit-details-marker{display:none}
+      .naraEngines summary::after{content:'';width:7px;height:7px;margin-left:2px;border-right:1.8px solid #64748b;border-bottom:1.8px solid #64748b;transform:rotate(45deg) translateY(-2px);transition:transform .2s ease}
+      .naraEngines[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+      .naraEnginesMenu{position:absolute;right:0;top:calc(100% + 8px);z-index:20;width:250px;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid #dfe7f0;box-shadow:0 18px 40px rgba(31,36,48,.14)}
+      .naraEnginesMenu ul{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
+      .naraEnginesMenu li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+      .naraEnginesMenu p{margin:0;font-size:12px;line-height:1.5;color:#5b6878}
+      .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}
+      .naraGrid{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}
+      .naraMain{display:flex;flex-direction:column;gap:16px;min-width:0}
+      .naraSectionTitle{margin:0 0 10px;font-size:18px;font-weight:800;letter-spacing:-.01em;color:#1f2430}
+      .naraModeGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+      .naraModeCard{display:flex;align-items:flex-start;gap:12px;min-height:76px;padding:14px;text-align:left;border-radius:16px;border:1px solid #dfe7f0;background:#fff;color:inherit;font:inherit;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,translate .18s cubic-bezier(.22,1,.36,1)}
+      .naraModeCard:hover{border-color:rgba(14,116,144,.45);box-shadow:0 8px 22px rgba(15,35,60,.08);translate:0 -1px}
+      .naraModeCard:focus-visible{outline:2px solid rgba(34,211,238,.7);outline-offset:2px}
+      .naraModeCard.selected{border-color:#0e7490;background:linear-gradient(180deg,rgba(94,196,207,.12),#fff);box-shadow:0 0 0 3px rgba(94,196,207,.18)}
+      .naraModeGlyph{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:12px;background:rgba(94,196,207,.16);color:#0e5566}
+      .naraModeGlyph svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      .naraModeCard.selected .naraModeGlyph{background:#0e7490;color:#fff}
+      .naraModeText{display:grid;gap:3px;min-width:0}.naraModeText b{font-size:14px;font-weight:700;color:#1f2430}.naraModeText small{font-size:12px;line-height:1.45;color:#5b6878}
+      .naraChat{scroll-margin-top:90px;border-radius:20px;overflow:hidden;border:1px solid #dfe7f0;background:#fff;box-shadow:0 6px 20px rgba(15,35,60,.05)}
+      .naraChat :global(.tanyaChips){flex-direction:row;flex-wrap:wrap}
+      .naraChat :global(.tanyaChips button){width:auto;border-radius:999px;padding:8px 14px;font-size:13px}
+      .naraChat :global(.tanyaClose){display:none}
+      .naraSide{display:flex;flex-direction:column;gap:12px}
+      .naraSideCard{padding:16px 18px;border-radius:18px;background:rgba(255,255,255,.7);border:1px solid #dfe7f0}
+      .naraSideCard h3{margin:0 0 10px;font-size:15px;font-weight:800;color:#1f2430}
+      .naraList{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+      .naraList li{position:relative;padding-left:16px;font-size:13px;line-height:1.5;color:#334155}
+      .naraList li::before{content:'';position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:#5ec4cf}
+      .naraPrivacy p{margin:0 0 10px;font-size:13px;line-height:1.55;color:#4b5565}
+      .naraChecks{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+      .naraChecks li{display:flex;align-items:center;gap:8px;font-size:13px;color:#1f2430;font-weight:600}
+      .naraChecks li::before{content:'';width:16px;height:16px;flex:0 0 16px;border-radius:50%;background:#16a34a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12.5 4 4 8-9'/%3E%3C/svg%3E") center/11px no-repeat}
+      .naraNote{margin:0;padding:0 4px;font-size:12px;line-height:1.5;color:#64748b}
+      @media(max-width:1180px){.naraModeGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      @media(max-width:1000px){.naraGrid{grid-template-columns:1fr}.naraSide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.naraNote{grid-column:1/-1}}
+      @media(max-width:640px){.naraHero{padding:18px}.naraHeroIdentity{align-items:flex-start}.naraHeroIdentity h1{font-size:24px}.naraModeGrid,.naraSide{grid-template-columns:1fr}.naraEnginesMenu{left:0;right:auto}}
+      @media(prefers-reduced-motion:reduce){.naraModeCard,.naraEngines summary::after{transition:none}}
+      :global(html[data-mode="gelap"]) .naraWorkspace{color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraHero{background:linear-gradient(150deg,rgba(94,196,207,.12),rgba(16,22,32,.6) 60%);border-color:rgba(94,196,207,.2);box-shadow:none}
+      :global(html[data-mode="gelap"]) .naraHeroIdentity h1,:global(html[data-mode="gelap"]) .naraSectionTitle,:global(html[data-mode="gelap"]) .naraModeText b,:global(html[data-mode="gelap"]) .naraSideCard h3,:global(html[data-mode="gelap"]) .naraChecks li{color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraHeroIdentity p,:global(html[data-mode="gelap"]) .naraModeText small,:global(html[data-mode="gelap"]) .naraPrivacy p,:global(html[data-mode="gelap"]) .naraList li,:global(html[data-mode="gelap"]) .naraEnginesMenu p,:global(html[data-mode="gelap"]) .naraNote{color:#aab6c6}
+      :global(html[data-mode="gelap"]) .naraEyebrow{color:#8ee3ea}
+      :global(html[data-mode="gelap"]) .naraEngines summary{background:rgba(20,27,38,.8);border-color:rgba(255,255,255,.1);color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraEnginesMenu{background:#141b26;border-color:rgba(255,255,255,.1);color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraModeCard{background:rgba(20,27,38,.8);border-color:rgba(255,255,255,.1);color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraChat{background:rgba(20,27,38,.8);border-color:rgba(255,255,255,.1);color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraSideCard{background:rgba(20,27,38,.8);border-color:rgba(255,255,255,.1);color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraModeCard.selected{border-color:#5ec4cf;background:rgba(94,196,207,.12)}
+      :global(html[data-mode="gelap"]) .naraModeGlyph{background:rgba(94,196,207,.18);color:#bdf0f5}
     `}</style>
-  </main>
+  </div>
 }
