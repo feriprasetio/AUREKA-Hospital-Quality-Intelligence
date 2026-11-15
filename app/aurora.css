@@ -602,11 +602,12 @@ html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(.akModalHead, .oppe
 @media (min-width: 721px) {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems { position: relative !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems.hasPill::before {
-    content: ""; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none;
-    width: var(--pill-w, 0); height: var(--pill-h, 0); transform: translate(var(--pill-x, 0), var(--pill-y, 0));
+    /* Posisi pakai left/top (sama dengan aureka-navigation-pill.css #405); jangan ditambah transform, nanti geser dua kali. */
+    content: ""; position: absolute; left: var(--pill-x, 0); top: var(--pill-y, 0); z-index: 0; pointer-events: none;
+    width: var(--pill-w, 0); height: var(--pill-h, 0); transform: none !important;
     border-radius: 12px; background: var(--aurora-ink, #1f2430); box-shadow: 0 6px 16px rgba(31, 36, 48, 0.18);
   }
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems.hasPill.pillReady::before { transition: transform .38s cubic-bezier(.22, 1, .36, 1), width .38s cubic-bezier(.22, 1, .36, 1), height .38s cubic-bezier(.22, 1, .36, 1); }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems.hasPill.pillReady::before { transition: left .38s cubic-bezier(.22, 1, .36, 1), top .38s cubic-bezier(.22, 1, .36, 1), width .38s cubic-bezier(.22, 1, .36, 1), height .38s cubic-bezier(.22, 1, .36, 1), opacity .12s ease !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems.hasPill > .workspaceNavigationRailItem { position: relative; z-index: 1; transition: color .25s ease !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems.hasPill > .workspaceNavigationRailItem.active { background: transparent !important; border-color: transparent !important; color: #fff !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationRailItems.hasPill::before { background: #eef2f7; box-shadow: none; }
