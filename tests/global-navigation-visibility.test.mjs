@@ -17,11 +17,11 @@ test('UnifiedModuleNavigation renders the measured moving active pill in product
   const component = read('components/navigation/UnifiedModuleNavigation.tsx')
   const pill = read('app/aureka-navigation-pill.css')
 
-  assert.ok(layout.indexOf("import './aureka-navigation-pill.css'") > layout.indexOf("import './aureka-global-navigation.css'"))
+  assert.ok(layout.indexOf("import './aureka-navigation-pill.css'") < layout.indexOf("import './aureka-global-navigation.css'"))
   assert.match(component, /classList\.add\('hasPill'\)/)
   assert.match(component, /--pill-x/)
   assert.match(component, /--pill-w/)
-  assert.match(pill, /\.workspaceNavigationRailItems\.hasPill::before/)
+  assert.match(pill, /html\[data-skin=\"arktik\"\] body \.workspaceRoot\.workspaceDesk\[data-aureka-theme\] \.workspaceNavigationRailItems\.hasPill::before/)
   assert.match(pill, /\.workspaceNavigationRailItems\.hasPill\.pillReady::before/)
   assert.match(pill, /prefers-reduced-motion: reduce/)
 })
