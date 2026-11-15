@@ -142,6 +142,11 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
   // Pengingat aktif hanya ditampilkan sampai pengguna menandainya sudah dibaca.
   // Status baca disimpan per akun di database; pesan asli pada Chat Komite PMKP tetap utuh.
   const [reminders,setReminders] = useState<{id:string;at:string;body:string;sent?:number}[]>([])
+  // Admin: pengingat yang sudah dikirim bisa disembunyikan dari Beranda (disimpan per akun di perangkat ini).
+  const hiddenKey='aureka-reminder-hidden:'+userId
+  const [hiddenReminder,setHiddenReminder]=useState<string|null>(null)
+  useEffect(()=>{try{setHiddenReminder(localStorage.getItem(hiddenKey))}catch{setHiddenReminder(null)}},[hiddenKey])
+  const hideReminder=(id:string)=>{setHiddenReminder(id);try{localStorage.setItem(hiddenKey,id)}catch{/* abaikan */}}
   const [reminderSaving,setReminderSaving] = useState<string|null>(null)
   useEffect(()=>{
     if(!userId){setReminders([]);return}
@@ -383,12 +388,13 @@ export default function HomeLandingWorkspace({supabase,userName,userId,rooms,rol
     <nav className="hlTabs hlTabsHidden" role="tablist" aria-label="Navigasi Beranda">{tabButton('welcome','Beranda')}{tabButton('infographics','Infografis')}</nav>
     {tab==='welcome'&&<div id="home-panel-welcome" role="tabpanel">
       <section className="hlWelcomeCard hlAuroraHero"><div className="hlHeroText"><span className="hlHeroEyebrow">0° Khatulistiwa · {dateLabel}</span><span className="hlGreeting">{greeting}, <span className="hlGreetName">{firstName}</span></span><span className="hlHeroSub">RSUD Sultan Syarif Mohamad Alkadrie · {roomName&&roomName!=='Seluruh rumah sakit'?roomName:'Kota Pontianak'}</span>{scopeToRoom&&<small className="hlUnitHint">Ganti unit aktif lewat pilihan di kiri atas</small>}</div><div className="hlHeroActions"><button type="button" className="hlHeroBtn" onClick={()=>onNavigate('safety',{tab:'incidents'})}>Lapor insiden</button><button type="button" className="hlHeroBtn primary" onClick={()=>onNavigate('quality')}>Isi logbook</button><button type="button" className="hlPwBtn hlPwIcon" onClick={()=>window.dispatchEvent(new Event('aureka-open-password'))} title="Ubah password" aria-label="Ubah password"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button></div></section>
-      {reminders.length>0&&(()=>{const r=reminders[0];const when=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',timeZone:'Asia/Pontianak'}).format(new Date(r.at));return <section className="hlReminderBar" role="region" aria-label="Pengingat dari Komite PMKP">
+      {reminders.length>0&&!(reminders[0].sent&&hiddenReminder===reminders[0].id)&&(()=>{const r=reminders[0];const when=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',timeZone:'Asia/Pontianak'}).format(new Date(r.at));return <section className="hlReminderBar" role="region" aria-label="Pengingat dari Komite PMKP">
         <span className="hlReminderIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>
         <div className="hlReminderText"><b>Komite PMKP · {when}{r.sent?` · terkirim ke ${r.sent} ruangan`:reminders.length>1?` · ${reminders.length} belum dibaca`:''}</b><span title={r.body}>{r.body||'Buka pesan untuk membaca pengingat.'}</span></div>
         <div className="hlReminderActions">
           <button type="button" className="hlReminderBtn" onClick={()=>window.dispatchEvent(new CustomEvent('aureka-open-support',{detail:{id:r.id}}))}>{r.sent?'Buka pesan':'Balas'}</button>
           {!r.sent&&<button type="button" className="hlReminderReadBtn" disabled={reminderSaving===r.id} onClick={()=>void markReminderRead(r.id)}>{reminderSaving===r.id?'Menyimpan…':'Tandai sudah dibaca'}</button>}
+          {r.sent&&<button type="button" className="hlReminderReadBtn" onClick={()=>hideReminder(r.id)} title="Sembunyikan dari Beranda. Muncul lagi saat ada pengingat baru.">Sembunyikan</button>}
         </div>
       </section>})()}
       <HomeKpis supabase={supabase} rooms={rooms} isAdmin={isAdmin} roomId={roomId} showSafety={isAdmin||manager}/>
