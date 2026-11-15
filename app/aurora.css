@@ -803,3 +803,7 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .roomGrid.roomL
 
 /* Modul tanpa submenu (mis. NARA AI): wadah pil kosong tidak tampil sebagai titik bulat. */
 html body:not(#_) .workspaceRoot .workspaceNavigationRailItems:empty { display: none !important; }
+
+/* Cincin fokus keyboard di menu kiri: tipis, di dalam tombol (tidak terpotong jadi garis biru di bawah pil aktif). */
+html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button:focus-visible { outline: 2px solid rgba(34, 211, 238, 0.75) !important; outline-offset: -2px !important; }
+html body:not(#_) .workspaceRoot .sidebar :is(.sidebarNav, .sidebarNavGroup) > button:focus:not(:focus-visible) { outline: none !important; }
