@@ -1,6 +1,7 @@
 'use client'
 import { NAV_HINTS } from '@/lib/ui/nav-hints'
 import WelcomeTour from '@/components/layout/WelcomeTour'
+import TrainingBanner from '@/components/layout/TrainingBanner'
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import type {ReactNode} from 'react'
 import dynamic from 'next/dynamic'
@@ -1024,6 +1025,7 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
+  {view==='workspace'&&<TrainingBanner/>}
   {view==='workspace'&&user?.id&&<WelcomeTour userId={user.id} isAdmin={admin} role={role} onNavigate={id=>openMainModule(id)}/>}
   {idle.secondsLeft!=null&&<div className="idleWarnBackdrop"><div className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>

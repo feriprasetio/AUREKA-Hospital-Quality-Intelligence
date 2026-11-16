@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { trainingIntercept } from '@/lib/aureka/training-mode'
 
 // Satu instance Supabase untuk seluruh aplikasi. Beberapa instance dengan
 // storage sesi yang sama dapat saling berebut refresh token
@@ -19,8 +20,10 @@ const refreshAccessToken = (): Promise<string | null> => {
   return refreshing
 }
 const fetchWithSessionRetry: typeof fetch = async (input, init) => {
-  const response = await fetch(input, init)
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+  const fake = trainingIntercept(url, init)
+  if (fake) return fake
+  const response = await fetch(input, init)
   if (response.status !== 401 || /\/auth\/v1\//.test(url)) return response
   const body = await response.clone().text().catch(() => '')
   if (!/jwt expired|PGRST301|PGRST303|invalid jwt|token is expired/i.test(body)) return response
