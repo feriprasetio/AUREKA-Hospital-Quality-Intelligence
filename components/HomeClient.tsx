@@ -1024,7 +1024,7 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
-  {view==='workspace'&&user?.id&&<WelcomeTour userId={user.id} isAdmin={admin} onNavigate={id=>openMainModule(id)}/>}
+  {view==='workspace'&&user?.id&&<WelcomeTour userId={user.id} isAdmin={admin} role={role} onNavigate={id=>openMainModule(id)}/>}
   {idle.secondsLeft!=null&&<div className="idleWarnBackdrop"><div className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
