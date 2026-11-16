@@ -34,7 +34,7 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
       const profile = (Array.isArray(data) ? data[0] : data) as { role_code?: string | null } | null
       setAuthorized(!profileError && ['ADMIN','PMKP'].includes(String(profile?.role_code || '').toUpperCase()))
       setChecking(false)
-    }).catch(() => { if (!cancelled) setChecking(false) })
+    }, () => { if (!cancelled) setChecking(false) })
     return () => { cancelled = true }
   }, [sb])
   useEffect(() => { if (authorized) void load() }, [authorized, load])
