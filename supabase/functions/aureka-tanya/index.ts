@@ -500,6 +500,36 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
   return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
 }
 
+type Icd10AiSuggestion = { diagnosis: string; code: string; title: string; confidence: number; rationale: string };
+
+function parseIcd10AiSuggestions(answer: string, allowedTerms: Set<string>): Icd10AiSuggestion[] {
+  const text = answer.replace(/^`{3}(?:json)?/i, "").replace(/`{3}$/i, "").trim();
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first < 0 || last <= first) return [];
+  try {
+    const payload = JSON.parse(text.slice(first, last + 1));
+    const rows = Array.isArray(payload?.items) ? payload.items : [];
+    const seen = new Set<string>();
+    return rows.flatMap((row: Record<string, unknown>) => {
+      const diagnosis = String(row?.diagnosis || "").trim();
+      const code = String(row?.icd10_code || row?.code || "").trim().toUpperCase();
+      const title = String(row?.icd10_title || row?.title || "").trim().slice(0, 180);
+      const confidenceRaw = Number(row?.confidence);
+      const confidence = confidenceRaw > 1 && confidenceRaw <= 100 ? confidenceRaw / 100 : confidenceRaw;
+      const rationale = String(row?.rationale || row?.reason || "").trim().slice(0, 240);
+      const key = diagnosis.toLocaleLowerCase("id-ID");
+      if (!diagnosis || !allowedTerms.has(diagnosis) || seen.has(key)) return [];
+      if (!/^[A-Z][0-9]{2}(?:\\.[0-9A-Z]{1,4})?$/.test(code) || !title) return [];
+      if (!Number.isFinite(confidence) || confidence < 0.6 || confidence > 1) return [];
+      seen.add(key);
+      return [{ diagnosis, code, title, confidence, rationale }];
+    });
+  } catch {
+    return [];
+  }
+}
+
 async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
