@@ -7,6 +7,7 @@ import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 import AurekaModal from '@/components/ui/AurekaModal'
+import IndicatorCoveragePanel from '@/components/quality/IndicatorCoveragePanel'
 import { buildIndicatorProfileBackup, buildIndicatorProfileXlsx, parseIndicatorProfileXlsx, type IndicatorProfileBackup } from '@/lib/aureka/indicator-profile-transfer'
 
 const sb = aurekaSupabase
@@ -571,6 +572,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <div id="metadata-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'metadata-tab-' + tab} tabIndex={0}>
         {tab === 'programs' && (
           <div style={{ marginTop: 12 }}>
+            {!lockRoomScope && room === '' && <IndicatorCoveragePanel rooms={rooms} year={year} onCopied={() => void load()} />}
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>Nama program kerja mengikuti klasifikasi <code>Program kerja / jenis indikator</code>. Pilih satu program untuk meninjau dan mengelola seluruh indikator di dalamnya.</div>
               <LiquidGlassButton onClick={() => openNew()} disabled={saving}>+ Tambah indikator / program</LiquidGlassButton>
