@@ -246,8 +246,8 @@ const BUSY = "Layanan AI sedang sibuk. Coba lagi sebentar lagi.";
 
 function isTopDiseaseQuery(question: string) {
   const q = question.toLocaleLowerCase("id-ID");
-  return /\b(penyakit|diagnosis|diagnosa)\b/.test(q)
-    && /\b(terbanyak|terbesar|paling banyak|top\s*10|10\s*(penyakit|diagnosis|diagnosa)|sepuluh)\b/.test(q);
+  return /\b(penyakit|diagnosis|diagnosa|disease)\b/.test(q)
+    && /\b(terbanyak|terbesar|teratas|paling banyak|most common|top\s*10|top ten|10\s*(penyakit|diagnosis|diagnosa|diseases?)|sepuluh)\b/.test(q);
 }
 function requestedYear(question: string, fallback: number) {
   const match = /\b(20[0-9]{2})\b/.exec(question);
