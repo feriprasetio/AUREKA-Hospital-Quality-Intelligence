@@ -1562,3 +1562,30 @@ html[data-mode="gelap"] body:not(#_) .aurekaAsyncState :is(p, small, .stateBody 
 /* Mode gelap: label pertanyaan di popup IKP (dirender di luar .workspaceRoot) sebelumnya biru tua di atas gelap. */
 html[data-mode="gelap"] body:not(#_) .psModalSheet :is(.psLabel, label) { color: #dbe4ee !important; }
 html[data-mode="gelap"] body:not(#_) .psModalSheet :is(.psHint, .psFieldHint, small, .psSectionHead p) { color: #9fb0c4 !important; }
+
+/* IKP: grading risiko otomatis + tawaran memulihkan draf. */
+body:not(#_) .psGrade { display: flex; gap: 12px; align-items: flex-start; margin-top: 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid #dfe7f0; background: #f7fafc; color: #1f2430; }
+body:not(#_) .psGrade > div { display: grid; gap: 3px; min-width: 0; }
+body:not(#_) .psGrade strong { font-size: 14px; }
+body:not(#_) .psGrade span, body:not(#_) .psGrade small { font-size: 12.5px; line-height: 1.45; color: #4a5566; }
+body:not(#_) .psGrade small { color: #6b7686; }
+body:not(#_) .psGrade.empty { display: grid; gap: 2px; border-style: dashed; }
+body:not(#_) .psGradeChip { flex: none; padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: 12.5px !important; color: #fff !important; }
+body:not(#_) .psGrade.biru { border-color: #93c5fd; background: #eff6ff; } body:not(#_) .psGrade.biru .psGradeChip { background: #2563eb; }
+body:not(#_) .psGrade.hijau { border-color: #86efac; background: #f0fdf4; } body:not(#_) .psGrade.hijau .psGradeChip { background: #15803d; }
+body:not(#_) .psGrade.kuning { border-color: #fcd34d; background: #fffbeb; } body:not(#_) .psGrade.kuning .psGradeChip { background: #f59e0b; color: #1f2430 !important; }
+body:not(#_) .psGrade.merah { border-color: #fca5a5; background: #fef2f2; } body:not(#_) .psGrade.merah .psGradeChip { background: #dc2626; }
+body:not(#_) .psGradeDot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+body:not(#_) .psGradeDot.biru { background: #2563eb; } body:not(#_) .psGradeDot.hijau { background: #16a34a; }
+body:not(#_) .psGradeDot.kuning { background: #f59e0b; } body:not(#_) .psGradeDot.merah { background: #dc2626; }
+body:not(#_) .psLinkBtn { border: 0; background: none; padding: 0; color: #0e7490; font-weight: 700; text-decoration: underline; cursor: pointer; font: inherit; }
+body:not(#_) .psDraftOffer { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid #a5f3fc; background: #ecfeff; color: #164e63; font-size: 13px; }
+body:not(#_) .psDraftOffer > span { flex: 1 1 240px; min-width: 0; }
+html[data-mode="gelap"] body:not(#_) .psGrade { background: #161d29; border-color: rgba(255, 255, 255, .1); color: #e8eef6; }
+html[data-mode="gelap"] body:not(#_) .psGrade span { color: #c9d4e3; } html[data-mode="gelap"] body:not(#_) .psGrade small { color: #9fb0c4; }
+html[data-mode="gelap"] body:not(#_) .psGrade.biru { border-color: rgba(96, 165, 250, .45); background: rgba(37, 99, 235, .12); }
+html[data-mode="gelap"] body:not(#_) .psGrade.hijau { border-color: rgba(74, 222, 128, .4); background: rgba(22, 163, 74, .12); }
+html[data-mode="gelap"] body:not(#_) .psGrade.kuning { border-color: rgba(251, 191, 36, .45); background: rgba(245, 158, 11, .12); }
+html[data-mode="gelap"] body:not(#_) .psGrade.merah { border-color: rgba(248, 113, 113, .45); background: rgba(220, 38, 38, .14); }
+html[data-mode="gelap"] body:not(#_) .psDraftOffer { background: rgba(34, 211, 238, .1); border-color: rgba(34, 211, 238, .35); color: #cffafe; }
+html[data-mode="gelap"] body:not(#_) .psLinkBtn { color: #22d3ee; }
