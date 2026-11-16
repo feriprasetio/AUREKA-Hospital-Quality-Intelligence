@@ -1676,12 +1676,12 @@ html[data-mode="gelap"] .pmRoot { --pm-bg: #0d131d; --pm-card: #161d29; --pm-ink
 .pmCover span { color: var(--pm-accent); font-weight: 800; font-size: clamp(14px, 1.6vw, 20px); letter-spacing: .02em; }
 .pmCover h1 { margin: 0; font-size: clamp(36px, 6.5vw, 84px); letter-spacing: -.04em; line-height: 1.02; }
 .pmCover p { margin: 0; font-size: clamp(16px, 1.8vw, 22px); color: var(--pm-muted); }
-.pmStats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: clamp(10px, 1.5vw, 18px); }
+.pmStats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: clamp(10px, 1.5vw, 18px); }
 .pmStat { padding: clamp(14px, 2vw, 24px); border-radius: 18px; background: var(--pm-card); border: 1px solid var(--pm-line); display: grid; gap: 6px; }
 .pmStat span { font-size: clamp(13px, 1.3vw, 17px); color: var(--pm-muted); font-weight: 600; }
 .pmStat b { font-size: clamp(32px, 4.6vw, 64px); line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .pmStat.danger b { color: var(--pm-danger); } .pmStat.ok b { color: var(--pm-ok); }
-.pmBars { margin: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(4px, .8vw, 12px); align-items: end; height: clamp(160px, 30vh, 320px); padding: 18px 18px 10px; border-radius: 18px; background: var(--pm-card); border: 1px solid var(--pm-line); }
+.pmBars { margin: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr) auto; gap: clamp(4px, .8vw, 12px); align-items: end; height: clamp(160px, 30vh, 320px); padding: 18px 18px 10px; border-radius: 18px; background: var(--pm-card); border: 1px solid var(--pm-line); }
 .pmBar { height: 100%; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 6px; min-width: 0; }
 .pmBar em { font-style: normal; font-size: clamp(11px, 1vw, 14px); font-weight: 700; color: var(--pm-ink); min-height: 1em; }
 .pmBar i { align-self: end; width: 70%; border-radius: 6px 6px 2px 2px; background: var(--pm-accent); min-height: 2px; }
@@ -1708,3 +1708,4 @@ html[data-mode="gelap"] .pmRoot { --pm-bg: #0d131d; --pm-card: #161d29; --pm-ink
 .pmCount { min-width: 44px; text-align: right; color: var(--pm-muted); font-size: 13px; font-weight: 700; }
 html body:not(#_) .ifPresentBtn { background: #0e7490; }
 html[data-mode="gelap"] body:not(#_) .ifPresentBtn { background: #22d3ee; color: #0f1218; }
+html:has(.pmRoot) { overflow: hidden !important; }
