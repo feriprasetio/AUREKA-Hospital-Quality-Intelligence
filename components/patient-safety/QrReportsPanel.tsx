@@ -26,6 +26,7 @@ export default function QrReportsPanel({ supabase, rooms, onProcess, refreshKey 
   const [reports, setReports] = useState<QrReport[]>([])
   const [links, setLinks] = useState<Link[]>([])
   const [ready, setReady] = useState<boolean | null>(null)
+  const [setupError, setSetupError] = useState('')
   const [open, setOpen] = useState(false)
   const [room, setRoom] = useState('')
   const [msg, setMsg] = useState('')
@@ -37,7 +38,7 @@ export default function QrReportsPanel({ supabase, rooms, onProcess, refreshKey 
       db.from('public_report_links').select('id,room_id,token,is_active,created_at').order('created_at', { ascending: false }),
     ])
     // Tabel belum ada (migrasi belum dijalankan) atau tidak berhak: sembunyikan panel.
-    if (r.error || l.error) { setReady(false); return }
+    if (r.error || l.error) { const e: any = r.error || l.error; setSetupError([e?.code, e?.message].filter(Boolean).join(' · ')); setReady(false); return }
     setReady(true); setReports((r.data || []) as QrReport[]); setLinks((l.data || []) as Link[])
   }, [db])
   useEffect(() => { void load() }, [load, refreshKey])
@@ -64,6 +65,7 @@ export default function QrReportsPanel({ supabase, rooms, onProcess, refreshKey 
     w.document.close()
   }
 
+  if (ready === false) return <p className="qrSetup">Lapor IKP via QR belum aktif{setupError ? ` (${setupError})` : ''}. Pastikan migrasi 20261116120000_public_incident_qr.sql sudah dijalankan.</p>
   if (!ready) return null
   return <section className="qrPanel" aria-label="Laporan masuk lewat QR">
     <div className="qrHead">
