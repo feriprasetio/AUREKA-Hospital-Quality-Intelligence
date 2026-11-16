@@ -17,6 +17,8 @@ DECLARE
   v_code text;
   v_response_count bigint := 0;
   v_record_count bigint := 0;
+  v_proposal_count bigint := 0;
+  v_oppe_count bigint := 0;
   v_deleted_profiles integer := 0;
 BEGIN
   IF v_user_id IS NULL THEN
@@ -110,10 +112,47 @@ BEGIN
        )
      );
 
-  IF v_response_count > 0 OR v_record_count > 0 THEN
+  -- Indicator proposals and OPPE rules also reference profile ids directly.
+  PERFORM 1
+    FROM aureka_governance.indicator_proposals proposal
+    JOIN aureka_quality.indicator_profiles ip
+      ON ip.id = proposal.activated_profile_id
+   WHERE ip.profile_year = v_profile_year
+     AND ip.room_id = v_room_id
+     AND ip.code = v_code
+   FOR UPDATE OF proposal;
+
+  SELECT count(*)
+    INTO v_proposal_count
+    FROM aureka_governance.indicator_proposals proposal
+    JOIN aureka_quality.indicator_profiles ip
+      ON ip.id = proposal.activated_profile_id
+   WHERE ip.profile_year = v_profile_year
+     AND ip.room_id = v_room_id
+     AND ip.code = v_code;
+
+  PERFORM 1
+    FROM aureka_quality.oppe_indicator_rules rule
+    JOIN aureka_quality.indicator_profiles ip
+      ON ip.id = rule.profile_id
+   WHERE ip.profile_year = v_profile_year
+     AND ip.room_id = v_room_id
+     AND ip.code = v_code
+   FOR UPDATE OF rule;
+
+  SELECT count(*)
+    INTO v_oppe_count
+    FROM aureka_quality.oppe_indicator_rules rule
+    JOIN aureka_quality.indicator_profiles ip
+      ON ip.id = rule.profile_id
+   WHERE ip.profile_year = v_profile_year
+     AND ip.room_id = v_room_id
+     AND ip.code = v_code;
+
+  IF v_response_count > 0 OR v_record_count > 0 OR v_proposal_count > 0 OR v_oppe_count > 0 THEN
     RAISE EXCEPTION
-      'Indikator % pada unit % tahun % tidak dapat dihapus: ditemukan % respons audit terhubung dan % catatan logbook yang memuat kode indikator. Pensiunkan indikator untuk mempertahankan histori.',
-      v_code, v_room_id, v_profile_year, v_response_count, v_record_count
+      'Indikator % pada unit % tahun % tidak dapat dihapus: % respons audit, % catatan logbook, % usulan indikator, dan % aturan OPPE masih terhubung. Pensiunkan indikator untuk mempertahankan histori dan referensi tata kelola.',
+      v_code, v_room_id, v_profile_year, v_response_count, v_record_count, v_proposal_count, v_oppe_count
       USING ERRCODE = '23503';
   END IF;
 
@@ -135,7 +174,9 @@ BEGIN
     'code', v_code,
     'deleted_profiles', v_deleted_profiles,
     'linked_responses', v_response_count,
-    'linked_logbook_records', v_record_count
+    'linked_logbook_records', v_record_count,
+    'linked_indicator_proposals', v_proposal_count,
+    'linked_oppe_rules', v_oppe_count
   );
 END;
 $function$;
