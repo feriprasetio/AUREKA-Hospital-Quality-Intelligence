@@ -1457,7 +1457,7 @@ html[data-mode="gelap"] body:not(#_) .authPage :is(.field label, .authFieldLabel
 html[data-mode="gelap"] body:not(#_) .authPage :is(.authForgot, .authSwitch button, .authSwitch a, .authFormEyebrow) { color: #67e8f9 !important; }
 html[data-mode="gelap"] body:not(#_) .authPage .authForm :is(input, select) { background: rgba(255, 255, 255, .06) !important; border: 1px solid rgba(255, 255, 255, .18) !important; color: #f1f5f9 !important; }
 html[data-mode="gelap"] body:not(#_) .authPage .authForm input::placeholder { color: #8b98aa !important; }
-html[data-mode="gelap"] body:not(#_) .authPage .authForm :is(input, select):focus { border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34, 211, 238, .2) !important; outline: none !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .authForm :is(input, select):focus { background: #1b2433 !important; color: #f1f5f9 !important; border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34, 211, 238, .2) !important; outline: none !important; }
 html[data-mode="gelap"] body:not(#_) .authPage .pwWrap { background: transparent !important; }
 html[data-mode="gelap"] body:not(#_) .authPage .pwToggle { background: rgba(255, 255, 255, .1) !important; color: #f1f5f9 !important; }
 html[data-mode="gelap"] body:not(#_) .authPage.authPage .authCard .landingCta.authWide:not(:disabled) { background: #eef2f7 !important; border-color: #eef2f7 !important; color: #0f1218 !important; }
@@ -1646,3 +1646,6 @@ html body:not(#_) .workspaceRoot .icImport > span { flex: 1 1 260px; min-width: 
 html body:not(#_) .workspaceRoot .icImport > div { display: flex; gap: 8px; flex-wrap: wrap; }
 html body:not(#_) .workspaceRoot .icImport button { min-height: 36px; padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 12.5px; cursor: pointer; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icImport { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .14); color: #c9d4e3; }
+
+/* Mode gelap: kolom login yang terisi otomatis (autofill) / sedang fokus tidak boleh berubah putih. */
+html[data-mode="gelap"] body:not(#_) .authPage .authForm input:is(:-webkit-autofill, :-webkit-autofill:hover, :-webkit-autofill:focus, :-webkit-autofill:active) { -webkit-text-fill-color: #f1f5f9 !important; caret-color: #f1f5f9 !important; -webkit-box-shadow: 0 0 0 1000px #1b2433 inset !important; box-shadow: 0 0 0 1000px #1b2433 inset !important; transition: background-color 9999s ease-out 0s; }
