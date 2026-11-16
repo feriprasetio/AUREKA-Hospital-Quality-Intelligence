@@ -130,6 +130,17 @@ const modules: Array<{
   },
 ]
 
+// Bab halaman untuk navigasi progres gulir.
+const chapters = [
+  { id: 'top', label: 'Pembuka' },
+  { id: 'platform', label: 'Fitur' },
+  { id: 'modules', label: 'Modul' },
+  { id: 'capa', label: 'Tindak lanjut' },
+  { id: 'workflow', label: 'Alur kerja' },
+  { id: 'governance', label: 'Tata kelola' },
+  { id: 'transparency', label: 'Transparansi' },
+]
+
 const improvementSteps = [
   { number: '01', title: 'Temuan teridentifikasi', text: 'Sumber dapat berasal dari audit mutu, IKP, RCA, risiko, FMEA, Clinical Pathway, maupun evaluasi tenaga klinis.' },
   { number: '02', title: 'Analisis dan rencana', text: 'Masalah, akar penyebab, tindakan korektif dan preventif, PIC, serta target waktu dicatat secara terstruktur.' },
@@ -180,6 +191,31 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
 
   const rootRef = useRef<HTMLElement>(null)
   const [scrolled, setScrolled] = useState(false)
+  const progressRef = useRef<HTMLDivElement>(null)
+  const railRef = useRef<HTMLElement>(null)
+  const [activeChapter, setActiveChapter] = useState(0)
+
+  // Progres gulir: bilah tipis di atas + rel bab di tepi kanan (desktop). Ditulis lewat CSS variable agar ringan.
+  useEffect(() => {
+    let ticking = false
+    const update = () => {
+      ticking = false
+      const doc = document.documentElement
+      const p = Math.min(1, Math.max(0, window.scrollY / Math.max(1, doc.scrollHeight - window.innerHeight)))
+      progressRef.current?.style.setProperty('--p', p.toFixed(4))
+      const mark = window.innerHeight * 0.4
+      let active = 0
+      chapters.forEach((c, i) => { const el = i === 0 ? null : document.getElementById(c.id); if (el && el.getBoundingClientRect().top <= mark) active = i })
+      if (p > 0.995) active = chapters.length - 1
+      railRef.current?.style.setProperty('--p', (active / (chapters.length - 1)).toFixed(4))
+      setActiveChapter((cur) => (cur === active ? cur : active))
+    }
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update) } }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll) }
+  }, [])
 
   // Animasi: elemen muncul saat di-scroll, header mengecil, kartu produk miring mengikuti kursor (desktop).
   useEffect(() => {
@@ -238,6 +274,17 @@ export default function PublicLandingPage({ logoSrc, onLogin }: LandingProps) {
       <div className="auroraBg" aria-hidden="true"><span /><span /><span /></div>
       <div className="a2-aurora" aria-hidden="true"><i /><i /><i /></div>
       <a className="a2-skip-link" href="#main-content">Lewati ke konten utama</a>
+      <div className="a2-progress" ref={progressRef} aria-hidden="true"><i /></div>
+      <nav className="a2-railnav" ref={railRef} aria-label="Posisi bab halaman">
+        <span className="a2-railnav-track" aria-hidden="true"><i /></span>
+        <ol>
+          {chapters.map((c, i) => (
+            <li key={c.id} className={i === activeChapter ? 'active' : i < activeChapter ? 'done' : ''}>
+              <a href={'#' + c.id} aria-current={i === activeChapter ? 'true' : undefined}><span>{c.label}</span></a>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
       <header className="a2-header">
         <div className="a2-container a2-header-inner">
