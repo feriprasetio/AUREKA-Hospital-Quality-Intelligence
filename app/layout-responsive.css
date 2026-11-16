@@ -63,13 +63,7 @@
   justify-content: center !important;
 }
 
-.workspaceRoot.sidebarIsCollapsed .sideBrand > div,
-.workspaceRoot.sidebarIsCollapsed .navLabel,
-.workspaceRoot.sidebarIsCollapsed .sideProfileText,
-.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button > span:not(.sidebarChevron),
-.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button .sidebarChevron,
-.workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren,
-.workspaceRoot.sidebarIsCollapsed .logoutLabel {
+.workspaceRoot.sidebarIsCollapsed .sideBrand > div,.workspaceRoot.sidebarIsCollapsed .navLabel,.workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button > span:not(.sidebarChevron),.workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren,.workspaceRoot.sidebarIsCollapsed .logoutLabel{
   display: none !important;
 }
 
@@ -230,17 +224,8 @@
     display: flex !important;
   }
 
-  .workspaceRoot.sidebarIsCollapsed .sideProfileText {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
   .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button > span:not(.sidebarChevron) {
     display: inline !important;
-  }
-
-  .workspaceRoot.sidebarIsCollapsed .sidebarNavGroup > button .sidebarChevron {
-    display: inline-grid !important;
   }
 
   .workspaceRoot.sidebarIsCollapsed .sidebarTreeChildren {

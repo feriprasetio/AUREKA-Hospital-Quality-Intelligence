@@ -47,30 +47,7 @@ html[data-theme] .workspaceRoot .moduleEnter .liquidGlass{
 
 /* ---------- One primary colour ---------- */
 html[data-theme] .workspaceRoot .moduleEnter :is([class$="Eyebrow"],[class*="Eyebrow "]):not(.ovPanelHead .ovEyebrow){color:#0f7656!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovPanelHead .ovEyebrow{color:#94a3b8!important;font-size:12px!important;letter-spacing:.1em!important}
 html[data-theme] .workspaceRoot .moduleEnter .rmPlanCard.selected{border-color:rgba(15,118,86,.45)!important;box-shadow:0 0 0 3px rgba(15,118,86,.12)!important}
-
-/* ---------- Ringkasan dashboard ---------- */
-html[data-theme] .workspaceRoot .moduleEnter .ovContextBar b{color:var(--aur-ink)!important;font-size:13px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovContextBar span{color:var(--aur-muted)!important;font-size:12px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovListText b{color:var(--aur-ink)!important;font-size:13px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovListText small{color:var(--aur-muted)!important;font-size:12.5px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovStatus{color:var(--aur-muted)!important;font-size:12px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovUnitName{color:#334155!important;font-size:12.5px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovColumnValue{color:#334155!important;font-size:12px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovColumnLabel{font-size:12px!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovColumnFill{background:linear-gradient(180deg,#3fb98f,#0f7656)!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovBarFill{background:linear-gradient(90deg,#3fb98f,#0f7656)!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovScore{background:#ecf7f1!important;color:#0b5d44!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovExecHeadline strong{color:#0b5d44!important}
-html[data-theme] .workspaceRoot .moduleEnter :is(.ovExecMetric b,.ovExecRtp b){color:var(--aur-ink)!important;font-size:13px!important}
-
-/* Risk-level bars use the same colours as the risk badges / risk matrix */
-html[data-theme] .workspaceRoot .moduleEnter .ovBarFill.lvl-very-high{background:rgb(var(--risk-very-high))!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovBarFill.lvl-high{background:rgb(var(--risk-high))!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovBarFill.lvl-moderate{background:rgb(var(--risk-moderate))!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovBarFill.lvl-low{background:rgb(var(--risk-low))!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovBarFill.lvl-very-low{background:rgb(var(--risk-very-low))!important}
 
 /* Risk heat map: colour = risk level of the cell (L × I), strength = number of risks */
 html[data-theme] .workspaceRoot .moduleEnter .ovCell{color:#1e293b!important;font-size:13px!important;font-weight:800!important}
@@ -81,10 +58,6 @@ html[data-theme] .workspaceRoot .moduleEnter .ovCell[data-band="moderate"]{--ban
 html[data-theme] .workspaceRoot .moduleEnter .ovCell[data-band="high"]{--band:var(--risk-high)}
 html[data-theme] .workspaceRoot .moduleEnter .ovCell[data-band="very-high"]{--band:var(--risk-very-high)}
 html[data-theme] .workspaceRoot .moduleEnter .ovCell[data-band="very-high"]:not(:disabled){color:#fff!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovMatrixLegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--aur-muted)}
-html[data-theme] .workspaceRoot .moduleEnter .ovMatrixLegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-html[data-theme] .workspaceRoot .moduleEnter .ovMatrixLegend{grid-column:1 / -1}
-html[data-theme] .workspaceRoot .moduleEnter :is(.ovAxisX,.ovAxisY){font-size:12.5px!important;color:var(--aur-muted)!important}
 
 /* ---------- Module KPI cards (Keselamatan, Risiko, Tenaga, Statistik) ----------
    Older skins mixed a compact one-line strip with tall card boxes, leaving tiny labels
@@ -140,16 +113,7 @@ html[data-theme] .workspaceRoot .sidebar .sideProfile{
   background:#f4f8f5;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:background .15s
 }
 html[data-theme] .workspaceRoot .sidebar .sideProfile:hover{background:#eaf1ed}
-html[data-theme] .workspaceRoot .sidebar .sideProfileAvatar{
-  flex:0 0 40px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
-  background:linear-gradient(135deg,#13906a,#0b5d44);color:#fff;font-weight:800;font-size:14px;letter-spacing:.02em;
-  box-shadow:0 0 0 3px #fff,0 0 0 4px #d6e7de
-}
-html[data-theme] .workspaceRoot .sidebar .sideProfileText{display:flex;flex-direction:column;min-width:0}
-html[data-theme] .workspaceRoot .sidebar .sideProfileText b{font-size:13.5px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html[data-theme] .workspaceRoot .sidebar .sideProfileText small{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--aur-brand)}
 html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sideProfile{justify-content:center;padding:8px;background:transparent}
-html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sideProfileText{display:none}
 html[data-theme] .workspaceRoot .sidebar .navLabel{
   display:flex!important;align-items:center;gap:8px;margin:14px 10px 8px!important;padding:0!important;
   color:#94a3b8!important;font-size:12px!important;font-weight:800!important;letter-spacing:.1em!important;text-transform:uppercase
@@ -160,13 +124,10 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button{border:0!import
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover{background:#f3f6fb!important;color:#1e293b!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#e8f5ee!important;color:#0b5d44!important;font-weight:750!important;box-shadow:none!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive svg{color:#0f7656!important;stroke:#0f7656!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarChevron{color:#94a3b8!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarTreeChildren{border-left:0!important;margin-left:22px!important;padding-left:8px!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChild{border:0!important;background:transparent!important;color:#64748b!important;font-weight:550!important;box-shadow:none!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChild:hover{color:#1e293b!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChild.active{color:#0b5d44!important;font-weight:750!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarChildMark{width:6px!important;height:6px!important;border-radius:50%!important;background:#cbd5e1!important;border:0!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark{background:#0f7656!important;box-shadow:0 0 0 3px #d3ecdf!important}
 
 /* ---------- Top bar ---------- */
 html[data-theme] .workspaceRoot .workspaceHeaderBar{border-bottom:0!important;box-shadow:0 1px 0 #eef1f6!important}
@@ -178,36 +139,11 @@ html[data-theme] .workspaceRoot .workspaceHeaderIcon{border:0!important;backgrou
 html[data-theme] .workspaceRoot .workspaceHeaderIcon:hover{background:#f3f5f9!important;color:#1e293b!important}
 html[data-theme] .workspaceRoot .workspaceHeaderAvatar{background:linear-gradient(135deg,#13906a,#0b5d44)!important;color:#fff!important}
 
-/* ---------- Page title + breadcrumb ---------- */
-html[data-theme] .workspaceRoot .workspacePageHead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 2px;padding:0 2px}
-html[data-theme] .workspaceRoot .workspacePageHead h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;color:#1e293b}
-html[data-theme] .workspaceRoot .workspaceCrumbs{display:flex;align-items:center;gap:8px;font-size:13px;color:#94a3b8;min-width:0}
-html[data-theme] .workspaceRoot .workspaceCrumbs b{color:#0f7656;font-weight:650}
-html[data-theme] .workspaceRoot .workspaceCrumbs span:not([aria-hidden]){color:#64748b}
-html[data-theme] .workspaceRoot .workspaceCrumbs button{display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:8px;background:transparent;color:#64748b;cursor:pointer}
-html[data-theme] .workspaceRoot .workspaceCrumbs button:hover{background:#e8f5ee;color:#0f7656}
-html[data-theme] .workspaceRoot .workspaceCrumbs svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-@media(max-width:760px){
-  html[data-theme] .workspaceRoot .workspacePageHead{margin:8px 0 0}
-  html[data-theme] .workspaceRoot .workspacePageHead h1{font-size:17px}
-  html[data-theme] .workspaceRoot .workspaceCrumbs{font-size:12px}
-}
-
 /* ---------- Ringkasan KPI cards: clean stat card with icon chip ---------- */
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi{overflow:hidden!important;padding:18px 20px!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi:before{display:none!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi:after{display:none!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovKpiHeader{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:10px!important;width:100%!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpiLabel{font-size:14px!important;font-weight:650!important;color:#334155!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon{
-  position:static!important;flex:0 0 44px!important;width:44px!important;height:44px!important;border-radius:12px!important;
-  display:grid!important;place-items:center!important;background:#e8f5ee!important;color:#0f7656!important;box-shadow:none!important;transform:none!important
-}
-html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon:before,html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon:after{display:none!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovKpi.warn .ovKpiIcon{background:#fff7e8!important;color:#d97706!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovKpi.danger .ovKpiIcon{background:#fef0f0!important;color:#dc2626!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovKpi:nth-child(2):not(.warn):not(.danger) .ovKpiIcon{background:#eaf7f1!important;color:var(--aur-brand)!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon svg{width:22px!important;height:22px!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi b{font-size:30px!important;color:#1e293b!important}
 html[data-theme] .workspaceRoot .moduleEnter .ovKpi small{font-size:12.5px!important;color:#64748b!important}
 
@@ -238,14 +174,11 @@ html .authPage .authCard .authWide{background:linear-gradient(90deg,#0f7656,#0b5
 html .authPage .authCard .authWide:hover{filter:brightness(1.05)}
 html .authPage .authCard .authSwitch button,html .authPage .authCard .authForgot{color:#0f7656!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarChild{font-size:13px!important;min-height:34px!important}
-html[data-theme] .workspaceRoot .workspacePageHead{margin-bottom:12px}
 html .authPage .pwToggle{background:#e8f5ee!important;color:#0b5d44!important;border:0!important}
 html .authPage .authBack{color:#0b5d44!important}
 @media(max-width:760px){
   html[data-theme] .workspaceRoot .moduleEnter .ovKpi{padding:14px!important}
   html[data-theme] .workspaceRoot .moduleEnter .ovKpiLabel{font-size:12.5px!important;line-height:1.3!important}
-  html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon{flex-basis:32px!important;width:32px!important;height:32px!important;border-radius:9px!important}
-  html[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon svg{width:17px!important;height:17px!important}
   html[data-theme] .workspaceRoot .moduleEnter .ovKpi b{font-size:24px!important}
   html[data-theme] .workspaceRoot .moduleEnter .ovKpi small{font-size:12.5px!important}
 }
@@ -301,12 +234,6 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{background:r
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button{background:transparent!important;margin:0!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:#e8f5ee!important}
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup .sidebarTreeChildren{padding-bottom:4px!important}
-/* Chevron: down when closed, up when open — both clickable through the menu button */
-html[data-theme] .workspaceRoot .sidebar .sidebarChevron{display:inline-grid!important;place-items:center;width:22px;height:22px;border-radius:7px;transition:transform .2s ease,background .15s;transform:none!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.expanded>button .sidebarChevron,
-html[data-theme] .workspaceRoot .sidebar .sidebarNestedGroup.open>button .sidebarChevron{transform:rotate(180deg)!important}
-html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover .sidebarChevron,
-html[data-theme] .workspaceRoot .sidebar .sidebarTreeParent:hover .sidebarChevron{background:rgba(15,118,86,.08)}
 html[data-theme] .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup{padding:2px!important}
 
 /* ---------- Sidebar glass, round 2: glossy frosted boxes on a soft colour wash ---------- */
@@ -344,7 +271,6 @@ html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent{
   box-shadow:inset 0 1px 0 #fff,0 0 0 3px rgba(15,118,86,.06),0 14px 30px -12px rgba(15,118,86,.32)!important
 }
 html[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive{background:linear-gradient(90deg,rgba(15,118,86,.12),rgba(15,118,86,.03))!important}
-html[data-theme] .workspaceRoot .moduleEnter .ovLink{color:#0f7656!important;background:transparent!important;font-weight:700!important}
 
 /* Sidebar: groups must not shrink (an open Mutu Klinis was squeezed and cut off); the menu list scrolls instead,
    with a thin visible scrollbar so it is obvious there is more below. */
@@ -465,7 +391,6 @@ html[data-theme] .workspaceRoot .moduleEnter.aurModalLayer .rmModalSheet>.rmNoti
   html[data-theme] .workspaceRoot .moduleEnter :is(.oppeTabs,.rmTabs,.psTabs,.aqTabs,.cwTabs,[class$="Tabs"])>*{flex:0 0 auto!important;white-space:nowrap!important}
   /* Section heads: title on its own line, buttons wrap neatly below */
   html[data-theme] .workspaceRoot .moduleEnter .rmSectionHead{flex-wrap:wrap!important;gap:10px!important}
-  html[data-theme] .workspaceRoot .moduleEnter .workspacePageHead{flex-direction:column;align-items:flex-start;gap:4px}
 }
 
 /* Risk Register on phones: each risk as a compact card instead of a wide table */

@@ -208,7 +208,6 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot :is(input, selec
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot :is(input, textarea)::placeholder { color: #8ea3bb !important; -webkit-text-fill-color: #8ea3bb !important; }
 html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot :is(select option, select optgroup, datalist option) { background: #111a2e !important; color: #e6eef8 !important; -webkit-text-fill-color: #e6eef8 !important; }
 html[data-skin="arktik"][data-mode="gelap"]:root { color-scheme: dark; }
-html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot .moduleEnter .ovHero .ovHeroCopy :is(h3, p) { -webkit-text-fill-color: currentColor !important; }
 /* Tabel selalu selebar bingkainya (Register Pasien: tabel 1040px di dalam bingkai lebih lebar) */
 html[data-skin="arktik"]:root .workspaceRoot .workspaceTableViewport > table { width: 100% !important; }
 
@@ -313,7 +312,6 @@ html[data-mode="gelap"] .workspaceRoot .psStatsCard { background: rgba(255, 255,
 .workspaceRoot .govHeadTools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
 .workspaceRoot .govYear { display: grid; gap: 4px; font-size: 12px; font-weight: 650; }
 .workspaceRoot :is(.govYear select, .govHeadTools > select, .govSearch) { min-height: 38px; padding: 0 12px; border-radius: 10px; }
-.workspaceRoot .govSearch { min-width: 220px; }
 .workspaceRoot .govRecList { display: grid; gap: 14px; }
 .workspaceRoot .govRec { display: grid; gap: 10px; padding: 16px 18px; border-radius: 18px; border: 1px solid rgba(11, 70, 122, .1); background: rgba(255, 255, 255, .7); }
 .workspaceRoot .govRec header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
@@ -328,7 +326,6 @@ html[data-mode="gelap"] .workspaceRoot .psStatsCard { background: rgba(255, 255,
 .workspaceRoot .govStatus:is(.dikembalikan) { background: #fde9d9; color: #a2501a; }
 .workspaceRoot .govStatus:is(.digantikan) { opacity: .65; }
 .workspaceRoot .govOverdue { color: #b3261e !important; font-weight: 650; }
-.workspaceRoot .govCallout { padding: 12px 14px; border-radius: 12px; background: rgba(59, 143, 214, .08); font-size: 13px; line-height: 1.5; }
 .workspaceRoot .govDetail { max-width: 420px; white-space: normal; }
 .govForm { display: grid; gap: 12px; }
 .govForm label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 650; }
@@ -338,17 +335,10 @@ html[data-mode="gelap"] .workspaceRoot .psStatsCard { background: rgba(255, 255,
 .govSegment { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(11, 70, 122, .07); }
 .govSegment button { min-height: 34px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; font: 650 13px/1 inherit; cursor: pointer; color: inherit; }
 .govSegment button.active { background: #fff; box-shadow: 0 2px 6px rgba(8, 20, 36, .12); }
-.govVersions { display: grid; gap: 12px; }
-.govVersion { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(11, 70, 122, .1); }
-.govVersion header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.govVersion p { margin: 0; font-size: 13.5px; line-height: 1.5; }
-.govContent { margin: 0; padding: 12px; max-height: 320px; overflow: auto; border-radius: 10px; background: rgba(11, 70, 122, .05); white-space: pre-wrap; font: 400 13px/1.55 inherit; }
-.govMuted { opacity: .7; font-size: 12.5px !important; }
-.govHash { font-family: ui-monospace, Menlo, monospace !important; }
 html[data-mode="gelap"] .govForm :is(input, select, textarea) { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .14); }
 html[data-mode="gelap"] .workspaceRoot .govRec { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
 html[data-mode="gelap"] .govSegment button.active { background: rgba(255, 255, 255, .12); }
-@media (max-width: 560px) { .govFormRow { grid-template-columns: minmax(0, 1fr); } .workspaceRoot .govSearch { min-width: 0; width: 100%; } }
+@media (max-width: 560px) { .govFormRow { grid-template-columns: minmax(0, 1fr); } }
 
 /* ===== Hasil Capaian · Kategori Indikator (Blueprint v2 §3) ===== */
 .workspaceRoot .qraCategoryGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }

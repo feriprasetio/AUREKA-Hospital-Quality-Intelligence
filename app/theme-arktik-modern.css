@@ -268,15 +268,7 @@ html[data-skin="arktik"]:root .workspaceRoot.workspaceDesk .workspaceContent .mo
   align-items: flex-start !important;
 }
 @media (max-width: 760px) {
-  /* Satu navigasi saja: kapsul geser, dropdown pengganti disembunyikan */
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextSelect,
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceViewTabMobile { display: none !important; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar { display: block !important; padding-bottom: 0 !important; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav {
-    display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; max-width: 100% !important; scrollbar-width: none;
-  }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav::-webkit-scrollbar { display: none; }
-  html[data-skin="arktik"]:root .workspaceRoot .workspaceContextBar .workspaceContextNav button { flex: 0 0 auto !important; white-space: nowrap !important; }
+  html[data-skin="arktik"]:root .workspaceRoot .workspaceViewTabMobile{ display: none !important; }
   html[data-skin="arktik"]:root .workspaceRoot .workspaceViewTabList {
     display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scrollbar-width: none;
   }

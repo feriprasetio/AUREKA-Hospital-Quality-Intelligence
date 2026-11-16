@@ -32,70 +32,6 @@
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-.publicLandingRedesign .landingBrand {
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  text-decoration: none;
-  color: inherit;
-}
-.publicLandingRedesign .landingBrand .brandLogoWrap {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: #f2f7f3;
-  overflow: hidden;
-}
-.publicLandingRedesign .landingBrand .brandLogoImage {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-}
-.publicLandingRedesign .landingBrand b {
-  display: block;
-  color: var(--aureka-ink);
-  font-size: 15px;
-  font-weight: 850;
-  letter-spacing: .03em;
-}
-.publicLandingRedesign .landingBrand small {
-  display: block;
-  margin-top: 3px;
-  color: var(--aureka-muted);
-  font-size: 12px;
-}
-.publicLandingRedesign .landingTopActions {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.publicLandingRedesign .landingTopActions .landingGhost,
-.publicLandingRedesign .landingTopActions .landingCta,
-.publicLandingRedesign .landingActions .landingGhost,
-.publicLandingRedesign .landingActions .landingCta {
-  min-height: 42px;
-  padding: 0 16px !important;
-  border-radius: 9px !important;
-  font-size: 12px !important;
-  font-weight: 750 !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-.publicLandingRedesign .landingTopActions .landingGhost,
-.publicLandingRedesign .landingActions .landingGhost {
-  color: #40584d !important;
-  background: #fff !important;
-  border: 1px solid #d9e4dc !important;
-}
-.publicLandingRedesign .landingTopActions .landingCta,
-.publicLandingRedesign .landingActions .landingCta {
-  color: #fff !important;
-  background: #0f7656 !important;
-  border: 1px solid #0f7656 !important;
-}
 .publicLandingRedesign .landingHero {
   display: grid !important;
   grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr) !important;
@@ -113,26 +49,6 @@
   box-shadow: none !important;
 }
 .publicLandingRedesign .heroCopy { min-width: 0; }
-.publicLandingRedesign .landingBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 12px;
-  color: #0b6849 !important;
-  background: #eaf4ed !important;
-  border: 1px solid #d8e9dc !important;
-  border-radius: 999px !important;
-  box-shadow: none !important;
-  font-size: 12px !important;
-  font-weight: 750 !important;
-  line-height: 1.4;
-}
-.publicLandingRedesign .landingPulse {
-  width: 7px;
-  height: 7px;
-  background: #0f7656 !important;
-  box-shadow: none !important;
-}
 .publicLandingRedesign .heroCopy h1 {
   margin: 20px 0 18px !important;
   color: #172820 !important;
@@ -159,51 +75,6 @@
   color: #63736a !important;
   font-size: 15px !important;
   line-height: 1.8 !important;
-}
-.publicLandingRedesign .landingActions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 27px;
-}
-.publicLandingRedesign .landingActions .landingCta.big,
-.publicLandingRedesign .landingActions .landingGhost.big {
-  min-height: 46px;
-  padding: 0 17px !important;
-  border-radius: 9px !important;
-  font-size: 12px !important;
-}
-.publicLandingRedesign .landingStats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 38px;
-  padding-top: 20px;
-  border-top: 1px solid #e1e9e3;
-}
-.publicLandingRedesign .landingStats > div { min-width: 0; }
-.publicLandingRedesign .landingStats b {
-  display: block;
-  color: #172820;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-}
-.publicLandingRedesign .landingStats span {
-  display: block;
-  margin-top: 4px;
-  color: #718078;
-  font-size: 12px;
-  line-height: 1.45;
-}
-.publicLandingRedesign .landingHeroVisual {
-  min-width: 0;
-  padding: 26px;
-  background: #fff;
-  border: 1px solid #e0e9e2;
-  border-radius: 18px;
-  box-shadow: 0 16px 42px rgba(21, 58, 38, .07);
 }
 .publicLandingRedesign .heroVisualTop {
   display: flex;
@@ -552,26 +423,6 @@
   line-height: 1.55;
 }
 .publicLandingRedesign .publicSource { flex: 0 0 auto; color: #53685b; font-weight: 750; }
-.publicLandingRedesign .landingFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  width: min(1180px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 20px 0 28px;
-  color: #6d7b73;
-  border-top: 1px solid #e1e9e3;
-}
-.publicLandingRedesign .landingFooter > div { display: flex; align-items: baseline; gap: 8px; }
-.publicLandingRedesign .landingFooter b {
-  color: #23372b;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: .04em;
-}
-.publicLandingRedesign .landingFooter span,
-.publicLandingRedesign .landingFooter p { margin: 0; font-size: 12px; line-height: 1.5; }
 
 /* Authentication: solid, calm, accessible surfaces; auth logic is unchanged. */
 .authPage.authRedesigned {
@@ -698,13 +549,6 @@
   background: rgba(255,255,255,.15);
   border: 1px solid rgba(255,255,255,.18);
   border-radius: 7px;
-}
-.authPage.authRedesigned .authAsideFoot {
-  position: relative;
-  margin-top: auto;
-  color: rgba(255,255,255,.74) !important;
-  font-size: 12px;
-  line-height: 1.5;
 }
 .authPage.authRedesigned .authCard {
   width: 100% !important;
@@ -862,7 +706,6 @@
     min-height: 500px !important;
     padding: 58px 0 !important;
   }
-  .publicLandingRedesign .landingHeroVisual { padding: 19px; }
   .publicLandingRedesign .heroCopy h1 { font-size: clamp(39px, 5.4vw, 55px) !important; }
   .authPage.authRedesigned .authShell { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
   .authPage.authRedesigned .authAside { padding: 34px 28px; }
@@ -873,15 +716,6 @@
     width: calc(100% - 28px);
     margin-top: 14px;
     padding: 10px 11px;
-  }
-  .publicLandingRedesign .landingBrand .brandLogoWrap { width: 36px; height: 36px; flex-basis: 36px; }
-  .publicLandingRedesign .landingBrand .brandLogoImage { width: 31px; height: 31px; }
-  .publicLandingRedesign .landingTopActions { gap: 6px; }
-  .publicLandingRedesign .landingTopActions .landingGhost,
-  .publicLandingRedesign .landingTopActions .landingCta {
-    min-height: 36px;
-    padding: 0 9px !important;
-    font-size: 12px !important;
   }
   .publicLandingRedesign .landingHero {
     display: grid !important;
@@ -894,12 +728,6 @@
   .publicLandingRedesign .heroCopy h1 { font-size: clamp(39px, 10vw, 56px) !important; }
   .publicLandingRedesign .heroCopy h1 em { font-size: .52em; }
   .publicLandingRedesign .heroCopy p { font-size: 13px !important; }
-  .publicLandingRedesign .landingActions { display: grid; grid-template-columns: 1fr; }
-  .publicLandingRedesign .landingActions > button { width: 100%; }
-  .publicLandingRedesign .landingStats { gap: 10px; margin-top: 28px; }
-  .publicLandingRedesign .landingStats b { font-size: 12px; }
-  .publicLandingRedesign .landingStats span { font-size: 12px; }
-  .publicLandingRedesign .landingHeroVisual { padding: 16px; border-radius: 13px; }
   .publicLandingRedesign .heroVisualItem { grid-template-columns: 38px minmax(0, 1fr) 20px; gap: 9px; padding: 10px; }
   .publicLandingRedesign .heroVisualIcon { width: 36px; height: 36px; }
   .publicLandingRedesign .heroVisualIcon svg { width: 18px; height: 18px; }
@@ -919,7 +747,6 @@
   .publicLandingRedesign .publicMetricEmpty { align-items: flex-start; padding: 11px; gap: 9px; }
   .publicLandingRedesign .publicEmptyIcon { flex-basis: 31px; width: 31px; height: 31px; }
   .publicLandingRedesign .publicDashboardFoot { display: grid; gap: 8px; }
-  .publicLandingRedesign .landingFooter { display: grid; gap: 7px; width: calc(100% - 32px); }
   .authPage.authRedesigned {
     align-content: start;
     padding: 114px 14px 28px;
@@ -939,17 +766,12 @@
   .authPage.authRedesigned .authAside p { font-size: 12px; }
   .authPage.authRedesigned .authAside ul { grid-template-columns: 1fr; gap: 8px; margin-top: 2px; }
   .authPage.authRedesigned .authAside li { font-size: 12px; }
-  .authPage.authRedesigned .authAsideFoot { margin-top: 4px; }
   .authPage.authRedesigned .authCard { padding: 26px 22px !important; }
   .authPage.authRedesigned .authShellSingle { display: block; }
   .authPage.authRedesigned .authShellSingle .authCard { padding: 26px 22px !important; }
   .authPage.authRedesigned .authCard h1 { font-size: 26px !important; }
 }
 @media (max-width: 380px) {
-  .publicLandingRedesign .landingBrand small { font-size: 12px; }
-  .publicLandingRedesign .landingTopActions .landingGhost { display: none; }
-  .publicLandingRedesign .landingTopActions .landingCta { padding: 0 10px !important; }
-  .publicLandingRedesign .landingStats { grid-template-columns: 1fr; gap: 9px; }
   .publicLandingRedesign .publicMetricCardHead { display: grid; grid-template-columns: 30px minmax(0, 1fr); }
   .publicLandingRedesign .publicPeriodPill { grid-column: 2; justify-self: start; max-width: none; }
 }

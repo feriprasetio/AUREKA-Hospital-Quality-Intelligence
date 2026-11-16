@@ -142,10 +142,7 @@ html[data-theme] .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavig
   visibility: hidden !important;
 }
 
-/* Sidebar is a module switcher only; no tree indentation or child rows. */
-.workspaceRoot .sidebar .sidebarTreeChildren,
-.workspaceRoot .sidebar .sidebarNestedGroup,
-.workspaceRoot .sidebar .sidebarChevron {
+.workspaceRoot .sidebar .sidebarTreeChildren,.workspaceRoot .sidebar .sidebarNestedGroup{
   display: none !important;
 }
 

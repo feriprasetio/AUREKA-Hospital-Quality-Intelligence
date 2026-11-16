@@ -140,13 +140,11 @@
   stroke-linecap:round!important;stroke-linejoin:round!important;
 }
 .workspaceRoot .sidebarNavGroup>button>span:nth-child(2){min-width:0!important;flex:1 1 auto!important}
-.workspaceRoot .sidebarChevron{flex:0 0 auto!important;margin-left:auto!important;color:inherit!important;font-size:15px!important}
 .workspaceRoot .sidebarTreeChildren{
   display:grid!important;gap:3px!important;
   margin:3px 0 8px 20px!important;padding:4px 0 4px 11px!important;
   border-left:1px solid rgba(15,118,86,.28)!important;
 }
-.workspaceRoot .sidebarTreeNestedChildren{margin:2px 0 4px 10px!important;padding-left:9px!important}
 .workspaceRoot .sidebarChild{
   display:flex!important;align-items:center!important;gap:8px!important;
   width:100%!important;min-width:0!important;min-height:32px!important;
@@ -160,7 +158,6 @@
   color:#5c4fc3!important;background:rgba(255,255,255,.88)!important;
   border-color:rgba(15,118,86,.18)!important;font-weight:800!important;
 }
-.workspaceRoot .sidebarChildMark{width:5px!important;height:5px!important;flex:0 0 5px!important;border-radius:50%!important;background:currentColor!important;opacity:.7!important}
 .workspaceRoot .sidebarFooter{
   display:grid!important;gap:8px!important;margin-top:auto!important;padding-top:12px!important;
   border-top:1px solid rgba(15,118,86,.22)!important;
@@ -222,19 +219,16 @@
   flex:0 0 auto!important;padding:3px 6px!important;border:1px solid #e9e7f7!important;
   border-radius:6px!important;background:#eef7f2!important;color:#9692b5!important;font-size:12px!important;
 }
-.workspaceRoot .workspaceHeaderIcon,
-.workspaceRoot .workspaceHeaderBar .themeModeSwitch{
+.workspaceRoot .workspaceHeaderIcon{
   position:relative!important;display:grid!important;place-items:center!important;
   flex:0 0 37px!important;width:37px!important;height:37px!important;padding:0!important;
   border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;
   color:#7d79aa!important;box-shadow:none!important;
 }
-.workspaceRoot .workspaceHeaderIcon:hover,
-.workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{
+.workspaceRoot .workspaceHeaderIcon:hover{
   background:rgba(255,255,255,.8)!important;color:#6053ca!important;border-color:rgba(15,118,86,.19)!important;
 }
-.workspaceRoot .workspaceHeaderIcon svg,
-.workspaceRoot .workspaceHeaderBar .themeModeSwitch svg{
+.workspaceRoot .workspaceHeaderIcon svg{
   width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;
 }
 .workspaceRoot .workspaceHeaderBadge{
@@ -324,8 +318,6 @@
 .workspaceRoot .moduleEnter :is(.aqNotice,.psAlert,.rmNotice,.cpNotice,.oppeNotice,.sdNotice,.stNotice){
   padding:11px 13px!important;border-radius:11px!important;font-size:12px!important;
 }
-/* Dashboard title, cards and charts */
-.workspaceRoot .moduleEnter .ovRoot{display:grid!important;gap:16px!important}
 .workspaceRoot .moduleEnter .ovHero{
   display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;
   margin:0 0 2px!important;padding:22px 24px!important;border:1px solid rgba(255,255,255,.66)!important;
@@ -334,47 +326,8 @@
   box-shadow:0 12px 26px rgba(15,118,86,.18)!important;color:#fff!important;
 }
 .workspaceRoot .moduleEnter .ovHero :is(h3,p,.ovEyebrow){color:#fff!important}
-.workspaceRoot .moduleEnter .ovHero .ovEyebrow{font-size:12px!important;letter-spacing:.14em!important;opacity:.82!important}
 .workspaceRoot .moduleEnter .ovHero h3{margin:5px 0 4px!important;font-size:23px!important;font-weight:820!important;line-height:1.2!important}
 .workspaceRoot .moduleEnter .ovHero p{max-width:760px!important;margin:0!important;font-size:12px!important;line-height:1.5!important;opacity:.88!important}
-.workspaceRoot .moduleEnter .ovRefresh{
-  min-height:37px!important;padding:8px 13px!important;border:1px solid rgba(255,255,255,.4)!important;border-radius:10px!important;
-  background:rgba(255,255,255,.18)!important;color:#fff!important;box-shadow:none!important;font-size:12px!important;font-weight:750!important;
-  backdrop-filter:blur(8px)!important;
-}
-.workspaceRoot .moduleEnter .ovRefresh:hover{background:rgba(255,255,255,.28)!important}
-.workspaceRoot .moduleEnter .ovContextBar{
-  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;
-  padding:13px 16px!important;border:1px solid rgba(255,255,255,.9)!important;border-radius:14px!important;
-  background:rgba(255,255,255,.67)!important;box-shadow:0 4px 13px rgba(15,118,86,.045)!important;
-}
-.workspaceRoot .moduleEnter .ovContextBar>div{display:grid!important;gap:3px!important;min-width:0!important}
-.workspaceRoot .moduleEnter .ovContextBar span{color:#aaa6c5!important;font-size:12px!important;font-weight:850!important;letter-spacing:.11em!important}
-.workspaceRoot .moduleEnter .ovContextBar b{color:#625e8e!important;font-size:12px!important;font-weight:800!important;overflow-wrap:anywhere!important}
-.workspaceRoot .moduleEnter .ovContextStatus b.ok{color:#269b7d!important}
-.workspaceRoot .moduleEnter .ovContextStatus b.error{color:#d46c82!important}
-.workspaceRoot .moduleEnter .ovScopeNote{margin:0!important;padding:0 2px!important;color:#8582a5!important;font-size:12px!important;line-height:1.45!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs{
-  display:flex!important;align-items:center!important;gap:6px!important;width:max-content!important;max-width:100%!important;
-  padding:5px!important;border:1px solid rgba(255,255,255,.86)!important;border-radius:13px!important;
-  background:rgba(226,240,233,.62)!important;
-}
-.workspaceRoot .moduleEnter .ovDashboardTabs>button{
-  display:flex!important;align-items:center!important;gap:9px!important;min-height:43px!important;padding:7px 14px!important;
-  border:1px solid transparent!important;border-radius:10px!important;background:transparent!important;color:#77739f!important;text-align:left!important;
-}
-.workspaceRoot .moduleEnter .ovDashboardTabs>button.active{
-  background:#fff!important;border-color:rgba(255,255,255,.96)!important;color:#6557d0!important;
-  box-shadow:0 3px 10px rgba(15,118,86,.08)!important;
-}
-.workspaceRoot .moduleEnter .ovDashboardTabIcon{
-  display:grid!important;place-items:center!important;width:29px!important;height:29px!important;border-radius:9px!important;
-  background:#eef7f2!important;color:#7467df!important;font-size:15px!important;
-}
-.workspaceRoot .moduleEnter .ovDashboardTabs>button span:last-child{display:grid!important;gap:1px!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs b{font-size:12px!important;font-weight:800!important}
-.workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:12px!important;color:#aaa6c2!important}
-.workspaceRoot .moduleEnter .ovKpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important}
 .workspaceRoot .moduleEnter .ovKpi{
   position:relative!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
   gap:6px!important;min-width:0!important;min-height:125px!important;padding:17px 18px!important;overflow:hidden!important;
@@ -398,7 +351,7 @@
 .workspaceRoot .moduleEnter .ovKpiLabel{position:relative;z-index:1;color:#8884a8!important;font-size:12px!important;font-weight:750!important}
 .workspaceRoot .moduleEnter .ovKpi b{position:relative;z-index:1;color:#1c3329!important;font-size:29px!important;font-weight:850!important;line-height:1.05!important;letter-spacing:-.045em!important}
 .workspaceRoot .moduleEnter .ovKpi small{position:relative;z-index:1;color:#a09dbc!important;font-size:12px!important;line-height:1.3!important}
-.workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{
+.workspaceRoot .moduleEnter .ovGrid{
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;
 }
 .workspaceRoot .moduleEnter .ovPanel{
@@ -406,67 +359,8 @@
   background:linear-gradient(145deg,rgba(255,255,255,.89),rgba(248,247,255,.76))!important;
   box-shadow:var(--md-shadow)!important;
 }
-.workspaceRoot .moduleEnter .ovPanelHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin-bottom:14px!important}
-.workspaceRoot .moduleEnter .ovPanelHead h4{margin:3px 0 0!important;color:#393466!important;font-size:14px!important;font-weight:820!important;line-height:1.25!important}
-.workspaceRoot .moduleEnter .ovPanelHead .ovEyebrow{color:#aaa6c4!important;font-size:12px!important;font-weight:850!important;letter-spacing:.12em!important}
-.workspaceRoot .moduleEnter .ovLink{padding:5px 2px!important;border:0!important;background:transparent!important;color:#7165d2!important;font-size:12px!important;font-weight:800!important}
-.workspaceRoot .moduleEnter .ovBars{display:grid!important;gap:10px!important}
-.workspaceRoot .moduleEnter .ovBarRow{display:grid!important;grid-template-columns:minmax(94px,1fr) minmax(60px,2fr) 30px!important;align-items:center!important;gap:9px!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovBarTrack,.workspaceRoot .moduleEnter .ovColumnTrack{
-  overflow:hidden!important;border-radius:20px!important;background:#eef7f2!important;
-}
-.workspaceRoot .moduleEnter .ovBarTrack{height:9px!important}
-.workspaceRoot .moduleEnter .ovBarFill{border-radius:20px!important;background:linear-gradient(90deg,#9e90f2,#6d60dd)!important}
-.workspaceRoot .moduleEnter .ovBarFill.lvl-high{background:linear-gradient(90deg,#e98fa8,#d85f7d)!important}
-.workspaceRoot .moduleEnter .ovBarFill.lvl-moderate{background:linear-gradient(90deg,#f2c984,#dfa74b)!important}
-.workspaceRoot .moduleEnter .ovBarFill.lvl-low{background:linear-gradient(90deg,#89c7e9,#5b98dc)!important}
-.workspaceRoot .moduleEnter .ovBarFill.lvl-very-low{background:linear-gradient(90deg,#8ed6c0,#42a98b)!important}
-.workspaceRoot .moduleEnter .ovBarFill.lvl-very-high{background:linear-gradient(90deg,#ea7f9a,#c94e72)!important}
-.workspaceRoot .moduleEnter .ovUnitName{color:#6c688f!important;font-size:12px!important}
 .workspaceRoot .moduleEnter .ovMatrix{gap:4px!important}
 .workspaceRoot .moduleEnter .ovCell{min-height:36px!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:7px!important;color:#46416f!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovColumns{min-height:150px!important;padding-top:8px!important}
-.workspaceRoot .moduleEnter .ovColumnTrack{width:23px!important;background:#eef7f2!important}
-.workspaceRoot .moduleEnter .ovColumnFill{border-radius:7px 7px 2px 2px!important;background:linear-gradient(180deg,#ad9cf5,#7064df)!important}
-.workspaceRoot .moduleEnter .ovColumnLabel{color:#7f8f88!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovColumnValue{color:#6b65a1!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovList{display:grid!important;gap:3px!important;padding:0!important;margin:0!important;list-style:none!important}
-.workspaceRoot .moduleEnter .ovList li button{
-  display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:57px!important;padding:9px 7px!important;
-  border:0!important;border-bottom:1px solid rgba(15,118,86,.13)!important;border-radius:0!important;background:transparent!important;text-align:left!important;
-}
-.workspaceRoot .moduleEnter .ovScore{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;flex:0 0 34px!important;border-radius:11px!important;background:#eef7f2!important;color:#6559ce!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovListText{display:grid!important;gap:3px!important;min-width:0!important;flex:1!important}
-.workspaceRoot .moduleEnter .ovListText b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#494570!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovListText small{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#a09db8!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovStatus{color:#7e79a2!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovEmpty{display:grid!important;gap:4px!important;padding:17px!important;border:1px dashed rgba(15,118,86,.3)!important;border-radius:12px!important;background:rgba(244,242,255,.45)!important;color:#77739c!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovEmpty b{color:#5a548b!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovNotice{padding:12px 14px!important;border:1px solid rgba(227,181,101,.35)!important;border-radius:11px!important;background:rgba(255,247,229,.8)!important;color:#95702b!important;font-size:12px!important}
-.workspaceRoot .moduleEnter .ovFoot{margin:0!important;padding:0 2px!important;color:#a09db9!important;font-size:12px!important;line-height:1.5!important}
-.workspaceRoot .moduleEnter .ovExecutive{display:grid!important;gap:14px!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlerts{display:grid!important;gap:9px!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert{
-  display:grid!important;gap:3px!important;width:100%!important;padding:13px!important;
-  border:1px solid transparent!important;border-radius:12px!important;background:#fff!important;color:#4b4774!important;text-align:left!important;box-shadow:none!important;
-}
-.workspaceRoot .moduleEnter .ovExecutiveAlert b{font-size:12px!important;font-weight:820!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert span{font-size:12px!important;line-height:1.45!important;color:#8b88a7!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert.danger{background:linear-gradient(120deg,#fff2f5,#fff)!important;border-color:#f4d7e0!important;color:#c75e79!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert.warning{background:linear-gradient(120deg,#fff8e9,#fff)!important;border-color:#f4e4c4!important;color:#b18132!important}
-.workspaceRoot .moduleEnter .ovExecutiveAlert.success{background:linear-gradient(120deg,#edf9f4,#fff)!important;border-color:#d7eee4!important;color:#39957c!important}
-.workspaceRoot .moduleEnter .ovExecPerformance{display:grid!important;gap:8px!important}
-.workspaceRoot .moduleEnter .ovExecHeadline{display:grid!important;gap:4px!important;padding:14px!important;border-radius:12px!important;background:linear-gradient(120deg,#eef7f2,#eef7f2)!important}
-.workspaceRoot .moduleEnter .ovExecHeadline strong{font-size:27px!important;color:#6b5fda!important;line-height:1.05!important}
-.workspaceRoot .moduleEnter .ovExecHeadline span{font-size:12px!important;color:#8985aa!important;line-height:1.45!important}
-.workspaceRoot .moduleEnter .ovExecMetric,.workspaceRoot .moduleEnter .ovExecRtp>div{
-  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;
-  padding:9px 2px!important;border-bottom:1px solid rgba(15,118,86,.14)!important;
-}
-.workspaceRoot .moduleEnter .ovExecMetric span,.workspaceRoot .moduleEnter .ovExecRtp span{font-size:12px!important;color:#9290ad!important}
-.workspaceRoot .moduleEnter .ovExecMetric b,.workspaceRoot .moduleEnter .ovExecRtp b{font-size:12px!important;color:#4c4777!important}
-.workspaceRoot .moduleEnter .ovExecRtp{display:grid!important;gap:3px!important}
-.workspaceRoot .moduleEnter .ovSkeletonBlock{border-radius:12px!important;background:linear-gradient(90deg,#eef7f2,#fff,#eef7f2)!important}
 .workspaceRoot .moduleEnter :is(.ovRefresh,.aqBtn,.psBtn,.rmButton,.cpBtn,.oppeBtn,.sdBtn,.stBtn){transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important}
 .workspaceRoot .moduleEnter :is(.ovRefresh,.aqBtn,.psBtn,.rmButton,.cpBtn,.oppeBtn,.sdBtn,.stBtn):hover{transform:translateY(-1px)!important;box-shadow:0 5px 12px rgba(15,118,86,.09)!important}
 /* Popovers, notifications and chat */
@@ -505,8 +399,6 @@
   .workspaceRoot .sidebar{width:232px!important;min-width:232px!important}
   .workspaceRoot .workspaceContent{padding:0 19px 26px!important}
   .workspaceRoot .workspaceHeaderBar{margin:0 -19px 20px!important;padding:11px 19px!important}
-  .workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .workspaceRoot .workspaceHeaderProfileText{display:none!important}
 }
 @media(max-width:760px){
@@ -531,105 +423,25 @@
   .workspaceRoot .workspaceContext{display:none!important}
   .workspaceRoot .workspaceGlobalSearch{width:auto!important;flex:1 1 auto!important;max-width:none!important;min-width:65px!important;min-height:35px!important;padding:0 8px!important}
   .workspaceRoot .workspaceGlobalSearch input{font-size:12px!important}
-  .workspaceRoot .workspaceHeaderIcon,.workspaceRoot .workspaceHeaderBar .themeModeSwitch{width:30px!important;height:30px!important;flex-basis:30px!important}
+  .workspaceRoot .workspaceHeaderIcon{width:30px!important;height:30px!important;flex-basis:30px!important}
   .workspaceRoot .workspaceHeaderProfile{display:none!important}
   .workspaceRoot .moduleEnter .ovHero{align-items:flex-start!important;flex-direction:column!important;gap:11px!important;padding:17px!important}
   .workspaceRoot .moduleEnter .ovHero h3{font-size:20px!important}
-  .workspaceRoot .moduleEnter .ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
   .workspaceRoot .moduleEnter .ovKpi{min-height:104px!important;padding:13px!important}
   .workspaceRoot .moduleEnter .ovKpi b{font-size:23px!important}
-  .workspaceRoot .moduleEnter .ovGrid,.workspaceRoot .moduleEnter .ovExecGrid{grid-template-columns:1fr!important;gap:10px!important}
-  .workspaceRoot .moduleEnter .ovDashboardTabs{width:100%!important}
-  .workspaceRoot .moduleEnter .ovDashboardTabs>button{flex:1 1 0!important;padding:6px 8px!important}
-  .workspaceRoot .moduleEnter .ovDashboardTabs small{font-size:12px!important}
-  .workspaceRoot .moduleEnter .ovContextBar{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:10px!important}
+  .workspaceRoot .moduleEnter .ovGrid{grid-template-columns:1fr!important;gap:10px!important}
   .workspaceRoot .moduleEnter :is(.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.mswTabs){display:flex!important;overflow-x:auto!important;flex-wrap:nowrap!important}
   .workspaceRoot .moduleEnter :is(.aqTable,.psTableWrap,.rmTableWrap,.cpTableWrap,.sdTableWrap,.stTableWrap){max-width:100%!important;overflow-x:auto!important}
 }
 @media(max-width:390px){
   .workspaceRoot .workspaceHeaderBar{gap:4px!important;padding:7px!important}
   .workspaceRoot .workspaceGlobalSearch kbd{display:none!important}
-  .workspaceRoot .workspaceHeaderIcon,.workspaceRoot .workspaceHeaderBar .themeModeSwitch{width:27px!important;height:27px!important;flex-basis:27px!important}
+  .workspaceRoot .workspaceHeaderIcon{width:27px!important;height:27px!important;flex-basis:27px!important}
   .workspaceRoot .moduleEnter .ovKpi{min-height:93px!important;padding:11px!important}
   .workspaceRoot .moduleEnter .ovKpi b{font-size:21px!important}
 }
 @media(prefers-reduced-motion:reduce){
   .workspaceRoot *,.workspaceRoot *::before,.workspaceRoot *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
-/* AMOLED theme: retain a deliberate dark variant rather than forcing the light glass palette. */
-html[data-theme="amoled"] .workspaceRoot{
-  --md-bg:#090b16;--md-bg2:#12152b;--md-surface:rgba(24,26,48,.88);--md-surface-strong:#171a30;
-  --md-border:rgba(15,118,86,.2);--md-ink:#eef7f2;--md-muted:#a19fc4;
-  --md-shadow:0 8px 26px rgba(0,0,0,.28);--md-shadow-hover:0 14px 32px rgba(0,0,0,.38);
-  background:radial-gradient(ellipse at 85% 5%,rgba(15,118,86,.22),transparent 36%),linear-gradient(140deg,#090b16,#11142a 56%,#151229)!important;
-  color:#eef7f2!important;
-}
-html[data-theme="amoled"] .workspaceRoot .sidebar{background:linear-gradient(180deg,rgba(17,19,39,.97),rgba(20,21,43,.94))!important;border-color:#1e293b!important}
-html[data-theme="amoled"] .workspaceRoot .sideHeader,
-html[data-theme="amoled"] .workspaceRoot .sidebarFooter{border-color:#1e293b!important}
-html[data-theme="amoled"] .workspaceRoot .sideBrand b,
-html[data-theme="amoled"] .workspaceRoot .workspaceContext strong,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfileText b{color:#eef7f2!important}
-html[data-theme="amoled"] .workspaceRoot .sideBrand small,
-html[data-theme="amoled"] .workspaceRoot .workspaceContext span,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderProfileText small,
-html[data-theme="amoled"] .workspaceRoot .profileText span{color:#aaa8cb!important}
-html[data-theme="amoled"] .workspaceRoot .sidebarNav>button,
-html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button,
-html[data-theme="amoled"] .workspaceRoot .sidebarChild{color:#b5b2d8!important}
-html[data-theme="amoled"] .workspaceRoot .sidebarNav>button:hover,
-html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button:hover,
-html[data-theme="amoled"] .workspaceRoot .sidebarChild:hover{background:#222344!important;color:#eef7f2!important}
-html[data-theme="amoled"] .workspaceRoot .sidebarNav>button.navActive,
-html[data-theme="amoled"] .workspaceRoot .sidebarNavGroup>button.navActive,
-html[data-theme="amoled"] .workspaceRoot .sidebarChild.active{background:#282650!important;border-color:#39346c!important;color:#c5bbff!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar{background:rgba(16,18,36,.86)!important;border-color:#292a49!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderIcon,
-html[data-theme="amoled"] .workspaceRoot .workspaceHeaderBar .themeModeSwitch,
-html[data-theme="amoled"] .workspaceRoot .sidebarToggle{background:#1b1e3a!important;border-color:#34345c!important;color:#c2bcff!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input{background:transparent!important;color:#eef7f2!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceGlobalSearch input::placeholder{color:#8684aa!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(h1,h2,h3,h4,h5){color:#eef7f2!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(p,small,.fieldHint,.aqSub,.aqMetaText,.ovScopeNote,.ovFoot){color:#a5a3c5!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(.ovPanel,.ovKpi,.qhCard,.aqTable,.aqInd,.aqFilters,.stPanel,.mswHeader,.sdPanel,.cpGlass,.cpPanel,.oppeScorePanel,.oppePanel,.rmPanel,.psPanel,.psHead,.rmHero,.oppeHeader,.oppeFilters){
-  border-color:#343452!important;background:linear-gradient(145deg,rgba(27,29,54,.96),rgba(22,24,45,.92))!important;box-shadow:var(--md-shadow)!important;
-}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovKpi b,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovPanelHead h4{color:#eef7f2!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovKpiLabel,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovKpi small{color:#aaa8cc!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovContextBar,
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs{background:rgba(29,29,57,.9)!important;border-color:#353455!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabs>button.active{background:#242447!important;border-color:#403d70!important;color:#c8bfff!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter .ovDashboardTabIcon{background:#32305b!important;color:#c2b9ff!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(input,select,textarea){background:#15172c!important;color:#eef7f2!important;border-color:#39395e!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th){background:#29284b!important;color:#c7c3e8!important;border-color:#3a395f!important}
-html[data-theme="amoled"] .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td){background:#191b35!important;color:#dddaf4!important;border-color:#303151!important}
-html[data-theme="amoled"] .workspaceRoot .workspaceNotificationPanel,
-html[data-theme="amoled"] .workspaceRoot .workspaceSupportPanel{background:rgba(22,24,46,.97)!important;border-color:#38375c!important;color:#eef7f2!important}
-
-/* Dashboard micro-details */
-.workspaceRoot .moduleEnter .ovHeroMeta{display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important}
-.workspaceRoot .moduleEnter .ovHeroDate{
-  display:inline-flex!important;align-items:center!important;min-height:35px!important;padding:7px 11px!important;
-  border:1px solid rgba(255,255,255,.28)!important;border-radius:10px!important;background:rgba(255,255,255,.13)!important;
-  color:rgba(255,255,255,.9)!important;font-size:12px!important;font-weight:700!important;white-space:nowrap!important;
-}
-.workspaceRoot .moduleEnter .ovKpiHeader{position:relative!important;z-index:1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important}
-.workspaceRoot .moduleEnter .ovKpiIcon{
-  display:grid!important;place-items:center!important;width:32px!important;height:32px!important;flex:0 0 32px!important;
-  border-radius:10px!important;background:#eef7f2!important;color:#7769df!important;
-}
-.workspaceRoot .moduleEnter .ovKpiIcon svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.7!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-.workspaceRoot .moduleEnter .ovKpiIcon.safety{background:#eef7f2!important;color:#5d92df!important}
-.workspaceRoot .moduleEnter .ovKpiIcon.risk{background:#fff1f3!important;color:#dd7890!important}
-.workspaceRoot .moduleEnter .ovKpiIcon.audit{background:#fff7e9!important;color:#d8a64f!important}
 .workspaceRoot .moduleEnter .ovKpi:hover{transform:translateY(-2px)!important;box-shadow:var(--md-shadow-hover)!important}
 .workspaceRoot .moduleEnter .ovPanel:hover{box-shadow:var(--md-shadow-hover)!important}
-@media(max-width:760px){
-  .workspaceRoot .moduleEnter .ovHeroMeta{width:100%!important;justify-content:space-between!important}
-  .workspaceRoot .moduleEnter .ovHeroDate{font-size:12px!important}
-  .workspaceRoot .moduleEnter .ovKpiIcon{width:27px!important;height:27px!important;flex-basis:27px!important}
-  .workspaceRoot .moduleEnter .ovKpiIcon svg{width:15px!important;height:15px!important}
-}

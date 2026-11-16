@@ -21,25 +21,6 @@
   background: transparent !important;
   color: var(--aureka-ui-ink) !important;
 }
-.workspaceRoot .workspacePageHead {
-  margin: 0 0 8px !important;
-  padding: 2px 0 14px !important;
-}
-.workspaceRoot .workspacePageHead h1 {
-  color: var(--aureka-ui-ink) !important;
-  font-size: clamp(21px, 2vw, 27px) !important;
-  font-weight: 760 !important;
-  line-height: 1.2 !important;
-  letter-spacing: -.035em !important;
-}
-.workspaceRoot .workspaceCrumbs {
-  gap: 8px !important;
-  color: #849188 !important;
-  font-size: 12px !important;
-}
-.workspaceRoot .workspaceCrumbs b {
-  color: var(--aureka-ui-brand-dark) !important;
-}
 
 /* Sidebar: one clean white navigation surface, no nested glossy cards. */
 .workspaceRoot .sidebar {
@@ -198,25 +179,6 @@
   color: var(--aureka-ui-brand) !important;
   stroke: currentColor !important;
 }
-.workspaceRoot .sidebar .sidebarChevron {
-  display: inline-grid !important;
-  flex: 0 0 20px !important;
-  width: 20px !important;
-  height: 20px !important;
-  margin-left: auto !important;
-  place-items: center !important;
-  color: #93a097 !important;
-  border-radius: 6px !important;
-  font-size: 13px !important;
-  line-height: 1 !important;
-  transform: none !important;
-  transition: transform .16s ease, color .16s ease !important;
-}
-.workspaceRoot .sidebar .sidebarNavGroup.expanded > button .sidebarChevron,
-.workspaceRoot .sidebar .sidebarNestedGroup.open > button .sidebarChevron {
-  color: var(--aureka-ui-brand) !important;
-  transform: rotate(180deg) !important;
-}
 .workspaceRoot .sidebar .sidebarTreeChildren[hidden] {
   display: none !important;
 }
@@ -269,23 +231,6 @@
   border-color: #e1eee6 !important;
   font-weight: 730 !important;
 }
-.workspaceRoot .sidebar .sidebarChildMark {
-  flex: 0 0 6px !important;
-  width: 6px !important;
-  height: 6px !important;
-  margin: 6px 1px 0 0 !important;
-  border: 0 !important;
-  border-radius: 50% !important;
-  background: #c6d4cb !important;
-}
-.workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark {
-  background: var(--aureka-ui-brand) !important;
-  box-shadow: 0 0 0 3px #dceee3 !important;
-}
-.workspaceRoot .sidebar .sidebarTreeNestedChildren {
-  margin: 1px 0 5px 9px !important;
-  padding-left: 11px !important;
-}
 .workspaceRoot .sidebar .sidebarFooter {
   flex: 0 0 auto !important;
   padding: 11px 12px 14px !important;
@@ -319,8 +264,7 @@
   gap: 0 !important;
   padding: 0 !important;
 }
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren,
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron {
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren{
   display: none !important;
 }
 .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter > .liquidButton button {
@@ -368,10 +312,7 @@
   font-size: 12px !important;
 }
 .workspaceRoot .workspaceGlobalSearch input::placeholder { color: #98a49d !important; }
-.workspaceRoot .workspaceHeaderIcon,
-.workspaceRoot .workspaceHeaderBar .themeModeSwitch,
-.workspaceRoot .mobileMenuButton,
-.workspaceRoot .workspaceHeaderProfile {
+.workspaceRoot .workspaceHeaderIcon,.workspaceRoot .mobileMenuButton,.workspaceRoot .workspaceHeaderProfile{
   min-height: 36px !important;
   color: #62746a !important;
   background: #ffffff !important;
@@ -379,10 +320,7 @@
   border-radius: 9px !important;
   box-shadow: none !important;
 }
-.workspaceRoot .workspaceHeaderIcon:hover,
-.workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover,
-.workspaceRoot .mobileMenuButton:hover,
-.workspaceRoot .workspaceHeaderProfile:hover {
+.workspaceRoot .workspaceHeaderIcon:hover,.workspaceRoot .mobileMenuButton:hover,.workspaceRoot .workspaceHeaderProfile:hover{
   color: var(--aureka-ui-brand) !important;
   background: #f3f7f4 !important;
   border-color: var(--aureka-ui-line) !important;
@@ -463,7 +401,6 @@
   .workspaceRoot .workspaceGlobalSearch input { min-width: 0 !important; font-size: 12px !important; }
   .workspaceRoot .workspaceHeaderProfileText { display: none !important; }
   .workspaceRoot .moduleEnter { padding: 12px !important; }
-  .workspaceRoot .workspacePageHead { padding-bottom: 8px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .workspaceRoot *,
@@ -529,8 +466,7 @@
   border-color: #dcece2 !important;
   box-shadow: inset 3px 0 0 var(--aureka-ui-brand) !important;
 }
-.workspaceRoot .sidebar .sidebarTreeChildren,
-.workspaceRoot .sidebar .sidebarTreeNestedChildren {
+.workspaceRoot .sidebar .sidebarTreeChildren{
   background: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
@@ -541,7 +477,6 @@
 .workspaceRoot { background: #f5f7f6 !important; }
 .workspaceRoot .workspaceContent { min-width: 0 !important; background: #f5f7f6 !important; }
 .workspaceRoot .workspaceHeaderBar { background: #ffffff !important; background-image: none !important; }
-.workspaceRoot .workspacePageHead { background: transparent !important; }
 
 /* Audit workspace: compact, consistent in-page tabs and a balanced desktop rail. */
 .workspaceRoot:not(.sidebarIsCollapsed) {
@@ -732,8 +667,7 @@
   justify-content: center !important;
   padding: 0 !important;
 }
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren,
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron {
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren{
   display: none !important;
 }
 .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter > .liquidButton button {
@@ -908,35 +842,6 @@
   box-shadow: none !important;
   text-align: left !important;
 }
-.workspaceRoot .sidebar .sideProfileAvatar {
-  flex: 0 0 32px !important;
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 9px !important;
-  background: #e4f1e9 !important;
-  color: #176b4d !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-}
-.workspaceRoot .sidebar .sideProfileText {
-  display: flex !important;
-  flex: 1 1 auto !important;
-  flex-direction: column !important;
-  min-width: 0 !important;
-  gap: 2px !important;
-}
-.workspaceRoot .sidebar .sideProfileText b {
-  overflow: hidden !important;
-  color: #34483c !important;
-  font-size: 12px !important;
-  font-weight: 750 !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-.workspaceRoot .sidebar .sideProfileText small {
-  color: #87958d !important;
-  font-size: 12px !important;
-}
 .workspaceRoot .sidebar .navLabel {
   margin: 18px 20px 9px !important;
   color: #97a39b !important;
@@ -1030,8 +935,7 @@
   justify-content: center !important;
   padding: 0 !important;
 }
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren,
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron {
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren{
   display: none !important;
 }
 
@@ -1243,14 +1147,6 @@
   font-weight: 760 !important;
 }
 .workspaceRoot .sidebar .sidebarNavGroup > button.navActive > svg { color: #0c8058 !important; }
-.workspaceRoot .sidebar .sidebarChevron {
-  flex: 0 0 17px !important;
-  width: 17px !important;
-  height: 17px !important;
-  margin-left: auto !important;
-  color: #9aa89f !important;
-  font-size: 12px !important;
-}
 .workspaceRoot .sidebar .sidebarTreeChildren {
   display: flex !important;
   flex-direction: column !important;
@@ -1286,17 +1182,6 @@
   border-color: #e5efe8 !important;
   color: #0c6949 !important;
   font-weight: 720 !important;
-}
-.workspaceRoot .sidebar .sidebarChildMark {
-  flex: 0 0 6px !important;
-  width: 6px !important;
-  height: 6px !important;
-  border-radius: 50% !important;
-  background: #c5d2c9 !important;
-}
-.workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark {
-  background: #13835b !important;
-  box-shadow: 0 0 0 3px #e1f0e6 !important;
 }
 .workspaceRoot .sidebar .sidebarFooter {
   flex: 0 0 auto !important;
@@ -1401,8 +1286,7 @@
 .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter .logoutLabel { display: none !important; }
 .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNav { padding: 12px 8px !important; }
 .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button { justify-content: center !important; padding: 0 !important; }
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren,
-.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarChevron { display: none !important; }
+.workspaceRoot.sidebarIsCollapsed .sidebar .sidebarTreeChildren{ display: none !important; }
 .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarFooter > .liquidButton button { justify-content: center !important; padding: 0 !important; }
 @media (max-width: 1100px) {
   .workspaceRoot .workspaceHeaderBar { gap: 9px !important; padding: 0 14px !important; }
