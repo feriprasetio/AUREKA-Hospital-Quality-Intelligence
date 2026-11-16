@@ -12,6 +12,31 @@ import { buildIndicatorProfileBackup, buildIndicatorProfileXlsx, parseIndicatorP
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
 const grains = ['patient_episode', 'provider_day', 'daily_metric', 'event', 'activity', 'aggregate']
+const GRAIN_LABEL: Record<string, string> = { patient_episode: 'Per pasien (episode)', provider_day: 'Per petugas per hari', daily_metric: 'Angka harian', event: 'Per kejadian', activity: 'Per kegiatan / observasi', aggregate: 'Rekap agregat' }
+
+type OptionRow = { label: string; code: string | null; numerator: boolean | null; denominator: boolean; review_required: boolean; [key: string]: unknown }
+/** Editor opsi jawaban yang ramah: menggantikan isian JSON mentah. Kunci tambahan di tiap opsi tetap dipertahankan. */
+function OptionsEditor({ text, onChange }: { text: string; onChange: (next: string) => void }) {
+  let rows: OptionRow[] | null = null
+  try { const parsed = JSON.parse(text || '[]'); if (Array.isArray(parsed)) rows = parsed.map((o) => ({ label: '', code: null, numerator: null, denominator: true, review_required: false, ...(o && typeof o === 'object' ? o : { label: String(o) }) })) } catch { rows = null }
+  if (!rows) return <div className="qsOptWarn">Daftar opsi tersimpan dalam format yang tidak dikenali. Buka "Pengaturan lanjutan" di bawah untuk memperbaikinya.</div>
+  const write = (next: OptionRow[]) => onChange(JSON.stringify(next, null, 2))
+  const set = (i: number, patch: Partial<OptionRow>) => write(rows!.map((r, idx) => idx === i ? { ...r, ...patch } : r))
+  return <div className="qsOpts">
+    {rows.length === 0 && <p className="qsOptEmpty">Belum ada opsi jawaban. Tambahkan pilihan yang akan dipilih petugas saat mengisi logbook.</p>}
+    {rows.map((r, i) => <div className="qsOptRow" key={i}>
+      <span className="qsOptNo" aria-hidden="true">{i + 1}</span>
+      <input className="qsOptLabel" value={r.label} placeholder="Teks pilihan, mis. Sesuai standar" aria-label={'Teks opsi ' + (i + 1)} onChange={(e) => set(i, { label: e.target.value })} />
+      <select aria-label={'Masuk pembilang (numerator) opsi ' + (i + 1)} value={r.numerator === true ? 'yes' : r.numerator === false ? 'no' : 'none'} onChange={(e) => set(i, { numerator: e.target.value === 'yes' ? true : e.target.value === 'no' ? false : null })}>
+        <option value="yes">Dihitung sesuai (pembilang)</option><option value="no">Tidak sesuai</option><option value="none">Perlu ditinjau</option>
+      </select>
+      <label className="qsOptCheck"><input type="checkbox" checked={r.denominator !== false} onChange={(e) => set(i, { denominator: e.target.checked })} />Masuk penyebut</label>
+      <label className="qsOptCheck"><input type="checkbox" checked={!!r.review_required} onChange={(e) => set(i, { review_required: e.target.checked })} />Wajib alasan</label>
+      <button type="button" className="qsOptDel" aria-label={'Hapus opsi ' + (i + 1)} onClick={() => write(rows!.filter((_, idx) => idx !== i))}>×</button>
+    </div>)}
+    <button type="button" className="qsOptAdd" onClick={() => write([...rows!, { label: '', code: null, numerator: true, denominator: true, review_required: false }])}>+ Tambah opsi jawaban</button>
+  </div>
+}
 const YEARS = Array.from({ length: 12 }, (_, i) => 2024 + i)
 
 type Room = { id: number; name: string }
@@ -490,19 +515,24 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <label className="field" style={fieldStyle}><span>Target tertulis</span><input value={model.target_text || ''} placeholder="Mis. ≥ 85%" onChange={(e) => setModel({ ...model, target_text: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Operator target</span><select value={model.target_operator || '>='} onChange={(e) => setModel({ ...model, target_operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value="=">=</option><option value=">">&gt;</option><option value="<">&lt;</option></select></label>
         <label className="field" style={fieldStyle}><span>Nilai target numerik</span><input type="number" value={model.target_value ?? ''} onChange={(e) => setModel({ ...model, target_value: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Measurement grain</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{grain}</option>)}</select></label>
+        <label className="field" style={fieldStyle}><span>Satuan pencatatan</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{GRAIN_LABEL[grain] || grain}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif, semakin tinggi semakin baik</option><option value="negative">Negatif, semakin rendah semakin baik</option></select></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi numerator</span><textarea value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi denominator</span><textarea value={model.denominator_definition || ''} onChange={(e) => setModel({ ...model, denominator_definition: e.target.value })} /></label>
-        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Struktur instrumen (JSON object)</span><textarea style={{ minHeight: 95, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._schema_text ?? '{}'} onChange={(e) => setModel({ ...model, _schema_text: e.target.value })} /></label>
-        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Opsi / kamus respons (JSON array)</span><textarea style={{ minHeight: 150, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._options_text ?? '[]'} onChange={(e) => setModel({ ...model, _options_text: e.target.value })} /></label>
+        <div className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Opsi jawaban di logbook</span><OptionsEditor text={model._options_text ?? '[]'} onChange={(next) => setModel({ ...model, _options_text: next })} /></div>
+        <details className="qsAdvanced" style={{ gridColumn: '1/-1' }}>
+          <summary>Pengaturan lanjutan (khusus admin teknis)</summary>
+          <p>Format data mentah yang dipakai sistem. Biasanya tidak perlu diubah.</p>
+          <label className="field" style={fieldStyle}><span>Struktur instrumen</span><textarea style={{ minHeight: 95, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._schema_text ?? '{}'} onChange={(e) => setModel({ ...model, _schema_text: e.target.value })} /></label>
+          <label className="field" style={fieldStyle}><span>Daftar opsi (format data)</span><textarea style={{ minHeight: 120, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._options_text ?? '[]'} onChange={(e) => setModel({ ...model, _options_text: e.target.value })} /></label>
+        </details>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(null); setNewOne(null) }}>Batal</button>
         <LiquidGlassButton onClick={onSave} disabled={saving}>{saving ? 'Menyimpan…' : model.id ? 'Terbitkan versi baru' : 'Tambah indikator'}</LiquidGlassButton>
       </div>
       <div style={{ marginTop: 7, fontSize: 12, color: 'var(--muted)' }}>
-        Perubahan pada indikator yang sudah terbit dibuat sebagai versi baru. Opsi JSON harus berupa array dan struktur instrumen harus berupa objek.
+        Perubahan pada indikator yang sudah terbit dibuat sebagai versi baru.
       </div>
     </div>
   )

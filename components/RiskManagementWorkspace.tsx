@@ -387,19 +387,30 @@ export default function RiskManagementWorkspace({
       setUnitFilter(focus.unitName || 'all')
     }
   }, [focus, loading, risks, scopedToUnit])
+  // Urutan kolom berlaku untuk SELURUH risiko hasil filter (bukan hanya 15 baris di halaman ini).
+  const [sortBy, setSortBy] = useState<{ key: 'risk' | 'unit' | 'score' | 'level' | 'status'; dir: 1 | -1 } | null>(null)
+  const LEVEL_RANK: Record<string, number> = { 'Sangat Rendah': 0, 'Rendah': 1, 'Sedang': 2, 'Tinggi': 3, 'Sangat Tinggi': 4 }
+  const sortedRisks = useMemo(() => {
+    if (!sortBy) return filteredRisks
+    const val = (r: RiskRow): string | number => sortBy.key === 'risk' ? r.risk_event || '' : sortBy.key === 'unit' ? r.unit_name || '' : sortBy.key === 'score' ? Number(r.risk_score) || 0 : sortBy.key === 'level' ? LEVEL_RANK[String(r.risk_level)] ?? 0 : String(r.status || '')
+    return [...filteredRisks].sort((a, b) => { const x = val(a), y = val(b); const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'id'); return c * sortBy.dir })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredRisks, sortBy])
+  const toggleSort = (key: 'risk' | 'unit' | 'score' | 'level' | 'status') => { setSortBy(cur => cur?.key === key ? (cur.dir === 1 ? { key, dir: -1 } : null) : { key, dir: key === 'score' || key === 'level' ? -1 : 1 }); setPage(0) }
+  const sortHead = (key: 'risk' | 'unit' | 'score' | 'level' | 'status', label: string) => <th aria-sort={sortBy?.key === key ? (sortBy.dir === 1 ? 'ascending' : 'descending') : 'none'}><button type="button" className={'rmSortBtn' + (sortBy?.key === key ? ' on' : '')} onClick={() => toggleSort(key)}>{label}<span aria-hidden="true">{sortBy?.key === key ? (sortBy.dir === 1 ? '▲' : '▼') : '↕'}</span></button></th>
   const pageCount = Math.max(1, Math.ceil(filteredRisks.length / pageSize))
-  const pageRisks = filteredRisks.slice(page * pageSize, (page + 1) * pageSize)
+  const pageRisks = sortedRisks.slice(page * pageSize, (page + 1) * pageSize)
   useEffect(() => { if (page >= pageCount) setPage(Math.max(0, pageCount - 1)) }, [page, pageCount])
   useEffect(() => {
     const id = pendingFocusRisk.current
     if (!id) return
-    const idx = filteredRisks.findIndex(r => r.id === id)
+    const idx = sortedRisks.findIndex(r => r.id === id)
     if (idx < 0) return
     const targetPage = Math.floor(idx / pageSize)
     if (page !== targetPage) { setPage(targetPage); return }
     pendingFocusRisk.current = ''
     window.setTimeout(() => document.querySelector(`[data-risk-id="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120)
-  }, [filteredRisks, page])
+  }, [sortedRisks, page])
 
   const counts = useMemo(() => ({
     total: risks.length,
@@ -886,7 +897,7 @@ export default function RiskManagementWorkspace({
           </div>
           {matrixFilter && <div className="rmSelectionBar"><div><b>Filter matriks aktif · P{matrixFilter.likelihood} × D{matrixFilter.impact}</b><span>Register hanya menampilkan risiko pada kombinasi ini.</span></div><button type="button" className="rmButton subtle" onClick={() => setMatrixFilter(null)}>Hapus filter matriks</button></div>}
           {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
-          <WorkspaceTableViewport label="Register dan pengendalian risiko" className="rmTableWrap"><table className="rmTable"><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th><th>Risiko</th><th>Unit</th><th>Skor</th><th>Level risiko</th><th>Status</th><th>Aksi</th></tr></thead>
+          <WorkspaceTableViewport label="Register dan pengendalian risiko" className="rmTableWrap"><table className="rmTable" data-ak-sort="off"><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th>{sortHead('risk', 'Risiko')}{sortHead('unit', 'Unit')}{sortHead('score', 'Skor')}{sortHead('level', 'Level risiko')}{sortHead('status', 'Status')}<th>Aksi</th></tr></thead>
               <tbody>{pageRisks.map(risk => <tr key={risk.id} data-risk-id={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih risiko: ' + risk.risk_event} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
                 <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small>{risk.category}{risk.is_priority ? ' · PRIORITAS #' + (risk.priority_rank ?? '-') : ''}{risk.source_sheet ? ' · Sumber: ' + risk.source_sheet + (risk.source_row_number ? ' baris ' + risk.source_row_number : '') : ''}</small></button></td>
