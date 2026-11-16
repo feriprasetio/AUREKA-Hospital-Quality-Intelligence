@@ -232,9 +232,29 @@ async function snapshot(db: SupabaseClient) {
       pathwayAudits.error && "audit clinical pathway tidak dapat dibaca",
       deathAudits.error && "audit kematian klinis tidak dapat dibaca",
       igdMetrics.error && "analitik waktu konsultasi IGD tidak dapat dibaca",
+      clinical.error && "analitik diagnosis klinis tidak dapat dibaca",
+      indicatorProfiles.error && "profil indikator mutu tidak dapat dibaca",
+      investigations.error && "status investigasi IKP tidak dapat dibaca",
+      culture.error && "agregat survei budaya keselamatan tidak dapat dibaca",
+      oppe.error && "agregat OPPE/FPPE tidak dapat dibaca",
+      recommendations.error && "rekomendasi tata kelola tidak dapat dibaca",
+      actions.error && "tindak lanjut tata kelola tidak dapat dibaca",
+      priorities.error && "prioritas tahunan tidak dapat dibaca",
     ].filter(Boolean),
     daftar_unit_aktif: rooms.map((r) => r.name),
     ikhtisar_governance_aureka: governance.error ? null : governance.data,
+    analisis_diagnosis_klinis: clinical.error ? null : clinical.data,
+    profil_indikator_mutu: {
+      tahun: year,
+      total_profil: indicatorProfiles.rows.length,
+      total_profil_aktif: indicatorProfiles.rows.filter((r) => r.is_active === true && r.status !== "archived").length,
+      per_kategori: count(indicatorProfiles.rows, (r) => r.category),
+      definisi_indikator: indicatorProfiles.rows.slice(0, 250).map((r) => ({
+        kode: r.code, judul: r.title, unit: r.unit_name, kategori: r.category,
+        target: r.target_text, grain: r.measurement_grain, status: r.status, aktif: r.is_active,
+      })),
+      catatan: "Metadata profil indikator saja; ini bukan data episode atau nilai capaian.",
+    },
     analisis_fmea: {
       total: safeScalar(fmea.rows.length),
       per_prioritas: safeCount(count(fmea.rows, (r) => r.priority)),
@@ -299,7 +319,49 @@ async function snapshot(db: SupabaseClient) {
     keselamatan_pasien: {
       total_laporan_ikp: incidents.rows.length >= 5 ? incidents.rows.length : "disembunyikan (<5)",
       per_jenis: safeCount(count(incidents.rows, incType)),
-      catatan_disclosure: "Rincian per unit dan per bulan tidak dikirim ke model. Sel dengan jumlah kurang dari 5 disembunyikan.",
+      per_status: safeCount(count(incidents.rows, (r) => String(r.status || ""))),
+      total_investigasi: safeScalar(investigations.rows.length),
+      investigasi_per_status: safeCount(count(investigations.rows, (r) => r.status)),
+      survei_budaya: {
+        total_respons: safeScalar(culture.rows.length),
+        per_periode: safeCount(count(culture.rows, (r) => r.survey_period)),
+        per_profesi: safeCount(count(culture.rows, (r) => r.profession_group)),
+        rerata_item_terjawab: culture.rows.length >= 5
+          ? Math.round(culture.rows.reduce((sum, r) => sum + Number(r.answered_item_count || 0), 0) / culture.rows.length * 10) / 10
+          : "disembunyikan (<5)",
+      },
+      catatan_disclosure: "Identitas, uraian insiden, jawaban responden, dan kronologi tidak dikirim ke model. Hanya agregat; sel kecil disembunyikan.",
+    },
+    evaluasi_profesional: {
+      total_oppe_fppe: safeScalar(oppe.rows.length),
+      per_jenis: safeCount(count(oppe.rows, (r) => r.evaluation_type)),
+      per_status: safeCount(count(oppe.rows, (r) => r.status)),
+      per_profesi: safeCount(count(oppe.rows, (r) => r.profession_snapshot)),
+      per_unit: safeCount(count(oppe.rows, (r) => r.unit_snapshot)),
+      catatan_disclosure: "Nama, kode pegawai, isi evaluasi, dan catatan penilai tidak dikirim ke model.",
+    },
+    tata_kelola_dan_prioritas: {
+      rekomendasi_tahun_ini: {
+        total: safeScalar(recommendations.rows.length),
+        per_sumber: safeCount(count(recommendations.rows, (r) => r.source)),
+        per_prioritas: safeCount(count(recommendations.rows, (r) => r.priority)),
+        per_status: safeCount(count(recommendations.rows, (r) => r.status)),
+        per_level_pemberi: safeCount(count(recommendations.rows, (r) => r.issued_by_level)),
+      },
+      tindak_lanjut: {
+        total: safeScalar(actions.rows.length),
+        per_level_penanggung_jawab: safeCount(count(actions.rows, (r) => r.responsible_level)),
+        per_status: safeCount(count(actions.rows, (r) => r.status)),
+        per_metode_perbaikan: safeCount(count(actions.rows, (r) => r.improvement_method)),
+        lewat_tenggat: safeScalar(actions.rows.filter((r) => r.due_date && r.due_date < today && !/selesai|done|completed|closed/i.test(r.status || "")).length),
+      },
+      prioritas_tahunan: {
+        total: safeScalar(priorities.rows.length),
+        per_prioritas: safeCount(count(priorities.rows, (r) => r.priority)),
+        per_status: safeCount(count(priorities.rows, (r) => r.status)),
+        lewat_tenggat: safeScalar(priorities.rows.filter((r) => r.due_date && r.due_date < today && !/selesai|done|completed|closed/i.test(r.status || "")).length),
+      },
+      catatan_disclosure: "Uraian rekomendasi/aksi, nama individu, identitas pelaksana, bukti, dan catatan internal tidak dikirim ke model.",
     },
   };
 }
