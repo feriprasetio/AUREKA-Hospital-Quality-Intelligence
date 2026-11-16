@@ -81,6 +81,11 @@ const BOTTOM_NAV_GLYPH:Record<string,ReactNode>={
  patients:<><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></>,
  safety:<><path d="M12 3.5 19 6v5.5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z"/><path d="m9 12 2 2 4-4"/></>,
  risk:<><path d="M12 4 21 19.5H3z"/><path d="M12 10v4.5"/><path d="M12 17.2v.3"/></>,
+ nara:<><path d="M12 3.5l1.6 4.3 4.4 1.7-4.4 1.7L12 15.5l-1.6-4.3L6 9.5l4.4-1.7z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></>,
+ clinical:<><path d="M9 4h6v3H9z"/><path d="M7 5.5H5.5v15h13v-15H17"/><path d="M9 12.5l2 2 4-4"/></>,
+ analytics:<><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 9.5h16M9 3.5v3M15 3.5v3"/><path d="M8.5 14l2 2 4.5-4.5"/></>,
+ staff:<><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.5 14.2A4.5 4.5 0 0 1 21 18.5"/></>,
+ settings:<><circle cx="12" cy="12" r="3"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6"/></>,
 }
 export default function HomeClient(){
  // Kotak cari baru bisa diketik setelah difokus pengguna: mencegah browser mengisi username otomatis ke sini.
@@ -945,14 +950,14 @@ export default function HomeClient(){
   <nav className="sidebarNav" aria-label="Navigasi modul AUREKA">
    <div className={'sidebarNavGroup '+(active==='home'?'isCurrent':'')} key="home">
     <button type="button" title="Beranda" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
-     <span>Beranda</span>
+     <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH.home}</svg><span>Beranda</span>
     </button>
    </div>
    {visibleMods.map(([id,label])=>{
     const selected=isPrimaryNavActive(id)
     return <div className={'sidebarNavGroup '+(selected?'isCurrent':'')} key={id}>
      <button type="button" title={label} className={selected?'navActive':''} aria-current={selected?'page':undefined} onClick={()=>openMainModule(id)}>
-      <span>{label}</span>
+      {BOTTOM_NAV_GLYPH[id]&&<svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[id]}</svg>}<span>{label}</span>
      </button>
     </div>
    })}

@@ -1468,3 +1468,13 @@ html[data-mode="gelap"] body:not(#_) .authPage :is(.authSwitch, .authFormFootnot
 @media (max-width: 720px) {
   html body:not(#_) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea) { font-size: 16px !important; }
 }
+
+/* Sidebar: ikon untuk tiap menu (menggantikan titik), di desktop dan laci menu ponsel. */
+html body:not(#_) .workspaceRoot .sidebar .sidebarNavGroup > button { display: flex !important; align-items: center !important; gap: 11px !important; }
+html body:not(#_) .workspaceRoot .sidebar .sidebarNavGroup > button::before { display: none !important; content: none !important; }
+html body:not(#_) .workspaceRoot .sidebar .sidebarNavIcon { flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: .72; transition: opacity .18s ease, color .18s ease; }
+html body:not(#_) .workspaceRoot .sidebar .sidebarNavGroup > button:is(.navActive, :hover) .sidebarNavIcon { opacity: 1; color: #0e7490; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar .sidebarNavGroup > button:is(.navActive, :hover) .sidebarNavIcon { color: #67e8f9; }
+html body:not(#_) .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button { justify-content: center !important; }
+html body:not(#_) .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button > span { display: none !important; }
+html body:not(#_) .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavIcon { width: 22px; height: 22px; opacity: .85; }
