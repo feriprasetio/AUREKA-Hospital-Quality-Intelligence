@@ -17,7 +17,7 @@ const SKIP = /^(id|created_at|updated_at|published_at|retired_at|created_by|upda
  * Kelengkapan profil indikator per unit untuk satu tahun, dengan tombol menyalin
  * profil aktif tahun sebelumnya ke unit yang belum punya. Tanpa profil aktif, logbook unit tidak bisa diisi.
  */
-export default function IndicatorCoveragePanel({ rooms, year, onCopied }: { rooms: Room[]; year: number; onCopied?: () => void }) {
+export default function IndicatorCoveragePanel({ rooms, year, onCopied, onStarterTemplate, onImport }: { rooms: Room[]; year: number; onCopied?: () => void; onStarterTemplate?: () => void; onImport?: () => void }) {
   const [cur, setCur] = useState<Row[]>([])
   const [prev, setPrev] = useState<Row[]>([])
   const [loading, setLoading] = useState(false)
@@ -106,6 +106,10 @@ export default function IndicatorCoveragePanel({ rooms, year, onCopied }: { room
           <button type="button" className="icGhost" onClick={() => setOpen((v) => !v)} aria-expanded={open}>{open ? 'Tutup daftar' : 'Lihat per unit'}</button>
         </div>
       </div>
+      {!loading && covered < units.length && (onStarterTemplate || onImport) && <div className="icImport">
+        <span><b>Isi lewat Excel:</b> 1) unduh template, 2) periksa/lengkapi indikator tiap unit, 3) impor kembali.</span>
+        <div>{onStarterTemplate && <button type="button" className="icGhost" onClick={onStarterTemplate}>Unduh template</button>}{onImport && <button type="button" className="icPrimary" onClick={onImport}>Impor Excel</button>}</div>
+      </div>}
       <div className="icMeter" aria-hidden="true"><i style={{ width: (units.length ? (covered / units.length) * 100 : 0) + '%' }} /></div>
       {msg && <p className="icMsg" role="status">{msg}</p>}
       {open && <ul className="icList">
