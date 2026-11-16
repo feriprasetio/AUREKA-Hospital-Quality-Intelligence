@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
+import { buildMonthlyReportHtml } from '@/lib/report/monthly-report'
 import type { NavigateFn } from '@/lib/aureka/focus'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -33,6 +34,8 @@ const css = [
 '.ifHero h2{margin:0;color:var(--arktik-ink,#21374f);font-size:20px;font-weight:850;letter-spacing:-.03em}',
 '.ifHero p{max-width:720px;margin:6px 0 0;color:var(--ak-muted,#73849a);font-size:12px;line-height:1.6}',
 '.ifFilters{display:flex;align-items:end;gap:9px;flex-wrap:wrap}',
+'.ifReportBtn{min-height:36px;padding:0 14px;border:0;border-radius:9px;background:#1f2430;color:#fff;font:inherit;font-size:13px;font-weight:800;cursor:pointer}',
+'.ifReportBtn:disabled{opacity:.5;cursor:default}',
 '.ifFilters label{display:grid;gap:5px;color:var(--ak-muted,#73849a);font-size:12px;font-weight:750}',
 '.ifFilters select,.ifChartToolbar select{min-width:132px;min-height:36px;padding:7px 30px 7px 10px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;background:#fff;color:var(--arktik-ink,#21374f);font-size:12px}',
 '.ifScope{padding:9px 11px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:9px;background:var(--arktik-glass,#f6f9fc);color:var(--ak-muted,#73849a);font-size:12px;font-weight:750}',
@@ -182,6 +185,26 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   const roomId = roomValue ? Number(roomValue) : null
   const selectedRoomName = roomId == null ? 'Seluruh rumah sakit' : rooms.find((room) => Number(room.id) === roomId)?.name || 'Unit terpilih'
   const qualityOnly = mode === 'quality'
+  const [reportMonth, setReportMonth] = useState(() => new Date().getMonth() + 1)
+  const [reportBusy, setReportBusy] = useState(false)
+  // Laporan bulanan PMKP: jendela baru dibuka langsung saat klik (agar tidak diblokir), lalu diisi.
+  const openReport = async () => {
+    if (!summary || reportBusy) return
+    const win = window.open('', '_blank')
+    if (!win) { setError('Jendela laporan diblokir browser. Izinkan pop-up untuk AUREKA lalu coba lagi.'); return }
+    win.document.write('<p style="font-family:sans-serif;padding:24px">Menyiapkan laporan…</p>')
+    setReportBusy(true)
+    try {
+      const rep = await aurekaSupabase.rpc('aureka_quality_room_reporting_status', { p_year: Number(year) })
+      const scopeRooms = roomId == null ? rooms : rooms.filter((r) => Number(r.id) === roomId)
+      const done = new Set(((rep.data as any[]) || []).filter((r) => Number(r.month) === reportMonth).map((r) => Number(r.room_id)))
+      const { data: auth } = await aurekaSupabase.auth.getUser()
+      const html = buildMonthlyReportHtml({ year: Number(year), month: reportMonth, scope: selectedRoomName, summary: summary as any, rooms: scopeRooms.map((r) => ({ name: r.name, reported: done.has(Number(r.id)) })), preparedBy: String(auth.user?.user_metadata?.full_name || auth.user?.email || 'pengguna AUREKA') })
+      win.document.open(); win.document.write(html); win.document.close()
+    } catch {
+      win.close(); setError('Laporan bulanan belum dapat disusun. Coba lagi.')
+    } finally { setReportBusy(false) }
+  }
 
   useEffect(() => {
     setRoomValue(initialRoomId == null ? '' : String(initialRoomId))
@@ -255,6 +278,8 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
         {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => { const next = event.target.value; setRoomValue(next); onRoomChange?.(next ? Number(next) : null) }}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
         {!canChooseRoom && <span className="ifScope">{selectedRoomName}</span>}
+        {!qualityOnly && <label>Bulan laporan<select value={reportMonth} onChange={(event) => setReportMonth(Number(event.target.value))}>{MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}</select></label>}
+        {!qualityOnly && <button type="button" className="ifReportBtn" disabled={!summary || reportBusy} onClick={() => void openReport()}>{reportBusy ? 'Menyusun…' : 'Laporan PDF'}</button>}
       </div>
     </header>
     {error && <div className="ifError" role="alert">{error}</div>}
