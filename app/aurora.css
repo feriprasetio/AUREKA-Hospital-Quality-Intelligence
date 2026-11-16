@@ -1037,3 +1037,87 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .liquidButton button:not(:di
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .liquidButton button:not(:disabled):hover { background: #ffffff !important; }
 html body:not(#_) .workspaceRoot .qsReviewNote { margin-top: 5px; color: #a83232; font-size: 12px; font-weight: 750; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .qsReviewNote { color: #fca5a5; }
+
+/* ===== Register Risiko: halaman peta + daftar yang lebih lega ===== */
+html body:not(#_) .workspaceRoot .rmMatrixLanding { display: flex; flex-direction: column; gap: 16px; }
+html body:not(#_) .workspaceRoot .rmLandHead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+html body:not(#_) .workspaceRoot .rmLandHead > div { min-width: 0; max-width: 62ch; }
+html body:not(#_) .workspaceRoot .rmLandHead h3 { margin: 2px 0 4px !important; font-size: 20px !important; font-weight: 800 !important; letter-spacing: -.01em; }
+html body:not(#_) .workspaceRoot .rmLandHead p { margin: 0 !important; font-size: 13px; color: #5b6573; }
+html body:not(#_) .workspaceRoot .rmLandKpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+html body:not(#_) .workspaceRoot .rmLandKpi { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px 16px; border-radius: 16px; border: 1px solid #dfe7f0; background: #fff; font: inherit; text-align: left; cursor: pointer; transition: border-color .16s ease, translate .16s cubic-bezier(.22, 1, .36, 1); }
+html body:not(#_) .workspaceRoot .rmLandKpi > span { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #4b5565; }
+html body:not(#_) .workspaceRoot .rmLandKpi > span::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: #94a3b8; }
+html body:not(#_) .workspaceRoot .rmLandKpi.very-high > span::before { background: #dc2626; }
+html body:not(#_) .workspaceRoot .rmLandKpi.high > span::before { background: #f97316; }
+html body:not(#_) .workspaceRoot .rmLandKpi.open > span::before { background: #eab308; }
+html body:not(#_) .workspaceRoot .rmLandKpi > b { font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -.02em; color: #1f2430; font-variant-numeric: tabular-nums; }
+html body:not(#_) .workspaceRoot .rmLandKpi > small { font-size: 12px; color: #6b7684; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (hover: hover) and (pointer: fine) { html body:not(#_) .workspaceRoot .rmLandKpi:hover { border-color: rgba(14, 116, 144, .45); translate: 0 -2px; } }
+html body:not(#_) .workspaceRoot .rmLandGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 14px; align-items: start; }
+html body:not(#_) .workspaceRoot .rmLandMatrix { min-width: 0; }
+html body:not(#_) .workspaceRoot .rmTopRisks { padding: 16px; border-radius: 18px; border: 1px solid #dfe7f0; background: #fff; min-width: 0; }
+html body:not(#_) .workspaceRoot .rmTopRisks h4 { margin: 0 0 8px !important; font-size: 14px !important; font-weight: 800 !important; }
+html body:not(#_) .workspaceRoot .rmTopRisks ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+html body:not(#_) .workspaceRoot .rmTopRisks li + li { border-top: 1px solid #edf1f6; }
+html body:not(#_) .workspaceRoot .rmTopRisks li button { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 10px 4px; border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; border-radius: 10px; }
+html body:not(#_) .workspaceRoot .rmTopRisks li button:hover { background: rgba(14, 116, 144, .06); }
+html body:not(#_) .workspaceRoot .rmTopScore { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; background: #eef2f7; color: #1f2430; }
+html body:not(#_) .workspaceRoot .rmTopScore.very-high { background: #fde2e2; color: #b91c1c; }
+html body:not(#_) .workspaceRoot .rmTopScore.high { background: #ffedd5; color: #c2410c; }
+html body:not(#_) .workspaceRoot .rmTopScore.moderate { background: #fef3c7; color: #a16207; }
+html body:not(#_) .workspaceRoot .rmTopText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+html body:not(#_) .workspaceRoot .rmTopText b { font-size: 13px; line-height: 1.35; font-weight: 700; color: #1f2430; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html body:not(#_) .workspaceRoot .rmTopText small { font-size: 12px; color: #6b7684; }
+@media (max-width: 1080px) { html body:not(#_) .workspaceRoot .rmLandGrid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 720px) { html body:not(#_) .workspaceRoot .rmLandKpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } html body:not(#_) .workspaceRoot .rmLandKpi > b { font-size: 24px; } html body:not(#_) .workspaceRoot .rmLandHead > .rmButton { width: 100%; justify-content: center; } }
+
+/* Daftar: kepala dengan tombol kembali + chip level */
+html body:not(#_) .workspaceRoot .rmListHead { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; margin-bottom: 12px; }
+html body:not(#_) .workspaceRoot .rmBackLink { border: 0; background: transparent; padding: 6px 2px; font: inherit; font-size: 13px; font-weight: 700; color: #0e7490; cursor: pointer; }
+html body:not(#_) .workspaceRoot .rmLevelChips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+html body:not(#_) .workspaceRoot .rmLevelChip { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid #dfe7f0; background: #fff; color: #3b4452; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+html body:not(#_) .workspaceRoot .rmLevelChip i { width: 8px; height: 8px; border-radius: 3px; background: #94a3b8; }
+html body:not(#_) .workspaceRoot .rmLevelChip.very-high i { background: #dc2626; }
+html body:not(#_) .workspaceRoot .rmLevelChip.high i { background: #f97316; }
+html body:not(#_) .workspaceRoot .rmLevelChip.moderate i { background: #eab308; }
+html body:not(#_) .workspaceRoot .rmLevelChip.low i { background: #22c55e; }
+html body:not(#_) .workspaceRoot .rmLevelChip.very-low i { background: #0ea5e9; }
+html body:not(#_) .workspaceRoot .rmLevelChip.all i { display: none; }
+html body:not(#_) .workspaceRoot .rmLevelChip > span { padding: 1px 7px; border-radius: 999px; background: #eef2f7; color: #4b5565; font-size: 12px; font-variant-numeric: tabular-nums; }
+html body:not(#_) .workspaceRoot .rmLevelChip.on { background: #1f2430; border-color: #1f2430; color: #fff; }
+html body:not(#_) .workspaceRoot .rmLevelChip.on > span { background: rgba(255, 255, 255, .2); color: #fff; }
+
+/* Baris tabel: skor + level jadi satu pil, subteks lebih tenang, aksi ringkas */
+html body:not(#_) .workspaceRoot .rmScoreLevel { display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px 3px 3px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; background: #eef2f7; color: #334155; }
+html body:not(#_) .workspaceRoot .rmScoreLevel b { display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 999px; background: #fff; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+html body:not(#_) .workspaceRoot .rmScoreLevel.very-high { background: #fde2e2; color: #b91c1c; }
+html body:not(#_) .workspaceRoot .rmScoreLevel.high { background: #ffedd5; color: #c2410c; }
+html body:not(#_) .workspaceRoot .rmScoreLevel.moderate { background: #fef3c7; color: #a16207; }
+html body:not(#_) .workspaceRoot .rmScoreLevel.low { background: #dcfce7; color: #15803d; }
+html body:not(#_) .workspaceRoot .rmScoreLevel.very-low { background: #e0f2fe; color: #0369a1; }
+html body:not(#_) .workspaceRoot .rmRiskName small { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 3px; color: #6b7684 !important; font-size: 12px !important; }
+html body:not(#_) .workspaceRoot .rmPrio { font-style: normal; padding: 1px 7px; border-radius: 6px; background: rgba(14, 116, 144, .1); color: #0e5566; font-weight: 700; }
+html body:not(#_) .workspaceRoot .rmUnitCell { color: #4b5565; font-size: 13px; max-width: 220px; }
+html body:not(#_) .workspaceRoot .rmRowEdit { display: inline-grid !important; place-items: center; width: 34px; padding: 0 !important; }
+html body:not(#_) .workspaceRoot .rmRowEdit svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Mode gelap */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.rmLandKpi, .rmTopRisks, .rmLevelChip) { background: rgba(20, 27, 38, .82); border-color: rgba(255, 255, 255, .1); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.rmLandKpi > b, .rmTopText b, .rmTopRisks h4) { color: #eef2f7; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.rmLandHead p, .rmLandKpi > span, .rmLandKpi > small, .rmTopText small, .rmUnitCell) { color: #aab6c6; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmLevelChip { color: #d5dce6; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmLevelChip > span { background: rgba(255, 255, 255, .08); color: #c3ccd8; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmLevelChip.on { background: #eef2f7; border-color: #eef2f7; color: #0f1218; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmLevelChip.on > span { background: rgba(15, 18, 24, .12); color: #0f1218; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmTopRisks li + li { border-color: rgba(255, 255, 255, .08); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmBackLink { color: #67e8f9; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.rmScoreLevel, .rmTopScore) { background: rgba(255, 255, 255, .08); color: #d5dce6; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.rmScoreLevel, .rmTopScore).very-high { background: rgba(239, 68, 68, .18); color: #fca5a5; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.rmScoreLevel, .rmTopScore).high { background: rgba(249, 115, 22, .18); color: #fdba74; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.rmScoreLevel, .rmTopScore).moderate { background: rgba(234, 179, 8, .16); color: #fde047; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmScoreLevel.low { background: rgba(34, 197, 94, .16); color: #86efac; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmScoreLevel.very-low { background: rgba(14, 165, 233, .16); color: #7dd3fc; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmScoreLevel b { background: rgba(0, 0, 0, .25); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmPrio { background: rgba(94, 196, 207, .16); color: #bdf0f5; }
+@media (prefers-reduced-motion: reduce) { html body:not(#_) .workspaceRoot .rmLandKpi { transition: none; } }
