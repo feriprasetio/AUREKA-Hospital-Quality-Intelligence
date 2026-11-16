@@ -563,41 +563,52 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       />
       <p className="workspaceClinicalDisclaimer" role="note">Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>
 
-      <div className="acdPanel acdMode" role="tablist" aria-label="Jenis audit">
-        <button type="button" role="tab" aria-selected={auditType === 'clinical'} className={auditType === 'clinical' ? 'active' : ''} onClick={() => setAuditType('clinical')}>Audit klinis<span>Semua episode dalam ruang lingkup yang dipilih; gunakan kata kunci untuk topik audit tertentu.</span></button>
-        <button type="button" role="tab" aria-selected={auditType === 'death'} className={auditType === 'death' ? 'active' : ''} onClick={() => setAuditType('death')}>♡ Audit kematian<span>Hanya episode dengan status akhir yang secara eksplisit menyatakan pasien meninggal.</span></button>
-      </div>
-
-      <section className="acdPanel acdFilters"><div className="acdFilterGrid">
-        <div className="acdField"><label htmlFor="acd-room">Unit / instalasi</label><select id="acd-room" value={roomFilter ?? ''} disabled={!isAdmin || lockRoomScope} onChange={(event) => setRoomFilter(event.target.value ? Number(event.target.value) : null)}>{isAdmin && !lockRoomScope && <option value="">Semua unit</option>}{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></div>
-        <div className="acdField"><label htmlFor="acd-year">Tahun episode</label><select id="acd-year" value={yearFilter} onChange={(event) => setYearFilter(Number(event.target.value))}><option value={0}>Semua tahun</option>{[2024,2025,2026,2027,2028,2029,2030].map((year) => <option key={year} value={year}>{year}</option>)}</select></div>
-        <div className="acdField acdLocalSearch"><label htmlFor="acd-keyword">Kriteria diagnosis / topik (opsional)</label><input id="acd-keyword" value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="Contoh: stroke, STEMI, sepsis…" /></div>
-        <div className="acdField acdLocalSearch"><label htmlFor="acd-search">Cari pasien, No. RM, DPJP atau unit</label><input id="acd-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Kata kunci pencarian…" /></div>
-      </div></section>
-
-      <section className="acdKpis">
-        <div className="acdPanel acdKpi"><span>Kandidat sesuai kriteria</span><strong>{filteredEpisodes.length}</strong><small>Episode yang saat ini tersedia di sumber AUREKA.</small></div>
-        <div className="acdPanel acdKpi"><span>Sudah memiliki telaah</span><strong>{startedCount}</strong><small>Kasus dengan telaah aktif pada periode episode.</small></div>
-        <div className="acdPanel acdKpi"><span>Belum diajukan / perlu perbaikan</span><strong>{pendingCount}</strong><small>Draf, dibuka kembali, atau belum ditelaah.</small></div>
-      </section>
-
-      <section className="acdPanel" style={{padding:14}}>
-        <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:10}}>
-          <div><strong>Status telaah klinis dan kematian</strong><div className="acdSmall">Distribusi status audit pada episode yang sedang terfilter.</div></div>
-          <span className="acdPill">{filteredEpisodes.length} episode eligible</span>
+      <section className="acdToolbar" aria-label="Jenis audit dan filter">
+        <div className="acdSeg" role="tablist" aria-label="Jenis audit">
+          <button type="button" role="tab" aria-selected={auditType === 'clinical'} className={auditType === 'clinical' ? 'active' : ''} onClick={() => setAuditType('clinical')} title="Semua episode dalam ruang lingkup yang dipilih">Audit klinis</button>
+          <button type="button" role="tab" aria-selected={auditType === 'death'} className={auditType === 'death' ? 'active' : ''} onClick={() => setAuditType('death')} title="Hanya episode dengan status akhir meninggal yang tercatat eksplisit">Audit kematian</button>
         </div>
-        {(['Belum ditelaah','Draf / perlu perbaikan','Menunggu telaah','Tervalidasi'] as const).map((label,index)=>{const count=filteredEpisodes.filter(episode=>{const audit=existingFor(episode);if(index===0)return !audit;if(index===1)return !!audit&&['draft','reopened'].includes(String(audit.status));if(index===2)return !!audit&&audit.status==='submitted';return !!audit&&audit.status==='validated'}).length;const share=filteredEpisodes.length?count/filteredEpisodes.length*100:0;return <div key={label} className="acdStatusRow" style={{display:'grid',gridTemplateColumns:'minmax(125px,1fr) minmax(90px,2fr) 34px',gap:8,alignItems:'center',margin:'8px 0',fontSize:12}}><span>{label}</span><span style={{height:8,borderRadius:99,background:'var(--line)',overflow:'hidden'}}><i style={{display:'block',height:'100%',width:share+'%',background:'#16507a',borderRadius:99}}/></span><b>{count}</b></div>})}
-        <div className="acdSmall">Denominator: {filteredEpisodes.length} episode eligible setelah filter unit, tahun, jenis audit, diagnosis, dan pencarian. Status tidak menyatakan ketercegahan atau mutu klinis.</div>
+        <div className="acdToolbarFields">
+          <label className="acdTField"><span>Unit</span><select id="acd-room" value={roomFilter ?? ''} disabled={!isAdmin || lockRoomScope} onChange={(event) => setRoomFilter(event.target.value ? Number(event.target.value) : null)}>{isAdmin && !lockRoomScope && <option value="">Semua unit</option>}{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
+          <label className="acdTField acdTYear"><span>Tahun</span><select id="acd-year" value={yearFilter} onChange={(event) => setYearFilter(Number(event.target.value))}><option value={0}>Semua tahun</option>{[2024,2025,2026,2027,2028,2029,2030].map((year) => <option key={year} value={year}>{year}</option>)}</select></label>
+          <label className="acdTField acdTTopic"><span>Topik / diagnosis</span><input id="acd-keyword" value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="mis. stroke, STEMI, sepsis" /></label>
+        </div>
+        <div className="acdField acdLocalSearch"><label htmlFor="acd-search">Cari pasien, No. RM, DPJP atau unit</label><input id="acd-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Kata kunci pencarian…" /></div>
       </section>
-      <div className="acdInfo">Pemilihan kasus bersifat otomatis berdasarkan filter. Reviewer tetap wajib memeriksa kebenaran data episode dan catatan klinis sebelum memberi penilaian.</div>
-      <div className="acdInfo warn">Sumber saat ini adalah logbook AUREKA dengan grain <b>patient_episode</b> dan cache pada perangkat ini. Bridging SIMRS Emesys belum diaktifkan; pasien yang belum ada dalam sumber episode tersebut belum akan muncul di daftar ini.</div>
+
+      {(() => {
+        const stages = [
+          { key: 'todo', label: 'Belum ditelaah', hint: 'Siap dimulai', tone: 'idle' },
+          { key: 'draft', label: 'Draf / perlu perbaikan', hint: 'Sedang dikerjakan reviewer', tone: 'amber' },
+          { key: 'submitted', label: 'Menunggu validasi', hint: 'Sudah diajukan', tone: 'blue' },
+          { key: 'validated', label: 'Tervalidasi', hint: 'Selesai', tone: 'green' },
+        ].map((stage, index) => ({ ...stage, count: filteredEpisodes.filter((episode) => { const audit = existingFor(episode); if (index === 0) return !audit; if (index === 1) return !!audit && ['draft', 'reopened'].includes(String(audit.status)); if (index === 2) return !!audit && audit.status === 'submitted'; return !!audit && audit.status === 'validated' }).length }))
+        const total = filteredEpisodes.length
+        return <section className="acdPipeline" aria-label="Status telaah">
+          <div className="acdPipeHead">
+            <div><span className="acdPipeEyebrow">{auditType === 'death' ? 'Audit kematian' : 'Audit klinis'} · {yearFilter || 'semua tahun'}</span><strong>{total.toLocaleString('id-ID')} <small>kasus kandidat</small></strong></div>
+            <p>{startedCount.toLocaleString('id-ID')} sudah ditelaah · {pendingCount.toLocaleString('id-ID')} belum diajukan atau perlu perbaikan</p>
+          </div>
+          <div className="acdPipeBar" aria-hidden="true">{stages.map((stage) => <i key={stage.key} className={stage.tone} style={{ flexGrow: total ? stage.count : 0 }} />)}{!total && <i className="empty" />}</div>
+          <ol className="acdStages">{stages.map((stage) => <li key={stage.key} className={stage.tone}><span className="acdStageDot" aria-hidden="true" /><div><b>{stage.count.toLocaleString('id-ID')}</b><span>{stage.label}</span><small>{stage.hint}</small></div></li>)}</ol>
+        </section>
+      })()}
+
+      <details className="acdAbout">
+        <summary>Tentang data dan cara penilaian</summary>
+        <ul>
+          <li>Kasus dipilih otomatis berdasarkan filter. Reviewer tetap wajib memeriksa kebenaran data episode dan catatan klinis sebelum menilai.</li>
+          <li>Sumber saat ini adalah Logbook episode pasien AUREKA dan cache di perangkat ini. Bridging SIMRS belum aktif, jadi pasien di luar Logbook belum muncul.</li>
+          <li>Status telaah tidak menyatakan ketercegahan atau mutu klinis.</li>
+        </ul>
+      </details>
       {loadWarning && <div className="acdInfo warn" role="status">{loadWarning}</div>}
       {message && !editorOpen && <div className="acdInfo" role="status">{message}</div>}
 
       <section className="acdPanel">
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,padding:'15px 18px',borderBottom:'1px solid var(--line)',flexWrap:'wrap'}}>
-          <div><strong style={{fontSize:15}}>Daftar kandidat audit</strong><div className="acdSmall">{auditType === 'death' ? 'Penyaringan kematian berdasarkan status akhir yang eksplisit.' : 'Penyaringan seluruh episode pasien yang tersedia dan memenuhi filter.'}</div></div>
-          <span className="acdPill green">{filteredEpisodes.length} kasus</span>
+        <div className="acdListHead">
+          <div><h3>Daftar kandidat audit</h3><p>{auditType === 'death' ? 'Episode dengan status akhir meninggal yang tercatat eksplisit.' : 'Episode pasien yang tersedia dan memenuhi filter.'}</p></div>
+          <span className="acdCount">{filteredEpisodes.length.toLocaleString('id-ID')} kasus</span>
         </div>
         <WorkspaceTableViewport label="Daftar episode telaah klinis dan kematian" className="acdTableWrap"><table className="acdTable">
           <thead><tr><th>No.</th><th>Pasien / No. RM</th><th>Diagnosis / DPJP</th><th>Unit</th><th>Admisi – keluar</th><th>Hasil akhir</th><th>Status audit</th><th>Tindakan</th></tr></thead>
@@ -615,7 +626,11 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
                 <td><button type="button" className="acdBtn primary" disabled={episode.roomId == null || (isValidator && (!previous || previous.status !== 'submitted'))} onClick={() => openReview(episode, previous)}>{previous ? 'Buka telaah' : 'Mulai telaah'}</button><span className="acdSource">{episode.source === 'local' ? 'Cache perangkat' : 'Database'}</span></td>
               </tr>
             })}
-            {!filteredEpisodes.length && <tr><td colSpan={8}><div className="acdEmpty">{loading ? 'Memuat episode pasien…' : auditType === 'death' ? 'Tidak ditemukan episode dengan hasil akhir kematian yang eksplisit pada sumber dan filter ini. Pastikan status hasil akhir sudah tercatat; diagnosis atau status logbook tidak digunakan sebagai pengganti status kematian.' : 'Belum ada episode pasien yang sesuai. Episode muncul setelah logbook pasien diisi di Register Pasien, atau setelah data SIMRS terhubung.'}</div></td></tr>}
+            {!filteredEpisodes.length && <tr><td colSpan={8}><div className="acdEmpty acdEmptyRich">
+              <span className="acdEmptyIco" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5h6v2.5H9zM9 12h6M9 16h4"/></svg></span>
+              <b>{loading ? 'Memuat episode pasien…' : auditType === 'death' ? 'Belum ada kasus kematian untuk ditelaah' : 'Belum ada kasus untuk ditelaah'}</b>
+              {!loading && <p>{auditType === 'death' ? 'Kasus muncul bila status akhir episode tercatat meninggal. Diagnosis atau status logbook tidak dipakai sebagai pengganti.' : 'Kasus muncul setelah logbook episode pasien diisi di Register Pasien, atau setelah SIMRS terhubung. Coba ganti unit, tahun, atau topik.'}</p>}
+            </div></td></tr>}
           </tbody>
         </table></WorkspaceTableViewport>
       </section>
