@@ -7,7 +7,10 @@ import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewpor
 
 /** Pengaturan › Audit Log (Blueprint v2 §10/§13): catatan append-only, hanya Super Admin, Direktur, Komite PMKP. */
 type Row = { id: number; actor_name: string | null; actor_role: string | null; action: string; object_type: string; object_id: string | null; detail: Record<string, unknown>; created_at: string }
-const OBJECT_LABEL: Record<string, string> = { recommendation: 'Rekomendasi', action: 'Tindak lanjut', regulation: 'Regulasi', ui_error: 'Error tampilan' }
+const OBJECT_LABEL: Record<string, string> = { recommendation: 'Rekomendasi', action: 'Tindak lanjut', regulation: 'Regulasi', ui_error: 'Error tampilan', hr_performance: 'Kinerja tenaga klinis', patient_identity: 'Identitas pasien', setting: 'Pengaturan', permission: 'Hak akses' }
+// Nama tindakan dalam bahasa awam (kode asli tetap terlihat saat kursor diarahkan).
+const ACTION_LABEL: Record<string, string> = { view_sensitive: 'Melihat data sensitif', create: 'Membuat', update: 'Mengubah', submit: 'Mengajukan', publish: 'Menerbitkan', save_draft: 'Menyimpan draf', evaluate: 'Mengevaluasi', setting_update: 'Mengubah pengaturan', client_error: 'Error tampilan' }
+const actionLabel = (a: string) => ACTION_LABEL[a] || (a?.startsWith('decision_') ? 'Keputusan: ' + a.slice(9).replace(/_/g, ' ') : a?.startsWith('permission_') ? 'Hak akses: ' + a.slice(11).replace(/_/g, ' ') : (a || '-').replace(/_/g, ' '))
 
 export default function AuditLogWorkspace() {
   const [rows, setRows] = useState<Row[]>([])
@@ -36,7 +39,7 @@ export default function AuditLogWorkspace() {
         <WorkspaceTableViewport label="Audit log" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Role</th><th>Tindakan</th><th>Objek</th><th>Rincian</th></tr></thead><tbody>
           {rows.length ? rows.map((r) => <tr key={r.id}>
             <td>{new Date(r.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
-            <td>{r.actor_name || '-'}</td><td>{r.actor_role || '-'}</td><td>{r.action}</td>
+            <td>{r.actor_name || '-'}</td><td>{r.actor_role || '-'}</td><td title={r.action}>{actionLabel(r.action)}</td>
             <td>{OBJECT_LABEL[r.object_type] || r.object_type}<small className="rmCellSmall">{r.object_id?.slice(0, 8)}</small></td>
             <td><small className="rmCellSmall govDetail">{Object.entries(r.detail || {}).filter(([, v]) => v != null && v !== '').slice(0, 4).map(([k, v]) => k + ': ' + (typeof v === 'string' ? v : JSON.stringify(v))).join(' · ').slice(0, 220)}</small></td>
           </tr>) : <tr><td colSpan={6}><div className="rmEmptySmall">Belum ada catatan.</div></td></tr>}

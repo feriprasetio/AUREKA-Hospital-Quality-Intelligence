@@ -923,8 +923,8 @@ export default function PatientSafetyWorkspace({
   const incidentRequiredCount = incidentRequired(incidentData).length
   const incidentCompletion = Math.round(((incidentRequiredCount - missingIncident.length) / Math.max(1, incidentRequiredCount)) * 100)
   const statusLabel = (status: string) => ({
-    draft: 'Draft', submitted: 'Dikirim', under_review: 'Review', investigation: 'Investigasi', active: 'Berjalan',
-    action_planned: 'Rencana Tindakan', closed: 'Closed',
+    draft: 'Draf', submitted: 'Dikirim', under_review: 'Ditinjau', investigation: 'Investigasi', active: 'Berjalan',
+    action_planned: 'Rencana Tindakan', closed: 'Selesai',
   } as Record<string, string>)[status] || status
   const statusClass = (status: string) => status === 'closed' ? 'green' : status === 'submitted' ? 'blue' : status === 'under_review' || status === 'investigation' || status === 'active' || status === 'action_planned' ? 'amber' : ''
 
@@ -970,7 +970,7 @@ export default function PatientSafetyWorkspace({
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Distribusi status pelaporan insiden</h4><p>Jumlah laporan pada setiap tahap alur; volume laporan bukan angka insidensi.</p></div><span className="psPill">{incidents.length} laporan</span></div>
         <div className="psBars">{[
-          ['Draft','draft'],['Dikirim','submitted'],['Dalam review','under_review'],['Investigasi','investigation'],['Closed','closed']
+          ['Draf','draft'],['Dikirim','submitted'],['Ditinjau','under_review'],['Investigasi','investigation'],['Selesai','closed']
         ].map(([label,status])=>{const n=incidents.filter(row=>row.status===status).length;const pct=incidents.length?n/incidents.length*100:0;return <div className="psBarRow" key={status}><span>{label}</span><div className="psBar"><i style={{width:pct+'%'}}/></div><b>{n}</b></div>})}</div>
         <p className="psMuted" style={{fontSize:12,margin:'10px 0 0'}}>Dihitung dari {incidents.length} laporan yang dapat diakses pada ruang lingkup akun. Status dihitung dari data register, bukan interpretasi tingkat keparahan.</p>
       </LiquidGlass>

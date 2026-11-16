@@ -1478,3 +1478,22 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar .sidebarNavGroup > 
 html body:not(#_) .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button { justify-content: center !important; }
 html body:not(#_) .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavGroup > button > span { display: none !important; }
 html body:not(#_) .workspaceRoot.sidebarIsCollapsed .sidebar .sidebarNavIcon { width: 22px; height: 22px; opacity: .85; }
+
+/* ===== Audit menyeluruh: kartu analitik & filter di lebar sempit ===== */
+/* Judul kartu analitik (SDM, Pasien, Infografis) tidak ikut membesar oleh aturan judul global. */
+html body:not(#_) .workspaceRoot .moduleEnter :is(.sdBlueprintHead, .piAnalyticsHead) :is(h3, h4) { font-size: 16px !important; line-height: 1.3 !important; font-weight: 800 !important; letter-spacing: -.005em !important; margin: 0 0 4px !important; }
+html body:not(#_) .workspaceRoot .moduleEnter :is(.sdBlueprintHead, .piAnalyticsHead) p { font-size: 12.5px !important; line-height: 1.45 !important; }
+html body:not(#_) .workspaceRoot .moduleEnter :is(.sdBlueprintHead, .piAnalyticsHead) { display: flex !important; align-items: flex-start !important; justify-content: space-between; gap: 10px; }
+html body:not(#_) .workspaceRoot .moduleEnter :is(.sdBlueprintHead, .piAnalyticsHead) > div { min-width: 0; }
+html body:not(#_) .workspaceRoot .moduleEnter :is(.sdBlueprintHead, .piAnalyticsHead) > :is(b, span) { flex: none; white-space: nowrap; font-size: 12px; }
+/* Batang persentase: angka tidak terpotong di tepi kartu. */
+html body:not(#_) .workspaceRoot .moduleEnter :is(.piBarRow, .piBar, .sdBar) { min-width: 0; }
+html body:not(#_) .workspaceRoot .moduleEnter :is(.piAnalytics, .sdBlueprint) { overflow: hidden; }
+/* Program: tenggat per triwulan tidak bertumpuk. */
+html body:not(#_) .workspaceRoot .moduleEnter .annualProgramQuarterGrid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)) !important; gap: 8px !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .annualProgramQuarterGrid > div { min-width: 0; }
+html body:not(#_) .workspaceRoot .moduleEnter .annualProgramQuarterGrid > div :is(small, p, em) { font-size: 11.5px !important; line-height: 1.3 !important; overflow-wrap: anywhere; }
+/* IKP: filter status/unit tidak terpotong "Se…". */
+html body:not(#_) .workspaceRoot .moduleEnter .psFilterGrid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important; gap: 10px !important; }
+html body:not(#_) .workspaceRoot .moduleEnter .psFilterGrid .psLocalSearch { grid-column: 1 / -1; }
+html body:not(#_) .workspaceRoot .moduleEnter .psFilterGrid select { width: 100% !important; min-width: 0 !important; }
