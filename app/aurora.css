@@ -1206,3 +1206,59 @@ html body:not(#_) .workspaceRoot .workspaceNavigationOverflow > summary::-webkit
 html body:not(#_) .workspaceRoot .workspaceNavigationOverflow > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; rotate: 45deg; translate: 0 -2px; }
 html body:not(#_) .workspaceRoot .workspaceNavigationOverflow[open] > summary::after { rotate: 225deg; translate: 0 2px; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationOverflow > summary { background: rgba(255, 255, 255, .06) !important; border-color: rgba(255, 255, 255, .12) !important; color: #eef2f7 !important; }
+
+/* Beranda: pengingat batas waktu */
+html body:not(#_) .workspaceRoot .hlDeadlines { display: grid; gap: 8px; margin-top: 12px; }
+html body:not(#_) .workspaceRoot .hlDeadline { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-radius: 14px; border: 1px solid #f5d79a; background: #fff8e6; }
+html body:not(#_) .workspaceRoot .hlDeadline.danger { border-color: #f6c1c1; background: #fff1f1; }
+html body:not(#_) .workspaceRoot .hlDeadlineIcon { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: rgba(180, 83, 9, .12); color: #b45309; }
+html body:not(#_) .workspaceRoot .hlDeadline.danger .hlDeadlineIcon { background: rgba(185, 28, 28, .1); color: #b91c1c; }
+html body:not(#_) .workspaceRoot .hlDeadlineIcon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+html body:not(#_) .workspaceRoot .hlDeadline p { flex: 1; min-width: 0; margin: 0 !important; font-size: 13.5px; font-weight: 600; color: #3b2f1a; line-height: 1.4; }
+html body:not(#_) .workspaceRoot .hlDeadline.danger p { color: #4a1d1d; }
+html body:not(#_) .workspaceRoot .hlDeadline button { flex: none; min-height: 36px; padding: 0 14px; border-radius: 10px; border: 0; background: #1f2430; color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+@media (max-width: 720px) { html body:not(#_) .workspaceRoot .hlDeadline { flex-wrap: wrap; } html body:not(#_) .workspaceRoot .hlDeadline p { flex-basis: calc(100% - 44px); } html body:not(#_) .workspaceRoot .hlDeadline button { width: 100%; } }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlDeadline { background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .3); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlDeadline.danger { background: rgba(239, 68, 68, .1); border-color: rgba(239, 68, 68, .3); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlDeadline p { color: #f3e8d4; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlDeadline.danger p { color: #fde2e2; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlDeadlineIcon { background: rgba(245, 158, 11, .18); color: #fcd34d; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlDeadline.danger .hlDeadlineIcon { background: rgba(239, 68, 68, .18); color: #fca5a5; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlDeadline button { background: #eef2f7; color: #0f1218; }
+
+/* Panduan singkat pengguna baru */
+html body:not(#_) .akTourBackdrop { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 16px; background: rgba(15, 18, 24, .42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: akTourFade .2s ease both; }
+html body:not(#_) .akTour { width: min(440px, 100%); padding: 24px; border-radius: 24px; background: #fff; color: #1f2430; box-shadow: 0 24px 60px rgba(15, 35, 60, .25); animation: akTourIn .28s cubic-bezier(.22, 1, .36, 1) both; }
+html body:not(#_) .akTourDots { display: flex; gap: 6px; margin-bottom: 16px; }
+html body:not(#_) .akTourDots i { width: 22px; height: 5px; border-radius: 999px; background: #e3e8ef; transition: background-color .2s ease, width .2s ease; }
+html body:not(#_) .akTourDots i.done { background: #0e7490; }
+html body:not(#_) .akTourDots i.on { width: 34px; background: #22d3ee; }
+html body:not(#_) .akTour h2 { margin: 0 0 8px !important; font-size: 20px !important; font-weight: 800 !important; letter-spacing: -.01em; }
+html body:not(#_) .akTour p { margin: 0 !important; font-size: 14.5px; line-height: 1.55; color: #3b4452; }
+html body:not(#_) .akTourLink { margin-top: 12px; padding: 0; border: 0; background: none; color: #0e7490; font: inherit; font-weight: 700; cursor: pointer; }
+html body:not(#_) .akTourActions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; }
+html body:not(#_) .akTourActions > div { display: flex; gap: 8px; }
+html body:not(#_) .akTourActions button { min-height: 40px; padding: 0 16px; border-radius: 12px; border: 1px solid #dfe7f0; background: #fff; color: #1f2430; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+html body:not(#_) .akTourActions button.primary { background: #1f2430; border-color: #1f2430; color: #fff; }
+html body:not(#_) .akTourActions .akTourSkip { border: 0; background: none; color: #6b7684; padding: 0 4px; }
+html[data-mode="gelap"] body:not(#_) .akTour { background: #151b26; color: #eef2f7; }
+html[data-mode="gelap"] body:not(#_) .akTour p { color: #c3ccd8; }
+html[data-mode="gelap"] body:not(#_) .akTourDots i { background: rgba(255, 255, 255, .12); }
+html[data-mode="gelap"] body:not(#_) .akTourLink { color: #67e8f9; }
+html[data-mode="gelap"] body:not(#_) .akTourActions button { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); color: #eef2f7; }
+html[data-mode="gelap"] body:not(#_) .akTourActions button.primary { background: #eef2f7; border-color: #eef2f7; color: #0f1218; }
+html[data-mode="gelap"] body:not(#_) .akTourActions .akTourSkip { background: none; border: 0; color: #93a1b3; }
+@keyframes akTourFade { from { opacity: 0 } }
+@keyframes akTourIn { from { opacity: 0; transform: translateY(12px) scale(.98) } }
+@media (prefers-reduced-motion: reduce) { html body:not(#_) :is(.akTourBackdrop, .akTour) { animation: none; } }
+
+/* Bantuan & pasang aplikasi (Preferensi Tampilan) */
+html body:not(#_) .workspaceRoot .akHelpRow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; margin-top: 8px; }
+html body:not(#_) .workspaceRoot .akInstall { display: grid; gap: 6px; }
+html body:not(#_) .workspaceRoot .akInstallBtn { min-height: 40px; padding: 0 16px; border-radius: 12px; border: 1px solid #1f2430; background: #1f2430; color: #fff; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+html body:not(#_) .workspaceRoot .akInstallBtn.ghost { background: #fff; color: #1f2430; border-color: #dfe7f0; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .akInstallBtn { background: #eef2f7; border-color: #eef2f7; color: #0f1218; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .akInstallBtn.ghost { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); color: #eef2f7; }
+/* Register risiko: ubah status massal di bilah pilihan */
+html body:not(#_) .workspaceRoot .rmBulkStatus { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+html body:not(#_) .workspaceRoot .rmBulkStatus select { min-height: 38px; min-width: 200px; }

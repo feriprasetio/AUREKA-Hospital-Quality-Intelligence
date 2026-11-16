@@ -1,5 +1,6 @@
 'use client'
 
+import InstallAppButton from '@/components/layout/InstallAppButton'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -1014,6 +1015,11 @@ function AppearancePanel() {
         ))}
       </div>
       <PreferenceExtras />
+      <h4 style={{ marginTop: 18 }}>Bantuan</h4>
+      <div className="akHelpRow">
+        <button type="button" className="akInstallBtn ghost" onClick={() => window.dispatchEvent(new Event('aureka-open-tour'))}>Buka panduan singkat</button>
+        <InstallAppButton />
+      </div>
     </LiquidGlass>
   )
 }
