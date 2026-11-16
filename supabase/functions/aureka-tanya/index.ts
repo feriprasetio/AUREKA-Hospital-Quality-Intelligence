@@ -520,7 +520,7 @@ function parseIcd10AiSuggestions(answer: string, allowedTerms: Set<string>): Icd
       const rationale = String(row?.rationale || row?.reason || "").trim().slice(0, 240);
       const key = diagnosis.toLocaleLowerCase("id-ID");
       if (!diagnosis || !allowedTerms.has(diagnosis) || seen.has(key)) return [];
-      if (!/^[A-Z][0-9]{2}(?:\\.[0-9A-Z]{1,4})?$/.test(code) || !title) return [];
+      if (!/^[A-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?$/.test(code) || !title) return [];
       if (!Number.isFinite(confidence) || confidence < 0.6 || confidence > 1) return [];
       seen.add(key);
       return [{ diagnosis, code, title, confidence, rationale }];
@@ -688,7 +688,7 @@ async function handle(req: Request): Promise<Response> {
     });
   }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
-  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic)\b/i;
+  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|diagnosis|diagnosa|koding|icd-?10|dpjp|clinical|pathway|kematian|oppe|fppe|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic|rekomendasi|tindak lanjut)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
   const page = (body.page || "").toString().slice(0, 80);
 
@@ -702,6 +702,9 @@ async function handle(req: Request): Promise<Response> {
     "Peringkat diagnosis dihitung oleh fungsi analitik klinis database; jangan meminta atau menebak No. RM, nama, NIK, atau identitas pasien.",
     "Basis diagnosis terakhir per pasien tidak sama dengan seluruh episode. Sebutkan keterbatasan sumber secara eksplisit. Jangan mengklaim memiliki seluruh diagnosis DPJP jika episode klinis belum tersedia.",
     "Kode ICD-10 hanya boleh disebut tervalidasi bila dictionary internal menyatakan mapping_status=validated. Jangan mengarang kode dari singkatan yang ambigu; tandai belum dikoding dan minta validasi PMIK/DPJP.",
+    "Untuk analisis diagnosis, gunakan analisis_diagnosis_klinis. Bila source_basis patient_index_latest_diagnosis, jelaskan bahwa ini diagnosis terakhir per pasien, bukan seluruh episode atau seluruh kunjungan DPJP. Bila source_basis episode_records, nyatakan basis episode dan hitungan pasien unik/episode secara terpisah.",
+    "Untuk pertanyaan tentang indikator, bedakan definisi pada profil_indikator_mutu dari capaian aktual pada mutu_klinis_logbook. Jangan menganggap profil sebagai hasil capaian.",
+    "Gunakan seluruh domain agregat yang tersedia: profil indikator, diagnosis, keselamatan pasien, risiko, FMEA, tenaga kesehatan agregat, OPPE/FPPE, konsultasi IGD, rekomendasi, aksi, dan prioritas tahunan. Jika sumber bernilai kosong atau gagal diakses, sampaikan secara eksplisit; jangan mengarang data.",
     "GAYA BICARA:",
     "- Ngobrol seperti rekan kerja yang ramah sekaligus petugas layanan (CS) yang sigap: hangat, natural, sopan, tidak kaku, tidak seperti robot atau laporan resmi.",
     "- Ikuti gaya pengguna: kalau pengguna santai, jawab natural; kalau formal, jawab formal. Jangan menyebut nama pribadi pengguna.",
