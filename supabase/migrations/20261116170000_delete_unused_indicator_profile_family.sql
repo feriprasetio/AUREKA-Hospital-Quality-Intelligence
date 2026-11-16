@@ -36,11 +36,19 @@ BEGIN
       USING ERRCODE = '22023';
   END IF;
 
+  -- Briefly serialize indicator deletion against all audit/governance writes.
+  -- Lock child tables before the profile table to match FK insertion order and
+  -- avoid deadlocks with concurrent audit response or proposal submissions.
+  LOCK TABLE aureka_quality.quality_records IN SHARE ROW EXCLUSIVE MODE;
+  LOCK TABLE aureka_quality.quality_record_responses IN SHARE ROW EXCLUSIVE MODE;
+  LOCK TABLE aureka_governance.indicator_proposals IN SHARE ROW EXCLUSIVE MODE;
+  LOCK TABLE aureka_quality.oppe_indicator_rules IN SHARE ROW EXCLUSIVE MODE;
+  LOCK TABLE aureka_quality.indicator_profiles IN SHARE ROW EXCLUSIVE MODE;
+
   SELECT ip.profile_year, ip.room_id, ip.code
     INTO v_profile_year, v_room_id, v_code
     FROM aureka_quality.indicator_profiles ip
-   WHERE ip.id = p_profile_id
-   FOR UPDATE;
+   WHERE ip.id = p_profile_id;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Profil indikator tidak ditemukan. Muat ulang daftar indikator.'
@@ -51,41 +59,6 @@ BEGIN
     RAISE EXCEPTION 'Identitas tahun, unit, atau kode indikator tidak lengkap; penghapusan dibatalkan.'
       USING ERRCODE = '22023';
   END IF;
-
-  -- Lock every version for this indicator identity before checking references.
-  PERFORM 1
-    FROM aureka_quality.indicator_profiles ip
-   WHERE ip.profile_year = v_profile_year
-     AND ip.room_id = v_room_id
-     AND ip.code = v_code
-   FOR UPDATE;
-
-  -- Lock any normalized audit responses that point to any version in this family.
-  PERFORM 1
-    FROM aureka_quality.quality_record_responses rr
-    JOIN aureka_quality.indicator_profiles ip ON ip.id = rr.indicator_id
-   WHERE ip.profile_year = v_profile_year
-     AND ip.room_id = v_room_id
-     AND ip.code = v_code
-   FOR UPDATE OF rr;
-
-  -- Lock code-based logbook records, including archived records, before reference checks.
-  PERFORM 1
-    FROM aureka_quality.quality_records qr
-   WHERE qr.profile_year = v_profile_year
-     AND qr.room_id = v_room_id
-     AND (
-       (
-         jsonb_typeof(qr.core_data->'indicator_values') = 'object'
-         AND (qr.core_data->'indicator_values') ? v_code
-       )
-       OR
-       (
-         jsonb_typeof(qr.subject_json->'indicator_values') = 'object'
-         AND (qr.subject_json->'indicator_values') ? v_code
-       )
-     )
-   FOR UPDATE OF qr;
 
   SELECT count(*)
     INTO v_response_count
@@ -113,15 +86,6 @@ BEGIN
      );
 
   -- Indicator proposals and OPPE rules also reference profile ids directly.
-  PERFORM 1
-    FROM aureka_governance.indicator_proposals proposal
-    JOIN aureka_quality.indicator_profiles ip
-      ON ip.id = proposal.activated_profile_id
-   WHERE ip.profile_year = v_profile_year
-     AND ip.room_id = v_room_id
-     AND ip.code = v_code
-   FOR UPDATE OF proposal;
-
   SELECT count(*)
     INTO v_proposal_count
     FROM aureka_governance.indicator_proposals proposal
@@ -130,15 +94,6 @@ BEGIN
    WHERE ip.profile_year = v_profile_year
      AND ip.room_id = v_room_id
      AND ip.code = v_code;
-
-  PERFORM 1
-    FROM aureka_quality.oppe_indicator_rules rule
-    JOIN aureka_quality.indicator_profiles ip
-      ON ip.id = rule.profile_id
-   WHERE ip.profile_year = v_profile_year
-     AND ip.room_id = v_room_id
-     AND ip.code = v_code
-   FOR UPDATE OF rule;
 
   SELECT count(*)
     INTO v_oppe_count
