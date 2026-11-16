@@ -10,7 +10,7 @@ const remoteSignature = async () => {
   const html = await fetch(BASE + '/?__v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : ''))
   return html.match(/<meta name="aureka-build" content="([^"]+)"/)?.[1] || ''
 }
-const reloadFresh = () => { window.location.replace(window.location.pathname + '?v=' + Date.now() + window.location.hash) }
+const reloadFresh = () => { const u = new URL(window.location.href); u.searchParams.set('v', Date.now().toString()); window.location.replace(u.toString()) }
 
 /**
  * Memastikan browser & aplikasi terpasang (PWA) ikut versi terbaru tanpa harus hapus cache:
@@ -30,7 +30,7 @@ export default function UpdateNotifier() {
         const remote = await remoteSignature()
         if (!remote || !local || remote === local) return
         // Belum masuk workspace (halaman depan/masuk/daftar): aman langsung dimuat ulang.
-        const inWorkspace = !!document.querySelector('.workspaceRoot')
+        const inWorkspace = !!document.querySelector('.workspaceRoot, .plRoot')
         const typing = !!document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)
         if (!inWorkspace && !typing) reloadFresh()
         else setReady(true)
