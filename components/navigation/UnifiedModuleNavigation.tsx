@@ -56,6 +56,11 @@ export default function UnifiedModuleNavigation({
     if (!rail) return
 
     const calculate = () => {
+      // Ponsel: semua menu tampil dalam satu baris yang bisa digeser (tanpa menu "Lainnya").
+      if (window.matchMedia('(max-width: 720px)').matches) {
+        setHiddenIds((previous) => previous.length === 0 ? previous : [])
+        return
+      }
       // Rail selebar isinya; ukur dari lebar induk supaya tidak terkunci di mode "Lainnya" setelah menyusut.
       const parent = rail.parentElement
       const style = getComputedStyle(rail)
@@ -126,6 +131,11 @@ export default function UnifiedModuleNavigation({
       }
     }
     place()
+    // Di ponsel baris menu bisa digeser: pastikan menu aktif terlihat.
+    if (box.scrollWidth > box.clientWidth + 1) {
+      const active = box.querySelector<HTMLElement>('.workspaceNavigationRailItem.active')
+      if (active) box.scrollTo({ left: Math.max(0, active.offsetLeft - (box.clientWidth - active.offsetWidth) / 2), behavior: 'instant' as ScrollBehavior })
+    }
     const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null
     observer?.observe(box)
     return () => observer?.disconnect()
