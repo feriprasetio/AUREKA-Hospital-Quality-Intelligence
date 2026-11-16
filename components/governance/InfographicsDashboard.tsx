@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
-import { buildMonthlyReportHtml } from '@/lib/report/monthly-report'
+import { buildPeriodReportHtml, periodMonths, type ReportPeriod } from '@/lib/report/monthly-report'
 import type { NavigateFn } from '@/lib/aureka/focus'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -185,7 +185,9 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   const roomId = roomValue ? Number(roomValue) : null
   const selectedRoomName = roomId == null ? 'Seluruh rumah sakit' : rooms.find((room) => Number(room.id) === roomId)?.name || 'Unit terpilih'
   const qualityOnly = mode === 'quality'
-  const [reportMonth, setReportMonth] = useState(() => new Date().getMonth() + 1)
+  // Nilai: m1..m12 (bulan), q1..q4 (triwulan), y (tahun).
+  const [reportPeriod, setReportPeriod] = useState(() => 'm' + (new Date().getMonth() + 1))
+  const parsedPeriod: ReportPeriod = reportPeriod === 'y' ? { kind: 'year' } : reportPeriod.startsWith('q') ? { kind: 'quarter', quarter: Number(reportPeriod.slice(1)) } : { kind: 'month', month: Number(reportPeriod.slice(1)) }
   const [reportBusy, setReportBusy] = useState(false)
   // Laporan bulanan PMKP: jendela baru dibuka langsung saat klik (agar tidak diblokir), lalu diisi.
   const openReport = async () => {
@@ -197,12 +199,14 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     try {
       const rep = await aurekaSupabase.rpc('aureka_quality_room_reporting_status', { p_year: Number(year) })
       const scopeRooms = roomId == null ? rooms : rooms.filter((r) => Number(r.id) === roomId)
-      const done = new Set(((rep.data as any[]) || []).filter((r) => Number(r.month) === reportMonth).map((r) => Number(r.room_id)))
+      const ms = periodMonths(parsedPeriod)
+      const byRoom = new Map<number, number[]>()
+      for (const r of ((rep.data as any[]) || [])) { const m = Number(r.month); if (!ms.includes(m)) continue; const id = Number(r.room_id); byRoom.set(id, [...(byRoom.get(id) || []), m]) }
       const { data: auth } = await aurekaSupabase.auth.getUser()
-      const html = buildMonthlyReportHtml({ year: Number(year), month: reportMonth, scope: selectedRoomName, summary: summary as any, rooms: scopeRooms.map((r) => ({ name: r.name, reported: done.has(Number(r.id)) })), preparedBy: String(auth.user?.user_metadata?.full_name || auth.user?.email || 'pengguna AUREKA') })
+      const html = buildPeriodReportHtml({ year: Number(year), period: parsedPeriod, scope: selectedRoomName, summary: summary as any, rooms: scopeRooms.map((r) => ({ name: r.name, months: byRoom.get(Number(r.id)) || [] })), preparedBy: String(auth.user?.user_metadata?.full_name || auth.user?.email || 'pengguna AUREKA') })
       win.document.open(); win.document.write(html); win.document.close()
     } catch {
-      win.close(); setError('Laporan bulanan belum dapat disusun. Coba lagi.')
+      win.close(); setError('Laporan belum dapat disusun. Coba lagi.')
     } finally { setReportBusy(false) }
   }
 
@@ -278,7 +282,11 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
         {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => { const next = event.target.value; setRoomValue(next); onRoomChange?.(next ? Number(next) : null) }}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
         {!canChooseRoom && <span className="ifScope">{selectedRoomName}</span>}
-        {!qualityOnly && <label>Bulan laporan<select value={reportMonth} onChange={(event) => setReportMonth(Number(event.target.value))}>{MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}</select></label>}
+        {!qualityOnly && <label>Periode laporan<select value={reportPeriod} onChange={(event) => setReportPeriod(event.target.value)}>
+          <optgroup label="Bulanan">{MONTHS.map((m, i) => <option key={m} value={'m' + (i + 1)}>{m}</option>)}</optgroup>
+          <optgroup label="Triwulan">{['I', 'II', 'III', 'IV'].map((q, i) => <option key={q} value={'q' + (i + 1)}>Triwulan {q}</option>)}</optgroup>
+          <optgroup label="Tahunan"><option value="y">Satu tahun penuh</option></optgroup>
+        </select></label>}
         {!qualityOnly && <button type="button" className="ifReportBtn" disabled={!summary || reportBusy} onClick={() => void openReport()}>{reportBusy ? 'Menyusun…' : 'Laporan PDF'}</button>}
       </div>
     </header>
