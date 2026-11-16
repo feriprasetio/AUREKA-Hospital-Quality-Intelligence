@@ -1033,8 +1033,8 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibStatus.draft { backgro
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibStatus.retired { background: rgba(255, 255, 255, 0.08); color: #aab6c6; }
 
 /* Audit kontras mode gelap: tombol utama (liquidButton) teks putih di biru muda hanya 2.7:1 → pakai tombol terang bertinta gelap seperti tombol utama lain. */
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .liquidButton button:not(:disabled) { background: #eef2f7 !important; background-image: none !important; color: #0f1218 !important; border-color: transparent !important; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .liquidButton button:not(:disabled):hover { background: #ffffff !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .liquidButton button:not(:disabled) { background: #eef2f7 !important; background-image: none !important; color: #0f1218 !important; border-color: transparent !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter .liquidButton button:not(:disabled):hover { background: #ffffff !important; }
 html body:not(#_) .workspaceRoot .qsReviewNote { margin-top: 5px; color: #a83232; font-size: 12px; font-weight: 750; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .qsReviewNote { color: #fca5a5; }
 
@@ -1121,3 +1121,7 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmScoreLevel.very-low { bac
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmScoreLevel b { background: rgba(0, 0, 0, .25); }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmPrio { background: rgba(94, 196, 207, .16); color: #bdf0f5; }
 @media (prefers-reduced-motion: reduce) { html body:not(#_) .workspaceRoot .rmLandKpi { transition: none; } }
+html body:not(#_) .workspaceRoot .rmLevelChip.on > span { color: #fff !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmLevelChip.on > span { color: #0f1218 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmSortBtn { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmSortBtn:hover { background: rgba(255, 255, 255, .06) !important; }
