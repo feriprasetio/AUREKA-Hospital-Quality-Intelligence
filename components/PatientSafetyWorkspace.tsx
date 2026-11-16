@@ -586,6 +586,7 @@ export default function PatientSafetyWorkspace({
     }
     appliedFocus.current = focus.nonce
     if (focus.tab) setTab(focus.tab)
+    if (focus.newReport) newIncident()
   }, [focus, incidents])
   const newIncident = () => {
     setIncidentId('')
