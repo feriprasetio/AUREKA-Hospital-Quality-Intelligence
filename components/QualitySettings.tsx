@@ -392,6 +392,34 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     setSaving(false)
   }
 
+  // Template awal untuk tahun yang belum punya profil: profil aktif yang ada + profil bawaan 2026 yang ikut dalam aplikasi.
+  const downloadStarterTemplate = async () => {
+    try {
+      const chunks = year === 2026 ? await Promise.all([
+        import('@/data/quality-profile-2026/chunk-01.json'), import('@/data/quality-profile-2026/chunk-02.json'),
+        import('@/data/quality-profile-2026/chunk-03.json'), import('@/data/quality-profile-2026/chunk-04.json'),
+        import('@/data/quality-profile-2026/chunk-11.json'),
+      ]) : []
+      const bundled = chunks.flatMap((m: any) => (m.default || m) as Array<Record<string, any>>)
+      const active = profiles.filter((p) => p.is_active === true && p.status === 'published')
+      const activeCodes = new Set(active.map((p) => String(p.code)))
+      const merged = [...active, ...bundled.filter((p) => !activeCodes.has(String(p.code))).map((p) => ({ ...p, id: '', profile_year: year, is_active: true, status: 'published' }))]
+      if (!merged.length) { setMsg('Belum ada profil bawaan untuk tahun ' + year + '. Gunakan + Tambah indikator, lalu Export XLSX sebagai template.'); return }
+      const backup = buildIndicatorProfileBackup({ profileYear: year, scopeRoomId: null, scopeName: 'Semua unit', profiles: merged })
+      const bytes = await buildIndicatorProfileXlsx(backup)
+      const blob = new Blob([bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = 'aureka-template-profil-indikator-' + year + '.xlsx'
+      document.body.appendChild(anchor); anchor.click(); anchor.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setMsg('Template berisi ' + merged.length + ' profil (' + active.length + ' yang sudah aktif + ' + (merged.length - active.length) + ' profil bawaan) diunduh. Periksa/ubah di Excel, tambah baris untuk unit lain, lalu tekan Import XLSX dengan pilihan Semua unit.')
+    } catch (error) {
+      setMsg('Template gagal dibuat: ' + toUserFacingError(error, { fallback: 'Coba lagi.' }))
+    }
+  }
+
   const exportProfileSet = async () => {
     try {
       const selectedRoom = rooms.find((item) => String(item.id) === room)
@@ -569,7 +597,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
           <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
-        {!lockRoomScope && room === '' && <div style={{ marginTop: 12 }}><IndicatorCoveragePanel rooms={rooms} year={year} onCopied={() => void load()} /></div>}
+        {!lockRoomScope && room === '' && <div style={{ marginTop: 12 }}><IndicatorCoveragePanel rooms={rooms} year={year} onCopied={() => void load()} onStarterTemplate={() => void downloadStarterTemplate()} onImport={() => { if (importFileRef.current) importFileRef.current.click(); else { setTab('profiles'); onTabChange?.('profiles'); window.setTimeout(() => importFileRef.current?.click(), 60) } }} /></div>}
 
         <div id="metadata-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'metadata-tab-' + tab} tabIndex={0}>
         {tab === 'programs' && (

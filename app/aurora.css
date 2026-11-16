@@ -1640,3 +1640,9 @@ html[data-mode="gelap"] .qraCompareCard { background: #161d29; border-color: rgb
 html[data-mode="gelap"] .qraCompareCard header small { color: #9fb0c4; }
 html[data-mode="gelap"] .qraCmpBar { background: rgba(255,255,255,.08); } html[data-mode="gelap"] .qraCompareCard li.miss b { color: #fca5a5; }
 html[data-mode="gelap"] .qraCompareCard li.ok .qraCmpBar i { background: #4ade80; } html[data-mode="gelap"] .qraCompareCard li.miss .qraCmpBar i { background: #f87171; }
+/* Panel kelengkapan: langkah impor Excel. */
+html body:not(#_) .workspaceRoot .icImport { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin: 10px 0 4px; padding: 10px 12px; border-radius: 12px; background: #f4f8fb; border: 1px dashed #c9d6e3; font-size: 12.5px; color: #4a5566; }
+html body:not(#_) .workspaceRoot .icImport > span { flex: 1 1 260px; min-width: 0; line-height: 1.5; }
+html body:not(#_) .workspaceRoot .icImport > div { display: flex; gap: 8px; flex-wrap: wrap; }
+html body:not(#_) .workspaceRoot .icImport button { min-height: 36px; padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 12.5px; cursor: pointer; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .icImport { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .14); color: #c9d4e3; }
