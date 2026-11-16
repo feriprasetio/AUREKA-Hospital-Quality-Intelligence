@@ -5,6 +5,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 export type UnifiedNavigationItem = {
   id: string
   label: string
+  /** Penjelasan singkat (tooltip). */
+  hint?: string
 }
 
 type UnifiedModuleNavigationProps = {
@@ -16,6 +18,8 @@ type UnifiedModuleNavigationProps = {
   /** Anak dari grup aktif (mis. Budaya → Form Survei, Register Survei), tampil di baris kedua. */
   subTitle?: string
   subItems?: UnifiedNavigationItem[]
+  /** Satu kalimat bahasa awam tentang halaman aktif; tampil di bawah navigasi. */
+  pageHint?: string
 }
 
 /**
@@ -32,7 +36,11 @@ export default function UnifiedModuleNavigation({
   onSelect,
   subTitle,
   subItems = [],
+  pageHint,
 }: UnifiedModuleNavigationProps) {
+  const [hintsHidden, setHintsHidden] = useState(false)
+  useEffect(() => { try { setHintsHidden(localStorage.getItem('aureka-hide-hints') === '1') } catch { /* abaikan */ } }, [])
+  const toggleHints = (hide: boolean) => { setHintsHidden(hide); try { if (hide) localStorage.setItem('aureka-hide-hints', '1'); else localStorage.removeItem('aureka-hide-hints') } catch { /* abaikan */ } }
   const railRef = useRef<HTMLElement>(null)
   const titleRef = useRef<HTMLSpanElement>(null)
   const measureRef = useRef<HTMLDivElement>(null)
@@ -144,6 +152,7 @@ export default function UnifiedModuleNavigation({
               key={item.id}
               type="button"
               className={'workspaceNavigationRailItem' + (selected ? ' active' : '')}
+              title={item.hint}
               aria-current={selected ? 'page' : undefined}
               onClick={() => select(item.id)}
             >
@@ -163,6 +172,7 @@ export default function UnifiedModuleNavigation({
                   key={item.id}
                   type="button"
                   className={'workspaceNavigationOverflowItem' + (selected ? ' active' : '')}
+                  title={item.hint}
                   aria-current={selected ? 'page' : undefined}
                   onClick={() => select(item.id)}
                 >
@@ -186,6 +196,7 @@ export default function UnifiedModuleNavigation({
               key={item.id}
               type="button"
               className={'workspaceNavigationSubItem' + (selected ? ' active' : '')}
+              title={item.hint}
               aria-current={selected ? 'page' : undefined}
               onClick={() => onSelect(item.id)}
             >
@@ -195,6 +206,13 @@ export default function UnifiedModuleNavigation({
         })}
       </div>
     )}
+    {pageHint && (hintsHidden
+      ? <button type="button" className="workspacePageHintShow" onClick={() => toggleHints(false)} aria-label="Tampilkan penjelasan halaman">ⓘ</button>
+      : <p className="workspacePageHint" role="note">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" /><path d="M10 9v5M10 6.2v.3" /></svg>
+          <span>{pageHint}</span>
+          <button type="button" onClick={() => toggleHints(true)} aria-label="Sembunyikan penjelasan halaman" title="Sembunyikan penjelasan">×</button>
+        </p>)}
     </>
   )
 }

@@ -1187,3 +1187,22 @@ html body:not(#_) .a2-landing .a2-railnav { display: none; }
   html body:not(#_) .a2-landing .a2-railnav a:focus-visible { outline: 2px solid #22d3ee; outline-offset: 3px; }
 }
 @media (prefers-reduced-motion: reduce) { html body:not(#_) .a2-landing :is(.a2-railnav a, .a2-railnav a span, .a2-railnav-track i) { transition: none; } }
+
+/* Penjelasan halaman dalam bahasa awam (di bawah navigasi modul). */
+html body:not(#_) .workspaceRoot .workspacePageHint { display: flex; align-items: flex-start; gap: 8px; margin: -4px 24px 14px; padding: 8px 10px 8px 12px; border-radius: 12px; background: rgba(14, 116, 144, .06); color: #3b4a5c; font-size: 13px; line-height: 1.45; }
+html body:not(#_) .workspaceRoot .workspacePageHint svg { flex: none; width: 16px; height: 16px; margin-top: 1px; fill: none; stroke: #0e7490; stroke-width: 1.7; stroke-linecap: round; }
+html body:not(#_) .workspaceRoot .workspacePageHint span { flex: 1; min-width: 0; }
+html body:not(#_) .workspaceRoot .workspacePageHint button { flex: none; width: 24px; height: 24px; margin: -3px -4px -3px 0; border: 0; border-radius: 8px; background: transparent; color: #6b7684; font-size: 16px; line-height: 1; cursor: pointer; }
+html body:not(#_) .workspaceRoot .workspacePageHint button:hover { background: rgba(15, 35, 60, .06); color: #1f2430; }
+html body:not(#_) .workspaceRoot .workspacePageHintShow { display: block; margin: -8px 24px 10px auto; width: 28px; height: 28px; border: 1px solid #dfe7f0; border-radius: 999px; background: #fff; color: #0e7490; font-size: 14px; cursor: pointer; }
+@media (max-width: 720px) { html body:not(#_) .workspaceRoot .workspacePageHint { margin: -2px 16px 12px; font-size: 12.5px; } html body:not(#_) .workspaceRoot .workspacePageHintShow { margin-right: 16px; } }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspacePageHint { background: rgba(34, 211, 238, .08); color: #c3ccd8; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspacePageHint svg { stroke: #67e8f9; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspacePageHint button { color: #93a1b3; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspacePageHintShow { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .12); color: #67e8f9; }
+/* Tombol "Lainnya" di navigasi modul: tampak seperti tombol, bukan teks lepas. */
+html body:not(#_) .workspaceRoot .workspaceNavigationOverflow > summary { display: inline-flex !important; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px !important; border-radius: 999px !important; border: 1px solid #dfe7f0 !important; background: #fff !important; color: #1f2430 !important; font-size: 13px !important; font-weight: 700 !important; cursor: pointer; list-style: none; }
+html body:not(#_) .workspaceRoot .workspaceNavigationOverflow > summary::-webkit-details-marker { display: none; }
+html body:not(#_) .workspaceRoot .workspaceNavigationOverflow > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; rotate: 45deg; translate: 0 -2px; }
+html body:not(#_) .workspaceRoot .workspaceNavigationOverflow[open] > summary::after { rotate: 225deg; translate: 0 2px; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceNavigationOverflow > summary { background: rgba(255, 255, 255, .06) !important; border-color: rgba(255, 255, 255, .12) !important; color: #eef2f7 !important; }

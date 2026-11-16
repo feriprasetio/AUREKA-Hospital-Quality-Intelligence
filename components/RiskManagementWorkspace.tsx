@@ -832,7 +832,7 @@ export default function RiskManagementWorkspace({
 
       {showTabs && <nav className="rmTabs" aria-label="Bagian Manajemen Risiko">
               {[
-                ['overview', '◫', 'Ikhtisar'], ['register', '▤', 'Risk Register'],
+                ['overview', '◫', 'Ikhtisar'], ['register', '▤', 'Register Risiko'],
                 ['connections', '⌘', 'Konektor Risiko'], ['profile', '◔', 'Profil Risiko'], ['fmea', '◎', 'FMEA / HFMEA'], ['mitigation', '↗', 'Mitigasi & RTP'], ['evaluation', '✓', 'Evaluasi Keberhasilan'],
               ].map(([key, icon, label]) => <button type="button" key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key as typeof tab); clearMessages(); }}>
                 <span>{icon}</span>{label}
