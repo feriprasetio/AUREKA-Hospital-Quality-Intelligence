@@ -84,6 +84,10 @@ type Risk = { risk_code: string; unit_name: string | null; risk_event: string | 
 type Plan = { status: string | null; target_date: string | null };
 type Incident = Record<string, unknown>;
 type Room = { id: number; name: string; is_active: boolean | null };
+type FmeaRow = { unit_name: string | null; priority: string | null; status: string | null; rpn: number | null };
+type StaffRow = { profession_group: string | null; directory_status: string | null; source_unit: string | null };
+type ClinicalStatusRow = { status: string | null; audit_type?: string | null; overall_care_score?: number | null; avoidability_score?: number | null; template_code?: string | null };
+type IgdMetricRow = { source_performance_label: string | null; calculated_elapsed_minutes: number | null; profile_year: number };
 
 const LEVELS = ["Sangat Tinggi", "Tinggi", "Sedang", "Rendah"];
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -140,7 +144,7 @@ async function snapshot(db: SupabaseClient) {
   const year = now.getUTCFullYear();
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
-  const [risks, plans, incidents, quality, roomsRes, governance] = await Promise.all([
+  const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics] = await Promise.all([
     fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register")
       .select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date")
       .order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
@@ -151,6 +155,16 @@ async function snapshot(db: SupabaseClient) {
     qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
     db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null }),
+    fetchAll<FmeaRow>((f, t) => db.schema("aureka_risk").from("fmea_analyses")
+      .select("unit_name,priority,status,rpn").order("rpn", { ascending: false }).range(f, t)),
+    fetchAll<StaffRow>((f, t) => db.schema("aureka_quality").from("staff_directory")
+      .select("profession_group,directory_status,source_unit").order("id", { ascending: true }).range(f, t)),
+    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_pathway_audits")
+      .select("status,template_code").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_death_audits")
+      .select("status,audit_type,overall_care_score,avoidability_score").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<IgdMetricRow>((f, t) => db.schema("aureka_quality").from("igd_consultation_audits")
+      .select("source_performance_label,calculated_elapsed_minutes,profile_year").eq("profile_year", year).order("created_at", { ascending: false }).range(f, t)),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
@@ -207,9 +221,53 @@ async function snapshot(db: SupabaseClient) {
       incidents.error && "laporan IKP tidak dapat dibaca",
       quality.error && "logbook mutu tidak dapat dibaca lengkap",
       roomsRes.error && "daftar unit tidak dapat dibaca",
+      fmea.error && "analisis FMEA tidak dapat dibaca",
+      staff.error && "direktori tenaga tidak dapat dibaca",
+      pathwayAudits.error && "audit clinical pathway tidak dapat dibaca",
+      deathAudits.error && "audit kematian klinis tidak dapat dibaca",
+      igdMetrics.error && "analitik waktu konsultasi IGD tidak dapat dibaca",
     ].filter(Boolean),
     daftar_unit_aktif: rooms.map((r) => r.name),
     ikhtisar_governance_aureka: governance.error ? null : governance.data,
+    analisis_fmea: {
+      total: safeScalar(fmea.rows.length),
+      per_prioritas: safeCount(count(fmea.rows, (r) => r.priority)),
+      per_status: safeCount(count(fmea.rows, (r) => r.status)),
+      unit_dengan_fmea: safeCount(count(fmea.rows, (r) => r.unit_name)),
+      rerata_rpn: fmea.rows.length >= 5
+        ? Math.round(fmea.rows.reduce((sum, r) => sum + Number(r.rpn || 0), 0) / fmea.rows.length)
+        : "disembunyikan (<5)",
+      catatan_disclosure: "Nama pemilik risiko, uraian kegagalan, penyebab, dan teks rencana aksi tidak dikirim ke model; hanya agregat.",
+    },
+    sumber_daya_manusia_agregat: {
+      total_tenaga: safeScalar(staff.rows.length),
+      per_profesi: safeCount(count(staff.rows, (r) => r.profession_group)),
+      per_status_direktori: safeCount(count(staff.rows, (r) => r.directory_status)),
+      per_unit_sumber: safeCount(count(staff.rows, (r) => r.source_unit)),
+      catatan_disclosure: "Nama tenaga, NIP/kode pegawai, dan data kontak tidak dikirim ke model.",
+    },
+    audit_klinis: {
+      total_clinical_pathway: safeScalar(pathwayAudits.rows.length),
+      clinical_pathway_per_status: safeCount(count(pathwayAudits.rows, (r) => r.status)),
+      total_audit_kematian: safeScalar(deathAudits.rows.length),
+      audit_kematian_per_status: safeCount(count(deathAudits.rows, (r) => r.status)),
+      audit_kematian_per_tipe: safeCount(count(deathAudits.rows, (r) => r.audit_type)),
+      rerata_skor_perawatan: deathAudits.rows.length >= 5
+        ? Math.round(deathAudits.rows.reduce((sum, r) => sum + Number(r.overall_care_score || 0), 0) / deathAudits.rows.length * 10) / 10
+        : "disembunyikan (<5)",
+      rerata_skor_avoidability: deathAudits.rows.length >= 5
+        ? Math.round(deathAudits.rows.reduce((sum, r) => sum + Number(r.avoidability_score || 0), 0) / deathAudits.rows.length * 10) / 10
+        : "disembunyikan (<5)",
+    },
+    response_time_konsul_igd: {
+      tahun: year,
+      total: safeScalar(igdMetrics.rows.length),
+      per_label_kinerja: safeCount(count(igdMetrics.rows, (r) => r.source_performance_label)),
+      rerata_menit: igdMetrics.rows.length >= 5
+        ? Math.round(igdMetrics.rows.reduce((sum, r) => sum + Number(r.calculated_elapsed_minutes || 0), 0) / igdMetrics.rows.length * 10) / 10
+        : "disembunyikan (<5)",
+      memenuhi_60_menit: safeScalar(igdMetrics.rows.filter((r) => Number(r.calculated_elapsed_minutes) <= 60).length),
+    },
     manajemen_risiko: {
       total_risiko: safeScalar(risks.rows.length),
       per_level: safeCount(Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length]))),
