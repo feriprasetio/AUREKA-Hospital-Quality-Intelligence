@@ -1463,3 +1463,8 @@ html[data-mode="gelap"] body:not(#_) .authPage .pwToggle { background: rgba(255,
 html[data-mode="gelap"] body:not(#_) .authPage.authPage .authCard .landingCta.authWide:not(:disabled) { background: #eef2f7 !important; border-color: #eef2f7 !important; color: #0f1218 !important; }
 html[data-mode="gelap"] body:not(#_) .authPage .authBack { background: rgba(255, 255, 255, .08) !important; border-color: rgba(255, 255, 255, .16) !important; color: #f1f5f9 !important; }
 html[data-mode="gelap"] body:not(#_) .authPage :is(.authSwitch, .authFormFootnote) { border-color: rgba(255, 255, 255, .1) !important; }
+
+/* Ponsel: semua kotak isian minimal 16px supaya iPhone tidak memperbesar layar saat mengetik. */
+@media (max-width: 720px) {
+  html body:not(#_) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea) { font-size: 16px !important; }
+}
