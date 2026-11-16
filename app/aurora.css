@@ -1295,8 +1295,8 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .ifProgramStats .ifKpi span 
 @media (max-width: 720px) {
   html body:not(#_) main.authPage.authRedesigned { position: relative !important; padding-top: calc(env(safe-area-inset-top, 0px) + 100px) !important; padding-bottom: 12px !important; min-height: 100svh; gap: 0 !important; row-gap: 0 !important; }
   html body:not(#_) .authPage .authTopbar { padding: 8px 10px !important; }
-  html body:not(#_) .authPage .authTopbarMeta, html body:not(#_) .authPage .authTopbar .brand small { display: none !important; }
-  html body:not(#_) .authPage .authBack { position: absolute !important; top: calc(max(10px, env(safe-area-inset-top)) + 14px); right: 24px; left: auto !important; z-index: 70 !important; margin: 0 !important; min-height: 36px !important; height: 36px !important; padding: 0 12px 0 8px !important; font-size: 13px !important; }
+  html body:not(#_) .authPage .authTopbar .brand small { display: none !important; }
+  html body:not(#_) .authPage .authTopbar .authBack { min-height: 36px !important; height: 36px !important; padding: 0 12px 0 8px !important; font-size: 13px !important; }
   html body:not(#_) .authPage .authShell { margin-top: 0 !important; }
   html body:not(#_) .authPage .authCard { padding: 20px 18px !important; }
   html body:not(#_) .authPage .authFormIntro { margin-bottom: 14px !important; }
@@ -1408,3 +1408,23 @@ html body:not(#_) .rmEditor .rmSteps, html body:not(#_) .rmEditor :is(.rmStepPre
 }
 @keyframes akStepIn { from { opacity: 0; transform: translateX(8px); } }
 @media (prefers-reduced-motion: reduce) { html body:not(#_) .rmEditor .rmStepBody { animation: none !important; } }
+
+/* Tombol "Kembali ke beranda" di dalam bilah merek (kanan atas), sama di PC & ponsel. */
+html body:not(#_) .authPage .authTopbar .authTopbarActions { display: flex !important; align-items: center; margin-left: auto; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; letter-spacing: normal !important; text-transform: none !important; }
+html body:not(#_) .authPage .authTopbar .authTopbarActions .authBack { position: static !important; display: inline-flex !important; align-items: center; gap: 6px; margin: 0 !important; min-height: 40px; padding: 0 16px 0 12px; border-radius: 999px; white-space: nowrap; }
+
+/* Pemberitahuan versi baru */
+html body:not(#_) .akUpdateBar { position: fixed; z-index: 1300; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); translate: -50% 0; display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100vw - 32px); padding: 10px 10px 10px 16px; border-radius: 16px; background: #1f2430; color: #fff; font-size: 14px; font-weight: 600; box-shadow: 0 16px 40px rgba(15, 18, 24, .3); animation: akTourIn .28s cubic-bezier(.22, 1, .36, 1) both; }
+html body:not(#_) .akUpdateBar button { min-height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #22d3ee; color: #0f1218; font: inherit; font-weight: 800; cursor: pointer; }
+html body:not(#_) .akUpdateBar button.ghost { background: transparent; color: #cbd5e1; padding: 0 8px; }
+@media (min-width: 721px) { html body:not(#_) .akUpdateBar { bottom: 24px; } }
+html[data-mode="gelap"] body:not(#_) .akUpdateBar { background: #eef2f7; color: #0f1218; }
+html[data-mode="gelap"] body:not(#_) .akUpdateBar button.ghost { color: #475569; }
+
+/* Beranda: tombol gembok, Lapor insiden, Isi logbook sejajar dan sama tinggi; tanpa sisa efek kilau di tombol utama. */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions { align-items: stretch !important; flex-wrap: nowrap !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions > button { height: 48px !important; min-height: 48px !important; margin: 0 !important; align-self: center !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions > .hlPwIcon { width: 48px !important; flex: 0 0 48px !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions > .hlHeroBtn { flex: 1 1 0 !important; min-width: 0 !important; overflow: hidden; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroBtn::after, html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroBtn::before { display: none !important; }
+@media (min-width: 721px) { html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions > .hlHeroBtn { flex: 0 0 auto !important; padding-inline: 20px !important; } }

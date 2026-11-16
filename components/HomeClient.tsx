@@ -841,15 +841,13 @@ export default function HomeClient(){
      {logo()}
      <div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div>
     </div>
-    <div className="authTopbarMeta">
-     <span className="authSecureDot" aria-hidden="true"/>
-     <span>Portal internal · RSUD SSMA</span>
+    <div className="authTopbarMeta authTopbarActions">
+     <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}>
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Kembali ke beranda
+     </button>
     </div>
    </header>
    <div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="auroraBg" aria-hidden="true"><span/><span/><span/></div>
-   <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}>
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Kembali ke beranda
-   </button>
    <div className={'authShell '+(!l?'authShellRegistration':'')}>
     <aside className="authAside">
      <span className="authAsideEyebrow"><span className="auroraDot" aria-hidden="true"/>0° Khatulistiwa · Kota Pontianak</span>
@@ -983,7 +981,7 @@ export default function HomeClient(){
    <button type="button" className="workspaceHeaderIcon workspaceSearchToggle" title="Cari" aria-label="Cari data dalam modul ini" aria-expanded={mobileSearchOpen||!!globalSearch} onClick={()=>{const next=!(mobileSearchOpen||!!globalSearch);setMobileSearchOpen(next);if(!next)dispatchWorkspaceSearch('');else{setSearchArmed(true);window.setTimeout(()=>document.getElementById('workspaceGlobalSearchInput')?.focus(),30)}}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/></svg>
    </button>
-   <div className="workspaceGlobalSearch" data-open={mobileSearchOpen||globalSearch?'true':undefined} onBlur={event=>{const next=event.relatedTarget as Node|null;if(!globalSearch&&!(next&&event.currentTarget.contains(next)))setMobileSearchOpen(false)}} onKeyDown={event=>{
+   <div className="workspaceGlobalSearch" data-open={mobileSearchOpen||globalSearch?'true':undefined} onBlur={event=>{const next=event.relatedTarget as HTMLElement|null;if(next&&(event.currentTarget.contains(next)||next.closest('.workspaceSearchToggle')))return;if(!globalSearch)setMobileSearchOpen(false)}} onKeyDown={event=>{
     if(event.key==='Escape'){event.preventDefault();dispatchWorkspaceSearch('');document.getElementById('workspaceGlobalSearchInput')?.focus();return}
     if(!['ArrowDown','ArrowUp'].includes(event.key))return
     const options=Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="option"]'))

@@ -35,10 +35,13 @@ import './aureka-navigation-consolidated.css'
 import './dark-mode-mobile-fixes.css'
 import './aureka-navigation-pill.css'
 import './aureka-global-navigation.css'
+import UpdateNotifier from '@/components/layout/UpdateNotifier'
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], display: 'swap', variable: '--font-aureka' })
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+// Penanda versi build (ditulis ke <meta name="aureka-build">) untuk pemberitahuan versi baru.
+const BUILD_ID = (process.env.GITHUB_SHA || '').slice(0, 12) || String(Date.now())
 
 export const metadata: Metadata = {
   title: 'AUREKA: Hospital Quality Intelligence',
@@ -46,6 +49,7 @@ export const metadata: Metadata = {
   // Bisa dipasang di HP/PC seperti aplikasi ("Tambah ke layar utama").
   manifest: BASE_PATH + '/manifest.webmanifest',
   appleWebApp: { capable: true, title: 'AUREKA', statusBarStyle: 'default' },
+  other: { 'aureka-build': BUILD_ID },
 }
 
 export const viewport: Viewport = {
@@ -64,7 +68,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Tema Arktik: mode "terang" atau "gelap"; pilihan disimpan per perangkat. */}
         <script dangerouslySetInnerHTML={{ __html: "try{var m=localStorage.getItem('aureka-mode');if(m==='gelap'||m==='terang')document.documentElement.setAttribute('data-mode',m);var ts=localStorage.getItem('aureka-text-size');if(ts==='besar'||ts==='sangat-besar')document.documentElement.setAttribute('data-text-size',ts);if(localStorage.getItem('aureka-motion')==='off')document.documentElement.setAttribute('data-motion','off')}catch(e){}window.addEventListener('error',function(e){var t=String((e&&e.message)||'')+String(e&&e.error&&e.error.name||'');if(/ChunkLoadError|Loading chunk|Failed to load chunk/i.test(t)){try{if(!sessionStorage.getItem('aureka-chunk-reload')){sessionStorage.setItem('aureka-chunk-reload','1');location.reload()}}catch(x){}}});window.addEventListener('load',function(){setTimeout(function(){try{sessionStorage.removeItem('aureka-chunk-reload')}catch(x){}},10000)});" }} />
       </head>
-      <body>{children}</body>
+      <body>{children}<UpdateNotifier /></body>
     </html>
   )
 }
