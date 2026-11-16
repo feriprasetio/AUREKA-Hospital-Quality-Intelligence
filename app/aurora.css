@@ -1553,3 +1553,8 @@ html[data-ak-booting][data-mode="gelap"] body::after { background: #0d131d; }
 html[data-ak-booting][data-mode="gelap"] body::before { border-color: rgba(34, 211, 238, .2); border-top-color: #22d3ee; }
 @keyframes akBootSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { html[data-ak-booting] body::before { animation-duration: 2.4s; } }
+
+/* Mode gelap: panel status (memuat/kosong/galat) jangan putih menyala. */
+html[data-mode="gelap"] body:not(#_) .aurekaAsyncState { background: #161d29 !important; border-color: rgba(255, 255, 255, .08) !important; color: #c9d4e3 !important; box-shadow: none !important; }
+html[data-mode="gelap"] body:not(#_) .aurekaAsyncState .stateTitle { color: #e8eef6 !important; }
+html[data-mode="gelap"] body:not(#_) .aurekaAsyncState :is(p, small, .stateBody span) { color: #9fb0c4 !important; }
