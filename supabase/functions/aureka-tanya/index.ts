@@ -88,6 +88,13 @@ type FmeaRow = { unit_name: string | null; priority: string | null; status: stri
 type StaffRow = { profession_group: string | null; directory_status: string | null; source_unit: string | null };
 type ClinicalStatusRow = { status: string | null; audit_type?: string | null; overall_care_score?: number | null; avoidability_score?: number | null; template_code?: string | null };
 type IgdMetricRow = { source_performance_label: string | null; calculated_elapsed_minutes: number | null; profile_year: number };
+type IndicatorProfileRow = { profile_year: number; code: string; unit_name: string | null; title: string; category: string | null; target_text: string | null; measurement_grain: string | null; status: string | null; is_active: boolean | null };
+type InvestigationRow = { status: string | null; created_at: string };
+type CultureRow = { survey_period: string | null; unit_name: string | null; profession_group: string | null; answered_item_count: number | null };
+type OppeRow = { evaluation_type: string | null; status: string | null; profession_snapshot: string | null; unit_snapshot: string | null; period_start: string | null; period_end: string | null };
+type RecommendationRow = { source: string | null; priority: string | null; program_year: number | null; status: string | null; issued_by_level: string | null };
+type ActionRow = { responsible_level: string | null; assigned_room_id: number | null; due_date: string | null; status: string | null; improvement_method: string | null };
+type PriorityRow = { program_year: number; priority: string | null; status: string | null; owner_room_id: number | null; due_date: string | null };
 
 const LEVELS = ["Sangat Tinggi", "Tinggi", "Sedang", "Rendah"];
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
