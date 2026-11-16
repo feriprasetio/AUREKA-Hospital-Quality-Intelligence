@@ -12,6 +12,8 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
   const [rows, setRows] = useState<ReviewRow[]>([])
   const [drafts, setDrafts] = useState<Record<string, Draft>>({})
   const [loading, setLoading] = useState(false)
+  const [suggesting, setSuggesting] = useState(false)
+  const [suggestionMessage, setSuggestionMessage] = useState('')
   const [saving, setSaving] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -38,6 +40,20 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
     return () => { cancelled = true }
   }, [sb])
   useEffect(() => { if (authorized) void load() }, [authorized, load])
+  const suggestWithNara = async () => {
+    setSuggesting(true); setError(''); setNotice(''); setSuggestionMessage('')
+    const { data, error: invokeError } = await sb.functions.invoke('aureka-tanya', {
+      body: { task: 'icd10_suggest', page: 'NARA AI · Validasi ICD-10' },
+    })
+    if (invokeError || !data?.answer) {
+      setError('NARA belum berhasil membuat usulan kode. Pastikan provider dan fungsi gateway tersedia, lalu coba lagi.')
+    } else {
+      setSuggestionMessage(String(data.answer))
+      setNotice('Usulan AI disimpan sebagai PROPOSED. Belum ada kode yang disahkan sebagai ICD-10 tervalidasi.')
+      await load()
+    }
+    setSuggesting(false)
+  }
   const update = (diagnosis: string, key: keyof Draft, value: string) => setDrafts((p) => ({ ...p, [diagnosis]: { ...(p[diagnosis] || { code: '', title: '', reference: '' }), [key]: value } }))
   const save = async (row: ReviewRow) => {
     const d = drafts[row.diagnosis] || { code: '', title: '', reference: '' }
@@ -52,17 +68,23 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
   return <section aria-label="Validasi kamus ICD-10" style={{ display:'grid', gap:12, padding:16, border:'1px solid #dce5ed', borderRadius:16, background:'#fff', color:'#23374a' }}>
     <header style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
       <div><small style={{ fontSize:10, letterSpacing:'.13em', fontWeight:800, color:'#497a93' }}>CLINICAL CODING GOVERNANCE</small><h3 style={{ margin:'3px 0', fontSize:16 }}>Validasi diagnosis ICD-10</h3><p style={{ margin:0, color:'#69798a', fontSize:11 }}>Istilah diagnosis agregat tanpa nama atau nomor rekam medis.</p></div>
-      {authorized && <button type="button" onClick={() => void load()} disabled={loading}>{loading ? 'Memuat…' : 'Muat ulang'}</button>}
+      {authorized && <div className="reviewActions">
+        <button type="button" className="suggestButton" onClick={() => void suggestWithNara()} disabled={suggesting || loading}>
+          {suggesting ? 'NARA sedang mengusulkan…' : 'Usulkan ICD-10 dengan NARA'}
+        </button>
+        <button type="button" className="reloadButton" onClick={() => void load()} disabled={loading || suggesting}>{loading ? 'Memuat…' : 'Muat ulang'}</button>
+      </div>}
     </header>
     {checking ? <p>Memeriksa hak akses…</p> : !authorized ? <p>Ruang validasi hanya tersedia untuk Super Admin dan Komite PMKP.</p> : <>
       <p style={{ margin:0, padding:10, borderRadius:10, background:'#f2f7fa', color:'#516677', fontSize:11, lineHeight:1.5 }}>Kode hanya ditetapkan sebagai tervalidasi setelah diperiksa reviewer terhadap rujukan resmi ICD-10. NARA tidak menebak kode dari singkatan ambigu.</p>
       {error && <p role="alert" style={{ margin:0, padding:10, background:'#fff2f0', color:'#a33225', fontSize:11 }}>{error}</p>}
       {notice && <p role="status" style={{ margin:0, padding:10, background:'#eef8f2', color:'#21734a', fontSize:11 }}>{notice}</p>}
+      {suggestionMessage && <pre className="suggestionSummary" role="status">{suggestionMessage}</pre>}
       {loading && !rows.length ? <p>Mengambil istilah diagnosis agregat…</p> : rows.length === 0 ? <p>Tidak ada diagnosis yang menunggu pemetaan atau jumlahnya di bawah ambang privasi.</p> :
         <div style={{ display:'grid', gap:10, maxHeight:520, overflow:'auto' }}>{rows.map((row) => {
           const d = drafts[row.diagnosis] || { code:'', title:'', reference:'' }
           return <article key={row.diagnosis} style={{ display:'grid', gap:9, padding:12, border:'1px solid #e5ebf0', borderRadius:12 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}><strong style={{ fontSize:12 }}>{row.diagnosis}</strong><span style={{ fontSize:10, color:'#738292' }}>{row.patient_count} pasien unik · {row.mapping_status}</span></div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}><strong style={{ fontSize:12 }}>{row.diagnosis}</strong><span style={{ fontSize:10, color:'#738292' }}>{row.patient_count} pasien unik · {row.mapping_status === 'proposed' ? 'Usulan AI · perlu validasi' : row.mapping_status}</span></div>
             <div style={{ display:'grid', gridTemplateColumns:'minmax(90px,.6fr) minmax(150px,1fr) minmax(180px,1.3fr) auto', gap:8, alignItems:'end' }}>
               <label style={{ display:'grid', gap:4, fontSize:10 }}>Kode ICD-10<input value={d.code} onChange={(e) => update(row.diagnosis,'code',e.target.value)} placeholder="K35.8" maxLength={12}/></label>
               <label style={{ display:'grid', gap:4, fontSize:10 }}>Judul baku<input value={d.title} onChange={(e) => update(row.diagnosis,'title',e.target.value)} placeholder="Judul sesuai tabular ICD-10" maxLength={180}/></label>
@@ -75,8 +97,12 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
     </>}
     <style jsx>{`
       input{width:100%;min-width:0;min-height:36px;padding:7px 9px;border:1px solid #d7e1e9;border-radius:8px;font-size:11px;color:#24374a;background:#fff}
+      .reviewActions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
       button{min-height:36px;border:0;border-radius:9px;padding:8px 12px;background:#194f72;color:#fff;font-size:11px;font-weight:750;cursor:pointer}
+      button.suggestButton{background:#126e74}
+      button.reloadButton{background:#eaf1f5;color:#29465c;border:1px solid #d5e1e8}
       button:disabled{opacity:.55;cursor:wait}
+      .suggestionSummary{margin:0;max-height:180px;overflow:auto;white-space:pre-wrap;padding:10px;border:1px solid #d9e7ed;border-radius:10px;background:#f4fafb;color:#28485b;font:11px/1.55 inherit}
       @media(max-width:900px){article>div:last-child{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
       @media(max-width:540px){article>div:last-child{grid-template-columns:1fr!important}}
     `}</style>
