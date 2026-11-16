@@ -397,15 +397,15 @@ async function handle(req: Request): Promise<Response> {
     deepseek: keysOf("DEEPSEEK_API_KEY"),
     llm7: [...new Set([...keysOf("LLM7_API_KEY"), ...keysOf("LLM7.IO_API_KEY"), ...keysOf("LLM7_IO_API_KEY")])],
   };
-  // Lima provider didukung. DeepSeek dan LLM7 memerlukan opt-in eksplisit di Supabase secrets.
-  // Default production hanya memakai provider yang telah disetujui: Groq, NVIDIA, dan Gemini.
+  // Kelima provider otomatis tersedia bila secret API masing-masing terpasang.
+  // AI_ENABLE_DEEPSEEK=false atau AI_ENABLE_LLM7=false menjadi kill switch eksplisit.
   const PROVIDER_NAMES = ["groq", "nvidia", "gemini", "deepseek", "llm7"];
   const requestedOrder = (Deno.env.get("AI_PROVIDER_ORDER") || "groq,nvidia,gemini,deepseek,llm7").split(/[\s,]+/).map((x) => x.toLowerCase().replace(/\.io$/, ""));
   // AI_PROVIDER_ORDER mengatur prioritas; provider lain tetap dicoba sebagai fallback bila memenuhi gate.
   const order = [...new Set([...requestedOrder, ...PROVIDER_NAMES])].filter((x) => {
     if (!available[x]?.length) return false;
-    if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") !== "true") return false;
-    if (x === "llm7" && Deno.env.get("AI_ENABLE_LLM7") !== "true") return false;
+    if (x === "deepseek" && Deno.env.get("AI_ENABLE_DEEPSEEK") === "false") return false;
+    if (x === "llm7" && Deno.env.get("AI_ENABLE_LLM7") === "false") return false;
     return ["groq", "nvidia", "gemini", "deepseek", "llm7"].includes(x);
   });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
