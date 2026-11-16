@@ -9,6 +9,7 @@ import type React from 'react'
 import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { gradeIncident, IMPACT_OPTIONS } from '@/lib/patient-safety/grading'
+import QrReportsPanel, { type QrReport } from '@/components/patient-safety/QrReportsPanel'
 import { LiquidGlass } from '@/components/LiquidGlass'
 import SurveyWizard from '@/components/patient-safety/SurveyWizard'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -343,6 +344,9 @@ export default function PatientSafetyWorkspace({
   const [incidentStatus, setIncidentStatus] = useState<IncidentStatus>('draft')
   const [incidentData, setIncidentData] = useState<Record<string, string>>(emptyRecord())
   const incidentLocked = incidentStatus !== 'draft' && !canManageWorkflow
+  // Laporan QR yang sedang diproses menjadi laporan IKP resmi.
+  const qrProcessing = useRef<string | null>(null)
+  const [qrRefresh, setQrRefresh] = useState(0)
 
   const [investigationId, setInvestigationId] = useState('')
   const [investigationCode, setInvestigationCode] = useState('')
@@ -579,6 +583,7 @@ export default function PatientSafetyWorkspace({
   const closeForm = (force = false) => {
     if (!force && formDirty) { setConfirmClose(true); return }
     if (force) dropDraft()
+    qrProcessing.current = null
     setConfirmClose(false); setFormOpen(false); setError('')
   }
   const notify = (text: string) => {
@@ -635,6 +640,7 @@ export default function PatientSafetyWorkspace({
     if (focus.newReport) newIncident()
   }, [focus, incidents])
   const newIncident = () => {
+    qrProcessing.current = null
     setIncidentId('')
     setIncidentCode('')
     setIncidentStatus('draft')
@@ -682,6 +688,13 @@ export default function PatientSafetyWorkspace({
         result = await db.from('incidents').insert(data).select('id,incident_code,status').single()
       }
       if (result.error) throw result.error
+      if (qrProcessing.current) {
+        const qrId = qrProcessing.current
+        qrProcessing.current = null
+        const { data: me } = await supabase.auth.getUser()
+        await (supabase as any).schema('aureka_patient_safety').from('public_incident_reports').update({ status: 'diproses', incident_id: String(result.data.id), processed_by: me.user?.id, processed_at: new Date().toISOString() }).eq('id', qrId)
+        setQrRefresh((v) => v + 1)
+      }
       dropDraft(draftUid ? `aureka-ikp-draft:${draftUid}:new` : '')
       dropDraft(draftUid ? `aureka-ikp-draft:${draftUid}:${result.data.id}` : '')
       setIncidentId(result.data.id)
@@ -1049,6 +1062,16 @@ export default function PatientSafetyWorkspace({
     </> : null}
 
     {tab === 'incidents' ? <>
+      {canManageWorkflow && <QrReportsPanel supabase={supabase} rooms={rooms} refreshKey={qrRefresh} onProcess={(r: QrReport, roomName: string) => {
+        newIncident()
+        const p = r.payload || {}
+        const prefill: Record<string, string> = { E2: roomName }
+        for (const k of ['A1', 'A2', 'A3', 'A4', 'A7', 'A8', 'B1', 'D3', 'D6']) if (p[k]) prefill[k] = p[k]
+        if (p.reporter_name) prefill.E1 = p.reporter_name
+        setIncidentData(prefill)
+        setIncidentReporterExternal(!!p.reporter_name)
+        qrProcessing.current = r.id
+      }} />}
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span><button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
         <div className="psFilterGrid">

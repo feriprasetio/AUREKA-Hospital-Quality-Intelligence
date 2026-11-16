@@ -30,7 +30,8 @@ function resolve(from, spec) {
 
 test('tidak ada komponen atau modul lib yang mati (tidak diimpor dari aplikasi)', () => {
   const all = [...walk('app'), ...walk('components'), ...walk('lib')]
-  const used = new Set(['app/layout.tsx', 'app/page.tsx'])
+  // Titik masuk: layout + setiap halaman (app/**/page.tsx, mis. app/lapor/page.tsx).
+  const used = new Set(['app/layout.tsx', ...all.filter((f) => /^app\/(.+\/)?page\.tsx$/.test(f))])
   const queue = [...used]
   const re = /(?:from\s+|import\s*\(\s*|import\s+)['"]([^'"]+)['"]/g
   while (queue.length) {

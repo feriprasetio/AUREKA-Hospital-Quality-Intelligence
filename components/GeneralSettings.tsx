@@ -1,6 +1,8 @@
 'use client'
 
 import InstallAppButton from '@/components/layout/InstallAppButton'
+import BackupPanel from '@/components/governance/BackupPanel'
+import { isTrainingMode, setTrainingMode } from '@/lib/aureka/training-mode'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -586,7 +588,7 @@ export default function GeneralSettings({
       <div className="stMain">
       <WorkspaceModuleHeader title="Pengaturan" />
       {section === 'appearance' && <AppearancePanel />}
-      {section === 'system' && <SystemConfigPanel />}
+      {section === 'system' && <><SystemConfigPanel /><div style={{ marginTop: 12 }}><BackupPanel rooms={rooms} /></div></>}
       {section === 'permissions' && <PermissionMatrixPanel />}
 
       {section === 'general' && (
@@ -1021,8 +1023,18 @@ function AppearancePanel() {
         <button type="button" className="akInstallBtn ghost" onClick={() => { try { localStorage.removeItem('aureka-hide-hints') } catch { /* abaikan */ } window.dispatchEvent(new Event('aureka-hints-change')) }}>Tampilkan lagi penjelasan halaman</button>
         <InstallAppButton />
       </div>
+      <TrainingToggle />
     </LiquidGlass>
   )
+}
+
+function TrainingToggle() {
+  const [on, setOn] = useState(false)
+  useEffect(() => { setOn(isTrainingMode()) }, [])
+  return <div className="akTrainingRow">
+    <div><b>Mode latihan</b><p className="stPanelHint">Untuk sosialisasi: coba isi logbook, IKP, dan risiko tanpa mengubah data asli. Hanya berlaku di perangkat ini.</p></div>
+    <button type="button" className={'akInstallBtn' + (on ? '' : ' ghost')} onClick={() => { setTrainingMode(!on); window.location.reload() }}>{on ? 'Matikan mode latihan' : 'Mulai mode latihan'}</button>
+  </div>
 }
 
 /** Preferensi per perangkat: ukuran teks & animasi (Blueprint v2 §1 · Preferensi Tampilan). */
