@@ -1382,3 +1382,29 @@ html body:not(#_) .workspaceRoot .workspaceSearchToggle { display: none !importa
   html body:not(#_) [aria-modal="true"] .rmEditor .rmSubhead span { font-size: 12.5px !important; }
   html[data-mode="gelap"] body:not(#_) [aria-modal="true"] .rmEditor .rmSubhead { background: rgba(34, 211, 238, .08) !important; }
 }
+
+/* Form risiko bertahap: di ponsel 3 langkah; di desktop semua tampil, penanda langkah & tombol Lanjut disembunyikan. */
+html body:not(#_) .rmEditor .rmSteps, html body:not(#_) .rmEditor :is(.rmStepPrev, .rmStepNext) { display: none !important; }
+@media (max-width: 720px) {
+  html body:not(#_) .rmEditor .rmSteps { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; list-style: none; margin: 0 0 12px !important; padding: 0 !important; }
+  html body:not(#_) .rmEditor .rmSteps button { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 6px 2px; border: 0; background: none; font: inherit; font-size: 12px; font-weight: 700; color: #6b7684; cursor: pointer; }
+  html body:not(#_) .rmEditor .rmSteps button span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: #eef2f7; color: #4b5565; font-size: 12.5px; }
+  html body:not(#_) .rmEditor .rmSteps li.done button span { background: #0e7490; color: #fff; }
+  html body:not(#_) .rmEditor .rmSteps li.on button { color: #1f2430; }
+  html body:not(#_) .rmEditor .rmSteps li.on button span { background: #1f2430; color: #fff; }
+  html body:not(#_) .rmEditor:is(.rmStep1, .rmStep2, .rmStep3) .rmStepBody { display: none !important; }
+  html body:not(#_) .rmEditor.rmStep1 .rmStepBody[data-step="1"], html body:not(#_) .rmEditor.rmStep2 .rmStepBody[data-step="2"], html body:not(#_) .rmEditor.rmStep3 .rmStepBody[data-step="3"] { display: block !important; animation: akStepIn .2s ease both; }
+  html body:not(#_) .rmEditor:is(.rmStep2, .rmStep3) .rmStepPrev { display: inline-flex !important; }
+  html body:not(#_) .rmEditor:is(.rmStep2, .rmStep3) .rmCancelBtn { display: none !important; }
+  html body:not(#_) .rmEditor:is(.rmStep1, .rmStep2) .rmStepNext { display: inline-flex !important; }
+  html body:not(#_) .rmEditor:is(.rmStep1, .rmStep2) .rmSaveBtn { display: none !important; }
+  html body:not(#_) .rmEditor:not(.rmStep3) .rmFormNote { display: none !important; }
+  html body:not(#_) .rmEditor .rmFormFooter .rmActions { width: 100%; display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; }
+  html body:not(#_) .rmEditor .rmFormFooter .rmActions > button { width: 100%; justify-content: center; min-height: 44px; }
+  html[data-mode="gelap"] body:not(#_) .rmEditor .rmSteps button { color: #93a1b3; }
+  html[data-mode="gelap"] body:not(#_) .rmEditor .rmSteps button span { background: rgba(255, 255, 255, .08); color: #c3ccd8; }
+  html[data-mode="gelap"] body:not(#_) .rmEditor .rmSteps li.on button { color: #f1f5f9; }
+  html[data-mode="gelap"] body:not(#_) .rmEditor .rmSteps li.on button span { background: #eef2f7; color: #0f1218; }
+}
+@keyframes akStepIn { from { opacity: 0; transform: translateX(8px); } }
+@media (prefers-reduced-motion: reduce) { html body:not(#_) .rmEditor .rmStepBody { animation: none !important; } }

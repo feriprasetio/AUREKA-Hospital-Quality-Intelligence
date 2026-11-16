@@ -568,6 +568,9 @@ export default function RiskManagementWorkspace({
   }
   // Ubah status banyak risiko sekaligus (hanya risiko yang boleh diubah akun ini).
   const [bulkStatus, setBulkStatus] = useState('')
+  // Form risiko di ponsel dipecah 3 langkah (desktop tetap satu halaman).
+  const [riskStep, setRiskStep] = useState(1)
+  useEffect(() => { if (riskEditorOpen) setRiskStep(1) }, [riskEditorOpen])
   const applyBulkStatus = async () => {
     if (saving || !bulkStatus) return
     const ids = risks.filter(r => selectedRiskIds.includes(r.id) && canEditRisk(r) && r.status !== bulkStatus).map(r => r.id)
@@ -966,8 +969,12 @@ export default function RiskManagementWorkspace({
           <div className="rmTableFooter"><span>Menampilkan {filteredRisks.length ? page * pageSize + 1 : 0}–{Math.min((page + 1) * pageSize, filteredRisks.length)} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span><div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
         </LiquidGlass>}
 
-        {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className="rmPanel rmEditor">
+        {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className={'rmPanel rmEditor rmStep' + riskStep}>
           <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit risiko' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
+          <ol className="rmSteps" aria-label="Langkah pengisian">
+            {['Risiko', 'Penilaian', 'PIC & evaluasi'].map((t, i) => <li key={t} className={riskStep === i + 1 ? 'on' : riskStep > i + 1 ? 'done' : ''}><button type="button" onClick={() => setRiskStep(i + 1)} aria-current={riskStep === i + 1 ? 'step' : undefined}><span>{i + 1}</span>{t}</button></li>)}
+          </ol>
+          <div className="rmStepBody" data-step="1">
           <div className="rmFormGrid">
             <label>Unit kerja <select value={riskForm.unit_id} disabled={(!canManageAll || lockRoomScope) && initialRoomId != null} onChange={e => setRiskForm(f => ({ ...f, unit_id: e.target.value }))}><option value="">Pilih unit</option>{unitOptions.map(r => <option value={String(r.id)} key={r.id}>{r.name}</option>)}</select></label>
             <label>Kategori risiko <select value={riskForm.category} onChange={e => setRiskForm(f => ({ ...f, category: e.target.value }))}>{Array.from(new Set(CATEGORIES)).map(c => <option key={c}>{c}</option>)}</select></label>
@@ -977,12 +984,16 @@ export default function RiskManagementWorkspace({
             <label className="full">Dampak terhadap sasaran / pelayanan <textarea rows={2} value={riskForm.impacts} onChange={e => setRiskForm(f => ({ ...f, impacts: e.target.value }))} placeholder="Dampak klinis, operasional, finansial, legal, reputasi, atau pencapaian sasaran" /></label>
             <label className="full">Pengendalian yang sudah berjalan <textarea rows={2} value={riskForm.existing_controls} onChange={e => setRiskForm(f => ({ ...f, existing_controls: e.target.value }))} placeholder="Pengendalian aktual, bukan rencana yang belum dilaksanakan" /></label>
           </div>
+          </div>
+          <div className="rmStepBody" data-step="2">
           <div className="rmSubhead"><b>Analisis baseline · matriks Kepmenkes 5 × 5</b><span>Skor dibaca dari tabel matriks Kepmenkes, bukan sekadar kemungkinan × dampak.</span></div>
           <div className="rmFormGrid three">
             <label>Level kemungkinan <select value={riskForm.likelihood} onChange={e => setRiskForm(f => ({ ...f, likelihood: e.target.value }))}>{[1,2,3,4,5].map(n => <option value={String(n)} key={n}>{n} · {LIKELIHOOD_LABELS[n - 1]}</option>)}</select></label>
             <label>Level dampak <select value={riskForm.impact} onChange={e => setRiskForm(f => ({ ...f, impact: e.target.value }))}>{[1,2,3,4,5].map(n => <option value={String(n)} key={n}>{n} · {IMPACT_LABELS[n - 1]}</option>)}</select></label>
             <div className="rmScorePreview"><span>Skor baseline</span><strong>{riskScore(Number(riskForm.likelihood), Number(riskForm.impact))}</strong>{renderRiskBadge(levelFor(riskScore(Number(riskForm.likelihood), Number(riskForm.impact))))}</div>
           </div>
+          </div>
+          <div className="rmStepBody" data-step="3">
           <div className="rmSubhead"><b>Penanggung jawab dan pemantauan</b><span>Penanggung jawab harus individu/jabatan yang dapat menindaklanjuti risiko.</span></div>
           <div className="rmFormGrid three">
             <label>Pemilik risiko / PIC <input value={riskForm.owner_name} onChange={e => setRiskForm(f => ({ ...f, owner_name: e.target.value }))} placeholder="Nama atau jabatan" /></label>
@@ -995,7 +1006,8 @@ export default function RiskManagementWorkspace({
             <label>Residual dampak <select value={riskForm.residual_impact} onChange={e => setRiskForm(f => ({ ...f, residual_impact: e.target.value }))}><option value="">Belum dinilai</option>{[1,2,3,4,5].map(n => <option key={n} value={String(n)}>{n} · {IMPACT_LABELS[n - 1]}</option>)}</select></label>
             <div className="rmScorePreview"><span>Skor residual</span><strong>{riskForm.residual_likelihood && riskForm.residual_impact ? riskScore(Number(riskForm.residual_likelihood), Number(riskForm.residual_impact)) : '-'}</strong>{riskForm.residual_likelihood && riskForm.residual_impact ? renderRiskBadge(levelFor(riskScore(Number(riskForm.residual_likelihood), Number(riskForm.residual_impact)))) : <span className="rmMuted">Belum dinilai</span>}</div>
           </div>
-          <div className="rmFormFooter"><div className="rmFormNote">Peringkat Sedang ke atas berada di luar area penerimaan risiko dan membutuhkan keputusan mitigasi.</div><div className="rmActions"><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}>Batal</button><button type="button" className="rmButton primary" disabled={saving} onClick={saveRisk}>{saving ? 'Menyimpan…' : 'Simpan risk register'}</button></div></div>
+          </div>
+          <div className="rmFormFooter"><div className="rmFormNote">Peringkat Sedang ke atas berada di luar area penerimaan risiko dan membutuhkan keputusan mitigasi.</div><div className="rmActions"><button type="button" className="rmButton subtle rmStepPrev" onClick={() => setRiskStep(v => Math.max(1, v - 1))}>← Kembali</button><button type="button" className="rmButton subtle rmCancelBtn" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}>Batal</button><button type="button" className="rmButton primary rmStepNext" onClick={() => setRiskStep(v => Math.min(3, v + 1))}>Lanjut →</button><button type="button" className="rmButton primary rmSaveBtn" disabled={saving} onClick={saveRisk}>{saving ? 'Menyimpan…' : 'Simpan risk register'}</button></div></div>
         </LiquidGlass></RmModal>}
 
         {!riskEditorOpen && !fmeaEditorOpen && activeRisk && registerDetailExpanded && <RmModal label="Detail risiko" error={error}><LiquidGlass className="rmPanel rmDetailModal">
