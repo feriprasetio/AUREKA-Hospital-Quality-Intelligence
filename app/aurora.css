@@ -1428,3 +1428,22 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero 
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions > .hlHeroBtn { flex: 1 1 0 !important; min-width: 0 !important; overflow: hidden; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroBtn::after, html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroBtn::before { display: none !important; }
 @media (min-width: 721px) { html[data-skin="arktik"] body:not(#_) .workspaceRoot .homeLanding .hlAuroraHero .hlHeroActions > .hlHeroBtn { flex: 0 0 auto !important; padding-inline: 20px !important; } }
+
+/* Mode gelap: kotak isian di semua popup terlihat jelas (latar & garis tepi), ukuran huruf wajar. */
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select, textarea) { min-height: 42px; padding: 9px 12px !important; border: 1px solid rgba(255, 255, 255, .18) !important; border-radius: 12px !important; background: rgba(255, 255, 255, .06) !important; color: #f1f5f9 !important; font-size: 14px !important; line-height: 1.45 !important; box-shadow: none !important; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(input, textarea)::placeholder { color: #8b98aa !important; opacity: 1; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(input, select, textarea):hover:not(:disabled):not(:focus) { border-color: rgba(255, 255, 255, .3) !important; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus { outline: none !important; border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34, 211, 238, .2) !important; background: rgba(255, 255, 255, .09) !important; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(input, select, textarea):disabled { opacity: .65; }
+html[data-mode="gelap"] body:not(#_) [aria-modal="true"] select option { background: #161d29; color: #f1f5f9; }
+/* Ponsel: 16px mencegah iPhone memperbesar layar saat mengetik; jarak antar isian lebih lega tapi ringkas. */
+@media (max-width: 720px) {
+  html body:not(#_) [aria-modal="true"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select, textarea) { font-size: 16px !important; }
+  html body:not(#_) [aria-modal="true"] textarea { min-height: 72px !important; }
+  html body:not(#_) [aria-modal="true"] .rmFormGrid { gap: 12px !important; }
+  html body:not(#_) [aria-modal="true"] .rmFormGrid > label { gap: 6px !important; font-size: 13px !important; }
+  /* Penanda langkah aktif: angka terlihat */
+  html body:not(#_) .rmEditor .rmSteps li.on button span { background: #1f2430 !important; color: #fff !important; }
+  html[data-mode="gelap"] body:not(#_) .rmEditor .rmSteps li.on button span { background: #22d3ee !important; color: #0f1218 !important; }
+  html body:not(#_) .rmEditor .rmSteps li.done button span { background: #0e7490 !important; color: #fff !important; }
+}
