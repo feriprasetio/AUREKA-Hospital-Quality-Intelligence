@@ -63,8 +63,6 @@ html body .a2-landing.a2-scrolled .a2-header-inner { min-height: 56px; }
 
   /* ---------- Hero: masuk bertahap ---------- */
   html body .a2-landing .a2-header { animation: a2FadeDown .6s cubic-bezier(.22, 1, .36, 1) both; }
-  html body .a2-landing .a2-institution-chip { animation: a2FadeUp .6s cubic-bezier(.22, 1, .36, 1) .1s both; }
-  html body .a2-landing .a2-chip-dot { animation: a2Pulse 2.4s ease-out 1s infinite; }
   html body .a2-landing .a2-hero h1 .a2-line { display: block; overflow: hidden; padding-bottom: .06em; margin-bottom: -.06em; }
   html body .a2-landing .a2-hero h1 .a2-line > span { display: inline-block; animation: a2Rise .9s cubic-bezier(.22, 1, .36, 1) both; }
   html body .a2-landing .a2-hero h1 .a2-line:nth-child(1) > span { animation-delay: .18s; }
@@ -144,8 +142,6 @@ html body .a2-landing.a2-scrolled .a2-header-inner { min-height: 56px; }
   html body .authPage .authAside :is(h1, h2) { animation: a2FadeUp .8s cubic-bezier(.22, 1, .36, 1) .4s both; }
   html body .authPage .authArchitecture img { animation: a2Ken 18s ease-in-out .3s infinite alternate both; }
   html body .authPage .authArchitecture figcaption { animation: a2FadeUp .9s cubic-bezier(.22, 1, .36, 1) .7s both; }
-  html body .authPage .authAccessMark { animation: a2Pop .5s cubic-bezier(.34, 1.56, .64, 1) .45s both; }
-  html body .authPage .authAccessMark svg { animation: a2Wiggle .8s ease-in-out 1.1s 1 both; transform-origin: 50% 30%; }
   html body .authPage .authForm > * { animation: a2FadeUp .6s cubic-bezier(.22, 1, .36, 1) both; }
   html body .authPage .authForm > :nth-child(1) { animation-delay: .5s; }
   html body .authPage .authForm > :nth-child(2) { animation-delay: .57s; }
@@ -175,9 +171,6 @@ html body .a2-landing.a2-scrolled .a2-header-inner { min-height: 56px; }
 .pwMeter { display: grid; gap: 6px; margin: 10px 0 4px; }
 .pwMeterBar { display: block; height: 6px; border-radius: 6px; background: rgba(120, 140, 160, .2); overflow: hidden; }
 .pwMeterBar i { display: block; height: 100%; border-radius: inherit; background: #d9534f; transition: width .4s cubic-bezier(.22, 1, .36, 1), background-color .3s ease; }
-.pwMeter.lv2 .pwMeterBar i { background: #e0a030; }
-.pwMeter.lv3 .pwMeterBar i { background: #3b8fd6; }
-.pwMeter.lv4 .pwMeterBar i { background: #2e9b6a; }
 .pwMeter small { font-size: 12px; opacity: .8; }
 .pwShowToggle { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; cursor: pointer; }
 .pwShowToggle input { width: 16px; height: 16px; }

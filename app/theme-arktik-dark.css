@@ -14,14 +14,10 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .workspaceHeaderBar { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .workspaceGlobalSearch { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .workspaceHeaderAvatar { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspacePageEyebrow { color: #b2b8bd; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovHero,.rmHero,.psHead,.qraHero,.acdHero,.sdHead,.stHead,.oppeHeader) { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovPanel,.psPanel,.rmPanel,.cpPanel,.oppePanel,.sdPanel,.stPanel,.mswPanel,.qraPanel,.fppePanel,.acdPanel) { box-shadow: 0 2px 5px rgba(0, 0, 0, 0.057) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovKpi,.aqKpi,.psKpi,.rmKpi,.qraKpi,.acdKpi,.stSummary) { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovKpiLabel { color: #bdc4cb !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovKpiIcon { background: rgba(255, 255, 255, 0.005) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovContextBar { background: rgba(255, 255, 255, 0.005) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovContextBar span { color: #b4bbc0 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovEyebrow,.rmEyebrow,.psEyebrow,.eyebrow) { color: #b6c0c7 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] :is(.qualityWorkspaceTabs,.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.qraTabs,.settingsTabs,.mswTabs) { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] :is(.qualityWorkspaceTabs,.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.qraTabs,.settingsTabs,.mswTabs) > button.active { border-color: rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.304) !important; }
@@ -60,18 +56,10 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .ap-footnote { color: #a6b0b9; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .ap-footnote svg { stroke: #9eb3c5; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .ap-caption { border-top: 1px solid rgba(255, 255, 255, 0.02); color: #abb4bc; background: rgba(255, 255, 255, 0.005); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .authAccessMark { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #c0dbba; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch > svg { stroke: #abb5be; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch input { color: #c0ccd6; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch:focus-within { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.006); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchReset { color: #b0b9c1; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults > p { color: #a8b2bb; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults > button { border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: #b4c2cf; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults > button:hover { background: rgba(255, 255, 255, 0.005); border-color: rgba(255, 255, 255, 0.02); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults small { color: #a6b0ba; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchEmpty { color: #a9b3bc; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchEmpty button { color: #bedebb; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #b3bcc5; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle[aria-pressed="true"] { color: #bedebb; border-color: rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); }
 
@@ -89,7 +77,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarNav > button:hover { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarNavGroup > button.navActive,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarNav > button.navActive { color: #cad9e6 !important; border-color: rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarChevron { color: #b0bab4 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarChild { color: #bdc7c3 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarChild:hover { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarChild.active { color: #cad9e6 !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
@@ -101,12 +88,8 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch:focus-within { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch input::placeholder { color: #a8b4ac !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch kbd { color: #b7c0bb !important; background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton { color: #c2c9cf !important; background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton:hover { background: rgba(255, 255, 255, 0.005) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton{ color: #c2c9cf !important; background: rgba(255, 255, 255, 0.005) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton:hover{ background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderAvatar { border: 2px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(
   .ovPanel, .ovKpi, .ovHero, .ovContextBar,
@@ -122,8 +105,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
   .placeholderCard, .roomCard, .userDetail, .userDeleteConfirm, .userRow, .stSummary,
   .glass, .glassPanel, .glassCard, .glassSurface, .glassContainer, .liquidGlass
 ) { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovBarTrack,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovColumnTrack { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.aqTabs, .psTabs, .rmTabs, .cwTabs, .oppeTabs, .qraTabs, .settingsTabs, .mswTabs, .aqFilters) { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.aqTab, .cwTab, .mswTab, .qraTab, .settingsTab) { color: #c0c7cc !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.aqTab.active, .cwTab.active, .mswTab.active, .qraTab.active, .settingsTab.active, [role="tab"][aria-selected="true"]) { color: #cad9e6 !important; background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.11) !important; }
@@ -149,13 +130,10 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(table td, table tbody td) { color: #ced6dd !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter table tbody tr:hover td { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot :is(.workspaceNotificationPanel, .workspaceSupportPanel) { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .dynamicIsland { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .aqPortal :is(.aqEditorDialog, .aqDeleteConfirm, .aqDrawer),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .acdDrawer) { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot :is(.psModalBackdrop, .rmModalBackdrop) { background: rgba(73, 147, 212, 0.42) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is([role="dialog"], .modal, .dialog, .popover, .dropdownMenu, .menuPanel) { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .publicRoot .quickDockIcon { border: 1px solid rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .publicRoot .overviewOverlay { background: rgba(73, 147, 212, 0.43) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .publicRoot .publicAggregatePill { color: #cad9e6 !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .publicRoot .publicChartTrack { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .publicRoot .publicCategoryTrack { background: rgba(255, 255, 255, 0.005) !important; }
@@ -164,7 +142,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 
 /* from aureka-solid-navigation.css */
 :root:where([data-skin="arktik"][data-mode="gelap"]) { --aureka-ui-canvas: rgba(255, 255, 255, 0.005); --aureka-ui-line: rgba(255, 255, 255, 0.02); --aureka-ui-ink: #dbe3e9; --aureka-ui-muted: #bbc4bf; --aureka-ui-soft: rgba(255, 255, 255, 0.005); --aureka-ui-brand: #55a3e7; --aureka-ui-brand-dark: #55a3e7; --aureka-ui-brand-soft: rgba(255, 255, 255, 0.005); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceCrumbs { color: #b0b8b2 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideHeader { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideBrand b { color: #d7e1ea !important; }
@@ -180,13 +157,10 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarNavGroup > button > svg { color: #aeb9b2 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarNavGroup > button:hover { color: #d5dee6 !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarNavGroup > button.navActive { border-color: rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChevron { color: #a8b2ab !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarTreeChildren { border-left: 1px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild { color: #bbc4be !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild:hover { color: #d3dce5 !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild.active { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChildMark { background: rgba(255, 255, 255, 0.007) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.006) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarFooter { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarFooter > .liquidButton button { color: #bfc5cb !important; background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarFooter > .liquidButton button:hover { color: #d08d8d !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
@@ -196,14 +170,8 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch:focus-within { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.198) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch input::placeholder { color: #a6b0aa !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfile { color: #bcc3c8 !important; background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton:hover,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfile:hover { background: rgba(255, 255, 255, 0.005) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfile{ color: #bcc3c8 !important; background: rgba(255, 255, 255, 0.005) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton:hover,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfile:hover{ background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfileText b { color: #d4dde5 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfileText small { color: #adb6b1 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(
@@ -246,9 +214,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideBrand b { color: #d6e0ea !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideBrand small { color: #b0b9b3 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideProfile { color: #cad2d8 !important; background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideProfileAvatar { background: rgba(255, 255, 255, 0.005) !important; color: #c6d6e4 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideProfileText b { color: #cfd7de !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sideProfileText small { color: #aeb7b2 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .navLabel { color: #a6b1aa !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .navLabel::before { background: rgba(255, 255, 255, 0.007) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarNavGroup > button.navActive { color: #cbd9e6 !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: inset 3px 0 0 rgba(0, 0, 0, 0.5) !important; }
@@ -272,8 +237,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild { color: #b7bfb9 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild:hover { background: rgba(255, 255, 255, 0.005) !important; color: #c3d4e1 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild.active { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; color: #cad9e6 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChildMark { background: rgba(255, 255, 255, 0.007) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark { background: #4993d4 !important; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.006) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarFooter { background: rgba(255, 255, 255, 0.005) !important; border-top: 1px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar .sidebarFooter > .liquidButton button { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #bbc4bf !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar { background: rgba(255, 255, 255, 0.005) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important; }
@@ -285,7 +248,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :root:where([data-skin="arktik"][data-mode="gelap"]) { --green: #55a3e7; --green2: #55a3e7; --accent: #55a3e7; --accent2: #55a3e7; --accent-rgb: 85, 163, 231; --accent-soft: rgba(255, 255, 255, 0.005); --ink: #dce5ec; --muted: #bec7c2; --line: rgba(255, 255, 255, 0.02); --glass: rgba(255, 255, 255, 0.005); --glassStrong: rgba(255, 255, 255, 0.005); --shadow: 0 1px 3px rgba(119, 160, 197, 0.045); --clinical-bg: rgba(255, 255, 255, 0.005); --clinical-card: rgba(255, 255, 255, 0.005); --clinical-border: rgba(255, 255, 255, 0.02); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar { background: #4993d4 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sideHeader { border-bottom: 1px solid rgba(255, 255, 255, 0.025); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceBrandMark { background: #4993d4; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarNav>button:hover { background: rgba(255, 255, 255, 0.006) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebarNav>button.navActive { background: #4993d4 !important; border-color: rgba(255, 255, 255, 0.008) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar>.profileChipBtn { border-top: 1px solid rgba(255, 255, 255, 0.028) !important; }
@@ -294,42 +256,16 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .profileAvatar { background: #4993d4 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar>.liquidButton button { border: 1px solid rgba(255, 255, 255, 0.039) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .sidebar>.liquidButton button:hover { background: rgba(255, 255, 255, 0.006) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTop { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTop .eyebrow { color: #bbc2c7 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTop h2 { color: #dce5ec !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTop p { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTopMeta { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTopMeta span { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTopMeta b { color: #dce5ec !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceTopMeta small { color: #bec7c2 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(input,select,textarea) { border-color: rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #dce5ec !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .backBtn { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #cad9e6 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .backBtn:hover { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .liquidGlass,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .glassPanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .glass,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovPanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCard,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqTable,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqInd,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .stPanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .mswHeader,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .sdPanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cpGlass,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cpPanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeScorePanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppePanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmPanel { background: rgba(255, 255, 255, 0.005) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.099) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .liquidGlass,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .glassPanel,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .glass,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovPanel,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqTable,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqInd,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .stPanel,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .mswHeader,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .sdPanel,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cpGlass,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cpPanel,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeScorePanel,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppePanel,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmPanel{ background: rgba(255, 255, 255, 0.005) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.099) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .liquidGlassClickable:hover { box-shadow: 0 2px 7px rgba(0, 0, 0, 0.154) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.088) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi b { color: #dce5ec !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiLabel { color: #bec7c2 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi small { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovPanelHead h4 { color: #dce5ec !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovCell { border: 1px solid rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovEmpty { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovLink { color: #c5d5e3 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqHead { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqHead p { color: #bec7c2 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqTabs { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; }
@@ -359,70 +295,21 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .aqNotice { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(191, 148, 38, 0.5) !important; color: #e2d6c2 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmWorkspace .rmHero { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmWorkspace .rmHero p { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmButton,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .psBtn,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cpButton,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeButton { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #ccdae7 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmButton.primary,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .psBtn.primary,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cpButton.primary,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeButton.primary { background: #4993d4 !important; border-color: rgba(255, 255, 255, 0.025) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmButton,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .psBtn{ border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #ccdae7 !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .rmButton.primary,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .psBtn.primary{ background: #4993d4 !important; border-color: rgba(255, 255, 255, 0.025) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeHeader { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeFilters,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeScorePanel,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeWorkCard,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeFormCard { background: rgba(255, 255, 255, 0.005) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeFilters,:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeScorePanel{ background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .oppeModal { background: rgba(255, 255, 255, 0.005) !important; box-shadow: 0 16px 44px rgba(0, 0, 0, 0.396) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .sdHeader,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .stHeader,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .mswHeader { background: rgba(255, 255, 255, 0.005) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .mswHeader{ background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter table :is(th,td) { border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter table th { background: rgba(255, 255, 255, 0.005) !important; color: #c2c9d0 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter table tr:hover td { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCard.ready { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhIcon { background: rgba(255, 255, 255, 0.005) !important; color: #c5d5e3 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhSummary { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCta { color: #c5d5e3 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCard.ready .qhCta { background: #4993d4 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwHeader { background: rgba(255, 255, 255, 0.005); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwEyebrow { color: #c5d5e3; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwTitle { color: #dce5ec; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwDescription { color: #bec7c2; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwTabs { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwTab { color: #c4cbd2; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwTab[aria-selected="true"] { background: rgba(255, 255, 255, 0.005); border-color: rgba(255, 255, 255, 0.02); color: #c5d5e3; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.11); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .cwHint { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #c1c9cf; }
 @media(max-width:760px) {
   :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceScrim { background: rgba(73, 147, 212, 0.35) !important; }
   :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .mobileMenuButton { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #cad9e6 !important; }
 }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero h3 { color: #dce5ec !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero p { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovEyebrow { color: #bbc2c8 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovRefresh { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #cad9e6 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovRefresh:hover { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar span { color: #bac4be !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar b { color: #d5dde4 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar .ok { background: rgba(255, 255, 255, 0.005); color: #c9d8e5; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar .loading { background: rgba(255, 255, 255, 0.005); color: #c4cacf; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar .error { background: rgba(255, 255, 255, 0.005); color: #d47d79; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovNotice { border: 1px solid rgba(191, 148, 38, 0.5) !important; background: rgba(255, 255, 255, 0.005) !important; color: #e2d6c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovFoot { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhHeader { background: rgba(255, 255, 255, 0.005); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhHeader h3 { color: #dce5ec !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhHeader p { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhEyebrow { color: #c5d5e3; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCard { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; color: #dce5ec !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCard:hover { border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: 0 5px 16px rgba(0, 0, 0, 0.154) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhIcon { background: rgba(255, 255, 255, 0.005) !important; color: #c5d5e3 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhIndex { color: #abb6af !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCard>b { color: #dce5ec !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhSummary { color: #bec7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .qhCta { border-top: 1px solid rgba(255, 255, 255, 0.02); color: #c5d5e3 !important; }
-@media(max-width:760px) {
-  :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar>div { border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
-}
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.psHead,.psPanel,.psSurveyShell,.psSurveyIntro,.psSurveyMeta,
   .rmPanel,.rmSectionHead,.rmEditor,.rmPlanComposer,.rmHistory,.rmLinkComposer,
   .cpPanel,.cpTile,.cpRecord,.cpAuditWrap,.cpBuilderLegend,.cpBuilderConfigList,
@@ -460,7 +347,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .mswAccessNote { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.sdTable,.stTable) tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.sdTable,.stTable) tbody tr:hover td { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovScopeNote { color: #bec7c2 !important; }
 
 /* from design-tokens.css */
 :root:where([data-skin="arktik"][data-mode="gelap"]) { --aureka-color-primary: #55a3e7; --aureka-color-primary-hover: #4993d4; --aureka-color-primary-active: #55a3e7; --aureka-color-primary-soft: rgba(255, 255, 255, 0.005); --aureka-color-sidebar: #55a3e7; --aureka-color-background: rgba(255, 255, 255, 0.005); --aureka-color-surface: rgba(255, 255, 255, 0.005); --aureka-color-surface-raised: rgba(255, 255, 255, 0.005); --aureka-color-foreground: #d4dce9; --aureka-color-foreground-secondary: #c1c9d5; --aureka-color-muted: #b2bbc7; --aureka-color-border: rgba(255, 255, 255, 0.02); --aureka-color-border-strong: rgba(255, 255, 255, 0.02); --aureka-color-ring: rgba(85, 163, 231, 0.32); --aureka-color-success: #55a3e7; --aureka-color-success-soft: rgba(255, 255, 255, 0.005); --aureka-color-warning-soft: rgba(255, 255, 255, 0.005); --aureka-color-danger-soft: rgba(255, 255, 255, 0.005); --aureka-color-information-soft: rgba(255, 255, 255, 0.005); --aureka-shadow-xs: 0 1px 2px rgba(103, 135, 214, 0.04); --aureka-shadow-sm: 0 1px 3px rgba(103, 135, 214, 0.06); --aureka-shadow-md: 0 4px 12px rgba(103, 135, 214, 0.08); --aureka-shadow-dialog: 0 18px 48px rgba(103, 135, 214, 0.18); }
@@ -481,7 +367,6 @@ html:where([data-skin="arktik"][data-mode="gelap"]),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .eyebrow { color: #b8c1bc; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .heroGlass { background: linear-gradient(140deg,rgba(44,123,98,.25),rgba(255, 255, 255, 0.013)); box-shadow: 0 34px 90px rgba(0, 0, 0, 0.396),inset 0 1px 0 rgba(255, 255, 255, 0.061); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .heroAureka { background: linear-gradient(180deg,rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005)); text-shadow: 0 8px 34px rgba(0, 0, 0, 0.264); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .systemReveal button { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.081); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.176); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .field input,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .field select { border: 1px solid rgba(255, 255, 255, 0.022); background: rgba(255, 255, 255, 0.034); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.052); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .field input:focus,
@@ -496,16 +381,6 @@ html:where([data-skin="arktik"][data-mode="gelap"]),
   :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceScrim { background: rgba(73, 147, 212, 0.2); }
   :where(html[data-skin="arktik"][data-mode="gelap"]) .mobileMenuButton { border: 1px solid rgba(255, 255, 255, 0.091); background: rgba(255, 255, 255, 0.029); color: #cbd4dd; }
 }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDockCaption { color: rgba(201, 207, 213, 0.68); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDock { background: linear-gradient(180deg,rgba(255, 255, 255, 0.036),rgba(255, 255, 255, 0.018)); box-shadow: 0 26px 70px rgba(0, 0, 0, 0.352),inset 0 1px 0 rgba(255, 255, 255, 0.07); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDockItem:hover { background: rgba(255, 255, 255, 0.02); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDockIcon { background: linear-gradient(145deg,rgba(255, 255, 255, 0.053),rgba(255, 255, 255, 0.02)); border: 1px solid rgba(255, 255, 255, 0.115); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.264),inset 0 1px 0 rgba(255, 255, 255, 0.075); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDockItem:hover .quickDockIcon { box-shadow: 0 18px 34px rgba(0, 0, 0, 0.374),inset 0 1px 0 rgba(255, 255, 255, 0.077); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDock-quality .quickDockIcon { color: #c5d5e3; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDock-safety .quickDockIcon { color: #61a7cf; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .quickDock-risk .quickDockIcon { color: #dfab48; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .overviewOverlay { background: rgba(73, 147, 212, 0.16); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .overviewModal { background: linear-gradient(145deg,rgba(255, 255, 255, 0.045),rgba(255, 255, 255, 0.024)); box-shadow: 0 34px 110px rgba(0, 0, 0, 0.484),inset 0 1px 0 rgba(255, 255, 255, 0.067); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebarToggle { border: 1px solid rgba(255, 255, 255, 0.098) !important; background: rgba(255, 255, 255, 0.021) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebarToggle:hover { background: rgba(255, 255, 255, 0.036) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebarNav>button { color: #cacfd4; }
@@ -584,30 +459,15 @@ html:where([data-skin="arktik"][data-mode="gelap"]),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .rmModalSheet>.rmPanel { background: linear-gradient(145deg,rgba(255, 255, 255, 0.064),rgba(255, 255, 255, 0.055)); box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .rmModalSheet .rmFormFooter { background: linear-gradient(180deg,rgba(255, 255, 255, 0),rgba(255, 255, 255, 0.067) 30%); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .ovHero { background: linear-gradient(130deg,rgba(var(--accent-rgb),.16),rgba(255, 255, 255, 0.027) 55%,rgba(255, 255, 255, 0.015)); border: 1px solid rgba(255, 255, 255, 0.101); box-shadow: var(--shadow),inset 0 1px 0 rgba(255, 255, 255, 0.064); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovEyebrow { color: #b8c1bc; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovChip { background: rgba(255, 255, 255, 0.042); border: 1px solid rgba(255, 255, 255, 0.112); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovNotice { background: rgba(255, 255, 255, 0.053); color: #e4dac8; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .ovKpi { border: 1px solid rgba(255, 255, 255, 0.104); background: linear-gradient(145deg,rgba(255, 255, 255, 0.043),rgba(255, 255, 255, 0.021)); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.198),inset 0 1px 0 rgba(255, 255, 255, 0.068); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .ovKpi:not(:disabled):hover { box-shadow: 0 22px 50px rgba(0, 0, 0, 0.308),inset 0 1px 0 rgba(255, 255, 255, 0.072); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .ovPanel { border: 1px solid rgba(255, 255, 255, 0.104); background: linear-gradient(145deg,rgba(255, 255, 255, 0.039),rgba(255, 255, 255, 0.018)); box-shadow: 0 16px 44px rgba(0, 0, 0, 0.176),inset 0 1px 0 rgba(255, 255, 255, 0.068); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovBarTrack { background: rgba(73, 147, 212, 0.06); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovColumnTrack { background: rgba(73, 147, 212, 0.05); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovList button { background: rgba(255, 255, 255, 0.02); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovList button:hover { background: rgba(255, 255, 255, 0.042); border-color: rgba(255, 255, 255, 0.126); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovScore { background: rgba(73, 147, 212, 0.06); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovQuick button { border: 1px solid rgba(255, 255, 255, 0.112); background: rgba(255, 255, 255, 0.028); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovQuick button:hover { box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovEmpty { border: 1px dashed rgba(255, 255, 255, 0.025); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovSkeleton,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .ovSkeletonBlock { background: linear-gradient(90deg,rgba(73, 147, 212, 0.05) 0,rgba(255, 255, 255, 0.046) 50%,rgba(73, 147, 212, 0.05) 100%); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .stSummary div { background: rgba(255, 255, 255, 0.028); }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .ovSkeleton{ background: linear-gradient(90deg,rgba(73, 147, 212, 0.05) 0,rgba(255, 255, 255, 0.046) 50%,rgba(73, 147, 212, 0.05) 100%); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .stTable th { background: rgba(255, 255, 255, 0.067); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .stTable td { border-top: 1px solid rgba(255, 255, 255, 0.011); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .stTable tr:hover td { background: rgba(255, 255, 255, 0.032); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .stFill { background: rgba(73, 147, 212, 0.07); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .pwMsg { color: #d46673; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .myDataList li { background: rgba(255, 255, 255, 0.021); border: 1px solid rgba(255, 255, 255, 0.077); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .overviewOverlay { background: rgba(73, 147, 212, 0.38) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .authBack { border: 1px solid rgba(255, 255, 255, 0.119); background: rgba(255, 255, 255, 0.046); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.176); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .authBack:hover { background: rgba(255, 255, 255, 0.005); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .authShell { box-shadow: 0 40px 110px rgba(0, 0, 0, 0.44); }
@@ -643,7 +503,6 @@ html:where([data-skin="arktik"][data-mode="gelap"]),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .backBtn:hover { background: rgba(255, 255, 255, 0.005); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .settingsTab { border: 1px solid rgba(255, 255, 255, 0.018); background: rgba(255, 255, 255, 0.049); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.11); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .settingsTab:hover { box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22); background: rgba(255, 255, 255, 0.005); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .settingsTab.active .settingsTabIcon { background: rgba(255, 255, 255, 0.014); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .filterChip { border: 1px solid rgba(255, 255, 255, 0.018); background: rgba(255, 255, 255, 0.049); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .filterChip:hover { background: rgba(255, 255, 255, 0.005); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .userStatus.off { background: rgba(73, 147, 212, 0.08); color: #c3cbc7; }
@@ -662,13 +521,6 @@ html:where([data-skin="arktik"][data-mode="gelap"]),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .userDetailCol { background: rgba(255, 255, 255, 0.039); border: 1px solid rgba(255, 255, 255, 0.013); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .userTempPw code { background: rgba(255, 255, 255, 0.005); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .authAlert.ok { background: rgba(73, 147, 212, 0.08); border-color: rgba(255, 255, 255, 0.045); color: #cfdce8; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .qhCard { border: 1px solid rgba(255, 255, 255, 0.014); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .qhCard:hover { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.264); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .qhCard.ready { background: linear-gradient(160deg,rgba(var(--accent-rgb),.10),rgba(255, 255, 255, 0.049)); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .qhCard.selected { box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.264); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .qhIcon { background: rgba(255, 255, 255, 0.056); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.176); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .qhBadge.soon { color: #e3d6c4; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .qhCard.soon .qhCta { color: #e3d6c4; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .psModalBackdrop { background: rgba(73, 147, 212, 0.55); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .psModalSheet>.liquidGlass { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.014) !important; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .psModalSheet .psField input,
@@ -692,10 +544,6 @@ html:where([data-skin="arktik"][data-mode="gelap"]),
 :root:where([data-skin="arktik"][data-mode="gelap"]) { --page-bg: rgba(255, 255, 255, 0.005); --surface: rgba(255, 255, 255, 0.005); --surface-raised: rgba(255, 255, 255, 0.005); --border: rgba(255, 255, 255, 0.02); --ink: #dde5ec; --muted: #bec6c2; --accent: #55a2e7; --accent2: #55a3e7; --accent-rgb: 85, 162, 231; --accent-soft: rgba(48, 83, 115, 0.35); --green: #55a2e7; --green2: #55a3e7; --line: rgba(255, 255, 255, 0.02); --glass: rgba(255, 255, 255, 0.005); --glassStrong: rgba(255, 255, 255, 0.005); --shadow: 0 2px 8px rgba(103, 162, 213, 0.045); --sidebar-bg: #4993d4; --sidebar-active: #59a3e3; --sidebar-border: rgba(31, 122, 199, 0.065); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .liquidGlassClickable:hover { box-shadow: 0 5px 16px rgba(0, 0, 0, 0.165) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.176) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceBrandMark { background: #4993d4; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .themeModeSwitch { border: 1px solid rgba(33, 123, 197, 0.06); background: rgba(73, 147, 212, 0.3); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .themeModeSwitch button:hover { background: rgba(255, 255, 255, 0.006); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .themeModeSwitch button.themeModeActive { background: rgba(255, 255, 255, 0.005); color: #d4e0ea; border-color: rgba(51, 117, 179, 0.25); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebarNav>button:hover { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebarNav>button.navActive { border-color: rgba(34, 119, 196, 0.06) !important; box-shadow: inset 3px 0 0 rgba(0, 0, 0, 0.5); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar>.profileChipBtn { background: rgba(255, 255, 255, 0.003) !important; }
@@ -707,14 +555,12 @@ html:where([data-skin="arktik"][data-mode="gelap"]),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceScrim { background: rgba(73, 147, 212, 0.48) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceLogo { background: rgba(255, 255, 255, 0.005); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceLogo .brandLogoFallback { background: rgba(48, 83, 115, 0.35); color: #c9d8e5; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .overviewOverlay { background: rgba(73, 147, 212, 0.56) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar .sidebarNavGroup>button:hover,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar .sidebarNav>button:hover { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar .sidebarNavGroup>button.navActive,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar .sidebarNav>button.navActive { border-color: rgba(26, 118, 203, 0.05) !important; box-shadow: inset 3px 0 0 rgba(0, 0, 0, 0.5) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar .sidebarChild:hover { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar .sidebarChild.active { background: rgba(33, 85, 131, 0.042) !important; border-color: rgba(40, 119, 189, 0.06) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .sidebar .sidebarChild.active .sidebarChildMark { background: rgba(33, 85, 131, 0.35); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.264); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebarFooter .profileChipBtn:hover,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .sidebarFooter .profileChipBtn.isActive { background: rgba(255, 255, 255, 0.004) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceHeaderBar { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.077); }
@@ -775,20 +621,12 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .liquidGlass { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter :is([class$="Eyebrow"],[class*="Eyebrow "]):not(.ovPanelHead .ovEyebrow) { color: #c5d5e3 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .rmPlanCard.selected { border-color: rgba(255, 255, 255, 0.081) !important; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.264) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovUnitName { color: #c9d2de !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovColumnValue { color: #c9d2de !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovColumnFill { background: linear-gradient(180deg,#3fb98f,#4993d4) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovBarFill { background: linear-gradient(90deg,#3fb98f,#4993d4) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovScore { background: rgba(255, 255, 255, 0.005) !important; color: #cedce8 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovExecHeadline strong { color: #cedce8 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovCell { color: #d4dce9 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter :is(.psKpi,.rmKpi,.sdKpi,.stKpi) { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpi:not(.warn):not(.danger):before { background: #4993d4 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot { --aur-brand: #55a3e7; --aur-soft-shadow: 0 1px 2px rgba(73, 147, 212, 0.03),0 6px 20px rgba(73, 147, 212, 0.05); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sideProfile { background: rgba(255, 255, 255, 0.005); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sideProfile:hover { background: rgba(255, 255, 255, 0.005); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sideProfileAvatar { background: linear-gradient(135deg,#13906a,#4993d4); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.006),0 0 0 4px rgba(255, 255, 255, 0.006); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sideProfileText b { color: #d4dce9; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .navLabel:before { background: rgba(60, 80, 103, 0.35); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button { color: #c1c9d5 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover { background: rgba(255, 255, 255, 0.005) !important; color: #d4dce9 !important; }
@@ -797,8 +635,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarChild { color: #b2bbc7 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarChild:hover { color: #d4dce9 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarChild.active { color: #cedce8 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarChildMark { background: rgba(60, 80, 103, 0.35) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarChild.active .sidebarChildMark { background: #4993d4 !important; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.006) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceHeaderBar { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.006) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceGlobalSearch { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceGlobalSearch:focus-within { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.22) !important; }
@@ -806,16 +642,7 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceHeaderIcon { color: #b2bbc7 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceHeaderIcon:hover { background: rgba(255, 255, 255, 0.005) !important; color: #d4dce9 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceHeaderAvatar { background: linear-gradient(135deg,#13906a,#4993d4) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspacePageHead h1 { color: #d4dce9; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceCrumbs b { color: #c5d5e3; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceCrumbs span:not([aria-hidden]) { color: #b2bbc7; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceCrumbs button { color: #b2bbc7; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .workspaceCrumbs button:hover { background: rgba(255, 255, 255, 0.005); color: #c5d5e3; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpiLabel { color: #c9d2de !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpiIcon { background: rgba(255, 255, 255, 0.005) !important; color: #c5d5e3 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpi.warn .ovKpiIcon { background: rgba(255, 255, 255, 0.005) !important; color: #f3b267 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpi.danger .ovKpiIcon { background: rgba(255, 255, 255, 0.005) !important; color: #e89494 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpi:nth-child(2):not(.warn):not(.danger) .ovKpiIcon { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpi b { color: #d4dce9 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovKpi small { color: #b2bbc7 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter :is(.rmRoleChip,.psActions .psPill) { background: rgba(255, 255, 255, 0.005) !important; color: #c1c9d5 !important; }
@@ -830,8 +657,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup:hover { background: rgba(255, 255, 255, 0.06) !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.11),0 6px 16px rgba(0, 0, 0, 0.132) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent { background: rgba(255, 255, 255, 0.064) !important; border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.132),0 8px 22px rgba(0, 0, 0, 0.176) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive { background: rgba(255, 255, 255, 0.005) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button:hover .sidebarChevron,
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarTreeParent:hover .sidebarChevron { background: rgba(73, 147, 212, 0.08); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar { background: radial-gradient(120% 40% at 0% 18%,rgba(73, 147, 212, 0.13),transparent 60%),
     radial-gradient(90% 35% at 100% 62%,rgba(73, 147, 212, 0.11),transparent 60%),
     radial-gradient(80% 30% at 10% 100%,rgba(52,179,138,.10),transparent 60%),
@@ -844,7 +669,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup:hover { background: linear-gradient(140deg,rgba(255, 255, 255, 0.067) 0%,rgba(255, 255, 255, 0.043) 100%) !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.006),0 2px 4px rgba(0, 0, 0, 0.11),0 12px 26px -10px rgba(0, 0, 0, 0.484) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup.isCurrent { background: linear-gradient(140deg,rgba(255, 255, 255, 0.067) 0%,rgba(255, 255, 255, 0.055) 100%) !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.006),0 0 0 3px rgba(0, 0, 0, 0.132),0 14px 30px -12px rgba(0, 0, 0, 0.5) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNavGroup>button.navActive { background: linear-gradient(90deg,rgba(73, 147, 212, 0.12),rgba(73, 147, 212, 0.03)) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .moduleEnter .ovLink { color: #c5d5e3 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .sidebar .sidebarNav::-webkit-scrollbar-thumb { background: rgba(73, 147, 212, 0.3); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .aqEditorDialog .aqIndicatorList>.aqInd { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.11) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .aqEditorDialog .aqIndicatorList .aqIHead { background: rgba(255, 255, 255, 0.005) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important; }
@@ -945,10 +769,8 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch svg { stroke: #9c98c3 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch input { color: #d3dfe9 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch kbd { border: 1px solid rgba(72, 57, 172, 0.5) !important; background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch { color: #a29fc2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover { background: rgba(255, 255, 255, 0.056) !important; color: #b2ace2 !important; border-color: rgba(255, 255, 255, 0.034) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon{ color: #a29fc2 !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover{ background: rgba(255, 255, 255, 0.056) !important; color: #b2ace2 !important; border-color: rgba(255, 255, 255, 0.034) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBadge { border: 2px solid rgba(38, 0, 230, 0.5) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfile { color: #d3dfe9 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderAvatar { border: 2px solid rgba(255, 255, 255, 0.132) !important; background: linear-gradient(145deg,rgba(49, 33, 131, 0.35),#776be2) !important; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.352) !important; }
@@ -973,16 +795,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(table th,.aqData th,.psTable th,.rmTable th,.cpTable th,.sdTable th,.stTable th) { background: rgba(255, 255, 255, 0.005) !important; color: #b2b0c8 !important; border-color: rgba(255, 255, 255, 0.029) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td) { background: rgba(255, 255, 255, 0.048) !important; color: #bebdd4 !important; border-color: rgba(255, 255, 255, 0.023) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero { border: 1px solid rgba(255, 255, 255, 0.092) !important; background: linear-gradient(112deg,rgba(73, 147, 212, 0.94),rgba(73, 147, 212, 0.88) 57%,rgba(73, 147, 212, 0.84)) !important; box-shadow: 0 12px 26px rgba(0, 0, 0, 0.396) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovRefresh { border: 1px solid rgba(255, 255, 255, 0.056) !important; background: rgba(255, 255, 255, 0.013) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovRefresh:hover { background: rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar { border: 1px solid rgba(255, 255, 255, 0.126) !important; background: rgba(255, 255, 255, 0.047) !important; box-shadow: 0 4px 13px rgba(0, 0, 0, 0.099) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar b { color: #b2b0cb !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextStatus b.ok { color: #64a2d7 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovScopeNote { color: #a5a3bd !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovDashboardTabs { border: 1px solid rgba(255, 255, 255, 0.12) !important; background: rgba(255, 255, 255, 0.043) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovDashboardTabs>button { color: #a9a7c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovDashboardTabs>button.active { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.134) !important; color: #b1aae3 !important; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.176) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovDashboardTabIcon { background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi { border: 1px solid rgba(255, 255, 255, 0.132) !important; background: linear-gradient(145deg,rgba(255, 255, 255, 0.066),rgba(255, 255, 255, 0.053)) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi:after { background: rgba(73, 147, 212, 0.09); }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi:before { background: linear-gradient(180deg,rgba(48, 33, 131, 0.35),#6c5fe0) !important; }
@@ -994,40 +806,7 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiLabel { color: #a4a1bd !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi b { color: #d7e1ea !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovPanel { border: 1px solid rgba(255, 255, 255, 0.129) !important; background: linear-gradient(145deg,rgba(255, 255, 255, 0.062),rgba(255, 255, 255, 0.053)) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovPanelHead h4 { color: #c3c0df !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovLink { color: #b1abe3 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovBarTrack,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovColumnTrack { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovBarFill { background: linear-gradient(90deg,rgba(47, 33, 131, 0.35),#6d60dd) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovBarFill.lvl-high { background: linear-gradient(90deg,rgba(131, 33, 60, 0.35),#d85f7d) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovBarFill.lvl-moderate { background: linear-gradient(90deg,rgba(131, 94, 33, 0.35),#dfa74b) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovBarFill.lvl-low { background: linear-gradient(90deg,rgba(33, 96, 131, 0.35),#5b98dc) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovUnitName { color: #b2b0c5 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovCell { border: 1px solid rgba(255, 255, 255, 0.119) !important; color: #c0bdd8 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovColumnTrack { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovColumnFill { background: linear-gradient(180deg,rgba(51, 33, 131, 0.35),#7064df) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovColumnLabel { color: #b1bab6 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovColumnValue { color: #a9a6c9 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovList li button { border-bottom: 1px solid rgba(255, 255, 255, 0.023) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovScore { background: rgba(255, 255, 255, 0.005) !important; color: #b1abe2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovListText b { color: #bfbdd6 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovStatus { color: #a8a5c0 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovEmpty { border: 1px dashed rgba(255, 255, 255, 0.054) !important; background: rgba(255, 255, 255, 0.032) !important; color: #aba9c2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovEmpty b { color: #b4b1d0 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovNotice { background: rgba(255, 255, 255, 0.056) !important; color: #ceac6d !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecutiveAlert { background: rgba(255, 255, 255, 0.005) !important; color: #bdbbd5 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecutiveAlert span { color: #a4a2ba !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecutiveAlert.danger { background: linear-gradient(120deg,rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005)) !important; border-color: rgba(180, 49, 90, 0.5) !important; color: #dfaebb !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecutiveAlert.warning { background: linear-gradient(120deg,rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005)) !important; border-color: rgba(193, 141, 36, 0.5) !important; color: #d7b986 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecutiveAlert.success { background: linear-gradient(120deg,rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005)) !important; border-color: rgba(255, 255, 255, 0.02) !important; color: #7da7cc !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecHeadline { background: linear-gradient(120deg,rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005)) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecHeadline strong { color: #aea7e6 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecHeadline span { color: #a3a0bd !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecMetric,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecRtp>div { border-bottom: 1px solid rgba(255, 255, 255, 0.025) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecMetric b,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovExecRtp b { color: #bcb9d6 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovSkeletonBlock { background: linear-gradient(90deg,rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005),rgba(255, 255, 255, 0.005)) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.ovRefresh,.aqBtn,.psBtn,.rmButton,.cpBtn,.oppeBtn,.sdBtn,.stBtn):hover { box-shadow: 0 5px 12px rgba(0, 0, 0, 0.198) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceNotificationPanel,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceSupportPanel { border: 1px solid rgba(255, 255, 255, 0.132) !important; background: rgba(255, 255, 255, 0.066) !important; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.396) !important; color: #bdbbd7 !important; }
@@ -1035,21 +814,7 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot .
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspacePopoverHead strong { color: #bdbadb !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceSupportComposer textarea { border: 1px solid rgba(255, 255, 255, 0.043) !important; background: rgba(255, 255, 255, 0.005) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceSupportComposer button { background: linear-gradient(130deg,#4993d4,#16a37a) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHeroDate { border: 1px solid rgba(255, 255, 255, 0.039) !important; background: rgba(255, 255, 255, 0.009) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon.safety { background: rgba(255, 255, 255, 0.005) !important; color: #a5c1e9 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon.risk { background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon.audit { background: rgba(255, 255, 255, 0.005) !important; color: #e7d0a7 !important; }
-
-/* from overview-bento.css */
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .ovRoot .ovBentoMap { background: var(--arktik-glass, rgba(255, 255, 255, 0.005)); border: 1px solid var(--arktik-edge, rgba(255, 255, 255, 0.02)); box-shadow: var(--arktik-shadow, 0 4px 14px rgba(0, 0, 0, 0.132)); }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .ovRoot .ovBentoTodo button { background: var(--arktik-glass, rgba(255, 255, 255, 0.005)); border: 1px solid var(--arktik-edge, rgba(255, 255, 255, 0.02)); box-shadow: var(--arktik-shadow, 0 4px 14px rgba(0, 0, 0, 0.132)); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] { --ak-risk-h-ink: #eddeda; --ak-risk-m-ink: #ede7da; --ak-risk-l-ink: #d7e5ec; --ak-risk-vl: rgba(255, 255, 255, 0.043); --ak-risk-vl-ink: #c1d1e1; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBentoGrid .ovCell { border: 1px solid rgba(255, 255, 255, 0.119) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .ovKpiLabel { color: var(--arktik-ink-2, #c1d1e1) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi .magicKpiValue { color: var(--arktik-ink, #dbe4ee) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi.danger .magicKpiValue { color: #d98782 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspaceRoot .ovRoot .ovBento .ovKpi small { color: var(--arktik-ink-2, #c1d1e1) !important; }
 
 /* from settings-modern.css */
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .settingsWorkspace .stNav { background: var(--arktik-glass, rgba(255, 255, 255, 0.005)); border: 1px solid var(--arktik-edge, rgba(255, 255, 255, 0.02)); box-shadow: var(--arktik-shadow, 0 4px 14px rgba(0, 0, 0, 0.132)); }
@@ -1096,10 +861,8 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspa
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch input { color: #dde2ef !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceGlobalSearch kbd { background: rgba(255, 255, 255, 0.005) !important; color: #b8bbc3 !important; border-color: rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch { color: #c4cad2 !important; background: rgba(255, 255, 255, 0.005) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover { color: #cedce8 !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon{ color: #c4cad2 !important; background: rgba(255, 255, 255, 0.005) !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderIcon:hover{ color: #cedce8 !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfile { color: #d6dde8 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderAvatar { background: #4993d4 !important; border: 2px solid rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceHeaderProfileText b { color: #dde2ef !important; }
@@ -1119,22 +882,12 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-skin="arktik"] .workspa
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(table td,.aqData td,.psTable td,.rmTable td,.cpTable td,.sdTable td,.stTable td) { background: rgba(255, 255, 255, 0.005) !important; color: #cbd2dc !important; border-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; color: #d6dde8 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero :is(h1,h2,h3,h4,p,span) { color: #d6dde8 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero .ovEyebrow { color: #c5d5e3 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHeroDate { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; color: #c4cad2 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovRefresh { background: #4993d4 !important; border: 1px solid rgba(255, 255, 255, 0.025) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.099) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi:hover,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovPanel:hover { box-shadow: 0 2px 7px rgba(0, 0, 0, 0.143) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi b,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovPanelHead h4 { color: #dde2ef !important; }
+:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi b{ color: #dde2ef !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiLabel,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpi small { color: #b8bbc3 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovContextBar,
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovDashboardTabs { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon { background: rgba(255, 255, 255, 0.005) !important; color: #c5d5e3 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon.safety { background: rgba(255, 255, 255, 0.005) !important; color: #bfd1e0 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon.risk { background: rgba(255, 255, 255, 0.005) !important; color: #e89494 !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovKpiIcon.audit { background: rgba(255, 255, 255, 0.005) !important; color: #f3b267 !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceNotificationPanel,
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .workspaceSupportPanel { background: rgba(255, 255, 255, 0.005) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.264) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot :is(button,input,select,textarea):focus-visible { outline: 3px solid rgba(255, 255, 255, 0.036) !important; }
@@ -1156,8 +909,6 @@ html:where([data-skin="arktik"][data-mode="gelap"]):has(.workspaceRoot),
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(td,tbody td) { color: #cbd2dc !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.alert,.notice,.callout,.validationMessage,.errorMessage,.successMessage,.warningMessage) { color: #cbd2dc !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter :is(.modal,.dialog,.popover,.dropdownMenu,.menuPanel,.tooltip,[role="dialog"],[role="menu"],[role="listbox"]) { color: #cbd2dc !important; background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero .ovHeroCopy h3 { color: #dde2ef !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceRoot .moduleEnter .ovHero .ovHeroCopy p { color: #c4cad2 !important; }
 
 /* from tanya-aureka.css */
 :where(html[data-skin="arktik"][data-mode="gelap"]) .tanyaPanel { --tn-ink: #d7e1ec; --tn-muted: #b5c5d4; --tn-glass: rgba(255, 255, 255, 0.057); --tn-edge: rgba(255, 255, 255, 0.063); --tn-line: rgba(255, 255, 255, 0.022); --tn-navy: #55a3e7; --tn-user: #55a3e7; --tn-bot: rgba(255, 255, 255, 0.063); --tn-chip: rgba(85, 163, 231, 0.07); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.484); }
@@ -1192,7 +943,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.w
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarChild.active { background: rgba(255, 255, 255, 0.005) !important; color: #c9d8e5 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter { border-top-color: rgba(255, 255, 255, 0.02) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .sidebar .sideProfile { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .sideProfileAvatar { background: rgba(255, 255, 255, 0.005) !important; color: #c3cfda !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .sidebarFooter > .liquidButton button { color: #b8bfc4 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceSidebarMenuButton,
@@ -1205,24 +955,17 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.w
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceContext span { color: #abb6ae !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { border-left: 1px solid rgba(255, 255, 255, 0.02) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspacePageHead h1 { color: #d1dee9 !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspacePageIntro p { color: #b3bcb6 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs { color: #afb5bb !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceCrumbs b { color: #bac3cb !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceSkipLink { border: 1px solid rgba(255, 255, 255, 0.025); background: rgba(255, 255, 255, 0.005); color: #c9d8e5; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceClinicalDisclaimer { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #b3bec8; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceInlineGuide { color: #b1bac2; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceFeedback { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #bacad8; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceFeedback[role="alert"] { border-color: rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #d4b9ab; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace .liquidGlass { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .settingsDestination { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .settingsDestination:hover { background: rgba(255, 255, 255, 0.005); border-color: rgba(255, 255, 255, 0.02) !important; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .settingsDestinationIcon { background: rgba(255, 255, 255, 0.005); border: 1px solid rgba(255, 255, 255, 0.02); color: #b0c2d3; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .settingsDestination > b { color: #c6ddbf; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .settingsDestination > span:last-child { color: #afbac4; }
-:where(html[data-skin="arktik"][data-mode="gelap"]) .settingsScopeNote { color: #aebbc6; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace :is(.userRow,.roomCard,.userDetail,.roomEditor) { background: rgba(255, 255, 255, 0.005) !important; border-color: rgba(255, 255, 255, 0.02) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceContextBar { border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav > button { color: #b2b8bd; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .workspaceContextNav > button[aria-current="page"] { color: #c8d7e5; border-bottom-color: rgba(255, 255, 255, 0.025); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .qualityWorkspaceTabs { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; }
@@ -1266,11 +1009,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.w
   html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .cpScoreGrid .cpScore { background: rgba(255, 255, 255, 0.005) !important; }
 }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter :is(.ovEmpty,.psEmpty,.rmEmpty,.aqEmpty,.sdEmpty,.stEmpty,.qraEmpty,.acdEmpty) { background: rgba(255, 255, 255, 0.005) !important; color: #adb7c0 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi .glass { border-right: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi strong { color: #c2dec7 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi span { color: #afb9c3 !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi small { color: #a6b2bc !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar { border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqDataBar > div { border-right-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) .aqRegisterTitle h2 { color: #bfcfdb; }
@@ -1301,15 +1039,7 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.w
   :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceDrawerClose { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #b0bbc4; }
   :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceContextSelect > span { color: #adb6be; }
   :where(html[data-skin="arktik"][data-mode="gelap"]) .workspaceContextSelect select { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #bacad8; }
-  html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .aqComplaintKpi .glass { border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important; }
 }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicKpi { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: linear-gradient(145deg, rgba(255, 255, 255, 0.005) 0%, rgba(255, 255, 255, 0.005) 58%, rgba(255, 255, 255, 0.005) 100%) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.099), inset 0 1px 0 rgba(255, 255, 255, 0.075) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicKpiGlow { background: linear-gradient(115deg, transparent 18%, rgba(73, 147, 212, 0.055) 50%, transparent 78%); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicKpiSweep { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.057), transparent); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicKpi:not(:disabled):hover,
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicKpi:not(:disabled):focus-visible { border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.231), inset 0 1px 0 rgba(255, 255, 255, 0.078) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicPanel { border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.077), 0 5px 18px rgba(0, 0, 0, 0.055) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .magicPanel:hover { border-color: rgba(255, 255, 255, 0.02) !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.121) !important; }
 
 /* from components/FppeEvaluationWorkspace.tsx */
 html[data-skin="arktik"][data-mode="gelap"] .fppePanel { background: linear-gradient(135deg,rgba(255, 255, 255, 0.041),rgba(255, 255, 255, 0.021)); border: 1px solid rgba(255, 255, 255, 0.105); box-shadow: var(--shadow),inset 0 1px 0 rgba(255, 255, 255, 0.064); }
@@ -1490,14 +1220,6 @@ html[data-skin="arktik"][data-mode="gelap"] .psWho { background: rgba(255, 255, 
 html[data-skin="arktik"][data-mode="gelap"] .psResult { background: rgba(255, 255, 255, 0.035); }
 html[data-skin="arktik"][data-mode="gelap"] .psBar { background: rgba(255, 255, 255, 0.005); }
 html[data-skin="arktik"][data-mode="gelap"] .psToast { background: rgba(73, 147, 212, 0.93); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.484); }
-
-/* from components/QualityExcelPastePanel.tsx */
-html[data-skin="arktik"][data-mode="gelap"] .aepTextarea { background: rgba(255, 255, 255, 0.055); }
-html[data-skin="arktik"][data-mode="gelap"] .aepBadge { background: rgba(255, 255, 255, 0.005); color: #c9d8e5; }
-html[data-skin="arktik"][data-mode="gelap"] .aepBadge.warn { background: rgba(255, 255, 255, 0.005); color: #e0cfbe; }
-html[data-skin="arktik"][data-mode="gelap"] .aepErrors { background: rgba(255, 255, 255, 0.005); color: #e2d2c2; }
-html[data-skin="arktik"][data-mode="gelap"] .aepTable th { background: rgba(255, 255, 255, 0.063); color: #c5d0da; }
-html[data-skin="arktik"][data-mode="gelap"] .aepButton { background: rgba(255, 255, 255, 0.052); }
 
 /* from components/QualityIndicatorWorkspace.tsx */
 html[data-skin="arktik"][data-mode="gelap"] .aqInlineEditor { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.176); background: rgba(255, 255, 255, 0.057); }

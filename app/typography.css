@@ -71,15 +71,6 @@ html body:not(#_) .workspaceRoot .workspaceContent .rmTable td .rmIconButton:hov
 html body:not(#_) .workspaceRoot .workspaceContent .rmTable td { padding-top: 14px !important; padding-bottom: 14px !important; }
 html body:not(#_) .workspaceRoot .workspaceContent .rmTable .rmScore { border-radius: 10px !important; font-weight: 700 !important; }
 
-/* ===== Judul halaman tidak menempel ke garis/konten di bawahnya ===== */
-/* Judul sejajar dengan konten (tidak menempel ke kiri) dan tidak ada ruang kosong berlebih di bawahnya */
-html body:not(#_) .workspaceRoot .workspacePageHead { padding: 18px 24px 10px !important; margin: 0 !important; min-height: 0 !important; }
-html body:not(#_) .workspaceRoot .workspacePageHead h1 { margin: 4px 0 0 !important; line-height: 1.2 !important; font-size: clamp(22px, 1.9vw, 28px) !important; font-weight: 750 !important; letter-spacing: -.02em !important; }
-html body:not(#_) .workspaceRoot .workspacePageHead + * { margin-top: 0 !important; }
-html body:not(#_) .workspaceRoot .workspaceCrumbs { font-size: 12px !important; }
-@media (max-width: 720px) { html body:not(#_) .workspaceRoot .workspacePageHead { padding: 14px 16px 8px !important; } }
-html body:not(#_) .workspaceRoot .workspaceCrumbs { margin-bottom: 2px !important; }
-
 /* ===== Dropdown: teks tidak tertimpa panah (mis. pilihan Tahun "2026") ===== */
 html body:not(#_) .workspaceRoot .workspaceContent select:not([multiple]) {
   padding-right: 36px !important; text-overflow: ellipsis; min-width: 92px;
@@ -219,9 +210,6 @@ html body:not(#_) .workspaceRoot :is(.psStatsLead) { margin: 0 !important; font-
 html body:not(#_) .workspaceRoot .psStatsHead { align-items: center !important; }
 html body:not(#_) .workspaceRoot :is(.prHead, .piHead) { align-items: center !important; margin: 0 !important; }
 html body:not(#_) .workspaceRoot .psStatsEmpty { margin: 0; padding: 28px 16px; text-align: center; font-size: 13.5px; opacity: .75; border: 1px dashed rgba(11, 70, 122, .2); border-radius: 14px; }
-/* Tab Form Logbook / Hasil Capaian sudah ada di sidebar */
-html body:not(#_) .workspaceRoot .workspaceContextBar .qualityWorkspaceTabs { display: none !important; }
-html body:not(#_) .workspaceRoot .workspaceContextBar:not(:has(> :not(.qualityWorkspaceTabs))) { display: none !important; }
 
 /* ===== Baris alat modul (Panduan + tombol) ringkas: tidak menambah jarak kosong di bawah judul ===== */
 html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) {
@@ -241,12 +229,6 @@ html body:not(#_) .cpLibSel { display: inline-flex; align-items: center; gap: 6p
 html body:not(#_) .cpLibSel select { min-height: 36px; max-width: 230px; border-radius: 10px; font-size: 13px; }
 html body:not(#_) .cpLibBar .cpBtn { min-height: 36px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
 html body:not(#_) .cpLibBar .cpIconBtn { width: 36px; padding: 0; font-size: 16px; }
-html body:not(#_) .cpTiles { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; gap: 10px; }
-html body:not(#_) .cpTiles .cpTile { position: relative; padding: 12px 14px; border-radius: 14px; min-height: 0; }
-html body:not(#_) .cpTiles .cpTileTop { position: absolute; top: 10px; right: 12px; }
-html body:not(#_) .cpTiles .cpTile h4 { margin: 0 56px 2px 0; font-size: 14.5px; line-height: 1.3; }
-html body:not(#_) .cpTiles .cpTile p { font-size: 12px; line-height: 1.4; }
-html body:not(#_) .cpTiles .cpTileFoot { margin-top: 8px; padding-top: 8px; font-size: 12.5px; }
 html body:not(#_) .cpRoot .cpKpi { padding: 10px 14px; min-height: 0; }
 html body:not(#_) .cpRoot .cpKpi strong { font-size: 20px; margin-top: 2px; }
 @media (max-width: 640px) {
@@ -297,7 +279,7 @@ html body:not(#_) .staffTeam .stForm .stBtn { grid-column: auto !important; min-
 html body:not(#_) .staffTeam .stRosterHead { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 8px; padding-top: 14px; border-top: 1px solid rgba(11, 31, 51, .08); font-size: 14px; }
 html body:not(#_) .staffTeam .stRosterHead span { font-size: 12px; color: #3d5670; }
 html body:not(#_) .staffTeam .stEmpty { padding: 14px; font-size: 13px; }
-html body:not(#_) .staffTeam .stEmpty svg, html body:not(#_) .staffTeam .stEmpty .emptyIcon { display: none; }
+html body:not(#_) .staffTeam .stEmpty svg{ display: none; }
 
 /* ===== Formulir tambah/edit dalam popup: tampil hidup, tidak datar ===== */
 html:not([data-mode="gelap"]) body:not(#_) :is(.rmEditor > .rmSectionHead:first-child, .akModalHead, .oppeModalHeader, .psModalBar) {
@@ -342,8 +324,7 @@ html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(input, select
 html body:not(#_) [aria-modal="true"] :is(.rmFormGrid, .psFormGrid, .akModalBody) label { font-weight: 600; color: #1f3a55; }
 html[data-mode="gelap"] body:not(#_) [aria-modal="true"] :is(.rmFormGrid, .psFormGrid, .akModalBody) label { color: #cfdbea; }
 
-/* Kartu skor & tombol utama */
-html body:not(#_) [aria-modal="true"] .rmScoreBox, html body:not(#_) [aria-modal="true"] [class*="ScoreCard"] { box-shadow: 0 8px 22px rgba(11, 70, 122, .08); }
+html body:not(#_) [aria-modal="true"] [class*="ScoreCard"]{ box-shadow: 0 8px 22px rgba(11, 70, 122, .08); }
 html:not([data-mode="gelap"]) body:not(#_) [aria-modal="true"] :is(.rmButton.primary, .psBtn.primary, .stBtn.primary, .akBtn.primary, .oppeBtn.primary, .uBtn.primary):not(:disabled) {
   background: linear-gradient(135deg, #0b1f33, #1e4f7c) !important; border-color: transparent !important; color: #fff !important;
   box-shadow: 0 8px 18px rgba(11, 31, 51, .22);
@@ -555,20 +536,6 @@ html[data-mode="gelap"] body:not(#_) .authFormIntro h1 { background: linear-grad
 html[data-mode="gelap"] body:not(#_) .authForm :is(input[type="text"], input[type="email"], input[type="password"], input:not([type])) { background: rgba(255,255,255,.06) !important; border-color: rgba(140,195,255,.3) !important; }
 html[data-mode="gelap"] body:not(#_) .authBack { background: rgba(255,255,255,.08) !important; color: #dbe8f6 !important; border-color: rgba(140,195,255,.3) !important; }
 
-/* ===== Submenu modul di HP ===== */
-html body:not(#_) .mobileSubNav { display: none; }
-@media (max-width: 720px) {
-  html body:not(#_) .mobileSubNav { display: grid; gap: 8px; margin: 2px 0 14px; }
-  html body:not(#_) .mobileSubNavRow { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 4px; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
-  html body:not(#_) .mobileSubNavRow::-webkit-scrollbar { display: none; }
-  html body:not(#_) .mobileSubNavRow > button { flex: 0 0 auto; scroll-snap-align: start; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid #cfdcea; background: #fff; color: #1f3a55; font: inherit; font-size: 14px; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 6px rgba(11, 47, 82, .06); }
-  html body:not(#_) .mobileSubNavRow > button.active { background: #0b1f33; border-color: #0b1f33; color: #fff; }
-  html body:not(#_) .mobileSubNavRow.sub > button { min-height: 34px; font-size: 13px; padding: 0 13px; background: rgba(255, 255, 255, .7); }
-  html body:not(#_) .mobileSubNavRow.sub > button.active { background: #e3eefa; border-color: #2c6aa0; color: #0b2f52; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow > button { background: rgba(255, 255, 255, .06); border-color: rgba(140, 195, 255, .28); color: #dbe6f3; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow > button.active { background: #5aa9e6; border-color: #5aa9e6; color: #07101e; }
-}
-
 /* ===== Tombol sekunder tegas di seluruh modul (bukan sekadar teks) ===== */
 html:not([data-mode="gelap"]) body:not(#_) .workspaceRoot :is(.sdBtn, .sdEditBtn, .sdMini, .rmButton, .psBtn, .aqBtn, .uBtn, .stBtn, .cpBtn, .oppeBtn, .prButton, .textButton, .hlReminderBtn, .hlReminderReadBtn, .tanyaGhost):not(.primary):not(.danger):not(:disabled) {
   background: #fff !important; border: 1.5px solid #c6d6e8 !important; color: #0b2f52 !important; font-weight: 700 !important;
@@ -583,8 +550,6 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.sdBtn, .sdEditBtn, .sdM
 /* ===== HP: lebih lega, tidak dempet ===== */
 @media (max-width: 720px) {
   html body:not(#_) .workspaceRoot :is(.sdBtn, .sdEditBtn, .sdMini, .rmButton, .psBtn, .aqBtn, .uBtn, .stBtn, .cpBtn, .oppeBtn, .prButton, .textButton) { min-height: 42px; padding-left: 16px !important; padding-right: 16px !important; border-radius: 12px !important; font-size: 14px !important; }
-  html body:not(#_) .workspaceRoot .workspacePageHead { padding: 14px 18px 6px !important; }
-  html body:not(#_) .workspaceRoot .workspacePageHead h1 { font-size: 26px !important; line-height: 1.2; }
   html body:not(#_) .workspaceRoot #workspace-main-content > * + * { margin-top: 14px; }
   html body:not(#_) .workspaceRoot .moduleEnter :is(.sdPanel, .stPanel, .rmPanel, .psPanel, .cpGlass, .hlPanel, .prPanel, .aqPanel) { padding: 18px 16px !important; }
   html body:not(#_) .workspaceRoot .moduleEnter :is(.sdFilters, .rmFilterBar, .prFilters, .aqFilters) { gap: 10px !important; }
@@ -607,8 +572,6 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspa
   background-color: rgba(255, 255, 255, .06) !important;
 }
 @media (max-width: 720px) {
-  html body:not(#_) .mobileSubNav { padding: 0 16px; }
-  html body:not(#_) .mobileSubNavRow { margin: 0 -16px; padding-left: 16px; padding-right: 16px; scroll-padding-left: 16px; }
   html body:not(#_) .sdActions { flex-wrap: wrap !important; }
 }
 @media (max-width: 640px) {
@@ -626,11 +589,6 @@ html body:not(#_) .authBrandMark { width: 48px; margin-bottom: 16px; }
 
 /* HP: judul + submenu + baris alat modul lebih rapi dan ringkas */
 @media (max-width: 720px) {
-  html body:not(#_) .workspaceRoot .workspacePageHead { padding: 12px 16px 4px !important; }
-  html body:not(#_) .workspaceRoot .workspacePageHead h1 { font-size: 24px !important; margin: 0 !important; }
-  html body:not(#_) .mobileSubNav { gap: 6px; margin: 4px 0 10px; }
-  html body:not(#_) .mobileSubNavRow > button { min-height: 36px; padding: 0 14px; font-size: 13.5px; }
-  html body:not(#_) .mobileSubNavRow.sub > button { min-height: 32px; font-size: 12.5px; padding: 0 12px; }
   /* Baris Panduan/peran/Refresh di bawah judul: satu baris kecil */
   html body:not(#_) .workspaceRoot .workspaceModuleHeader { gap: 6px !important; margin-bottom: 8px !important; padding: 0 !important; }
   html body:not(#_) .workspaceRoot .workspaceModuleHeader :is(.psRolePill, .rmRolePill, [class*="RolePill"], [class*="rolePill"]) { display: none !important; }
@@ -639,12 +597,6 @@ html body:not(#_) .authBrandMark { width: 48px; margin-bottom: 16px; }
 }
 @media (max-width: 720px) {
   html body:not(#_) .workspaceRoot .workspaceModuleHeader .psPill { display: none !important; }
-}
-
-/* HP: submenu dibungkus (semua pilihan terlihat, tanpa geser) */
-@media (max-width: 720px) {
-  html body:not(#_) .mobileSubNavRow { flex-wrap: wrap !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
-  html body:not(#_) .mobileSubNavRow > button { flex: 0 1 auto; white-space: normal; text-align: center; line-height: 1.25; padding-top: 6px; padding-bottom: 6px; }
 }
 /* Login: tombol kembali tidak menempel ke kartu atas */
 html body:not(#_) .authBack { margin: 18px 0 4px !important; }
@@ -738,13 +690,7 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup.isCurrent > button { background: #e6f0fa !important; color: #0b2f52 !important; box-shadow: none !important; }
   /* Anak & cucu: garis panduan kiri, teks lebih kecil, aktif = pil navy */
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild { min-height: 42px; border-radius: 12px !important; font-size: 14.5px !important; color: #33506e !important; background: transparent !important; box-shadow: none !important; }
-  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.sidebarTreeParent { font-weight: 700 !important; color: #0b2f52 !important; }
-  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.sidebarTreeParent.active { background: transparent !important; color: #0b2f52 !important; }
-  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.sidebarTreeParent .sidebarChevron { background: transparent !important; }
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild.active:not(.sidebarTreeParent) { background: #0b1f33 !important; color: #fff !important; font-weight: 700 !important; }
-  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarTreeNestedChildren .sidebarChild { font-size: 14px !important; }
-  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChevron { transition: rotate .2s ease; }
-  html body:not(#_) .workspaceRoot .sidebar.mobileOpen [aria-expanded="true"] > .sidebarChevron { rotate: 180deg; }
   html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen { background: #0d1626 !important; }
   html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup.isCurrent > button { background: rgba(90, 169, 230, .14) !important; color: #e6f0fb !important; }
   html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen :is(.sidebarChild, .sidebarNavGroup > button) { color: #c9d6e6 !important; }
@@ -757,35 +703,16 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
 
 /* ===== HP: submenu jadi panel rapi (tidak menempel judul), KPI ringkas ===== */
 @media (max-width: 720px) {
-  html body:not(#_) .workspaceRoot .workspacePageHead { margin-bottom: 6px !important; }
-  html body:not(#_) .mobileSubNav { margin: 0 16px 14px !important; padding: 8px !important; border-radius: 18px; background: rgba(255, 255, 255, .72); border: 1px solid rgba(11, 47, 82, .08); box-shadow: 0 4px 14px rgba(11, 47, 82, .06); gap: 8px !important; }
-  html body:not(#_) .mobileSubNavRow.seg { display: flex !important; flex-wrap: nowrap !important; gap: 4px !important; padding: 4px !important; border-radius: 14px; background: rgba(11, 47, 82, .06); }
-  html body:not(#_) .mobileSubNavRow.seg > button { flex: 1 1 0 !important; min-height: 38px; border: 0 !important; box-shadow: none !important; background: transparent !important; color: #33506e !important; border-radius: 11px !important; padding: 4px 8px !important; font-size: 13.5px !important; }
-  html body:not(#_) .mobileSubNavRow.seg > button.active { background: #fff !important; color: #0b1f33 !important; box-shadow: 0 2px 8px rgba(11, 47, 82, .12) !important; }
-  html body:not(#_) .mobileSubNavRow.sub { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px !important; }
-  html body:not(#_) .mobileSubNavRow.sub > button { width: 100%; min-height: 40px !important; border-radius: 12px !important; font-size: 13px !important; padding: 6px 10px !important; background: transparent !important; border: 1px solid rgba(11, 47, 82, .12) !important; box-shadow: none !important; color: #33506e !important; }
-  html body:not(#_) .mobileSubNavRow.sub > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  html body:not(#_) .mobileSubNavRow.sub > button.active { background: #0b1f33 !important; border-color: #0b1f33 !important; color: #fff !important; font-weight: 700; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNav { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .08); }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.seg { background: rgba(255, 255, 255, .06); }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.seg > button { color: #b9c7d8 !important; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.seg > button.active { background: #1c2c44 !important; color: #fff !important; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.sub > button { color: #c9d6e6 !important; border-color: rgba(255, 255, 255, .12) !important; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.sub > button.active { background: #5aa9e6 !important; border-color: #5aa9e6 !important; color: #07101e !important; }
   /* KPI kartu ringkas */
   html body:not(#_) .workspaceRoot .rmKpis { gap: 8px !important; }
   html body:not(#_) .workspaceRoot .rmKpi { padding: 12px 14px !important; min-height: 0 !important; gap: 6px !important; }
   html body:not(#_) .workspaceRoot .rmKpi span { font-size: 12.5px !important; line-height: 1.35; }
   html body:not(#_) .workspaceRoot .rmKpi strong { font-size: 22px !important; }
 }
-@media (max-width: 720px) and (prefers-reduced-motion: no-preference) {
-  html body:not(#_) .mobileSubNav button { transition: background .18s ease, color .18s ease, box-shadow .18s ease; }
-}
 @media (max-width: 900px) {
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen :is(.sidebarChild, .sidebarNavGroup > button) span { color: inherit !important; font-size: inherit !important; }
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarNavGroup > button { font-size: 15.5px !important; }
   html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarChild { font-size: 14.5px !important; }
-  html body:not(#_) .workspaceRoot .sidebar.mobileOpen .sidebarTreeNestedChildren .sidebarChild { font-size: 14px !important; }
 }
 /* Menu samping HP: efek kaca buram dikembalikan (hanya pada panel, isi tetap tajam & terbaca) */
 @media (max-width: 900px) {
@@ -794,17 +721,6 @@ html[data-mode="gelap"] body:not(#_) :is(.psMeta strong, .psSectionHead h4) { co
     -webkit-backdrop-filter: blur(22px) saturate(1.4) !important; backdrop-filter: blur(22px) saturate(1.4) !important;
   }
   html[data-mode="gelap"] body:not(#_) .workspaceRoot .sidebar.mobileOpen { background: rgba(13, 22, 38, .8) !important; }
-}
-
-@media (max-width: 720px) {
-  /* Submenu banyak (mis. Pengaturan): grid 2 kolom, tidak melebarkan halaman */
-  html body:not(#_) .mobileSubNavRow.grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px !important; }
-  html body:not(#_) .mobileSubNavRow.grid > button { width: 100%; min-height: 40px !important; border-radius: 12px !important; font-size: 13px !important; padding: 6px 10px !important; background: transparent !important; border: 1px solid rgba(11, 47, 82, .12) !important; box-shadow: none !important; color: #33506e !important; white-space: normal !important; }
-  html body:not(#_) .mobileSubNavRow.grid > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  html body:not(#_) .mobileSubNavRow.grid > button.active { background: #0b1f33 !important; border-color: #0b1f33 !important; color: #fff !important; font-weight: 700; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.grid > button { color: #c9d6e6 !important; border-color: rgba(255, 255, 255, .12) !important; }
-  html[data-mode="gelap"] body:not(#_) .mobileSubNavRow.grid > button.active { background: #5aa9e6 !important; border-color: #5aa9e6 !important; color: #07101e !important; }
-  html body:not(#_) .mobileSubNav { max-width: calc(100vw - 32px); box-sizing: border-box; }
 }
 
 /* ===== Formulir IKP & sejenisnya: lebih lega & modern ===== */
@@ -886,15 +802,6 @@ html body:not(#_) :is(.a2-aurora i, .landingAura span, .landingPulse, .a2-chip-d
 /* #1 Kontras judul kolom tabel (sebelumnya 4,2:1). */
 html body:not(#_) .workspaceRoot table thead th { color: #3f4c5e !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot table thead th { color: #c4d0de !important; }
-/* #12 Peta Kerja jadi baris tab ringkas (isi sama dengan submenu, tidak makan tempat). */
-html body:not(#_) .workspaceRoot .wmmRoot { padding: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; margin-bottom: 14px !important; }
-html body:not(#_) .workspaceRoot .wmmHead, html body:not(#_) .workspaceRoot .wmmArrow, html body:not(#_) .workspaceRoot .wmmMarker, html body:not(#_) .workspaceRoot .wmmNodeText small, html body:not(#_) .workspaceRoot .wmmConnector { display: none !important; }
-html body:not(#_) .workspaceRoot .wmmTrack { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
-html body:not(#_) .workspaceRoot .wmmNodeWrap { flex: 0 0 auto !important; }
-html body:not(#_) .workspaceRoot .wmmNode { display: inline-flex !important; min-height: 40px !important; padding: 8px 16px !important; border-radius: 10px !important; grid-template-columns: none !important; transform: none !important; box-shadow: none !important; }
-html body:not(#_) .workspaceRoot .wmmNodeText b { font-size: 14px !important; font-weight: 600 !important; white-space: nowrap; }
-html body:not(#_) .workspaceRoot .wmmNode.active { background: #16507a !important; border-color: #16507a !important; color: #fff !important; }
-html body:not(#_) .workspaceRoot .wmmNode.active .wmmNodeText b { color: #fff !important; }
 /* #2 Target sentuh minimal 44px di HP. */
 @media (max-width: 720px), (pointer: coarse) {
   html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) :is(button, select, [role="tab"], [role="button"], input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])) { min-height: 44px !important; }

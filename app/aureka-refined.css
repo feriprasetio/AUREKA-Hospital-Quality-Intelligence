@@ -29,8 +29,6 @@
 .a2-button { border-radius: 7px; min-height: 44px; font-size: 12px; font-weight: 650; }
 .a2-button-workspace { padding-inline: 21px; }
 .a2-hero { grid-template-columns: 1.06fr 1fr; gap: 60px; padding: 77px 0 64px; }
-.a2-institution-chip { border: 0; padding: 0; background: transparent; font-size: 12px; letter-spacing: .12em; font-weight: 700; }
-.a2-chip-dot { width: 6px; height: 6px; flex-basis: 6px; box-shadow: 0 0 0 4px #e3eee6; margin-right: 4px; }
 .a2-hero h1 { margin: 26px 0 23px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(40px, 4.3vw, 61px); font-weight: 400; line-height: 1.13; letter-spacing: -.055em; }
 .a2-hero h1 span { color: var(--ref-brand); font-family: inherit !important; }
 .a2-landing :is(.a2-hero h1,.a2-section-heading h2,.a2-capa-copy h2,.a2-faq-intro h2),
@@ -46,26 +44,6 @@
 .a2-hero-expansion { margin: 18px 0 0; color: #78857e; font-size: 12px; line-height: 1.6; }
 .a2-hero-showcase { padding: 30px 0 26px 24px; min-height: 0; background: #edf2e9; border: 1px solid #e3eadd; border-radius: 22px; isolation: isolate; }
 .a2-hero-showcase::before { content: ""; position: absolute; z-index: -1; inset: 22px -18px -18px 36px; border: 1px solid #dce6d7; border-radius: 22px; }
-.a2-risk-backplate { top: -22px; right: -16px; transform: rotate(5deg); width: 188px; padding: 13px; border-radius: 12px; box-shadow: 0 10px 30px #203c3610; }
-.a2-dashboard-card { width: calc(100% - 20px); margin: 22px 0 0 -4px; padding: 14px; border-radius: 12px; border-color: #d8e2d8; box-shadow: 0 16px 42px #203c3614; }
-.a2-dashboard-topbar { padding-bottom: 14px; }
-.a2-dashboard-topbar > strong { font-size: 11px; }
-.a2-dashboard-content { gap: 13px; padding-top: 15px; }
-.a2-dashboard-metric { background: #f9fbf8; border-radius: 8px; min-height: 111px; }
-.a2-dashboard-metric-head > span { font-size: 11px; }
-.a2-dashboard-metric p { font-size: 8px; max-width: 115px; line-height: 1.6; }
-.a2-dashboard-value { font-size: 30px; }
-.a2-dashboard-trend { background: #f1f6ee; border: 0; padding: 12px; }
-.a2-dashboard-section-head strong { font-size: 8px; letter-spacing: .09em; }
-.a2-dashboard-unit-list { gap: 9px; }
-.a2-dashboard-unit-row > span { font-size: 9px; }
-.a2-dashboard-unit-row > i { height: 6px; }
-.a2-dashboard-unit-row > i b { background: #74a38b; }
-.a2-dashboard-priorities article { min-height: 44px; }
-.a2-dashboard-priorities article strong { font-size: 9px; }
-.a2-dashboard-priorities article small { font-size: 8px; }
-.a2-dashboard-priorities article > span { font-size: 7px; }
-.a2-dashboard-disclaimer { font-size: 8px; text-align: left; line-height: 1.6; }
 .a2-institution-strip { display: flex; align-items: center; gap: 16px; padding: 26px 0; border-block: 1px solid var(--ref-line); }
 .a2-institution-seal { color: var(--ref-brand); display: grid; place-items: center; width: 45px; height: 45px; background: #edf2e9; border-radius: 50%; flex-shrink: 0; }
 .a2-institution-strip strong { font-size: 13px; font-weight: 600; }
@@ -199,9 +177,6 @@ html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarFooter { border-top: 
 html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceHeaderBar { min-height: 78px !important; background: #fff !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceGlobalSearch { border-radius: 7px !important; background: #f6f8f3 !important; min-height: 39px !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceHeaderAvatar { background: #e8f0e5 !important; color: var(--ref-brand-dark) !important; border: 1px solid #d9e5d4 !important; border-radius: 50% !important; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageHead { align-items: flex-end !important; padding-block: 28px 20px !important; margin: 0 !important; gap: 18px !important; }
-.workspacePageEyebrow { display: block; color: #7a8c7c; font-size: 12px; font-weight: 650; letter-spacing: .14em; margin-bottom: 8px; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageHead h1 { font-size: 27px !important; font-weight: 650 !important; line-height: 1.25 !important; color: var(--ref-ink) !important; }
 .workspacePageIntro p { color: var(--ref-muted); font-size: 12px; line-height: 1.65; margin: 8px 0 0; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter { padding-top: 0 !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovHero,.rmHero,.psHead,.qraHero,.acdHero,.sdHead,.stHead,.oppeHeader) { background: #edf3e9 !important; border-color: #dce7d7 !important; border-radius: 10px !important; padding: 22px !important; box-shadow: none !important; }
@@ -211,10 +186,6 @@ html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovPanel,.ps
 html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovKpi,.aqKpi,.psKpi,.rmKpi,.qraKpi,.acdKpi,.stSummary) { padding: 19px !important; background: #fff !important; border-color: var(--ref-line) !important; border-radius: 10px !important; box-shadow: none !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovKpiLabel { font-size: 12px !important; font-weight: 500 !important; color: #5b7266 !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovKpi b { font-size: 33px !important; font-weight: 650 !important; letter-spacing: -.05em !important; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovKpiIcon { background: #edf3e9 !important; color: var(--ref-brand) !important; border-radius: 10px !important; width: 35px !important; height: 35px !important; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovContextBar { background: #fff !important; border: 1px solid var(--ref-line) !important; border-radius: 9px !important; box-shadow: none !important; padding: 15px 18px !important; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovContextBar span { font-size: 12px !important; letter-spacing: .08em !important; color: #748675 !important; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter .ovContextBar b { font-size: 12px !important; font-weight: 600 !important; color: var(--ref-ink) !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovPanelHead h4,.psSectionHead h3,.rmSectionHead h3,.aqIHead strong) { font-size: 14px !important; font-weight: 650 !important; line-height: 1.5 !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovEyebrow,.rmEyebrow,.psEyebrow,.eyebrow) { font-size: 12px !important; font-weight: 600 !important; color: #64816e !important; letter-spacing: .11em !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] :is(.qualityWorkspaceTabs,.aqTabs,.psTabs,.rmTabs,.cwTabs,.oppeTabs,.qraTabs,.settingsTabs,.mswTabs) { padding: 5px !important; gap: 4px !important; border: 1px solid var(--ref-line) !important; background: #f0f4ed !important; border-radius: 8px !important; box-shadow: none !important; }
@@ -266,8 +237,6 @@ html[data-theme] .workspaceRoot[data-aureka-theme] button:disabled, .authPage.au
 }
 @media (max-width: 720px) {
   html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceHeaderBar { min-height: 62px !important; }
-  html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageHead { padding-block: 20px 18px !important; align-items: flex-start !important; flex-direction: column; gap: 12px !important; }
-  html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageHead h1 { font-size: 23px !important; }
   .workspacePageIntro p { font-size: 12px; }
   html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovPanel,.psPanel,.rmPanel,.cpPanel,.oppePanel,.sdPanel,.stPanel,.mswPanel,.qraPanel,.fppePanel,.acdPanel) { padding: 15px !important; }
   html[data-theme] .workspaceRoot[data-aureka-theme] .moduleEnter :is(.ovHero,.rmHero,.psHead,.qraHero,.acdHero,.sdHead,.stHead,.oppeHeader) { padding: 17px !important; }
@@ -283,7 +252,6 @@ html[data-theme] .workspaceRoot[data-aureka-theme] button:disabled, .authPage.au
   .a2-button-workspace { min-height: 38px; font-size: 12px; padding-inline: 12px; }
   .a2-mobile-toggle { width: 35px; height: 38px; flex-basis: 35px; }
   .a2-hero { padding-top: 38px; }
-  .a2-institution-chip { font-size: 12px; letter-spacing: .1em; }
   .a2-hero h1 { font-size: clamp(36px, 9vw, 53px); margin-block: 23px 19px; line-height: 1.16; }
   .a2-hero-description { font-size: 13px; }
   .a2-hero-links { gap: 18px; margin-block: 23px 27px; }
@@ -291,10 +259,6 @@ html[data-theme] .workspaceRoot[data-aureka-theme] button:disabled, .authPage.au
   .a2-hero-principles { gap: 12px; }
   .a2-hero-principles span { font-size: 12px; }
   .a2-hero-showcase { padding: 25px 0 18px 16px; }
-  .a2-risk-backplate { width: 160px; right: -10px; top: -14px; }
-  .a2-dashboard-card { width: calc(100% - 12px); padding: 10px; }
-  .a2-dashboard-metric p { font-size: 7px; max-width: 100px; }
-  .a2-dashboard-priorities article strong { font-size: 8px; }
   .a2-institution-strip { padding-block: 22px; gap: 11px; }
   .a2-institution-strip strong { font-size: 12px; }
   .a2-institution-strip p { font-size: 12px; line-height: 1.7; }
@@ -381,10 +345,6 @@ html[data-theme] .workspaceRoot[data-aureka-theme] button:disabled, .authPage.au
 .ap-footnote svg { width: 12px; height: 12px; flex: 0 0 12px; stroke: #8caa75; fill: none; stroke-width: 1.3; margin-top: 1px; }
 .ap-caption { display: flex; align-items: center; justify-content: center; gap: 6px; border-top: 1px solid #e5ecde; color: #89987f; font-size: 12px; padding: 11px; background: #fcfdf9; }
 .ap-caption-dot { width: 4px; height: 4px; border-radius: 50%; background: #9dbb85; }
-
-/* Login hierarchy and a shorter, two-column registration form on wide screens. */
-.authAccessMark { display: grid; place-items: center; width: 43px; height: 43px; margin-bottom: 22px; border: 1px solid #dce7d8; border-radius: 12px; background: #eff5e9; color: #46733c; }
-.authAccessMark svg { width: 21px; height: 21px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; }
 .authPage.authProfessional .authShell { border-radius: 18px !important; grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr) !important; }
 .authPage.authProfessional .authCard { padding: 44px 47px !important; }
 .authPage.authProfessional .authFormIntro > p { max-width: 330px; }
@@ -395,32 +355,16 @@ html[data-theme] .workspaceRoot[data-aureka-theme] button:disabled, .authPage.au
 .authPage.authProfessional .authShellRegistration .authForm > :not(.field),
 .authPage.authProfessional .authShellRegistration .authPasswordField { grid-column: 1 / -1; }
 .authPage.authProfessional .authShellRegistration .field { min-width: 0; margin-block: 9px !important; }
-.authPage.authProfessional .authShellRegistration .authAccessMark { margin-bottom: 16px; }
 .authPage.authProfessional .authShellRegistration .authFormIntro { margin-bottom: 15px !important; }
-
-/* Sidebar discovery respects the role-filtered menu, not a separate module list. */
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarDiscovery { position: relative; flex: 0 0 auto; margin: 20px 16px 0; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch { display: flex; align-items: center; gap: 8px; border: 1px solid #dfe7d9; border-radius: 7px; padding: 0 10px; background: #f3f7ee; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch > svg { width: 15px; height: 15px; flex: 0 0 15px; stroke: #84977b; fill: none; stroke-width: 1.6; stroke-linecap: round; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch input { height: 36px; min-height: 36px; width: 100%; min-width: 0; border: 0 !important; border-radius: 0; outline: none; background: transparent !important; font-size: 12px; color: #4f6946; padding: 0 17px 0 0; box-shadow: none !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch input::-webkit-search-cancel-button { -webkit-appearance: none; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch:focus-within { border-color: #80a878; box-shadow: 0 0 0 3px #dcebd4; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchReset { position: absolute; right: 5px; top: 5px; display: grid; place-items: center; width: 27px; height: 27px; padding: 0; border: 0; background: transparent; color: #7c8e72; font-size: 17px; border-radius: 4px; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults { padding: 0 14px 16px; overflow-y: auto; min-height: 0; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults > p { font-size: 12px; color: #8d9c83; padding: 0 5px; margin: 3px 0 12px; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults > button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 11px 10px; border: 1px solid transparent; border-bottom: 1px solid #edf1e7; background: transparent; border-radius: 6px; color: #688257; text-align: left; gap: 8px; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults > button:hover { background: #eef4e7; border-color: #e3ebdb; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults strong { display: block; font-size: 12px; font-weight: 600; line-height: 1.6; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchResults small { display: block; font-size: 12px; color: #93a087; margin-top: 3px; line-height: 1.6; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchEmpty { font-size: 12px; line-height: 1.8; color: #8b9a81; padding: 10px 6px; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearchEmpty button { display: block; padding: 8px 0; margin-top: 8px; border: 0; background: transparent; color: #3c7137; text-align: left; text-decoration: underline; text-underline-offset: 3px; font-size: 12px; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .sidebarNav[hidden] { display: none !important; }
-html[data-theme] .workspaceRoot[data-aureka-theme].sidebarIsCollapsed :is(.sidebarDiscovery,.sidebarSearchResults) { display: none !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; align-self: center; gap: 7px; min-height: 34px; padding: 7px 11px; border: 1px solid #dce5d5; border-radius: 6px; background: #fff; font-size: 12px; color: #74886a; cursor: pointer; margin-left: auto; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle > svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle[aria-pressed="true"] { color: #3c7137; border-color: #bfd2b0; background: #eef5e7; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceCrumbs { flex: 0 1 auto; }
-html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageHead { display: flex !important; }
 html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageIntro { flex: 1; min-width: 0; }
 /* Real density changes, applied uniformly to every module's data and surfaces. */
 html[data-theme] .workspaceRoot[data-aureka-theme][data-density="compact"] .moduleEnter td { padding-block: 7px !important; }
@@ -444,12 +388,8 @@ html[data-theme] .workspaceRoot[data-aureka-theme][data-density="compact"] .modu
   .authPage.authProfessional .authShell { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 720px) {
-  html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageHead { flex-direction: row; align-items: flex-start !important; flex-wrap: wrap; }
   html[data-theme] .workspaceRoot[data-aureka-theme] .workspacePageIntro { flex: 1 1 230px; min-width: 0; }
   html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle { align-self: flex-start; margin-top: 15px; }
-  html[data-theme] .workspaceRoot[data-aureka-theme] .workspaceCrumbs { width: 100%; }
-  html[data-theme] .workspaceRoot[data-aureka-theme].sidebarIsCollapsed .sidebarDiscovery { display: block !important; }
-  html[data-theme] .workspaceRoot[data-aureka-theme].sidebarIsCollapsed .sidebarSearchResults { display: block !important; }
 }
 @media (max-width: 640px) {
   .a2-landing .a2-header-inner { gap: 8px; }

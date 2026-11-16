@@ -134,16 +134,14 @@
   color:#6b7280!important;
   border-color:#e5e7eb!important;
 }
-.workspaceRoot .workspaceHeaderIcon,
-.workspaceRoot .workspaceHeaderBar .themeModeSwitch{
+.workspaceRoot .workspaceHeaderIcon{
   color:#4b5563!important;
   background:#fff!important;
   border:1px solid transparent!important;
   border-radius:8px!important;
   box-shadow:none!important;
 }
-.workspaceRoot .workspaceHeaderIcon:hover,
-.workspaceRoot .workspaceHeaderBar .themeModeSwitch:hover{
+.workspaceRoot .workspaceHeaderIcon:hover{
   color:#0b5d44!important;
   background:#f9fafb!important;
   border-color:#e5e7eb!important;
@@ -236,19 +234,6 @@
   color:#1f2937!important;
 }
 .workspaceRoot .moduleEnter .ovHero :is(h1,h2,h3,h4,p,span){color:#1f2937!important}
-.workspaceRoot .moduleEnter .ovHero .ovEyebrow{color:#0f7656!important}
-.workspaceRoot .moduleEnter .ovHeroDate{
-  background:#f9fafb!important;
-  border:1px solid #e5e7eb!important;
-  border-radius:8px!important;
-  color:#4b5563!important;
-}
-.workspaceRoot .moduleEnter .ovRefresh{
-  background:#0f7656!important;
-  border:1px solid #0f7656!important;
-  color:#fff!important;
-  border-radius:8px!important;
-}
 .workspaceRoot .moduleEnter .ovKpi{
   background:#fff!important;
   border:1px solid #e5e7eb!important;
@@ -259,26 +244,10 @@
   transform:none!important;
   box-shadow:0 2px 7px rgba(15,23,42,.065)!important;
 }
-.workspaceRoot .moduleEnter .ovKpi b,
-.workspaceRoot .moduleEnter .ovPanelHead h4{color:#111827!important}
+.workspaceRoot .moduleEnter .ovKpi b{color:#111827!important}
 .workspaceRoot .moduleEnter .ovKpiLabel,
 .workspaceRoot .moduleEnter .ovKpi small{color:#6b7280!important}
-.workspaceRoot .moduleEnter .ovContextBar,
-.workspaceRoot .moduleEnter .ovDashboardTabs{
-  background:#fff!important;
-  border:1px solid #e5e7eb!important;
-  border-radius:10px!important;
-  box-shadow:none!important;
-}
-.workspaceRoot .moduleEnter .ovKpiIcon{
-  background:#eff6ff!important;
-  color:#0f7656!important;
-}
-.workspaceRoot .moduleEnter .ovKpiIcon.safety{background:#ecfdf5!important;color:#059669!important}
-.workspaceRoot .moduleEnter .ovKpiIcon.risk{background:#fef2f2!important;color:#dc2626!important}
-.workspaceRoot .moduleEnter .ovKpiIcon.audit{background:#fffbeb!important;color:#d97706!important}
 .workspaceRoot .moduleEnter :is(.ovExecutive,.ovExecGrid,.ovGrid){background:transparent!important}
-.workspaceRoot .moduleEnter .ovExecutive{border:0!important;box-shadow:none!important}
 .workspaceRoot .workspaceNotificationPanel,
 .workspaceRoot .workspaceSupportPanel{
   background:#fff!important;
@@ -402,16 +371,4 @@ html:has(.workspaceRoot),body:has(.workspaceRoot){
    Aptos is preferred when installed; system fonts remain available as fallbacks. */
 html, body, body *{
   font-family:"Aptos","Aptos Display","Segoe UI",Arial,sans-serif!important;
-}
-.workspaceRoot .moduleEnter .ovHero .ovHeroCopy h3{
-  color:#111827!important;
-  -webkit-text-fill-color:#111827!important;
-  opacity:1!important;
-  text-shadow:none!important;
-}
-.workspaceRoot .moduleEnter .ovHero .ovHeroCopy p{
-  color:#4b5563!important;
-  -webkit-text-fill-color:#4b5563!important;
-  opacity:1!important;
-  text-shadow:none!important;
 }
