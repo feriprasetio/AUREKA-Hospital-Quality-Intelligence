@@ -1529,3 +1529,4 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .icMeter { background: rgba(
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icList li { border-color: rgba(255, 255, 255, .08); }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icList li.empty { background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .3); }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icMsg { color: #67e8f9; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .ifReportBtn { background: #eef2f7 !important; color: #0f1218 !important; }
