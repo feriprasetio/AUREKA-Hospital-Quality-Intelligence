@@ -137,6 +137,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [profiles, setProfiles] = useState<Model[]>([])
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Model | null>(null)
   const [tab, setTab] = useState<MetadataTab>(initialTab)
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
@@ -386,10 +387,42 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     const { error } = await q().from('indicator_profiles')
       .update({ status: 'retired', is_active: false, updated_by: userResult.user.id })
       .eq('id', profile.id)
-    if (error) setMsg('Indikator gagal dipensiunkan: ' + toUserFacingError(error, { fallback: 'Indikator belum dapat dipensiunkan.' }))
-    else setMsg('Indikator dipensiunkan. Riwayat dan data capaian yang sudah ada tidak dihapus.')
+    if (error) {
+      setMsg('Indikator gagal dipensiunkan: ' + toUserFacingError(error, { fallback: 'Indikator belum dapat dipensiunkan.' }))
+    } else {
+      setProfileViewFilter('retired')
+      setMsg('Indikator dipensiunkan, bukan dihapus. Indikator kini ditampilkan pada Riwayat versi; gunakan Hapus permanen bila indikator percobaan memang belum pernah dipakai.')
+    }
     await load()
     setSaving(false)
+  }
+
+  const deletePermanently = async () => {
+    if (!pendingDelete?.id || saving) return
+    setMsg('')
+    setSaving(true)
+    try {
+      const { data, error } = await q().rpc('delete_indicator_profile_family', {
+        p_profile_id: String(pendingDelete.id),
+      })
+      if (error) throw error
+      const deletedProfiles = Number(data?.deleted_profiles ?? 0)
+      if (!Number.isInteger(deletedProfiles) || deletedProfiles < 1) {
+        throw new Error('Server tidak mengembalikan jumlah versi profil yang dihapus. Muat ulang daftar indikator dan periksa statusnya.')
+      }
+
+      const code = String(pendingDelete.code || '')
+      setPendingDelete(null)
+      setProgramFilter('')
+      setProfileViewFilter('active')
+      setSearch('')
+      await load()
+      setMsg(`Indikator ${code} berhasil dihapus permanen bersama ${deletedProfiles.toLocaleString('id-ID')} versi profil. Penghapusan hanya berhasil karena tidak ditemukan respons audit atau catatan logbook yang terhubung.`)
+    } catch (error) {
+      setMsg('Indikator tidak dapat dihapus permanen: ' + toUserFacingError(error, { fallback: 'AUREKA menolak penghapusan untuk melindungi histori audit dan data capaian.' }))
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Template awal untuk tahun yang belum punya profil: profil aktif yang ada + profil bawaan 2026 yang ikut dalam aplikasi.
@@ -641,7 +674,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 <option value="target_pending">Target/definisi menunggu pengesahan, kuning ({activeTargetPendingCount})</option>
                 <option value="complete">Metadata siap digunakan</option>
                 <option value="draft">Draf</option>
-                <option value="retired">Riwayat versi (retired)</option>
+                <option value="retired">Riwayat versi (dipensiunkan)</option>
                 <option value="all">Semua versi</option>
               </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
@@ -706,6 +739,32 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               )}
             </AurekaModal>
             <AurekaModal
+              open={Boolean(pendingDelete)}
+              title="Hapus indikator secara permanen"
+              subtitle="Tindakan ini menghapus seluruh versi untuk tahun, unit, dan kode indikator yang sama."
+              closeDisabled={saving}
+              onClose={() => setPendingDelete(null)}
+            >
+              {pendingDelete && (
+                <div style={{ display: 'grid', gap: 12, padding: 14 }}>
+                  <div style={{ border: '1px solid var(--line, rgba(20,34,27,.12))', borderRadius: 12, padding: 12 }}>
+                    <div style={{ fontSize: 11, color: 'var(--muted)' }}>Indikator yang akan dihapus</div>
+                    <strong style={{ display: 'block', marginTop: 5 }}>{pendingDelete.code} · {pendingDelete.title || '(Tanpa nama)'}</strong>
+                    <div style={{ marginTop: 5, fontSize: 11, color: 'var(--muted)' }}>{pendingDelete.unit_name || 'Unit belum ditentukan'} · Tahun {pendingDelete.profile_year} · versi terpilih v{pendingDelete.version || 1}</div>
+                  </div>
+                  <div style={{ border: '1px solid rgba(190,65,65,.35)', background: 'rgba(190,65,65,.07)', borderRadius: 10, padding: 11, fontSize: 11, lineHeight: 1.6 }}>
+                    Semua versi dengan tahun, unit, dan kode yang sama akan dihapus permanen. Penghapusan tidak dapat dibatalkan. Server akan menolak tindakan ini bila ditemukan respons audit atau catatan logbook, sehingga histori dan bukti capaian tetap terlindungi.
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                    <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(null)}>Batal</button>
+                    <LiquidGlassButton onClick={() => void deletePermanently()} disabled={saving}>
+                      {saving ? 'Memeriksa keterkaitan data…' : 'Hapus permanen'}
+                    </LiquidGlassButton>
+                  </div>
+                </div>
+              )}
+            </AurekaModal>
+            <AurekaModal
               open={Boolean(edit || newOne)}
               title={edit ? 'Edit indikator' : 'Tambah indikator'}
               subtitle={edit ? 'Perubahan diterbitkan sebagai versi baru; versi lama tetap tersimpan.' : 'Isi profil indikator mutu baru untuk unit dan tahun terpilih.'}
@@ -740,7 +799,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
                     {isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
-                    {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
+                    {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · tidak aktif</span>}
+                    <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(profile)}>Hapus permanen</button>
                   </div>
                 </div>
               ))}
