@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import TanyaAureka, { type TanyaMessage } from '@/components/TanyaAureka'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
+import NaraICD10Review from '@/components/NaraICD10Review'
 
 const ENGINES = ['Groq', 'NVIDIA', 'Gemini', 'DeepSeek', 'LLM7'] as const
 
@@ -59,6 +60,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   const [convos, setConvos] = useState<Convo[]>([])
   const [activeId, setActiveId] = useState<string>(() => newId())
   const [listOpen, setListOpen] = useState(false)
+  const [showCodingReview, setShowCodingReview] = useState(false)
 
   const listKey = uid ? LIST_KEY + ':' + uid : null
   useEffect(() => {
@@ -138,6 +140,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
           <p>Gateway memilih provider sesuai ketersediaan secret, konfigurasi, kuota, dan waktu respons. Tidak semua provider harus aktif bersamaan; kunci API tetap di server.</p>
         </div>
       </details>
+      <button type="button" className="naraCodingToggle" onClick={() => setShowCodingReview((v) => !v)} aria-expanded={showCodingReview}>Kamus & validasi ICD-10</button>
     </aside>
 
     <section className="naraStageWrap" aria-label="Percakapan dengan NARA">
@@ -147,6 +150,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       </div>
       <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage}/>
     </section>
+    {showCodingReview && <div className="naraCodingWorkspace"><NaraICD10Review sb={sb}/></div>}
 
     <style jsx>{`
       .naraWorkspace{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;min-width:0;min-height:calc(100dvh - 190px);color:#1f2430}
@@ -175,6 +179,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraEnginesMenu li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
       .naraEnginesMenu p{margin:0;font-size:12px;line-height:1.5;color:#5b6878}
       .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}.naraEngineDot{width:7px;height:7px;border-radius:50%;background:#7b91a8;flex:0 0 auto}
+      .naraCodingWorkspace{grid-column:1 / -1;min-width:0}.naraCodingToggle{min-height:38px;padding:0 12px;border:1px solid #dfe7f0;border-radius:12px;background:rgba(255,255,255,.75);color:#23445d;font-size:12px;font-weight:750;cursor:pointer}.naraCodingToggle:hover{background:#fff;border-color:#9ab7c9}
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
       .naraMobileBar{display:none}
       .naraStageWrap :global(.tanyaPanelEmbedded){flex:1;min-height:0;display:flex;flex-direction:column;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
