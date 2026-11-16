@@ -42,6 +42,7 @@ function NaraAvatar({ size = 58 }: { size?: number }) {
 }
 
 type Room = { id: number; name: string }
+type ClinicalCoverage = { source_basis?: string; year?: number; patient_count?: number; episode_count?: number; diagnosis_group_count?: number; limitations?: string; scope?: string }
 type Convo = { id: string; title: string; updatedAt: number }
 const LIST_KEY = 'aureka-nara-convos'
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
@@ -61,6 +62,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   const [activeId, setActiveId] = useState<string>(() => newId())
   const [listOpen, setListOpen] = useState(false)
   const [showCodingReview, setShowCodingReview] = useState(false)
+  const [clinicalCoverage, setClinicalCoverage] = useState<ClinicalCoverage | null>(null)
+  const [coverageLoading, setCoverageLoading] = useState(true)
 
   const listKey = uid ? LIST_KEY + ':' + uid : null
   useEffect(() => {
@@ -80,6 +83,17 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
     })
     return () => { cancelled = true }
   }, [sb])
+  useEffect(() => {
+    let cancelled = false
+    const year = new Date(Date.now() + 7 * 3600 * 1000).getUTCFullYear()
+    void sb.rpc('aureka_nara_clinical_summary', { p_year: year, p_room: null, p_limit: 10 }).then(({ data, error }) => {
+      if (cancelled) return
+      setClinicalCoverage(!error && data && typeof data === 'object' ? data as ClinicalCoverage : null)
+      setCoverageLoading(false)
+    }, () => { if (!cancelled) setCoverageLoading(false) })
+    return () => { cancelled = true }
+  }, [sb])
+
   const persist = useCallback((list: Convo[]) => {
     setConvos(list)
     try { if (listKey) localStorage.setItem(listKey, JSON.stringify(list.slice(0, 50))) } catch { /* abaikan */ }
@@ -116,7 +130,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   const firstName = (userName || '').split(/[\s@]/)[0]
   const stage = useMemo(() => ({
     title: `${greetingFor(new Date().getHours())}${firstName ? ', ' + firstName : ''}. Mau analisis apa?`,
-    subtitle: 'NARA membaca data mutu, keselamatan pasien, dan risiko sesuai hak akses Anda.',
+    subtitle: 'NARA menganalisis data AUREKA sesuai hak akses. No. RM hanya digunakan internal untuk deduplikasi dan tidak dikirim ke provider AI.',
     starters: MODES.map((m) => ({ label: m.label, prompt: m.prompt, icon: <svg className="naraStarterIco" viewBox="0 0 24 24" aria-hidden="true">{GLYPH[m.id]}</svg> })),
   }), [firstName])
 
@@ -140,7 +154,17 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
           <p>Gateway memilih provider sesuai ketersediaan secret, konfigurasi, kuota, dan waktu respons. Tidak semua provider harus aktif bersamaan; kunci API tetap di server.</p>
         </div>
       </details>
-      <button type="button" className="naraCodingToggle" onClick={() => setShowCodingReview((v) => !v)} aria-expanded={showCodingReview}>Kamus & validasi ICD-10</button>
+      <section className="naraCoverageCard" aria-label="Cakupan data diagnosis">
+        <small>CAKUPAN DATA KLINIS</small>
+        {coverageLoading ? <p>Memeriksa sumber klinis...</p> : clinicalCoverage ? <>
+          <strong>{Number(clinicalCoverage.patient_count || 0).toLocaleString('id-ID')} pasien pada basis analisis</strong>
+          <span>{clinicalCoverage.source_basis === 'episode_records' ? 'Analisis berbasis episode klinis AUREKA' : clinicalCoverage.source_basis === 'patient_index_latest_diagnosis' ? 'Sumber saat ini: diagnosis terakhir per pasien' : 'Belum ada sumber diagnosis yang memenuhi cakupan'}</span>
+          {clinicalCoverage.source_basis === 'episode_records' && <span>{Number(clinicalCoverage.episode_count || 0).toLocaleString('id-ID')} episode klinis</span>}
+          {clinicalCoverage.limitations && <p>{clinicalCoverage.limitations}</p>}
+        </> : <p>Sumber analitik diagnosis belum dapat diakses oleh akun ini.</p>}
+      </section>
+      <div className="naraPrivacyNote">Privasi klinis: No. RM hanya dipakai internal untuk pencocokan dan deduplikasi di database. Provider AI hanya menerima ringkasan agregat; nama, No. RM, NIK, dan kontak tidak dikirim.</div>
+      <button type="button" className="naraCodingToggle" onClick={() => setShowCodingReview((v) => !v)} aria-expanded={showCodingReview}>Kamus diagnosis & validasi ICD-10</button>
     </aside>
 
     <section className="naraStageWrap" aria-label="Percakapan dengan NARA">
@@ -179,6 +203,10 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraEnginesMenu li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
       .naraEnginesMenu p{margin:0;font-size:12px;line-height:1.5;color:#5b6878}
       .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}.naraEngineDot{width:7px;height:7px;border-radius:50%;background:#7b91a8;flex:0 0 auto}
+      .naraCoverageCard{display:grid;gap:6px;padding:12px;border:1px solid #dce5ed;border-radius:13px;background:rgba(255,255,255,.78);color:#263e52}
+      .naraCoverageCard small{font-size:9px;letter-spacing:.12em;font-weight:850;color:#527f96}
+      .naraCoverageCard strong{font-size:12px}.naraCoverageCard span,.naraCoverageCard p{margin:0;font-size:10px;line-height:1.45;color:#63788a}
+      .naraPrivacyNote{font-size:10px;line-height:1.5;color:#5e7180;padding:0 2px}
       .naraCodingWorkspace{grid-column:1 / -1;min-width:0}.naraCodingToggle{min-height:38px;padding:0 12px;border:1px solid #dfe7f0;border-radius:12px;background:rgba(255,255,255,.75);color:#23445d;font-size:12px;font-weight:750;cursor:pointer}.naraCodingToggle:hover{background:#fff;border-color:#9ab7c9}
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
       .naraMobileBar{display:none}
@@ -215,6 +243,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       :global(html[data-mode="gelap"]) .naraItem.on{background:rgba(255,255,255,.08);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraItemOpen{color:#c3ccd8}:global(html[data-mode="gelap"]) .naraItem.on .naraItemOpen{color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraGroup h3,:global(html[data-mode="gelap"]) .naraEmpty,:global(html[data-mode="gelap"]) .naraEnginesMenu p{color:#93a1b3}
+      :global(html[data-mode="gelap"]) .naraCoverageCard{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:#eaf0f6}:global(html[data-mode="gelap"]) .naraCoverageCard span,:global(html[data-mode="gelap"]) .naraCoverageCard p,:global(html[data-mode="gelap"]) .naraPrivacyNote{color:#aab6c6}
       :global(html[data-mode="gelap"]) .naraEngines summary,:global(html[data-mode="gelap"]) .naraMobileBar button{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraEnginesMenu{background:#141b26;border-color:rgba(255,255,255,.1);color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraStageWrap :global(.tanyaStage h2){color:#eef2f7}
