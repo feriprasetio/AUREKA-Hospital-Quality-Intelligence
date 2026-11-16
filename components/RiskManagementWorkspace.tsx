@@ -967,7 +967,7 @@ export default function RiskManagementWorkspace({
         </LiquidGlass>}
 
         {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className="rmPanel rmEditor">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit Risk Register' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit risiko' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>
           <div className="rmFormGrid">
             <label>Unit kerja <select value={riskForm.unit_id} disabled={(!canManageAll || lockRoomScope) && initialRoomId != null} onChange={e => setRiskForm(f => ({ ...f, unit_id: e.target.value }))}><option value="">Pilih unit</option>{unitOptions.map(r => <option value={String(r.id)} key={r.id}>{r.name}</option>)}</select></label>
             <label>Kategori risiko <select value={riskForm.category} onChange={e => setRiskForm(f => ({ ...f, category: e.target.value }))}>{Array.from(new Set(CATEGORIES)).map(c => <option key={c}>{c}</option>)}</select></label>
@@ -977,7 +977,7 @@ export default function RiskManagementWorkspace({
             <label className="full">Dampak terhadap sasaran / pelayanan <textarea rows={2} value={riskForm.impacts} onChange={e => setRiskForm(f => ({ ...f, impacts: e.target.value }))} placeholder="Dampak klinis, operasional, finansial, legal, reputasi, atau pencapaian sasaran" /></label>
             <label className="full">Pengendalian yang sudah berjalan <textarea rows={2} value={riskForm.existing_controls} onChange={e => setRiskForm(f => ({ ...f, existing_controls: e.target.value }))} placeholder="Pengendalian aktual, bukan rencana yang belum dilaksanakan" /></label>
           </div>
-          <div className="rmSubhead"><b>Analisis baseline · matriks Kepmenkes 5 × 5</b><span>Besaran skor dihitung dari lookup resmi, bukan P × D sederhana.</span></div>
+          <div className="rmSubhead"><b>Analisis baseline · matriks Kepmenkes 5 × 5</b><span>Skor dibaca dari tabel matriks Kepmenkes, bukan sekadar kemungkinan × dampak.</span></div>
           <div className="rmFormGrid three">
             <label>Level kemungkinan <select value={riskForm.likelihood} onChange={e => setRiskForm(f => ({ ...f, likelihood: e.target.value }))}>{[1,2,3,4,5].map(n => <option value={String(n)} key={n}>{n} · {LIKELIHOOD_LABELS[n - 1]}</option>)}</select></label>
             <label>Level dampak <select value={riskForm.impact} onChange={e => setRiskForm(f => ({ ...f, impact: e.target.value }))}>{[1,2,3,4,5].map(n => <option value={String(n)} key={n}>{n} · {IMPACT_LABELS[n - 1]}</option>)}</select></label>
