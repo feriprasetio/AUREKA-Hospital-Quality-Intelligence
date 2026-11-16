@@ -12,5 +12,7 @@ export type SafetyFocus = {
   nonce: number
   incidentId?: string
   tab?: 'overview' | 'incidents'
+  /** Langsung buka formulir laporan IKP baru. */
+  newReport?: boolean
 }
 export type NavigateFn = (moduleId: string, focus?: Omit<RiskFocus, 'nonce'> | Omit<SafetyFocus, 'nonce'>) => void
