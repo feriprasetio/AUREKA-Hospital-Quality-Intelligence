@@ -1447,3 +1447,19 @@ html[data-mode="gelap"] body:not(#_) [aria-modal="true"] select option { backgro
   html[data-mode="gelap"] body:not(#_) .rmEditor .rmSteps li.on button span { background: #22d3ee !important; color: #0f1218 !important; }
   html body:not(#_) .rmEditor .rmSteps li.done button span { background: #0e7490 !important; color: #fff !important; }
 }
+
+/* Halaman masuk/daftar dalam mode gelap: kartu gelap dengan teks & isian terbaca. */
+html[data-mode="gelap"] body:not(#_) .authPage .authCard { background: rgba(15, 20, 29, .88) !important; border-color: rgba(255, 255, 255, .1) !important; box-shadow: 0 24px 60px rgba(0, 0, 0, .35) !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .authTopbar { background: rgba(15, 20, 29, .7) !important; border-color: rgba(255, 255, 255, .1) !important; }
+html[data-mode="gelap"] body:not(#_) .authPage :is(.authTopbar b, .authFormIntro h1) { color: #f1f5f9 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage :is(.authFormIntro p, .authSwitch, .authFormFootnote, .authFormFootnote p, .fieldHint) { color: #a3b0c2 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage :is(.field label, .authFieldLabelRow, .authFieldLabelRow label) { color: #e2e8f0 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage :is(.authForgot, .authSwitch button, .authSwitch a, .authFormEyebrow) { color: #67e8f9 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .authForm :is(input, select) { background: rgba(255, 255, 255, .06) !important; border: 1px solid rgba(255, 255, 255, .18) !important; color: #f1f5f9 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .authForm input::placeholder { color: #8b98aa !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .authForm :is(input, select):focus { border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34, 211, 238, .2) !important; outline: none !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .pwWrap { background: transparent !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .pwToggle { background: rgba(255, 255, 255, .1) !important; color: #f1f5f9 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage.authPage .authCard .landingCta.authWide:not(:disabled) { background: #eef2f7 !important; border-color: #eef2f7 !important; color: #0f1218 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage .authBack { background: rgba(255, 255, 255, .08) !important; border-color: rgba(255, 255, 255, .16) !important; color: #f1f5f9 !important; }
+html[data-mode="gelap"] body:not(#_) .authPage :is(.authSwitch, .authFormFootnote) { border-color: rgba(255, 255, 255, .1) !important; }
