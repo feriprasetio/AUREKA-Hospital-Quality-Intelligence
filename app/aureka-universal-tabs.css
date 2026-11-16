@@ -1,0 +1,460 @@
+/* AUREKA universal navigation contract.
+   Loaded after legacy module CSS so every module-local tablist inherits the
+   same Arktik tokens without changing the module content or event handlers. */
+:root {
+  --aureka-nav-primary: #172a40;
+  --aureka-nav-primary-text: #ffffff;
+  --aureka-nav-secondary: #dcebf8;
+  --aureka-nav-secondary-text: #164b7a;
+  --aureka-nav-inactive: transparent;
+  --aureka-nav-divider: #a0a8b2;
+  --aureka-nav-hover: #edf3f8;
+  --aureka-nav-focus: #397db5;
+  --aureka-nav-radius: 9px;
+  --aureka-nav-height: 34px;
+}
+
+/* The module rail is one horizontal row containing two independent groups. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 7px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  padding: 4px 6px !important;
+  overflow: visible !important;
+  border: 1px solid #cbd8e4 !important;
+  border-radius: 10px !important;
+  background: #f5f8fb !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems {
+  flex: 1 1 auto !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems {
+  flex: 0 1 auto !important;
+  max-width: 52% !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationGroupDivider {
+  display: block !important;
+  flex: 0 0 1px !important;
+  width: 1px !important;
+  min-height: 24px !important;
+  margin: 0 2px !important;
+  background: #a0a8b2 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  max-width: 230px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #52677b !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  line-height: 1.3 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  list-style: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem:hover,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItem:hover,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary:hover {
+  border-color: #d7e3ed !important;
+  background: #edf3f8 !important;
+  color: #172a40 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem.active {
+  border-color: #172a40 !important;
+  background: #172a40 !important;
+  color: #ffffff !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItem.active {
+  border-color: #b8d0e5 !important;
+  background: #dcebf8 !important;
+  color: #164b7a !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary {
+  min-width: 76px !important;
+  border-color: #cbd8e4 !important;
+  background: #ffffff !important;
+  color: #27445f !important;
+  font-weight: 650 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow summary::-webkit-details-marker {
+  display: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflow[open] summary {
+  border-color: #9bb9d2 !important;
+  background: #e8f1f8 !important;
+  color: #164b7a !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflowMenu {
+  position: absolute !important;
+  top: calc(100% + 7px) !important;
+  right: 0 !important;
+  z-index: 100 !important;
+  display: grid !important;
+  grid-template-columns: minmax(160px, 1fr) !important;
+  gap: 3px !important;
+  width: max-content !important;
+  min-width: 190px !important;
+  max-width: min(320px, calc(100vw - 28px)) !important;
+  max-height: min(60vh, 420px) !important;
+  padding: 6px !important;
+  overflow: auto !important;
+  border: 1px solid #d5e0e9 !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 30px rgba(23,42,64,.16) !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflowItem {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 36px !important;
+  padding: 7px 11px !important;
+  border: 1px solid transparent !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #43596e !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflowItem:hover,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationOverflowItem.active {
+  border-color: #c5d9e9 !important;
+  background: #e7f1f9 !important;
+  color: #164b7a !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationMeasure {
+  position: absolute !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  display: flex !important;
+  width: max-content !important;
+  gap: 5px !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationMeasure span {
+  display: inline-flex !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  align-items: center !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  white-space: nowrap !important;
+}
+
+/* A moving, light-blue pill is independent from the primary navy pill. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems.hasPill {
+  isolation: isolate !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems.hasPill::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  left: var(--pill-x, 0) !important;
+  top: var(--pill-y, 0) !important;
+  width: var(--pill-w, 0) !important;
+  height: var(--pill-h, 0) !important;
+  border: 1px solid #b8d0e5 !important;
+  border-radius: 9px !important;
+  background: #dcebf8 !important;
+  box-shadow: 0 2px 6px rgba(22,75,122,.08) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: left 180ms cubic-bezier(.2,.75,.25,1), width 180ms cubic-bezier(.2,.75,.25,1), height 180ms cubic-bezier(.2,.75,.25,1), opacity 120ms ease !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems.hasPill.pillReady::before {
+  opacity: 1 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem {
+  position: relative !important;
+  z-index: 1 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #52677b !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
+  color: #164b7a !important;
+  font-weight: 750 !important;
+}
+
+/* Keep the primary sliding pill visible as one shared surface; individual
+   button backgrounds stay transparent while the measured pseudo-element moves. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem {
+  position: relative !important;
+  z-index: 1 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #52677b !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
+  color: #ffffff !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems.hasPill::before {
+  border-color: #eef2f7 !important;
+  background: #eef2f7 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
+  color: #0f1218 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems.hasPill::before {
+  border-color: #4d7292 !important;
+  background: #315573 !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
+  color: #ffffff !important;
+  font-weight: 750 !important;
+}
+
+/* All module-local tabs adopt the same tokens and compact pill geometry. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList,
+  .prTabs,
+  .psTabs,
+  .rmTabs,
+  .aqTabs,
+  .qraTabs,
+  .mswTabs,
+  .mswDirectoryTabs,
+  .hlTabs,
+  [role="tablist"]
+) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 0 12px !important;
+  padding: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  border: 1px solid #cbd8e4 !important;
+  border-radius: 10px !important;
+  border-bottom: 1px solid #cbd8e4 !important;
+  background: #f5f8fb !important;
+  scrollbar-width: none !important;
+  white-space: nowrap !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+)::-webkit-scrollbar { display: none !important; }
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList,
+  .prTabs,
+  .psTabs,
+  .rmTabs,
+  .aqTabs,
+  .qraTabs,
+  .mswTabs,
+  .mswDirectoryTabs,
+  .hlTabs,
+  [role="tablist"]
+) > button {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  max-width: 240px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #52677b !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  line-height: 1.3 !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList,
+  .prTabs,
+  .psTabs,
+  .rmTabs,
+  .aqTabs,
+  .qraTabs,
+  .mswTabs,
+  .mswDirectoryTabs,
+  .hlTabs,
+  [role="tablist"]
+) > button:hover {
+  border-color: #d7e3ed !important;
+  background: #edf3f8 !important;
+  color: #172a40 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList,
+  .prTabs,
+  .psTabs,
+  .rmTabs,
+  .aqTabs,
+  .qraTabs,
+  .mswTabs,
+  .mswDirectoryTabs,
+  .hlTabs,
+  [role="tablist"]
+) > button:is(.active, [aria-selected="true"]) {
+  border-color: #b8d0e5 !important;
+  background: #dcebf8 !important;
+  color: #164b7a !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList,
+  .prTabs,
+  .psTabs,
+  .rmTabs,
+  .aqTabs,
+  .qraTabs,
+  .mswTabs,
+  .mswDirectoryTabs,
+  .hlTabs,
+  [role="tablist"]
+) > button:focus-visible {
+  outline: 2px solid #397db5 !important;
+  outline-offset: -2px !important;
+}
+
+/* Settings is a vertical navigation, not a tablist; keep its layout but share states. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .stNavItem {
+  border-radius: 9px !important;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .stNavItem.on {
+  border-color: #b8d0e5 !important;
+  background: #dcebf8 !important;
+  color: #164b7a !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .stNavItem:focus-visible {
+  outline: 2px solid #397db5 !important;
+  outline-offset: -2px !important;
+}
+
+/* Dark mode keeps the same hierarchy and adequate contrast. */
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  border-color: #354c62 !important;
+  background: #17283a !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItem.active {
+  border-color: #eef2f7 !important;
+  background: #eef2f7 !important;
+  color: #0f1218 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItem.active {
+  border-color: #4d7292 !important;
+  background: #315573 !important;
+  color: #ffffff !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+) {
+  border-color: #354c62 !important;
+  border-bottom-color: #354c62 !important;
+  background: #17283a !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+) > button { color: #c0d0df !important; }
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+) > button:hover { background: #243d55 !important; color: #ffffff !important; }
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+  .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+) > button:is(.active, [aria-selected="true"]) {
+  border-color: #4d7292 !important;
+  background: #315573 !important;
+  color: #ffffff !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .stNavItem.on {
+  border-color: #4d7292 !important;
+  background: #315573 !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    overscroll-behavior-x: contain !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail::-webkit-scrollbar { display: none !important; }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems {
+    flex: 0 0 auto !important;
+    max-width: none !important;
+    overflow: visible !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
+    max-width: 180px !important;
+    flex: 0 0 auto !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+    .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+  ) { margin-bottom: 10px !important; }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+    .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+  ) > button { min-height: 32px !important; padding: 0 10px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail *,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+    .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
+  ) > button { transition: none !important; }
+}

@@ -35,6 +35,7 @@ import './aureka-navigation-consolidated.css'
 import './dark-mode-mobile-fixes.css'
 import './aureka-navigation-pill.css'
 import './aureka-global-navigation.css'
+import './aureka-universal-tabs.css'
 import UpdateNotifier from '@/components/layout/UpdateNotifier'
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], display: 'swap', variable: '--font-aureka' })
