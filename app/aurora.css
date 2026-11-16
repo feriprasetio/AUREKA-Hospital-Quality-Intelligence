@@ -1167,3 +1167,23 @@ html body:not(#_) .workspaceRoot .rmLandMatrix .rmMatrixCell { height: 100%; }
   html[data-mode="gelap"] body:not(#_) .workspaceRoot table[data-ak-cards="on"] > tbody > tr > td::before { color: #93a1b3; }
   html body:not(#_) .workspaceRoot .workspaceTableViewport:has(> table[data-ak-cards="on"]) { overflow: visible !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 }
+
+/* ===== Halaman depan: progres gulir (bilah atas) + rel bab di tepi kanan ===== */
+html body:not(#_) .a2-landing .a2-progress { position: fixed; inset: 0 0 auto; z-index: 60; height: 3px; pointer-events: none; }
+html body:not(#_) .a2-landing .a2-progress i { display: block; height: 100%; width: 100%; transform-origin: 0 50%; transform: scaleX(var(--p, 0)); background: linear-gradient(90deg, #22d3ee, #0e7490); }
+html body:not(#_) .a2-landing .a2-railnav { display: none; }
+@media (min-width: 1100px) {
+  html body:not(#_) .a2-landing .a2-railnav { display: block; position: fixed; z-index: 40; right: 18px; top: 50%; translate: 0 -50%; }
+  html body:not(#_) .a2-landing .a2-railnav ol { position: relative; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+  html body:not(#_) .a2-landing .a2-railnav-track { position: absolute; right: 5px; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: rgba(15, 35, 60, .12); }
+  html body:not(#_) .a2-landing .a2-railnav-track i { position: absolute; inset: 0 0 auto; height: calc(var(--p, 0) * 100%); border-radius: 2px; background: linear-gradient(180deg, #22d3ee, #0e7490); transition: height .35s cubic-bezier(.22, 1, .36, 1); }
+  html body:not(#_) .a2-landing .a2-railnav li { position: relative; display: flex; justify-content: flex-end; }
+  html body:not(#_) .a2-landing .a2-railnav a { position: relative; display: block; width: 12px; height: 12px; border-radius: 50%; background: #eef2f7; border: 2px solid rgba(15, 35, 60, .2); transition: background-color .25s ease, border-color .25s ease, transform .25s cubic-bezier(.22, 1, .36, 1); }
+  html body:not(#_) .a2-landing .a2-railnav li.done a { background: #0e7490; border-color: #0e7490; }
+  html body:not(#_) .a2-landing .a2-railnav li.active a { background: #22d3ee; border-color: #0e7490; transform: scale(1.3); box-shadow: 0 0 0 4px rgba(34, 211, 238, .2); }
+  html body:not(#_) .a2-landing .a2-railnav a span { position: absolute; right: calc(100% + 12px); top: 50%; translate: 0 -50%; padding: 4px 10px; border-radius: 999px; background: rgba(31, 36, 48, .92); color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; opacity: 0; transform: translateX(6px); pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+  html body:not(#_) .a2-landing .a2-railnav li.active a span { transform: none; scale: calc(1 / 1.3); }
+  html body:not(#_) .a2-landing .a2-railnav a:is(:hover, :focus-visible) span, html body:not(#_) .a2-landing .a2-railnav li.active a span { opacity: 1; transform: none; }
+  html body:not(#_) .a2-landing .a2-railnav a:focus-visible { outline: 2px solid #22d3ee; outline-offset: 3px; }
+}
+@media (prefers-reduced-motion: reduce) { html body:not(#_) .a2-landing :is(.a2-railnav a, .a2-railnav a span, .a2-railnav-track i) { transition: none; } }
