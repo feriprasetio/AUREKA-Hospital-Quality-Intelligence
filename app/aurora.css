@@ -972,3 +972,62 @@ html[data-mode="gelap"] body:not(#_) .qsOptRow { background: rgba(255, 255, 255,
 html[data-mode="gelap"] body:not(#_) .qsOptRow :is(input.qsOptLabel, select) { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); color: #eef2f7; }
 html[data-mode="gelap"] body:not(#_) .qsOptCheck, html[data-mode="gelap"] body:not(#_) .qsAdvanced summary { color: #c3ccd8; }
 html[data-mode="gelap"] body:not(#_) :is(.qsOptEmpty) { background: rgba(255, 255, 255, 0.05); color: #aab6c6; }
+
+/* ===== Clinical Pathway: pustaka format sebagai kartu rapi ===== */
+html body:not(#_) .workspaceRoot .cpRoot { min-width: 0; max-width: 100%; }
+html body:not(#_) .workspaceRoot .cpLibBar { min-width: 0; }
+html body:not(#_) .workspaceRoot .cpLibTools { min-width: 0; flex: 1 1 420px; justify-content: flex-end; }
+html body:not(#_) .workspaceRoot .cpLibSel { min-width: 0; max-width: 100%; }
+html body:not(#_) .workspaceRoot .cpLibSel select { max-width: 100%; }
+html body:not(#_) .workspaceRoot .cpLibGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+html body:not(#_) .workspaceRoot .cpLibCard { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 18px; border-radius: 20px; background: #fff; border: 1px solid #dfe7f0; box-shadow: 0 1px 2px rgba(15, 35, 60, 0.04), 0 8px 22px rgba(15, 35, 60, 0.05); transition: border-color .18s ease, box-shadow .18s ease, translate .18s cubic-bezier(.22, 1, .36, 1); }
+@media (hover: hover) and (pointer: fine) { html body:not(#_) .workspaceRoot .cpLibCard:hover { border-color: rgba(14, 116, 144, 0.4); box-shadow: 0 14px 30px rgba(15, 35, 60, 0.1); translate: 0 -2px; } }
+html body:not(#_) .workspaceRoot .cpLibCardTop { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+html body:not(#_) .workspaceRoot .cpLibStatus { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: #e5f6ec; color: #15803d; }
+html body:not(#_) .workspaceRoot .cpLibStatus::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+html body:not(#_) .workspaceRoot .cpLibStatus.draft { background: #fff3dc; color: #b45309; }
+html body:not(#_) .workspaceRoot .cpLibStatus.retired { background: #eef2f7; color: #64748b; }
+html body:not(#_) .workspaceRoot .cpLibVer { font-size: 12px; font-weight: 600; color: #6b7684; }
+html body:not(#_) .workspaceRoot .cpLibCard h4 { margin: 4px 0 0 !important; font-size: 17px !important; line-height: 1.3 !important; font-weight: 800 !important; letter-spacing: -.01em; color: #1f2430; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+html body:not(#_) .workspaceRoot .cpLibIcd { align-self: flex-start; padding: 3px 9px; border-radius: 8px; background: rgba(94, 196, 207, 0.14); color: #0e5566; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+html body:not(#_) .workspaceRoot .cpLibMeta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; font-size: 13px; color: #4b5565; }
+html body:not(#_) .workspaceRoot .cpLibMeta span { display: inline-flex; align-items: center; gap: 6px; }
+html body:not(#_) .workspaceRoot .cpLibMeta svg { width: 15px; height: 15px; fill: none; stroke: #64748b; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html body:not(#_) .workspaceRoot .cpLibActions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid #edf1f6; }
+html body:not(#_) .workspaceRoot .cpLibOpen { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border: 0; border-radius: 12px; background: #1f2430; color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+html body:not(#_) .workspaceRoot .cpLibOpen span { transition: translate .18s ease; }
+html body:not(#_) .workspaceRoot .cpLibOpen:hover span { translate: 3px 0; }
+html body:not(#_) .workspaceRoot .cpLibEdit { min-height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid #dfe7f0; background: #fff; color: #1f2430; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+html body:not(#_) .workspaceRoot .cpLibEdit:hover { border-color: rgba(14, 116, 144, 0.45); }
+html body:not(#_) .workspaceRoot :is(.cpLibOpen, .cpLibEdit):focus-visible { outline: 2px solid rgba(34, 211, 238, 0.7); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { html body:not(#_) .workspaceRoot :is(.cpLibCard, .cpLibOpen span) { transition: none; } }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibCard { background: rgba(20, 27, 38, 0.82); border-color: rgba(255, 255, 255, 0.1); box-shadow: none; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibCard h4 { color: #eef2f7; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.cpLibVer, .cpLibMeta) { color: #aab6c6; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibMeta svg { stroke: #93a1b3; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibIcd { background: rgba(94, 196, 207, 0.16); color: #bdf0f5; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibStatus { background: rgba(34, 197, 94, 0.14); color: #86efac; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibActions { border-color: rgba(255, 255, 255, 0.08); }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibOpen { background: #eef2f7; color: #0f1218; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibEdit { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); color: #eef2f7; }
+html body:not(#_) .workspaceRoot .cpLibFilter { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 12px; }
+html body:not(#_) .workspaceRoot .cpLibFilter button { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #dfe7f0; background: #fff; color: #3b4452; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+html body:not(#_) .workspaceRoot .cpLibFilter button span { min-width: 20px; padding: 1px 7px; border-radius: 999px; background: #eef2f7; color: #4b5565; font-size: 12px; text-align: center; }
+html body:not(#_) .workspaceRoot .cpLibFilter button.on { background: #1f2430; border-color: #1f2430; color: #fff; }
+html body:not(#_) .workspaceRoot .cpLibFilter button.on span { background: rgba(255, 255, 255, 0.18); color: #fff; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibFilter button { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.12); color: #d5dce6; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibFilter button span { background: rgba(255, 255, 255, 0.08); color: #c3ccd8; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibFilter button.on { background: #eef2f7; border-color: #eef2f7; color: #0f1218; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibFilter button.on span { background: rgba(15, 18, 24, 0.12); color: #0f1218; }
+
+/* Judul kolom tabel yang menempel: benar-benar solid (aturan kaca 0.55 sebelumnya lebih spesifik) dan di atas tombol/pil saat digulir. */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter table > thead > tr > th { background: #f6f8fb !important; z-index: 6 !important; }
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleEnter table > thead > tr > th { background: #161d29 !important; }
+/* Halaman tidak boleh bergulir ke samping; tabel lebar bergulir di wadahnya sendiri. */
+html, body { overflow-x: clip; }
+/* SDM: tombol aksi rapi dalam satu baris yang bisa membungkus. */
+html body:not(#_) .workspaceRoot .sdActionsCell { display: flex !important; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 210px; }
+html body:not(#_) .workspaceRoot .cpLibFilter button.on > span { background: rgba(255, 255, 255, 0.2) !important; color: #fff !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibFilter button.on > span { background: rgba(15, 18, 24, 0.14) !important; color: #0f1218 !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibStatus.draft { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibStatus.retired { background: rgba(255, 255, 255, 0.08); color: #aab6c6; }

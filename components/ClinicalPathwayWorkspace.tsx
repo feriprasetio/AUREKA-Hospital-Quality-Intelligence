@@ -244,6 +244,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(initialRoomId)
   useEffect(() => { if (lockRoomScope && initialRoomId != null && selectedRoomId !== initialRoomId) setSelectedRoomId(initialRoomId) }, [lockRoomScope, initialRoomId, selectedRoomId])
   const [search, setSearch] = useState('')
+  const [libStatus, setLibStatus] = useState<'all' | 'published' | 'draft' | 'retired'>('all')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [audits, setAudits] = useState<AuditRow[]>([])
   const [auditLoading, setAuditLoading] = useState(false)
@@ -280,8 +281,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   const checklistDays = form ? [...activeAdditionalPhases.map((phase) => phase.key), ...form.template.days] : []
   const filteredTemplates = useMemo(() => templates
     .filter((t) => isAdmin || t.status === 'published')
+    .filter((t) => libStatus === 'all' || t.status === libStatus)
     .filter((t) => (t.name + ' ' + t.icd10 + ' ' + t.code).toLowerCase().includes(search.toLowerCase().trim()))
-    .sort((a, b) => a.name.localeCompare(b.name, 'id')), [templates, search, isAdmin])
+    .sort((a, b) => a.name.localeCompare(b.name, 'id')), [templates, search, isAdmin, libStatus])
 
   const loadTeamStaff = useCallback(async () => {
     setStaffLoading(true)
@@ -915,7 +917,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <div className="cpLibTools">
           <div className="cpField cpSearch cpLocalSearch"><label>Cari diagnosis / kode ICD-10</label><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Contoh: stroke, mastektomi, I63…" /></div>
           {isAdmin && !lockRoomScope && <label className="cpLibSel" title="Unit untuk audit baru"><span>Unit audit</span><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></label>}
-          {isAdmin && <label className="cpLibSel" title="Super Admin: pilih format untuk langsung membuka editor"><span>Edit format</span><select value={selectedCode} onChange={(e) => { const code = e.target.value; setSelectedCode(code); const t = templates.find((x) => x.code === code); if (t) beginBuilder(t, 'library') }}><option value="">Pilih format untuk diedit…</option>{templates.map((template) => <option key={template.code} value={template.code}>{template.name} · {template.status === 'published' ? 'Aktif' : template.status === 'draft' ? 'Draf' : 'Tidak aktif'} · v{template.version}</option>)}</select></label>}
+          {/* Edit format kini lewat tombol di tiap kartu. */}
           {isAdmin && <button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ CP baru</button>}
           <button type="button" className="cpBtn cpIconBtn" title="Muat ulang master" aria-label="Muat ulang master" onClick={() => void loadTemplates()}>↻</button>
         </div>
@@ -926,14 +928,32 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
             <button type="button" className="cpBtn primary" disabled={importingMaster || !importFile} onClick={() => void importClinicalPathwaySourcePack(importFile)}>{importingMaster ? 'Mengimpor paket…' : '↓ Impor 8 format CP sumber baru'}</button>
           </div>}
       </div>
-      <div className="cpGrid cpTiles">
-        {filteredTemplates.map((t) => <button key={t.code} type="button" className="cpGlass cpTile" onClick={() => chooseTemplate(t)}>
-          <span className="cpTileTop"><span className={'cpBadge ' + (t.status === 'draft' ? 'draft' : t.status === 'retired' ? 'retired' : '')}>{t.status === 'published' ? 'Aktif' : t.status === 'draft' ? 'Draf' : 'Tidak aktif'}</span></span>
-          <h4>{t.name}</h4><p>{t.icd10 ? 'ICD-10: ' + t.icd10 : 'Kode ICD-10 belum dicantumkan pada dokumen sumber'} · Versi {t.version}</p>
-          <div className="cpTileFoot"><span>{t.items.length} item · {t.days.length} hari/tahap</span><span>Buka diagnosis</span></div>
-        </button>)}
+      {isAdmin && <div className="cpLibFilter" role="group" aria-label="Saring status format">
+        {([['all', 'Semua'], ['published', 'Aktif'], ['draft', 'Draf'], ['retired', 'Tidak aktif']] as const).map(([k, label]) => {
+          const n = k === 'all' ? templates.length : templates.filter((t) => t.status === k).length
+          if (k !== 'all' && n === 0) return null
+          return <button key={k} type="button" aria-pressed={libStatus === k} className={libStatus === k ? 'on' : ''} onClick={() => setLibStatus(k)}>{label}<span>{n}</span></button>
+        })}
+      </div>}
+      <div className="cpLibGrid">
+        {filteredTemplates.map((t) => {
+          const statusLabel = t.status === 'published' ? 'Aktif' : t.status === 'draft' ? 'Draf' : 'Tidak aktif'
+          return <article key={t.code} className={'cpLibCard ' + t.status}>
+            <div className="cpLibCardTop"><span className={'cpLibStatus ' + t.status}>{statusLabel}</span><span className="cpLibVer">Versi {t.version}</span></div>
+            <h4 title={t.name}>{t.name}</h4>
+            <span className="cpLibIcd">{t.icd10 ? 'ICD-10 ' + t.icd10 : 'ICD-10 belum dicantumkan'}</span>
+            <div className="cpLibMeta">
+              <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>{t.items.length} item</span>
+              <span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>{t.days.length} hari/tahap</span>
+            </div>
+            <div className="cpLibActions">
+              <button type="button" className="cpLibOpen" onClick={() => chooseTemplate(t)}>Buka &amp; audit <span aria-hidden="true">→</span></button>
+              {isAdmin && <button type="button" className="cpLibEdit" onClick={() => { setSelectedCode(t.code); beginBuilder(t, 'library') }} aria-label={'Edit format ' + t.name}>Edit format</button>}
+            </div>
+          </article>
+        })}
       </div>
-      {filteredTemplates.length === 0 && <div className="cpGlass cpEmpty">Tidak ada CP yang cocok dengan pencarian.</div>}
+      {filteredTemplates.length === 0 && <div className="cpGlass cpEmpty">Tidak ada CP yang cocok dengan pencarian atau saringan ini.</div>}
       
     </>}
 
