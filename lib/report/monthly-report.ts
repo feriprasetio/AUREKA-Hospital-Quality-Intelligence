@@ -25,7 +25,7 @@ export function buildMonthlyReportHtml(opts: { year: number; month: number; scop
   const notReported = rooms.filter((r) => !r.reported)
   const today = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Pontianak' }).format(new Date())
   const row = (label: string, month: string | number, ytd: string | number, note = '') => `<tr><td>${esc(label)}</td><td class="num">${month}</td><td class="num">${ytd}</td><td>${esc(note)}</td></tr>`
-  const list = (items: CountItem[]) => items.length ? `<table><thead><tr><th>Kategori</th><th class="num">Jumlah</th></tr></thead><tbody>${items.map((i) => `<tr><td>${esc(i.label)}</td><td class="num">${f(i.count)}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">Belum ada data.</p>'
+  const list = (items: CountItem[]) => items.length ? `<table><thead><tr><th>Level / kategori</th><th class="num">Jumlah</th></tr></thead><tbody>${items.map((i) => `<tr><td>${esc(i.label)}</td><td class="num">${f(i.count)}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">Belum ada data.</p>'
   return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Laporan Bulanan PMKP ${esc(period)}</title>
 <style>
 @page{size:A4;margin:18mm 16mm}
