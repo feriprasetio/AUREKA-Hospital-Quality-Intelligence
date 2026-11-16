@@ -30,10 +30,11 @@ test('external AI context excludes incident unit/month detail and free-text risk
   assert.doesNotMatch(gateway, /per_bulan: Object\.fromEntries\(Object\.entries\(count\(incidents/)
 })
 
-test('DeepSeek and LLM7 are opt-in and disabled unless explicitly enabled server-side', () => {
-  assert.match(gateway, /x === "deepseek" && Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) !== "true"/)
-  assert.match(gateway, /x === "llm7" && Deno\.env\.get\("AI_ENABLE_LLM7"\) !== "true"/)
+test('all five providers are included when their secrets exist; DeepSeek and LLM7 have explicit kill switches', () => {
+  assert.match(gateway, /AI_PROVIDER_ORDER/)
   assert.match(gateway, /groq,nvidia,gemini,deepseek,llm7/)
+  assert.match(gateway, /x === "deepseek" && Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) === "false"/)
+  assert.match(gateway, /x === "llm7" && Deno\.env\.get\("AI_ENABLE_LLM7"\) === "false"/)
 })
 
 
