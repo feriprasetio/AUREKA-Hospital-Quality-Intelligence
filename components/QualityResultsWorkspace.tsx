@@ -6,6 +6,8 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { useEffect, useMemo, useState } from 'react'
 import AurekaModal from '@/components/ui/AurekaModal'
 import SpcChart from '@/components/quality/SpcChart'
+import { groupComparable, buildInmRows, isInm, INM_COLUMNS } from '@/lib/aureka/unit-compare'
+import { buildCsv } from '@/lib/aureka/csv-export'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { compareToTarget } from '@/lib/aureka/indicator-engine'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
@@ -377,6 +379,22 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     }
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'))
   }, [indicatorResults]) // eslint-disable-line react-hooks/exhaustive-deps
+  const roomNameOf = (id: number) => rooms.find((room) => Number(room.id) === id)?.name ?? 'Unit ' + id
+  const compareGroups = useMemo(() => roomId == null ? groupComparable(indicatorResults, roomNameOf) : [], [indicatorResults, roomId, rooms]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [compareOpen, setCompareOpen] = useState(false)
+  const hasInm = indicatorResults.some(isInm)
+  const inmHasData = useMemo(() => buildInmRows(indicatorResults, year, () => '').length > 0, [indicatorResults, year])
+  const exportInm = () => {
+    const rows = buildInmRows(indicatorResults, year, roomNameOf)
+    if (!rows.length) return
+    const blob = new Blob([buildCsv(rows, INM_COLUMNS)], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'aureka-inm-' + year + (roomId == null ? '-semua-unit' : '-unit-' + roomId) + '.csv'
+    document.body.appendChild(a); a.click(); a.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
   const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
   const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => categoryOf(result) === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
@@ -617,6 +635,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           {YEARS.map((value) => <option key={value} value={value}>{value}</option>)}
         </select></label>
         <button type="button" className="qraBtn" disabled={loading} onClick={() => setReload((value) => value + 1)}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button>
+        {mode === 'indicators' && hasInm && <button type="button" className="qraBtn" disabled={loading || !inmHasData} onClick={exportInm} title={inmHasData ? 'Unduh capaian bulanan Indikator Nasional Mutu untuk dilaporkan ke Kemenkes' : 'Belum ada data INM tervalidasi tahun ' + year}>Ekspor INM (CSV)</button>}
       </div>}
     />
 
@@ -648,6 +667,23 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   {cat.assessed > 0 && cat.assessed < 3 && <em>Data sedikit, tafsirkan hati-hati</em>}
                 </button>)}
               </div>}
+            </section>}
+            {compareGroups.length > 0 && <section className="qraPanel" aria-label="Perbandingan antar unit">
+              <div className="qraPanelHead"><div><h3>Perbandingan antar unit</h3><p className="qraMuted">Indikator yang sama diukur di beberapa unit. Urutan dari capaian terbaik; merah berarti belum memenuhi target.</p></div><span className="qraPill">{compareGroups.length} indikator</span></div>
+              <div className="qraCompare">
+                {(compareOpen ? compareGroups : compareGroups.slice(0, 4)).map((group) => {
+                  const max = Math.max(...group.entries.map((e) => e.value), group.entries.every((e) => e.display.endsWith('%')) ? 100 : 0) || 1
+                  return <article key={group.key} className="qraCompareCard">
+                    <header><strong>{group.title}</strong><small>Target {group.target || '-'} · {group.higherBetter ? 'makin tinggi makin baik' : 'makin rendah makin baik'}</small></header>
+                    <ol>{group.entries.map((e) => <li key={e.roomId} className={e.met === false ? 'miss' : e.met ? 'ok' : ''}>
+                      <span className="qraCmpName">{e.room}</span>
+                      <span className="qraCmpBar" aria-hidden="true"><i style={{ width: Math.max(2, (e.value / max) * 100) + '%' }} /></span>
+                      <b>{e.display}</b>
+                    </li>)}</ol>
+                  </article>
+                })}
+              </div>
+              {compareGroups.length > 4 && <div className="qraCompareMore"><button type="button" className="qraBtn" onClick={() => setCompareOpen((v) => !v)}>{compareOpen ? 'Tampilkan lebih sedikit' : 'Lihat semua ' + compareGroups.length + ' indikator'}</button></div>}
             </section>}
             <section className="qraPanel">
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator{groupBy === 'category' && categoryFilter ? ' · ' + categoryFilter : ''}</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>

@@ -1623,3 +1623,20 @@ html[data-mode="gelap"] .spcVerdict.warn { background: rgba(220,38,38,.15); colo
 .spcHelp { font-size: 12.5px; color: var(--spc-muted); } .spcHelp summary { cursor: pointer; font-weight: 700; color: var(--spc-ink); }
 .spcHelp p { margin: 6px 0 0; line-height: 1.55; }
 html[data-mode="gelap"] body:not(#_) .qraSpcBtn { background: #161d29; border-color: rgba(255,255,255,.12); color: #22d3ee; }
+
+/* Perbandingan antar unit (hasil indikator). */
+.qraCompare { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; padding: 14px; }
+.qraCompareCard { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid #dfe7f0; border-radius: 14px; background: #fbfcfe; min-width: 0; }
+.qraCompareCard header { display: grid; gap: 2px; } .qraCompareCard header strong { font-size: 13.5px; line-height: 1.35; }
+.qraCompareCard header small { font-size: 12px; color: #6b7686; }
+.qraCompareCard ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.qraCompareCard li { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(60px, 1fr) auto; gap: 10px; align-items: center; font-size: 12.5px; }
+.qraCmpName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qraCmpBar { height: 8px; border-radius: 99px; background: #edf2f7; overflow: hidden; } .qraCmpBar i { display: block; height: 100%; border-radius: 99px; background: #0e7490; }
+.qraCompareCard li.ok .qraCmpBar i { background: #15803d; } .qraCompareCard li.miss .qraCmpBar i { background: #dc2626; }
+.qraCompareCard li.miss b { color: #b91c1c; } .qraCompareCard li b { font-variant-numeric: tabular-nums; }
+.qraCompareMore { padding: 0 14px 14px; }
+html[data-mode="gelap"] .qraCompareCard { background: #161d29; border-color: rgba(255,255,255,.08); }
+html[data-mode="gelap"] .qraCompareCard header small { color: #9fb0c4; }
+html[data-mode="gelap"] .qraCmpBar { background: rgba(255,255,255,.08); } html[data-mode="gelap"] .qraCompareCard li.miss b { color: #fca5a5; }
+html[data-mode="gelap"] .qraCompareCard li.ok .qraCmpBar i { background: #4ade80; } html[data-mode="gelap"] .qraCompareCard li.miss .qraCmpBar i { background: #f87171; }
