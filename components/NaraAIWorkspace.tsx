@@ -132,10 +132,10 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
         </div>)}
       </div>
       <details className="naraEngines">
-        <summary><span className="naraLiveDot" aria-hidden="true"/> {ENGINES.length} mesin AI aktif</summary>
+        <summary><span className="naraLiveDot" aria-hidden="true"/> {ENGINES.length} provider didukung</summary>
         <div className="naraEnginesMenu">
-          <ul>{ENGINES.map((name) => <li key={name}><span className="naraLiveDot" aria-hidden="true"/>{name}</li>)}</ul>
-          <p>Dipilih otomatis lewat gateway AUREKA. Kunci API tersimpan aman di server.</p>
+          <ul>{ENGINES.map((name) => <li key={name}><span className="naraEngineDot" aria-hidden="true"/>{name}</li>)}</ul>
+          <p>Gateway memilih provider sesuai ketersediaan secret, konfigurasi, kuota, dan waktu respons. Tidak semua provider harus aktif bersamaan; kunci API tetap di server.</p>
         </div>
       </details>
     </aside>
@@ -174,7 +174,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraEnginesMenu ul{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
       .naraEnginesMenu li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
       .naraEnginesMenu p{margin:0;font-size:12px;line-height:1.5;color:#5b6878}
-      .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}
+      .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}.naraEngineDot{width:7px;height:7px;border-radius:50%;background:#7b91a8;flex:0 0 auto}
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
       .naraMobileBar{display:none}
       .naraStageWrap :global(.tanyaPanelEmbedded){flex:1;min-height:0;display:flex;flex-direction:column;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
