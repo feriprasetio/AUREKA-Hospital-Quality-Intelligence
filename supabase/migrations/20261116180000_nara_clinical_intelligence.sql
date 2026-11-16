@@ -339,4 +339,130 @@ $function$;
 revoke all on function public.aureka_nara_icd10_upsert_mapping(text,text,text,text,text,text) from public, anon;
 grant execute on function public.aureka_nara_icd10_upsert_mapping(text,text,text,text,text,text) to authenticated;
 
+
+-- Authorized coding queue. It exposes diagnosis terms and aggregate counts to ADMIN/PMKP reviewers only.
+-- It does not expose MRNs, names, episode IDs, or raw form JSON.
+create or replace function public.aureka_nara_icd10_review_queue(
+  p_year integer default null,
+  p_room bigint default null,
+  p_limit integer default 100
+)
+returns table (
+  diagnosis text,
+  patient_count bigint,
+  mapping_status text,
+  icd10_code text,
+  icd10_title text,
+  validation_reference text
+)
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_role text := aureka_system.current_role_code();
+  v_year integer := coalesce(p_year, extract(year from (pg_catalog.now() at time zone 'Asia/Pontianak'))::integer);
+  v_rooms bigint[];
+  v_has_episodes boolean;
+  v_group_count integer := 0;
+  v_patient_count bigint := 0;
+begin
+  if auth.uid() is null then raise exception 'Autentikasi diperlukan.' using errcode = '28000'; end if;
+  if v_role not in ('ADMIN','PMKP') then raise exception 'Antrian koding hanya tersedia untuk Super Admin dan Komite PMKP.' using errcode = '42501'; end if;
+  if v_year < 2000 or v_year > 2100 then raise exception 'Tahun analisis tidak valid.' using errcode = '22023'; end if;
+  if p_room is not null and not aureka_system.has_quality_room_access(p_room) then
+    raise exception 'Akses unit tidak diberikan.' using errcode = '42501';
+  end if;
+
+  select coalesce(pg_catalog.array_agg(r.id), '{}'::bigint[]) into v_rooms
+  from public.master_rooms r
+  where r.is_active = true and aureka_system.has_quality_room_access(r.id)
+    and (p_room is null or r.id = p_room);
+
+  select exists (
+    select 1 from aureka_quality.quality_records q
+    where q.room_id = any(v_rooms) and q.measurement_grain='patient_episode'
+      and q.archived_at is null and q.status <> 'archived'
+      and coalesce(q.record_date,q.created_at::date) >= pg_catalog.make_date(v_year,1,1)
+      and coalesce(q.record_date,q.created_at::date) < pg_catalog.make_date(v_year+1,1,1)
+  ) into v_has_episodes;
+
+  if v_has_episodes then
+    return query
+    with src as (
+      select
+        aureka_quality.normalize_no_rm(coalesce(
+          nullif(pg_catalog.btrim(q.core_data->>'medical_record_no'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'No. Rekam Medis'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'No. RM'),'')
+        )) as internal_no_rm,
+        upper(pg_catalog.regexp_replace(pg_catalog.btrim(coalesce(
+          nullif(pg_catalog.btrim(q.core_data->>'diagnosis'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'Diagnosa Tegak'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'Diagnosa IGD'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'Diagnosa Primer'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'Diagnosa Utama'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'Diagnosa'),''),
+          nullif(pg_catalog.btrim(coalesce(q.core_data->'form_fields',q.core_data->'form_data','{}'::jsonb)->>'Diagnosa Operasi'),'')
+        )), '[[:space:]]+', ' ', 'g')) as label
+      from aureka_quality.quality_records q
+      where q.room_id = any(v_rooms) and q.measurement_grain='patient_episode'
+        and q.archived_at is null and q.status <> 'archived'
+        and coalesce(q.record_date,q.created_at::date) >= pg_catalog.make_date(v_year,1,1)
+        and coalesce(q.record_date,q.created_at::date) < pg_catalog.make_date(v_year+1,1,1)
+    ), grouped as (
+      select label, pg_catalog.count(distinct internal_no_rm)::bigint as n
+      from src
+      where label is not null and pg_catalog.length(label) between 2 and 120
+        and label !~ '[0-9]{6,}'
+        and label !~* '(NIK|NO[. ]*RM|NOMOR REKAM MEDIS|MRN|TELP|TELEPON|EMAIL)[[:space:]:#=-]'
+        and label !~* '^[0-9[:space:]+()./-]+
+        and label !~* '(^|[^[:alpha:]])(TN|NY|NN|N|BP|BAPAK|IBU)[.[:space:]]'
+        and label !~* '(NAMA PASIEN|ATAS NAMA|PASIEN BERNAMA)'
+      group by label
+      having pg_catalog.count(distinct internal_no_rm) >= 5
+    )
+    select g.label, g.n, coalesce(d.mapping_status,'unmapped'), d.icd10_code, d.icd10_title, d.validation_reference
+    from grouped g left join aureka_quality.nara_icd10_dictionary d
+      on d.diagnosis_key=pg_catalog.lower(g.label)
+    order by (d.mapping_status='validated') asc, g.n desc, g.label
+    limit greatest(1,least(coalesce(p_limit,100),200));
+  else
+    return query
+    with src as (
+      select p.no_rm as internal_no_rm,
+        upper(pg_catalog.regexp_replace(pg_catalog.btrim(p.diagnosis_terakhir), '[[:space:]]+', ' ', 'g')) as label
+      from aureka_quality.patient_index p
+      join public.master_rooms r on r.name=p.unit_terakhir
+      where r.id=any(v_rooms)
+        and p.last_seen >= pg_catalog.make_date(v_year,1,1)
+        and p.last_seen < pg_catalog.make_date(v_year+1,1,1)
+        and nullif(pg_catalog.btrim(p.diagnosis_terakhir),'') is not null
+        and lower(pg_catalog.btrim(p.diagnosis_terakhir)) is distinct from lower(pg_catalog.btrim(p.nama_pasien))
+    ), grouped as (
+      select label, pg_catalog.count(distinct internal_no_rm)::bigint as n
+      from src
+      where label is not null and pg_catalog.length(label) between 2 and 120
+        and label !~ '[0-9]{6,}'
+        and label !~* '(NIK|NO[. ]*RM|NOMOR REKAM MEDIS|MRN|TELP|TELEPON|EMAIL)[[:space:]:#=-]'
+        and label !~* '^[0-9[:space:]+()./-]+
+        and label !~* '(^|[^[:alpha:]])(TN|NY|NN|N|BP|BAPAK|IBU)[.[:space:]]'
+        and label !~* '(NAMA PASIEN|ATAS NAMA|PASIEN BERNAMA)'
+      group by label
+      having pg_catalog.count(distinct internal_no_rm) >= 5
+    )
+    select g.label, g.n, coalesce(d.mapping_status,'unmapped'), d.icd10_code, d.icd10_title, d.validation_reference
+    from grouped g left join aureka_quality.nara_icd10_dictionary d
+      on d.diagnosis_key=pg_catalog.lower(g.label)
+    order by (d.mapping_status='validated') asc, g.n desc, g.label
+    limit greatest(1,least(coalesce(p_limit,100),200));
+  end if;
+
+  return;
+end;
+$function$;
+
+revoke all on function public.aureka_nara_icd10_review_queue(integer,bigint,integer) from public, anon;
+grant execute on function public.aureka_nara_icd10_review_queue(integer,bigint,integer) to authenticated;
+
 commit;
