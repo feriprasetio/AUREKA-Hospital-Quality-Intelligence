@@ -25,7 +25,7 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
     else {
       const items = (Array.isArray(data) ? data : []) as ReviewRow[]
       setRows(items)
-      setDrafts((previous) => { const next = { ...previous }; for (const row of items) if (!next[row.diagnosis]) next[row.diagnosis] = { code: row.icd10_code || '', title: row.icd10_title || '', reference: row.validation_reference || '' }; return next })
+      setDrafts((previous) => { const next = { ...previous }; for (const row of items) if (!next[row.diagnosis] || (!next[row.diagnosis].code && row.icd10_code)) next[row.diagnosis] = { code: row.icd10_code || '', title: row.icd10_title || '', reference: row.validation_reference || '' }; return next })
     }
     setLoading(false)
   }, [sb])
@@ -49,7 +49,8 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
       setError('NARA belum berhasil membuat usulan kode. Pastikan provider dan fungsi gateway tersedia, lalu coba lagi.')
     } else {
       setSuggestionMessage(String(data.answer))
-      setNotice('Usulan AI disimpan sebagai PROPOSED. Belum ada kode yang disahkan sebagai ICD-10 tervalidasi.')
+      const proposed = Number(data.proposed || 0)
+      setNotice(proposed > 0 ? proposed + ' usulan AI disimpan sebagai PROPOSED. Belum ada kode yang disahkan sebagai ICD-10 tervalidasi.' : 'Tidak ada usulan kode baru. Periksa hasil NARA dan cakupan istilah diagnosis.')
       await load()
     }
     setSuggesting(false)
