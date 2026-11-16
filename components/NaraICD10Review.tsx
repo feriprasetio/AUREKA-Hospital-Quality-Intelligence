@@ -31,7 +31,7 @@ export default function NaraICD10Review({ sb }: { sb: SupabaseClient }) {
     let cancelled = false
     void sb.rpc('aureka_get_my_profile').then(({ data, error: profileError }) => {
       if (cancelled) return
-      const profile = Array.isArray(data) ? data[0] : data
+      const profile = (Array.isArray(data) ? data[0] : data) as { role_code?: string | null } | null
       setAuthorized(!profileError && ['ADMIN','PMKP'].includes(String(profile?.role_code || '').toUpperCase()))
       setChecking(false)
     }).catch(() => { if (!cancelled) setChecking(false) })
