@@ -566,6 +566,25 @@ export default function RiskManagementWorkspace({
       setError('Risiko belum tersimpan. Periksa hak akses, koneksi, dan kelengkapan data. ' + toUserFacingError(e, { fallback: 'Risiko belum dapat disimpan. Periksa koneksi, hak akses, dan kelengkapan data.' }))
     } finally { setSaving(false) }
   }
+  // Ubah status banyak risiko sekaligus (hanya risiko yang boleh diubah akun ini).
+  const [bulkStatus, setBulkStatus] = useState('')
+  const applyBulkStatus = async () => {
+    if (saving || !bulkStatus) return
+    const ids = risks.filter(r => selectedRiskIds.includes(r.id) && canEditRisk(r) && r.status !== bulkStatus).map(r => r.id)
+    if (!ids.length) { setMessage('Tidak ada risiko terpilih yang perlu diubah atau boleh diubah akun ini.'); return }
+    setSaving(true); clearMessages()
+    try {
+      for (let i = 0; i < ids.length; i += 100) {
+        const result = await db.from('risk_register').update({ status: bulkStatus }).in('id', ids.slice(i, i + 100))
+        if (result.error) throw result.error
+      }
+      setMessage(ids.length + ' risiko diubah menjadi status ' + bulkStatus + '.')
+      setSelectedRiskIds([]); setBulkStatus('')
+      await loadData()
+    } catch (e) {
+      setError(toUserFacingError(e, { fallback: 'Status risiko belum dapat diubah. Periksa koneksi dan hak akses.' }))
+    } finally { setSaving(false) }
+  }
   const deleteRisk = async (id: string) => {
     setSaving(true); clearMessages()
     try {
@@ -934,7 +953,7 @@ export default function RiskManagementWorkspace({
             <div className="rmActions rmBarActions"><button type="button" className="rmButton subtle" onClick={exportCsv}>Ekspor CSV</button><button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Tambah risiko</button></div>
           </div>
           {matrixFilter && <div className="rmSelectionBar"><div><b>Filter matriks aktif · P{matrixFilter.likelihood} × D{matrixFilter.impact}</b><span>Register hanya menampilkan risiko pada kombinasi ini.</span></div><button type="button" className="rmButton subtle" onClick={() => setMatrixFilter(null)}>Hapus filter matriks</button></div>}
-          {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
+          {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><div className="rmBulkStatus"><select aria-label="Ubah status risiko terpilih" value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}><option value="">Ubah status ke…</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x} value={x}>{x === 'Open' ? 'Open (belum ditangani)' : x === 'In Progress' ? 'In Progress (sedang ditangani)' : x === 'Controlled' ? 'Controlled (terkendali)' : 'Accepted (diterima)'}</option>)}</select><button type="button" className="rmButton" disabled={!bulkStatus || saving} onClick={() => void applyBulkStatus()}>{saving ? 'Menyimpan…' : 'Terapkan'}</button></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
           <WorkspaceTableViewport label="Register dan pengendalian risiko" className="rmTableWrap"><table className="rmTable" data-ak-sort="off" data-ak-cards="off"><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th>{sortHead('risk', 'Risiko')}{sortHead('unit', 'Unit')}{sortHead('score', 'Skor & level')}{sortHead('status', 'Status')}<th>Aksi</th></tr></thead>
               <tbody>{pageRisks.map(risk => <tr key={risk.id} data-risk-id={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih risiko: ' + risk.risk_event} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
