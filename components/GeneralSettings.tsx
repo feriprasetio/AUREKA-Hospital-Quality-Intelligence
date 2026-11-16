@@ -1,6 +1,7 @@
 'use client'
 
 import InstallAppButton from '@/components/layout/InstallAppButton'
+import BackupPanel from '@/components/governance/BackupPanel'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -586,7 +587,7 @@ export default function GeneralSettings({
       <div className="stMain">
       <WorkspaceModuleHeader title="Pengaturan" />
       {section === 'appearance' && <AppearancePanel />}
-      {section === 'system' && <SystemConfigPanel />}
+      {section === 'system' && <><SystemConfigPanel /><div style={{ marginTop: 12 }}><BackupPanel rooms={rooms} /></div></>}
       {section === 'permissions' && <PermissionMatrixPanel />}
 
       {section === 'general' && (
