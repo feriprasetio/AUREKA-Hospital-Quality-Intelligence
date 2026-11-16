@@ -8,6 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type React from 'react'
 import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
+import { gradeIncident, IMPACT_OPTIONS } from '@/lib/patient-safety/grading'
 import { LiquidGlass } from '@/components/LiquidGlass'
 import SurveyWizard from '@/components/patient-safety/SurveyWizard'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -84,6 +85,7 @@ const INCIDENT_SECTIONS: { letter: string; title: string; fields: IncidentField[
     { code: 'D4', label: 'Kejadian yang Sama Pernah Terjadi di Ruangan Ini (Likelihood)', type: 'radio', options: ['Sangat Jarang (lebih dari 5 tahun baru 1 kejadian)', 'Jarang (1 kejadian dalam 2 sampai 5 tahun terakhir)', 'Mungkin (1 kejadian dalam 1 sampai 2 tahun terakhir)', 'Sering (beberapa kejadian dalam setahun)', 'Sangat Sering (hampir setiap bulan ada kejadian)'] },
     { code: 'D5', label: 'Kejadian yang Sama Pernah Terjadi di Ruangan Lain', type: 'radio', options: ['Ya', 'Tidak', 'Kurang Tahu'] },
     { code: 'D6', label: 'Langkah Pencegahan', type: 'textarea', hint: 'Yang bisa dilakukan sementara pada tingkat petugas pelayanan.' },
+    { code: 'D7', label: 'Dampak pada Pasien (Tingkat Cedera)', type: 'radio', hint: 'Bersama pertanyaan D4, dipakai untuk menghitung grading risiko (Biru/Hijau/Kuning/Merah).', options: [...IMPACT_OPTIONS] },
   ]},
   { letter: 'E', title: 'Pembuat Laporan', fields: [
     { code: 'E1', label: 'Nama Pembuat Laporan', type: 'text' },
@@ -101,8 +103,10 @@ const INCIDENT_SECTIONS: { letter: string; title: string; fields: IncidentField[
   ]},
 ]
 const INCIDENT_FIELDS = INCIDENT_SECTIONS.flatMap(s => s.fields)
+const DRAFT_SKIP = new Set(['C1', 'C2', 'C3'])
+const DRAFT_TTL = 7 * 24 * 60 * 60 * 1000
 // Isian administratif (penjamin, tanggal/jam masuk, kejadian di ruangan lain) tidak menghalangi pengiriman.
-const INCIDENT_OPTIONAL = new Set(['C5', 'C6', 'C7', 'D5'])
+const INCIDENT_OPTIONAL = new Set(['C5', 'C6', 'C7', 'D5', 'D7'])
 // Untuk KNC/KPC tidak ada pasien yang terpapar/cedera, jadi identitas korban tidak wajib.
 const PATIENT_FIELDS = new Set(['C1', 'C2', 'C3', 'C4'])
 const noPatientRequired = (type: string) => /\(KNC\)|\(KPCs?\)/.test(type)
@@ -247,6 +251,17 @@ function makeResponseIdentity() {
 
 // Formulir laporan tampil sebagai jendela di atas daftar agar tidak perlu scroll ke bawah,
 // dengan tombol kembali yang selalu terlihat di bagian atas.
+function GradeBox({ data }: { data: Record<string, string> }) {
+  const g = gradeIncident(data)
+  if (!g) return <div className="psGrade empty" role="status"><strong>Grading risiko</strong><span>Isi D4 (seberapa sering) dan D7 (dampak) untuk melihat grading otomatis.</span></div>
+  return <div className={'psGrade ' + g.color} role="status">
+    <span className="psGradeChip">{g.label}</span>
+    <div><strong>Grading {g.label} · risiko {g.level.toLowerCase()}</strong>
+      <span>{g.sentinel ? 'Kejadian sentinel selalu dinilai Merah. ' : ''}Tindak lanjut: {g.action}, {g.deadline}.</span>
+      <small>Saran dari matriks dampak × probabilitas; penetapan akhir oleh Tim KP saat investigasi.</small></div>
+  </div>
+}
+
 function PsFormModal({ label, children, onClose }: { label: string; children: React.ReactNode; onClose: () => void }) {
   const dialogRef = useAccessibleDialog<HTMLElement>({ open: true, onClose })
   useEffect(() => {
@@ -531,8 +546,39 @@ export default function PatientSafetyWorkspace({
   const [confirmClose, setConfirmClose] = useState(false)
   const formSnapshot = useRef('')
   const formDirty = formOpen && JSON.stringify({ data: incidentData, staffId: incidentStaffId, externalReporter: incidentReporterExternal }) !== formSnapshot.current
+  // Draf lokal otomatis: isian tidak hilang bila HP/tab tertutup sebelum disimpan.
+  // Nama pasien, No. RM, dan usia tidak ikut disimpan di perangkat.
+  const [draftUid, setDraftUid] = useState('')
+  useEffect(() => { void supabase.auth.getSession().then(({ data }) => setDraftUid(data.session?.user?.id || '')) }, [supabase])
+  const draftKey = draftUid ? `aureka-ikp-draft:${draftUid}:${incidentId || 'new'}` : ''
+  const [draftOffer, setDraftOffer] = useState<{ data: Record<string, string>; savedAt: number } | null>(null)
+  const dropDraft = (key = draftKey) => { try { if (key) localStorage.removeItem(key) } catch { /* abaikan */ } }
+  useEffect(() => {
+    setDraftOffer(null)
+    if (!formOpen || !draftKey) return
+    try {
+      const raw = localStorage.getItem(draftKey)
+      if (!raw) return
+      const saved = JSON.parse(raw) as { data?: Record<string, string>; savedAt?: number }
+      if (!saved?.data || !saved.savedAt || Date.now() - saved.savedAt > DRAFT_TTL) { localStorage.removeItem(draftKey); return }
+      const differs = Object.entries(saved.data).some(([k, v]) => String(v || '') !== String(incidentData[k] || ''))
+      if (differs) setDraftOffer({ data: saved.data, savedAt: saved.savedAt })
+    } catch { /* abaikan */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formOpen, draftKey])
+  useEffect(() => {
+    if (!formOpen || !draftKey || incidentLocked || !formDirty) return
+    const t = window.setTimeout(() => {
+      try {
+        const data = Object.fromEntries(Object.entries(incidentData).filter(([k, v]) => !DRAFT_SKIP.has(k) && String(v || '').trim()))
+        localStorage.setItem(draftKey, JSON.stringify({ savedAt: Date.now(), data }))
+      } catch { /* penyimpanan perangkat penuh/diblokir: abaikan */ }
+    }, 800)
+    return () => window.clearTimeout(t)
+  }, [incidentData, formOpen, draftKey, incidentLocked, formDirty])
   const closeForm = (force = false) => {
     if (!force && formDirty) { setConfirmClose(true); return }
+    if (force) dropDraft()
     setConfirmClose(false); setFormOpen(false); setError('')
   }
   const notify = (text: string) => {
@@ -636,6 +682,8 @@ export default function PatientSafetyWorkspace({
         result = await db.from('incidents').insert(data).select('id,incident_code,status').single()
       }
       if (result.error) throw result.error
+      dropDraft(draftUid ? `aureka-ikp-draft:${draftUid}:new` : '')
+      dropDraft(draftUid ? `aureka-ikp-draft:${draftUid}:${result.data.id}` : '')
       setIncidentId(result.data.id)
       setIncidentCode(result.data.incident_code)
       setIncidentStatus(result.data.status as IncidentStatus)
@@ -919,6 +967,7 @@ export default function PatientSafetyWorkspace({
           </select> :
           <input id={`investigation-field-${field.code}`} aria-labelledby={`investigation-field-${field.code}-label`} value={value} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationValue(field.code, event.target.value)} />
       }
+      {field.code === '4C' ? (() => { const g = gradeIncident(linkedIncident?.form_data || {}); return g ? <div className="psHint">Saran dari laporan: <b>{g.level}</b> ({g.label}){value && value !== g.level ? ', berbeda dari pilihan saat ini' : ''}. {!value && canManageWorkflow ? <button type="button" className="psLinkBtn" onClick={() => setInvestigationValue('4C', g.level)}>Pakai saran ini</button> : null}</div> : null })() : null}
     </div>
   }
   const incidentRequiredCount = incidentRequired(incidentData).length
@@ -992,7 +1041,7 @@ export default function PatientSafetyWorkspace({
         {incidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode IKP</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
           {incidents.slice(0, 12).map(row => <tr key={row.id}>
             <td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td>
-            <td>{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td>
+            <td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td>
             <td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td>
           </tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{error ? 'Data belum dapat dimuat. Silakan muat ulang atau hubungi administrator.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
@@ -1014,7 +1063,7 @@ export default function PatientSafetyWorkspace({
           <p className="psMuted" style={{fontSize:12,margin:'8px 0 0'}}>Dihitung dari {filteredIncidents.length} laporan hasil filter. Ini merupakan distribusi status laporan, bukan rate insiden.</p>
         </div>
         {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
-          {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
+          {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
       {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'} onClose={() => closeForm()}>
@@ -1038,11 +1087,13 @@ export default function PatientSafetyWorkspace({
           <div className="psMeta"><span>Kelengkapan</span><strong>{incidentCompletion}%</strong></div>
           <div className="psMeta"><span>Isian wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
         </div>
+        {draftOffer ? <div className="psDraftOffer" role="status"><span>Ada isian yang belum tersimpan dari {new Date(draftOffer.savedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. Nama pasien, No. RM, dan usia perlu diisi ulang.</span><div className="psActions"><button type="button" className="psBtn" onClick={() => { dropDraft(); setDraftOffer(null) }}>Buang</button><button type="button" className="psBtn primary" onClick={() => { setIncidentData(current => ({ ...current, ...draftOffer.data })); setDraftOffer(null) }}>Pulihkan isian</button></div></div> : null}
         <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
         <nav className="psSectionJump" aria-label="Loncat ke bagian formulir">{INCIDENT_SECTIONS.map(section => <button type="button" key={section.letter} onClick={() => document.getElementById('ikp-sec-' + section.letter)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><b>{section.letter}</b>{section.title}</button>)}</nav>
         {INCIDENT_SECTIONS.map(section => <section className="psFormSection" id={'ikp-sec-' + section.letter} key={section.letter}>
           <div className="psFormHeading"><span className="psFormLetter">{section.letter}</span><div><h4>{section.title}</h4><p>Formulir sumber · Bagian {section.letter}</p></div></div>
           <div className="psFormGrid">{section.fields.map(renderIncidentField)}</div>
+          {section.letter === 'D' ? <GradeBox data={incidentData} /> : null}
         </section>)}
         <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 12 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Laporan baru, kode dibuat otomatis saat disimpan.'}</div>
           <div className="psActions">
