@@ -28,7 +28,7 @@ test('DeepSeek and LLM7 are enabled when secrets exist and can be explicitly dis
 })
 
 test('NARA minimizes incident fields before constructing provider context', () => {
-  assert.match(gateway, /select\("incident_type,type,created_at"\)/)
+  assert.match(gateway, /select\("incident_type,type,status,created_at"\)/)
   assert.doesNotMatch(gateway, /from\("incidents"\)\s*\.select\("\*"\)/)
 })
 

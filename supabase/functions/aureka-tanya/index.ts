@@ -88,6 +88,13 @@ type FmeaRow = { unit_name: string | null; priority: string | null; status: stri
 type StaffRow = { profession_group: string | null; directory_status: string | null; source_unit: string | null };
 type ClinicalStatusRow = { status: string | null; audit_type?: string | null; overall_care_score?: number | null; avoidability_score?: number | null; template_code?: string | null };
 type IgdMetricRow = { source_performance_label: string | null; calculated_elapsed_minutes: number | null; profile_year: number };
+type IndicatorProfileRow = { profile_year: number; code: string; unit_name: string | null; title: string; category: string | null; target_text: string | null; measurement_grain: string | null; status: string | null; is_active: boolean | null };
+type InvestigationRow = { status: string | null; created_at: string };
+type CultureRow = { survey_period: string | null; unit_name: string | null; profession_group: string | null; answered_item_count: number | null };
+type OppeRow = { evaluation_type: string | null; status: string | null; profession_snapshot: string | null; unit_snapshot: string | null; period_start: string | null; period_end: string | null };
+type RecommendationRow = { source: string | null; priority: string | null; program_year: number | null; status: string | null; issued_by_level: string | null };
+type ActionRow = { responsible_level: string | null; assigned_room_id: number | null; due_date: string | null; status: string | null; improvement_method: string | null };
+type PriorityRow = { program_year: number; priority: string | null; status: string | null; owner_room_id: number | null; due_date: string | null };
 
 const LEVELS = ["Sangat Tinggi", "Tinggi", "Sedang", "Rendah"];
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -144,27 +151,26 @@ async function snapshot(db: SupabaseClient) {
   const year = now.getUTCFullYear();
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
-  const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics] = await Promise.all([
-    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register")
-      .select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date")
-      .order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
-    fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans")
-      .select("status,target_date").order("id", { ascending: true }).range(f, t)),
-    fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents")
-      .select("incident_type,type,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
+  const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics, clinical, indicatorProfiles, investigations, culture, oppe, recommendations, actions, priorities] = await Promise.all([
+    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
+    fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans").select("status,target_date").order("id", { ascending: true }).range(f, t)),
+    fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
     db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null }),
-    fetchAll<FmeaRow>((f, t) => db.schema("aureka_risk").from("fmea_analyses")
-      .select("unit_name,priority,status,rpn").order("rpn", { ascending: false }).range(f, t)),
-    fetchAll<StaffRow>((f, t) => db.schema("aureka_quality").from("staff_directory")
-      .select("profession_group,directory_status,source_unit").order("id", { ascending: true }).range(f, t)),
-    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_pathway_audits")
-      .select("status,template_code").order("created_at", { ascending: false }).range(f, t)),
-    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_death_audits")
-      .select("status,audit_type,overall_care_score,avoidability_score").order("created_at", { ascending: false }).range(f, t)),
-    fetchAll<IgdMetricRow>((f, t) => db.schema("aureka_quality").from("igd_consultation_audits")
-      .select("source_performance_label,calculated_elapsed_minutes,profile_year").eq("profile_year", year).order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<FmeaRow>((f, t) => db.schema("aureka_risk").from("fmea_analyses").select("unit_name,priority,status,rpn").order("rpn", { ascending: false }).range(f, t)),
+    fetchAll<StaffRow>((f, t) => db.schema("aureka_quality").from("staff_directory").select("profession_group,directory_status,source_unit").order("id", { ascending: true }).range(f, t)),
+    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_pathway_audits").select("status,template_code").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_death_audits").select("status,audit_type,overall_care_score,avoidability_score").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<IgdMetricRow>((f, t) => db.schema("aureka_quality").from("igd_consultation_audits").select("source_performance_label,calculated_elapsed_minutes,profile_year").eq("profile_year", year).order("created_at", { ascending: false }).range(f, t)),
+    db.rpc("aureka_nara_clinical_summary", { p_year: year, p_room: null, p_limit: 10 }),
+    fetchAll<IndicatorProfileRow>((f, t) => db.schema("aureka_quality").from("indicator_profiles").select("profile_year,code,unit_name,title,category,target_text,measurement_grain,status,is_active").eq("profile_year", year).order("code", { ascending: true }).range(f, t)),
+    fetchAll<InvestigationRow>((f, t) => db.schema("aureka_patient_safety").from("investigations").select("status,created_at").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<CultureRow>((f, t) => db.schema("aureka_patient_safety").from("culture_responses").select("survey_period,unit_name,profession_group,answered_item_count").order("response_id", { ascending: true }).range(f, t)),
+    fetchAll<OppeRow>((f, t) => db.schema("aureka_quality").from("oppe_fppe_evaluations").select("evaluation_type,status,profession_snapshot,unit_snapshot,period_start,period_end").order("id", { ascending: true }).range(f, t)),
+    fetchAll<RecommendationRow>((f, t) => db.schema("aureka_governance").from("recommendations").select("source,priority,program_year,status,issued_by_level").eq("program_year", year).order("id", { ascending: true }).range(f, t)),
+    fetchAll<ActionRow>((f, t) => db.schema("aureka_governance").from("actions").select("responsible_level,assigned_room_id,due_date,status,improvement_method").order("id", { ascending: true }).range(f, t)),
+    fetchAll<PriorityRow>((f, t) => db.schema("aureka_governance").from("annual_priority_areas").select("program_year,priority,status,owner_room_id,due_date").eq("program_year", year).order("id", { ascending: true }).range(f, t)),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
@@ -226,9 +232,29 @@ async function snapshot(db: SupabaseClient) {
       pathwayAudits.error && "audit clinical pathway tidak dapat dibaca",
       deathAudits.error && "audit kematian klinis tidak dapat dibaca",
       igdMetrics.error && "analitik waktu konsultasi IGD tidak dapat dibaca",
+      clinical.error && "analitik diagnosis klinis tidak dapat dibaca",
+      indicatorProfiles.error && "profil indikator mutu tidak dapat dibaca",
+      investigations.error && "status investigasi IKP tidak dapat dibaca",
+      culture.error && "agregat survei budaya keselamatan tidak dapat dibaca",
+      oppe.error && "agregat OPPE/FPPE tidak dapat dibaca",
+      recommendations.error && "rekomendasi tata kelola tidak dapat dibaca",
+      actions.error && "tindak lanjut tata kelola tidak dapat dibaca",
+      priorities.error && "prioritas tahunan tidak dapat dibaca",
     ].filter(Boolean),
     daftar_unit_aktif: rooms.map((r) => r.name),
     ikhtisar_governance_aureka: governance.error ? null : governance.data,
+    analisis_diagnosis_klinis: clinical.error ? null : clinical.data,
+    profil_indikator_mutu: {
+      tahun: year,
+      total_profil: indicatorProfiles.rows.length,
+      total_profil_aktif: indicatorProfiles.rows.filter((r) => r.is_active === true && r.status !== "archived").length,
+      per_kategori: count(indicatorProfiles.rows, (r) => r.category),
+      definisi_indikator: indicatorProfiles.rows.slice(0, 250).map((r) => ({
+        kode: r.code, judul: r.title, unit: r.unit_name, kategori: r.category,
+        target: r.target_text, grain: r.measurement_grain, status: r.status, aktif: r.is_active,
+      })),
+      catatan: "Metadata profil indikator saja; ini bukan data episode atau nilai capaian.",
+    },
     analisis_fmea: {
       total: safeScalar(fmea.rows.length),
       per_prioritas: safeCount(count(fmea.rows, (r) => r.priority)),
@@ -293,7 +319,49 @@ async function snapshot(db: SupabaseClient) {
     keselamatan_pasien: {
       total_laporan_ikp: incidents.rows.length >= 5 ? incidents.rows.length : "disembunyikan (<5)",
       per_jenis: safeCount(count(incidents.rows, incType)),
-      catatan_disclosure: "Rincian per unit dan per bulan tidak dikirim ke model. Sel dengan jumlah kurang dari 5 disembunyikan.",
+      per_status: safeCount(count(incidents.rows, (r) => String(r.status || ""))),
+      total_investigasi: safeScalar(investigations.rows.length),
+      investigasi_per_status: safeCount(count(investigations.rows, (r) => r.status)),
+      survei_budaya: {
+        total_respons: safeScalar(culture.rows.length),
+        per_periode: safeCount(count(culture.rows, (r) => r.survey_period)),
+        per_profesi: safeCount(count(culture.rows, (r) => r.profession_group)),
+        rerata_item_terjawab: culture.rows.length >= 5
+          ? Math.round(culture.rows.reduce((sum, r) => sum + Number(r.answered_item_count || 0), 0) / culture.rows.length * 10) / 10
+          : "disembunyikan (<5)",
+      },
+      catatan_disclosure: "Identitas, uraian insiden, jawaban responden, dan kronologi tidak dikirim ke model. Hanya agregat; sel kecil disembunyikan.",
+    },
+    evaluasi_profesional: {
+      total_oppe_fppe: safeScalar(oppe.rows.length),
+      per_jenis: safeCount(count(oppe.rows, (r) => r.evaluation_type)),
+      per_status: safeCount(count(oppe.rows, (r) => r.status)),
+      per_profesi: safeCount(count(oppe.rows, (r) => r.profession_snapshot)),
+      per_unit: safeCount(count(oppe.rows, (r) => r.unit_snapshot)),
+      catatan_disclosure: "Nama, kode pegawai, isi evaluasi, dan catatan penilai tidak dikirim ke model.",
+    },
+    tata_kelola_dan_prioritas: {
+      rekomendasi_tahun_ini: {
+        total: safeScalar(recommendations.rows.length),
+        per_sumber: safeCount(count(recommendations.rows, (r) => r.source)),
+        per_prioritas: safeCount(count(recommendations.rows, (r) => r.priority)),
+        per_status: safeCount(count(recommendations.rows, (r) => r.status)),
+        per_level_pemberi: safeCount(count(recommendations.rows, (r) => r.issued_by_level)),
+      },
+      tindak_lanjut: {
+        total: safeScalar(actions.rows.length),
+        per_level_penanggung_jawab: safeCount(count(actions.rows, (r) => r.responsible_level)),
+        per_status: safeCount(count(actions.rows, (r) => r.status)),
+        per_metode_perbaikan: safeCount(count(actions.rows, (r) => r.improvement_method)),
+        lewat_tenggat: safeScalar(actions.rows.filter((r) => r.due_date && r.due_date < today && !/selesai|done|completed|closed/i.test(r.status || "")).length),
+      },
+      prioritas_tahunan: {
+        total: safeScalar(priorities.rows.length),
+        per_prioritas: safeCount(count(priorities.rows, (r) => r.priority)),
+        per_status: safeCount(count(priorities.rows, (r) => r.status)),
+        lewat_tenggat: safeScalar(priorities.rows.filter((r) => r.due_date && r.due_date < today && !/selesai|done|completed|closed/i.test(r.status || "")).length),
+      },
+      catatan_disclosure: "Uraian rekomendasi/aksi, nama individu, identitas pelaksana, bukti, dan catatan internal tidak dikirim ke model.",
     },
   };
 }
@@ -432,6 +500,36 @@ async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, cont
   return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
 }
 
+type Icd10AiSuggestion = { diagnosis: string; code: string; title: string; confidence: number; rationale: string };
+
+function parseIcd10AiSuggestions(answer: string, allowedTerms: Set<string>): Icd10AiSuggestion[] {
+  const text = answer.replace(/^`{3}(?:json)?/i, "").replace(/`{3}$/i, "").trim();
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first < 0 || last <= first) return [];
+  try {
+    const payload = JSON.parse(text.slice(first, last + 1));
+    const rows = Array.isArray(payload?.items) ? payload.items : [];
+    const seen = new Set<string>();
+    return rows.flatMap((row: Record<string, unknown>) => {
+      const diagnosis = String(row?.diagnosis || "").trim();
+      const code = String(row?.icd10_code || row?.code || "").trim().toUpperCase();
+      const title = String(row?.icd10_title || row?.title || "").trim().slice(0, 180);
+      const confidenceRaw = Number(row?.confidence);
+      const confidence = confidenceRaw > 1 && confidenceRaw <= 100 ? confidenceRaw / 100 : confidenceRaw;
+      const rationale = String(row?.rationale || row?.reason || "").trim().slice(0, 240);
+      const key = diagnosis.toLocaleLowerCase("id-ID");
+      if (!diagnosis || !allowedTerms.has(diagnosis) || seen.has(key)) return [];
+      if (!/^[A-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?$/.test(code) || !title) return [];
+      if (!Number.isFinite(confidence) || confidence < 0.6 || confidence > 1) return [];
+      seen.add(key);
+      return [{ diagnosis, code, title, confidence, rationale }];
+    });
+  } catch {
+    return [];
+  }
+}
+
 async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
@@ -481,7 +579,7 @@ async function handle(req: Request): Promise<Response> {
 
   const contentLength = Number(req.headers.get("content-length") || 0);
   if (contentLength > 32768) return reply(413, { error: "Permintaan terlalu besar." });
-  let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string; warmup?: boolean };
+  let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string; warmup?: boolean; task?: string };
   try { body = await req.json(); } catch { return reply(400, { error: "Format permintaan tidak valid." }); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return reply(400, { error: "Format permintaan tidak valid." });
   if (rateLimited(who.user.id)) return reply(429, { error: "Batas permintaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
@@ -491,8 +589,9 @@ async function handle(req: Request): Promise<Response> {
     if (!c || Date.now() - c.at >= SNAPSHOT_TTL) snapshotCache.set(who.user.id, { at: Date.now(), data: await snapshot(db) });
     return reply(200, { ok: true });
   }
+  const task = String(body.task || "").trim().toLowerCase();
   const question = (body.question || "").toString().trim().slice(0, 1500);
-  if (!question) return reply(400, { error: "Pertanyaan kosong." });
+  if (!question && task !== "icd10_suggest") return reply(400, { error: "Pertanyaan kosong." });
   // Fail closed when a user includes likely patient/staff identifiers in a prompt or chat history.
   const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
   const outboundText = [question, ...history.map((h) => String(h?.text || ""))].join("\n");
@@ -507,6 +606,69 @@ async function handle(req: Request): Promise<Response> {
   ];
   if (sensitivePatterns.some((pattern) => pattern.test(outboundText))) {
     return reply(422, { error: "Permintaan ditahan oleh NARA Privacy Guard. Hapus identitas pasien/petugas, nomor rekam medis, NIK, kontak, dan detail pengenal dari pertanyaan maupun riwayat sebelum mencoba kembali." });
+  }
+
+  // AI-assisted ICD-10: hanya istilah diagnosis agregat (ambang >=5 pasien) yang dikirim.
+  // No. RM dipakai internal oleh RPC untuk deduplikasi; No. RM/nama/NIK tidak pernah masuk ke payload provider.
+  if (task === "icd10_suggest") {
+    const year = new Date(Date.now() + 7 * 3600 * 1000).getUTCFullYear();
+    const { data: queued, error: queueError } = await db.rpc("aureka_nara_icd10_review_queue", { p_year: year, p_room: null, p_limit: 20 });
+    if (queueError) {
+      console.error("NARA ICD-10 queue unavailable", queueError.code || "unknown");
+      return reply(403, { error: "Antrian koding hanya tersedia untuk Super Admin/Komite PMKP atau belum dapat dibaca." });
+    }
+    const rows = Array.isArray(queued) ? queued as Record<string, unknown>[] : [];
+    const safeRows = rows.filter((r) => {
+      const d = String(r.diagnosis || "").trim();
+      return d.length >= 2 && d.length <= 120 && !/[0-9]{6,}/.test(d)
+        && !/(NIK|NO[. ]*RM|NOMOR REKAM MEDIS|MRN|TELP|TELEPON|EMAIL)[\s:#=-]/i.test(d)
+        && !/(NAMA PASIEN|ATAS NAMA|PASIEN BERNAMA)/i.test(d)
+        && !/^[0-9\s+()./-]+$/.test(d);
+    }).slice(0, 20);
+    if (!safeRows.length) return reply(200, { answer: "Tidak ada istilah diagnosis yang memenuhi ambang untuk diusulkan kodenya. Istilah dengan kelompok kurang dari lima pasien tidak dimasukkan.", model: "database:icd10-review-queue", proposed: 0, pending: 0 });
+    const allowedTerms = new Set(safeRows.map((r) => String(r.diagnosis).trim()));
+    const payload = { code_set: "WHO ICD-10 Version 2019", items: safeRows.map((r) => ({ diagnosis: String(r.diagnosis), patient_count: Number(r.patient_count) || 0 })) };
+    const system = [
+      "Kamu adalah asisten koding klinis untuk memberi USULAN ICD-10 WHO Version 2019. Ini bukan keputusan klinis atau koding final.",
+      "Masukkan kode hanya bila diagnosis cukup spesifik dan padanannya jelas. Jangan menebak dari singkatan ambigu, istilah sisi tubuh tanpa konteks, atau diagnosis yang tidak lengkap.",
+      'Kembalikan JSON valid saja dengan bentuk {"items":[{"diagnosis":"teks input persis","icd10_code":"kode atau null","icd10_title":"judul resmi atau null","confidence":0.0,"rationale":"alasan singkat"}]}.',
+      "Gunakan hanya diagnosis yang sama persis dengan daftar input. Jangan menambahkan diagnosis, pasien, nama, nomor rekam medis, atau informasi klinis lain.",
+      "Judul kode harus mengikuti istilah resmi WHO ICD-10 2019. Bila tidak yakin, isi icd10_code dan icd10_title dengan null, confidence di bawah 0.6, dan jelaskan kekurangan konteks secara singkat.",
+      "Semua hasil akan tersimpan sebagai PROPOSED/belum tervalidasi. Reviewer PMIK/DPJP harus memeriksa kembali tabular list, inclusion/exclusion notes, dan karakter ke-4 sebelum mengesahkan.",
+    ].join("\n");
+    const contents: Turn[] = [{ role: "user", parts: [{ text: JSON.stringify(payload) }] }];
+    const deadline = Date.now() + PROVIDER_ROUTE_BUDGET_MS;
+    let selected: { provider: string; model: string; suggestions: Icd10AiSuggestion[] } | null = null;
+    let lastError = BUSY;
+    for (const provider of order) {
+      if (Date.now() >= deadline || selected) break;
+      for (const key of available[provider] || []) {
+        if (Date.now() >= deadline || selected) break;
+        const result = provider === "gemini"
+          ? await askGemini(key, system, contents, deadline)
+          : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, deadline);
+        if ("status" in result) { lastError = result.error; continue; }
+        const suggestions = parseIcd10AiSuggestions(result.answer, allowedTerms);
+        if (suggestions.length) selected = { provider, model: result.model, suggestions };
+      }
+    }
+    if (!selected) return reply(502, { error: "Tidak ada provider yang berhasil menghasilkan usulan ICD-10 terstruktur. Tidak ada kode yang disimpan. " + lastError });
+    let saved = 0;
+    const reports: string[] = [];
+    for (const item of selected.suggestions) {
+      const note = ("Usulan AI NARA (" + selected.provider + "/" + selected.model + "; confidence " + Math.round(item.confidence * 100) + "%). " + item.rationale + " Wajib diverifikasi dengan WHO ICD-10 2019 oleh reviewer PMIK/DPJP sebelum digunakan.").slice(0, 1000);
+      const { error: saveError } = await db.rpc("aureka_nara_icd10_upsert_mapping", {
+        p_diagnosis: item.diagnosis, p_icd10_code: item.code, p_icd10_title: item.title,
+        p_status: "proposed", p_validation_reference: null, p_review_note: note,
+      });
+      if (saveError) { reports.push(item.diagnosis + ": gagal disimpan"); continue; }
+      saved++;
+      reports.push("- " + item.diagnosis + " → " + item.code + " (" + Math.round(item.confidence * 100) + "%; belum tervalidasi)");
+    }
+    return reply(200, {
+      answer: "NARA membuat " + saved + " usulan pemetaan ICD-10 dari " + safeRows.length + " istilah diagnosis agregat. Semua disimpan sebagai usulan, bukan kode tervalidasi.\n\n" + reports.join("\n"),
+      model: selected.provider + ":" + selected.model, proposed: saved, pending: safeRows.length - saved,
+    });
   }
 
   // Ranking diagnosis dihitung di database yang memeriksa JWT dan cakupan unit.
@@ -526,7 +688,7 @@ async function handle(req: Request): Promise<Response> {
     });
   }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
-  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic)\b/i;
+  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|diagnosis|diagnosa|koding|icd-?10|dpjp|clinical|pathway|kematian|oppe|fppe|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic|rekomendasi|tindak lanjut)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
   const page = (body.page || "").toString().slice(0, 80);
 
@@ -540,6 +702,9 @@ async function handle(req: Request): Promise<Response> {
     "Peringkat diagnosis dihitung oleh fungsi analitik klinis database; jangan meminta atau menebak No. RM, nama, NIK, atau identitas pasien.",
     "Basis diagnosis terakhir per pasien tidak sama dengan seluruh episode. Sebutkan keterbatasan sumber secara eksplisit. Jangan mengklaim memiliki seluruh diagnosis DPJP jika episode klinis belum tersedia.",
     "Kode ICD-10 hanya boleh disebut tervalidasi bila dictionary internal menyatakan mapping_status=validated. Jangan mengarang kode dari singkatan yang ambigu; tandai belum dikoding dan minta validasi PMIK/DPJP.",
+    "Untuk analisis diagnosis, gunakan analisis_diagnosis_klinis. Bila source_basis patient_index_latest_diagnosis, jelaskan bahwa ini diagnosis terakhir per pasien, bukan seluruh episode atau seluruh kunjungan DPJP. Bila source_basis episode_records, nyatakan basis episode dan hitungan pasien unik/episode secara terpisah.",
+    "Untuk pertanyaan tentang indikator, bedakan definisi pada profil_indikator_mutu dari capaian aktual pada mutu_klinis_logbook. Jangan menganggap profil sebagai hasil capaian.",
+    "Gunakan seluruh domain agregat yang tersedia: profil indikator, diagnosis, keselamatan pasien, risiko, FMEA, tenaga kesehatan agregat, OPPE/FPPE, konsultasi IGD, rekomendasi, aksi, dan prioritas tahunan. Jika sumber bernilai kosong atau gagal diakses, sampaikan secara eksplisit; jangan mengarang data.",
     "GAYA BICARA:",
     "- Ngobrol seperti rekan kerja yang ramah sekaligus petugas layanan (CS) yang sigap: hangat, natural, sopan, tidak kaku, tidak seperti robot atau laporan resmi.",
     "- Ikuti gaya pengguna: kalau pengguna santai, jawab natural; kalau formal, jawab formal. Jangan menyebut nama pribadi pengguna.",

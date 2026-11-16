@@ -725,7 +725,7 @@ export default function HomeClient(){
   }catch(error){
    const message=toUserFacingError(error,{fallback:'Daftar percakapan belum dapat dimuat. Periksa koneksi, lalu coba kembali.'})
    setSupportLoadError(message)
-   pushWorkspaceNotification(message,'error','Chat Super Admin')
+   pushWorkspaceNotification(message,'error','Pesan Super Admin')
   }finally{setSupportLoading(false)}
  }
  const loadSupportMessages=async(conversationId:string)=>{
@@ -739,7 +739,7 @@ export default function HomeClient(){
   }catch(error){
    const message=toUserFacingError(error,{fallback:'Pesan percakapan belum dapat dimuat. Coba muat ulang.'})
    setSupportMessagesError(message)
-   pushWorkspaceNotification(message,'error','Chat Super Admin')
+   pushWorkspaceNotification(message,'error','Pesan Super Admin')
   }finally{setSupportMessagesLoading(false)}
  }
  const openSupportChat=(tab:'admin'|'broadcast'='admin')=>{
@@ -773,7 +773,7 @@ export default function HomeClient(){
  const sendSupportMessage=async()=>{
   const body=supportDraft.trim()
   if(!body||supportSending)return
-  if(body.length>4000){pushWorkspaceNotification('Pesan maksimal 4.000 karakter.','error','Chat Super Admin');return}
+  if(body.length>4000){pushWorkspaceNotification('Pesan maksimal 4.000 karakter.','error','Pesan Super Admin');return}
   setSupportSending(true)
   try{
    const {data:{user:authUser},error:authError}=await sb.auth.getUser()
@@ -793,9 +793,9 @@ export default function HomeClient(){
    setSupportDraft('')
    await loadSupportMessages(conversationId)
    await loadSupportConversations()
-   pushWorkspaceNotification('Pesan berhasil dikirim ke Chat Super Admin.','success','Chat Super Admin')
+   pushWorkspaceNotification('Pesan berhasil dikirim ke Pesan Super Admin.','success','Pesan Super Admin')
   }catch(error){
-   pushWorkspaceNotification(toUserFacingError(error,{fallback:'Pesan belum terkirim. Periksa koneksi, lalu coba kembali.'}),'error','Chat Super Admin')
+   pushWorkspaceNotification(toUserFacingError(error,{fallback:'Pesan belum terkirim. Periksa koneksi, lalu coba kembali.'}),'error','Pesan Super Admin')
   }finally{setSupportSending(false)}
  }
  useEffect(()=>{
@@ -1050,7 +1050,7 @@ export default function HomeClient(){
   {supportOpen&&<section className="workspaceSupportPanel workspaceCommunicationPanel" aria-label="Pusat komunikasi AUREKA">
    <div className="workspacePopoverHead"><div><strong>Pusat Komunikasi</strong><span>{admin?'Komunikasi seluruh rumah sakit':(room?.name||'Unit belum dipetakan')}</span></div><div className="workspacePopoverActions"><button type="button" aria-label="Tutup pusat komunikasi" onClick={()=>setSupportOpen(false)}>×</button></div></div>
    <nav className="workspaceCommunicationTabs" role="tablist" aria-label="Jenis komunikasi">
-    <button type="button" role="tab" aria-selected={supportTab==='admin'} className={supportTab==='admin'?'selected':''} onClick={()=>{setSupportTab('admin');void loadSupportConversations()}}>Chat Admin</button>
+    <button type="button" role="tab" aria-selected={supportTab==='admin'} className={supportTab==='admin'?'selected':''} onClick={()=>{setSupportTab('admin');void loadSupportConversations()}}>Pesan Admin</button>
     {admin&&<button type="button" role="tab" aria-selected={supportTab==='broadcast'} className={supportTab==='broadcast'?'selected':''} onClick={()=>setSupportTab('broadcast')}>Semua Ruangan</button>}
    </nav>
    {supportTab==='admin'&&<>

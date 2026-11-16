@@ -25,8 +25,8 @@ Set these in Supabase Dashboard → Edge Functions → Secrets:
 AI_ENVIRONMENT=production
 AI_PROVIDER_ORDER=groq,nvidia,gemini,deepseek,llm7
 AI_PROVIDER_TIMEOUT_MS=18000
-AI_ENABLE_DEEPSEEK=false
-AI_ENABLE_LLM7=false
+AI_ENABLE_DEEPSEEK=false   # kill switch; remove/omit to activate when the API key exists
+AI_ENABLE_LLM7=false       # kill switch; remove/omit to activate when the API key exists
 GROQ_API_KEY=<your Groq key>
 NVIDIA_API_KEY=<your NVIDIA key>
 GEMINI_API_KEY=<your Gemini key>
@@ -40,11 +40,16 @@ Optional model overrides should be set only to model IDs verified in the corresp
 
 ### Provider activation policy
 
-Groq, NVIDIA, and Gemini are the default eligible providers. DeepSeek and LLM7 are implemented and routable, but require explicit server-side opt-in:
-- `AI_ENABLE_DEEPSEEK=true`
-- `AI_ENABLE_LLM7=true`
+All five providers are eligible when the corresponding server-side API secret is configured:
+- Groq: `GROQ_API_KEY`
+- NVIDIA NIM: `NVIDIA_API_KEY`
+- Gemini: `GEMINI_API_KEY`
+- DeepSeek: `DEEPSEEK_API_KEY`
+- LLM7.io: `LLM7_API_KEY` or its supported legacy aliases
 
-Keep both `false` until hospital governance has approved the provider, contractual privacy terms, data residency/transfer, retention, and security review. A key being present does not enable either provider. The frontend cannot change these flags.
+`AI_PROVIDER_ORDER` determines priority. The gateway appends the remaining eligible providers as fallbacks. DeepSeek and LLM7 are not opt-in gated; use `AI_ENABLE_DEEPSEEK=false` or `AI_ENABLE_LLM7=false` as an explicit emergency/governance kill switch. Never put API values in frontend code or repository variables.
+
+The availability of a key does not by itself prove a successful live call. Provider success, quota, endpoint compatibility, and actual response must be confirmed in runtime logs and authenticated smoke tests.
 
 ## Privacy and security controls
 1. Edge Function JWT verification remains enabled.
@@ -56,6 +61,18 @@ Keep both `false` until hospital governance has approved the provider, contractu
 7. Request size and request rate are bounded. The in-memory limiter is per function isolate and is not a globally consistent quota; implement a persistent limiter before high-volume public exposure.
 8. Internal server/provider errors are not echoed to the browser.
 9. No service-role key is sent to a provider or browser.
+10. Medical record numbers (No. RM) may be used inside a protected database function for joins/deduplication and access auditing only. They are not sent to external LLM providers.
+11. Patient names, NIK, contact details, episode identifiers, raw narrative incident records, staff names and direct identifiers are excluded from external model context. Clinical analytics returns de-identified grouped diagnosis terms/counts with minimum cell size 5.
+12. The clinical source basis is labelled. Until episode data exist, diagnosis ranking falls back to the latest diagnosis per patient and is not a ranking of all encounters or all raw DPJP notes.
+13. ICD-10 AI outputs are proposals only. Every proposed mapping remains `proposed`; only authorized ADMIN/PMKP reviewers may validate it after checking the WHO ICD-10 tabular list and recording a validation reference. Ambiguous shorthand is never auto-approved.
+
+## Clinical intelligence and ICD-10 workflow
+
+- `aureka_nara_clinical_summary` performs SQL-side MRN deduplication and returns only grouped diagnosis labels and counts, with access audit. The LLM receives no MRN or patient name.
+- Current clinical fallback is `patient_index.diagnosis_terakhir` (one latest diagnosis per patient) when no patient-episode rows are available. The response must state that provenance and limitations.
+- When episode-level diagnosis data are populated in `aureka_quality.quality_records` (`measurement_grain='patient_episode'`), the secure RPC will use those episode rows, count distinct patients and episodes separately, and preserve minimum-cell suppression.
+- ICD-10 suggestions use only the protected aggregate review queue. NARA calls the five-provider gateway, validates the model JSON and ICD code pattern, then stores results as `proposed` only. The UI requires an authorized reviewer to enter the official validation reference before marking a mapping `validated`.
+- Reference code set currently configured: WHO ICD-10 Version 2019. Check the official [WHO ICD-10 browser](https://icd.who.int/browse10/2019/en) for the final code/title/inclusion/exclusion notes.
 
 ## GitHub Actions deployment
 - Frontend: `.github/workflows/deploy-pages.yml` publishes static output to GitHub Pages from `main`.
