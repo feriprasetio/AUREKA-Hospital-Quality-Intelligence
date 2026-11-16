@@ -20,14 +20,14 @@ test('workspace data search remains scoped to visible record-like content', () =
   assert.match(source, /jumpToSearchResult/)
 })
 
-test('Admin chat, AI chat and all-room announcements share one communication hub', () => {
+test('NARA AI is the only assistant entrypoint; Admin chat and all-room announcements remain in the communication hub', () => {
   const source = read('components/HomeClient.tsx')
-  assert.match(source, /workspaceCommunicationTrigger/)
+  assert.doesNotMatch(source, /workspaceCommunicationTrigger/)
   assert.match(source, /workspaceCommunicationTabs/)
   assert.match(source, />Chat Admin</)
-  assert.match(source, />Chat AI</)
+  assert.doesNotMatch(source, />Chat AI</)
   assert.match(source, />Semua Ruangan</)
-  assert.match(source, /TanyaAureka sb=\{sb\} page=\{currentContainer\} embedded/)
+  assert.doesNotMatch(source, /TanyaAureka/)
   assert.match(source, /sendMassAnnouncement/)
   assert.match(source, /sys\(\)\.rpc\('send_mass_room_announcement'/)
   assert.match(source, /Pengumuman berhasil dikirim ke/)
