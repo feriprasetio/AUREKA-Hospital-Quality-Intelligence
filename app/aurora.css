@@ -1127,3 +1127,13 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmSortBtn { background: tra
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmSortBtn:hover { background: rgba(255, 255, 255, .06) !important; }
 /* Label sumbu sudah memuat arah; matikan sisipan lama "(5 → 1)". */
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .rmMatrixYAxis b::after { content: none !important; }
+/* Peta risiko: isi panel ada di .liquidGlassContent → beri jarak; matriks setinggi panel "Skor tertinggi"; tombol sejajar judul. */
+html body:not(#_) .workspaceRoot .rmMatrixLanding > .liquidGlassContent { display: flex; flex-direction: column; gap: 16px; }
+html body:not(#_) .workspaceRoot .rmLandHead { align-items: center !important; }
+html body:not(#_) .workspaceRoot .rmLandHead > div { max-width: 90ch !important; }
+html body:not(#_) .workspaceRoot .rmLandGrid { align-items: stretch !important; }
+html body:not(#_) .workspaceRoot .rmLandMatrix { display: flex; }
+html body:not(#_) .workspaceRoot .rmLandMatrix > .rmMatrixWrap { flex: 1; display: flex; flex-direction: column; margin: 0 !important; }
+html body:not(#_) .workspaceRoot .rmLandMatrix .rmMatrix { flex: 1; display: flex !important; flex-direction: column; gap: 6px; }
+html body:not(#_) .workspaceRoot .rmLandMatrix .rmMatrixRow { flex: 1; }
+html body:not(#_) .workspaceRoot .rmLandMatrix .rmMatrixCell { height: 100%; }
