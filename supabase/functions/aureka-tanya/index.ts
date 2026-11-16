@@ -140,7 +140,7 @@ async function snapshot(db: SupabaseClient) {
   const year = now.getUTCFullYear();
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
-  const [risks, plans, incidents, quality, roomsRes] = await Promise.all([
+  const [risks, plans, incidents, quality, roomsRes, governance] = await Promise.all([
     fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register")
       .select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date")
       .order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
@@ -150,6 +150,7 @@ async function snapshot(db: SupabaseClient) {
       .select("incident_type,type,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
+    db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null }),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
@@ -208,6 +209,7 @@ async function snapshot(db: SupabaseClient) {
       roomsRes.error && "daftar unit tidak dapat dibaca",
     ].filter(Boolean),
     daftar_unit_aktif: rooms.map((r) => r.name),
+    ikhtisar_governance_aureka: governance.error ? null : governance.data,
     manajemen_risiko: {
       total_risiko: safeScalar(risks.rows.length),
       per_level: safeCount(Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length]))),
