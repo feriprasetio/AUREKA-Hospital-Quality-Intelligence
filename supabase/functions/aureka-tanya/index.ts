@@ -154,7 +154,7 @@ async function snapshot(db: SupabaseClient) {
   const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics, clinical, indicatorProfiles, investigations, culture, oppe, recommendations, actions, priorities] = await Promise.all([
     fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
     fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans").select("status,target_date").order("id", { ascending: true }).range(f, t)),
-    fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
+    fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
     db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null }),
