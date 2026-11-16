@@ -43,7 +43,7 @@ test('NARA identity and the single-entry UI are consistent', () => {
   const home = read('components/HomeClient.tsx')
   const landing = read('components/HomeLandingWorkspace.tsx')
   assert.doesNotMatch(home, /Chat AI|supportTab==='ai'|workspaceCommunicationTrigger|TanyaAureka/)
-  assert.match(home, /Chat Admin/)
+  assert.match(home, /Pesan Admin/)
   assert.doesNotMatch(landing, /TanyaAureka|hlAi/)
   const nara = read('components/NaraAIWorkspace.tsx')
   assert.match(nara, /Diagnosis & ICD-10/)
