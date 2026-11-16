@@ -552,7 +552,7 @@ export default function FppeEvaluationWorkspace({
         {evaluationStatusSummary.length ? evaluationStatusSummary.map(item=><div key={item.status} style={{display:'grid',gridTemplateColumns:'minmax(115px,1fr) minmax(90px,2fr) 34px',gap:9,alignItems:'center',margin:'9px 0',fontSize:12}}>
           <span>{item.label}</span><span style={{height:8,borderRadius:99,background:'var(--line,#dce5ed)',overflow:'hidden'}}><i style={{display:'block',height:'100%',width:(filtered.length?item.count/filtered.length*100:0)+'%',background:'#16507a',borderRadius:99}}/></span><b>{item.count}</b>
         </div>) : <div className="fppeEmpty">Belum ada rekaman FPPE pada filter ini.</div>}
-        <p className="fppeMuted">Denominator: {filtered.length} rekaman FPPE pada unit dan pencarian saat ini. Distribusi status administratif; bukan kesimpulan kompetensi tenaga.</p>
+        <p className="fppeMuted">Dihitung dari {filtered.length} rekaman FPPE pada unit dan pencarian saat ini. Distribusi status administratif; bukan kesimpulan kompetensi tenaga.</p>
       </section>
       <details className="workspaceSummary fppeHistorySummary" open={search.trim() ? true : undefined}>
         <summary><b>Riwayat & ekspor evaluasi</b><span>{roster.length} tenaga pada roster unit · {loading ? 'Memuat riwayat…' : `${filtered.length} rekaman FPPE`}</span></summary>
