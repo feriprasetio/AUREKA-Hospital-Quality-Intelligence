@@ -4,6 +4,8 @@ import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewpor
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useEffect, useMemo, useState } from 'react'
+import AurekaModal from '@/components/ui/AurekaModal'
+import SpcChart from '@/components/quality/SpcChart'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { compareToTarget } from '@/lib/aureka/indicator-engine'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
@@ -375,6 +377,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     }
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'))
   }, [indicatorResults]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
   const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => categoryOf(result) === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
@@ -654,7 +657,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <thead><tr>{roomId == null && <th>Unit kerja</th>}<th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     {roomId == null && <td><strong>{rooms.find((room) => Number(room.id) === Number(result.profile.room_id))?.name ?? 'Unit tidak diketahui'}</strong></td>}
-                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small></td>
+                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
                     {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '-'}</small></td>)}
                     <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
@@ -662,7 +665,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small></td>
                   </tr>)}</tbody>
                 </table></WorkspaceTableViewport>}
-              
+              <AurekaModal open={!!spcFor} size="lg" onClose={() => setSpcFor(null)}
+                title={spcFor ? (spcFor.profile.code ? spcFor.profile.code + ' · ' : '') + (spcFor.profile.title ?? 'Indikator') : ''}
+                subtitle={spcFor ? 'Grafik kendali ' + year + ' · ' + (rooms.find((room) => Number(room.id) === Number(spcFor.profile.room_id))?.name ?? selectedRoomName) + ' · target ' + targetLabel(spcFor.profile) : ''}>
+                {spcFor && <SpcChart
+                  percent={!spcFor.continuous && spcFor.kind !== 'ratio'}
+                  unit={spcFor.continuous ? (spcFor.unit ? ' ' + spcFor.unit : '') : '%'}
+                  target={(() => { const t = Number(spcFor.profile.target_value); return spcFor.profile.target_value != null && spcFor.profile.target_value !== '' && Number.isFinite(t) ? t : null })()}
+                  points={spcFor.monthly.map((m) => spcFor.continuous ? { month: m.month, value: m.mean } : { month: m.month, value: m.rate, numerator: m.numerator, denominator: m.denominator })} />}
+              </AurekaModal>
               </section>
               {pharmacyMetricSummary && <section className="qraPanel" aria-label="Rekap capaian indikator Farmasi">
                 <div className="qraPanelHead">
