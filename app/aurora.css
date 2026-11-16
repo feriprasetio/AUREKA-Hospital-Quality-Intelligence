@@ -1530,3 +1530,26 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .icList li { border-color: r
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icList li.empty { background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .3); }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icMsg { color: #67e8f9; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .ifReportBtn { background: #eef2f7 !important; color: #0f1218 !important; }
+
+/* Mode gelap: lembar form/popup harus padat (sebelumnya tembus pandang sehingga isi halaman di belakang ikut terbaca). */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .acdDrawer, .aqEditorDialog) { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 255, 255, .1) !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .aqEditorDialog) > .liquidGlass { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.psModalTop, .psModalBar, .psFormFooter) { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .psModalBackdrop { background: rgba(5, 8, 13, .72) !important; }
+
+/* Saat sesi login sedang diperiksa: jangan kedipkan halaman depan, tampilkan layar muat singkat. */
+html[data-ak-booting] .a2-landing { visibility: hidden !important; }
+html[data-ak-booting] body::after {
+  content: ""; position: fixed; inset: 0; z-index: 9999;
+  background: #f4f8fb;
+}
+html[data-ak-booting] body::before {
+  content: ""; position: fixed; z-index: 10000; left: 50%; top: 50%;
+  width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+  border: 3px solid rgba(14, 116, 144, .18); border-top-color: #0e7490;
+  animation: akBootSpin .8s linear infinite;
+}
+html[data-ak-booting][data-mode="gelap"] body::after { background: #0d131d; }
+html[data-ak-booting][data-mode="gelap"] body::before { border-color: rgba(34, 211, 238, .2); border-top-color: #22d3ee; }
+@keyframes akBootSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { html[data-ak-booting] body::before { animation-duration: 2.4s; } }
