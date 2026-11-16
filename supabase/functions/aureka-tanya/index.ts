@@ -144,27 +144,26 @@ async function snapshot(db: SupabaseClient) {
   const year = now.getUTCFullYear();
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
-  const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics] = await Promise.all([
-    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register")
-      .select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date")
-      .order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
-    fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans")
-      .select("status,target_date").order("id", { ascending: true }).range(f, t)),
-    fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents")
-      .select("incident_type,type,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
+  const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics, clinical, indicatorProfiles, investigations, culture, oppe, recommendations, actions, priorities] = await Promise.all([
+    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
+    fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans").select("status,target_date").order("id", { ascending: true }).range(f, t)),
+    fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
     db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null }),
-    fetchAll<FmeaRow>((f, t) => db.schema("aureka_risk").from("fmea_analyses")
-      .select("unit_name,priority,status,rpn").order("rpn", { ascending: false }).range(f, t)),
-    fetchAll<StaffRow>((f, t) => db.schema("aureka_quality").from("staff_directory")
-      .select("profession_group,directory_status,source_unit").order("id", { ascending: true }).range(f, t)),
-    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_pathway_audits")
-      .select("status,template_code").order("created_at", { ascending: false }).range(f, t)),
-    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_death_audits")
-      .select("status,audit_type,overall_care_score,avoidability_score").order("created_at", { ascending: false }).range(f, t)),
-    fetchAll<IgdMetricRow>((f, t) => db.schema("aureka_quality").from("igd_consultation_audits")
-      .select("source_performance_label,calculated_elapsed_minutes,profile_year").eq("profile_year", year).order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<FmeaRow>((f, t) => db.schema("aureka_risk").from("fmea_analyses").select("unit_name,priority,status,rpn").order("rpn", { ascending: false }).range(f, t)),
+    fetchAll<StaffRow>((f, t) => db.schema("aureka_quality").from("staff_directory").select("profession_group,directory_status,source_unit").order("id", { ascending: true }).range(f, t)),
+    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_pathway_audits").select("status,template_code").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_death_audits").select("status,audit_type,overall_care_score,avoidability_score").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<IgdMetricRow>((f, t) => db.schema("aureka_quality").from("igd_consultation_audits").select("source_performance_label,calculated_elapsed_minutes,profile_year").eq("profile_year", year).order("created_at", { ascending: false }).range(f, t)),
+    db.rpc("aureka_nara_clinical_summary", { p_year: year, p_room: null, p_limit: 10 }),
+    fetchAll<IndicatorProfileRow>((f, t) => db.schema("aureka_quality").from("indicator_profiles").select("profile_year,code,unit_name,title,category,target_text,measurement_grain,status,is_active").eq("profile_year", year).order("code", { ascending: true }).range(f, t)),
+    fetchAll<InvestigationRow>((f, t) => db.schema("aureka_patient_safety").from("investigations").select("status,created_at").order("created_at", { ascending: false }).range(f, t)),
+    fetchAll<CultureRow>((f, t) => db.schema("aureka_patient_safety").from("culture_responses").select("survey_period,unit_name,profession_group,answered_item_count").order("response_id", { ascending: true }).range(f, t)),
+    fetchAll<OppeRow>((f, t) => db.schema("aureka_quality").from("oppe_fppe_evaluations").select("evaluation_type,status,profession_snapshot,unit_snapshot,period_start,period_end").order("id", { ascending: true }).range(f, t)),
+    fetchAll<RecommendationRow>((f, t) => db.schema("aureka_governance").from("recommendations").select("source,priority,program_year,status,issued_by_level").eq("program_year", year).order("id", { ascending: true }).range(f, t)),
+    fetchAll<ActionRow>((f, t) => db.schema("aureka_governance").from("actions").select("responsible_level,assigned_room_id,due_date,status,improvement_method").order("id", { ascending: true }).range(f, t)),
+    fetchAll<PriorityRow>((f, t) => db.schema("aureka_governance").from("annual_priority_areas").select("program_year,priority,status,owner_room_id,due_date").eq("program_year", year).order("id", { ascending: true }).range(f, t)),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
