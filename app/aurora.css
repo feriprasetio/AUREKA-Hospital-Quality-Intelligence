@@ -1527,15 +1527,15 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.icPrimary, .icList butt
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icGhost { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); color: #eef2f7; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icMeter { background: rgba(255, 255, 255, .08); }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .icList li { border-color: rgba(255, 255, 255, .08); }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .icList li.empty { background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .3); }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .icMsg { color: #67e8f9; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .ifReportBtn { background: #eef2f7 !important; color: #0f1218 !important; }
+html[data-mode="gelap"] body:not(#_) .icList li.empty { background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .3); }
+html[data-mode="gelap"] body:not(#_) .icMsg { color: #67e8f9; }
+html[data-mode="gelap"] body:not(#_) .ifReportBtn { background: #eef2f7 !important; color: #0f1218 !important; }
 
 /* Mode gelap: lembar form/popup harus padat (sebelumnya tembus pandang sehingga isi halaman di belakang ikut terbaca). */
-html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .acdDrawer, .aqEditorDialog) { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 255, 255, .1) !important; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .aqEditorDialog) > .liquidGlass { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.psModalTop, .psModalBar, .psFormFooter) { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .psModalBackdrop { background: rgba(5, 8, 13, .72) !important; }
+html[data-mode="gelap"] body:not(#_) :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .acdDrawer, .aqEditorDialog) { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 255, 255, .1) !important; }
+html[data-mode="gelap"] body:not(#_) :is(.psModalSheet, .rmModalSheet, .oppeModal, .sdEditDialog, .aqEditorDialog) > .liquidGlass { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-mode="gelap"] body:not(#_) :is(.psModalTop, .psModalBar, .psFormFooter) { background: #121925 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-mode="gelap"] body:not(#_) .psModalBackdrop { background: rgba(5, 8, 13, .72) !important; }
 
 /* Saat sesi login sedang diperiksa: jangan kedipkan halaman depan, tampilkan layar muat singkat. */
 html[data-ak-booting] .a2-landing { visibility: hidden !important; }
