@@ -1125,3 +1125,5 @@ html body:not(#_) .workspaceRoot .rmLevelChip.on > span { color: #fff !important
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmLevelChip.on > span { color: #0f1218 !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmSortBtn { background: transparent !important; border: 0 !important; box-shadow: none !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .rmSortBtn:hover { background: rgba(255, 255, 255, .06) !important; }
+/* Label sumbu sudah memuat arah; matikan sisipan lama "(5 → 1)". */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot .rmMatrixYAxis b::after { content: none !important; }
