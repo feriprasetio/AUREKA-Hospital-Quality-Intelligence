@@ -29,7 +29,7 @@ const SUGGESTIONS = [
   'Unit mana saja yang belum input logbook triwulan ini?',
   'Jelasin dong beda KTD, KNC, KTC, dan KPC',
 ]
-const STORE_KEY = 'aureka-tanya-history'
+const STORE_KEY = 'nara-ai-history'
 
 /** Render teks jawaban AI secara aman (tanpa HTML): paragraf, poin, dan **tebal**. */
 function renderAnswer(text: string): ReactNode {
@@ -261,11 +261,11 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
         <button type="button" className="tanyaGhost" onClick={saveChat} title="Unduh percakapan sebagai file teks">Simpan</button>
         <button type="button" className="tanyaGhost danger" onClick={clearChat} title="Hapus riwayat chat di perangkat ini">Hapus</button>
       </>}
-      <button type="button" className="tanyaClose" aria-label="Tutup Tanya AUREKA" onClick={() => setOpen(false)}>×</button>
+      <button type="button" className="tanyaClose" aria-label={'Tutup ' + assistantName} onClick={() => setOpen(false)}>×</button>
     </header>}
     {!staged && <div className="tanyaList" ref={listRef} aria-live="polite">
       {msgs.length === 0 && <div className="tanyaWelcome">
-        <p>Halo, Aku {assistantName === 'Tanya AUREKA' ? 'AUREKA' : assistantName}, rekan kerjamu untuk urusan mutu, keselamatan pasien, dan risiko. Mau ngobrol, tanya istilah, atau cek data unit, langsung tulis aja ya.</p>
+        <p>Halo, Aku {assistantName}, rekan kerjamu untuk urusan mutu, keselamatan pasien, dan risiko. Mau ngobrol, tanya istilah, atau cek data unit, langsung tulis aja ya.</p>
         <div className="tanyaChips">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => void ask(s)}>{s}</button>)}</div>
       </div>}
       {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '') + (showAvatar && m.role === 'model' ? ' naraModelMsg' : '')}>
