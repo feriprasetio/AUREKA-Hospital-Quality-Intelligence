@@ -1031,3 +1031,9 @@ html body:not(#_) .workspaceRoot .cpLibFilter button.on > span { background: rgb
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibFilter button.on > span { background: rgba(15, 18, 24, 0.14) !important; color: #0f1218 !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibStatus.draft { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .cpLibStatus.retired { background: rgba(255, 255, 255, 0.08); color: #aab6c6; }
+
+/* Audit kontras mode gelap: tombol utama (liquidButton) teks putih di biru muda hanya 2.7:1 → pakai tombol terang bertinta gelap seperti tombol utama lain. */
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .liquidButton button:not(:disabled) { background: #eef2f7 !important; background-image: none !important; color: #0f1218 !important; border-color: transparent !important; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .liquidButton button:not(:disabled):hover { background: #ffffff !important; }
+html body:not(#_) .workspaceRoot .qsReviewNote { margin-top: 5px; color: #a83232; font-size: 12px; font-weight: 750; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .qsReviewNote { color: #fca5a5; }
