@@ -27,7 +27,8 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.ok(layout.indexOf("import './proportional-ui.css'") > layout.indexOf("import './landing-motion.css'"))
   const imports = [...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m=>m[1])
   assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'))
-  assert.equal(imports.at(-1), 'aureka-global-navigation.css')
+  assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'))
+  assert.equal(imports.at(-1), 'aureka-universal-tabs.css')
 })
 
 test('Super Admin uses a compact static tab rail and a module-only sidebar', () => {
@@ -42,7 +43,7 @@ test('Super Admin uses a compact static tab rail and a module-only sidebar', () 
   assert.ok(homeClient.includes('UnifiedModuleNavigation'))
   assert.ok(homeClient.includes("activeNestedNavGroup"))
   assert.ok(homeClient.includes("activeRailTitle"))
-  assert.ok(homeClient.includes("const activeRailItems=activeNavGroups.flatMap(group=>"))
+  assert.ok(homeClient.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'sidebarTreeChildren', 'closedNav', 'toggleNav(']) assert.ok(!homeClient.includes(legacy))
   assert.ok(homeClient.includes('aria-label="Navigasi modul AUREKA"'))
   assert.ok(navCss.includes(".workspaceNavigationRail"))

@@ -36,7 +36,8 @@ test('context navigation reuses authorized sidebar destinations and includes a n
 test('submodule navigation participates in history without discarding legacy quality paths', () => {
   assert.match(home, /const \[modulePath,section\]=path\.split\('\/'\)/)
   assert.match(home, /requiredRoles\.includes\(\(role\|\|''\) as AurekaRole\)/)
-  assert.match(home, /if\(section\)hash\+='\/'\+section/)
+  assert.match(home, /if\(section\)\{hash\+='\/'\+section;if\(active==='patients'&&patientsSection==='register'\)hash\+='\/'\+\(patientsRegistryTab==='records'\?'rekapan-pasien':'tambah-pasien'\)\}/)
+  assert.match(home, /path\.split\('\/'\)\[2\]==='rekapan-pasien'/)
   assert.match(home, /audit-indikator\|clinical-pathway\|audit-klinis-dan-kematian/)
   assert.match(home, /window\.addEventListener\('hashchange',onHashChange\)/)
   for (const [module, setter] of [['PatientSafetyWorkspace', 'setSafetyTab'], ['RiskManagementWorkspace', 'setRiskTab']]) {

@@ -10,7 +10,8 @@ test('animation layers load after visual theme and component styles', () => {
   assert.ok(imports.indexOf('landing-motion.css') > imports.indexOf('modal.css'))
   assert.ok(imports.indexOf('motion.css') < imports.indexOf('aureka-navigation-consolidated.css'), 'motion layer loads before final navigation overrides')
   assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'), 'global navigation tokens supersede legacy navigation rules')
-  assert.equal(imports.at(-1), 'aureka-global-navigation.css', 'global navigation styles load after legacy and mobile theme layers')
+  assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'), 'universal module tabs load after global navigation')
+  assert.equal(imports.at(-1), 'aureka-universal-tabs.css', 'universal navigation rules are the final workspace tab cascade')
 })
 
 test('risk-matrix animation selectors are valid and cover staggered rows', () => {

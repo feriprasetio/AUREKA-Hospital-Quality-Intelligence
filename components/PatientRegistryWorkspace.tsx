@@ -145,6 +145,8 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms,
   lockRoomScope = false,
   section,
+  registryTab,
+  onRegistryTabChange,
 }: {
   rooms: Room[]
   initialRoomId: number | null
@@ -154,9 +156,16 @@ export default function PatientRegistryWorkspace({
   lockRoomScope?: boolean
   /** Blueprint v2 §1/§2: submenu Pasien — Register Pasien, Statistik, Metadata Pasien */
   section?: 'register' | 'stats' | 'metadata'
+  registryTab?: 'add' | 'records'
+  onRegistryTabChange?: (tab: 'add' | 'records') => void
 }) {
-  const [tab, setTab] = useState<'add' | 'records' | 'database' | 'stats'>(section === 'stats' ? 'stats' : section === 'metadata' ? 'database' : 'add')
-  useEffect(() => { if (section === 'stats') setTab('stats'); else if (section === 'metadata') setTab('database'); else if (section === 'register') setTab((t) => (t === 'records' ? 'records' : 'add')) }, [section])
+  const [tab, setTab] = useState<'add' | 'records' | 'database' | 'stats'>(registryTab ?? (section === 'stats' ? 'stats' : section === 'metadata' ? 'database' : 'add'))
+  const selectRegistryTab = (next: 'add' | 'records') => { setTab(next); onRegistryTabChange?.(next) }
+  useEffect(() => {
+    if (section === 'stats') setTab('stats')
+    else if (section === 'metadata') setTab('database')
+    else if (section === 'register') setTab(registryTab ?? 'add')
+  }, [section, registryTab])
   // Super Admin mengikuti unit global; PMKP dapat memilih Semua Unit atau unit tertentu.
   const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
@@ -297,14 +306,14 @@ export default function PatientRegistryWorkspace({
         @media(max-width:760px){.prAnalytics{grid-template-columns:1fr}.prAnalyticsHead{display:block}.prAnalyticsHead>b{display:inline-block;margin-top:6px}}
         @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      {(!section || section === 'register') && <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => setTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => setTab('records')}>Rekapan Pasien</button>{!section && <><button type="button" role="tab" aria-selected={tab === 'stats'} className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}>Statistik</button><button type="button" role="tab" aria-selected={tab === 'database'} className={tab === 'database' ? 'active' : ''} onClick={() => setTab('database')}>Metadata Pasien</button></>}</nav>}
+      {!section && <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => selectRegistryTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => selectRegistryTab('records')}>Rekapan Pasien</button>{!section && <><button type="button" role="tab" aria-selected={tab === 'stats'} className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}>Statistik</button><button type="button" role="tab" aria-selected={tab === 'database'} className={tab === 'database' ? 'active' : ''} onClick={() => setTab('database')}>Metadata Pasien</button></>}</nav>}
       {tab === 'database' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'stats' ? <PatientStatsTab rooms={rooms} roomId={Number(roomFilter) || null} year={Number(year)} onYearChange={(y) => setYear(String(y))} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(Number(roomFilter)||initialRoomId||'all')} initialRoomId={Number(roomFilter)||initialRoomId||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <p className="psStatsLead">Episode pelayanan dari logbook unit · identitas disamarkan</p>
         <div className="prActions">
           <button className="prButton" type="button" onClick={async () => { if (showIdentity) { setShowIdentity(false); return } if (await requestSensitiveAccess('patient_identity', 'register-pasien:' + (roomFilter || 'semua-unit'), 'Tampilkan identitas pasien')) setShowIdentity(true); else setError('Role Anda tidak memiliki izin melihat identitas pasien, atau permintaan dibatalkan.') }}>{showIdentity ? 'Samarkan Identitas' : 'Tampilkan Identitas'}</button>
           <button className="prButton" type="button" onClick={() => downloadCsv(filtered, showIdentity)} disabled={!filtered.length}>Ekspor CSV</button>
-          <button className="prButton primary" type="button" onClick={() => setTab('add')}>Tambah Pasien</button>
+          <button className="prButton primary" type="button" onClick={() => selectRegistryTab('add')}>Tambah Pasien</button>
         </div>
       </header>
 
