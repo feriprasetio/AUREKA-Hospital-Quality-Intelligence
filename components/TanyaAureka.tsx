@@ -65,11 +65,11 @@ function renderAnswer(text: string): ReactNode {
 async function errorText(error: unknown): Promise<string> {
   const e = error as { name?: string; context?: Response; message?: string }
   if (e?.context && typeof e.context.json === 'function') {
-    if (e.context.status === 404) return 'Tanya AUREKA belum diaktifkan di server. Super Admin perlu men-deploy fungsi "aureka-tanya".'
+    if (e.context.status === 404) return 'NARA AI belum diaktifkan di server. Super Admin perlu men-deploy fungsi "aureka-tanya".'
     try { const body = await e.context.json(); if (body?.error) return String(body.error) + (body.detail ? ' (' + String(body.stage || '') + ': ' + String(body.detail) + ')' : '') } catch { /* abaikan */ }
   }
-  if (e?.name === 'FunctionsFetchError') return 'Tanya AUREKA belum dapat dihubungi. Periksa koneksi, atau fungsi server belum diaktifkan.'
-  return 'Pertanyaan belum dapat dijawab. Coba lagi sebentar lagi.'
+  if (e?.name === 'FunctionsFetchError') return 'NARA AI belum dapat dihubungi. Periksa koneksi, atau fungsi server belum diaktifkan.'
+  return 'Pertanyaan Anda belum dapat dijawab NARA. Coba lagi sebentar lagi.'
 }
 
 function NaraAvatar({ size = 34 }: { size?: number }) {
@@ -90,7 +90,7 @@ function NaraAvatar({ size = 34 }: { size?: number }) {
 export type TanyaStage = { title: string; subtitle: string; starters: { label: string; prompt: string; icon?: ReactNode }[] }
 export type TanyaMessage = Msg
 
-export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'Tanya AUREKA', assistantSubtitle = 'Asisten AI · membaca data sesuai hak akses Anda', showAvatar = false, initialPrompt, storageScope, onMessages, stage }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string; /** Riwayat terpisah (mis. satu percakapan NARA); tanpa ini riwayat dibagi dengan Tanya AUREKA. */ storageScope?: string; onMessages?: (msgs: Msg[]) => void; /** Tampilan awal ala aplikasi chat: sapaan besar + kotak tanya di tengah. */ stage?: TanyaStage }) {
+export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'NARA AI', assistantSubtitle = 'Hospital Intelligence Assistant · data sesuai hak akses Anda', showAvatar = false, initialPrompt, storageScope, onMessages, stage }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string; /** Riwayat terpisah (mis. satu percakapan NARA); tanpa ini riwayat dibagi dengan Tanya AUREKA. */ storageScope?: string; onMessages?: (msgs: Msg[]) => void; /** Tampilan awal ala aplikasi chat: sapaan besar + kotak tanya di tengah. */ stage?: TanyaStage }) {
   const [open, setOpen] = useState(embedded)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')
@@ -142,7 +142,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
 
   const clearChat = async () => {
     if (!msgs.length) return
-    if (!(await aurekaConfirm('Hapus seluruh riwayat chat Tanya AUREKA di perangkat ini?', { danger: true }))) return
+    if (!(await aurekaConfirm('Hapus seluruh riwayat percakapan NARA AI di perangkat ini?', { danger: true }))) return
     setMsgs([])
   }
   const saveChat = () => {
@@ -158,7 +158,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'tanya-aureka-' + stamp.toISOString().slice(0, 16).replace(/[T:]/g, '-') + '.txt'
+    a.download = 'nara-ai-' + stamp.toISOString().slice(0, 16).replace(/[T:]/g, '-') + '.txt'
     document.body.appendChild(a)
     a.click()
     a.remove()
@@ -302,11 +302,11 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     <p className="tanyaNote">Jawaban AI bisa keliru, cek kembali angka penting di modul terkait. Identitas pasien tidak dikirim ke AI.</p>
   </section>
 
-  const fab = <button type="button" className={'tanyaFab' + (open ? ' on' : '')} title="Tanya AUREKA" aria-label={open ? 'Tutup Tanya AUREKA' : 'Tanya AUREKA'} aria-expanded={open} onClick={() => setOpen(v => !v)}>
+  const fab = <button type="button" className={'tanyaFab' + (open ? ' on' : '')} title={assistantName} aria-label={open ? 'Tutup ' + assistantName : assistantName} aria-expanded={open} onClick={() => setOpen(v => !v)}>
     {open
       ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
       : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg>}
-    {!open && <span className="tanyaFabLabel">Tanya AUREKA</span>}
+    {!open && <span className="tanyaFabLabel">{assistantName}</span>}
   </button>
 
   if (embedded) return panel
