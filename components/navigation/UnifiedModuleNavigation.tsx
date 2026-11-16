@@ -39,7 +39,12 @@ export default function UnifiedModuleNavigation({
   pageHint,
 }: UnifiedModuleNavigationProps) {
   const [hintsHidden, setHintsHidden] = useState(false)
-  useEffect(() => { try { setHintsHidden(localStorage.getItem('aureka-hide-hints') === '1') } catch { /* abaikan */ } }, [])
+  useEffect(() => {
+    const read = () => { try { setHintsHidden(localStorage.getItem('aureka-hide-hints') === '1') } catch { /* abaikan */ } }
+    read()
+    window.addEventListener('aureka-hints-change', read)
+    return () => window.removeEventListener('aureka-hints-change', read)
+  }, [])
   const toggleHints = (hide: boolean) => { setHintsHidden(hide); try { if (hide) localStorage.setItem('aureka-hide-hints', '1'); else localStorage.removeItem('aureka-hide-hints') } catch { /* abaikan */ } }
   const railRef = useRef<HTMLElement>(null)
   const titleRef = useRef<HTMLSpanElement>(null)
@@ -216,12 +221,11 @@ export default function UnifiedModuleNavigation({
         })}
       </div>
     )}
-    {pageHint && (hintsHidden
-      ? <button type="button" className="workspacePageHintShow" onClick={() => toggleHints(false)} aria-label="Tampilkan penjelasan halaman">ⓘ</button>
-      : <p className="workspacePageHint" role="note">
+    {pageHint && !hintsHidden && (
+      <p className="workspacePageHint" role="note">
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" /><path d="M10 9v5M10 6.2v.3" /></svg>
           <span>{pageHint}</span>
-          <button type="button" onClick={() => toggleHints(true)} aria-label="Sembunyikan penjelasan halaman" title="Sembunyikan penjelasan">×</button>
+          <button type="button" onClick={() => toggleHints(true)} aria-label="Sembunyikan penjelasan halaman" title="Sembunyikan penjelasan (bisa dimunculkan lagi di Pengaturan → Preferensi Tampilan)">×</button>
         </p>)}
     </>
   )

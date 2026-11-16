@@ -1018,6 +1018,7 @@ function AppearancePanel() {
       <h4 style={{ marginTop: 18 }}>Bantuan</h4>
       <div className="akHelpRow">
         <button type="button" className="akInstallBtn ghost" onClick={() => window.dispatchEvent(new Event('aureka-open-tour'))}>Buka panduan singkat</button>
+        <button type="button" className="akInstallBtn ghost" onClick={() => { try { localStorage.removeItem('aureka-hide-hints') } catch { /* abaikan */ } window.dispatchEvent(new Event('aureka-hints-change')) }}>Tampilkan lagi penjelasan halaman</button>
         <InstallAppButton />
       </div>
     </LiquidGlass>

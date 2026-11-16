@@ -72,7 +72,7 @@ const css = [
 '.ifNote,.ifEmpty{margin:0;color:var(--ak-muted,#73849a);font-size:12px;line-height:1.55}',
 '.ifLoading,.ifError{padding:12px 14px;border-radius:10px;font-size:12px}.ifLoading{background:rgba(112,139,166,.08);color:var(--ak-muted,#73849a)}.ifError{background:#fff5e8;color:#88591e}',
 '@media(max-width:980px){.ifKpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}',
-'@media(max-width:620px){.ifHero{display:grid;padding:14px}.ifHero h2{font-size:17px}.ifKpiGrid,.ifLowerGrid{grid-template-columns:1fr 1fr}.ifFilters{width:100%}.ifFilters label{flex:1}.ifFilters select{width:100%;min-width:0}.ifChartToolbar{display:grid}.ifChartToolbar .ifChartChoice{min-width:0}.ifTypeSwitch{width:100%;justify-content:space-between}.ifTypeSwitch button{flex:1}.ifChartSvg{min-height:160px}}',
+'@media(max-width:620px){.ifHero{display:grid;padding:14px}.ifHero h2{font-size:17px}.ifKpiGrid{grid-template-columns:1fr 1fr}.ifLowerGrid{grid-template-columns:1fr}.ifFilters{width:100%}.ifFilters label{flex:1}.ifFilters select{width:100%;min-width:0}.ifChartToolbar{display:grid}.ifChartToolbar .ifChartChoice{min-width:0}.ifTypeSwitch{width:100%;justify-content:space-between}.ifTypeSwitch button{flex:1}.ifChartSvg{min-height:160px}}',
 '@media(max-width:380px){.ifKpiGrid,.ifLowerGrid{grid-template-columns:1fr}}'
 ].join('')
 
@@ -286,12 +286,12 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         <div className="ifInsight"><b>Catatan interpretasi:</b> {activeChart.insight}</div>
       </section>}
       <div className="ifLowerGrid">
-        <section className="ifMiniCard"><h3>Episode klinis menurut kategori indikator</h3><p>Distribusi agregat patient_episode. Satu episode dapat dihitung pada lebih dari satu kategori.</p><Distribution items={summary.clinical.categories || []}/></section>
+        <section className="ifMiniCard"><h3>Episode klinis menurut kategori indikator</h3><p>Jumlah episode pasien per kategori. Satu episode dapat dihitung pada lebih dari satu kategori.</p><Distribution items={summary.clinical.categories || []}/></section>
         <section className="ifMiniCard"><h3>Distribusi indikator menurut kategori</h3><p>Jumlah master indikator per kategori; bukan nilai capaian indikator.</p><Distribution items={summary.quality.categories || []}/></section>
         {!qualityOnly && <section className="ifMiniCard"><h3>Profil tingkat risiko</h3><p>Jumlah risiko pada tiap level yang tercatat.</p><Distribution items={summary.risk.levels || []}/></section>}
         {!qualityOnly && <section className="ifMiniCard"><h3>Komposisi kategori risiko</h3><p>Kategori dengan jumlah register terbesar.</p><Distribution items={summary.risk.categories || []}/></section>}
-        {!qualityOnly && <section className="ifMiniCard"><h3>Ringkasan program dan RTL</h3><p>Angka ringkasan tata kelola tahun {summary.year}.</p>
-          <div className="ifKpiGrid" style={{gridTemplateColumns:'repeat(2,minmax(0,1fr))'}}>
+        {!qualityOnly && <section className="ifMiniCard ifMiniWide"><h3>Ringkasan program dan RTL</h3><p>Angka ringkasan tata kelola tahun {summary.year}.</p>
+          <div className="ifProgramStats">
             <Kpi label="Rekomendasi" value={summary.program.recommendations}/>
             <Kpi label="Total RTL" value={summary.program.actions}/>
             <Kpi label="RTL selesai" value={summary.program.completed_actions}/>
@@ -300,6 +300,6 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       </div>
     </>}
     {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label}</button>)}</nav>}
-    <p className="ifNote">Sumber: agregasi server-side AUREKA. Nilai mengikuti filter periode, unit, dan hak akses. Bulan dengan 0 catatan menunjukkan belum ada record yang masuk, bukan nilai capaian 0%. Episode patient_episode ditampilkan sebagai domain klinis tersendiri. Volume laporan insiden tidak dapat ditafsirkan sebagai angka insidensi tanpa denominator paparan yang sesuai.</p>
+    <p className="ifNote">Angka dihitung otomatis dari data yang boleh Anda lihat, sesuai periode dan unit yang dipilih. Bulan berisi 0 berarti belum ada data masuk, bukan capaian 0%. Jumlah laporan insiden menunjukkan banyaknya laporan, bukan tingkat kejadian.</p>
   </section>
 }
