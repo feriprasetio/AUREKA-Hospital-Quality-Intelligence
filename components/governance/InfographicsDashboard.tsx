@@ -5,6 +5,7 @@ import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registr
 import { buildPeriodReportHtml, periodMonths, type ReportPeriod } from '@/lib/report/monthly-report'
 import type { NavigateFn } from '@/lib/aureka/focus'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import PresentationMode from '@/components/governance/PresentationMode'
 
 type Room = { id: number; name: string }
 type CountItem = { label: string; count: number }
@@ -189,6 +190,20 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   const [reportPeriod, setReportPeriod] = useState(() => 'm' + (new Date().getMonth() + 1))
   const parsedPeriod: ReportPeriod = reportPeriod === 'y' ? { kind: 'year' } : reportPeriod.startsWith('q') ? { kind: 'quarter', quarter: Number(reportPeriod.slice(1)) } : { kind: 'month', month: Number(reportPeriod.slice(1)) }
   const [reportBusy, setReportBusy] = useState(false)
+  const [presentOpen, setPresentOpen] = useState(false)
+  const [presentReported, setPresentReported] = useState<{ done: number; total: number; missing: string[] } | null>(null)
+  const openPresentation = () => {
+    setPresentReported(null)
+    setPresentOpen(true)
+    if (Number(year) !== new Date().getFullYear()) return
+    const month = new Date().getMonth() + 1
+    const scopeRooms = roomId == null ? rooms : rooms.filter((r) => Number(r.id) === roomId)
+    void aurekaSupabase.rpc('aureka_quality_room_reporting_status', { p_year: Number(year) }).then(({ data, error: e }) => {
+      if (e || !Array.isArray(data)) return
+      const done = new Set((data as any[]).filter((r) => Number(r.month) === month).map((r) => Number(r.room_id)))
+      setPresentReported({ done: scopeRooms.filter((r) => done.has(Number(r.id))).length, total: scopeRooms.length, missing: scopeRooms.filter((r) => !done.has(Number(r.id))).map((r) => r.name) })
+    })
+  }
   // Laporan bulanan PMKP: jendela baru dibuka langsung saat klik (agar tidak diblokir), lalu diisi.
   const openReport = async () => {
     if (!summary || reportBusy) return
@@ -288,6 +303,8 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
           <optgroup label="Tahunan"><option value="y">Satu tahun penuh</option></optgroup>
         </select></label>}
         {!qualityOnly && <button type="button" className="ifReportBtn" disabled={!summary || reportBusy} onClick={() => void openReport()}>{reportBusy ? 'Menyusun…' : 'Laporan PDF'}</button>}
+        {!qualityOnly && <button type="button" className="ifReportBtn ifPresentBtn" disabled={!summary} onClick={openPresentation} title="Tampilkan ringkasan sebagai slide layar penuh untuk rapat">Presentasi</button>}
+        {!qualityOnly && summary && <PresentationMode open={presentOpen} onClose={() => setPresentOpen(false)} summary={summary as any} year={Number(year)} scope={selectedRoomName} reported={presentReported} />}
       </div>
     </header>
     {error && <div className="ifError" role="alert">{error}</div>}

@@ -1662,3 +1662,49 @@ html body:not(#_) .workspaceRoot .hlRtlList li.more { display: block; background
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlRtlList li { background: rgba(255, 255, 255, .05); color: #fde2e2; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlRtlList li span, html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlRtlList li.more { color: #d9b8b8; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .hlRtlList li em { color: #fca5a5; }
+/* Mode presentasi rapat (layar penuh). */
+.pmRoot { --pm-bg: #f5f8fb; --pm-card: #ffffff; --pm-ink: #1f2430; --pm-muted: #5b6676; --pm-line: #dfe7f0; --pm-accent: #0e7490; --pm-danger: #dc2626; --pm-ok: #15803d;
+  position: fixed; inset: 0; z-index: 2147483000; display: grid; grid-template-rows: auto 1fr auto; background: var(--pm-bg); color: var(--pm-ink); font-family: var(--font-aureka, 'Plus Jakarta Sans', system-ui, sans-serif); padding: max(14px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
+html[data-mode="gelap"] .pmRoot { --pm-bg: #0d131d; --pm-card: #161d29; --pm-ink: #eef2f7; --pm-muted: #a3b0c2; --pm-line: rgba(255,255,255,.1); --pm-accent: #22d3ee; --pm-danger: #f87171; --pm-ok: #4ade80; }
+.pmTop { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; color: var(--pm-muted); font-weight: 600; }
+.pmTop button, .pmNav button { font: inherit; cursor: pointer; border: 1px solid var(--pm-line); background: var(--pm-card); color: var(--pm-ink); border-radius: 10px; min-height: 40px; padding: 0 14px; font-weight: 700; }
+.pmSlide { align-self: center; justify-self: center; width: min(1180px, 100%); display: grid; gap: clamp(16px, 3vh, 32px); padding: clamp(8px, 2vh, 24px) 0; animation: pmIn .35s cubic-bezier(.2,.8,.2,1) both; min-height: 0; }
+@keyframes pmIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pmSlide { animation: none; } }
+.pmSlide h2 { margin: 0; font-size: clamp(26px, 4.2vw, 52px); letter-spacing: -.03em; line-height: 1.1; }
+.pmCover { display: grid; gap: 14px; text-align: left; }
+.pmCover span { color: var(--pm-accent); font-weight: 800; font-size: clamp(14px, 1.6vw, 20px); letter-spacing: .02em; }
+.pmCover h1 { margin: 0; font-size: clamp(36px, 6.5vw, 84px); letter-spacing: -.04em; line-height: 1.02; }
+.pmCover p { margin: 0; font-size: clamp(16px, 1.8vw, 22px); color: var(--pm-muted); }
+.pmStats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: clamp(10px, 1.5vw, 18px); }
+.pmStat { padding: clamp(14px, 2vw, 24px); border-radius: 18px; background: var(--pm-card); border: 1px solid var(--pm-line); display: grid; gap: 6px; }
+.pmStat span { font-size: clamp(13px, 1.3vw, 17px); color: var(--pm-muted); font-weight: 600; }
+.pmStat b { font-size: clamp(32px, 4.6vw, 64px); line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.pmStat.danger b { color: var(--pm-danger); } .pmStat.ok b { color: var(--pm-ok); }
+.pmBars { margin: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(4px, .8vw, 12px); align-items: end; height: clamp(160px, 30vh, 320px); padding: 18px 18px 10px; border-radius: 18px; background: var(--pm-card); border: 1px solid var(--pm-line); }
+.pmBar { height: 100%; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 6px; min-width: 0; }
+.pmBar em { font-style: normal; font-size: clamp(11px, 1vw, 14px); font-weight: 700; color: var(--pm-ink); min-height: 1em; }
+.pmBar i { align-self: end; width: 70%; border-radius: 6px 6px 2px 2px; background: var(--pm-accent); min-height: 2px; }
+.pmBar.future i { background: var(--pm-line); }
+.pmBar span { font-size: clamp(11px, 1vw, 14px); color: var(--pm-muted); }
+.pmBars figcaption { grid-column: 1 / -1; font-size: 13px; color: var(--pm-muted); padding-top: 6px; }
+.pmLevels { list-style: none; margin: 0; padding: 18px; border-radius: 18px; background: var(--pm-card); border: 1px solid var(--pm-line); display: grid; gap: 12px; }
+.pmLevels li { display: grid; grid-template-columns: minmax(110px, 220px) 1fr auto; gap: 14px; align-items: center; font-size: clamp(14px, 1.4vw, 18px); }
+.pmLevels i { height: 14px; border-radius: 99px; background: var(--pm-line); overflow: hidden; } .pmLevels i b { display: block; height: 100%; background: var(--pm-accent); border-radius: 99px; }
+.pmLevels strong { font-variant-numeric: tabular-nums; }
+.pmProgress { position: relative; height: 44px; border-radius: 99px; background: var(--pm-card); border: 1px solid var(--pm-line); overflow: hidden; }
+.pmProgress i { position: absolute; inset: 0 auto 0 0; background: var(--pm-ok); opacity: .85; }
+.pmProgress span { position: relative; display: grid; place-items: center; height: 100%; font-weight: 800; font-size: 16px; }
+.pmRooms { columns: 3 220px; margin: 0; padding-left: 20px; font-size: clamp(13px, 1.3vw, 17px); line-height: 1.7; }
+.pmBig { font-size: clamp(20px, 2.4vw, 30px); font-weight: 700; color: var(--pm-ok); margin: 0; }
+.pmMuted { color: var(--pm-muted); margin: 0; font-size: 15px; }
+.pmNotes { min-height: 40vh; padding: 20px; border-radius: 18px; background: var(--pm-card); border: 1px dashed var(--pm-line); font-size: clamp(16px, 1.8vw, 22px); line-height: 1.6; outline: none; }
+.pmNotes:focus { border-color: var(--pm-accent); }
+.pmNav { display: flex; justify-content: center; align-items: center; gap: 12px; }
+.pmNav button:disabled { opacity: .35; cursor: default; }
+.pmDots { display: flex; gap: 6px; }
+.pmDots button { min-height: 0; width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 0; background: var(--pm-line); }
+.pmDots button.on { background: var(--pm-accent); width: 26px; border-radius: 99px; }
+.pmCount { min-width: 44px; text-align: right; color: var(--pm-muted); font-size: 13px; font-weight: 700; }
+html body:not(#_) .ifPresentBtn { background: #0e7490; }
+html[data-mode="gelap"] body:not(#_) .ifPresentBtn { background: #22d3ee; color: #0f1218; }
