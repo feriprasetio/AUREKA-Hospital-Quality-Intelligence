@@ -140,7 +140,7 @@ async function snapshot(db: SupabaseClient) {
   const year = now.getUTCFullYear();
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
-  const [risks, plans, incidents, quality, roomsRes] = await Promise.all([
+  const [risks, plans, incidents, quality, roomsRes, governance] = await Promise.all([
     fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register")
       .select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date")
       .order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
@@ -150,6 +150,7 @@ async function snapshot(db: SupabaseClient) {
       .select("incident_type,type,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
     db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
+    db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null }),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
@@ -208,6 +209,7 @@ async function snapshot(db: SupabaseClient) {
       roomsRes.error && "daftar unit tidak dapat dibaca",
     ].filter(Boolean),
     daftar_unit_aktif: rooms.map((r) => r.name),
+    ikhtisar_governance_aureka: governance.error ? null : governance.data,
     manajemen_risiko: {
       total_risiko: safeScalar(risks.rows.length),
       per_level: safeCount(Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length]))),
@@ -241,6 +243,51 @@ async function snapshot(db: SupabaseClient) {
 type Turn = { role: string; parts: { text: string }[] };
 type AiResult = { answer: string; model: string } | { status: number; error: string };
 const BUSY = "Layanan AI sedang sibuk. Coba lagi sebentar lagi.";
+
+function isTopDiseaseQuery(question: string) {
+  const q = question.toLocaleLowerCase("id-ID");
+  return /\b(penyakit|diagnosis|diagnosa|disease)\b/.test(q)
+    && /\b(terbanyak|terbesar|teratas|paling banyak|most common|top\s*10|top ten|10\s*(penyakit|diagnosis|diagnosa|diseases?)|sepuluh)\b/.test(q);
+}
+function requestedYear(question: string, fallback: number) {
+  const match = /\b(20[0-9]{2})\b/.exec(question);
+  if (!match) return fallback;
+  const year = Number(match[1]);
+  return year >= 2000 && year <= 2100 ? year : fallback;
+}
+function formatTopDiseaseAnswer(data: Record<string, unknown>) {
+  const rows = Array.isArray(data.top_diagnoses) ? data.top_diagnoses as Record<string, unknown>[] : [];
+  const year = Number(data.year) || new Date().getFullYear();
+  const source = data.source_basis === "episode_records"
+    ? "rekap episode pasien pada Logbook AUREKA"
+    : data.source_basis === "patient_index_latest_diagnosis"
+      ? "diagnosis terakhir per pasien pada Database Pasien AUREKA"
+      : "sumber klinis yang dapat diakses";
+  const basis = data.source_basis === "episode_records"
+    ? "Peringkat diurutkan berdasarkan pasien unik (No. RM hanya digunakan di dalam basis data untuk deduplikasi); jumlah episode ditampilkan terpisah."
+    : "Peringkat berdasarkan pasien unik menurut diagnosis terakhir, bukan jumlah seluruh kunjungan atau riwayat diagnosis per episode.";
+  const lines = rows.map((row, i) => {
+    const diagnosis = String(row.diagnosis || "Diagnosis tidak bernama");
+    const patients = Number(row.patient_count) || 0;
+    const episodes = row.episode_count == null ? "" : " · " + String(row.episode_count) + " episode";
+    const code = row.coding_status === "validated" && row.icd10_code
+      ? "ICD-10 " + String(row.icd10_code) + " — tervalidasi"
+      : row.coding_status === "proposed" ? "Kode ICD-10 menunggu validasi" : "Belum memiliki kode ICD-10 tervalidasi";
+    return (i + 1) + ". **" + diagnosis + "** — " + patients + " pasien" + episodes + " · " + code;
+  });
+  const limitations = String(data.limitations || "");
+  const total = Number(data.patient_count) || 0;
+  const header = rows.length
+    ? "**10 diagnosis terbanyak — " + year + "**\nBasis data: " + source + ".\n" + basis
+    : "Belum ada kelompok diagnosis yang memenuhi ambang pelaporan minimal.";
+  return [
+    header, ...lines, "",
+    "Cakupan: " + (data.scope || "unit sesuai hak akses akun") + ". Total pasien pada basis analisis: " + total + ".",
+    "Perlindungan privasi: kelompok dengan jumlah kurang dari " + String(data.minimum_cell_size || 5) + " pasien tidak ditampilkan. Nomor rekam medis dan identitas pasien tidak ditampilkan maupun dikirim ke model.",
+    limitations,
+    "Catatan koding: kode hanya disebut tervalidasi bila sudah diperiksa reviewer. Diagnosis mentah yang ambigu harus ditelaah PMIK/DPJP sebelum dikunci sebagai ICD-10.",
+  ].filter(Boolean).join("\n\n");
+}
 const QUOTA = "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi.";
 
 /** Gemini: model utama, lalu model cadangan bila sibuk/kuota habis. */
@@ -363,7 +410,7 @@ async function handle(req: Request): Promise<Response> {
   });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GEMINI_API_KEY, GROQ_API_KEY, atau NVIDIA_API_KEY dengan kode kunci saja)." });
+  if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "NARA AI belum dikonfigurasi di server (isi secret GEMINI_API_KEY, GROQ_API_KEY, atau NVIDIA_API_KEY dengan kode kunci saja)." });
 
   const authHeader = req.headers.get("Authorization") || "";
   if (!/^Bearer\s+\S+/i.test(authHeader)) return reply(401, { error: "Sesi tidak ditemukan. Silakan masuk kembali." });
@@ -403,6 +450,23 @@ async function handle(req: Request): Promise<Response> {
   if (sensitivePatterns.some((pattern) => pattern.test(outboundText))) {
     return reply(422, { error: "Permintaan ditahan oleh NARA Privacy Guard. Hapus identitas pasien/petugas, nomor rekam medis, NIK, kontak, dan detail pengenal dari pertanyaan maupun riwayat sebelum mencoba kembali." });
   }
+
+  // Ranking diagnosis dihitung di database yang memeriksa JWT dan cakupan unit.
+  // Agregat diagnosis tidak dikirim ke provider LLM eksternal.
+  if (isTopDiseaseQuery(question)) {
+    const year = requestedYear(question, new Date(Date.now() + 7 * 3600 * 1000).getUTCFullYear());
+    const { data: clinical, error: clinicalError } = await db.rpc("aureka_nara_clinical_summary", {
+      p_year: year, p_room: null, p_limit: 10,
+    });
+    if (clinicalError || !clinical || typeof clinical !== "object") {
+      console.error("NARA clinical summary unavailable", clinicalError?.code || "unknown");
+      return reply(503, { error: "Analitik diagnosis belum dapat dibaca. Periksa migrasi NARA Clinical Intelligence dan hak akses unit." });
+    }
+    return reply(200, {
+      answer: formatTopDiseaseAnswer(clinical as Record<string, unknown>),
+      model: "database:clinical-analytics",
+    });
+  }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
   const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
@@ -414,7 +478,10 @@ async function handle(req: Request): Promise<Response> {
   if (!fresh && data) snapshotCache.set(who.user.id, { at: Date.now(), data });
   // Account identity is intentionally excluded from external model context.
   const system = [
-    "Kamu adalah NARA (AUREKA Intelligence), mesin kecerdasan internal AUREKA untuk membantu mutu, keselamatan pasien, manajemen risiko, statistik rumah sakit, dan tata kelola. Antarmuka tetap bernama Tanya AUREKA.",
+    "Kamu adalah NARA AI (AUREKA Intelligence), asisten intelijen rumah sakit untuk mutu, keselamatan pasien, manajemen risiko, statistik, tata kelola, dan dukungan keputusan.",
+    "Peringkat diagnosis dihitung oleh fungsi analitik klinis database; jangan meminta atau menebak No. RM, nama, NIK, atau identitas pasien.",
+    "Basis diagnosis terakhir per pasien tidak sama dengan seluruh episode. Sebutkan keterbatasan sumber secara eksplisit. Jangan mengklaim memiliki seluruh diagnosis DPJP jika episode klinis belum tersedia.",
+    "Kode ICD-10 hanya boleh disebut tervalidasi bila dictionary internal menyatakan mapping_status=validated. Jangan mengarang kode dari singkatan yang ambigu; tandai belum dikoding dan minta validasi PMIK/DPJP.",
     "GAYA BICARA:",
     "- Ngobrol seperti rekan kerja yang ramah sekaligus petugas layanan (CS) yang sigap: hangat, natural, sopan, tidak kaku, tidak seperti robot atau laporan resmi.",
     "- Ikuti gaya pengguna: kalau pengguna santai, jawab natural; kalau formal, jawab formal. Jangan menyebut nama pribadi pengguna.",
@@ -430,7 +497,7 @@ async function handle(req: Request): Promise<Response> {
     "6. Jangan pernah meminta, menebak, mengulang, atau menampilkan identitas pasien maupun petugas. Untuk masalah medis pasien perorangan, arahkan ke DPJP/tenaga kesehatan yang berwenang.",
     "7. DATA BOUNDARY: data yang tersedia di prompt telah diagregasi dan diminimalkan oleh backend. Jangan meminta data mentah, jangan menyarankan mengirim identitas, dan jangan mencoba merekonstruksi individu dari agregat.",
     "8. Angka kecil yang ditandai disembunyikan tidak boleh ditebak, dihitung balik, atau diungkap melalui kombinasi kategori.",
-    "9. Anda tidak memiliki akses database langsung dan tidak boleh mengklaim telah mengubah data atau menjalankan tindakan yang tidak dilakukan backend.",
+    "9. Analisis data dilakukan backend melalui fungsi database yang menguji autentikasi dan hak akses unit. Model hanya menerima konteks agregat yang telah diminimalkan; jangan meminta data mentah atau mengklaim telah mengubah data.",
     "10. Kamu tidak bisa mengubah data. Tapi kamu BISA menyiapkan draf pengingat/pesan ke PIC unit; pengguna yang memeriksa lalu menekan tombol Kirim (pesan masuk ke Chat unit di Pusat Komunikasi). Jika pengguna meminta mengirim pesan/pengingat ke unit tertentu (atau 'unit tersebut' dari percakapan sebelumnya), jawab singkat (1–2 kalimat, sebut bahwa dia tinggal cek lalu tekan Kirim), lalu tambahkan di AKHIR jawaban satu blok persis seperti ini tanpa code block: [[KIRIM_PENGINGAT]]{\"unit\":[\"Nama Unit 1\",\"Nama Unit 2\"],\"pesan\":\"isi pesan\"}[[/KIRIM_PENGINGAT]]. Nama unit harus persis dari daftar_unit_aktif. Pesan sopan, ringkas (maks 5 kalimat), sebut hal yang perlu dilengkapi dan periodenya, ditutup salam dari Komite PMKP. Jangan menyatakan pesan sudah terkirim.",
     "Pengguna adalah akun AUREKA yang telah terautentikasi; identitas akun tidak dikirim ke model." + (page ? " Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
@@ -453,7 +520,7 @@ async function handle(req: Request): Promise<Response> {
       const result = provider === "gemini" ? await askGemini(key, system, contents, providerDeadline) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, providerDeadline);
       if (!("status" in result)) return reply(200, { answer: result.answer, model: provider + ":" + result.model });
       last = result;
-      console.warn("aureka-tanya", provider, "gagal:", result.error);
+      console.warn("nara-ai", provider, "gagal:", result.error);
     }
   }
   return reply(last.status, { error: last.error });
@@ -464,7 +531,7 @@ Deno.serve(async (req) => {
   try {
     return await handle(req);
   } catch (error) {
-    console.error("aureka-tanya internal error", error instanceof Error ? error.name : "UnknownError");
+    console.error("nara-ai internal error", error instanceof Error ? error.name : "UnknownError");
     return reply(500, { error: "NARA AI sedang mengalami gangguan. Silakan coba kembali." });
   }
 });

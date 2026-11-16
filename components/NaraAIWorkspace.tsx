@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import TanyaAureka, { type TanyaMessage } from '@/components/TanyaAureka'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
+import NaraICD10Review from '@/components/NaraICD10Review'
 
 const ENGINES = ['Groq', 'NVIDIA', 'Gemini', 'DeepSeek', 'LLM7'] as const
 
@@ -16,6 +17,7 @@ const GLYPH: Record<string, ReactNode> = {
   risk: <><path d="M12 4 21 19.5H3z" /><path d="M12 10v4.5" /><path d="M12 17.2v.3" /></>,
   strategy: <><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r=".6" /></>,
   research: <><path d="M9 4h6" /><path d="M10 4v5.5L5.2 18a1.5 1.5 0 0 0 1.3 2.2h11a1.5 1.5 0 0 0 1.3-2.2L14 9.5V4" /><path d="M7.5 15h9" /></>,
+  diagnosis: <><path d="M4 6h16M4 12h10M4 18h8" /><circle cx="18" cy="16" r="3" /><path d="m16.5 16 1 1 2-2" /></>,
 }
 
 const MODES = [
@@ -25,6 +27,7 @@ const MODES = [
   { id:'risk', label:'Analisis risiko', detail:'Prioritas risiko, FMEA, dan RTP', prompt:'Analisis profil manajemen risiko rumah sakit. Prioritaskan risiko tinggi dan sangat tinggi, evaluasi tindak pengendalian, dan berikan rekomendasi.' },
   { id:'strategy', label:'Saran strategis', detail:'Lima prioritas berbasis data', prompt:'Bertindak sebagai strategic advisor rumah sakit. Rumuskan 5 prioritas strategis berbasis data mutu, keselamatan pasien, dan manajemen risiko, lengkap dengan indikator keberhasilan.' },
   { id:'research', label:'Riset & statistik', detail:'Metode, asumsi, dan interpretasi', prompt:'Bantu saya melakukan analisis ilmiah dan statistik untuk peningkatan mutu rumah sakit. Jelaskan metode, asumsi, keterbatasan data, dan interpretasi secara akademik.' },
+  { id:'diagnosis', label:'Diagnosis & ICD-10', detail:'10 penyakit terbanyak dan status koding', prompt:'Tampilkan 10 diagnosis/penyakit terbanyak pada tahun berjalan dari analitik klinis NARA. Jelaskan apakah basisnya episode atau pasien unik, tunjukkan status koding ICD-10 (tervalidasi atau belum), serta jelaskan kelengkapan dan batasan data. Jangan tampilkan identitas pasien atau nomor rekam medis.' },
 ] as const
 
 function NaraAvatar({ size = 58 }: { size?: number }) {
@@ -57,6 +60,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   const [convos, setConvos] = useState<Convo[]>([])
   const [activeId, setActiveId] = useState<string>(() => newId())
   const [listOpen, setListOpen] = useState(false)
+  const [showCodingReview, setShowCodingReview] = useState(false)
 
   const listKey = uid ? LIST_KEY + ':' + uid : null
   useEffect(() => {
@@ -68,7 +72,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       try {
         const raw = id ? localStorage.getItem(LIST_KEY + ':' + id) : null
         // Buang percakapan yang isinya sudah tidak ada (mis. terhapus saat logout), supaya tidak ada riwayat kosong yang tak bisa dibuka.
-        const list = (raw ? (JSON.parse(raw) as Convo[]) : []).filter((c) => id && localStorage.getItem('aureka-tanya-history:' + id + ':nara:' + c.id))
+        const list = (raw ? (JSON.parse(raw) as Convo[]) : []).filter((c) => id && localStorage.getItem('nara-ai-history:' + id + ':nara:' + c.id))
         setConvos(list)
         if (id) localStorage.setItem(LIST_KEY + ':' + id, JSON.stringify(list))
         if (list[0] && Date.now() - list[0].updatedAt < 6 * 3_600_000) setActiveId(list[0].id) // lanjutkan percakapan terakhir (<6 jam)
@@ -98,7 +102,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   const openConvo = (id: string) => { setActiveId(id); setListOpen(false) }
   const removeConvo = async (c: Convo) => {
     if (!(await aurekaConfirm('Percakapan "' + c.title + '" akan dihapus dari perangkat ini.', { title: 'Hapus percakapan?', confirmLabel: 'Hapus', danger: true }))) return
-    try { if (uid) localStorage.removeItem('aureka-tanya-history:' + uid + ':nara:' + c.id) } catch { /* abaikan */ }
+    try { if (uid) localStorage.removeItem('nara-ai-history:' + uid + ':nara:' + c.id) } catch { /* abaikan */ }
     persist(convos.filter((x) => x.id !== c.id))
     if (c.id === activeId) setActiveId(newId())
   }
@@ -130,12 +134,13 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
         </div>)}
       </div>
       <details className="naraEngines">
-        <summary><span className="naraLiveDot" aria-hidden="true"/> {ENGINES.length} mesin AI aktif</summary>
+        <summary><span className="naraLiveDot" aria-hidden="true"/> {ENGINES.length} provider didukung</summary>
         <div className="naraEnginesMenu">
-          <ul>{ENGINES.map((name) => <li key={name}><span className="naraLiveDot" aria-hidden="true"/>{name}</li>)}</ul>
-          <p>Dipilih otomatis lewat gateway AUREKA. Kunci API tersimpan aman di server.</p>
+          <ul>{ENGINES.map((name) => <li key={name}><span className="naraEngineDot" aria-hidden="true"/>{name}</li>)}</ul>
+          <p>Gateway memilih provider sesuai ketersediaan secret, konfigurasi, kuota, dan waktu respons. Tidak semua provider harus aktif bersamaan; kunci API tetap di server.</p>
         </div>
       </details>
+      <button type="button" className="naraCodingToggle" onClick={() => setShowCodingReview((v) => !v)} aria-expanded={showCodingReview}>Kamus & validasi ICD-10</button>
     </aside>
 
     <section className="naraStageWrap" aria-label="Percakapan dengan NARA">
@@ -145,6 +150,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       </div>
       <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage}/>
     </section>
+    {showCodingReview && <div className="naraCodingWorkspace"><NaraICD10Review sb={sb}/></div>}
 
     <style jsx>{`
       .naraWorkspace{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;min-width:0;min-height:calc(100dvh - 190px);color:#1f2430}
@@ -172,7 +178,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraEnginesMenu ul{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
       .naraEnginesMenu li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
       .naraEnginesMenu p{margin:0;font-size:12px;line-height:1.5;color:#5b6878}
-      .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}
+      .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}.naraEngineDot{width:7px;height:7px;border-radius:50%;background:#7b91a8;flex:0 0 auto}
+      .naraCodingWorkspace{grid-column:1 / -1;min-width:0}.naraCodingToggle{min-height:38px;padding:0 12px;border:1px solid #dfe7f0;border-radius:12px;background:rgba(255,255,255,.75);color:#23445d;font-size:12px;font-weight:750;cursor:pointer}.naraCodingToggle:hover{background:#fff;border-color:#9ab7c9}
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
       .naraMobileBar{display:none}
       .naraStageWrap :global(.tanyaPanelEmbedded){flex:1;min-height:0;display:flex;flex-direction:column;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}

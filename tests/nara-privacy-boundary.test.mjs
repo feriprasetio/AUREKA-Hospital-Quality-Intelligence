@@ -37,10 +37,46 @@ test('DeepSeek and LLM7 are opt-in and disabled unless explicitly enabled server
 })
 
 
-test('NARA identity is the intelligence layer; existing Tanya AUREKA UI remains unchanged', () => {
-  assert.match(gateway, /NARA \(AUREKA Intelligence\)/)
-  const ui = read('components/TanyaAureka.tsx')
-  assert.match(ui, /Tanya AUREKA/)
+test('NARA identity and the single-entry UI are consistent', () => {
+  assert.match(gateway, /NARA AI \(AUREKA Intelligence\)/)
+  const home = read('components/HomeClient.tsx')
+  const landing = read('components/HomeLandingWorkspace.tsx')
+  assert.doesNotMatch(home, /Chat AI|supportTab==='ai'|workspaceCommunicationTrigger|TanyaAureka/)
+  assert.match(home, /Chat Admin/)
+  assert.doesNotMatch(landing, /TanyaAureka|hlAi/)
+  const nara = read('components/NaraAIWorkspace.tsx')
+  assert.match(nara, /Diagnosis & ICD-10/)
+  assert.match(nara, /NaraICD10Review/)
+})
+
+test('top disease ranking is calculated by a protected database function, not an external model', () => {
+  assert.match(gateway, /isTopDiseaseQuery/)
+  assert.match(gateway, /aureka_nara_clinical_summary/)
+  assert.match(gateway, /model: "database:clinical-analytics"/)
+  assert.match(gateway, /formatTopDiseaseAnswer/)
+  assert.doesNotMatch(gateway, /patient_index.*select\(["']no_rm/)
+})
+
+test('clinical analytics uses internal MRN only for secure aggregation and logs accesses', () => {
+  const migration = read('supabase/migrations/20261116180000_nara_clinical_intelligence.sql')
+  assert.match(migration, /has_quality_room_access/)
+  assert.match(migration, /normalize_no_rm/)
+  assert.match(migration, /count\(distinct internal_no_rm\)/)
+  assert.match(migration, /patients >= 5|count\(distinct internal_no_rm\) >= 5/)
+  assert.match(migration, /nara_clinical_access_audit/)
+  assert.match(migration, /revoke all on function public\.aureka_nara_clinical_summary/)
+})
+
+test('ICD-10 mappings require a human validation reference and a reviewer identity', () => {
+  const migration = read('supabase/migrations/20261116180000_nara_clinical_intelligence.sql')
+  assert.match(migration, /mapping_status in \('proposed','validated','rejected'\)/)
+  assert.match(migration, /validation_reference/)
+  assert.match(migration, /validated_by/)
+  assert.match(migration, /current_role_code\(\)/)
+  assert.match(migration, /v_role not in \('ADMIN','PMKP'\)/)
+  const ui = read('components/NaraICD10Review.tsx')
+  assert.match(ui, /aureka_nara_icd10_review_queue/)
+  assert.match(ui, /aureka_nara_icd10_upsert_mapping/)
 })
 
 test('logbook non-submission is calculated from raw counts before suppression', () => {
