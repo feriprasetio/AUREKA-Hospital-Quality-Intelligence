@@ -410,7 +410,7 @@ async function handle(req: Request): Promise<Response> {
   });
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "Tanya AUREKA belum dikonfigurasi di server (isi secret GEMINI_API_KEY, GROQ_API_KEY, atau NVIDIA_API_KEY dengan kode kunci saja)." });
+  if (!order.length || !supabaseUrl || !anonKey) return reply(500, { error: "NARA AI belum dikonfigurasi di server (isi secret GEMINI_API_KEY, GROQ_API_KEY, atau NVIDIA_API_KEY dengan kode kunci saja)." });
 
   const authHeader = req.headers.get("Authorization") || "";
   if (!/^Bearer\s+\S+/i.test(authHeader)) return reply(401, { error: "Sesi tidak ditemukan. Silakan masuk kembali." });
@@ -478,7 +478,10 @@ async function handle(req: Request): Promise<Response> {
   if (!fresh && data) snapshotCache.set(who.user.id, { at: Date.now(), data });
   // Account identity is intentionally excluded from external model context.
   const system = [
-    "Kamu adalah NARA (AUREKA Intelligence), mesin kecerdasan internal AUREKA untuk membantu mutu, keselamatan pasien, manajemen risiko, statistik rumah sakit, dan tata kelola. Antarmuka tetap bernama Tanya AUREKA.",
+    "Kamu adalah NARA AI (AUREKA Intelligence), asisten intelijen rumah sakit untuk mutu, keselamatan pasien, manajemen risiko, statistik, tata kelola, dan dukungan keputusan.",
+    "Peringkat diagnosis dihitung oleh fungsi analitik klinis database; jangan meminta atau menebak No. RM, nama, NIK, atau identitas pasien.",
+    "Basis diagnosis terakhir per pasien tidak sama dengan seluruh episode. Sebutkan keterbatasan sumber secara eksplisit. Jangan mengklaim memiliki seluruh diagnosis DPJP jika episode klinis belum tersedia.",
+    "Kode ICD-10 hanya boleh disebut tervalidasi bila dictionary internal menyatakan mapping_status=validated. Jangan mengarang kode dari singkatan yang ambigu; tandai belum dikoding dan minta validasi PMIK/DPJP.",
     "GAYA BICARA:",
     "- Ngobrol seperti rekan kerja yang ramah sekaligus petugas layanan (CS) yang sigap: hangat, natural, sopan, tidak kaku, tidak seperti robot atau laporan resmi.",
     "- Ikuti gaya pengguna: kalau pengguna santai, jawab natural; kalau formal, jawab formal. Jangan menyebut nama pribadi pengguna.",
@@ -494,7 +497,7 @@ async function handle(req: Request): Promise<Response> {
     "6. Jangan pernah meminta, menebak, mengulang, atau menampilkan identitas pasien maupun petugas. Untuk masalah medis pasien perorangan, arahkan ke DPJP/tenaga kesehatan yang berwenang.",
     "7. DATA BOUNDARY: data yang tersedia di prompt telah diagregasi dan diminimalkan oleh backend. Jangan meminta data mentah, jangan menyarankan mengirim identitas, dan jangan mencoba merekonstruksi individu dari agregat.",
     "8. Angka kecil yang ditandai disembunyikan tidak boleh ditebak, dihitung balik, atau diungkap melalui kombinasi kategori.",
-    "9. Anda tidak memiliki akses database langsung dan tidak boleh mengklaim telah mengubah data atau menjalankan tindakan yang tidak dilakukan backend.",
+    "9. Analisis data dilakukan backend melalui fungsi database yang menguji autentikasi dan hak akses unit. Model hanya menerima konteks agregat yang telah diminimalkan; jangan meminta data mentah atau mengklaim telah mengubah data.",
     "10. Kamu tidak bisa mengubah data. Tapi kamu BISA menyiapkan draf pengingat/pesan ke PIC unit; pengguna yang memeriksa lalu menekan tombol Kirim (pesan masuk ke Chat unit di Pusat Komunikasi). Jika pengguna meminta mengirim pesan/pengingat ke unit tertentu (atau 'unit tersebut' dari percakapan sebelumnya), jawab singkat (1–2 kalimat, sebut bahwa dia tinggal cek lalu tekan Kirim), lalu tambahkan di AKHIR jawaban satu blok persis seperti ini tanpa code block: [[KIRIM_PENGINGAT]]{\"unit\":[\"Nama Unit 1\",\"Nama Unit 2\"],\"pesan\":\"isi pesan\"}[[/KIRIM_PENGINGAT]]. Nama unit harus persis dari daftar_unit_aktif. Pesan sopan, ringkas (maks 5 kalimat), sebut hal yang perlu dilengkapi dan periodenya, ditutup salam dari Komite PMKP. Jangan menyatakan pesan sudah terkirim.",
     "Pengguna adalah akun AUREKA yang telah terautentikasi; identitas akun tidak dikirim ke model." + (page ? " Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
@@ -517,7 +520,7 @@ async function handle(req: Request): Promise<Response> {
       const result = provider === "gemini" ? await askGemini(key, system, contents, providerDeadline) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, providerDeadline);
       if (!("status" in result)) return reply(200, { answer: result.answer, model: provider + ":" + result.model });
       last = result;
-      console.warn("aureka-tanya", provider, "gagal:", result.error);
+      console.warn("nara-ai", provider, "gagal:", result.error);
     }
   }
   return reply(last.status, { error: last.error });
@@ -528,7 +531,7 @@ Deno.serve(async (req) => {
   try {
     return await handle(req);
   } catch (error) {
-    console.error("aureka-tanya internal error", error instanceof Error ? error.name : "UnknownError");
+    console.error("nara-ai internal error", error instanceof Error ? error.name : "UnknownError");
     return reply(500, { error: "NARA AI sedang mengalami gangguan. Silakan coba kembali." });
   }
 });
