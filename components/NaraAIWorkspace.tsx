@@ -72,7 +72,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       try {
         const raw = id ? localStorage.getItem(LIST_KEY + ':' + id) : null
         // Buang percakapan yang isinya sudah tidak ada (mis. terhapus saat logout), supaya tidak ada riwayat kosong yang tak bisa dibuka.
-        const list = (raw ? (JSON.parse(raw) as Convo[]) : []).filter((c) => id && localStorage.getItem('aureka-tanya-history:' + id + ':nara:' + c.id))
+        const list = (raw ? (JSON.parse(raw) as Convo[]) : []).filter((c) => id && localStorage.getItem('nara-ai-history:' + id + ':nara:' + c.id))
         setConvos(list)
         if (id) localStorage.setItem(LIST_KEY + ':' + id, JSON.stringify(list))
         if (list[0] && Date.now() - list[0].updatedAt < 6 * 3_600_000) setActiveId(list[0].id) // lanjutkan percakapan terakhir (<6 jam)
@@ -102,7 +102,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   const openConvo = (id: string) => { setActiveId(id); setListOpen(false) }
   const removeConvo = async (c: Convo) => {
     if (!(await aurekaConfirm('Percakapan "' + c.title + '" akan dihapus dari perangkat ini.', { title: 'Hapus percakapan?', confirmLabel: 'Hapus', danger: true }))) return
-    try { if (uid) localStorage.removeItem('aureka-tanya-history:' + uid + ':nara:' + c.id) } catch { /* abaikan */ }
+    try { if (uid) localStorage.removeItem('nara-ai-history:' + uid + ':nara:' + c.id) } catch { /* abaikan */ }
     persist(convos.filter((x) => x.id !== c.id))
     if (c.id === activeId) setActiveId(newId())
   }
