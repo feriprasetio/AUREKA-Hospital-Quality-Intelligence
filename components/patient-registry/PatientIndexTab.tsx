@@ -164,7 +164,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
 
   return <section className="piWrap">
     <header className="piHead">
-      <p className="psStatsLead" title="Diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.">Satu baris per pasien · kunci: No. Rekam Medis</p>
+      <p className="psStatsLead" title="Diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.">Satu baris per pasien, dikelompokkan menurut No. Rekam Medis</p>
       <div className="piActions">
         <button type="button" className="prButton" onClick={() => void toggleIdentity()}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>
         <button type="button" className="prButton" onClick={() => setShowSpec((v) => !v)}>{showSpec ? 'Tutup spesifikasi' : 'Spesifikasi bridging'}</button>
@@ -199,7 +199,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
 
     <div className="piAnalytics" aria-label="Analisis metadata pasien">
       <section className="piAnalyticsCard">
-        <div className="piAnalyticsHead"><div><h4>Status bridging SIMRS</h4><p>{population ? 'Seluruh pasien yang dapat Anda akses.' : 'Hanya baris di halaman tabel ini (aktifkan migrasi v2 untuk seluruh populasi).'}</p></div><b>n = {(population ? summary?.total ?? 0 : rows.length).toLocaleString('id-ID')}</b></div>
+        <div className="piAnalyticsHead"><div><h4>Status bridging SIMRS</h4><p>{population ? 'Seluruh pasien yang dapat Anda akses.' : 'Hanya baris di halaman tabel ini. Ringkasan seluruh pasien aktif setelah pembaruan database.'}</p></div><b>n = {(population ? summary?.total ?? 0 : rows.length).toLocaleString('id-ID')}</b></div>
         {loading && !summary ? <p className="prMuted">Memuat distribusi…</p> : <div className="piBars">{bridgeCounts.map((item) => <div className="piBarRow" key={item.key}><span>{item.label}</span><div className="piBarTrack"><i style={{ width: pct(item.count) + '%' }} /></div><b>{pct(item.count)}%</b></div>)}</div>}
       </section>
       <section className="piAnalyticsCard">
