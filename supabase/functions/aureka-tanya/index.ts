@@ -243,6 +243,51 @@ async function snapshot(db: SupabaseClient) {
 type Turn = { role: string; parts: { text: string }[] };
 type AiResult = { answer: string; model: string } | { status: number; error: string };
 const BUSY = "Layanan AI sedang sibuk. Coba lagi sebentar lagi.";
+
+function isTopDiseaseQuery(question: string) {
+  const q = question.toLocaleLowerCase("id-ID");
+  return /\b(penyakit|diagnosis|diagnosa)\b/.test(q)
+    && /\b(terbanyak|terbesar|paling banyak|top\s*10|10\s*(penyakit|diagnosis|diagnosa)|sepuluh)\b/.test(q);
+}
+function requestedYear(question: string, fallback: number) {
+  const match = /\b(20[0-9]{2})\b/.exec(question);
+  if (!match) return fallback;
+  const year = Number(match[1]);
+  return year >= 2000 && year <= 2100 ? year : fallback;
+}
+function formatTopDiseaseAnswer(data: Record<string, unknown>) {
+  const rows = Array.isArray(data.top_diagnoses) ? data.top_diagnoses as Record<string, unknown>[] : [];
+  const year = Number(data.year) || new Date().getFullYear();
+  const source = data.source_basis === "episode_records"
+    ? "rekap episode pasien pada Logbook AUREKA"
+    : data.source_basis === "patient_index_latest_diagnosis"
+      ? "diagnosis terakhir per pasien pada Database Pasien AUREKA"
+      : "sumber klinis yang dapat diakses";
+  const basis = data.source_basis === "episode_records"
+    ? "Peringkat diurutkan berdasarkan pasien unik (No. RM hanya digunakan di dalam basis data untuk deduplikasi); jumlah episode ditampilkan terpisah."
+    : "Peringkat berdasarkan pasien unik menurut diagnosis terakhir, bukan jumlah seluruh kunjungan atau riwayat diagnosis per episode.";
+  const lines = rows.map((row, i) => {
+    const diagnosis = String(row.diagnosis || "Diagnosis tidak bernama");
+    const patients = Number(row.patient_count) || 0;
+    const episodes = row.episode_count == null ? "" : " · " + String(row.episode_count) + " episode";
+    const code = row.coding_status === "validated" && row.icd10_code
+      ? "ICD-10 " + String(row.icd10_code) + " — tervalidasi"
+      : row.coding_status === "proposed" ? "Kode ICD-10 menunggu validasi" : "Belum memiliki kode ICD-10 tervalidasi";
+    return (i + 1) + ". **" + diagnosis + "** — " + patients + " pasien" + episodes + " · " + code;
+  });
+  const limitations = String(data.limitations || "");
+  const total = Number(data.patient_count) || 0;
+  const header = rows.length
+    ? "**10 diagnosis terbanyak — " + year + "**\nBasis data: " + source + ".\n" + basis
+    : "Belum ada kelompok diagnosis yang memenuhi ambang pelaporan minimal.";
+  return [
+    header, ...lines, "",
+    "Cakupan: " + (data.scope || "unit sesuai hak akses akun") + ". Total pasien pada basis analisis: " + total + ".",
+    "Perlindungan privasi: kelompok dengan jumlah kurang dari " + String(data.minimum_cell_size || 5) + " pasien tidak ditampilkan. Nomor rekam medis dan identitas pasien tidak ditampilkan maupun dikirim ke model.",
+    limitations,
+    "Catatan koding: kode hanya disebut tervalidasi bila sudah diperiksa reviewer. Diagnosis mentah yang ambigu harus ditelaah PMIK/DPJP sebelum dikunci sebagai ICD-10.",
+  ].filter(Boolean).join("\n\n");
+}
 const QUOTA = "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi.";
 
 /** Gemini: model utama, lalu model cadangan bila sibuk/kuota habis. */
