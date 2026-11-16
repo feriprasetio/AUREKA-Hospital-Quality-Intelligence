@@ -428,17 +428,21 @@ html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[da
 @media (max-width: 720px) {
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
     justify-content: flex-start !important;
+    overflow: hidden !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     scrollbar-width: none !important;
     overscroll-behavior-x: contain !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail::-webkit-scrollbar { display: none !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems {
-    flex: 0 0 auto !important;
-    max-width: none !important;
-    overflow: visible !important;
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailItems::-webkit-scrollbar,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationSubItems::-webkit-scrollbar {
+    display: none !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail .workspaceNavigationRailTitle {
     max-width: 180px !important;

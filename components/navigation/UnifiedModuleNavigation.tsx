@@ -132,14 +132,21 @@ export default function UnifiedModuleNavigation({
   }, [resolvedSecondaryActiveId, hiddenSubIds, subItemsSignature])
 
   useEffect(() => {
-    const rail = railRef.current
-    if (!rail || !window.matchMedia('(max-width: 720px)').matches) return
-    const activeItems = Array.from(rail.querySelectorAll<HTMLElement>('.workspaceNavigationRailItem.active, .workspaceNavigationSubItem.active'))
-    const railRect = rail.getBoundingClientRect()
-    for (const active of activeItems) {
-      const itemRect = active.getBoundingClientRect()
-      if (itemRect.left < railRect.left + 8) rail.scrollLeft -= railRect.left + 8 - itemRect.left
-      else if (itemRect.right > railRect.right - 8) rail.scrollLeft += itemRect.right - railRect.right + 8
+    if (!window.matchMedia('(max-width: 720px)').matches) return
+    // Each group scrolls independently so both active choices remain visible
+    // even when the combined primary + secondary labels exceed phone width.
+    const groups: Array<[HTMLDivElement | null, string]> = [
+      [itemsRef.current, '.workspaceNavigationRailItem.active'],
+      [subItemsRef.current, '.workspaceNavigationSubItem.active'],
+    ]
+    for (const [group, selector] of groups) {
+      if (!group) continue
+      const active = group.querySelector<HTMLElement>(selector)
+      if (!active) continue
+      if (active.offsetLeft < group.scrollLeft + 8) group.scrollLeft = Math.max(0, active.offsetLeft - 8)
+      else if (active.offsetLeft + active.offsetWidth > group.scrollLeft + group.clientWidth - 8) {
+        group.scrollLeft = active.offsetLeft + active.offsetWidth - group.clientWidth + 8
+      }
     }
   }, [resolvedActiveId, resolvedSecondaryActiveId, hiddenIds, hiddenSubIds])
 
