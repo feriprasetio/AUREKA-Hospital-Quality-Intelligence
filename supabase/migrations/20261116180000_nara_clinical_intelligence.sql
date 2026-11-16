@@ -20,7 +20,7 @@ create table if not exists aureka_quality.nara_icd10_dictionary (
   validated_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  check (icd10_code is null or icd10_code ~ '^[A-Z][0-9]{2}(\\.[0-9A-Z]{1,4})?$'),
+  check (icd10_code is null or icd10_code ~ '^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$'),
   check (mapping_status <> 'validated' or
     (icd10_code is not null and nullif(trim(icd10_title),'') is not null
      and nullif(trim(validation_reference),'') is not null and validated_by is not null and validated_at is not null))
@@ -148,6 +148,9 @@ begin
         and s.raw_diagnosis !~ '[0-9]{6,}'
         and s.raw_diagnosis !~* '(NIK|NO[. ]*RM|NOMOR REKAM MEDIS|MRN|TELP|TELEPON|EMAIL)[[:space:]:#=-]'
         and s.raw_diagnosis !~* '^[0-9[:space:]+()./-]+$'
+        and s.raw_diagnosis !~* '(^|[^[:alpha:]])(TN|NY|NN|N|BP|BAPAK|IBU)[.[:space:]]'
+        and s.raw_diagnosis !~* '(NAMA PASIEN|ATAS NAMA|PASIEN BERNAMA)'
+        and not exists (select 1 from aureka_quality.patient_index pi where pi.no_rm = s.internal_no_rm and lower(btrim(pi.nama_pasien)) = lower(btrim(s.raw_diagnosis)))
     ), mapped as (
       select s.id, s.internal_no_rm, s.diagnosis_label,
         d.diagnosis_label as canonical_label, d.icd10_code, d.icd10_title, d.mapping_status,
@@ -309,7 +312,7 @@ begin
   if pg_catalog.length(v_key) < 2 or pg_catalog.length(v_key) > 120 then raise exception 'Istilah diagnosis tidak valid.' using errcode = '22023'; end if;
   if p_status not in ('proposed','validated','rejected') then raise exception 'Status pemetaan tidak valid.' using errcode = '22023'; end if;
   if p_status = 'validated' and (
-    coalesce(p_icd10_code,'') !~ '^[A-Z][0-9]{2}(\\.[0-9A-Z]{1,4})?$'
+    coalesce(p_icd10_code,'') !~ '^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$'
     or nullif(pg_catalog.btrim(coalesce(p_icd10_title,'')),'') is null
     or nullif(pg_catalog.btrim(coalesce(p_validation_reference,'')),'') is null
   ) then raise exception 'Pemetaan tervalidasi wajib memiliki kode, judul, dan referensi validasi.' using errcode = '22023'; end if;
@@ -344,7 +347,7 @@ grant execute on function public.aureka_nara_icd10_upsert_mapping(text,text,text
 
 
 
--- Authorized ICD-10 review queue. Terms are aggregated and no patient identifiers are returned.
+-- Authorized ICD-10 review queue. Terms are aggregated; MRNs and names are not returned.
 create or replace function public.aureka_nara_icd10_review_queue(
   p_year integer default null,
   p_room bigint default null,
