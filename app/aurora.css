@@ -1558,3 +1558,7 @@ html[data-ak-booting][data-mode="gelap"] body::before { border-color: rgba(34, 2
 html[data-mode="gelap"] body:not(#_) .aurekaAsyncState { background: #161d29 !important; border-color: rgba(255, 255, 255, .08) !important; color: #c9d4e3 !important; box-shadow: none !important; }
 html[data-mode="gelap"] body:not(#_) .aurekaAsyncState .stateTitle { color: #e8eef6 !important; }
 html[data-mode="gelap"] body:not(#_) .aurekaAsyncState :is(p, small, .stateBody span) { color: #9fb0c4 !important; }
+
+/* Mode gelap: label pertanyaan di popup IKP (dirender di luar .workspaceRoot) sebelumnya biru tua di atas gelap. */
+html[data-mode="gelap"] body:not(#_) .psModalSheet :is(.psLabel, label) { color: #dbe4ee !important; }
+html[data-mode="gelap"] body:not(#_) .psModalSheet :is(.psHint, .psFieldHint, small, .psSectionHead p) { color: #9fb0c4 !important; }
