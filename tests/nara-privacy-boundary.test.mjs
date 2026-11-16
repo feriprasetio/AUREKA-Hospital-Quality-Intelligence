@@ -85,3 +85,14 @@ test('logbook non-submission is calculated from raw counts before suppression', 
   assert.match(gateway, /return raw\.slice\(k \* 3, k \* 3 \+ 3\)\.reduce\(\(a, b\) => a \+ b, 0\) === 0/)
   assert.doesNotMatch(gateway, /logbookPerUnit\.filter\(\(u\) => !\(u\.per_triwulan/)
 })
+
+
+test('NARA aggregate context covers risk, FMEA, workforce, clinical audit, and IGD consultation metrics without direct identifiers', () => {
+  assert.match(gateway, /analisis_fmea/)
+  assert.match(gateway, /sumber_daya_manusia_agregat/)
+  assert.match(gateway, /audit_klinis/)
+  assert.match(gateway, /response_time_konsul_igd/)
+  assert.match(gateway, /catatan_disclosure/)
+  assert.doesNotMatch(gateway, /staff_directory.*select\(["']\*["']\)/)
+  assert.doesNotMatch(gateway, /clinical_pathway_audits.*select\(["']\*["']\)/)
+})
