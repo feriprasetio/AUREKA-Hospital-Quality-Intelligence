@@ -30,10 +30,11 @@ test('external AI context excludes incident unit/month detail and free-text risk
   assert.doesNotMatch(gateway, /per_bulan: Object\.fromEntries\(Object\.entries\(count\(incidents/)
 })
 
-test('DeepSeek and LLM7 are opt-in and disabled unless explicitly enabled server-side', () => {
-  assert.match(gateway, /x === "deepseek" && Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) !== "true"/)
-  assert.match(gateway, /x === "llm7" && Deno\.env\.get\("AI_ENABLE_LLM7"\) !== "true"/)
+test('all five providers are included when their secrets exist; DeepSeek and LLM7 have explicit kill switches', () => {
+  assert.match(gateway, /AI_PROVIDER_ORDER/)
   assert.match(gateway, /groq,nvidia,gemini,deepseek,llm7/)
+  assert.match(gateway, /x === "deepseek" && Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) === "false"/)
+  assert.match(gateway, /x === "llm7" && Deno\.env\.get\("AI_ENABLE_LLM7"\) === "false"/)
 })
 
 
@@ -83,4 +84,15 @@ test('logbook non-submission is calculated from raw counts before suppression', 
   assert.match(gateway, /Determine zero-submission units from raw internal counts before n<5 suppression/)
   assert.match(gateway, /return raw\.slice\(k \* 3, k \* 3 \+ 3\)\.reduce\(\(a, b\) => a \+ b, 0\) === 0/)
   assert.doesNotMatch(gateway, /logbookPerUnit\.filter\(\(u\) => !\(u\.per_triwulan/)
+})
+
+
+test('NARA aggregate context covers risk, FMEA, workforce, clinical audit, and IGD consultation metrics without direct identifiers', () => {
+  assert.match(gateway, /analisis_fmea/)
+  assert.match(gateway, /sumber_daya_manusia_agregat/)
+  assert.match(gateway, /audit_klinis/)
+  assert.match(gateway, /response_time_konsul_igd/)
+  assert.match(gateway, /catatan_disclosure/)
+  assert.doesNotMatch(gateway, /staff_directory.*select\(["']\*["']\)/)
+  assert.doesNotMatch(gateway, /clinical_pathway_audits.*select\(["']\*["']\)/)
 })

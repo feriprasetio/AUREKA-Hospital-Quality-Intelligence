@@ -20,11 +20,11 @@ test('all five AI providers have server-side adapters and a deterministic fallba
   assert.match(gateway, /requestedOrder, \.\.\.PROVIDER_NAMES/)
 })
 
-test('DeepSeek and LLM7 require explicit server-side opt-in', () => {
+test('DeepSeek and LLM7 are enabled when secrets exist and can be explicitly disabled', () => {
   assert.match(gateway, /AI_ENABLE_DEEPSEEK/)
   assert.match(gateway, /AI_ENABLE_LLM7/)
-  assert.match(gateway, /Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) !== "true"/)
-  assert.match(gateway, /Deno\.env\.get\("AI_ENABLE_LLM7"\) !== "true"/)
+  assert.match(gateway, /Deno\.env\.get\("AI_ENABLE_DEEPSEEK"\) === "false"/)
+  assert.match(gateway, /Deno\.env\.get\("AI_ENABLE_LLM7"\) === "false"/)
 })
 
 test('NARA minimizes incident fields before constructing provider context', () => {
