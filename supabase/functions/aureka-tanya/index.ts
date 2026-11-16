@@ -450,6 +450,23 @@ async function handle(req: Request): Promise<Response> {
   if (sensitivePatterns.some((pattern) => pattern.test(outboundText))) {
     return reply(422, { error: "Permintaan ditahan oleh NARA Privacy Guard. Hapus identitas pasien/petugas, nomor rekam medis, NIK, kontak, dan detail pengenal dari pertanyaan maupun riwayat sebelum mencoba kembali." });
   }
+
+  // Ranking diagnosis dihitung di database yang memeriksa JWT dan cakupan unit.
+  // Agregat diagnosis tidak dikirim ke provider LLM eksternal.
+  if (isTopDiseaseQuery(question)) {
+    const year = requestedYear(question, new Date(Date.now() + 7 * 3600 * 1000).getUTCFullYear());
+    const { data: clinical, error: clinicalError } = await db.rpc("aureka_nara_clinical_summary", {
+      p_year: year, p_room: null, p_limit: 10,
+    });
+    if (clinicalError || !clinical || typeof clinical !== "object") {
+      console.error("NARA clinical summary unavailable", clinicalError?.code || "unknown");
+      return reply(503, { error: "Analitik diagnosis belum dapat dibaca. Periksa migrasi NARA Clinical Intelligence dan hak akses unit." });
+    }
+    return reply(200, {
+      answer: formatTopDiseaseAnswer(clinical as Record<string, unknown>),
+      model: "database:clinical-analytics",
+    });
+  }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
   const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
