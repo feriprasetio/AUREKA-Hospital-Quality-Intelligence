@@ -1,6 +1,7 @@
 'use client'
 
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { reportClientError } from '@/lib/ui/report-client-error'
 
 type Props = { moduleLabel: string; onHome: () => void; children: ReactNode }
 type State = { error: Error | null }
@@ -19,6 +20,7 @@ export default class ModuleErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[AUREKA] Modul gagal dimuat:', this.props.moduleLabel, error, info.componentStack)
+    if (!/ChunkLoadError|Loading chunk|dynamically imported module/i.test(String(error?.name) + ' ' + String(error?.message))) reportClientError(this.props.moduleLabel || 'Modul', error)
   }
 
   render() {

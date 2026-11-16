@@ -7,7 +7,7 @@ import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewpor
 
 /** Pengaturan › Audit Log (Blueprint v2 §10/§13): catatan append-only, hanya Super Admin, Direktur, Komite PMKP. */
 type Row = { id: number; actor_name: string | null; actor_role: string | null; action: string; object_type: string; object_id: string | null; detail: Record<string, unknown>; created_at: string }
-const OBJECT_LABEL: Record<string, string> = { recommendation: 'Rekomendasi', action: 'Tindak lanjut', regulation: 'Regulasi' }
+const OBJECT_LABEL: Record<string, string> = { recommendation: 'Rekomendasi', action: 'Tindak lanjut', regulation: 'Regulasi', ui_error: 'Error tampilan' }
 
 export default function AuditLogWorkspace() {
   const [rows, setRows] = useState<Row[]>([])
