@@ -9,6 +9,8 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import PresentationMode from '@/components/governance/PresentationMode'
 
 type Room = { id: number; name: string }
+type CountItem = MetricCount
+type MonthItem = MetricMonth
 type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn; onRoomChange?: (roomId: number | null) => void; onAskNara?: (context: { period: string; scope: string }) => void }
 type ChartSeries = { label: string; color: string; values: Array<number | null> }
 type ChartModel = { id: string; label: string; description: string; insight: string; labels: string[]; series: ChartSeries[]; kind: 'trend' | 'distribution' | 'progress' }
