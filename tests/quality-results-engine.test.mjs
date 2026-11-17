@@ -551,3 +551,69 @@ test('profiles without an approved target still calculate observations but remai
   assert.equal(result.annualRate, 50)
   assert.equal(result.targetMet, null)
 })
+
+test('ratio profiles derive N/D from coded categorical responses when raw N/D fields are absent', () => {
+  const profile = {
+    id: 'p-icu-14-2',
+    room_id: 14,
+    code: '14.2',
+    title: 'Kelengkapan Assessment Pengantar Transfer Pasien dari IGD',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'ratio', indicator_direction: 'positive' },
+    options_json: [
+      { code: 1, label: 'Formulir Transfer Terisi Lengkap', numerator: true, denominator: true, review_required: false },
+      { code: 2, label: 'Tidak Lengkap karena kondisi klinis', numerator: false, denominator: true, review_required: true },
+      { code: 3, label: 'Tidak Ada Formulir Transfer', numerator: false, denominator: true, review_required: true },
+    ],
+    target_text: '≥ 100%',
+    target_operator: '>=',
+    target_value: 100,
+  }
+  const rows = [
+    {
+      record_date: '2026-01-03',
+      status: 'ready',
+      core_data: { indicator_values: { '14.2': {
+        answer: 'Formulir Transfer Terisi Lengkap',
+        code: 1,
+        source_code: 1,
+        review_required: false,
+        mapping_status: 'mapped',
+      } } },
+    },
+    {
+      record_date: '2026-01-04',
+      status: 'ready',
+      core_data: { indicator_values: { '14.2': {
+        answer: 'Tidak Lengkap karena kondisi klinis',
+        code: null,
+        source_code: 2,
+        review_required: true,
+        mapping_status: 'master_pending',
+      } } },
+    },
+    {
+      record_date: '2026-01-05',
+      status: 'ready',
+      core_data: { indicator_values: { '14.2': {
+        answer: 'Tidak Ada Formulir Transfer',
+        code: null,
+        source_code: 3,
+        review_required: true,
+        mapping_status: 'source_master_conflict',
+      } } },
+    },
+  ]
+
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.kind, 'ratio')
+  assert.equal(result.observations, 1)
+  assert.equal(result.annualNumerator, 1)
+  assert.equal(result.annualDenominator, 1)
+  assert.equal(result.annualRate, 100)
+  assert.equal(result.monthly[0].observations, 1)
+  assert.equal(result.monthly[0].numerator, 1)
+  assert.equal(result.monthly[0].denominator, 1)
+  assert.equal(result.targetMet, true)
+})
+
