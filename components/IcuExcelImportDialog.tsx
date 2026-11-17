@@ -148,7 +148,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
         if (column != null) indexes[key] = column
       }
       for (const item of INDICATORS) {
-        const column = exact(columns, item.aliases ? [...item.aliases] : [item.sourceHeader])
+        const column = exact(columns, [...item.aliases])
         if (column != null) indexes['indicator:' + item.code] = column
       }
       return { rowNumber, indexes }
