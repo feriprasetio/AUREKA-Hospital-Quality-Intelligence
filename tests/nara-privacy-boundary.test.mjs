@@ -16,7 +16,7 @@ test('NARA keeps all five providers behind the server-side gateway', () => {
 
 
 test('NARA scopes cached aggregate snapshots to the deterministic skill domains before provider context is built', () => {
-  assert.match(gateway, /scopeSnapshotForSkills\(rawSnapshot, skillPlan\?\.domains/);
+  assert.match(gateway, /scopeSnapshotForSkills\(rawSnapshot, snapshotDomains\)/);
   assert.match(gateway, /const needsAggregateData = !smallTalk && Boolean\(skillPlan\?\.requiresAggregateData\)/);
   assert.match(gateway, /JWT dan RLS Supabase tetap menjadi batas akses utama/);
   assert.match(gateway, /ENGINEERING INTELLIGENCE/);
