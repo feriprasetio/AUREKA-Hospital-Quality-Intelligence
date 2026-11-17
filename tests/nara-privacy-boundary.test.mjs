@@ -70,8 +70,9 @@ test('NARA identity and the single-entry UI are consistent', () => {
   assert.match(home, /Pesan Admin/)
   assert.doesNotMatch(landing, /TanyaAureka|hlAi/)
   const nara = read('components/NaraAIWorkspace.tsx')
-  assert.doesNotMatch(nara, /Diagnosis & ICD-10|NaraICD10Review|Kamus diagnosis|naraCodingToggle/)
-  assert.doesNotMatch(nara, /icd10_suggest|ICD-10/)
+  assert.match(nara, /NaraIcd10ReviewWorkspace/)
+  assert.match(nara, /Validasi ICD-10/)
+  assert.match(nara, /Analisis diagnosis & ICD-10/)
 })
 
 test('top disease ranking is calculated by a protected database function, not an external model', () => {
@@ -99,8 +100,10 @@ test('ICD-10 mappings require a human validation reference and a reviewer identi
   assert.match(migration, /validated_by/)
   assert.match(migration, /current_role_code\(\)/)
   assert.match(migration, /v_role not in \('ADMIN','PMKP'\)/)
-  const naraUi = read('components/NaraAIWorkspace.tsx')
-  assert.doesNotMatch(naraUi, /NaraICD10Review|Kamus diagnosis|Validasi ICD-10/)
+  const reviewUi = read('components/NaraIcd10ReviewWorkspace.tsx')
+  assert.match(reviewUi, /p_validation_reference: status === 'validated' \? reference : null/)
+  assert.match(reviewUi, /if \(!title \|\| !reference\)/)
+  assert.match(reviewUi, /Hanya Super Admin atau Komite PMKP|hanya tersedia bagi Super Admin atau Komite PMKP/)
 })
 
 test('logbook non-submission is calculated from raw counts before suppression', () => {
@@ -120,7 +123,7 @@ test('NARA aggregate context covers risk, FMEA, workforce, clinical audit, and I
   assert.doesNotMatch(gateway, /clinical_pathway_audits.*select\(["']\*["']\)/)
 })
 
-test('ICD-10 suggestion backend remains proposed-only while its review UI is removed from NARA', () => {
+test('ICD-10 suggestions remain proposed-only and the NARA reviewer UI enforces manual validation', () => {
   assert.match(gateway, /task === "icd10_suggest"/)
   assert.match(gateway, /aureka_nara_icd10_review_queue/)
   assert.match(gateway, /const payload = \{ code_set: "WHO ICD-10 Version 2019", items: safeRows\.map/)
@@ -128,7 +131,13 @@ test('ICD-10 suggestion backend remains proposed-only while its review UI is rem
   assert.match(gateway, /Wajib diverifikasi dengan WHO ICD-10 2019/)
   assert.doesNotMatch(gateway, /p_status: "validated".*icd10_suggest/)
   const nara = read('components/NaraAIWorkspace.tsx')
-  assert.doesNotMatch(nara, /NaraICD10Review|Kamus diagnosis|Validasi ICD-10|Diagnosis & ICD-10/)
+  const review = read('components/NaraIcd10ReviewWorkspace.tsx')
+  assert.match(nara, /NaraIcd10ReviewWorkspace/)
+  assert.match(nara, /Validasi ICD-10/)
+  assert.match(nara, /Analisis diagnosis & ICD-10/)
+  assert.match(review, /Validasi pemetaan/)
+  assert.match(review, /status === 'validated'/)
+  assert.match(review, /validation_reference/)
 })
 
 test('NARA context includes secure diagnosis, indicator, safety, OPPE/FPPE, and governance aggregates', () => {
