@@ -535,7 +535,7 @@ function statusLabel(status:unknown){
  if(s==='Aktif')return'Aktif'
  return s||'Draf'
 }
-export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,isValidator=false,canViewAllRooms=false,onRoomChange,initialContainer,showContainerTabs=true,hidePatientEpisodeEntry=false,lockRoomScope=false}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean;isValidator?:boolean;canViewAllRooms?:boolean;onRoomChange?:(roomId:number|null)=>void;initialContainer?:(typeof CONTAINERS)[number];showContainerTabs?:boolean;patientRegistryMode?:boolean;hidePatientEpisodeEntry?:boolean;lockRoomScope?:boolean}){
+export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,isValidator=false,canViewAllRooms=false,onRoomChange,initialContainer,showContainerTabs=true,hidePatientEpisodeEntry=false,lockRoomScope=false}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean;isValidator?:boolean;canViewAllRooms?:boolean;onRoomChange?:(roomId:number|null)=>void;initialContainer?:(typeof CONTAINERS)[number];showContainerTabs?:boolean;hidePatientEpisodeEntry?:boolean;lockRoomScope?:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(initialContainer&&CONTAINERS.includes(initialContainer)?initialContainer:CONTAINERS[0])
  const [year,setYear]=useState(2026)
  const [roomId,setRoomId]=useState<number|null>(()=>defaultAuditRoomId(rooms,initialRoomId,isAdmin))
