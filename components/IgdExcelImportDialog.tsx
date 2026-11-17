@@ -417,11 +417,11 @@ export default function IgdExcelImportDialog({
         columns[key] = index
       }
       const extraQueueColumn = findHeader(headers, ['Antrian Pasien'], false)
-      const indicatorColumns = new Map<string, number[]>()
+      const indicatorColumns = new Map<string, number>()
       for (const indicator of IGD_INDICATORS) {
         const index = findHeader(headers, [indicator.header])
         if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" tidak ditemukan pada Logbook.')
-        indicatorColumns.set(indicator.code, [index])
+        indicatorColumns.set(indicator.code, index)
       }
       const byCode = mapProfiles(profiles)
       const parsed: MainRow[] = []
