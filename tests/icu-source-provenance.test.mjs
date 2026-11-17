@@ -22,7 +22,7 @@ test('ICU categorical responses render as choices and are calculated from coded 
   const engine = read('lib/aureka/quality-results-engine.ts')
   const migration = read('supabase/migrations/20261118100000_icu_categorical_form_and_bhp_linen_backfill.sql')
 
-  assert.match(workspace, /response_capture_mode\?\.'categorical'|response_capture_mode\?\?''/)
+  assert.match(workspace, /isCategoricalResponseCapture\(p\)/)
   assert.match(workspace, /categoricalCapture\|\|shouldUseIndicatorDropdown/)
   assert.match(migration, /response_capture_mode/)
   assert.match(engine, /response_capture_mode/)
@@ -52,7 +52,7 @@ test('ICU source import retains exact Excel column coordinates and stores workbo
 
 test('ICU BHP/Linen backfill preserves all other indicator data and skips already populated episodes', () => {
   const migration = read('supabase/migrations/20261118100000_icu_categorical_form_and_bhp_linen_backfill.sql')
-  assert.match(migration, /IF nullif\(btrim\(v_existing_bhp\),' '\) IS NOT NULL|IF nullif\(btrim\(v_existing_bhp\),' '\) IS NOT NULL/)
+  assert.match(migration, /IF nullif\(btrim\(v_existing_bhp\),''\) IS NOT NULL/)
   assert.match(migration, /coalesce\(v_existing_core->'indicator_values','\{\}'::jsonb\) \? '14\.1'/)
   assert.match(migration, /'Kekosongan BHP\/Linen', v_bhp->>'source_value'/)
   assert.match(migration, /jsonb_build_object\('14\.1', v_values->'14\.1'\)/)
