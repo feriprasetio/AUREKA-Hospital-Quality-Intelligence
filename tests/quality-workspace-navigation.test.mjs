@@ -65,9 +65,10 @@ test('IT workbook upload is visible from the main quality audit workspace', () =
   assert.match(quality, /else if\(id===2\)openImportDialog\('it'\)/)
   assert.match(quality, /loadedImportDialogs\.has\('it'\).*ItExcelImportDialog/)
   assert.doesNotMatch(quality, /patientRegistryMode&&!isValidator&&year>=2026/)
-  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen\?<QualityIndicatorWorkspace\b[^>]*hidePatientEpisodeEntry\/>/)
+  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen\?<QualityIndicatorWorkspace\b[^>]*\/>/)
   assert.ok(mainAuditCall, 'main Audit Indikator Mutu workspace call must remain present')
-  assert.doesNotMatch(mainAuditCall[0], /patientRegistryMode/, 'main audit workspace does not opt into the patient-registry-only mode')
+  assert.doesNotMatch(mainAuditCall[0], /hidePatientEpisodeEntry|patientRegistryMode/, 'Add Catatan stays available for patient_episode and other measurement grains')
+  assert.match(quality, /!hidePatientEpisodeEntry\|\|activeGrain!=='patient_episode'/)
 })
 
 test('Rekam Medis 2026 workbook import is available from the main quality audit workspace', () => {
@@ -81,7 +82,7 @@ test('Rekam Medis 2026 workbook import is available from the main quality audit 
   assert.doesNotMatch(quality, /patientRegistryMode&&!isValidator&&year>=2026/)
   assert.match(importer, /roomId === 13 && year === 2026/)
   assert.match(importer, /import_rekam_medis_logbook_batch/)
-  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen\?<QualityIndicatorWorkspace\b[^>]*hidePatientEpisodeEntry\/>/)
+  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen\?<QualityIndicatorWorkspace\b[^>]*\/>/)
   assert.ok(mainAuditCall, 'main Audit Indikator Mutu workspace call must remain present')
 })
 
@@ -97,7 +98,7 @@ test('Timkordik 2026 workbook import is available from the main quality audit wo
   assert.match(importer, /import_timkordik_logbook_batch/)
   assert.match(helper, /room_id: 30/)
   assert.match(helper, /measurement_grain: 'activity'/)
-  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen\?<QualityIndicatorWorkspace\b[^>]*hidePatientEpisodeEntry\/>/)
+  const mainAuditCall = home.match(/:active==='quality'&&qualityOpen\?<QualityIndicatorWorkspace\b[^>]*\/>/)
   assert.ok(mainAuditCall, 'main Audit Indikator Mutu workspace call must remain present')
-  assert.doesNotMatch(mainAuditCall[0], /patientRegistryMode/)
+  assert.doesNotMatch(mainAuditCall[0], /hidePatientEpisodeEntry|patientRegistryMode/)
 })
