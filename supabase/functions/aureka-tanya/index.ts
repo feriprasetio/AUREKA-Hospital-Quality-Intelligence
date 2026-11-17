@@ -756,7 +756,7 @@ async function handle(req: Request): Promise<Response> {
     });
   }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
-  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|diagnosis|diagnosa|koding|icd-?10|dpjp|clinical|pathway|kematian|oppe|fppe|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic|rekomendasi|tindak lanjut)\b/i;
+  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|diagnosis|diagnosa|koding|icd-?10|dpjp|clinical|pathway|kematian|oppe|fppe|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic|rekomendasi|tindak lanjut|supabase|next\.js|react|typescript|javascript|sql|database|basis data|schema|migrasi|migration|rls|edge function|api|frontend|backend|fullstack|debug|deploy|deployment|ci.?cd|github|repository|repositori|kode program|bug|error teknis|integrasi sistem|arsitektur sistem|pipeline|dewan pengawas|tata kelola|keputusan direksi|kebijakan rumah sakit)\b/i;
   const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
   const page = (body.page || "").toString().slice(0, 80);
   // Deterministic skill routing runs before model invocation; the LLM may synthesize, never select data access.
@@ -809,7 +809,7 @@ async function handle(req: Request): Promise<Response> {
     "Pengguna adalah akun AUREKA yang telah terautentikasi; identitas akun tidak dikirim ke model." + (page ? " Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
     ...MENU_AUREKA.map((m) => "- " + m),
-    data ? "DATA AUREKA (sesuai JWT/RLS dan domain skill terpilih, JSON):" : skillPlan && !skillPlan.requiresAggregateData ? "DATA AUREKA: snapshot agregat tidak dimuat karena skill aktif (misalnya Engineering/Knowledge) tidak memerlukan data rumah sakit. Jangan menyimpulkan angka operasional." : "DATA AUREKA: tidak dimuat karena ini obrolan ringan. Kalau pengguna ternyata menanyakan angka, minta dia mengulang pertanyaannya dengan menyebut data yang dimaksud.",
+    data ? "DATA AUREKA (sesuai JWT/RLS dan domain skill terpilih, JSON):" : skillPlan && !skillPlan.requiresAggregateData ? "DATA AUREKA: snapshot agregat tidak dimuat karena skill aktif (misalnya Engineering, Knowledge, Statistical, Research, Audit, atau Visual) tidak memerlukan data rumah sakit. Jangan menyimpulkan angka operasional." : "DATA AUREKA: tidak dimuat karena ini obrolan ringan. Kalau pengguna ternyata menanyakan angka, minta dia mengulang pertanyaannya dengan menyebut data yang dimaksud.",
     data ? JSON.stringify(data) : "",
   ].join("\n");
 
