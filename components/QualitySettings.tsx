@@ -61,6 +61,7 @@ const empty = (room: Room | undefined, year: number, indicatorType = ''): Model 
   measurement_grain: 'activity',
   schema_json: {},
   options_json: [{ label: 'Lainnya, tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }],
+  _measurement_type: '',
   _indicator_direction: '',
   _schema_text: '{}',
   _options_text: JSON.stringify([{ label: 'Lainnya, tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }], null, 2),
@@ -71,6 +72,7 @@ const empty = (room: Room | undefined, year: number, indicatorType = ''): Model 
 
 const editModel = (profile: Model): Model => ({
   ...profile,
+  _measurement_type: profile.schema_json?.measurement_type || '',
   _indicator_direction: profile.schema_json?.indicator_direction || '',
   _schema_text: JSON.stringify(profile.schema_json || {}, null, 2),
   _options_text: JSON.stringify(profile.options_json || [], null, 2),
@@ -123,11 +125,14 @@ const isActivePublished = (profile: Model): boolean => profile.is_active === tru
 const payloadFrom = (model: Model): Model => {
   const {
     id, created_at, updated_at, created_by, updated_by,
-    _schema_text, _options_text, _indicator_direction, ...fields
+    _schema_text, _options_text, _measurement_type, _indicator_direction, ...fields
   } = model
   const options = JSON.parse(String(_options_text ?? JSON.stringify(model.options_json || [])))
   const schema = JSON.parse(String(_schema_text ?? JSON.stringify(model.schema_json || {})))
+  const measurementType = String(_measurement_type ?? '').trim()
   const direction = String(_indicator_direction ?? '').trim()
+  if (measurementType) schema.measurement_type = measurementType
+  else delete schema.measurement_type
   if (direction === 'positive' || direction === 'negative') schema.indicator_direction = direction
   else delete schema.indicator_direction
   return {
@@ -567,6 +572,12 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       if (!payload.schema_json || typeof payload.schema_json !== 'object' || Array.isArray(payload.schema_json)) {
         throw new Error('Struktur instrumen harus berupa objek JSON.')
       }
+      if (!MEASUREMENT_TYPES.some((item) => item.value === payload.schema_json.measurement_type)) {
+        throw new Error('Tipe pengukuran wajib dipilih sebelum menerbitkan profil.')
+      }
+      if (!['positive', 'negative'].includes(String(payload.schema_json.indicator_direction ?? ''))) {
+        throw new Error('Arah indikator wajib dipilih sebelum menerbitkan profil.')
+      }
     } catch (error) {
       setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
       return
@@ -883,6 +894,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <label className="field" style={fieldStyle}><span>Target tertulis</span><input value={model.target_text || ''} placeholder="Mis. ≥ 85%" onChange={(e) => setModel({ ...model, target_text: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Operator target</span><select value={model.target_operator || '>='} onChange={(e) => setModel({ ...model, target_operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value="=">=</option><option value=">">&gt;</option><option value="<">&lt;</option></select></label>
         <label className="field" style={fieldStyle}><span>Nilai target numerik</span><input type="number" value={model.target_value ?? ''} onChange={(e) => setModel({ ...model, target_value: e.target.value })} /></label>
+        <label className="field" style={fieldStyle}><span>Tipe pengukuran</span><select required value={model._measurement_type || ''} onChange={(e) => setModel({ ...model, _measurement_type: e.target.value })}><option value="">Pilih tipe pengukuran</option>{MEASUREMENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Satuan pencatatan</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{GRAIN_LABEL[grain] || grain}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif, semakin tinggi semakin baik</option><option value="negative">Negatif, semakin rendah semakin baik</option></select></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi numerator</span><textarea value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
