@@ -28,13 +28,10 @@ type PatientRow = {
   diagnosis_terakhir: string | null
   bridging_status: string
   bridging_at: string | null
-  readmisi_30?: number | null
-  readmisi_terakhir?: string | null
   total_count: number
 }
 type Summary = {
-  total: number; kunjungan_berulang: number; dengan_nik: number; terhubung_simrs: number; terakhir_diperbarui: string | null
-  readmisi_30?: number; dengan_ihs?: number; dengan_simrs_id?: number; dengan_nama?: number; bridging?: Record<string, number>
+  total: number; dengan_nik: number; terhubung_simrs: number
 }
 type InvalidRm = { record_id: string; room_name: string; record_date: string | null; no_rm_asli: string | null }
 type Episode = { id: string; unit: string | null; record_date: string | null; masuk: string | null; keluar: string | null; diagnosis: string | null; dpjp: string | null; los: string | null; rawat_inap: boolean | null; no_rm_norm: string | null }
@@ -59,7 +56,6 @@ const fmtShort = (d: string | null) => d ? new Intl.DateTimeFormat('id-ID', { da
 const maskName = (v: string | null) => (v || '').split(/\s+/).filter(Boolean).map((p) => p[0] + '•••').join(' ') || '-'
 const maskNik = (v: string | null) => v ? v.slice(0, 4) + '••••••••' + v.slice(-4) : '-'
 const isMissingFn = (e: { code?: string; message?: string } | null) => Boolean(e && (e.code === 'PGRST202' || /Could not find the function|schema cache/i.test(e.message || '')))
-const daysBetween = (a: string, b: string) => Math.round((toDate(b).getTime() - toDate(a).getTime()) / 86_400_000)
 
 export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: boolean; rooms?: Room[] }) {
   const [search, setSearch] = useState('')
@@ -152,7 +148,6 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
         <li><b>Kolom dari AUREKA:</b> nama, kunjungan pertama/terakhir, jumlah episode, unit &amp; diagnosis terakhir.</li>
         <li><b>Kolom diisi SIMRS saat bridging:</b> NIK (16 digit), No. IHS SATUSEHAT, ID pasien SIMRS, tanggal lahir, jenis kelamin (L/P), alamat, telepon.</li>
         <li><b>Status bridging:</b> Belum terhubung → Menunggu → Terhubung / Gagal / Konflik data.</li>
-        <li><b>Readmisi ≤30 hari:</b> dua episode rawat inap (punya tanggal keluar) pasien yang sama berselisih 1–30 hari menurut tanggal Logbook. Perkiraan untuk penelusuran mutu, bukan pengganti indikator resmi.</li>
         <li><b>Pemetaan FHIR (SATUSEHAT Patient):</b> identifier No. RM (sistem RS), identifier NIK &amp; IHS, name, gender, birthDate, address, telecom.</li>
         <li><b>Keamanan:</b> tabel hanya lewat fungsi berizin; pengguna unit hanya melihat pasien yang pernah dilayani di unitnya; identitas disamarkan secara bawaan.</li>
       </ul>
@@ -204,7 +199,6 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
                   {r.total_episode > 1
                     ? <><b>{r.total_episode}×</b> <span>{fmtShort(r.first_seen)} – {fmt(r.last_seen)}</span></>
                     : <span>{fmt(r.last_seen)}</span>}
-                  {(r.readmisi_30 ?? 0) > 0 && <em className="piReadmit" title={'Kembali dirawat inap ≤30 hari' + (r.readmisi_terakhir ? ' · terakhir ' + fmt(r.readmisi_terakhir) : '')}>Readmisi 30 hari</em>}
                 </td>
                 <td>{r.unit_terakhir || '-'}</td>
                 <td><span className="piDiag" title={r.diagnosis_terakhir || undefined}>{r.diagnosis_terakhir || '-'}</span></td>
@@ -236,12 +230,9 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}
       .piBridge.terhubung{background:#e3f4ea;color:#1f6b43}.piBridge.menunggu{background:#fff4e0;color:#8a5a12}
       .piBridge.gagal,.piBridge.konflik{background:#fde8e8;color:#9b2c2c}
-      .piKpiWarn strong{color:#a15c07}
-      .piBars{display:grid;gap:10px;margin-top:14px}.piBarRow{display:grid;grid-template-columns:minmax(100px,1fr) minmax(60px,2fr) 48px;align-items:center;gap:9px;font-size:12px}.piBarRow>span{color:var(--ink,#0b1f33)}.piBarRow>b{text-align:right;font-variant-numeric:tabular-nums}
-      .piBarTrack{height:9px;overflow:hidden;border-radius:99px;background:#e8eef4}.piBarTrack i{display:block;height:100%;border-radius:inherit;background:#236a9b;transition:width .5s cubic-bezier(.22,1,.36,1)}
       .piToolbar{display:grid;gap:10px;padding:14px 16px;border-radius:16px;border:1px solid rgba(11,70,122,.12);background:rgba(255,255,255,.7)}
       .piFilters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start}
-      .piSearch{flex:1 1 260px;min-width:0}.piSearch input,.piSelect select,.piDate input{width:100%;min-height:40px;padding:0 12px;border-radius:12px;border:1.5px solid #d9e4ef;background:#f5f8fc;font:inherit;font-size:13px;color:#1f2430}
+      .piSearch{flex:1 1 260px;min-width:0}.piSelect select,.piDate input{width:100%;min-height:40px;padding:0 12px;border-radius:12px;border:1.5px solid #d9e4ef;background:#f5f8fc;font:inherit;font-size:13px;color:#1f2430}
       .piSelect{flex:0 1 220px;min-width:160px}
       .piDate{display:flex;align-items:center;gap:6px;flex:0 1 auto;font-size:12px;font-weight:700;color:#4b5565}.piDate input{width:auto;min-width:138px}.piDate i{font-style:normal;color:#94a3b8}
       .piReset{min-height:40px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:#0e7490;font:inherit;font-size:13px;font-weight:700;cursor:pointer}.piReset:hover{background:rgba(14,116,144,.08)}
@@ -250,13 +241,11 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piColNote{margin:0 0 10px;padding:8px 12px;border-radius:10px;background:#f2f6fa;color:#4b5565;font-size:12px}
       .piRow{cursor:pointer;transition:background-color .12s ease}.piRow:hover td,.piRow:focus-visible td{background:rgba(94,196,207,.09)}.piRow:focus-visible{outline:2px solid rgba(34,211,238,.6);outline-offset:-2px}
       .piVisits{white-space:nowrap}.piVisits b{font-variant-numeric:tabular-nums}.piVisits span{color:#4b5565}
-      .piReadmit{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#fff1d6;color:#8a5207;font-style:normal;font-size:12px;font-weight:800}
       .piDiag{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:420px}
-      html[data-mode="gelap"] :is(.piSearch input,.piSelect select,.piDate input){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
+      html[data-mode="gelap"] :is(.piSelect select,.piDate input){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
       html[data-mode="gelap"] .piColNote{background:rgba(255,255,255,.05);color:#aab6c6}html[data-mode="gelap"] .piVisits span{color:#aab6c6}
       html[data-mode="gelap"] .piPanel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
       html[data-mode="gelap"] .piHead p{color:#9fb3c8}
-      @media(prefers-reduced-motion:reduce){.piBarTrack i{transition:none}}
     `}</style>
   </section>
 }
@@ -293,16 +282,6 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
     return () => { window.removeEventListener('keydown', onKey); previous?.focus?.() }
   }, [onClose])
 
-  // Jarak antar episode rawat inap (urutan waktu) untuk menandai readmisi ≤30 hari.
-  const gaps = useMemo(() => {
-    const map = new Map<string, number>()
-    const inpatient = (episodes ?? []).filter((e) => e.rawat_inap && e.record_date).slice().reverse()
-    for (let i = 1; i < inpatient.length; i++) {
-      const gap = daysBetween(inpatient[i - 1].record_date as string, inpatient[i].record_date as string)
-      if (gap >= 1 && gap <= 30) map.set(inpatient[i].id, gap)
-    }
-    return map
-  }, [episodes])
   const units = useMemo(() => new Set((episodes ?? []).map((e) => e.unit).filter(Boolean)).size, [episodes])
 
   if (typeof document === 'undefined') return null
@@ -319,17 +298,15 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
           <button ref={closeRef} type="button" className="ptClose" onClick={onClose} aria-label="Tutup riwayat pasien">×</button>
         </div>
       </header>
-      {(patient.readmisi_30 ?? 0) > 0 && <div className="ptAlert">Pasien ini kembali dirawat inap dalam ≤30 hari ({patient.readmisi_30}×). Pertimbangkan untuk ditelusuri sebagai bahan evaluasi mutu.</div>}
       <div className="ptBody">
         {episodes === null ? <div className="ptLoading" role="status"><i /><i /><i /></div>
           : error ? <p className="ptEmpty">{error}</p>
           : episodes.length === 0 ? <p className="ptEmpty">Belum ada episode yang dapat ditampilkan untuk No. RM ini di unit yang boleh Anda akses.</p>
           : <ol className="ptList">{episodes.map((e) => {
-              const gap = gaps.get(e.id)
-              return <li key={e.id} className={gap ? 'readmit' : ''}>
+              return <li key={e.id}>
                 <span className="ptDot" aria-hidden="true" />
                 <div className="ptCard">
-                  <div className="ptRow"><b>{fmt(e.record_date)}</b><span>{e.unit || '-'}</span>{e.rawat_inap && <em className="ptTag">Rawat inap</em>}{gap && <em className="ptTag warn">Kembali {gap} hari</em>}</div>
+                  <div className="ptRow"><b>{fmt(e.record_date)}</b><span>{e.unit || '-'}</span>{e.rawat_inap && <em className="ptTag">Rawat inap</em>}</div>
                   {e.diagnosis && <p className="ptDiag">{e.diagnosis}</p>}
                   <div className="ptMeta">
                     {e.masuk && <span>Masuk {fmt(e.masuk)}</span>}
@@ -351,14 +328,11 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
       .ptHeadActions{display:flex;gap:6px;align-items:center}
       .ptGhost{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid #d9e4ef;background:#fff;font:inherit;font-size:12px;font-weight:700;color:#1f2430;cursor:pointer}
       .ptClose{width:38px;height:38px;border-radius:12px;border:1px solid #d9e4ef;background:#fff;font-size:20px;line-height:1;color:#1f2430;cursor:pointer}
-      .ptAlert{margin:14px 22px 0;padding:10px 12px;border-radius:12px;background:#fff6e2;color:#7a4a05;font-size:13px;line-height:1.5}
       .ptBody{flex:1;overflow:auto;padding:16px 22px}
       .ptList{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid #e3eaf1;display:grid;gap:12px}
       .ptList li{position:relative}.ptDot{position:absolute;left:-25px;top:16px;width:12px;height:12px;border-radius:99px;background:#5ec4cf;border:2px solid #fff;box-shadow:0 0 0 2px #cdeef1}
-      .ptList li.readmit .ptDot{background:#f59e0b;box-shadow:0 0 0 2px #fde7b0}
       .ptCard{padding:12px 14px;border-radius:14px;border:1px solid #e3eaf1;background:#fbfcfe}
       .ptRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px}.ptRow b{font-variant-numeric:tabular-nums}.ptRow span{color:#334155;font-weight:600}
-      .ptTag{padding:2px 8px;border-radius:999px;background:#e7f3f8;color:#0e5566;font-style:normal;font-size:12px;font-weight:700}.ptTag.warn{background:#fff1d6;color:#8a5207}
       .ptDiag{margin:6px 0 0;font-size:13px;line-height:1.5;color:#1f2430}
       .ptMeta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px;font-size:12px;color:#5b6878}
       .ptEmpty{margin:20px 0;color:#5b6878;font-size:13px;text-align:center}
@@ -375,7 +349,6 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
       html[data-mode="gelap"] .ptCard{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
       html[data-mode="gelap"] .ptRow span,html[data-mode="gelap"] .ptDiag{color:#dbe3ee}
       html[data-mode="gelap"] .ptList{border-color:rgba(255,255,255,.12)}html[data-mode="gelap"] .ptDot{border-color:#121821}
-      html[data-mode="gelap"] .ptAlert{background:rgba(251,191,36,.12);color:#fcd34d}
       html[data-mode="gelap"] .ptFoot{border-color:rgba(255,255,255,.08)}
       html[data-mode="gelap"] .ptLoading i{background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.1) 37%,rgba(255,255,255,.05) 63%);background-size:400% 100%}
     `}</style>
