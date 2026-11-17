@@ -179,7 +179,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
 
     <style jsx>{`
       .naraWorkspace{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;min-width:0;min-height:calc(100dvh - 190px);color:#1f2430}
-      .naraHistory{display:flex;flex-direction:column;gap:12px;min-height:0;padding:14px;border-radius:22px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);position:sticky;top:96px;max-height:calc(100dvh - 120px)}
+      .naraHistory{display:flex;flex-direction:column;gap:12px;min-height:0;padding:14px;border-radius:22px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);position:sticky;top:96px;align-self:start;max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain}
+      .naraHistory > :not(.naraHistoryList){flex-shrink:0}
       .naraNew{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:14px;background:#1f2430;color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .12s ease}
       .naraNew:active{transform:scale(.98)}.naraNew span{font-size:18px;line-height:1}
       .naraHistoryList{flex:1;min-height:0;overflow:auto;display:grid;align-content:start;gap:12px;margin:0 -4px;padding:0 4px}
@@ -208,7 +209,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraCoverageCard small{font-size:11px;letter-spacing:.1em;font-weight:850;color:#527f96}
       .naraCoverageCard strong{font-size:12px}.naraCoverageCard span,.naraCoverageCard p{margin:0;font-size:11px;line-height:1.45;color:#63788a}
       .naraPrivacyNote{font-size:11px;line-height:1.5;color:#5e7180;padding:0 2px}
-      .naraCodingWorkspace{grid-column:1 / -1;min-width:0}.naraCodingToggle{min-height:38px;padding:0 12px;border:1px solid #dfe7f0;border-radius:12px;background:rgba(255,255,255,.75);color:#23445d;font-size:12px;font-weight:750;cursor:pointer}.naraCodingToggle:hover{background:#fff;border-color:#9ab7c9}
+      .naraCodingWorkspace{grid-column:2;min-width:0}.naraCodingToggle{min-height:38px;padding:0 12px;border:1px solid #dfe7f0;border-radius:12px;background:rgba(255,255,255,.75);color:#23445d;font-size:12px;font-weight:750;cursor:pointer}.naraCodingToggle:hover{background:#fff;border-color:#9ab7c9}
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
       .naraMobileBar{display:none}
       .naraStageWrap :global(.tanyaPanelEmbedded){flex:1;min-height:0;display:flex;flex-direction:column;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
@@ -230,7 +231,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       @keyframes naraRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
       @media(max-width:900px){
         .naraWorkspace{grid-template-columns:1fr;min-height:calc(100dvh - 230px)}
-        .naraHistory{display:none;position:static;max-height:none}
+        .naraHistory{display:none;position:static;max-height:none;overflow:visible}
+        .naraCodingWorkspace{grid-column:1 / -1}
         .naraWorkspace.listOpen .naraHistory{display:flex}
         .naraMobileBar{display:flex;justify-content:space-between;gap:8px;padding:10px 12px 0}
         .naraMobileBar button{min-height:38px;padding:0 14px;border-radius:12px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:700;color:#1f2430}
