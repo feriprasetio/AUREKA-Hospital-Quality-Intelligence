@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { resolveInteractiveExcelHeaderColumn } from './interactive-header-mapping.ts'
 
 export type PediatricIndicatorOption = {
   code?: number | null
@@ -111,7 +112,7 @@ export type PediatricHeaderMap = {
 }
 
 /** Resolve row-2 Logbook headers to stable importer keys (1-based worksheet columns). */
-export function mapPediatricLogbookHeaders(headerValues: unknown[]): PediatricHeaderMap {
+export function mapPediatricLogbookHeaders(headerValues: unknown[] , interactive = false): PediatricHeaderMap {
   const columns = new Map<string, number[]>()
   headerValues.forEach((value, index) => {
     const key = normalizeExactHeader(value)
@@ -125,7 +126,19 @@ export function mapPediatricLogbookHeaders(headerValues: unknown[]): PediatricHe
   const missingHeaders: string[] = []
   const duplicateHeaders: string[] = []
 
-  const resolve = (key: string, aliases: string[], required = true) => {
+  const resolve = (key: string, aliases: string[] , required = true) => {
+    if (interactive) {
+      const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+        importerKey: 'pediatric',
+        fieldKey: key,
+        fieldLabel: aliases[0],
+        required: required,
+      })
+      if (column != null) indexes[key] = column
+      else if (required) missingHeaders.push(aliases[0])
+      return
+    }
+    const isRequired = required
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
@@ -135,7 +148,7 @@ export function mapPediatricLogbookHeaders(headerValues: unknown[]): PediatricHe
       indexes[key] = matches[0]
       return
     }
-    if (required) missingHeaders.push(aliases[0])
+    if (isRequired) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) resolve(key, aliases)
