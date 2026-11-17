@@ -617,3 +617,60 @@ test('ratio profiles derive N/D from coded categorical responses when raw N/D fi
   assert.equal(result.targetMet, true)
 })
 
+
+
+test('categorical capture mode takes precedence over legacy ICU visit/ratio measurement types', () => {
+  const profile = {
+    id: 'p-icu-14-4',
+    room_id: 14,
+    code: '14.4',
+    title: 'Kepatuhan Jam Visite Dokter Spesialis',
+    measurement_grain: 'patient_episode',
+    schema_json: {
+      measurement_type: 'visit',
+      response_capture_mode: 'categorical',
+      indicator_direction: 'positive',
+    },
+    options_json: [
+      { code: 1, label: 'Visite Hari Kerja (06.00-14.00)', numerator: true, denominator: true },
+      { code: 3, label: 'Tidak Visite', numerator: false, denominator: true },
+    ],
+    target_text: '≥ 80%',
+    target_operator: '>=',
+    target_value: 80,
+  }
+  const rows = [
+    {
+      room_id: 14,
+      record_date: '2026-01-03',
+      status: 'validated',
+      core_data: { indicator_values: { '14.4': {
+        answer: 'Visite Hari Kerja (06.00-14.00)',
+        code: 1,
+        source_code: 1,
+        review_required: false,
+        mapping_status: 'mapped',
+      } } },
+    },
+    {
+      room_id: 14,
+      record_date: '2026-01-04',
+      status: 'validated',
+      core_data: { indicator_values: { '14.4': {
+        answer: 'Tidak Visite',
+        code: 3,
+        source_code: 3,
+        review_required: false,
+        mapping_status: 'mapped',
+      } } },
+    },
+  ]
+
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.kind, 'visit')
+  assert.equal(result.observations, 2)
+  assert.equal(result.annualNumerator, 1)
+  assert.equal(result.annualDenominator, 2)
+  assert.equal(result.annualRate, 50)
+  assert.equal(result.targetMet, false)
+})
