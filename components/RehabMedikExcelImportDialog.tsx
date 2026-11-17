@@ -1,5 +1,6 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
 
 import { useMemo, useState } from 'react'
@@ -104,40 +105,52 @@ function columnsForRow(row:any):Map<string,number[]> {
   }
   return result
 }
-function findHeader(columns:Map<string,number[]>,aliases:string[],required:boolean):number|null {
-  for(const alias of aliases){
-    const matches=columns.get(normalizeExactHeader(alias))
-    if(matches?.length){
-      if(matches.length>1)throw new Error('Header "'+alias+'" muncul lebih dari satu kali pada baris header.')
-      return matches[0]
-    }
-  }
-  if(required)throw new Error('Header wajib "'+aliases[0]+'" tidak ditemukan pada baris header Logbook.')
-  return null
+function findHeader(columns: Map<string, number[]>, aliases: string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, aliases, {
+    importerKey: 'rehab-medik',
+    fieldKey: aliases[0] ?? 'field',
+    fieldLabel: aliases[0] ?? 'Field',
+    required,
+  })
 }
 function findHeaderRow(sheet:any):{rowNumber:number;indexes:Record<string,number>} {
-  for(let rowNumber=1;rowNumber<=Math.min(10,sheet.rowCount);rowNumber++){
-    try{
-      const columns=columnsForRow(sheet.getRow(rowNumber))
-      const indexes:Record<string,number>={}
-      for(const [key,aliases] of Object.entries(REQUIRED_HEADERS)){
-        const index=findHeader(columns,aliases,key!=='treatment')
-        if(index!=null)indexes[key]=index
-      }
-      for(const [code,aliases] of Object.entries(INDICATOR_HEADERS)){
-        const index=findHeader(columns,aliases,true)
-        if(index!=null)indexes['indicator:'+code]=index
-      }
-      const requiredReady=['sourceNo','patientName','medicalRecordNo','serviceDate','therapist'].every(key=>indexes[key]!=null)
-      const indicatorsReady=INDICATORS.every(item=>indexes['indicator:'+item.code]!=null)
-      if(requiredReady&&indicatorsReady)return {rowNumber,indexes}
-    }catch{
-      // Continue scanning title/merged header rows before the actual Logbook header.
-    }
+  let bestRowNumber = 0
+  let bestColumns: Map<string, number[]> | null = null
+  let bestScore = Number.POSITIVE_INFINITY
+  const exact = (columns: Map<string, number[]>, aliases: string[]) => {
+    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
+    return matches.length === 1 ? matches[0] : null
   }
-  throw new Error('Header Logbook tidak lengkap. Workbook harus memiliki kolom No., Nama Pasien, No. Rekam Medis, Tanggal Dilayani, Nama Terapis, dan keenam indikator Rehab Medik pada satu baris.')
-}
-function formatCounts(rows:PreparedRow[]) {
+  for(let rowNumber=1;rowNumber<=Math.min(10,sheet.rowCount);rowNumber++){
+    const columns=columnsForRow(sheet.getRow(rowNumber))
+    let score=0
+    for(const [key,aliases] of Object.entries(REQUIRED_HEADERS)){
+      const column=exact(columns,aliases)
+      if(column==null && key !== 'treatment') score+=1
+    }
+    for(const [code,aliases] of Object.entries(INDICATOR_HEADERS)) if(exact(columns,aliases)==null)score+=1
+    if(score===0){
+      const indexes:Record<string,number>={}
+      for(const [key,aliases] of Object.entries(REQUIRED_HEADERS)){const column=exact(columns,aliases);if(column!=null)indexes[key]=column}
+      for(const [code,aliases] of Object.entries(INDICATOR_HEADERS)){const column=exact(columns,aliases);if(column!=null)indexes['indicator:'+code]=column}
+      return {rowNumber,indexes}
+    }
+    if(score<bestScore){bestScore=score;bestRowNumber=rowNumber;bestColumns=columns}
+  }
+  if(bestColumns&&bestRowNumber){
+    const indexes:Record<string,number>={}
+    for(const [key,aliases] of Object.entries(REQUIRED_HEADERS)){
+      const column=resolveInteractiveExcelHeaderColumn(bestColumns,aliases,{importerKey:'rehab-medik',fieldKey:key,fieldLabel:aliases[0],required:key !== 'treatment'})
+      if(column!=null)indexes[key]=column
+    }
+    for(const [code,aliases] of Object.entries(INDICATOR_HEADERS)){
+      const column=resolveInteractiveExcelHeaderColumn(bestColumns,aliases,{importerKey:'rehab-medik',fieldKey:'indicator:'+code,fieldLabel:aliases[0],required:true})
+      if(column!=null)indexes['indicator:'+code]=column
+    }
+    return {rowNumber:bestRowNumber,indexes}
+  }
+  throw new Error("Header Logbook tidak lengkap. Workbook harus memiliki kolom No., Nama Pasien, No. Rekam Medis, Tanggal Dilayani, Nama Terapis, dan keenam indikator Rehab Medik pada satu baris.")
+}function formatCounts(rows:PreparedRow[]) {
   const therapists=new Set(rows.map(row=>row.therapist).filter(Boolean))
   const treatments=new Set(rows.map(row=>row.treatment).filter(Boolean))
   const dates=rows.map(row=>row.serviceDate).sort()
