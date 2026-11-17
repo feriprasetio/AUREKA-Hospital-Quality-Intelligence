@@ -415,13 +415,20 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           ?? (code === '14.1' ? source.source_bhp_linen?.source_value : undefined)
           ?? (code === '14.1' ? form['Kekosongan BHP/Linen'] ?? form['Kekosongan BHP/Linen (sumber belum dipetakan)'] : undefined)
           ?? ''
-        const header = source.source_indicator_columns?.[code]
+        const columnMeta = source.source_indicator_columns?.[code] ?? {}
+        const header = (typeof columnMeta === 'string' ? columnMeta : columnMeta.header)
           ?? (code === '14.1' ? source.source_bhp_linen?.source_header : undefined)
           ?? mapping.indicator_header
           ?? ''
-        const columnRef = source.source_indicator_column_refs?.[code] ?? {}
+        const columnRef = source.source_indicator_column_refs?.[code] ?? columnMeta
         const excelRow = source.source_excel_row == null ? '' : String(source.source_excel_row)
-        const columnLetter = String(columnRef.column_letter ?? mapping.column_letter ?? '')
+        const columnLetter = String(
+          columnRef.column_letter
+          ?? columnRef.columnLetter
+          ?? (code === '14.1' ? source.source_bhp_linen?.column_letter : undefined)
+          ?? mapping.column_letter
+          ?? '',
+        )
         return {
           workbook: String(source.source_workbook ?? ''),
           storagePath: String(source.source_storage_path ?? ''),
