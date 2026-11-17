@@ -65,7 +65,7 @@ export default function QrReportsPanel({ supabase, rooms, onProcess, refreshKey 
     w.document.close()
   }
 
-  if (ready === false) return <p className="qrSetup">Lapor IKP via QR belum aktif{setupError ? ` (${setupError})` : ''}. Pastikan migrasi 20261116120000_public_incident_qr.sql sudah dijalankan.</p>
+  if (ready === false) return <p className="qrSetup" title={setupError || undefined}>Lapor IKP via QR menunggu migrasi database (20261116120000_public_incident_qr.sql).</p>
   if (!ready) return null
   return <section className="qrPanel" aria-label="Laporan masuk lewat QR">
     <div className="qrHead">
