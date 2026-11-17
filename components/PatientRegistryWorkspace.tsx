@@ -6,7 +6,6 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { fetchRoomMonthCounts } from '@/lib/aureka/quality-counts'
 import PatientIndexTab from '@/components/patient-registry/PatientIndexTab'
-import PatientStatsTab from '@/components/patient-registry/PatientStatsTab'
 import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 
 type Room = { id: number; name: string }
@@ -144,7 +143,6 @@ export default function PatientRegistryWorkspace({
   isValidator,
   canViewAllRooms,
   lockRoomScope = false,
-  section,
   registryTab,
   onRegistryTabChange,
 }: {
@@ -154,18 +152,13 @@ export default function PatientRegistryWorkspace({
   isValidator: boolean
   canViewAllRooms: boolean
   lockRoomScope?: boolean
-  /** Blueprint v2 §1/§2: submenu Pasien — Register Pasien, Statistik, Metadata Pasien */
-  section?: 'register' | 'stats' | 'metadata'
-  registryTab?: 'add' | 'records'
-  onRegistryTabChange?: (tab: 'add' | 'records') => void
+  /** Satu halaman operasional; statistik dan analitik berada di Visual Intelligence. */
+  registryTab?: 'add' | 'records' | 'directory'
+  onRegistryTabChange?: (tab: 'add' | 'records' | 'directory') => void
 }) {
-  const [tab, setTab] = useState<'add' | 'records' | 'database' | 'stats'>(registryTab ?? (section === 'stats' ? 'stats' : section === 'metadata' ? 'database' : 'add'))
-  const selectRegistryTab = (next: 'add' | 'records') => { setTab(next); onRegistryTabChange?.(next) }
-  useEffect(() => {
-    if (section === 'stats') setTab('stats')
-    else if (section === 'metadata') setTab('database')
-    else if (section === 'register') setTab(registryTab ?? 'add')
-  }, [section, registryTab])
+  const [tab, setTab] = useState<'add' | 'records' | 'directory'>(registryTab ?? 'records')
+  const selectRegistryTab = (next: 'add' | 'records' | 'directory') => { setTab(next); onRegistryTabChange?.(next) }
+  useEffect(() => { setTab(registryTab ?? 'records') }, [registryTab])
   // Super Admin mengikuti unit global; PMKP dapat memilih Semua Unit atau unit tertentu.
   const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
@@ -226,7 +219,7 @@ export default function PatientRegistryWorkspace({
 
   // Jumlah episode per unit (untuk pilihan unit & unit bawaan formulir Tambah Pasien).
   useEffect(() => {
-    if (!canViewAllRooms && !lockRoomScope) return
+    if (tab !== 'records' || (!canViewAllRooms && !lockRoomScope)) return
     let cancelled = false
     ;(async () => {
       const counts = new Map<number, number>()
@@ -234,8 +227,7 @@ export default function PatientRegistryWorkspace({
       if (!cancelled) setRoomCounts(counts)
     })()
     return () => { cancelled = true }
-  }, [canViewAllRooms, lockRoomScope, year])
-  const firstRoomWithData = useMemo(() => rooms.find((room) => (roomCounts.get(Number(room.id)) ?? 0) > 0)?.id ?? null, [rooms, roomCounts])
+  }, [tab, canViewAllRooms, lockRoomScope, year])
 
   useEffect(() => {
     if (lockRoomScope && initialRoomId != null) {
@@ -245,31 +237,14 @@ export default function PatientRegistryWorkspace({
     }
     if (!canViewAllRooms && !roomFilter && rooms.length) setRoomFilter(String(initialRoomId ?? rooms[0].id))
   }, [roomFilter, rooms, initialRoomId, canViewAllRooms, lockRoomScope])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { if (tab === 'records') void load() }, [load, tab])
 
   const filtered = rows
 
-  const allTotal = effectiveRoom ? (roomCounts.get(Number(effectiveRoom)) ?? 0) : [...roomCounts.values()].reduce((a, b) => a + b, 0)
-  const shownTotal = total >= 0 ? total : allTotal
+  const shownTotal = total >= 0 ? total : (effectiveRoom ? roomCounts.get(Number(effectiveRoom)) ?? 0 : [...roomCounts.values()].reduce((a, b) => a + b, 0))
   const pageCount = Math.max(1, Math.ceil(shownTotal / PAGE_SIZE))
   const firstRow = rows.length ? page * PAGE_SIZE + 1 : 0
   const lastRow = page * PAGE_SIZE + rows.length
-  const discharged = rows.filter((row) => row.inpatient && row.discharge).length
-  const activeEpisodes = rows.filter((row) => row.inpatient && !row.discharge).length
-  const visits = rows.filter((row) => !row.inpatient).length
-
-  const pageEpisodeDistribution = [
-    { label: 'Rawat inap pulang', count: discharged },
-    { label: 'Masih dirawat', count: activeEpisodes },
-    { label: 'Kunjungan non-rawat inap', count: visits },
-  ]
-  const pageEpisodeMax = Math.max(1, ...pageEpisodeDistribution.map((item) => item.count))
-  const pageWorkflowDistribution = [
-    { label: 'Tervalidasi', count: rows.filter((row) => row.status === 'validated').length },
-    { label: 'Menunggu validasi', count: rows.filter((row) => row.status === 'ready' || row.status === 'submitted').length },
-    { label: 'Draf', count: rows.filter((row) => row.status === 'draft').length },
-    { label: 'Status lain', count: rows.filter((row) => !['validated', 'ready', 'submitted', 'draft'].includes(row.status)).length },
-  ]
 
   return (
     <section className="patientRegistry">
@@ -282,13 +257,9 @@ export default function PatientRegistryWorkspace({
         .prButton{border:1px solid var(--line,rgba(30,60,45,.14));background:#fff;color:#264438;border-radius:11px;padding:10px 13px;min-height:40px;font-size:12px;font-weight:750;cursor:pointer}
         .prButton.primary{background:var(--accent,#23694a);border-color:var(--accent,#23694a);color:#fff}
         .prButton:disabled{opacity:.45;cursor:not-allowed}
-        .prUnitDistribution{display:grid;gap:10px;padding:14px 16px;background:var(--surface,#fff);border:1px solid var(--line,rgba(15,42,68,.14));border-radius:14px}.prUnitDistributionHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.prUnitDistributionHead h3{margin:0;font-size:13px;color:var(--ink,#0b1f33)}.prUnitDistributionHead p{margin:4px 0 0;color:var(--muted,#64748b);font-size:12px}.prUnitDistributionList{display:grid;gap:8px}.prUnitDistributionRow{display:grid;grid-template-columns:minmax(110px,190px) minmax(80px,1fr) auto;align-items:center;gap:10px;min-width:0}.prUnitDistributionRow button{padding:0;border:0;background:transparent;text-align:left;color:var(--ink,#0b1f33);font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.prUnitDistributionTrack{height:8px;border-radius:99px;background:var(--surface-soft,#e8f2fa);overflow:hidden}.prUnitDistributionTrack i{display:block;height:100%;border-radius:99px;background:#3977b8}.prUnitDistributionRow strong{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink,#0b1f33)}.prUnitDistributionNote{margin:0;color:var(--muted,#64748b);font-size:11px;line-height:1.45}@media(max-width:640px){.prUnitDistributionRow{grid-template-columns:minmax(90px,120px) minmax(55px,1fr) auto;gap:7px}.prUnitDistribution{padding:12px}}
-        .prKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-        .prKpi,.prPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px}
-        .prKpi{padding:14px 16px}.prKpi span{display:block;color:var(--muted,#718078);font-size:12px}.prKpi strong{display:block;font-size:25px;margin-top:5px}
+        .prPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px}
         .prFilters{padding:14px}.prFilters label{display:grid;gap:5px;color:var(--muted,#718078);font-size:12px;font-weight:700}.prUnitScope{display:grid;gap:5px;min-width:170px;padding:3px 0}.prUnitScope span{color:var(--muted,#718078);font-size:12px;font-weight:700}.prUnitScope strong{font-size:12px;color:var(--ink,#18372b)}
         .prFilters input,.prFilters select{min-height:39px;min-width:145px;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink,#18372b);font-size:12px}
-        .prSearch{flex:1;min-width:210px}
         .prTableWrap{overflow:auto;max-width:100%;border-radius:15px}
         .prTable{width:100%;min-width:930px;border-collapse:collapse;font-size:12px}
         .prTable th,.prTable td{padding:12px 11px;text-align:left;border-bottom:1px solid var(--line,rgba(30,60,45,.1));vertical-align:top}
@@ -298,47 +269,23 @@ export default function PatientRegistryWorkspace({
         .prFoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px}
         .prEmpty{padding:35px 16px;text-align:center;color:var(--muted,#718078);font-size:12px}
         .prAlert{padding:12px 14px;border-radius:12px;background:#fff5e8;color:#825a20;font-size:12px}
-        .prAnalytics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-        .prAnalyticsCard{min-width:0;padding:15px 17px;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:15px;background:#fff}
-        .prAnalyticsHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.prAnalyticsHead h3{margin:0;font-size:13px}.prAnalyticsHead p{margin:5px 0 0;color:var(--muted,#718078);font-size:12px;line-height:1.45}.prAnalyticsHead>b{font-size:12px;white-space:nowrap;color:var(--accent,#23694a)}
-        .prAnalyticsBars{display:grid;gap:10px;margin-top:14px}.prAnalyticsRow{display:grid;grid-template-columns:minmax(110px,1fr) minmax(60px,2fr) 34px;align-items:center;gap:9px;font-size:12px}.prAnalyticsRow>span{color:var(--ink,#18372b)}.prAnalyticsRow>b{text-align:right;font-variant-numeric:tabular-nums}.prAnalyticsRow>div{height:9px;overflow:hidden;border-radius:99px;background:#e8eef4}.prAnalyticsRow i{display:block;height:100%;border-radius:inherit;background:#236a9b}
-        .prAnalyticsStatuses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.prAnalyticsStatuses>div{display:flex;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line,rgba(30,60,45,.1));border-radius:10px;font-size:12px}.prAnalyticsStatuses strong{font-variant-numeric:tabular-nums}
-        @media(max-width:760px){.prAnalytics{grid-template-columns:1fr}.prAnalyticsHead{display:block}.prAnalyticsHead>b{display:inline-block;margin-top:6px}}
-        @media(max-width:640px){.prKpis{grid-template-columns:1fr}.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
+
+        @media(max-width:640px){.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      {!section && <nav className="prTabs" role="tablist" aria-label="Register Pasien"><button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => selectRegistryTab('add')}>Tambah Pasien</button><button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => selectRegistryTab('records')}>Rekapan Pasien</button>{!section && <><button type="button" role="tab" aria-selected={tab === 'stats'} className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}>Statistik</button><button type="button" role="tab" aria-selected={tab === 'database'} className={tab === 'database' ? 'active' : ''} onClick={() => setTab('database')}>Metadata Pasien</button></>}</nav>}
-      {tab === 'database' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'stats' ? <PatientStatsTab rooms={rooms} roomId={Number(roomFilter) || null} year={Number(year)} onYearChange={(y) => setYear(String(y))} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(Number(roomFilter)||initialRoomId||'all')} initialRoomId={Number(roomFilter)||initialRoomId||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
+      <nav className="prTabs" role="tablist" aria-label="Register Pasien">
+        <button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => selectRegistryTab('records')}>Daftar Episode</button>
+        <button type="button" role="tab" aria-selected={tab === 'directory'} className={tab === 'directory' ? 'active' : ''} onClick={() => selectRegistryTab('directory')}>Direktori Pasien</button>
+        <button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => selectRegistryTab('add')}>Input Episode</button>
+      </nav>
+      {tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(Number(roomFilter)||initialRoomId||'all')} initialRoomId={Number(roomFilter)||initialRoomId||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <p className="psStatsLead">Episode pelayanan dari logbook unit · identitas disamarkan</p>
         <div className="prActions">
           <button className="prButton" type="button" onClick={async () => { if (showIdentity) { setShowIdentity(false); return } if (await requestSensitiveAccess('patient_identity', 'register-pasien:' + (roomFilter || 'semua-unit'), 'Tampilkan identitas pasien')) setShowIdentity(true); else setError('Role Anda tidak memiliki izin melihat identitas pasien, atau permintaan dibatalkan.') }}>{showIdentity ? 'Samarkan Identitas' : 'Tampilkan Identitas'}</button>
           <button className="prButton" type="button" onClick={() => downloadCsv(filtered, showIdentity)} disabled={!filtered.length}>Ekspor CSV</button>
-          <button className="prButton primary" type="button" onClick={() => selectRegistryTab('add')}>Tambah Pasien</button>
+          <button className="prButton primary" type="button" onClick={() => selectRegistryTab('add')}>Tambah Episode</button>
         </div>
       </header>
-
-      <div className="prKpis">
-        <div className="prKpi"><span>{query ? 'Hasil pencarian' : 'Total episode · tahun ' + year}</span><strong>{shownTotal.toLocaleString('id-ID')}</strong></div>
-        <div className="prKpi"><span>Rawat inap pulang · halaman ini</span><strong>{discharged.toLocaleString('id-ID')}</strong></div>
-        <div className="prKpi"><span>Masih dirawat · halaman ini</span><strong>{activeEpisodes.toLocaleString('id-ID')}</strong></div>
-        <div className="prKpi"><span>Kunjungan (IGD/rawat jalan/tindakan) · halaman ini</span><strong>{visits.toLocaleString('id-ID')}</strong></div>
-      </div>
-
-      {canViewAllRooms && !lockRoomScope && <section className="prUnitDistribution" aria-label="Distribusi episode pasien per unit">
-        <div className="prUnitDistributionHead"><div><h3>Distribusi episode pelayanan per unit</h3><p>Tahun {year} · jumlah episode pasien pada seluruh unit yang dapat diakses.</p></div><strong>{allTotal.toLocaleString('id-ID')} episode</strong></div>
-        {roomCounts.size ? <div className="prUnitDistributionList">{rooms.map((item) => { const count=roomCounts.get(Number(item.id))??0; const pct=allTotal?count/allTotal*100:0; return <div className="prUnitDistributionRow" key={item.id}><button type="button" title={'Tampilkan '+item.name} onClick={()=>{setRoomFilter(String(item.id));setPage(0)}}>{item.name}</button><div className="prUnitDistributionTrack"><i style={{width:pct+'%'}}/></div><strong>{count.toLocaleString('id-ID')} · {pct.toFixed(1).replace('.',',')}%</strong></div> })}</div> : <div className="prEmpty">Agregat episode per unit belum tersedia untuk tahun ini.</div>}
-        <p className="prUnitDistributionNote">Dihitung dari {allTotal.toLocaleString('id-ID')} episode dalam cakupan unit dan tahun terpilih. Pilih nama unit untuk membuka register terfilter. Visual ini menggunakan agregat hitungan episode yang sama dengan pilihan unit, bukan data identitas pasien.</p>
-      </section>}
-      <div className="prAnalytics" aria-label="Analisis episode pasien">
-        <section className="prAnalyticsCard">
-          <div className="prAnalyticsHead"><div><h3>Komposisi episode pelayanan</h3><p>Distribusi data pada halaman aktif; bukan distribusi seluruh tahun.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
-          {loading ? <p className="prMuted">Memuat distribusi…</p> : rows.length ? <div className="prAnalyticsBars">{pageEpisodeDistribution.map((item) => <div className="prAnalyticsRow" key={item.label}><span>{item.label}</span><div><i style={{width:(item.count/pageEpisodeMax*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="prMuted">Belum ada episode pada halaman ini.</p>}
-        </section>
-        <section className="prAnalyticsCard">
-          <div className="prAnalyticsHead"><div><h3>Status kelengkapan workflow</h3><p>Status dari record episode yang sedang ditampilkan.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
-          {loading ? <p className="prMuted">Memuat status…</p> : rows.length ? <div className="prAnalyticsStatuses">{pageWorkflowDistribution.map((item) => <div key={item.label}><span>{item.label}</span><strong>{item.count.toLocaleString('id-ID')}</strong></div>)}</div> : <p className="prMuted">Belum ada status untuk ditampilkan.</p>}
-        </section>
-      </div>
 
       <div className="prPanel prFilters">
         {canViewAllRooms && !lockRoomScope
@@ -354,10 +301,8 @@ export default function PatientRegistryWorkspace({
             {[2025, 2026, 2027, 2028, 2029].map((item) => <option key={item} value={String(item)}>{item}</option>)}
           </select>
         </label>
-        <label className="prSearch">Cari No. RM atau nama pasien (semua data)
-          <input type="search" name="aureka-patient-search" autoComplete="off" data-lpignore="true" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="mis. 03-65-39, 36539, atau nama" />
-        </label>
-        <button className="prButton" type="button" onClick={() => { setSearch(''); setPage(0); void load() }}>Muat Ulang</button>
+        <span className="prMuted">Pencarian mengikuti search bar global pada header AUREKA.</span>
+        <button className="prButton" type="button" onClick={() => { setPage(0); void load() }}>Muat Ulang</button>
       </div>
 
       {error && <div className="prAlert" role="alert">{error}</div>}
@@ -386,7 +331,7 @@ export default function PatientRegistryWorkspace({
           </div>
         </footer>
       </div>
-      <p className="prMuted">Pencarian mencakup seluruh data tahun terpilih. Status "Kunjungan" untuk unit tanpa tanggal keluar (IGD, rawat jalan, tindakan). Hak akses unit tetap mengikuti akun.</p>
+      <p className="prMuted">Gunakan search bar global pada header untuk mencari No. RM atau nama. Status "Kunjungan" mencakup pelayanan tanpa tanggal keluar, seperti IGD dan rawat jalan. Hak akses unit tetap mengikuti akun.</p>
       </>}
     </section>
   )
