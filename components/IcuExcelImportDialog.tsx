@@ -66,7 +66,7 @@ type PreparedRow = {
   receivingNurse: string
   dpjp: string
   unassignedBhpLinen: string
-  indicatorHeaders: Record<string, string>
+  indicatorHeaders: Record<string, { header: string; columnIndex: number; columnLetter: string }>
   indicatorColumnRefs: Record<string, { column_index: number; column_letter: string; header_text: string }>
   indicators: Record<string, IcuSourceAnswer>
   warnings: string[]
@@ -230,6 +230,18 @@ function duplicateKey(row: PreparedRow): string {
   ].join('|')
 }
 
+function excelColumnLetter(column: number): string {
+  if (!Number.isInteger(column) || column < 1) return ''
+  let value = column
+  let label = ''
+  while (value > 0) {
+    const remainder = (value - 1) % 26
+    label = String.fromCharCode(65 + remainder) + label
+    value = Math.floor((value - 1) / 26)
+  }
+  return label
+}
+
 function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: string, userId: string, profiles: IcuIndicatorProfile[]) {
   const profileByCode = new Map(
     profiles
@@ -275,7 +287,7 @@ function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: s
     source_indicator_columns: row.indicatorHeaders,
     source_indicator_column_refs: row.indicatorColumnRefs,
     source_bhp_linen: {
-      source_header: row.indicatorHeaders['14.1'] ?? '',
+      source_header: row.indicatorHeaders['14.1']?.header ?? '',
       source_value: row.unassignedBhpLinen,
       indicator_code: '14.1',
       mapping_status: row.indicators['14.1']?.mappingStatus ?? 'not_in_master',
@@ -464,8 +476,12 @@ export default function IcuExcelImportDialog({
           const unassignedBhpLinen = raw('unassignedBhpLinen')
           const indicatorHeaders = Object.fromEntries(INDICATORS.map(item => {
             const column = header.indexes['indicator:' + item.code]
-            return [item.code, column == null ? '' : cellText(sheet.getRow(header.rowNumber).getCell(column)).trim()]
-          })) as Record<string, string>
+            return [item.code, column == null ? { header: '', columnIndex: 0, columnLetter: '' } : {
+              header: cellText(sheet.getRow(header.rowNumber).getCell(column)).trim(),
+              columnIndex: column,
+              columnLetter: excelColumnLetter(column),
+            }]
+          })) as Record<string, { header: string; columnIndex: number; columnLetter: string }>
           const indicatorColumnRefs = Object.fromEntries(INDICATORS.flatMap(item => {
             const column = header.indexes['indicator:' + item.code]
             if (column == null) return []
