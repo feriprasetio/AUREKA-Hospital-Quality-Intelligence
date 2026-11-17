@@ -35,12 +35,12 @@ function validateSpec(value: unknown): NaraVisualSpec | null {
 }
 
 export function parseNaraVisual(answer: string): { text: string; visual?: NaraVisualSpec } {
-  const match = /\\[\\[NARA_VISUAL\\]\\]([\\s\\S]*?)\\[\\[\\/NARA_VISUAL\\]\\]/i.exec(answer)
+  const match = /\[\[NARA_VISUAL\]\]([\s\\S]*?)\[\[\\/NARA_VISUAL\]\]/i.exec(answer)
   if (!match) return { text: answer }
   const text = answer.replace(match[0], '').trim()
   try {
-    const parsed = JSON.parse(match[1].trim().replace(/^json\\s*/i, ''))
+    const parsed = JSON.parse(match[1].trim().replace(/^json\s*/i, ''))
     const visual = validateSpec(parsed)
-    return visual ? { text, visual } : { text: text + '\\nVisualisasi tidak ditampilkan karena format atau datanya tidak valid.' }
+    return visual ? { text, visual } : { text: text + '\nVisualisasi tidak ditampilkan karena format atau datanya tidak valid.' }
   } catch { return { text } }
 }
