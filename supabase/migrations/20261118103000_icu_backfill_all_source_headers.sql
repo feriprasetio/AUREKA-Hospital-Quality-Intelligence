@@ -84,7 +84,7 @@ BEGIN
        OR coalesce(v_source_values->>'14.1','') <> coalesce(v_bhp->>'source_value','')
        OR coalesce(v_source_columns->>'14.1','') <> coalesce(v_bhp->>'source_header','')
        OR coalesce(v_source_column_refs->'14.1'->>'header_text','') <> coalesce(v_bhp->>'source_header','')
-       OR jsonb_typeof(v_source_column_refs->'14.1'->'column_index') <> 'number'
+       OR jsonb_typeof(v_source_column_refs->'14.1'->'column_index') IS DISTINCT FROM 'number'
        OR (v_source_column_refs->'14.1'->'column_index') <= '0'::jsonb
        OR length(coalesce(v_source_column_refs->'14.1'->>'column_letter','')) NOT BETWEEN 1 AND 3
        OR length(translate(coalesce(v_source_column_refs->'14.1'->>'column_letter',''),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','')) > 0
