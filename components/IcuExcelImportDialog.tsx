@@ -361,11 +361,11 @@ export default function IcuExcelImportDialog({
   const eligible = open && authorized && roomId === 14 && year === 2026
   const preview = useMemo(() => rows.slice(0, 100), [rows])
   const mappedResponses = useMemo(
-    () => rows.reduce((count, row) => count + Object.values(row.indicators).filter(answer => !answer.reviewRequired).length, 0),
+    () => rows.reduce((count, row) => count + Object.values(row.indicators).filter(answer => !answer.reviewRequired).length + (row.bhpLinenAnswer && !row.bhpLinenAnswer.reviewRequired ? 1 : 0), 0),
     [rows],
   )
   const pendingResponses = useMemo(
-    () => rows.reduce((count, row) => count + Object.values(row.indicators).filter(answer => answer.reviewRequired).length, 0),
+    () => rows.reduce((count, row) => count + Object.values(row.indicators).filter(answer => answer.reviewRequired).length + (row.bhpLinenAnswer?.reviewRequired ? 1 : 0), 0),
     [rows],
   )
   const duplicateEpisodeRows = useMemo(() => rows.filter(row => row.warnings.some(warning => warning.includes('episode pasien yang sama'))).length, [rows])
@@ -473,11 +473,11 @@ export default function IcuExcelImportDialog({
           const sourceLos = String(formulaValue(source.getCell(header.indexes.los)) ?? '')
           const receivingNurse = raw('receivingNurse')
           const dpjp = raw('dpjp')
+          const unassignedBhpLinenIndex = header.indexes.unassignedBhpLinen
+          if (unassignedBhpLinenIndex == null) throw new Error('Kolom sumber BHP/Linen belum dipetakan.')
           const unassignedBhpLinen = raw('unassignedBhpLinen')
-          const bhpLinenSourceHeader = cellText(sheet.getRow(header.rowNumber).getCell(header.indexes.unassignedBhpLinen)).trim()
-          if (!bhpLinenSourceHeader || header.indexes.unassignedBhpLinen == null) {
-            throw new Error('Kolom sumber BHP/Linen harus dipetakan sebelum impor.')
-          }
+          const bhpLinenSourceHeader = cellText(sheet.getRow(header.rowNumber).getCell(unassignedBhpLinenIndex)).trim()
+          if (!bhpLinenSourceHeader) throw new Error('Nama header sumber BHP/Linen tidak dapat dibaca.')
 
           if (!sourceNo) throw new Error('Nomor urut sumber kosong.')
           if (!patientName.trim()) throw new Error('Nama Pasien kosong.')
@@ -672,7 +672,7 @@ export default function IcuExcelImportDialog({
           <strong>Preview tersamarkan · 100 dari {rows.length} episode pertama</strong>
           <div className="iiTable" style={{ marginTop: 8 }}>
             <table>
-              <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal masuk–keluar</th><th>LOS</th><th>Respons master</th><th>Warnings</th></tr></thead>
+              <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal masuk–keluar</th><th>LOS</th><th>Respons master</th><th>Sumber BHP/Linen → 14.1</th><th>Warnings</th></tr></thead>
               <tbody>
                 {preview.map(row => {
                   const mapped = Object.values(row.indicators).filter(answer => !answer.reviewRequired).length + (row.bhpLinenAnswer && !row.bhpLinenAnswer.reviewRequired ? 1 : 0)
@@ -683,6 +683,7 @@ export default function IcuExcelImportDialog({
                     <td>{row.admissionDate} – {row.dischargeDate}</td>
                     <td>{row.computedLos} hari</td>
                     <td>{mapped}/9 cocok</td>
+                    <td>{row.bhpLinenAnswer ? <><strong>{row.bhpLinenAnswer.label}</strong><small style={{display:'block'}}>{row.bhpLinenAnswer.reviewRequired ? 'Menunggu telaah: '+row.bhpLinenAnswer.mappingStatus : 'Terpetakan'}</small></> : '-'}</td>
                     <td>{row.warnings.length ? <details><summary className="iiTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="iiTag">OK</span>}</td>
                   </tr>
                 })}
