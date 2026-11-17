@@ -230,7 +230,7 @@ function duplicateKey(row: PreparedRow): string {
   ].join('|')
 }
 
-function preparePayload(row: PreparedRow, fileName: string, userId: string, profiles: IcuIndicatorProfile[]) {
+function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: string, userId: string, profiles: IcuIndicatorProfile[]) {
   const profileByCode = new Map(
     profiles
       .filter(profile => Number(profile.room_id) === 14 && Number(profile.profile_year) === 2026 && profile.is_active === true && profile.status === 'published')
@@ -267,6 +267,8 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
   const sourceImport = {
     source_workbook: fileName,
     source_sheet: 'Logbook',
+    source_storage_bucket: 'aureka-quality-source-workbooks',
+    source_storage_path: sourceStoragePath,
     source_excel_row: row.sourceRow,
     source_excel_no: row.sourceNo,
     source_indicator_values: sourceIndicatorValues,
@@ -558,13 +560,22 @@ export default function IcuExcelImportDialog({
   }
 
   const importRows = async () => {
-    if (!eligible || !authorized || !rows.length || errors.length || importing || result) return
+    if (!eligible || !authorized || !rows.length || errors.length || importing || result || !file) return
     setImporting(true)
     setErrorMessage('')
     try {
       const { data: { user }, error: userError } = await sb.auth.getUser()
       if (userError || !user) throw new Error('Sesi login tidak tersedia.')
-      const items = rows.map(row => preparePayload(row, file?.name ?? 'workbook.xlsx', user.id, profiles))
+      const safeFileName = file.name.normalize('NFKC').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-120) || 'icu-workbook.xlsx'
+      const sourceStoragePath = '14/2026/' + Date.now() + '_' + safeFileName
+      const { error: storageError } = await sb.storage
+        .from('aureka-quality-source-workbooks')
+        .upload(sourceStoragePath, file, {
+          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          upsert: false,
+        })
+      if (storageError) throw new Error('Workbook sumber belum tersimpan secara privat; impor dihentikan agar jejak Excel tidak hilang. ' + storageError.message)
+      const items = rows.map(row => preparePayload(row, file.name, sourceStoragePath, user.id, profiles))
       const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0, backfilled: 0, preserved: 0 }
       let start = 0
       let batchSize = BATCH_SIZE
