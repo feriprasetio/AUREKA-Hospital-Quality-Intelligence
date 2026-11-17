@@ -995,7 +995,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .dynamicIslandToast>button{flex:0 0 24px;width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:#c4ceca;font-size:19px;line-height:1}
 @keyframes aurekaIslandIn{from{opacity:0;transform:translate(-50%,-8px) scale(.97)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
 .workspaceNotificationPanel,.workspaceSupportPanel{position:fixed;z-index:180;top:58px;right:76px;width:min(360px,calc(100vw - 20px));max-height:min(74vh,630px);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 16px 50px rgba(0,0,0,.18)}
-.workspaceSupportPanel{right:18px;width:min(420px,calc(100vw - 20px));height:min(640px,calc(100dvh - 74px));max-height:none}
+.workspaceSupportPanel{right:18px;width:min(420px,calc(100vw - 20px));height:min(640px,calc(100dvh - 74px));max-height:none;z-index:260}
 .workspacePopoverHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-bottom:1px solid var(--border);background:var(--surface)}
 .workspacePopoverHead>div:first-child{display:grid;gap:2px;min-width:0}
 .workspacePopoverHead strong{font-size:12px;font-weight:850;color:var(--ink)}
@@ -1019,7 +1019,10 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .workspaceSupportInbox>button.selected{border-color:var(--accent);background:var(--accent-soft)}
 .workspaceSupportInbox strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .workspaceSupportInbox span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.workspaceSupportMessages{flex:1;min-height:80px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--page-bg)}
+.workspaceSupportMessages{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--page-bg)}
+.workspaceSupportInbox{flex:0 0 auto;max-width:100%;overscroll-behavior-x:contain}
+.workspaceSupportComposer{flex:0 0 auto;min-width:0}
+.workspaceSupportComposer textarea{min-height:38px;resize:vertical}
 .workspaceSupportMessage{max-width:88%;align-self:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow-wrap:anywhere}
 .workspaceSupportMessage.mine{align-self:flex-end;background:var(--accent-soft);border-color:rgba(var(--accent-rgb),.2)}
 .workspaceSupportMessage>span{font-size:12px;color:var(--muted);font-weight:800}
@@ -1849,7 +1852,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 
 
 /* Unified AUREKA communication hub */
-.workspaceCommunicationPanel{height:min(680px,calc(100dvh - 76px));max-height:calc(100dvh - 76px);width:min(460px,calc(100vw - 20px))}
+.workspaceCommunicationPanel{position:fixed;top:calc(var(--aur-header-h,58px) + 12px);right:18px;bottom:auto;z-index:260;width:min(460px,calc(100vw - 24px));height:min(680px,calc(100dvh - var(--aur-header-h,58px) - 30px));max-height:calc(100dvh - var(--aur-header-h,58px) - 30px);min-height:280px;box-sizing:border-box;isolation:isolate}
 .workspaceCommunicationTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px;border-bottom:1px solid var(--border);background:var(--surface)}
 .workspaceCommunicationTabs button{min-height:34px;padding:7px 9px;border:1px solid transparent;border-radius:9px;background:var(--surface-raised);color:var(--muted);font-size:12px;font-weight:750}
 .workspaceCommunicationTabs button.selected,.workspaceCommunicationTabs button[aria-selected="true"]{border-color:rgba(var(--accent-rgb),.32);background:var(--accent-soft);color:var(--accent)}
@@ -1868,7 +1871,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .workspaceBroadcastFooter span{font-size:12px;color:var(--muted)}
 .workspaceBroadcastFooter button{min-height:36px;padding:8px 12px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:12px;font-weight:800}
 .workspaceBroadcastFooter button:disabled{opacity:.45}
-@media(max-width:640px){.workspaceCommunicationPanel{top:52px;right:8px;width:calc(100vw - 16px);height:calc(100dvh - 64px);max-height:calc(100dvh - 64px)}}
+@media(max-width:640px){.workspaceCommunicationPanel{top:calc(var(--aur-header-h,54px) + 8px);left:8px;right:8px;bottom:auto;width:auto;height:calc(100dvh - var(--aur-header-h,54px) - 20px - env(safe-area-inset-bottom));max-height:calc(100dvh - var(--aur-header-h,54px) - 20px - env(safe-area-inset-bottom));min-height:260px;border-radius:16px}}
 
 
 /* Blueprint Visual Intelligence: compact data panels, aligned with the current AUREKA design tokens. */
