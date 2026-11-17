@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { resolveInteractiveExcelHeaderColumn } from './interactive-header-mapping.ts'
 
 export type IsolasiIndicatorOption = {
   code?: number | null
@@ -77,7 +78,7 @@ export type IsolasiHeaderMap = {
   duplicateHeaders: string[]
 }
 
-export function mapIsolasiLogbookHeaders(headerValues: unknown[]): IsolasiHeaderMap {
+export function mapIsolasiLogbookHeaders(headerValues: unknown[] , interactive = false): IsolasiHeaderMap {
   const columns = new Map<string, number[]>()
   headerValues.forEach((value, index) => {
     const key = normalizeExactHeader(value)
@@ -93,6 +94,18 @@ export function mapIsolasiLogbookHeaders(headerValues: unknown[]): IsolasiHeader
 
   const optional = new Set(['patientCategory', 'dischargeStatus', 'sourceLos', 'receivingNurse', 'dpjp', 'diagnosisSearchKey'])
   const resolve = (key: string, aliases: string[]) => {
+    if (interactive) {
+      const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+        importerKey: 'isolasi',
+        fieldKey: key,
+        fieldLabel: aliases[0],
+        required: !optional.has(key),
+      })
+      if (column != null) indexes[key] = column
+      else if (!optional.has(key)) missingHeaders.push(aliases[0])
+      return
+    }
+    const isRequired = !optional.has(key)
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
@@ -102,7 +115,7 @@ export function mapIsolasiLogbookHeaders(headerValues: unknown[]): IsolasiHeader
       indexes[key] = matches[0]
       return
     }
-    if (!optional.has(key)) missingHeaders.push(aliases[0])
+    if (isRequired) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) resolve(key, aliases)
