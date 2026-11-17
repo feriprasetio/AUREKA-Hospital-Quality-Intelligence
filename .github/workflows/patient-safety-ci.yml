@@ -23,7 +23,7 @@ jobs:
           node-version: 24
       - name: Install dependencies
         run: npm install
-      - name: TypeScript check
-        run: npx tsc --noEmit
+      - name: Unit, data, and TypeScript tests
+        run: npm test
       - name: Next.js static export build
         run: npm run build

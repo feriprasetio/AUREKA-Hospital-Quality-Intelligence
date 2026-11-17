@@ -36,7 +36,7 @@ Dial: ENERGY 1 / RHYTHM 1 / MOTION 2
 - **Animasi:** halus (0,15 sampai 0,3 detik) untuk masuk halaman, hover, dan popup. Tidak ada animasi hiasan yang berulang terus. Semua berhenti saat `prefers-reduced-motion`.
 - **Formulir:** di popup. Enter pindah kolom, Ctrl+S simpan, ada "Simpan & isi berikutnya" untuk input berulang.
 - **Keadaan kosong / memuat / gagal:** selalu ada. Keadaan kosong menyebut penyebab dan satu langkah lanjut.
-- **Navigasi:** satu navigasi utama (sidebar). Di HP: menu samping dan submenu ringkas di bawah judul.
+- **Navigasi:** desktop memakai satu sidebar dan navigasi kontekstual workspace. Di HP: drawer untuk perpindahan modul, breadcrumb untuk lokasi kerja, dan satu baris Tab Workspace; rail kontekstual desktop tidak ditampilkan.
 
 ## Yang tidak boleh
 

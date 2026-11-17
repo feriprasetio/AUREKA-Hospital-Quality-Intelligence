@@ -34,7 +34,7 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
 test('Super Admin uses a compact static tab rail and a module-only sidebar', () => {
   const homeClient = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
   const navCss = readFileSync(new URL('../app/aureka-navigation-consolidated.css', import.meta.url), 'utf8')
-  const solidCss = readFileSync(new URL('../app/aureka-solid-navigation.css', import.meta.url), 'utf8')
+  const shellCss = readFileSync(new URL('../app/workspace-desk.css', import.meta.url), 'utf8')
   const infographics = readFileSync(new URL('../components/governance/InfographicsDashboard.tsx', import.meta.url), 'utf8')
   const homeLanding = readFileSync(new URL('../components/HomeLandingWorkspace.tsx', import.meta.url), 'utf8')
 
@@ -50,7 +50,7 @@ test('Super Admin uses a compact static tab rail and a module-only sidebar', () 
   assert.ok(navCss.includes("overflow-x: auto"))
   assert.ok(navCss.includes("max-width: 720px"))
   assert.ok(navCss.includes(".prSearch") && navCss.includes(".rmSearch"))
-  assert.ok(solidCss.includes("sidebarIsCollapsed"))
+  assert.ok(shellCss.includes("sidebarIsCollapsed"))
   assert.ok(infographics.includes("useState(initialRoomId == null ? '' : String(initialRoomId))"))
   assert.ok(infographics.includes("setRoomValue(initialRoomId == null ? '' : String(initialRoomId))"))
   assert.ok(infographics.includes("onRoomChange?.(next ? Number(next) : null)"))

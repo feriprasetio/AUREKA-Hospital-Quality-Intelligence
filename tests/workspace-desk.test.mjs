@@ -17,7 +17,7 @@ test('workbench integration is authenticated-only and loads after the legacy cas
 test('phone frame reset has the same specificity as the desktop grid', () => {
   assert.match(css, /workspaceDesk\[data-aureka-theme\][\s\S]*grid-template-columns: 224px minmax\(0, 1fr\)/)
   const phone = css.slice(css.indexOf('@media (max-width: 720px)'))
-  assert.match(phone, /html\[data-theme\] \.workspaceRoot\.workspaceDesk\[data-aureka-theme\],[\s\S]*display: block !important/)
+  assert.match(phone, /html\[data-skin="arktik"\] \.workspaceRoot\.workspaceDesk\[data-aureka-theme\],[\s\S]*display: block !important/)
   assert.match(phone, /workspaceDesk\[data-aureka-theme\]\.sidebarIsCollapsed/)
   assert.match(css, /\.workspaceContent[\s\S]*max-height: none !important/)
 })

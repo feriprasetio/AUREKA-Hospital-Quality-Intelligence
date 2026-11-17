@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
+const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
 test('header menu is before hospital context and search controls are separate siblings', () => {
   const home = read('components/HomeClient.tsx')
@@ -13,35 +13,39 @@ test('header menu is before hospital context and search controls are separate si
   const context = header.indexOf('className="workspaceContext"')
   const search = header.indexOf('className="workspaceGlobalSearch"')
   assert.ok(menu >= 0 && context > menu, 'hamburger must be left of hospital context')
-  assert.ok(search > context, 'search must follow hospital context')
-  assert.equal(header.includes('<CommandPalette'), false, 'module search trigger is removed from the header')
+  assert.ok(search > context, 'the existing global search follows hospital context')
+  assert.equal(header.includes('<CommandPalette'), false, 'module search trigger is not duplicated')
 })
 
-test('header layout prevents overlap on desktop and narrow screens', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  assert.match(css, /\.workspaceRoot \.workspaceHeaderBar\s*\{[\s\S]*display: flex !important;[\s\S]*flex-wrap: nowrap !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceSidebarMenuButton\s*\{[\s\S]*order: 0 !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceContext\s*\{[\s\S]*order: 1 !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceGlobalSearch\s*\{[\s\S]*order: 2 !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceHeaderBar > \.commandPaletteTrigger\s*\{[\s\S]*order: 3 !important/)
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceRoot \.workspaceGlobalSearch\s*\{[\s\S]*min-width: 72px !important/)
+test('Arktik header layout retains the menu, hospital context, and one global search', () => {
+  const shell = read('app/workspace-desk.css')
+  const mobile = read('app/mobile-nav.css')
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk .workspaceHeaderBar'))
+  assert.ok(shell.includes('min-height: 60px !important'))
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk .workspaceSidebarMenuButton'))
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk .workspaceContext'))
+  assert.ok(shell.includes('flex: 1 1 260px !important'))
+  assert.ok(mobile.includes('grid-template-areas: "menu ctx theme bell ai" "search search search search search"'))
+  assert.ok(mobile.includes('mobileWorkspaceTabsEnabled .workspaceHeaderBar.workspaceHeaderBar > .workspaceSidebarMenuButton'))
 })
 
-test('sidebar redesign retains desktop and mobile navigation behavior', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  assert.match(css, /grid-template-columns: 264px minmax\(0, 1fr\) !important/)
-  assert.match(css, /\.workspaceRoot \.sidebar \.sideProfile\s*\{[\s\S]*display: flex !important/)
-  assert.match(css, /\.workspaceRoot\.sidebarIsCollapsed\s*\{\s*grid-template-columns: 76px minmax\(0, 1fr\) !important/)
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceRoot:not\(\.sidebarIsCollapsed\)\s*\{\s*grid-template-columns: minmax\(0, 1fr\) !important/)
+test('Arktik sidebar retains desktop geometry and the shared mobile drawer breakpoint', () => {
+  const shell = read('app/workspace-desk.css')
+  const responsive = read('app/layout-responsive.css')
+  assert.ok(shell.includes('grid-template-columns: 224px minmax(0, 1fr) !important'))
+  assert.ok(shell.includes('min-height: 68px !important'))
+  assert.ok(shell.includes('sidebarNavGroup > button.navActive'))
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk.sidebarIsCollapsed'))
+  assert.ok(shell.includes('grid-template-columns: 64px minmax(0, 1fr) !important'))
+  assert.ok(responsive.includes('@media (max-width: 720px)'))
+  assert.ok(responsive.includes('position: fixed !important'))
 })
 
-test('mobile drawer and bottom navigation share one breakpoint with no 721–760px dead zone', () => {
+test('mobile drawer and fallback navigation use one 720px breakpoint', () => {
   const responsive = read('app/layout-responsive.css')
   const mobileNav = read('app/mobile-nav.css')
   const home = read('components/HomeClient.tsx')
-
-  assert.match(responsive, /@media \(max-width: 720px\)\s*\{\s*\.workspaceRoot\s*\{/)
-  assert.doesNotMatch(responsive, /@media \(max-width: 760px\)/)
-  assert.match(mobileNav, /@media \(max-width: 720px\)/)
-  assert.match(home, /matchMedia\('\(max-width: 720px\)'\)/)
+  assert.ok(responsive.includes('@media (max-width: 720px)'))
+  assert.ok(mobileNav.includes('@media (max-width: 720px)'))
+  assert.ok(home.includes("matchMedia('(max-width: 720px)')"))
 })

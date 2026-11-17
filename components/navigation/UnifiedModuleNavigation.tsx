@@ -7,6 +7,7 @@ export type UnifiedNavigationItem = { id: string; label: string; hint?: string }
 type UnifiedModuleNavigationProps = {
   ariaLabel: string; title: string; items: UnifiedNavigationItem[]; activeId: string; onSelect: (id: string) => void
   secondaryActiveId?: string; onSubSelect?: (id: string) => void; subTitle?: string; subItems?: UnifiedNavigationItem[]; pageHint?: string
+  mobileWorkspaceTabs?: boolean
 }
 
 const OVERFLOW_WIDTH = 82
@@ -32,8 +33,10 @@ function sameIds(a: string[], b: string[]) { return a.length === b.length && a.e
 /** One shared two-group navigation for every authenticated AUREKA workspace. */
 export default function UnifiedModuleNavigation({
   ariaLabel, title, items, activeId, onSelect, secondaryActiveId = '', onSubSelect, subTitle, subItems = [], pageHint,
+  mobileWorkspaceTabs = true,
 }: UnifiedModuleNavigationProps) {
   const [hintsHidden, setHintsHidden] = useState(false)
+  const [showTransitionNotice, setShowTransitionNotice] = useState(false)
   const [hiddenIds, setHiddenIds] = useState<string[]>([])
   const [hiddenSubIds, setHiddenSubIds] = useState<string[]>([])
   const railRef = useRef<HTMLElement>(null)
@@ -43,10 +46,37 @@ export default function UnifiedModuleNavigation({
   const subItemsRef = useRef<HTMLDivElement>(null)
   const overflowRef = useRef<HTMLDetailsElement>(null)
   const subOverflowRef = useRef<HTMLDetailsElement>(null)
+  const mobileGroupRef = useRef<HTMLDetailsElement>(null)
   const itemsSignature = items.map(item => item.id + ':' + item.label).join('|')
   const subItemsSignature = subItems.map(item => item.id + ':' + item.label).join('|')
   const resolvedActiveId = items.some(item => item.id === activeId) ? activeId : (items[0]?.id ?? '')
   const resolvedSecondaryActiveId = subItems.some(item => item.id === secondaryActiveId) ? secondaryActiveId : (subItems[0]?.id ?? '')
+  const activePrimaryItem = items.find(item => item.id === resolvedActiveId)
+  const mobileTabItems = subItems.length ? subItems : items
+  const activeMobileTabId = subItems.length ? resolvedSecondaryActiveId : resolvedActiveId
+
+  useEffect(() => {
+    if (!mobileWorkspaceTabs) { setShowTransitionNotice(false); return }
+    const startKey = 'aureka-mobile-workspace-tabs-started-at'
+    const dismissKey = 'aureka-mobile-workspace-tabs-notice-dismissed'
+    try {
+      const now = Date.now()
+      let startedAt = Number(localStorage.getItem(startKey))
+      if (!Number.isFinite(startedAt) || startedAt <= 0) {
+        startedAt = now
+        localStorage.setItem(startKey, String(startedAt))
+      }
+      const withinTransition = now >= startedAt && now - startedAt < 14 * 24 * 60 * 60 * 1000
+      setShowTransitionNotice(withinTransition && localStorage.getItem(dismissKey) !== '1')
+    } catch {
+      setShowTransitionNotice(false)
+    }
+  }, [mobileWorkspaceTabs])
+
+  const dismissTransitionNotice = () => {
+    setShowTransitionNotice(false)
+    try { localStorage.setItem('aureka-mobile-workspace-tabs-notice-dismissed', '1') } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     const read = () => { try { setHintsHidden(localStorage.getItem('aureka-hide-hints') === '1') } catch { /* ignore */ } }
@@ -172,6 +202,33 @@ export default function UnifiedModuleNavigation({
       {overflowSubItems.length > 0 && <details ref={subOverflowRef} className="workspaceNavigationOverflow workspaceNavigationSubOverflow"><summary aria-label={'Navigasi lanjutan lainnya untuk ' + title}>Lainnya</summary><div className="workspaceNavigationOverflowMenu" role="group" aria-label="Tab lanjutan lainnya">{overflowSubItems.map(item => <button type="button" key={item.id} className={'workspaceNavigationOverflowItem' + (item.id === resolvedSecondaryActiveId ? ' active' : '')} title={item.hint} aria-current={item.id === resolvedSecondaryActiveId ? 'page' : undefined} onClick={() => selectSecondary(item.id)}>{item.label}</button>)}</div></details>}
       <div ref={measureRef} className="workspaceNavigationMeasure" aria-hidden="true">{items.map(item => <span key={'primary-' + item.id} data-nav-measure={'primary:' + item.id}>{item.label}</span>)}{subItems.map(item => <span key={'secondary-' + item.id} data-nav-measure={'secondary:' + item.id}>{item.label}</span>)}</div>
     </nav>
+    {mobileWorkspaceTabs && <section className="workspaceMobileNavigation" aria-label="Navigasi workspace">
+      {showTransitionNotice && <div className="workspaceMobileTransitionNotice" role="status">
+        <span>Navigasi HP diperbarui. Pilih modul melalui Menu, lalu gunakan Tab Workspace untuk berpindah halaman. Bookmark lama tetap diarahkan otomatis.</span>
+        <button type="button" onClick={dismissTransitionNotice} aria-label="Tutup pemberitahuan navigasi">×</button>
+      </div>}
+      <div className="workspaceMobileNavigationHead">
+        <div className="workspaceMobileBreadcrumb" aria-label="Lokasi kerja">
+          <span>{title}</span>
+          {subItems.length > 0 && <>
+            <span className="workspaceMobileBreadcrumbDivider" aria-hidden="true">/</span>
+            <strong>{subTitle || activePrimaryItem?.label || 'Bagian workspace'}</strong>
+          </>}
+        </div>
+        {subItems.length > 0 && items.length > 1 && <details ref={mobileGroupRef} className="workspaceMobileGroupPicker">
+          <summary><span>Bagian</span><strong>{activePrimaryItem?.label || 'Pilih bagian'}</strong></summary>
+          <div className="workspaceMobileGroupMenu" role="group" aria-label="Pilih bagian workspace">
+            {items.map(item => <button type="button" key={item.id} aria-current={item.id === resolvedActiveId ? 'page' : undefined} onClick={() => { selectPrimary(item.id); if (mobileGroupRef.current) mobileGroupRef.current.open = false }}>{item.label}</button>)}
+          </div>
+        </details>}
+      </div>
+      {mobileTabItems.length > 0 && <nav className="workspaceMobileTabs" aria-label="Tab Workspace">
+        {mobileTabItems.map(item => {
+          const selected = item.id === activeMobileTabId
+          return <button type="button" key={item.id} className={'workspaceMobileTab' + (selected ? ' active' : '')} aria-current={selected ? 'page' : undefined} onClick={() => subItems.length ? selectSecondary(item.id) : selectPrimary(item.id)}>{item.label}</button>
+        })}
+      </nav>}
+    </section>}
     {pageHint && !hintsHidden && <p className="workspacePageHint" role="note"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" /><path d="M10 9v5M10 6.2v.3" /></svg><span>{pageHint}</span><button type="button" onClick={() => toggleHints(true)} aria-label="Sembunyikan penjelasan halaman" title="Sembunyikan penjelasan (bisa dimunculkan lagi di Pengaturan → Preferensi Tampilan)">×</button></p>}
   </>
 }

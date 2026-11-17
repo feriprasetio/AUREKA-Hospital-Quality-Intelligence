@@ -201,3 +201,46 @@ html body .workspaceRoot .workspaceContent .patientRegistry :is(p, small, .prMut
   }
   html body .workspaceRoot .workspaceContent .sdFilters { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; }
 }
+
+
+/* Mobile workspace navigation v2: drawer + breadcrumb + one workspace tab row. */
+@media (max-width: 720px) {
+  .workspaceRoot.mobileWorkspaceTabsEnabled .mobileBottomNav { display: none !important; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceContent { padding-bottom: 0 !important; }
+
+  /* Match and exceed the original high-specificity phone header rules. */
+  html[data-skin]:root body .workspaceRoot.workspaceRoot.mobileWorkspaceTabsEnabled .workspaceHeaderBar.workspaceHeaderBar {
+    grid-template-columns: 40px minmax(0, 1fr) 40px 40px 40px !important;
+    grid-template-areas: "menu ctx theme bell ai" "search search search search search" !important;
+  }
+  html[data-skin]:root body .workspaceRoot.workspaceRoot.mobileWorkspaceTabsEnabled .workspaceHeaderBar.workspaceHeaderBar > .workspaceSidebarMenuButton {
+    display: grid !important;
+    grid-area: menu !important;
+    justify-self: center !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceHeaderBar > .workspaceContext { grid-area: ctx !important; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceHeaderBar > .workspaceThemeButton { grid-area: theme !important; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceHeaderBar > .workspaceCommunicationTrigger { grid-area: ai !important; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceHeaderBar > .workspaceGlobalSearch {
+    grid-area: search !important;
+    grid-column: 1 / -1 !important;
+  }
+
+  /* The old 104px bottom-navigation spacer must not survive in the new pattern. */
+  html body:not(#_) .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceContent::after {
+    display: none !important;
+    content: none !important;
+    height: 0 !important;
+  }
+  html body:has(.workspaceRoot.mobileWorkspaceTabsEnabled) .aurToast {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

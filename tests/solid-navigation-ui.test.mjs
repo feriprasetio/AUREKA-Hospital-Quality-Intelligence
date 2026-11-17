@@ -1,100 +1,54 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
-
-test('Solid White final layer loads after every legacy visual layer', () => {
+test('legacy Solid and MediDash stylesheets are excluded from the active CSS bundle', () => {
   const layout = read('app/layout.tsx')
-  const styles = [
-    "./globals.css",
-    "./clinical-ui.css",
-    "./medidash-ui.css",
-    "./solid-default.css",
-    "./medidash-polish.css",
-    "./design-tokens.css",
-    "./layout-responsive.css",
-    "./aureka-solid-enterprise.css",
-    "./aureka-solid-navigation.css",
-  ]
-  let previous = -1
-  for (const style of styles) {
-    const position = layout.indexOf("import '" + style + "'")
-    assert.ok(position > previous, style + ' must remain in the intended CSS cascade')
-    previous = position
-  }
+  const retired = ['medidash-ui.css','solid-default.css','medidash-polish.css','aureka-solid-enterprise.css','aureka-solid-navigation.css']
+  for (const stylesheet of retired) assert.equal(layout.includes("import './" + stylesheet + "'"), false, stylesheet)
+  assert.match(layout, /import '\.\/workspace-desk\.css'/)
+  assert.match(layout, /import '\.\/theme-arktik\.css'/)
+  assert.match(layout, /import '\.\/theme-arktik-modern\.css'/)
 })
 
-test('Solid White is applied without depending on client data-theme hydration', () => {
-  const navigation = read('app/aureka-solid-navigation.css')
+test('authenticated workspace is scoped to Arktik and does not force a Solid/light-only theme', () => {
   const home = read('components/HomeClient.tsx')
-  assert.ok(home.includes('data-aureka-theme="solid-white"'))
-  assert.doesNotMatch(navigation, /html\\[data-theme\\]/)
+  const shell = read('app/workspace-desk.css')
+  assert.ok(home.includes('data-aureka-theme="arktik"'))
+  assert.doesNotMatch(home, /dataset\.theme='solid'/)
+  assert.doesNotMatch(home, /style\.colorScheme='light'/)
+  assert.match(shell, /html\[data-skin="arktik"\]/)
+  assert.doesNotMatch(shell, /html\[data-theme\]/)
+  assert.match(shell, /--desk-brand: #172a40/)
+  assert.match(shell, /--desk-ink: #0b1f33/)
 })
 
-test('primary navigation uses one white surface rather than glossy menu cards', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  for (const selector of [
-    '.workspaceRoot .sidebar',
-    '.workspaceRoot .sidebar .sidebarNav',
-    '.workspaceRoot .sidebar .sidebarNavGroup',
-    '.workspaceRoot .sidebar .sidebarNavGroup > button',
-    '.workspaceRoot .sidebar .sidebarTreeChildren',
-    '.workspaceRoot .sidebar .sidebarFooter'
-  ]) {
-    assert.ok(css.includes(selector), 'Missing final navigation rule: ' + selector)
-  }
-  assert.match(css, /background:\s*#ffffff\s*!important/)
-  assert.match(css, /backdrop-filter:\s*none\s*!important/)
-  assert.match(css, /sidebarIsCollapsed/)
-  assert.match(css, /max-width:\s*720px/)
-  assert.match(css, /scrollbar-width:\s*none/)
-  assert.doesNotMatch(css, /backdrop-filter:\s*blur/)
-  assert.doesNotMatch(css, /linear-gradient/)
-  const solidReset = css.slice(css.indexOf('Final, high-specificity reset'))
-  assert.ok(solidReset.includes('.sidebarNavGroup:hover,'))
-  assert.ok(solidReset.includes('.sidebarNavGroup.isCurrent {'))
-  assert.ok(solidReset.includes('background: transparent !important;'))
-  assert.ok(solidReset.includes('box-shadow: none !important;'))
-  assert.match(css, /sidebarTreeChildren\[hidden\][\s\S]*?display: none !important/)
-
-})
-
-test('sidebar contains module buttons only; contextual sub-tabs live in the static rail', () => {
+test('Arktik shell preserves the collapsed sidebar and desktop layout', () => {
   const home = read('components/HomeClient.tsx')
-  const navCss = read('app/aureka-navigation-consolidated.css')
-  assert.ok(home.includes('aria-label="Navigasi modul AUREKA"'))
-  assert.ok(home.includes('visibleMods.map'))
-  assert.ok(home.includes("import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'"))
-  assert.ok(home.includes('<UnifiedModuleNavigation'))
-  assert.ok(home.includes('activeNestedNavGroup'))
-  for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
-  assert.ok(navCss.includes('.workspaceNavigationRail'))
-  assert.ok(navCss.includes('.workspaceRoot .sidebar .sidebarTreeChildren'))
+  const shell = read('app/workspace-desk.css')
+  const theme = read('app/theme-arktik.css')
+  assert.match(home, /setAttribute\('data-skin','arktik'\)/)
+  assert.match(theme, /html\[data-skin="arktik"\]/)
+  assert.match(shell, /sidebarIsCollapsed/)
+  assert.match(shell, /grid-template-columns: 224px minmax\(0, 1fr\)/)
 })
 
-test('global navigation uses balanced one-line smart overflow and keeps the active tab visible', () => {
+test('desktop rail stays available while phones use drawer, breadcrumb, and one Tab Workspace row', () => {
+  const home = read('components/HomeClient.tsx')
   const component = read('components/navigation/UnifiedModuleNavigation.tsx')
-  const css = read('app/aureka-global-navigation.css')
-  assert.ok(component.includes('new ResizeObserver(calculate)'))
-  assert.ok(component.includes("const primaryMin = items.length ?"))
-  assert.ok(component.includes("const secondaryMin = subItems.length ?"))
-  assert.ok(component.includes('overflowItems.map'))
-  assert.ok(component.includes('overflowSubItems.map'))
-  assert.ok(component.includes('<summary aria-label='))
-  assert.ok(component.includes("onClick={() => selectPrimary(item.id)}"))
-  assert.ok(component.includes("onClick={() => selectSecondary(item.id)}"))
-  assert.match(css, /--aureka-nav-primary:\s*#172a40/)
-  assert.match(css, /--aureka-nav-secondary:\s*#dcebf8/)
-  assert.match(css, /workspaceNavigationOverflowMenu/)
-  assert.match(css, /@media \(max-width: 720px\)/)
-  assert.doesNotMatch(css, /position:\s*sticky/)
-})
-
-test('primary module navigation is text-only under the global icon-none rule', () => {
-  const home = read('components/HomeClient.tsx')
-  assert.doesNotMatch(home, /function NavIcon/)
-  assert.doesNotMatch(home, /<NavIcon/)
-  assert.match(home, /aria-label="Navigasi modul AUREKA"/)
-  assert.match(home, /<UnifiedModuleNavigation/)
+  const css = read('app/aureka-universal-tabs.css')
+  const mobile = read('app/mobile-nav.css')
+  assert.match(home, /mobileWorkspaceTabs=\{AUREKA_NAV_FEATURES\.mobileWorkspaceTabs\}/)
+  assert.match(home, /mobileWorkspaceTabsEnabled/)
+  assert.match(component, /className="workspaceMobileNavigation"/)
+  assert.match(component, /aria-label="Tab Workspace"/)
+  assert.match(component, /workspaceMobileBreadcrumb/)
+  assert.match(css, /\.workspaceRoot\.mobileWorkspaceTabsEnabled \.workspaceNavigationRail/)
+  assert.match(css, /\.workspaceRoot\.mobileWorkspaceTabsEnabled \.workspaceMobileNavigation/)
+  assert.match(mobile, /\.workspaceRoot\.mobileWorkspaceTabsEnabled \.mobileBottomNav/)
+  assert.match(mobile, /grid-template-areas: "menu ctx theme bell ai"/)
+  assert.match(mobile, /html\[data-skin\]:root body \.workspaceRoot\.workspaceRoot\.mobileWorkspaceTabsEnabled[\s\S]*?workspaceSidebarMenuButton/)
+  assert.match(mobile, /workspaceRoot\.mobileWorkspaceTabsEnabled \.workspaceContent::after/)
+  assert.match(mobile, /mobileWorkspaceTabsEnabled\) \.aurToast/)
 })

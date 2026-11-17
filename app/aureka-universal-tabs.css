@@ -559,3 +559,92 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     padding-inline: 9px !important;
   }
 }
+
+/* Desktop contextual rail is replaced on phones by a breadcrumb and one
+   accessible horizontal workspace-tab row. */
+.workspaceMobileNavigation { display: none; }
+@media (max-width: 720px) {
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceNavigationRail { display: none !important; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileNavigation {
+    display: grid !important; grid-template-columns: minmax(0, 1fr); gap: 8px;
+    min-width: 0; margin: 0 12px 12px; padding: 0 4px;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTransitionNotice {
+    display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+    border: 1px solid #cbd8e6; border-radius: 10px; background: #f5f8fb;
+    color: #2e4a66; font-size: 12px; line-height: 1.45;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTransitionNotice button {
+    flex: 0 0 28px; width: 28px; min-width: 28px; height: 28px; min-height: 28px;
+    padding: 0; border: 0; border-radius: 7px; background: transparent;
+    color: #2e4a66; font-size: 19px; line-height: 1;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileNavigationHead {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileBreadcrumb {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-width: 0;
+    color: #2e4a66; font-size: 12px; line-height: 1.35;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileBreadcrumb strong { color: #0b1f33; font-weight: 750; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileBreadcrumbDivider { color: #8498ad; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupPicker { position: relative; flex: 0 0 auto; min-width: 0; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupPicker summary {
+    display: flex; align-items: center; gap: 5px; max-width: min(45vw, 190px);
+    min-height: 34px; padding: 0 9px; overflow: hidden; border: 1px solid #cbd8e6;
+    border-radius: 9px; background: #ffffff; color: #2e4a66; font-size: 11px; list-style: none; cursor: pointer;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupPicker summary::-webkit-details-marker { display: none; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupPicker summary strong {
+    overflow: hidden; color: #172a40; font-size: 11px; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupMenu {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 120; display: grid; gap: 3px;
+    width: max-content; min-width: 190px; max-width: calc(100vw - 32px);
+    max-height: min(50vh, 360px); padding: 6px; overflow: auto;
+    border: 1px solid #cbd8e6; border-radius: 10px; background: #ffffff;
+    box-shadow: 0 10px 26px rgba(23, 42, 64, .16);
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupMenu button {
+    min-height: 40px; padding: 7px 10px; border: 0; border-radius: 7px;
+    background: transparent; color: #2e4a66; text-align: left; font-size: 12px;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupMenu button[aria-current="page"] {
+    background: #dcebf8; color: #164b7a; font-weight: 750;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTabs {
+    display: flex; align-items: stretch; gap: 6px; min-width: 0; overflow-x: auto;
+    overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTabs::-webkit-scrollbar { display: none; }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTab {
+    display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center;
+    min-height: 40px; max-width: 78vw; padding: 0 13px; border: 1px solid #cbd8e6;
+    border-radius: 9px; background: #ffffff; color: #2e4a66; font-size: 12px;
+    font-weight: 650; white-space: nowrap;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTab.active {
+    border-color: #b8d0e5; background: #dcebf8; color: #164b7a; font-weight: 800;
+  }
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTab:focus-visible,
+  .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupPicker summary:focus-visible {
+    outline: 2px solid #397db5; outline-offset: 2px;
+  }
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTransitionNotice {
+    border-color: #405b74; background: #1b2e42; color: #d5e2ee;
+  }
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileBreadcrumb { color: #b9c8d7; }
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileBreadcrumb strong { color: #f1f5f9; }
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupPicker summary,
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTab {
+    border-color: #405b74; background: #20374d; color: #d5e2ee;
+  }
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupMenu {
+    border-color: #405b74; background: #1b2e42;
+  }
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupMenu button { color: #d5e2ee; }
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileGroupMenu button[aria-current="page"],
+  html[data-mode="gelap"] .workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileTab.active {
+    border-color: #4d7292; background: #315573; color: #ffffff;
+  }
+}

@@ -18,6 +18,7 @@ import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import PublicLandingPage from '@/components/PublicLandingPage'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
+import { AUREKA_NAV_FEATURES, normalizeAurekaRoutePath } from '@/lib/aureka/navigation-compat'
 import TableSortEnhancer from '@/components/TableSortEnhancer'
 import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
@@ -175,13 +176,6 @@ export default function HomeClient(){
   }catch{}
  },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id,allRoomsScope])
  const mobileSidebar=useAccessibleSidebar()
- useEffect(()=>{
-  if(typeof document==='undefined')return
-  window.localStorage.removeItem('aureka-theme-mode')
-  window.localStorage.removeItem('aureka-tone')
-  document.documentElement.dataset.theme='solid'
-  document.documentElement.style.colorScheme='light'
- },[])
  const [uiMode,setUiMode]=useState<'terang'|'gelap'>('terang')
  // Tinggi bar atas dipublikasikan sebagai --aur-header-h agar kepala tabel dapat menempel tepat di bawahnya (satu scroll halaman).
  useEffect(()=>{const root=document.documentElement;let raf=0;const check=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{const main=document.querySelector('.workspaceMain') as HTMLElement|null;const y=Math.max(window.scrollY,document.scrollingElement?.scrollTop||0,main&&main.scrollHeight>main.clientHeight+4?main.scrollTop:0);if(y>4)root.setAttribute('data-ak-scrolled','');else root.removeAttribute('data-ak-scrolled')})};window.addEventListener('scroll',check,{capture:true,passive:true});check();return()=>{window.removeEventListener('scroll',check,{capture:true} as any);cancelAnimationFrame(raf);root.removeAttribute('data-ak-scrolled')}},[])
@@ -222,7 +216,9 @@ export default function HomeClient(){
  useEffect(()=>{
   if(view!=='workspace'||typeof window==='undefined'){setRouteReady(false);return}
   const applyHash=(raw:string)=>{
-   const path=raw.replace(/^#\/?/,'').toLowerCase()
+   const incomingPath=raw.replace(/^#\/?/,'').toLowerCase()
+   const path=normalizeAurekaRoutePath(incomingPath)
+   if(path!==incomingPath)window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search+'#'+path)
     if(path==='mutu-klinis/oppe-fppe'||path==='tenaga-klinis/oppe'||path==='tenaga-klinis/oppe-fppe'){
      if(!permissionFlags.readPerformance){setActive('home');return}
      setActive('analytics');setAnalyticsTab('oppe');setAnalyticsDirectoryTab('directory')
@@ -946,7 +942,7 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="solid-white" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
+ if(view==='workspace')return <main data-aureka-theme="arktik" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed ':'')+(AUREKA_NAV_FEATURES.mobileWorkspaceTabs?'mobileWorkspaceTabsEnabled':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
@@ -1073,6 +1069,7 @@ export default function HomeClient(){
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>,document.body)}
   {activeNavModuleId&&<UnifiedModuleNavigation
+   mobileWorkspaceTabs={AUREKA_NAV_FEATURES.mobileWorkspaceTabs}
    ariaLabel={'Navigasi '+activeNavModuleLabel}
    title={activeRailTitle}
    items={activeRailItemsHinted}

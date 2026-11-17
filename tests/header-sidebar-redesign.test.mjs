@@ -2,9 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
+const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('header places hamburger before hospital context and removes the separate module-search control', () => {
+test('header places hamburger before hospital context and keeps the single global search', () => {
   const home = read('components/HomeClient.tsx')
   const workspace = home.slice(home.indexOf("if(view==='workspace')"))
   const hamburger = workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"')
@@ -12,19 +12,22 @@ test('header places hamburger before hospital context and removes the separate m
   const searchOpen = workspace.indexOf('className="workspaceGlobalSearch"')
   const searchClose = workspace.indexOf('</div>', searchOpen)
   assert.ok(hamburger >= 0 && hamburger < context, 'hamburger must be left of hospital context')
-  assert.ok(searchOpen >= 0 && searchClose > searchOpen, 'workspace search remains available')
-  assert.equal(workspace.includes('<CommandPalette'), false, 'module-search button is removed')
+  assert.ok(searchOpen >= 0 && searchClose > searchOpen, 'the single global search remains available')
+  assert.equal(workspace.includes('<CommandPalette'), false, 'no separate module-search button is added')
   assert.doesNotMatch(workspace, /className="sidebarToggle"|className="mobileSidebarClose"/)
 })
 
-test('sidebar uses a clean Solid White rail with responsive header spacing', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  assert.match(css, /grid-template-columns:\s*260px minmax\(0, 1fr\)/)
-  assert.match(css, /\.workspaceRoot \.sidebar \.sideHeader[\s\S]*min-height: 82px/)
-  assert.match(css, /\.workspaceRoot \.sidebar \.sidebarNavGroup > button\.navActive/)
-  assert.match(css, /\.workspaceRoot \.workspaceSidebarMenuButton[\s\S]*order: 0/)
-  assert.match(css, /\.workspaceRoot \.workspaceContext[\s\S]*order: 1/)
-  assert.match(css, /\.workspaceRoot \.workspaceGlobalSearch[\s\S]*order: 2/)
-  assert.match(css, /\.workspaceRoot \.commandPaletteTrigger[\s\S]*order: 3/)
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceRoot \.workspaceGlobalSearch/)
+test('Arktik shell owns the responsive header and sidebar geometry', () => {
+  const shell = read('app/workspace-desk.css')
+  const mobile = read('app/mobile-nav.css')
+  const responsive = read('app/layout-responsive.css')
+  assert.ok(shell.includes('grid-template-columns: 224px minmax(0, 1fr) !important'))
+  assert.ok(shell.includes('min-height: 68px !important'))
+  assert.ok(shell.includes('sidebarNavGroup > button.navActive'))
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk .workspaceSidebarMenuButton'))
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk .workspaceContext'))
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk .workspaceGlobalSearch'))
+  assert.ok(shell.includes('workspaceRoot.workspaceDesk.sidebarIsCollapsed'))
+  assert.ok(responsive.includes('position: fixed !important'))
+  assert.ok(mobile.includes('grid-template-areas: "menu ctx theme bell ai" "search search search search search"'))
 })

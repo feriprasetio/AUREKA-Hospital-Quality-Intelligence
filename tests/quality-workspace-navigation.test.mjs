@@ -28,11 +28,16 @@ test('every non-validator unit logbook exposes a guarded add-note action', () =>
   assert.match(quality, /if\(!layout\)\{\s*setMessage\('Template logbook untuk unit ini belum tersedia/)
 })
 
-test('Solid White sidebar is compact on desktop while mobile remains single-column', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  assert.match(css, /grid-template-columns:\s*248px minmax\(0, 1fr\) !important/)
-  assert.match(css, /\.workspaceRoot:not\(\.sidebarIsCollapsed\)\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\) !important/)
-  assert.match(css, /\.qualityWorkspaceTabs/)
+test('Arktik workspace uses a compact desktop rail and one phone Tab Workspace row', () => {
+  const shell = read('app/workspace-desk.css')
+  const responsive = read('app/layout-responsive.css')
+  const nav = read('app/aureka-universal-tabs.css')
+  assert.ok(shell.includes('grid-template-columns: 224px minmax(0, 1fr) !important'))
+  assert.ok(responsive.includes('@media (max-width: 720px)'))
+  assert.ok(responsive.includes('display: block !important'))
+  assert.ok(nav.includes('.workspaceNavigationRail'))
+  assert.ok(nav.includes('workspaceRoot.mobileWorkspaceTabsEnabled .workspaceNavigationRail'))
+  assert.ok(nav.includes('workspaceRoot.mobileWorkspaceTabsEnabled .workspaceMobileNavigation'))
 })
 
 test('selected quality unit is shared by Form Logbook and Hasil Capaian', () => {
