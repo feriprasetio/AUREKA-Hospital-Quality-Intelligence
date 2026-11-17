@@ -249,7 +249,7 @@ export default function PatientRegistryWorkspace({
   return (
     <section className="patientRegistry">
       <style>{`
-        .patientRegistry{display:grid;gap:16px;color:var(--ink,#18372b)}.prTabs{display:flex;gap:7px;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.prTabs button{border:1px solid transparent;background:transparent;color:#66766d;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:750;cursor:pointer}.prTabs button.active{background:#eaf4ee;color:#245e40;border-color:#d7e8dc}.prAddWorkspace{min-width:0}.prAddWorkspace>.aq{margin:0}
+        .patientRegistry{display:grid;gap:16px;color:var(--ink,#18372b)}.prAddWorkspace{min-width:0}.prAddWorkspace>.aq{margin:0}
         .prHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
         .prHead h2{margin:0;font-size:clamp(22px,3vw,30px);letter-spacing:-.045em}
         .prHead p{margin:6px 0 0;color:var(--muted,#718078);font-size:12px;line-height:1.55}
@@ -272,11 +272,6 @@ export default function PatientRegistryWorkspace({
 
         @media(max-width:640px){.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      <nav className="prTabs" role="tablist" aria-label="Register Pasien">
-        <button type="button" role="tab" aria-selected={tab === 'records'} className={tab === 'records' ? 'active' : ''} onClick={() => selectRegistryTab('records')}>Daftar Episode</button>
-        <button type="button" role="tab" aria-selected={tab === 'directory'} className={tab === 'directory' ? 'active' : ''} onClick={() => selectRegistryTab('directory')}>Direktori Pasien</button>
-        <button type="button" role="tab" aria-selected={tab === 'add'} className={tab === 'add' ? 'active' : ''} onClick={() => selectRegistryTab('add')}>Input Episode</button>
-      </nav>
       {tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(Number(roomFilter)||initialRoomId||'all')} initialRoomId={Number(roomFilter)||initialRoomId||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
       <header className="prHead">
         <p className="psStatsLead">Episode pelayanan dari logbook unit · identitas disamarkan</p>
