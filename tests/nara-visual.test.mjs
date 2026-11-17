@@ -56,3 +56,10 @@ test("rejects oversized chart payloads", () => {
 test("leaves ordinary text unchanged when no visual marker is present", () => {
   assert.deepEqual(parseNaraVisual("Jawaban biasa."), { text: "Jawaban biasa." });
 });
+
+test("accepts explicitly suppressed small risk-matrix cells without treating them as zero", () => {
+  const matrix = { title: "Matriks risiko", chartType: "risk_matrix", data: Array.from({ length: 25 }, (_, i) => ({ likelihood: Math.floor(i / 5) + 1, impact: (i % 5) + 1, count: i === 0 ? "disembunyikan (<5)" : i })) };
+  const result = parseNaraVisual("[[NARA_VISUAL]]" + JSON.stringify(matrix) + "[[/NARA_VISUAL]]");
+  assert.equal(result.visual?.data.length, 25);
+  assert.equal(result.visual?.data[0].count, "disembunyikan (<5)");
+});
