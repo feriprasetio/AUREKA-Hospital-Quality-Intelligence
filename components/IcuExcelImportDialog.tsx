@@ -73,6 +73,7 @@ type PreparedRow = {
   unassignedBhpLinen: string
   bhpLinenSourceHeader: string
   bhpLinenAnswer: IcuSourceAnswer | null
+  sourceIndicatorHeaders: Record<string, string>
   indicators: Record<string, IcuSourceAnswer>
   warnings: string[]
 }
@@ -282,6 +283,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     source_sheet: 'Logbook',
     source_excel_row: row.sourceRow,
     source_excel_no: row.sourceNo,
+    source_indicator_headers: row.sourceIndicatorHeaders,
     source_indicator_values: sourceIndicatorValues,
     source_unmapped_indicator: {
       source_header: row.bhpLinenSourceHeader,
@@ -502,7 +504,10 @@ export default function IcuExcelImportDialog({
           if (!patientCategory.trim()) warnings.push('Kategori Pasien dari formula sumber kosong; tidak ditebak dari diagnosis.')
 
           const answers: Record<string, IcuSourceAnswer> = {}
+          const sourceIndicatorHeaders: Record<string, string> = {}
           for (const item of INDICATORS) {
+            const sourceColumn = header.indexes['indicator:' + item.code]
+            sourceIndicatorHeaders[item.code] = sourceColumn == null ? '' : cellText(sheet.getRow(header.rowNumber).getCell(sourceColumn)).trim()
             const sourceValue = raw('indicator:' + item.code)
             if (!sourceValue.trim()) throw new Error('Respons indikator ' + item.header + ' kosong.')
             const profile = profileByCode.get(item.code)!
@@ -534,7 +539,7 @@ export default function IcuExcelImportDialog({
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo,
             admissionDate, dischargeDate, diagnosis, patientCategory, dischargeStatus,
             sourceLos, computedLos, receivingNurse, dpjp, unassignedBhpLinen, bhpLinenSourceHeader,
-            bhpLinenAnswer, indicators: answers, warnings,
+            bhpLinenAnswer, sourceIndicatorHeaders, indicators: answers, warnings,
           }
           const seqCount = rowSequenceCount.get(sourceNo) ?? 0
           rowSequenceCount.set(sourceNo, seqCount + 1)
