@@ -67,6 +67,7 @@ type PreparedRow = {
   dpjp: string
   unassignedBhpLinen: string
   indicatorHeaders: Record<string, string>
+  indicatorColumnRefs: Record<string, { column_index: number; column_letter: string; header_text: string }>
   indicators: Record<string, IcuSourceAnswer>
   warnings: string[]
 }
@@ -209,6 +210,17 @@ function maskMedicalRecord(value: string): string {
   return compact.length <= 4 ? '••••' : compact.slice(0, 2) + '••••' + compact.slice(-2)
 }
 
+function excelColumnLetter(column: number): string {
+  let value = column
+  let label = ''
+  while (value > 0) {
+    const remainder = (value - 1) % 26
+    label = String.fromCharCode(65 + remainder) + label
+    value = Math.floor((value - 1) / 26)
+  }
+  return label
+}
+
 function duplicateKey(row: PreparedRow): string {
   return [
     row.medicalRecordNo.trim().toLocaleLowerCase('id-ID'),
@@ -259,6 +271,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     source_excel_no: row.sourceNo,
     source_indicator_values: sourceIndicatorValues,
     source_indicator_columns: row.indicatorHeaders,
+    source_indicator_column_refs: row.indicatorColumnRefs,
     source_bhp_linen: {
       source_header: row.indicatorHeaders['14.1'] ?? '',
       source_value: row.unassignedBhpLinen,
@@ -451,6 +464,15 @@ export default function IcuExcelImportDialog({
             const column = header.indexes['indicator:' + item.code]
             return [item.code, column == null ? '' : cellText(sheet.getRow(header.rowNumber).getCell(column)).trim()]
           })) as Record<string, string>
+          const indicatorColumnRefs = Object.fromEntries(INDICATORS.flatMap(item => {
+            const column = header.indexes['indicator:' + item.code]
+            if (column == null) return []
+            return [[item.code, {
+              column_index: column,
+              column_letter: excelColumnLetter(column),
+              header_text: indicatorHeaders[item.code] ?? '',
+            }]]
+          })) as PreparedRow['indicatorColumnRefs']
 
           if (!sourceNo) throw new Error('Nomor urut sumber kosong.')
           if (!patientName.trim()) throw new Error('Nama Pasien kosong.')
@@ -497,7 +519,7 @@ export default function IcuExcelImportDialog({
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo,
             admissionDate, dischargeDate, diagnosis, patientCategory, dischargeStatus,
             sourceLos, computedLos, receivingNurse, dpjp, unassignedBhpLinen,
-            indicatorHeaders,
+            indicatorHeaders, indicatorColumnRefs,
             indicators: answers, warnings,
           }
           const seqCount = rowSequenceCount.get(sourceNo) ?? 0
