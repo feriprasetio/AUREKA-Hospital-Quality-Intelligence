@@ -75,7 +75,9 @@ BEGIN
        OR coalesce(v_source->>'source_sheet','') <> 'Logbook'
        OR coalesce(v_source->>'idempotency_basis','') <> 'room_year_source_excel_row'
        OR coalesce(v_source->>'source_storage_bucket','') <> 'aureka-quality-source-workbooks'
-       OR coalesce(v_source->>'source_storage_path','') !~ '^14/2026/[0-9]+_[A-Za-z0-9._-]+
+       OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 1) <> '14'
+       OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 2) <> '2026'
+       OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 3) = ''
        OR coalesce(v_bhp->>'indicator_code','') <> '14.1'
        OR nullif(btrim(v_bhp->>'source_header'),'') IS NULL
        OR nullif(btrim(v_bhp->>'source_value'),'') IS NULL
