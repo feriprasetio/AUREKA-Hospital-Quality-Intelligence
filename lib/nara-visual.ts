@@ -18,7 +18,7 @@ function validateSpec(value: unknown): NaraVisualSpec | null {
   const v = value as Record<string, unknown>
   const types = ['bar', 'line', 'pie', 'heatmap', 'risk_matrix']
   if (typeof v.title !== 'string' || !v.title.trim() || !types.includes(String(v.chartType))) return null
-  if (!Array.isArray(v.data) || !v.data.length || v.data.length > 24) return null
+  if (!Array.isArray(v.data) || !v.data.length || v.data.length > (v.chartType === 'risk_matrix' ? 25 : 24)) return null
   const chartType = v.chartType as NaraVisualSpec['chartType']
   const series = Array.isArray(v.series) ? v.series.filter((s): s is {dataKey:string;label:string} =>
     !!s && typeof s === 'object' && safeKey((s as Record<string,unknown>).dataKey) &&
