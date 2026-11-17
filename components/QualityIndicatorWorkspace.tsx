@@ -535,7 +535,7 @@ function statusLabel(status:unknown){
  if(s==='Aktif')return'Aktif'
  return s||'Draf'
 }
-export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,isValidator=false,canViewAllRooms=false,onRoomChange,initialContainer,showContainerTabs=true,patientRegistryMode=false,hidePatientEpisodeEntry=false,lockRoomScope=false}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean;isValidator?:boolean;canViewAllRooms?:boolean;onRoomChange?:(roomId:number|null)=>void;initialContainer?:(typeof CONTAINERS)[number];showContainerTabs?:boolean;patientRegistryMode?:boolean;hidePatientEpisodeEntry?:boolean;lockRoomScope?:boolean}){
+export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,isValidator=false,canViewAllRooms=false,onRoomChange,initialContainer,showContainerTabs=true,hidePatientEpisodeEntry=false,lockRoomScope=false}:{initialRoomId:number|null;rooms:Room[];isAdmin:boolean;isValidator?:boolean;canViewAllRooms?:boolean;onRoomChange?:(roomId:number|null)=>void;initialContainer?:(typeof CONTAINERS)[number];showContainerTabs?:boolean;patientRegistryMode?:boolean;hidePatientEpisodeEntry?:boolean;lockRoomScope?:boolean}){
  const [container,setContainer]=useState<(typeof CONTAINERS)[number]>(initialContainer&&CONTAINERS.includes(initialContainer)?initialContainer:CONTAINERS[0])
  const [year,setYear]=useState(2026)
  const [roomId,setRoomId]=useState<number|null>(()=>defaultAuditRoomId(rooms,initialRoomId,isAdmin))
@@ -695,7 +695,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
 
  const load=useCallback(async()=>{
-   const cacheKey=[roomId,year,patientRegistryMode?1:0].join('|')
+   const cacheKey=[roomId,year].join('|')
    const cached=QIW_MEMORY_CACHE.get(cacheKey)
    // Tampilkan data terakhir (hanya di memori tab ini) seketika, lalu segarkan di latar belakang.
    if(cached){setProfiles(cached.profiles);setStaffOptions(cached.staff);setPatients(cached.patients);setSource('Supabase')}else setBusy(true)
@@ -741,7 +741,6 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        let from=0
        while(true){
          let rq=q().from('quality_records').select('*').eq('room_id',roomId).eq('profile_year',year).order('created_at',{ascending:false}).range(from,from+499)
-         if(patientRegistryMode)rq=rq.eq('measurement_grain','patient_episode')
          const {data,error}=await rq
          if(error) throw error
          out.push(...(data??[]))
@@ -800,7 +799,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      setSource('Supabase tidak tersedia')
      setMessage(`Data tidak dapat dimuat dari server. Tidak ada draf pasien yang dipulihkan dari browser. ${toUserFacingError(e,{fallback:'Periksa koneksi dan hak akses, lalu coba kembali.'})}`.trim())
    }finally{setBusy(false)}
- },[roomId,roomMap,year,patientRegistryMode])
+ },[roomId,roomMap,year])
 
  useEffect(()=>{void load()},[load])
 
