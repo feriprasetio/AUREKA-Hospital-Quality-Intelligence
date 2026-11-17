@@ -84,7 +84,12 @@ BEGIN
        OR coalesce(v_source_values->>'14.1','') <> coalesce(v_bhp->>'source_value','')
        OR coalesce(v_source_columns->>'14.1','') <> coalesce(v_bhp->>'source_header','')
        OR coalesce(v_source_column_refs->'14.1'->>'header_text','') <> coalesce(v_bhp->>'source_header','')
-       OR coalesce(v_source_column_refs->'14.1'->>'column_index','') !~ '^[1-9][0-9]*
+       OR jsonb_typeof(v_source_column_refs->'14.1'->'column_index') <> 'number'
+       OR (v_source_column_refs->'14.1'->'column_index') <= '0'::jsonb
+       OR length(coalesce(v_source_column_refs->'14.1'->>'column_letter','')) NOT BETWEEN 1 AND 3
+       OR length(translate(coalesce(v_source_column_refs->'14.1'->>'column_letter',''),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','')) > 0
+       OR coalesce(v_bhp->>'column_index','') <> coalesce(v_source_column_refs->'14.1'->>'column_index','')
+       OR coalesce(v_bhp->>'column_letter','') <> coalesce(v_source_column_refs->'14.1'->>'column_letter','')
        OR coalesce(v_form->>'Kekosongan BHP/Linen','') <> coalesce(v_bhp->>'source_value','')
        OR coalesce(v_values->'14.1'->>'source_value','') <> coalesce(v_bhp->>'source_value','') THEN
       RAISE EXCEPTION 'Sumber BHP/Linen tidak konsisten dengan profil 14.1 atau metadata baris Excel.' USING ERRCODE = '22023';
