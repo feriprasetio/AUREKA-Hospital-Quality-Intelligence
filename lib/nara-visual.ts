@@ -31,7 +31,7 @@ function validateSpec(value: unknown): NaraVisualSpec | null {
     const r = row as Record<string,unknown>
     if (!Object.values(r).every(x => typeof x === 'string' || (typeof x === 'number' && Number.isFinite(x)))) return false
     if (chartType === 'heatmap') return typeof r[xKey] === 'string' && typeof r[yKey] === 'string' && typeof r[valueKey] === 'number'
-    if (chartType === 'risk_matrix') return typeof r.likelihood === 'number' && typeof r.impact === 'number' && typeof r.count === 'number' && r.likelihood >= 1 && r.likelihood <= 5 && r.impact >= 1 && r.impact <= 5 && r.count >= 0
+    if (chartType === 'risk_matrix') return typeof r.likelihood === 'number' && typeof r.impact === 'number' && (typeof r.count === 'number' && r.count >= 0 || typeof r.count === 'string' && r.count.startsWith('disembunyikan')) && r.likelihood >= 1 && r.likelihood <= 5 && r.impact >= 1 && r.impact <= 5 && r.count >= 0
     if (chartType === 'pie') return typeof r[xKey] === 'string' && (typeof r[valueKey] === 'number' || (series[0] && typeof r[series[0].dataKey] === 'number'))
     return typeof r[xKey] === 'string' && series.length > 0 && series.every(s => typeof r[s.dataKey] === 'number')
   })
