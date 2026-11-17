@@ -454,6 +454,29 @@ function formatTopDiseaseAnswer(data: Record<string, unknown>) {
   const episode = data.episode_context && typeof data.episode_context === "object"
     ? data.episode_context as Record<string, unknown>
     : {};
+  const indexContext = data.patient_index_context && typeof data.patient_index_context === "object"
+    ? data.patient_index_context as Record<string, unknown>
+    : {};
+  const indexTotal = Number(indexContext.total_patients) || 0;
+  const indexDiagnosed = Number(indexContext.diagnosed_patients) || 0;
+  const indexMissing = Number(indexContext.missing_diagnosis) || 0;
+  const coverage = Number(indexContext.diagnosis_coverage_pct) || 0;
+  const completenessLine = indexTotal > 0
+    ? "Kelengkapan diagnosis pada Database Pasien: " + indexDiagnosed.toLocaleString("id-ID") + " dari " +
+      indexTotal.toLocaleString("id-ID") + " pasien (" + coverage.toFixed(2) + "%) memiliki diagnosis terakhir; " +
+      indexMissing.toLocaleString("id-ID") + " baris belum memiliki diagnosis. Baris kosong tidak boleh ditafsirkan sebagai pasien tanpa penyakit."
+    : "Tidak ada baris indeks pasien pada periode dan cakupan unit ini.";
+  const unitCoverage = Array.isArray(indexContext.by_unit)
+    ? (indexContext.by_unit as Record<string, unknown>[]).map((unit) => {
+        const name = String(unit.unit || "Unit");
+        const diagnosed = Number(unit.diagnosed_count) || 0;
+        const total = Number(unit.patient_count) || 0;
+        const missing = Number(unit.missing_diagnosis) || 0;
+        const pct = Number(unit.coverage_pct) || 0;
+        return "- " + name + ": " + diagnosed.toLocaleString("id-ID") + "/" + total.toLocaleString("id-ID") +
+          " (" + pct.toFixed(2) + "%), " + missing.toLocaleString("id-ID") + " belum terisi";
+      })
+    : [];
   const episodeCount = Number(episode.total_episode_records) || 0;
   const episodePatients = Number(episode.unique_patients_with_mrn) || 0;
   const episodeGroups = Number(episode.diagnosis_group_count) || 0;
@@ -473,6 +496,8 @@ function formatTopDiseaseAnswer(data: Record<string, unknown>) {
     header, ...lines, "",
     "Cakupan: " + (data.scope || "unit sesuai hak akses akun") + ". Total pasien yang masuk basis peringkat: " + total + ".",
     groupLine,
+    completenessLine,
+    ...(unitCoverage.length ? ["Rincian kelengkapan per unit:", ...unitCoverage] : []),
     episodeLine,
     "Perlindungan privasi: kelompok dengan jumlah kurang dari " + String(data.minimum_cell_size || 5) + " pasien tidak ditampilkan. Nomor rekam medis dan identitas pasien tidak ditampilkan maupun dikirim ke provider AI.",
     limitations,

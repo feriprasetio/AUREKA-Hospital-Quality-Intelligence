@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 const migration = read('supabase/migrations/20261118120000_nara_patient_diagnosis_intelligence.sql')
+const completenessMigration = read('supabase/migrations/20261118130000_nara_diagnosis_completeness_and_patient_index_sync.sql')
 const gateway = read('supabase/functions/aureka-tanya/index.ts')
 const tanya = read('components/TanyaAureka.tsx')
 const review = read('components/NaraIcd10ReviewWorkspace.tsx')
@@ -63,4 +64,20 @@ test('NARA exposes a clinical diagnosis starter and a dedicated ICD-10 review wo
   assert.match(workspace, /Analisis diagnosis & ICD-10/)
   assert.match(workspace, /NaraIcd10ReviewWorkspace/)
   assert.match(workspace, /Validasi ICD-10/)
+})
+
+test('patient index sync recognizes primary and main diagnosis field variants', () => {
+  assert.match(completenessMigration, /patient_index_touch\(p_core jsonb[\s\S]*?Diagnosa Primer/)
+  assert.match(completenessMigration, /patient_index_touch\(p_core jsonb[\s\S]*?Diagnosa Utama/)
+})
+
+test('NARA reports patient-index diagnosis completeness and unit-level data gaps separately', () => {
+  assert.match(completenessMigration, /'patient_index_context', v_patient_index_context/)
+  assert.match(completenessMigration, /'total_patients', totals.total_patients/)
+  assert.match(completenessMigration, /'diagnosed_patients', totals.diagnosed_patients/)
+  assert.match(completenessMigration, /'missing_diagnosis', totals.missing_diagnosis/)
+  assert.match(completenessMigration, /'by_unit'/)
+  assert.match(gateway, /const completenessLine/)
+  assert.match(gateway, /const unitCoverage/)
+  assert.match(gateway, /Baris kosong tidak boleh ditafsirkan sebagai pasien tanpa penyakit/)
 })
