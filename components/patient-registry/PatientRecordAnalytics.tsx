@@ -87,14 +87,9 @@ export default function PatientRecordAnalytics({ rooms, initialRoomId, canViewAl
       if (!valid.length) { setData(EMPTY); setNotice('Belum ada episode pasien yang dapat dianalisis pada unit dan tahun ini.'); return }
       if (failed.length) setNotice('Sebagian unit tidak dapat dibaca. Ringkasan hanya menggunakan ' + valid.length + ' unit yang berhasil dimuat.')
       const next = combine(valid.map((item) => item.data!))
-      if (!roomFilter && canViewAllRooms && !lockRoomScope) {
-        const overview = await aurekaSupabase.rpc('aureka_patient_index_overview')
-        if (!overview.error && overview.data) {
-          const summary = overview.data as Record<string, unknown>
-          next.patientsUnique = num(summary.total)
-          next.readmission30 = num(summary.readmisi_30)
-        }
-      } else if (valid.length === 1) {
+      // Pasien unik dan readmisi tidak dijumlahkan lintas unit: pasien yang sama
+      // dapat muncul di lebih dari satu unit. Tampilkan hanya untuk satu unit terpilih.
+      if (roomFilter && valid.length === 1) {
         next.patientsUnique = valid[0].data?.patients_unique == null ? null : num(valid[0].data?.patients_unique)
         next.readmission30 = valid[0].data?.readmission_30 == null ? null : num(valid[0].data?.readmission_30)
       }
@@ -175,11 +170,11 @@ export default function PatientRecordAnalytics({ rooms, initialRoomId, canViewAl
         : <>
           <div className="praGrid">
             <div className="praCard"><span>Total episode pelayanan</span><strong>{fmt(data.episodes)}</strong><small>{unitLabel} · tahun {year}</small></div>
-            <div className="praCard"><span>Pasien unik</span><strong>{fmt(data.patientsUnique)}</strong><small>{roomFilter ? 'No. RM valid pada unit dan tahun terpilih' : 'Seluruh periode, semua unit dalam cakupan akses'}</small></div>
+            <div className="praCard"><span>Pasien unik</span><strong>{fmt(data.patientsUnique)}</strong><small>{roomFilter ? 'No. RM valid pada unit dan tahun terpilih' : 'Pilih satu unit agar pasien lintas unit tidak dihitung ganda'}</small></div>
             <div className="praCard"><span>Rata-rata LOS rawat inap</span><strong>{data.avgLos == null ? '—' : fmt(data.avgLos, 1) + ' hari'}</strong><small>{fmt(data.losCount)} episode pulang dengan LOS yang dapat dihitung</small></div>
             <div className="praCard"><span>Episode rawat inap terbuka</span><strong>{fmt(data.active)}</strong><small>Memiliki struktur tanggal keluar tetapi belum tercatat tanggal pulang</small></div>
             <div className="praCard"><span>Kode ICD-10 teridentifikasi</span><strong>{fmt(codingCoverage)}%</strong><small>{fmt(data.icd10Coded)} dari {fmt(data.episodes)} episode</small></div>
-            <div className="praCard"><span>Readmisi ≤30 hari</span><strong>{fmt(data.readmission30)}</strong><small>Estimasi berbasis logbook; bukan pengganti indikator readmisi resmi SIMRS</small></div>
+            <div className="praCard"><span>Readmisi ≤30 hari</span><strong>{fmt(data.readmission30)}</strong><small>Estimasi seluruh periode logbook; bukan pengganti indikator resmi SIMRS</small></div>
             <div className="praCard"><span>No. RM tidak valid / kosong</span><strong>{fmt(data.rmInvalid)}</strong><small>Episode yang belum dapat dihubungkan secara andal ke Database Pasien</small></div>
             <div className="praCard"><span>Diagnosis belum tercatat</span><strong>{fmt(data.diagnosisMissing)}</strong><small>Episode tanpa diagnosis yang dapat dibaca dari data sumber</small></div>
           </div>
