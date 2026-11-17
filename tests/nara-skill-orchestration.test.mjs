@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { planNaraSkills, NARA_SKILL_REGISTRY } from "../supabase/functions/aureka-tanya/skills.ts";
+import { scopeSnapshotForSkills } from "../supabase/functions/aureka-tanya/skill-policy.ts";
 
-test("registry exposes twelve specialist skill families", () => {
-  assert.equal(NARA_SKILL_REGISTRY.length, 12);
+test("registry exposes fourteen specialist skill families", () => {
+  assert.equal(NARA_SKILL_REGISTRY.length, 14);
 });
 
 test("quality intent routes to Quality Intelligence", () => {
@@ -34,4 +35,64 @@ test("unmatched intent safely falls back to knowledge without inventing tools", 
 test("orchestration remains bounded to five specialist skills", () => {
   const plan = planNaraSkills("Direktur perlu statistik audit indikator mutu, risiko, IKP, diagnosis, OPPE dan grafik");
   assert.ok(plan.selected.length <= 5);
+});
+
+test("engineering questions route to a non-data skill and do not require a hospital snapshot", () => {
+  const plan = planNaraSkills("Bagaimana memperbaiki migration Supabase dan konfigurasi RLS?");
+  assert.equal(plan.primary, "engineering");
+  assert.ok(plan.selected.includes("engineering"));
+  assert.ok(plan.domains.includes("engineering"));
+  assert.equal(plan.requiresAggregateData, false);
+});
+
+test("governance questions route to Governance Intelligence and its aggregate domains", () => {
+  const plan = planNaraSkills("Buat analisis rekomendasi Dewan Pengawas dan RTL tindak lanjut.");
+  assert.equal(plan.primary, "governance");
+  assert.ok(plan.selected.includes("governance"));
+  assert.ok(plan.domains.includes("governance"));
+  assert.equal(plan.requiresAggregateData, true);
+});
+
+test("quality skill receives only quality-related snapshot aggregates", () => {
+  const snapshot = {
+    tanggal_hari_ini: "2026-11-17",
+    triwulan_berjalan: "Triwulan IV 2026",
+    profil_indikator_mutu: { total_profil: 20 },
+    mutu_klinis_logbook: { total_entri: 500 },
+    manajemen_risiko: { total_risiko: 100 },
+    keselamatan_pasien: { total_laporan_ikp: 30 },
+    evaluasi_profesional: { total_oppe_fppe: 25 },
+    unknown_future_domain: { secret: true },
+  };
+  const scoped = scopeSnapshotForSkills(snapshot, ["quality"]);
+  assert.ok(scoped);
+  assert.deepEqual(scoped.profil_indikator_mutu, { total_profil: 20 });
+  assert.deepEqual(scoped.mutu_klinis_logbook, { total_entri: 500 });
+  assert.equal(scoped.manajemen_risiko, undefined);
+  assert.equal(scoped.keselamatan_pasien, undefined);
+  assert.equal(scoped.evaluasi_profesional, undefined);
+  assert.equal(scoped.unknown_future_domain, undefined);
+  assert.deepEqual(scoped._nara_context.included_domains, ["quality"]);
+});
+
+test("cross-domain quality and risk skills receive both domains but not unrelated workforce data", () => {
+  const snapshot = {
+    profil_indikator_mutu: { total_profil: 20 },
+    manajemen_risiko: { total_risiko: 100 },
+    keselamatan_pasien: { total_laporan_ikp: 30 },
+    evaluasi_profesional: { total_oppe_fppe: 25 },
+  };
+  const scoped = scopeSnapshotForSkills(snapshot, ["quality", "risk"]);
+  assert.ok(scoped?.profil_indikator_mutu);
+  assert.ok(scoped?.manajemen_risiko);
+  assert.equal(scoped?.keselamatan_pasien, undefined);
+  assert.equal(scoped?.evaluasi_profesional, undefined);
+  assert.deepEqual(scoped?._nara_context.included_domains, ["quality", "risk"]);
+});
+
+test("snapshot scoping fails closed for non-data or unknown domains", () => {
+  const snapshot = { manajemen_risiko: { total_risiko: 100 } };
+  assert.equal(scopeSnapshotForSkills(snapshot, ["engineering"]), null);
+  assert.equal(scopeSnapshotForSkills(snapshot, ["unknown-domain"]), null);
+  assert.equal(scopeSnapshotForSkills(null, ["risk"]), null);
 });
