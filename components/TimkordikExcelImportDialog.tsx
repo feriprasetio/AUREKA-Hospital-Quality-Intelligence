@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import {
   buildTimkordikImportPayload,
   createTimkordikSubjectKey,
@@ -225,17 +226,15 @@ export default function TimkordikExcelImportDialog({
       }
       const indexes: Record<RequiredField, number> = {} as Record<RequiredField, number>
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS) as Array<[RequiredField, string[]]>) {
-        const match = aliases.map(alias => columns.get(normalizeExactHeader(alias))).find(value => value?.length)
-        if (!match?.length) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 2.')
-        if (match.length > 1) throw new Error('Header "' + aliases[0] + '" muncul lebih dari satu kali.')
-        indexes[key] = match[0]
+        const column = resolveInteractiveExcelHeaderColumn(columns, aliases, { importerKey: 'timkordik', fieldKey: key, fieldLabel: aliases[0], required: true })
+        if (column == null) throw new Error('Header wajib "' + aliases[0] + '" belum dipetakan.')
+        indexes[key] = column
       }
       const indicatorColumns = new Map<string, number>()
       for (const indicator of TIMKORDIK_INDICATORS) {
-        const match = columns.get(normalizeExactHeader(indicator.header))
-        if (!match?.length) throw new Error('Kolom indikator "' + indicator.header + '" tidak ditemukan.')
-        if (match.length > 1) throw new Error('Kolom indikator "' + indicator.header + '" muncul lebih dari satu kali.')
-        indicatorColumns.set(indicator.code, match[0])
+        const column = resolveInteractiveExcelHeaderColumn(columns, [indicator.header], { importerKey: 'timkordik', fieldKey: 'indicator:' + indicator.code, fieldLabel: indicator.header, required: true })
+        if (column == null) throw new Error('Kolom indikator "' + indicator.header + '" belum dipetakan.')
+        indicatorColumns.set(indicator.code, column)
       }
 
       const prepared: TimkordikPreparedRow[] = []
