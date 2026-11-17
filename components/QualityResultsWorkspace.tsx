@@ -275,7 +275,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       }
 
       if (mode === 'indicators') {
-        const includeOperationalFields = selectedRoom == null || selectedRoom === 5 || selectedRoom === 11
+        const includeOperationalFields = selectedRoom == null || selectedRoom === 5 || selectedRoom === 11 || selectedRoom === 14
         const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values' +
           (includeOperationalFields
             ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit,source_import:core_data->source_import'
@@ -396,6 +396,38 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
   const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
+  const [sourceTraceFor, setSourceTraceFor] = useState<IndicatorProfileForResults | null>(null)
+  const sourceTraceRows = useMemo(() => {
+    if (!sourceTraceFor) return []
+    const code = String(sourceTraceFor.code ?? '')
+    return indicatorData.rows
+      .filter((row) => {
+        if (Number(row.room_id) !== Number(sourceTraceFor.room_id)) return false
+        const source = row.core_data?.source_import
+        if (!source || typeof source !== 'object') return false
+        return code === '14.1'
+          ? source.source_unmapped_indicator != null
+          : source.source_indicator_values?.[code] != null
+      })
+      .map((row: any) => {
+        const source = row.core_data?.source_import ?? {}
+        const bhp = source.source_unmapped_indicator ?? {}
+        const codeValue = String(sourceTraceFor.code ?? '')
+        const isBhpLinen = codeValue === '14.1'
+        return {
+          id: String(row.id ?? source.source_excel_row ?? ''),
+          date: String(row.record_date ?? ''),
+          workbook: String(source.source_workbook ?? ''),
+          worksheet: String(source.source_sheet ?? ''),
+          excelRow: Number(source.source_excel_row ?? 0),
+          header: String(isBhpLinen ? bhp.source_header ?? '' : source.source_indicator_headers?.[codeValue] ?? sourceTraceFor.schema_json?.excel_mapping?.indicator_header ?? ''),
+          value: String(isBhpLinen ? bhp.source_value ?? '' : source.source_indicator_values?.[codeValue] ?? ''),
+          mappingStatus: String(isBhpLinen ? bhp.mapping_status ?? '' : row.core_data?.indicator_values?.[codeValue]?.mapping_status ?? ''),
+          recordStatus: String(row.status ?? ''),
+        }
+      })
+      .sort((a,b) => a.excelRow - b.excelRow)
+  }, [sourceTraceFor, indicatorData.rows])
   const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => categoryOf(result) === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
@@ -693,7 +725,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <thead><tr>{roomId == null && <th>Unit kerja</th>}<th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     {roomId == null && <td><strong>{rooms.find((room) => Number(room.id) === Number(result.profile.room_id))?.name ?? 'Unit tidak diketahui'}</strong></td>}
-                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
+                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small><div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:5}}><button type="button" className="qraSourceBtn" onClick={() => setSourceTraceFor(result.profile)}>Telusuri sumber Excel</button>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</div></td>
                     {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '-'}</small></td>)}
                     <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
@@ -709,6 +741,32 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   unit={spcFor.continuous ? (spcFor.unit ? ' ' + spcFor.unit : '') : '%'}
                   target={(() => { const t = Number(spcFor.profile.target_value); return spcFor.profile.target_value != null && spcFor.profile.target_value !== '' && Number.isFinite(t) ? t : null })()}
                   points={spcFor.monthly.map((m) => spcFor.continuous ? { month: m.month, value: m.mean } : { month: m.month, value: m.rate, numerator: m.numerator, denominator: m.denominator })} />}
+              </AurekaModal>
+              <AurekaModal open={!!sourceTraceFor} size="xl" onClose={() => setSourceTraceFor(null)}
+                title={sourceTraceFor ? 'Telusuri sumber Excel · ' + (sourceTraceFor.code ? sourceTraceFor.code + ' · ' : '') + (sourceTraceFor.title ?? 'Indikator') : ''}
+                subtitle={sourceTraceRows[0] ? sourceTraceRows[0].workbook + ' · Worksheet ' + sourceTraceRows[0].worksheet + ' · Header kolom: ' + (sourceTraceRows[0].header || 'belum tersedia') : 'Jejak kolom sumber dan baris Excel dari data yang diimpor.'}>
+                {sourceTraceFor && <div style={{display:'grid',gap:12,padding:12}}>
+                  <div className="qraNotice">
+                    **Pemetaan sumber:** {sourceTraceFor.schema_json?.excel_mapping?.worksheet || sourceTraceRows[0]?.worksheet || 'Logbook'} · Kolom: {sourceTraceFor.schema_json?.excel_mapping?.indicator_header || sourceTraceRows[0]?.header || 'belum tercatat'}.
+                    Nilai ditampilkan dari provenance impor yang tersimpan; identitas pasien tidak ditampilkan.
+                  </div>
+                  {sourceTraceRows.length === 0
+                    ? <EmptyState title="Jejak Excel belum tersedia" detail="Record pada unit/tahun ini tidak menyimpan provenance sumber untuk indikator tersebut." />
+                    : <WorkspaceTableViewport label="Jejak sumber Excel" className="qraTableWrap"><table className="qraTable">
+                      <thead><tr><th>Baris Excel</th><th>Tanggal episode</th><th>Workbook / worksheet</th><th>Header kolom sumber</th><th>Nilai sumber</th><th>Status pemetaan</th><th>Status record</th></tr></thead>
+                      <tbody>{sourceTraceRows.slice(0,500).map((row) => <tr key={row.id}>
+                        <td><strong>{row.excelRow || '-'}</strong></td>
+                        <td>{row.date || '-'}</td>
+                        <td><strong>{row.workbook || '-'}</strong><small>{row.worksheet || '-'}</small></td>
+                        <td>{row.header || '-'}</td>
+                        <td>{row.value || <span className="qraDim">Sel sumber kosong</span>}</td>
+                        <td>{row.mappingStatus || '-'}</td>
+                        <td>{row.recordStatus || '-'}</td>
+                      </tr>)}</tbody>
+                    </table></WorkspaceTableViewport>}
+                  {sourceTraceRows.length > 500 && <div className="qraMuted">Ditampilkan 500 dari {sourceTraceRows.length} baris sumber. Gunakan workbook asli untuk penelusuran seluruh baris.</div>}
+                  <div className="qraMuted">Rujukan ini menunjukkan nomor baris dan header yang dipilih pada saat impor. File Excel asli tidak disimpan sebagai attachment yang dapat dibuka langsung dari AUREKA.</div>
+                </div>}
               </AurekaModal>
               </section>
               {pharmacyMetricSummary && <section className="qraPanel" aria-label="Rekap capaian indikator Farmasi">
