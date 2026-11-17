@@ -19,7 +19,6 @@ export default function PatientRegistryWorkspace({
   rooms: Room[]
   initialRoomId: number | null
   isAdmin: boolean
-  isValidator: boolean
   canViewAllRooms: boolean
   lockRoomScope?: boolean
   /** Patient module is read-only: the source logbook and episode input live in Indikator Mutu. */
