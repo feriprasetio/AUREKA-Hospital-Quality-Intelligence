@@ -179,6 +179,7 @@ function duplicateEpisodeKey(row: PreparedRow): string | null {
 
 function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string, number> } {
   let bestMissing: string[] = []
+  let bestScore = Number.POSITIVE_INFINITY
   let bestHeaderRowNumber = 0
   let bestHeaderValues: string[] = []
   let bestDuplicate: string[] = []
@@ -191,7 +192,9 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     if (mapped.missingHeaders.length === 0 && mapped.duplicateHeaders.length === 0) {
       return { rowNumber, indexes: mapped.indexes }
     }
-    if (!bestMissing.length || mapped.missingHeaders.length < bestMissing.length) {
+    const score = mapped.missingHeaders.length + mapped.duplicateHeaders.length
+    if (score < bestScore) {
+      bestScore = score
       bestMissing = mapped.missingHeaders
       bestDuplicate = mapped.duplicateHeaders
       bestHeaderRowNumber = rowNumber
