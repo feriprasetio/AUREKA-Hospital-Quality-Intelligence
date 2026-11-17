@@ -76,7 +76,7 @@ const editModel = (profile: Model): Model => ({
   _options_text: JSON.stringify(profile.options_json || [], null, 2),
 })
 
-type ProfileViewFilter = 'active' | 'needs_review' | 'target_pending' | 'complete' | 'draft' | 'retired' | 'all'
+type ProfileViewFilter = 'active' | 'needs_review' | 'target_pending' | 'target_unavailable' | 'complete' | 'draft' | 'retired' | 'all'
 
 const metadataReviewReasons = (profile: Model): string[] => {
   const schema = profile.schema_json && typeof profile.schema_json === 'object' ? profile.schema_json : {}
@@ -108,6 +108,16 @@ const targetApprovalReasons = (profile: Model): string[] => {
 
 const needsMetadataReview = (profile: Model): boolean => metadataReviewReasons(profile).length > 0
 const needsTargetApproval = (profile: Model): boolean => targetApprovalReasons(profile).length > 0
+const hasNeutralTargetStatus = (profile: Model): boolean => {
+  const schema = profile.schema_json && typeof profile.schema_json === 'object' ? profile.schema_json : {}
+  return schema.target_not_defined_in_source === true || schema.target_semantic_review_required === true
+}
+const neutralTargetExplanation = (profile: Model): string => {
+  const schema = profile.schema_json && typeof profile.schema_json === 'object' ? profile.schema_json : {}
+  return schema.target_semantic_review_required === true
+    ? 'Standar sumber 0% tidak selaras dengan definisi numerator. Arah indikator sudah diidentifikasi, tetapi target dinonaktifkan sampai pemilik indikator mengklarifikasi definisinya.'
+    : 'Standar target tidak dicantumkan pada dokumen sumber 2026. Profil tetap aktif untuk pencatatan; perbandingan target tidak dihitung sampai target ditetapkan.'
+}
 const isActivePublished = (profile: Model): boolean => profile.is_active === true && profile.status === 'published'
 
 const payloadFrom = (model: Model): Model => {
@@ -215,6 +225,10 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     () => profiles.filter((profile) => isActivePublished(profile) && needsTargetApproval(profile)).length,
     [profiles],
   )
+  const activeTargetUnavailableCount = useMemo(
+    () => profiles.filter((profile) => isActivePublished(profile) && hasNeutralTargetStatus(profile)).length,
+    [profiles],
+  )
 
   const filteredProfiles = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase('id')
@@ -223,7 +237,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       if (profileViewFilter === 'active' && !active) return false
       if (profileViewFilter === 'needs_review' && (!active || !needsMetadataReview(profile))) return false
       if (profileViewFilter === 'target_pending' && (!active || !needsTargetApproval(profile))) return false
-      if (profileViewFilter === 'complete' && (!active || needsMetadataReview(profile))) return false
+      if (profileViewFilter === 'target_unavailable' && (!active || !hasNeutralTargetStatus(profile))) return false
+      if (profileViewFilter === 'complete' && (!active || needsMetadataReview(profile) || needsTargetApproval(profile) || hasNeutralTargetStatus(profile))) return false
       if (profileViewFilter === 'draft' && profile.status !== 'draft') return false
       if (profileViewFilter === 'retired' && profile.status !== 'retired' && profile.is_active !== false) return false
       if (programFilter && String(profile.indicator_type || '') !== programFilter) return false
@@ -639,7 +654,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 <option value="active">Indikator aktif ({activeProfileCount})</option>
                 <option value="needs_review">Perlu perbaikan teknis, merah ({activeReviewCount})</option>
                 <option value="target_pending">Target/definisi menunggu pengesahan, kuning ({activeTargetPendingCount})</option>
-                <option value="complete">Metadata siap digunakan</option>
+                <option value="target_unavailable">Target belum tersedia / perlu klarifikasi, netral ({activeTargetUnavailableCount})</option>
+                <option value="complete">Metadata dan target siap digunakan</option>
                 <option value="draft">Draf</option>
                 <option value="retired">Riwayat versi (retired)</option>
                 <option value="all">Semua versi</option>
@@ -722,7 +738,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
             </AurekaModal>
             <div style={{ display: 'grid', gap: 7 }}>
               {filteredProfiles.map((profile) => (
-                <div key={profile.id} style={{ padding: 11, border: needsMetadataReview(profile) ? '1px solid rgba(184,52,52,.48)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
+                <div key={profile.id} style={{ padding: 11, border: needsMetadataReview(profile) ? '1px solid rgba(184,52,52,.48)' : needsTargetApproval(profile) ? '1px solid rgba(190,125,35,.48)' : hasNeutralTargetStatus(profile) ? '1px solid rgba(100,116,139,.28)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
                   <div style={{ minWidth: 0, flex: '1 1 260px' }}>
                     <div style={{ fontSize: 12, fontWeight: 850, overflowWrap: 'anywhere' }}>{profile.code} · {profile.title || '(Tanpa nama)'}</div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7, marginTop: 4, overflowWrap: 'anywhere' }}>
@@ -736,6 +752,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     </div>
                     {needsMetadataReview(profile) && <div className="qsReviewNote">Perlu perbaikan teknis: {metadataReviewReasons(profile).join(', ')}.</div>}
                     {!needsMetadataReview(profile) && needsTargetApproval(profile) && <div style={{ marginTop: 5, color: '#9a6700', fontSize: 12, fontWeight: 750 }}>Perlu pengesahan pemilik indikator: {targetApprovalReasons(profile).join(', ')}. Indikator tetap dapat dipetakan dan dicatat; target belum dihitung sebagai target resmi.</div>}
+                    {!needsMetadataReview(profile) && !needsTargetApproval(profile) && hasNeutralTargetStatus(profile) && <div style={{ marginTop: 5, padding: '7px 9px', borderRadius: 8, background: 'rgba(100,116,139,.08)', color: '#526170', fontSize: 12, lineHeight: 1.5 }}>{neutralTargetExplanation(profile)}</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
