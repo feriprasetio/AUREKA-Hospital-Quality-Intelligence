@@ -175,9 +175,16 @@ function extractOptionObservation(
         (item) => String(item.label ?? '').trim() === answer,
       )
     : []
-  const responseCode = finiteNumber(response.code)
-  const optionCode = finiteNumber(option.code)
   const sourceCode = finiteNumber(response.source_code)
+  // A pending response may still carry an authoritative source code when its
+  // exact label uniquely matches the published option. Recover that code only
+  // for master_pending (never for source conflicts or unknown labels).
+  const responseCode = finiteNumber(response.code) ?? (
+    mappingStatus === 'master_pending' && response.review_required === true
+      ? sourceCode
+      : null
+  )
+  const optionCode = finiteNumber(option.code)
   const exactDirectionalMatch =
     direction != null &&
     exactMatches.length === 1 &&
