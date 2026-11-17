@@ -4,6 +4,7 @@
 // Tidak ada data identitas pasien yang dikirim ke AI (ringkasan IKP hanya berupa hitungan).
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 import { planNaraSkills } from "./skills.ts";
+import { scopeSnapshotForSkills } from "./skill-policy.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://feriprasetio.github.io",
@@ -763,16 +764,25 @@ async function handle(req: Request): Promise<Response> {
 
   const cached = snapshotCache.get(who.user.id);
   const fresh = cached && Date.now() - cached.at < SNAPSHOT_TTL;
-  const data = fresh ? cached!.data : smallTalk ? null : await snapshot(db);
-  if (!fresh && data) snapshotCache.set(who.user.id, { at: Date.now(), data });
+  // Only aggregate-data skills load a snapshot. The cached snapshot remains server-side;
+  // the provider receives a minimized projection for the domains selected by the planner.
+  const needsAggregateData = !smallTalk && Boolean(skillPlan?.requiresAggregateData);
+  const rawSnapshot = needsAggregateData
+    ? (fresh ? cached!.data : await snapshot(db))
+    : null;
+  if (!fresh && rawSnapshot) snapshotCache.set(who.user.id, { at: Date.now(), data: rawSnapshot });
+  const data = rawSnapshot ? scopeSnapshotForSkills(rawSnapshot, skillPlan?.domains || []) : null;
   // Account identity is intentionally excluded from external model context.
   const system = [
     "Kamu adalah NARA AI (AUREKA Intelligence), asisten intelijen rumah sakit untuk mutu, keselamatan pasien, manajemen risiko, statistik, tata kelola, dan dukungan keputusan.",
     skillPlan ? "SKILL ORCHESTRATION (ditetapkan backend, bukan oleh model):" : "",
-    skillPlan ? JSON.stringify({ mode: skillPlan.mode, primary: skillPlan.primary, selected_skills: skillPlan.labels, authorized_data_domains_in_context: skillPlan.domains }) : "",
+    skillPlan ? JSON.stringify({ mode: skillPlan.mode, primary: skillPlan.primary, selected_skill_ids: skillPlan.selected, selected_skills: skillPlan.labels, requested_data_domains: skillPlan.domains, aggregate_snapshot_required: skillPlan.requiresAggregateData }) : "",
     ...(skillPlan?.instructions.map((instruction) => "ATURAN SKILL: " + instruction) || []),
     "VISUAL INTELLIGENCE: Jika pengguna meminta visualisasi, buat blok [[NARA_VISUAL]]JSON[[/NARA_VISUAL]] dengan tipe yang didukung dan hanya memakai angka DATA AUREKA. Untuk matriks risiko 5×5, gunakan likelihood dan impact per risiko; jangan menurunkannya dari level atau skor agregat. Jika kedua variabel tidak tersedia, jangan mengarang matriks. Backend menyediakan matriks 5×5 agregat dari kolom likelihood dan impact register; setiap sel kecil dapat disembunyikan. Jelaskan bahwa nilai 3 merupakan default skema dan kualitas asal nilai perlu diverifikasi sebelum keputusan. Pie chart harus memakai kategori saling lepas, denominator yang jelas, sumber, periode, unit, dan interpretasi yang menyebut keterbatasan. Untuk visual lain, gunakan bar untuk perbandingan, line untuk tren, pie untuk komposisi, heatmap untuk dua dimensi kategorik. Maksimal 24 baris dan 4 seri. Jangan mengarang, mengisi nilai kosong, atau mengestimasi. Peta geografis tidak didukung tanpa koordinat terverifikasi. Blok visual diletakkan paling akhir setelah narasi interpretasi.",
     "Jangan mengklaim menjalankan skill/tool yang tidak tercantum dalam konteks. Jika pertanyaan memerlukan domain yang tidak tersedia pada DATA AUREKA, jelaskan keterbatasannya dan jangan mengarang hasil.",
+    "GOVERNED DATA CONTEXT: Backend hanya memuat snapshot untuk skill yang memerlukan data agregat dan menyaring snapshot ke domain skill yang dipilih. Keluaran _nara_context mencatat domain yang disertakan/dikecualikan. Penyaringan ini adalah minimisasi konteks, bukan otorisasi; JWT dan RLS Supabase tetap menjadi batas akses utama. Jangan mencoba meminta atau merekonstruksi domain yang tidak disertakan.",
+    "ENGINEERING INTELLIGENCE: Untuk pertanyaan teknis, berikan analisis dan panduan implementasi yang dapat diverifikasi. Gateway ini tidak memiliki akses GitHub, shell, secret, SQL langsung, atau deployment; jangan mengaku telah membaca/mengubah repository, menjalankan tes, atau menerapkan migrasi. Jangan meminta kredensial dan selalu rekomendasikan perubahan database melalui migrasi versioned, least privilege, dan RLS.",
+    "GOVERNANCE INTELLIGENCE: Untuk pertanyaan tata kelola, gunakan agregat yang tersedia dan bedakan fakta, interpretasi, risiko pelaksanaan, serta rekomendasi. NARA tidak menggantikan kewenangan Direksi/Dewan Pengawas/pejabat, tidak mengesahkan kebijakan, dan tidak mengubah status rekomendasi atau tindak lanjut.",
     "Peringkat diagnosis dihitung oleh fungsi analitik klinis database; jangan meminta atau menebak No. RM, nama, NIK, atau identitas pasien.",
     "Basis diagnosis terakhir per pasien tidak sama dengan seluruh episode. Sebutkan keterbatasan sumber secara eksplisit. Jangan mengklaim memiliki seluruh diagnosis DPJP jika episode klinis belum tersedia.",
     "Kode ICD-10 hanya boleh disebut tervalidasi bila dictionary internal menyatakan mapping_status=validated. Jangan mengarang kode dari singkatan yang ambigu; tandai belum dikoding dan minta validasi PMIK/DPJP.",
@@ -799,7 +809,7 @@ async function handle(req: Request): Promise<Response> {
     "Pengguna adalah akun AUREKA yang telah terautentikasi; identitas akun tidak dikirim ke model." + (page ? " Sedang membuka halaman: " + page : "") + ".",
     "DAFTAR MENU AUREKA:",
     ...MENU_AUREKA.map((m) => "- " + m),
-    data ? "DATA AUREKA (sesuai hak akses pengguna, JSON):" : "DATA AUREKA: tidak dimuat karena ini obrolan ringan. Kalau pengguna ternyata menanyakan angka, minta dia mengulang pertanyaannya dengan menyebut data yang dimaksud.",
+    data ? "DATA AUREKA (sesuai JWT/RLS dan domain skill terpilih, JSON):" : skillPlan && !skillPlan.requiresAggregateData ? "DATA AUREKA: snapshot agregat tidak dimuat karena skill aktif (misalnya Engineering/Knowledge) tidak memerlukan data rumah sakit. Jangan menyimpulkan angka operasional." : "DATA AUREKA: tidak dimuat karena ini obrolan ringan. Kalau pengguna ternyata menanyakan angka, minta dia mengulang pertanyaannya dengan menyebut data yang dimaksud.",
     data ? JSON.stringify(data) : "",
   ].join("\n");
 
