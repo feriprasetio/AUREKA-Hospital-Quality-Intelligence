@@ -314,7 +314,7 @@ export default function GiziExcelImportDialog({
       if (worksheet.rowCount > MAX_WORKSHEET_ROWS) throw new Error('Sheet Logbook melewati batas ' + MAX_WORKSHEET_ROWS + ' baris fisik yang diizinkan.')
       setIgnoredSheetCount(Math.max(0, workbook.worksheets.length - 1))
 
-      const columns = new Map<string, number>()
+      const columns = new Map<string, number[]>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= Math.min(worksheet.columnCount, 100); column++) {
         const name = cellText(headerRow.getCell(column))
@@ -436,8 +436,8 @@ export default function GiziExcelImportDialog({
       if (actualSourceRows === 0) throw new Error('Tidak ada baris operasional Logbook yang berisi data mulai dari baris 3.')
       const sourceNumberSummary = summarizeDuplicateValues(sourceNoValues)
       const medicalRecordSummary = summarizeDuplicateValues(medicalRecordValues)
-      const sourceNumberCounts = new Map<string, number[]>()
-      const medicalRecordCounts = new Map<string, number[]>()
+      const sourceNumberCounts = new Map<string, number>()
+      const medicalRecordCounts = new Map<string, number>()
       for (const value of sourceNoValues) if (value) sourceNumberCounts.set(value, (sourceNumberCounts.get(value) ?? 0) + 1)
       for (const value of medicalRecordValues) if (value) medicalRecordCounts.set(value, (medicalRecordCounts.get(value) ?? 0) + 1)
       const withDuplicateWarnings = parsed.map(row => {
