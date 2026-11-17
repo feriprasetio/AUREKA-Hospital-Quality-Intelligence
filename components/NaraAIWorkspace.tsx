@@ -55,7 +55,7 @@ const dayGroup = (t: number) => {
 }
 
 /** NARA AI — tata letak "fokus chat": riwayat percakapan di kiri, sapaan + kotak tanya besar di tengah. */
-export default function NaraAIWorkspace({ sb, page, userName = '', isAdmin = false }: { sb: SupabaseClient; page?: string; userName?: string; rooms?: Room[]; isAdmin?: boolean; roomId?: number | null; showSafety?: boolean }) {
+export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: SupabaseClient; page?: string; userName?: string; rooms?: Room[]; roomId?: number | null; showSafety?: boolean }) {
   const [uid, setUid] = useState<string | null>(null)
   const [convos, setConvos] = useState<Convo[]>([])
   const [activeId, setActiveId] = useState<string>(() => newId())
@@ -140,11 +140,6 @@ export default function NaraAIWorkspace({ sb, page, userName = '', isAdmin = fal
           <p>Gateway memilih provider sesuai ketersediaan secret, konfigurasi, kuota, dan waktu respons. Tidak semua provider harus aktif bersamaan; kunci API tetap di server.</p>
         </div>
       </details>
-      <button type="button" className="naraCommunicationButton" onClick={() => { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('aureka-open-support')) }}>
-        <span className="naraCommunicationIcon" aria-hidden="true">↗</span>
-        <span className="naraCommunicationCopy"><strong>{isAdmin ? 'Pusat komunikasi' : 'Chat Super Admin'}</strong><small>{isAdmin ? 'Pesan admin & pengumuman ruangan' : 'Hubungi Super Admin unit'}</small></span>
-        <span className="naraCommunicationArrow" aria-hidden="true">›</span>
-      </button>
       <button type="button" className="naraCodingToggle" onClick={() => setShowCodingReview((v) => !v)} aria-expanded={showCodingReview}>Kamus diagnosis & validasi ICD-10</button>
     </aside>
 
@@ -185,11 +180,6 @@ export default function NaraAIWorkspace({ sb, page, userName = '', isAdmin = fal
       .naraEnginesMenu li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
       .naraEnginesMenu p{margin:0;font-size:12px;line-height:1.5;color:#5b6878}
       .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}.naraEngineDot{width:7px;height:7px;border-radius:50%;background:#7b91a8;flex:0 0 auto}
-      .naraCommunicationButton{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:8px 11px;border:1px solid #cfe0eb;border-radius:13px;background:rgba(255,255,255,.82);color:#203e54;text-align:left;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease}
-      .naraCommunicationButton:hover{background:#fff;border-color:#82aabd;transform:translateY(-1px)}
-      .naraCommunicationIcon{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border-radius:10px;background:#e8f4f7;color:#176b87;font-size:20px;font-weight:700}
-      .naraCommunicationCopy{display:grid;gap:2px;min-width:0;flex:1}.naraCommunicationCopy strong{font-size:12px;font-weight:800}.naraCommunicationCopy small{font-size:10px;line-height:1.35;color:#687f90}
-      .naraCommunicationArrow{color:#7591a1;font-size:22px;line-height:1}
       .naraCodingWorkspace{grid-column:2;min-width:0}.naraCodingToggle{min-height:38px;padding:0 12px;border:1px solid #dfe7f0;border-radius:12px;background:rgba(255,255,255,.75);color:#23445d;font-size:12px;font-weight:750;cursor:pointer}.naraCodingToggle:hover{background:#fff;border-color:#9ab7c9}
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
       .naraMobileBar{display:none}
@@ -223,18 +213,10 @@ export default function NaraAIWorkspace({ sb, page, userName = '', isAdmin = fal
       :global(html[data-mode="gelap"]) .naraWorkspace{color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraHistory,:global(html[data-mode="gelap"]) .naraStageWrap{background:rgba(20,27,38,.72);border-color:rgba(255,255,255,.1);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraNew{background:#eef2f7;color:#0f1218}
-      :global(html[data-mode="gelap"]) .naraCommunicationButton{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
-      :global(html[data-mode="gelap"]) .naraCommunicationButton:hover{background:rgba(255,255,255,.1);border-color:#5d91a8}
-      :global(html[data-mode="gelap"]) .naraCommunicationIcon{background:rgba(81,180,196,.15);color:#8ee3ea}
-      :global(html[data-mode="gelap"]) .naraCommunicationCopy small,:global(html[data-mode="gelap"]) .naraCommunicationArrow{color:#aab6c6}
       :global(html[data-mode="gelap"]) .naraItem:hover{background:rgba(255,255,255,.05)}
       :global(html[data-mode="gelap"]) .naraItem.on{background:rgba(255,255,255,.08);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraItemOpen{color:#c3ccd8}:global(html[data-mode="gelap"]) .naraItem.on .naraItemOpen{color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraGroup h3,:global(html[data-mode="gelap"]) .naraEmpty,:global(html[data-mode="gelap"]) .naraEnginesMenu p{color:#93a1b3}
-      :global(html[data-mode="gelap"]) .naraCommunicationButton{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
-      :global(html[data-mode="gelap"]) .naraCommunicationButton:hover{background:rgba(255,255,255,.1);border-color:#5d91a8}
-      :global(html[data-mode="gelap"]) .naraCommunicationIcon{background:rgba(81,180,196,.15);color:#8ee3ea}
-      :global(html[data-mode="gelap"]) .naraCommunicationCopy small,:global(html[data-mode="gelap"]) .naraCommunicationArrow{color:#aab6c6}
       :global(html[data-mode="gelap"]) .naraEngines summary,:global(html[data-mode="gelap"]) .naraMobileBar button{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraEnginesMenu{background:#141b26;border-color:rgba(255,255,255,.1);color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraStageWrap :global(.tanyaStage h2){color:#eef2f7}
