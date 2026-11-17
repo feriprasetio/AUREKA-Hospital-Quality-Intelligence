@@ -1,83 +1,71 @@
--- Patient domain refinement:
--- 1. Patient pages become read-only medical-record directory and cohort analytics.
--- 2. Rebuild patient_index episode counts from source records and make its trigger idempotent.
--- 3. Extend the existing patient episode aggregate without changing its response contract.
+-- Patient medical-record analysis and safe episode-index synchronization.
+-- Keep the Patient Index as a durable MPI: do not mass-delete, zero, or rewrite
+-- historical/bridged patient rows merely because their old source episodes are
+-- not present in the current operational logbook table.
+--
+-- Correct the known trigger defect: editing an existing episode must not add
+-- another visit to patient_index.total_episode.
+--
+-- Only the AUREKA-derived metadata is refreshed on UPDATE. A missing MPI row
+-- discovered during an UPDATE is initialized at one episode; existing legacy
+-- counts and external SIMRS/bridging fields are preserved.
 
-create or replace function aureka_quality.patient_index_refresh(p_no_rm text)
+create or replace function aureka_quality.patient_index_update_metadata(
+  p_core jsonb, p_room bigint, p_date date
+)
 returns void
 language plpgsql
 security definer
 set search_path = aureka_quality, public
 as $$
 declare
-  v_rm text := aureka_quality.normalize_no_rm(p_no_rm);
-  v_count integer := 0;
-  v_first date;
-  v_last date;
-  v_rooms bigint[];
-  v_last_room bigint;
-  v_name text;
-  v_diagnosis text;
+  f jsonb := coalesce(p_core->'form_fields', p_core->'form_data', '{}'::jsonb);
+  v_rm text := aureka_quality.normalize_no_rm(coalesce(p_core->>'medical_record_no', f->>'No. Rekam Medis', f->>'No. RM'));
+  v_name text := nullif(trim(coalesce(p_core->>'patient_name', f->>'Nama Pasien')), '');
+  v_diag text := coalesce(
+    nullif(trim(p_core->>'diagnosis'), ''),
+    nullif(trim(f->>'Diagnosa Tegak'), ''),
+    nullif(trim(f->>'Diagnosa IGD'), ''),
+    nullif(trim(f->>'Diagnosa'), ''),
+    nullif(trim(f->>'Diagnosa Operasi'), '')
+  );
   v_unit text;
 begin
   if v_rm is null then return; end if;
+  select name into v_unit from public.master_rooms where id = p_room;
 
-  with episodes as (
-    select q.room_id,
-           coalesce(q.record_date, q.created_at::date) as episode_date,
-           nullif(trim(coalesce(q.core_data->>'patient_name',
-             coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Nama Pasien')), '') as patient_name,
-           coalesce(
-             nullif(trim(q.core_data->>'diagnosis'), ''),
-             nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa Tegak'), ''),
-             nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa IGD'), ''),
-             nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa'), ''),
-             nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa Operasi'), '')
-           ) as diagnosis
-    from aureka_quality.quality_records q
-    where q.measurement_grain = 'patient_episode'
-      and q.archived_at is null and q.status <> 'archived'
-      and aureka_quality.normalize_no_rm(coalesce(
-        q.core_data->>'medical_record_no',
-        coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'No. Rekam Medis',
-        coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'No. RM'
-      )) = v_rm
-  )
-  select count(*)::integer, min(episode_date), max(episode_date),
-         coalesce(array_agg(distinct room_id order by room_id), '{}'::bigint[]),
-         (array_agg(room_id order by episode_date desc nulls last, room_id))[1],
-         (array_agg(patient_name order by episode_date desc nulls last) filter (where patient_name is not null))[1],
-         (array_agg(diagnosis order by episode_date desc nulls last) filter (where diagnosis is not null))[1]
-    into v_count, v_first, v_last, v_rooms, v_last_room, v_name, v_diagnosis
-    from episodes;
-
-  if v_count = 0 then
-    update aureka_quality.patient_index
-       set first_seen = null, last_seen = null, total_episode = 0,
-           room_ids = '{}'::bigint[], unit_terakhir = null, diagnosis_terakhir = null,
-           updated_at = now()
-     where no_rm = v_rm;
-    return;
-  end if;
-
-  select name into v_unit from public.master_rooms where id = v_last_room;
   insert into aureka_quality.patient_index as p
     (no_rm, nama_pasien, first_seen, last_seen, total_episode, room_ids, unit_terakhir, diagnosis_terakhir)
   values
-    (v_rm, v_name, v_first, v_last, v_count, v_rooms, v_unit, v_diagnosis)
+    (v_rm, v_name, p_date, p_date, 1, array[p_room], v_unit, v_diag)
   on conflict (no_rm) do update set
-    nama_pasien = coalesce(excluded.nama_pasien, p.nama_pasien),
-    first_seen = excluded.first_seen,
-    last_seen = excluded.last_seen,
-    total_episode = excluded.total_episode,
-    room_ids = excluded.room_ids,
-    unit_terakhir = excluded.unit_terakhir,
-    diagnosis_terakhir = coalesce(excluded.diagnosis_terakhir, p.diagnosis_terakhir),
+    nama_pasien = case
+      when excluded.last_seen >= coalesce(p.last_seen, excluded.last_seen)
+        then coalesce(excluded.nama_pasien, p.nama_pasien)
+      else coalesce(p.nama_pasien, excluded.nama_pasien)
+    end,
+    first_seen = case
+      when p.first_seen is null then excluded.first_seen
+      else least(p.first_seen, excluded.first_seen)
+    end,
+    last_seen = greatest(coalesce(p.last_seen, excluded.last_seen), excluded.last_seen),
+    room_ids = (select array(select distinct unnest(p.room_ids || excluded.room_ids))),
+    unit_terakhir = case
+      when p.last_seen is null or excluded.last_seen >= p.last_seen then excluded.unit_terakhir
+      else p.unit_terakhir
+    end,
+    diagnosis_terakhir = case
+      when p.last_seen is null or excluded.last_seen >= p.last_seen then coalesce(excluded.diagnosis_terakhir, p.diagnosis_terakhir)
+      else p.diagnosis_terakhir
+    end,
+    -- Intentionally do not increment total_episode while updating metadata.
+    total_episode = p.total_episode,
     updated_at = now();
 end;
 $$;
 
-revoke all on function aureka_quality.patient_index_refresh(text) from public, anon, authenticated;
+revoke all on function aureka_quality.patient_index_update_metadata(jsonb, bigint, date) from public, anon, authenticated;
+revoke all on function aureka_quality.patient_index_touch(jsonb, bigint, date) from public, anon, authenticated;
 
 create or replace function aureka_quality.patient_index_on_record()
 returns trigger
@@ -85,38 +73,27 @@ language plpgsql
 security definer
 set search_path = aureka_quality, public
 as $$
-declare
-  v_old_rm text;
-  v_new_rm text;
 begin
-  if tg_op = 'UPDATE'
-     and old.measurement_grain = 'patient_episode'
-     and old.archived_at is null and old.status <> 'archived' then
-    v_old_rm := aureka_quality.normalize_no_rm(coalesce(
-      old.core_data->>'medical_record_no',
-      coalesce(old.core_data->'form_fields', old.core_data->'form_data', '{}'::jsonb)->>'No. Rekam Medis',
-      coalesce(old.core_data->'form_fields', old.core_data->'form_data', '{}'::jsonb)->>'No. RM'
-    ));
+  if tg_op = 'INSERT' then
+    if new.measurement_grain = 'patient_episode'
+       and new.archived_at is null and new.status <> 'archived' then
+      perform aureka_quality.patient_index_touch(
+        new.core_data, new.room_id, coalesce(new.record_date, new.created_at::date)
+      );
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if new.measurement_grain = 'patient_episode'
+       and new.archived_at is null and new.status <> 'archived'
+       and (
+         new.core_data is distinct from old.core_data
+         or new.room_id is distinct from old.room_id
+         or new.record_date is distinct from old.record_date
+       ) then
+      perform aureka_quality.patient_index_update_metadata(
+        new.core_data, new.room_id, coalesce(new.record_date, new.created_at::date)
+      );
+    end if;
   end if;
-
-  if new.measurement_grain = 'patient_episode'
-     and new.archived_at is null and new.status <> 'archived' then
-    v_new_rm := aureka_quality.normalize_no_rm(coalesce(
-      new.core_data->>'medical_record_no',
-      coalesce(new.core_data->'form_fields', new.core_data->'form_data', '{}'::jsonb)->>'No. Rekam Medis',
-      coalesce(new.core_data->'form_fields', new.core_data->'form_data', '{}'::jsonb)->>'No. RM'
-    ));
-  end if;
-
-  -- Editing an episode refreshes its derived patient row; it never increments
-  -- total_episode as though a second episode had been created.
-  if v_old_rm is not null and v_old_rm is distinct from v_new_rm then
-    perform aureka_quality.patient_index_refresh(v_old_rm);
-  end if;
-  if v_new_rm is not null then
-    perform aureka_quality.patient_index_refresh(v_new_rm);
-  end if;
-
   return new;
 end;
 $$;
@@ -125,73 +102,10 @@ revoke all on function aureka_quality.patient_index_on_record() from public, ano
 
 drop trigger if exists patient_index_sync on aureka_quality.quality_records;
 create trigger patient_index_sync
-after insert or update of core_data, measurement_grain, archived_at, status
+after insert or update of core_data, room_id, record_date, measurement_grain, archived_at, status
 on aureka_quality.quality_records
 for each row execute function aureka_quality.patient_index_on_record();
 
--- Correct historical over-counts caused by the former UPDATE trigger.
--- Only AUREKA-derived columns are rebuilt; SIMRS identity and bridging fields remain untouched.
-create temporary table patient_index_rebuild on commit drop as
-with episodes as (
-  select aureka_quality.normalize_no_rm(coalesce(
-           q.core_data->>'medical_record_no',
-           coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'No. Rekam Medis',
-           coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'No. RM'
-         )) as no_rm,
-         nullif(trim(coalesce(q.core_data->>'patient_name',
-           coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Nama Pasien')), '') as nama,
-         coalesce(
-           nullif(trim(q.core_data->>'diagnosis'), ''),
-           nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa Tegak'), ''),
-           nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa IGD'), ''),
-           nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa'), ''),
-           nullif(trim(coalesce(q.core_data->'form_fields', q.core_data->'form_data', '{}'::jsonb)->>'Diagnosa Operasi'), '')
-         ) as diagnosis,
-         q.room_id, coalesce(q.record_date, q.created_at::date) as episode_date
-  from aureka_quality.quality_records q
-  where q.measurement_grain = 'patient_episode'
-    and q.archived_at is null and q.status <> 'archived'
-), grouped as (
-  select no_rm,
-         (array_agg(nama order by episode_date desc nulls last) filter (where nama is not null))[1] as nama_pasien,
-         min(episode_date) as first_seen,
-         max(episode_date) as last_seen,
-         count(*)::integer as total_episode,
-         array_agg(distinct room_id order by room_id) as room_ids,
-         (array_agg(room_id order by episode_date desc nulls last, room_id))[1] as last_room,
-         (array_agg(diagnosis order by episode_date desc nulls last) filter (where diagnosis is not null))[1] as diagnosis_terakhir
-  from episodes
-  where no_rm is not null
-  group by no_rm
-)
-select g.*, r.name as unit_terakhir
-from grouped g
-left join public.master_rooms r on r.id = g.last_room;
-
-insert into aureka_quality.patient_index as p
-  (no_rm, nama_pasien, first_seen, last_seen, total_episode, room_ids, unit_terakhir, diagnosis_terakhir)
-select no_rm, nama_pasien, first_seen, last_seen, total_episode, room_ids, unit_terakhir, diagnosis_terakhir
-from patient_index_rebuild
-on conflict (no_rm) do update set
-  nama_pasien = coalesce(excluded.nama_pasien, p.nama_pasien),
-  first_seen = excluded.first_seen,
-  last_seen = excluded.last_seen,
-  total_episode = excluded.total_episode,
-  room_ids = excluded.room_ids,
-  unit_terakhir = excluded.unit_terakhir,
-  diagnosis_terakhir = coalesce(excluded.diagnosis_terakhir, p.diagnosis_terakhir),
-  updated_at = now();
-
-update aureka_quality.patient_index p
-   set first_seen = null, last_seen = null, total_episode = 0,
-       room_ids = '{}'::bigint[], unit_terakhir = null, diagnosis_terakhir = null,
-       updated_at = now()
- where not exists (select 1 from patient_index_rebuild r where r.no_rm = p.no_rm)
-   and p.total_episode <> 0;
-
--- Extend the existing aggregate used by Visual Intelligence. Existing keys remain stable.
--- ICD-10 is "identified" only when an explicit/recognisable code is present in the source.
--- LOS excludes open inpatient episodes and is calculated only for completed stays.
 create or replace function public.aureka_patient_episode_stats(p_room bigint, p_year integer)
 returns jsonb
 language sql
