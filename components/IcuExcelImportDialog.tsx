@@ -1,5 +1,6 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
 
 import { useMemo, useState } from 'react'
@@ -117,43 +118,62 @@ function headerColumns(row: any): Map<string, number[]> {
 }
 
 function findHeader(columns: Map<string, number[]>, aliases: string[], required = true): number | null {
-  for (const alias of aliases) {
-    const matches = columns.get(normalizeExactHeader(alias))
-    if (matches?.length) {
-      if (matches.length > 1) throw new Error('Header "' + alias + '" muncul lebih dari satu kali pada baris header.')
-      return matches[0]
-    }
-  }
-  if (required) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada sheet Logbook.')
-  return null
+  return resolveInteractiveExcelHeaderColumn(columns, aliases, {
+    importerKey: 'icu',
+    fieldKey: aliases[0] ?? 'field',
+    fieldLabel: aliases[0] ?? 'Field',
+    required,
+  })
 }
 
 function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string, number> } {
+  let bestRowNumber = 0
+  let bestColumns: Map<string, number[]> | null = null
+  let bestScore = Number.POSITIVE_INFINITY
+  const exact = (columns: Map<string, number[]>, aliases: string[]) => {
+    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
+    return matches.length === 1 ? matches[0] : null
+  }
   for (let rowNumber = 1; rowNumber <= Math.min(10, sheet.rowCount); rowNumber++) {
-    try {
-      const columns = headerColumns(sheet.getRow(rowNumber))
+    const columns = headerColumns(sheet.getRow(rowNumber))
+    let score = 0
+    for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+      if (exact(columns, aliases) == null && key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen') score += 1
+    }
+    for (const item of INDICATORS) if (exact(columns, [...item.aliases ?? [item.sourceHeader]]) == null) score += 1
+    if (score === 0) {
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
-        const column = findHeader(columns, aliases, key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen')
+        const column = exact(columns, aliases)
         if (column != null) indexes[key] = column
       }
       for (const item of INDICATORS) {
-        const column = findHeader(columns, [...item.aliases])
-        if (column == null) throw new Error('Header indikator ' + item.header + ' tidak ditemukan.')
-        indexes['indicator:' + item.code] = column
+        const column = exact(columns, item.aliases ? [...item.aliases] : [item.sourceHeader])
+        if (column != null) indexes['indicator:' + item.code] = column
       }
-      const required = [
-        'sourceNo', 'patientName', 'medicalRecordNo', 'admissionDate', 'dischargeDate',
-        'diagnosis', 'dischargeStatus', 'receivingNurse', 'dpjp',
-      ]
-      if (required.every(key => indexes[key] != null)) return { rowNumber, indexes }
-    } catch {
-      // Continue scanning introductory/merged title rows.
+      return { rowNumber, indexes }
     }
+    if (score < bestScore) { bestScore = score; bestRowNumber = rowNumber; bestColumns = columns }
   }
-  throw new Error('Header Logbook ICU tidak lengkap. Periksa kolom identitas, tanggal masuk/keluar, status pulang, perawat, DPJP, dan delapan indikator 14.2–14.9.')
+  if (bestColumns && bestRowNumber) {
+    const indexes: Record<string, number> = {}
+    for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+      const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
+        importerKey: 'icu', fieldKey: key, fieldLabel: aliases[0], required: key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen',
+      })
+      if (column != null) indexes[key] = column
+    }
+    for (const item of INDICATORS) {
+      const aliases = item.aliases ? [...item.aliases] : [item.sourceHeader]
+      const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
+        importerKey: 'icu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
+      })
+      if (column != null) indexes['indicator:' + item.code] = column
+    }
+    return { rowNumber: bestRowNumber, indexes }
+  }
+  throw new Error("Header Logbook ICU tidak lengkap. Periksa kolom identitas, tanggal masuk/keluar, status pulang, perawat, DPJP, dan delapan indikator 14.2–14.9.")
 }
-
 function rowHasData(source: any, indexes: Record<string, number>): boolean {
   const keys = [
     'patientName', 'medicalRecordNo', 'admissionDate', 'dischargeDate', 'diagnosis',
