@@ -43,6 +43,12 @@ The function returns only de-identified aggregate diagnosis labels/counts and th
 
 The production query continues to enforce aureka_system.has_quality_room_access; the counts above are a diagnostic snapshot and must not be generalized to users with different room permissions. The patient index currently contains rows with empty latest-diagnosis values, so AUREKA must not claim that every historical patient-index row has a diagnosis. The 235 episode records observed in the production snapshot did contain diagnoses.
 
+## Diagnosis data completeness
+
+The clinical summary also returns `patient_index_context` so a blank diagnosis is explicitly treated as a data-quality gap rather than as a patient without disease. It includes the total patient-index denominator for the selected year and authorized units, the number with a non-empty latest diagnosis, the number missing diagnosis, overall coverage, and unit-level coverage for reportable units. The patient-ranking cohort remains restricted to safe, analyzable diagnosis labels; its denominator is not substituted for the total patient-index denominator.
+
+The patient-index synchronization trigger recognizes the diagnosis field variants `Diagnosa Tegak`, `Diagnosa IGD`, `Diagnosa Primer`, `Diagnosa Utama`, `Diagnosa`, and `Diagnosa Operasi`, in addition to the canonical `diagnosis` field. This ensures future episode inserts/updates using these existing field names populate the latest diagnosis in the patient index. It does not reconstruct historical diagnoses where the original episode payload is no longer present.
+
 Top-disease questions are routed directly to the secured database function. The aggregate result bypasses external LLM providers. The response explicitly identifies the patient or episode denominator and reports episode context separately.
 
 ## ICD-10 coding governance
