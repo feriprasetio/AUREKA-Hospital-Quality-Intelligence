@@ -71,9 +71,10 @@ type PreparedRow = {
   warnings: string[]
 }
 
-type ImportCounts = { received: number; imported: number; skipped: number; completedBatches: number }
-type WorkbookFindings = { sheetCount: number; reportFormulaErrors: number; sourceFormulaErrors: number }
+type ImportCounts = { received: number; imported: number; skipped: number; completedBatches: number; backfilled: number; preserved: number }
 type ImportResponse = { received_count?: number; imported_count?: number; skipped_existing_count?: number }
+type BackfillResponse = { backfilled_count?: number; preserved_count?: number; not_found_count?: number }
+type WorkbookFindings = { sheetCount: number; reportFormulaErrors: number; sourceFormulaErrors: number }
 type Props = {
   open: boolean
   roomId: number | null
@@ -542,7 +543,7 @@ export default function IcuExcelImportDialog({
       const { data: { user }, error: userError } = await sb.auth.getUser()
       if (userError || !user) throw new Error('Sesi login tidak tersedia.')
       const items = rows.map(row => preparePayload(row, file?.name ?? 'workbook.xlsx', user.id, profiles))
-      const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0 }
+      const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0, backfilled: 0, preserved: 0 }
       let start = 0
       let batchSize = BATCH_SIZE
       let batchNumber = 0
@@ -568,6 +569,11 @@ export default function IcuExcelImportDialog({
         if (received !== batch.length || imported + skipped !== received) {
           throw new Error('Ringkasan server pada batch ' + batchNumber + ' tidak konsisten.')
         }
+        const { data: backfillData, error: backfillError } = await quality().rpc('backfill_icu_logbook_bhp_linen_batch', { p_rows: batch })
+        if (backfillError) throw new Error('Episode tersimpan/terdeteksi, tetapi pembaruan sumber BHP/Linen belum tuntas: ' + backfillError.message)
+        const backfill = (backfillData ?? {}) as BackfillResponse
+        counts.backfilled += Number(backfill.backfilled_count ?? 0)
+        counts.preserved += Number(backfill.preserved_count ?? 0)
         counts.received += received
         counts.imported += imported
         counts.skipped += skipped
@@ -665,12 +671,12 @@ export default function IcuExcelImportDialog({
         {partial && importing && <div className="iiBox">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><strong>Progres impor</strong><span>{progress}% · {partial.received}/{rows.length}</span></div>
           <div className="iiProgress" style={{ marginTop: 8 }}><span style={{ width: progress + '%' }} /></div>
-          <div className="aqSub" style={{ marginTop: 6 }}>{partial.imported} baru · {partial.skipped} sudah ada · {partial.completedBatches} batch selesai</div>
+          <div className="aqSub" style={{ marginTop: 6 }}>{partial.imported} baru · {partial.skipped} sudah ada · {partial.backfilled} episode lama diperbarui untuk BHP/Linen · {partial.completedBatches} batch selesai</div>
         </div>}
 
         {result && <div className="iiBox iiSuccess">
           <strong>Ringkasan impor dari server</strong>
-          <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} dilewati karena sudah ada · {result.received} diterima server.</div>
+          <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} episode sudah ada · {result.backfilled} episode lama diperbarui untuk BHP/Linen · {result.preserved} episode dipertahankan karena data 14.1 sudah ada · {result.received} diterima server.</div>
           <div className="aqSub">Semua episode tetap Ready for Review. Tidak ada validasi otomatis.</div>
         </div>}
 
