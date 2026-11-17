@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 import { buildPharmacyImportRecords, PHARMACY_INDICATOR_CODES, type PharmacyImportRecord, type PharmacySourceObservation } from '@/lib/aureka/pharmacy-excel-import'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
 const sb = aurekaSupabase
@@ -280,13 +281,37 @@ export default function PharmacyExcelImportDialog({
         }
 
         const headerRow = worksheet.getRow(10)
-        const dateHeader = normalizeExactHeader(cellText(headerRow.getCell(2)))
-        const numeratorHeader = normalizeExactHeader(cellText(headerRow.getCell(3)))
-        const denominatorHeader = normalizeExactHeader(cellText(headerRow.getCell(4)))
-        if (dateHeader !== normalizeExactHeader('Tanggal') ||
-            numeratorHeader !== normalizeExactHeader(sheetConfig.numeratorHeader) ||
-            denominatorHeader !== normalizeExactHeader(sheetConfig.denominatorHeader)) {
-          structureErrors.push('Header baris 10 kolom B–D pada sheet "' + sheetConfig.name + '" tidak cocok. Pastikan menggunakan struktur workbook Instalasi Farmasi yang resmi.')
+        const headerColumns = new Map<string, number[]>()
+        // Source measurements are expected in the template's B:N region;
+        // later formula columns may repeat labels and are intentionally ignored.
+        for (let column = 2; column <= 14; column++) {
+          const label = cellText(headerRow.getCell(column))
+          if (!label) continue
+          const key = normalizeExactHeader(label)
+          const matches = headerColumns.get(key) ?? []
+          matches.push(column)
+          headerColumns.set(key, matches)
+        }
+        const dateColumn = resolveInteractiveExcelHeaderColumn(headerColumns, ['Tanggal'], {
+          importerKey: 'pharmacy',
+          fieldKey: sheetConfig.name + ':date',
+          fieldLabel: sheetConfig.name + ' · Tanggal',
+          required: true,
+        })
+        const numeratorColumn = resolveInteractiveExcelHeaderColumn(headerColumns, [sheetConfig.numeratorHeader], {
+          importerKey: 'pharmacy',
+          fieldKey: sheetConfig.name + ':numerator',
+          fieldLabel: sheetConfig.name + ' · ' + sheetConfig.numeratorHeader,
+          required: true,
+        })
+        const denominatorColumn = resolveInteractiveExcelHeaderColumn(headerColumns, [sheetConfig.denominatorHeader], {
+          importerKey: 'pharmacy',
+          fieldKey: sheetConfig.name + ':denominator',
+          fieldLabel: sheetConfig.name + ' · ' + sheetConfig.denominatorHeader,
+          required: true,
+        })
+        if (dateColumn == null || numeratorColumn == null || denominatorColumn == null) {
+          structureErrors.push('Header wajib pada sheet "' + sheetConfig.name + '" belum dipetakan.')
           continue
         }
 
@@ -297,9 +322,9 @@ export default function PharmacyExcelImportDialog({
 
         for (let excelRow = 11; excelRow <= worksheet.rowCount; excelRow++) {
           const sourceRow = worksheet.getRow(excelRow)
-          const rawDate = readCellValue(sourceRow.getCell(2))
-          const rawNumerator = readCellValue(sourceRow.getCell(3))
-          const rawDenominator = readCellValue(sourceRow.getCell(4))
+          const rawDate = readCellValue(sourceRow.getCell(dateColumn))
+          const rawNumerator = readCellValue(sourceRow.getCell(numeratorColumn))
+          const rawDenominator = readCellValue(sourceRow.getCell(denominatorColumn))
           if (isCountCellBlank(rawDate) && isCountCellBlank(rawNumerator) && isCountCellBlank(rawDenominator)) continue
 
           sourceRowsRead += 1
