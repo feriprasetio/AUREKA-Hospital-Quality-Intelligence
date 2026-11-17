@@ -35,7 +35,7 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(staffGroup.includes('Tim dan Penugasan'))
   assert.ok(staffGroup.includes('oppe-fppe'))
   // Blueprint v2 §9: OPPE dan FPPE menu terpisah, satu workspace dengan layar awal berbeda
-  assert.ok(app.includes("active==='staff'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace"))
+  assert.ok(app.includes("active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace"))
   assert.ok(staffGroup.includes("{id:'fppe',label:'FPPE'}"))
   assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
   assert.ok(app.includes("if(next==='staff'){setStaffTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory')"))
