@@ -81,7 +81,7 @@ const safeCount = (values: Record<string, number>, threshold = 5) =>
 const safeScalar = (value: number, threshold = 5) => value >= threshold ? value : "disembunyikan (<" + threshold + ")";
 const top = (o: Record<string, number>, n: number) => Object.fromEntries(Object.entries(o).slice(0, n));
 
-type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; status: string | null; due_date: string | null };
+type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; likelihood: number | null; impact: number | null; status: string | null; due_date: string | null };
 type Plan = { status: string | null; target_date: string | null };
 type Incident = Record<string, unknown>;
 type Room = { id: number; name: string; is_active: boolean | null };
@@ -153,7 +153,7 @@ async function snapshot(db: SupabaseClient) {
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
   const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics, clinical, indicatorProfiles, investigations, culture, oppe, recommendations, actions, priorities] = await Promise.all([
-    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
+    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,likelihood,impact,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
     fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans").select("status,target_date").order("id", { ascending: true }).range(f, t)),
     fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
@@ -184,6 +184,28 @@ async function snapshot(db: SupabaseClient) {
     if (r.risk_level in row) row[r.risk_level]++;
     row.total++;
   }
+  const riskMatrixCounts = new Map<string, number>();
+  let riskLikelihoodDefaultCount = 0;
+  let riskImpactDefaultCount = 0;
+  let riskMatrixInvalidCount = 0;
+  for (const risk of risks.rows) {
+    const likelihood = Number(risk.likelihood);
+    const impact = Number(risk.impact);
+    if (!Number.isInteger(likelihood) || likelihood < 1 || likelihood > 5 || !Number.isInteger(impact) || impact < 1 || impact > 5) {
+      riskMatrixInvalidCount++;
+      continue;
+    }
+    if (likelihood === 3) riskLikelihoodDefaultCount++;
+    if (impact === 3) riskImpactDefaultCount++;
+    const key = likelihood + "|" + impact;
+    riskMatrixCounts.set(key, (riskMatrixCounts.get(key) || 0) + 1);
+  }
+  const riskMatrix = Array.from({ length: 5 }, (_, i) => i + 1).flatMap((likelihood) =>
+    Array.from({ length: 5 }, (_, j) => j + 1).map((impact) => {
+      const count = riskMatrixCounts.get(likelihood + "|" + impact) || 0;
+      return { likelihood, impact, count: count > 0 && count < 5 ? "disembunyikan (<5)" : count };
+    })
+  );
   const risikoPerUnit = Object.entries(perUnit)
     .sort((a, b) => b[1]["Sangat Tinggi"] - a[1]["Sangat Tinggi"] || b[1]["Tinggi"] - a[1]["Tinggi"] || b[1].total - a[1].total)
     .map(([unit, c]) => ({ unit, sangat_tinggi: safeScalar(c["Sangat Tinggi"]), tinggi: safeScalar(c["Tinggi"]), sedang: safeScalar(c["Sedang"]), rendah: safeScalar(c["Rendah"]), total: c.total }));
@@ -298,6 +320,14 @@ async function snapshot(db: SupabaseClient) {
     manajemen_risiko: {
       total_risiko: safeScalar(risks.rows.length),
       per_level: safeCount(Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length]))),
+      matriks_likelihood_dampak: riskMatrix,
+      kualitas_data_matriks: {
+        total_register: risks.rows.length,
+        nilai_likelihood_default_3: riskLikelihoodDefaultCount,
+        nilai_impact_default_3: riskImpactDefaultCount,
+        baris_dengan_nilai_di_luar_skala: riskMatrixInvalidCount,
+        catatan: "Kolom likelihood dan impact memiliki default database 3. Frekuensi nilai 3 tidak membuktikan bahwa nilainya otomatis; nilai perlu diverifikasi terhadap sumber impor/penilaian. Sel dengan jumlah 1-4 disembunyikan untuk mencegah pengungkapan kelompok kecil."
+      },
       per_status: safeCount(count(risks.rows, (r) => r.status)),
       risiko_tinggi_dan_sangat_tinggi_tanpa_tenggat: safeScalar(risks.rows.filter((r) => (r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi") && !r.due_date && open(r)).length),
       risiko_lewat_tenggat: safeScalar(risks.rows.filter((r) => r.due_date && r.due_date < today && open(r)).length),
