@@ -462,3 +462,88 @@ test('Clinical death results include PIC-submitted final reports in ordinal dist
   assert.equal(death.avoidability.distribution[3], 1)
   assert.equal(death.avoidability.distribution[1], 0)
 })
+
+
+test('positive and negative categorical indicators calculate numerators using their declared direction and operator', () => {
+  const makeRows = (code, label, count) => Array.from({ length: 4 }, (_, index) => ({
+    record_date: `2026-01-${String(index + 1).padStart(2, '0')}`,
+    status: 'validated',
+    core_data: { indicator_values: { 'TEST': { answer: index < count ? label.good : label.adverse, code: index < count ? 1 : 3 } } },
+  }))
+
+  const positiveProfile = {
+    room_id: 1,
+    code: 'TEST',
+    title: 'Kepatuhan tindakan',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'compliance', indicator_direction: 'positive' },
+    options_json: [
+      { code: 1, label: 'Tindakan sesuai standar' },
+      { code: 3, label: 'Tindakan tidak sesuai standar' },
+    ],
+    target_text: '≥ 75%',
+    target_operator: '>=',
+    target_value: 75,
+  }
+  const positive = calculateIndicatorResult(
+    positiveProfile,
+    makeRows(1, { good: 'Tindakan sesuai standar', adverse: 'Tindakan tidak sesuai standar' }, 3),
+    2026,
+  )
+  assert.equal(positive.annualNumerator, 3)
+  assert.equal(positive.annualDenominator, 4)
+  assert.equal(positive.annualRate, 75)
+  assert.equal(positive.targetMet, true)
+
+  const negativeProfile = {
+    ...positiveProfile,
+    code: 'TEST',
+    title: 'Kejadian tidak diharapkan',
+    schema_json: { measurement_type: 'compliance', indicator_direction: 'negative' },
+    target_text: '≤ 25%',
+    target_operator: '<=',
+    target_value: 25,
+  }
+  const negative = calculateIndicatorResult(
+    negativeProfile,
+    makeRows(1, { good: 'Tidak terjadi kejadian', adverse: 'Terjadi kejadian' }, 3).map((row, index) => ({
+      ...row,
+      core_data: { indicator_values: { TEST: {
+        answer: index < 3 ? 'Tidak terjadi kejadian' : 'Terjadi kejadian',
+        code: index < 3 ? 1 : 3,
+      } } },
+    })),
+    2026,
+  )
+  assert.equal(negative.annualNumerator, 1)
+  assert.equal(negative.annualDenominator, 4)
+  assert.equal(negative.annualRate, 25)
+  assert.equal(negative.targetMet, true)
+})
+
+test('profiles without an approved target still calculate observations but remain unassessed against target', () => {
+  const profile = {
+    room_id: 1,
+    code: 'TEST',
+    title: 'Indikator tanpa target',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'compliance', indicator_direction: 'positive', target_not_defined_in_source: true },
+    options_json: [
+      { code: 1, label: 'Memenuhi' },
+      { code: 3, label: 'Tidak memenuhi' },
+    ],
+    target_text: 'Belum ditetapkan pada dokumen sumber 2026',
+    target_operator: '=',
+    target_value: null,
+  }
+  const rows = [
+    { record_date: '2026-01-01', status: 'validated', core_data: { indicator_values: { TEST: { answer: 'Memenuhi', code: 1 } } } },
+    { record_date: '2026-01-02', status: 'validated', core_data: { indicator_values: { TEST: { answer: 'Tidak memenuhi', code: 3 } } } },
+  ]
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.observations, 2)
+  assert.equal(result.annualNumerator, 1)
+  assert.equal(result.annualDenominator, 2)
+  assert.equal(result.annualRate, 50)
+  assert.equal(result.targetMet, null)
+})
