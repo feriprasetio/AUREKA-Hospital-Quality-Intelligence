@@ -26,30 +26,30 @@ If a source table is empty or unavailable under the user's role, NARA states tha
 
 ## Clinical diagnosis ranking and MRN boundary
 
-The function `public.aureka_nara_clinical_summary(p_year,p_room,p_limit)` ranks diagnosis labels inside PostgreSQL. It uses the normalized No. RM internally only to count distinct patients and prevent duplicate patient counting. MRNs, patient names, and patient-level rows are never returned from this function or placed in external LLM prompts.
+The secure function public.aureka_nara_clinical_summary(p_year,p_room,p_limit) uses the patient index as the primary source for patient-level diagnosis ranking whenever eligible diagnosis_terakhir rows exist in the user's permitted units and requested year. This prevents a small number of imported Logbook episodes from hiding the broader diagnosed-patient population.
 
-The preferred source is patient-episode data in `aureka_quality.quality_records`. When there are no episode rows, the current implementation falls back to `aureka_quality.patient_index.diagnosis_terakhir`, which is one latest diagnosis per indexed patient. Results explicitly identify the source basis and are not described as full DPJP history or counts of every hospital visit.
+The statistical units remain distinct:
+- **Patient ranking:** one latest diagnosis per indexed patient, with No. RM used only inside PostgreSQL to count unique patients.
+- **Episode context:** episode count, unique patients in episode records, analyzable diagnosis records, diagnosis groups, and suppressed groups are calculated separately from quality_records. They are not added to the patient-index denominator and are not presented as visit counts for the patient ranking.
+- **Episode fallback:** episode records become the primary ranking basis only when no eligible patient-index latest-diagnosis rows exist for the selected year and permitted room scope.
 
-**Production data state observed on 16 November 2026:**
-- `aureka_quality.patient_index`: 10,913 rows.
-- Populated `diagnosis_terakhir`: 1,747 rows.
-- `aureka_quality.quality_records`: 0 episode rows.
-- `aureka_quality.clinical_pathway_audits`: 0 rows.
-- `aureka_quality.clinical_death_audits`: 0 rows.
-- `aureka_quality.igd_consultation_audits`: 0 rows.
-- `aureka_patient_safety.incidents`: 0 rows.
-- `aureka_risk.risk_register`: 1,544 rows; `aureka_risk.fmea_analyses`: 19 rows.
-- `aureka_quality.staff_directory`: 659 rows.
+The function returns only de-identified aggregate diagnosis labels/counts and the source basis. MRNs, patient names, DPJP names, and patient-level rows are never returned. Diagnosis groups below five unique patients are suppressed. Punctuation/case normalization groups mechanically equivalent label variants; clinically distinct labels and spelling variants are not merged unless a reviewer validates their mapping to the same ICD-10 code.
 
-Thus the current top-diagnosis response is a preliminary ranking from latest diagnoses per patient. It is not a full episode/visit ranking, and does not yet represent all diagnoses entered by DPJPs. Full DPJP episode analysis depends on populating/connecting the episode sources in AUREKA.
+**Production data state verified on 18 November 2026:**
+- aureka_quality.patient_index: 10,950 patient-index rows; 1,902 have a non-empty diagnosis_terakhir across the full table.
+- Of the diagnosed patient-index rows, the ADMIN account's permitted-unit scope previously used by NARA contained 1,664 diagnosed patients and 23 diagnosis groups meeting the five-patient threshold.
+- aureka_quality.quality_records: 235 active patient-episode records in 2026, each with a diagnosis field; these represented 222 unique medical-record numbers.
+- In the episode-only grouping, 172 exact diagnosis groups were suppressed because each contained fewer than five unique patients. This was the production reason the previous NARA implementation returned no ranked diagnoses despite available patient-index diagnoses.
 
-Top-disease questions are routed directly to the secured database function. The aggregate result bypasses all external LLM providers. Diagnosis groups under five distinct patients are suppressed.
+The production query continues to enforce aureka_system.has_quality_room_access; the counts above are a diagnostic snapshot and must not be generalized to users with different room permissions. The patient index currently contains rows with empty latest-diagnosis values, so AUREKA must not claim that every historical patient-index row has a diagnosis. The 235 episode records observed in the production snapshot did contain diagnoses.
+
+Top-disease questions are routed directly to the secured database function. The aggregate result bypasses external LLM providers. The response explicitly identifies the patient or episode denominator and reports episode context separately.
 
 ## ICD-10 coding governance
 
 The NARA ICD-10 dictionary starts empty. Diagnosis labels are queued for review without MRN or patient name. Only ADMIN/PMKP can access the review queue and save a mapping. A mapping becomes `validated` only when a reviewer provides an ICD-10 code, diagnosis title, and validation reference. Ambiguous raw diagnoses are not automatically assigned definitive codes.
 
-PMIK/DPJP review and the hospital's approved coding release/rules remain prerequisites before codes are relied upon for official reporting, claims, or clinical decisions.
+PMIK/DPJP review and the hospital's approved coding release/rules remain prerequisites before codes are relied upon for official reporting, claims, or clinical decisions. The review queue is sourced from the broader patient-index diagnosis cohort first, even when episode rows are also present. AI suggestions are processed in bounded batches, stored as proposed, and exposed in the NARA Validasi ICD-10 workspace. Each spelling/alias variant requires its own reviewed mapping; once validated to the same ICD-10 code, the analytics engine groups those variants under that code. Punctuation and case variants are normalized deterministically without AI.
 
 ## Security and privacy
 
@@ -64,7 +64,7 @@ PMIK/DPJP review and the hospital's approved coding release/rules remain prerequ
 
 1. Authenticate as Super Admin, PMKP, and unit roles; verify role/room-scope results.
 2. Test Top 10 diagnosis prompts against the secured database function; verify source basis and denominator.
-3. Test ICD-10 queue and validation with an approved reviewer; maintain reference/evidence.
+3. Test ICD-10 queue and validation with an approved reviewer; validate spelling variants separately and maintain reference/evidence.
 4. Test each configured AI provider with synthetic, non-PHI prompts; record provider success, latency, rate limits, quota, and fallback.
 5. Populate encounter-level episode data and DPJP attribution before interpreting rankings as all-visit/all-DPJP disease burden.
 6. Monitor the PHI-free audit log and Supabase security/performance advisors.
