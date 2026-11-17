@@ -16,6 +16,7 @@ DECLARE
   v_source jsonb;
   v_source_values jsonb;
   v_source_columns jsonb;
+  v_source_column_refs jsonb;
   v_bhp jsonb;
   v_values jsonb;
   v_response jsonb;
@@ -64,6 +65,7 @@ BEGIN
     v_source := v_core->'source_import';
     v_source_values := v_source->'source_indicator_values';
     v_source_columns := v_source->'source_indicator_columns';
+    v_source_column_refs := v_source->'source_indicator_column_refs';
     v_bhp := v_source->'source_bhp_linen';
     v_values := v_core->'indicator_values';
 
@@ -78,6 +80,7 @@ BEGIN
        OR nullif(btrim(v_bhp->>'source_value'),'') IS NULL
        OR coalesce(v_source_values->>'14.1','') <> coalesce(v_bhp->>'source_value','')
        OR coalesce(v_source_columns->>'14.1','') <> coalesce(v_bhp->>'source_header','')
+       OR coalesce(v_source_column_refs->'14.1'->>'header_text','') <> coalesce(v_bhp->>'source_header','')
        OR coalesce(v_form->>'Kekosongan BHP/Linen','') <> coalesce(v_bhp->>'source_value','')
        OR coalesce(v_values->'14.1'->>'source_value','') <> coalesce(v_bhp->>'source_value','') THEN
       RAISE EXCEPTION 'Sumber BHP/Linen tidak konsisten dengan profil 14.1 atau metadata baris Excel.' USING ERRCODE = '22023';
@@ -165,6 +168,9 @@ BEGIN
               coalesce(qr.core_data->'source_import'->'source_indicator_columns','{}'::jsonb) ||
                 coalesce(v_source_columns,'{}'::jsonb),
             'source_bhp_linen', v_bhp,
+            'source_indicator_column_refs',
+              coalesce(qr.core_data->'source_import'->'source_indicator_column_refs','{}'::jsonb) ||
+                coalesce(v_source_column_refs,'{}'::jsonb),
             'source_bhp_linen_backfill_at', now()
           ),
         true
@@ -181,7 +187,10 @@ BEGIN
               'source_indicator_columns',
                 coalesce(qr.subject_json->'source_import'->'source_indicator_columns','{}'::jsonb) ||
                   coalesce(v_source_columns,'{}'::jsonb),
-              'source_bhp_linen', v_bhp
+              'source_bhp_linen', v_bhp,
+              'source_indicator_column_refs',
+                coalesce(qr.subject_json->'source_import'->'source_indicator_column_refs','{}'::jsonb) ||
+                  coalesce(v_source_column_refs,'{}'::jsonb)
             ),
           true
         ),
@@ -221,4 +230,4 @@ END;
 $function$;
 
 COMMENT ON FUNCTION aureka_quality.backfill_icu_logbook_bhp_linen_batch(jsonb) IS
-'Backfills only missing ICU/HCU 2026 indicator 14.1 BHP/Linen source values on existing ready episodes matched by physical Excel row. It also records the exact source header names for indicators 14.1–14.9 without overwriting their existing response values.';
+'Backfills only missing ICU/HCU 2026 indicator 14.1 BHP/Linen source values on existing ready episodes matched by physical Excel row. It also records source header names and exact Excel column coordinates for indicators 14.1–14.9 without overwriting their existing response values.';
