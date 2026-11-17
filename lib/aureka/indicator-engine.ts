@@ -78,7 +78,13 @@ export function readTarget(profile: IndicatorProfile): { value: number | null; o
   const schema = profile.schema_json ?? {}
   const text = readText(profile.target_text) || readText(schema.target_text)
   const rawValue = profile.target_value ?? schema.target_value
-  const value = numericValue(rawValue) ?? numericValue(text)
+  const textHasExplicitComparator = operatorFromText(text) != null
+  const textIsBareNumericTarget = /^\s*-?\d+(?:[.,]\d+)?\s*%?\s*$/.test(text)
+  // Do not extract incidental numbers from explanatory labels such as
+  // "target belum ditetapkan pada sumber 2026" or "standar sumber 0%".
+  // Descriptive text is provenance, not a numeric comparison target.
+  const textValue = textHasExplicitComparator || textIsBareNumericTarget ? numericValue(text) : null
+  const value = numericValue(rawValue) ?? textValue
   const rawOperator = String(profile.target_operator ?? schema.target_operator ?? '').trim()
   const operator = rawOperator === '≤' ? '<=' : rawOperator === '≥' ? '>=' : rawOperator || operatorFromText(text)
   return { value, operator }
