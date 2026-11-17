@@ -119,7 +119,7 @@ function findHeader(columns: Map<string, number[]>, candidates: readonly string[
 
 function rowHasData(row: any, columns: Map<string, number[]>): boolean {
   return ['patientName', 'medicalRecordNo', 'date', 'admissionType', 'dietitian', 'assessment', 'dpjp', 'prescription'].some(key => {
-    const column = findHeader(columns, REQUIRED_HEADERS[key])
+    const column = findHeader(columns, REQUIRED_HEADERS[key], false)
     if (column == null) return false
     const cell = row.getCell(column)
     return isFormulaCell(cell) || String(readCellValue(cell) ?? '').trim() !== ''
