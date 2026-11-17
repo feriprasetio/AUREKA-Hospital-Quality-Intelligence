@@ -490,7 +490,7 @@ export default function IcuExcelImportDialog({
             return [[item.code, {
               column_index: column,
               column_letter: excelColumnLetter(column),
-              header_text: indicatorHeaders[item.code] ?? '',
+              header_text: indicatorHeaders[item.code]?.header ?? '',
             }]]
           })) as PreparedRow['indicatorColumnRefs']
 
