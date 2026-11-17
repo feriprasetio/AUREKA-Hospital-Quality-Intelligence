@@ -14,6 +14,20 @@ test('NARA keeps all five providers behind the server-side gateway', () => {
   assert.match(gateway, /AI_ENABLE_LLM7/)
 })
 
+
+test('NARA scopes cached aggregate snapshots to the deterministic skill domains before provider context is built', () => {
+  assert.match(gateway, /scopeSnapshotForSkills\(rawSnapshot, skillPlan\?\.domains/);
+  assert.match(gateway, /const needsAggregateData = !smallTalk && Boolean\(skillPlan\?\.requiresAggregateData\)/);
+  assert.match(gateway, /JWT dan RLS Supabase tetap menjadi batas akses utama/);
+  assert.match(gateway, /ENGINEERING INTELLIGENCE/);
+  assert.match(gateway, /GOVERNANCE INTELLIGENCE/);
+});
+
+test('engineering keywords are not misclassified as small talk and do not imply live repository access', () => {
+  assert.match(gateway, /supabase\|next\\\.js\|react\|typescript/);
+  assert.match(gateway, /tidak memiliki akses GitHub, shell, secret, SQL langsung, atau deployment/);
+});
+
 test('NARA Privacy Guard blocks common direct identifiers before provider calls', () => {
   assert.match(gateway, /sensitivePatterns/)
   assert.match(gateway, /\\b\\d\{16\}\\b/)
