@@ -92,6 +92,7 @@ function sourceNumber(cell: any): string {
 
 function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string, number> } {
   let bestMissingHeaders: string[] = []
+  let bestScore = Number.POSITIVE_INFINITY
   let bestHeaderRowNumber = 0
   let bestHeaderValues: string[] = []
   let bestDuplicateHeaders: string[] = []
@@ -106,7 +107,9 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       return { rowNumber, indexes: mapped.indexes }
     }
 
-    if (!bestMissingHeaders.length || mapped.missingHeaders.length < bestMissingHeaders.length) {
+    const score = mapped.missingHeaders.length + mapped.duplicateHeaders.length
+    if (score < bestScore) {
+      bestScore = score
       bestMissingHeaders = mapped.missingHeaders
       bestDuplicateHeaders = mapped.duplicateHeaders
       bestHeaderRowNumber = rowNumber
