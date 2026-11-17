@@ -314,7 +314,7 @@ export default function GiziExcelImportDialog({
       if (worksheet.rowCount > MAX_WORKSHEET_ROWS) throw new Error('Sheet Logbook melewati batas ' + MAX_WORKSHEET_ROWS + ' baris fisik yang diizinkan.')
       setIgnoredSheetCount(Math.max(0, workbook.worksheets.length - 1))
 
-      const columns = new Map<string, number[]>()
+      const columns = new Map<string, number>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= Math.min(worksheet.columnCount, 100); column++) {
         const name = cellText(headerRow.getCell(column))
