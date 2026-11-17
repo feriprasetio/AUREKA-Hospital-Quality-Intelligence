@@ -174,7 +174,7 @@ export default function PatientRecordAnalytics({ rooms, initialRoomId, canViewAl
             <div className="praCard"><span>Rata-rata LOS rawat inap</span><strong>{data.avgLos == null ? '—' : fmt(data.avgLos, 1) + ' hari'}</strong><small>{fmt(data.losCount)} episode pulang dengan LOS yang dapat dihitung</small></div>
             <div className="praCard"><span>Episode rawat inap terbuka</span><strong>{fmt(data.active)}</strong><small>Memiliki struktur tanggal keluar tetapi belum tercatat tanggal pulang</small></div>
             <div className="praCard"><span>Kode ICD-10 teridentifikasi</span><strong>{fmt(codingCoverage)}%</strong><small>{fmt(data.icd10Coded)} dari {fmt(data.episodes)} episode</small></div>
-            <div className="praCard"><span>Readmisi ≤30 hari</span><strong>{fmt(data.readmission30)}</strong><small>Estimasi seluruh periode logbook; bukan pengganti indikator resmi SIMRS</small></div>
+            <div className="praCard"><span>Readmisi ≤30 hari</span><strong>{fmt(data.readmission30)}</strong><small>{roomFilter ? 'Estimasi seluruh periode logbook pada unit terpilih; bukan indikator resmi SIMRS' : 'Pilih satu unit untuk melihat estimasi; tidak dijumlahkan lintas unit'}</small></div>
             <div className="praCard"><span>No. RM tidak valid / kosong</span><strong>{fmt(data.rmInvalid)}</strong><small>Episode yang belum dapat dihubungkan secara andal ke Database Pasien</small></div>
             <div className="praCard"><span>Diagnosis belum tercatat</span><strong>{fmt(data.diagnosisMissing)}</strong><small>Episode tanpa diagnosis yang dapat dibaca dari data sumber</small></div>
           </div>
