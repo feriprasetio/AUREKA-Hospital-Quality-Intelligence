@@ -29,7 +29,7 @@ test('Patient analytics exposes LOS and ICD-10 while marking estimated readmissi
     assert.ok(migration.includes("'" + key + "'"), 'Missing aggregate output key ' + key)
   }
   assert.match(migration, /when end_raw is not null and trim\(los_raw\)/)
-  assert.match(migration, /end_raw ~ '\^\\\\d\{4\}-\\\\d\{2\}-\\\\d\{2\}'/)
+  assert.ok(migration.includes("end_raw ~ '^\\\\d{4}-\\\\d{2}-\\\\d{2}'"))
 })
 
 test('Patient index edit synchronization does not increment episode counts again', () => {
