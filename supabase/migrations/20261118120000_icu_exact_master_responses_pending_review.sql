@@ -247,11 +247,8 @@ BEGIN
       ELSE
         v_response_code := (v_response->>'response_code')::smallint;
         IF v_response_code NOT BETWEEN 1 AND 3
-           OR v_review_status <> CASE
-             WHEN coalesce(v_response->'raw_value'->>'review_required', 'false') = 'true'
-               THEN 'pending'
-             ELSE 'not_required'
-           END
+           OR (v_review_status = 'pending') <>
+              (coalesce(v_response->'raw_value'->>'review_required', 'false') = 'true')
            OR coalesce(v_response->'raw_value'->>'mapping_status', '') <> 'mapped'
            OR coalesce(v_response->'raw_value'->>'code', '') <> v_response_code::text THEN
           RAISE EXCEPTION 'Respons indikator % memiliki kode atau status telaah yang tidak valid pada baris Excel %.', v_code, v_source_row USING ERRCODE = '22023';
