@@ -762,6 +762,7 @@ async function handle(req: Request): Promise<Response> {
     return reply(200, {
       answer: formatTopDiseaseAnswer(clinical as Record<string, unknown>),
       model: "database:clinical-analytics",
+      intelligence: { model: "database:clinical-analytics", skills: ["Clinical Intelligence"], domains: ["clinical"], snapshot_status: "available", source: "aureka_nara_clinical_summary (secure RPC)", generated_at: new Date().toISOString(), page: null },
     });
   }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
@@ -836,7 +837,22 @@ async function handle(req: Request): Promise<Response> {
     for (const key of available[provider]) {
       if (Date.now() >= providerDeadline) break;
       const result = provider === "gemini" ? await askGemini(key, system, contents, providerDeadline) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, providerDeadline);
-      if (!("status" in result)) { const answer = appendRiskDistributionFallback(question, result.answer, data); return reply(200, { answer, model: provider + ":" + result.model }); }
+      if (!("status" in result)) {
+        const answer = appendRiskDistributionFallback(question, result.answer, data);
+        return reply(200, {
+          answer,
+          model: provider + ":" + result.model,
+          intelligence: {
+            model: provider + ":" + result.model,
+            skills: skillPlan?.labels ?? [],
+            domains: snapshotDomains,
+            snapshot_status: data ? "available" : needsAggregateData ? "unavailable" : "not_required",
+            source: data ? "AUREKA secure aggregate snapshot (JWT/RLS)" : needsAggregateData ? "Snapshot domain tidak tersedia" : "Tidak menggunakan snapshot operasional",
+            generated_at: new Date().toISOString(),
+            page: page || null,
+          },
+        });
+      }
       last = result;
       console.warn("nara-ai", provider, "gagal:", result.error);
     }
