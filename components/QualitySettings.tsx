@@ -440,7 +440,10 @@ function UnitLiveProfileEditor({
                   {input('Header jawaban / opsi', model._excel_answer_header, value => updateDraft(index, { _excel_answer_header: value }), { placeholder: 'Mis. Status penyelesaian' })}
                   {input('Header catatan / alasan', model._excel_notes_header, value => updateDraft(index, { _excel_notes_header: value }), { placeholder: 'Mis. Keterangan' })}
                 </div>
-                {textarea('Opsi jawaban (JSON)', model._options_text, value => updateDraft(index, { _options_text: value }), '[{"label":"Sesuai","code":1,"numerator":true,"denominator":true}]')}
+                <div style={{ display: 'grid', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 700 }}>Opsi jawaban / instrumen</span>
+                  <OptionsEditor text={model._options_text} onChange={(value) => updateDraft(index, { _options_text: value })} />
+                </div>
               </div>
             </details>
           </section>
