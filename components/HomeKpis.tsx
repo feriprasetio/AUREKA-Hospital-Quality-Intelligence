@@ -4,10 +4,11 @@ import type {SupabaseClient} from '@supabase/supabase-js'
 import type {ReactNode} from 'react'
 import CountUp from '@/components/CountUp'
 import type { NavigateFn } from '@/lib/aureka/focus'
+import { readAurekaOverdueIncidents, readAurekaPortfolioSummary, readAurekaProgramList, readAurekaQualityRoomReportingStatus } from '@/lib/aureka/metric-contracts'
 
 type Room={id:number;name:string}
 type OverdueRtl={id:string;title:string;pj:string;due:string}
-type Totals={overdueRtl?:OverdueRtl[];overdueIkp?:number|null;done?:boolean;reported:number|null;rooms:number;riskTotal:number|null;riskVeryHigh:number|null;incidentsOpen:number|null}
+type Totals={overdueRtl?:OverdueRtl[];overdueIkp?:number|null;done?:boolean;reported:number|null;rooms:number;riskTotal:number|null;riskVeryHigh:number|null;incidentsOpen:number|null;dataStatus:'loading'|'complete'|'partial'|'unavailable';retrievedAt:string|null}
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
 const fmt=(v:number|null,done?:boolean):ReactNode=>v==null?(done?'–':<span className="hlKpiSkel" aria-label="Memuat"/>):<CountUp value={v}/>
 
@@ -16,35 +17,45 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNav
  const year=new Date().getFullYear()
  const month=new Date().getMonth()+1
  const scopeRooms=roomId!=null?rooms.filter(r=>Number(r.id)===Number(roomId)):isAdmin?rooms:[]
- const [t,setT]=useState<Totals>({reported:null,rooms:scopeRooms.length,riskTotal:null,riskVeryHigh:null,incidentsOpen:null})
- useEffect(()=>{let cancelled=false
+ const [t,setT]=useState<Totals>({reported:null,rooms:scopeRooms.length,riskTotal:null,riskVeryHigh:null,incidentsOpen:null,dataStatus:'loading',retrievedAt:null})
+ useEffect(()=>{
+  let cancelled=false
   const ids=new Set(scopeRooms.map(r=>Number(r.id)))
   void (async()=>{
    const roomName=roomId!=null?rooms.find(r=>Number(r.id)===Number(roomId))?.name:undefined
-   const cutoff=new Date(Date.now()-48*3600*1000).toISOString()
-   let ikpQ:any=supabase.schema('aureka_patient_safety').from('incidents').select('id',{count:'exact',head:true}).in('status',['submitted','under_review']).lt('created_at',cutoff)
-   if(roomName)ikpQ=ikpQ.eq('unit_name',roomName)
-   const [rep,sum,ikp,gov]=await Promise.allSettled([
-    supabase.rpc('aureka_quality_room_reporting_status',{p_year:year}),
-    showSafety?supabase.rpc('aureka_gov_infographics_summary_secure',{p_year:year,p_room:roomId}):Promise.resolve({data:null,error:null}),
-    showSafety?ikpQ:Promise.resolve({count:null,error:null}),
-    showSafety?supabase.rpc('aureka_gov_program_list',{p_year:year}):Promise.resolve({data:null,error:null})
+   const [reporting,summary,overdueIncidents,program]=await Promise.all([
+    readAurekaQualityRoomReportingStatus(supabase,year),
+    showSafety?readAurekaPortfolioSummary(supabase,year,roomId):Promise.resolve(null),
+    showSafety?readAurekaOverdueIncidents(supabase,{unitName:roomName,olderThanHours:48}):Promise.resolve(null),
+    showSafety?readAurekaProgramList(supabase,year):Promise.resolve(null),
    ])
    if(cancelled)return
    let reported:number|null=null
-   if(rep.status==='fulfilled'&&!rep.value.error&&Array.isArray(rep.value.data)){
-    reported=new Set((rep.value.data as any[]).filter(r=>Number(r.month)===month&&ids.has(Number(r.room_id))).map(r=>Number(r.room_id))).size
+   if(reporting.status==='complete'&&reporting.data){
+    reported=new Set(reporting.data.filter(r=>r.month===month&&ids.has(r.room_id)).map(r=>r.room_id)).size
    }
-   const s:any=sum.status==='fulfilled'&&!sum.value.error?sum.value.data:null
-   const overdueIkp=ikp.status==='fulfilled'&&!(ikp.value as any).error?((ikp.value as any).count??null):null
-   // RTL lewat tenggat (status belum selesai), dibatasi ke ruangan terpilih bila ada.
-   const g:any=gov.status==='fulfilled'&&!(gov.value as any).error?(gov.value as any).data:null
+   const s=summary?.status==='complete'?summary.data:null
+   const overdueIkp=overdueIncidents?.status==='complete'?overdueIncidents.data:null
+   const g=program?.status==='complete'?program.data:null
    const now=new Date()
-   const overdueRtl:OverdueRtl[]=(Array.isArray(g?.actions)?g.actions:[]).filter((a:any)=>a?.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(String(a.status))&&new Date(a.due_date+'T23:59:59')<now&&(roomId==null||Number(a.assigned_room_id)===Number(roomId)))
+   const overdueRtl:OverdueRtl[]=(Array.isArray(g?.actions)?g.actions:[])
+    .filter((a:any)=>a?.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(String(a.status))&&new Date(String(a.due_date)+'T23:59:59')<now&&(roomId==null||Number(a.assigned_room_id)===Number(roomId)))
     .sort((a:any,b:any)=>String(a.due_date).localeCompare(String(b.due_date)))
     .map((a:any)=>({id:String(a.id),title:String(a.title||'Tanpa judul'),pj:String(a.assigned_to_name||a.room_name||'Belum ada penanggung jawab'),due:String(a.due_date)}))
-   setT({done:true,overdueRtl,overdueIkp,reported,rooms:ids.size,riskTotal:s?.risk?.total??null,riskVeryHigh:s?.risk?.very_high??null,incidentsOpen:s?.incidents?.open??null})
-  })()
+   const results=[reporting,...(showSafety?[summary,overdueIncidents,program].filter(Boolean) as any[]:[])]
+   const complete=results.filter((r:any)=>r?.status==='complete').length
+   const dataStatus=complete===results.length?'complete':complete===0?'unavailable':'partial'
+   const retrievedAt=results.map((r:any)=>r?.retrievedAt).filter(Boolean).sort().at(-1)??null
+   setT({
+    done:true,overdueRtl,overdueIkp,reported,rooms:ids.size,
+    riskTotal:s?.risk?.total??null,
+    riskVeryHigh:s?.risk?.very_high??null,
+    incidentsOpen:s?.incidents?.open??null,
+    dataStatus,retrievedAt,
+   })
+  })().catch(()=>{
+   if(!cancelled)setT(current=>({...current,done:true,reported:null,overdueIkp:null,riskTotal:null,riskVeryHigh:null,incidentsOpen:null,dataStatus:'unavailable'}))
+  })
   return()=>{cancelled=true}
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[supabase,year,month,roomId,isAdmin,rooms.length,showSafety])
@@ -71,6 +82,10 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNav
  return <>
  <div className="hlKpiRow" role="list" aria-label="Ringkasan angka utama">
   {cards.map(c=><article role="listitem" key={c.label} className={'hlKpiCard '+c.tone}><span>{c.label}</span><strong>{c.value}</strong><small>{c.note}</small></article>)}
+ </div>
+ <div className="hlDataTrust" role="status">
+  <span className={'hlDataTrustState '+t.dataStatus}>{t.dataStatus==='complete'?'Sumber terbaca':t.dataStatus==='partial'?'Sebagian sumber belum tersedia':t.dataStatus==='loading'?'Memeriksa sumber':'Sumber belum tersedia'}</span>
+  <small>{t.retrievedAt?'Pembacaan terakhir '+new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(t.retrievedAt)):'Nilai yang tidak tersedia ditampilkan sebagai - dan tidak dianggap nol.'}</small>
  </div>
  {deadlines.length>0&&<section className="hlDeadlines" aria-label="Batas waktu yang perlu diperhatikan">
   {deadlines.map(d=><div key={d.key} className={'hlDeadline '+d.tone}>

@@ -1,9 +1,10 @@
 'use client'
 import {Fragment,useEffect,useMemo,useState} from 'react'
 import type {SupabaseClient} from '@supabase/supabase-js'
+import { readAurekaQualityRoomReportingStatus, type QualityRoomReportingRow } from '@/lib/aureka/metric-contracts'
 
 type Room={id:number;name:string}
-type Row={room_id:number;month:number;total:number;latest_report_at:string|null;latest_period:string|null}
+type Row=QualityRoomReportingRow
 const MONTHS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
 export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,roomName}:{supabase:SupabaseClient;rooms:Room[];isAdmin:boolean;roomId:number|null;roomName:string|null}){
  const year=new Date().getFullYear()
@@ -13,14 +14,14 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
  const [expanded,setExpanded]=useState(false)
  useEffect(()=>{let cancelled=false;setBusy(true);setError('')
   void (async()=>{
-   try{
-    const {data,error}=await supabase.rpc('aureka_quality_room_reporting_status',{p_year:year})
-    if(error)throw error
-    if(!cancelled)setRows((Array.isArray(data)?data:[]).map((r:any)=>({room_id:Number(r.room_id),month:Number(r.month),total:Number(r.total)||0,latest_report_at:r.latest_report_at?String(r.latest_report_at):null,latest_period:r.latest_period?String(r.latest_period):null})))
-   }catch{
-    if(!cancelled)setError('Ringkasan belum tersedia. Pastikan migrasi monitoring pelaporan indikator mutu sudah diterapkan.')
-   }finally{if(!cancelled)setBusy(false)}
-  })()
+   const result=await readAurekaQualityRoomReportingStatus(supabase,year)
+   if(cancelled)return
+   if(result.status!=='complete'||!result.data)setError('Ringkasan belum tersedia. Pastikan sumber monitoring pelaporan indikator mutu dapat diakses.')
+   else setRows(result.data)
+   setBusy(false)
+  })().catch(()=>{
+   if(!cancelled){setError('Ringkasan belum tersedia. Periksa koneksi dan hak akses.');setBusy(false)}
+  })
   return()=>{cancelled=true}
  },[supabase,year])
  const visibleRooms=useMemo(()=>roomId!=null?rooms.filter(r=>Number(r.id)===Number(roomId)):isAdmin?rooms:[],[rooms,isAdmin,roomId])

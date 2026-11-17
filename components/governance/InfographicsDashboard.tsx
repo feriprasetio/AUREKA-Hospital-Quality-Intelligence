@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { readAurekaPortfolioSummary, readAurekaQualityRoomReportingStatus, type AurekaPortfolioSummary, type MetricCount, type MetricMonth } from '@/lib/aureka/metric-contracts'
 import { AUREKA_PRIMARY_NAV, type AurekaRole } from '@/lib/aureka/module-registry'
 import { buildPeriodReportHtml, periodMonths, type ReportPeriod } from '@/lib/report/monthly-report'
 import type { NavigateFn } from '@/lib/aureka/focus'
@@ -8,17 +9,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import PresentationMode from '@/components/governance/PresentationMode'
 
 type Room = { id: number; name: string }
-type CountItem = { label: string; count: number }
-type MonthItem = { month: number; total: number; validated?: number }
-type Summary = {
-  year: number; room_id: number | null; room_name: string
-  quality: { active_indicators: number; records: number; validated: number; validation_rate: number; monthly: MonthItem[]; categories: CountItem[] }
-  clinical: { episodes: number; validated_episodes: number; validation_rate: number; monthly: MonthItem[]; categories: CountItem[]; clinical_pathway_audits: number; clinical_pathway_validated: number; clinical_death_audits: number; clinical_death_validated: number }
-  incidents: { total: number; open: number; closed: number; monthly: MonthItem[] }
-  risk: { total: number; very_high: number; open: number; relationships: number; monthly: MonthItem[]; levels: CountItem[]; categories: CountItem[] }
-  program: { recommendations: number; actions: number; open_actions: number; overdue_actions: number; completed_actions: number }
-}
-type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn; onRoomChange?: (roomId: number | null) => void }
+type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn; onRoomChange?: (roomId: number | null) => void; onAskNara?: (context: { period: string; scope: string }) => void }
 type ChartSeries = { label: string; color: string; values: Array<number | null> }
 type ChartModel = { id: string; label: string; description: string; insight: string; labels: string[]; series: ChartSeries[]; kind: 'trend' | 'distribution' | 'progress' }
 
@@ -177,9 +168,10 @@ function ChartLegend({ series }: { series: ChartSeries[] }) {
 export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate, onRoomChange }: Props) {
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [roomValue, setRoomValue] = useState(initialRoomId == null ? '' : String(initialRoomId))
-  const [summary, setSummary] = useState<Summary | null>(null)
+  const [summary, setSummary] = useState<AurekaPortfolioSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [summaryRetrievedAt, setSummaryRetrievedAt] = useState<string | null>(null)
   const [chartId, setChartId] = useState('quality-trend')
   const [chartType, setChartType] = useState<'column' | 'bar' | 'line' | 'donut'>('line')
   const canChooseRoom = GLOBAL_ROLES.includes(role || '') && !unitLocked
@@ -198,9 +190,9 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     if (Number(year) !== new Date().getFullYear()) return
     const month = new Date().getMonth() + 1
     const scopeRooms = roomId == null ? rooms : rooms.filter((r) => Number(r.id) === roomId)
-    void aurekaSupabase.rpc('aureka_quality_room_reporting_status', { p_year: Number(year) }).then(({ data, error: e }) => {
-      if (e || !Array.isArray(data)) return
-      const done = new Set((data as any[]).filter((r) => Number(r.month) === month).map((r) => Number(r.room_id)))
+    void readAurekaQualityRoomReportingStatus(aurekaSupabase, Number(year)).then((result) => {
+      if (result.status !== 'complete' || !result.data) return
+      const done = new Set(result.data.filter((r) => r.month === month).map((r) => r.room_id))
       setPresentReported({ done: scopeRooms.filter((r) => done.has(Number(r.id))).length, total: scopeRooms.length, missing: scopeRooms.filter((r) => !done.has(Number(r.id))).map((r) => r.name) })
     })
   }
@@ -212,11 +204,12 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     win.document.write('<p style="font-family:sans-serif;padding:24px">Menyiapkan laporan…</p>')
     setReportBusy(true)
     try {
-      const rep = await aurekaSupabase.rpc('aureka_quality_room_reporting_status', { p_year: Number(year) })
+      const rep = await readAurekaQualityRoomReportingStatus(aurekaSupabase, Number(year))
+      if (rep.status !== 'complete' || !rep.data) throw new Error(rep.error || 'Status pelaporan belum tersedia.')
       const scopeRooms = roomId == null ? rooms : rooms.filter((r) => Number(r.id) === roomId)
       const ms = periodMonths(parsedPeriod)
       const byRoom = new Map<number, number[]>()
-      for (const r of ((rep.data as any[]) || [])) { const m = Number(r.month); if (!ms.includes(m)) continue; const id = Number(r.room_id); byRoom.set(id, [...(byRoom.get(id) || []), m]) }
+      for (const r of rep.data) { const m = Number(r.month); if (!ms.includes(m)) continue; const id = Number(r.room_id); byRoom.set(id, [...(byRoom.get(id) || []), m]) }
       const { data: auth } = await aurekaSupabase.auth.getUser()
       const html = buildPeriodReportHtml({ year: Number(year), period: parsedPeriod, scope: selectedRoomName, summary: summary as any, rooms: scopeRooms.map((r) => ({ name: r.name, months: byRoom.get(Number(r.id)) || [] })), preparedBy: String(auth.user?.user_metadata?.full_name || auth.user?.email || 'pengguna AUREKA') })
       win.document.open(); win.document.write(html); win.document.close()
@@ -231,17 +224,23 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   useEffect(() => {
     let cancelled = false
     setLoading(true); setError('')
-    Promise.resolve(aurekaSupabase.rpc('aureka_gov_infographics_summary_secure', { p_year: Number(year), p_room: roomId }))
-      .then(({ data, error: rpcError }) => {
-        if (cancelled) return
-        if (rpcError) {
-          const missing = rpcError.code === 'PGRST202' || /Could not find the function|schema cache/i.test(rpcError.message || '')
-          setSummary(null)
-          setError(missing ? 'Ringkasan lintas unit belum aktif di server. Admin AUREKA perlu menjalankan pembaruan database Infografis (20261112140000_aureka_infographics_aggregate.sql, lalu 20261112044800_infographics_permission_guard.sql).' : toUserFacingError(rpcError, { fallback: 'Ikhtisar belum dapat dimuat. Periksa koneksi lalu coba lagi.' }))
-        } else setSummary(data as Summary)
-        setLoading(false)
-      })
-      .catch((cause: unknown) => { if (!cancelled) { setSummary(null); setError(cause instanceof Error ? cause.message : 'Ikhtisar belum dapat dimuat.'); setLoading(false) } })
+    void readAurekaPortfolioSummary(aurekaSupabase, Number(year), roomId).then((result) => {
+      if (cancelled) return
+      if (result.status !== 'complete' || !result.data) {
+        const missing = /PGRST202|schema cache|Could not find the function/i.test(result.error || '')
+        setSummary(null)
+        setSummaryRetrievedAt(null)
+        setError(missing
+          ? 'Ringkasan lintas unit belum aktif di server. Periksa migrasi agregasi dan permission guard Infografis.'
+          : toUserFacingError(new Error(result.error || 'Sumber ringkasan tidak tersedia.'), { fallback: 'Ikhtisar belum dapat dimuat. Periksa koneksi lalu coba lagi.' }))
+      } else {
+        setSummary(result.data)
+        setSummaryRetrievedAt(result.retrievedAt)
+      }
+      setLoading(false)
+    }).catch((cause: unknown) => {
+      if (!cancelled) { setSummary(null); setSummaryRetrievedAt(null); setError(cause instanceof Error ? cause.message : 'Ikhtisar belum dapat dimuat.'); setLoading(false) }
+    })
     return () => { cancelled = true }
   }, [year, roomId])
 
@@ -291,8 +290,8 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ikhtisar indikator mutu' : 'Ikhtisar kinerja rumah sakit'}>
     <style>{css}</style>
     <header className="ifHero">
-      <div><span className="ifEyebrow">Ikhtisar eksekutif</span><h2>{qualityOnly ? 'Ikhtisar Indikator Mutu' : 'Ikhtisar Mutu dan Keselamatan Rumah Sakit'}</h2>
-        <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Gambaran terpadu indikator mutu, insiden keselamatan pasien, manajemen risiko, program, dan rencana tindak lanjut. Pilih grafik untuk menelusuri pola data.'}</p></div>
+      <div><span className="ifEyebrow">{qualityOnly ? 'Ikhtisar domain mutu' : 'Analitik lintas domain'}</span><h2>{qualityOnly ? 'Ikhtisar Indikator Mutu' : 'Analitik & Infografis Rumah Sakit'}</h2>
+        <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Eksplorasi agregat mutu, keselamatan pasien, risiko, klinis dan program. Data operasional tetap dikelola pada modul pemilik.'}</p></div>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
         {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => { const next = event.target.value; setRoomValue(next); onRoomChange?.(next ? Number(next) : null) }}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
@@ -304,6 +303,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         </select></label>}
         {!qualityOnly && <button type="button" className="ifReportBtn" disabled={!summary || reportBusy} onClick={() => void openReport()}>{reportBusy ? 'Menyusun…' : 'Laporan PDF'}</button>}
         {!qualityOnly && <button type="button" className="ifReportBtn ifPresentBtn" disabled={!summary} onClick={openPresentation} title="Tampilkan ringkasan sebagai slide layar penuh untuk rapat">Presentasi</button>}
+        {!qualityOnly && onAskNara && <button type="button" className="ifReportBtn" disabled={!summary} onClick={() => onAskNara({ period: year, scope: selectedRoomName })}>Analisis dengan NARA</button>}
         {!qualityOnly && summary && <PresentationMode open={presentOpen} onClose={() => setPresentOpen(false)} summary={summary as any} year={Number(year)} scope={selectedRoomName} reported={presentReported} />}
       </div>
     </header>
@@ -350,6 +350,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       </div>
     </>}
     {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label}</button>)}</nav>}
+    {summaryRetrievedAt && <p className="ifNote">Sumber: snapshot agregat AUREKA sesuai hak akses. Pembacaan dilakukan {new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(summaryRetrievedAt))}. Nilai kosong/error tidak diperlakukan sebagai nol.</p>}
     <p className="ifNote">Angka dihitung otomatis dari data yang boleh Anda lihat, sesuai periode dan unit yang dipilih. Bulan berisi 0 berarti belum ada data masuk, bukan capaian 0%. Jumlah laporan insiden menunjukkan banyaknya laporan, bukan tingkat kejadian.</p>
   </section>
 }
