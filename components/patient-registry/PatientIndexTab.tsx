@@ -6,13 +6,12 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 
 /**
- * Database Pasien (Master Patient Index).
+ * Direktori Pasien (Master Patient Index).
  * Satu baris per pasien dengan No. Rekam Medis sebagai kunci utama (format XX-XX-XX),
  * diisi otomatis dari Logbook episode pasien dan disiapkan untuk bridging SIMRS / SATUSEHAT.
- * Spesifikasi: docs/SPEC-BRIDGING-SIMRS.md
+ * Spesifikasi interoperabilitas: docs/SPEC-BRIDGING-SIMRS.md
  *
- * v2 (bila migrasi 20261115090000 sudah dijalankan): filter cepat, penanda readmisi ≤30 hari,
- * dan ringkasan seluruh populasi. Tanpa migrasi itu halaman tetap jalan dengan fungsi v1.
+ * Penelusuran pasien bersifat operasional; statistik populasi dipusatkan pada Visual Intelligence.
  */
 type PatientRow = {
   no_rm: string
@@ -40,7 +39,6 @@ type Summary = {
 type InvalidRm = { record_id: string; room_name: string; record_date: string | null; no_rm_asli: string | null }
 type Episode = { id: string; unit: string | null; record_date: string | null; masuk: string | null; keluar: string | null; diagnosis: string | null; dpjp: string | null; los: string | null; rawat_inap: boolean | null; no_rm_norm: string | null }
 type Room = { id: number; name: string }
-type Filter = 'semua' | 'berulang' | 'readmisi30'
 
 const PAGE = 50
 const BRIDGING = [
@@ -68,7 +66,6 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(0)
-  const [filter, setFilter] = useState<Filter>('semua')
   const [roomId, setRoomId] = useState<number | null>(null)
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -93,7 +90,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
     const useV2 = v2 !== false
     const [list, sum] = await Promise.all([
       useV2
-        ? aurekaSupabase.rpc('aureka_patient_index_search_v2', { p_query: query || null, p_filter: filter, p_room: roomId, p_from: from || null, p_to: to || null, p_limit: PAGE, p_offset: page * PAGE })
+        ? aurekaSupabase.rpc('aureka_patient_index_search_v2', { p_query: query || null, p_filter: 'semua', p_room: roomId, p_from: from || null, p_to: to || null, p_limit: PAGE, p_offset: page * PAGE })
         : aurekaSupabase.rpc('aureka_patient_index_search', { p_query: query || null, p_limit: PAGE, p_offset: page * PAGE }),
       useV2 ? aurekaSupabase.rpc('aureka_patient_index_overview') : aurekaSupabase.rpc('aureka_patient_index_summary'),
     ])
@@ -105,7 +102,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
     if (list.error) { setError(toUserFacingError(list.error, { fallback: 'Database pasien belum dapat dimuat.' })); setRows([]); return }
     setRows((list.data ?? []) as PatientRow[])
     if (!sum.error) setSummary(sum.data as Summary)
-  }, [page, query, filter, roomId, from, to, v2])
+  }, [page, query, roomId, from, to, v2])
   useEffect(() => { void load() }, [load])
 
   const total = rows[0]?.total_count ?? 0
@@ -122,52 +119,26 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
   }
   const toggleIdentity = async () => {
     if (showIdentity) { setShowIdentity(false); return }
-    if (await requestSensitiveAccess('patient_identity', 'metadata-pasien', 'Tampilkan identitas pasien')) setShowIdentity(true)
+    if (await requestSensitiveAccess('patient_identity', 'direktori-pasien', 'Tampilkan identitas pasien')) setShowIdentity(true)
   }
 
   // Kolom yang seluruh isinya kosong (SIMRS belum tersambung) disembunyikan; muncul lagi otomatis saat datanya ada.
   const showNik = Boolean((summary?.dengan_nik ?? 0) > 0 || rows.some((r) => r.nik))
   const showBridge = Boolean((summary?.terhubung_simrs ?? 0) > 0 || rows.some((r) => r.bridging_status && r.bridging_status !== 'belum_terhubung'))
   const colCount = 5 + (showNik ? 1 : 0) + (showBridge ? 1 : 0)
-  const setFilterAndReset = (next: Filter) => { setFilter(next); setPage(0) }
-
-  // Ringkasan: v2 menghitung seluruh populasi; v1 hanya halaman tabel (diberi label jelas).
-  const population = v2 === true && summary?.bridging != null
-  const base = population ? Math.max(1, summary?.total ?? 0) : Math.max(1, rows.length)
-  const bridgeCounts = BRIDGING.map((b) => ({ ...b, count: population ? Number(summary?.bridging?.[b.key] ?? 0) : rows.filter((r) => r.bridging_status === b.key).length }))
-  const completeness = population
-    ? [
-        { label: 'Nama pasien', count: summary?.dengan_nama ?? 0 },
-        { label: 'NIK', count: summary?.dengan_nik ?? 0 },
-        { label: 'No. IHS', count: summary?.dengan_ihs ?? 0 },
-        { label: 'ID pasien SIMRS', count: summary?.dengan_simrs_id ?? 0 },
-      ]
-    : [
-        { label: 'Nama pasien', count: rows.filter((r) => Boolean(r.nama_pasien?.trim())).length },
-        { label: 'NIK', count: rows.filter((r) => Boolean(r.nik?.trim())).length },
-        { label: 'No. IHS', count: rows.filter((r) => Boolean(r.no_ihs?.trim())).length },
-        { label: 'ID pasien SIMRS', count: rows.filter((r) => Boolean(r.simrs_patient_id?.trim())).length },
-      ]
-  const pct = (n: number) => Math.round((n / base) * 1000) / 10
 
   if (notReady) return <section className="piPanel">
-    <h3>Metadata Pasien belum diaktifkan</h3>
+    <h3>Direktori Pasien belum diaktifkan</h3>
     <p>Struktur database pasien (No. Rekam Medis sebagai kunci utama) perlu dipasang sekali oleh pemilik Supabase: jalankan
       <code> supabase/migrations/20261111140000_patient_index.sql</code> di SQL Editor. Setelah itu daftar pasien terisi otomatis dari Logbook yang sudah ada.</p>
   </section>
 
-  const chips: { key: Filter; label: string; count?: number; needsV2?: boolean }[] = [
-    { key: 'semua', label: 'Semua pasien', count: summary?.total },
-    { key: 'berulang', label: 'Kunjungan berulang', count: summary?.kunjungan_berulang, needsV2: true },
-    { key: 'readmisi30', label: 'Readmisi ≤30 hari', count: summary?.readmisi_30, needsV2: true },
-  ]
-
   return <section className="piWrap">
     <header className="piHead">
-      <p className="psStatsLead" title="Diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.">Satu baris per pasien, dikelompokkan menurut No. Rekam Medis</p>
+      <p className="psStatsLead" title="Diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.">Satu baris per pasien unik · No. Rekam Medis menjadi identitas internal rumah sakit</p>
       <div className="piActions">
         <button type="button" className="prButton" onClick={() => void toggleIdentity()}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>
-        <button type="button" className="prButton" onClick={() => setShowSpec((v) => !v)}>{showSpec ? 'Tutup spesifikasi' : 'Spesifikasi bridging'}</button>
+        <button type="button" className="prButton" onClick={() => setShowSpec((v) => !v)}>{showSpec ? 'Tutup informasi' : 'Informasi interoperabilitas'}</button>
         {isAdmin && <button type="button" className="prButton primary" disabled={syncing} onClick={() => void sync()}>{syncing ? 'Menyinkronkan…' : 'Sinkron ulang dari Logbook'}</button>}
       </div>
     </header>
@@ -188,35 +159,9 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       <p className="prMuted">Dokumen lengkap: docs/SPEC-BRIDGING-SIMRS.md di repositori AUREKA.</p>
     </div>}
 
-    <div className="prKpis">
-      <div className="prKpi"><span>Pasien unik (No. RM)</span><strong>{(summary?.total ?? 0).toLocaleString('id-ID')}</strong></div>
-      <div className="prKpi"><span>Kunjungan berulang</span><strong>{(summary?.kunjungan_berulang ?? 0).toLocaleString('id-ID')}</strong></div>
-      {v2 === true
-        ? <div className="prKpi piKpiWarn"><span>Readmisi ≤30 hari</span><strong>{(summary?.readmisi_30 ?? 0).toLocaleString('id-ID')}</strong></div>
-        : <div className="prKpi"><span>Sudah ada NIK</span><strong>{(summary?.dengan_nik ?? 0).toLocaleString('id-ID')}</strong></div>}
-      <div className="prKpi"><span>Terhubung SIMRS</span><strong>{(summary?.terhubung_simrs ?? 0).toLocaleString('id-ID')}</strong></div>
-    </div>
-
-    <div className="piAnalytics" aria-label="Analisis metadata pasien">
-      <section className="piAnalyticsCard">
-        <div className="piAnalyticsHead"><div><h4>Status bridging SIMRS</h4><p>{population ? 'Seluruh pasien yang dapat Anda akses.' : 'Hanya baris di halaman tabel ini. Ringkasan seluruh pasien aktif setelah pembaruan database.'}</p></div><b>n = {(population ? summary?.total ?? 0 : rows.length).toLocaleString('id-ID')}</b></div>
-        {loading && !summary ? <p className="prMuted">Memuat distribusi…</p> : <div className="piBars">{bridgeCounts.map((item) => <div className="piBarRow" key={item.key}><span>{item.label}</span><div className="piBarTrack"><i style={{ width: pct(item.count) + '%' }} /></div><b>{pct(item.count)}%</b></div>)}</div>}
-      </section>
-      <section className="piAnalyticsCard">
-        <div className="piAnalyticsHead"><div><h4>Kelengkapan elemen metadata</h4><p>{population ? 'Persentase pasien yang elemennya sudah terisi.' : 'Hanya baris di halaman tabel ini.'}</p></div><b>n = {(population ? summary?.total ?? 0 : rows.length).toLocaleString('id-ID')}</b></div>
-        {loading && !summary ? <p className="prMuted">Memuat kelengkapan…</p> : <div className="piBars">{completeness.map((item) => <div className="piBarRow" key={item.label}><span>{item.label}</span><div className="piBarTrack"><i style={{ width: pct(item.count) + '%' }} /></div><b>{pct(item.count)}%</b></div>)}</div>}
-      </section>
-    </div>
-
     <div className="piToolbar">
-      <div className="piChips" role="group" aria-label="Filter pasien">
-        {chips.map((c) => {
-          const disabled = Boolean(c.needsV2 && v2 === false)
-          return <button key={c.key} type="button" className={'piChip' + (filter === c.key ? ' active' : '') + (c.key === 'readmisi30' ? ' warn' : '')} aria-pressed={filter === c.key} disabled={disabled} title={disabled ? 'Butuh migrasi 20261115090000 di Supabase' : undefined} onClick={() => setFilterAndReset(c.key)}>
-            {c.label}{c.count != null && <span>{c.count.toLocaleString('id-ID')}</span>}
-          </button>
-        })}
-        <button type="button" className={'piChip' + (invalid !== null ? ' active' : '')} aria-expanded={invalid !== null} aria-controls="pi-invalid-rm" onClick={() => { if (invalid !== null) setInvalid(null); else void loadInvalid() }}>{invalid !== null ? 'Tutup No. RM bermasalah' : 'No. RM bermasalah'}</button>
+      <div className="piActions">
+        <button type="button" className="prButton" aria-expanded={invalid !== null} aria-controls="pi-invalid-rm" onClick={() => { if (invalid !== null) setInvalid(null); else void loadInvalid() }}>{invalid !== null ? 'Tutup No. RM bermasalah' : 'Periksa No. RM bermasalah'}</button>
       </div>
       <div className="piFilters">
         <label className="piSelect"><span className="piSr">Unit</span>
@@ -230,9 +175,9 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
           <i aria-hidden="true">–</i>
           <input type="date" value={to} min={from || undefined} disabled={v2 === false} onChange={(e) => { setTo(e.target.value); setPage(0) }} aria-label="Kunjungan terakhir sampai tanggal" />
         </label>
-        {(filter !== 'semua' || roomId != null || from || to) && <button type="button" className="piReset" onClick={() => { setFilter('semua'); setRoomId(null); setFrom(''); setTo(''); setPage(0) }}>Reset filter</button>}
+        {(roomId != null || from || to) && <button type="button" className="piReset" onClick={() => { setRoomId(null); setFrom(''); setTo(''); setPage(0) }}>Reset filter</button>}
       </div>
-      {v2 === false && <p className="piHint">Filter unit, tanggal, kunjungan berulang, dan readmisi akan aktif setelah pembaruan database oleh admin AUREKA. Untuk mencari No. RM atau nama, pakai kotak cari di bagian atas.</p>}
+      <p className="piHint">Pencarian menggunakan satu search bar global pada header AUREKA. Filter unit dan tanggal membatasi daftar pasien yang ditampilkan.</p>
     </div>
 
     {invalid && <div className="piPanel" id="pi-invalid-rm">
@@ -264,7 +209,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
                 <td>{r.unit_terakhir || '-'}</td>
                 <td><span className="piDiag" title={r.diagnosis_terakhir || undefined}>{r.diagnosis_terakhir || '-'}</span></td>
                 {showBridge && <td><span className={'piBridge ' + r.bridging_status}>{BRIDGING_LABEL[r.bridging_status] || r.bridging_status}</span></td>}
-              </tr>) : <tr><td colSpan={colCount}><div className="prEmpty">{query || filter !== 'semua' || roomId || from || to ? 'Tidak ada pasien yang cocok dengan filter ini.' : 'Belum ada pasien di database.'}</div></td></tr>}
+              </tr>) : <tr><td colSpan={colCount}><div className="prEmpty">{query || roomId || from || to ? 'Tidak ada pasien yang cocok dengan filter ini.' : 'Belum ada pasien di direktori.'}</div></td></tr>}
           </tbody>
         </table>
       </div>
@@ -292,19 +237,9 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piBridge.terhubung{background:#e3f4ea;color:#1f6b43}.piBridge.menunggu{background:#fff4e0;color:#8a5a12}
       .piBridge.gagal,.piBridge.konflik{background:#fde8e8;color:#9b2c2c}
       .piKpiWarn strong{color:#a15c07}
-      .piAnalytics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-      .piAnalyticsCard{min-width:0;padding:15px 17px;border:1px solid rgba(11,70,122,.14);border-radius:15px;background:#fff}
-      .piAnalyticsHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.piAnalyticsHead h4{margin:0;font-size:14px}.piAnalyticsHead p{margin:5px 0 0;color:#64748b;font-size:12px;line-height:1.45}.piAnalyticsHead>b{font-size:12px;white-space:nowrap;color:#315b80}
       .piBars{display:grid;gap:10px;margin-top:14px}.piBarRow{display:grid;grid-template-columns:minmax(100px,1fr) minmax(60px,2fr) 48px;align-items:center;gap:9px;font-size:12px}.piBarRow>span{color:var(--ink,#0b1f33)}.piBarRow>b{text-align:right;font-variant-numeric:tabular-nums}
       .piBarTrack{height:9px;overflow:hidden;border-radius:99px;background:#e8eef4}.piBarTrack i{display:block;height:100%;border-radius:inherit;background:#236a9b;transition:width .5s cubic-bezier(.22,1,.36,1)}
       .piToolbar{display:grid;gap:10px;padding:14px 16px;border-radius:16px;border:1px solid rgba(11,70,122,.12);background:rgba(255,255,255,.7)}
-      .piChips{display:flex;flex-wrap:wrap;gap:6px}
-      .piChip{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(31,36,48,.12);background:#fff;color:#334155;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
-      .piChip span{min-width:22px;padding:2px 7px;border-radius:999px;background:rgba(31,36,48,.07);font-size:12px;font-variant-numeric:tabular-nums}
-      .piChip:hover:not(:disabled){border-color:rgba(14,116,144,.45)}
-      .piChip.active{background:#1f2430!important;border-color:#1f2430!important;color:#fff!important}.piChip.active span{background:rgba(255,255,255,.2)!important;color:#fff!important}
-      .piChip.warn:not(.active) span{background:#fff1d6;color:#8a5207}
-      .piChip:disabled{opacity:.45;cursor:not-allowed}
       .piFilters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start}
       .piSearch{flex:1 1 260px;min-width:0}.piSearch input,.piSelect select,.piDate input{width:100%;min-height:40px;padding:0 12px;border-radius:12px;border:1.5px solid #d9e4ef;background:#f5f8fc;font:inherit;font-size:13px;color:#1f2430}
       .piSelect{flex:0 1 220px;min-width:160px}
@@ -317,12 +252,8 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piVisits{white-space:nowrap}.piVisits b{font-variant-numeric:tabular-nums}.piVisits span{color:#4b5565}
       .piReadmit{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#fff1d6;color:#8a5207;font-style:normal;font-size:12px;font-weight:800}
       .piDiag{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:420px}
-      html[data-mode="gelap"] .piAnalyticsCard,html[data-mode="gelap"] .piToolbar{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12)}html[data-mode="gelap"] .piAnalyticsHead p{color:#a8b8ca}html[data-mode="gelap"] .piBarTrack{background:#26364a}
-      html[data-mode="gelap"] .piChip{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#dbe3ee}html[data-mode="gelap"] .piChip.active{background:#eef2f7!important;color:#0f1218!important}html[data-mode="gelap"] .piChip.active span{background:rgba(15,18,24,.12)!important;color:#0f1218!important}
       html[data-mode="gelap"] :is(.piSearch input,.piSelect select,.piDate input){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
       html[data-mode="gelap"] .piColNote{background:rgba(255,255,255,.05);color:#aab6c6}html[data-mode="gelap"] .piVisits span{color:#aab6c6}
-      html[data-mode="gelap"] .piReadmit,html[data-mode="gelap"] .piChip.warn:not(.active) span{background:rgba(251,191,36,.16);color:#fcd34d}
-      @media(max-width:760px){.piAnalytics{grid-template-columns:1fr}.piAnalyticsHead{display:block}.piAnalyticsHead>b{display:inline-block;margin-top:6px}.piChips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.piChip{flex:0 0 auto}.piDate{flex:1 1 100%}.piDate input{flex:1;min-width:0}.piSelect{flex:1 1 100%}}
       html[data-mode="gelap"] .piPanel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
       html[data-mode="gelap"] .piHead p{color:#9fb3c8}
       @media(prefers-reduced-motion:reduce){.piBarTrack i{transition:none}}
