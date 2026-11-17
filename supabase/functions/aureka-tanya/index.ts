@@ -427,33 +427,56 @@ function formatTopDiseaseAnswer(data: Record<string, unknown>) {
   const rows = Array.isArray(data.top_diagnoses) ? data.top_diagnoses as Record<string, unknown>[] : [];
   const year = Number(data.year) || new Date().getFullYear();
   const source = data.source_basis === "episode_records"
-    ? "rekap episode pasien pada Logbook AUREKA"
+    ? "episode pasien pada Logbook AUREKA"
     : data.source_basis === "patient_index_latest_diagnosis"
       ? "diagnosis terakhir per pasien pada Database Pasien AUREKA"
       : "sumber klinis yang dapat diakses";
   const basis = data.source_basis === "episode_records"
-    ? "Peringkat diurutkan berdasarkan pasien unik (No. RM hanya digunakan di dalam basis data untuk deduplikasi); jumlah episode ditampilkan terpisah."
-    : "Peringkat berdasarkan pasien unik menurut diagnosis terakhir, bukan jumlah seluruh kunjungan atau riwayat diagnosis per episode.";
+    ? "Unit analisis utama adalah episode Logbook; jumlah pasien unik dihitung terpisah. Hasil ini bukan riwayat seluruh pasien rumah sakit."
+    : "Unit analisis adalah pasien unik dengan satu diagnosis terakhir yang tercatat pada indeks pasien. Ini bukan jumlah seluruh kunjungan atau seluruh riwayat diagnosis.";
   const lines = rows.map((row, i) => {
     const diagnosis = String(row.diagnosis || "Diagnosis tidak bernama");
     const patients = Number(row.patient_count) || 0;
     const episodes = row.episode_count == null ? "" : " · " + String(row.episode_count) + " episode";
     const code = row.coding_status === "validated" && row.icd10_code
       ? "ICD-10 " + String(row.icd10_code) + " — tervalidasi"
-      : row.coding_status === "proposed" ? "Kode ICD-10 menunggu validasi" : "Belum memiliki kode ICD-10 tervalidasi";
+      : row.coding_status === "proposed" ? "Usulan ICD-10 menunggu verifikasi" : "Belum memiliki kode ICD-10 tervalidasi";
     return (i + 1) + ". **" + diagnosis + "** — " + patients + " pasien" + episodes + " · " + code;
   });
-  const limitations = String(data.limitations || "");
   const total = Number(data.patient_count) || 0;
+  const groupCount = Number(data.diagnosis_group_count) || 0;
+  const suppressed = Number(data.suppressed_group_count) || 0;
   const header = rows.length
-    ? "**10 diagnosis terbanyak — " + year + "**\nBasis data: " + source + ".\n" + basis
-    : "Belum ada kelompok diagnosis yang memenuhi ambang pelaporan minimal.";
+    ? "**10 diagnosis terbanyak — " + year + "**\nSumber utama: " + source + ".\n" + basis
+    : total > 0
+      ? "Data diagnosis ditemukan pada " + total + " pasien, tetapi tidak ada kelompok diagnosis yang lolos ambang minimal pelaporan."
+      : "Belum ada diagnosis klinis yang dapat dianalisis pada periode dan cakupan ini.";
+  const episode = data.episode_context && typeof data.episode_context === "object"
+    ? data.episode_context as Record<string, unknown>
+    : {};
+  const episodeCount = Number(episode.total_episode_records) || 0;
+  const episodePatients = Number(episode.unique_patients_with_mrn) || 0;
+  const episodeGroups = Number(episode.diagnosis_group_count) || 0;
+  const episodeSuppressed = Number(episode.suppressed_group_count) || 0;
+  const episodeLine = episodeCount > 0
+    ? "Rekap episode Logbook (dilaporkan terpisah, tidak digabung dengan peringkat pasien): " +
+      episodeCount + " episode, " + episodePatients + " pasien unik, " +
+      (Number(episode.diagnosis_records_analyzable) || 0) + " record diagnosis yang dapat dianalisis, " +
+      episodeGroups + " kelompok diagnosis; " + episodeSuppressed + " kelompok berada di bawah ambang minimal."
+    : "Belum ada episode Logbook pada periode dan cakupan ini.";
+  const groupLine = groupCount > 0
+    ? "Kualitas pengelompokan: " + groupCount + " kelompok istilah teridentifikasi; " + suppressed +
+      " kelompok disembunyikan karena jumlah pasien per kelompok kurang dari " + String(data.minimum_cell_size || 5) + "."
+    : "";
+  const limitations = String(data.limitations || "");
   return [
     header, ...lines, "",
-    "Cakupan: " + (data.scope || "unit sesuai hak akses akun") + ". Total pasien pada basis analisis: " + total + ".",
-    "Perlindungan privasi: kelompok dengan jumlah kurang dari " + String(data.minimum_cell_size || 5) + " pasien tidak ditampilkan. Nomor rekam medis dan identitas pasien tidak ditampilkan maupun dikirim ke model.",
+    "Cakupan: " + (data.scope || "unit sesuai hak akses akun") + ". Total pasien yang masuk basis peringkat: " + total + ".",
+    groupLine,
+    episodeLine,
+    "Perlindungan privasi: kelompok dengan jumlah kurang dari " + String(data.minimum_cell_size || 5) + " pasien tidak ditampilkan. Nomor rekam medis dan identitas pasien tidak ditampilkan maupun dikirim ke provider AI.",
     limitations,
-    "Catatan koding: kode hanya disebut tervalidasi bila sudah diperiksa reviewer. Diagnosis mentah yang ambigu harus ditelaah PMIK/DPJP sebelum dikunci sebagai ICD-10.",
+    "Catatan koding: kode hanya disebut tervalidasi bila sudah diperiksa reviewer berwenang. Diagnosis mentah, singkatan, dan ejaan yang meragukan tetap perlu telaah PMIK/DPJP sebelum dikunci sebagai ICD-10.",
   ].filter(Boolean).join("\n\n");
 }
 const QUOTA = "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi.";
@@ -689,24 +712,35 @@ async function handle(req: Request): Promise<Response> {
   // No. RM dipakai internal oleh RPC untuk deduplikasi; No. RM/nama/NIK tidak pernah masuk ke payload provider.
   if (task === "icd10_suggest") {
     const year = new Date(Date.now() + 7 * 3600 * 1000).getUTCFullYear();
-    const { data: queued, error: queueError } = await db.rpc("aureka_nara_icd10_review_queue", { p_year: year, p_room: null, p_limit: 20 });
+    const { data: queued, error: queueError } = await db.rpc("aureka_nara_icd10_review_queue", { p_year: year, p_room: null, p_limit: 200 });
     if (queueError) {
       console.error("NARA ICD-10 queue unavailable", queueError.code || "unknown");
       return reply(403, { error: "Antrian koding hanya tersedia untuk Super Admin/Komite PMKP atau belum dapat dibaca." });
     }
     const rows = Array.isArray(queued) ? queued as Record<string, unknown>[] : [];
-    const safeRows = rows.filter((r) => {
+    // Hanya istilah baru yang belum pernah diusulkan diproses; istilah proposed tetap tampil pada layar review.
+    const unmappedRows = rows.filter((r) => {
+      if (String(r.mapping_status || "unmapped") !== "unmapped") return false;
       const d = String(r.diagnosis || "").trim();
       return d.length >= 2 && d.length <= 120 && !/[0-9]{6,}/.test(d)
         && !/(NIK|NO[. ]*RM|NOMOR REKAM MEDIS|MRN|TELP|TELEPON|EMAIL)[\s:#=-]/i.test(d)
         && !/(NAMA PASIEN|ATAS NAMA|PASIEN BERNAMA)/i.test(d)
         && !/^[0-9\s+()./-]+$/.test(d);
-    }).slice(0, 20);
-    if (!safeRows.length) return reply(200, { answer: "Tidak ada istilah diagnosis yang memenuhi ambang untuk diusulkan kodenya. Istilah dengan kelompok kurang dari lima pasien tidak dimasukkan.", model: "database:icd10-review-queue", proposed: 0, pending: 0 });
+    });
+    // Batch kecil menjaga panjang konteks dan memberi kesempatan memproses antrean berikutnya tanpa duplikasi.
+    const safeRows = unmappedRows.slice(0, 15);
+    const awaitingReview = rows.filter((r) => String(r.mapping_status || "") === "proposed").length;
+    if (!safeRows.length) {
+      const message = awaitingReview
+        ? "Tidak ada istilah diagnosis baru yang memerlukan usulan AI. Saat ini ada " + awaitingReview + " usulan ICD-10 yang menunggu verifikasi reviewer PMIK/DPJP."
+        : "Tidak ada istilah diagnosis baru yang memenuhi kriteria untuk diusulkan. Istilah dengan kelompok kurang dari lima pasien tetap tidak dikirim ke provider AI demi perlindungan privasi.";
+      return reply(200, { answer: message, model: "database:icd10-review-queue", proposed: 0, pending: 0, awaiting_review: awaitingReview });
+    }
     const allowedTerms = new Set(safeRows.map((r) => String(r.diagnosis).trim()));
     const payload = { code_set: "WHO ICD-10 Version 2019", items: safeRows.map((r) => ({ diagnosis: String(r.diagnosis), patient_count: Number(r.patient_count) || 0 })) };
     const system = [
       "Kamu adalah asisten koding klinis untuk memberi USULAN ICD-10 WHO Version 2019. Ini bukan keputusan klinis atau koding final.",
+      "Analisis variasi ejaan, singkatan lazim, dan typo yang jelas, tetapi jangan menyamakan kondisi yang berbeda secara klinis. Diagnosis berbeda hanya boleh disatukan bila benar-benar memiliki makna klinis dan kode yang sama.",
       "Masukkan kode hanya bila diagnosis cukup spesifik dan padanannya jelas. Jangan menebak dari singkatan ambigu, istilah sisi tubuh tanpa konteks, atau diagnosis yang tidak lengkap.",
       'Kembalikan JSON valid saja dengan bentuk {"items":[{"diagnosis":"teks input persis","icd10_code":"kode atau null","icd10_title":"judul resmi atau null","confidence":0.0,"rationale":"alasan singkat"}]}.',
       "Gunakan hanya diagnosis yang sama persis dengan daftar input. Jangan menambahkan diagnosis, pasien, nama, nomor rekam medis, atau informasi klinis lain.",
@@ -742,9 +776,14 @@ async function handle(req: Request): Promise<Response> {
       saved++;
       reports.push("- " + item.diagnosis + " → " + item.code + " (" + Math.round(item.confidence * 100) + "%; belum tervalidasi)");
     }
+    const pending = Math.max(0, unmappedRows.length - saved);
+    const continuation = pending > 0
+      ? "\n\nMasih ada " + pending + " istilah baru dalam antrean. Jalankan kembali usulan AI untuk memproses kelompok berikutnya."
+      : "";
     return reply(200, {
-      answer: "NARA membuat " + saved + " usulan pemetaan ICD-10 dari " + safeRows.length + " istilah diagnosis agregat. Semua disimpan sebagai usulan, bukan kode tervalidasi.\n\n" + reports.join("\n"),
-      model: selected.provider + ":" + selected.model, proposed: saved, pending: safeRows.length - saved,
+      answer: "NARA membuat " + saved + " usulan pemetaan ICD-10 dari " + safeRows.length + " istilah diagnosis agregat. Semua disimpan sebagai usulan, bukan kode tervalidasi.\n\n" + reports.join("\n") + continuation +
+        (awaitingReview ? "\n\n" + awaitingReview + " usulan sebelumnya juga masih menunggu validasi reviewer." : ""),
+      model: selected.provider + ":" + selected.model, proposed: saved, pending, awaiting_review: awaitingReview + saved,
     });
   }
 
