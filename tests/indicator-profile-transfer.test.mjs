@@ -64,6 +64,15 @@ test('exports only active published profiles and retains source identity and nes
   assert.deepEqual(backup.profiles[0].schema_json, {
     measurement_type: 'ratio',
     indicator_direction: 'negative',
+    excel_mapping: {
+      worksheet: 'Logbook',
+      indicator_header: 'Status BHP/Linen',
+      date_header: 'Tanggal',
+      numerator_header: 'Jumlah kejadian',
+      denominator_header: 'Jumlah episode',
+      answer_header: 'Status',
+      notes_header: 'Keterangan',
+    },
   })
   assert.equal(backup.scope.room_id, 14)
 })
