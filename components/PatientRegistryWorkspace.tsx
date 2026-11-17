@@ -143,7 +143,6 @@ export default function PatientRegistryWorkspace({
   isValidator,
   canViewAllRooms,
   lockRoomScope = false,
-  section,
   registryTab,
   onRegistryTabChange,
 }: {
@@ -154,16 +153,12 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms: boolean
   lockRoomScope?: boolean
   /** Satu halaman operasional; statistik dan analitik berada di Visual Intelligence. */
-  section?: 'register' | 'stats' | 'metadata'
   registryTab?: 'add' | 'records' | 'directory'
   onRegistryTabChange?: (tab: 'add' | 'records' | 'directory') => void
 }) {
   const [tab, setTab] = useState<'add' | 'records' | 'directory'>(registryTab ?? 'records')
   const selectRegistryTab = (next: 'add' | 'records' | 'directory') => { setTab(next); onRegistryTabChange?.(next) }
-  useEffect(() => {
-    if (section === 'metadata') setTab(registryTab ?? 'directory')
-    else setTab(registryTab ?? 'records')
-  }, [section, registryTab])
+  useEffect(() => { setTab(registryTab ?? 'records') }, [registryTab])
   // Super Admin mengikuti unit global; PMKP dapat memilih Semua Unit atau unit tertentu.
   const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
