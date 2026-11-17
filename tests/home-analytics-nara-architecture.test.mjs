@@ -24,9 +24,12 @@ test('Program and Workforce have independent active navigation and workspace ren
   assert.match(home, /setActive\(moduleId\)/)
   assert.match(home, /if\(id==='staff'\)return active==='staff'/)
   assert.match(home, /if\(id==='analytics'\)return active==='analytics'/)
-  assert.ok(home.includes("active==='analytics'&&analyticsTab==='programs'?<AnnualProgramWorkspace"))
-  assert.ok(home.includes("active==='staff'&&analyticsTab==='pic-performance'?<PicPerformanceWorkspace"))
+  assert.ok(home.includes("active==='analytics'&&programTab==='programs'?<AnnualProgramWorkspace"))
+  assert.ok(home.includes("active==='staff'&&staffTab==='pic-performance'?<PicPerformanceWorkspace"))
   assert.ok(home.includes("active==='staff'?<MetadataStatisticsWorkspace"))
+  assert.match(home, /\[staffTab,setStaffTab\]=useState/)
+  assert.match(home, /\[programTab,setProgramTab\]=useState/)
+  assert.doesNotMatch(home, /analyticsTab|setAnalyticsTab/)
 })
 
 test('shared metric contracts preserve unavailable states and reuse secured sources', () => {

@@ -38,7 +38,7 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(app.includes("active==='staff'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace"))
   assert.ok(staffGroup.includes("{id:'fppe',label:'FPPE'}"))
   assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
-  assert.ok(app.includes("if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory')"))
+  assert.ok(app.includes("if(next==='staff'){setStaffTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory')"))
 })
 
 test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
