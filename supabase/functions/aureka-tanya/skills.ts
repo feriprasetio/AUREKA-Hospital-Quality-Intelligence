@@ -4,7 +4,8 @@
  */
 export type NaraSkillId =
   | "executive" | "quality" | "statistics" | "clinical" | "patient_safety"
-  | "risk" | "visual" | "knowledge" | "workforce" | "audit" | "research" | "data_quality";
+  | "risk" | "visual" | "knowledge" | "workforce" | "audit" | "research" | "data_quality"
+  | "engineering" | "governance";
 
 export type NaraSkill = {
   id: NaraSkillId;
@@ -28,16 +29,20 @@ export const NARA_SKILL_REGISTRY: readonly NaraSkill[] = [
   { id: "audit", label: "Audit Intelligence", intents: [/audit|kepatuhan|kelengkapan|temuan|verifikasi|validasi|evidence|bukti/i], domains: ["quality", "clinical", "patient_safety", "governance"], instructions: ["Rumuskan temuan berdasarkan kriteria, bukti, cakupan sampel, dan periode.", "Jangan menyebut patuh/tidak patuh tanpa denominator atau kriteria yang eksplisit."], requiresAggregateData: true },
   { id: "research", label: "Research Intelligence", intents: [/penelitian|riset|jurnal|publikasi|scopus|q1|metodologi|hipotesis|variabel|plsem|pls.sem|regresi|validitas|reliabilitas/i], domains: ["quality", "clinical", "patient_safety", "workforce"], instructions: ["Bedakan analisis eksploratif, inferensial, dan kausal.", "Jangan mengklaim novelty atau bukti literatur tanpa sumber yang dapat diverifikasi."], requiresAggregateData: true },
   { id: "data_quality", label: "Data Quality Intelligence", intents: [/kualitas data|data quality|duplikasi|missing|kosong|anomali|inkonsisten|kelengkapan data|validitas data|rekonsiliasi/i], domains: ["quality", "clinical", "risk", "patient_safety"], instructions: ["Periksa kelengkapan, konsistensi, duplikasi, validitas rentang, dan provenance.", "Tandai data yang tidak terbaca sebagai missing/unavailable, bukan nol."], requiresAggregateData: true },
+  { id: "engineering", label: "Engineering Intelligence", intents: [/supabase|next\\.js|react|typescript|javascript|sql|database|basis data|schema|migrasi|migration|rls|edge function|api|frontend|backend|full.?stack|debug(?:ging)?|deploy(?:ment)?|ci\\/?cd|github|repository|repositori|kode program|bug|error teknis|integrasi sistem|arsitektur sistem|performa aplikasi|pipeline/i], domains: ["engineering"], instructions: ["Berikan panduan rekayasa perangkat lunak yang spesifik: arsitektur, frontend, backend, API, Supabase, skema, migrasi, RLS, pengujian, dan CI/CD sesuai konteks yang benar-benar tersedia.", "Jangan mengklaim dapat membaca repository, menjalankan shell, mengubah kode, mengakses secret, mengeksekusi SQL, atau melakukan deployment dari gateway NARA apabila tool tersebut tidak tersedia.", "Jangan pernah meminta, menampilkan, atau menanam API key, service-role key, kredensial, token, URL privat, atau data pasien di kode klien. Untuk perubahan database, utamakan migrasi versioned, least privilege, RLS, dan pengujian."], requiresAggregateData: false },
+  { id: "governance", label: "Governance Intelligence", intents: [/tata kelola|governance|dewan pengawas|rekomendasi dewan|rekomendasi manajemen|prioritas tahunan|program kerja|keputusan direksi|keputusan manajemen|kebijakan rumah sakit|pemantauan rtl|rencana tindak lanjut|akuntabilitas|penanggung jawab strategis/i], domains: ["governance", "quality", "risk", "patient_safety", "clinical", "workforce"], instructions: ["Sintesis tata kelola berdasarkan rekomendasi, prioritas, tindak lanjut, pemilik tanggung jawab, tenggat, dan indikator hasil yang tersedia.", "Pisahkan fakta data, interpretasi, risiko pelaksanaan, dan rekomendasi; jangan menyimpulkan kepatuhan atau efektivitas tanpa bukti dan periode yang memadai.", "Bedakan saran analitis dari keputusan Direksi, Dewan Pengawas, Komite Medik, atau pejabat berwenang. NARA tidak mengesahkan kebijakan, menutup temuan, atau mengubah status tindak lanjut."], requiresAggregateData: true },
 ];
 
 const CROSS_DOMAIN = [
   { pattern: /mutu.*risiko|risiko.*mutu|indikator.*insiden|insiden.*indikator/i, ids: ["quality", "risk", "patient_safety"] as NaraSkillId[] },
   { pattern: /diagnosis.*mutu|mutu.*diagnosis|clinical pathway.*indikator/i, ids: ["clinical", "quality", "statistics"] as NaraSkillId[] },
   { pattern: /sdm.*mutu|mutu.*sdm|oppe.*risiko|risiko.*oppe/i, ids: ["workforce", "quality", "risk"] as NaraSkillId[] },
+  { pattern: /supabase.*mutu|mutu.*supabase|integrasi sistem.*indikator|indikator.*integrasi sistem/i, ids: ["engineering", "quality"] as NaraSkillId[] },
+  { pattern: /tata kelola.*risiko|risiko.*tata kelola|rtl.*risiko|risiko.*rtl/i, ids: ["governance", "risk"] as NaraSkillId[] },
   { pattern: /direktur|manajemen|eksekutif|strategis|prioritas rumah sakit/i, ids: ["executive", "quality", "risk", "patient_safety"] as NaraSkillId[] },
 ];
 
-export function planNaraSkills(question: string): { primary: NaraSkillId; selected: NaraSkillId[]; labels: string[]; domains: string[]; instructions: string[]; mode: "single-domain" | "cross-domain" } {
+export function planNaraSkills(question: string): { primary: NaraSkillId; selected: NaraSkillId[]; labels: string[]; domains: string[]; instructions: string[]; requiresAggregateData: boolean; mode: "single-domain" | "cross-domain" } {
   const q = question.trim();
   const matched = NARA_SKILL_REGISTRY.filter((skill) => skill.intents.some((pattern) => pattern.test(q)));
   let selected = matched.map((skill) => skill.id);
@@ -53,6 +58,7 @@ export function planNaraSkills(question: string): { primary: NaraSkillId; select
     labels: skills.map((skill) => skill.label),
     domains: [...new Set(skills.flatMap((skill) => skill.domains))],
     instructions: skills.flatMap((skill) => skill.instructions),
+    requiresAggregateData: skills.some((skill) => skill.requiresAggregateData),
     mode: selected.length > 1 ? "cross-domain" : "single-domain",
   };
 }
