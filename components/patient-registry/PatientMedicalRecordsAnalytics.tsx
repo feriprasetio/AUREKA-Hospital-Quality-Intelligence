@@ -80,6 +80,42 @@ export default function PatientMedicalRecordsAnalytics({
 
   return (
     <section className="patientRecordAnalytics">
+      <style>{`
+        .patientRecordAnalytics{display:grid;gap:14px;min-width:0;color:var(--ink,#18372b)}
+        .patientRecordAnalytics>header h2{margin:0;font-size:clamp(22px,3vw,29px);letter-spacing:-.04em}
+        .patientRecordAnalytics>header p{max-width:780px;margin:6px 0 0;color:var(--muted,#718078);font-size:12px;line-height:1.6}
+        .pmaKpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+        .pmaKpis article{min-width:0;padding:13px;border:1px solid var(--line,rgba(30,60,45,.14));border-radius:13px;background:#fff}
+        .pmaKpis span,.pmaKpis small{display:block;color:var(--muted,#718078);font-size:10px;line-height:1.45}
+        .pmaKpis strong{display:block;margin:6px 0;color:#17354c;font-size:clamp(18px,2vw,24px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+        .pmaGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+        .patientRecordAnalytics .pmaGrid>.prPanel{min-width:0;padding:15px}
+        .patientRecordAnalytics .pmaGrid h3,.patientRecordAnalytics>section h3{margin:0;color:#1c3549;font-size:14px}
+        .patientRecordAnalytics .pmaGrid p,.patientRecordAnalytics>section p{margin:5px 0 12px;color:var(--muted,#718078);font-size:11px;line-height:1.55}
+        .pmaTrend{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;align-items:end;min-height:150px}
+        .pmaMonth{display:grid;grid-template-rows:110px auto auto;gap:4px;min-width:0;text-align:center}
+        .pmaTrack{display:flex;align-items:flex-end;justify-content:center;height:110px;border-bottom:1px solid #e4ebe6}
+        .pmaBar{width:70%;min-height:2px;border-radius:4px 4px 0 0;background:#347da9}
+        .pmaMonth b,.pmaMonth small{font-size:9px;color:#607486}
+        .pmaBand{display:grid;grid-template-columns:110px minmax(60px,1fr) 34px;gap:8px;align-items:center;margin:11px 0;font-size:11px}
+        .pmaBand span{color:#516779}
+        .pmaBand progress,.pmaQualityRow progress{width:100%;height:8px;overflow:hidden;border:0;border-radius:99px;background:#edf2f5}
+        .pmaBand progress::-webkit-progress-bar,.pmaQualityRow progress::-webkit-progress-bar{background:#edf2f5;border-radius:99px}
+        .pmaBand progress::-webkit-progress-value,.pmaQualityRow progress::-webkit-progress-value{background:#4b88b3;border-radius:99px}
+        .pmaBand progress::-moz-progress-bar,.pmaQualityRow progress::-moz-progress-bar{background:#4b88b3;border-radius:99px}
+        .pmaBand b{text-align:right;color:#314d62;font-size:11px}
+        .pmaQualityRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;margin:11px 0;font-size:11px}
+        .pmaQualityRow span{color:#516779}.pmaQualityRow b{font-size:11px;color:#26465e;font-variant-numeric:tabular-nums}
+        .pmaQualityRow progress{grid-column:1/-1}
+        .pmaNote{padding:12px 14px;border:1px solid #dbe7ef;border-radius:11px;background:#f6f9fb;color:#4d6477;font-size:11px;line-height:1.6}
+        @media(max-width:1100px){.pmaKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.pmaGrid{grid-template-columns:1fr}}
+        @media(max-width:640px){.pmaKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pmaBand{grid-template-columns:95px minmax(45px,1fr) 30px}.pmaTrend{gap:2px}.pmaMonth b,.pmaMonth small{font-size:8px}}
+        html[data-mode="gelap"] .patientRecordAnalytics .pmaKpis article{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+        html[data-mode="gelap"] .patientRecordAnalytics>header h2,html[data-mode="gelap"] .pmaKpis strong,html[data-mode="gelap"] .patientRecordAnalytics .pmaGrid h3{color:#e6edf5}
+        html[data-mode="gelap"] .pmaKpis span,html[data-mode="gelap"] .pmaKpis small,html[data-mode="gelap"] .pmaMonth b,html[data-mode="gelap"] .pmaMonth small,html[data-mode="gelap"] .pmaBand span,html[data-mode="gelap"] .pmaQualityRow span{color:#bdc9d4}
+        html[data-mode="gelap"] .pmaBand progress,html[data-mode="gelap"] .pmaQualityRow progress,html[data-mode="gelap"] .pmaBand progress::-webkit-progress-bar,html[data-mode="gelap"] .pmaQualityRow progress::-webkit-progress-bar{background:rgba(255,255,255,.1)}
+        html[data-mode="gelap"] .pmaNote{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:#bdc9d4}
+      `}</style>
       <header>
         <h2>Analisis Rekam Medis</h2>
         <p>Analisis longitudinal dari episode yang sudah tercatat: LOS, diagnosis/ICD-10, kelengkapan identitas rekam medis, tren episode, dan pemanfaatan layanan. Halaman ini hanya membaca data agregat, bukan tempat input atau validasi logbook.</p>
