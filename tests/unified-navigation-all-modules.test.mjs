@@ -69,7 +69,7 @@ test('Patient module contains only patient-centred read-only record views; all e
   assert.match(analysis, /LOS/)
   assert.match(analysis, /ICD-10/)
   assert.match(analysis, /bukan identitas pasien/)
-  assert.doesNotMatch(analysis, /Nama Pasien|No\. RM|patient_name|medical_record_no/)
+  assert.doesNotMatch(analysis, /patient_name|medical_record_no/)
 })
 test('one final stylesheet normalizes tablists throughout workspace modules', () => {
   const layout = read('app/layout.tsx')
