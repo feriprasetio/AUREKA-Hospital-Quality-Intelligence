@@ -148,7 +148,7 @@ export default function PatientRegistryWorkspace({
   lockRoomScope?: boolean
   /** Satu halaman operasional; statistik dan analitik berada di Visual Intelligence. */
   registryTab?: 'records' | 'directory' | 'analysis'
-  onRegistryTabChange?: (tab: 'add' | 'records' | 'directory') => void
+  onRegistryTabChange?: (tab: 'records' | 'directory' | 'analysis') => void
 }) {
   const [tab, setTab] = useState<'records' | 'directory' | 'analysis'>(registryTab ?? 'records')
   const selectRegistryTab = (next: 'records' | 'directory' | 'analysis') => { setTab(next); onRegistryTabChange?.(next) }
