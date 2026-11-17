@@ -63,15 +63,17 @@ The availability of a key does not by itself prove a successful live call. Provi
 9. No service-role key is sent to a provider or browser.
 10. Medical record numbers (No. RM) may be used inside a protected database function for joins/deduplication and access auditing only. They are not sent to external LLM providers.
 11. Patient names, NIK, contact details, episode identifiers, raw narrative incident records, staff names and direct identifiers are excluded from external model context. Clinical analytics returns de-identified grouped diagnosis terms/counts with minimum cell size 5.
-12. The clinical source basis is labelled. Until episode data exist, diagnosis ranking falls back to the latest diagnosis per patient and is not a ranking of all encounters or all raw DPJP notes.
+12. The clinical source basis is labelled. The latest diagnosis per patient in patient_index is the primary ranking source whenever eligible rows exist. Episode data are always reported separately and never mixed into the patient denominator; episodes are only the primary fallback when no eligible patient-index diagnoses exist.
 13. ICD-10 AI outputs are proposals only. Every proposed mapping remains `proposed`; only authorized ADMIN/PMKP reviewers may validate it after checking the WHO ICD-10 tabular list and recording a validation reference. Ambiguous shorthand is never auto-approved.
 
 ## Clinical intelligence and ICD-10 workflow
 
-- `aureka_nara_clinical_summary` performs SQL-side MRN deduplication and returns only grouped diagnosis labels and counts, with access audit. The LLM receives no MRN or patient name.
-- Current clinical fallback is `patient_index.diagnosis_terakhir` (one latest diagnosis per patient) when no patient-episode rows are available. The response must state that provenance and limitations.
-- When episode-level diagnosis data are populated in `aureka_quality.quality_records` (`measurement_grain='patient_episode'`), the secure RPC will use those episode rows, count distinct patients and episodes separately, and preserve minimum-cell suppression.
-- ICD-10 suggestions use only the protected aggregate review queue. NARA calls the five-provider gateway, validates the model JSON and ICD code pattern, then stores results as `proposed` only. The UI requires an authorized reviewer to enter the official validation reference before marking a mapping `validated`.
+- aureka_nara_clinical_summary performs SQL-side MRN deduplication and returns only grouped diagnosis labels/counts, source-basis metadata, and a PHI-free access audit. The LLM receives no MRN or patient name.
+- The patient index is the primary patient-level source whenever eligible diagnosis_terakhir values exist in the authenticated user's permitted rooms and selected year. The ranking means one latest diagnosis per indexed patient, not every visit or full diagnosis history.
+- quality_records patient-episode data are counted separately as an episode context (episode count, unique patients, analyzable diagnosis rows, and suppressed diagnosis groups). They are not added to the patient-index denominator. Episode data are used as the primary ranking basis only when no eligible patient-index diagnoses exist.
+- Diagnosis normalization is deterministic for case, punctuation, and repeated whitespace. Typographical variants are not silently merged. The protected ICD-10 queue uses aggregated diagnosis labels with at least five unique patients, no identifiers, and the same authenticated room scope.
+- A user can request ICD-10 proposals in chat or launch Validasi ICD-10 in the NARA workspace. The backend processes new unmapped terms in bounded batches through the configured AI provider route. Every model response is validated against the exact input allowlist and code format, then stored as proposed only.
+- Only ADMIN/PMKP can access the review queue and save mappings. A reviewer must enter the official code title and a validation reference before marking a mapping validated. Equivalent spelling/alias variants may then be mapped to the same code and grouped in subsequent analytics; distinct clinical conditions must never be merged merely because their wording is similar.
 - Reference code set currently configured: WHO ICD-10 Version 2019. Check the official [WHO ICD-10 browser](https://icd.who.int/browse10/2019/en) for the final code/title/inclusion/exclusion notes.
 
 ## GitHub Actions deployment
