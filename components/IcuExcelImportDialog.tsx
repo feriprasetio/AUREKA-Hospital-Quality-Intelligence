@@ -164,7 +164,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       if (column != null) indexes[key] = column
     }
     for (const item of INDICATORS) {
-      const aliases = item.aliases ? [...item.aliases] : [item.sourceHeader]
+      const aliases = [...item.aliases]
       const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
         importerKey: 'icu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
       })
