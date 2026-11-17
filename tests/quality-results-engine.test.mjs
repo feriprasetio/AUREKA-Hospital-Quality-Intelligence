@@ -572,7 +572,7 @@ test('ratio profiles derive N/D from coded categorical responses when raw N/D fi
   const rows = [
     {
       record_date: '2026-01-03',
-      status: 'ready',
+      status: 'validated',
       core_data: { indicator_values: { '14.2': {
         answer: 'Formulir Transfer Terisi Lengkap',
         code: 1,
@@ -583,7 +583,7 @@ test('ratio profiles derive N/D from coded categorical responses when raw N/D fi
     },
     {
       record_date: '2026-01-04',
-      status: 'ready',
+      status: 'validated',
       core_data: { indicator_values: { '14.2': {
         answer: 'Tidak Lengkap karena kondisi klinis',
         code: null,
@@ -594,7 +594,7 @@ test('ratio profiles derive N/D from coded categorical responses when raw N/D fi
     },
     {
       record_date: '2026-01-05',
-      status: 'ready',
+      status: 'validated',
       core_data: { indicator_values: { '14.2': {
         answer: 'Tidak Ada Formulir Transfer',
         code: null,
