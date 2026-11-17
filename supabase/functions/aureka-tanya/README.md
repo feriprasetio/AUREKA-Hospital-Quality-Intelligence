@@ -54,7 +54,7 @@ Skill spesialis dapat dikombinasikan untuk pertanyaan lintas domain. Batas orkes
 ## Data minimization dan batas kewenangan
 
 - Autentikasi JWT dan Row Level Security (RLS) Supabase tetap menjadi batas otorisasi utama. Skill policy **tidak menggantikan RLS**.
-- Backend hanya membuat snapshot bila skill terpilih membutuhkan agregat data. Snapshot yang tersimpan di cache tetap berada di server.
+- Backend hanya menjalankan query untuk domain yang dipilih skill; skill teknis/pengetahuan tidak memuat snapshot rumah sakit. Cache server dipartisi berdasarkan kombinasi domain, dan warmup UI tidak lagi membaca seluruh modul. Snapshot tetap berada di server.
 - Sebelum konteks dikirim ke provider, `scopeSnapshotForSkills()` hanya mempertahankan agregat yang relevan dengan domain skill aktif. Kunci snapshot yang tidak dikenal tidak ikut dikirim (fail closed).
 - Pertanyaan Engineering, Knowledge, Statistical, Visual, Audit, atau Research tanpa skill domain data yang relevan tidak otomatis menarik snapshot lintas modul.
 - Konteks klinis, risiko, keselamatan pasien, SDM, mutu, dan tata kelola tetap berupa agregat yang diminimalkan. Identitas langsung pasien/petugas tidak boleh dikirim ke provider AI.
