@@ -35,6 +35,8 @@ test("parses heatmap and validates both dimensions and numeric value", () => {
 test("parses risk matrix only for valid 1-to-5 likelihood and impact", () => {
   const matrix = { title: "Matriks risiko", chartType: "risk_matrix", data: [{ likelihood: 5, impact: 4, count: 3 }, { likelihood: 2, impact: 3, count: 1 }] };
   assert.equal(parseNaraVisual("[[NARA_VISUAL]]" + JSON.stringify(matrix) + "[[/NARA_VISUAL]]").visual?.chartType, "risk_matrix");
+  const fullMatrix = { ...matrix, data: Array.from({ length: 25 }, (_, i) => ({ likelihood: Math.floor(i / 5) + 1, impact: (i % 5) + 1, count: i })) };
+  assert.equal(parseNaraVisual("[[NARA_VISUAL]]" + JSON.stringify(fullMatrix) + "[[/NARA_VISUAL]]").visual?.data.length, 25);
   const invalid = { ...matrix, data: [{ likelihood: 6, impact: 3, count: 1 }] };
   assert.equal(parseNaraVisual("[[NARA_VISUAL]]" + JSON.stringify(invalid) + "[[/NARA_VISUAL]]").visual, undefined);
 });
