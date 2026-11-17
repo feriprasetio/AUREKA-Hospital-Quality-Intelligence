@@ -3,9 +3,11 @@
 export const NAV_HINTS: Record<string, string> = {
   'Beranda': 'Ringkasan hari ini: pengingat, tugas, dan angka penting untuk cakupan Anda.',
   'Infografis': 'Grafik ringkas capaian mutu, insiden, dan risiko.',
-  'Register Pasien': 'Catat pasien baru atau lihat rekapan pasien per ruangan.',
+  'Register Pasien': 'Lihat riwayat episode, direktori pasien, dan analisis rekam medis tanpa membuat catatan mutu ganda.',
   'Statistik': 'Jumlah dan tren kunjungan pasien.',
   'Metadata Pasien': 'Daftar induk pasien berdasarkan No. RM beserta riwayat kunjungannya.',
+  'Riwayat Episode': 'Telusuri episode pelayanan pasien lintas unit; perubahan data sumber tetap dilakukan melalui Form Logbook Indikator Mutu.',
+  'Analisis Rekam Medis': 'Analisis agregat LOS, diagnosis/ICD-10, kelengkapan No. RM, tren episode, dan pemanfaatan layanan.',
   'Form Logbook': 'Isi data indikator mutu ruangan Anda (berapa yang memenuhi standar dari seluruh kasus).',
   'Hasil Capaian': 'Persentase capaian tiap indikator dibanding targetnya.',
   'Unit Keseluruhan': 'Capaian indikator dilihat per ruangan.',
