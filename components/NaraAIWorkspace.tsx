@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import TanyaAureka, { type TanyaMessage } from '@/components/TanyaAureka'
+import NaraIcd10ReviewWorkspace from '@/components/NaraIcd10ReviewWorkspace'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 
 
@@ -17,6 +18,7 @@ const GLYPH: Record<string, ReactNode> = {
   risk: <><path d="M12 4 21 19.5H3z" /><path d="M12 10v4.5" /><path d="M12 17.2v.3" /></>,
   strategy: <><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r=".6" /></>,
   research: <><path d="M9 4h6" /><path d="M10 4v5.5L5.2 18a1.5 1.5 0 0 0 1.3 2.2h11a1.5 1.5 0 0 0 1.3-2.2L14 9.5V4" /><path d="M7.5 15h9" /></>,
+  clinical: <><path d="M3 12h4l2-7 4 14 2-7h6" /></>,
 
 }
 
@@ -27,6 +29,7 @@ const MODES = [
   { id:'risk', label:'Analisis risiko', detail:'Prioritas risiko, FMEA, dan RTP', prompt:'Analisis profil manajemen risiko rumah sakit. Prioritaskan risiko tinggi dan sangat tinggi, evaluasi tindak pengendalian, dan berikan rekomendasi.' },
   { id:'strategy', label:'Saran strategis', detail:'Lima prioritas berbasis data', prompt:'Bertindak sebagai strategic advisor rumah sakit. Rumuskan 5 prioritas strategis berbasis data mutu, keselamatan pasien, dan manajemen risiko, lengkap dengan indikator keberhasilan.' },
   { id:'research', label:'Riset & statistik', detail:'Metode, asumsi, dan interpretasi', prompt:'Bantu saya melakukan analisis ilmiah dan statistik untuk peningkatan mutu rumah sakit. Jelaskan metode, asumsi, keterbatasan data, dan interpretasi secara akademik.' },
+  { id:'clinical', label:'Analisis diagnosis & ICD-10', detail:'Pola diagnosis, variasi ejaan, dan usulan koding', prompt:'Analisis diagnosis terakhir pasien yang tersedia di Database Pasien AUREKA. Jelaskan 10 diagnosis terbanyak berdasarkan pasien unik, bedakan dengan data episode Logbook, lalu usulkan pemetaan ICD-10 WHO 2019 untuk istilah diagnosis yang memenuhi ambang privasi. Periksa variasi ejaan dan typo, tetapi jangan menyamakan kondisi klinis yang berbeda. Semua kode adalah usulan sampai diverifikasi PMIK/DPJP.' },
 
 ] as const
 
@@ -60,6 +63,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   const [convos, setConvos] = useState<Convo[]>([])
   const [activeId, setActiveId] = useState<string>(() => newId())
   const [listOpen, setListOpen] = useState(false)
+  const [workspaceView, setWorkspaceView] = useState<'chat' | 'icd10'>('chat')
 
 
   const listKey = uid ? LIST_KEY + ':' + uid : null
@@ -98,8 +102,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
     })
   }, [activeId, listKey])
 
-  const startNew = () => { setActiveId(newId()); setListOpen(false) }
-  const openConvo = (id: string) => { setActiveId(id); setListOpen(false) }
+  const startNew = () => { setActiveId(newId()); setListOpen(false); setWorkspaceView('chat') }
+  const openConvo = (id: string) => { setActiveId(id); setListOpen(false); setWorkspaceView('chat') }
   const removeConvo = async (c: Convo) => {
     if (!(await aurekaConfirm('Percakapan "' + c.title + '" akan dihapus dari perangkat ini.', { title: 'Hapus percakapan?', confirmLabel: 'Hapus', danger: true }))) return
     try { if (uid) localStorage.removeItem('nara-ai-history:' + uid + ':nara:' + c.id) } catch { /* abaikan */ }
@@ -123,6 +127,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
   return <div className={'naraWorkspace' + (listOpen ? ' listOpen' : '')} aria-label="NARA AI">
     <aside className="naraHistory" aria-label="Riwayat percakapan NARA">
       <button type="button" className="naraNew" onClick={startNew}><span aria-hidden="true">+</span> Percakapan baru</button>
+      <button type="button" className="naraReviewNav" aria-pressed={workspaceView === 'icd10'} onClick={() => { setWorkspaceView('icd10'); setListOpen(false) }}>Validasi ICD-10</button>
       <div className="naraHistoryList">
         {groups.length === 0 && <p className="naraEmpty">Belum ada percakapan. Pertanyaan Anda akan tersimpan di sini, hanya di perangkat ini.</p>}
         {groups.map(([label, items]) => <div key={label} className="naraGroup">
@@ -143,13 +148,20 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
 
     </aside>
 
-    <section className="naraStageWrap" aria-label="Percakapan dengan NARA">
-      <div className="naraMobileBar">
-        <button type="button" onClick={() => setListOpen((v) => !v)} aria-expanded={listOpen}>{listOpen ? 'Tutup riwayat' : 'Riwayat'}</button>
-        <button type="button" onClick={startNew}>+ Baru</button>
-      </div>
-      <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage}/>
-    </section>
+    {workspaceView === 'icd10' ? (
+      <section className="naraReviewWrap" aria-label="Validasi ICD-10">
+        <div className="naraMobileBar"><button type="button" onClick={() => setWorkspaceView('chat')}>Kembali ke NARA</button></div>
+        <NaraIcd10ReviewWorkspace sb={sb} onBack={() => setWorkspaceView('chat')}/>
+      </section>
+    ) : (
+      <section className="naraStageWrap" aria-label="Percakapan dengan NARA">
+        <div className="naraMobileBar">
+          <button type="button" onClick={() => setListOpen((v) => !v)} aria-expanded={listOpen}>{listOpen ? 'Tutup riwayat' : 'Riwayat'}</button>
+          <button type="button" onClick={startNew}>+ Baru</button>
+        </div>
+        <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage}/>
+      </section>
+    )}
 
 
     <style jsx>{`
@@ -158,6 +170,10 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraHistory > :not(.naraHistoryList){flex-shrink:0}
       .naraNew{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:14px;background:#1f2430;color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .12s ease}
       .naraNew:active{transform:scale(.98)}.naraNew span{font-size:18px;line-height:1}
+      .naraReviewNav{display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 12px;border:1px solid #d7e1eb;border-radius:13px;background:#fff;color:#1f5c7a;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s ease,background .12s ease}
+      .naraReviewNav[aria-pressed=true]{background:#e8f3f8;border-color:#9dc6d7}
+      .naraReviewWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden;padding:18px}
+      .naraReviewWrap .naraMobileBar{display:none}
       .naraHistoryList{flex:1;min-height:0;overflow:auto;display:grid;align-content:start;gap:12px;margin:0 -4px;padding:0 4px}
       .naraEmpty{margin:4px;font-size:13px;line-height:1.5;color:#6b7684}
       .naraGroup{display:grid;gap:2px;min-width:0}.naraGroup>*{min-width:0}
@@ -171,7 +187,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       .naraItem:hover .naraItemDel,.naraItem.on .naraItemDel,.naraItemDel:focus-visible{opacity:1}
       .naraItemDel:hover{background:#fdecea!important;color:#b42318}
       @media(hover:none){.naraItemDel{opacity:1}}
-      .naraNew:focus-visible,.naraItemOpen:focus-visible,.naraItemDel:focus-visible,.naraEngines summary:focus-visible{outline:2px solid rgba(34,211,238,.7);outline-offset:2px}
+      .naraNew:focus-visible,.naraReviewNav:focus-visible,.naraItemOpen:focus-visible,.naraItemDel:focus-visible,.naraEngines summary:focus-visible{outline:2px solid rgba(34,211,238,.7);outline-offset:2px}
       .naraEngines{position:relative}
       .naraEngines summary{display:flex;align-items:center;gap:8px;min-height:38px;padding:0 12px;border-radius:12px;background:rgba(255,255,255,.7);border:1px solid #dfe7f0;font-size:13px;font-weight:700;color:#1f2430;cursor:pointer;list-style:none}
       .naraEngines summary::-webkit-details-marker{display:none}
@@ -206,6 +222,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
 
         .naraWorkspace.listOpen .naraHistory{display:flex}
         .naraMobileBar{display:flex;justify-content:space-between;gap:8px;padding:10px 12px 0}
+        .naraReviewWrap{padding:10px;border-radius:18px}
+        .naraReviewWrap .naraMobileBar{display:flex}
         .naraMobileBar button{min-height:38px;padding:0 14px;border-radius:12px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:700;color:#1f2430}
         .naraStageWrap :global(.tanyaStaged){padding:28px 16px 20px}
       }
@@ -213,6 +231,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
       :global(html[data-mode="gelap"]) .naraWorkspace{color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraHistory,:global(html[data-mode="gelap"]) .naraStageWrap{background:rgba(20,27,38,.72);border-color:rgba(255,255,255,.1);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraNew{background:#eef2f7;color:#0f1218}
+      :global(html[data-mode="gelap"]) .naraReviewNav{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#b9e5f4}
+      :global(html[data-mode="gelap"]) .naraReviewWrap{background:rgba(20,27,38,.72);border-color:rgba(255,255,255,.1);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraItem:hover{background:rgba(255,255,255,.05)}
       :global(html[data-mode="gelap"]) .naraItem.on{background:rgba(255,255,255,.08);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraItemOpen{color:#c3ccd8}:global(html[data-mode="gelap"]) .naraItem.on .naraItemOpen{color:#eef2f7}
