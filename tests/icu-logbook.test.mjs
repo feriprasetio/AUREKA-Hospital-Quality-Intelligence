@@ -56,6 +56,21 @@ test('maps a unique exact label when the source omits its code', () => {
   assert.equal(answer?.reviewRequired, false)
 })
 
+test('retains an exact master code when the option remains subject to clinical review', () => {
+  const answer = parseIcuSourceAnswer('Pasien Dirawat Dengan Kekosongan BHP (Code 3)', [
+    {
+      code: 3,
+      label: 'Pasien Dirawat Dengan Kekosongan BHP',
+      numerator: false,
+      denominator: true,
+      review_required: true,
+    },
+  ])
+  assert.equal(answer?.code, 3)
+  assert.equal(answer?.reviewRequired, true)
+  assert.equal(answer?.mappingStatus, 'mapped')
+})
+
 test('does not force a conflicting source code into the published master', () => {
   const answer = parseIcuSourceAnswer('Formulir Transfer Terisi Lengkap (SBAR, TTV, Terapi, Tindakan) (Code 3)', transferOptions)
   assert.equal(answer?.code, null)
