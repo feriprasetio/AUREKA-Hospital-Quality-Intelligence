@@ -352,7 +352,7 @@ export default function LaboratoryExcelImportDialog({
 
       // The source workbook repeats Waktu Permintaan/Waktu Selesai in formula columns AE:AH.
       // Read only A:N so derived duplicate headers never collide with the clinical source headers.
-      const columns = new Map<string, number>()
+      const columns = new Map<string, number[]>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= 14; column++) {
         const name = cellText(headerRow.getCell(column))
@@ -505,8 +505,8 @@ export default function LaboratoryExcelImportDialog({
       if (actualSourceRows === 0) throw new Error('Tidak ada baris operasional Logbook yang berisi data pada kolom sumber B:N mulai baris 3.')
       const sourceNumberSummary = summarizeLaboratoryDuplicates(sourceNoValues)
       const medicalRecordSummary = summarizeLaboratoryDuplicates(medicalRecordValues)
-      const sourceNumberCounts = new Map<string, number[]>()
-      const medicalRecordCounts = new Map<string, number[]>()
+      const sourceNumberCounts = new Map<string, number>()
+      const medicalRecordCounts = new Map<string, number>()
       for (const value of sourceNoValues) if (value) sourceNumberCounts.set(value, (sourceNumberCounts.get(value) ?? 0) + 1)
       for (const value of medicalRecordValues) if (value) medicalRecordCounts.set(value, (medicalRecordCounts.get(value) ?? 0) + 1)
 
