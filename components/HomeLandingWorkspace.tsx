@@ -120,9 +120,6 @@ export default function HomeLandingWorkspace({
   }
 
   const [activity,setActivity] = useState<{lastAt:string|null;pending:{label:string;count:number;module:string}[];partial:boolean}>({lastAt:null,pending:[],partial:false})
-  const firstName = userName.trim().split(/\s+/)[0] || 'Pengguna'
-  const greeting = (() => { const h=Number(new Intl.DateTimeFormat('en-US',{hour:'2-digit',hour12:false,timeZone:'Asia/Pontianak'}).format(new Date())); return h<4?'Selamat malam':h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam' })()
-  const dateLabel = new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date())
   useEffect(() => {
     let cancelled=false
     if(!userId){setActivity({lastAt:null,pending:[],partial:true});return}
