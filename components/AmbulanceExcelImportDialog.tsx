@@ -114,7 +114,7 @@ function findHeader(columns: Map<string, number[]>, candidates: readonly string[
 function rowHasData(row: any, columns: Map<string, number[]>): boolean {
   return ['patientName', 'requestDate', 'requestedTime', 'deliveredTime', 'origin', 'driver', 'activity', 'destination', 'indicator']
     .some(key => {
-      const column = findHeader(columns, REQUIRED_HEADERS[key])
+      const column = findHeader(columns, REQUIRED_HEADERS[key], false)
       return column != null && cellText(row.getCell(column)) !== ''
     })
 }
