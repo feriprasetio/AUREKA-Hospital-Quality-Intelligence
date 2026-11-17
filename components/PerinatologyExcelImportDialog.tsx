@@ -92,6 +92,8 @@ function sourceNumber(cell: any): string {
 
 function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string, number> } {
   let bestMissingHeaders: string[] = []
+  let bestHeaderRowNumber = 0
+  let bestHeaderValues: string[] = []
   let bestDuplicateHeaders: string[] = []
 
   for (let rowNumber = 1; rowNumber <= Math.min(10, sheet.rowCount); rowNumber++) {
@@ -107,6 +109,15 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     if (!bestMissingHeaders.length || mapped.missingHeaders.length < bestMissingHeaders.length) {
       bestMissingHeaders = mapped.missingHeaders
       bestDuplicateHeaders = mapped.duplicateHeaders
+      bestHeaderRowNumber = rowNumber
+      bestHeaderValues = headerValues
+    }
+  }
+
+  if (bestHeaderRowNumber > 0) {
+    const interactive = mapPerinatologyLogbookHeaders(bestHeaderValues, true)
+    if (!interactive.missingHeaders.length && !interactive.duplicateHeaders.length) {
+      return { rowNumber: bestHeaderRowNumber, indexes: interactive.indexes }
     }
   }
 
