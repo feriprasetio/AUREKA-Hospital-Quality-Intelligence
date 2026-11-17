@@ -642,6 +642,12 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       if (!payload.schema_json || typeof payload.schema_json !== 'object' || Array.isArray(payload.schema_json)) {
         throw new Error('Struktur instrumen harus berupa objek JSON.')
       }
+      if (!MEASUREMENT_TYPES.some((item) => item.value === payload.schema_json.measurement_type)) {
+        throw new Error('Tipe pengukuran wajib dipilih sebelum menambahkan profil.')
+      }
+      if (!['positive', 'negative'].includes(String(payload.schema_json.indicator_direction ?? ''))) {
+        throw new Error('Arah indikator wajib dipilih sebelum menambahkan profil.')
+      }
     } catch (error) {
       setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
       return
