@@ -210,17 +210,6 @@ function maskMedicalRecord(value: string): string {
   return compact.length <= 4 ? '••••' : compact.slice(0, 2) + '••••' + compact.slice(-2)
 }
 
-function excelColumnLetter(column: number): string {
-  let value = column
-  let label = ''
-  while (value > 0) {
-    const remainder = (value - 1) % 26
-    label = String.fromCharCode(65 + remainder) + label
-    value = Math.floor((value - 1) / 26)
-  }
-  return label
-}
-
 function duplicateKey(row: PreparedRow): string {
   return [
     row.medicalRecordNo.trim().toLocaleLowerCase('id-ID'),
