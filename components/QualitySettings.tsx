@@ -61,6 +61,7 @@ const empty = (room: Room | undefined, year: number, indicatorType = ''): Model 
   measurement_grain: 'activity',
   schema_json: {},
   options_json: [{ label: 'Lainnya, tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }],
+  _measurement_type: '',
   _indicator_direction: '',
   _schema_text: '{}',
   _options_text: JSON.stringify([{ label: 'Lainnya, tuliskan alasan/temuan', code: null, numerator: null, denominator: true, review_required: true }], null, 2),
@@ -71,6 +72,7 @@ const empty = (room: Room | undefined, year: number, indicatorType = ''): Model 
 
 const editModel = (profile: Model): Model => ({
   ...profile,
+  _measurement_type: profile.schema_json?.measurement_type || '',
   _indicator_direction: profile.schema_json?.indicator_direction || '',
   _schema_text: JSON.stringify(profile.schema_json || {}, null, 2),
   _options_text: JSON.stringify(profile.options_json || [], null, 2),
@@ -123,11 +125,14 @@ const isActivePublished = (profile: Model): boolean => profile.is_active === tru
 const payloadFrom = (model: Model): Model => {
   const {
     id, created_at, updated_at, created_by, updated_by,
-    _schema_text, _options_text, _indicator_direction, ...fields
+    _schema_text, _options_text, _measurement_type, _indicator_direction, ...fields
   } = model
   const options = JSON.parse(String(_options_text ?? JSON.stringify(model.options_json || [])))
   const schema = JSON.parse(String(_schema_text ?? JSON.stringify(model.schema_json || {})))
+  const measurementType = String(_measurement_type ?? '').trim()
   const direction = String(_indicator_direction ?? '').trim()
+  if (measurementType) schema.measurement_type = measurementType
+  else delete schema.measurement_type
   if (direction === 'positive' || direction === 'negative') schema.indicator_direction = direction
   else delete schema.indicator_direction
   return {
@@ -138,6 +143,316 @@ const payloadFrom = (model: Model): Model => {
     schema_json: schema,
     options_json: options,
   }
+}
+
+
+type UnitBatchDraft = Model & {
+  _measurement_type: string
+  _indicator_direction: string
+  _excel_worksheet: string
+  _excel_indicator_header: string
+  _excel_date_header: string
+  _excel_numerator_header: string
+  _excel_denominator_header: string
+  _excel_answer_header: string
+  _excel_notes_header: string
+  _options_text: string
+}
+
+const MEASUREMENT_TYPES = [
+  { value: 'ratio', label: 'Rasio Numerator / Denominator' },
+  { value: 'compliance', label: 'Kepatuhan / opsi kategori' },
+  { value: 'visit', label: 'Waktu visite' },
+  { value: 'door', label: 'Durasi antar waktu' },
+  { value: 'minutes', label: 'Durasi dalam menit' },
+  { value: 'numeric', label: 'Nilai numerik' },
+  { value: 'occurrence', label: 'Kejadian' },
+]
+
+function toUnitBatchDraft(profile: Model): UnitBatchDraft {
+  const schema = profile.schema_json && typeof profile.schema_json === 'object' ? profile.schema_json : {}
+  const mapping = schema.excel_mapping && typeof schema.excel_mapping === 'object' ? schema.excel_mapping as Record<string, unknown> : {}
+  return {
+    ...profile,
+    _measurement_type: String(schema.measurement_type ?? ''),
+    _indicator_direction: String(schema.indicator_direction ?? ''),
+    _excel_worksheet: String(mapping.worksheet ?? ''),
+    _excel_indicator_header: String(mapping.indicator_header ?? ''),
+    _excel_date_header: String(mapping.date_header ?? ''),
+    _excel_numerator_header: String(mapping.numerator_header ?? ''),
+    _excel_denominator_header: String(mapping.denominator_header ?? ''),
+    _excel_answer_header: String(mapping.answer_header ?? ''),
+    _excel_notes_header: String(mapping.notes_header ?? ''),
+    _options_text: JSON.stringify(Array.isArray(profile.options_json) ? profile.options_json : [], null, 2),
+  }
+}
+
+function unitBatchEditablePayload(model: UnitBatchDraft): Model {
+  const schema = { ...(model.schema_json && typeof model.schema_json === 'object' ? model.schema_json : {}) }
+  const measurementType = String(model._measurement_type ?? '').trim()
+  const direction = String(model._indicator_direction ?? '').trim()
+  if (measurementType) schema.measurement_type = measurementType
+  else delete schema.measurement_type
+  if (direction) schema.indicator_direction = direction
+  else delete schema.indicator_direction
+
+  const mapping = {
+    worksheet: String(model._excel_worksheet ?? '').trim(),
+    indicator_header: String(model._excel_indicator_header ?? '').trim(),
+    date_header: String(model._excel_date_header ?? '').trim(),
+    numerator_header: String(model._excel_numerator_header ?? '').trim(),
+    denominator_header: String(model._excel_denominator_header ?? '').trim(),
+    answer_header: String(model._excel_answer_header ?? '').trim(),
+    notes_header: String(model._excel_notes_header ?? '').trim(),
+  }
+  if (Object.values(mapping).some(Boolean)) schema.excel_mapping = mapping
+  else delete schema.excel_mapping
+
+  let options: unknown
+  try {
+    options = JSON.parse(String(model._options_text ?? '[]'))
+  } catch {
+    throw new Error('JSON opsi jawaban indikator ' + model.code + ' belum valid.')
+  }
+  if (!Array.isArray(options)) throw new Error('Opsi jawaban indikator ' + model.code + ' harus berupa daftar JSON.')
+  const target = model.target_value === '' || model.target_value === null || model.target_value === undefined
+    ? null
+    : Number(model.target_value)
+  if (target !== null && !Number.isFinite(target)) throw new Error('Nilai target indikator ' + model.code + ' harus berupa angka.')
+  return {
+    profile_year: Number(model.profile_year),
+    room_id: Number(model.room_id),
+    unit_name: String(model.unit_name ?? ''),
+    code: String(model.code ?? '').trim(),
+    title: String(model.title ?? '').trim(),
+    indicator_type: String(model.indicator_type ?? '').trim() || null,
+    category: String(model.category ?? '').trim() || null,
+    unit_of_measure: String(model.unit_of_measure ?? '').trim() || null,
+    target_text: String(model.target_text ?? '').trim() || null,
+    target_operator: String(model.target_operator ?? '=').trim() || '=',
+    target_value: target,
+    numerator_definition: String(model.numerator_definition ?? '').trim() || null,
+    denominator_definition: String(model.denominator_definition ?? '').trim() || null,
+    measurement_grain: String(model.measurement_grain ?? 'activity'),
+    schema_json: schema,
+    options_json: options,
+  }
+}
+
+function stableProfileSignature(value: unknown): string {
+  const normalize = (input: any): any => {
+    if (Array.isArray(input)) return input.map(normalize)
+    if (input && typeof input === 'object') {
+      return Object.keys(input).sort().reduce<Record<string, unknown>>((result, key) => {
+        result[key] = normalize(input[key])
+        return result
+      }, {})
+    }
+    return input
+  }
+  return JSON.stringify(normalize(value))
+}
+
+function UnitLiveProfileEditor({
+  open,
+  room,
+  year,
+  profiles,
+  onClose,
+  onSaved,
+}: {
+  open: boolean
+  room: Room
+  year: number
+  profiles: Model[]
+  onClose: () => void
+  onSaved: () => void | Promise<void>
+}) {
+  const [drafts, setDrafts] = useState<UnitBatchDraft[]>([])
+  const [savingBatch, setSavingBatch] = useState(false)
+  const [error, setError] = useState('')
+  const [summary, setSummary] = useState('')
+
+  useEffect(() => {
+    if (!open) return
+    setDrafts(profiles.filter(isActivePublished).map(toUnitBatchDraft))
+    setError('')
+    setSummary('')
+  }, [open, profiles])
+
+  const updateDraft = (index: number, patch: Partial<UnitBatchDraft>) => {
+    setDrafts((current) => current.map((item, i) => i === index ? { ...item, ...patch } : item))
+    setSummary('')
+  }
+
+  const changes = useMemo(() => {
+    const originalById = new Map(profiles.filter(isActivePublished).map((profile) => [String(profile.id), profile]))
+    return drafts.filter((draft) => {
+      const original = originalById.get(String(draft.id))
+      if (!original) return false
+      try {
+        return stableProfileSignature(unitBatchEditablePayload(draft)) !== stableProfileSignature({
+          profile_year: Number(original.profile_year),
+          room_id: Number(original.room_id),
+          unit_name: String(original.unit_name ?? ''),
+          code: String(original.code ?? '').trim(),
+          title: String(original.title ?? '').trim(),
+          indicator_type: String(original.indicator_type ?? '').trim() || null,
+          category: String(original.category ?? '').trim() || null,
+          unit_of_measure: String(original.unit_of_measure ?? '').trim() || null,
+          target_text: String(original.target_text ?? '').trim() || null,
+          target_operator: String(original.target_operator ?? '=').trim() || '=',
+          target_value: original.target_value === '' || original.target_value == null ? null : Number(original.target_value),
+          numerator_definition: String(original.numerator_definition ?? '').trim() || null,
+          denominator_definition: String(original.denominator_definition ?? '').trim() || null,
+          measurement_grain: String(original.measurement_grain ?? 'activity'),
+          schema_json: (() => {
+            const schema = { ...(original.schema_json && typeof original.schema_json === 'object' ? original.schema_json : {}) }
+            const originalMapping = schema.excel_mapping
+            const hasMapping = originalMapping && typeof originalMapping === 'object'
+            if (!hasMapping) delete schema.excel_mapping
+            return schema
+          })(),
+          options_json: Array.isArray(original.options_json) ? original.options_json : [],
+        })
+      } catch {
+        return true
+      }
+    })
+  }, [drafts, profiles])
+
+  const save = async () => {
+    if (savingBatch || !changes.length) return
+    setSavingBatch(true)
+    setError('')
+    setSummary('')
+    try {
+      const p_profiles = changes.map((draft) => ({
+        prior_id: String(draft.id),
+        ...unitBatchEditablePayload(draft),
+        version: Number(draft.version || 1) + 1,
+        status: 'published',
+        is_active: true,
+      }))
+      const { data, error: rpcError } = await q().rpc('publish_indicator_profile_batch', {
+        p_profile_year: year,
+        p_room_id: room.id,
+        p_profiles,
+      })
+      if (rpcError) throw rpcError
+      const result = data as Record<string, any> | null
+      const updated = Number(result?.updated_profiles ?? 0)
+      if (!result || updated !== p_profiles.length) {
+        throw new Error('Jumlah profil yang dipublikasikan tidak sesuai dengan perubahan yang dikirim.')
+      }
+      setSummary(updated + ' profil berhasil diterbitkan sebagai versi baru. Profil yang tidak berubah tidak dibuatkan versi baru.')
+      await onSaved()
+      onClose()
+    } catch (saveError) {
+      setError(toUserFacingError(saveError, { fallback: 'Batch tidak tersimpan. Tidak ada perubahan parsial yang diterapkan.' }))
+    } finally {
+      setSavingBatch(false)
+    }
+  }
+
+  const gridStyle: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 9 }
+  const fieldStyle: CSSProperties = { display: 'grid', gap: 4, color: 'var(--muted)', fontSize: 12, minWidth: 0 }
+  const textInputStyle: CSSProperties = { width: '100%', minWidth: 0, boxSizing: 'border-box' }
+  const input = (label: string, value: unknown, onChange: (value: string) => void, opts: { type?: string; placeholder?: string } = {}) => (
+    <label className="field" style={fieldStyle}>
+      <span>{label}</span>
+      <input type={opts.type ?? 'text'} value={String(value ?? '')} placeholder={opts.placeholder ?? ''} style={textInputStyle} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  )
+  const select = (label: string, value: unknown, options: Array<{ value: string; label: string }>, onChange: (value: string) => void) => (
+    <label className="field" style={fieldStyle}>
+      <span>{label}</span>
+      <select value={String(value ?? '')} style={textInputStyle} onChange={(event) => onChange(event.target.value)}>
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+    </label>
+  )
+  const textarea = (label: string, value: unknown, onChange: (value: string) => void, placeholder = '') => (
+    <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}>
+      <span>{label}</span>
+      <textarea rows={2} value={String(value ?? '')} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  )
+
+  return (
+    <AurekaModal
+      open={open}
+      size="xl"
+      closeDisabled={savingBatch}
+      onClose={onClose}
+      title={'Edit seluruh profil · ' + room.name}
+      subtitle={'Tahun ' + year + ' · perubahan disimpan sekaligus sebagai versi baru; kode indikator dijaga tetap.'}
+      footer={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>{changes.length} dari {drafts.length} profil berubah</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="textButton" disabled={savingBatch} onClick={onClose}>Batal</button>
+            <LiquidGlassButton disabled={savingBatch || changes.length === 0} onClick={() => void save()}>
+              {savingBatch ? 'Menyimpan satu batch…' : 'Simpan semua perubahan'}
+            </LiquidGlassButton>
+          </div>
+        </div>
+      }
+    >
+      <div style={{ display: 'grid', gap: 12, padding: 12, maxHeight: '70vh', overflow: 'auto' }}>
+        <div style={{ border: '1px solid rgba(28,107,73,.20)', background: 'rgba(28,107,73,.055)', borderRadius: 11, padding: 10, fontSize: 12, lineHeight: 1.55 }}>
+          <strong>Mode unit aktif.</strong> Setiap kartu merupakan satu baris profil indikator. Kolom Excel disimpan pada metadata profil, sehingga hubungan sumber → indikator dapat dilihat dan dikelola tanpa mengubah kode. Gunakan nama header Excel, bukan huruf kolom yang dapat berubah saat urutan worksheet berubah.
+        </div>
+        {error && <div role="alert" style={{ color: '#9c3f32', border: '1px solid rgba(184,52,52,.3)', borderRadius: 9, padding: 9, fontSize: 12 }}>{error}</div>}
+        {drafts.map((model, index) => (
+          <section key={String(model.id)} style={{ border: '1px solid rgba(25,55,37,.13)', borderRadius: 12, padding: 12, background: 'rgba(255,255,255,.65)', display: 'grid', gap: 10 }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', minWidth: 0 }}>
+                <code style={{ color: '#256247', fontWeight: 800 }}>{model.code}</code>
+                <strong style={{ fontSize: 13 }}>{model.title}</strong>
+              </div>
+              <span style={{ color: 'var(--muted)', fontSize: 12 }}>v{model.version} → v{Number(model.version || 1) + 1}</span>
+            </header>
+            <div style={gridStyle}>
+              {input('Nama indikator', model.title, value => updateDraft(index, { title: value }))}
+              {input('Program / jenis indikator', model.indicator_type, value => updateDraft(index, { indicator_type: value }))}
+              {input('Kategori', model.category, value => updateDraft(index, { category: value }))}
+              {input('Satuan', model.unit_of_measure, value => updateDraft(index, { unit_of_measure: value }))}
+              {select('Tipe pengukuran', model._measurement_type, [{ value: '', label: 'Pilih tipe pengukuran' }, ...MEASUREMENT_TYPES], value => updateDraft(index, { _measurement_type: value }))}
+              {select('Grain pengukuran', model.measurement_grain, grains.map(value => ({ value, label: GRAIN_LABEL[value] ?? value })), value => updateDraft(index, { measurement_grain: value }))}
+              {select('Arah indikator', model._indicator_direction, [{ value: '', label: 'Pilih arah' }, { value: 'positive', label: 'Positif · semakin tinggi semakin baik' }, { value: 'negative', label: 'Negatif · semakin rendah semakin baik' }], value => updateDraft(index, { _indicator_direction: value }))}
+              {input('Target tertulis', model.target_text, value => updateDraft(index, { target_text: value }), { placeholder: 'Mis. ≥ 80%' })}
+              {select('Operator target', model.target_operator, [{ value: '>=', label: '≥' }, { value: '<=', label: '≤' }, { value: '=', label: '=' }, { value: '>', label: '>' }, { value: '<', label: '<' }], value => updateDraft(index, { target_operator: value }))}
+              {input('Nilai target numerik', model.target_value, value => updateDraft(index, { target_value: value }), { type: 'number' })}
+            </div>
+            <details style={{ borderTop: '1px solid rgba(25,55,37,.1)', paddingTop: 9 }}>
+              <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800 }}>Definisi, pemetaan kolom Excel, dan opsi jawaban</summary>
+              <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
+                {textarea('Definisi numerator / pembilang', model.numerator_definition, value => updateDraft(index, { numerator_definition: value }))}
+                {textarea('Definisi denominator / penyebut', model.denominator_definition, value => updateDraft(index, { denominator_definition: value }))}
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#315d45' }}>Pemetaan sumber Excel → indikator {model.code}</div>
+                <div style={gridStyle}>
+                  {input('Nama worksheet sumber', model._excel_worksheet, value => updateDraft(index, { _excel_worksheet: value }), { placeholder: 'Mis. Logbook' })}
+                  {input('Header kolom yang berisi indikator ini', model._excel_indicator_header, value => updateDraft(index, { _excel_indicator_header: value }), { placeholder: 'Mis. Kecepatan Penyelesaian IT' })}
+                  {input('Header tanggal pengukuran', model._excel_date_header, value => updateDraft(index, { _excel_date_header: value }), { placeholder: 'Mis. Tanggal' })}
+                  {input('Header numerator', model._excel_numerator_header, value => updateDraft(index, { _excel_numerator_header: value }), { placeholder: 'Mis. Jumlah tepat waktu' })}
+                  {input('Header denominator', model._excel_denominator_header, value => updateDraft(index, { _excel_denominator_header: value }), { placeholder: 'Mis. Jumlah laporan' })}
+                  {input('Header jawaban / opsi', model._excel_answer_header, value => updateDraft(index, { _excel_answer_header: value }), { placeholder: 'Mis. Status penyelesaian' })}
+                  {input('Header catatan / alasan', model._excel_notes_header, value => updateDraft(index, { _excel_notes_header: value }), { placeholder: 'Mis. Keterangan' })}
+                </div>
+                <div style={{ display: 'grid', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 700 }}>Opsi jawaban / instrumen</span>
+                  <OptionsEditor text={model._options_text} onChange={(value) => updateDraft(index, { _options_text: value })} />
+                </div>
+              </div>
+            </details>
+          </section>
+        ))}
+        {!drafts.length && <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, padding: 18 }}>Unit ini belum memiliki profil aktif yang dapat diedit.</div>}
+        {summary && <div role="status" style={{ color: '#176448', fontSize: 12 }}>{summary}</div>}
+      </div>
+    </AurekaModal>
+  )
 }
 
 export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, lockRoomScope = false }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; lockRoomScope?: boolean }) {
@@ -164,6 +479,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   }, [msg])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [unitBatchOpen, setUnitBatchOpen] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<Model | null>(null)
 
   const editorOpen = Boolean(edit || newOne)
   useEffect(() => {
@@ -272,6 +589,12 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       if (!payload.schema_json || typeof payload.schema_json !== 'object' || Array.isArray(payload.schema_json)) {
         throw new Error('Struktur instrumen harus berupa objek JSON.')
       }
+      if (!MEASUREMENT_TYPES.some((item) => item.value === payload.schema_json.measurement_type)) {
+        throw new Error('Tipe pengukuran wajib dipilih sebelum menerbitkan profil.')
+      }
+      if (!['positive', 'negative'].includes(String(payload.schema_json.indicator_direction ?? ''))) {
+        throw new Error('Arah indikator wajib dipilih sebelum menerbitkan profil.')
+      }
     } catch (error) {
       setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
       return
@@ -335,6 +658,12 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       if (!Array.isArray(payload.options_json)) throw new Error('Opsi instrumen harus berupa array JSON.')
       if (!payload.schema_json || typeof payload.schema_json !== 'object' || Array.isArray(payload.schema_json)) {
         throw new Error('Struktur instrumen harus berupa objek JSON.')
+      }
+      if (!MEASUREMENT_TYPES.some((item) => item.value === payload.schema_json.measurement_type)) {
+        throw new Error('Tipe pengukuran wajib dipilih sebelum menambahkan profil.')
+      }
+      if (!['positive', 'negative'].includes(String(payload.schema_json.indicator_direction ?? ''))) {
+        throw new Error('Arah indikator wajib dipilih sebelum menambahkan profil.')
       }
     } catch (error) {
       setMsg('Metadata belum tersimpan: ' + toUserFacingError(error, { fallback: 'JSON tidak valid.' }))
@@ -405,6 +734,33 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     else setMsg('Indikator dipensiunkan. Riwayat dan data capaian yang sudah ada tidak dihapus.')
     await load()
     setSaving(false)
+  }
+
+  const permanentlyDelete = async () => {
+    if (!pendingDelete?.id || saving) return
+    setSaving(true)
+    setMsg('')
+    try {
+      const { data, error } = await q().rpc('delete_unused_indicator_profile', {
+        p_profile_id: String(pendingDelete.id),
+      })
+      if (error) throw error
+      if (!data || (data as Record<string, unknown>).deleted !== true) {
+        throw new Error('Server belum mengonfirmasi penghapusan profil.')
+      }
+      const code = String((data as Record<string, unknown>).code ?? pendingDelete.code)
+      const targetRoomId = Number(pendingDelete.room_id)
+      setPendingDelete(null)
+      window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', {
+        detail: { year: Number(pendingDelete.profile_year), scopeRoomId: targetRoomId },
+      }))
+      await load()
+      setMsg('Profil uji ' + code + ' berhasil dihapus permanen. Tidak ada data audit atau respons yang ikut dihapus.')
+    } catch (error) {
+      setMsg('Profil tidak dapat dihapus permanen: ' + toUserFacingError(error, { fallback: 'Profil mungkin masih dirujuk oleh respons, aturan OPPE, proposal, atau catatan audit.' }))
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Template awal untuk tahun yang belum punya profil: profil aktif yang ada + profil bawaan 2026 yang ikut dalam aplikasi.
@@ -539,6 +895,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     }
   }
 
+  const selectedRoomForEditor = rooms.find((item) => String(item.id) === room) ?? null
+
     const fieldStyle: CSSProperties = {
     display: 'grid',
     gap: 5,
@@ -559,6 +917,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <label className="field" style={fieldStyle}><span>Target tertulis</span><input value={model.target_text || ''} placeholder="Mis. ≥ 85%" onChange={(e) => setModel({ ...model, target_text: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Operator target</span><select value={model.target_operator || '>='} onChange={(e) => setModel({ ...model, target_operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value="=">=</option><option value=">">&gt;</option><option value="<">&lt;</option></select></label>
         <label className="field" style={fieldStyle}><span>Nilai target numerik</span><input type="number" value={model.target_value ?? ''} onChange={(e) => setModel({ ...model, target_value: e.target.value })} /></label>
+        <label className="field" style={fieldStyle}><span>Tipe pengukuran</span><select required value={model._measurement_type || ''} onChange={(e) => setModel({ ...model, _measurement_type: e.target.value })}><option value="">Pilih tipe pengukuran</option>{MEASUREMENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Satuan pencatatan</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{GRAIN_LABEL[grain] || grain}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif, semakin tinggi semakin baik</option><option value="negative">Negatif, semakin rendah semakin baik</option></select></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi numerator</span><textarea value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
@@ -664,6 +1023,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
               <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX</LiquidGlassButton>
               <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
+              {room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
               <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
             <input
@@ -721,6 +1081,44 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 </div>
               )}
             </AurekaModal>
+            {selectedRoomForEditor && (
+              <UnitLiveProfileEditor
+                open={unitBatchOpen}
+                room={selectedRoomForEditor}
+                year={year}
+                profiles={profiles}
+                onClose={() => setUnitBatchOpen(false)}
+                onSaved={async () => {
+                  window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', {
+                    detail: { year, scopeRoomId: selectedRoomForEditor.id },
+                  }))
+                  await load()
+                  setMsg('Perubahan profil unit berhasil disimpan. Setiap indikator yang berubah diterbitkan sebagai versi baru.')
+                }}
+              />
+            )}
+            <AurekaModal
+              open={Boolean(pendingDelete)}
+              title="Hapus profil indikator permanen?"
+              subtitle={pendingDelete ? String(pendingDelete.code) + ' · ' + String(pendingDelete.title) : ''}
+              closeDisabled={saving}
+              onClose={() => setPendingDelete(null)}
+            >
+              <div style={{ display: 'grid', gap: 12, padding: 14 }}>
+                <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+                  Profil ini akan dihapus dari kamus indikator, bukan hanya disembunyikan. Aksi hanya diizinkan untuk profil <strong>retired/draf yang nonaktif</strong> dan tidak memiliki tautan ke respons, catatan audit, aturan OPPE, atau proposal.
+                </div>
+                <div style={{ border: '1px solid rgba(190,125,35,.34)', background: 'rgba(190,125,35,.07)', borderRadius: 10, padding: 11, fontSize: 12, lineHeight: 1.55 }}>
+                  Riwayat versi ini akan hilang. Data audit tidak dihapus. Server memeriksa ulang seluruh referensi sebelum mengizinkan penghapusan.
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(null)}>Batal</button>
+                  <button type="button" className="textButton" disabled={saving} onClick={() => void permanentlyDelete()} style={{ color: '#a23b31', fontWeight: 800 }}>
+                    {saving ? 'Memeriksa dan menghapus…' : 'Hapus permanen'}
+                  </button>
+                </div>
+              </div>
+            </AurekaModal>
             <AurekaModal
               open={Boolean(edit || newOne)}
               title={edit ? 'Edit indikator' : 'Tambah indikator'}
@@ -745,11 +1143,14 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                       {(profile.indicator_type || 'Tanpa program')} · {profile.unit_name || 'Unit belum ditentukan'} · {profile.category || 'Kategori belum diisi'}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
-                      Target: {profile.target_text || '-'} · Satuan: {profile.unit_of_measure || '-'} · Grain: {profile.measurement_grain || '-'} · v{profile.version || 1} · {profile.status || '-'}
+                      Target: {profile.target_text || '-'} · Satuan: {profile.unit_of_measure || '-'} · Grain: {profile.measurement_grain || '-'} · Tipe: {profile.schema_json?.measurement_type || 'Belum ditetapkan'} · v{profile.version || 1} · {profile.status || '-'}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
                       Arah capaian: {profile.schema_json?.indicator_direction === 'positive' ? 'Positif' : profile.schema_json?.indicator_direction === 'negative' ? 'Negatif' : 'Belum ditetapkan'}
                     </div>
+                    {profile.schema_json?.excel_mapping && <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7, overflowWrap: 'anywhere' }}>
+                      Sumber Excel: {profile.schema_json.excel_mapping.worksheet || 'Worksheet belum ditetapkan'} · {profile.schema_json.excel_mapping.indicator_header || 'Header indikator belum dipetakan'}
+                    </div>}
                     {needsMetadataReview(profile) && <div className="qsReviewNote">Perlu perbaikan teknis: {metadataReviewReasons(profile).join(', ')}.</div>}
                     {!needsMetadataReview(profile) && needsTargetApproval(profile) && <div style={{ marginTop: 5, color: '#9a6700', fontSize: 12, fontWeight: 750 }}>Perlu pengesahan pemilik indikator: {targetApprovalReasons(profile).join(', ')}. Indikator tetap dapat dipetakan dan dicatat; target belum dihitung sebagai target resmi.</div>}
                     {!needsMetadataReview(profile) && !needsTargetApproval(profile) && hasNeutralTargetStatus(profile) && <div style={{ marginTop: 5, padding: '7px 9px', borderRadius: 8, background: 'rgba(100,116,139,.08)', color: '#526170', fontSize: 12, lineHeight: 1.5 }}>{neutralTargetExplanation(profile)}</div>}
@@ -758,6 +1159,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
                     {isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
                     {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
+                    {profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(profile)} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
                   </div>
                 </div>
               ))}

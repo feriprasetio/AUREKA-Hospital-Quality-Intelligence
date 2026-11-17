@@ -237,6 +237,12 @@ export function parseIndicatorProfileBackup(value: unknown): IndicatorProfileBac
 const XLSX_PROFILE_SHEET = 'Profil Indikator'
 const XLSX_META_SHEET = 'Metadata'
 const XLSX_HELP_SHEET = 'Petunjuk'
+const OPTIONAL_XLSX_KEYS = new Set([
+  'measurement_type', 'indicator_direction', 'excel_worksheet', 'excel_indicator_header',
+  'excel_date_header', 'excel_numerator_header', 'excel_denominator_header',
+  'excel_answer_header', 'excel_notes_header',
+])
+
 const XLSX_COLUMNS = [
   ['source_id', 'ID Sumber (jangan diubah)'],
   ['source_code', 'Kode Sumber (jangan diubah)'],
@@ -255,6 +261,15 @@ const XLSX_COLUMNS = [
   ['measurement_grain', 'Grain Pengukuran'],
   ['schema_json', 'Konfigurasi Teknis JSON (jangan diubah bila tidak memahami)'],
   ['options_json', 'Opsi Instrumen JSON (jangan diubah bila tidak memahami)'],
+  ['measurement_type', 'Tipe Pengukuran'],
+  ['indicator_direction', 'Arah Indikator'],
+  ['excel_worksheet', 'Worksheet Sumber Excel'],
+  ['excel_indicator_header', 'Header Kolom Indikator Excel'],
+  ['excel_date_header', 'Header Tanggal Excel'],
+  ['excel_numerator_header', 'Header Numerator Excel'],
+  ['excel_denominator_header', 'Header Denominator Excel'],
+  ['excel_answer_header', 'Header Jawaban Excel'],
+  ['excel_notes_header', 'Header Catatan Excel'],
 ] as const
 
 function excelCellValue(value: ExcelJS.CellValue): unknown {
@@ -322,9 +337,31 @@ export async function buildIndicatorProfileXlsx(backup: IndicatorProfileBackup):
     const row: Record<string, unknown> = {}
     for (const [key] of XLSX_COLUMNS) {
       const value = profile[key]
-      row[key] = key === 'schema_json' || key === 'options_json'
-        ? JSON.stringify(value ?? (key === 'schema_json' ? {} : []))
-        : value ?? null
+      const schema = isObject(profile.schema_json) ? profile.schema_json : {}
+      const mapping = isObject(schema.excel_mapping) ? schema.excel_mapping : {}
+      if (key === 'schema_json' || key === 'options_json') {
+        row[key] = JSON.stringify(value ?? (key === 'schema_json' ? {} : []))
+      } else if (key === 'measurement_type') {
+        row[key] = schema.measurement_type ?? ''
+      } else if (key === 'indicator_direction') {
+        row[key] = schema.indicator_direction ?? ''
+      } else if (key === 'excel_worksheet') {
+        row[key] = mapping.worksheet ?? ''
+      } else if (key === 'excel_indicator_header') {
+        row[key] = mapping.indicator_header ?? ''
+      } else if (key === 'excel_date_header') {
+        row[key] = mapping.date_header ?? ''
+      } else if (key === 'excel_numerator_header') {
+        row[key] = mapping.numerator_header ?? ''
+      } else if (key === 'excel_denominator_header') {
+        row[key] = mapping.denominator_header ?? ''
+      } else if (key === 'excel_answer_header') {
+        row[key] = mapping.answer_header ?? ''
+      } else if (key === 'excel_notes_header') {
+        row[key] = mapping.notes_header ?? ''
+      } else {
+        row[key] = value ?? null
+      }
     }
     sheet.addRow(row)
   }
@@ -336,7 +373,9 @@ export async function buildIndicatorProfileXlsx(backup: IndicatorProfileBackup):
     ['Edit data', 'Satu baris pada sheet Profil Indikator mewakili satu indikator. Jangan mengubah nama sheet dan judul kolom.'],
     ['Wajib diisi', 'Kode Indikator, ID Unit, Nama Unit, Nama Indikator, dan Grain Pengukuran.'],
     ['Identitas sumber', 'Kolom ID Sumber dan Kode Sumber dipakai untuk pencocokan riwayat audit. Jangan diubah kecuali memahami dampaknya.'],
-    ['Konfigurasi teknis', 'Kolom konfigurasi JSON menjaga metadata instrumen yang belum direpresentasikan sebagai kolom sederhana. Jangan dihapus atau dikosongkan.'],
+    ['Konfigurasi teknis', 'Konfigurasi teknis JSON tetap dipertahankan. Tipe pengukuran dan arah indikator juga tersedia sebagai kolom biasa agar mudah ditinjau.'],
+    ['Pemetaan sumber Excel', 'Worksheet dan header kolom sumber dapat diisi agar sistem dan petugas mengetahui kolom Excel mana yang menjadi sumber indikator ini. Gunakan nama header, bukan huruf kolom.'],
+    ['Kolom kosong', 'Kolom pemetaan sumber yang kosong berarti belum ada hubungan kolom sumber yang ditetapkan.'],
     ['Target', 'Nilai Target harus berupa angka atau kosong. Target tekstual dapat ditulis pada kolom Target.'],
     ['Grain Pengukuran', 'Gunakan salah satu: patient_episode, provider_day, daily_metric, event, activity, aggregate.'],
     ['Penggantian', 'Impor mengganti seluruh profil aktif/draf pada tahun dan cakupan yang dipilih. Pastikan semua baris yang diperlukan ada.'],
@@ -378,8 +417,10 @@ export async function parseIndicatorProfileXlsx(data: ArrayBuffer | Uint8Array):
     const value = excelCellValue(cell.value as ExcelJS.CellValue)
     if (typeof value === 'string' && value.trim()) headers.set(value.trim(), colNumber)
   })
-  for (const [, header] of XLSX_COLUMNS) {
-    if (!headers.has(header)) throw new Error('Kolom "' + header + '" tidak ditemukan pada sheet Profil Indikator.')
+  for (const [key, header] of XLSX_COLUMNS) {
+    if (!headers.has(header) && !OPTIONAL_XLSX_KEYS.has(key)) {
+      throw new Error('Kolom "' + header + '" tidak ditemukan pada sheet Profil Indikator.')
+    }
   }
 
   const rows: Array<Record<string, unknown>> = []
@@ -387,12 +428,38 @@ export async function parseIndicatorProfileXlsx(data: ArrayBuffer | Uint8Array):
     if (rowNumber === 1) return
     const values: Record<string, unknown> = {}
     for (const [key, header] of XLSX_COLUMNS) {
-      const col = headers.get(header)!
+      const col = headers.get(header)
+      if (col == null) continue
       values[key] = excelCellValue(row.getCell(col).value as ExcelJS.CellValue)
     }
     if (Object.values(values).every((value) => value === null || value === undefined || value === '')) return
     values.schema_json = jsonCell(values.schema_json, 'Konfigurasi Teknis JSON', rowNumber)
     values.options_json = jsonCell(values.options_json, 'Opsi Instrumen JSON', rowNumber)
+
+    const schema = isObject(values.schema_json) ? { ...values.schema_json } : {}
+    const plainMeasurementType = cleanText(values.measurement_type)
+    const plainDirection = cleanText(values.indicator_direction)
+    if (headers.has('Tipe Pengukuran') && plainMeasurementType) schema.measurement_type = plainMeasurementType
+    if (headers.has('Arah Indikator') && plainDirection) schema.indicator_direction = plainDirection
+
+    const mappingHeaders = [
+      'Worksheet Sumber Excel', 'Header Kolom Indikator Excel', 'Header Tanggal Excel',
+      'Header Numerator Excel', 'Header Denominator Excel', 'Header Jawaban Excel', 'Header Catatan Excel',
+    ]
+    if (mappingHeaders.some((header) => headers.has(header))) {
+      const mapping = {
+        worksheet: cleanText(values.excel_worksheet),
+        indicator_header: cleanText(values.excel_indicator_header),
+        date_header: cleanText(values.excel_date_header),
+        numerator_header: cleanText(values.excel_numerator_header),
+        denominator_header: cleanText(values.excel_denominator_header),
+        answer_header: cleanText(values.excel_answer_header),
+        notes_header: cleanText(values.excel_notes_header),
+      }
+      if (Object.values(mapping).some(Boolean)) schema.excel_mapping = mapping
+      else delete schema.excel_mapping
+    }
+    values.schema_json = schema
     rows.push(values)
   })
 

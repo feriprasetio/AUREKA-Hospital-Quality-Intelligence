@@ -27,7 +27,19 @@ const profile = (overrides = {}) => ({
   numerator_definition: 'Jumlah pasien terdampak',
   denominator_definition: 'Jumlah seluruh pasien',
   measurement_grain: 'patient_episode',
-  schema_json: { measurement_type: 'ratio', indicator_direction: 'negative' },
+  schema_json: {
+    measurement_type: 'ratio',
+    indicator_direction: 'negative',
+    excel_mapping: {
+      worksheet: 'Logbook',
+      indicator_header: 'Status BHP/Linen',
+      date_header: 'Tanggal',
+      numerator_header: 'Jumlah kejadian',
+      denominator_header: 'Jumlah episode',
+      answer_header: 'Status',
+      notes_header: 'Keterangan',
+    },
+  },
   options_json: [{ label: 'Terjadi', code: 3 }, { label: 'Tidak terjadi', code: 1 }],
   status: 'published',
   is_active: true,
@@ -52,6 +64,15 @@ test('exports only active published profiles and retains source identity and nes
   assert.deepEqual(backup.profiles[0].schema_json, {
     measurement_type: 'ratio',
     indicator_direction: 'negative',
+    excel_mapping: {
+      worksheet: 'Logbook',
+      indicator_header: 'Status BHP/Linen',
+      date_header: 'Tanggal',
+      numerator_header: 'Jumlah kejadian',
+      denominator_header: 'Jumlah episode',
+      answer_header: 'Status',
+      notes_header: 'Keterangan',
+    },
   })
   assert.equal(backup.scope.room_id, 14)
 })
@@ -115,6 +136,7 @@ test('rejects duplicate indicator codes and malformed source identities', () => 
 
 
 const migrationSource = await readFile(new URL('../supabase/migrations/20261114080000_indicator_profile_set_transfer.sql', import.meta.url), 'utf8')
+const unitBatchMigrationSource = await readFile(new URL('../supabase/migrations/20261117180000_indicator_profile_unit_batch_edit_and_safe_delete.sql', import.meta.url), 'utf8')
 const settingsSource = await readFile(new URL('../components/QualitySettings.tsx', import.meta.url), 'utf8')
 const auditWorkspaceSource = await readFile(new URL('../components/QualityIndicatorWorkspace.tsx', import.meta.url), 'utf8')
 
@@ -177,6 +199,69 @@ test('XLSX workbook contains editable profile, metadata, and instruction sheets'
   assert.ok(workbook.getWorksheet('Metadata'))
   assert.ok(workbook.getWorksheet('Petunjuk'))
   assert.equal(workbook.getWorksheet('Profil Indikator').rowCount, 2)
+})
+
+test('unit live editor publishes changed profiles as a single versioned transaction and exposes guarded deletion', () => {
+  assert.match(unitBatchMigrationSource, /publish_indicator_profile_batch/i)
+  assert.match(unitBatchMigrationSource, /SECURITY INVOKER/i)
+  assert.match(unitBatchMigrationSource, /aureka_system\.is_superadmin\(\)/)
+  assert.match(unitBatchMigrationSource, /FOR UPDATE/i)
+  assert.match(unitBatchMigrationSource, /status = 'retired'/i)
+  assert.match(unitBatchMigrationSource, /delete_unused_indicator_profile/i)
+  assert.match(unitBatchMigrationSource, /v_profile\.is_active = true OR v_profile\.status NOT IN \('retired', 'draft'\)/i)
+  assert.match(unitBatchMigrationSource, /quality_record_responses/i)
+  assert.match(unitBatchMigrationSource, /oppe_indicator_rules/i)
+  assert.match(unitBatchMigrationSource, /indicator_proposals/i)
+  assert.match(unitBatchMigrationSource, /core_data->'indicator_values'/i)
+  assert.match(settingsSource, /Edit seluruh profil unit/)
+  assert.match(settingsSource, /publish_indicator_profile_batch/)
+  assert.match(settingsSource, /delete_unused_indicator_profile/)
+  assert.match(settingsSource, /Hapus permanen/)
+  assert.match(settingsSource, /Tipe pengukuran/)
+})
+
+test('profile XLSX exposes plain measurement and Excel source mapping columns and round-trips them', async () => {
+  const backup = buildIndicatorProfileBackup({
+    profileYear: 2026,
+    scopeRoomId: 14,
+    scopeName: 'ICU',
+    profiles: [profile()],
+  })
+  const bytes = await buildIndicatorProfileXlsx(backup)
+  const ExcelJS = (await import('exceljs-hardened')).default
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(bytes)
+  const sheet = workbook.getWorksheet('Profil Indikator')
+  const headers = new Set()
+  sheet.getRow(1).eachCell((cell) => headers.add(String(cell.value ?? '')))
+  assert.ok(headers.has('Tipe Pengukuran'))
+  assert.ok(headers.has('Arah Indikator'))
+  assert.ok(headers.has('Worksheet Sumber Excel'))
+  assert.ok(headers.has('Header Kolom Indikator Excel'))
+  assert.ok(headers.has('Header Numerator Excel'))
+  assert.ok(headers.has('Header Denominator Excel'))
+  const parsed = await parseIndicatorProfileXlsx(bytes)
+  assert.equal(parsed.profiles[0].schema_json.measurement_type, 'ratio')
+  assert.equal(parsed.profiles[0].schema_json.indicator_direction, 'negative')
+  assert.deepEqual(parsed.profiles[0].schema_json.excel_mapping, profile().schema_json.excel_mapping)
+})
+
+test('profile XLSX parser remains compatible with legacy workbooks without new mapping columns', async () => {
+  const backup = buildIndicatorProfileBackup({
+    profileYear: 2026,
+    scopeRoomId: 14,
+    scopeName: 'ICU',
+    profiles: [profile()],
+  })
+  const bytes = await buildIndicatorProfileXlsx(backup)
+  const ExcelJS = (await import('exceljs-hardened')).default
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(bytes)
+  workbook.getWorksheet('Profil Indikator').spliceColumns(18, 9)
+  const legacyBytes = await workbook.xlsx.writeBuffer()
+  const parsed = await parseIndicatorProfileXlsx(new Uint8Array(legacyBytes))
+  assert.equal(parsed.profiles[0].schema_json.measurement_type, 'ratio')
+  assert.deepEqual(parsed.profiles[0].schema_json.excel_mapping, profile().schema_json.excel_mapping)
 })
 
 test('profile workspace accepts XLSX only and no longer advertises JSON transfer', () => {
