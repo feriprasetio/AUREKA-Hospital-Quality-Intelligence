@@ -81,7 +81,7 @@ const safeCount = (values: Record<string, number>, threshold = 5) =>
 const safeScalar = (value: number, threshold = 5) => value >= threshold ? value : "disembunyikan (<" + threshold + ")";
 const top = (o: Record<string, number>, n: number) => Object.fromEntries(Object.entries(o).slice(0, n));
 
-type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; status: string | null; due_date: string | null };
+type Risk = { risk_code: string; unit_name: string | null; risk_event: string | null; risk_level: string; risk_score: number | null; likelihood: number | null; impact: number | null; status: string | null; due_date: string | null };
 type Plan = { status: string | null; target_date: string | null };
 type Incident = Record<string, unknown>;
 type Room = { id: number; name: string; is_active: boolean | null };
@@ -153,7 +153,7 @@ async function snapshot(db: SupabaseClient) {
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
   const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics, clinical, indicatorProfiles, investigations, culture, oppe, recommendations, actions, priorities] = await Promise.all([
-    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
+    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,likelihood,impact,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
     fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans").select("status,target_date").order("id", { ascending: true }).range(f, t)),
     fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
     qualityCounts(db, year),
@@ -184,6 +184,28 @@ async function snapshot(db: SupabaseClient) {
     if (r.risk_level in row) row[r.risk_level]++;
     row.total++;
   }
+  const riskMatrixCounts = new Map<string, number>();
+  let riskLikelihoodDefaultCount = 0;
+  let riskImpactDefaultCount = 0;
+  let riskMatrixInvalidCount = 0;
+  for (const risk of risks.rows) {
+    const likelihood = Number(risk.likelihood);
+    const impact = Number(risk.impact);
+    if (!Number.isInteger(likelihood) || likelihood < 1 || likelihood > 5 || !Number.isInteger(impact) || impact < 1 || impact > 5) {
+      riskMatrixInvalidCount++;
+      continue;
+    }
+    if (likelihood === 3) riskLikelihoodDefaultCount++;
+    if (impact === 3) riskImpactDefaultCount++;
+    const key = likelihood + "|" + impact;
+    riskMatrixCounts.set(key, (riskMatrixCounts.get(key) || 0) + 1);
+  }
+  const riskMatrix = Array.from({ length: 5 }, (_, i) => i + 1).flatMap((likelihood) =>
+    Array.from({ length: 5 }, (_, j) => j + 1).map((impact) => {
+      const count = riskMatrixCounts.get(likelihood + "|" + impact) || 0;
+      return { likelihood, impact, count: count > 0 && count < 5 ? "disembunyikan (<5)" : count };
+    })
+  );
   const risikoPerUnit = Object.entries(perUnit)
     .sort((a, b) => b[1]["Sangat Tinggi"] - a[1]["Sangat Tinggi"] || b[1]["Tinggi"] - a[1]["Tinggi"] || b[1].total - a[1].total)
     .map(([unit, c]) => ({ unit, sangat_tinggi: safeScalar(c["Sangat Tinggi"]), tinggi: safeScalar(c["Tinggi"]), sedang: safeScalar(c["Sedang"]), rendah: safeScalar(c["Rendah"]), total: c.total }));
@@ -298,6 +320,14 @@ async function snapshot(db: SupabaseClient) {
     manajemen_risiko: {
       total_risiko: safeScalar(risks.rows.length),
       per_level: safeCount(Object.fromEntries(LEVELS.map((l) => [l, risks.rows.filter((r) => r.risk_level === l).length]))),
+      matriks_likelihood_dampak: riskMatrix,
+      kualitas_data_matriks: {
+        total_register: risks.rows.length,
+        nilai_likelihood_default_3: riskLikelihoodDefaultCount,
+        nilai_impact_default_3: riskImpactDefaultCount,
+        baris_dengan_nilai_di_luar_skala: riskMatrixInvalidCount,
+        catatan: "Kolom likelihood dan impact memiliki default database 3. Frekuensi nilai 3 tidak membuktikan bahwa nilainya otomatis; nilai perlu diverifikasi terhadap sumber impor/penilaian. Sel dengan jumlah 1-4 disembunyikan untuk mencegah pengungkapan kelompok kecil."
+      },
       per_status: safeCount(count(risks.rows, (r) => r.status)),
       risiko_tinggi_dan_sangat_tinggi_tanpa_tenggat: safeScalar(risks.rows.filter((r) => (r.risk_level === "Tinggi" || r.risk_level === "Sangat Tinggi") && !r.due_date && open(r)).length),
       risiko_lewat_tenggat: safeScalar(risks.rows.filter((r) => r.due_date && r.due_date < today && open(r)).length),
@@ -537,26 +567,34 @@ function appendRiskDistributionFallback(question: string, answer: string, snapsh
   if (!snapshotData || typeof snapshotData !== "object") return answer;
   const risk = (snapshotData as Record<string, unknown>).manajemen_risiko;
   if (!risk || typeof risk !== "object") return answer;
+  const matrixRows = (risk as Record<string, unknown>).matriks_likelihood_dampak;
+  const quality = (risk as Record<string, unknown>).kualitas_data_matriks as Record<string, unknown> | undefined;
+  if (Array.isArray(matrixRows) && matrixRows.length === 25) {
+    const data = matrixRows.filter((row): row is Record<string, unknown> => !!row && typeof row === "object")
+      .map((row) => ({ likelihood: Number(row.likelihood), impact: Number(row.impact), count: row.count }));
+    if (data.length === 25 && data.every((row) => Number.isInteger(row.likelihood) && row.likelihood >= 1 && row.likelihood <= 5 && Number.isInteger(row.impact) && row.impact >= 1 && row.impact <= 5 && (typeof row.count === "number" && Number.isFinite(row.count) && row.count >= 0 || typeof row.count === "string" && row.count.startsWith("disembunyikan")))) {
+      const visual = {
+        title: "Matriks Risiko 5×5 — Likelihood × Impact",
+        chartType: "risk_matrix",
+        data,
+        source: "Agregat register risiko AUREKA (aureka_risk.risk_register)",
+        period: "Snapshot saat pertanyaan diproses",
+        unit: "jumlah register",
+        interpretation: "Matriks memakai nilai likelihood dan impact yang tersimpan pada register. Perhatian mutu data: nilai 3 merupakan default pada skema; jumlah likelihood=3: " + String(quality?.nilai_likelihood_default_3 ?? "tidak diketahui") + ", impact=3: " + String(quality?.nilai_impact_default_3 ?? "tidak diketahui") + ". Frekuensi nilai 3 belum membuktikan apakah nilai tersebut hasil penilaian atau nilai default impor. Sel dengan jumlah 1–4 disembunyikan."
+      };
+      return answer.trim() + "\n\nSaya dapat menampilkan matriks berdasarkan nilai yang saat ini tersimpan. Namun, nilai default perlu diverifikasi sebelum matriks dipakai sebagai dasar keputusan.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
+    }
+  }
   const perLevel = (risk as Record<string, unknown>).per_level;
   if (!perLevel || typeof perLevel !== "object") return answer;
   const values = perLevel as Record<string, unknown>;
-  const data = LEVELS.map((level) => ({ tingkat_risiko: level, jumlah: values[level] }))
+  const pieData = LEVELS.map((level) => ({ tingkat_risiko: level, jumlah: values[level] }))
     .filter((row): row is { tingkat_risiko: string; jumlah: number } =>
       typeof row.jumlah === "number" && Number.isFinite(row.jumlah) && row.jumlah >= 0);
-  if (data.length < 2 || data.some((row) => row.jumlah < 0) || data.reduce((sum, row) => sum + row.jumlah, 0) <= 0) return answer;
-  const total = data.reduce((sum, row) => sum + row.jumlah, 0);
-  const visual = {
-    title: "Distribusi Risiko Berdasarkan Tingkat Risiko",
-    chartType: "pie",
-    xKey: "tingkat_risiko",
-    valueKey: "jumlah",
-    data,
-    source: "Agregat register risiko AUREKA",
-    period: "Snapshot saat pertanyaan diproses",
-    unit: "risiko",
-    interpretation: "Distribusi ini menunjukkan komposisi tingkat risiko pada register. Visualisasi ini bukan matriks kemungkinan × dampak; penempatan pada matriks 5×5 memerlukan nilai likelihood dan impact untuk setiap risiko."
-  };
-  return answer.trim() + "\n\nMatriks 5×5 belum dapat dibentuk tanpa nilai kemungkinan dan dampak per risiko. Sebagai alternatif yang didukung data, berikut distribusi tingkat risiko dari " + total.toLocaleString("id-ID") + " register.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
+  if (pieData.length < 2 || pieData.reduce((sum, row) => sum + row.jumlah, 0) <= 0) return answer;
+  const total = pieData.reduce((sum, row) => sum + row.jumlah, 0);
+  const visual = { title: "Distribusi Risiko Berdasarkan Tingkat Risiko", chartType: "pie", xKey: "tingkat_risiko", valueKey: "jumlah", data: pieData, source: "Agregat register risiko AUREKA", period: "Snapshot saat pertanyaan diproses", unit: "risiko", interpretation: "Distribusi tingkat risiko ini bukan matriks likelihood × impact." };
+  return answer.trim() + "\n\nMatriks 5×5 belum dapat dibentuk dari snapshot ini. Sebagai alternatif, berikut distribusi tingkat risiko.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
 }
 
 async function handle(req: Request): Promise<Response> {
@@ -733,7 +771,7 @@ async function handle(req: Request): Promise<Response> {
     skillPlan ? "SKILL ORCHESTRATION (ditetapkan backend, bukan oleh model):" : "",
     skillPlan ? JSON.stringify({ mode: skillPlan.mode, primary: skillPlan.primary, selected_skills: skillPlan.labels, authorized_data_domains_in_context: skillPlan.domains }) : "",
     ...(skillPlan?.instructions.map((instruction) => "ATURAN SKILL: " + instruction) || []),
-    "VISUAL INTELLIGENCE: Jika pengguna meminta visualisasi, buat blok [[NARA_VISUAL]]JSON[[/NARA_VISUAL]] dengan tipe yang didukung dan hanya memakai angka DATA AUREKA. Untuk matriks risiko 5×5, gunakan likelihood dan impact per risiko; jangan menurunkannya dari level atau skor agregat. Jika kedua variabel tidak tersedia, jangan mengarang matriks. Backend akan otomatis menyertakan pie chart distribusi per_level sebagai alternatif bila data agregat tersebut tersedia. Pie chart harus memakai kategori saling lepas, denominator yang jelas, sumber, periode, unit, dan interpretasi yang menyebut keterbatasan. Untuk visual lain, gunakan bar untuk perbandingan, line untuk tren, pie untuk komposisi, heatmap untuk dua dimensi kategorik. Maksimal 24 baris dan 4 seri. Jangan mengarang, mengisi nilai kosong, atau mengestimasi. Peta geografis tidak didukung tanpa koordinat terverifikasi. Blok visual diletakkan paling akhir setelah narasi interpretasi.",
+    "VISUAL INTELLIGENCE: Jika pengguna meminta visualisasi, buat blok [[NARA_VISUAL]]JSON[[/NARA_VISUAL]] dengan tipe yang didukung dan hanya memakai angka DATA AUREKA. Untuk matriks risiko 5×5, gunakan likelihood dan impact per risiko; jangan menurunkannya dari level atau skor agregat. Jika kedua variabel tidak tersedia, jangan mengarang matriks. Backend menyediakan matriks 5×5 agregat dari kolom likelihood dan impact register; setiap sel kecil dapat disembunyikan. Jelaskan bahwa nilai 3 merupakan default skema dan kualitas asal nilai perlu diverifikasi sebelum keputusan. Pie chart harus memakai kategori saling lepas, denominator yang jelas, sumber, periode, unit, dan interpretasi yang menyebut keterbatasan. Untuk visual lain, gunakan bar untuk perbandingan, line untuk tren, pie untuk komposisi, heatmap untuk dua dimensi kategorik. Maksimal 24 baris dan 4 seri. Jangan mengarang, mengisi nilai kosong, atau mengestimasi. Peta geografis tidak didukung tanpa koordinat terverifikasi. Blok visual diletakkan paling akhir setelah narasi interpretasi.",
     "Jangan mengklaim menjalankan skill/tool yang tidak tercantum dalam konteks. Jika pertanyaan memerlukan domain yang tidak tersedia pada DATA AUREKA, jelaskan keterbatasannya dan jangan mengarang hasil.",
     "Peringkat diagnosis dihitung oleh fungsi analitik klinis database; jangan meminta atau menebak No. RM, nama, NIK, atau identitas pasien.",
     "Basis diagnosis terakhir per pasien tidak sama dengan seluruh episode. Sebutkan keterbatasan sumber secara eksplisit. Jangan mengklaim memiliki seluruh diagnosis DPJP jika episode klinis belum tersedia.",
