@@ -106,7 +106,7 @@ function findHeader(columns: Map<string, number[]>, candidates: readonly string[
 
 function rowHasData(row: any, columns: Map<string, number[]>): boolean {
   return Object.values(REQUIRED_HEADERS).some(aliases => {
-    const column = findHeader(columns, aliases)
+    const column = findHeader(columns, aliases, false)
     return column != null && String(readCellValue(row.getCell(column)) ?? '').trim() !== ''
   })
 }
