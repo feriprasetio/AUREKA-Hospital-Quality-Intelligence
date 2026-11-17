@@ -125,65 +125,6 @@ export default function HomeLandingWorkspace({
   const dateLabel = new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date())
   useEffect(() => {
     let cancelled=false
-    if(tab!=='infographics'){setLoading(false);return}
-    if(!infoRoomId&&!manager){setRecords([]);setError('Unit kerja belum terhubung ke akun ini.');return}
-    setLoading(true);setError('')
-    const year=Number(infoYear)
-    ;(async()=>{
-      // Semua unit: cukup jumlah per unit/bulan yang dihitung database (tanpa menarik puluhan ribu baris).
-      if(!infoRoomId){
-        const rows=await fetchRoomMonthCounts(year)
-        if(cancelled)return
-        setUnitStats(null);setCountRows(rows);setRecords([]);setRefreshedAt(new Date());setLoading(false)
-        return
-      }
-      // Satu unit: dibaca paralel per bulan (keyset id > terakhir di tiap bulan) agar cepat dan tidak terpotong.
-      // Ringkasan episode dihitung database (cepat). Bila fungsi belum dipasang, baca data per bulan (lebih lambat).
-      const stats=await supabase.rpc('aureka_patient_episode_stats',{p_room:infoRoomId,p_year:year})
-      if(!stats.error&&stats.data&&(stats.data as any).allowed!==false){
-        const counts=await fetchRoomMonthCounts(year)
-        if(cancelled)return
-        setUnitStats(stats.data as UnitStats);setCountRows(counts.filter(r=>r.room_id===infoRoomId));setRecords([]);setRefreshedAt(new Date());setLoading(false)
-        return
-      }
-      setUnitStats(null)
-      const cacheKey=infoRoomId+'|'+year
-      const cachedRows=unitRecordCache.get(cacheKey)
-      let all:RecordRow[]
-      if(cachedRows&&Date.now()-cachedRows.at<10*60*1000){all=cachedRows.rows}
-      else{
-        const windows:[string|null,string|null][]=Array.from({length:12},(_,m)=>[`${year}-${String(m+1).padStart(2,'0')}-01`,m===11?`${year+1}-01-01`:`${year}-${String(m+2).padStart(2,'0')}-01`])
-        windows.push([null,null]) // catatan tanpa tanggal / di luar tahun
-        const parts=await Promise.all(windows.map(async([from,to])=>{
-          const rows:RecordRow[]=[]
-          let last:string|null=null
-          for(let page=0;page<40;page++){
-            let q:any=supabase.schema('aureka_quality').from('quality_records')
-              .select('id,room_id,record_date,measurement_grain,status,core_data,created_at,updated_at')
-              .eq('profile_year',year).is('archived_at',null).eq('room_id',infoRoomId)
-              .order('id',{ascending:true}).limit(1000)
-            q=from?q.gte('record_date',from).lt('record_date',to):q.or(`record_date.is.null,record_date.lt.${year}-01-01,record_date.gte.${year+1}-01-01`)
-            if(last)q=q.gt('id',last)
-            const {data,error:pageError}=await q
-            if(pageError)throw pageError
-            rows.push(...((data??[]) as RecordRow[]))
-            if(!data||data.length<1000)break
-            last=(data[data.length-1] as RecordRow).id
-          }
-          return rows
-        }))
-        if(cancelled)return
-        all=parts.flat()
-        unitRecordCache.set(cacheKey,{at:Date.now(),rows:all})
-      }
-      setCountRows(null);setRecords(all)
-      setRefreshedAt(new Date())
-      setLoading(false)
-    })().catch(()=>{if(!cancelled){setError('Infografis belum dapat dimuat. Coba kembali.');setLoading(false)}})
-    return()=>{cancelled=true}
-  },[supabase,infoRoomId,manager,infoYear,tab])
-  useEffect(() => {
-    let cancelled=false
     if(!userId){setActivity({lastAt:null,pending:[],partial:true});return}
     if(scopeToRoom&&roomId==null){setActivity({lastAt:null,pending:[],partial:false});return}
     const q=(schema:string,table:string)=>supabase.schema(schema).from(table)

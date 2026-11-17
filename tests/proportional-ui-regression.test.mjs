@@ -56,7 +56,7 @@ test('Super Admin uses a compact static tab rail and a module-only sidebar', () 
   assert.ok(infographics.includes("setRoomValue(initialRoomId == null ? '' : String(initialRoomId))"))
   assert.ok(infographics.includes("onRoomChange?.(next ? Number(next) : null)"))
   assert.ok(homeClient.includes("onRoomChange={admin?updateWorkspaceRoom:undefined}"))
-  assert.ok(homeLanding.includes("onAskNara={openNaraWithContext}"))
+  assert.ok(homeClient.includes("onAskNara={openNaraWithContext}"))
 })
 
 test('Super Admin quality results can aggregate every room without mixing reused indicator codes', () => {
