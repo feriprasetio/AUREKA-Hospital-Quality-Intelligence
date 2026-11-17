@@ -568,8 +568,8 @@ function appendRiskDistributionFallback(question: string, answer: string, snapsh
   // Discard any model-authored visual block (including malformed/unclosed markers) to
   // prevent raw JSON, unsupported heatmap schemas, or invented cell counts reaching UI.
   const cleanAnswer = answer
-    .replace(/\\[\\[NARA_VISUAL\\]\\][\\s\\S]*$/i, "")
-    .replace(/\\[\\[\\/NARA_VISUAL\\]\\]/gi, "")
+    .replace(/\[\[NARA_VISUAL\]\][\s\S]*$/i, "")
+    .replace(/\[\[\/NARA_VISUAL\]\]/gi, "")
     .trim();
   if (!snapshotData || typeof snapshotData !== "object") return cleanAnswer || answer;
   const risk = (snapshotData as Record<string, unknown>).manajemen_risiko;
