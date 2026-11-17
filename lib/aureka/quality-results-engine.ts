@@ -175,9 +175,15 @@ function extractOptionObservation(
         (item) => String(item.label ?? '').trim() === answer,
       )
     : []
-  const responseCode = finiteNumber(response.code)
-  const optionCode = finiteNumber(option.code)
   const sourceCode = finiteNumber(response.source_code)
+  // Recover a pending source code only when the exact label resolves to one
+  // published master option. Conflicts and unknown labels remain excluded.
+  const responseCode = finiteNumber(response.code) ?? (
+    mappingStatus === 'master_pending' && response.review_required === true
+      ? sourceCode
+      : null
+  )
+  const optionCode = finiteNumber(option.code)
   const exactDirectionalMatch =
     direction != null &&
     exactMatches.length === 1 &&
@@ -226,8 +232,16 @@ function extractObservation(
   const response = values[String(profile.code ?? '')] ?? values[String(profile.id ?? '')]
   if (!response || typeof response !== 'object') return null
 
-  const kind = resolveMeasurementKind(profile)
   const inputAt = row.created_at ?? row.updated_at ?? null
+
+  // ICU/HCU 2026 uses one coded categorical response per patient episode,
+  // even when a legacy profile still declares ratio or visit as its type.
+  if (String(profile.schema_json?.response_capture_mode ?? '') === 'categorical') {
+    const categorical = extractOptionObservation(profile, response, month, inputAt)
+    return categorical === undefined ? null : categorical
+  }
+
+  const kind = resolveMeasurementKind(profile)
   const numerator = finiteNumber(response.numerator)
   const denominator = finiteNumber(response.denominator)
 

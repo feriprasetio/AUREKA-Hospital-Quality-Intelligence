@@ -67,6 +67,7 @@ type PreparedRow = {
   dpjp: string
   unassignedBhpLinen: string
   indicatorHeaders: Record<string, string>
+  indicatorColumnRefs: Record<string, { header_text: string; column_letter: string; column_index: number }>
   indicators: Record<string, IcuSourceAnswer>
   warnings: string[]
 }
@@ -209,6 +210,18 @@ function maskMedicalRecord(value: string): string {
   return compact.length <= 4 ? '••••' : compact.slice(0, 2) + '••••' + compact.slice(-2)
 }
 
+function excelColumnLetter(column: number): string {
+  if (!Number.isInteger(column) || column < 1) return ''
+  let current = column
+  let output = ''
+  while (current > 0) {
+    const remainder = (current - 1) % 26
+    output = String.fromCharCode(65 + remainder) + output
+    current = Math.floor((current - 1) / 26)
+  }
+  return output
+}
+
 function duplicateKey(row: PreparedRow): string {
   return [
     row.medicalRecordNo.trim().toLocaleLowerCase('id-ID'),
@@ -218,7 +231,7 @@ function duplicateKey(row: PreparedRow): string {
   ].join('|')
 }
 
-function preparePayload(row: PreparedRow, fileName: string, userId: string, profiles: IcuIndicatorProfile[]) {
+function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: string, userId: string, profiles: IcuIndicatorProfile[]) {
   const profileByCode = new Map(
     profiles
       .filter(profile => Number(profile.room_id) === 14 && Number(profile.profile_year) === 2026 && profile.is_active === true && profile.status === 'published')
@@ -259,8 +272,13 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     source_excel_no: row.sourceNo,
     source_indicator_values: sourceIndicatorValues,
     source_indicator_columns: row.indicatorHeaders,
+    source_indicator_column_refs: row.indicatorColumnRefs,
+    source_storage_bucket: 'aureka-quality-source-workbooks',
+    source_storage_path: sourceStoragePath,
     source_bhp_linen: {
       source_header: row.indicatorHeaders['14.1'] ?? '',
+      source_column: row.indicatorColumnRefs['14.1']?.column_letter ?? '',
+      source_column_index: row.indicatorColumnRefs['14.1']?.column_index ?? null,
       source_value: row.unassignedBhpLinen,
       indicator_code: '14.1',
       mapping_status: row.indicators['14.1']?.mappingStatus ?? 'not_in_master',
@@ -451,6 +469,14 @@ export default function IcuExcelImportDialog({
             const column = header.indexes['indicator:' + item.code]
             return [item.code, column == null ? '' : cellText(sheet.getRow(header.rowNumber).getCell(column)).trim()]
           })) as Record<string, string>
+          const indicatorColumnRefs = Object.fromEntries(INDICATORS.map(item => {
+            const column = header.indexes['indicator:' + item.code]
+            return [item.code, {
+              header_text: indicatorHeaders[item.code] ?? '',
+              column_letter: column == null ? '' : excelColumnLetter(column),
+              column_index: column ?? 0,
+            }]
+          })) as PreparedRow['indicatorColumnRefs']
 
           if (!sourceNo) throw new Error('Nomor urut sumber kosong.')
           if (!patientName.trim()) throw new Error('Nama Pasien kosong.')
@@ -497,7 +523,7 @@ export default function IcuExcelImportDialog({
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo,
             admissionDate, dischargeDate, diagnosis, patientCategory, dischargeStatus,
             sourceLos, computedLos, receivingNurse, dpjp, unassignedBhpLinen,
-            indicatorHeaders,
+            indicatorHeaders, indicatorColumnRefs,
             indicators: answers, warnings,
           }
           const seqCount = rowSequenceCount.get(sourceNo) ?? 0
@@ -542,7 +568,18 @@ export default function IcuExcelImportDialog({
     try {
       const { data: { user }, error: userError } = await sb.auth.getUser()
       if (userError || !user) throw new Error('Sesi login tidak tersedia.')
-      const items = rows.map(row => preparePayload(row, file?.name ?? 'workbook.xlsx', user.id, profiles))
+      if (!file) throw new Error('Workbook sumber belum tersedia. Pilih ulang file Excel ICU sebelum memulai impor.')
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-120) || 'icu-source.xlsx'
+      const sourceStoragePath = '14/2026/' + Date.now() + '_' + safeFileName
+      const { error: storageError } = await sb.storage
+        .from('aureka-quality-source-workbooks')
+        .upload(sourceStoragePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+      if (storageError) throw new Error('Workbook belum dapat disimpan secara privat untuk jejak audit: ' + storageError.message)
+      const items = rows.map(row => preparePayload(row, file.name, sourceStoragePath, user.id, profiles))
       const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0, backfilled: 0, preserved: 0 }
       let start = 0
       let batchSize = BATCH_SIZE
@@ -649,7 +686,7 @@ export default function IcuExcelImportDialog({
                     <td>{maskName(row.patientName)}</td>
                     <td>{row.admissionDate} – {row.dischargeDate}</td>
                     <td>{row.computedLos} hari</td>
-                    <td>{mapped}/8 cocok</td>
+                    <td>{mapped}/9 cocok</td>
                     <td>{row.warnings.length ? <details><summary className="iiTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="iiTag">OK</span>}</td>
                   </tr>
                 })}
