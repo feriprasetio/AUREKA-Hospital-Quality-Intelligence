@@ -16,7 +16,7 @@ test('resolves a unique normalized header without prompting', () => {
 })
 
 test('prompts and resolves an unknown header by Excel column letter', () => {
-  const columns = new Map<string, number | number[]>([
+  const columns = new Map([
     ['nomor', 1],
     ['no rekam medik pasien', 3],
   ])
@@ -29,7 +29,7 @@ test('prompts and resolves an unknown header by Excel column letter', () => {
 })
 
 test('prompts and resolves duplicate headers by physical column', () => {
-  const columns = new Map<string, number | number[]>([
+  const columns = new Map([
     ['waktu tunggu', [6, 7]],
     ['tanggal', 1],
   ])
@@ -42,7 +42,7 @@ test('prompts and resolves duplicate headers by physical column', () => {
 })
 
 test('leaves an absent optional field unmapped', () => {
-  const columns = new Map<string, number | number[]>([['tanggal', 1]])
+  const columns = new Map([['tanggal', 1]])
   const result = resolveInteractiveExcelHeaderColumn(columns, ['Catatan Tambahan'], {
     importerKey: 'test',
     fieldKey: 'notes',
@@ -53,7 +53,7 @@ test('leaves an absent optional field unmapped', () => {
 })
 
 test('cancellation does not silently map a column', () => {
-  const columns = new Map<string, number | number[]>([['custom header', 2]])
+  const columns = new Map([['custom header', 2]])
   assert.throws(
     () => resolveInteractiveExcelHeaderColumn(columns, ['No. Rekam Medis'], {
       importerKey: 'test',
