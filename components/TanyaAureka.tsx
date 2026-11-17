@@ -3,9 +3,10 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
+import NaraVisualRenderer, { parseNaraVisual, type NaraVisualSpec } from '@/components/NaraVisualRenderer'
 
 type Reminder = { units: string[]; message: string; selected?: string[]; status?: 'draft' | 'sending' | 'sent' | 'cancelled'; result?: string }
-type Msg = { role: 'user' | 'model'; text: string; error?: boolean; reminder?: Reminder }
+type Msg = { role: 'user' | 'model'; text: string; error?: boolean; reminder?: Reminder; visual?: NaraVisualSpec }
 type Room = { id: number; name: string }
 
 /** AI menandai draf pengingat dengan blok [[KIRIM_PENGINGAT]]{json}[[/KIRIM_PENGINGAT]]; dipisah dari teks jawaban. */
@@ -240,9 +241,10 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
       setMsgs(m => [...m, { role: 'model', text, error: true }])
       return
     }
-    const { text, reminder } = extractReminder(String(data.answer))
+    const parsedVisual = parseNaraVisual(String(data.answer))
+    const { text, reminder } = extractReminder(parsedVisual.text)
     if (reminder) void loadRooms()
-    setMsgs(m => [...m, { role: 'model', text: text || 'Berikut draf pengingatnya.', reminder }])
+    setMsgs(m => [...m, { role: 'model', text: text || (parsedVisual.visual ? 'Berikut visualisasi berdasarkan data yang tersedia.' : 'Berikut jawabannya.'), reminder, visual: parsedVisual.visual }])
   }
 
   useEffect(() => { if (initialPrompt?.trim()) void ask(initialPrompt) }, [initialPrompt])
@@ -269,7 +271,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
         <div className="tanyaChips">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => void ask(s)}>{s}</button>)}</div>
       </div>}
       {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '') + (showAvatar && m.role === 'model' ? ' naraModelMsg' : '')}>
-        {m.role === 'model' && !m.error ? <>{showAvatar && <NaraAvatar size={28}/>}<div className="naraAnswerBody">{renderAnswer(m.text)}</div></> : <p>{m.text}</p>}
+        {m.role === 'model' && !m.error ? <>{showAvatar && <NaraAvatar size={28}/>}<div className="naraAnswerBody">{renderAnswer(m.text)}{m.visual && <NaraVisualRenderer spec={m.visual}/>}</div></> : <p>{m.text}</p>}
         {m.reminder && <div className="tanyaReminder">
           <b>Draf pengingat ke PIC unit</b>
           <div className="tanyaReminderUnits">{m.reminder.units.map(u => {
