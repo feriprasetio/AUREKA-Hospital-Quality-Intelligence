@@ -223,6 +223,10 @@ export default function NaraAIWorkspace({ sb, page, userName = '', isAdmin = fal
       :global(html[data-mode="gelap"]) .naraWorkspace{color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraHistory,:global(html[data-mode="gelap"]) .naraStageWrap{background:rgba(20,27,38,.72);border-color:rgba(255,255,255,.1);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraNew{background:#eef2f7;color:#0f1218}
+      :global(html[data-mode="gelap"]) .naraCommunicationButton{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
+      :global(html[data-mode="gelap"]) .naraCommunicationButton:hover{background:rgba(255,255,255,.1);border-color:#5d91a8}
+      :global(html[data-mode="gelap"]) .naraCommunicationIcon{background:rgba(81,180,196,.15);color:#8ee3ea}
+      :global(html[data-mode="gelap"]) .naraCommunicationCopy small,:global(html[data-mode="gelap"]) .naraCommunicationArrow{color:#aab6c6}
       :global(html[data-mode="gelap"]) .naraItem:hover{background:rgba(255,255,255,.05)}
       :global(html[data-mode="gelap"]) .naraItem.on{background:rgba(255,255,255,.08);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraItemOpen{color:#c3ccd8}:global(html[data-mode="gelap"]) .naraItem.on .naraItemOpen{color:#eef2f7}
