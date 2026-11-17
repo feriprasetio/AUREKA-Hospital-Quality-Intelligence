@@ -46,7 +46,7 @@ test('ICU importer requires BHP/Linen source mapping, stores exact header/value,
   const importer = read('components/IcuExcelImportDialog.tsx')
   assert.match(importer, /code: '14\.1', header: 'Kekosongan BHP\/Linen'/)
   assert.match(importer, /indicatorHeaders: Record<string, \{ header: string; columnIndex: number; columnLetter: string \}>/)
-  assert.match(importer, /source_indicator_columns: row\.indicatorHeaders/)
+  assert.match(importer, /source_indicator_columns: Object\.fromEntries/)
   assert.match(importer, /source_bhp_linen:/)
   assert.match(importer, /indicator_code: '14\.1'/)
   assert.match(importer, /Respons indikator Kekosongan BHP\/Linen \(14\.1\) kosong/)
