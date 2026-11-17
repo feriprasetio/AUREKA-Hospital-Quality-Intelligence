@@ -95,5 +95,15 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNav
    {d.key==='rtl'&&<ul className="hlRtlList">{rtl.slice(0,5).map(a=><li key={a.id}><b>{a.title}</b><span>{a.pj}</span><em>{fmtDue(a.due)}</em></li>)}{rtl.length>5&&<li className="more">+{rtl.length-5} lainnya</li>}</ul>}
   </div>)}
  </section>}
+ <style>{`
+  .hlDataTrust{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;padding:9px 12px;border:1px solid rgba(120,145,165,.24);border-radius:10px;background:rgba(245,249,252,.7)}
+  .hlDataTrustState{font-size:11px;font-weight:800;color:#34536d}
+  .hlDataTrustState.complete{color:#176b4a}
+  .hlDataTrustState.partial{color:#92601d}
+  .hlDataTrustState.unavailable{color:#a33a36}
+  .hlDataTrust small{font-size:11px;color:#62788b}
+  html[data-mode="gelap"] .hlDataTrust{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  html[data-mode="gelap"] .hlDataTrustState,html[data-mode="gelap"] .hlDataTrust small{color:#c3ccd8}
+ `}</style>
  </>
 }
