@@ -34,6 +34,21 @@ test("generic data-quality review does not automatically load multiple hospital 
   assert.equal(plan.requiresAggregateData, false);
 });
 
+test("risk-management terminology does not activate executive intelligence", () => {
+  const plan = planNaraSkills("Jelaskan SOP manajemen risiko rumah sakit.");
+  assert.ok(plan.selected.includes("risk"));
+  assert.ok(plan.selected.includes("knowledge"));
+  assert.ok(!plan.selected.includes("executive"));
+  assert.ok(!plan.domains.includes("governance"));
+});
+
+test("director-level strategy questions still activate executive intelligence", () => {
+  const plan = planNaraSkills("Direktur membutuhkan prioritas strategis dan kinerja rumah sakit.");
+  assert.equal(plan.primary, "executive");
+  assert.ok(plan.domains.includes("governance"));
+  assert.ok(plan.domains.includes("quality"));
+});
+
 test("general knowledge enrichment does not inject governance data into a risk question", () => {
   const plan = planNaraSkills("Jelaskan SOP manajemen risiko rumah sakit.");
   assert.ok(plan.selected.includes("risk"));
