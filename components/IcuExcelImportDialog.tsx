@@ -25,6 +25,7 @@ const BATCH_SIZE = Math.min(DEFAULT_IMPORT_BATCH_SIZE, 20)
 const MIN_BATCH_SIZE = MIN_IMPORT_BATCH_SIZE
 
 const INDICATORS = [
+  { code: '14.1', header: 'Kekosongan BHP/Linen', aliases: ['ekosongan BHP/Linen', 'Kekosongan BHP/Linen'] },
   { code: '14.4', header: 'Visite Spesialis', aliases: ['Visite Hari Kerja (06.00-14.00) (Code 141)', 'Visite Hari Kerja (06.00-14.00)'] },
   { code: '14.8', header: 'Validitas Asesmen', aliases: ['Validitas Asesmen'] },
   { code: '14.3', header: 'Identifikasi Pasien', aliases: ['Identifikasi Pasien'] },
@@ -65,6 +66,7 @@ type PreparedRow = {
   receivingNurse: string
   dpjp: string
   unassignedBhpLinen: string
+  indicatorHeaders: Record<string, string>
   indicators: Record<string, IcuSourceAnswer>
   warnings: string[]
 }
@@ -144,6 +146,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     if (score === 0) {
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+        if (key === 'unassignedBhpLinen') continue
         const column = exact(columns, aliases)
         if (column != null) indexes[key] = column
       }
@@ -151,6 +154,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
         const column = exact(columns, [...item.aliases])
         if (column != null) indexes['indicator:' + item.code] = column
       }
+      if (indexes['indicator:14.1'] != null) indexes.unassignedBhpLinen = indexes['indicator:14.1']
       return { rowNumber, indexes }
     }
     if (score < bestScore) { bestScore = score; bestRowNumber = rowNumber; bestColumns = columns }
@@ -158,8 +162,9 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
   if (bestColumns && bestRowNumber) {
     const indexes: Record<string, number> = {}
     for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+      if (key === 'unassignedBhpLinen') continue
       const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
-        importerKey: 'icu', fieldKey: key, fieldLabel: aliases[0], required: key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen',
+        importerKey: 'icu', fieldKey: key, fieldLabel: aliases[0], required: key !== 'patientCategory' && key !== 'los',
       })
       if (column != null) indexes[key] = column
     }
@@ -170,9 +175,10 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       })
       if (column != null) indexes['indicator:' + item.code] = column
     }
+    if (indexes['indicator:14.1'] != null) indexes.unassignedBhpLinen = indexes['indicator:14.1']
     return { rowNumber: bestRowNumber, indexes }
   }
-  throw new Error("Header Logbook ICU tidak lengkap. Periksa kolom identitas, tanggal masuk/keluar, status pulang, perawat, DPJP, dan delapan indikator 14.2–14.9.")
+  throw new Error("Header Logbook ICU tidak lengkap. Periksa kolom identitas, tanggal masuk/keluar, status pulang, perawat, DPJP, dan sembilan indikator 14.1–14.9.")
 }
 function rowHasData(source: any, indexes: Record<string, number>): boolean {
   const keys = [
@@ -251,11 +257,12 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     source_excel_row: row.sourceRow,
     source_excel_no: row.sourceNo,
     source_indicator_values: sourceIndicatorValues,
-    source_unmapped_indicator: {
-      source_header: 'ekosongan BHP/Linen',
+    source_indicator_columns: row.indicatorHeaders,
+    source_bhp_linen: {
+      source_header: row.indicatorHeaders['14.1'] ?? '',
       source_value: row.unassignedBhpLinen,
-      target_profiles: ['14.1 Kekosongan Linen', '14.10 Kekosongan Obat'],
-      mapping_status: 'not_mapped_combined_source_requires_review',
+      indicator_code: '14.1',
+      mapping_status: row.indicators['14.1']?.mappingStatus ?? 'not_in_master',
     },
     source_cached_los: row.sourceLos,
     source_warnings: row.warnings,
@@ -273,6 +280,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
     'DPJP': row.dpjp,
+    'Kekosongan BHP/Linen': row.unassignedBhpLinen,
     'Kekosongan BHP/Linen (sumber belum dipetakan)': row.unassignedBhpLinen,
   }
 
@@ -438,6 +446,10 @@ export default function IcuExcelImportDialog({
           const receivingNurse = raw('receivingNurse')
           const dpjp = raw('dpjp')
           const unassignedBhpLinen = raw('unassignedBhpLinen')
+          const indicatorHeaders = Object.fromEntries(INDICATORS.map(item => {
+            const column = header.indexes['indicator:' + item.code]
+            return [item.code, column == null ? '' : cellText(sheet.getRow(header.rowNumber).getCell(column)).trim()]
+          })) as Record<string, string>
 
           if (!sourceNo) throw new Error('Nomor urut sumber kosong.')
           if (!patientName.trim()) throw new Error('Nama Pasien kosong.')
@@ -450,6 +462,7 @@ export default function IcuExcelImportDialog({
           if (!dischargeStatus.trim()) throw new Error('Status Pulang kosong.')
           if (!receivingNurse.trim()) throw new Error('Perawat Penerima kosong.')
           if (!dpjp.trim()) throw new Error('DPJP kosong.')
+          if (!unassignedBhpLinen.trim()) throw new Error('Respons indikator Kekosongan BHP/Linen (14.1) kosong. Periksa header/sel Excel sumber sebelum mengimpor.')
 
           const computedLos = calculateIcuStayDays(admissionDate, dischargeDate)
           if (computedLos == null) throw new Error('LOS tidak dapat dihitung dari tanggal masuk dan keluar yang valid.')
@@ -479,16 +492,11 @@ export default function IcuExcelImportDialog({
             }
           }
 
-          if (!unassignedBhpLinen.trim()) {
-            warnings.push('Kolom gabungan BHP/Linen kosong; tidak ada asumsi pemetaan ke indikator 14.1 atau 14.10.')
-          } else {
-            warnings.push('Kolom gabungan BHP/Linen disimpan utuh sebagai sumber belum terpetakan; tidak dipecah ke indikator 14.1/14.10.')
-          }
-
           const row: PreparedRow = {
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo,
             admissionDate, dischargeDate, diagnosis, patientCategory, dischargeStatus,
             sourceLos, computedLos, receivingNurse, dpjp, unassignedBhpLinen,
+            indicatorHeaders,
             indicators: answers, warnings,
           }
           const seqCount = rowSequenceCount.get(sourceNo) ?? 0
@@ -607,18 +615,18 @@ export default function IcuExcelImportDialog({
 
         {findings && <div className="iiBox">
           <strong>Pemeriksaan workbook:</strong> {findings.sheetCount} worksheet; formula error pada Logbook: {findings.sourceFormulaErrors}; formula error pada worksheet rekap yang tidak diimpor: {findings.reportFormulaErrors}.
-          <div className="aqSub">Hanya sheet Logbook diproses. Dashboard, Profil, dan sheet laporan 1–20 tidak menjadi sumber episode.</div>
+          <div className="aqSub">Hanya sheet Logbook diproses. Dashboard, Profil, dan sheet laporan 1–20 tidak menjadi sumber episode. Kolom Kekosongan BHP/Linen ditautkan ke indikator 14.1; jawaban yang tidak cocok dengan opsi master tetap menunggu telaah.</div>
         </div>}
 
         {rows.length > 0 && <div className="iiStats">
           <div className="iiStat"><span>Episode siap dipratinjau</span><strong>{rows.length}</strong></div>
-          <div className="iiStat"><span>Respons cocok dengan master</span><strong>{mappedResponses}</strong></div>
+          <div className="iiStat"><span>Respons cocok dengan master (14.1–14.9)</span><strong>{mappedResponses}</strong></div>
           <div className="iiStat"><span>Respons menunggu telaah</span><strong>{pendingResponses}</strong></div>
           <div className="iiStat"><span>Baris dengan peringatan duplikasi</span><strong>{duplicateEpisodeRows + sourceSeqDuplicateRows}</strong></div>
         </div>}
 
         {rows.length > 0 && <div className="iiBox iiWarn">
-          <strong>Pembatasan pemetaan klinis:</strong> kolom sumber “ekosongan BHP/Linen” disimpan utuh dalam form dan provenance, tetapi tidak dipaksakan menjadi indikator 14.1 (linen) atau 14.10 (obat). Workbook menggabungkan jenis kendala, sedangkan master ICU memisahkannya. Beberapa master 14.5–14.9 belum memiliki options_json, dan respons yang kodenya bertentangan juga disimpan pending untuk telaah.
+          <strong>Pemetaan sumber:</strong> kolom Excel Kekosongan BHP/Linen ditautkan ke profil ICU 14.1. Pencocokan hanya mengikuti label/kode opsi master; nilai yang tidak cocok atau bertentangan tetap disimpan pending untuk telaah.
         </div>}
 
         {rows.length > 0 && <div className="iiBox">
