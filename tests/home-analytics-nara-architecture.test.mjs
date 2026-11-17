@@ -55,6 +55,7 @@ test('NARA accepts contextual handoff and exposes response provenance', () => {
   assert.match(home, /initialPrompt=\{naraPendingPrompt\|\|undefined\}/)
   assert.match(workspace, /initialPrompt\?: string/)
   assert.match(workspace, /onInitialPromptConsumed/)
+  assert.match(chat, /historyReady/) 
   assert.match(chat, /type NaraIntelligence/)
   assert.match(chat, /naraEvidenceMeta/)
   assert.match(edge, /snapshot_status:/)

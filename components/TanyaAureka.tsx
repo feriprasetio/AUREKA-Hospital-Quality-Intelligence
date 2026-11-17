@@ -107,6 +107,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [historyReady, setHistoryReady] = useState(false)
   const [rooms, setRooms] = useState<Room[]>([])
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -131,6 +132,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
         if (!storageScope) sessionStorage.removeItem(STORE_KEY)
       } catch { /* abaikan */ }
       hydrated.current = true
+      setHistoryReady(true)
     })
     const onSync = (e: Event) => {
       const d = (e as CustomEvent<{ from: string; msgs: Msg[]; scope?: string }>).detail
@@ -261,13 +263,14 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
   }
 
   useEffect(() => {
+    if (!historyReady) return
     const prompt = initialPrompt?.trim()
     if (!prompt) { handledInitialPrompt.current = null; return }
     if (handledInitialPrompt.current === prompt) return
     handledInitialPrompt.current = prompt
     void ask(prompt)
     onInitialPromptConsumed?.()
-  }, [initialPrompt, onInitialPromptConsumed])
+  }, [initialPrompt, onInitialPromptConsumed, historyReady])
 
   const staged = Boolean(stage) && msgs.length === 0 && !busy
   const panel = open && <section className={(embedded ? 'tanyaPanel tanyaPanelEmbedded' : 'tanyaPanel') + (staged ? ' tanyaStaged' : '')} role={embedded ? 'region' : 'dialog'} aria-label={assistantName}>
