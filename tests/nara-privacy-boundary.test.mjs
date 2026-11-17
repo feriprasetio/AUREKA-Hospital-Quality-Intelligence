@@ -34,7 +34,7 @@ test('the gateway queries only selected domains and partitions snapshot cache by
 });
 
 test('engineering keywords are not misclassified as small talk and do not imply live repository access', () => {
-  assert.ok(gateway.includes(String.raw`supabase|next\.js|react|typescript`));
+  assert.ok(gateway.includes('supabase|next\\.js|react|typescript'));
   assert.match(gateway, /tidak memiliki akses GitHub, shell, secret, SQL langsung, atau deployment/);
 });
 
