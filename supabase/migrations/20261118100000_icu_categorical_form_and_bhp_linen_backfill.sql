@@ -114,7 +114,7 @@ BEGIN
        OR jsonb_array_length(v_responses) <> 9
        OR coalesce(jsonb_typeof(v_row->'attributions'), '') <> 'array'
        OR jsonb_array_length(v_row->'attributions') <> 0 THEN
-      RAISE EXCEPTION 'Struktur payload ICU harus memiliki delapan respons indikator dan tanpa atribusi otomatis.' USING ERRCODE = '22023';
+      RAISE EXCEPTION 'Struktur payload ICU harus memiliki sembilan respons indikator dan tanpa atribusi otomatis.' USING ERRCODE = '22023';
     END IF;
 
     IF coalesce(v_payload->>'room_id', '') <> '14'
