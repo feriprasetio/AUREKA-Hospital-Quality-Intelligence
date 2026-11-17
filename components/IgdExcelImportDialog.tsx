@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
@@ -175,22 +176,25 @@ function cellText(cell: any): string {
   return String(value).trim()
 }
 
-function findHeader(columns: Map<string, number>, candidates: readonly string[]): number | null {
-  for (const candidate of candidates) {
-    const index = columns.get(normalizeExactHeader(candidate))
-    if (index != null) return index
-  }
-  return null
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, candidates, {
+    importerKey: 'igd',
+    fieldKey: candidates[0] ?? 'field',
+    fieldLabel: candidates[0] ?? 'Field',
+    required,
+  })
 }
 
-function buildHeaderMap(worksheet: any, headerRowNumber: number, maxColumns: number): Map<string, number> {
-  const result = new Map<string, number>()
+function buildHeaderMap(worksheet: any, headerRowNumber: number, maxColumns: number): Map<string, number[]> {
+  const result = new Map<string, number[]>()
   const row = worksheet.getRow(headerRowNumber)
   for (let column = 1; column <= maxColumns; column++) {
     const value = cellText(row.getCell(column))
     if (!value) continue
     const key = normalizeExactHeader(value)
-    if (!result.has(key)) result.set(key, column)
+    const matches = result.get(key) ?? []
+    matches.push(column)
+    result.set(key, matches)
   }
   return result
 }
@@ -405,7 +409,7 @@ export default function IgdExcelImportDialog({
         columns[key] = index
       }
       const extraQueueColumn = headers.get(normalizeExactHeader('Antrian Pasien')) ?? null
-      const indicatorColumns = new Map<string, number>()
+      const indicatorColumns = new Map<string, number[]>()
       for (const indicator of IGD_INDICATORS) {
         const index = headers.get(normalizeExactHeader(indicator.header))
         if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" tidak ditemukan pada Logbook.')
@@ -591,7 +595,7 @@ export default function IgdExcelImportDialog({
         for (const worksheet of workbook.worksheets) {
           if (worksheet.rowCount > 5000) throw new Error('Sheet ' + worksheet.name + ' terlalu panjang.')
           let headerRowNumber = 0
-          let columns = new Map<string, number>()
+          let columns = new Map<string, number[]>()
           let found = false
           for (let rowNum = 1; rowNum <= Math.min(50, worksheet.rowCount); rowNum++) {
             const candidate = buildHeaderMap(worksheet, rowNum, 20)
