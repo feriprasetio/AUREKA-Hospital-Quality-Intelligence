@@ -278,7 +278,8 @@ export default function HomeClient(){
    if(next==='settings')setSettingsSection((section==='audit-log'?'audit':['profile','security','users','units','appearance','system','permissions','mydata'].includes(section)?section:'profile') as SettingsSection)
    if(next==='patients'){
     if(['statistik','stats'].includes(section||'')){setActive('home');setHomeTab('infographics');return}
-    const patientView=path.split('/')[2]||''
+    const legacyPatientView=['tambah-pasien','rekapan-pasien','direktori-pasien'].includes(section||'')?section:''
+    const patientView=path.split('/')[2]||legacyPatientView
     setPatientsRegistryTab(patientView==='tambah-pasien'?'add':(patientView==='direktori-pasien'||['metadata-pasien','database-pasien'].includes(section||''))?'directory':'records')
    }
    if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'||role==='DIREKTUR'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
