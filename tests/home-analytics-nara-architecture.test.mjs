@@ -36,7 +36,7 @@ test('shared metric contracts preserve unavailable states and reuse secured sour
   for (const fn of ['readAurekaPortfolioSummary','readAurekaQualityRoomReportingStatus','readAurekaOverdueIncidents','readAurekaProgramList']) {
     assert.ok(metrics.includes(fn), 'Missing shared contract ' + fn)
   }
-  assert.match(metrics, /status: 'complete' \| 'unavailable'/)
+  assert.match(metrics, /type MetricReadStatus = 'complete' \| 'unavailable'/)
   assert.match(metrics, /data: null/)
   assert.match(metrics, /aureka_gov_infographics_summary_secure/)
   assert.match(metrics, /aureka_quality_room_reporting_status/)

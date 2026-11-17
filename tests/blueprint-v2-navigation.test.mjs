@@ -4,18 +4,20 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('home exposes only Beranda and one canonical Infografis entry', () => {
+test('Beranda and Analitik & Infografis have separate canonical workspaces', () => {
   const home = read('components/HomeLandingWorkspace.tsx')
-  assert.ok(home.includes("tabButton('welcome','Beranda')"))
-  assert.ok(home.includes("tabButton('infographics','Infografis')"))
-  assert.ok(!home.includes("tabButton('achievements'"))
-  assert.ok(!home.includes("tab==='achievements'"))
-  assert.ok(!home.includes('OverviewDashboard'))
+  const app = read('components/HomeClient.tsx')
+  assert.ok(home.includes('Priority attention'))
+  assert.ok(home.includes('My work / Unit tasks'))
+  assert.doesNotMatch(home, /tabButton|InfographicsDashboard|aureka_patient_episode_stats/)
+  assert.ok(app.includes("active==='insights'?<InfographicsDashboard mode=\"full\""))
+  assert.ok(app.includes("insights:[],"))
+  assert.ok(!app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
 })
 
 test('primary navigation labels follow the approved domain terminology', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  for (const label of ["label:'Beranda'", "label:'Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Program'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
+  for (const label of ["label:'Beranda'", "label:'Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
 })
@@ -33,7 +35,7 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(staffGroup.includes('Tim dan Penugasan'))
   assert.ok(staffGroup.includes('oppe-fppe'))
   // Blueprint v2 §9: OPPE dan FPPE menu terpisah, satu workspace dengan layar awal berbeda
-  assert.ok(app.includes("active==='analytics'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace"))
+  assert.ok(app.includes("active==='staff'&&(analyticsTab==='oppe'||analyticsTab==='fppe')?<OppeAuditWorkspace"))
   assert.ok(staffGroup.includes("{id:'fppe',label:'FPPE'}"))
   assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
   assert.ok(app.includes("if(next==='staff'){setAnalyticsTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory')"))
@@ -41,21 +43,24 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
 
 test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
   const app = read('components/HomeClient.tsx')
-  assert.ok(app.includes("'metadata':'analytics'"))
+  assert.ok(app.includes("'metadata':'quality'"))
+  assert.ok(app.includes("'analitik-laporan':'insights'"))
+  assert.ok(app.includes("insights:'#analitik'"))
   assert.ok(app.includes("analytics:'#program'"))
   assert.ok(app.includes("staff:'#sumber-daya-manusia'"))
   assert.ok(app.includes("'tenaga-klinis':'staff'"))
 })
 
-test('home parent and child navigation use the approved labels and canonical route', () => {
+test('Beranda owns command-center functions while Infografis is an independent module', () => {
   const app = read('components/HomeClient.tsx')
+  const home = read('components/HomeLandingWorkspace.tsx')
   assert.ok(app.includes('title="Beranda"'))
-  assert.ok(app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
-  assert.ok(app.includes("active==='home'?(homeTab==='infographics'?'infografis':'beranda')"))
-  // Infografis dirender sebagai tab di dalam workspace Beranda, bukan komponen duplikat di HomeClient.
-  assert.ok(app.includes('<HomeLandingWorkspace supabase={sb}'))
-  assert.ok(app.includes('initialTab={homeTab} onTabChange={setHomeTab}'))
-  assert.ok(!app.includes("homeTab==='infographics'\n     ? <InfographicsDashboard"))
+  assert.ok(app.includes("insights:[]"))
+  assert.ok(app.includes("active==='insights'?<InfographicsDashboard mode=\"full\""))
+  assert.ok(app.includes("insights:'#analitik'"))
+  assert.ok(home.includes('Priority attention'))
+  assert.ok(home.includes('Analisis dengan NARA'))
+  assert.doesNotMatch(home, /InfographicsDashboard|homeTab|initialTab/)
 })
 
 

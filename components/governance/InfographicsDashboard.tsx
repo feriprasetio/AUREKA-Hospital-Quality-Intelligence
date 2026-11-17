@@ -233,7 +233,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         setSummary(null)
         setSummaryRetrievedAt(null)
         setError(missing
-          ? 'Ringkasan lintas unit belum aktif di server. Periksa migrasi agregasi dan permission guard Infografis.'
+          ? 'Ringkasan lintas unit belum aktif di server. Periksa migrasi agregasi (20261112140000_aureka_infographics_aggregate.sql) dan permission guard (20261112044800_infographics_permission_guard.sql).'
           : toUserFacingError(new Error(result.error || 'Sumber ringkasan tidak tersedia.'), { fallback: 'Ikhtisar belum dapat dimuat. Periksa koneksi lalu coba lagi.' }))
       } else {
         setSummary(result.data)

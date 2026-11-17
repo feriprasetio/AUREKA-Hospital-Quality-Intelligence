@@ -3,17 +3,18 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 const home = readFileSync(new URL('../components/HomeLandingWorkspace.tsx', import.meta.url), 'utf8')
+const homeClient = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
 const layout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8')
 const polish = readFileSync(new URL('../app/proportional-ui.css', import.meta.url), 'utf8')
 
-test('Beranda Infografis renders the integrated Ikhtisar dashboard', () => {
+test('Analitik & Infografis renders its own cross-domain aggregate workspace', () => {
   const dashboard = readFileSync(new URL('../components/governance/InfographicsDashboard.tsx', import.meta.url), 'utf8')
-  assert.match(home, /import InfographicsDashboard from '@\/components\/governance\/InfographicsDashboard'/)
-  assert.match(home, /tab==='infographics'[\s\S]*<InfographicsDashboard[\s\S]*mode="full"/)
-  assert.match(dashboard, /Ikhtisar Mutu dan Keselamatan Rumah Sakit/)
+  assert.match(homeClient, /active==='insights'\?<InfographicsDashboard[\s\S]*mode="full"/)
+  assert.doesNotMatch(home, /InfographicsDashboard|tab==='infographics'/)
+  assert.match(dashboard, /Analitik & Infografis Rumah Sakit/)
   assert.match(dashboard, /Tren pengumpulan dan validasi indikator/)
   assert.match(dashboard, /Tren laporan insiden keselamatan pasien/)
-  assert.match(dashboard, /Distribusi indikator menurut kategori/)
+  assert.match(dashboard, /Sebaran kategori indikator mutu/)
 })
 
 test('shared controls and data cards have normalized dimensions', () => {
@@ -54,7 +55,8 @@ test('Super Admin uses a compact static tab rail and a module-only sidebar', () 
   assert.ok(infographics.includes("useState(initialRoomId == null ? '' : String(initialRoomId))"))
   assert.ok(infographics.includes("setRoomValue(initialRoomId == null ? '' : String(initialRoomId))"))
   assert.ok(infographics.includes("onRoomChange?.(next ? Number(next) : null)"))
-  assert.ok(homeLanding.includes("onRoomChange={onRoomChange}"))
+  assert.ok(homeClient.includes("onRoomChange={admin?updateWorkspaceRoom:undefined}"))
+  assert.ok(homeLanding.includes("onAskNara={openNaraWithContext}"))
 })
 
 test('Super Admin quality results can aggregate every room without mixing reused indicator codes', () => {
