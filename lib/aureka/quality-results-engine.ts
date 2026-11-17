@@ -144,6 +144,78 @@ function indicatorDirection(profile: IndicatorProfileForResults): 'positive' | '
   return raw === 'positive' || raw === 'negative' ? raw : null
 }
 
+/**
+ * Converts one published categorical option into an observation.
+ * undefined means no option matched; null means a matched response must be excluded.
+ */
+function extractOptionObservation(
+  profile: IndicatorProfileForResults,
+  response: Record<string, any>,
+  month: number,
+  inputAt: string | null,
+): MeasurementObservation | null | undefined {
+  const option = findOption(profile, response)
+  if (!option) return undefined
+
+  const mappingStatus = String(response.mapping_status ?? '').trim()
+  const direction = indicatorDirection(profile)
+
+  // Explicit clinical eligibility is separate from legacy numerator/denominator flags.
+  // Directional profiles must follow code 1/2/3 semantics even when an old master
+  // contains stale denominator=false metadata. Only the dedicated eligibility flag
+  // removes a response from both numerator and denominator.
+  if (option.eligible === false || option.denominator_excluded === true) return null
+
+  // With an approved 1/2/3 direction, an exact option-label + code match is
+  // sufficient even when legacy numerator flags need review. Source conflicts,
+  // unmatched labels and ambiguous maps remain excluded.
+  const answer = String(response.answer ?? '').trim()
+  const exactMatches = answer
+    ? (Array.isArray(profile.options_json) ? profile.options_json : []).filter(
+        (item) => String(item.label ?? '').trim() === answer,
+      )
+    : []
+  const responseCode = finiteNumber(response.code)
+  const optionCode = finiteNumber(option.code)
+  const sourceCode = finiteNumber(response.source_code)
+  const exactDirectionalMatch =
+    direction != null &&
+    exactMatches.length === 1 &&
+    optionCode != null &&
+    [1, 2, 3].includes(optionCode) &&
+    responseCode === optionCode &&
+    (sourceCode == null || sourceCode === optionCode) &&
+    !['source_code_conflict', 'ambiguous_master', 'not_in_master'].includes(mappingStatus)
+
+  // Do not fall back to code-only matching when the answer label conflicts.
+  if (direction && answer && exactMatches.length !== 1) return null
+  if (direction && responseCode != null && responseCode !== optionCode) return null
+  if (direction && sourceCode != null && sourceCode !== optionCode) return null
+
+  if (mappingStatus === 'source_code_conflict' ||
+      mappingStatus === 'ambiguous_master' ||
+      mappingStatus === 'not_in_master') return null
+
+  if (
+    (response.review_required === true || (mappingStatus && mappingStatus !== 'mapped')) &&
+    !exactDirectionalMatch
+  ) return null
+
+  if (direction) {
+    // Code 1 is favorable. For negative indicators, codes 2 and 3 form the event
+    // numerator; for positive indicators, code 1 forms the compliance numerator.
+    const code = optionCode
+    if (code == null || ![1, 2, 3].includes(code)) return null
+    const favorable = code === 1
+    const metricNumerator = direction === 'negative' ? !favorable : favorable
+    return { month, numerator: metricNumerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
+  }
+
+  // Backward compatibility for profiles that have not yet been assigned a direction.
+  if (option.denominator === false || typeof option.numerator !== 'boolean') return null
+  return { month, numerator: option.numerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
+}
+
 function extractObservation(
   profile: IndicatorProfileForResults,
   row: ResultRecord,
@@ -160,6 +232,13 @@ function extractObservation(
   const denominator = finiteNumber(response.denominator)
 
   if (kind === 'ratio') {
+    // Ratio profiles may store either aggregate N/D values or one categorical
+    // answer per observation. ICU/HCU imports use answer + code, so derive N/D
+    // from the approved directional option when numeric N/D fields are absent.
+    if (numerator == null && denominator == null && indicatorDirection(profile)) {
+      const optionObservation = extractOptionObservation(profile, response, month, inputAt)
+      if (optionObservation !== undefined) return optionObservation
+    }
     if (numerator == null || denominator == null || denominator <= 0 || numerator < 0 || numerator > denominator) return null
     return { month, numerator, denominator, value: null, targetMet: null, inputAt }
   }
@@ -189,70 +268,8 @@ function extractObservation(
     return { month, numerator: 0, denominator: 1, value, targetMet: compareToTarget(profile, value), inputAt }
   }
 
-  const option = findOption(profile, response)
-  if (option) {
-    const mappingStatus = String(response.mapping_status ?? '').trim()
-    const direction = indicatorDirection(profile)
-
-    // Explicit clinical eligibility is separate from legacy numerator/denominator flags.
-    // Directional profiles must follow code 1/2/3 semantics even when an old master
-    // contains stale denominator=false metadata. Only the dedicated eligibility flag
-    // removes a response from both numerator and denominator.
-    if (option.eligible === false || option.denominator_excluded === true) return null
-
-    // When a profile has an approved 1/2/3 direction, an exact option-label + code
-    // match is sufficient to apply the universal code semantics. This resolves old
-    // logbook rows that were marked "mapped_pending_classification" only because the
-    // master had no legacy numerator boolean. True source conflicts and unmatched /
-    // ambiguous labels remain excluded.
-    const answer = String(response.answer ?? '').trim()
-    const exactMatches = answer
-      ? (Array.isArray(profile.options_json) ? profile.options_json : []).filter(
-          (item) => String(item.label ?? '').trim() === answer,
-        )
-      : []
-    const responseCode = finiteNumber(response.code)
-    const optionCode = finiteNumber(option.code)
-    const sourceCode = finiteNumber(response.source_code)
-    const exactDirectionalMatch =
-      direction != null &&
-      exactMatches.length === 1 &&
-      optionCode != null &&
-      [1, 2, 3].includes(optionCode) &&
-      responseCode === optionCode &&
-      (sourceCode == null || sourceCode === optionCode) &&
-      !['source_code_conflict', 'ambiguous_master', 'not_in_master'].includes(mappingStatus)
-
-    // If an answer label is present, it must uniquely match the master exactly.
-    // Never fall back to a numerically matching code after a conflicting label.
-    if (direction && answer && exactMatches.length !== 1) return null
-    if (direction && responseCode != null && responseCode !== optionCode) return null
-    if (direction && sourceCode != null && sourceCode !== optionCode) return null
-
-    if (mappingStatus === 'source_code_conflict' ||
-        mappingStatus === 'ambiguous_master' ||
-        mappingStatus === 'not_in_master') return null
-
-    if (
-      (response.review_required === true || (mappingStatus && mappingStatus !== 'mapped')) &&
-      !exactDirectionalMatch
-    ) return null
-
-    if (direction) {
-      // Code 1 always represents the favorable response. For a negative indicator,
-      // the metric numerator is the observed adverse response (codes 2 and 3).
-      // For a positive indicator, the metric numerator is the favorable response (code 1).
-      const code = optionCode
-      if (code == null || ![1, 2, 3].includes(code)) return null
-      const favorable = code === 1
-      const metricNumerator = direction === 'negative' ? !favorable : favorable
-      return { month, numerator: metricNumerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
-    }
-
-    // Backward compatibility for profiles that have not yet been assigned a direction.
-    if (option.denominator === false || typeof option.numerator !== 'boolean') return null
-    return { month, numerator: option.numerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
-  }
+  const optionObservation = extractOptionObservation(profile, response, month, inputAt)
+  if (optionObservation !== undefined) return optionObservation
 
   if (kind === 'occurrence') {
     const occurrence = String(response.occurrence ?? '').trim().toLowerCase()
@@ -266,7 +283,6 @@ function extractObservation(
 
   return null
 }
-
 function emptyMonthly(month: number): MonthlyIndicatorResult {
   return { month, numerator: 0, denominator: 0, rate: null, mean: null, targetAttainment: null, observations: 0, readyRecords: 0, validatedRecords: 0 }
 }
