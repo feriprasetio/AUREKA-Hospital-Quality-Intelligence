@@ -140,7 +140,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
       if (exact(columns, aliases) == null && key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen') score += 1
     }
-    for (const item of INDICATORS) if (exact(columns, [...item.aliases ?? [item.sourceHeader]]) == null) score += 1
+    for (const item of INDICATORS) if (exact(columns, [...item.aliases]) == null) score += 1
     if (score === 0) {
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
