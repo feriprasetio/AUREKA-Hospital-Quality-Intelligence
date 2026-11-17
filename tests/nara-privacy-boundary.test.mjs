@@ -46,8 +46,8 @@ test('NARA identity and the single-entry UI are consistent', () => {
   assert.match(home, /Pesan Admin/)
   assert.doesNotMatch(landing, /TanyaAureka|hlAi/)
   const nara = read('components/NaraAIWorkspace.tsx')
-  assert.match(nara, /Diagnosis & ICD-10/)
-  assert.match(nara, /NaraICD10Review/)
+  assert.doesNotMatch(nara, /Diagnosis & ICD-10|NaraICD10Review|Kamus diagnosis|naraCodingToggle/)
+  assert.doesNotMatch(nara, /icd10_suggest|ICD-10/)
 })
 
 test('top disease ranking is calculated by a protected database function, not an external model', () => {
@@ -75,9 +75,8 @@ test('ICD-10 mappings require a human validation reference and a reviewer identi
   assert.match(migration, /validated_by/)
   assert.match(migration, /current_role_code\(\)/)
   assert.match(migration, /v_role not in \('ADMIN','PMKP'\)/)
-  const ui = read('components/NaraICD10Review.tsx')
-  assert.match(ui, /aureka_nara_icd10_review_queue/)
-  assert.match(ui, /aureka_nara_icd10_upsert_mapping/)
+  const naraUi = read('components/NaraAIWorkspace.tsx')
+  assert.doesNotMatch(naraUi, /NaraICD10Review|Kamus diagnosis|Validasi ICD-10/)
 })
 
 test('logbook non-submission is calculated from raw counts before suppression', () => {
@@ -97,17 +96,15 @@ test('NARA aggregate context covers risk, FMEA, workforce, clinical audit, and I
   assert.doesNotMatch(gateway, /clinical_pathway_audits.*select\(["']\*["']\)/)
 })
 
-test('NARA AI exposes the clinical coding proposal workflow without bypassing human validation', () => {
+test('ICD-10 suggestion backend remains proposed-only while its review UI is removed from NARA', () => {
   assert.match(gateway, /task === "icd10_suggest"/)
   assert.match(gateway, /aureka_nara_icd10_review_queue/)
   assert.match(gateway, /const payload = \{ code_set: "WHO ICD-10 Version 2019", items: safeRows\.map/)
   assert.match(gateway, /p_status: "proposed", p_validation_reference: null/)
   assert.match(gateway, /Wajib diverifikasi dengan WHO ICD-10 2019/)
   assert.doesNotMatch(gateway, /p_status: "validated".*icd10_suggest/)
-  const review = read('components/NaraICD10Review.tsx')
-  assert.match(review, /Usulkan ICD-10 dengan NARA/)
-  assert.match(review, /PROPOSED/)
-  assert.match(review, /!d\.reference\.trim\(\)/)
+  const nara = read('components/NaraAIWorkspace.tsx')
+  assert.doesNotMatch(nara, /NaraICD10Review|Kamus diagnosis|Validasi ICD-10|Diagnosis & ICD-10/)
 })
 
 test('NARA context includes secure diagnosis, indicator, safety, OPPE/FPPE, and governance aggregates', () => {
