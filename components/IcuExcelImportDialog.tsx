@@ -290,6 +290,8 @@ function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: s
       source_header: row.indicatorHeaders['14.1']?.header ?? '',
       source_value: row.unassignedBhpLinen,
       indicator_code: '14.1',
+      column_index: row.indicatorHeaders['14.1']?.columnIndex ?? 0,
+      column_letter: row.indicatorHeaders['14.1']?.columnLetter ?? '',
       mapping_status: row.indicators['14.1']?.mappingStatus ?? 'not_in_master',
     },
     source_cached_los: row.sourceLos,
