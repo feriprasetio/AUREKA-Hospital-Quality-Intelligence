@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { resolveInteractiveExcelHeaderColumn } from './interactive-header-mapping.ts'
 
 export type PerinatologyIndicatorOption = {
   code: number | null
@@ -71,7 +72,7 @@ const OPTIONAL_PERINATOLOGY_HEADERS = new Set(['height', 'sourceLos'])
  * "Kekosongan Linen" is retained as an alias for the legacy combined BHP/Linen
  * source indicator; it is not one of the ten indicators mapped to active profiles.
  */
-export function mapPerinatologyLogbookHeaders(headerValues: unknown[]): PerinatologyLogbookHeaderMap {
+export function mapPerinatologyLogbookHeaders(headerValues: unknown[] , interactive = false): PerinatologyLogbookHeaderMap {
   const columns = new Map<string, number[]>()
 
   headerValues.forEach((value, index) => {
@@ -86,7 +87,19 @@ export function mapPerinatologyLogbookHeaders(headerValues: unknown[]): Perinato
   const missingHeaders: string[] = []
   const duplicateHeaders: string[] = []
 
-  const resolve = (key: string, aliases: string[], optional = false) => {
+  const resolve = (key: string, aliases: string[] , optional = false) => {
+    if (interactive) {
+      const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+        importerKey: 'perinatology',
+        fieldKey: key,
+        fieldLabel: aliases[0],
+        required: !optional,
+      })
+      if (column != null) indexes[key] = column
+      else if (!optional) missingHeaders.push(aliases[0])
+      return
+    }
+    const isRequired = !optional
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
@@ -96,7 +109,7 @@ export function mapPerinatologyLogbookHeaders(headerValues: unknown[]): Perinato
       indexes[key] = matches[0]
       return
     }
-    if (!optional) missingHeaders.push(aliases[0])
+    if (isRequired) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(PERINATOLOGY_LOGBOOK_HEADER_ALIASES)) {
