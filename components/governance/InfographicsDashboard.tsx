@@ -167,7 +167,7 @@ function ChartLegend({ series }: { series: ChartSeries[] }) {
   return <div className="ifChartLegend">{series.map((item) => <span key={item.label}><i style={{ background: item.color }}/>{item.label}</span>)}</div>
 }
 
-export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate, onRoomChange }: Props) {
+export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate, onRoomChange, onAskNara }: Props) {
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [roomValue, setRoomValue] = useState(initialRoomId == null ? '' : String(initialRoomId))
   const [summary, setSummary] = useState<AurekaPortfolioSummary | null>(null)
