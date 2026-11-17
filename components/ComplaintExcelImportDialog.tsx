@@ -1,5 +1,6 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
 
 import { useCallback, useMemo, useState } from 'react'
@@ -137,14 +138,15 @@ function normalizeRm(cell: any): string {
   }
   return String(value).trim()
 }
-function findHeader(columns: Map<string, number>, candidates: string[]): number | null {
-  for (const candidate of candidates) {
-    const match = columns.get(normalizeExactHeader(candidate))
-    if (match != null) return match
-  }
-  return null
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, candidates, {
+    importerKey: 'complaint',
+    fieldKey: candidates[0] ?? 'field',
+    fieldLabel: candidates[0] ?? 'Field',
+    required,
+  })
 }
-function requiredText(row: any, columns: Map<string, number>, key: string, excelRow: number): string {
+function requiredText(row: any, columns: Map<string, number[]>, key: string, excelRow: number): string {
   const column = findHeader(columns, REQUIRED_HEADERS[key])
   if (column == null) throw new Error('Header "' + REQUIRED_HEADERS[key][0] + '" tidak ditemukan di baris 2.')
   const value = key === 'medicalRecordNo' ? normalizeRm(row.getCell(column)) : cellText(row.getCell(column))
@@ -290,11 +292,11 @@ export default function ComplaintExcelImportDialog({
       const worksheet = workbook.getWorksheet('Logbook')
       if (!worksheet) throw new Error('Sheet "Logbook" tidak ditemukan. Periksa apakah file yang dipilih benar.')
       if (worksheet.rowCount > 5003) throw new Error('Jumlah baris Logbook melewati batas yang diizinkan (5003).')
-      const columns = new Map<string, number>()
+      const columns = new Map<string, number[]>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= Math.min(worksheet.columnCount, 100); column++) {
         const name = cellText(headerRow.getCell(column)).trim()
-        if (name) columns.set(normalizeExactHeader(name), column)
+        if (name) { const key = normalizeExactHeader(name); const matches = columns.get(key) ?? []; matches.push(column); columns.set(key, matches) }
       }
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
         if (findHeader(columns, aliases) == null) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 2.')
