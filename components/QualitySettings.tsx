@@ -1140,11 +1140,14 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                       {(profile.indicator_type || 'Tanpa program')} · {profile.unit_name || 'Unit belum ditentukan'} · {profile.category || 'Kategori belum diisi'}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
-                      Target: {profile.target_text || '-'} · Satuan: {profile.unit_of_measure || '-'} · Grain: {profile.measurement_grain || '-'} · v{profile.version || 1} · {profile.status || '-'}
+                      Target: {profile.target_text || '-'} · Satuan: {profile.unit_of_measure || '-'} · Grain: {profile.measurement_grain || '-'} · Tipe: {profile.schema_json?.measurement_type || 'Belum ditetapkan'} · v{profile.version || 1} · {profile.status || '-'}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
                       Arah capaian: {profile.schema_json?.indicator_direction === 'positive' ? 'Positif' : profile.schema_json?.indicator_direction === 'negative' ? 'Negatif' : 'Belum ditetapkan'}
                     </div>
+                    {profile.schema_json?.excel_mapping && <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7, overflowWrap: 'anywhere' }}>
+                      Sumber Excel: {profile.schema_json.excel_mapping.worksheet || 'Worksheet belum ditetapkan'} · {profile.schema_json.excel_mapping.indicator_header || 'Header indikator belum dipetakan'}
+                    </div>}
                     {needsMetadataReview(profile) && <div className="qsReviewNote">Perlu perbaikan teknis: {metadataReviewReasons(profile).join(', ')}.</div>}
                     {!needsMetadataReview(profile) && needsTargetApproval(profile) && <div style={{ marginTop: 5, color: '#9a6700', fontSize: 12, fontWeight: 750 }}>Perlu pengesahan pemilik indikator: {targetApprovalReasons(profile).join(', ')}. Indikator tetap dapat dipetakan dan dicatat; target belum dihitung sebagai target resmi.</div>}
                     {!needsMetadataReview(profile) && !needsTargetApproval(profile) && hasNeutralTargetStatus(profile) && <div style={{ marginTop: 5, padding: '7px 9px', borderRadius: 8, background: 'rgba(100,116,139,.08)', color: '#526170', fontSize: 12, lineHeight: 1.5 }}>{neutralTargetExplanation(profile)}</div>}
