@@ -342,11 +342,11 @@ BEGIN
            nullif(btrim(coalesce(v_existing_source_value,'')),'') IS NULL
            OR v_existing_indicator_14_1 IS NULL
          ) THEN
-        SELECT item
+        SELECT response.value
           INTO v_14_1_response
-          FROM jsonb_array_elements(v_row->'responses') AS item
-         WHERE item->'indicator_id' = (
-           SELECT to_jsonb(ip.id)
+          FROM jsonb_array_elements(v_row->'responses') AS response(value)
+         WHERE response.value->>'indicator_id' = (
+           SELECT ip.id::text
              FROM aureka_quality.indicator_profiles ip
             WHERE ip.room_id=14 AND ip.profile_year=2026
               AND ip.code='14.1' AND ip.is_active=true AND ip.status='published'
