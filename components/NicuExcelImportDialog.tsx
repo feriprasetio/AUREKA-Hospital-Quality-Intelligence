@@ -164,7 +164,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
         if (column != null) indexes[key] = column
       }
       for (const item of NICU_SOURCE_INDICATORS) {
-        const column = exact(columns, item.aliases ? [...item.aliases] : [item.sourceHeader])
+        const column = exact(columns, [item.sourceHeader])
         if (column != null) indexes['indicator:' + item.code] = column
       }
       return { rowNumber, indexes }
