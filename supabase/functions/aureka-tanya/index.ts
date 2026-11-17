@@ -567,26 +567,34 @@ function appendRiskDistributionFallback(question: string, answer: string, snapsh
   if (!snapshotData || typeof snapshotData !== "object") return answer;
   const risk = (snapshotData as Record<string, unknown>).manajemen_risiko;
   if (!risk || typeof risk !== "object") return answer;
+  const matrixRows = (risk as Record<string, unknown>).matriks_likelihood_dampak;
+  const quality = (risk as Record<string, unknown>).kualitas_data_matriks as Record<string, unknown> | undefined;
+  if (Array.isArray(matrixRows) && matrixRows.length === 25) {
+    const data = matrixRows.filter((row): row is Record<string, unknown> => !!row && typeof row === "object")
+      .map((row) => ({ likelihood: Number(row.likelihood), impact: Number(row.impact), count: row.count }));
+    if (data.length === 25 && data.every((row) => Number.isInteger(row.likelihood) && row.likelihood >= 1 && row.likelihood <= 5 && Number.isInteger(row.impact) && row.impact >= 1 && row.impact <= 5 && (typeof row.count === "number" && Number.isFinite(row.count) && row.count >= 0 || typeof row.count === "string" && row.count.startsWith("disembunyikan")))) {
+      const visual = {
+        title: "Matriks Risiko 5×5 — Likelihood × Impact",
+        chartType: "risk_matrix",
+        data,
+        source: "Agregat register risiko AUREKA (aureka_risk.risk_register)",
+        period: "Snapshot saat pertanyaan diproses",
+        unit: "jumlah register",
+        interpretation: "Matriks memakai nilai likelihood dan impact yang tersimpan pada register. Perhatian mutu data: nilai 3 merupakan default pada skema; jumlah likelihood=3: " + String(quality?.nilai_likelihood_default_3 ?? "tidak diketahui") + ", impact=3: " + String(quality?.nilai_impact_default_3 ?? "tidak diketahui") + ". Frekuensi nilai 3 belum membuktikan apakah nilai tersebut hasil penilaian atau nilai default impor. Sel dengan jumlah 1–4 disembunyikan."
+      };
+      return answer.trim() + "\n\nSaya dapat menampilkan matriks berdasarkan nilai yang saat ini tersimpan. Namun, nilai default perlu diverifikasi sebelum matriks dipakai sebagai dasar keputusan.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
+    }
+  }
   const perLevel = (risk as Record<string, unknown>).per_level;
   if (!perLevel || typeof perLevel !== "object") return answer;
   const values = perLevel as Record<string, unknown>;
-  const data = LEVELS.map((level) => ({ tingkat_risiko: level, jumlah: values[level] }))
+  const pieData = LEVELS.map((level) => ({ tingkat_risiko: level, jumlah: values[level] }))
     .filter((row): row is { tingkat_risiko: string; jumlah: number } =>
       typeof row.jumlah === "number" && Number.isFinite(row.jumlah) && row.jumlah >= 0);
-  if (data.length < 2 || data.some((row) => row.jumlah < 0) || data.reduce((sum, row) => sum + row.jumlah, 0) <= 0) return answer;
-  const total = data.reduce((sum, row) => sum + row.jumlah, 0);
-  const visual = {
-    title: "Distribusi Risiko Berdasarkan Tingkat Risiko",
-    chartType: "pie",
-    xKey: "tingkat_risiko",
-    valueKey: "jumlah",
-    data,
-    source: "Agregat register risiko AUREKA",
-    period: "Snapshot saat pertanyaan diproses",
-    unit: "risiko",
-    interpretation: "Distribusi ini menunjukkan komposisi tingkat risiko pada register. Visualisasi ini bukan matriks kemungkinan × dampak; penempatan pada matriks 5×5 memerlukan nilai likelihood dan impact untuk setiap risiko."
-  };
-  return answer.trim() + "\n\nMatriks 5×5 belum dapat dibentuk tanpa nilai kemungkinan dan dampak per risiko. Sebagai alternatif yang didukung data, berikut distribusi tingkat risiko dari " + total.toLocaleString("id-ID") + " register.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
+  if (pieData.length < 2 || pieData.reduce((sum, row) => sum + row.jumlah, 0) <= 0) return answer;
+  const total = pieData.reduce((sum, row) => sum + row.jumlah, 0);
+  const visual = { title: "Distribusi Risiko Berdasarkan Tingkat Risiko", chartType: "pie", xKey: "tingkat_risiko", valueKey: "jumlah", data: pieData, source: "Agregat register risiko AUREKA", period: "Snapshot saat pertanyaan diproses", unit: "risiko", interpretation: "Distribusi tingkat risiko ini bukan matriks likelihood × impact." };
+  return answer.trim() + "\n\nMatriks 5×5 belum dapat dibentuk dari snapshot ini. Sebagai alternatif, berikut distribusi tingkat risiko.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
 }
 
 async function handle(req: Request): Promise<Response> {
