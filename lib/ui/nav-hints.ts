@@ -7,7 +7,7 @@ export const NAV_HINTS: Record<string, string> = {
   'Statistik': 'Jumlah dan tren kunjungan pasien.',
   'Metadata Pasien': 'Daftar induk pasien berdasarkan No. RM beserta riwayat kunjungannya.',
   'Riwayat Episode': 'Telusuri episode pelayanan pasien lintas unit; perubahan data sumber tetap dilakukan melalui Form Logbook Indikator Mutu.',
-  'Analisis Rekam Medis': 'Analisis agregat LOS, diagnosis/ICD-10, kelengkapan No. RM, tren episode, dan pemanfaatan layanan.'
+  'Analisis Rekam Medis': 'Analisis agregat LOS, diagnosis/ICD-10, kelengkapan No. RM, tren episode, dan pemanfaatan layanan.',
   'Form Logbook': 'Isi data indikator mutu ruangan Anda (berapa yang memenuhi standar dari seluruh kasus).',
   'Hasil Capaian': 'Persentase capaian tiap indikator dibanding targetnya.',
   'Unit Keseluruhan': 'Capaian indikator dilihat per ruangan.',
