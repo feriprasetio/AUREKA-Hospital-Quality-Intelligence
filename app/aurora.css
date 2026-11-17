@@ -1802,3 +1802,12 @@ html[data-mode="gelap"] body:not(#_) .qrSetup { border-color: rgba(255,255,255,.
 /* Pita penutup di atas header melayang hanya muncul saat halaman sudah digulir (tidak tampak sebagai potongan putih saat di atas). */
 html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar::before { opacity: 0; transition: opacity .2s ease; }
 html[data-skin="arktik"][data-ak-scrolled] body:not(#_) .workspaceRoot .workspaceHeaderBar::before { opacity: 1; }
+
+/* Submenu desktop: label panjang (mis. "Mitigasi & Rencana Tindak Pengendalian") tidak terpotong; pil geser bawaan dimatikan karena tab aktif sudah bergaya sendiri. */
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRail > .workspaceNavigationSubItems .workspaceNavigationSubItem { max-width: none !important; overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; flex: 0 0 auto !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRail > .workspaceNavigationSubItems::before { display: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRail > .workspaceNavigationSubItems { flex-wrap: wrap !important; max-width: 100% !important; overflow: visible !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRail { flex-wrap: wrap !important; row-gap: 8px !important; }
+}
+html body:not(#_) .workspaceRoot :is(.workspaceNavigationSubItem, .workspaceNavigationRailItem):focus:not(:focus-visible) { outline: none !important; }
