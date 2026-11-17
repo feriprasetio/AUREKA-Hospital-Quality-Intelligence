@@ -23,6 +23,16 @@ test('NARA scopes cached aggregate snapshots to the deterministic skill domains 
   assert.match(gateway, /GOVERNANCE INTELLIGENCE/);
 });
 
+test('the gateway queries only selected domains and partitions snapshot cache by domain set', () => {
+  assert.match(gateway, /async function snapshot\(db: SupabaseClient, domains: readonly string\[\]\)/);
+  assert.match(gateway, /needs\("risk"\) \? fetchAll<Risk>/);
+  assert.match(gateway, /needs\("patient_safety"\) \? fetchAll<Incident>/);
+  assert.match(gateway, /needs\("quality"\) \? qualityCounts/);
+  assert.match(gateway, /needs\("governance"\)[\s\S]*?aureka_gov_infographics_summary_secure/);
+  assert.match(gateway, /snapshotCacheKey = who\.user\.id \+ "::" \+ snapshotDomains\.join\(","\)/);
+  assert.match(gateway, /loaded-on-demand-by-skill/);
+});
+
 test('engineering keywords are not misclassified as small talk and do not imply live repository access', () => {
   assert.ok(gateway.includes(String.raw`supabase|next\.js|react|typescript`));
   assert.match(gateway, /tidak memiliki akses GitHub, shell, secret, SQL langsung, atau deployment/);
