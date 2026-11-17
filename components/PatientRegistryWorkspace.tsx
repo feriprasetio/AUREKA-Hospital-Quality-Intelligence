@@ -224,7 +224,7 @@ export default function PatientRegistryWorkspace({
 
   // Jumlah episode per unit (untuk pilihan unit & unit bawaan formulir Tambah Pasien).
   useEffect(() => {
-    if (!canViewAllRooms && !lockRoomScope) return
+    if (tab !== 'records' || (!canViewAllRooms && !lockRoomScope)) return
     let cancelled = false
     ;(async () => {
       const counts = new Map<number, number>()
@@ -232,8 +232,7 @@ export default function PatientRegistryWorkspace({
       if (!cancelled) setRoomCounts(counts)
     })()
     return () => { cancelled = true }
-  }, [canViewAllRooms, lockRoomScope, year])
-  const firstRoomWithData = useMemo(() => rooms.find((room) => (roomCounts.get(Number(room.id)) ?? 0) > 0)?.id ?? null, [rooms, roomCounts])
+  }, [tab, canViewAllRooms, lockRoomScope, year])
 
   useEffect(() => {
     if (lockRoomScope && initialRoomId != null) {
@@ -243,7 +242,7 @@ export default function PatientRegistryWorkspace({
     }
     if (!canViewAllRooms && !roomFilter && rooms.length) setRoomFilter(String(initialRoomId ?? rooms[0].id))
   }, [roomFilter, rooms, initialRoomId, canViewAllRooms, lockRoomScope])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { if (tab === 'records') void load() }, [load, tab])
 
   const filtered = rows
 
