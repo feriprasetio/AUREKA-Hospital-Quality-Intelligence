@@ -462,3 +462,100 @@ html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[da
     .workspaceViewTabList, .prTabs, .psTabs, .rmTabs, .aqTabs, .qraTabs, .mswTabs, .mswDirectoryTabs, .hlTabs, [role="tablist"]
   ) > button { transition: none !important; }
 }
+
+
+/* Final production alignment guard: primary and secondary tabs share one
+   flex row and one optical baseline across every authenticated module. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail :is(
+  .workspaceNavigationRailTitle,
+  .workspaceNavigationRailDivider,
+  .workspaceNavigationGroupDivider,
+  .workspaceNavigationRailItems,
+  .workspaceNavigationSubItems,
+  .workspaceNavigationOverflow
+) {
+  align-self: center !important;
+  margin-block: 0 !important;
+  vertical-align: middle !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail :is(
+  .workspaceNavigationRailItems,
+  .workspaceNavigationSubItems
+) {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  padding-block: 0 !important;
+  transform: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail :is(
+  .workspaceNavigationRailItem,
+  .workspaceNavigationSubItem,
+  .workspaceNavigationOverflow summary
+) {
+  display: inline-flex !important;
+  align-self: center !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding-block: 0 !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  transform: none !important;
+  translate: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail :is(
+  .workspaceNavigationRailDivider,
+  .workspaceNavigationGroupDivider
+) {
+  align-self: center !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  margin-block: 0 !important;
+  transform: none !important;
+}
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail :is(
+    .workspaceNavigationRailItems,
+    .workspaceNavigationSubItems
+  ) {
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    overscroll-behavior-x: contain !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail :is(
+    .workspaceNavigationRailItem,
+    .workspaceNavigationSubItem,
+    .workspaceNavigationOverflow summary
+  ) {
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding-inline: 9px !important;
+  }
+}

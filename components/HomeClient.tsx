@@ -527,11 +527,13 @@ export default function HomeClient(){
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
  const activeRailTitle=activeNavModuleLabel
- // Grup (mis. Insiden, Budaya) tetap tampil di baris utama; anak dari grup aktif tampil di baris kedua.
+ // Grup modul tetap menjadi navigasi utama; sub-tab berada pada rail horizontal yang sama.
  const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))
  const activeNavPrimaryId=activeNestedNavGroup?.id||activeNavSelectedId
- const activeNavSecondaryId=activeNestedNavGroup?activeNavSelectedId:''
- const activeRailSubItems=(activeNestedNavGroup?.children||[]).map(item=>({...item,hint:NAV_HINTS[item.label]}))
+ const activeNavSecondaryId=activeNavModuleId==='patients'?patientsRegistryTab:(activeNestedNavGroup?activeNavSelectedId:'')
+ const activeRailSubItems=activeNavModuleId==='patients'
+  ? [{id:'records',label:'Daftar Episode',hint:NAV_HINTS['Daftar Episode']},{id:'directory',label:'Direktori Pasien',hint:NAV_HINTS['Direktori Pasien']},{id:'add',label:'Input Episode',hint:NAV_HINTS['Input Episode']}]
+  : (activeNestedNavGroup?.children||[]).map(item=>({...item,hint:NAV_HINTS[item.label]}))
  const activeRailItemsHinted=activeRailItems.map(item=>({...item,hint:NAV_HINTS[item.label]}))
  const activePageHint=NAV_HINTS[(activeRailSubItems.find(item=>item.id===activeNavSecondaryId)||activeNavGroups.find(group=>group.id===activeNavPrimaryId))?.label||'']
  const dispatchWorkspaceSearch=(query:string)=>{
@@ -1080,7 +1082,7 @@ export default function HomeClient(){
    subTitle={activeNestedNavGroup?.label}
    subItems={activeRailSubItems}
    onSelect={primaryId=>{const group=activeNavGroups.find(item=>item.id===primaryId);selectSidebarChild(activeNavModuleId,group?.children?.[0]?.id||primaryId)}}
-   onSubSelect={childId=>selectSidebarChild(activeNavModuleId,childId)}
+   onSubSelect={childId=>{if(activeNavModuleId==='patients'){if(childId==='add'||childId==='records'||childId==='directory')setPatientsRegistryTab(childId);return}selectSidebarChild(activeNavModuleId,childId)}}
   />}
    <div id="workspace-main-content" tabIndex={-1} key={active+'-'+qualityOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><ModuleErrorBoundary moduleLabel={activeNavModuleLabel||'Modul'} onHome={()=>openMainModule('home')}>
    {active==='home'?<>
