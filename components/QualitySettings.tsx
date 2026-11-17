@@ -757,7 +757,16 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       await load()
       setMsg('Profil uji ' + code + ' berhasil dihapus permanen. Tidak ada data audit atau respons yang ikut dihapus.')
     } catch (error) {
-      setMsg('Profil tidak dapat dihapus permanen: ' + toUserFacingError(error, { fallback: 'Profil mungkin masih dirujuk oleh respons, aturan OPPE, proposal, atau catatan audit.' }))
+      const errorCode = error && typeof error === 'object' && 'code' in error
+        ? String((error as Record<string, unknown>).code ?? '')
+        : ''
+      if (errorCode === '42501') {
+        setMsg('Penghapusan belum diizinkan. Pastikan akun yang digunakan memiliki peran Superadmin. Tidak ada data yang dihapus.')
+      } else if (errorCode === 'PGRST301' || errorCode === '401') {
+        setMsg('Sesi login telah berakhir. Masuk kembali ke AUREKA, lalu ulangi penghapusan.')
+      } else {
+        setMsg('Profil tidak dapat dihapus permanen: ' + toUserFacingError(error, { fallback: 'Profil mungkin masih dirujuk oleh respons, aturan OPPE, proposal, atau catatan audit.' }))
+      }
     } finally {
       setSaving(false)
     }
