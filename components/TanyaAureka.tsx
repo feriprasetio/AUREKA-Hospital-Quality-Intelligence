@@ -267,7 +267,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     handledInitialPrompt.current = prompt
     void ask(prompt)
     onInitialPromptConsumed?.()
-  }, [initialPrompt])
+  }, [initialPrompt, onInitialPromptConsumed])
 
   const staged = Boolean(stage) && msgs.length === 0 && !busy
   const panel = open && <section className={(embedded ? 'tanyaPanel tanyaPanelEmbedded' : 'tanyaPanel') + (staged ? ' tanyaStaged' : '')} role={embedded ? 'region' : 'dialog'} aria-label={assistantName}>

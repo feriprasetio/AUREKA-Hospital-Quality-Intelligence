@@ -702,7 +702,11 @@ async function handle(req: Request): Promise<Response> {
         && !/(NAMA PASIEN|ATAS NAMA|PASIEN BERNAMA)/i.test(d)
         && !/^[0-9\s+()./-]+$/.test(d);
     }).slice(0, 20);
-    if (!safeRows.length) return reply(200, { answer: "Tidak ada istilah diagnosis yang memenuhi ambang untuk diusulkan kodenya. Istilah dengan kelompok kurang dari lima pasien tidak dimasukkan.", model: "database:icd10-review-queue", proposed: 0, pending: 0 });
+    if (!safeRows.length) return reply(200, {
+      answer: "Tidak ada istilah diagnosis yang memenuhi ambang untuk diusulkan kodenya. Istilah dengan kelompok kurang dari lima pasien tidak dimasukkan.",
+      model: "database:icd10-review-queue", proposed: 0, pending: 0,
+      intelligence: { model: "database:icd10-review-queue", skills: ["Clinical Intelligence"], domains: ["clinical"], snapshot_status: "available", source: "aureka_nara_icd10_review_queue (secure RPC)", generated_at: new Date().toISOString(), page: null },
+    });
     const allowedTerms = new Set(safeRows.map((r) => String(r.diagnosis).trim()));
     const payload = { code_set: "WHO ICD-10 Version 2019", items: safeRows.map((r) => ({ diagnosis: String(r.diagnosis), patient_count: Number(r.patient_count) || 0 })) };
     const system = [
@@ -745,6 +749,15 @@ async function handle(req: Request): Promise<Response> {
     return reply(200, {
       answer: "NARA membuat " + saved + " usulan pemetaan ICD-10 dari " + safeRows.length + " istilah diagnosis agregat. Semua disimpan sebagai usulan, bukan kode tervalidasi.\n\n" + reports.join("\n"),
       model: selected.provider + ":" + selected.model, proposed: saved, pending: safeRows.length - saved,
+      intelligence: {
+        model: selected.provider + ":" + selected.model,
+        skills: ["Clinical Intelligence"],
+        domains: ["clinical"],
+        snapshot_status: "available",
+        source: "aureka_nara_icd10_review_queue + aureka_nara_icd10_upsert_mapping (secure RPC)",
+        generated_at: new Date().toISOString(),
+        page: null,
+      },
     });
   }
 

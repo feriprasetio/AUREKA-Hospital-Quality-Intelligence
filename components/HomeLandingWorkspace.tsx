@@ -257,7 +257,7 @@ export default function HomeLandingWorkspace({
     </section>})()}
     <section className="hlPanel" aria-label="Prioritas perhatian">
       <header className="hlPanelHead"><h3>Priority attention</h3><span>Sinyal ringkas sesuai cakupan akses</span></header>
-      <HomeKpis supabase={supabase} rooms={rooms} isAdmin={isAdmin} roomId={roomId} showSafety={isAdmin||manager} onNavigate={onNavigate}/>
+      <HomeKpis supabase={supabase} rooms={rooms} isAdmin={isAdmin||manager} roomId={roomId} showSafety={isAdmin||manager} onNavigate={onNavigate}/>
     </section>
     <section className="hlPanel" aria-label="Pekerjaan dan aktivitas pengguna">
       <header className="hlPanelHead">
