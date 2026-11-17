@@ -200,6 +200,7 @@ function tm(v:string){if(!/^\d\d:\d\d$/.test(v))return null;const[a,b]=v.split('
 function diff(a:string,b:string){const x=tm(a),y=tm(b);return x==null||y==null?null:y>=x?y-x:y+1440-x}
 function hit(p:Profile,dx:string){const h=`${p.indicator_type} ${p.title}`.toLowerCase(),d=dx.toLowerCase();if(!h.includes('audit medis'))return false;const rules=[[/stroke|iskemik/,/stroke/],[/stemi|infark/,/stemi|killip|ekg/],[/tuberkulosis|tbc/,/tuberkulosis|sitb|oat/],[/sirosis/,/sirosis|varises/],[/ginjal|ckd|gagal ginjal/,/ginjal|dialisis|kt\/v/],[/diabetes|dm /,/diabetes|pedis|ankle|kaki/],[/carcinoma|kanker|mammae/,/mammae|mastektomi|imunohistokimia|tnm/],[/asfiksia|neonatus/,/asfiksia|apgar|vtp/],[/sectio|seksio|persalinan/,/sectio|menyusui|hemostasis/]];return rules.some(([a,b])=>(a as RegExp).test(d)&&(b as RegExp).test(h))}
 function kind(p:Profile){return resolveMeasurementKind(p)}
+function isCategoricalResponseCapture(p:Profile){return String(p.schema_json?.response_capture_mode??'')==='categorical'}
 function optionsFor(p:Profile){return Array.isArray(p.options_json)?p.options_json.filter((x:any)=>x&&x.label):[]}
 function indicatorChoicesFor(p:Profile,layout:AuditLayout|undefined,response?:Resp){const header=String(p.schema_json?.header_label??'').trim()||String(p.title??'').trim();const sourceLabels=[...(layout?.indicatorOptions?.[header]??[])];const sourceValue=String(response?.source_value??response?.source_label??'').trim();const canonical=(value:string)=>value.replace(/\s*\(code\s*\d+\)\s*$/i,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('id-ID');if(sourceValue&&!sourceLabels.some(value=>canonical(value)===canonical(sourceValue))&&!optionsFor(p).some((value:any)=>canonical(String(value.label))===canonical(sourceValue)))sourceLabels.push(sourceValue);return buildIndicatorDropdownOptions(p,sourceLabels)}
 function responseComplete(p:Profile,r:Resp|undefined){
@@ -209,6 +210,7 @@ function responseComplete(p:Profile,r:Resp|undefined){
    return r.code===3&&!!String(r.free_text??'').trim()
  }
  const k=kind(p),opts=optionsFor(p)
+ if(isCategoricalResponseCapture(p))return !!String(r.answer??'').trim()
  if(k==='ratio')return r.numerator!=null&&r.denominator!=null&&Number.isFinite(Number(r.numerator))&&Number.isFinite(Number(r.denominator))&&Number(r.numerator)>=0&&Number(r.denominator)>0&&Number(r.numerator)<=Number(r.denominator)
  if(k==='visit')return !!r.answer&&!!r.time
  if(k==='door')return !!r.start&&!!r.end&&diff(r.start,r.end)!=null
@@ -225,6 +227,7 @@ function responseComplete(p:Profile,r:Resp|undefined){
 function filled(r:Resp|undefined){return!!r&&(!!r.answer||!!r.occurrence||!!r.time||!!r.start||!!r.end||r.minutes!=null||r.value!=null||(r.numerator!=null&&r.denominator!=null&&Number(r.denominator)>0))}
 function empty(p:Profile):Resp{
  if(String(p.schema_json?.input_mode??'')==='free_text_event')return{free_text:'',answer:'Tidak terjadi kekosongan obat',code:1}
+ if(isCategoricalResponseCapture(p))return{answer:'',code:null}
  const k=kind(p);return k==='ratio'?{numerator:null,denominator:null}:k==='occurrence'?{occurrence:''}:k==='numeric'?{value:null}:k==='minutes'?{minutes:null}:k==='door'?{start:'',end:'',minutes:null}:k==='visit'?{time:'',answer:''}:{answer:''}
 }
 function targetMet(p:Profile,r:Resp|undefined){
@@ -337,14 +340,26 @@ function getLayoutForRoom(roomId:number|null|undefined,roomName?:string|null){
  if(unit==='informatika dan teknologi')return QUALITY_AUDIT_LAYOUTS.find(layout=>layout.fields.some(field=>normHeader(field)==='gangguan it'))??getLayout(roomId)
  return getLayout(roomId)
 }
+const ICU_LAYOUT_PROFILE_CODE_ALIASES: Record<string,string> = {
+ 'visite spesialis':'14.4',
+ 'validitas asesmen':'14.8',
+ 'identifikasi pasien':'14.3',
+ 'apd':'14.5',
+ 'pencegahan jatuh':'14.6',
+ 'komunikasi perawatan':'14.7',
+ 'transfer igd':'14.2',
+ 'los icu panjang':'14.9',
+ 'kekosongan bhp linen':'14.1',
+}
 function profileMatchesHeader(header:string,p:Profile){
  const label=String(p.schema_json?.header_label??'').trim()||String(p.title??'').trim()
  const h=normHeader(header),l=normHeader(label)
  if(!h||!l)return false
+ const icuAliasCode=Number(p.room_id)===14?ICU_LAYOUT_PROFILE_CODE_ALIASES[h]:undefined
+ if(icuAliasCode&&String(p.code)===icuAliasCode)return true
  if(h===l)return true
  const stripDomain=(s:string)=>s.replace(/^(stemi|snh)\s*/,'').trim()
  if(stripDomain(h)===stripDomain(l))return true
- if(/kekosongan.*bhp.*linen|kekosongan.*linen.*bhp/.test(h)&&/kekosongan (linen|obat)/.test(l))return true
  return false
 }
 function unmatchedHeaders(all:Profile[],layout:AuditLayout|undefined){
@@ -1035,7 +1050,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
 
  const indicatorEditor=(p:Profile)=>{
-   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=String(p.schema_json?.input_mode??'')==='free_text_event'?'occurrence':kind(p),isHit=hit(p,selected?.diagnosis??''),opts=optionsFor(p),title=displayTitle(p)
+   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=String(p.schema_json?.input_mode??'')==='free_text_event'?'occurrence':kind(p),categoricalCapture=isCategoricalResponseCapture(p),isHit=hit(p,selected?.diagnosis??''),opts=optionsFor(p),title=displayTitle(p)
    const choices=indicatorChoicesFor(p,selectedLayout,r)
    const selectedChoiceIndex=findIndicatorDropdownSelection(choices,r as any)
    const selectedChoice=selectedChoiceIndex>=0?choices[selectedChoiceIndex]:undefined
@@ -1044,11 +1059,11 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const needsSourceReview=r.source_option===true||r.review_required===true||!!selectedChoice?.source_only||!!selectedChoice?.review_required||option?.review_required===true
    const rateNow=r.denominator!=null&&Number(r.denominator)>0&&r.numerator!=null?Number(r.numerator)/Number(r.denominator)*100:null
    const metricMet=targetMet(p,r)
-   const targetKinds=['ratio','visit','door','minutes','numeric'].includes(kindNow)
+   const targetKinds=!categoricalCapture&&['ratio','visit','door','minutes','numeric'].includes(kindNow)
    const actualForTarget=kindNow==='ratio'?rateNow:kindNow==='door'?diff(String(r.start??''),String(r.end??'')):kindNow==='minutes'?r.minutes:kindNow==='numeric'?r.value:kindNow==='visit'?r.time:null
    const resultLabel=targetKinds?(actualForTarget==null||actualForTarget===''?'Belum dihitung':metricMet==null?'Target belum dapat dinilai':metricMet?'Memenuhi target':'Belum memenuhi target'):needsSourceReview?'Perlu review':resultCode===1?'Memenuhi / Sesuai':resultCode===2?'Pengecualian / Perlu review':resultCode===3?'Tidak memenuhi / Tidak sesuai':(option?.code==null&&r.answer)?'Perlu review':'Belum tervalidasi'
    const freeTextEvent=String(p.schema_json?.input_mode??'')==='free_text_event'
-   const genericOptions=!freeTextEvent&&(shouldUseIndicatorDropdown(p)||(choices.length>1&&!['ratio','visit','door','minutes','numeric'].includes(kindNow)))
+   const genericOptions=!freeTextEvent&&(categoricalCapture||shouldUseIndicatorDropdown(p)||(choices.length>1&&!['ratio','visit','door','minutes','numeric'].includes(kindNow)))
    const typeLabel=indicatorTypeLabel(p.indicator_type)
    const grainText=grainLabel(String(p.measurement_grain))
    return <article className={'aqInd '+(isHit?'hit':'')} key={k}>
@@ -1064,8 +1079,8 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        {isHit&&<span className="aqMatch">Relevan dengan diagnosis</span>}
      </div>
      <div className="aqIBody">
-       <div className="aqQ">{kindNow==='visit'?'Apakah waktu visite memenuhi jendela waktu yang ditetapkan pada master indikator?':kindNow==='door'?'Berapa durasi dari pasien tiba sampai keputusan medis definitif?':kindNow==='minutes'?'Berapa waktu aktual yang diukur untuk indikator ini (menit)?':kindNow==='numeric'?'Berapa nilai numerik indikator pada episode pasien ini?':kindNow==='ratio'?'Masukkan jumlah pembilang dan penyebut dari pengukuran pada periode ini.':'Bagaimana hasil validasi '+title+' pada pasien ini?'}</div>
-     {kindNow==='ratio'&&(()=>{
+       <div className="aqQ">{categoricalCapture?'Pilih jawaban sesuai hasil pengamatan pada sumber/episode pasien ini.':kindNow==='visit'?'Apakah waktu visite memenuhi jendela waktu yang ditetapkan pada master indikator?':kindNow==='door'?'Berapa durasi dari pasien tiba sampai keputusan medis definitif?':kindNow==='minutes'?'Berapa waktu aktual yang diukur untuk indikator ini (menit)?':kindNow==='numeric'?'Berapa nilai numerik indikator pada episode pasien ini?':kindNow==='ratio'?'Masukkan jumlah pembilang dan penyebut dari pengukuran pada periode ini.':'Bagaimana hasil validasi '+title+' pada pasien ini?'}</div>
+     {!categoricalCapture&&kindNow==='ratio'&&(()=>{
        const inverseInput=String(p.schema_json?.logbook_input_transform??'')==='denominator_minus_input'
        const rawInputNumber=inverseInput?(r.noncompliant??(r.denominator!=null&&r.numerator!=null?Number(r.denominator)-Number(r.numerator):null)):r.numerator
        const numeratorLabel=String(p.schema_json?.logbook_input_numerator_label??'Pembilang (N)')
@@ -1082,10 +1097,10 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        return <><div className="aqTwo"><label className="aqField"><span>{numeratorLabel}</span><input disabled={isValidator} type="number" min="0" max={inverseInput?(r.denominator??undefined):undefined} step="1" value={rawInputNumber??''} onChange={(e:any)=>setInputNumber(e.target.value===''?null:Number(e.target.value))} placeholder="Masukkan jumlah sesuai definisi sumber"/></label><label className="aqField"><span>{denominatorLabel}</span><input disabled={isValidator} type="number" min="0" step="1" value={r.denominator??''} onChange={(e:any)=>setInputDenominator(e.target.value===''?null:Number(e.target.value))} placeholder="Masukkan total yang diamati"/></label></div><div className="aqAuto" style={{marginTop:10}}><span>{inverseInput?'Kepatuhan':'Hasil'}</span><strong>{rateNow==null?'Menunggu pembilang dan penyebut':rateNow.toFixed(2)+'%'}</strong><small>{rateNow==null?'Penyebut harus lebih besar dari nol.':'Target '+(p.target_text||'-')+' · '+(metricMet==null?'Periksa target pada master':metricMet?'Memenuhi target':'Belum memenuhi target')+(inverseInput?' · N master = total sampel − obat tidak berlabel. Perhitungan ini hanya mencakup High Alert, belum LASA.':'')}</small></div></>
      })()}
      {freeTextEvent&&<label className="aqField" style={{marginTop:10}}><span>Nama obat yang tidak tersedia</span><input disabled={isValidator} type="text" value={r.free_text??''} onChange={(e:any)=>{const name=String(e.target.value??'');const present=!!name.trim();setResp(p,{free_text:name,answer:present?'Terjadi kekosongan obat':'Tidak terjadi kekosongan obat',code:present?3:1})}} placeholder="Tuliskan nama obat; kosongkan bila tidak terjadi kekosongan"/><small style={{color:'var(--muted)'}}>Nama obat yang diisi mencatat kejadian kekosongan (code 3); tidak diisi berarti tidak ada kejadian (code 1).</small></label>}
-     {kindNow==='visit'&&<><div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Waktu visite aktual</span><input disabled={isValidator} type="time" value={r.time??''} onChange={(e:any)=>{const value=e.target.value,met=isWithinVisitWindow(p,value);setResp(p,{time:value,answer:met==null?'':met?'Ya':'Tidak',code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Hasil</span><strong>{r.time?(metricMet==null?'Target belum ditentukan':metricMet?'Memenuhi target':'Tidak memenuhi target'):'Belum dihitung'}</strong><small>Target {p.target_text||'belum ditetapkan pada master'}</small></div></div></>}
-     {kindNow==='door'&&<><div className="aqTwo"><label className="aqField"><span>Waktu pasien tiba</span><input disabled={isValidator} type="time" value={r.start??''} onChange={(e:any)=>{const value=e.target.value,met=targetMet(p,{...r,start:value});setResp(p,{start:value,code:met==null?null:met?1:3})}}/></label><label className="aqField"><span>Waktu keputusan medis</span><input disabled={isValidator} type="time" value={r.end??''} onChange={(e:any)=>{const value=e.target.value,met=targetMet(p,{...r,end:value});setResp(p,{end:value,code:met==null?null:met?1:3})}}/></label></div><div className="aqAuto" style={{marginTop:10}}><span>Durasi</span><strong>{r.start&&r.end&&diff(r.start,r.end)!=null?`${diff(r.start,r.end)} menit`:'Belum dihitung'}</strong><small>Target {p.target_text||'belum ditetapkan pada master'}</small></div></>}
-     {kindNow==='minutes'&&<div className="aqTwo"><label className="aqField"><span>Waktu aktual (menit)</span><input disabled={isValidator} type="number" min="0" value={r.minutes??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,minutes:v});setResp(p,{minutes:v,code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Interpretasi</span><strong>{r.minutes==null?'Belum diisi':metricMet==null?'Target perlu dilengkapi':metricMet?'Memenuhi target':'Tidak memenuhi target'}</strong></div></div>}
-     {kindNow==='numeric'&&<label className="aqField"><span>Nilai indikator</span><input disabled={isValidator} type="number" step="0.01" value={r.value??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,value:v});setResp(p,{value:v,code:met==null?null:met?1:3})}}/></label>}
+     {!categoricalCapture&&kindNow==='visit'&&<><div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Waktu visite aktual</span><input disabled={isValidator} type="time" value={r.time??''} onChange={(e:any)=>{const value=e.target.value,met=isWithinVisitWindow(p,value);setResp(p,{time:value,answer:met==null?'':met?'Ya':'Tidak',code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Hasil</span><strong>{r.time?(metricMet==null?'Target belum ditentukan':metricMet?'Memenuhi target':'Tidak memenuhi target'):'Belum dihitung'}</strong><small>Target {p.target_text||'belum ditetapkan pada master'}</small></div></div></>}
+     {!categoricalCapture&&kindNow==='door'&&<><div className="aqTwo"><label className="aqField"><span>Waktu pasien tiba</span><input disabled={isValidator} type="time" value={r.start??''} onChange={(e:any)=>{const value=e.target.value,met=targetMet(p,{...r,start:value});setResp(p,{start:value,code:met==null?null:met?1:3})}}/></label><label className="aqField"><span>Waktu keputusan medis</span><input disabled={isValidator} type="time" value={r.end??''} onChange={(e:any)=>{const value=e.target.value,met=targetMet(p,{...r,end:value});setResp(p,{end:value,code:met==null?null:met?1:3})}}/></label></div><div className="aqAuto" style={{marginTop:10}}><span>Durasi</span><strong>{r.start&&r.end&&diff(r.start,r.end)!=null?`${diff(r.start,r.end)} menit`:'Belum dihitung'}</strong><small>Target {p.target_text||'belum ditetapkan pada master'}</small></div></>}
+     {!categoricalCapture&&kindNow==='minutes'&&<div className="aqTwo"><label className="aqField"><span>Waktu aktual (menit)</span><input disabled={isValidator} type="number" min="0" value={r.minutes??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,minutes:v});setResp(p,{minutes:v,code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Interpretasi</span><strong>{r.minutes==null?'Belum diisi':metricMet==null?'Target perlu dilengkapi':metricMet?'Memenuhi target':'Tidak memenuhi target'}</strong></div></div>}
+     {!categoricalCapture&&kindNow==='numeric'&&<label className="aqField"><span>Nilai indikator</span><input disabled={isValidator} type="number" step="0.01" value={r.value??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,value:v});setResp(p,{value:v,code:met==null?null:met?1:3})}}/></label>}
      {kindNow==='occurrence'&&!genericOptions&&<div className="aqRadio"><label><input disabled={isValidator} type="radio" checked={r.occurrence==='Tidak terjadi'} onChange={()=>setResp(p,{occurrence:'Tidak terjadi',code:1})}/> Tidak terjadi</label><label><input disabled={isValidator} type="radio" checked={r.occurrence==='Terjadi'} onChange={()=>setResp(p,{occurrence:'Terjadi',code:3})}/> Terjadi</label></div>}
      {genericOptions&&choices.length<=8&&<div className="aqChoiceChips" role="radiogroup" aria-label={'Hasil pengukuran '+title}>{choices.map((choice:any,i:number)=>{const on=selectedChoiceIndex===i;const tone=choice.code===1?'ok':choice.code===3?'bad':choice.code===2?'mid':'';return <button key={k+'-chip-'+choice.key} type="button" role="radio" aria-checked={on} disabled={isValidator} className={'aqChip '+tone+(on?' on':'')} onClick={()=>setResp(p,{answer:choice.answer,code:choice.code,source_option:choice.source_only,review_required:choice.review_required===true||choice.code==null,source_label:choice.source_label,source_value:choice.source_label})}>{String(choice.label)}</button>})}</div>}
      {genericOptions&&choices.length>8&&<label className="aqField aqChoiceField"><select aria-label={'Hasil pengukuran '+title} disabled={isValidator} value={selectedChoiceIndex>=0?String(selectedChoiceIndex):''} onChange={(e:any)=>{const choice=choices[Number(e.target.value)];if(!choice)return;setResp(p,{answer:choice.answer,code:choice.code,source_option:choice.source_only,review_required:choice.review_required===true||choice.code==null,source_label:choice.source_label,source_value:choice.source_label})}}><option value="">Pilih respons…</option>{choices.map((o:any,i:number)=><option key={k+'-opt-'+o.key} value={String(i)}>{String(o.label)}</option>)}</select></label>}
