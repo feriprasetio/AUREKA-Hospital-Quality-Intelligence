@@ -35,7 +35,8 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))
   assert.ok(home.includes('secondaryActiveId={activeNavSecondaryId}'))
-  assert.ok(home.includes('onSubSelect={childId=>selectSidebarChild(activeNavModuleId,childId)}'))
+  assert.ok(home.includes("onSubSelect={childId=>{if(activeNavModuleId==='patients')"))
+  assert.ok(home.includes('selectSidebarChild(activeNavModuleId,childId)'))
 })
 
 test('sidebar only renders module buttons and contains no tree or child-menu state', () => {
