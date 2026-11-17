@@ -682,7 +682,7 @@ export default function IcuExcelImportDialog({
                     <td>{maskName(row.patientName)}</td>
                     <td>{row.admissionDate} – {row.dischargeDate}</td>
                     <td>{row.computedLos} hari</td>
-                    <td>{mapped}/8 cocok</td>
+                    <td>{mapped}/9 cocok</td>
                     <td>{row.warnings.length ? <details><summary className="iiTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="iiTag">OK</span>}</td>
                   </tr>
                 })}
