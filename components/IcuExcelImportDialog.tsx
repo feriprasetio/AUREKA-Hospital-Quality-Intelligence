@@ -47,7 +47,13 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   los: ['Lenght of Stay', 'Length of Stay'],
   receivingNurse: ['Perawat Penerima'],
   dpjp: ['DPJP'],
-  unassignedBhpLinen: ['ekosongan BHP/Linen', 'Kekosongan BHP/Linen'],
+  unassignedBhpLinen: [
+    'Kekosongan BHP/Linen',
+    'ekosongan BHP/Linen',
+    'Kekosongan BHP, Linen dan Barang Penunjang Perawatan Pasien Lainnya',
+    'Kekosongan BHP, Linen dan Barang Penunjang Perawatan',
+    'Kekosongan BHP dan Linen',
+  ],
 }
 
 type PreparedRow = {
@@ -65,13 +71,15 @@ type PreparedRow = {
   receivingNurse: string
   dpjp: string
   unassignedBhpLinen: string
+  bhpLinenSourceHeader: string
+  bhpLinenAnswer: IcuSourceAnswer | null
   indicators: Record<string, IcuSourceAnswer>
   warnings: string[]
 }
 
-type ImportCounts = { received: number; imported: number; skipped: number; completedBatches: number }
+type ImportCounts = { received: number; imported: number; updated: number; skipped: number; completedBatches: number }
 type WorkbookFindings = { sheetCount: number; reportFormulaErrors: number; sourceFormulaErrors: number }
-type ImportResponse = { received_count?: number; imported_count?: number; skipped_existing_count?: number }
+type ImportResponse = { received_count?: number; imported_count?: number; updated_count?: number; skipped_existing_count?: number }
 type Props = {
   open: boolean
   roomId: number | null
@@ -138,7 +146,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     const columns = headerColumns(sheet.getRow(rowNumber))
     let score = 0
     for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
-      if (exact(columns, aliases) == null && key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen') score += 1
+      if (exact(columns, aliases) == null && key !== 'patientCategory' && key !== 'los') score += 1
     }
     for (const item of INDICATORS) if (exact(columns, [...item.aliases]) == null) score += 1
     if (score === 0) {
@@ -159,7 +167,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     const indexes: Record<string, number> = {}
     for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
       const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
-        importerKey: 'icu', fieldKey: key, fieldLabel: aliases[0], required: key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen',
+        importerKey: 'icu', fieldKey: key, fieldLabel: aliases[0], required: key !== 'patientCategory' && key !== 'los',
       })
       if (column != null) indexes[key] = column
     }
@@ -172,12 +180,12 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     }
     return { rowNumber: bestRowNumber, indexes }
   }
-  throw new Error("Header Logbook ICU tidak lengkap. Periksa kolom identitas, tanggal masuk/keluar, status pulang, perawat, DPJP, dan delapan indikator 14.2–14.9.")
+  throw new Error("Header Logbook ICU tidak lengkap. Periksa kolom identitas, tanggal masuk/keluar, status pulang, perawat, DPJP, kolom sumber Kekosongan BHP/Linen, dan indikator 14.2–14.9.")
 }
 function rowHasData(source: any, indexes: Record<string, number>): boolean {
   const keys = [
     'patientName', 'medicalRecordNo', 'admissionDate', 'dischargeDate', 'diagnosis',
-    'dischargeStatus', 'receivingNurse', 'dpjp',
+    'dischargeStatus', 'receivingNurse', 'dpjp', 'unassignedBhpLinen',
     ...INDICATORS.map(item => 'indicator:' + item.code),
   ]
   return keys.some(key => {
@@ -245,6 +253,30 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     })
   }
 
+  if (row.bhpLinenAnswer) {
+    const profile = profileByCode.get('14.1')
+    if (!profile?.id) throw new Error('Master indikator 14.1 Kekosongan BHP/Linen tidak tersedia untuk impor ICU.')
+    const answer = row.bhpLinenAnswer
+    sourceIndicatorValues['14.1'] = answer.sourceLabel
+    const rawValue = {
+      answer: answer.label,
+      code: answer.code,
+      source_value: answer.sourceLabel,
+      source_code: answer.sourceCode,
+      review_required: answer.reviewRequired,
+      mapping_status: answer.mappingStatus,
+    }
+    indicatorValues['14.1'] = rawValue
+    responses.push({
+      indicator_id: profile.id,
+      response_label: answer.label,
+      response_code: answer.code,
+      raw_value: rawValue,
+      other_text: answer.reviewRequired ? answer.sourceLabel : null,
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
+    })
+  }
+
   const sourceImport = {
     source_workbook: fileName,
     source_sheet: 'Logbook',
@@ -252,10 +284,11 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     source_excel_no: row.sourceNo,
     source_indicator_values: sourceIndicatorValues,
     source_unmapped_indicator: {
-      source_header: 'ekosongan BHP/Linen',
+      source_header: row.bhpLinenSourceHeader,
       source_value: row.unassignedBhpLinen,
-      target_profiles: ['14.1 Kekosongan Linen', '14.10 Kekosongan Obat'],
-      mapping_status: 'not_mapped_combined_source_requires_review',
+      target_profiles: ['14.1'],
+      mapping_status: row.bhpLinenAnswer?.mappingStatus ?? 'blank',
+      source_code: row.bhpLinenAnswer?.sourceCode ?? null,
     },
     source_cached_los: row.sourceLos,
     source_warnings: row.warnings,
@@ -273,7 +306,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
     'DPJP': row.dpjp,
-    'Kekosongan BHP/Linen (sumber belum dipetakan)': row.unassignedBhpLinen,
+    'Kekosongan BHP/Linen (sumber Excel)': row.unassignedBhpLinen,
   }
 
   const core = {
@@ -410,6 +443,9 @@ export default function IcuExcelImportDialog({
         const profile = profileByCode.get(item.code)
         if (!profile?.id) throw new Error('Master indikator ' + item.code + ' belum aktif/terbit untuk ICU tahun 2026.')
       }
+      if (!profileByCode.get('14.1')?.id) {
+        throw new Error('Master indikator 14.1 Kekosongan BHP/Linen belum aktif/terbit untuk ICU tahun 2026.')
+      }
 
       const prepared: PreparedRow[] = []
       const rowErrors: string[] = []
@@ -438,6 +474,10 @@ export default function IcuExcelImportDialog({
           const receivingNurse = raw('receivingNurse')
           const dpjp = raw('dpjp')
           const unassignedBhpLinen = raw('unassignedBhpLinen')
+          const bhpLinenSourceHeader = cellText(sheet.getRow(header.rowNumber).getCell(header.indexes.unassignedBhpLinen)).trim()
+          if (!bhpLinenSourceHeader || header.indexes.unassignedBhpLinen == null) {
+            throw new Error('Kolom sumber BHP/Linen harus dipetakan sebelum impor.')
+          }
 
           if (!sourceNo) throw new Error('Nomor urut sumber kosong.')
           if (!patientName.trim()) throw new Error('Nama Pasien kosong.')
@@ -479,17 +519,22 @@ export default function IcuExcelImportDialog({
             }
           }
 
-          if (!unassignedBhpLinen.trim()) {
-            warnings.push('Kolom gabungan BHP/Linen kosong; tidak ada asumsi pemetaan ke indikator 14.1 atau 14.10.')
-          } else {
-            warnings.push('Kolom gabungan BHP/Linen disimpan utuh sebagai sumber belum terpetakan; tidak dipecah ke indikator 14.1/14.10.')
+          const bhpLinenAnswer = unassignedBhpLinen.trim()
+            ? parseIcuSourceAnswer(unassignedBhpLinen, Array.isArray(profileByCode.get('14.1')?.options_json) ? profileByCode.get('14.1')!.options_json : [])
+            : null
+          if (unassignedBhpLinen.trim() && !bhpLinenAnswer) {
+            warnings.push('14.1 Kekosongan BHP/Linen: sumber terisi tetapi tidak dapat dibaca; data dipertahankan untuk telaah.')
+          } else if (bhpLinenAnswer?.reviewRequired) {
+            warnings.push('14.1 Kekosongan BHP/Linen: ' + bhpLinenAnswer.mappingStatus + '; respons disimpan menunggu telaah, tidak dipaksakan ke capaian.')
+          } else if (!bhpLinenAnswer) {
+            warnings.push('Kolom sumber BHP/Linen terpetakan, tetapi sel episode ini kosong.')
           }
 
           const row: PreparedRow = {
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo,
             admissionDate, dischargeDate, diagnosis, patientCategory, dischargeStatus,
-            sourceLos, computedLos, receivingNurse, dpjp, unassignedBhpLinen,
-            indicators: answers, warnings,
+            sourceLos, computedLos, receivingNurse, dpjp, unassignedBhpLinen, bhpLinenSourceHeader,
+            bhpLinenAnswer, indicators: answers, warnings,
           }
           const seqCount = rowSequenceCount.get(sourceNo) ?? 0
           rowSequenceCount.set(sourceNo, seqCount + 1)
@@ -534,7 +579,7 @@ export default function IcuExcelImportDialog({
       const { data: { user }, error: userError } = await sb.auth.getUser()
       if (userError || !user) throw new Error('Sesi login tidak tersedia.')
       const items = rows.map(row => preparePayload(row, file?.name ?? 'workbook.xlsx', user.id, profiles))
-      const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0 }
+      const counts: ImportCounts = { received: 0, imported: 0, updated: 0, skipped: 0, completedBatches: 0 }
       let start = 0
       let batchSize = BATCH_SIZE
       let batchNumber = 0
@@ -556,12 +601,14 @@ export default function IcuExcelImportDialog({
         const summary = (data ?? {}) as ImportResponse
         const received = Number(summary.received_count ?? batch.length)
         const imported = Number(summary.imported_count ?? 0)
+        const updated = Number(summary.updated_count ?? 0)
         const skipped = Number(summary.skipped_existing_count ?? 0)
-        if (received !== batch.length || imported + skipped !== received) {
+        if (received !== batch.length || imported + updated + skipped !== received) {
           throw new Error('Ringkasan server pada batch ' + batchNumber + ' tidak konsisten.')
         }
         counts.received += received
         counts.imported += imported
+        counts.updated += updated
         counts.skipped += skipped
         counts.completedBatches++
         start += batch.length
@@ -570,11 +617,11 @@ export default function IcuExcelImportDialog({
         setErrorMessage('')
       }
 
-      if (counts.received !== items.length || counts.imported + counts.skipped !== counts.received) {
+      if (counts.received !== items.length || counts.imported + counts.updated + counts.skipped !== counts.received) {
         throw new Error('Ringkasan akhir impor tidak konsisten.')
       }
       setResult(counts)
-      await onImported({ imported: counts.imported, skipped: counts.skipped, received: counts.received })
+      await onImported({ imported: counts.imported + counts.updated, skipped: counts.skipped, received: counts.received })
     } catch (error) {
       setErrorMessage('Impor belum tuntas. ' + (error instanceof Error ? error.message : 'Periksa koneksi atau hak akses.'))
     } finally {
@@ -618,7 +665,7 @@ export default function IcuExcelImportDialog({
         </div>}
 
         {rows.length > 0 && <div className="iiBox iiWarn">
-          <strong>Pembatasan pemetaan klinis:</strong> kolom sumber “ekosongan BHP/Linen” disimpan utuh dalam form dan provenance, tetapi tidak dipaksakan menjadi indikator 14.1 (linen) atau 14.10 (obat). Workbook menggabungkan jenis kendala, sedangkan master ICU memisahkannya. Beberapa master 14.5–14.9 belum memiliki options_json, dan respons yang kodenya bertentangan juga disimpan pending untuk telaah.
+          <strong>Pemetaan BHP/Linen:</strong> kolom sumber yang dipilih ditautkan ke profil gabungan 14.1. Nilai hanya diberi kode bila label sumber cocok secara unik dengan opsi master; label yang memerlukan telaah tetap berstatus pending dan tidak dihitung sebagai capaian sampai ditinjau.
         </div>}
 
         {rows.length > 0 && <div className="iiBox">
@@ -628,14 +675,14 @@ export default function IcuExcelImportDialog({
               <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal masuk–keluar</th><th>LOS</th><th>Respons master</th><th>Warnings</th></tr></thead>
               <tbody>
                 {preview.map(row => {
-                  const mapped = Object.values(row.indicators).filter(answer => !answer.reviewRequired).length
+                  const mapped = Object.values(row.indicators).filter(answer => !answer.reviewRequired).length + (row.bhpLinenAnswer && !row.bhpLinenAnswer.reviewRequired ? 1 : 0)
                   return <tr key={row.sourceRow}>
                     <td>{row.sourceRow}</td>
                     <td>{maskMedicalRecord(row.medicalRecordNo)}</td>
                     <td>{maskName(row.patientName)}</td>
                     <td>{row.admissionDate} – {row.dischargeDate}</td>
                     <td>{row.computedLos} hari</td>
-                    <td>{mapped}/8 cocok</td>
+                    <td>{mapped}/9 cocok</td>
                     <td>{row.warnings.length ? <details><summary className="iiTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="iiTag">OK</span>}</td>
                   </tr>
                 })}
@@ -657,17 +704,17 @@ export default function IcuExcelImportDialog({
         {partial && importing && <div className="iiBox">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><strong>Progres impor</strong><span>{progress}% · {partial.received}/{rows.length}</span></div>
           <div className="iiProgress" style={{ marginTop: 8 }}><span style={{ width: progress + '%' }} /></div>
-          <div className="aqSub" style={{ marginTop: 6 }}>{partial.imported} baru · {partial.skipped} sudah ada · {partial.completedBatches} batch selesai</div>
+          <div className="aqSub" style={{ marginTop: 6 }}>{partial.imported} baru · {partial.updated} diperbarui · {partial.skipped} tidak berubah/dilewati · {partial.completedBatches} batch selesai</div>
         </div>}
 
         {result && <div className="iiBox iiSuccess">
           <strong>Ringkasan impor dari server</strong>
-          <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} dilewati karena sudah ada · {result.received} diterima server.</div>
+          <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.updated} episode lama diperbarui · {result.skipped} tidak berubah/dilewati · {result.received} diterima server.</div>
           <div className="aqSub">Semua episode tetap Ready for Review. Tidak ada validasi otomatis.</div>
         </div>}
 
         <div className="iiFooter">
-          <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan baris sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses ICU, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+          <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan baris sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses ICU, sesi login aktif. Episode Ready yang sudah ada dapat diperbarui hanya bila nilai BHP/Linen baru tersedia; episode tervalidasi tidak ditimpa.' : 'Belum ada workbook yang dipratinjau.'}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode ICU'}</button>
