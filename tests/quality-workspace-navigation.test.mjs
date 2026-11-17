@@ -69,7 +69,7 @@ test('IT workbook upload is visible from the main quality audit workspace', () =
   const mainAuditCall = home.split('\\n').find(line => line.includes(":active==='quality'&&qualityOpen?<QualityIndicatorWorkspace"))
   assert.ok(mainAuditCall, 'main Audit Indikator Mutu workspace call must remain present')
   assert.match(mainAuditCall[0], /showContainerTabs=\{false\}/)
-  assert.doesNotMatch(mainAuditCall[0], /hidePatientEpisodeEntry|patientRegistryMode/)
+  assert.ok(!mainAuditCall.includes('hidePatientEpisodeEntry') && !mainAuditCall.includes('patientRegistryMode'))
 })
 test('Rekam Medis 2026 workbook import is available from the main quality audit workspace', () => {
   const quality = read('components/QualityIndicatorWorkspace.tsx')
@@ -82,7 +82,7 @@ test('Rekam Medis 2026 workbook import is available from the main quality audit 
   const mainAuditCall = home.split('\\n').find(line => line.includes(":active==='quality'&&qualityOpen?<QualityIndicatorWorkspace"))
   assert.ok(mainAuditCall, 'main Audit Indikator Mutu workspace call must remain present')
   assert.match(mainAuditCall[0], /showContainerTabs=\{false\}/)
-  assert.doesNotMatch(mainAuditCall[0], /hidePatientEpisodeEntry|patientRegistryMode/)
+  assert.ok(!mainAuditCall.includes('hidePatientEpisodeEntry') && !mainAuditCall.includes('patientRegistryMode'))
 })
 test('Timkordik 2026 workbook import is available from the main quality audit workspace', () => {
   const quality = read('components/QualityIndicatorWorkspace.tsx')
@@ -95,5 +95,5 @@ test('Timkordik 2026 workbook import is available from the main quality audit wo
   const mainAuditCall = home.split('\\n').find(line => line.includes(":active==='quality'&&qualityOpen?<QualityIndicatorWorkspace"))
   assert.ok(mainAuditCall, 'main Audit Indikator Mutu workspace call must remain present')
   assert.match(mainAuditCall[0], /showContainerTabs=\{false\}/)
-  assert.doesNotMatch(mainAuditCall[0], /hidePatientEpisodeEntry|patientRegistryMode/)
+  assert.ok(!mainAuditCall.includes('hidePatientEpisodeEntry') && !mainAuditCall.includes('patientRegistryMode'))
 })
