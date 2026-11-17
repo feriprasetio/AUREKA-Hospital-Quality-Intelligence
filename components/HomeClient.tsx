@@ -468,7 +468,11 @@ export default function HomeClient(){
   if(moduleId==='home')setHomeTab(childId==='infographics'?'infographics':'welcome')
   if(moduleId==='settings'){setSettingsSection((['profile','security','users','units','appearance','system','permissions','mydata','audit'].includes(childId)?childId:'profile') as SettingsSection);setSettingsTab(null)}
   if(moduleId==='patients'){
-   setPatientsRegistryTab(childId==='add'?'add':childId==='directory'?'directory':'records')
+   if(childId==='add'){
+    setQualityInitialContainer('Audit Indikator Mutu');setQualityResultsView(null);setQualityOpen(true);setClinicalPathwayOpen(false);setQualityOppeOpen(false);setActive('quality')
+    return
+   }
+   setPatientsRegistryTab(childId==='directory'?'directory':childId==='analysis'?'analysis':'records')
   }
   if(moduleId==='quality'||moduleId==='clinical'){
       if(moduleId==='quality'&&childId==='quality-monitoring'){setQualityMonitorOpen(true);setQualityOpen(false);setQualityResultsView(null);setClinicalPathwayOpen(false);return}
