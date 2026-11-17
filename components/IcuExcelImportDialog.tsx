@@ -273,7 +273,9 @@ function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: s
     source_excel_row: row.sourceRow,
     source_excel_no: row.sourceNo,
     source_indicator_values: sourceIndicatorValues,
-    source_indicator_columns: row.indicatorHeaders,
+    source_indicator_columns: Object.fromEntries(
+      INDICATORS.map(item => [item.code, row.indicatorHeaders[item.code]?.header ?? '']),
+    ),
     source_indicator_column_refs: row.indicatorColumnRefs,
     source_bhp_linen: {
       source_header: row.indicatorHeaders['14.1']?.header ?? '',
