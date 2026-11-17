@@ -133,7 +133,7 @@ export function parseIcuSourceAnswer(
     }
   }
 
-  if (masterCode == null || match.review_required === true ||
+  if (masterCode == null ||
       typeof match.numerator !== 'boolean' || typeof match.denominator !== 'boolean') {
     return {
       label: match.label,
@@ -156,12 +156,16 @@ export function parseIcuSourceAnswer(
     }
   }
 
+  // An exact label + compatible source code is a resolved mapping even when
+  // the master flags the clinical outcome for secondary review. Preserve the
+  // review flag, but retain the validated code so the directional engine can
+  // count the exact response without guessing.
   return {
     label: match.label,
     code: masterCode,
     sourceLabel,
     sourceCode,
-    reviewRequired: false,
+    reviewRequired: match.review_required === true,
     mappingStatus: 'mapped',
   }
 }
