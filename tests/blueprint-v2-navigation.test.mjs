@@ -72,7 +72,7 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(app.includes("clinical:["))
   assert.match(app, /quality:role==='DEWAN_PENGAWAS'/)
   assert.ok(app.includes("hash='#indikator-mutu/'+(qualityResultsView?'hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'form-logbook')"))
-  assert.ok(app.includes("if(section==='usulan-indikator'){\n     setActive('analytics');setAnalyticsTab('programs')"))
+  assert.ok(app.includes("if(section==='usulan-indikator'){\n     setActive('analytics');setProgramTab('programs')"))
   assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
 })
