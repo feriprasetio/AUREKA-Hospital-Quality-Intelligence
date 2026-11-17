@@ -5,7 +5,7 @@ import TrainingBanner from '@/components/layout/TrainingBanner'
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import type {ReactNode} from 'react'
 import dynamic from 'next/dynamic'
-import {flushSync} from 'react-dom'
+import {createPortal,flushSync} from 'react-dom'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceSkeleton from '@/components/WorkspaceSkeleton'
@@ -1050,7 +1050,7 @@ export default function HomeClient(){
    </>}
    {notifications.length>0&&<button type="button" className="workspaceClearHistory" onClick={()=>setNotifications([])}>Hapus riwayat sesi</button>}
   </section>}
-  {supportOpen&&<section className="workspaceSupportPanel workspaceCommunicationPanel" aria-label="Pusat komunikasi AUREKA">
+  {supportOpen&&typeof document!=='undefined'&&createPortal(<section className="workspaceSupportPanel workspaceCommunicationPanel" aria-label="Pusat komunikasi AUREKA">
    <div className="workspacePopoverHead"><div><strong>Pusat Komunikasi</strong><span>{admin?'Komunikasi seluruh rumah sakit':(room?.name||'Unit belum dipetakan')}</span></div><div className="workspacePopoverActions"><button type="button" aria-label="Tutup pusat komunikasi" onClick={()=>setSupportOpen(false)}>×</button></div></div>
    <nav className="workspaceCommunicationTabs" role="tablist" aria-label="Jenis komunikasi">
     <button type="button" role="tab" aria-selected={supportTab==='admin'} className={supportTab==='admin'?'selected':''} onClick={()=>{setSupportTab('admin');void loadSupportConversations()}}>Pesan Admin</button>
@@ -1066,7 +1066,7 @@ export default function HomeClient(){
     <form className="workspaceSupportComposer" onSubmit={event=>{event.preventDefault();void sendSupportMessage()}}><textarea value={supportDraft} onChange={event=>setSupportDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Tulis pesan kepada Super Admin…" aria-label="Pesan ke Super Admin" disabled={supportSending||(admin&&!supportConversationId)}/><button type="submit" disabled={supportSending||!supportDraft.trim()||(admin&&!supportConversationId)}>{supportSending?'Mengirim…':'Kirim'}</button></form>
    </>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
-  </section>}
+  </section>,document.body)}
   {activeNavModuleId&&<UnifiedModuleNavigation
    ariaLabel={'Navigasi '+activeNavModuleLabel}
    title={activeRailTitle}
