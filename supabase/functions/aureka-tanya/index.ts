@@ -531,6 +531,34 @@ function parseIcd10AiSuggestions(answer: string, allowedTerms: Set<string>): Icd
   }
 }
 
+function appendRiskDistributionFallback(question: string, answer: string, snapshotData: unknown): string {
+  const asksRiskMatrix = /matriks risiko|risk matrix|heatmap risiko|peta panas risiko/i.test(question);
+  if (!asksRiskMatrix || answer.includes("[[NARA_VISUAL]]")) return answer;
+  if (!snapshotData || typeof snapshotData !== "object") return answer;
+  const risk = (snapshotData as Record<string, unknown>).manajemen_risiko;
+  if (!risk || typeof risk !== "object") return answer;
+  const perLevel = (risk as Record<string, unknown>).per_level;
+  if (!perLevel || typeof perLevel !== "object") return answer;
+  const values = perLevel as Record<string, unknown>;
+  const data = LEVELS.map((level) => ({ tingkat_risiko: level, jumlah: values[level] }))
+    .filter((row): row is { tingkat_risiko: string; jumlah: number } =>
+      typeof row.jumlah === "number" && Number.isFinite(row.jumlah) && row.jumlah >= 0);
+  if (data.length < 2 || data.some((row) => row.jumlah < 0) || data.reduce((sum, row) => sum + row.jumlah, 0) <= 0) return answer;
+  const total = data.reduce((sum, row) => sum + row.jumlah, 0);
+  const visual = {
+    title: "Distribusi Risiko Berdasarkan Tingkat Risiko",
+    chartType: "pie",
+    xKey: "tingkat_risiko",
+    valueKey: "jumlah",
+    data,
+    source: "Agregat register risiko AUREKA",
+    period: "Snapshot saat pertanyaan diproses",
+    unit: "risiko",
+    interpretation: "Distribusi ini menunjukkan komposisi tingkat risiko pada register. Visualisasi ini bukan matriks kemungkinan × dampak; penempatan pada matriks 5×5 memerlukan nilai likelihood dan impact untuk setiap risiko."
+  };
+  return answer.trim() + "\n\nMatriks 5×5 belum dapat dibentuk tanpa nilai kemungkinan dan dampak per risiko. Sebagai alternatif yang didukung data, berikut distribusi tingkat risiko dari " + total.toLocaleString("id-ID") + " register.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
+}
+
 async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
@@ -705,7 +733,7 @@ async function handle(req: Request): Promise<Response> {
     skillPlan ? "SKILL ORCHESTRATION (ditetapkan backend, bukan oleh model):" : "",
     skillPlan ? JSON.stringify({ mode: skillPlan.mode, primary: skillPlan.primary, selected_skills: skillPlan.labels, authorized_data_domains_in_context: skillPlan.domains }) : "",
     ...(skillPlan?.instructions.map((instruction) => "ATURAN SKILL: " + instruction) || []),
-    "VISUAL INTELLIGENCE: Jika pengguna secara eksplisit meminta grafik, visualisasi, heatmap, matriks risiko, atau infografis berbasis DATA AUREKA, sertakan tepat satu blok [[NARA_VISUAL]]JSON[[/NARA_VISUAL]] di akhir jawaban. JSON valid tanpa markdown code fence. chartType hanya bar|line|pie|heatmap|risk_matrix. Bar/line: {title,chartType,xKey,series:[{dataKey,label}],data:[{[xKey]:string,[dataKey]:number}],source,period,unit,interpretation}; maksimal 24 baris dan 4 seri. Pie: {title,chartType:'pie',xKey,valueKey,data:[{[xKey]:string,[valueKey]:number}],source,period,unit,interpretation}; nilai nonnegatif dan kategori saling lepas. Heatmap: {title,chartType:'heatmap',xKey,yKey,valueKey,data:[{[xKey]:string,[yKey]:string,[valueKey]:number}],source,period,unit,interpretation}. Risk matrix: {title,chartType:'risk_matrix',data:[{likelihood:1..5,impact:1..5,count:number}],source,period,unit,interpretation}; gunakan likelihood-impact yang benar-benar tersedia. Maksimal 24 baris data. Gunakan hanya angka yang benar-benar ada dalam DATA AUREKA atau hasil hitung eksplisit; jangan mengarang, mengisi nilai kosong, atau mengestimasi. Jika data tidak cukup, jangan keluarkan blok visual dan jelaskan data yang belum tersedia. Pilih line untuk tren waktu, bar untuk perbandingan kategori, pie untuk komposisi dengan denominator jelas, heatmap untuk dua dimensi kategorik, dan risk_matrix hanya jika likelihood serta impact tersedia. Peta geografis tidak didukung karena snapshot tidak menyediakan koordinat terverifikasi. Sertakan label, satuan, periode, sumber spesifik, dan interpretasi yang tidak melebihi bukti. Blok visual diletakkan paling akhir setelah narasi interpretasi.",
+    "VISUAL INTELLIGENCE: Jika pengguna meminta visualisasi, buat blok [[NARA_VISUAL]]JSON[[/NARA_VISUAL]] dengan tipe yang didukung dan hanya memakai angka DATA AUREKA. Untuk matriks risiko 5×5, gunakan likelihood dan impact per risiko; jangan menurunkannya dari level atau skor agregat. Jika kedua variabel tidak tersedia, jangan mengarang matriks. Backend akan otomatis menyertakan pie chart distribusi per_level sebagai alternatif bila data agregat tersebut tersedia. Pie chart harus memakai kategori saling lepas, denominator yang jelas, sumber, periode, unit, dan interpretasi yang menyebut keterbatasan. Untuk visual lain, gunakan bar untuk perbandingan, line untuk tren, pie untuk komposisi, heatmap untuk dua dimensi kategorik. Maksimal 24 baris dan 4 seri. Jangan mengarang, mengisi nilai kosong, atau mengestimasi. Peta geografis tidak didukung tanpa koordinat terverifikasi. Blok visual diletakkan paling akhir setelah narasi interpretasi.",
     "Jangan mengklaim menjalankan skill/tool yang tidak tercantum dalam konteks. Jika pertanyaan memerlukan domain yang tidak tersedia pada DATA AUREKA, jelaskan keterbatasannya dan jangan mengarang hasil.",
     "Peringkat diagnosis dihitung oleh fungsi analitik klinis database; jangan meminta atau menebak No. RM, nama, NIK, atau identitas pasien.",
     "Basis diagnosis terakhir per pasien tidak sama dengan seluruh episode. Sebutkan keterbatasan sumber secara eksplisit. Jangan mengklaim memiliki seluruh diagnosis DPJP jika episode klinis belum tersedia.",
@@ -749,7 +777,7 @@ async function handle(req: Request): Promise<Response> {
     for (const key of available[provider]) {
       if (Date.now() >= providerDeadline) break;
       const result = provider === "gemini" ? await askGemini(key, system, contents, providerDeadline) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, providerDeadline);
-      if (!("status" in result)) return reply(200, { answer: result.answer, model: provider + ":" + result.model });
+      if (!("status" in result)) { const answer = appendRiskDistributionFallback(question, result.answer, data); return reply(200, { answer, model: provider + ":" + result.model }); }
       last = result;
       console.warn("nara-ai", provider, "gagal:", result.error);
     }
