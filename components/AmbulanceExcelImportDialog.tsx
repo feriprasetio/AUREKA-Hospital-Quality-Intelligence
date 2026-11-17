@@ -119,7 +119,7 @@ function rowHasData(row: any, columns: Map<string, number[]>): boolean {
     })
 }
 function sourceNumber(row: any, columns: Map<string, number[]>, excelRow: number): number {
-  const column = findHeader(columns, REQUIRED_HEADERS.sourceNo)
+  const column = findHeader(columns, REQUIRED_HEADERS.sourceNo, false)
   const raw = column == null ? '' : cellText(row.getCell(column))
   const parsed = Number(raw)
   return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : excelRow - 2
