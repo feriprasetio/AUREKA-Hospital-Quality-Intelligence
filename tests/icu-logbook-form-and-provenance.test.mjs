@@ -45,7 +45,7 @@ test('ICU profiles use categorical capture even when the measurement engine clas
 test('ICU importer requires BHP/Linen source mapping, stores exact header/value, and backfills old episodes', () => {
   const importer = read('components/IcuExcelImportDialog.tsx')
   assert.match(importer, /code: '14\.1', header: 'Kekosongan BHP\/Linen'/)
-  assert.match(importer, /indicatorHeaders: Record<string, string>/)
+  assert.match(importer, /indicatorHeaders: Record<string, \{ header: string; columnIndex: number; columnLetter: string \}>/)
   assert.match(importer, /source_indicator_columns: row\.indicatorHeaders/)
   assert.match(importer, /source_bhp_linen:/)
   assert.match(importer, /indicator_code: '14\.1'/)
