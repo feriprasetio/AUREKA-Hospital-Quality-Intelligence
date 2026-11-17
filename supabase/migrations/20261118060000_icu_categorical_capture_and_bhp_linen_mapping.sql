@@ -1,5 +1,5 @@
 -- The ICU worksheet stores one categorical result per patient episode.
--- Preserve the published definitions and targets; only declare the input control mode.
+-- Preserve published definitions and targets; only declare the input control mode.
 UPDATE aureka_quality.indicator_profiles
 SET schema_json = COALESCE(schema_json, '{}'::jsonb) || jsonb_build_object('response_capture_mode', 'categorical')
 WHERE room_id = 14
@@ -93,8 +93,8 @@ BEGIN
       AND ip.is_active = true
       AND ip.status = 'published'
       AND ip.code = ANY (v_expected_codes)
-  ) <> 8 THEN
-    RAISE EXCEPTION 'Delapan master indikator ICU 14.2–14.9 harus aktif dan terbit sebelum impor.' USING ERRCODE = '23503';
+  ) <> 9 THEN
+    RAISE EXCEPTION 'Sembilan master indikator ICU 14.1–14.9 harus aktif dan terbit sebelum impor.' USING ERRCODE = '23503';
   END IF;
 
   -- Validate the entire batch before the first write.
@@ -350,7 +350,7 @@ REVOKE ALL ON FUNCTION aureka_quality.import_icu_logbook_batch(jsonb) FROM servi
 GRANT EXECUTE ON FUNCTION aureka_quality.import_icu_logbook_batch(jsonb) TO authenticated;
 
 COMMENT ON FUNCTION aureka_quality.import_icu_logbook_batch(jsonb) IS
-'Imports ICU/HCU 2026 Logbook episodes from the authenticated AUREKA workspace. The physical Excel row is the idempotency key; BHP/Linen is mapped to indicator 14.1 with its exact source column coordinates. Exact master options flagged for clinical review retain their code and pending-review status.';
+'Imports ICU/HCU 2026 Logbook episodes from the authenticated AUREKA workspace. The physical Excel row is the idempotency key; BHP/Linen is mapped to indicator 14.1 with exact source column coordinates. Exact master outcomes flagged for review retain their code and pending-review status.';
 
        OR coalesce(v_bhp->>'column_letter', '') !~ '^[A-Z]{1,3}
 
@@ -507,21 +507,12 @@ COMMENT ON FUNCTION aureka_quality.import_icu_logbook_batch(jsonb) IS
 
        OR coalesce((v_columns->'14.1'->>'columnIndex')::integer, 0) <> (v_bhp->>'column_index')::integer
        OR coalesce(v_columns->'14.1'->>'columnLetter', '') <> v_bhp->>'column_letter'
-       OR (
-         SELECT count(*)
-         FROM jsonb_object_keys(v_columns)
-       ) <> 9 THEN
+       OR (SELECT count(*) FROM jsonb_object_keys(v_columns)) <> 9 THEN
       RAISE EXCEPTION 'Kolom Kekosongan BHP/Linen harus terpetakan ke indikator 14.1 beserta header dan alamat sel sumber Excel.' USING ERRCODE = '22023';
     END IF;
 
-    IF (
-      SELECT count(*)
-      FROM jsonb_object_keys(v_source_values)
-    ) <> 9
-       OR (
-         SELECT count(*)
-         FROM jsonb_object_keys(v_values)
-       ) <> 9 THEN
+    IF (SELECT count(*) FROM jsonb_object_keys(v_source_values)) <> 9
+       OR (SELECT count(*) FROM jsonb_object_keys(v_values)) <> 9 THEN
       RAISE EXCEPTION 'Sumber dan nilai inti ICU harus memuat tepat sembilan indikator 14.1–14.9.' USING ERRCODE = '22023';
     END IF;
 
