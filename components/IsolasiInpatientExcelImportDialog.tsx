@@ -167,6 +167,8 @@ function duplicateEpisodeKey(row: PreparedRow): string | null {
 
 function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string, number> } {
   let bestMissing: string[] = []
+  let bestHeaderRowNumber = 0
+  let bestHeaderValues: string[] = []
   let bestDuplicate: string[] = []
 
   for (let rowNumber = 1; rowNumber <= Math.min(10, Number(sheet.rowCount ?? 0)); rowNumber++) {
@@ -180,6 +182,15 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     if (!bestMissing.length || mapped.missingHeaders.length < bestMissing.length) {
       bestMissing = mapped.missingHeaders
       bestDuplicate = mapped.duplicateHeaders
+      bestHeaderRowNumber = rowNumber
+      bestHeaderValues = values
+    }
+  }
+
+  if (bestHeaderRowNumber > 0) {
+    const interactive = mapIsolasiLogbookHeaders(bestHeaderValues, true)
+    if (!interactive.missingHeaders.length && !interactive.duplicateHeaders.length) {
+      return { rowNumber: bestHeaderRowNumber, indexes: interactive.indexes }
     }
   }
 
