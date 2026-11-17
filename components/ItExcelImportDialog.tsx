@@ -1,6 +1,7 @@
 'use client'
 
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { useCallback, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
@@ -74,12 +75,13 @@ function cellText(cell: any): string {
   return String(value).trim()
 }
 
-function findHeader(columns: Map<string, number>, candidates: string[]): number | null {
-  for (const candidate of candidates) {
-    const match = columns.get(normalizeExactHeader(candidate))
-    if (match != null) return match
-  }
-  return null
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, candidates, {
+    importerKey: 'it',
+    fieldKey: candidates[0] ?? 'field',
+    fieldLabel: candidates[0] ?? 'Field',
+    required,
+  })
 }
 
 function positiveInteger(value: unknown): number | null {
@@ -174,11 +176,11 @@ export default function ItExcelImportDialog({
       if (!worksheet) throw new Error('Sheet "Logbook" tidak ditemukan pada workbook.')
       if (worksheet.rowCount > 5003) throw new Error('Logbook melewati batas baris 5003 yang diizinkan.')
 
-      const columns = new Map<string, number>()
+      const columns = new Map<string, number[]>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= Math.min(worksheet.columnCount, 100); column++) {
         const name = cellText(headerRow.getCell(column))
-        if (name) columns.set(normalizeExactHeader(name), column)
+        if (name) { const key = normalizeExactHeader(name); const matches = columns.get(key) ?? []; matches.push(column); columns.set(key, matches) }
       }
       for (const [, aliases] of Object.entries(REQUIRED_HEADERS)) {
         if (findHeader(columns, aliases) == null) {
