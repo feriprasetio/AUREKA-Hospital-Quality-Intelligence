@@ -188,7 +188,11 @@ BEGIN
        OR nullif(btrim(v_bhp_source->>'source_value'), '') IS NULL
        OR coalesce(v_bhp_source->>'source_value', '') <> coalesce(v_form->>'Kekosongan BHP/Linen', '')
        OR coalesce(v_bhp_source->>'source_value', '') <> coalesce(v_source_values->>'14.1', '')
-       OR coalesce(v_source_columns->>'14.1', '') <> coalesce(v_bhp_source->>'source_header', '')
+       OR coalesce(v_source_columns->'14.1'->>'header', '') <> coalesce(v_bhp_source->>'source_header', '')
+       OR coalesce(v_source_columns->'14.1'->>'columnIndex', '') !~ '^[1-9][0-9]*$'
+       OR coalesce(v_source_columns->'14.1'->>'columnLetter', '') !~ '^[A-Z]{1,3}$'
+       OR coalesce(v_bhp_source->>'column_index', '') <> coalesce(v_source_columns->'14.1'->>'columnIndex', '')
+       OR coalesce(v_bhp_source->>'column_letter', '') <> coalesce(v_source_columns->'14.1'->>'columnLetter', '')
        OR coalesce(v_values->'14.1'->>'source_value', '') <> coalesce(v_bhp_source->>'source_value', '') THEN
       RAISE EXCEPTION 'Kolom Excel Kekosongan BHP/Linen harus dipetakan ke indikator 14.1 dengan nilai dan header sumber yang konsisten.' USING ERRCODE = '22023';
     END IF;
@@ -255,8 +259,7 @@ BEGIN
       ELSE
         v_response_code := (v_response->>'response_code')::smallint;
         IF v_response_code NOT BETWEEN 1 AND 3
-           OR v_review_status <> 'not_required'
-           OR coalesce(v_response->'raw_value'->>'review_required', 'true') <> 'false'
+           OR v_review_status <> CASE WHEN coalesce(v_response->'raw_value'->>'review_required', 'false') = 'true' THEN 'pending' ELSE 'not_required' END
            OR coalesce(v_response->'raw_value'->>'mapping_status', '') <> 'mapped'
            OR coalesce(v_response->'raw_value'->>'code', '') <> v_response_code::text THEN
           RAISE EXCEPTION 'Respons indikator % memiliki kode atau status telaah yang tidak valid pada baris Excel %.', v_code, v_source_row USING ERRCODE = '22023';
@@ -271,7 +274,7 @@ BEGIN
           AND opt->>'code' = v_response_code::text
           AND jsonb_typeof(opt->'numerator') = 'boolean'
           AND jsonb_typeof(opt->'denominator') = 'boolean'
-          AND coalesce((opt->>'review_required')::boolean, false) = false;
+          AND coalesce((opt->>'review_required')::boolean, false) = coalesce((v_response->'raw_value'->>'review_required')::boolean, false);
 
         IF v_option_count <> 1 THEN
           RAISE EXCEPTION 'Pilihan indikator % tidak ditemukan secara unik pada master aktif untuk baris Excel %.', v_code, v_source_row USING ERRCODE = '23503';
