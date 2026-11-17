@@ -500,6 +500,10 @@ test('positive and negative categorical indicators calculate numerators using th
     code: 'TEST',
     title: 'Kejadian tidak diharapkan',
     schema_json: { measurement_type: 'compliance', indicator_direction: 'negative' },
+    options_json: [
+      { code: 1, label: 'Tidak terjadi kejadian' },
+      { code: 3, label: 'Terjadi kejadian' },
+    ],
     target_text: '≤ 25%',
     target_operator: '<=',
     target_value: 25,
