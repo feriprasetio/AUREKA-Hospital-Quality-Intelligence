@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { fetchRoomMonthCounts } from '@/lib/aureka/quality-counts'
 import PatientIndexTab from '@/components/patient-registry/PatientIndexTab'
+import PatientMedicalRecordsAnalytics from '@/components/patient-registry/PatientMedicalRecordsAnalytics'
 import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 
 type Room = { id: number; name: string }
@@ -14,7 +14,6 @@ type EpisodeRow = {
   room_id: number
   record_date: string | null
   profile_year: number
-  status: string
   core_data: Record<string, any> | null
   created_at: string
   updated_at: string
@@ -30,13 +29,11 @@ type Episode = {
   diagnosis: string
   dpjp: string
   los: string
-  status: string
-  updatedAt: string
+  episodeState: string
   /** Unit rawat inap (ada kolom Tanggal Keluar). Kunjungan IGD/Rehab/IBS bukan "masih dirawat". */
   inpatient: boolean
 }
 
-const QualityIndicatorWorkspace = dynamic(() => import('@/components/QualityIndicatorWorkspace'), { ssr: false })
 const PAGE_SIZE = 50
 const db = aurekaSupabase.schema('aureka_quality')
 
@@ -73,7 +70,7 @@ function episodeFromPageRow(r: PageRow): Episode {
     admission: formatDate(text(r.masuk)), discharge: formatDate(discharge),
     diagnosis: text(r.diagnosis), dpjp: text(r.dpjp),
     los: r.rawat_inap && discharge && /^\d+(\.\d+)?$/.test(los) ? los : '',
-    status: r.status, updatedAt: '', inpatient: Boolean(r.rawat_inap),
+    episodeState: r.rawat_inap ? (discharge ? 'Pulang' : 'Masih dirawat') : 'Kunjungan', inpatient: Boolean(r.rawat_inap),
   }
 }
 
@@ -97,8 +94,7 @@ function episodeFromRow(row: EpisodeRow, roomNames: Map<number, string>): Episod
     diagnosis: first(core.diagnosis, fields['Diagnosa Tegak'], fields['Diagnosa IGD'], fields['Diagnosa'], fields['Diagnosa Operasi']),
     dpjp: first(core.dpjp, fields['DPJP'], fields['Dpjp'], fields['Nama Dokter'], fields['Dokter Umum'], fields['Petugas'], fields['Nama Terapis'], fields['Nutrisionis']),
     los: inpatient && discharge && /^\d+(\.\d+)?$/.test(losRaw) ? losRaw : '',
-    status: row.status,
-    updatedAt: row.updated_at || row.created_at,
+    episodeState: inpatient ? (discharge ? 'Pulang' : 'Masih dirawat') : 'Kunjungan',
     inpatient,
   }
 }
@@ -119,12 +115,12 @@ function csvValue(value: unknown) {
 }
 
 function downloadCsv(rows: Episode[], revealIdentity: boolean) {
-  const header = ['Unit', 'Tanggal Masuk', 'Tanggal Keluar', 'Nama Pasien', 'No. Rekam Medis', 'Diagnosis', 'DPJP', 'Lama Rawat (hari)', 'Status']
+  const header = ['Unit', 'Tanggal Masuk', 'Tanggal Keluar', 'Nama Pasien', 'No. Rekam Medis', 'Diagnosis', 'DPJP', 'Lama Rawat (hari)', 'Status Episode']
   const body = rows.map((row) => [
     row.unit, row.admission, row.discharge,
     revealIdentity ? row.name : maskName(row.name),
     revealIdentity ? row.mrn : maskMrn(row.mrn),
-    row.diagnosis, row.dpjp, row.los, row.status,
+    row.diagnosis, row.dpjp, row.los, row.episodeState,
   ])
   const csv = [header, ...body].map((line) => line.map(csvValue).join(',')).join('\r\n')
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' })
@@ -140,7 +136,6 @@ export default function PatientRegistryWorkspace({
   rooms,
   initialRoomId,
   isAdmin,
-  isValidator,
   canViewAllRooms,
   lockRoomScope = false,
   registryTab,
@@ -149,15 +144,14 @@ export default function PatientRegistryWorkspace({
   rooms: Room[]
   initialRoomId: number | null
   isAdmin: boolean
-  isValidator: boolean
   canViewAllRooms: boolean
   lockRoomScope?: boolean
   /** Satu halaman operasional; statistik dan analitik berada di Visual Intelligence. */
-  registryTab?: 'add' | 'records' | 'directory'
+  registryTab?: 'records' | 'directory' | 'analysis'
   onRegistryTabChange?: (tab: 'add' | 'records' | 'directory') => void
 }) {
-  const [tab, setTab] = useState<'add' | 'records' | 'directory'>(registryTab ?? 'records')
-  const selectRegistryTab = (next: 'add' | 'records' | 'directory') => { setTab(next); onRegistryTabChange?.(next) }
+  const [tab, setTab] = useState<'records' | 'directory' | 'analysis'>(registryTab ?? 'records')
+  const selectRegistryTab = (next: 'records' | 'directory' | 'analysis') => { setTab(next); onRegistryTabChange?.(next) }
   useEffect(() => { setTab(registryTab ?? 'records') }, [registryTab])
   // Super Admin mengikuti unit global; PMKP dapat memilih Semua Unit atau unit tertentu.
   const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
@@ -217,7 +211,7 @@ export default function PatientRegistryWorkspace({
     }
   }, [effectiveRoom, page, roomNames, year, canViewAllRooms, lockRoomScope, query])
 
-  // Jumlah episode per unit (untuk pilihan unit & unit bawaan formulir Tambah Pasien).
+  // Jumlah episode per unit untuk membantu filter rekam episode lintas layanan.
   useEffect(() => {
     if (tab !== 'records' || (!canViewAllRooms && !lockRoomScope)) return
     let cancelled = false
@@ -272,13 +266,12 @@ export default function PatientRegistryWorkspace({
 
         @media(max-width:640px){.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      {tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'add' ? <section className="prAddWorkspace"><QualityIndicatorWorkspace key={'patient-entry-'+(Number(roomFilter)||initialRoomId||'all')} initialRoomId={Number(roomFilter)||initialRoomId||null} rooms={lockRoomScope ? rooms.filter((room) => String(room.id) === roomFilter) : canViewAllRooms ? rooms : rooms.filter((room) => String(room.id) === roomFilter)} isAdmin={isAdmin} isValidator={isValidator} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} initialContainer="Audit Indikator Mutu" showContainerTabs={false} patientRegistryMode /></section> : <>
+      {tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'analysis' ? <PatientMedicalRecordsAnalytics rooms={rooms} initialRoomId={initialRoomId} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} /> : <>
       <header className="prHead">
-        <p className="psStatsLead">Episode pelayanan dari logbook unit · identitas disamarkan</p>
+        <p className="psStatsLead">Riwayat episode pelayanan lintas unit · identitas disamarkan · hanya-baca</p>
         <div className="prActions">
           <button className="prButton" type="button" onClick={async () => { if (showIdentity) { setShowIdentity(false); return } if (await requestSensitiveAccess('patient_identity', 'register-pasien:' + (roomFilter || 'semua-unit'), 'Tampilkan identitas pasien')) setShowIdentity(true); else setError('Role Anda tidak memiliki izin melihat identitas pasien, atau permintaan dibatalkan.') }}>{showIdentity ? 'Samarkan Identitas' : 'Tampilkan Identitas'}</button>
           <button className="prButton" type="button" onClick={() => downloadCsv(filtered, showIdentity)} disabled={!filtered.length}>Ekspor CSV</button>
-          <button className="prButton primary" type="button" onClick={() => selectRegistryTab('add')}>Tambah Episode</button>
         </div>
       </header>
 
@@ -304,7 +297,7 @@ export default function PatientRegistryWorkspace({
       <div className="prPanel">
         <div className="prTableWrap">
           <table className="prTable">
-            <thead><tr><th>No.</th><th>Pasien / No. RM</th><th>Unit</th><th>Tanggal Masuk</th><th>Tanggal Keluar</th><th>Diagnosis</th><th>DPJP</th><th>LOS</th><th>Status</th></tr></thead>
+            <thead><tr><th>No.</th><th>Pasien / No. RM</th><th>Unit</th><th>Tanggal Masuk</th><th>Tanggal Keluar</th><th>Diagnosis</th><th>DPJP</th><th>LOS</th><th>Status Episode</th></tr></thead>
             <tbody>
               {loading ? <tr><td colSpan={9}><div className="prEmpty">Memuat rekapan pasien…</div></td></tr>
                 : filtered.length ? filtered.map((row, index) => <tr key={row.id}>
@@ -312,7 +305,7 @@ export default function PatientRegistryWorkspace({
                   <td><div className="prStrong">{showIdentity ? row.name || '-' : maskName(row.name)}</div><div className="prMuted">{showIdentity ? row.mrn || '-' : maskMrn(row.mrn)}</div></td>
                   <td>{row.unit}</td><td>{row.admission || '-'}</td><td>{row.discharge || '-'}</td>
                   <td>{row.diagnosis || '-'}</td><td>{row.dpjp || '-'}</td><td>{row.los ? row.los + ' hari' : '-'}</td>
-                  <td><span className={'prStatus ' + (row.inpatient ? (row.discharge ? 'out' : 'in') : 'visit')}>{row.inpatient ? (row.discharge ? 'Pulang' : 'Dirawat') : 'Kunjungan'}</span><div className="prMuted">{row.status === 'validated' ? 'Tervalidasi' : row.status === 'ready' ? 'Menunggu validasi' : row.status === 'draft' ? 'Draf' : row.status}</div></td>
+                  <td><span className={'prStatus ' + (row.inpatient ? (row.discharge ? 'out' : 'in') : 'visit')}>{row.episodeState}</span></td>
                 </tr>) : <tr><td colSpan={9}><div className="prEmpty">{query ? 'Tidak ada pasien yang cocok dengan pencarian.' : 'Belum ada catatan episode pasien untuk filter yang dipilih.'}</div></td></tr>}
             </tbody>
           </table>
@@ -326,7 +319,7 @@ export default function PatientRegistryWorkspace({
           </div>
         </footer>
       </div>
-      <p className="prMuted">Gunakan search bar global pada header untuk mencari No. RM atau nama. Status "Kunjungan" mencakup pelayanan tanpa tanggal keluar, seperti IGD dan rawat jalan. Hak akses unit tetap mengikuti akun.</p>
+      <p className="prMuted">Gunakan search bar global pada header untuk mencari No. RM atau nama. Halaman ini tidak menggantikan Form Logbook Indikator Mutu; input dan perubahan catatan tetap dilakukan pada Form Logbook. Hak akses unit tetap mengikuti akun.</p>
       </>}
     </section>
   )
