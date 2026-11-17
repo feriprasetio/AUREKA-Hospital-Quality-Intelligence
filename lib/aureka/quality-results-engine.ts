@@ -226,8 +226,16 @@ function extractObservation(
   const response = values[String(profile.code ?? '')] ?? values[String(profile.id ?? '')]
   if (!response || typeof response !== 'object') return null
 
-  const kind = resolveMeasurementKind(profile)
   const inputAt = row.created_at ?? row.updated_at ?? null
+
+  // ICU/HCU 2026 imports store one categorical source answer per patient episode.
+  // This takes precedence over legacy measurement types (ratio/visit) on the profile.
+  if (String(profile.schema_json?.response_capture_mode ?? '') === 'categorical') {
+    const categorical = extractOptionObservation(profile, response, month, inputAt)
+    return categorical === undefined ? null : categorical
+  }
+
+  const kind = resolveMeasurementKind(profile)
   const numerator = finiteNumber(response.numerator)
   const denominator = finiteNumber(response.denominator)
 
