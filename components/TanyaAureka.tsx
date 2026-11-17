@@ -3,7 +3,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
-import NaraVisualRenderer, { parseNaraVisual, type NaraVisualSpec } from '@/components/NaraVisualRenderer'
+import NaraVisualRenderer from '@/components/NaraVisualRenderer'
+import { parseNaraVisual, type NaraVisualSpec } from '@/lib/nara-visual'
 
 type Reminder = { units: string[]; message: string; selected?: string[]; status?: 'draft' | 'sending' | 'sent' | 'cancelled'; result?: string }
 type Msg = { role: 'user' | 'model'; text: string; error?: boolean; reminder?: Reminder; visual?: NaraVisualSpec }
