@@ -586,9 +586,19 @@
       "Komunikasi Perawatan",
       "Transfer IGD",
       "LOS ICU Panjang",
-      "Kekosongan Obat",
-      "Kekosongan Linen"
-    ]
+      "Kekosongan BHP/Linen"
+    ],
+    "indicatorProfileCodes": {
+      "Visite Spesialis": "14.4",
+      "Validitas Asesmen": "14.8",
+      "Identifikasi Pasien": "14.3",
+      "APD": "14.5",
+      "Pencegahan Jatuh": "14.6",
+      "Komunikasi Perawatan": "14.7",
+      "Transfer IGD": "14.2",
+      "LOS ICU Panjang": "14.9",
+      "Kekosongan BHP/Linen": "14.1"
+    }
   },
   {
     "roomId": 15,
