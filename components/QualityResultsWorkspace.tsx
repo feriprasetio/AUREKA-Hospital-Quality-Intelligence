@@ -397,6 +397,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }
   const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
   const [sourceFor, setSourceFor] = useState<IndicatorProfileForResults | null>(null)
+  const [sourceWorkbookBusy, setSourceWorkbookBusy] = useState(false)
+  const [sourceWorkbookUrl, setSourceWorkbookUrl] = useState('')
+  const [sourceWorkbookError, setSourceWorkbookError] = useState('')
   const sourceProvenance = useMemo(() => {
     if (!sourceFor) return null
     const code = String(sourceFor.code ?? '')
@@ -416,11 +419,17 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           ?? (code === '14.1' ? source.source_bhp_linen?.source_header : undefined)
           ?? mapping.indicator_header
           ?? ''
+        const columnRef = source.source_indicator_column_refs?.[code] ?? {}
+        const excelRow = source.source_excel_row == null ? '' : String(source.source_excel_row)
+        const columnLetter = String(columnRef.column_letter ?? mapping.column_letter ?? '')
         return {
           workbook: String(source.source_workbook ?? ''),
+          storagePath: String(source.source_storage_path ?? ''),
           sheet: String(source.source_sheet ?? ''),
-          excelRow: source.source_excel_row == null ? '' : String(source.source_excel_row),
+          excelRow,
           header: String(header ?? ''),
+          columnLetter,
+          cellRef: columnLetter && excelRow ? String(source.source_sheet ?? 'Logbook') + '!' + columnLetter + excelRow : '',
           value: String(rawValue ?? ''),
           recordDate: String(row.record_date ?? row.core_data?.admission_at ?? ''),
           status: String(row.status ?? ''),
@@ -433,8 +442,10 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       mappingWorksheet: String(mapping.worksheet ?? ''),
       mappingHeader: String(mapping.indicator_header ?? ''),
       workbooks: unique(entries.map((entry) => entry.workbook)),
+      storagePaths: unique(entries.map((entry) => entry.storagePath)),
       sheets: unique(entries.map((entry) => entry.sheet)),
       headers: unique(entries.map((entry) => entry.header)),
+      columnLetters: unique(entries.map((entry) => entry.columnLetter)),
       totalRows: entries.length,
       rowsWithValues: withValues.length,
       rows: withValues.slice(0, 25),
@@ -768,17 +779,37 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <strong>Hubungan profil → kolom sumber</strong>
                     <div>Worksheet: <b>{sourceProvenance.mappingWorksheet || sourceProvenance.sheets.join(', ') || 'Belum direkam'}</b></div>
                     <div>Header kolom: <b>{sourceProvenance.mappingHeader || sourceProvenance.headers.join(', ') || 'Header aktual belum direkam pada impor ini'}</b></div>
+                    <div>Kolom Excel: <b>{sourceProvenance.columnLetters.join(', ') || 'Koordinat kolom belum direkam pada impor lama'}</b></div>
                     <div>Workbook: <b>{sourceProvenance.workbooks.join(', ') || 'Belum ada provenance workbook'}</b></div>
                     <div>Data bernilai: <b>{formatCount(sourceProvenance.rowsWithValues)}</b> dari <b>{formatCount(sourceProvenance.totalRows)}</b> episode sumber</div>
+                    {sourceProvenance.storagePaths.length > 0
+                      ? <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+                          <button type="button" className="qraBtn" disabled={sourceWorkbookBusy} onClick={async () => {
+                            setSourceWorkbookBusy(true); setSourceWorkbookError(''); setSourceWorkbookUrl('')
+                            try {
+                              const { data, error } = await sb.storage.from('aureka-quality-source-workbooks').createSignedUrl(sourceProvenance.storagePaths[0], 300)
+                              if (error || !data?.signedUrl) setSourceWorkbookError(error?.message || 'Tautan workbook tidak tersedia.')
+                              else setSourceWorkbookUrl(data.signedUrl)
+                            } catch (error) {
+                              setSourceWorkbookError(error instanceof Error ? error.message : 'Tautan workbook tidak tersedia.')
+                            } finally {
+                              setSourceWorkbookBusy(false)
+                            }
+                          }}>{sourceWorkbookBusy ? 'Membuat tautan…' : 'Buka / unduh workbook sumber'}</button>
+                          {sourceWorkbookUrl && <a href={sourceWorkbookUrl} target="_blank" rel="noreferrer" className="qraSourceBtn">Buka workbook privat</a>}
+                          {sourceWorkbookError && <small role="alert">{sourceWorkbookError}</small>}
+                        </div>
+                      : <small>Workbook lama belum disimpan sebagai berkas privat. Upload ulang workbook sumber untuk membuat tautan unduhan.</small>}
                   </div>
                   {sourceFor.code === '14.1' && sourceProvenance.rowsWithValues === 0 && <div className="qraNotice">
                     Data BHP/Linen pada impor ICU sebelumnya tersimpan kosong dan belum pernah ditautkan ke indikator 14.1. Upload ulang workbook asli ICU untuk mengisi kolom ini; proses backfill akan memperbarui hanya field 14.1 yang masih kosong dan mempertahankan data indikator lainnya.
                   </div>}
                   {sourceProvenance.rows.length > 0 ? <div className="qraTableWrap">
                     <table className="qraTable" style={{ minWidth: 650 }}>
-                      <thead><tr><th>Baris Excel</th><th>Tanggal episode</th><th>Header sumber</th><th>Nilai sumber</th><th>Status laporan</th></tr></thead>
+                      <thead><tr><th>Baris Excel</th><th>Referensi sel</th><th>Tanggal episode</th><th>Header sumber</th><th>Nilai sumber</th><th>Status laporan</th></tr></thead>
                       <tbody>{sourceProvenance.rows.map((row, index) => <tr key={row.excelRow + '-' + index}>
                         <td>{row.excelRow || '-'}</td>
+                        <td><strong>{row.cellRef || (row.excelRow ? (row.sheet || 'Logbook') + ' · baris ' + row.excelRow : '-')}</strong></td>
                         <td>{row.recordDate || '-'}</td>
                         <td>{row.header || sourceProvenance.mappingHeader || 'Belum direkam'}</td>
                         <td>{row.value}</td>
@@ -788,7 +819,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     {sourceProvenance.rowsWithValues > sourceProvenance.rows.length && <div className="qraMuted">Menampilkan 25 nilai sumber terbaru.</div>}
                   </div> : <EmptyState title="Nilai sumber belum tersedia" detail="Belum ada nilai kolom Excel yang tersimpan untuk indikator ini pada episode yang dimuat." />}
                   <div className="qraInfo">
-                    Header aktual disimpan saat impor workbook baru. Untuk impor terdahulu yang belum merekam nama kolom sumber, AUREKA hanya menampilkan file, worksheet, baris Excel, dan nilai yang memang tersedia di provenance; sistem tidak menebak nama header.
+                    Header dan koordinat sel aktual direkam dari workbook saat impor. Referensi seperti Logbook!J42 menunjuk ke sel sumber yang digunakan. Untuk data impor terdahulu, AUREKA hanya menampilkan metadata yang memang tersimpan dan tidak menebak header atau kolom.
                   </div>
                 </div>}
               </AurekaModal>
