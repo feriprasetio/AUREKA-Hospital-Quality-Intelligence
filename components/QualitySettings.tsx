@@ -239,6 +239,20 @@ function unitBatchEditablePayload(model: UnitBatchDraft): Model {
   }
 }
 
+function stableProfileSignature(value: unknown): string {
+  const normalize = (input: any): any => {
+    if (Array.isArray(input)) return input.map(normalize)
+    if (input && typeof input === 'object') {
+      return Object.keys(input).sort().reduce<Record<string, unknown>>((result, key) => {
+        result[key] = normalize(input[key])
+        return result
+      }, {})
+    }
+    return input
+  }
+  return JSON.stringify(normalize(value))
+}
+
 function UnitLiveProfileEditor({
   open,
   room,
@@ -277,7 +291,7 @@ function UnitLiveProfileEditor({
       const original = originalById.get(String(draft.id))
       if (!original) return false
       try {
-        return JSON.stringify(unitBatchEditablePayload(draft)) !== JSON.stringify({
+        return stableProfileSignature(unitBatchEditablePayload(draft)) !== stableProfileSignature({
           profile_year: Number(original.profile_year),
           room_id: Number(original.room_id),
           unit_name: String(original.unit_name ?? ''),
