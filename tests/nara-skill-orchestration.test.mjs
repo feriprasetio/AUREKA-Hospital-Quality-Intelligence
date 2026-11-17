@@ -34,6 +34,14 @@ test("generic data-quality review does not automatically load multiple hospital 
   assert.equal(plan.requiresAggregateData, false);
 });
 
+test("general knowledge enrichment does not inject governance data into a risk question", () => {
+  const plan = planNaraSkills("Jelaskan SOP manajemen risiko rumah sakit.");
+  assert.ok(plan.selected.includes("risk"));
+  assert.ok(plan.selected.includes("knowledge"));
+  assert.ok(plan.domains.includes("risk"));
+  assert.ok(!plan.domains.includes("governance"));
+});
+
 test("clinical coding routes through clinical specialist", () => {
   const plan = planNaraSkills("Tolong telaah diagnosis DPJP dan usulan ICD-10");
   assert.equal(plan.primary, "clinical");
