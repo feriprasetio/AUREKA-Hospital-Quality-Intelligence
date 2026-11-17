@@ -180,7 +180,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       if (column != null) indexes[key] = column
     }
     for (const item of NICU_SOURCE_INDICATORS) {
-      const aliases = item.aliases ? [...item.aliases] : [item.sourceHeader]
+      const aliases = [item.sourceHeader]
       const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
         importerKey: 'nicu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
       })
