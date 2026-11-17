@@ -176,6 +176,14 @@ function cellText(cell: any): string {
   return String(value).trim()
 }
 
+function findHeaderExact(columns: Map<string, number[]>, candidates: readonly string[]): number | null {
+  for (const candidate of candidates) {
+    const matches = columns.get(normalizeExactHeader(candidate)) ?? []
+    if (matches.length === 1) return matches[0]
+  }
+  return null
+}
+
 function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
   return resolveInteractiveExcelHeaderColumn(columns, candidates, {
     importerKey: 'igd',
@@ -408,12 +416,12 @@ export default function IgdExcelImportDialog({
         if (index == null) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 3 Logbook.')
         columns[key] = index
       }
-      const extraQueueColumn = headers.get(normalizeExactHeader('Antrian Pasien')) ?? null
+      const extraQueueColumn = findHeader(headers, ['Antrian Pasien'], false)
       const indicatorColumns = new Map<string, number[]>()
       for (const indicator of IGD_INDICATORS) {
-        const index = headers.get(normalizeExactHeader(indicator.header))
+        const index = findHeader(headers, [indicator.header])
         if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" tidak ditemukan pada Logbook.')
-        indicatorColumns.set(indicator.code, index)
+        indicatorColumns.set(indicator.code, [index])
       }
       const byCode = mapProfiles(profiles)
       const parsed: MainRow[] = []
@@ -600,7 +608,7 @@ export default function IgdExcelImportDialog({
           for (let rowNum = 1; rowNum <= Math.min(50, worksheet.rowCount); rowNum++) {
             const candidate = buildHeaderMap(worksheet, rowNum, 20)
             let headerHits = 0
-            for (const aliases of Object.values(CONSULT_HEADERS)) if (findHeader(candidate, aliases) != null) headerHits += 1
+            for (const aliases of Object.values(CONSULT_HEADERS)) if (findHeaderExact(candidate, aliases) != null) headerHits += 1
             if (headerHits >= 12) {
               headerRowNumber = rowNum
               columns = candidate
@@ -611,7 +619,7 @@ export default function IgdExcelImportDialog({
           if (!found) continue
           const indices: Record<string, number> = {}
           for (const [key, aliases] of Object.entries(CONSULT_HEADERS)) {
-            const index = findHeader(columns, aliases)
+            const index = findHeader(columns, aliases, !['age','sex','patientType','doorToDecision','reasonCode','reasonOther'].includes(key))
             if (index == null && !['age','sex','patientType','doorToDecision','reasonCode','reasonOther'].includes(key)) {
               throw new Error('Header "' + aliases[0] + '" tidak ditemukan di sheet ' + worksheet.name + ' (' + file.name + ').')
             }
