@@ -16,7 +16,6 @@ const GLYPH: Record<string, ReactNode> = {
   risk: <><path d="M12 4 21 19.5H3z" /><path d="M12 10v4.5" /><path d="M12 17.2v.3" /></>,
   strategy: <><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r=".6" /></>,
   research: <><path d="M9 4h6" /><path d="M10 4v5.5L5.2 18a1.5 1.5 0 0 0 1.3 2.2h11a1.5 1.5 0 0 0 1.3-2.2L14 9.5V4" /><path d="M7.5 15h9" /></>,
-  diagnosis: <><path d="M4 6h16M4 12h10M4 18h8" /><circle cx="18" cy="16" r="3" /><path d="m16.5 16 1 1 2-2" /></>,
 }
 
 const MODES = [
@@ -26,7 +25,6 @@ const MODES = [
   { id:'risk', label:'Analisis risiko', detail:'Prioritas risiko, FMEA, dan RTP', prompt:'Analisis profil manajemen risiko rumah sakit. Prioritaskan risiko tinggi dan sangat tinggi, evaluasi tindak pengendalian, dan berikan rekomendasi.' },
   { id:'strategy', label:'Saran strategis', detail:'Lima prioritas berbasis data', prompt:'Bertindak sebagai strategic advisor rumah sakit. Rumuskan 5 prioritas strategis berbasis data mutu, keselamatan pasien, dan manajemen risiko, lengkap dengan indikator keberhasilan.' },
   { id:'research', label:'Riset & statistik', detail:'Metode, asumsi, dan interpretasi', prompt:'Bantu saya melakukan analisis ilmiah dan statistik untuk peningkatan mutu rumah sakit. Jelaskan metode, asumsi, keterbatasan data, dan interpretasi secara akademik.' },
-  { id:'diagnosis', label:'Diagnosis & ICD-10', detail:'10 penyakit terbanyak dan status koding', prompt:'Tampilkan 10 diagnosis/penyakit terbanyak pada tahun berjalan dari analitik klinis NARA. Jelaskan apakah basisnya episode atau pasien unik, tunjukkan status koding ICD-10 (tervalidasi atau belum), serta jelaskan kelengkapan dan batasan data. Jangan tampilkan identitas pasien atau nomor rekam medis.' },
 ] as const
 
 function NaraAvatar({ size = 58 }: { size?: number }) {
