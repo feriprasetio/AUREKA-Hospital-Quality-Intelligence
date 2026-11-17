@@ -72,7 +72,6 @@ test('module-local search controls are hidden while header search dispatch remai
   for (const selector of ['.prSearch', '.rmSearch', '.sdSearch', '.acdLocalSearch', '.cpLocalSearch', '.psLocalSearch', '.oppeLocalSearch', '.fppeLocalSearch', '.adminLocalSearch', '.qualitySettingsLocalSearch']) {
     assert.ok(navCss.includes(selector), 'Missing hidden local-search selector: ' + selector)
   }
-  assert.ok(patientRegistry.includes('aureka:workspace-search'))
   assert.ok(patientIndex.includes('aureka:workspace-search'))
 })
 
@@ -89,9 +88,15 @@ test('hospital-wide quality results include source fields required by operationa
   assert.ok(results.includes('calculateIndicatorResultsForProfiles'))
 })
 
-test('patient-entry workspace does not silently choose the first room', () => {
-  assert.ok(patientRegistry.includes('initialRoomId||null'))
-  assert.ok(!patientRegistry.includes('initialRoomId||firstRoomWithData||null'))
+test('patient workspace is read-only and no longer mounts a duplicate episode-entry form', () => {
+  const analytics = read('components/patient-registry/PatientRecordAnalytics.tsx')
+  assert.ok(patientRegistry.includes('<PatientIndexTab'))
+  assert.ok(patientRegistry.includes('<PatientRecordAnalytics'))
+  assert.ok(!patientRegistry.includes('QualityIndicatorWorkspace'))
+  assert.ok(!patientRegistry.includes('patientRegistryMode'))
+  assert.ok(!patientRegistry.includes('firstRoomWithData'))
+  assert.ok(analytics.includes('Tidak ada formulir input atau perubahan logbook'))
+  assert.ok(analytics.includes('aureka_patient_episode_stats'))
 })
 
 
