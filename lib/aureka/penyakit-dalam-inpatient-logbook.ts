@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { resolveInteractiveExcelHeaderColumn } from './interactive-header-mapping.ts'
 
 export type InternalMedicineIndicatorOption = {
   code?: number | null
@@ -85,7 +86,7 @@ export type InternalMedicineHeaderMap = {
   duplicateHeaders: string[]
 }
 
-export function mapInternalMedicineLogbookHeaders(headerValues: unknown[]): InternalMedicineHeaderMap {
+export function mapInternalMedicineLogbookHeaders(headerValues: unknown[] , interactive = false): InternalMedicineHeaderMap {
   const columns = new Map<string, number[]>()
   headerValues.forEach((value, index) => {
     const key = normalizeExactHeader(value)
@@ -99,7 +100,19 @@ export function mapInternalMedicineLogbookHeaders(headerValues: unknown[]): Inte
   const missingHeaders: string[] = []
   const duplicateHeaders: string[] = []
 
-  const resolve = (key: string, aliases: string[], required = true) => {
+  const resolve = (key: string, aliases: string[] , required = true) => {
+    if (interactive) {
+      const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+        importerKey: 'internal-medicine',
+        fieldKey: key,
+        fieldLabel: aliases[0],
+        required: required,
+      })
+      if (column != null) indexes[key] = column
+      else if (required) missingHeaders.push(aliases[0])
+      return
+    }
+    const isRequired = required
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
@@ -109,7 +122,7 @@ export function mapInternalMedicineLogbookHeaders(headerValues: unknown[]): Inte
       indexes[key] = matches[0]
       return
     }
-    if (required) missingHeaders.push(aliases[0])
+    if (isRequired) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) {
