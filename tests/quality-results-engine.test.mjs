@@ -607,14 +607,50 @@ test('ratio profiles derive N/D from coded categorical responses when raw N/D fi
 
   const result = calculateIndicatorResult(profile, rows, 2026)
   assert.equal(result.kind, 'ratio')
+  assert.equal(result.observations, 2)
+  assert.equal(result.annualNumerator, 1)
+  assert.equal(result.annualDenominator, 2)
+  assert.equal(result.annualRate, 50)
+  assert.equal(result.monthly[0].observations, 2)
+  assert.equal(result.monthly[0].numerator, 1)
+  assert.equal(result.monthly[0].denominator, 2)
+  assert.equal(result.targetMet, false)
+})
+
+test('negative ICU indicator 14.1 counts an exact master-pending source event using its source code', () => {
+  const profile = {
+    id: 'p-icu-14-1',
+    room_id: 14,
+    code: '14.1',
+    title: 'Kekosongan BHP, Linen dan Barang Penunjang Perawatan Pasien Lainnya',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'ratio', response_capture_mode: 'categorical', indicator_direction: 'negative' },
+    options_json: [
+      { code: 1, label: 'Pasien Dirawat Tanpa Kendala', numerator: true, denominator: true },
+      { code: 3, label: 'Pasien Dirawat Dengan Kekosongan BHP dan Linen', numerator: false, denominator: true, review_required: true },
+    ],
+    target_text: '≤ 0%',
+    target_operator: '<=',
+    target_value: 0,
+  }
+  const rows = [{
+    room_id: 14,
+    record_date: '2026-01-04',
+    status: 'ready',
+    core_data: { indicator_values: { '14.1': {
+      answer: 'Pasien Dirawat Dengan Kekosongan BHP dan Linen',
+      code: null,
+      source_code: 3,
+      review_required: true,
+      mapping_status: 'master_pending',
+    } } },
+  }]
+  const result = calculateIndicatorResult(profile, rows.map(row => ({ ...row, status: 'validated' })), 2026)
   assert.equal(result.observations, 1)
   assert.equal(result.annualNumerator, 1)
   assert.equal(result.annualDenominator, 1)
   assert.equal(result.annualRate, 100)
-  assert.equal(result.monthly[0].observations, 1)
-  assert.equal(result.monthly[0].numerator, 1)
-  assert.equal(result.monthly[0].denominator, 1)
-  assert.equal(result.targetMet, true)
+  assert.equal(result.targetMet, false)
 })
 
 
