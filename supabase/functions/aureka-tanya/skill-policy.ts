@@ -14,7 +14,7 @@ export type NaraDataDomain =
   | "workforce";
 
 const SNAPSHOT_DOMAINS: Readonly<Record<string, readonly NaraDataDomain[]>> = {
-  ikhtisar_governance_aureka: ["governance", "quality", "risk", "patient_safety"],
+  ikhtisar_governance_aureka: ["governance"],
   analisis_diagnosis_klinis: ["clinical"],
   profil_indikator_mutu: ["quality"],
   analisis_fmea: ["risk"],
@@ -39,8 +39,8 @@ const SOURCE_NOTE_DOMAINS: ReadonlyArray<{ match: RegExp; domains: readonly Nara
   { match: /IKP|investigasi IKP|budaya keselamatan/i, domains: ["patient_safety"] },
   { match: /logbook mutu|profil indikator/i, domains: ["quality"] },
   { match: /tenaga|OPPE\/FPPE/i, domains: ["workforce"] },
-  { match: /clinical pathway|audit kematian|diagnosis klinis|konsultasi IGD/i, domains: ["clinical"] },
   { match: /konsultasi IGD/i, domains: ["quality", "clinical"] },
+  { match: /clinical pathway|audit kematian|diagnosis klinis/i, domains: ["clinical"] },
   { match: /tata kelola|rekomendasi|prioritas tahunan/i, domains: ["governance"] },
   { match: /daftar unit/i, domains: DOMAIN_NAMES },
 ];
