@@ -382,7 +382,7 @@ function UnitLiveProfileEditor({
     >
       <div style={{ display: 'grid', gap: 12, padding: 12, maxHeight: '70vh', overflow: 'auto' }}>
         <div style={{ border: '1px solid rgba(28,107,73,.20)', background: 'rgba(28,107,73,.055)', borderRadius: 11, padding: 10, fontSize: 12, lineHeight: 1.55 }}>
-          **Mode unit aktif.** Setiap kartu merupakan satu baris profil indikator. Kolom Excel disimpan pada metadata profil, sehingga hubungan sumber → indikator dapat dilihat dan dikelola tanpa mengubah kode. Gunakan nama header Excel, bukan huruf kolom yang dapat berubah saat urutan worksheet berubah.
+          <strong>Mode unit aktif.</strong> Setiap kartu merupakan satu baris profil indikator. Kolom Excel disimpan pada metadata profil, sehingga hubungan sumber → indikator dapat dilihat dan dikelola tanpa mengubah kode. Gunakan nama header Excel, bukan huruf kolom yang dapat berubah saat urutan worksheet berubah.
         </div>
         {error && <div role="alert" style={{ color: '#9c3f32', border: '1px solid rgba(184,52,52,.3)', borderRadius: 9, padding: 9, fontSize: 12 }}>{error}</div>}
         {drafts.map((model, index) => (
@@ -457,6 +457,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   }, [msg])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [unitBatchOpen, setUnitBatchOpen] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<Model | null>(null)
 
   const editorOpen = Boolean(edit || newOne)
   useEffect(() => {
@@ -700,6 +702,33 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     setSaving(false)
   }
 
+  const permanentlyDelete = async () => {
+    if (!pendingDelete?.id || saving) return
+    setSaving(true)
+    setMsg('')
+    try {
+      const { data, error } = await q().rpc('delete_unused_indicator_profile', {
+        p_profile_id: String(pendingDelete.id),
+      })
+      if (error) throw error
+      if (!data || (data as Record<string, unknown>).deleted !== true) {
+        throw new Error('Server belum mengonfirmasi penghapusan profil.')
+      }
+      const code = String((data as Record<string, unknown>).code ?? pendingDelete.code)
+      const targetRoomId = Number(pendingDelete.room_id)
+      setPendingDelete(null)
+      window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', {
+        detail: { year: Number(pendingDelete.profile_year), scopeRoomId: targetRoomId },
+      }))
+      await load()
+      setMsg('Profil uji ' + code + ' berhasil dihapus permanen. Tidak ada data audit atau respons yang ikut dihapus.')
+    } catch (error) {
+      setMsg('Profil tidak dapat dihapus permanen: ' + toUserFacingError(error, { fallback: 'Profil mungkin masih dirujuk oleh respons, aturan OPPE, proposal, atau catatan audit.' }))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   // Template awal untuk tahun yang belum punya profil: profil aktif yang ada + profil bawaan 2026 yang ikut dalam aplikasi.
   const downloadStarterTemplate = async () => {
     try {
@@ -832,6 +861,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     }
   }
 
+  const selectedRoomForEditor = rooms.find((item) => String(item.id) === room) ?? null
+
     const fieldStyle: CSSProperties = {
     display: 'grid',
     gap: 5,
@@ -957,6 +988,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
               <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX</LiquidGlassButton>
               <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
+              {room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
               <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
             </div>
             <input
@@ -1014,6 +1046,44 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 </div>
               )}
             </AurekaModal>
+            {selectedRoomForEditor && (
+              <UnitLiveProfileEditor
+                open={unitBatchOpen}
+                room={selectedRoomForEditor}
+                year={year}
+                profiles={profiles}
+                onClose={() => setUnitBatchOpen(false)}
+                onSaved={async () => {
+                  window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', {
+                    detail: { year, scopeRoomId: selectedRoomForEditor.id },
+                  }))
+                  await load()
+                  setMsg('Perubahan profil unit berhasil disimpan. Setiap indikator yang berubah diterbitkan sebagai versi baru.')
+                }}
+              />
+            )}
+            <AurekaModal
+              open={Boolean(pendingDelete)}
+              title="Hapus profil indikator permanen?"
+              subtitle={pendingDelete ? String(pendingDelete.code) + ' · ' + String(pendingDelete.title) : ''}
+              closeDisabled={saving}
+              onClose={() => setPendingDelete(null)}
+            >
+              <div style={{ display: 'grid', gap: 12, padding: 14 }}>
+                <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+                  Profil ini akan dihapus dari kamus indikator, bukan hanya disembunyikan. Aksi hanya diizinkan untuk profil <strong>retired/draf yang nonaktif</strong> dan tidak memiliki tautan ke respons, catatan audit, aturan OPPE, atau proposal.
+                </div>
+                <div style={{ border: '1px solid rgba(190,125,35,.34)', background: 'rgba(190,125,35,.07)', borderRadius: 10, padding: 11, fontSize: 12, lineHeight: 1.55 }}>
+                  Riwayat versi ini akan hilang. Data audit tidak dihapus. Server memeriksa ulang seluruh referensi sebelum mengizinkan penghapusan.
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(null)}>Batal</button>
+                  <button type="button" className="textButton" disabled={saving} onClick={() => void permanentlyDelete()} style={{ color: '#a23b31', fontWeight: 800 }}>
+                    {saving ? 'Memeriksa dan menghapus…' : 'Hapus permanen'}
+                  </button>
+                </div>
+              </div>
+            </AurekaModal>
             <AurekaModal
               open={Boolean(edit || newOne)}
               title={edit ? 'Edit indikator' : 'Tambah indikator'}
@@ -1051,6 +1121,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
                     {isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
                     {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
+                    {profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(profile)} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
                   </div>
                 </div>
               ))}
