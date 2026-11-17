@@ -89,9 +89,14 @@ test('hospital-wide quality results include source fields required by operationa
   assert.ok(results.includes('calculateIndicatorResultsForProfiles'))
 })
 
-test('patient-entry workspace does not silently choose the first room', () => {
-  assert.ok(patientRegistry.includes('initialRoomId||null'))
-  assert.ok(!patientRegistry.includes('initialRoomId||firstRoomWithData||null'))
+test('patient records remain read-only and do not duplicate the indicator logbook input', () => {
+  assert.ok(patientRegistry.includes('Riwayat episode pelayanan lintas unit'))
+  assert.ok(patientRegistry.includes('PatientMedicalRecordsAnalytics'))
+  assert.ok(!patientRegistry.includes('QualityIndicatorWorkspace'))
+  assert.ok(!patientRegistry.includes('Tambah Episode'))
+  assert.ok(home.includes("patientView==='tambah-pasien'"))
+  assert.ok(home.includes("window.location.hash='#indikator-mutu/form-logbook'"))
+  assert.ok(audit.includes("q().rpc('save_quality_logbook'"))
 })
 
 
