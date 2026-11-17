@@ -226,15 +226,18 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
   const ask = async (q: string) => {
     const question = q.trim()
     if (!question || busy) return
-    const history = msgs.filter(m => !m.error).slice(-10).map(m => ({ role: m.role, text: m.text + (m.reminder ? `\n(Draf pengingat untuk: ${(m.reminder.selected ?? m.reminder.units).join(', ')}, status: ${m.reminder.status === 'sent' ? 'sudah dikirim' : m.reminder.status === 'cancelled' ? 'dibatalkan' : 'belum dikirim'})` : '') }))
+    const history = msgs.filter(m => !m.error).slice(-10).map(m => ({ role: m.role, text: m.text + (m.reminder ? \`\n(Draf pengingat untuk: \${(m.reminder.selected ?? m.reminder.units).join(', ')}, status: \${m.reminder.status === 'sent' ? 'sudah dikirim' : m.reminder.status === 'cancelled' ? 'dibatalkan' : 'belum dikirim'})\` : '') }))
+    const requestsIcd10Proposal = /\b(icd[\s-]?10|kodefikasi|koding)\b/i.test(question)
+      && /\b(usulkan|buat|generate|saran|pemetaan|mapping|kodekan|analisis|proses)\b/i.test(question)
+    const requestBody = { question, history, page, ...(requestsIcd10Proposal ? { task: 'icd10_suggest' } : {}) }
     setMsgs(m => [...m, { role: 'user', text: question }])
     setDraft('')
     setBusy(true)
     // Penyedia AI gratis kadang menolak sesaat (sibuk/kuota per menit): coba ulang otomatis hingga 2× sebelum menampilkan galat.
-    let { data, error } = await sb.functions.invoke('aureka-tanya', { body: { question, history, page } })
+    let { data, error } = await sb.functions.invoke('aureka-tanya', { body: requestBody })
     for (let attempt = 1; attempt <= 2 && error && [429, 500, 502, 503, 504].includes(Number((error as { context?: { status?: number } }).context?.status)); attempt++) {
       await new Promise((r) => setTimeout(r, attempt * 2500))
-      ;({ data, error } = await sb.functions.invoke('aureka-tanya', { body: { question, history, page } }))
+      ;({ data, error } = await sb.functions.invoke('aureka-tanya', { body: requestBody }))
     }
     setBusy(false)
     if (error || !data?.answer) {
