@@ -38,3 +38,22 @@ test('uses the declared visit window instead of a hard-coded clock interval', ()
   assert.equal(isWithinVisitWindow({ target_text: 'Jam visite 06.00–14.00' }, '14:01'), false)
   assert.equal(isWithinVisitWindow({ title: 'Jam visite tanpa target' }, '08:00'), null)
 })
+
+
+test('does not read incidental digits from descriptive target status text', () => {
+  assert.deepEqual(readTarget({
+    target_text: 'Belum ditetapkan pada dokumen sumber Indikator Mutu Tahunan 2026.',
+    target_operator: '=',
+    target_value: null,
+  }), { value: null, operator: '=' })
+  assert.deepEqual(readTarget({
+    target_text: 'Perlu klarifikasi: standar sumber 0% tidak selaras dengan definisi numerator.',
+    target_operator: '=',
+    target_value: null,
+  }), { value: null, operator: '=' })
+  assert.deepEqual(readTarget({
+    target_text: '80%',
+    target_operator: '>=',
+    target_value: null,
+  }), { value: 80, operator: '>=' })
+})
