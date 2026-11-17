@@ -150,7 +150,9 @@ function findHeaderRow(sheet:any):{rowNumber:number;indexes:Record<string,number
     return {rowNumber:bestRowNumber,indexes}
   }
   throw new Error("Header Logbook tidak lengkap. Workbook harus memiliki kolom No., Nama Pasien, No. Rekam Medis, Tanggal Dilayani, Nama Terapis, dan keenam indikator Rehab Medik pada satu baris.")
-}function formatCounts(rows:PreparedRow[]) {
+}
+
+function formatCounts(rows:PreparedRow[]) {
   const therapists=new Set(rows.map(row=>row.therapist).filter(Boolean))
   const treatments=new Set(rows.map(row=>row.treatment).filter(Boolean))
   const dates=rows.map(row=>row.serviceDate).sort()
