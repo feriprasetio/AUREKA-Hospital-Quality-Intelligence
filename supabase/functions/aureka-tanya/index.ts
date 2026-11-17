@@ -147,32 +147,42 @@ async function qualityCounts(db: SupabaseClient, year: number): Promise<{ rows: 
   return { rows: [...m.values()], error: false };
 }
 
-async function snapshot(db: SupabaseClient) {
+async function snapshot(db: SupabaseClient, domains: readonly string[]) {
+  const selectedDomains = new Set(domains);
+  const needs = (...names: string[]) => names.some((name) => selectedDomains.has(name));
+  const emptyRows = <T,>() => ({ rows: [] as T[], error: false });
+  const noRpc = { data: null, error: null };
   const now = new Date(Date.now() + 7 * 3600 * 1000); // WIB/WIB-Pontianak
   const today = now.toISOString().slice(0, 10);
   const year = now.getUTCFullYear();
   const monthNow = now.getUTCMonth(); // 0-11
   const quarterNow = Math.floor(monthNow / 3); // 0-3
   const [risks, plans, incidents, quality, roomsRes, governance, fmea, staff, pathwayAudits, deathAudits, igdMetrics, clinical, indicatorProfiles, investigations, culture, oppe, recommendations, actions, priorities] = await Promise.all([
-    fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,likelihood,impact,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)),
-    fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans").select("status,target_date").order("id", { ascending: true }).range(f, t)),
-    fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000),
-    qualityCounts(db, year),
-    db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true }),
-    db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null }),
-    fetchAll<FmeaRow>((f, t) => db.schema("aureka_risk").from("fmea_analyses").select("unit_name,priority,status,rpn").order("rpn", { ascending: false }).range(f, t)),
-    fetchAll<StaffRow>((f, t) => db.schema("aureka_quality").from("staff_directory").select("profession_group,directory_status,source_unit").order("id", { ascending: true }).range(f, t)),
-    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_pathway_audits").select("status,template_code").order("created_at", { ascending: false }).range(f, t)),
-    fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_death_audits").select("status,audit_type,overall_care_score,avoidability_score").order("created_at", { ascending: false }).range(f, t)),
-    fetchAll<IgdMetricRow>((f, t) => db.schema("aureka_quality").from("igd_consultation_audits").select("source_performance_label,calculated_elapsed_minutes,profile_year").eq("profile_year", year).order("created_at", { ascending: false }).range(f, t)),
-    db.rpc("aureka_nara_clinical_summary", { p_year: year, p_room: null, p_limit: 10 }),
-    fetchAll<IndicatorProfileRow>((f, t) => db.schema("aureka_quality").from("indicator_profiles").select("profile_year,code,unit_name,title,category,target_text,measurement_grain,status,is_active").eq("profile_year", year).order("code", { ascending: true }).range(f, t)),
-    fetchAll<InvestigationRow>((f, t) => db.schema("aureka_patient_safety").from("investigations").select("status,created_at").order("created_at", { ascending: false }).range(f, t)),
-    fetchAll<CultureRow>((f, t) => db.schema("aureka_patient_safety").from("culture_responses").select("survey_period,unit_name,profession_group,answered_item_count").order("response_id", { ascending: true }).range(f, t)),
-    fetchAll<OppeRow>((f, t) => db.schema("aureka_quality").from("oppe_fppe_evaluations").select("evaluation_type,status,profession_snapshot,unit_snapshot,period_start,period_end").order("id", { ascending: true }).range(f, t)),
-    fetchAll<RecommendationRow>((f, t) => db.schema("aureka_governance").from("recommendations").select("source,priority,program_year,status,issued_by_level").eq("program_year", year).order("id", { ascending: true }).range(f, t)),
-    fetchAll<ActionRow>((f, t) => db.schema("aureka_governance").from("actions").select("responsible_level,assigned_room_id,due_date,status,improvement_method").order("id", { ascending: true }).range(f, t)),
-    fetchAll<PriorityRow>((f, t) => db.schema("aureka_governance").from("annual_priority_areas").select("program_year,priority,status,owner_room_id,due_date").eq("program_year", year).order("id", { ascending: true }).range(f, t)),
+    needs("risk") ? fetchAll<Risk>((f, t) => db.schema("aureka_risk").from("risk_register").select("risk_code,unit_name,risk_event,risk_level,risk_score,likelihood,impact,status,due_date").order("risk_score", { ascending: false }).order("id", { ascending: true }).range(f, t)) : emptyRows<Risk>(),
+    needs("risk", "governance") ? fetchAll<Plan>((f, t) => db.schema("aureka_risk").from("mitigation_plans").select("status,target_date").order("id", { ascending: true }).range(f, t)) : emptyRows<Plan>(),
+    needs("patient_safety") ? fetchAll<Incident>((f, t) => db.schema("aureka_patient_safety").from("incidents").select("incident_type,status,created_at").order("created_at", { ascending: false }).range(f, t), 3000) : emptyRows<Incident>(),
+    needs("quality") ? qualityCounts(db, year) : emptyRows<QCount>(),
+    domains.length
+      ? db.from("master_rooms").select("id,name,is_active").order("sort_order", { ascending: true })
+      : Promise.resolve({ data: [] as Room[], error: null }),
+    needs("governance")
+      ? db.rpc("aureka_gov_infographics_summary_secure", { p_year: year, p_room: null })
+      : Promise.resolve(noRpc),
+    needs("risk") ? fetchAll<FmeaRow>((f, t) => db.schema("aureka_risk").from("fmea_analyses").select("unit_name,priority,status,rpn").order("rpn", { ascending: false }).range(f, t)) : emptyRows<FmeaRow>(),
+    needs("workforce") ? fetchAll<StaffRow>((f, t) => db.schema("aureka_quality").from("staff_directory").select("profession_group,directory_status,source_unit").order("id", { ascending: true }).range(f, t)) : emptyRows<StaffRow>(),
+    needs("clinical", "quality") ? fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_pathway_audits").select("status,template_code").order("created_at", { ascending: false }).range(f, t)) : emptyRows<ClinicalStatusRow>(),
+    needs("clinical", "quality") ? fetchAll<ClinicalStatusRow>((f, t) => db.schema("aureka_quality").from("clinical_death_audits").select("status,audit_type,overall_care_score,avoidability_score").order("created_at", { ascending: false }).range(f, t)) : emptyRows<ClinicalStatusRow>(),
+    needs("clinical", "quality") ? fetchAll<IgdMetricRow>((f, t) => db.schema("aureka_quality").from("igd_consultation_audits").select("source_performance_label,calculated_elapsed_minutes,profile_year").eq("profile_year", year).order("created_at", { ascending: false }).range(f, t)) : emptyRows<IgdMetricRow>(),
+    needs("clinical")
+      ? db.rpc("aureka_nara_clinical_summary", { p_year: year, p_room: null, p_limit: 10 })
+      : Promise.resolve(noRpc),
+    needs("quality") ? fetchAll<IndicatorProfileRow>((f, t) => db.schema("aureka_quality").from("indicator_profiles").select("profile_year,code,unit_name,title,category,target_text,measurement_grain,status,is_active").eq("profile_year", year).order("code", { ascending: true }).range(f, t)) : emptyRows<IndicatorProfileRow>(),
+    needs("patient_safety") ? fetchAll<InvestigationRow>((f, t) => db.schema("aureka_patient_safety").from("investigations").select("status,created_at").order("created_at", { ascending: false }).range(f, t)) : emptyRows<InvestigationRow>(),
+    needs("patient_safety") ? fetchAll<CultureRow>((f, t) => db.schema("aureka_patient_safety").from("culture_responses").select("survey_period,unit_name,profession_group,answered_item_count").order("response_id", { ascending: true }).range(f, t)) : emptyRows<CultureRow>(),
+    needs("workforce") ? fetchAll<OppeRow>((f, t) => db.schema("aureka_quality").from("oppe_fppe_evaluations").select("evaluation_type,status,profession_snapshot,unit_snapshot,period_start,period_end").order("id", { ascending: true }).range(f, t)) : emptyRows<OppeRow>(),
+    needs("governance") ? fetchAll<RecommendationRow>((f, t) => db.schema("aureka_governance").from("recommendations").select("source,priority,program_year,status,issued_by_level").eq("program_year", year).order("id", { ascending: true }).range(f, t)) : emptyRows<RecommendationRow>(),
+    needs("governance") ? fetchAll<ActionRow>((f, t) => db.schema("aureka_governance").from("actions").select("responsible_level,assigned_room_id,due_date,status,improvement_method").order("id", { ascending: true }).range(f, t)) : emptyRows<ActionRow>(),
+    needs("governance") ? fetchAll<PriorityRow>((f, t) => db.schema("aureka_governance").from("annual_priority_areas").select("program_year,priority,status,owner_room_id,due_date").eq("program_year", year).order("id", { ascending: true }).range(f, t)) : emptyRows<PriorityRow>(),
   ]);
   const rooms = ((roomsRes.data || []) as Room[]).filter((r) => r.is_active !== false);
   const open = (r: Risk) => r.status !== "Controlled" && r.status !== "Accepted";
@@ -653,9 +663,8 @@ async function handle(req: Request): Promise<Response> {
   if (rateLimited(who.user.id)) return reply(429, { error: "Batas permintaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
   // Pemanasan saat panel dibuka: siapkan ringkasan data di cache, tanpa memanggil AI.
   if (body.warmup) {
-    const c = snapshotCache.get(who.user.id);
-    if (!c || Date.now() - c.at >= SNAPSHOT_TTL) snapshotCache.set(who.user.id, { at: Date.now(), data: await snapshot(db) });
-    return reply(200, { ok: true });
+    // Domain is not known until the user asks a question; never prefetch every hospital domain.
+    return reply(200, { ok: true, snapshot: "loaded-on-demand-by-skill" });
   }
   const task = String(body.task || "").trim().toLowerCase();
   const question = (body.question || "").toString().trim().slice(0, 1500);
@@ -762,16 +771,18 @@ async function handle(req: Request): Promise<Response> {
   // Deterministic skill routing runs before model invocation; the LLM may synthesize, never select data access.
   const skillPlan = smallTalk ? null : planNaraSkills(question);
 
-  const cached = snapshotCache.get(who.user.id);
+  const snapshotDomains = [...new Set(skillPlan?.domains || [])].sort();
+  const snapshotCacheKey = who.user.id + "::" + snapshotDomains.join(",");
+  const cached = snapshotCache.get(snapshotCacheKey);
   const fresh = cached && Date.now() - cached.at < SNAPSHOT_TTL;
-  // Only aggregate-data skills load a snapshot. The cached snapshot remains server-side;
-  // the provider receives a minimized projection for the domains selected by the planner.
+  // Queries are selected by skill domain, and the server-side cache is partitioned by domain set.
+  // The provider receives a second, fail-closed projection of only approved snapshot keys.
   const needsAggregateData = !smallTalk && Boolean(skillPlan?.requiresAggregateData);
   const rawSnapshot = needsAggregateData
-    ? (fresh ? cached!.data : await snapshot(db))
+    ? (fresh ? cached!.data : await snapshot(db, snapshotDomains))
     : null;
-  if (!fresh && rawSnapshot) snapshotCache.set(who.user.id, { at: Date.now(), data: rawSnapshot });
-  const data = rawSnapshot ? scopeSnapshotForSkills(rawSnapshot, skillPlan?.domains || []) : null;
+  if (!fresh && rawSnapshot) snapshotCache.set(snapshotCacheKey, { at: Date.now(), data: rawSnapshot });
+  const data = rawSnapshot ? scopeSnapshotForSkills(rawSnapshot, snapshotDomains) : null;
   // Account identity is intentionally excluded from external model context.
   const system = [
     "Kamu adalah NARA AI (AUREKA Intelligence), asisten intelijen rumah sakit untuk mutu, keselamatan pasien, manajemen risiko, statistik, tata kelola, dan dukungan keputusan.",
