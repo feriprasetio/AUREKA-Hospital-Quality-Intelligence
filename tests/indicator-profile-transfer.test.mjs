@@ -138,6 +138,7 @@ test('rejects duplicate indicator codes and malformed source identities', () => 
 const migrationSource = await readFile(new URL('../supabase/migrations/20261114080000_indicator_profile_set_transfer.sql', import.meta.url), 'utf8')
 const unitBatchMigrationSource = await readFile(new URL('../supabase/migrations/20261117180000_indicator_profile_unit_batch_edit_and_safe_delete.sql', import.meta.url), 'utf8')
 const settingsSource = await readFile(new URL('../components/QualitySettings.tsx', import.meta.url), 'utf8')
+const deleteAccessMigrationSource = await readFile(new URL('../supabase/migrations/20261117193000_fix_indicator_profile_delete_access.sql', import.meta.url), 'utf8')
 const auditWorkspaceSource = await readFile(new URL('../components/QualityIndicatorWorkspace.tsx', import.meta.url), 'utf8')
 
 test('replacement RPC is invoker-secured, transactional, and retains historical profile rows', () => {
@@ -148,6 +149,15 @@ test('replacement RPC is invoker-secured, transactional, and retains historical 
   assert.match(migrationSource, /jsonb_each\(qr\.core_data->'indicator_values'\)/)
   assert.doesNotMatch(migrationSource, /DELETE\s+FROM\s+aureka_quality\.indicator_profiles/i)
   assert.doesNotMatch(migrationSource, /DELETE\s+FROM\s+aureka_quality\.quality_records/i)
+})
+
+test('profile deletion RPC uses a fixed-search-path security definer with an explicit Superadmin guard', () => {
+  assert.match(deleteAccessMigrationSource, /ALTER FUNCTION aureka_quality\.delete_unused_indicator_profile\(uuid\)\s+SECURITY DEFINER/i)
+  assert.match(deleteAccessMigrationSource, /SET search_path TO pg_catalog, aureka_quality, aureka_governance, aureka_system, auth/i)
+  assert.match(deleteAccessMigrationSource, /REVOKE ALL ON FUNCTION[\s\S]+FROM PUBLIC, anon, service_role/i)
+  assert.match(deleteAccessMigrationSource, /GRANT EXECUTE ON FUNCTION[\s\S]+TO authenticated/i)
+  assert.match(settingsSource, /Penghapusan belum diizinkan\. Pastikan akun yang digunakan memiliki peran Superadmin/)
+  assert.match(settingsSource, /Sesi login telah berakhir\. Masuk kembali ke AUREKA/)
 })
 
 test('profile workspace provides export, guarded import confirmation, and one atomic replacement RPC', () => {
