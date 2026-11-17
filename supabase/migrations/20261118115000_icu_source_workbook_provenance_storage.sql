@@ -121,16 +121,30 @@ BEGIN
        OR coalesce(v_payload->>'measurement_grain','') <> 'patient_episode'
        OR coalesce(v_source->>'source_sheet','') <> 'Logbook'
        OR coalesce(v_source->>'idempotency_basis','') <> 'room_year_source_excel_row'
-       OR coalesce(v_source->>'source_storage_bucket','') <> 'aureka-quality-source-workbooks'
-       OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 1) <> '14'
-       OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 2) <> '2026'
-       OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 3) = ''
+       -- Legacy cached clients may not yet upload the workbook. Accept both storage
+       -- fields absent, but never accept a partial or cross-room storage reference.
+       OR (
+         (nullif(v_source->>'source_storage_bucket','') IS NULL)
+         <> (nullif(v_source->>'source_storage_path','') IS NULL)
+       )
+       OR (
+         nullif(v_source->>'source_storage_path','') IS NOT NULL
+         AND (
+           coalesce(v_source->>'source_storage_bucket','') <> 'aureka-quality-source-workbooks'
+           OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 1) <> '14'
+           OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 2) <> '2026'
+           OR split_part(coalesce(v_source->>'source_storage_path',''), '/', 3) = ''
+         )
+       )
        OR coalesce(v_bhp->>'indicator_code','') <> '14.1'
        OR nullif(btrim(v_bhp->>'source_header'),'') IS NULL
        OR nullif(btrim(v_bhp->>'source_value'),'') IS NULL
        OR coalesce(v_source_values->>'14.1','') <> coalesce(v_bhp->>'source_value','')
        OR coalesce(v_source_columns->>'14.1','') <> coalesce(v_bhp->>'source_header','')
-       OR coalesce(v_source_column_refs->'14.1'->>'header_text','') <> coalesce(v_bhp->>'source_header','')
+       OR (
+         v_source_column_refs IS NOT NULL
+         AND coalesce(v_source_column_refs->'14.1'->>'header_text','') <> coalesce(v_bhp->>'source_header','')
+       )
        OR coalesce(v_form->>'Kekosongan BHP/Linen','') <> coalesce(v_bhp->>'source_value','')
        OR coalesce(v_values->'14.1'->>'source_value','') <> coalesce(v_bhp->>'source_value','') THEN
       RAISE EXCEPTION 'Sumber BHP/Linen tidak konsisten dengan profil 14.1 atau metadata baris Excel.' USING ERRCODE = '22023';
