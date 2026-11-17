@@ -352,7 +352,7 @@ export default function LaboratoryExcelImportDialog({
 
       // The source workbook repeats Waktu Permintaan/Waktu Selesai in formula columns AE:AH.
       // Read only A:N so derived duplicate headers never collide with the clinical source headers.
-      const columns = new Map<string, number[]>()
+      const columns = new Map<string, number>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= 14; column++) {
         const name = cellText(headerRow.getCell(column))
