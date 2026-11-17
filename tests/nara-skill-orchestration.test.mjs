@@ -20,6 +20,20 @@ test("risk and quality questions compose cross-domain skills", () => {
   assert.ok(plan.selected.includes("risk"));
 });
 
+test("quality skill does not implicitly activate governance data", () => {
+  const plan = planNaraSkills("Analisis tren capaian indikator mutu dan logbook.");
+  assert.ok(plan.selected.includes("quality"));
+  assert.ok(plan.domains.includes("quality"));
+  assert.ok(!plan.domains.includes("governance"));
+});
+
+test("generic data-quality review does not automatically load multiple hospital domains", () => {
+  const plan = planNaraSkills("Periksa kualitas data, duplikasi, missing, dan inkonsistensi.");
+  assert.deepEqual(plan.selected, ["data_quality"]);
+  assert.deepEqual(plan.domains, []);
+  assert.equal(plan.requiresAggregateData, false);
+});
+
 test("clinical coding routes through clinical specialist", () => {
   const plan = planNaraSkills("Tolong telaah diagnosis DPJP dan usulan ICD-10");
   assert.equal(plan.primary, "clinical");
