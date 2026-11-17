@@ -563,10 +563,17 @@ function parseIcd10AiSuggestions(answer: string, allowedTerms: Set<string>): Icd
 
 function appendRiskDistributionFallback(question: string, answer: string, snapshotData: unknown): string {
   const asksRiskMatrix = /matriks risiko|risk matrix|heatmap risiko|peta panas risiko/i.test(question);
-  if (!asksRiskMatrix || answer.includes("[[NARA_VISUAL]]")) return answer;
-  if (!snapshotData || typeof snapshotData !== "object") return answer;
+  if (!asksRiskMatrix) return answer;
+  // Risk-matrix output is generated deterministically from the authenticated snapshot.
+  // Discard any model-authored visual block (including malformed/unclosed markers) to
+  // prevent raw JSON, unsupported heatmap schemas, or invented cell counts reaching UI.
+  const cleanAnswer = answer
+    .replace(/\\[\\[NARA_VISUAL\\]\\][\\s\\S]*$/i, "")
+    .replace(/\\[\\[\\/NARA_VISUAL\\]\\]/gi, "")
+    .trim();
+  if (!snapshotData || typeof snapshotData !== "object") return cleanAnswer || answer;
   const risk = (snapshotData as Record<string, unknown>).manajemen_risiko;
-  if (!risk || typeof risk !== "object") return answer;
+  if (!risk || typeof risk !== "object") return cleanAnswer || answer;
   const matrixRows = (risk as Record<string, unknown>).matriks_likelihood_dampak;
   const quality = (risk as Record<string, unknown>).kualitas_data_matriks as Record<string, unknown> | undefined;
   if (Array.isArray(matrixRows) && matrixRows.length === 25) {
@@ -586,7 +593,7 @@ function appendRiskDistributionFallback(question: string, answer: string, snapsh
     }
   }
   const perLevel = (risk as Record<string, unknown>).per_level;
-  if (!perLevel || typeof perLevel !== "object") return answer;
+  if (!perLevel || typeof perLevel !== "object") return cleanAnswer || answer;
   const values = perLevel as Record<string, unknown>;
   const pieData = LEVELS.map((level) => ({ tingkat_risiko: level, jumlah: values[level] }))
     .filter((row): row is { tingkat_risiko: string; jumlah: number } =>
