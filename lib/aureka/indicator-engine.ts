@@ -79,7 +79,7 @@ export function readTarget(profile: IndicatorProfile): { value: number | null; o
   const text = readText(profile.target_text) || readText(schema.target_text)
   const rawValue = profile.target_value ?? schema.target_value
   const textHasExplicitComparator = operatorFromText(text) != null
-  const textIsBareNumericTarget = /^\\s*-?\\d+(?:[.,]\\d+)?\\s*%?\\s*$/.test(text)
+  const textIsBareNumericTarget = /^\s*-?\d+(?:[.,]\d+)?\s*%?\s*$/.test(text)
   // Do not extract incidental numbers from explanatory labels such as
   // "target belum ditetapkan pada sumber 2026" or "standar sumber 0%".
   // Descriptive text is provenance, not a numeric comparison target.
