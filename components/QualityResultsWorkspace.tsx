@@ -276,9 +276,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
 
       if (mode === 'indicators') {
         const includeOperationalFields = selectedRoom == null || selectedRoom === 5 || selectedRoom === 11
-        const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values' +
+        const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values,source_import:core_data->source_import' +
           (includeOperationalFields
-            ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit,source_import:core_data->source_import'
+            ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit'
             : '')
         let profileQuery: any = q().from('indicator_profiles')
           .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
@@ -396,6 +396,50 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
   const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
+  const [sourceFor, setSourceFor] = useState<IndicatorProfileForResults | null>(null)
+  const sourceProvenance = useMemo(() => {
+    if (!sourceFor) return null
+    const code = String(sourceFor.code ?? '')
+    const mapping = sourceFor.schema_json?.excel_mapping && typeof sourceFor.schema_json.excel_mapping === 'object'
+      ? sourceFor.schema_json.excel_mapping as Record<string, unknown>
+      : {}
+    const entries = indicatorData.rows
+      .filter((row) => Number(row.room_id) === Number(sourceFor.room_id) && !!row.core_data?.source_import)
+      .map((row) => {
+        const source = row.core_data?.source_import ?? {}
+        const form = row.core_data?.form_fields ?? {}
+        const rawValue = source.source_indicator_values?.[code]
+          ?? (code === '14.1' ? source.source_bhp_linen?.source_value : undefined)
+          ?? (code === '14.1' ? form['Kekosongan BHP/Linen'] ?? form['Kekosongan BHP/Linen (sumber belum dipetakan)'] : undefined)
+          ?? ''
+        const header = source.source_indicator_columns?.[code]
+          ?? (code === '14.1' ? source.source_bhp_linen?.source_header : undefined)
+          ?? mapping.indicator_header
+          ?? ''
+        return {
+          workbook: String(source.source_workbook ?? ''),
+          sheet: String(source.source_sheet ?? ''),
+          excelRow: source.source_excel_row == null ? '' : String(source.source_excel_row),
+          header: String(header ?? ''),
+          value: String(rawValue ?? ''),
+          recordDate: String(row.record_date ?? row.core_data?.admission_at ?? ''),
+          status: String(row.status ?? ''),
+        }
+      })
+    const withValues = entries.filter((entry) => entry.value.trim() !== '')
+    const unique = (values: string[]) => Array.from(new Set(values.filter(Boolean)))
+    return {
+      code,
+      mappingWorksheet: String(mapping.worksheet ?? ''),
+      mappingHeader: String(mapping.indicator_header ?? ''),
+      workbooks: unique(entries.map((entry) => entry.workbook)),
+      sheets: unique(entries.map((entry) => entry.sheet)),
+      headers: unique(entries.map((entry) => entry.header)),
+      totalRows: entries.length,
+      rowsWithValues: withValues.length,
+      rows: withValues.slice(0, 25),
+    }
+  }, [sourceFor, indicatorData.rows])
   const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => categoryOf(result) === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
@@ -576,6 +620,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qraTabs{display:flex;gap:6px;padding:7px;background:#f6f8f7;border-radius:12px}
     .qraTabs button{border:1px solid transparent;background:transparent;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:850;color:var(--muted);cursor:pointer}
     .qraTabs button.active{background:#fff;border-color:var(--line);color:var(--accent2)}
+    .qraSourceBtn{margin-top:6px;border:1px solid var(--line);background:#f7faf8;color:var(--accent2);border-radius:8px;padding:5px 8px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
+    .qraSourceBtn:hover{background:#edf5f0}
     .qraError{padding:12px 14px;border-radius:12px;border:1px solid #f1d1cb;background:#fff0ed;color:#8e3e34;font-size:12px;line-height:1.5}
     .qraInfo{padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#f7faf8;color:var(--muted);font-size:12px;line-height:1.55}
     @media(max-width:1050px){.qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qraKpis.qraKpisThree{grid-template-columns:repeat(2,minmax(0,1fr))}.qraSplit{grid-template-columns:1fr}.qraStatusGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -693,7 +739,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <thead><tr>{roomId == null && <th>Unit kerja</th>}<th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     {roomId == null && <td><strong>{rooms.find((room) => Number(room.id) === Number(result.profile.room_id))?.name ?? 'Unit tidak diketahui'}</strong></td>}
-                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
+                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small><button type="button" className="qraSourceBtn" onClick={() => setSourceFor(result.profile)}>Sumber Excel · kolom</button>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
                     {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '-'}</small></td>)}
                     <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
@@ -709,6 +755,42 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   unit={spcFor.continuous ? (spcFor.unit ? ' ' + spcFor.unit : '') : '%'}
                   target={(() => { const t = Number(spcFor.profile.target_value); return spcFor.profile.target_value != null && spcFor.profile.target_value !== '' && Number.isFinite(t) ? t : null })()}
                   points={spcFor.monthly.map((m) => spcFor.continuous ? { month: m.month, value: m.mean } : { month: m.month, value: m.rate, numerator: m.numerator, denominator: m.denominator })} />}
+              </AurekaModal>
+              <AurekaModal
+                open={!!sourceFor}
+                size="lg"
+                onClose={() => setSourceFor(null)}
+                title={sourceFor ? 'Sumber Excel · ' + (sourceFor.code ? sourceFor.code + ' · ' : '') + (sourceFor.title ?? 'Indikator') : ''}
+                subtitle={sourceFor ? 'Jejak data sumber untuk unit ' + roomNameOf(Number(sourceFor.room_id)) + ' · ' + year : ''}
+              >
+                {sourceFor && sourceProvenance && <div style={{ display: 'grid', gap: 12, padding: 14 }}>
+                  <div className="qraInfo">
+                    <strong>Hubungan profil → kolom sumber</strong>
+                    <div>Worksheet: <b>{sourceProvenance.mappingWorksheet || sourceProvenance.sheets.join(', ') || 'Belum direkam'}</b></div>
+                    <div>Header kolom: <b>{sourceProvenance.mappingHeader || sourceProvenance.headers.join(', ') || 'Header aktual belum direkam pada impor ini'}</b></div>
+                    <div>Workbook: <b>{sourceProvenance.workbooks.join(', ') || 'Belum ada provenance workbook'}</b></div>
+                    <div>Data bernilai: <b>{formatCount(sourceProvenance.rowsWithValues)}</b> dari <b>{formatCount(sourceProvenance.totalRows)}</b> episode sumber</div>
+                  </div>
+                  {sourceFor.code === '14.1' && sourceProvenance.rowsWithValues === 0 && <div className="qraNotice">
+                    Data BHP/Linen pada impor ICU sebelumnya tersimpan kosong dan belum pernah ditautkan ke indikator 14.1. Upload ulang workbook asli ICU untuk mengisi kolom ini; proses backfill akan memperbarui hanya field 14.1 yang masih kosong dan mempertahankan data indikator lainnya.
+                  </div>}
+                  {sourceProvenance.rows.length > 0 ? <div className="qraTableWrap">
+                    <table className="qraTable" style={{ minWidth: 650 }}>
+                      <thead><tr><th>Baris Excel</th><th>Tanggal episode</th><th>Header sumber</th><th>Nilai sumber</th><th>Status laporan</th></tr></thead>
+                      <tbody>{sourceProvenance.rows.map((row, index) => <tr key={row.excelRow + '-' + index}>
+                        <td>{row.excelRow || '-'}</td>
+                        <td>{row.recordDate || '-'}</td>
+                        <td>{row.header || sourceProvenance.mappingHeader || 'Belum direkam'}</td>
+                        <td>{row.value}</td>
+                        <td>{row.status || '-'}</td>
+                      </tr>)}</tbody>
+                    </table>
+                    {sourceProvenance.rowsWithValues > sourceProvenance.rows.length && <div className="qraMuted">Menampilkan 25 nilai sumber terbaru.</div>}
+                  </div> : <EmptyState title="Nilai sumber belum tersedia" detail="Belum ada nilai kolom Excel yang tersimpan untuk indikator ini pada episode yang dimuat." />}
+                  <div className="qraInfo">
+                    Header aktual disimpan saat impor workbook baru. Untuk impor terdahulu yang belum merekam nama kolom sumber, AUREKA hanya menampilkan file, worksheet, baris Excel, dan nilai yang memang tersedia di provenance; sistem tidak menebak nama header.
+                  </div>
+                </div>}
               </AurekaModal>
               </section>
               {pharmacyMetricSummary && <section className="qraPanel" aria-label="Rekap capaian indikator Farmasi">
