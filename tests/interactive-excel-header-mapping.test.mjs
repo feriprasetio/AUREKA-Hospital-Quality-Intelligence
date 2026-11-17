@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { resolveInteractiveExcelHeaderColumn } from '../lib/aureka/interactive-header-mapping.ts'
 
 test('resolves a unique normalized header without prompting', () => {
-  const columns = new Map<string, number | number[]>([
+  const columns = new Map([
     ['no rm', 2],
     ['tanggal masuk', 4],
   ])
