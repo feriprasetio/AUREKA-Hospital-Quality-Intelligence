@@ -4,7 +4,7 @@ import { resolveInteractiveExcelHeaderColumn } from '../lib/aureka/interactive-h
 
 test('resolves a unique normalized header without prompting', () => {
   const columns = new Map([
-    ['no rm', 2],
+    ['no. rm', 2],
     ['tanggal masuk', 4],
   ])
   const result = resolveInteractiveExcelHeaderColumn(columns, ['No. RM'], {
