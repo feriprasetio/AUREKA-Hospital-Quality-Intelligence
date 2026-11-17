@@ -1,5 +1,6 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
 
 import { useMemo, useState } from 'react'
@@ -132,42 +133,63 @@ function headerColumns(row: any): Map<string, number[]> {
   return result
 }
 
-function findHeader(columns: Map<string, number[]>, aliases: string[], required: boolean): number | null {
-  for (const alias of aliases) {
-    const matches = columns.get(normalizeExactHeader(alias))
-    if (matches?.length) {
-      if (matches.length > 1) throw new Error('Header "' + alias + '" muncul lebih dari satu kali.')
-      return matches[0]
-    }
-  }
-  if (required) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada sheet Logbook.')
-  return null
+function findHeader(columns: Map<string, number[]>, aliases: string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, aliases, {
+    importerKey: 'nicu',
+    fieldKey: aliases[0] ?? 'field',
+    fieldLabel: aliases[0] ?? 'Field',
+    required,
+  })
 }
 
 function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string, number> } {
+  let bestRowNumber = 0
+  let bestColumns: Map<string, number[]> | null = null
+  let bestScore = Number.POSITIVE_INFINITY
+  const exact = (columns: Map<string, number[]>, aliases: string[]) => {
+    const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
+    return matches.length === 1 ? matches[0] : null
+  }
   for (let rowNumber = 1; rowNumber <= Math.min(10, sheet.rowCount); rowNumber++) {
-    try {
-      const columns = headerColumns(sheet.getRow(rowNumber))
+    const columns = headerColumns(sheet.getRow(rowNumber))
+    let score = 0
+    for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+      if (exact(columns, aliases) == null && !['dischargeDate', 'diagnosis', 'patientCategory', 'dischargeStatus', 'sourceLos', 'unmappedSource'].includes(key)) score += 1
+    }
+    for (const item of NICU_SOURCE_INDICATORS) if (exact(columns, [item.sourceHeader]) == null) score += 1
+    if (score === 0) {
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
-        const optional = ['dischargeDate', 'diagnosis', 'patientCategory', 'dischargeStatus', 'sourceLos', 'unmappedSource'].includes(key)
-        const column = findHeader(columns, aliases, !optional)
+        const column = exact(columns, aliases)
         if (column != null) indexes[key] = column
       }
       for (const item of NICU_SOURCE_INDICATORS) {
-        const column = findHeader(columns, [item.sourceHeader], true)
-        if (column == null) throw new Error('Header indikator ' + item.header + ' tidak ditemukan.')
-        indexes['indicator:' + item.code] = column
+        const column = exact(columns, [item.sourceHeader])
+        if (column != null) indexes['indicator:' + item.code] = column
       }
-      const required = ['sourceNo', 'patientName', 'medicalRecordNo', 'admissionDate', 'receivingNurse', 'dpjp']
-      if (required.every(key => indexes[key] != null)) return { rowNumber, indexes }
-    } catch {
-      // Continue scanning merged workbook title rows.
+      return { rowNumber, indexes }
     }
+    if (score < bestScore) { bestScore = score; bestRowNumber = rowNumber; bestColumns = columns }
   }
-  throw new Error('Header Logbook NICU tidak lengkap. Periksa identitas pasien, tanggal masuk, perawat, DPJP, serta lima kolom indikator 18.1, 18.3–18.6.')
+  if (bestColumns && bestRowNumber) {
+    const indexes: Record<string, number> = {}
+    for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+      const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
+        importerKey: 'nicu', fieldKey: key, fieldLabel: aliases[0], required: !['dischargeDate', 'diagnosis', 'patientCategory', 'dischargeStatus', 'sourceLos', 'unmappedSource'].includes(key),
+      })
+      if (column != null) indexes[key] = column
+    }
+    for (const item of NICU_SOURCE_INDICATORS) {
+      const aliases = [item.sourceHeader]
+      const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
+        importerKey: 'nicu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
+      })
+      if (column != null) indexes['indicator:' + item.code] = column
+    }
+    return { rowNumber: bestRowNumber, indexes }
+  }
+  throw new Error("Header Logbook NICU tidak lengkap. Periksa identitas pasien, tanggal masuk, perawat, DPJP, serta lima kolom indikator 18.1, 18.3–18.6.")
 }
-
 function rowHasData(source: any, indexes: Record<string, number>): boolean {
   const keys = [
     'sourceNo', 'patientName', 'medicalRecordNo', 'admissionDate', 'dischargeDate',

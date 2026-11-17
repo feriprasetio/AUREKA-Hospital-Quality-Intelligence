@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { resolveInteractiveExcelHeaderColumn } from './interactive-header-mapping.ts'
 
 export type SurgicalIndicatorOption = {
   code?: number | null
@@ -75,7 +76,7 @@ export type SurgicalHeaderMap = {
 }
 
 /** Maps row-2 headings to stable keys, including the source's generic Column1 MRN header. */
-export function mapSurgicalLogbookHeaders(headerValues: unknown[]): SurgicalHeaderMap {
+export function mapSurgicalLogbookHeaders(headerValues: unknown[] , interactive = false): SurgicalHeaderMap {
   const columns = new Map<string, number[]>()
   headerValues.forEach((value, index) => {
     const key = normalizeExactHeader(value)
@@ -90,6 +91,18 @@ export function mapSurgicalLogbookHeaders(headerValues: unknown[]): SurgicalHead
   const duplicateHeaders: string[] = []
 
   const resolve = (key: string, aliases: string[]) => {
+    if (interactive) {
+      const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+        importerKey: 'surgical',
+        fieldKey: key,
+        fieldLabel: aliases[0],
+        required: true,
+      })
+      if (column != null) indexes[key] = column
+      else if (true) missingHeaders.push(aliases[0])
+      return
+    }
+    const isRequired = true
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
@@ -99,7 +112,7 @@ export function mapSurgicalLogbookHeaders(headerValues: unknown[]): SurgicalHead
       indexes[key] = matches[0]
       return
     }
-    missingHeaders.push(aliases[0])
+    if (isRequired) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) resolve(key, aliases)

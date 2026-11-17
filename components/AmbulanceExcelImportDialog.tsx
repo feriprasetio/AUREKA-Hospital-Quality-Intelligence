@@ -1,5 +1,6 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
 
 import { useCallback, useMemo, useState } from 'react'
@@ -102,27 +103,28 @@ function formulaCellValue(cell: any): unknown {
   }
   return readCellValue(cell)
 }
-function findHeader(columns: Map<string, number>, candidates: string[]): number | null {
-  for (const candidate of candidates) {
-    const match = columns.get(normalizeExactHeader(candidate))
-    if (match != null) return match
-  }
-  return null
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, candidates, {
+    importerKey: 'ambulance',
+    fieldKey: candidates[0] ?? 'field',
+    fieldLabel: candidates[0] ?? 'Field',
+    required,
+  })
 }
-function rowHasData(row: any, columns: Map<string, number>): boolean {
+function rowHasData(row: any, columns: Map<string, number[]>): boolean {
   return ['patientName', 'requestDate', 'requestedTime', 'deliveredTime', 'origin', 'driver', 'activity', 'destination', 'indicator']
     .some(key => {
-      const column = findHeader(columns, REQUIRED_HEADERS[key])
+      const column = findHeader(columns, REQUIRED_HEADERS[key], false)
       return column != null && cellText(row.getCell(column)) !== ''
     })
 }
-function sourceNumber(row: any, columns: Map<string, number>, excelRow: number): number {
-  const column = findHeader(columns, REQUIRED_HEADERS.sourceNo)
+function sourceNumber(row: any, columns: Map<string, number[]>, excelRow: number): number {
+  const column = findHeader(columns, REQUIRED_HEADERS.sourceNo, false)
   const raw = column == null ? '' : cellText(row.getCell(column))
   const parsed = Number(raw)
   return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : excelRow - 2
 }
-function readOptional(row: any, columns: Map<string, number>, key: string): string {
+function readOptional(row: any, columns: Map<string, number[]>, key: string): string {
   const column = findHeader(columns, REQUIRED_HEADERS[key])
   return column == null ? '' : cellText(row.getCell(column))
 }
@@ -276,11 +278,11 @@ export default function AmbulanceExcelImportDialog({
       const worksheet = workbook.getWorksheet('Logbook')
       if (!worksheet) throw new Error('Sheet "Logbook" tidak ditemukan. Periksa apakah workbook yang dipilih benar.')
       if (worksheet.rowCount > 5003) throw new Error('Logbook melewati batas 5003 baris yang diizinkan.')
-      const columns = new Map<string, number>()
+      const columns = new Map<string, number[]>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= Math.min(worksheet.columnCount, 100); column++) {
         const name = cellText(headerRow.getCell(column))
-        if (name) columns.set(normalizeExactHeader(name), column)
+        if (name) { const key = normalizeExactHeader(name); const matches = columns.get(key) ?? []; matches.push(column); columns.set(key, matches) }
       }
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
         if (findHeader(columns, aliases) == null) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 2.')

@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { resolveInteractiveExcelHeaderColumn } from './interactive-header-mapping.ts'
 
 export type SarafIndicatorOption = {
   code?: number | null
@@ -80,7 +81,7 @@ export type SarafHeaderMap = {
   duplicateHeaders: string[]
 }
 
-export function mapSarafLogbookHeaders(headerValues: unknown[]): SarafHeaderMap {
+export function mapSarafLogbookHeaders(headerValues: unknown[] , interactive = false): SarafHeaderMap {
   const columns = new Map<string, number[]>()
   headerValues.forEach((value, index) => {
     const key = normalizeExactHeader(value)
@@ -99,6 +100,18 @@ export function mapSarafLogbookHeaders(headerValues: unknown[]): SarafHeaderMap 
   ])
 
   const resolve = (key: string, aliases: string[]) => {
+    if (interactive) {
+      const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+        importerKey: 'saraf',
+        fieldKey: key,
+        fieldLabel: aliases[0],
+        required: !optional.has(key),
+      })
+      if (column != null) indexes[key] = column
+      else if (!optional.has(key)) missingHeaders.push(aliases[0])
+      return
+    }
+    const isRequired = !optional.has(key)
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
@@ -108,7 +121,7 @@ export function mapSarafLogbookHeaders(headerValues: unknown[]): SarafHeaderMap 
       indexes[key] = matches[0]
       return
     }
-    if (!optional.has(key)) missingHeaders.push(aliases[0])
+    if (isRequired) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) resolve(key, aliases)

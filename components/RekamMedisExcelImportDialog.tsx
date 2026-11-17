@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import {
   buildRekamMedisImportPayload,
   normalizeRekamMedisDate,
@@ -201,10 +202,9 @@ export default function RekamMedisExcelImportDialog({
       }
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
-        const match = aliases.map(alias => columns.get(normalizeExactHeader(alias))).find(value => value?.length)
-        if (!match?.length) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 2.')
-        if (match.length > 1) throw new Error('Header "' + aliases[0] + '" muncul lebih dari satu kali.')
-        indexes[key] = match[0]
+        const column = resolveInteractiveExcelHeaderColumn(columns, aliases, { importerKey: 'rekam-medis', fieldKey: key, fieldLabel: aliases[0], required: true })
+        if (column == null) throw new Error('Header wajib "' + aliases[0] + '" belum dipetakan.')
+        indexes[key] = column
       }
 
       const prepared: RekamMedisPreparedRow[] = []

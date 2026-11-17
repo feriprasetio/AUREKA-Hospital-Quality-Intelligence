@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { resolveInteractiveExcelHeaderColumn } from './interactive-header-mapping.ts'
 
 export type NifasIndicatorOption = {
   code?: number | null
@@ -65,7 +66,7 @@ export type NifasHeaderMap = {
 }
 
 /** Resolve the actual workbook header row to stable importer keys (1-based columns). */
-export function mapNifasLogbookHeaders(headerValues: unknown[]): NifasHeaderMap {
+export function mapNifasLogbookHeaders(headerValues: unknown[] , interactive = false): NifasHeaderMap {
   const columns = new Map<string, number[]>()
   headerValues.forEach((value, index) => {
     const key = normalizeExactHeader(value)
@@ -80,6 +81,18 @@ export function mapNifasLogbookHeaders(headerValues: unknown[]): NifasHeaderMap 
   const duplicateHeaders: string[] = []
 
   const resolve = (key: string, aliases: string[]) => {
+    if (interactive) {
+      const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+        importerKey: 'nifas',
+        fieldKey: key,
+        fieldLabel: aliases[0],
+        required: true,
+      })
+      if (column != null) indexes[key] = column
+      else if (true) missingHeaders.push(aliases[0])
+      return
+    }
+    const isRequired = true
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     if (matches.length > 1) {
       duplicateHeaders.push(aliases[0])
@@ -89,7 +102,7 @@ export function mapNifasLogbookHeaders(headerValues: unknown[]): NifasHeaderMap 
       indexes[key] = matches[0]
       return
     }
-    missingHeaders.push(aliases[0])
+    if (isRequired) missingHeaders.push(aliases[0])
   }
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) resolve(key, aliases)

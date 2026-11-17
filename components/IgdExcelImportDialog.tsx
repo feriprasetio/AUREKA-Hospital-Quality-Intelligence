@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
@@ -175,22 +176,33 @@ function cellText(cell: any): string {
   return String(value).trim()
 }
 
-function findHeader(columns: Map<string, number>, candidates: readonly string[]): number | null {
+function findHeaderExact(columns: Map<string, number[]>, candidates: readonly string[]): number | null {
   for (const candidate of candidates) {
-    const index = columns.get(normalizeExactHeader(candidate))
-    if (index != null) return index
+    const matches = columns.get(normalizeExactHeader(candidate)) ?? []
+    if (matches.length === 1) return matches[0]
   }
   return null
 }
 
-function buildHeaderMap(worksheet: any, headerRowNumber: number, maxColumns: number): Map<string, number> {
-  const result = new Map<string, number>()
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, candidates, {
+    importerKey: 'igd',
+    fieldKey: candidates[0] ?? 'field',
+    fieldLabel: candidates[0] ?? 'Field',
+    required,
+  })
+}
+
+function buildHeaderMap(worksheet: any, headerRowNumber: number, maxColumns: number): Map<string, number[]> {
+  const result = new Map<string, number[]>()
   const row = worksheet.getRow(headerRowNumber)
   for (let column = 1; column <= maxColumns; column++) {
     const value = cellText(row.getCell(column))
     if (!value) continue
     const key = normalizeExactHeader(value)
-    if (!result.has(key)) result.set(key, column)
+    const matches = result.get(key) ?? []
+    matches.push(column)
+    result.set(key, matches)
   }
   return result
 }
@@ -404,10 +416,10 @@ export default function IgdExcelImportDialog({
         if (index == null) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 3 Logbook.')
         columns[key] = index
       }
-      const extraQueueColumn = headers.get(normalizeExactHeader('Antrian Pasien')) ?? null
+      const extraQueueColumn = findHeader(headers, ['Antrian Pasien'], false)
       const indicatorColumns = new Map<string, number>()
       for (const indicator of IGD_INDICATORS) {
-        const index = headers.get(normalizeExactHeader(indicator.header))
+        const index = findHeader(headers, [indicator.header])
         if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" tidak ditemukan pada Logbook.')
         indicatorColumns.set(indicator.code, index)
       }
@@ -591,12 +603,12 @@ export default function IgdExcelImportDialog({
         for (const worksheet of workbook.worksheets) {
           if (worksheet.rowCount > 5000) throw new Error('Sheet ' + worksheet.name + ' terlalu panjang.')
           let headerRowNumber = 0
-          let columns = new Map<string, number>()
+          let columns = new Map<string, number[]>()
           let found = false
           for (let rowNum = 1; rowNum <= Math.min(50, worksheet.rowCount); rowNum++) {
             const candidate = buildHeaderMap(worksheet, rowNum, 20)
             let headerHits = 0
-            for (const aliases of Object.values(CONSULT_HEADERS)) if (findHeader(candidate, aliases) != null) headerHits += 1
+            for (const aliases of Object.values(CONSULT_HEADERS)) if (findHeaderExact(candidate, aliases) != null) headerHits += 1
             if (headerHits >= 12) {
               headerRowNumber = rowNum
               columns = candidate
@@ -607,7 +619,7 @@ export default function IgdExcelImportDialog({
           if (!found) continue
           const indices: Record<string, number> = {}
           for (const [key, aliases] of Object.entries(CONSULT_HEADERS)) {
-            const index = findHeader(columns, aliases)
+            const index = findHeader(columns, aliases, !['age','sex','patientType','doorToDecision','reasonCode','reasonOther'].includes(key))
             if (index == null && !['age','sex','patientType','doorToDecision','reasonCode','reasonOther'].includes(key)) {
               throw new Error('Header "' + aliases[0] + '" tidak ditemukan di sheet ' + worksheet.name + ' (' + file.name + ').')
             }

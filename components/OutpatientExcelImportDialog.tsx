@@ -5,6 +5,7 @@ import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { useCallback, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { normalizeProviderName, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
 import { makeOutpatientProviderDaySubjectKey, normalizeOutpatientImportDate, parseOutpatientWaitingMinutes } from '@/lib/aureka/outpatient-excel-import'
 
@@ -52,30 +53,36 @@ const ALIASES:Record<string,string[]> = {
  minutes:['Waktu Tunggu Rawat Jalan (Menit)','Waktu Tunggu (Menit)','Waktu Tunggu','Waktu Tunggu Rawat Jalan','Rata-Rata Waktu Tunggu Rawat Jalan','Rata-rata Waktu Tunggu','Rata-rata Waktu Tunggu Rawat Jalan (Menit)','Waiting Time (Minutes)','Waiting Time (Min)'],
 }
 function findHeader(columns:Map<string,number[]>,aliases:string[]):number|null{
-  for(const alias of aliases){
-    const matches=columns.get(normalizeExactHeader(alias))
-    if(matches?.length){
-      if(matches.length>1)throw new Error('Header wajib "'+alias+'" muncul lebih dari satu kali pada sheet.')
-      return matches[0]
-    }
-  }
-  return null
+  const matches=[...new Set(aliases.flatMap(alias=>columns.get(normalizeExactHeader(alias))??[]))]
+  return matches.length===1?matches[0]:null
 }
 function findHeaderRow(sheet:any):{rowNumber:number;columns:Map<string,number[]>;indexes:Record<string,number>}|null{
+  let bestRowNumber=0
+  let bestColumns:Map<string,number[]>|null=null
+  let bestScore=Number.POSITIVE_INFINITY
   for(let rowNumber=1;rowNumber<=Math.min(15,sheet.rowCount);rowNumber++){
-    try{
-      const columns=headerMap(sheet.getRow(rowNumber))
+    const columns=headerMap(sheet.getRow(rowNumber))
+    const score=Object.values(ALIASES).reduce((total,aliases)=>total+(findHeader(columns,aliases)==null?1:0),0)
+    if(score===0){
       const indexes:Record<string,number>={}
-      let matched=true
-      for(const [name,aliases] of Object.entries(ALIASES)){
-        const index=findHeader(columns,aliases)
-        if(index==null){matched=false;break}
-        indexes[name]=index
-      }
-      if(matched)return {rowNumber,columns,indexes}
-    }catch{
-      // Keep scanning because title/header decorations above the actual table may repeat labels.
+      for(const [name,aliases] of Object.entries(ALIASES))indexes[name]=findHeader(columns,aliases)!
+      return {rowNumber,columns,indexes}
     }
+    if(score<bestScore){bestScore=score;bestRowNumber=rowNumber;bestColumns=columns}
+  }
+  if(bestColumns&&bestRowNumber){
+    const indexes:Record<string,number>={}
+    for(const [name,aliases] of Object.entries(ALIASES)){
+      const index=resolveInteractiveExcelHeaderColumn(bestColumns,aliases,{
+        importerKey:'outpatient',
+        fieldKey:name,
+        fieldLabel:aliases[0],
+        required:true,
+      })
+      if(index==null)throw new Error('Header wajib "'+aliases[0]+'" belum dipetakan.')
+      indexes[name]=index
+    }
+    return {rowNumber:bestRowNumber,columns:bestColumns,indexes}
   }
   return null
 }

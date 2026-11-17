@@ -1,5 +1,6 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
 
 import { useCallback, useMemo, useState } from 'react'
@@ -94,17 +95,18 @@ function cellText(cell: any): string {
   return String(value).trim()
 }
 
-function findHeader(columns: Map<string, number>, candidates: string[]): number | null {
-  for (const candidate of candidates) {
-    const match = columns.get(normalizeExactHeader(candidate))
-    if (match != null) return match
-  }
-  return null
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+  return resolveInteractiveExcelHeaderColumn(columns, candidates, {
+    importerKey: 'ibs',
+    fieldKey: candidates[0] ?? 'field',
+    fieldLabel: candidates[0] ?? 'Field',
+    required,
+  })
 }
 
-function rowHasData(row: any, columns: Map<string, number>): boolean {
+function rowHasData(row: any, columns: Map<string, number[]>): boolean {
   return Object.values(REQUIRED_HEADERS).some(aliases => {
-    const column = findHeader(columns, aliases)
+    const column = findHeader(columns, aliases, false)
     return column != null && String(readCellValue(row.getCell(column)) ?? '').trim() !== ''
   })
 }
@@ -285,11 +287,11 @@ export default function IbsExcelImportDialog({
       if (!worksheet) throw new Error('Sheet "Logbook" tidak ditemukan. Periksa apakah workbook yang dipilih benar.')
       if (worksheet.rowCount > 5003) throw new Error('Logbook melewati batas 5003 baris yang diizinkan.')
 
-      const columns = new Map<string, number>()
+      const columns = new Map<string, number[]>()
       const headerRow = worksheet.getRow(2)
       for (let column = 1; column <= Math.min(worksheet.columnCount, 100); column++) {
         const name = cellText(headerRow.getCell(column))
-        if (name) columns.set(normalizeExactHeader(name), column)
+        if (name) { const key = normalizeExactHeader(name); const matches = columns.get(key) ?? []; matches.push(column); columns.set(key, matches) }
       }
       const foundColumns: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
