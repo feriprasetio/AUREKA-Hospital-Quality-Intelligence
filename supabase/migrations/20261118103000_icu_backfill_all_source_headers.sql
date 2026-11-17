@@ -218,8 +218,7 @@ BEGIN
     'not_found_count', v_not_found
   );
 END;
-$function$
-
+$function$;
 
 COMMENT ON FUNCTION aureka_quality.backfill_icu_logbook_bhp_linen_batch(jsonb) IS
 'Backfills only missing ICU/HCU 2026 indicator 14.1 BHP/Linen source values on existing ready episodes matched by physical Excel row. It also records the exact source header names for indicators 14.1–14.9 without overwriting their existing response values.';
