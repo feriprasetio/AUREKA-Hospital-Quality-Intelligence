@@ -35,7 +35,7 @@ function validateSpec(value: unknown): NaraVisualSpec | null {
 }
 
 export function parseNaraVisual(answer: string): { text: string; visual?: NaraVisualSpec } {
-  const match = /\[\[NARA_VISUAL\]\]([\s\\S]*?)\[\[\\/NARA_VISUAL\]\]/i.exec(answer)
+  const match = /\[\[NARA_VISUAL\]\]([\s\S]*?)\[\[\\/NARA_VISUAL\]\]/i.exec(answer)
   if (!match) return { text: answer }
   const text = answer.replace(match[0], '').trim()
   try {
