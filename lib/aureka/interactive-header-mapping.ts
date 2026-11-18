@@ -11,13 +11,14 @@ export type InteractiveHeaderMappingOptions = {
   fieldLabel?: string
   /** Optional fields are not prompted when no corresponding source column exists. */
   required?: boolean
-  /** Test seam; production defaults to window.prompt. */
+  /** Deprecated compatibility field. Importers no longer prompt during upload. */
   chooseColumn?: (message: string) => string | null
 }
 
 type StoredMapping = {
   normalizedHeader: string
   occurrence: number
+  mappingStatus?: 'approved' | 'needs_review'
 }
 
 type StoredMappings = Record<string, StoredMapping>
@@ -46,6 +47,7 @@ export function hydrateInteractiveExcelHeaderMappings(
     importer[row.target_key] = {
       normalizedHeader: normalizeExactHeader(row.source_header),
       occurrence: Math.max(1, Number(row.occurrence) || 1),
+      mappingStatus: row.mapping_status === 'needs_review' ? 'needs_review' : 'approved',
     }
   }
   serverMappings = next
@@ -101,39 +103,17 @@ function writeMapping(importerKey: string, fieldKey: string, mapping: StoredMapp
   }
 }
 
-function columnLetter(column: number): string {
-  let n = column
-  let result = ''
-  while (n > 0) {
-    const remainder = (n - 1) % 26
-    result = String.fromCharCode(65 + remainder) + result
-    n = Math.floor((n - 1) / 26)
-  }
-  return result
-}
-
-function parseColumnChoice(value: string, allowed: number[]): number | null {
-  const clean = value.trim().toUpperCase()
-  if (!clean) return null
-  if (/^\d+$/.test(clean)) {
-    const n = Number(clean)
-    return allowed.includes(n) ? n : null
-  }
-  if (/^[A-Z]{1,3}$/.test(clean)) {
-    let n = 0
-    for (const char of clean) n = n * 26 + char.charCodeAt(0) - 64
-    return allowed.includes(n) ? n : null
-  }
-  return null
-}
-
 /**
  * Resolves a logical AUREKA field to a physical Excel column.
  *
- * Exact normalized matches are automatic only when unique. Missing, ambiguous,
- * and duplicate headers open a chooser in the upload flow. The selected source
- * header is saved per importer/field in this browser so later workbooks can be
- * mapped automatically even when their column order changes.
+ * Resolution order:
+ * 1. A saved unit/year/importer mapping configured by Admin/PMKP.
+ * 2. A legacy browser mapping retained for backward compatibility.
+ * 3. A unique exact header match.
+ *
+ * Missing or ambiguous mandatory headers never open a browser prompt. The importer
+ * stops with an actionable route to the central configuration workspace instead
+ * of silently guessing the wrong column.
  */
 export function resolveInteractiveExcelHeaderColumn(
   columns: InteractiveHeaderColumns,
@@ -141,20 +121,32 @@ export function resolveInteractiveExcelHeaderColumn(
   options: InteractiveHeaderMappingOptions,
 ): number | null {
   const positions = getPositions(columns)
+  const fieldLabel = options.fieldLabel ?? candidates[0] ?? options.fieldKey
+  const context = activeMappingScope ? activeMappingScope.replace(':', ' / ') : 'unit belum dipilih'
+
+  const configurationError = (reason: string) =>
+    'Kolom sumber untuk "' + fieldLabel + '" ' + reason +
+    '. Atur pada Indikator Mutu → Pusat Rekonsiliasi → Pengaturan per Unit (unit/tahun ' +
+    context + ', workbook "' + options.importerKey + '", target "' + options.fieldKey +
+    '"), lalu unggah ulang. AUREKA tidak akan memilih kolom secara acak.'
+
   const serverSaved = activeMappingScope
     ? serverMappings[options.importerKey]?.[options.fieldKey]
     : undefined
+
   if (serverSaved) {
+    if (serverSaved.mappingStatus === 'needs_review') {
+      throw new Error(configurationError('masih menunggu persetujuan Admin/PMKP'))
+    }
     const configuredPositions = positions.get(normalizeExactHeader(serverSaved.normalizedHeader)) ?? []
     if (configuredPositions.length >= serverSaved.occurrence) {
       return configuredPositions[serverSaved.occurrence - 1]
     }
-    throw new Error(
-      'Aturan impor unit mengarahkan "' + (options.fieldLabel ?? options.fieldKey) +
-      '" ke kolom "' + serverSaved.normalizedHeader +
-      '", tetapi header tersebut tidak ditemukan. Perbarui Pusat Pemetaan Excel untuk unit ini sebelum melanjutkan.'
-    )
+    throw new Error(configurationError(
+      'sudah dikonfigurasi ke header "' + serverSaved.normalizedHeader + '" tetapi header tersebut tidak ditemukan'
+    ))
   }
+
   const saved = readMappings(options.importerKey)[options.fieldKey]
   const savedPositions = saved ? positions.get(normalizeExactHeader(saved.normalizedHeader)) ?? [] : []
   if (saved && savedPositions.length >= saved.occurrence) {
@@ -163,57 +155,22 @@ export function resolveInteractiveExcelHeaderColumn(
 
   const matched = [...new Set(candidates.flatMap(candidate => positions.get(normalizeExactHeader(candidate)) ?? []))]
     .sort((a, b) => a - b)
+
   if (matched.length === 1) return matched[0]
   if (matched.length === 0 && options.required === false) return null
+  if (matched.length > 1) {
+    throw new Error(configurationError('memiliki lebih dari satu kolom yang cocok (' + matched.length + ' kandidat)')
+    )
+  }
 
-  const allColumns = [...positions.entries()]
+  const allHeaders = [...positions.entries()]
     .flatMap(([header, indexes]) => indexes.map(index => ({ header, index })))
     .sort((a, b) => a.index - b.index)
-  const choices = matched.length ? allColumns.filter(item => matched.includes(item.index)) : allColumns
-  if (!choices.length) {
-    throw new Error('Workbook tidak memiliki header yang dapat dipetakan untuk "' + (options.fieldLabel ?? candidates[0] ?? options.fieldKey) + '".')
-  }
-
-  const fieldLabel = options.fieldLabel ?? candidates[0] ?? options.fieldKey
-  const reason = matched.length > 1
-    ? 'AUREKA menemukan lebih dari satu kolom yang cocok. Pilih kolom sumber yang benar.'
-    : 'Header belum dikenali. Pilih kolom sumber yang paling sesuai untuk field AUREKA ini.'
-  const choiceLines = choices.map(item => columnLetter(item.index) + ' (' + item.index + ') — ' + item.header).join('\n')
-  const message = [
-    'AUREKA · PEMETAAN HEADER INTERAKTIF',
-    '',
-    'Field tujuan: ' + fieldLabel,
-    reason,
-    '',
-    choiceLines,
-    '',
-    'Masukkan huruf kolom (mis. H) atau nomor kolom (mis. 8).',
-    'Pilihan ini akan disimpan untuk unggahan berikutnya pada modul yang sama.',
-  ].join('\n')
-
-  const chooser = options.chooseColumn ?? (typeof window !== 'undefined' ? window.prompt.bind(window) : undefined)
-  if (!chooser) {
-    throw new Error('Header "' + fieldLabel + '" perlu pemetaan manual, tetapi dialog pemetaan tidak tersedia pada lingkungan ini.')
-  }
-
-  // Permit a few attempts so a typing mistake does not force the user to restart.
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const answer = chooser(message)
-    if (answer == null) {
-      throw new Error('Pemetaan header "' + fieldLabel + '" belum diselesaikan. Unggah tetap tersimpan; lanjutkan pemetaan untuk mencoba kembali.')
-    }
-    const selected = parseColumnChoice(answer, choices.map(item => item.index))
-    if (selected == null) continue
-    const entry = choices.find(item => item.index === selected)!
-    const occurrence = (positions.get(entry.header) ?? []).indexOf(selected) + 1
-    writeMapping(options.importerKey, options.fieldKey, {
-      normalizedHeader: entry.header,
-      occurrence: Math.max(1, occurrence),
-    })
-    return selected
-  }
-
-  throw new Error('Pilihan kolom untuk "' + fieldLabel + '" tidak valid. Gunakan huruf atau nomor kolom yang ditampilkan.')
+    .map(item => item.header + ' (' + item.index + ')')
+  throw new Error(configurationError(
+    'belum ditemukan sebagai header yang cocok' +
+    (allHeaders.length ? '. Header tersedia: ' + allHeaders.slice(0, 25).join('; ') : '')
+  ))
 }
 
 /** Remove saved manual mappings for one importer; useful when the source template changes. */
