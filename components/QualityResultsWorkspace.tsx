@@ -397,6 +397,13 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }
   const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
   const [sourceFor, setSourceFor] = useState<IndicatorProfileForResults | null>(null)
+  const [sourceMonth, setSourceMonth] = useState<number | null>(null)
+  const openSourceTrace = (profile: IndicatorProfileForResults, month: number | null = null) => {
+    setSourceMonth(month)
+    setSourceFor(profile)
+    setSourceWorkbookUrl('')
+    setSourceWorkbookError('')
+  }
   const [sourceWorkbookBusy, setSourceWorkbookBusy] = useState(false)
   const [sourceWorkbookUrl, setSourceWorkbookUrl] = useState('')
   const [sourceWorkbookError, setSourceWorkbookError] = useState('')
@@ -407,7 +414,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       ? sourceFor.schema_json.excel_mapping as Record<string, unknown>
       : {}
     const entries = indicatorData.rows
-      .filter((row) => Number(row.room_id) === Number(sourceFor.room_id) && !!row.core_data?.source_import)
+      .filter((row) =>
+        Number(row.room_id) === Number(sourceFor.room_id) &&
+        !!row.core_data?.source_import &&
+        (sourceMonth == null || operationalCalendarParts(row)?.month === sourceMonth)
+      )
       .map((row) => {
         const source = row.core_data?.source_import ?? {}
         const form = row.core_data?.form_fields ?? {}
@@ -450,7 +461,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       rowsWithValues: withValues.length,
       rows: withValues.slice(0, 25),
     }
-  }, [sourceFor, indicatorData.rows])
+  }, [sourceFor, sourceMonth, indicatorData.rows])
   const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => categoryOf(result) === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
@@ -633,6 +644,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     .qraTabs button.active{background:#fff;border-color:var(--line);color:var(--accent2)}
     .qraSourceBtn{margin-top:6px;border:1px solid var(--line);background:#f7faf8;color:var(--accent2);border-radius:8px;padding:5px 8px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
     .qraSourceBtn:hover{background:#edf5f0}
+    .qraSourceCell{display:grid;gap:4px;width:100%;padding:2px 0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+    .qraSourceCell:hover strong{color:var(--accent2);text-decoration:underline}
+    .qraSourceCell>small{color:var(--muted);font-size:10px;line-height:1.35}
+    .qraSourceCell>em{font-size:10px;font-style:normal;font-weight:850;color:var(--accent2)}
+    .qraSourceCell:focus-visible,.qraSourceBtn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;border-radius:5px}
     .qraError{padding:12px 14px;border-radius:12px;border:1px solid #f1d1cb;background:#fff0ed;color:#8e3e34;font-size:12px;line-height:1.5}
     .qraInfo{padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#f7faf8;color:var(--muted);font-size:12px;line-height:1.55}
     @media(max-width:1050px){.qraKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qraKpis.qraKpisThree{grid-template-columns:repeat(2,minmax(0,1fr))}.qraSplit{grid-template-columns:1fr}.qraStatusGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -750,8 +766,14 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <thead><tr>{roomId == null && <th>Unit kerja</th>}<th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     {roomId == null && <td><strong>{rooms.find((room) => Number(room.id) === Number(result.profile.room_id))?.name ?? 'Unit tidak diketahui'}</strong></td>}
-                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small><button type="button" className="qraSourceBtn" onClick={() => setSourceFor(result.profile)}>Sumber Excel · kolom</button>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
-                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}><b>{indicatorMonthlyLabel(result, month.month)}</b><small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : '-'}</small></td>)}
+                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small><button type="button" className="qraSourceBtn" onClick={() => openSourceTrace(result.profile)}>Sumber Excel · semua bulan</button>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
+                    {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}>
+                      <button type="button" className="qraSourceCell" onClick={() => openSourceTrace(result.profile, month.month)} title={'Telusuri nilai sumber Excel untuk ' + MONTHS[month.month - 1]}>
+                        <strong>{indicatorMonthlyLabel(result, month.month)}</strong>
+                        <small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : 'Belum ada hasil tercatat'}</small>
+                        <em>Lacak Excel</em>
+                      </button>
+                    </td>)}
                     <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
                     <td>{formatDateTime(result.latestInputAt)}</td>
@@ -772,7 +794,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 size="lg"
                 onClose={() => setSourceFor(null)}
                 title={sourceFor ? 'Sumber Excel · ' + (sourceFor.code ? sourceFor.code + ' · ' : '') + (sourceFor.title ?? 'Indikator') : ''}
-                subtitle={sourceFor ? 'Jejak data sumber untuk unit ' + roomNameOf(Number(sourceFor.room_id)) + ' · ' + year : ''}
+                subtitle={sourceFor ? 'Jejak data sumber untuk unit ' + roomNameOf(Number(sourceFor.room_id)) + ' · ' + year + (sourceMonth == null ? ' · seluruh bulan' : ' · ' + MONTHS[sourceMonth - 1]) : ''}
               >
                 {sourceFor && sourceProvenance && <div style={{ display: 'grid', gap: 12, padding: 14 }}>
                   <div className="qraInfo">
