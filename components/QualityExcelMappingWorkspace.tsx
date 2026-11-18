@@ -365,26 +365,46 @@ export default function QualityExcelMappingWorkspace({
       if (draftOccurrences[key] || mapping?.occurrence) return []
       const schema = profile.schema_json ?? {}
       const candidates = [
-        draftHeaders[key],
-        mapping?.source_header,
-        schema.header_label,
+        draftHeaders[key], mapping?.source_header, schema.header_label,
         ...(Array.isArray(schema.excel_header_aliases) ? schema.excel_header_aliases : []),
       ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
       const matched = detectedColumns.filter(column => candidates.some(candidate => normalize(candidate) === normalize(column.header)))
       return matched.length === 1 ? [{ key, column: matched[0] }] : []
     })
-    if (!exactMatches.length) return
-    setDraftHeaders(current => {
-      const next = { ...current }
-      for (const item of exactMatches) if (!next[item.key]) next[item.key] = item.column.header
-      return next
+    const exactFieldMatches = activeFields.flatMap(field => {
+      const key = draftKey(selectedImporter.key, field.key)
+      const mapping = existingFields.get(field.key)
+      if (draftFieldOccurrences[key] || mapping?.occurrence) return []
+      const candidates = [draftFields[key], mapping?.source_header, ...field.aliases]
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      const matched = detectedColumns.filter(column => candidates.some(candidate => normalize(candidate) === normalize(column.header)))
+      return matched.length === 1 ? [{ key, column: matched[0] }] : []
     })
-    setDraftOccurrences(current => {
-      const next = { ...current }
-      for (const item of exactMatches) if (!next[item.key]) next[item.key] = item.column.occurrence
-      return next
-    })
-  }, [roomId, selectedImporter?.key, detectedColumns, activeProfiles, existingByCode, draftHeaders, draftOccurrences])
+    if (exactMatches.length) {
+      setDraftHeaders(current => {
+        const next = { ...current }
+        for (const item of exactMatches) if (!next[item.key]) next[item.key] = item.column.header
+        return next
+      })
+      setDraftOccurrences(current => {
+        const next = { ...current }
+        for (const item of exactMatches) if (!next[item.key]) next[item.key] = item.column.occurrence
+        return next
+      })
+    }
+    if (exactFieldMatches.length) {
+      setDraftFields(current => {
+        const next = { ...current }
+        for (const item of exactFieldMatches) if (!next[item.key]) next[item.key] = item.column.header
+        return next
+      })
+      setDraftFieldOccurrences(current => {
+        const next = { ...current }
+        for (const item of exactFieldMatches) if (!next[item.key]) next[item.key] = item.column.occurrence
+        return next
+      })
+    }
+  }, [roomId, selectedImporter?.key, detectedColumns, activeProfiles, activeFields, existingByCode, existingFields, draftHeaders, draftOccurrences, draftFields, draftFieldOccurrences])
 
   const runNaraBulk = async () => {
     if (!roomId || !selectedImporter || !detectedHeaders.length || !activeProfiles.length) {
