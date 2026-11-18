@@ -47,6 +47,7 @@ type AuditItem = {
   target_label: string | null
   target_code: number | null
   decision_note: string
+  affected_record?: string | null
   created_at: string
 }
 type QueuePayload = {
@@ -158,10 +159,10 @@ export default function QualityReconciliationWorkspace({
   [])
 
   const setManual = (key: string, patch: Partial<ManualDraft>) => {
-    setManualDrafts(current => ({
-      ...current,
-      [key]: { open: false, option: '', reason: '', ...current[key], ...patch },
-    }))
+    setManualDrafts(current => {
+      const existing: ManualDraft = current[key] ?? { open: false, option: '', reason: '' }
+      return { ...current, [key]: { ...existing, ...patch } }
+    })
   }
   const setWarningReason = (key: string, reason: string) => {
     setWarningDrafts(current => ({ ...current, [key]: { reason } }))
