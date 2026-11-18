@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
 test('legacy Solid override styles are not part of the active Arktik cascade', () => {
-  const layout = read('app/layout.tsx')
+  const layout = read('app/aureka-global.css')
   for (const legacy of ["./solid-default.css", "./aureka-solid-enterprise.css", "./aureka-solid-navigation.css"]) {
     assert.ok(!layout.includes("import '" + legacy + "'"), legacy + ' must remain inactive')
   }

@@ -74,7 +74,7 @@ test('Patient module contains only patient-centred read-only record views; all e
 test('one final stylesheet normalizes tablists throughout workspace modules', () => {
   const layout = read('app/layout.tsx')
   const css = read('app/aureka-universal-tabs.css')
-  assert.ok(layout.includes("import './aureka-universal-tabs.css'"))
+  assert.ok(read('app/aureka-global.css').includes("@import './aureka-universal-tabs.css'"))
   for (const selector of ['.workspaceViewTabList', '.prTabs', '.psTabs', '.rmTabs', '.aqTabs', '.qraTabs', '.mswTabs', '.mswDirectoryTabs', '[role="tablist"]']) {
     assert.ok(css.includes(selector), 'Missing universal tab selector ' + selector)
   }

@@ -13,11 +13,11 @@ test('global navigation module identity chip remains visible above contextual ta
 })
 
 test('UnifiedModuleNavigation renders the measured moving active pill in production styles', () => {
-  const layout = read('app/layout.tsx')
+  const layout = read('app/aureka-global.css')
   const component = read('components/navigation/UnifiedModuleNavigation.tsx')
   const pill = read('app/aureka-navigation-pill.css')
 
-  assert.ok(layout.indexOf("import './aureka-navigation-pill.css'") < layout.indexOf("import './aureka-global-navigation.css'"))
+  assert.ok(layout.indexOf("@import './aureka-navigation-pill.css'") < layout.indexOf("@import './aureka-global-navigation.css'"))
   assert.match(component, /classList\.add\('hasPill'\)/)
   assert.match(component, /--pill-x/)
   assert.match(component, /--pill-w/)

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const home = readFileSync(new URL('../components/HomeLandingWorkspace.tsx', import.meta.url), 'utf8')
 const homeClient = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
-const layout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8')
+const layout = readFileSync(new URL('../app/aureka-global.css', import.meta.url), 'utf8')
 const polish = readFileSync(new URL('../app/proportional-ui.css', import.meta.url), 'utf8')
 
 test('Analitik & Infografis renders its own cross-domain aggregate workspace', () => {
@@ -25,8 +25,8 @@ test('shared controls and data cards have normalized dimensions', () => {
 })
 
 test('proportional UI stylesheet loads after existing theme and motion styles', () => {
-  assert.ok(layout.indexOf("import './proportional-ui.css'") > layout.indexOf("import './landing-motion.css'"))
-  const imports = [...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m=>m[1])
+  assert.ok(layout.indexOf("@import './proportional-ui.css'") > layout.indexOf("@import './landing-motion.css'"))
+  const imports = [...layout.matchAll(/@import ['"]([^'"]+\.css)['"];?/g)].map((match) => match[1].replace('./', ''))
   assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'))
   assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'))
   assert.equal(imports.at(-1), 'aureka-universal-tabs.css')
