@@ -415,7 +415,7 @@ export default function HomeClient(){
   })
   .map(({id,label})=>[id,label] as const),[role,permissionFlags])
 
- const visibleModuleIds=useMemo(()=>new Set(visibleMods.map(([id])=>id)),[visibleMods])
+ const visibleModuleIds=useMemo<Set<string>>(()=>new Set(visibleMods.map(([id])=>id)),[visibleMods])
  const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS.map(domain=>({...domain,items:domain.items.filter(item=>(item.moduleId==='home'||visibleModuleIds.has(item.moduleId))&&(item.moduleId!=='staff'||item.childId!=='pic-performance'||permissionFlags.readPicPerformance)&&(item.moduleId!=='staff'||item.childId!=='directory'||permissionFlags.readDirectory))})).filter(domain=>domain.items.length>0),[visibleModuleIds])
  const activeDomainId=useMemo(()=>{
   const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>{
