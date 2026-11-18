@@ -583,10 +583,10 @@ export default function QualityExcelMappingWorkspace({
       </div>
     </header>
 
-    <div className="qemTabs" role="tablist" aria-label="Pengaturan pemetaan">
+    {!hideTabs && <div className="qemTabs" role="tablist" aria-label="Pengaturan pemetaan">
       <button type="button" role="tab" aria-selected={activeTab === 'unit'} onClick={() => setActiveTab('unit')}>Pengaturan per Unit</button>
       <button type="button" role="tab" aria-selected={activeTab === 'indicator'} onClick={() => setActiveTab('indicator')}>Pengaturan per Indikator</button>
-    </div>
+    </div>}
 
     {error && <div className="qemMessage error" role="alert">{error}</div>}
     {notice && <div className="qemMessage notice" role="status">{notice}</div>}
@@ -610,8 +610,9 @@ export default function QualityExcelMappingWorkspace({
               </select>
             </label>}
           </div>
-          <p className="qemMuted">AUREKA hanya membaca nama sheet, nomor baris, dan teks header. Baris data pasien tidak dianalisis dan tidak dikirim ke NARA. Untuk unit yang belum memiliki importer khusus, aturan disimpan sebagai konfigurasi awal; alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis.</p>
-          {detectedHeaders.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedHeaders.length)} kolom terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · kandidat baris header {headerRow}</span></div>}
+          <p className="qemMuted">AUREKA hanya memindai nama sheet, baris header, huruf/nomor kolom, dan label kolom. Isi baris pasien tidak dibaca atau dikirim ke NARA. Setiap aturan disimpan terpisah per unit, tahun, jenis workbook, dan indikator.</p>
+          {!selectedImporter.connected && <div className="qemMessage notice">Konfigurasi template unit tersedia, tetapi alur unggah khusus untuk unit ini belum terhubung. Aturan dapat disiapkan sekarang dan akan aktif setelah importer unit diintegrasikan; sistem tidak mengklaim pemetaan otomatis sebelum itu.</div>}
+          {detectedHeaders.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedColumns.length)} kolom fisik terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · baris header {headerRow}</span></div>}
           <div className="qemActions">
             <button type="button" className="qemButton ai" disabled={aiBusy || loading || !detectedHeaders.length || !activeProfiles.length} onClick={() => void runNaraBulk()}>
               {aiBusy ? 'NARA sedang menganalisis…' : 'NARA AI · Petakan massal'}
@@ -628,11 +629,42 @@ export default function QualityExcelMappingWorkspace({
               {activeProfiles.map(profile => {
                 const suggestion = aiSuggestions.find(item => item.indicator_code === profile.code)
                 const mapping = existingByCode.get(profile.code)
+                const key = draftKey(selectedImporter.key, profile.code)
+                const sourceHeader = draftHeaders[key] ?? mapping?.source_header ?? String(profile.schema_json?.header_label ?? '')
+                const occurrence = draftOccurrences[key] ?? mapping?.occurrence ?? 1
+                const selectedColumn = detectedColumnChoice(sourceHeader, occurrence)
+                const aliases = Array.isArray(profile.schema_json?.excel_header_aliases) ? profile.schema_json?.excel_header_aliases as string[] : []
                 return <tr key={profile.id}>
                   <td><strong>{profile.code}</strong><span className="qemMuted" style={{ display: 'block', maxWidth: 290 }}>{profile.title}</span></td>
-                  <td><span className="qemMuted">{String(profile.schema_json?.header_label ?? 'Belum ditetapkan pada profil master')}</span><button type="button" className="qemButton" style={{ display: 'block', marginTop: 6 }} onClick={() => { setSelectedProfileId(profile.id); setActiveTab('indicator') }}>Edit profil</button></td>
-                  <td><input list="qem-detected-header-list" value={draftHeaders[draftKey(selectedImporter.key, profile.code)] ?? mapping?.source_header ?? ''} placeholder="Pilih/ketik header sumber Excel" onChange={event => setDraftHeaders(current => ({ ...current, [draftKey(selectedImporter.key, profile.code)]: event.target.value }))}/></td>
-                  <td>{suggestion ? <><span className="qemBadge">{Math.round(suggestion.confidence * 100)}% yakin</span><span className="qemMuted" style={{ display: 'block' }}>{suggestion.rationale}</span></> : mapping ? <span className="qemBadge">Tersimpan · {mapping.mapping_status}</span> : <span className="qemMuted">Belum dipetakan</span>}</td>
+                  <td>
+                    <strong>{String(profile.schema_json?.header_label ?? 'Header master belum ditetapkan')}</strong>
+                    {aliases.length > 0 && <span className="qemMuted">Alias: {aliases.join(' · ')}</span>}
+                    <button type="button" className="qemButton" style={{ display: 'block', marginTop: 6 }} onClick={() => { setSelectedProfileId(profile.id); setActiveTab('indicator') }}>Edit profil indikator</button>
+                  </td>
+                  <td>
+                    {detectedColumns.length > 0
+                      ? <select aria-label={'Kolom Excel untuk indikator ' + profile.code}
+                          value={selectedColumn ? sourceChoiceValue(selectedColumn) : ''}
+                          onChange={event => {
+                            const selected = detectedColumns.find(column => sourceChoiceValue(column) === event.target.value)
+                            if (!selected) return
+                            setDraftHeaders(current => ({ ...current, [key]: selected.header }))
+                            setDraftOccurrences(current => ({ ...current, [key]: selected.occurrence }))
+                          }}>
+                          <option value="">Pilih huruf kolom sumber…</option>
+                          {detectedColumns.map(column => <option key={column.index} value={sourceChoiceValue(column)}>{column.letter} · {column.header}{column.occurrence > 1 ? ' · duplikat ke-' + column.occurrence : ''}</option>)}
+                        </select>
+                      : <input value={draftHeaders[key] ?? mapping?.source_header ?? String(profile.schema_json?.header_label ?? '')}
+                          placeholder="Unggah workbook contoh untuk melihat huruf kolom"
+                          onChange={event => setDraftHeaders(current => ({ ...current, [key]: event.target.value }))}/>}
+                    {selectedColumn && <span className="qemMuted">Sumber: {selectedSheet}!{selectedColumn.letter}{headerRow} · header fisik {selectedColumn.index}</span>}
+                    {!selectedColumn && sourceHeader && <span className="qemMuted">Header rencana: {sourceHeader}. Periksa kecocokan setelah workbook contoh dipilih.</span>}
+                  </td>
+                  <td>{suggestion
+                    ? <><span className="qemBadge">{Math.round(suggestion.confidence * 100)}% keyakinan NARA</span><span className="qemMuted" style={{ display: 'block' }}>{suggestion.rationale}</span>{suggestion.confidence < 0.8 && <span className="qemMuted">Perlu dipilih/ditelaah manual.</span>}</>
+                    : mapping
+                      ? <span className="qemBadge">Tersimpan · {mapping.mapping_status}</span>
+                      : <span className="qemMuted">Belum dipetakan</span>}</td>
                 </tr>
               })}
             </tbody>
