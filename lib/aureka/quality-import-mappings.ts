@@ -2,6 +2,7 @@ import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import {
   clearPersistedImportMappingSet,
+  getPersistedImportMappingSet,
   setPersistedImportMappingSet,
   type PersistedImportHeaderMapping,
 } from '@/lib/aureka/import-mapping-cache'
@@ -130,11 +131,5 @@ export function applyConfiguredImportMappingsToIndexes(
 }
 
 function configuredMappings(importerKey: string) {
-  return getCachedMapping(importerKey)
-}
-
-// Kept as wrappers so importers use the same no-network lookup path during parsing.
-import { getPersistedImportMappingSet } from '@/lib/aureka/import-mapping-cache'
-function getCachedMapping(importerKey: string) {
   return getPersistedImportMappingSet(importerKey)
 }
