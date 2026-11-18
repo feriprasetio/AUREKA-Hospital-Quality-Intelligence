@@ -113,3 +113,51 @@ test('Logbook chrome is reduced to preserve the table as the dominant work area'
   assert.match(navigation, /max-height: calc\(100dvh - 205px\) !important/)
   assert.match(navigation, /grid-template-areas: "unit year month" "actions actions actions" !important/)
 })
+
+test('ICU/HCU logbook renders the nine published patient-level indicators as editable categorical choices', () => {
+  const layout = JSON.parse(read('data/quality-audit-layout-2026.json'))
+  const icu = layout.find((item) => item.roomId === 14)
+  const importer = read('components/IcuExcelImportDialog.tsx')
+  const workspace = read('components/QualityIndicatorWorkspace.tsx')
+  assert.deepEqual(icu.indicators, [
+    'Visite Spesialis',
+    'Validitas Asesmen',
+    'Identifikasi Pasien',
+    'APD',
+    'Pencegahan Jatuh',
+    'Komunikasi Perawatan',
+    'Transfer IGD',
+    'LOS ICU Panjang',
+    'Kekosongan BHP/Linen',
+  ])
+  for (const code of ['14.1','14.2','14.3','14.4','14.5','14.6','14.7','14.8','14.9']) {
+    assert.ok(importer.includes("code: '" + code + "'"), 'Importer must map ICU indicator ' + code)
+  }
+  assert.match(workspace, /ICU_LAYOUT_PROFILE_CODE_ALIASES/)
+  assert.match(workspace, /isCategoricalResponseCapture/)
+  assert.match(workspace, /categoricalCapture\|\|shouldUseIndicatorDropdown/)
+  assert.match(workspace, /genericOptions&&choices\.length<=8/)
+})
+
+test('ICU/HCU Excel import stores private workbook provenance and safely backfills only missing BHP/Linen data', () => {
+  const importer = read('components/IcuExcelImportDialog.tsx')
+  assert.match(importer, /aureka-quality-source-workbooks/)
+  assert.match(importer, /source_storage_path/)
+  assert.match(importer, /source_indicator_columns/)
+  assert.match(importer, /source_indicator_column_refs/)
+  assert.match(importer, /source_bhp_linen/)
+  assert.match(importer, /backfill_icu_logbook_bhp_linen_batch/)
+  assert.match(importer, /Kekosongan BHP\/Linen/)
+  assert.match(importer, /if \(!unassignedBhpLinen\.trim\(\)\) throw new Error/)
+})
+
+test('Hasil Capaian links monthly indicator values to the exact source Excel month, cell, and private workbook', () => {
+  const results = read('components/QualityResultsWorkspace.tsx')
+  assert.match(results, /openSourceTrace\(result\.profile, month\.month\)/)
+  assert.match(results, /className="qraSourceCell"/)
+  assert.match(results, /sourceMonth == null \|\| operationalCalendarParts\(row\)\?\.month === sourceMonth/)
+  assert.match(results, /source_indicator_column_refs/)
+  assert.match(results, /cellRef: columnLetter && excelRow/)
+  assert.match(results, /createSignedUrl\(sourceProvenance\.storagePaths\[0\], 300\)/)
+  assert.match(results, /Logbook.*baris.*Excel/)
+})
