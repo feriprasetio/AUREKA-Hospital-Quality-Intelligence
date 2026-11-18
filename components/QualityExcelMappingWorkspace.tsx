@@ -68,6 +68,7 @@ const importers: Importer[] = [
 ]
 const normalize = (value: unknown) => String(value ?? '').normalize('NFKC').toLocaleLowerCase('id-ID').replace(/\s+/g, ' ').trim()
 const profileKey = (code: string) => 'indicator:' + code
+const draftKey = (importer: string, code: string) => importer + '|' + code
 const numberLabel = (value: number) => Number(value || 0).toLocaleString('id-ID')
 
 export default function QualityExcelMappingWorkspace({
@@ -169,9 +170,10 @@ export default function QualityExcelMappingWorkspace({
             item.importer_key === (selectedImporter?.key ?? importerKey) &&
             item.target_key === profileKey(profile.code),
           )
-          if (mapping && !next[profile.code]) next[profile.code] = mapping.source_header
-          else if (!next[profile.code] && String(profile.schema_json?.header_label ?? '').trim()) {
-            next[profile.code] = String(profile.schema_json?.header_label ?? '').trim()
+          const key = draftKey(selectedImporter?.key ?? importerKey, profile.code)
+          if (mapping && !next[key]) next[key] = mapping.source_header
+          else if (!next[key] && String(profile.schema_json?.header_label ?? '').trim()) {
+            next[key] = String(profile.schema_json?.header_label ?? '').trim()
           }
         }
         return next
@@ -181,7 +183,7 @@ export default function QualityExcelMappingWorkspace({
     } finally {
       setLoading(false)
     }
-  }, [canManage, roomId, profileYear, importerKey, selectedImporter?.key, selectedProfileId])
+  }, [canManage, roomId, profileYear])
 
   useEffect(() => { void load() }, [load])
 
@@ -282,7 +284,7 @@ export default function QualityExcelMappingWorkspace({
       setDraftHeaders(current => {
         const next = { ...current }
         for (const item of suggestions) {
-          if (item.source_header && item.confidence >= 0.6) next[item.indicator_code] = item.source_header
+          if (item.source_header && item.confidence >= 0.6) next[draftKey(selectedImporter.key, item.indicator_code)] = item.source_header
         }
         return next
       })
@@ -304,7 +306,7 @@ export default function QualityExcelMappingWorkspace({
       return
     }
     const rules = activeProfiles.flatMap(profile => {
-      const sourceHeader = String(draftHeaders[profile.code] ?? '').trim()
+      const sourceHeader = String(draftHeaders[draftKey(selectedImporter.key, profile.code)] ?? '').trim()
       if (!sourceHeader) return []
       const ai = aiSuggestions.find(item => item.indicator_code === profile.code && item.source_header === sourceHeader)
       return [{
@@ -501,7 +503,7 @@ export default function QualityExcelMappingWorkspace({
                 return <tr key={profile.id}>
                   <td><strong>{profile.code}</strong><span className="qemMuted" style={{ display: 'block', maxWidth: 290 }}>{profile.title}</span></td>
                   <td><span className="qemMuted">{String(profile.schema_json?.header_label ?? 'Belum ditetapkan pada profil master')}</span><button type="button" className="qemButton" style={{ display: 'block', marginTop: 6 }} onClick={() => { setSelectedProfileId(profile.id); setActiveTab('indicator') }}>Edit profil</button></td>
-                  <td><input list="qem-detected-header-list" value={draftHeaders[profile.code] ?? mapping?.source_header ?? ''} placeholder="Pilih/ketik header sumber Excel" onChange={event => setDraftHeaders(current => ({ ...current, [profile.code]: event.target.value }))}/></td>
+                  <td><input list="qem-detected-header-list" value={draftHeaders[draftKey(selectedImporter.key, profile.code)] ?? mapping?.source_header ?? ''} placeholder="Pilih/ketik header sumber Excel" onChange={event => setDraftHeaders(current => ({ ...current, [draftKey(selectedImporter.key, profile.code)]: event.target.value }))}/></td>
                   <td>{suggestion ? <><span className="qemBadge">{Math.round(suggestion.confidence * 100)}% yakin</span><span className="qemMuted" style={{ display: 'block' }}>{suggestion.rationale}</span></> : mapping ? <span className="qemBadge">Tersimpan · {mapping.mapping_status}</span> : <span className="qemMuted">Belum dipetakan</span>}</td>
                 </tr>
               })}
