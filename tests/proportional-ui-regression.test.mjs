@@ -26,7 +26,7 @@ test('shared controls and data cards have normalized dimensions', () => {
 
 test('proportional UI stylesheet loads after existing theme and motion styles', () => {
   assert.ok(layout.indexOf("@import './proportional-ui.css'") > layout.indexOf("@import './landing-motion.css'"))
-  const imports = [...layout.matchAll(/@import ['"]([^'"]+\\.css)['"];?/g)].map((match) => match[1])
+  const imports = [...layout.matchAll(/@import ['"]([^'"]+\.css)['"];?/g)].map((match) => match[1])
   assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'))
   assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'))
   assert.equal(imports.at(-1), 'aureka-universal-tabs.css')
