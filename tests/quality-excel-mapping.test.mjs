@@ -133,7 +133,7 @@ test('only approved server mappings are used by importers; stale saved headers c
   const resolver = read('lib/aureka/interactive-header-mapping.ts')
   assert.match(resolver, /row\.mapping_status !== 'approved'/)
   assert.match(resolver, /staleSavedHeader/)
-  assert.match(resolver, /serverSaved\?\.normalizedHeader/)
+  assert.match(resolver, /serverSaved\.normalizedHeader/)
   assert.match(resolver, /Pusat Rekonsiliasi → Pengaturan per Unit/)
 })
 
