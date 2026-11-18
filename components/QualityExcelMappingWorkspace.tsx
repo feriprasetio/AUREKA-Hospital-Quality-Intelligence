@@ -312,7 +312,7 @@ export default function QualityExcelMappingWorkspace({
       return
     }
     const rules = activeProfiles.flatMap(profile => {
-      const sourceHeader = String(draftHeaders[draftKey(selectedImporter.key, profile.code)] ?? '').trim()
+      const sourceHeader = String(draftHeaders[draftKey(selectedImporter.key, profile.code)] ?? existingByCode.get(profile.code)?.source_header ?? '').trim()
       if (!sourceHeader) return []
       const ai = aiSuggestions.find(item => item.indicator_code === profile.code && item.source_header === sourceHeader)
       return [{
@@ -488,7 +488,7 @@ export default function QualityExcelMappingWorkspace({
               </select>
             </label>}
           </div>
-          <p className="qemMuted">AUREKA hanya membaca nama sheet, nomor baris, dan teks header. Baris data pasien tidak dianalisis untuk pemetaan dan tidak dikirim ke NARA.</p>
+          <p className="qemMuted">AUREKA hanya membaca nama sheet, nomor baris, dan teks header. Baris data pasien tidak dianalisis dan tidak dikirim ke NARA. Untuk unit yang belum memiliki importer khusus, aturan disimpan sebagai konfigurasi awal; alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis.</p>
           {detectedHeaders.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedHeaders.length)} kolom terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · kandidat baris header {headerRow}</span></div>}
           <div className="qemActions">
             <button type="button" className="qemButton ai" disabled={aiBusy || loading || !detectedHeaders.length || !activeProfiles.length} onClick={() => void runNaraBulk()}>
