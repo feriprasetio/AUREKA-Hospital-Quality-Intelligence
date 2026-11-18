@@ -38,6 +38,7 @@ type Mapping = {
   ai_rationale?: string | null
 }
 type Suggestion = { indicator_code: string; source_header: string | null; confidence: number; rationale: string }
+type FieldTarget = { key: string; label: string; aliases: string[] }
 type Importer = { key: string; label: string; room_id: number; connected: boolean }
 type HeaderColumn = { header: string; index: number; letter: string; occurrence: number }
 type HeaderSheet = { name: string; row: number; headers: string[]; columns: HeaderColumn[] }
@@ -50,7 +51,8 @@ const importers: Importer[] = [
   { room_id: 3, key: 'ambulance', label: 'Logbook Ambulance', connected: true },
   { room_id: 4, key: 'ibs', label: 'Logbook Instalasi Bedah Sentral', connected: true },
   { room_id: 5, key: 'pharmacy', label: 'Logbook Farmasi', connected: true },
-  { room_id: 6, key: 'igd', label: 'Logbook IGD', connected: true },
+  { room_id: 6, key: 'igd', label: 'Logbook episode IGD · Data utama', connected: true },
+  { room_id: 6, key: 'igd-consult', label: 'Audit konsultasi DPJP · Detail episode', connected: true },
   { room_id: 7, key: 'gizi', label: 'Logbook Gizi', connected: true },
   { room_id: 8, key: 'unit-logbook', label: 'Workbook Logbook Hemodialisis', connected: false },
   { room_id: 9, key: 'laboratory', label: 'Logbook Laboratorium', connected: true },
@@ -83,6 +85,38 @@ const importers: Importer[] = [
   { room_id: 36, key: 'unit-logbook', label: 'Workbook Logbook Peningkatan Kinerja Klinis', connected: false },
   { room_id: 37, key: 'unit-logbook', label: 'Workbook Logbook Verlos Kamer', connected: false },
 ]
+const unitFieldCatalog: Record<string, FieldTarget[]> = {
+  igd: [
+    { key: 'sourceNo', label: 'Nomor urut sumber', aliases: ['No', 'No.'] },
+    { key: 'patientName', label: 'Nama pasien', aliases: ['Nama Pasien'] },
+    { key: 'medicalRecordNo', label: 'Nomor rekam medis', aliases: ['No. Rekam Medis', 'No RM', 'No. RM'] },
+    { key: 'diagnosis', label: 'Diagnosis IGD', aliases: ['Diagnosa IGD'] },
+    { key: 'admissionAt', label: 'Waktu masuk IGD', aliases: ['Waktu Masuk'] },
+    { key: 'transferAt', label: 'Waktu transfer', aliases: ['Waktu Transfer'] },
+    { key: 'destination', label: 'Tujuan transfer', aliases: ['Tujuan'] },
+    { key: 'receivingNurse', label: 'Perawat penerima', aliases: ['Perawat Penerima'] },
+    { key: 'generalDoctor', label: 'Dokter umum', aliases: ['Dokter Umum'] },
+    { key: 'dpjp', label: 'Dokter penanggung jawab pelayanan', aliases: ['DPJP'] },
+  ],
+  'igd-consult': [
+    { key: 'consult:sourceNo', label: 'Nomor urut sumber', aliases: ['No', 'No.'] },
+    { key: 'consult:medicalRecordNo', label: 'Nomor rekam medis', aliases: ['No RM', 'No. RM', 'No. Rekam Medis'] },
+    { key: 'consult:patientName', label: 'Nama pasien', aliases: ['Nama Pasien'] },
+    { key: 'consult:age', label: 'Umur pasien', aliases: ['Umur'] },
+    { key: 'consult:sex', label: 'Jenis kelamin', aliases: ['Jenis Kelamin'] },
+    { key: 'consult:patientType', label: 'Jenis pasien', aliases: ['Jenis Pasien'] },
+    { key: 'consult:requestingDoctor', label: 'Dokter IGD pemohon konsultasi', aliases: ['Dokter IGD', 'Dokter Umum'] },
+    { key: 'consult:specialist', label: 'Dokter spesialis', aliases: ['Dokter Spesialis'] },
+    { key: 'consult:nurse', label: 'Perawat', aliases: ['Perawat'] },
+    { key: 'consult:registrationAt', label: 'Waktu registrasi konsultasi', aliases: ['Waktu Registrasi'] },
+    { key: 'consult:doorToDecision', label: 'Durasi Door-to-Decision', aliases: ['Door-to-Decision'] },
+    { key: 'consult:consultationAt', label: 'Waktu konsultasi DPJP', aliases: ['Waktu Konsultasi DPJP'] },
+    { key: 'consult:reportedElapsed', label: 'Target capaian sumber', aliases: ['Target capaian', 'Target Capaian'] },
+    { key: 'consult:performanceLabel', label: 'Capaian mutu sumber', aliases: ['Capaian mutu', 'Capaian Mutu'] },
+    { key: 'consult:reasonCode', label: 'Alasan tidak tercapai mutu', aliases: ['Alasan tidak tercapai mutu', 'Alasan Tidak Tercapai Mutu'] },
+    { key: 'consult:reasonOther', label: 'Alasan lainnya', aliases: ['Alasan lain', 'Alasan Lain'] },
+  ],
+}
 const normalize = (value: unknown) => String(value ?? '').normalize('NFKC').toLocaleLowerCase('id-ID').replace(/\s+/g, ' ').trim()
 const profileKey = (code: string) => 'indicator:' + code
 const draftKey = (importer: string, code: string) => importer + '|' + code
@@ -134,6 +168,8 @@ export default function QualityExcelMappingWorkspace({
   const [workbookName, setWorkbookName] = useState('')
   const [draftHeaders, setDraftHeaders] = useState<Record<string, string>>({})
   const [draftOccurrences, setDraftOccurrences] = useState<Record<string, number>>({})
+  const [draftFields, setDraftFields] = useState<Record<string, string>>({})
+  const [draftFieldOccurrences, setDraftFieldOccurrences] = useState<Record<string, number>>({})
   const [aiSuggestions, setAiSuggestions] = useState<Suggestion[]>([])
   const [aiBusy, setAiBusy] = useState(false)
   const [selectedProfileId, setSelectedProfileId] = useState('')
@@ -162,11 +198,21 @@ export default function QualityExcelMappingWorkspace({
     () => profiles.filter(item => item.is_active && item.status === 'published').sort((a,b) => a.code.localeCompare(b.code, undefined, { numeric: true })),
     [profiles],
   )
+  const activeFields = useMemo(() => unitFieldCatalog[selectedImporter?.key ?? ''] ?? [], [selectedImporter?.key])
   const existingByCode = useMemo(() => {
     const map = new Map<string, Mapping>()
     for (const row of mappings) {
       if (row.importer_key === (selectedImporter?.key ?? importerKey) && row.target_type === 'indicator') {
         map.set(row.target_key.replace(/^indicator:/, ''), row)
+      }
+    }
+    return map
+  }, [mappings, selectedImporter?.key, importerKey])
+  const existingFields = useMemo(() => {
+    const map = new Map<string, Mapping>()
+    for (const row of mappings) {
+      if (row.importer_key === (selectedImporter?.key ?? importerKey) && row.target_type === 'field') {
+        map.set(row.target_key.replace(/^field:/, ''), row)
       }
     }
     return map
