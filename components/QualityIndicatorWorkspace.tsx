@@ -27,9 +27,11 @@ import { calculateInclusiveDurationDays, matchLogbookOption } from '@/lib/aureka
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {toUserFacingError} from '@/lib/ui/error-feedback'
 import {readAllPages} from '@/lib/aureka/pagination'
+import { hydrateInteractiveExcelHeaderMappings } from '@/lib/aureka/interactive-header-mapping'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Audit Klinis dan Kematian" compact/>})
+const QualityExcelMappingWorkspace=dynamic(()=>import('@/components/QualityExcelMappingWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Pemetaan Workbook Excel" compact/>})
 
 const ComplaintExcelImportDialog=dynamic(()=>import('@/components/ComplaintExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Pengaduan" compact/>})
 const ItExcelImportDialog=dynamic(()=>import('@/components/ItExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Informatika dan Teknologi" compact/>})
@@ -541,6 +543,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [roomId,setRoomId]=useState<number|null>(()=>defaultAuditRoomId(rooms,initialRoomId,isAdmin))
  const [roomOverview,setRoomOverview]=useState<{roomId:number;records:number|null}[]>([])
  const [roomOverviewBusy,setRoomOverviewBusy]=useState(false)
+ const [excelMappingOpen,setExcelMappingOpen]=useState(false)
  useEffect(()=>{
   const incoming=normalizeRoomIdValue(initialRoomId)
   if(incoming!=null&&incoming!==roomId)setRoomId(incoming)
@@ -703,7 +706,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    // Remove legacy PHI caches without reading or restoring their contents.
    if(typeof window!=='undefined'){try{window.localStorage.removeItem('aureka-quality-episode-cache-v3');window.localStorage.removeItem('aureka-quality-audit-v3')}catch{}}
    try{
-     if(roomId==null){setProfiles([]);setStaffOptions([]);setPatients([]);setSource(isAdmin?'Semua ruangan':'Unit belum dipilih');setMessage(isAdmin?'':'Unit kerja belum tersedia. Pilih unit pertama yang tersedia sebelum membuka logbook.');return}
+     if(roomId==null){hydrateInteractiveExcelHeaderMappings(null,year,[]);setProfiles([]);setStaffOptions([]);setPatients([]);setSource(isAdmin?'Semua ruangan':'Unit belum dipilih');setMessage(isAdmin?'':'Unit kerja belum tersedia. Pilih unit pertama yang tersedia sebelum membuka logbook.');return}
      let loadedProfiles:any[]=[],loadedStaff:TeamStaffOption[]=[]
      // Profil, roster tenaga, dan catatan dimuat paralel (sebelumnya berurutan sehingga terasa lama).
      const profilesTask=(async()=>{
@@ -749,7 +752,12 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        }
        return out
      })()
-     const [,,rows]=await Promise.all([profilesTask,staffTask,recordsTask])
+     const mappingTask=(async()=>{
+       const {data,error}=await q().rpc('quality_excel_header_mapping_list',{p_room_id:roomId,p_profile_year:year,p_importer_key:null})
+       if(error) throw error
+       hydrateInteractiveExcelHeaderMappings(roomId,year,Array.isArray(data?.mappings)?data.mappings:[])
+     })()
+     const [,,,rows]=await Promise.all([profilesTask,staffTask,recordsTask,mappingTask])
      const attributionByRecord=new Map<string,Record<string,string>>()
      const databaseRecordIds=rows.map((r:any)=>String(r.id)).filter(Boolean)
      const attrBatches:string[][]=[]
@@ -1257,6 +1265,11 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
      <div><span className="aqRoomOverviewEyebrow">Super admin · Cakupan seluruh rumah sakit</span><h2>Logbook semua ruangan</h2><p>Pilih ruangan untuk membuka format logbook yang sesuai dengan karakteristik pelayanannya. Daftar ini hanya menampilkan jumlah catatan, tanpa identitas pasien atau rincian klinis.</p></div>
      <span className="aqRoomOverviewCount">{rooms.length.toLocaleString('id-ID')} ruangan aktif · {year}</span>
     </header>
+    <div style={{display:'flex',justifyContent:'flex-end',gap:8,flexWrap:'wrap'}}>
+     <button type="button" className="aqBtn primary" onClick={()=>setExcelMappingOpen(value=>!value)}>{excelMappingOpen?'Tutup Pusat Pemetaan':'Pengaturan Pemetaan Excel Semua Unit'}</button>
+    </div>
+    {excelMappingOpen&&<QualityExcelMappingWorkspace rooms={rooms} initialRoomId={null} year={year} role="ADMIN" onClose={()=>setExcelMappingOpen(false)}/>}
+
     {roomOverviewBusy&&<div className="aqRoomOverviewLoading" role="status">Memuat ringkasan catatan setiap ruangan…</div>}
     {!roomOverviewBusy&&rooms.length===0&&<div className="aqRoomOverviewLoading">Belum ada ruangan aktif pada master unit.</div>}
     <div className="aqRoomOverviewGrid">
