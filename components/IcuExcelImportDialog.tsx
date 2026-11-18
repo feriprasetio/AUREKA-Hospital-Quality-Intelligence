@@ -6,6 +6,7 @@ import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-he
 import { useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
+import { findIcuBhpLinenHeaderCandidates, findIcuBhpLinenHeaderColumns } from '@/lib/aureka/icu-excel-headers'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
 import {
   calculateIcuStayDays,
@@ -138,13 +139,19 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     const matches = [...new Set(aliases.flatMap(alias => columns.get(normalizeExactHeader(alias)) ?? []))]
     return matches.length === 1 ? matches[0] : null
   }
+  const indicatorColumn = (columns: Map<string, number[]>, item: typeof INDICATORS[number]) => {
+    const matched = exact(columns, [...item.aliases])
+    if (matched != null || item.code !== '14.1') return matched
+    const combinedBhpLinenColumns = findIcuBhpLinenHeaderColumns(columns)
+    return combinedBhpLinenColumns.length === 1 ? combinedBhpLinenColumns[0] : null
+  }
   for (let rowNumber = 1; rowNumber <= Math.min(10, sheet.rowCount); rowNumber++) {
     const columns = headerColumns(sheet.getRow(rowNumber))
     let score = 0
     for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
       if (exact(columns, aliases) == null && key !== 'patientCategory' && key !== 'los' && key !== 'unassignedBhpLinen') score += 1
     }
-    for (const item of INDICATORS) if (exact(columns, [...item.aliases]) == null) score += 1
+    for (const item of INDICATORS) if (indicatorColumn(columns, item) == null) score += 1
     if (score === 0) {
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
@@ -153,7 +160,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
         if (column != null) indexes[key] = column
       }
       for (const item of INDICATORS) {
-        const column = exact(columns, [...item.aliases])
+        const column = indicatorColumn(columns, item)
         if (column != null) indexes['indicator:' + item.code] = column
       }
       if (indexes['indicator:14.1'] != null) indexes.unassignedBhpLinen = indexes['indicator:14.1']
@@ -171,7 +178,11 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       if (column != null) indexes[key] = column
     }
     for (const item of INDICATORS) {
-      const aliases = [...item.aliases]
+      const aliases = item.code === '14.1'
+        ? findIcuBhpLinenHeaderCandidates(bestColumns).length
+          ? findIcuBhpLinenHeaderCandidates(bestColumns)
+          : [...item.aliases]
+        : [...item.aliases]
       const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
         importerKey: 'icu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
       })
