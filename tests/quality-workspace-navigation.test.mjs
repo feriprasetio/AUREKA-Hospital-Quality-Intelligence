@@ -28,11 +28,13 @@ test('every non-validator unit logbook exposes a guarded add-note action', () =>
   assert.match(quality, /if\(!layout\)\{\s*setMessage\('Template logbook untuk unit ini belum tersedia/)
 })
 
-test('Solid White sidebar is compact on desktop while mobile remains single-column', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  assert.match(css, /grid-template-columns:\s*248px minmax\(0, 1fr\) !important/)
-  assert.match(css, /\.workspaceRoot:not\(\.sidebarIsCollapsed\)\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\) !important/)
-  assert.match(css, /\.qualityWorkspaceTabs/)
+test('Arktik acrylic sidebar is compact on desktop while mobile remains single-column', () => {
+  const css = read('app/aureka-navigation-repair.css')
+  assert.match(css, /grid-template-columns: 264px minmax\\(0, 1fr\\) !important/)
+  assert.match(css, /\\.workspaceRoot\\.workspaceDesk\\[data-aureka-theme\\]\\.sidebarIsCollapsed/)
+  assert.match(css, /grid-template-columns: 76px minmax\\(0, 1fr\\) !important/)
+  assert.match(css, /@media \\(max-width: 720px\\)/)
+  assert.match(css, /\\.qualityWorkspaceTabs/)
 })
 
 test('selected quality unit is shared by Form Logbook and Hasil Capaian', () => {
