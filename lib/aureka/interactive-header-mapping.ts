@@ -41,7 +41,9 @@ export function hydrateInteractiveExcelHeaderMappings(
   activeMappingScope = roomId == null ? '' : String(roomId) + ':' + String(year)
   const next: Record<string, Record<string, StoredMapping>> = {}
   for (const row of rows) {
-    if (!row || !row.importer_key || !row.target_key || !row.source_header) continue
+    // A NARA proposal marked needs_review is not an operational mapping. It must
+    // be confirmed in Pusat Rekonsiliasi before an importer can consume it.
+    if (!row || row.mapping_status !== 'approved' || !row.importer_key || !row.target_key || !row.source_header) continue
     const importer = next[row.importer_key] ?? (next[row.importer_key] = {})
     importer[row.target_key] = {
       normalizedHeader: normalizeExactHeader(row.source_header),
@@ -141,21 +143,27 @@ export function resolveInteractiveExcelHeaderColumn(
   options: InteractiveHeaderMappingOptions,
 ): number | null {
   const positions = getPositions(columns)
-  const serverSaved = activeMappingScope
+  const specificServerSaved = activeMappingScope
     ? serverMappings[options.importerKey]?.[options.fieldKey]
     : undefined
+  // Generic unit-logbook rules are a fallback only for indicator columns. A
+  // module-specific mapping always takes precedence.
+  const serverSaved = specificServerSaved ?? (
+    activeMappingScope && options.fieldKey.startsWith('indicator:')
+      ? serverMappings['unit-logbook']?.[options.fieldKey]
+      : undefined
+  )
+  let staleSavedHeader = ''
   if (serverSaved) {
     const configuredPositions = positions.get(normalizeExactHeader(serverSaved.normalizedHeader)) ?? []
     if (configuredPositions.length >= serverSaved.occurrence) {
       return configuredPositions[serverSaved.occurrence - 1]
     }
-    throw new Error(
-      'Aturan impor unit mengarahkan "' + (options.fieldLabel ?? options.fieldKey) +
-      '" ke kolom "' + serverSaved.normalizedHeader +
-      '", tetapi header tersebut tidak ditemukan. Perbarui Pusat Pemetaan Excel untuk unit ini sebelum melanjutkan.'
-    )
+    // Workbook templates evolve. A stale saved header must not block an
+    // otherwise unambiguous current profile header/alias.
+    staleSavedHeader = serverSaved.normalizedHeader
   }
-  const saved = readMappings(options.importerKey)[options.fieldKey]
+  const saved = serverSaved ? undefined : readMappings(options.importerKey)[options.fieldKey]
   const savedPositions = saved ? positions.get(normalizeExactHeader(saved.normalizedHeader)) ?? [] : []
   if (saved && savedPositions.length >= saved.occurrence) {
     return savedPositions[saved.occurrence - 1]
@@ -175,9 +183,11 @@ export function resolveInteractiveExcelHeaderColumn(
   }
 
   const fieldLabel = options.fieldLabel ?? candidates[0] ?? options.fieldKey
-  const reason = matched.length > 1
-    ? 'AUREKA menemukan lebih dari satu kolom yang cocok. Pilih kolom sumber yang benar.'
-    : 'Header belum dikenali. Pilih kolom sumber yang paling sesuai untuk field AUREKA ini.'
+  const reason = staleSavedHeader
+    ? 'Aturan sebelumnya menunjuk "' + staleSavedHeader + '", tetapi header itu tidak ada pada workbook ini. AUREKA akan mencoba header master/alias dan meminta pilihan bila belum ada kecocokan unik.'
+    : matched.length > 1
+      ? 'AUREKA menemukan lebih dari satu kolom yang cocok. Pilih kolom sumber yang benar.'
+      : 'Header belum dikenali. Pilih kolom sumber yang paling sesuai untuk field AUREKA ini.'
   const choiceLines = choices.map(item => columnLetter(item.index) + ' (' + item.index + ') — ' + item.header).join('\n')
   const message = [
     'AUREKA · PEMETAAN HEADER INTERAKTIF',
@@ -188,7 +198,7 @@ export function resolveInteractiveExcelHeaderColumn(
     choiceLines,
     '',
     'Masukkan huruf kolom (mis. H) atau nomor kolom (mis. 8).',
-    'Pilihan ini akan disimpan untuk unggahan berikutnya pada modul yang sama.',
+    'Pilihan interaktif ini disimpan pada browser ini. Untuk aturan lintas perangkat, konfirmasikan pemetaan pada Pusat Rekonsiliasi → Pengaturan per Unit.',
   ].join('\n')
 
   const chooser = options.chooseColumn ?? (typeof window !== 'undefined' ? window.prompt.bind(window) : undefined)
