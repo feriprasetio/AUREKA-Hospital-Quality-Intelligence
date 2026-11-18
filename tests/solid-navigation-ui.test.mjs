@@ -14,7 +14,8 @@ test('Arktik is the active workspace skin and Solid override layers are not load
   }
   assert.ok(layout.indexOf("import './theme-arktik-dark.css'") < layout.indexOf("import './aureka-navigation-pill.css'"))
   assert.ok(layout.indexOf("import './dark-mode-mobile-fixes.css'") < layout.indexOf("import './aureka-navigation-pill.css'"))
-  assert.ok(layout.trimEnd().endsWith("import './aureka-universal-tabs.css'"))
+  const imports = [...layout.matchAll(/import ['\"]\.\/([^'\"]+\.css)['\"]/g)].map(m => m[1])
+  assert.equal(imports.at(-1), 'aureka-universal-tabs.css')
 })
 
 test('Arktik uses bundled Plus Jakarta Sans and does not download Inter', () => {
