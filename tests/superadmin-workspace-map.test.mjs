@@ -39,12 +39,13 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes('selectSidebarChild(activeNavModuleId,childId)'))
 })
 
-test('sidebar only renders module buttons and contains no tree or child-menu state', () => {
-  assert.ok(home.includes('aria-label="Navigasi modul AUREKA"'))
-  assert.ok(home.includes("visibleMods.map(([id,label])=>"))
-  assert.ok(home.includes("onClick={()=>openMainModule(id)}"))
+test('sidebar renders six role-filtered domains and contains no legacy tree menu', () => {
+  assert.ok(home.includes('aria-label="Enam domain utama AUREKA"'))
+  assert.ok(home.includes('visibleSidebarDomains.map(domain=>'))
+  assert.ok(home.includes('onClick={()=>selectDomainDestination(domain.id,item)'))
   for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.ok(!home.includes("aria-expanded={hasKids"))
+  assert.ok(home.includes('AUREKA_SIDEBAR_DOMAINS'))
 })
 
 test('navigation rail visually follows the current AUREKA workspace tabs', () => {
