@@ -829,11 +829,43 @@ async function handle(req: Request): Promise<Response> {
     const year = Number(body.profile_year);
     const importerKey = String(body.importer_key || "").trim();
     const importerRoom: Record<string, number> = {
-      complaint: 1, it: 2, ambulance: 3, ibs: 4, pharmacy: 5, igd: 6,
+      complaint: 1, it: 2, ambulance: 3, ibs: 4, pharmacy: 5, igd: 6, "igd-consult": 6,
       gizi: 7, laboratory: 9, outpatient: 11, "rehab-medik": 12,
       "rekam-medis": 13, icu: 14, nicu: 18, nifas: 19, perinatology: 20,
       "pediatric-inpatient": 22, "surgical-inpatient": 23, "isolasi-inpatient": 24,
       "penyakit-dalam-inpatient": 25, "saraf-inpatient": 26, timkordik: 30, ponek: 33,
+    };
+    const importerFieldCatalog: Record<string, Array<{ target_key: string; target_label: string; aliases: string[] }>> = {
+      igd: [
+        { target_key: 'field:sourceNo', target_label: 'Nomor urut sumber', aliases: ['No', 'No.'] },
+        { target_key: 'field:patientName', target_label: 'Nama pasien', aliases: ['Nama Pasien'] },
+        { target_key: 'field:medicalRecordNo', target_label: 'Nomor rekam medis', aliases: ['No. Rekam Medis', 'No RM', 'No. RM'] },
+        { target_key: 'field:diagnosis', target_label: 'Diagnosis IGD', aliases: ['Diagnosa IGD'] },
+        { target_key: 'field:admissionAt', target_label: 'Waktu masuk IGD', aliases: ['Waktu Masuk'] },
+        { target_key: 'field:transferAt', target_label: 'Waktu transfer', aliases: ['Waktu Transfer'] },
+        { target_key: 'field:destination', target_label: 'Tujuan transfer', aliases: ['Tujuan'] },
+        { target_key: 'field:receivingNurse', target_label: 'Perawat penerima', aliases: ['Perawat Penerima'] },
+        { target_key: 'field:generalDoctor', target_label: 'Dokter umum', aliases: ['Dokter Umum'] },
+        { target_key: 'field:dpjp', target_label: 'DPJP', aliases: ['DPJP'] },
+      ],
+      'igd-consult': [
+        { target_key: 'field:consult:sourceNo', target_label: 'Nomor urut sumber konsultasi', aliases: ['No', 'No.'] },
+        { target_key: 'field:consult:medicalRecordNo', target_label: 'Nomor rekam medis', aliases: ['No RM', 'No. RM', 'No. Rekam Medis'] },
+        { target_key: 'field:consult:patientName', target_label: 'Nama pasien', aliases: ['Nama Pasien'] },
+        { target_key: 'field:consult:age', target_label: 'Umur pasien', aliases: ['Umur'] },
+        { target_key: 'field:consult:sex', target_label: 'Jenis kelamin', aliases: ['Jenis Kelamin'] },
+        { target_key: 'field:consult:patientType', target_label: 'Jenis pasien', aliases: ['Jenis Pasien'] },
+        { target_key: 'field:consult:requestingDoctor', target_label: 'Dokter IGD pemohon', aliases: ['Dokter IGD', 'Dokter Umum'] },
+        { target_key: 'field:consult:specialist', target_label: 'Dokter spesialis', aliases: ['Dokter Spesialis'] },
+        { target_key: 'field:consult:nurse', target_label: 'Perawat', aliases: ['Perawat'] },
+        { target_key: 'field:consult:registrationAt', target_label: 'Waktu registrasi', aliases: ['Waktu Registrasi'] },
+        { target_key: 'field:consult:doorToDecision', target_label: 'Door-to-Decision', aliases: ['Door-to-Decision'] },
+        { target_key: 'field:consult:consultationAt', target_label: 'Waktu konsultasi DPJP', aliases: ['Waktu Konsultasi DPJP'] },
+        { target_key: 'field:consult:reportedElapsed', target_label: 'Target capaian sumber', aliases: ['Target capaian', 'Target Capaian'] },
+        { target_key: 'field:consult:performanceLabel', target_label: 'Capaian mutu sumber', aliases: ['Capaian mutu', 'Capaian Mutu'] },
+        { target_key: 'field:consult:reasonCode', target_label: 'Alasan tidak tercapai mutu', aliases: ['Alasan tidak tercapai mutu', 'Alasan Tidak Tercapai Mutu'] },
+        { target_key: 'field:consult:reasonOther', target_label: 'Alasan lainnya', aliases: ['Alasan lain', 'Alasan Lain'] },
+      ],
     };
     const isGenericUnitWorkbook = importerKey === "unit-logbook" && Number.isSafeInteger(roomId) && roomId >= 1 && roomId <= 100;
     if (!Number.isSafeInteger(roomId) || roomId < 1 || !Number.isInteger(year) || year < 2000 || year > 2100 ||
@@ -860,40 +892,50 @@ async function handle(req: Request): Promise<Response> {
     const rawProfiles = Array.isArray((context as Record<string, unknown>).profiles)
       ? (context as Record<string, unknown>).profiles as Record<string, unknown>[]
       : [];
-    const targets = rawProfiles.filter((profile) => {
+    const targets = importerKey === "igd-consult" ? [] : rawProfiles.filter((profile) => {
       const code = String(profile.code || "").trim();
       const title = String(profile.title || "").trim();
       return /^[A-Za-z0-9][A-Za-z0-9.-]{0,19}$/.test(code) && title.length >= 3 && title.length <= 240;
     }).map((profile) => ({
+      target_type: "indicator",
+      target_key: "indicator:" + String(profile.code),
       indicator_code: String(profile.code),
+      target_label: String(profile.title).slice(0, 240),
       indicator_title: String(profile.title).slice(0, 240),
       current_master_header: String(profile.header_label || "").slice(0, 160),
       current_aliases: Array.isArray(profile.header_aliases)
         ? (profile.header_aliases as unknown[]).filter((value) => typeof value === "string").slice(0, 12).map((value) => String(value).slice(0, 160))
         : [],
     }));
-    if (!targets.length) return reply(409, { error: "Unit belum memiliki profil indikator aktif yang dapat dipetakan." });
+    const fieldTargets = (importerFieldCatalog[importerKey] || []).map((field) => ({
+      target_type: "field",
+      target_key: field.target_key,
+      target_label: field.target_label,
+      current_aliases: field.aliases.slice(0, 12),
+    }));
+    if (!targets.length && !fieldTargets.length) return reply(409, { error: "Unit belum memiliki profil indikator atau field sumber yang dapat dipetakan." });
 
     const allowedHeaders = new Map(headers.map((header) => [
       header.normalize("NFKC").toLocaleLowerCase("id-ID").replace(/\s+/g, " ").trim(),
       header,
     ]));
-    const allowedCodes = new Set(targets.map((target) => target.indicator_code));
+    const allowedTargets = new Map([...targets, ...fieldTargets].map((target) => [target.target_key, target]));
     const payload = {
-      task: "map_workbook_headers_to_hospital_indicators",
+      task: "map_workbook_headers_to_hospital_data",
       unit_profile: { room_id: roomId, year, importer_key: importerKey },
       available_excel_headers: headers,
       target_indicators: targets,
+      target_fields: fieldTargets,
     };
     const system = [
       "Kamu adalah NARA AI, asisten konfigurasi impor data rumah sakit.",
-      "Tugas hanya memetakan LABEL HEADER workbook Excel ke indikator mutu AUREKA. Kamu tidak melihat atau memerlukan isi baris data.",
-      "Gunakan arti klinis/operasional label indikator dan header. Jangan memilih berdasarkan kemiripan kata semata jika konteks tidak cukup.",
-      "Satu header sumber hanya boleh dipasangkan ke satu indikator, kecuali benar-benar merupakan duplikasi yang dibuktikan; secara default jangan gunakan header yang sama lebih dari sekali.",
-      "Jangan mengubah definisi indikator, nilai target, numerator, denominator, kode klasifikasi, atau menyatukan dua indikator.",
+      "Tugas hanya memetakan LABEL HEADER workbook Excel ke target field data utama atau indikator mutu AUREKA. Kamu tidak melihat atau memerlukan isi baris data.",
+      "Gunakan arti operasional label tujuan dan header. Jangan memilih berdasarkan kemiripan kata semata jika konteks tidak cukup.",
+      "Satu header sumber hanya boleh dipasangkan ke satu target. Jangan gunakan satu header untuk beberapa target kecuali tidak ada alternatif dan jelaskan alasan.",
+      "Jangan mengubah definisi indikator, target, numerator, denominator, kode klasifikasi, atau opsi klinis.",
       "Jika tidak ada kecocokan yang jelas, kembalikan source_header null dan confidence di bawah 0.6.",
-      'Kembalikan JSON saja: {"items":[{"indicator_code":"kode persis dari target","source_header":"header persis dari workbook atau null","confidence":0.0,"rationale":"alasan singkat"}]}.',
-      "indicator_code wajib salah satu dari target_indicators. source_header wajib identik dengan salah satu available_excel_headers; jangan membuat header baru.",
+      'Kembalikan JSON saja: {"items":[{"target_type":"indicator atau field","target_key":"kunci persis dari target_indicators/target_fields","source_header":"header persis dari workbook atau null","confidence":0.0,"rationale":"alasan singkat"}]}.',
+      "target_key wajib salah satu dari target_indicators atau target_fields. source_header wajib identik dengan available_excel_headers; jangan membuat header baru.",
       "Seluruh hasil hanya usulan untuk ditinjau manusia, bukan perubahan yang langsung disimpan.",
     ].join("\n");
     const contents: Turn[] = [{ role: "user", parts: [{ text: JSON.stringify(payload) }] }];
@@ -934,13 +976,16 @@ async function handle(req: Request): Promise<Response> {
     const rawItems = parsed && typeof parsed === "object" && !Array.isArray(parsed)
       ? (parsed as Record<string, unknown>).items
       : null;
-    const usedCodes = new Set<string>();
+    const usedTargets = new Set<string>();
     const usedHeaders = new Set<string>();
     const suggestions = (Array.isArray(rawItems) ? rawItems : []).flatMap((candidate) => {
       if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
       const row = candidate as Record<string, unknown>;
-      const code = String(row.indicator_code || "").trim();
-      if (!allowedCodes.has(code) || usedCodes.has(code)) return [];
+      const targetType = row.target_type === "field" ? "field" : "indicator";
+      const legacyCode = String(row.indicator_code || "").trim();
+      const targetKey = String(row.target_key || (targetType === "indicator" && legacyCode ? "indicator:" + legacyCode : "")).trim();
+      const target = allowedTargets.get(targetKey);
+      if (!target || usedTargets.has(targetKey) || target.target_type !== targetType) return [];
       const rawHeader = typeof row.source_header === "string" ? row.source_header.trim() : "";
       const normalizedHeader = rawHeader.normalize("NFKC").toLocaleLowerCase("id-ID").replace(/\s+/g, " ").trim();
       const sourceHeader = rawHeader ? allowedHeaders.get(normalizedHeader) || null : null;
@@ -948,10 +993,14 @@ async function handle(req: Request): Promise<Response> {
       const rationale = String(row.rationale || "").trim().slice(0, 240);
       if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) return [];
       if (sourceHeader && usedHeaders.has(normalizedHeader)) return [];
-      usedCodes.add(code);
+      usedTargets.add(targetKey);
       if (sourceHeader) usedHeaders.add(normalizedHeader);
       return [{
-        indicator_code: code,
+        target_type: targetType,
+        target_key: targetKey,
+        target_label: String(target.target_label || "").slice(0, 240),
+        indicator_code: targetType === "indicator" ? String((target as Record<string, unknown>).indicator_code || "") : null,
+        field_key: targetType === "field" ? targetKey.replace(/^field:/, "") : null,
         source_header: sourceHeader,
         confidence,
         rationale,
@@ -959,14 +1008,14 @@ async function handle(req: Request): Promise<Response> {
       }];
     });
     if (!suggestions.length) {
-      return reply(502, { error: "Respons NARA tidak mengandung pasangan indikator/header yang valid. Tidak ada perubahan yang disimpan.", model: selected.model });
+      return reply(502, { error: "Respons NARA tidak mengandung pasangan field/header yang valid. Tidak ada perubahan yang disimpan.", model: selected.model });
     }
     return reply(200, {
-      answer: "NARA menyusun " + suggestions.length + " usulan pemetaan dari label header saja. Tinjau dan simpan secara eksplisit pada layar Pemetaan Excel.",
+      answer: "NARA menyusun " + suggestions.length + " usulan pemetaan data utama dan indikator dari label header saja. Tinjau dan simpan secara eksplisit pada layar Pusat Rekonsiliasi.",
       model: selected.provider + "/" + selected.model,
       suggestions,
       header_count: headers.length,
-      target_count: targets.length,
+      target_count: targets.length + fieldTargets.length,
       saved: false,
     });
   }
