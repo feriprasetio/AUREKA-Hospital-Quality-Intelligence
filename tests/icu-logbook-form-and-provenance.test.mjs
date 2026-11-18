@@ -64,7 +64,7 @@ test('ICU importer requires BHP/Linen source mapping, stores exact header/value,
 test('results load provenance for every unit and offer a clickable source-column detail', () => {
   const results = read('components/QualityResultsWorkspace.tsx')
   assert.match(results, /indicator_values:core_data->indicator_values,source_import:core_data->source_import/)
-  assert.match(results, /Sumber Excel · kolom/)
+  assert.match(results, /Sumber Excel · semua bulan/)
   assert.match(results, /source_indicator_columns\?\.\[code\]/)
   assert.match(results, /source_bhp_linen\?\.source_value/)
   assert.match(results, /source_indicator_column_refs\?\.\[code\]/)
