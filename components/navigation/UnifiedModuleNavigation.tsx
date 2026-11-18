@@ -212,7 +212,7 @@ export default function UnifiedModuleNavigation({
   }, [resolvedSecondaryActiveId, hiddenSubIds, subItemsSignature])
 
   useEffect(() => {
-    if (!window.matchMedia('(max-width: 720px)').matches) return
+    if (!window.matchMedia('(max-width: 860px)').matches) return
     // Each group scrolls independently so both active choices remain visible
     // even when the combined primary + secondary labels exceed phone width.
     const groups: Array<[HTMLDivElement | null, string]> = [
