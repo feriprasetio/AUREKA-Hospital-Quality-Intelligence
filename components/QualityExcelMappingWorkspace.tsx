@@ -8,6 +8,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 type Room = { id: number; name: string }
 type Profile = {
   id: string
+  version?: number
   room_id: number
   profile_year: number
   code: string
