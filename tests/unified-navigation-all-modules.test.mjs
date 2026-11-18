@@ -112,7 +112,7 @@ test('Hybrid Navigation V3 exposes exactly six role-filtered primary domains and
   assert.match(home,/workspaceGlobalServiceButton/)
   assert.match(home,/Buka NARA AI/)
   assert.match(home,/Buka Pusat Komunikasi/)
-  assert.match(home,/permissionFlags\\.readPicPerformance/)
+  assert.ok(home.includes('permissionFlags.readPicPerformance'))
   assert.ok(home.includes('workspaceSearchToggle'))
   assert.ok(home.includes('workspaceNaraButton'))
   assert.ok(home.includes('workspaceInboxButton'))
