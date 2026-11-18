@@ -153,7 +153,9 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
         if (column != null) indexes[key] = column
       }
       for (const item of INDICATORS) {
-        const column = exact(columns, [...item.aliases])
+        const column = resolveInteractiveExcelHeaderColumn(columns, [...item.aliases], {
+          importerKey: 'icu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
+        })
         if (column != null) indexes['indicator:' + item.code] = column
       }
       if (indexes['indicator:14.1'] != null) indexes.unassignedBhpLinen = indexes['indicator:14.1']

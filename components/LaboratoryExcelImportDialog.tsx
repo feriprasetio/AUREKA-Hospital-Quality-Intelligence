@@ -124,10 +124,10 @@ function cellText(cell: any): string {
   return String(value).trim()
 }
 
-function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true, fieldKey?: string): number | null {
   return resolveInteractiveExcelHeaderColumn(columns, candidates, {
     importerKey: 'laboratory',
-    fieldKey: candidates[0] ?? 'field',
+    fieldKey: fieldKey ?? candidates[0] ?? 'field',
     fieldLabel: candidates[0] ?? 'Field',
     required,
   })
@@ -365,9 +365,16 @@ export default function LaboratoryExcelImportDialog({
 
       const foundColumns: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+        if (key.startsWith('indicator')) continue
         const index = findHeader(columns, aliases)
         if (index == null) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 2 sheet Logbook.')
         foundColumns[key] = index
+      }
+      for (const indicator of LABORATORY_INDICATORS) {
+        const key = INDICATOR_FIELD_KEYS[indicator.code]
+        const column = findHeader(columns, [indicator.header], true, 'indicator:' + indicator.code)
+        if (column == null) throw new Error('Header indikator ' + indicator.code + ' "' + indicator.header + '" belum dipetakan untuk Instalasi Laboratorium.')
+        foundColumns[key] = column
       }
 
       for (const indicator of LABORATORY_INDICATORS) {
@@ -381,10 +388,8 @@ export default function LaboratoryExcelImportDialog({
         if (matches.length !== 1 || !matches[0].id || !Array.isArray(matches[0].options_json)) {
           throw new Error('Master indikator ' + indicator.code + ' harus tepat satu, aktif, terbit, dan memiliki opsi. Muat ulang setelah master Laboratorium diperiksa.')
         }
-        const headerLabel = String(matches[0].schema_json?.header_label ?? '').trim()
-        if (headerLabel !== indicator.header) {
-          throw new Error('Header indikator ' + indicator.code + ' pada master harus "' + indicator.header + '", ditemukan "' + (headerLabel || 'kosong') + '". Pemetaan dihentikan agar respons tidak tertukar.')
-        }
+        // Workbook source-header mapping is configured per unit/importer and is deliberately
+        // independent from the clinical indicator definition stored in the profile.
       }
 
       const byCode: Record<LaboratoryIndicatorCode, IndicatorProfile> = {} as Record<LaboratoryIndicatorCode, IndicatorProfile>

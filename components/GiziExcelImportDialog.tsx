@@ -108,10 +108,10 @@ function cellText(cell: any): string {
   return String(value).trim()
 }
 
-function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true, fieldKey?: string): number | null {
   return resolveInteractiveExcelHeaderColumn(columns, candidates, {
     importerKey: 'gizi',
-    fieldKey: candidates[0] ?? 'field',
+    fieldKey: fieldKey ?? candidates[0] ?? 'field',
     fieldLabel: candidates[0] ?? 'Field',
     required,
   })
@@ -327,9 +327,16 @@ export default function GiziExcelImportDialog({
 
       const foundColumns: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
+        if (key === 'assessment' || key === 'prescription') continue
         const index = findHeader(columns, aliases)
         if (index == null) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 2 sheet Logbook.')
         foundColumns[key] = index
+      }
+      for (const indicator of INDICATORS) {
+        const key = indicator.code === '7.1' ? 'assessment' : 'prescription'
+        const column = findHeader(columns, [indicator.header], true, 'indicator:' + indicator.code)
+        if (column == null) throw new Error('Kolom indikator ' + indicator.code + ' "' + indicator.header + '" belum dipetakan untuk Instalasi Gizi.')
+        foundColumns[key] = column
       }
 
       const byCode: Record<IndicatorCode, IndicatorProfile> = {} as Record<IndicatorCode, IndicatorProfile>
