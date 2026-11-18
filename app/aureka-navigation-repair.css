@@ -377,15 +377,26 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   overflow: hidden !important;
 }
 
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceGlobalSearch {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSearchToggle {
   order: 2 !important;
+  display: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceGlobalSearch {
+  order: 3 !important;
   flex: 1 1 180px !important;
   min-width: 90px !important;
   max-width: 420px !important;
 }
 
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceNaraButton { order: 4 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceInboxButton { order: 5 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceThemeButton { order: 6 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceFullscreenButton { order: 7 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { order: 8 !important; }
+
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
-  order: 6 !important;
+  order: 9 !important;
   flex: 0 0 auto !important;
   min-width: 0 !important;
   margin-left: auto !important;
@@ -912,6 +923,16 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     padding-inline: 8px !important;
   }
 
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSearchToggle {
+    display: grid !important;
+    order: 2 !important;
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
     flex: 0 0 36px !important;
     width: 36px !important;
@@ -979,6 +1000,26 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
 
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationGroupDivider {
     display: none !important;
+  }
+}
+
+
+/* Medium-width workspaces keep both navigation groups usable without
+   forcing the active tab and its overflow control beyond the rail. */
+@media (max-width: 860px) and (min-width: 721px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailTitle {
+    max-width: 26% !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem {
+    max-width: 180px !important;
   }
 }
 
