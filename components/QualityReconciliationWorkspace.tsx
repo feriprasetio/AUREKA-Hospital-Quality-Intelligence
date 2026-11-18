@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import QualityImportMappingWorkspace from '@/components/QualityImportMappingWorkspace'
 
 type Room = { id: number; name: string }
 type MasterOption = { code?: number | null; label?: string; review_required?: boolean; numerator?: boolean | null; denominator?: boolean | null }
@@ -117,6 +118,7 @@ export default function QualityReconciliationWorkspace({
   const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
   const [warningDrafts, setWarningDrafts] = useState<Record<string, WarningDraft>>({})
   const [showAudit, setShowAudit] = useState(false)
+  const [workspaceView, setWorkspaceView] = useState<'queue' | 'mapping'>('queue')
 
   const canManage = role === 'ADMIN' || role === 'PMKP'
   const responseGroups = queue?.response_groups ?? []
@@ -300,9 +302,21 @@ export default function QualityReconciliationWorkspace({
     [warningGroups],
   )
 
+  if (workspaceView === 'mapping') return <section className="qrcWorkspace">
+    <style>{`.qrcModeTabs{display:flex;gap:7px;flex-wrap:wrap}.qrcModeTab{border:1px solid #d6e1e9;background:#fff;color:#526d80;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer}.qrcModeTab.active{background:#eaf3fb;border-color:#b9d4eb;color:#1e557e}`}</style>
+    <div className="qrcModeTabs">
+      <button type="button" className="qrcModeTab" onClick={() => setWorkspaceView('queue')}>Antrean Rekonsiliasi</button>
+      <button type="button" className="qrcModeTab active">Pengaturan Pemetaan Impor</button>
+    </div>
+    <QualityImportMappingWorkspace rooms={rooms} initialRoomId={initialRoomId} role={role}/>
+  </section>
+
   return <section className="qrcWorkspace">
     <style>{`
       .qrcWorkspace{display:grid;gap:15px;min-width:0;color:#1d3448}
+      .qrcModeTabs{display:flex;gap:7px;flex-wrap:wrap}
+      .qrcModeTab{border:1px solid #d6e1e9;background:#fff;color:#526d80;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer}
+      .qrcModeTab.active{background:#eaf3fb;border-color:#b9d4eb;color:#1e557e}
       .qrcHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
       .qrcEyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:850;color:#56809a}
       .qrcHead h2{font-size:23px;margin:4px 0;letter-spacing:-.035em}
@@ -373,6 +387,10 @@ export default function QualityReconciliationWorkspace({
       </div>
     </header>
 
+    <div className="qrcModeTabs">
+      <button type="button" className="qrcModeTab active">Antrean Rekonsiliasi</button>
+      <button type="button" className="qrcModeTab" onClick={() => setWorkspaceView('mapping')}>Pengaturan Pemetaan Impor</button>
+    </div>
     {error && <div className="qrcError" role="alert">{error}</div>}
     {success && <div className="qrcSuccess" role="status">{success}</div>}
 
