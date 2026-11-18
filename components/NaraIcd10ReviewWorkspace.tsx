@@ -70,19 +70,40 @@ export default function NaraIcd10ReviewWorkspace({ sb, onBack }: { sb: SupabaseC
     setRunningAi(true)
     setError('')
     setNotice('')
-    const { data, error: invokeError } = await sb.functions.invoke('aureka-tanya', {
-      body: {
-        task: 'icd10_suggest',
-        question: 'Usulkan pemetaan ICD-10 WHO 2019 untuk istilah diagnosis agregat yang belum memiliki usulan.',
-      },
-    })
-    setRunningAi(false)
-    if (invokeError || data?.error) {
-      setError('Usulan AI belum berhasil dijalankan. Pastikan provider AI aktif dan akun memiliki akses PMKP/Admin.')
-      return
+    try {
+      const { data, error: invokeError } = await sb.functions.invoke('aureka-tanya', {
+        body: {
+          task: 'icd10_suggest',
+          question: 'Usulkan pemetaan ICD-10 WHO 2019 untuk istilah diagnosis agregat yang belum memiliki usulan.',
+        },
+      })
+      if (invokeError) {
+        let detail = invokeError.message || 'Pemanggilan layanan AI gagal.'
+        const context = (invokeError as unknown as { context?: unknown }).context
+        if (context instanceof Response) {
+          try {
+            const payload = await context.clone().json() as { error?: unknown }
+            if (typeof payload?.error === 'string' && payload.error.trim()) detail = payload.error
+          } catch { /* gunakan pesan error Functions jika body tidak berupa JSON */ }
+        }
+        setError(detail)
+        return
+      }
+      if (typeof data?.error === 'string' && data.error.trim()) {
+        setError(data.error)
+        return
+      }
+      const proposed = Number(data?.proposed) || 0
+      const model = typeof data?.model === 'string' ? data.model : ''
+      const answer = String(data?.answer || 'Proses usulan diagnosis selesai.')
+      setNotice(answer + (model ? '\n\nProvider/model: ' + model : '') +
+        (proposed ? '\n\nJumlah usulan baru tersimpan: ' + proposed : ''))
+      await load()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Terjadi gangguan saat menjalankan usulan AI.')
+    } finally {
+      setRunningAi(false)
     }
-    setNotice(String(data?.answer || 'Proses usulan diagnosis selesai.'))
-    await load()
   }
 
   const saveMapping = async (row: ReviewRow, status: 'proposed' | 'validated') => {

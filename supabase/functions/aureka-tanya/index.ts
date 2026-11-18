@@ -507,8 +507,16 @@ function formatTopDiseaseAnswer(data: Record<string, unknown>) {
 const QUOTA = "Kuota AI gratis sedang habis. Coba lagi beberapa menit lagi.";
 
 /** Gemini: model utama, lalu model cadangan bila sibuk/kuota habis. */
-async function askGemini(apiKey: string, system: string, contents: Turn[], deadline: number): Promise<AiResult> {
-  const payload = JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.6, maxOutputTokens: 1200 } });
+async function askGemini(apiKey: string, system: string, contents: Turn[], deadline: number, jsonMode = false): Promise<AiResult> {
+  const payload = JSON.stringify({
+    systemInstruction: { parts: [{ text: system }] },
+    contents,
+    generationConfig: {
+      temperature: jsonMode ? 0.1 : 0.6,
+      maxOutputTokens: jsonMode ? 2200 : 1200,
+      ...(jsonMode ? { responseMimeType: "application/json" } : {}),
+    },
+  });
   let last = 0;
   for (const model of [...new Set([MODEL, FALLBACK_MODEL])]) {
     if (Date.now() >= deadline) break;
@@ -542,84 +550,165 @@ const OPENAI_PROVIDERS: Record<string, OpenAiProvider> = {
   groq: { label: "Groq", url: "https://api.groq.com/openai/v1/chat/completions",
     models: [Deno.env.get("GROQ_MODEL") || "", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"] },
   nvidia: { label: "NVIDIA", url: "https://integrate.api.nvidia.com/v1/chat/completions",
-    models: [Deno.env.get("NVIDIA_MODEL") || "", "meta/llama-3.3-70b-instruct", "deepseek-ai/deepseek-v4-flash", "openai/gpt-oss-120b"] },
+    models: [Deno.env.get("NVIDIA_MODEL") || "", "deepseek-ai/deepseek-v4-flash", "deepseek-ai/deepseek-v4-flash-0731", "meta/llama-3.3-70b-instruct", "openai/gpt-oss-120b"] },
   deepseek: { label: "DeepSeek", url: "https://api.deepseek.com/chat/completions",
     models: [Deno.env.get("DEEPSEEK_MODEL") || "", "deepseek-flash", "deepseek-chat"] },
   llm7: { label: "LLM7", url: "https://api.llm7.io/v1/chat/completions",
     models: [Deno.env.get("LLM7_MODEL") || "", "default", "fast"] },
 };
 
-async function askOpenAi(p: OpenAiProvider, apiKey: string, system: string, contents: Turn[], deadline: number): Promise<AiResult> {
+async function askOpenAi(
+  p: OpenAiProvider,
+  apiKey: string,
+  system: string,
+  contents: Turn[],
+  deadline: number,
+  jsonMode = false,
+): Promise<AiResult> {
   const messages = [
     { role: "system", content: system },
     ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map((x) => x.text).join("\n") })),
   ];
   let last = 0;
-  for (const model of [...new Set(p.models.filter(Boolean))].slice(0, 3)) {
+  for (const model of [...new Set(p.models.filter(Boolean))].slice(0, 5)) {
     if (Date.now() >= deadline) break;
     const tag = p.label + ":" + model;
     if (isDead(tag)) continue;
-    // Model "berpikir" (gpt-oss) diminta berpikir singkat agar jawaban cepat.
     const extra = /gpt-oss/.test(model) ? { reasoning_effort: "low" } : {};
+    const makeBody = (useJsonMode: boolean) => JSON.stringify({
+      model,
+      messages,
+      temperature: jsonMode ? 0.1 : 0.6,
+      max_tokens: jsonMode ? 2200 : 1200,
+      ...(useJsonMode ? { response_format: { type: "json_object" } } : {}),
+      ...extra,
+    });
     let res: Response;
+    let errorBody = "";
     try {
       res = await fetchWithTimeout(p.url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1200, ...extra }),
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + apiKey },
+        body: makeBody(jsonMode),
       }, Math.min(PROVIDER_TIMEOUT_MS, Math.max(1, deadline - Date.now())));
     } catch (e) {
       console.warn(p.label, model, "jaringan/timeout", String(e).slice(0, 200));
       last = 504;
       continue;
     }
+    if (!res.ok) errorBody = (await res.text()).slice(0, 500);
+    if (!res.ok && jsonMode && res.status === 400 &&
+      /response_format|json[_ -]?object|json mode|unsupported parameter/i.test(errorBody)) {
+      try {
+        res = await fetchWithTimeout(p.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + apiKey },
+          body: makeBody(false),
+        }, Math.min(PROVIDER_TIMEOUT_MS, Math.max(1, deadline - Date.now())));
+        errorBody = res.ok ? "" : (await res.text()).slice(0, 500);
+      } catch (e) {
+        console.warn(p.label, model, "fallback JSON request timeout", String(e).slice(0, 160));
+        last = 504;
+        continue;
+      }
+    }
     last = res.status;
     if (res.ok) {
       const out = await res.json();
       const answer = String(out?.choices?.[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
       if (answer) return { answer, model };
+      console.warn(p.label, model, "empty assistant content");
       continue;
     }
-    const errorBody = (await res.text()).slice(0, 300);
     console.warn(p.label, model, "provider status", res.status);
-    if (res.status === 401 || res.status === 403) return { status: 502, error: `Kunci ${p.label} ditolak. Periksa atau buat ulang kuncinya.` };
+    if (res.status === 401 || res.status === 403) {
+      return { status: 502, error: p.label + ": API key ditolak (HTTP " + res.status + "). Periksa secret provider di Supabase." };
+    }
+    if (res.status === 402) {
+      return { status: 503, error: p.label + ": akun provider tidak memiliki kredit/billing aktif (HTTP 402). Provider lain tetap akan dicoba." };
+    }
+    if (res.status === 410) { markDead(tag); continue; }
     if (res.status === 404 || (res.status === 400 && /model|decommission|not.*(found|exist|support)/i.test(errorBody))) markDead(tag);
-    // Model dihentikan/tidak ada (400/404/422), kuota (429), terlalu besar (413), server sibuk: coba model berikutnya.
-    if (![400, 404, 413, 422, 429, 500, 502, 503, 504].includes(res.status)) break;
+    if (![400, 404, 413, 422, 429, 500, 502, 503, 504].includes(res.status)) {
+      return { status: 502, error: p.label + ": provider menolak permintaan (HTTP " + res.status + "). Periksa konfigurasi model/provider." };
+    }
   }
-  return { status: last === 429 ? 429 : 502, error: last === 429 ? QUOTA : BUSY };
+  if (last === 429) return { status: 429, error: p.label + ": kuota atau rate limit provider tercapai (HTTP 429)." };
+  if (last === 410) return { status: 503, error: p.label + ": model yang dikonfigurasi sudah dihentikan (HTTP 410)." };
+  return { status: 502, error: p.label + ": tidak ada model yang berhasil memproses permintaan." };
 }
-
 type Icd10AiSuggestion = { diagnosis: string; code: string; title: string; confidence: number; rationale: string };
 
-function parseIcd10AiSuggestions(answer: string, allowedTerms: Set<string>): Icd10AiSuggestion[] {
-  const text = answer.replace(/^`{3}(?:json)?/i, "").replace(/`{3}$/i, "").trim();
-  const first = text.indexOf("{");
-  const last = text.lastIndexOf("}");
-  if (first < 0 || last <= first) return [];
-  try {
-    const payload = JSON.parse(text.slice(first, last + 1));
-    const rows = Array.isArray(payload?.items) ? payload.items : [];
-    const seen = new Set<string>();
-    return rows.flatMap((row: Record<string, unknown>) => {
-      const diagnosis = String(row?.diagnosis || "").trim();
-      const code = String(row?.icd10_code || row?.code || "").trim().toUpperCase();
-      const title = String(row?.icd10_title || row?.title || "").trim().slice(0, 180);
-      const confidenceRaw = Number(row?.confidence);
-      const confidence = confidenceRaw > 1 && confidenceRaw <= 100 ? confidenceRaw / 100 : confidenceRaw;
-      const rationale = String(row?.rationale || row?.reason || "").trim().slice(0, 240);
-      const key = diagnosis.toLocaleLowerCase("id-ID");
-      if (!diagnosis || !allowedTerms.has(diagnosis) || seen.has(key)) return [];
-      if (!/^[A-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?$/.test(code) || !title) return [];
-      if (!Number.isFinite(confidence) || confidence < 0.6 || confidence > 1) return [];
-      seen.add(key);
-      return [{ diagnosis, code, title, confidence, rationale }];
-    });
-  } catch {
-    return [];
-  }
+function normalizeIcd10Term(value: string): string {
+  return value.normalize("NFKC").toLocaleLowerCase("id-ID")
+    .replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
 }
 
+function parseIcd10AiSuggestions(answer: string, allowedTerms: Map<string, string>): Icd10AiSuggestion[] {
+  const text = answer.replace(/^\x60{3}(?:json)?/i, "").replace(/\x60{3}$/i, "").trim();
+  const start = text.search(/[\[{]/);
+  if (start < 0) return [];
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let payload: unknown;
+  let parsed = false;
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') { inString = true; continue; }
+    if (char === "{" || char === "[") depth++;
+    else if (char === "}" || char === "]") depth--;
+    if (depth === 0) {
+      try { payload = JSON.parse(text.slice(start, i + 1)); parsed = true; } catch { return []; }
+      break;
+    }
+  }
+  if (!parsed || !payload || typeof payload !== "object") return [];
+  const container = payload as Record<string, unknown>;
+  const nested = container.data && typeof container.data === "object" ? container.data as Record<string, unknown> : null;
+  const rows = Array.isArray(payload) ? payload
+    : Array.isArray(container.items) ? container.items
+    : Array.isArray(container.suggestions) ? container.suggestions
+    : Array.isArray(container.results) ? container.results
+    : Array.isArray(container.mappings) ? container.mappings
+    : Array.isArray(nested?.items) ? nested.items
+    : [];
+  const seen = new Set<string>();
+  return rows.flatMap((candidate: unknown) => {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+    const row = candidate as Record<string, unknown>;
+    const sourceTerm = String(row.diagnosis ?? row.term ?? row.input ?? row.source_diagnosis ?? "").trim();
+    const normalizedTerm = normalizeIcd10Term(sourceTerm);
+    const diagnosis = allowedTerms.get(normalizedTerm);
+    const rawCode = String(row.icd10_code ?? row.code ?? row.icd10 ?? "").trim().toUpperCase();
+    const codeMatch = rawCode.match(/(?:^|[^A-Z0-9])([A-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?)(?:$|[^A-Z0-9])/);
+    const code = codeMatch?.[1] || "";
+    const title = String(row.icd10_title ?? row.title ?? row.description ?? "").trim().slice(0, 180);
+    const rawConfidence = row.confidence ?? row.confidence_score;
+    const confidenceText = typeof rawConfidence === "string" ? rawConfidence.trim() : "";
+    let confidence = Number(rawConfidence);
+    if (confidenceText.endsWith("%")) confidence = Number(confidenceText.slice(0, -1));
+    if (confidenceText && !Number.isFinite(confidence)) {
+      confidence = /^(high|tinggi)$/i.test(confidenceText) ? 0.8
+        : /^(medium|moderate|sedang)$/i.test(confidenceText) ? 0.65
+        : /^(low|rendah)$/i.test(confidenceText) ? 0.4 : Number.NaN;
+    }
+    if (confidence > 1 && confidence <= 100) confidence /= 100;
+    const rationale = String(row.rationale ?? row.reason ?? row.explanation ?? "").trim().slice(0, 240);
+    const key = diagnosis ? normalizeIcd10Term(diagnosis) : normalizedTerm;
+    if (!diagnosis || seen.has(key)) return [];
+    if (!/^[A-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?$/.test(code) || !title) return [];
+    if (!Number.isFinite(confidence) || confidence < 0.6 || confidence > 1) return [];
+    seen.add(key);
+    return [{ diagnosis, code, title, confidence, rationale }];
+  });
+}
 function appendRiskDistributionFallback(question: string, answer: string, snapshotData: unknown): string {
   const asksRiskMatrix = /matriks risiko|risk matrix|heatmap risiko|peta panas risiko/i.test(question);
   if (!asksRiskMatrix || answer.includes("[[NARA_VISUAL]]")) return answer;
@@ -761,7 +850,7 @@ async function handle(req: Request): Promise<Response> {
         : "Tidak ada istilah diagnosis baru yang memenuhi kriteria untuk diusulkan. Istilah dengan kelompok kurang dari lima pasien tetap tidak dikirim ke provider AI demi perlindungan privasi.";
       return reply(200, { answer: message, model: "database:icd10-review-queue", proposed: 0, pending: 0, awaiting_review: awaitingReview });
     }
-    const allowedTerms = new Set(safeRows.map((r) => String(r.diagnosis).trim()));
+    const allowedTerms = new Map(safeRows.map((r) => [normalizeIcd10Term(String(r.diagnosis)), String(r.diagnosis)]));
     const payload = { code_set: "WHO ICD-10 Version 2019", items: safeRows.map((r) => ({ diagnosis: String(r.diagnosis), patient_count: Number(r.patient_count) || 0 })) };
     const system = [
       "Kamu adalah asisten koding klinis untuk memberi USULAN ICD-10 WHO Version 2019. Ini bukan keputusan klinis atau koding final.",
@@ -776,19 +865,36 @@ async function handle(req: Request): Promise<Response> {
     const deadline = Date.now() + PROVIDER_ROUTE_BUDGET_MS;
     let selected: { provider: string; model: string; suggestions: Icd10AiSuggestion[] } | null = null;
     let lastError = BUSY;
+    const providerDiagnostics: string[] = [];
     for (const provider of order) {
       if (Date.now() >= deadline || selected) break;
       for (const key of available[provider] || []) {
         if (Date.now() >= deadline || selected) break;
         const result = provider === "gemini"
-          ? await askGemini(key, system, contents, deadline)
-          : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, deadline);
-        if ("status" in result) { lastError = result.error; continue; }
+          ? await askGemini(key, system, contents, deadline, true)
+          : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, deadline, true);
+        if ("status" in result) {
+          lastError = result.error;
+          providerDiagnostics.push(provider + ": " + result.error);
+          continue;
+        }
         const suggestions = parseIcd10AiSuggestions(result.answer, allowedTerms);
-        if (suggestions.length) selected = { provider, model: result.model, suggestions };
+        if (suggestions.length) {
+          selected = { provider, model: result.model, suggestions };
+        } else {
+          providerDiagnostics.push(provider + "/" + result.model + ": respons diterima, tetapi format/istilah/kode/confidence tidak lolos validasi.");
+          console.warn("NARA ICD-10 response rejected by validator", provider, result.model);
+        }
       }
     }
-    if (!selected) return reply(502, { error: "Tidak ada provider yang berhasil menghasilkan usulan ICD-10 terstruktur. Tidak ada kode yang disimpan. " + lastError });
+    if (!selected) {
+      const detail = providerDiagnostics.length ? providerDiagnostics.slice(0, 8).join(" | ") : lastError;
+      return reply(502, {
+        code: "ICD10_PROVIDER_OR_PARSE_FAILURE",
+        error: "NARA belum memperoleh usulan ICD-10 yang dapat divalidasi. Tidak ada kode yang disimpan. " + detail,
+        provider_diagnostics: providerDiagnostics.slice(0, 8),
+      });
+    }
     let saved = 0;
     const reports: string[] = [];
     for (const item of selected.suggestions) {
@@ -800,6 +906,16 @@ async function handle(req: Request): Promise<Response> {
       if (saveError) { reports.push(item.diagnosis + ": gagal disimpan"); continue; }
       saved++;
       reports.push("- " + item.diagnosis + " → " + item.code + " (" + Math.round(item.confidence * 100) + "%; belum tervalidasi)");
+    }
+    if (saved === 0) {
+      console.error("NARA ICD-10 provider returned suggestions but database save failed", selected.provider, selected.model, reports.length);
+      return reply(500, {
+        code: "ICD10_PROPOSAL_SAVE_FAILED",
+        error: "AI berhasil menghasilkan usulan, tetapi tidak ada usulan yang tersimpan. Periksa hak akses Super Admin/Komite PMKP dan fungsi penyimpanan kamus ICD-10.",
+        model: selected.provider + ":" + selected.model,
+        proposed: 0,
+        failed: reports.length,
+      });
     }
     const pending = Math.max(0, unmappedRows.length - saved);
     const continuation = pending > 0

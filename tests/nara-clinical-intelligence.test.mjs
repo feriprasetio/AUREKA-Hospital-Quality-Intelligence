@@ -81,3 +81,26 @@ test('NARA reports patient-index diagnosis completeness and unit-level data gaps
   assert.match(gateway, /const unitCoverage/)
   assert.match(gateway, /Baris kosong tidak boleh ditafsirkan sebagai pasien tanpa penyakit/)
 })
+
+
+test('ICD-10 suggestions request machine-readable JSON and accept normalized diagnosis labels safely', () => {
+  assert.match(gateway, /response_format: \{ type: "json_object" \}/)
+  assert.match(gateway, /responseMimeType: "application\/json"/)
+  assert.match(gateway, /function normalizeIcd10Term/)
+  assert.match(gateway, /allowedTerms\.get\(normalizedTerm\)/)
+  assert.match(gateway, /confidence < 0\.6/)
+})
+
+test('NVIDIA model retirement and DeepSeek billing failures do not stop other provider fallbacks', () => {
+  assert.match(gateway, /deepseek-ai\/deepseek-v4-flash/)
+  assert.match(gateway, /res\.status === 410\) \{ markDead\(tag\); continue; \}/)
+  assert.match(gateway, /res\.status === 402/)
+  assert.match(gateway, /providerDiagnostics/)
+})
+
+test('ICD-10 review UI surfaces the actual function error instead of a generic provider message', () => {
+  assert.match(review, /context\.clone\(\)\.json\(\)/)
+  assert.match(review, /setError\(detail\)/)
+  assert.match(review, /Provider\/model:/)
+  assert.doesNotMatch(review, /Pastikan provider AI aktif dan akun memiliki akses PMKP\/Admin/)
+})
