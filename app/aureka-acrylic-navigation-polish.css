@@ -667,9 +667,12 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar > .navLabel,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainTrigger > span,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainTrigger .sidebarDomainChevron,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainItems,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarFooter .logoutLabel {
-    display: revert !important;
+    display: block !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainItems {
+    display: grid !important;
   }
 
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainTrigger {
