@@ -1103,10 +1103,10 @@ export default function HomeClient(){
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
    </div>
-   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton" title="Buka NARA AI" aria-label="Buka NARA AI" onClick={()=>openMainModule('nara')}>
+   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceNaraButton" title="Buka NARA AI" aria-label="Buka NARA AI" onClick={()=>openMainModule('nara')}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span className="srOnly">NARA AI</span>
    </button>
-   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton" data-workspace-popover-trigger="inbox" title="Buka Pusat Komunikasi" aria-label="Buka Pusat Komunikasi" aria-expanded={supportOpen} onClick={()=>{openSupportChat('admin');setNotificationHistoryOpen(false)}}>
+   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceInboxButton" data-workspace-popover-trigger="inbox" title="Buka Pusat Komunikasi" aria-label="Buka Pusat Komunikasi" aria-expanded={supportOpen} onClick={()=>{openSupportChat('admin');setNotificationHistoryOpen(false)}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 7l8 6 8-6M4 15h5l1.5 2h3L15 15h5"/></svg><span className="srOnly">Pusat Komunikasi</span>
    </button>
    <button type="button" className="workspaceHeaderIcon workspaceThemeButton" title={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-label={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-pressed={uiMode==='gelap'} onClick={toggleUiMode}>

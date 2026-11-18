@@ -954,8 +954,8 @@ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlob
   grid-template-columns: 34px minmax(0,1fr) repeat(5,32px) !important;
  }
  html[data-theme] .workspaceRoot.workspaceDesk .workspaceSearchToggle { display: none !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlobalServiceButton:nth-of-type(1) { grid-column: 3 !important; grid-row: 1 !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlobalServiceButton:nth-of-type(2) { grid-column: 4 !important; grid-row: 1 !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceNaraButton { grid-column: 3 !important; grid-row: 1 !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceInboxButton { grid-column: 4 !important; grid-row: 1 !important; }
  html[data-theme] .workspaceRoot.workspaceDesk .workspaceThemeButton { grid-column: 5 !important; grid-row: 1 !important; }
  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon[data-workspace-popover-trigger="notifications"] { grid-column: 6 !important; grid-row: 1 !important; }
  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { grid-column: 7 !important; grid-row: 1 !important; }
