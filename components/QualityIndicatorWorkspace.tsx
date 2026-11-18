@@ -833,14 +833,53 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const applicable=useMemo(()=>selected?layoutProfiles(profiles,selectedLayout).filter(p=>Number(p.room_id)===Number(selected.roomId)&&!(Number(selected.roomId)===11&&/waktu tunggu rawat jalan/i.test(displayTitle(p)))).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,profiles,selectedLayout])
  const filledN=useMemo(()=>applicable.filter(p=>responseComplete(p,draft[p.id??p.code])).length,[applicable,draft])
 
- const openPatient=(p:Patient)=>{
-   const layout=getLayoutForRoom(Number(p.roomId),String(p.unit??''))
+ const openPatient=async(p:Patient)=>{
+   const selectedRoomId=Number(p.roomId)
+   const layout=getLayoutForRoom(selectedRoomId,String(p.unit??''))
+   let availableProfiles=profiles
+   let unresolved=unmatchedHeaders(availableProfiles,layout)
+
+   // A row can be opened from a stale in-memory snapshot after a profile-set change.
+   // Refresh the authoritative room/year master before rendering its indicator controls.
+   if(layout?.indicators?.length&&unresolved.length){
+     setBusy(true)
+     try{
+       const {data,error}=await q().from('indicator_profiles').select('*')
+         .eq('room_id',selectedRoomId).eq('profile_year',year)
+         .eq('status','published').eq('is_active',true).order('code')
+       if(error)throw error
+       availableProfiles=data??[]
+       setProfiles(current=>[
+         ...current.filter(item=>Number(item.room_id)!==selectedRoomId||Number(item.profile_year)!==year),
+         ...availableProfiles,
+       ])
+       QIW_MEMORY_CACHE.delete([selectedRoomId,year].join('|'))
+       unresolved=unmatchedHeaders(availableProfiles,layout)
+     }catch(error){
+       const detail=toUserFacingError(error,{fallback:'Periksa koneksi dan hak akses, lalu muat ulang logbook.'})
+       setMessage('Profil indikator belum berhasil disegarkan dari master unit. Formulir tidak dibuka dengan kartu kosong. '+detail)
+       setBusy(false)
+       return
+     }finally{
+       setBusy(false)
+     }
+   }
+
+   const mappedProfiles=layoutProfiles(availableProfiles,layout)
+     .filter(profile=>Number(profile.room_id)===selectedRoomId)
+   if(layout?.indicators?.length&&!mappedProfiles.length){
+     setMessage('Tidak ada profil indikator aktif yang cocok dengan template unit ini. Periksa master indikator untuk tahun '+year+'; laporan tidak dibuka agar tidak menampilkan formulir kosong.')
+     return
+   }
+
    const r:any={}
-   layoutProfiles(profiles,layout).forEach(x=>{r[x.id??x.code]=p.indicatorValues?.[x.code]??empty(x)})
+   mappedProfiles.forEach(profile=>{r[profile.id??profile.code]=p.indicatorValues?.[profile.code]??empty(profile)})
    setSelected({...p,layoutOverride:layout})
    setDraft(r)
    setPatientOpen(true)
-   setMessage('')
+   setMessage(unresolved.length
+     ? 'Sebagian indikator belum memiliki profil master yang cocok: '+unresolved.join(', ')+'. Periksa master indikator unit.'
+     : '')
  }
  const newPatient=(requestedRoomId?:number,initialFields:Record<string,any>={})=>{
    if(isValidator){setMessage('Akun validator hanya dapat meninjau dan memvalidasi catatan yang dikirim unit.');return}
@@ -1206,8 +1245,8 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
         {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Belum ada indikator yang dikonfigurasikan untuk unit ini.</div>}
         <div className="aqIndicatorList">
           {applicable.map(indicatorEditor)}
-          {selectedUnmatchedHeaders.map((header,i)=><article className="aqInd aqUnmatchedInd" key={`unmapped-${selected.roomId}-${i}-${header}`}><div className="aqIHead"><div><strong>{header}</strong></div></div><div className="aqIBody"></div></article>)}
-          {!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator hijau pada layout unit ini.</div>}
+          {selectedUnmatchedHeaders.length>0&&<div className="aqNotice" role="alert">Profil master belum cocok untuk indikator: {selectedUnmatchedHeaders.join(', ')}. Kartu kosong disembunyikan agar formulir tidak memberi kesan bahwa indikator siap diisi. Periksa profil indikator aktif pada unit dan tahun laporan ini.</div>}
+          {!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator aktif yang dapat ditampilkan untuk unit ini. Periksa master profil indikator.</div>}
         </div>
       </section>
     </div><div className="aqFoot"><span style={{fontSize:12,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Gunakan pemeriksaan laporan bulanan untuk mencatat seluruh pemeriksaan.':`${source} · Laporan disimpan sebagai final dan tetap dapat diedit PIC sampai diarsipkan.`}</span><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="aqBtn" disabled={busy} onClick={requestCloseEditor}>{isValidator?'Tutup':'Batal'}</button>{!isValidator&&<><button type="button" className="aqBtn" title="Simpan lalu buka formulir baru (DPJP terbawa)" onClick={()=>void saveAndNew()} disabled={busy}>Simpan &amp; isi berikutnya</button><button type="button" className="aqBtn primary" title="Ctrl+S" onClick={()=>void save()} disabled={busy}>{busy?'Menyimpan…':'Simpan Laporan'}</button></>}</div></div></section>:null
