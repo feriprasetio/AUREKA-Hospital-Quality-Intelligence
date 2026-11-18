@@ -1,4 +1,5 @@
 import { normalizeExactHeader } from './excel-paste.ts'
+import { findPersistedImportHeaderMapping } from './import-mapping-cache'
 
 export type InteractiveHeaderColumns = ReadonlyMap<string, number | readonly number[]>
 
@@ -97,8 +98,8 @@ function parseColumnChoice(value: string, allowed: number[]): number | null {
  *
  * Exact normalized matches are automatic only when unique. Missing, ambiguous,
  * and duplicate headers open a chooser in the upload flow. The selected source
- * header is saved per importer/field in this browser so later workbooks can be
- * mapped automatically even when their column order changes.
+ * header may be centrally configured per unit/indicator; browser-local storage
+ * remains only as a fallback for fields not yet governed centrally.
  */
 export function resolveInteractiveExcelHeaderColumn(
   columns: InteractiveHeaderColumns,
@@ -106,6 +107,19 @@ export function resolveInteractiveExcelHeaderColumn(
   options: InteractiveHeaderMappingOptions,
 ): number | null {
   const positions = getPositions(columns)
+  const governed = findPersistedImportHeaderMapping(options.importerKey, [options.fieldKey, ...candidates])
+  if (governed) {
+    const governedPositions = positions.get(normalizeExactHeader(governed.source_header)) ?? []
+    const occurrence = Math.max(1, Number(governed.occurrence ?? 1))
+    if (governedPositions.length < occurrence) {
+      throw new Error(
+        'Pemetaan terpusat untuk "' + (options.fieldLabel ?? candidates[0] ?? options.fieldKey) +
+        '" mengarah ke header "' + governed.source_header +
+        '", tetapi header tersebut tidak ditemukan pada workbook ini. Perbarui Pengaturan Pemetaan Unit/Indikator.'
+      )
+    }
+    return governedPositions[occurrence - 1]
+  }
   const saved = readMappings(options.importerKey)[options.fieldKey]
   const savedPositions = saved ? positions.get(normalizeExactHeader(saved.normalizedHeader)) ?? [] : []
   if (saved && savedPositions.length >= saved.occurrence) {
