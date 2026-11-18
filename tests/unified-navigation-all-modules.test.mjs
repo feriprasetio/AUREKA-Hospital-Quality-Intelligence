@@ -25,7 +25,7 @@ test('all navigation groups preserve the selected destination and use responsive
   assert.match(nav, /function overflowFor\(/)
   assert.match(nav, /item\.id === resolvedActiveId \|\| !hiddenIds\.includes\(item\.id\)/)
   assert.match(nav, /item\.id === resolvedSecondaryActiveId \|\| !hiddenSubIds\.includes\(item\.id\)/)
-  assert.match(nav, /max-width: 720px/)
+  assert.match(nav, /max-width: 860px/)
   assert.match(nav, /ResizeObserver/)
   assert.match(nav, /group\.scrollLeft = active\.offsetLeft/)
   assert.match(nav, /groups: Array<\[HTMLDivElement \| null, string\]>|groups: Array/)

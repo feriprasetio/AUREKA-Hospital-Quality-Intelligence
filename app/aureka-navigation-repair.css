@@ -1,0 +1,1033 @@
+/* AUREKA navigation repair layer.
+   Owns the current six-domain sidebar and the two-level contextual rail.
+   Deliberately scoped to the authenticated Arktik workspace. */
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+  display: grid !important;
+  grid-template-columns: 264px minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  min-height: 100dvh !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar {
+  position: sticky !important;
+  inset: 0 auto auto 0 !important;
+  z-index: 30 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 264px !important;
+  min-width: 0 !important;
+  max-width: 264px !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 12px 12px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-right: 1px solid #dce4ec !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  box-shadow: 2px 0 14px rgba(23,42,64,.035) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .sideHeader {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 72px !important;
+  margin: 0 !important;
+  padding: 12px 5px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e8edf2 !important;
+  background: #ffffff !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .sideBrand {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  gap: 11px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .sideBrand > div {
+  display: block !important;
+  min-width: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .sideBrand b {
+  color: #172a40 !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .sideBrand small {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #718196 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .workspaceDrawerClose {
+  display: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar > .navLabel {
+  flex: 0 0 auto !important;
+  margin: 17px 8px 8px !important;
+  color: #718196 !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  letter-spacing: .08em !important;
+  line-height: 1.3 !important;
+  text-transform: uppercase !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .sidebarDomainNav {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 1px 8px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd8e4 transparent !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain {
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  display: grid !important;
+  grid-template-columns: 22px minmax(0, 1fr) 18px !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 43px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #43566c !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > span {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger .sidebarNavIcon {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 20px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.7 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger .sidebarDomainChevron {
+  display: block !important;
+  width: 17px !important;
+  height: 17px !important;
+  fill: none !important;
+  stroke: #8090a1 !important;
+  stroke-width: 1.8 !important;
+  transition: transform 150ms ease !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger:hover {
+  border-color: #dce6ef !important;
+  background: #f3f7fb !important;
+  color: #172a40 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive {
+  border-color: #d1dfeb !important;
+  background: #eaf2f9 !important;
+  color: #173f63 !important;
+  font-weight: 750 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isExpanded > .sidebarDomainTrigger .sidebarDomainChevron {
+  transform: rotate(180deg) !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+  margin: 3px 0 7px 0 !important;
+  padding: 4px 5px 5px 39px !important;
+  border-left: 1px solid #dce6ef !important;
+  background: transparent !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 35px !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #5c6e82 !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  line-height: 1.4 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: background-color 140ms ease, color 140ms ease !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem > span {
+  display: block !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem:hover {
+  background: #f1f5f9 !important;
+  color: #173f63 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem.active {
+  border-color: #c8d9e8 !important;
+  background: #dcebf8 !important;
+  color: #123f67 !important;
+  font-weight: 750 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarFooter {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 10px 2px 0 !important;
+  border-top: 1px solid #e8edf2 !important;
+  background: #ffffff !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarFooter > .liquidButton {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarFooter > .liquidButton button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 39px !important;
+  padding: 0 11px !important;
+  border: 1px solid #e0e7ef !important;
+  border-radius: 8px !important;
+  background: #f7f9fc !important;
+  box-shadow: none !important;
+  color: #52677d !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed {
+  grid-template-columns: 76px minmax(0, 1fr) !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > .sidebar {
+  width: 76px !important;
+  min-width: 0 !important;
+  max-width: 76px !important;
+  padding-inline: 7px !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sideHeader {
+  justify-content: center !important;
+  padding-inline: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sideBrand {
+  justify-content: center !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sideBrand > div,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > .sidebar > .navLabel,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sidebarDomainTrigger > span,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sidebarDomainTrigger .sidebarDomainChevron,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sidebarDomainItems,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sidebarFooter .logoutLabel {
+  display: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sidebarDomainTrigger {
+  display: flex !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sidebarFooter > .liquidButton button {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContent {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+  position: relative !important;
+  z-index: 20 !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 66px !important;
+  margin: 0 !important;
+  padding: 0 18px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #dfe7ef !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
+  order: 0 !important;
+  display: grid !important;
+  flex: 0 0 38px !important;
+  place-items: center !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  border: 1px solid #dce5ee !important;
+  border-radius: 9px !important;
+  background: #f7f9fc !important;
+  color: #263f58 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContext {
+  order: 1 !important;
+  flex: 0 1 210px !important;
+  min-width: 120px !important;
+  max-width: 230px !important;
+  overflow: hidden !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSearchToggle {
+  order: 2 !important;
+  display: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceGlobalSearch {
+  order: 3 !important;
+  flex: 1 1 180px !important;
+  min-width: 90px !important;
+  max-width: 420px !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceNaraButton { order: 4 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceInboxButton { order: 5 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceThemeButton { order: 6 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceFullscreenButton { order: 7 !important; }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { order: 8 !important; }
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
+  order: 9 !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderIcon:not(.workspaceSearchToggle) {
+  flex: 0 0 34px !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceScrim {
+  display: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  position: relative !important;
+  z-index: 12 !important;
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 7px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  margin: 0 0 10px !important;
+  padding: 4px 7px !important;
+  overflow: visible !important;
+  border: 1px solid #cbd8e4 !important;
+  border-radius: 10px !important;
+  background: #f5f8fb !important;
+  color: #263d53 !important;
+  box-shadow: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailTitle {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: min(28%, 230px) !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  overflow: hidden !important;
+  border: 1px solid #172a40 !important;
+  border-radius: 8px !important;
+  background: #172a40 !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  line-height: 1.25 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailDivider,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationGroupDivider {
+  display: block !important;
+  flex: 0 0 1px !important;
+  width: 1px !important;
+  min-height: 25px !important;
+  margin: 0 2px !important;
+  padding: 0 !important;
+  background: #a0afbf !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
+  position: relative !important;
+  isolation: isolate !important;
+  display: flex !important;
+  flex: 1 1 0 !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems::-webkit-scrollbar,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflow summary {
+  position: relative !important;
+  z-index: 1 !important;
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 32px !important;
+  max-width: 220px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #52677b !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem:hover,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem:hover {
+  border-color: #d5e2ee !important;
+  background: #edf3f8 !important;
+  color: #172a40 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem.active,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem.active {
+  border-color: #b8d0e5 !important;
+  background: #dcebf8 !important;
+  color: #164b7a !important;
+  font-weight: 750 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
+  color: #ffffff !important;
+  font-weight: 750 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  left: var(--pill-x, 0) !important;
+  top: var(--pill-y, 0) !important;
+  width: var(--pill-w, 0) !important;
+  height: var(--pill-h, 0) !important;
+  border: 1px solid #172a40 !important;
+  border-radius: 8px !important;
+  background: #172a40 !important;
+  box-shadow: 0 3px 10px rgba(23,42,64,.16) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: left 180ms cubic-bezier(.2,.75,.25,1), top 180ms cubic-bezier(.2,.75,.25,1), width 180ms cubic-bezier(.2,.75,.25,1), height 180ms cubic-bezier(.2,.75,.25,1), opacity 120ms ease !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill.pillReady::before,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill.pillReady::before {
+  opacity: 1 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflow {
+  position: relative !important;
+  z-index: 4 !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflow summary {
+  min-width: 72px !important;
+  border-color: #cbd8e4 !important;
+  background: #ffffff !important;
+  color: #27445f !important;
+  font-weight: 700 !important;
+  list-style: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflow summary::-webkit-details-marker {
+  display: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflowMenu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 0 !important;
+  z-index: 100 !important;
+  display: grid !important;
+  grid-template-columns: minmax(170px, 1fr) !important;
+  gap: 3px !important;
+  width: max-content !important;
+  min-width: 190px !important;
+  max-width: min(320px, calc(100vw - 28px)) !important;
+  max-height: min(60vh, 420px) !important;
+  padding: 6px !important;
+  overflow: auto !important;
+  border: 1px solid #d5e0e9 !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 30px rgba(23,42,64,.16) !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflowItem {
+  display: block !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 7px 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #43596e !important;
+  font-size: 12px !important;
+  text-align: left !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationMeasure {
+  position: absolute !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  display: flex !important;
+  width: max-content !important;
+  gap: 5px !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationMeasure span {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 32px !important;
+  padding: 0 10px !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspacePageHint {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  margin: -3px 0 10px !important;
+  padding: 8px 10px !important;
+  border: 1px solid #e0e8f0 !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspacePageHint > svg {
+  flex: 0 0 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-top: 1px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspacePageHint > button {
+  flex: 0 0 22px !important;
+  margin-left: auto !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar {
+  border-right-color: #31465c !important;
+  background: #111c2a !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .sideHeader,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarFooter {
+  border-color: #2b3d50 !important;
+  background: #111c2a !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sideBrand b,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  color: #dbe7f2 !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sideBrand small,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar > .navLabel {
+  color: #9eb0c2 !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger:hover,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem:hover {
+  border-color: #334b63 !important;
+  background: #1b3045 !important;
+  color: #f1f6fb !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive {
+  border-color: #45627d !important;
+  background: #233d56 !important;
+  color: #ffffff !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  border-left-color: #38516a !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem {
+  color: #bdccda !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem.active {
+  border-color: #496b89 !important;
+  background: #315573 !important;
+  color: #ffffff !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarFooter > .liquidButton button {
+  border-color: #354a60 !important;
+  background: #1a2c40 !important;
+  color: #dce7f1 !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+  border-color: #354c62 !important;
+  background: #17283a !important;
+  color: #e5edf5 !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailTitle {
+  border-color: #284765 !important;
+  background: #172a40 !important;
+  color: #ffffff !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem {
+  color: #c0d0df !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem:hover,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem:hover {
+  border-color: #405b74 !important;
+  background: #243d55 !important;
+  color: #ffffff !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
+  color: #0f1218 !important;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
+  border-color: #eef2f7 !important;
+  background: #eef2f7 !important;
+  box-shadow: 0 5px 14px rgba(0,0,0,.3) !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton:hover {
+  border-color: #b9cbdc !important;
+  background: #edf3f8 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceDrawerClose {
+  display: none !important;
+}
+
+@media (max-width: 1100px) and (min-width: 721px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+    grid-template-columns: 238px minmax(0, 1fr) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar {
+    width: 238px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+    gap: 7px !important;
+    padding-inline: 10px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContext {
+    flex-basis: 145px !important;
+    min-width: 100px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderIcon:not(.workspaceSearchToggle) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 860px) and (min-width: 721px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar {
+    width: 210px !important;
+    padding-inline: 8px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+    grid-template-columns: 20px minmax(0, 1fr) 16px !important;
+    gap: 7px !important;
+    padding-inline: 7px !important;
+    font-size: 12px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+    padding-left: 31px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContext {
+    flex-basis: 120px !important;
+    min-width: 88px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceGlobalSearch {
+    min-width: 72px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+    display: block !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 1300 !important;
+    display: flex !important;
+    width: min(320px, calc(100vw - 48px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 48px) !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) !important;
+    overflow: hidden !important;
+    transform: translateX(-105%) !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: transform 220ms cubic-bezier(.2,.75,.25,1), visibility 0s linear 220ms !important;
+    box-shadow: 18px 0 48px rgba(8,24,40,.22) !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar.mobileOpen {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transition: transform 220ms cubic-bezier(.2,.75,.25,1), visibility 0s !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .workspaceDrawerClose {
+    display: grid !important;
+    flex: 0 0 34px !important;
+    place-items: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    border: 1px solid #dce5ee !important;
+    border-radius: 8px !important;
+    background: #f7f9fc !important;
+    color: #52677d !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .sidebar .workspaceDrawerClose svg {
+    width: 17px !important;
+    height: 17px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceScrim {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1200 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: rgba(8, 20, 34, .48) !important;
+    opacity: 1 !important;
+    cursor: pointer !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceScrim[data-open="false"] {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceScrim[data-open="true"] {
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContent {
+    width: 100% !important;
+    min-height: 100dvh !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    min-height: 58px !important;
+    gap: 6px !important;
+    padding-inline: 8px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSearchToggle {
+    display: grid !important;
+    order: 2 !important;
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
+    flex: 0 0 36px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContext {
+    flex: 0 1 108px !important;
+    min-width: 76px !important;
+    max-width: 108px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceGlobalSearch {
+    flex: 1 1 80px !important;
+    min-width: 64px !important;
+    max-width: none !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderIcon:not(.workspaceSearchToggle) {
+    display: none !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
+    margin-left: 0 !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
+    gap: 4px !important;
+    min-height: 40px !important;
+    padding: 3px 4px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailTitle {
+    max-width: 31% !important;
+    min-width: 0 !important;
+    min-height: 30px !important;
+    padding-inline: 7px !important;
+    font-size: 11px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflow summary {
+    min-height: 30px !important;
+    max-width: 160px !important;
+    padding-inline: 8px !important;
+    font-size: 11px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationOverflow summary {
+    min-width: 57px !important;
+  }
+
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationGroupDivider {
+    display: none !important;
+  }
+}
+
+
+/* Medium-width workspaces keep both navigation groups usable without
+   forcing the active tab and its overflow control beyond the rail. */
+@media (max-width: 860px) and (min-width: 721px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailTitle {
+    max-width: 26% !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem {
+    max-width: 180px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
+    transition: none !important;
+  }
+}
