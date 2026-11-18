@@ -762,7 +762,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
          hydrateInteractiveExcelHeaderMappings(null,year,[])
        }
      })()
-     const [,,,rows]=await Promise.all([profilesTask,staffTask,recordsTask,mappingTask])
+     const [,,rows]=await Promise.all([profilesTask,staffTask,recordsTask,mappingTask])
      const attributionByRecord=new Map<string,Record<string,string>>()
      const databaseRecordIds=rows.map((r:any)=>String(r.id)).filter(Boolean)
      const attrBatches:string[][]=[]
