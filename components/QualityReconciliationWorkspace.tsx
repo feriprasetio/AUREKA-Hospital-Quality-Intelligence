@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import QualityImportMappingManager from '@/components/QualityImportMappingManager'
 
 type Room = { id: number; name: string }
 type MasterOption = { code?: number | null; label?: string; review_required?: boolean; numerator?: boolean | null; denominator?: boolean | null }
@@ -117,6 +118,7 @@ export default function QualityReconciliationWorkspace({
   const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
   const [warningDrafts, setWarningDrafts] = useState<Record<string, WarningDraft>>({})
   const [showAudit, setShowAudit] = useState(false)
+  const [workspaceTab, setWorkspaceTab] = useState<'mapping'|'reconciliation'>('mapping')
 
   const canManage = role === 'ADMIN' || role === 'PMKP'
   const responseGroups = queue?.response_groups ?? []
@@ -300,7 +302,19 @@ export default function QualityReconciliationWorkspace({
     [warningGroups],
   )
 
+  if (workspaceTab === 'mapping') return <section className="qrcWorkspace">
+    <div className="qrcTopTabs" style={{display:'flex',gap:7,flexWrap:'wrap',borderBottom:'1px solid #e4ebef',paddingBottom:10}}>
+      <button type="button" className="qrcBtn primary">Pengaturan Import Excel</button>
+      <button type="button" className="qrcBtn" onClick={() => { setWorkspaceTab('reconciliation'); void load() }}>Rekonsiliasi Respons & Warning</button>
+    </div>
+    <QualityImportMappingManager rooms={rooms} initialRoomId={initialRoomId} role={role}/>
+  </section>
+
   return <section className="qrcWorkspace">
+    <div className="qrcTopTabs" style={{display:'flex',gap:7,flexWrap:'wrap',borderBottom:'1px solid #e4ebef',paddingBottom:10}}>
+      <button type="button" className="qrcBtn" onClick={() => setWorkspaceTab('mapping')}>Pengaturan Import Excel</button>
+      <button type="button" className="qrcBtn primary">Rekonsiliasi Respons & Warning</button>
+    </div>
     <style>{`
       .qrcWorkspace{display:grid;gap:15px;min-width:0;color:#1d3448}
       .qrcHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
