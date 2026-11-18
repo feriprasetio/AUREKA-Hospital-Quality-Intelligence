@@ -119,3 +119,10 @@ test('BHP/Linen resolver finds a single combined source column without combining
   ])
   assert.deepEqual(findIcuBhpLinenHeaderColumns(splitOnly), [])
 })
+
+test('ICU legacy workbook headers map its 14.1 and 14.4 source columns without manual guessing', () => {
+  const importer = read('components/IcuExcelImportDialog.tsx')
+  assert.match(importer, /code: '14\.1',[^\n]*aliases: \[[^\]]*'Kekosongan Linen'/)
+  assert.match(importer, /unassignedBhpLinen: \[[^\n]*'Kekosongan Linen'/)
+  assert.match(importer, /code: '14\.4',[^\n]*aliases: \[[^\]]*'Jam Visite Dokter Spesialis'/)
+})
