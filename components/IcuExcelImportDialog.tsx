@@ -25,8 +25,8 @@ const BATCH_SIZE = Math.min(DEFAULT_IMPORT_BATCH_SIZE, 20)
 const MIN_BATCH_SIZE = MIN_IMPORT_BATCH_SIZE
 
 const INDICATORS = [
-  { code: '14.1', header: 'Kekosongan BHP/Linen', aliases: ['ekosongan BHP/Linen', 'Kekosongan BHP/Linen'] },
-  { code: '14.4', header: 'Visite Spesialis', aliases: ['Visite Hari Kerja (06.00-14.00) (Code 141)', 'Visite Hari Kerja (06.00-14.00)'] },
+  { code: '14.1', header: 'Kekosongan BHP/Linen', aliases: ['ekosongan BHP/Linen', 'Kekosongan BHP/Linen', 'Kekosongan Linen'] },
+  { code: '14.4', header: 'Visite Spesialis', aliases: ['Jam Visite Dokter Spesialis', 'Visite Hari Kerja (06.00-14.00) (Code 141)', 'Visite Hari Kerja (06.00-14.00)'] },
   { code: '14.8', header: 'Validitas Asesmen', aliases: ['Validitas Asesmen'] },
   { code: '14.3', header: 'Identifikasi Pasien', aliases: ['Identifikasi Pasien'] },
   { code: '14.5', header: 'APD', aliases: ['APD'] },
@@ -48,7 +48,7 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   los: ['Lenght of Stay', 'Length of Stay'],
   receivingNurse: ['Perawat Penerima'],
   dpjp: ['DPJP'],
-  unassignedBhpLinen: ['ekosongan BHP/Linen', 'Kekosongan BHP/Linen'],
+  unassignedBhpLinen: ['ekosongan BHP/Linen', 'Kekosongan BHP/Linen', 'Kekosongan Linen'],
 }
 
 type PreparedRow = {
