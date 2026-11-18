@@ -60,11 +60,11 @@ test('primary navigation uses one white surface rather than glossy menu cards', 
 
 })
 
-test('sidebar contains module buttons only; contextual sub-tabs live in the static rail', () => {
+test('sidebar exposes six domain groups; operational destinations stay contextual', () => {
   const home = read('components/HomeClient.tsx')
   const navCss = read('app/aureka-navigation-consolidated.css')
-  assert.ok(home.includes('aria-label="Navigasi modul AUREKA"'))
-  assert.ok(home.includes('visibleMods.map'))
+  assert.ok(home.includes('aria-label="Enam domain utama AUREKA"'))
+  assert.ok(home.includes('visibleSidebarDomains.map'))
   assert.ok(home.includes("import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'"))
   assert.ok(home.includes('<UnifiedModuleNavigation'))
   assert.ok(home.includes('activeNestedNavGroup'))
@@ -91,10 +91,11 @@ test('global navigation uses balanced one-line smart overflow and keeps the acti
   assert.doesNotMatch(css, /position:\s*sticky/)
 })
 
-test('primary module navigation is text-only under the global icon-none rule', () => {
+test('primary domain navigation uses the existing line glyphs and contextual rail', () => {
   const home = read('components/HomeClient.tsx')
   assert.doesNotMatch(home, /function NavIcon/)
   assert.doesNotMatch(home, /<NavIcon/)
-  assert.match(home, /aria-label="Navigasi modul AUREKA"/)
+  assert.match(home, /aria-label="Enam domain utama AUREKA"/)
+  assert.match(home, /className=\{'sidebarDomainTrigger '/)
   assert.match(home, /<UnifiedModuleNavigation/)
 })
