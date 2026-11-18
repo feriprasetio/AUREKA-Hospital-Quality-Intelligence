@@ -33,6 +33,9 @@ type WarningGroup = {
   pending_count: number
   needs_source_correction_count: number
   safe_derived_value: boolean
+  safe_existing_data?: boolean
+  verified_count?: number
+  verification_total?: number
 }
 type AuditItem = {
   id: string
@@ -135,7 +138,7 @@ export default function QualityReconciliationWorkspace({
     if (!quiet) setLoading(true)
     setError('')
     try {
-      const { data, error: rpcError } = await q().rpc('quality_reconciliation_list', {
+      const { data, error: rpcError } = await q().rpc('quality_reconciliation_list_v2', {
         p_profile_year: year,
         p_room_id: roomId,
       })
@@ -220,7 +223,7 @@ export default function QualityReconciliationWorkspace({
     }
   }
 
-  const reviewWarningGroup = async (item: WarningGroup, action: 'accept_derived_value' | 'needs_source_correction') => {
+  const reviewWarningGroup = async (item: WarningGroup, action: 'accept_derived_value' | 'needs_source_correction' | 'accept_verified_existing_data') => {
     const key = warningKey(item)
     const reason = String(warningDrafts[key]?.reason ?? '').trim()
     if (reason.length < 10) {
@@ -229,7 +232,9 @@ export default function QualityReconciliationWorkspace({
     }
     const title = action === 'accept_derived_value'
       ? 'Menerima nilai LOS hasil hitung ulang'
-      : 'Menandai warning perlu koreksi dari workbook sumber'
+      : action === 'accept_verified_existing_data'
+        ? 'Mengonfirmasi data BHP/Linen telah dipulihkan dan diverifikasi'
+        : 'Menandai warning perlu koreksi dari workbook sumber'
     const confirmed = window.confirm(
       title + ' untuk ' + count(item.affected_count) + ' episode di ' + item.room_name +
       '? Catatan sumber tidak akan dihapus atau diubah.'
@@ -238,20 +243,34 @@ export default function QualityReconciliationWorkspace({
 
     setSavingKey(key); setError(''); setSuccess('')
     try {
-      const { data, error: rpcError } = await q().rpc('quality_reconciliation_review_warning', {
-        p_room_id: item.room_id,
-        p_profile_year: item.profile_year,
-        p_warning_hash: item.warning_hash,
-        p_warning_text: item.warning_text,
-        p_action: action,
-        p_reason: reason,
-      })
+      const rpcName = action === 'accept_verified_existing_data'
+        ? 'quality_reconciliation_accept_verified_warning'
+        : 'quality_reconciliation_review_warning'
+      const rpcArgs = action === 'accept_verified_existing_data'
+        ? {
+            p_room_id: item.room_id,
+            p_profile_year: item.profile_year,
+            p_warning_hash: item.warning_hash,
+            p_warning_text: item.warning_text,
+            p_reason: reason,
+          }
+        : {
+            p_room_id: item.room_id,
+            p_profile_year: item.profile_year,
+            p_warning_hash: item.warning_hash,
+            p_warning_text: item.warning_text,
+            p_action: action,
+            p_reason: reason,
+          }
+      const { data, error: rpcError } = await q().rpc(rpcName, rpcArgs)
       if (rpcError) throw rpcError
       const result = data as any
       setSuccess(
         action === 'accept_derived_value'
           ? count(result?.affected_count ?? 0) + ' warning formula/LOS diterima karena nilai turunan dihitung ulang dari tanggal sumber.'
-          : count(result?.affected_count ?? 0) + ' warning ditandai perlu koreksi workbook. Warning tetap tampil sampai sumber diperbaiki.'
+          : action === 'accept_verified_existing_data'
+            ? count(result?.affected_count ?? 0) + ' warning lama ditutup setelah server memverifikasi data indikator 14.1, header, baris Excel, dan nilai sumber. Nilai asli tidak diubah.'
+            : count(result?.affected_count ?? 0) + ' warning ditandai perlu koreksi workbook. Warning tetap tampil sampai sumber diperbaiki.'
       )
       setWarningDrafts(current => { const next = { ...current }; delete next[key]; return next })
       await load(true)
@@ -438,15 +457,20 @@ export default function QualityReconciliationWorkspace({
                   {item.safe_derived_value ? 'Nilai turunan dapat diverifikasi' : needsCorrection ? 'Perlu koreksi dari sumber' : 'Belum ditelaah'}
                 </span></td>
                 <td><div className="qrcActions">
-                  {item.safe_derived_value
-                    ? <span className="qrcMuted">Nilai turunan dihitung ulang dari tanggal sumber. Dapat diterima setelah verifikasi.</span>
-                    : <span className="qrcMuted">Tidak ada koreksi otomatis yang aman. Catatan sumber tetap harus diperbaiki atau diverifikasi.</span>}
+                  {item.safe_existing_data
+                    ? <span className="qrcMuted">Data sumber sudah pulih. Server memverifikasi seluruh {count(item.verified_count)} dari {count(item.verification_total)} episode memiliki nilai 14.1, form field, header, dan baris Excel.</span>
+                    : item.safe_derived_value
+                      ? <span className="qrcMuted">Nilai turunan dihitung ulang dari tanggal sumber. Dapat diterima setelah verifikasi.</span>
+                      : <span className="qrcMuted">Tidak ada koreksi otomatis yang aman. Catatan sumber tetap harus diperbaiki atau diverifikasi.</span>}
                   <textarea value={draft} onChange={event => setWarningReason(key, event.target.value)} placeholder="Catatan telaah / alasan (minimal 10 karakter)"/>
                   <div className="qrcInline">
-                    {item.safe_derived_value && <button type="button" className="qrcBtn success" disabled={!!savingKey || draft.trim().length < 10} onClick={() => void reviewWarningGroup(item, 'accept_derived_value')}>
+                    {item.safe_existing_data && <button type="button" className="qrcBtn success" disabled={!!savingKey || draft.trim().length < 10} onClick={() => void reviewWarningGroup(item, 'accept_verified_existing_data')}>
+                      {saving ? 'Memproses…' : 'Konfirmasi data sumber telah pulih'}
+                    </button>}
+                    {!item.safe_existing_data && item.safe_derived_value && <button type="button" className="qrcBtn success" disabled={!!savingKey || draft.trim().length < 10} onClick={() => void reviewWarningGroup(item, 'accept_derived_value')}>
                       {saving ? 'Memproses…' : 'Terima hasil hitung ulang'}
                     </button>}
-                    {!needsCorrection && <button type="button" className="qrcBtn warning" disabled={!!savingKey || draft.trim().length < 10} onClick={() => void reviewWarningGroup(item, 'needs_source_correction')}>
+                    {!needsCorrection && !item.safe_existing_data && <button type="button" className="qrcBtn warning" disabled={!!savingKey || draft.trim().length < 10} onClick={() => void reviewWarningGroup(item, 'needs_source_correction')}>
                       Tandai perlu koreksi sumber
                     </button>}
                   </div>
