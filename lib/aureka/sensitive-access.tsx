@@ -8,7 +8,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 /**
  * Blueprint v2 §10.2/§13: sebelum menampilkan data sensitif (identitas pasien, dsb.),
  * cek permission di server, minta tujuan akses, lalu catat ke audit log.
- * Bila fungsi tata kelola belum terpasang di database, akses tetap diizinkan seperti sebelumnya (tanpa log).
+ * Jika verifikasi izin, konfigurasi tujuan, atau pencatatan audit gagal, data sensitif tidak ditampilkan.
  */
 type AccessType = 'patient_identity' | 'patient_profile' | 'incident_investigation' | 'survey_named_response' | 'hr_performance' | 'data_export'
 const PERMISSION: Record<AccessType, string> = {
@@ -20,7 +20,6 @@ const LABEL: Record<AccessType, string> = {
   patient_identity: 'Melihat identitas pasien', patient_profile: 'Melihat identitas pasien', incident_investigation: 'Melihat rincian investigasi',
   survey_named_response: 'Melihat respons survei bernama', hr_performance: 'Melihat OPPE/FPPE', data_export: 'Mengekspor data sensitif',
 }
-const missing = (msg?: string) => Boolean(msg && /function .* does not exist|Could not find the function|schema cache/i.test(msg))
 let purposeCache: { type: string; purpose: string; at: number } | null = null
 
 function askPurpose(title: string): Promise<string | null> {
@@ -44,7 +43,10 @@ function askPurpose(title: string): Promise<string | null> {
 /** Mengembalikan true bila boleh ditampilkan. */
 export async function requestSensitiveAccess(type: AccessType, objectId: string | null, label = 'Tampilkan data sensitif'): Promise<boolean> {
   const perm = await aurekaSupabase.rpc('aureka_has_permission', { p_permission: PERMISSION[type] })
-  if (perm.error) return missing(perm.error.message)
+  if (perm.error) {
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { kind: 'error', message: 'Hak akses tidak dapat diverifikasi. Data sensitif tetap disembunyikan. Hubungi Super Admin atau Komite PMKP.' } }))
+    return false
+  }
   if (perm.data !== true) {
     // Jangan diam saja: jelaskan mengapa data tidak ditampilkan dan di mana hak aksesnya diatur.
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: {
@@ -55,7 +57,11 @@ export async function requestSensitiveAccess(type: AccessType, objectId: string 
   }
   let needPurpose = true
   const cfg = await aurekaSupabase.rpc('aureka_gov_settings_get')
-  if (!cfg.error) needPurpose = ((cfg.data as { settings?: { key: string; value: unknown }[] })?.settings || []).find((s) => s.key === 'sensitive_access_requires_purpose')?.value !== false
+  if (cfg.error) {
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { kind: 'error', message: 'Kebijakan akses sensitif tidak dapat diverifikasi. Data tetap disembunyikan.' } }))
+    return false
+  }
+  needPurpose = ((cfg.data as { settings?: { key: string; value: unknown }[] })?.settings || []).find((s) => s.key === 'sensitive_access_requires_purpose')?.value !== false
   let purpose = ''
   if (needPurpose) {
     // Tujuan diingat 15 menit per jenis akses agar tidak ditanya berulang dalam satu sesi kerja.
@@ -66,7 +72,12 @@ export async function requestSensitiveAccess(type: AccessType, objectId: string 
       purpose = p; purposeCache = { type, purpose, at: Date.now() }
     }
   }
-  await aurekaSupabase.rpc('aureka_gov_log_access', { p_object_type: type, p_object_id: objectId, p_purpose: purpose || null, p_detail: {} })
+  const audit = await aurekaSupabase.rpc('aureka_gov_log_access', { p_object_type: type, p_object_id: objectId, p_purpose: purpose || null, p_detail: {} })
+  if (audit.error) {
+    purposeCache = null
+    window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { kind: 'error', message: 'Pencatatan audit akses gagal. Data sensitif tidak ditampilkan; silakan coba kembali atau hubungi administrator.' } }))
+    return false
+  }
   return true
 }
 

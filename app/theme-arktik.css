@@ -5,8 +5,6 @@
  * Perangkat tanpa dukungan backdrop-filter / pengguna yang memilih
  * "kurangi transparansi" mendapat panel buram solid.
  */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 html[data-skin="arktik"]:root {
   --arktik-bg: #e9f1f8;
   --arktik-ink: #0b1f33;
@@ -16,7 +14,7 @@ html[data-skin="arktik"]:root {
   --arktik-edge: rgba(255, 255, 255, 0.85);
   --arktik-shadow: 0 14px 34px rgba(20, 60, 110, 0.10), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(180, 210, 235, 0.45);
   --arktik-blur: blur(20px) saturate(175%);
-  --aureka-font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --aureka-font-sans: var(--font-aureka), "Segoe UI", system-ui, sans-serif;
 }
 
 html[data-skin="arktik"]:root body {
@@ -31,7 +29,7 @@ html[data-skin="arktik"]:root body {
 
 html[data-skin="arktik"]:root .workspaceRoot,
 html[data-skin="arktik"]:root .workspaceRoot * {
-  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-aureka), "Segoe UI", system-ui, sans-serif;
 }
 
 /* Lapisan kontainer dibuat transparan agar latar es terlihat */
