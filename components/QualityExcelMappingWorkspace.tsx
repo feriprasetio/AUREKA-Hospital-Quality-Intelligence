@@ -315,10 +315,12 @@ export default function QualityExcelMappingWorkspace({
     if (!roomId || !selectedImporter || !detectedColumns.length || !activeProfiles.length) return
     const exactMatches = activeProfiles.flatMap(profile => {
       const key = draftKey(selectedImporter.key, profile.code)
-      const current = draftHeaders[key]
-      if (current || existingByCode.has(profile.code)) return []
+      const mapping = existingByCode.get(profile.code)
+      if (draftOccurrences[key] || mapping?.occurrence) return []
       const schema = profile.schema_json ?? {}
       const candidates = [
+        draftHeaders[key],
+        mapping?.source_header,
         schema.header_label,
         ...(Array.isArray(schema.excel_header_aliases) ? schema.excel_header_aliases : []),
       ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
@@ -336,7 +338,7 @@ export default function QualityExcelMappingWorkspace({
       for (const item of exactMatches) if (!next[item.key]) next[item.key] = item.column.occurrence
       return next
     })
-  }, [roomId, selectedImporter?.key, detectedColumns, activeProfiles, existingByCode, draftHeaders])
+  }, [roomId, selectedImporter?.key, detectedColumns, activeProfiles, existingByCode, draftHeaders, draftOccurrences])
 
   const runNaraBulk = async () => {
     if (!roomId || !selectedImporter || !detectedHeaders.length || !activeProfiles.length) {
@@ -401,7 +403,11 @@ export default function QualityExcelMappingWorkspace({
 
   const saveUnitMappings = async () => {
     if (!roomId || !selectedImporter || !activeProfiles.length) {
-      setError('Unit dan jenis workbook harus dipilih.')
+      setError('Unit, jenis workbook, dan profil indikator aktif harus tersedia.')
+      return
+    }
+    if (!detectedColumns.length || !selectedSheet) {
+      setError('Unggah workbook contoh terlebih dahulu agar AUREKA dapat menyimpan huruf kolom, sheet, baris header, dan posisi header duplikat dengan benar.')
       return
     }
     const rules = activeProfiles.flatMap(profile => {
