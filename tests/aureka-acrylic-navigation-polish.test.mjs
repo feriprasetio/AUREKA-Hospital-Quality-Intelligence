@@ -43,6 +43,7 @@ test('mobile drawer restores full navigation labels even when desktop collapse s
   const css = read('app/aureka-acrylic-navigation-polish.css')
   assert.ok(css.includes('@media (max-width: 720px)'))
   assert.ok(css.includes('grid-template-areas: "menu ctx theme bell ai" "search search search search search"'))
-  assert.ok(css.includes('display: revert !important'))
+  assert.ok(css.includes('.sidebarDomainItems {'))
+  assert.ok(css.includes('display: grid !important'))
   assert.ok(css.includes('width: min(320px, calc(100vw - 48px)) !important'))
 })
