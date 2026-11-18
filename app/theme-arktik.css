@@ -5,8 +5,6 @@
  * Perangkat tanpa dukungan backdrop-filter / pengguna yang memilih
  * "kurangi transparansi" mendapat panel buram solid.
  */
-500;600;700;800&display=swap');
-
 html[data-skin="arktik"]:root {
   --arktik-bg: #e9f1f8;
   --arktik-ink: #0b1f33;
