@@ -416,7 +416,7 @@ export default function HomeClient(){
   .map(({id,label})=>[id,label] as const),[role,permissionFlags])
 
  const visibleModuleIds=useMemo(()=>new Set(visibleMods.map(([id])=>id)),[visibleMods])
- const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS.map(domain=>({...domain,items:domain.items.filter(item=>item.moduleId==='home'||visibleModuleIds.has(item.moduleId))})).filter(domain=>domain.items.length>0),[visibleModuleIds])
+ const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS.map(domain=>({...domain,items:domain.items.filter(item=>(item.moduleId==='home'||visibleModuleIds.has(item.moduleId))&&(item.moduleId!=='staff'||item.childId!=='pic-performance'||permissionFlags.readPicPerformance)&&(item.moduleId!=='staff'||item.childId!=='directory'||permissionFlags.readDirectory))})).filter(domain=>domain.items.length>0),[visibleModuleIds])
  const activeDomainId=useMemo(()=>{
   const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>{
    if(item.moduleId!==active)return false
@@ -426,7 +426,7 @@ export default function HomeClient(){
    if(item.moduleId==='staff')return item.childId==='pic-performance'?staffTab==='pic-performance':staffTab!=='pic-performance'
    return true
   }))
-  return match?.id||'command_center'
+  return match?.id||(active==='home'?'command_center':'')
  },[visibleSidebarDomains,active,patientsRegistryTab,safetyTab,programTab,staffTab])
  const effectiveExpandedDomain=expandedDomain||activeDomainId
  const selectDomainDestination=(domainId:string,item:{moduleId:string;childId?:string})=>{
