@@ -42,7 +42,7 @@ test('non-clinical source warnings can only be accepted when a deterministic der
   assert.match(migration, /cache formula\|formula\.\*error\|los\.\*berbeda/)
   assert.match(migration, /nilai turunan\|memakai tanggal/)
   assert.match(migration, /needs_source_correction/)
-  assert.match(migration, /source warning/)
+  assert.match(migration, /warning massal/)
   assert.match(workspace, /Terima hasil hitung ulang/)
   assert.match(workspace, /Tandai perlu koreksi sumber/)
 })
