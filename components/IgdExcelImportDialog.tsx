@@ -184,9 +184,15 @@ function findHeaderExact(columns: Map<string, number[]>, candidates: readonly st
   return null
 }
 
-function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true, fieldKey?: string): number | null {
+function findHeader(
+  columns: Map<string, number[]>,
+  candidates: readonly string[],
+  required = true,
+  fieldKey?: string,
+  importerKey: 'igd' | 'igd-consult' = 'igd',
+): number | null {
   return resolveInteractiveExcelHeaderColumn(columns, candidates, {
-    importerKey: 'igd',
+    importerKey,
     fieldKey: fieldKey ?? candidates[0] ?? 'field',
     fieldLabel: candidates[0] ?? 'Field',
     required,
@@ -409,7 +415,7 @@ export default function IgdExcelImportDialog({
       const headers = buildHeaderMap(worksheet, 3, 23)
       const columns: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(FIELD_HEADERS)) {
-        const index = findHeader(headers, aliases)
+        const index = findHeader(headers, aliases, true, 'field:' + key, 'igd')
         if (index == null) throw new Error('Header wajib "' + aliases[0] + '" tidak ditemukan pada baris 3 Logbook.')
         columns[key] = index
       }
@@ -636,7 +642,13 @@ export default function IgdExcelImportDialog({
           if (!found) continue
           const indices: Record<string, number> = {}
           for (const [key, aliases] of Object.entries(CONSULT_HEADERS)) {
-            const index = findHeader(columns, aliases, !['age','sex','patientType','doorToDecision','reasonCode','reasonOther'].includes(key))
+            const index = findHeader(
+              columns,
+              aliases,
+              !['age','sex','patientType','doorToDecision','reasonCode','reasonOther'].includes(key),
+              'field:consult:' + key,
+              'igd-consult',
+            )
             if (index == null && !['age','sex','patientType','doorToDecision','reasonCode','reasonOther'].includes(key)) {
               throw new Error('Header "' + aliases[0] + '" tidak ditemukan di sheet ' + worksheet.name + ' (' + file.name + ').')
             }
