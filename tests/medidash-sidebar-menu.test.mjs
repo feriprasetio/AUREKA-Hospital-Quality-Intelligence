@@ -15,11 +15,11 @@ test('sidebar collapse is controlled only by the hamburger beside global search'
 })
 
 test('Arktik acrylic sidebar keeps a compact six-domain rail and usable collapsed state', () => {
-  const css = read('app/aureka-navigation-repair.css')
+  const css = read('app/aureka-acrylic-navigation-polish.css')
   assert.ok(css.includes('.sidebarDomainNav'))
   assert.ok(css.includes('.sidebarDomainTrigger'))
   assert.ok(css.includes('.sidebarDomainItems'))
   assert.ok(css.includes('.sidebarIsCollapsed'))
-  assert.ok(css.includes('grid-template-columns: 76px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('grid-template-columns: 84px minmax(0, 1fr) !important'))
   assert.ok(css.includes('@media (max-width: 720px)'))
 })
