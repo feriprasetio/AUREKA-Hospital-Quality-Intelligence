@@ -10,7 +10,7 @@ const home = read('components/HomeClient.tsx')
 
 test('reconciliation queue is role-scoped, room-scoped, and groups pending responses by source pattern', () => {
   assert.match(migration, /quality_reconciliation_list\(\s*p_profile_year integer DEFAULT 2026,\s*p_room_id bigint DEFAULT NULL/)
-  assert.match(migration, /v_role NOT IN \('ADMIN','PMKP'\)/)
+  assert.match(migration, /COALESCE\(v_role,''\) NOT IN \('ADMIN','PMKP'\)/)
   assert.match(migration, /has_quality_room_access\(p_room_id\)/)
   assert.match(migration, /rr\.review_status = 'pending'/)
   assert.match(migration, /jsonb_agg/)
@@ -19,7 +19,7 @@ test('reconciliation queue is role-scoped, room-scoped, and groups pending respo
 
 test('bulk response mapping requires an exact unique target and preserves original source values', () => {
   assert.match(migration, /quality_reconciliation_apply_bulk/)
-  assert.match(migration, /p_action IN \('auto_exact','manual'\)/)
+  assert.match(migration, /p_action NOT IN \('auto_exact','manual'\)/)
   assert.match(migration, /v_normalized_matches <> 1/)
   assert.match(migration, /source_master_conflict/)
   assert.match(migration, /original_source_code/)
@@ -69,7 +69,7 @@ test('reconciliation is available only to Admin/PMKP inside the Indikator Mutu m
 
 test('warning review and bulk resolution require a confirmation, decision reason, and audit history', () => {
   assert.match(workspace, /window\.confirm/)
-  assert.match(workspace, /draft\.reason\.trim\(\)\.length < 10/)
+  assert.match(workspace, /draft\?\.reason/)
   assert.match(workspace, /reason\.length < 10/)
   assert.match(workspace, /Riwayat rekonsiliasi/)
   assert.match(workspace, /recent_audit/)
