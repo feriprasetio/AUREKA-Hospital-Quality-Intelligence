@@ -13,7 +13,7 @@ test('the RGBA 3D AUREKA artwork is used across landing, authentication, and wor
   assert.match(homeClient, /width=\{160\} height=\{136\}/)
   assert.doesNotMatch(homeClient, /brandLogoFallback/)
   assert.match(landing, /width=\{160\} height=\{136\}/)
-  assert.match(layout, /import '\.\/aureka-brand\.css'/)
+  assert.match(readFileSync(new URL('../app/aureka-global.css', import.meta.url), 'utf8'), /@import '\\.\\/aureka-brand\\.css'/)
   assert.match(styles, /\.workspaceRoot \.sideBrand \.workspaceLogo[\s\S]*?background:\s*transparent\s*!important/)
   assert.match(styles, /object-fit:\s*contain\s*!important/)
   assert.equal(logo.subarray(0, 8).toString('hex'), '89504e470d0a1a0a')
