@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
+import { getRemoteImporterWorkbookLayout } from '@/lib/aureka/interactive-header-mapping'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
@@ -240,12 +241,9 @@ function mapProfiles(profiles: IndicatorProfile[]): Map<string, IndicatorProfile
     if (matches.length !== 1 || !matches[0].id || !Array.isArray(matches[0].options_json)) {
       throw new Error('Master indikator IGD ' + indicator.code + ' harus tepat satu, aktif, published, dan memiliki options_json. Impor dihentikan.')
     }
-    const profile = matches[0]
-    const header = String(profile.schema_json?.header_label ?? '').trim()
-    if (header !== indicator.header || header !== ACTIVE_HEADER_BY_CODE[indicator.code]) {
-      throw new Error('Header master indikator ' + indicator.code + ' tidak cocok dengan mapping sumber "' + indicator.header + '". Perbaiki master terlebih dahulu.')
-    }
-    output.set(indicator.code, profile)
+    // The profile master and Excel source header are separate concerns.
+    // Source columns are resolved from the saved unit mapping against this workbook.
+    output.set(indicator.code, matches[0])
   }
   return output
 }
@@ -405,11 +403,15 @@ export default function IgdExcelImportDialog({
       if (!Array.isArray(workbook.worksheets) || workbook.worksheets.length === 0 || workbook.worksheets.length > MAX_SHEETS) {
         throw new Error('Struktur workbook tidak wajar atau jumlah sheet melebihi batas ' + MAX_SHEETS + '.')
       }
-      const worksheet = workbook.getWorksheet('Logbook')
-      if (!worksheet) throw new Error('Sheet "Logbook" tidak ditemukan pada workbook induk IGD.')
-      if (worksheet.rowCount > MAX_WORKSHEET_ROWS) throw new Error('Sheet Logbook melewati batas ' + MAX_WORKSHEET_ROWS + ' baris fisik.')
+      const savedLayout = getRemoteImporterWorkbookLayout('igd')
+      const worksheetName = savedLayout.worksheet || 'Logbook'
+      const worksheet = workbook.getWorksheet(worksheetName)
+      if (!worksheet) throw new Error('Sheet "' + worksheetName + '" tidak ditemukan pada workbook induk IGD.')
+      if (worksheet.rowCount > MAX_WORKSHEET_ROWS) throw new Error('Sheet ' + worksheetName + ' melewati batas ' + MAX_WORKSHEET_ROWS + ' baris fisik.')
 
-      const headers = buildHeaderMap(worksheet, 3, 23)
+      const headerRowNumber = savedLayout.header_row ?? 3
+      const dataStartRow = savedLayout.data_start_row ?? (headerRowNumber + 1)
+      const headers = buildHeaderMap(worksheet, headerRowNumber, 100)
       const columns: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(FIELD_HEADERS)) {
         const index = findHeader(headers, aliases)
@@ -419,8 +421,13 @@ export default function IgdExcelImportDialog({
       const extraQueueColumn = findHeader(headers, ['Antrian Pasien'], false)
       const indicatorColumns = new Map<string, number>()
       for (const indicator of IGD_INDICATORS) {
-        const index = findHeader(headers, [indicator.header])
-        if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" tidak ditemukan pada Logbook.')
+        const index = resolveInteractiveExcelHeaderColumn(headers, [indicator.header], {
+          importerKey: 'igd',
+          fieldKey: 'indicator:' + indicator.code,
+          fieldLabel: indicator.code + ' · ' + indicator.profileTitleHint,
+          required: true,
+        })
+        if (index == null) throw new Error('Kolom sumber untuk indikator ' + indicator.code + ' belum dipetakan. Buka Pusat Rekonsiliasi → Pengaturan per Unit atau Pengaturan per Indikator.')
         indicatorColumns.set(indicator.code, index)
       }
       const byCode = mapProfiles(profiles)
@@ -428,10 +435,14 @@ export default function IgdExcelImportDialog({
       const excluded: ExcludedRow[] = []
       let sourceRows = 0
 
-      for (let excelRow = 4; excelRow <= Math.min(worksheet.rowCount, MAX_WORKSHEET_ROWS); excelRow++) {
+      for (let excelRow = dataStartRow; excelRow <= Math.min(worksheet.rowCount, MAX_WORKSHEET_ROWS); excelRow++) {
         const sourceRow = worksheet.getRow(excelRow)
-        const operationalValues = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-        if (!operationalValues.some(column => valueLooksPresent(readCellValue(sourceRow.getCell(column))))) continue
+        const mappedColumns = [
+          ...Object.values(columns),
+          ...Array.from(indicatorColumns.values()),
+          ...(extraQueueColumn == null ? [] : [extraQueueColumn]),
+        ]
+        if (!mappedColumns.some(column => valueLooksPresent(readCellValue(sourceRow.getCell(column))))) continue
         sourceRows += 1
         if (sourceRows > MAX_MAIN_ROWS) throw new Error('Workbook melebihi batas ' + MAX_MAIN_ROWS + ' baris operasional.')
 
