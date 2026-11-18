@@ -7,7 +7,7 @@ const home = read('components/HomeClient.tsx')
 const css = read('app/workspace-desk.css')
 
 test('workbench integration is authenticated-only and loads after the legacy cascade', () => {
-  const layout = read('app/layout.tsx')
+  const layout = read('app/aureka-global.css')
   assert.ok(layout.indexOf("./workspace-desk.css") > layout.indexOf("./aureka-refined.css"))
   assert.match(home, /if\(view==='workspace'\)return <main[^>]*workspaceRoot workspaceDesk/)
   assert.doesNotMatch(css, /\.a2-|\.authPage|\.publicLanding/)
