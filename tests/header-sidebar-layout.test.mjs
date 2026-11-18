@@ -33,7 +33,7 @@ test('header layout prevents overlap on desktop and narrow screens', () => {
 })
 
 test('sidebar redesign retains desktop and mobile navigation behavior', () => {
-  const css = read('app/aureka-solid-navigation.css')
+  const css = read('app/aureka-navigation-repair.css')
   assert.match(css, /grid-template-columns: 264px minmax\(0, 1fr\) !important/)
   assert.match(css, /\.sidebarDomainNav\s*\{[\s\S]*display: flex !important/)
   assert.match(css, /\.sidebarIsCollapsed\s*\{\s*grid-template-columns: 76px minmax\(0, 1fr\) !important/)
