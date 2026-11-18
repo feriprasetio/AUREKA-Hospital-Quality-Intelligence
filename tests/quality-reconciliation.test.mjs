@@ -34,7 +34,7 @@ test('clinical conflicts and null-coded master options are not auto-fixed', () =
   assert.match(migration, /g\.mapping_status NOT IN \('source_master_conflict','source_code_conflict','ambiguous_master','not_in_master'\)/)
   assert.match(workspace, /auto_fixable_group_count/)
   assert.match(workspace, /Butuh konfirmasi; tidak akan ditebak oleh sistem/)
-  assert.match(workspace, /reviewWarningGroup\(item, 'manual'\)/)
+  assert.match(workspace, /applyResponseGroup\(item, 'manual'\)/)
 })
 
 test('non-clinical source warnings can only be accepted when a deterministic derived result is documented', () => {
@@ -42,7 +42,7 @@ test('non-clinical source warnings can only be accepted when a deterministic der
   assert.match(migration, /cache formula\|formula\.\*error\|los\.\*berbeda/)
   assert.match(migration, /nilai turunan\|memakai tanggal/)
   assert.match(migration, /needs_source_correction/)
-  assert.match(migration, /warning massal/)
+  assert.match(migration, /Telaah massal warning/)
   assert.match(workspace, /Terima hasil hitung ulang/)
   assert.match(workspace, /Tandai perlu koreksi sumber/)
 })
