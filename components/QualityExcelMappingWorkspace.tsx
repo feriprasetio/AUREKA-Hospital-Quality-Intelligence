@@ -110,10 +110,16 @@ export default function QualityExcelMappingWorkspace({
   })
 
   const activeRoom = rooms.find(item => Number(item.id) === Number(roomId)) ?? null
-  const availableImporters = useMemo(
-    () => importers.filter(item => item.room_id === Number(roomId)),
-    [roomId],
-  )
+  const availableImporters = useMemo(() => {
+    if (roomId == null) return []
+    const configured = importers.filter(item => item.room_id === Number(roomId))
+    if (configured.length) return configured
+    return [{
+      room_id: Number(roomId),
+      key: 'unit-logbook',
+      label: 'Workbook Logbook Unit · Konfigurasi Awal',
+    }]
+  }, [roomId])
   const selectedImporter = availableImporters.find(item => item.key === importerKey) ?? availableImporters[0] ?? null
   const selectedProfile = profiles.find(item => item.id === selectedProfileId) ?? profiles[0] ?? null
   const activeProfiles = useMemo(
