@@ -14,10 +14,12 @@ test('sidebar collapse is controlled only by the hamburger beside global search'
   assert.ok(workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"') < workspace.indexOf('className="workspaceContext"'), 'hamburger must precede hospital context')
 })
 
-test('Solid White sidebar has a compact Medidash-style rail and a usable collapsed state', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  assert.match(css, /\.workspaceRoot \.sidebar \.sidebarToggle,[\s\S]*\.mobileSidebarClose\s*\{\s*display:\s*none !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceSidebarMenuButton\s*\{[\s\S]*display:\s*grid !important/)
-  assert.match(css, /\.workspaceRoot\.sidebarIsCollapsed\s*\{\s*grid-template-columns:\s*76px minmax\(0, 1fr\) !important/)
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceRoot\.sidebarIsCollapsed\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\) !important/)
+test('Arktik acrylic sidebar keeps a compact six-domain rail and usable collapsed state', () => {
+  const css = read('app/aureka-navigation-repair.css')
+  assert.match(css, /\\.sidebarDomainNav/)
+  assert.match(css, /\\.sidebarDomainTrigger/)
+  assert.match(css, /\\.sidebarDomainItems/)
+  assert.match(css, /\\.sidebarIsCollapsed/)
+  assert.match(css, /grid-template-columns: 76px minmax\\(0, 1fr\\) !important/)
+  assert.match(css, /@media \\(max-width: 720px\\)/)
 })
