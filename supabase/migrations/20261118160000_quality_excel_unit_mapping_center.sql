@@ -168,7 +168,7 @@ BEGIN
   END IF;
   IF p_profile_year IS NULL OR p_profile_year < 2000 OR p_profile_year > 2100
      OR p_importer_key IS NULL OR length(btrim(p_importer_key)) NOT BETWEEN 1 AND 80
-     OR jsonb_typeof(p_rules) <> 'array'
+     OR p_rules IS NULL OR jsonb_typeof(p_rules) <> 'array'
      OR jsonb_array_length(p_rules) < 1 OR jsonb_array_length(p_rules) > 250 THEN
     RAISE EXCEPTION 'Parameter pemetaan tidak valid. Periksa tahun, jenis workbook, dan jumlah aturan.' USING ERRCODE='22023';
   END IF;
