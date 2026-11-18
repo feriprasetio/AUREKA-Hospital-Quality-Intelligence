@@ -37,7 +37,16 @@ type Mapping = {
   ai_confidence?: number | null
   ai_rationale?: string | null
 }
-type Suggestion = { indicator_code: string; source_header: string | null; confidence: number; rationale: string }
+type Suggestion = {
+  target_type?: 'indicator' | 'field'
+  target_key?: string
+  target_label?: string
+  indicator_code?: string | null
+  field_key?: string | null
+  source_header: string | null
+  confidence: number
+  rationale: string
+}
 type FieldTarget = { key: string; label: string; aliases: string[] }
 type Importer = { key: string; label: string; room_id: number; connected: boolean }
 type HeaderColumn = { header: string; index: number; letter: string; occurrence: number }
@@ -438,10 +447,15 @@ export default function QualityExcelMappingWorkspace({
       const suggestions = (Array.isArray(data?.suggestions) ? data.suggestions : []) as Suggestion[]
       setAiSuggestions(suggestions)
       const acceptedSuggestions = suggestions.filter(item => item.source_header && item.confidence >= 0.8)
+      const suggestionKey = (item: Suggestion) => item.target_type === 'field'
+        ? String(item.field_key || item.target_key?.replace(/^field:/, '') || '')
+        : String(item.indicator_code || item.target_key?.replace(/^indicator:/, '') || '')
       setDraftHeaders(current => {
         const next = { ...current }
         for (const item of acceptedSuggestions) {
-          const key = draftKey(selectedImporter.key, item.indicator_code)
+          if (item.target_type === 'field') continue
+          const key = draftKey(selectedImporter.key, suggestionKey(item))
+          if (key.endsWith('|')) continue
           if (!next[key]) next[key] = item.source_header as string
         }
         return next
@@ -449,7 +463,28 @@ export default function QualityExcelMappingWorkspace({
       setDraftOccurrences(current => {
         const next = { ...current }
         for (const item of acceptedSuggestions) {
-          const key = draftKey(selectedImporter.key, item.indicator_code)
+          if (item.target_type === 'field') continue
+          const key = draftKey(selectedImporter.key, suggestionKey(item))
+          const matches = detectedColumns.filter(column => normalize(column.header) === normalize(item.source_header))
+          if (matches.length === 1 && !next[key]) next[key] = matches[0].occurrence
+        }
+        return next
+      })
+      setDraftFields(current => {
+        const next = { ...current }
+        for (const item of acceptedSuggestions) {
+          if (item.target_type !== 'field') continue
+          const key = draftKey(selectedImporter.key, suggestionKey(item))
+          if (key.endsWith('|')) continue
+          if (!next[key]) next[key] = item.source_header as string
+        }
+        return next
+      })
+      setDraftFieldOccurrences(current => {
+        const next = { ...current }
+        for (const item of acceptedSuggestions) {
+          if (item.target_type !== 'field') continue
+          const key = draftKey(selectedImporter.key, suggestionKey(item))
           const matches = detectedColumns.filter(column => normalize(column.header) === normalize(item.source_header))
           if (matches.length === 1 && !next[key]) next[key] = matches[0].occurrence
         }
@@ -457,7 +492,7 @@ export default function QualityExcelMappingWorkspace({
       })
       setNotice(
         'NARA menganalisis ' + detectedHeaders.length + ' header dan menghasilkan ' + suggestions.filter(item => item.source_header).length +
-        ' usulan. ' + acceptedSuggestions.length + ' usulan dengan keyakinan ≥80% disiapkan sebagai draft; usulan lain tetap harus dipilih manual. Periksa setiap usulan sebelum menyimpan; tidak ada perubahan tersimpan sebelum konfirmasi.' +
+        ' usulan untuk field data utama dan indikator. ' + acceptedSuggestions.length + ' usulan dengan keyakinan ≥80% disiapkan sebagai draft; usulan lain tetap perlu dipilih manual. Periksa setiap usulan sebelum menyimpan; tidak ada perubahan tersimpan sebelum konfirmasi.' +
         (data?.model ? ' Provider/model: ' + data.model : '')
       )
     } catch (cause) {
@@ -481,7 +516,7 @@ export default function QualityExcelMappingWorkspace({
       const existing = existingByCode.get(profile.code)
       const sourceHeader = String(draftHeaders[key] ?? existing?.source_header ?? '').trim()
       if (!sourceHeader) return []
-      const ai = aiSuggestions.find(item => item.indicator_code === profile.code && item.source_header === sourceHeader)
+      const ai = aiSuggestions.find(item => item.target_type !== 'field' && (item.indicator_code ?? item.target_key?.replace(/^indicator:/, '')) === profile.code && item.source_header === sourceHeader)
       const occurrence = Number(draftOccurrences[key] ?? existing?.occurrence ?? 0)
       const matchingColumns = detectedColumns.filter(column => normalize(column.header) === normalize(sourceHeader))
       const selectedColumn = detectedColumnChoice(sourceHeader, occurrence)
@@ -521,6 +556,7 @@ export default function QualityExcelMappingWorkspace({
       const existing = existingFields.get(field.key)
       const sourceHeader = String(draftFields[key] ?? existing?.source_header ?? '').trim()
       if (!sourceHeader) return []
+      const ai = aiSuggestions.find(item => item.target_type === 'field' && item.target_key === 'field:' + field.key && item.source_header === sourceHeader)
       const occurrence = Number(draftFieldOccurrences[key] ?? existing?.occurrence ?? 0)
       const matchingColumns = detectedColumns.filter(column => normalize(column.header) === normalize(sourceHeader))
       const selectedColumn = detectedColumnChoice(sourceHeader, occurrence)
@@ -537,8 +573,8 @@ export default function QualityExcelMappingWorkspace({
           column_index: selectedColumn?.index ?? (matchingColumns.length === 1 ? matchingColumns[0].index : null),
           column_letter: selectedColumn?.letter ?? (matchingColumns.length === 1 ? matchingColumns[0].letter : null),
         },
-        ai_confidence: null,
-        ai_rationale: null,
+        ai_confidence: ai?.confidence ?? null,
+        ai_rationale: ai?.rationale ?? null,
       }]
     })
     const rules = [...indicatorRules, ...fieldRules]
@@ -712,8 +748,8 @@ export default function QualityExcelMappingWorkspace({
           {!selectedImporter.connected && <div className="qemMessage notice">Konfigurasi template unit tersedia, tetapi alur unggah khusus untuk unit ini belum terhubung. Aturan dapat disiapkan sekarang dan akan aktif setelah importer unit diintegrasikan; sistem tidak mengklaim pemetaan otomatis sebelum itu.</div>}
           {detectedHeaders.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedColumns.length)} kolom fisik terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · baris header {headerRow}</span></div>}
           <div className="qemActions">
-            <button type="button" className="qemButton ai" disabled={aiBusy || loading || !detectedHeaders.length || !activeProfiles.length || selectedImporter.key === 'igd-consult'} onClick={() => void runNaraBulk()}>
-              {aiBusy ? 'NARA sedang menganalisis…' : selectedImporter.key === 'igd-consult' ? 'NARA untuk indikator · hanya workbook utama' : 'NARA AI · Petakan massal'}
+            <button type="button" className="qemButton ai" disabled={aiBusy || loading || !detectedHeaders.length || (!activeProfiles.length && !activeFields.length)} onClick={() => void runNaraBulk()}>
+              {aiBusy ? 'NARA sedang menganalisis…' : 'NARA AI · Petakan field & indikator massal'}
             </button>
             <button type="button" className="qemButton primary" disabled={saving || loading || !activeProfiles.length} onClick={() => void saveUnitMappings()}>
               {saving ? 'Menyimpan…' : 'Simpan aturan unit'}
@@ -768,7 +804,7 @@ export default function QualityExcelMappingWorkspace({
             <thead><tr><th>Kode / indikator</th><th>Header master saat ini</th><th>Kolom sumber Excel</th><th>NARA</th></tr></thead>
             <tbody>
               {activeProfiles.map(profile => {
-                const suggestion = aiSuggestions.find(item => item.indicator_code === profile.code)
+                const suggestion = aiSuggestions.find(item => item.target_type !== 'field' && (item.indicator_code ?? item.target_key?.replace(/^indicator:/, '')) === profile.code)
                 const mapping = existingByCode.get(profile.code)
                 const key = draftKey(selectedImporter.key, profile.code)
                 const sourceHeader = draftHeaders[key] ?? mapping?.source_header ?? String(profile.schema_json?.header_label ?? '')
