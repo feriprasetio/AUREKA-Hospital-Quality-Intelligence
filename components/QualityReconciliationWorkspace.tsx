@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
+import dynamic from 'next/dynamic'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+const QualityExcelMappingWorkspace = dynamic(() => import('@/components/QualityExcelMappingWorkspace'), {
+  ssr: false,
+  loading: () => <AsyncStatePanel state="loading" title="Memuat pengaturan pemetaan workbook" compact />,
+})
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
 type Room = { id: number; name: string }
@@ -109,6 +114,7 @@ export default function QualityReconciliationWorkspace({
 }) {
   const [year, setYear] = useState(2026)
   const [roomId, setRoomId] = useState<number | null>(initialRoomId)
+  const [activeTab, setActiveTab] = useState<'queue' | 'unit' | 'indicator'>('queue')
   const [queue, setQueue] = useState<QueuePayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState('')
@@ -373,13 +379,18 @@ export default function QualityReconciliationWorkspace({
       </div>
     </header>
 
+    <nav className="qrcNav" aria-label="Ruang kerja Pusat Rekonsiliasi Data">
+      <button type="button" aria-selected={activeTab === 'queue'} onClick={() => setActiveTab('queue')}>Antrean Rekonsiliasi</button>
+      <button type="button" aria-selected={activeTab === 'unit'} onClick={() => setActiveTab('unit')}>Pengaturan per Unit</button>
+      <button type="button" aria-selected={activeTab === 'indicator'} onClick={() => setActiveTab('indicator')}>Pengaturan per Indikator</button>
+    </nav>
     {error && <div className="qrcError" role="alert">{error}</div>}
     {success && <div className="qrcSuccess" role="status">{success}</div>}
 
-    {loading && !queue ? <AsyncStatePanel state="loading" title="Memuat antrean rekonsiliasi" description="Membaca kelompok warning dari seluruh unit yang berada dalam cakupan akses." compact/> : null}
-    {!loading && !queue && !error ? <AsyncStatePanel state="empty" title="Belum ada antrean rekonsiliasi" description="Tidak ada data yang dapat ditampilkan." compact/> : null}
+    {activeTab === 'queue' && loading && !queue ? <AsyncStatePanel state="loading" title="Memuat antrean rekonsiliasi" description="Membaca kelompok warning dari seluruh unit yang berada dalam cakupan akses." compact/> : null}
+    {activeTab === 'queue' && !loading && !queue && !error ? <AsyncStatePanel state="empty" title="Belum ada antrean rekonsiliasi" description="Tidak ada data yang dapat ditampilkan." compact/> : null}
 
-    {queue && <>
+    {activeTab === 'queue' && queue && <>
       <div className="qrcStats">
         <div className="qrcStat"><small>Respons pending</small><strong>{count(totalPending)}</strong><span>{count(summary.response_group_count)} pola sumber</span></div>
         <div className="qrcStat"><small>Dapat dipetakan otomatis</small><strong>{count(totalAuto)}</strong><span>{count(summary.auto_fixable_group_count)} pola dengan label/kode unik</span></div>
@@ -497,5 +508,24 @@ export default function QualityReconciliationWorkspace({
           </div>)}</div>)}
       </section>
     </>}
+
+    {activeTab === 'unit' && <QualityExcelMappingWorkspace
+      rooms={rooms}
+      initialRoomId={roomId}
+      year={year}
+      role={role}
+      initialTab="unit"
+      hideTabs
+      onClose={() => setActiveTab('queue')}
+    />}
+    {activeTab === 'indicator' && <QualityExcelMappingWorkspace
+      rooms={rooms}
+      initialRoomId={roomId}
+      year={year}
+      role={role}
+      initialTab="indicator"
+      hideTabs
+      onClose={() => setActiveTab('queue')}
+    />}
   </section>
 }
