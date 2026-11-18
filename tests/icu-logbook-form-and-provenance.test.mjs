@@ -100,3 +100,14 @@ test('private source workbook policy scopes reads to authorized rooms and writes
   assert.match(migration, /source_indicator_column_refs/)
   assert.match(migration, /source_storage_path/)
 })
+
+test('monthly indicator cells open the exact Excel provenance for the selected month', () => {
+  const results = read('components/QualityResultsWorkspace.tsx')
+  assert.match(results, /const \[sourceMonth, setSourceMonth\] = useState<number \| null>\(null\)/)
+  assert.match(results, /openSourceTrace\(result\.profile, month\.month\)/)
+  assert.match(results, /className="qraSourceCell"/)
+  assert.match(results, /sourceMonth == null \|\| operationalCalendarParts\(row\)\?\.month === sourceMonth/)
+  assert.match(results, /cellRef: columnLetter && excelRow/)
+  assert.match(results, /createSignedUrl\(sourceProvenance\.storagePaths\[0\], 300\)/)
+  assert.match(results, /Logbook.*baris.*Excel/)
+})
