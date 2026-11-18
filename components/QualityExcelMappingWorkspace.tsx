@@ -264,18 +264,30 @@ export default function QualityExcelMappingWorkspace({
       for (const sheet of workbook.worksheets.slice(0, 50)) {
         let bestRow = 1
         let bestHeaders: string[] = []
+        let bestColumns: HeaderColumn[] = []
         for (let rowNumber = 1; rowNumber <= Math.min(12, sheet.rowCount); rowNumber++) {
           const row = sheet.getRow(rowNumber)
+          const columns: HeaderColumn[] = []
           const headers: string[] = []
+          const occurrences = new Map<string, number>()
           const limit = Math.min(200, Number(row.cellCount ?? row.actualCellCount ?? 0))
           for (let column = 1; column <= limit; column++) {
             const value = row.getCell(column).value
             const label = typeof value === 'string' || typeof value === 'number' ? String(value).trim() : ''
-            if (label && !headers.some(item => normalize(item) === normalize(label))) headers.push(label)
+            if (!label) continue
+            const key = normalize(label)
+            const occurrence = (occurrences.get(key) ?? 0) + 1
+            occurrences.set(key, occurrence)
+            columns.push({ header: label, index: column, letter: excelColumnLetter(column), occurrence })
+            if (!headers.some(item => normalize(item) === key)) headers.push(label)
           }
-          if (headers.length > bestHeaders.length) { bestHeaders = headers; bestRow = rowNumber }
+          if (columns.length > bestColumns.length) {
+            bestHeaders = headers
+            bestColumns = columns
+            bestRow = rowNumber
+          }
         }
-        if (bestHeaders.length) rows.push({ name: sheet.name, row: bestRow, headers: bestHeaders })
+        if (bestHeaders.length) rows.push({ name: sheet.name, row: bestRow, headers: bestHeaders, columns: bestColumns })
       }
       if (!rows.length) throw new Error('Tidak ditemukan baris header pada 12 baris pertama workbook.')
       setSheets(rows)
@@ -283,7 +295,8 @@ export default function QualityExcelMappingWorkspace({
       setSelectedSheet(chosen.name)
       setHeaderRow(chosen.row)
       setDetectedHeaders(chosen.headers)
-      setNotice('Workbook diperiksa pada struktur header saja. Baris data pasien tidak dibaca atau dikirim ke NARA.')
+      setDetectedColumns(chosen.columns)
+      setNotice('Struktur workbook diperiksa pada header saja. AUREKA mendeteksi nama sheet, baris header, huruf kolom, dan header duplikat. Baris data pasien tidak dibaca atau dikirim ke NARA.')
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook tidak dapat dibaca. Pastikan file .xlsx tidak rusak atau diproteksi password.' }))
     }
@@ -292,9 +305,38 @@ export default function QualityExcelMappingWorkspace({
   const changeSheet = (name: string) => {
     const sheet = sheets.find(item => item.name === name)
     setSelectedSheet(name)
-    if (sheet) { setHeaderRow(sheet.row); setDetectedHeaders(sheet.headers) }
+    if (sheet) { setHeaderRow(sheet.row); setDetectedHeaders(sheet.headers); setDetectedColumns(sheet.columns) }
     setAiSuggestions([])
   }
+
+  // Exact matches against the indicator profile header/aliases can be prepared automatically.
+  // NARA is reserved for semantic matches where the labels differ.
+  useEffect(() => {
+    if (!roomId || !selectedImporter || !detectedColumns.length || !activeProfiles.length) return
+    const exactMatches = activeProfiles.flatMap(profile => {
+      const key = draftKey(selectedImporter.key, profile.code)
+      const current = draftHeaders[key]
+      if (current || existingByCode.has(profile.code)) return []
+      const schema = profile.schema_json ?? {}
+      const candidates = [
+        schema.header_label,
+        ...(Array.isArray(schema.excel_header_aliases) ? schema.excel_header_aliases : []),
+      ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      const matched = detectedColumns.filter(column => candidates.some(candidate => normalize(candidate) === normalize(column.header)))
+      return matched.length === 1 ? [{ key, column: matched[0] }] : []
+    })
+    if (!exactMatches.length) return
+    setDraftHeaders(current => {
+      const next = { ...current }
+      for (const item of exactMatches) if (!next[item.key]) next[item.key] = item.column.header
+      return next
+    })
+    setDraftOccurrences(current => {
+      const next = { ...current }
+      for (const item of exactMatches) if (!next[item.key]) next[item.key] = item.column.occurrence
+      return next
+    })
+  }, [roomId, selectedImporter?.key, detectedColumns, activeProfiles, existingByCode, draftHeaders])
 
   const runNaraBulk = async () => {
     if (!roomId || !selectedImporter || !detectedHeaders.length || !activeProfiles.length) {
