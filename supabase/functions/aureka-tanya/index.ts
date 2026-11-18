@@ -835,8 +835,9 @@ async function handle(req: Request): Promise<Response> {
       "pediatric-inpatient": 22, "surgical-inpatient": 23, "isolasi-inpatient": 24,
       "penyakit-dalam-inpatient": 25, "saraf-inpatient": 26, timkordik: 30, ponek: 33,
     };
+    const isGenericUnitWorkbook = importerKey === "unit-logbook" && Number.isSafeInteger(roomId) && roomId >= 1 && roomId <= 100;
     if (!Number.isSafeInteger(roomId) || roomId < 1 || !Number.isInteger(year) || year < 2000 || year > 2100 ||
-        !Object.prototype.hasOwnProperty.call(importerRoom, importerKey) || importerRoom[importerKey] !== roomId) {
+        (!isGenericUnitWorkbook && (!Object.prototype.hasOwnProperty.call(importerRoom, importerKey) || importerRoom[importerKey] !== roomId))) {
       return reply(422, { error: "Unit, tahun, atau jenis workbook tidak valid untuk bantuan pemetaan NARA." });
     }
     const rawHeaders = Array.isArray(body.headers) ? body.headers : [];
