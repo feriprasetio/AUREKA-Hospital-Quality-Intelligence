@@ -3,7 +3,7 @@
 Direktori ini menyimpan snapshot metadata profil indikator 2026 yang digunakan sebagai bahan rekonstruksi dan audit sumber data.
 
 - Snapshot direkonstruksi dari tabel produksi `aureka_quality.indicator_profiles` pada 19 November 2026.
-- Total profil pada sumber produksi saat snapshot: **189 profil**.
+- Total profil aktif berstatus `published` pada sumber produksi saat snapshot: **188 profil**. Satu profil lama berstatus `retired` tidak dimasukkan.
 - Snapshot dibagi menjadi `chunk-01.json` sampai `chunk-12.json`.
 - File hanya memuat metadata profil indikator dan konfigurasi instrumen; tidak memuat identitas pasien, nomor rekam medis, atau data episode pasien.
 - Field identitas teknis basis data (`id`, `created_by`, `updated_by`, `status`, `is_active`, `version`) tidak disertakan karena berkas chunk merupakan snapshot katalog, bukan salinan tabel operasional.
