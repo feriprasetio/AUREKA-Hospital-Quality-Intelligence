@@ -440,7 +440,7 @@ export default function IgdExcelImportDialog({
         const index = findHeader(headers, candidates, true, 'indicator:' + indicator.code)
         if (index == null) {
           throw new Error(
-            'Kolom sumber untuk indikator ' + indicator.code + ' (' + indicator.profileTitleHint +
+            'Kolom sumber untuk indikator ' + indicator.code + ' (' + (profile?.title ?? indicator.header) +
             ') belum cocok dengan workbook. Buka Indikator Mutu → Pusat Rekonsiliasi → Pengaturan per Unit untuk memilih kolom Excel. ' +
             'Profil indikator tidak perlu diubah kecuali definisi atau opsi klinisnya memang keliru.'
           )
