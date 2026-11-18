@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { findIcuBhpLinenHeaderCandidates, findIcuBhpLinenHeaderColumns } from '../lib/aureka/icu-excel-headers.ts'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
@@ -94,4 +95,27 @@ test('ICU BHP/Linen header matching uses a unique combined column or asks for ex
   assert.match(importer, /findIcuBhpLinenHeaderColumns\(columns\)/)
   assert.match(importer, /findIcuBhpLinenHeaderCandidates\(bestColumns\)/)
   assert.match(importer, /combinedBhpLinenColumns\.length === 1/)
+})
+
+test('BHP/Linen resolver finds a single combined source column without combining separate fields', () => {
+  const unique = new Map([
+    ['nama pasien', [1]],
+    ['kekosongan bhp / linen', [18]],
+    ['kekosongan bhp', [19]],
+    ['kekosongan linen', [20]],
+  ])
+  assert.deepEqual(findIcuBhpLinenHeaderCandidates(unique), ['kekosongan bhp / linen'])
+  assert.deepEqual(findIcuBhpLinenHeaderColumns(unique), [18])
+
+  const ambiguous = new Map([
+    ['kekosongan bhp/linen', [18]],
+    ['ketersediaan bhp dan linen', [21]],
+  ])
+  assert.deepEqual(findIcuBhpLinenHeaderColumns(ambiguous), [18, 21])
+
+  const splitOnly = new Map([
+    ['kekosongan bhp', [18]],
+    ['kekosongan linen', [19]],
+  ])
+  assert.deepEqual(findIcuBhpLinenHeaderColumns(splitOnly), [])
 })
