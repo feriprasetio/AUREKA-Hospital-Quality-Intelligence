@@ -457,7 +457,7 @@ export default function QualityExcelMappingWorkspace({
       })
       setNotice(
         'NARA menganalisis ' + detectedHeaders.length + ' header dan menghasilkan ' + suggestions.filter(item => item.source_header).length +
-        ' usulan. ' + acceptedSuggestions.length + ' usulan dengan keyakinan ≥80% disiapkan sebagai draft; usulan lain tetap harus dipilih manual. Tidak ada perubahan tersimpan sebelum konfirmasi.' +
+        ' usulan. ' + acceptedSuggestions.length + ' usulan dengan keyakinan ≥80% disiapkan sebagai draft; usulan lain tetap harus dipilih manual. Periksa setiap usulan sebelum menyimpan; tidak ada perubahan tersimpan sebelum konfirmasi.' +
         (data?.model ? ' Provider/model: ' + data.model : '')
       )
     } catch (cause) {
