@@ -207,7 +207,7 @@ test('drawer breakpoint agrees with its controller and is dismissible from insid
   assert.match(home, /className="workspaceDrawerClose"[^>]*onClick=\{mobileSidebar\.close\}/)
   assert.match(home, /workspaceGlobalSearchInput/)
   assert.doesNotMatch(home, /data-sidebar-autofocus|sidebarSearch|Cari menu/)
-  assert.match(home, /<nav className="sidebarNav" aria-label="Navigasi modul AUREKA">/)
+  assert.match(home, /<nav className="sidebarNav sidebarDomainNav" aria-label="Enam domain utama AUREKA">/)
   assert.doesNotMatch(home, /sidebarTreeChildren|sidebarNestedGroup|closedNav|toggleNav\(/)
 })
 

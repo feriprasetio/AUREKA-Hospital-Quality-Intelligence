@@ -898,3 +898,66 @@ html[data-mode="gelap"] body:not(#_) .hlReminderHead h3 { color: #fde68a; }
 html[data-mode="gelap"] body:not(#_) .hlReminderHead span:not(.hlReminderIcon) { color: #e3c27f; }
 html[data-mode="gelap"] body:not(#_) .hlReminderIcon { background: rgba(251, 191, 36, .2); color: #fde68a; }
 html[data-mode="gelap"] body:not(#_) .hlReminder .hlReminderRow { background: rgba(15, 23, 42, .5) !important; border-color: rgba(251, 191, 36, .22) !important; }
+
+/* Hybrid Navigation V3: six domain groups, contextual functional groups.
+   Reuse the current Arktik/sidebar tokens; no palette or theme replacement. */
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainNav { gap: 6px !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomain { display: grid !important; gap: 3px !important; min-width: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainTrigger {
+ display: flex !important; align-items: center !important; width: 100% !important; min-height: 42px !important;
+ gap: 10px !important; padding: 8px 10px !important; border: 1px solid transparent !important;
+ border-radius: 7px !important; background: transparent !important; color: var(--desk-muted, #65766b) !important;
+ font: inherit !important; font-size: 12.5px !important; text-align: left !important; cursor: pointer !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainTrigger > span { flex: 1 1 auto !important; min-width: 0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainTrigger.navActive,
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomain.isExpanded > .sidebarDomainTrigger {
+ background: #eaf2ed !important; color: #17553f !important; font-weight: 650 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainChevron {
+ width: 14px !important; height: 14px !important; flex: 0 0 14px !important; fill: none !important;
+ stroke: currentColor !important; stroke-width: 1.7 !important; transition: transform .16s ease !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomain.isExpanded .sidebarDomainChevron { transform: rotate(180deg) !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItems {
+ display: grid !important; gap: 2px !important; margin: 0 0 4px 18px !important; padding: 3px 0 3px 12px !important;
+ border-left: 1px solid var(--desk-line, #dfe7df) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItem {
+ display: flex !important; align-items: center !important; width: 100% !important; min-height: 34px !important;
+ padding: 6px 9px !important; border: 1px solid transparent !important; border-radius: 6px !important;
+ background: transparent !important; color: var(--desk-muted, #65766b) !important; font: inherit !important;
+ font-size: 12px !important; line-height: 1.35 !important; text-align: left !important; cursor: pointer !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItem.active {
+ background: #f0f5f0 !important; border-color: #e1e9e3 !important; color: #17634d !important; font-weight: 650 !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItem:hover:not(.active) { background: #f5f8f5 !important; color: #284f3b !important; }
+html[data-mode="gelap"] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainTrigger.navActive,
+html[data-mode="gelap"] .workspaceRoot.workspaceDesk .sidebar .sidebarDomain.isExpanded > .sidebarDomainTrigger { background: #263a32 !important; color: #e7f4ea !important; }
+html[data-mode="gelap"] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItems { border-left-color: #3c584b !important; }
+html[data-mode="gelap"] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItem.active { background: #314a3e !important; border-color: #49675a !important; color: #e7f4ea !important; }
+html[data-mode="gelap"] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItem:hover:not(.active) { background: #263a32 !important; color: #edf7f0 !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlobalServiceButton { position: relative !important; }
+html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlobalServiceButton svg { width: 18px !important; height: 18px !important; fill: none !important; stroke: currentColor !important; stroke-width: 1.7 !important; stroke-linecap: round !important; stroke-linejoin: round !important; }
+@media (max-width: 720px) {
+ html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainTrigger { min-height: 44px !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainItem { min-height: 40px !important; font-size: 13px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+ html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainChevron { transition: none !important; }
+}
+
+/* Mobile header: reserve one predictable slot for each global service. */
+@media (max-width: 720px) {
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar {
+  grid-template-columns: 34px minmax(0,1fr) repeat(5,32px) !important;
+ }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceSearchToggle { display: none !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceNaraButton { grid-column: 3 !important; grid-row: 1 !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceInboxButton { grid-column: 4 !important; grid-row: 1 !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceThemeButton { grid-column: 5 !important; grid-row: 1 !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon[data-workspace-popover-trigger="notifications"] { grid-column: 6 !important; grid-row: 1 !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { grid-column: 7 !important; grid-row: 1 !important; }
+ html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch { grid-column: 1 / 7 !important; grid-row: 2 !important; }
+}

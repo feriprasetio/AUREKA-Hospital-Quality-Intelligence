@@ -68,6 +68,33 @@ type SupportConversation={id:string;room_id:number;created_by:string;subject:str
 type SupportMessage={id:string;conversation_id:string;sender_id:string;body:string;created_at:string}
 
 type SidebarChild={id:string;label:string;children?:SidebarChild[]}
+type AurekaSidebarDomain = { id:string; label:string; icon:string; items:Array<{id:string;label:string;moduleId:string;childId?:string}> }
+const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[] = [
+ {id:'command_center',label:'Command Center',icon:'home',items:[{id:'dashboard',label:'Dashboard sesuai peran',moduleId:'home'}]},
+ {id:'clinical_operations',label:'Clinical Operations',icon:'patients',items:[
+  {id:'patient_episodes',label:'Data Pasien & Episode',moduleId:'patients',childId:'records'},
+  {id:'medical_records',label:'Rekam Medis & Analisis',moduleId:'patients',childId:'analysis'},
+  {id:'clinical_audit',label:'Audit & Evaluasi Klinis',moduleId:'clinical',childId:'audit-pathway'},
+ ]},
+ {id:'quality_risk',label:'Quality & Risk Management',icon:'quality',items:[
+  {id:'quality_indicators',label:'Indikator Mutu',moduleId:'quality',childId:'audit-indicators'},
+  {id:'patient_safety',label:'Keselamatan Pasien',moduleId:'safety',childId:'incidents'},
+  {id:'safety_culture',label:'Budaya Keselamatan',moduleId:'safety',childId:'survey'},
+  {id:'risk_management',label:'Manajemen Risiko',moduleId:'risk',childId:'register'},
+ ]},
+ {id:'performance_management',label:'Performance Management',icon:'analytics',items:[
+  {id:'strategic_programs',label:'Program & Target Strategis',moduleId:'analytics',childId:'programs'},
+  {id:'recommendations',label:'Rekomendasi & RTL',moduleId:'analytics',childId:'recommendations'},
+  {id:'performance_monitoring',label:'Monitoring Kinerja',moduleId:'staff',childId:'pic-performance'},
+ ]},
+ {id:'governance_organization',label:'Governance & Organization',icon:'settings',items:[
+  {id:'organization_hr',label:'Organisasi & SDM',moduleId:'staff',childId:'directory'},
+  {id:'administration',label:'Administrasi & Pengaturan',moduleId:'settings',childId:'profile'},
+ ]},
+ {id:'intelligence_analytics',label:'Intelligence & Analytics',icon:'analytics',items:[
+  {id:'executive_analytics',label:'Dashboard Eksekutif, Analitik & Infografis',moduleId:'insights'},
+ ]},
+]
 type Room={id:number;name:string};type Profile={user_id:string;full_name:string;email:string;username?:string|null;primary_room_id:number|null;role_id:string|null;is_active:boolean;must_change_password?:boolean;role_code?:string|null;role_name?:string|null}
 const logo=(c='')=><span className={'brandLogoWrap '+c}><img className="brandLogoImage" src={LOGO} width={160} height={136} alt="Logo AUREKA Hospital Quality Intelligence" loading="eager" decoding="async" onError={e=>{e.currentTarget.style.display='none'}}/></span>
 async function rooms(){const {data,error}=await sb.from('master_rooms').select('id,name').eq('is_active',true).order('sort_order');return !error&&data?.length?data as Room[]:FALLBACK.map((name,i)=>({id:i+1,name}))}
@@ -91,7 +118,7 @@ const BOTTOM_NAV_GLYPH:Record<string,ReactNode>={
 export default function HomeClient(){
  // Kotak cari baru bisa diketik setelah difokus pengguna: mencegah browser mengisi username otomatis ke sini.
  const [searchArmed,setSearchArmed]=useState(false)
- const [mobileSearchOpen,setMobileSearchOpen]=useState(false)
+ const [mobileSearchOpen,setMobileSearchOpen]=useState(false),[expandedDomain,setExpandedDomain]=useState('')
  const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[naraPendingPrompt,setNaraPendingPrompt]=useState<string|null>(null),[naraContextPage,setNaraContextPage]=useState('NARA AI'),[qualityOpen,setQualityOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[qualityMonitorOpen,setQualityMonitorOpen]=useState(false),[qualityReconciliationOpen,setQualityReconciliationOpen]=useState(false),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[selectedWorkspaceRoomId,setSelectedWorkspaceRoomId]=useState<number|null>(null),[allRoomsScope,setAllRoomsScope]=useState(true),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('incidents'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('register'),[qualityProfileOpen,setQualityProfileOpen]=useState(false),[programTab,setProgramTab]=useState<AnalyticsWorkspaceTab>('programs'),[staffTab,setStaffTab]=useState<AnalyticsWorkspaceTab>('directory'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[reminderHistory,setReminderHistory]=useState<ReminderHistoryItem[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportTab,setSupportTab]=useState<'admin'|'broadcast'>('admin'),[broadcastDraft,setBroadcastDraft]=useState(''),[broadcastSending,setBroadcastSending]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const updateWorkspaceRoom=useCallback((nextRoomId:number|null)=>{
   if(nextRoomId==null){
@@ -380,12 +407,34 @@ export default function HomeClient(){
  const activeWorkspaceRoom=admin&&allRoomsScope?null:(roomsList.find(item=>Number(item.id)===Number(activeWorkspaceRoomId))??room)
  const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV
   .filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole))
+  .filter(({id})=>id!=='nara')
   .filter(({id})=>{
    if(id==='staff')return permissionFlags.readDirectory||permissionFlags.readPerformance||permissionFlags.readPicPerformance
    if(id==='quality'&&role==='DEWAN_PENGAWAS')return permissionFlags.readQualityAggregate
    return true
   })
   .map(({id,label})=>[id,label] as const),[role,permissionFlags])
+
+ const visibleModuleIds=useMemo<Set<string>>(()=>new Set(visibleMods.map(([id])=>id)),[visibleMods])
+ const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS.map(domain=>({...domain,items:domain.items.filter(item=>(item.moduleId==='home'||visibleModuleIds.has(item.moduleId))&&(item.moduleId!=='staff'||item.childId!=='pic-performance'||permissionFlags.readPicPerformance)&&(item.moduleId!=='staff'||item.childId!=='directory'||permissionFlags.readDirectory))})).filter(domain=>domain.items.length>0),[visibleModuleIds])
+ const activeDomainId=useMemo(()=>{
+  const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>{
+   if(item.moduleId!==active)return false
+   if(item.moduleId==='patients')return item.childId==='analysis'?patientsRegistryTab==='analysis':patientsRegistryTab!=='analysis'
+   if(item.moduleId==='safety')return item.childId==='survey'?safetyTab==='survey':safetyTab!=='survey'
+   if(item.moduleId==='analytics')return item.childId==='recommendations'?programTab==='recommendations':programTab!=='recommendations'
+   if(item.moduleId==='staff')return item.childId==='pic-performance'?staffTab==='pic-performance':staffTab!=='pic-performance'
+   return true
+  }))
+  return match?.id||(active==='home'?'command_center':'')
+ },[visibleSidebarDomains,active,patientsRegistryTab,safetyTab,programTab,staffTab])
+ const effectiveExpandedDomain=expandedDomain||activeDomainId
+ const selectDomainDestination=(domainId:string,item:{moduleId:string;childId?:string})=>{
+  setExpandedDomain(domainId)
+  if(item.moduleId==='home'){openMainModule('home');return}
+  openMainModule(item.moduleId,true)
+  if(item.childId)selectSidebarChild(item.moduleId,item.childId)
+ }
  const sidebarChildGroups=useMemo<Record<string,SidebarChild[]>>(()=>{
   const groups:Record<string,SidebarChild[]> = {
    insights:[],
@@ -984,20 +1033,30 @@ export default function HomeClient(){
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>RSUD SSMA Pontianak</small></div></div>
    <button type="button" className="workspaceDrawerClose" aria-label="Tutup menu navigasi" onClick={mobileSidebar.close}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
   </div>
-  <div className="navLabel">Menu utama</div>
-  <nav className="sidebarNav" aria-label="Navigasi modul AUREKA">
-   <div className={'sidebarNavGroup '+(active==='home'?'isCurrent':'')} key="home">
-    <button type="button" title="Beranda" className={active==='home'?'navActive':''} aria-current={active==='home'?'page':undefined} onClick={()=>openMainModule('home')}>
-     <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH.home}</svg><span>Beranda</span>
-    </button>
-   </div>
-   {visibleMods.map(([id,label])=>{
-    const selected=isPrimaryNavActive(id)
-    return <div className={'sidebarNavGroup '+(selected?'isCurrent':'')} key={id}>
-     <button type="button" title={label} className={selected?'navActive':''} aria-current={selected?'page':undefined} onClick={()=>openMainModule(id)}>
-      {BOTTOM_NAV_GLYPH[id]&&<svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[id]}</svg>}<span>{label}</span>
+  <div className="navLabel">Domain kerja</div>
+  <nav className="sidebarNav sidebarDomainNav" aria-label="Enam domain utama AUREKA">
+   {visibleSidebarDomains.map(domain=>{
+    const expanded=effectiveExpandedDomain===domain.id
+    const selected=activeDomainId===domain.id
+    return <section className={'sidebarDomain '+(selected?'isCurrent ':'')+(expanded?'isExpanded':'')} key={domain.id}>
+     <button type="button" className={'sidebarDomainTrigger '+(selected?'navActive':'')} aria-expanded={expanded} aria-current={selected?'page':undefined} title={domain.label} onClick={()=>setExpandedDomain(expanded?'':domain.id)}>
+      <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[domain.icon]||BOTTOM_NAV_GLYPH.analytics}</svg>
+      <span>{domain.label}</span><svg className="sidebarDomainChevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
      </button>
-    </div>
+     {expanded&&<div className="sidebarDomainItems" role="group" aria-label={'Kelompok fungsi '+domain.label}>
+      {domain.items.map(item=>{
+       const itemSelected=item.moduleId===active&&(
+        item.moduleId==='patients'?(item.childId==='analysis'?patientsRegistryTab==='analysis':patientsRegistryTab!=='analysis'):
+        item.moduleId==='safety'?(item.childId==='survey'?safetyTab==='survey':safetyTab!=='survey'):
+        item.moduleId==='analytics'?(item.childId==='recommendations'?programTab==='recommendations':programTab!=='recommendations'):
+        item.moduleId==='staff'?(item.childId==='pic-performance'?staffTab==='pic-performance':staffTab!=='pic-performance'):true
+       )
+       return <button type="button" key={item.id} className={'sidebarDomainItem '+(itemSelected?'active':'')} aria-current={itemSelected?'page':undefined} onClick={()=>selectDomainDestination(domain.id,item)}>
+        <span>{item.label}</span>
+       </button>
+      })}
+     </div>}
+    </section>
    })}
   </nav>
   <div className="sidebarFooter">
@@ -1044,6 +1103,12 @@ export default function HomeClient(){
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
    </div>
+   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceNaraButton" title="Buka NARA AI" aria-label="Buka NARA AI" onClick={()=>openMainModule('nara')}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span className="srOnly">NARA AI</span>
+   </button>
+   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceInboxButton" data-workspace-popover-trigger="inbox" title="Buka Pusat Komunikasi" aria-label="Buka Pusat Komunikasi" aria-expanded={supportOpen} onClick={()=>{openSupportChat('admin');setNotificationHistoryOpen(false)}}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 7l8 6 8-6M4 15h5l1.5 2h3L15 15h5"/></svg><span className="srOnly">Pusat Komunikasi</span>
+   </button>
    <button type="button" className="workspaceHeaderIcon workspaceThemeButton" title={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-label={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-pressed={uiMode==='gelap'} onClick={toggleUiMode}>
     {uiMode==='terang'?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>:<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>}
    </button>

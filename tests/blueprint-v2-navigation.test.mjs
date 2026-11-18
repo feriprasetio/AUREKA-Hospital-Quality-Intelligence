@@ -54,7 +54,8 @@ test('legacy bookmarks remain mapped while the new HR route is canonical', () =>
 test('Beranda owns command-center functions while Infografis is an independent module', () => {
   const app = read('components/HomeClient.tsx')
   const home = read('components/HomeLandingWorkspace.tsx')
-  assert.ok(app.includes('title="Beranda"'))
+  assert.ok(app.includes("id:'command_center',label:'Command Center'"))
+  assert.ok(app.includes("label:'Dashboard sesuai peran'"))
   assert.ok(app.includes("insights:[]"))
   assert.ok(app.includes("active==='insights'?<InfographicsDashboard mode=\"full\""))
   assert.ok(app.includes("insights:'#analitik'"))

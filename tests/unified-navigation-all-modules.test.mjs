@@ -99,3 +99,24 @@ test('primary and secondary overflow menus stay independent and have no duplicat
   assert.match(nav, /className=\{'workspaceNavigationRailItem' \+ \(selected \? ' active' : ''\)\}/)
   assert.match(nav, /className=\{'workspaceNavigationSubItem' \+ \(selected \? ' active' : ''\)\}/)
 })
+
+test('Hybrid Navigation V3 exposes exactly six role-filtered primary domains and keeps global services out of the sidebar', () => {
+  const home = read('components/HomeClient.tsx')
+  const css = read('app/typography.css')
+  for (const id of ['command_center','clinical_operations','quality_risk','performance_management','governance_organization','intelligence_analytics']) {
+    assert.ok(home.includes("id:'" + id + "'"), 'Missing domain ' + id)
+  }
+  assert.equal((home.match(/\{id:'(?:command_center|clinical_operations|quality_risk|performance_management|governance_organization|intelligence_analytics)'/g)||[]).length,6)
+  assert.match(home,/\.filter\(\(\{id\}\)=>id!=='nara'\)/)
+  assert.match(home,/aria-label="Enam domain utama AUREKA"/)
+  assert.match(home,/workspaceGlobalServiceButton/)
+  assert.match(home,/Buka NARA AI/)
+  assert.match(home,/Buka Pusat Komunikasi/)
+  assert.ok(home.includes('permissionFlags.readPicPerformance'))
+  assert.ok(home.includes('workspaceSearchToggle'))
+  assert.ok(home.includes('workspaceNaraButton'))
+  assert.ok(home.includes('workspaceInboxButton'))
+  assert.match(home,/visibleModuleIds\.has\(item\.moduleId\)/)
+  assert.match(css,/Hybrid Navigation V3/)
+  assert.match(css,/data-mode="gelap"/)
+})
