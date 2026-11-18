@@ -62,7 +62,7 @@ export default function UnifiedModuleNavigation({
     const rail = railRef.current
     if (!rail) return
     const calculate = () => {
-      if (window.matchMedia('(max-width: 720px)').matches) {
+      if (window.matchMedia('(max-width: 860px)').matches) {
         setHiddenIds(previous => previous.length ? [] : previous)
         setHiddenSubIds(previous => previous.length ? [] : previous)
         return
@@ -106,29 +106,109 @@ export default function UnifiedModuleNavigation({
   useLayoutEffect(() => {
     const box = itemsRef.current
     if (!box) return
+    let frame = 0
+    let disposed = false
+    let observedActive: HTMLElement | null = null
     const place = () => {
+      if (disposed) return
       const active = box.querySelector<HTMLElement>('.workspaceNavigationRailItem.active')
-      if (!active) { box.classList.remove('hasPill', 'pillReady'); return }
-      box.style.setProperty('--pill-x', active.offsetLeft + 'px'); box.style.setProperty('--pill-y', active.offsetTop + 'px')
-      box.style.setProperty('--pill-w', active.offsetWidth + 'px'); box.style.setProperty('--pill-h', active.offsetHeight + 'px')
-      if (!box.classList.contains('hasPill')) { box.classList.add('hasPill'); requestAnimationFrame(() => box.classList.add('pillReady')) }
+      if (!active) {
+        box.classList.remove('hasPill', 'pillReady')
+        box.style.removeProperty('--pill-x')
+        box.style.removeProperty('--pill-y')
+        box.style.removeProperty('--pill-w')
+        box.style.removeProperty('--pill-h')
+        return
+      }
+      box.style.setProperty('--pill-x', (active.offsetLeft - box.scrollLeft) + 'px')
+      box.style.setProperty('--pill-y', active.offsetTop + 'px')
+      box.style.setProperty('--pill-w', active.offsetWidth + 'px')
+      box.style.setProperty('--pill-h', active.offsetHeight + 'px')
+      if (!box.classList.contains('hasPill')) {
+        box.classList.add('hasPill')
+        requestAnimationFrame(() => { if (!disposed) box.classList.add('pillReady') })
+      }
+      if (observedActive !== active) {
+        observer?.disconnect()
+        observer?.observe(box)
+        observer?.observe(active)
+        observedActive = active
+      }
     }
-    place(); const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null
-    observer?.observe(box); return () => observer?.disconnect()
+    const schedule = () => {
+      if (disposed) return
+      if (frame) cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(place)
+    }
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
+    observer?.observe(box)
+    box.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    document.fonts?.ready.then(schedule)
+    document.fonts?.addEventListener('loadingdone', schedule)
+    schedule()
+    return () => {
+      disposed = true
+      if (frame) cancelAnimationFrame(frame)
+      observer?.disconnect()
+      box.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+      document.fonts?.removeEventListener('loadingdone', schedule)
+    }
   }, [resolvedActiveId, hiddenIds, itemsSignature])
 
   useLayoutEffect(() => {
     const box = subItemsRef.current
     if (!box) return
+    let frame = 0
+    let disposed = false
+    let observedActive: HTMLElement | null = null
     const place = () => {
+      if (disposed) return
       const active = box.querySelector<HTMLElement>('.workspaceNavigationSubItem.active')
-      if (!active) { box.classList.remove('hasPill', 'pillReady'); return }
-      box.style.setProperty('--pill-x', active.offsetLeft + 'px'); box.style.setProperty('--pill-y', active.offsetTop + 'px')
-      box.style.setProperty('--pill-w', active.offsetWidth + 'px'); box.style.setProperty('--pill-h', active.offsetHeight + 'px')
-      if (!box.classList.contains('hasPill')) { box.classList.add('hasPill'); requestAnimationFrame(() => box.classList.add('pillReady')) }
+      if (!active) {
+        box.classList.remove('hasPill', 'pillReady')
+        box.style.removeProperty('--pill-x')
+        box.style.removeProperty('--pill-y')
+        box.style.removeProperty('--pill-w')
+        box.style.removeProperty('--pill-h')
+        return
+      }
+      box.style.setProperty('--pill-x', (active.offsetLeft - box.scrollLeft) + 'px')
+      box.style.setProperty('--pill-y', active.offsetTop + 'px')
+      box.style.setProperty('--pill-w', active.offsetWidth + 'px')
+      box.style.setProperty('--pill-h', active.offsetHeight + 'px')
+      if (!box.classList.contains('hasPill')) {
+        box.classList.add('hasPill')
+        requestAnimationFrame(() => { if (!disposed) box.classList.add('pillReady') })
+      }
+      if (observedActive !== active) {
+        observer?.disconnect()
+        observer?.observe(box)
+        observer?.observe(active)
+        observedActive = active
+      }
     }
-    place(); const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null
-    observer?.observe(box); return () => observer?.disconnect()
+    const schedule = () => {
+      if (disposed) return
+      if (frame) cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(place)
+    }
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
+    observer?.observe(box)
+    box.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    document.fonts?.ready.then(schedule)
+    document.fonts?.addEventListener('loadingdone', schedule)
+    schedule()
+    return () => {
+      disposed = true
+      if (frame) cancelAnimationFrame(frame)
+      observer?.disconnect()
+      box.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+      document.fonts?.removeEventListener('loadingdone', schedule)
+    }
   }, [resolvedSecondaryActiveId, hiddenSubIds, subItemsSignature])
 
   useEffect(() => {
