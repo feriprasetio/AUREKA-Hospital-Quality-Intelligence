@@ -184,10 +184,10 @@ function findHeaderExact(columns: Map<string, number[]>, candidates: readonly st
   return null
 }
 
-function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true): number | null {
+function findHeader(columns: Map<string, number[]>, candidates: readonly string[], required = true, fieldKey?: string): number | null {
   return resolveInteractiveExcelHeaderColumn(columns, candidates, {
     importerKey: 'igd',
-    fieldKey: candidates[0] ?? 'field',
+    fieldKey: fieldKey ?? candidates[0] ?? 'field',
     fieldLabel: candidates[0] ?? 'Field',
     required,
   })
@@ -240,12 +240,9 @@ function mapProfiles(profiles: IndicatorProfile[]): Map<string, IndicatorProfile
     if (matches.length !== 1 || !matches[0].id || !Array.isArray(matches[0].options_json)) {
       throw new Error('Master indikator IGD ' + indicator.code + ' harus tepat satu, aktif, published, dan memiliki options_json. Impor dihentikan.')
     }
-    const profile = matches[0]
-    const header = String(profile.schema_json?.header_label ?? '').trim()
-    if (header !== indicator.header || header !== ACTIVE_HEADER_BY_CODE[indicator.code]) {
-      throw new Error('Header master indikator ' + indicator.code + ' tidak cocok dengan mapping sumber "' + indicator.header + '". Perbaiki master terlebih dahulu.')
-    }
-    output.set(indicator.code, profile)
+    // Header workbook is configured separately per unit/importer. It is not part of the clinical profile identity.
+    // The indicator master remains responsible for the target definition and response options only.
+    output.set(indicator.code, matches[0])
   }
   return output
 }
@@ -419,8 +416,8 @@ export default function IgdExcelImportDialog({
       const extraQueueColumn = findHeader(headers, ['Antrian Pasien'], false)
       const indicatorColumns = new Map<string, number>()
       for (const indicator of IGD_INDICATORS) {
-        const index = findHeader(headers, [indicator.header])
-        if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" tidak ditemukan pada Logbook.')
+        const index = findHeader(headers, [indicator.header], true, 'indicator:' + indicator.code)
+        if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" belum dipetakan pada Pusat Pemetaan Excel.')
         indicatorColumns.set(indicator.code, index)
       }
       const byCode = mapProfiles(profiles)
