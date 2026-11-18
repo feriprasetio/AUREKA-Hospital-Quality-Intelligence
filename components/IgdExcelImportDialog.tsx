@@ -414,13 +414,33 @@ export default function IgdExcelImportDialog({
         columns[key] = index
       }
       const extraQueueColumn = findHeader(headers, ['Antrian Pasien'], false)
+      // Resolve published clinical profiles first, then use the profile's canonical
+      // header and explicit aliases as source candidates. A source-header mismatch
+      // is a unit mapping problem; it must not force an edit to the clinical master.
+      const byCode = mapProfiles(profiles)
       const indicatorColumns = new Map<string, number>()
       for (const indicator of IGD_INDICATORS) {
-        const index = findHeader(headers, [indicator.header], true, 'indicator:' + indicator.code)
-        if (index == null) throw new Error('Kolom indikator sumber "' + indicator.header + '" belum dipetakan pada Pusat Pemetaan Excel.')
+        const profile = byCode.get(indicator.code)
+        const schema = profile?.schema_json ?? {}
+        const profileAliases = Array.isArray(schema.excel_header_aliases)
+          ? schema.excel_header_aliases.filter((value: unknown): value is string => typeof value === 'string')
+          : []
+        const candidates = [...new Set([
+          indicator.header,
+          ACTIVE_HEADER_BY_CODE[indicator.code],
+          typeof schema.header_label === 'string' ? schema.header_label : '',
+          ...profileAliases,
+        ].map(value => String(value ?? '').trim()).filter(Boolean))]
+        const index = findHeader(headers, candidates, true, 'indicator:' + indicator.code)
+        if (index == null) {
+          throw new Error(
+            'Kolom sumber untuk indikator ' + indicator.code + ' (' + indicator.profileTitleHint +
+            ') belum cocok dengan workbook. Buka Indikator Mutu → Pusat Rekonsiliasi → Pengaturan per Unit untuk memilih kolom Excel. ' +
+            'Profil indikator tidak perlu diubah kecuali definisi atau opsi klinisnya memang keliru.'
+          )
+        }
         indicatorColumns.set(indicator.code, index)
       }
-      const byCode = mapProfiles(profiles)
       const parsed: MainRow[] = []
       const excluded: ExcludedRow[] = []
       let sourceRows = 0
