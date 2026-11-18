@@ -794,7 +794,7 @@ async function handle(req: Request): Promise<Response> {
 
   const contentLength = Number(req.headers.get("content-length") || 0);
   if (contentLength > 32768) return reply(413, { error: "Permintaan terlalu besar." });
-  let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string; warmup?: boolean; task?: string };
+  let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string; warmup?: boolean; task?: string; room_id?: number; profile_year?: number; importer_key?: string; headers?: string[] };
   try { body = await req.json(); } catch { return reply(400, { error: "Format permintaan tidak valid." }); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return reply(400, { error: "Format permintaan tidak valid." });
   if (rateLimited(who.user.id)) return reply(429, { error: "Batas permintaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
@@ -805,7 +805,7 @@ async function handle(req: Request): Promise<Response> {
   }
   const task = String(body.task || "").trim().toLowerCase();
   const question = (body.question || "").toString().trim().slice(0, 1500);
-  if (!question && task !== "icd10_suggest") return reply(400, { error: "Pertanyaan kosong." });
+  if (!question && task !== "icd10_suggest" && task !== "excel_mapping_suggest") return reply(400, { error: "Pertanyaan kosong." });
   // Fail closed when a user includes likely patient/staff identifiers in a prompt or chat history.
   const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
   const outboundText = [question, ...history.map((h) => String(h?.text || ""))].join("\n");
@@ -820,6 +820,154 @@ async function handle(req: Request): Promise<Response> {
   ];
   if (sensitivePatterns.some((pattern) => pattern.test(outboundText))) {
     return reply(422, { error: "Permintaan ditahan oleh NARA Privacy Guard. Hapus identitas pasien/petugas, nomor rekam medis, NIK, kontak, dan detail pengenal dari pertanyaan maupun riwayat sebelum mencoba kembali." });
+  }
+
+  // AI-assisted Excel mapping: hanya label header workbook dan definisi profil yang dikirim.
+  // Tidak ada sel baris data, nama pasien, nomor rekam medis atau diagnosis pasien yang dikirim.
+  if (task === "excel_mapping_suggest") {
+    const roomId = Number(body.room_id);
+    const year = Number(body.profile_year);
+    const importerKey = String(body.importer_key || "").trim();
+    const importerRoom: Record<string, number> = {
+      complaint: 1, it: 2, ambulance: 3, ibs: 4, pharmacy: 5, igd: 6,
+      gizi: 7, laboratory: 9, outpatient: 11, "rehab-medik": 12,
+      "rekam-medis": 13, icu: 14, nicu: 18, nifas: 19, perinatology: 20,
+      "pediatric-inpatient": 22, "surgical-inpatient": 23, "isolasi-inpatient": 24,
+      "penyakit-dalam-inpatient": 25, "saraf-inpatient": 26, timkordik: 30, ponek: 33,
+    };
+    if (!Number.isSafeInteger(roomId) || roomId < 1 || !Number.isInteger(year) || year < 2000 || year > 2100 ||
+        !Object.prototype.hasOwnProperty.call(importerRoom, importerKey) || importerRoom[importerKey] !== roomId) {
+      return reply(422, { error: "Unit, tahun, atau jenis workbook tidak valid untuk bantuan pemetaan NARA." });
+    }
+    const rawHeaders = Array.isArray(body.headers) ? body.headers : [];
+    const headers = [...new Map(rawHeaders
+      .slice(0, 200)
+      .map((value) => String(value || "").trim().slice(0, 160))
+      .filter((value) => value.length >= 1 && !/[0-9]{6,}/.test(value))
+      .map((value) => [value.normalize("NFKC").toLocaleLowerCase("id-ID").replace(/\s+/g, " ").trim(), value])
+    ).values()];
+    if (!headers.length) return reply(422, { error: "Tidak ada label header workbook yang dapat dianalisis." });
+
+    const { data: context, error: contextError } = await db.schema("aureka_quality").rpc("quality_excel_mapping_ai_context", {
+      p_room_id: roomId,
+      p_profile_year: year,
+    });
+    if (contextError || !context || Number((context as Record<string, unknown>).room_id) !== roomId) {
+      console.error("NARA Excel mapping context unavailable", contextError?.code || "unknown");
+      return reply(403, { error: "Akses atau profil indikator unit tidak tersedia untuk analisis pemetaan NARA." });
+    }
+    const rawProfiles = Array.isArray((context as Record<string, unknown>).profiles)
+      ? (context as Record<string, unknown>).profiles as Record<string, unknown>[]
+      : [];
+    const targets = rawProfiles.filter((profile) => {
+      const code = String(profile.code || "").trim();
+      const title = String(profile.title || "").trim();
+      return /^[A-Za-z0-9][A-Za-z0-9.-]{0,19}$/.test(code) && title.length >= 3 && title.length <= 240;
+    }).map((profile) => ({
+      indicator_code: String(profile.code),
+      indicator_title: String(profile.title).slice(0, 240),
+      current_master_header: String(profile.header_label || "").slice(0, 160),
+      current_aliases: Array.isArray(profile.header_aliases)
+        ? (profile.header_aliases as unknown[]).filter((value) => typeof value === "string").slice(0, 12).map((value) => String(value).slice(0, 160))
+        : [],
+    }));
+    if (!targets.length) return reply(409, { error: "Unit belum memiliki profil indikator aktif yang dapat dipetakan." });
+
+    const allowedHeaders = new Map(headers.map((header) => [
+      header.normalize("NFKC").toLocaleLowerCase("id-ID").replace(/\s+/g, " ").trim(),
+      header,
+    ]));
+    const allowedCodes = new Set(targets.map((target) => target.indicator_code));
+    const payload = {
+      task: "map_workbook_headers_to_hospital_indicators",
+      unit_profile: { room_id: roomId, year, importer_key: importerKey },
+      available_excel_headers: headers,
+      target_indicators: targets,
+    };
+    const system = [
+      "Kamu adalah NARA AI, asisten konfigurasi impor data rumah sakit.",
+      "Tugas hanya memetakan LABEL HEADER workbook Excel ke indikator mutu AUREKA. Kamu tidak melihat atau memerlukan isi baris data.",
+      "Gunakan arti klinis/operasional label indikator dan header. Jangan memilih berdasarkan kemiripan kata semata jika konteks tidak cukup.",
+      "Satu header sumber hanya boleh dipasangkan ke satu indikator, kecuali benar-benar merupakan duplikasi yang dibuktikan; secara default jangan gunakan header yang sama lebih dari sekali.",
+      "Jangan mengubah definisi indikator, nilai target, numerator, denominator, kode klasifikasi, atau menyatukan dua indikator.",
+      "Jika tidak ada kecocokan yang jelas, kembalikan source_header null dan confidence di bawah 0.6.",
+      'Kembalikan JSON saja: {"items":[{"indicator_code":"kode persis dari target","source_header":"header persis dari workbook atau null","confidence":0.0,"rationale":"alasan singkat"}]}.',
+      "indicator_code wajib salah satu dari target_indicators. source_header wajib identik dengan salah satu available_excel_headers; jangan membuat header baru.",
+      "Seluruh hasil hanya usulan untuk ditinjau manusia, bukan perubahan yang langsung disimpan.",
+    ].join("\n");
+    const contents: Turn[] = [{ role: "user", parts: [{ text: JSON.stringify(payload) }] }];
+    const deadline = Date.now() + PROVIDER_ROUTE_BUDGET_MS;
+    let selected: { provider: string; model: string; answer: string } | null = null;
+    const diagnostics: string[] = [];
+    let lastError = BUSY;
+    for (const provider of order) {
+      if (Date.now() >= deadline || selected) break;
+      for (const key of available[provider] || []) {
+        if (Date.now() >= deadline || selected) break;
+        const result = provider === "gemini"
+          ? await askGemini(key, system, contents, deadline, true)
+          : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, deadline, true);
+        if ("status" in result) {
+          lastError = result.error;
+          diagnostics.push(provider + ": " + result.error);
+          continue;
+        }
+        selected = { provider, model: result.model, answer: result.answer };
+      }
+    }
+    if (!selected) {
+      return reply(502, {
+        error: "NARA belum dapat menghasilkan usulan pemetaan. Tidak ada perubahan konfigurasi yang disimpan.",
+        diagnostics: diagnostics.slice(0, 8),
+        detail: diagnostics.length ? diagnostics.slice(0, 8).join(" | ") : lastError,
+      });
+    }
+
+    const text = selected.answer.replace(/^\x60{3}(?:json)?/i, "").replace(/\x60{3}$/i, "").trim();
+    let parsed: unknown = null;
+    try {
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+      if (start >= 0 && end > start) parsed = JSON.parse(text.slice(start, end + 1));
+    } catch { parsed = null; }
+    const rawItems = parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>).items
+      : null;
+    const usedCodes = new Set<string>();
+    const usedHeaders = new Set<string>();
+    const suggestions = (Array.isArray(rawItems) ? rawItems : []).flatMap((candidate) => {
+      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+      const row = candidate as Record<string, unknown>;
+      const code = String(row.indicator_code || "").trim();
+      if (!allowedCodes.has(code) || usedCodes.has(code)) return [];
+      const rawHeader = typeof row.source_header === "string" ? row.source_header.trim() : "";
+      const normalizedHeader = rawHeader.normalize("NFKC").toLocaleLowerCase("id-ID").replace(/\s+/g, " ").trim();
+      const sourceHeader = rawHeader ? allowedHeaders.get(normalizedHeader) || null : null;
+      const confidence = Number(row.confidence);
+      const rationale = String(row.rationale || "").trim().slice(0, 240);
+      if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) return [];
+      if (sourceHeader && usedHeaders.has(normalizedHeader)) return [];
+      usedCodes.add(code);
+      if (sourceHeader) usedHeaders.add(normalizedHeader);
+      return [{
+        indicator_code: code,
+        source_header: sourceHeader,
+        confidence,
+        rationale,
+        requires_review: confidence < 0.8 || !sourceHeader,
+      }];
+    });
+    if (!suggestions.length) {
+      return reply(502, { error: "Respons NARA tidak mengandung pasangan indikator/header yang valid. Tidak ada perubahan yang disimpan.", model: selected.model });
+    }
+    return reply(200, {
+      answer: "NARA menyusun " + suggestions.length + " usulan pemetaan dari label header saja. Tinjau dan simpan secara eksplisit pada layar Pemetaan Excel.",
+      model: selected.provider + "/" + selected.model,
+      suggestions,
+      header_count: headers.length,
+      target_count: targets.length,
+      saved: false,
+    });
   }
 
   // AI-assisted ICD-10: hanya istilah diagnosis agregat (ambang >=5 pasien) yang dikirim.
