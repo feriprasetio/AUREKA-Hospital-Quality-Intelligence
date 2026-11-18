@@ -468,15 +468,15 @@ export default function QualityExcelMappingWorkspace({
   }
 
   const saveUnitMappings = async () => {
-    if (!roomId || !selectedImporter || !activeProfiles.length) {
-      setError('Unit, jenis workbook, dan profil indikator aktif harus tersedia.')
+    if (!roomId || !selectedImporter || (!activeProfiles.length && !activeFields.length)) {
+      setError('Unit dan jenis workbook harus dipilih; belum ada indikator atau field sumber yang dapat dipetakan.')
       return
     }
     if (!detectedColumns.length || !selectedSheet) {
       setError('Unggah workbook contoh terlebih dahulu agar AUREKA dapat menyimpan huruf kolom, sheet, baris header, dan posisi header duplikat dengan benar.')
       return
     }
-    const rules = activeProfiles.flatMap(profile => {
+    const indicatorRules = activeProfiles.flatMap(profile => {
       const key = draftKey(selectedImporter.key, profile.code)
       const existing = existingByCode.get(profile.code)
       const sourceHeader = String(draftHeaders[key] ?? existing?.source_header ?? '').trim()
@@ -516,16 +516,42 @@ export default function QualityExcelMappingWorkspace({
         ai_rationale: ai?.rationale ?? null,
       }]
     })
-    if (!rules.length) { setError('Belum ada kolom sumber yang dipetakan. Unggah workbook contoh atau pilih header master secara manual.'); return }
+    const fieldRules = activeFields.flatMap(field => {
+      const key = draftKey(selectedImporter.key, field.key)
+      const existing = existingFields.get(field.key)
+      const sourceHeader = String(draftFields[key] ?? existing?.source_header ?? '').trim()
+      if (!sourceHeader) return []
+      const occurrence = Number(draftFieldOccurrences[key] ?? existing?.occurrence ?? 0)
+      const matchingColumns = detectedColumns.filter(column => normalize(column.header) === normalize(sourceHeader))
+      const selectedColumn = detectedColumnChoice(sourceHeader, occurrence)
+      const finalOccurrence = selectedColumn?.occurrence ?? (occurrence > 0 ? occurrence : matchingColumns.length === 1 ? matchingColumns[0].occurrence : 0)
+      return [{
+        target_type: 'field',
+        target_key: 'field:' + field.key,
+        target_label: 'Data utama · ' + field.label,
+        source_header: sourceHeader,
+        occurrence: finalOccurrence,
+        transform_json: {
+          sheet_name: selectedSheet || null,
+          header_row: headerRow,
+          column_index: selectedColumn?.index ?? (matchingColumns.length === 1 ? matchingColumns[0].index : null),
+          column_letter: selectedColumn?.letter ?? (matchingColumns.length === 1 ? matchingColumns[0].letter : null),
+        },
+        ai_confidence: null,
+        ai_rationale: null,
+      }]
+    })
+    const rules = [...indicatorRules, ...fieldRules]
+    if (!rules.length) { setError('Belum ada kolom sumber yang dipetakan. Pilih unit, unggah workbook contoh, lalu tetapkan kolom untuk field/indikator yang digunakan.'); return }
     if (rules.some(item => item.occurrence === 0)) {
-      setError('Ada header duplikat. Pilih huruf kolom fisik yang benar untuk setiap indikator sebelum menyimpan.')
+      setError('Ada header duplikat. Pilih huruf kolom fisik yang benar untuk setiap field/indikator sebelum menyimpan.')
       return
     }
     if (rules.some(item => detectedHeaders.length && !detectedHeaders.some(header => normalize(header) === normalize(item.source_header)))) {
       setError('Ada header sumber yang tidak ditemukan pada workbook contoh. Periksa kembali kolom yang dipilih.')
       return
     }
-    if (!window.confirm('Simpan ' + numberLabel(rules.length) + ' aturan pemetaan untuk ' + activeRoom?.name + ' · ' + selectedImporter.label + '? Aturan hanya berlaku untuk unit, tahun, dan jenis workbook ini.')) return
+    if (!window.confirm('Simpan ' + numberLabel(indicatorRules.length) + ' indikator dan ' + numberLabel(fieldRules.length) + ' field untuk ' + activeRoom?.name + ' · ' + selectedImporter.label + '? Aturan hanya berlaku untuk unit, tahun, dan jenis workbook ini.')) return
 
     setSaving(true); setError(''); setNotice('')
     try {
@@ -544,7 +570,7 @@ export default function QualityExcelMappingWorkspace({
       const allMappings = Array.isArray(refreshed?.mappings) ? refreshed.mappings as Mapping[] : []
       setMappings(allMappings)
       hydrateInteractiveExcelHeaderMappings(roomId, profileYear, allMappings)
-      setNotice(numberLabel(Number(data?.saved_count ?? rules.length)) + ' aturan berhasil disimpan. Unggahan berikutnya akan membaca mapping unit ini secara otomatis tanpa memilih kolom satu per satu.')
+      setNotice(numberLabel(Number(data?.saved_count ?? rules.length)) + ' aturan berhasil disimpan (' + numberLabel(indicatorRules.length) + ' indikator; ' + numberLabel(fieldRules.length) + ' field). Importer yang terhubung akan memakai aturan ini pada unggahan berikutnya.')
       window.dispatchEvent(new CustomEvent('aureka:excel-mappings-updated', { detail: { roomId, year: profileYear } }))
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Aturan pemetaan belum dapat disimpan. Tidak ada aturan yang diterapkan sebagian.' }))
@@ -686,8 +712,8 @@ export default function QualityExcelMappingWorkspace({
           {!selectedImporter.connected && <div className="qemMessage notice">Konfigurasi template unit tersedia, tetapi alur unggah khusus untuk unit ini belum terhubung. Aturan dapat disiapkan sekarang dan akan aktif setelah importer unit diintegrasikan; sistem tidak mengklaim pemetaan otomatis sebelum itu.</div>}
           {detectedHeaders.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedColumns.length)} kolom fisik terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · baris header {headerRow}</span></div>}
           <div className="qemActions">
-            <button type="button" className="qemButton ai" disabled={aiBusy || loading || !detectedHeaders.length || !activeProfiles.length} onClick={() => void runNaraBulk()}>
-              {aiBusy ? 'NARA sedang menganalisis…' : 'NARA AI · Petakan massal'}
+            <button type="button" className="qemButton ai" disabled={aiBusy || loading || !detectedHeaders.length || !activeProfiles.length || selectedImporter.key === 'igd-consult'} onClick={() => void runNaraBulk()}>
+              {aiBusy ? 'NARA sedang menganalisis…' : selectedImporter.key === 'igd-consult' ? 'NARA untuk indikator · hanya workbook utama' : 'NARA AI · Petakan massal'}
             </button>
             <button type="button" className="qemButton primary" disabled={saving || loading || !activeProfiles.length} onClick={() => void saveUnitMappings()}>
               {saving ? 'Menyimpan…' : 'Simpan aturan unit'}
