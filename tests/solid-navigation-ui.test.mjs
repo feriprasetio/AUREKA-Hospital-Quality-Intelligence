@@ -25,9 +25,9 @@ test('Arktik is the active workspace skin and Solid override layers are not load
   const tokens = read('app/design-tokens.css')
   const base = read('app/globals.css')
   assert.match(typography, /Plus Jakarta Sans/)
-  assert.match(tokens, /--aureka-font-sans: var\\(--font-aureka\\), "Plus Jakarta Sans"/)
+  assert.ok(tokens.includes('--aureka-font-sans: var(--font-aureka), "Plus Jakarta Sans"'))
   assert.match(tokens, /--aureka-color-primary: #16507a/)
-  assert.match(base, /font-family:var\\(--font-aureka\\),"Plus Jakarta Sans"/)
+  assert.ok(base.includes('font-family:var(--font-aureka),"Plus Jakarta Sans"'))
 })
 
 test('Arktik uses bundled Plus Jakarta Sans and does not download Inter', () => {
