@@ -6,7 +6,7 @@ const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf
 
 test('animation layers load after visual theme and component styles', () => {
   const layout = read('app/aureka-global.css')
-  const imports = [...layout.matchAll(/@import ['"]([^'"]+\\.css)['"];?/g)].map((match) => match[1])
+  const imports = [...layout.matchAll(/@import ['"]([^'"]+\.css)['"];?/g)].map((match) => match[1])
   assert.ok(imports.indexOf('landing-motion.css') > imports.indexOf('modal.css'))
   assert.ok(imports.indexOf('motion.css') < imports.indexOf('aureka-navigation-consolidated.css'), 'motion layer loads before final navigation overrides')
   assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'), 'global navigation tokens supersede legacy navigation rules')
