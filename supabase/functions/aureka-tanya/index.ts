@@ -716,8 +716,8 @@ function appendRiskDistributionFallback(question: string, answer: string, snapsh
   // Model-authored visual payloads are never trusted for risk matrices.
   // Remove them first and build any visual exclusively from the authorized server snapshot.
   const cleanAnswer = answer
-    .replace(/\\[\\[NARA_VISUAL\\]\\][\\s\\S]*$/i, "")
-    .replace(/\\[\\[\\/NARA_VISUAL\\]\\]/gi, "")
+    .replace(/\[\[NARA_VISUAL\]\][\s\S]*$/i, "")
+    .replace(/\[\[\/NARA_VISUAL\]\]/gi, "")
     .trim();
   const safeAnswer = cleanAnswer || "Data matriks risiko belum tersedia pada snapshot yang dapat diakses.";
 
