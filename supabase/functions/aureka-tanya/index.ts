@@ -711,10 +711,19 @@ function parseIcd10AiSuggestions(answer: string, allowedTerms: Map<string, strin
 }
 function appendRiskDistributionFallback(question: string, answer: string, snapshotData: unknown): string {
   const asksRiskMatrix = /matriks risiko|risk matrix|heatmap risiko|peta panas risiko/i.test(question);
-  if (!asksRiskMatrix || answer.includes("[[NARA_VISUAL]]")) return answer;
-  if (!snapshotData || typeof snapshotData !== "object") return answer;
+  if (!asksRiskMatrix) return answer;
+
+  // Model-authored visual payloads are never trusted for risk matrices.
+  // Remove them first and build any visual exclusively from the authorized server snapshot.
+  const cleanAnswer = answer
+    .replace(/\\[\\[NARA_VISUAL\\]\\][\\s\\S]*$/i, "")
+    .replace(/\\[\\[\\/NARA_VISUAL\\]\\]/gi, "")
+    .trim();
+  const safeAnswer = cleanAnswer || "Data matriks risiko belum tersedia pada snapshot yang dapat diakses.";
+
+  if (!snapshotData || typeof snapshotData !== "object") return safeAnswer;
   const risk = (snapshotData as Record<string, unknown>).manajemen_risiko;
-  if (!risk || typeof risk !== "object") return answer;
+  if (!risk || typeof risk !== "object") return safeAnswer;
   const matrixRows = (risk as Record<string, unknown>).matriks_likelihood_dampak;
   const quality = (risk as Record<string, unknown>).kualitas_data_matriks as Record<string, unknown> | undefined;
   if (Array.isArray(matrixRows) && matrixRows.length === 25) {
@@ -730,19 +739,18 @@ function appendRiskDistributionFallback(question: string, answer: string, snapsh
         unit: "jumlah register",
         interpretation: "Matriks memakai nilai likelihood dan impact yang tersimpan pada register. Perhatian mutu data: nilai 3 merupakan default pada skema; jumlah likelihood=3: " + String(quality?.nilai_likelihood_default_3 ?? "tidak diketahui") + ", impact=3: " + String(quality?.nilai_impact_default_3 ?? "tidak diketahui") + ". Frekuensi nilai 3 belum membuktikan apakah nilai tersebut hasil penilaian atau nilai default impor. Sel dengan jumlah 1–4 disembunyikan."
       };
-      return answer.trim() + "\n\nSaya dapat menampilkan matriks berdasarkan nilai yang saat ini tersimpan. Namun, nilai default perlu diverifikasi sebelum matriks dipakai sebagai dasar keputusan.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
+      return safeAnswer + "\n\nSaya dapat menampilkan matriks berdasarkan nilai yang saat ini tersimpan. Namun, nilai default perlu diverifikasi sebelum matriks dipakai sebagai dasar keputusan.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
     }
   }
   const perLevel = (risk as Record<string, unknown>).per_level;
-  if (!perLevel || typeof perLevel !== "object") return answer;
+  if (!perLevel || typeof perLevel !== "object") return safeAnswer;
   const values = perLevel as Record<string, unknown>;
   const pieData = LEVELS.map((level) => ({ tingkat_risiko: level, jumlah: values[level] }))
     .filter((row): row is { tingkat_risiko: string; jumlah: number } =>
       typeof row.jumlah === "number" && Number.isFinite(row.jumlah) && row.jumlah >= 0);
-  if (pieData.length < 2 || pieData.reduce((sum, row) => sum + row.jumlah, 0) <= 0) return answer;
-  const total = pieData.reduce((sum, row) => sum + row.jumlah, 0);
+  if (pieData.length < 2 || pieData.reduce((sum, row) => sum + row.jumlah, 0) <= 0) return safeAnswer;
   const visual = { title: "Distribusi Risiko Berdasarkan Tingkat Risiko", chartType: "pie", xKey: "tingkat_risiko", valueKey: "jumlah", data: pieData, source: "Agregat register risiko AUREKA", period: "Snapshot saat pertanyaan diproses", unit: "risiko", interpretation: "Distribusi tingkat risiko ini bukan matriks likelihood × impact." };
-  return answer.trim() + "\n\nMatriks 5×5 belum dapat dibentuk dari snapshot ini. Sebagai alternatif, berikut distribusi tingkat risiko.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
+  return safeAnswer + "\n\nMatriks 5×5 belum dapat dibentuk dari snapshot ini. Sebagai alternatif, berikut distribusi tingkat risiko.\n[[NARA_VISUAL]]" + JSON.stringify(visual) + "[[/NARA_VISUAL]]";
 }
 
 async function handle(req: Request): Promise<Response> {
