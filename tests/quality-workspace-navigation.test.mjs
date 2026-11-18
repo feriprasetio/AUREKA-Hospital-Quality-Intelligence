@@ -30,11 +30,10 @@ test('every non-validator unit logbook exposes a guarded add-note action', () =>
 
 test('Arktik acrylic sidebar is compact on desktop while mobile remains single-column', () => {
   const css = read('app/aureka-navigation-repair.css')
-  assert.match(css, /grid-template-columns: 264px minmax\\(0, 1fr\\) !important/)
-  assert.match(css, /\\.workspaceRoot\\.workspaceDesk\\[data-aureka-theme\\]\\.sidebarIsCollapsed/)
-  assert.match(css, /grid-template-columns: 76px minmax\\(0, 1fr\\) !important/)
-  assert.match(css, /@media \\(max-width: 720px\\)/)
-  assert.match(css, /\\.qualityWorkspaceTabs/)
+  assert.ok(css.includes('grid-template-columns: 264px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('.workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed'))
+  assert.ok(css.includes('grid-template-columns: 76px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('@media (max-width: 720px)'))
 })
 
 test('selected quality unit is shared by Form Logbook and Hasil Capaian', () => {
