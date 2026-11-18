@@ -832,8 +832,8 @@ async function handle(req: Request): Promise<Response> {
       complaint: 1, it: 2, ambulance: 3, ibs: 4, pharmacy: 5, igd: 6,
       gizi: 7, laboratory: 9, outpatient: 11, "rehab-medik": 12,
       "rekam-medis": 13, icu: 14, nicu: 18, nifas: 19, perinatology: 20,
-      "pediatric-inpatient": 22, "surgical-inpatient": 23, "isolasi-inpatient": 24,
-      "penyakit-dalam-inpatient": 25, "saraf-inpatient": 26, timkordik: 30, ponek: 33,
+      pediatric: 22, surgical: 23, isolasi: 24,
+      "internal-medicine": 25, saraf: 26, timkordik: 30, ponek: 33,
     };
     const isGenericUnitWorkbook = importerKey === "unit-logbook" && Number.isSafeInteger(roomId) && roomId >= 1 && roomId <= 100;
     if (!Number.isSafeInteger(roomId) || roomId < 1 || !Number.isInteger(year) || year < 2000 || year > 2100 ||
