@@ -1039,7 +1039,7 @@ export default function HomeClient(){
     const expanded=effectiveExpandedDomain===domain.id
     const selected=activeDomainId===domain.id
     return <section className={'sidebarDomain '+(selected?'isCurrent ':'')+(expanded?'isExpanded':'')} key={domain.id}>
-     <button type="button" className={'sidebarDomainTrigger '+(selected?'navActive':'')} aria-expanded={expanded} aria-current={selected?'page':undefined} title={domain.label} onClick={()=>setExpandedDomain(expanded?'':domain.id)}>
+     <button type="button" className={'sidebarDomainTrigger '+(selected?'navActive':'')} aria-label={domain.label} aria-expanded={expanded} aria-current={selected?'page':undefined} title={domain.label} onClick={()=>setExpandedDomain(expanded?'':domain.id)}>
       <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[domain.icon]||BOTTOM_NAV_GLYPH.analytics}</svg>
       <span>{domain.label}</span><svg className="sidebarDomainChevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
      </button>
