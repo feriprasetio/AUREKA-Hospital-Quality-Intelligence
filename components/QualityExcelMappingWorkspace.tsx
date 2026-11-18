@@ -720,6 +720,49 @@ export default function QualityExcelMappingWorkspace({
             </button>
           </div>
         </div>
+        {activeFields.length > 0 && <section className="qemPanel">
+          <div><h4>Data utama episode / field sumber</h4><p className="qemMuted">Pemetaan ini menghubungkan kolom Excel ke field yang dipakai importer, seperti No. RM, nama, diagnosis, waktu masuk/transfer, DPJP, atau waktu konsultasi. Pilih berdasarkan huruf kolom yang ditampilkan.</p></div>
+          <div className="qemTableWrap">
+            <table className="qemTable">
+              <thead><tr><th>Field data AUREKA</th><th>Alias header yang dikenali</th><th>Kolom Excel aktual</th><th>Status</th></tr></thead>
+              <tbody>
+                {activeFields.map(field => {
+                  const key = draftKey(selectedImporter.key, field.key)
+                  const mapping = existingFields.get(field.key)
+                  const sourceHeader = draftFields[key] ?? mapping?.source_header ?? field.aliases[0] ?? ''
+                  const occurrence = draftFieldOccurrences[key] ?? mapping?.occurrence ?? 1
+                  const selectedColumn = detectedColumnChoice(sourceHeader, occurrence)
+                  return <tr key={field.key}>
+                    <td><strong>{field.label}</strong><span className="qemMuted">{field.key}</span></td>
+                    <td><span className="qemMuted">{field.aliases.join(' · ')}</span></td>
+                    <td>
+                      {detectedColumns.length > 0
+                        ? <select aria-label={'Kolom Excel untuk ' + field.label}
+                            value={selectedColumn ? sourceChoiceValue(selectedColumn) : ''}
+                            onChange={event => {
+                              const selected = detectedColumns.find(column => sourceChoiceValue(column) === event.target.value)
+                              if (!selected) return
+                              setDraftFields(current => ({ ...current, [key]: selected.header }))
+                              setDraftFieldOccurrences(current => ({ ...current, [key]: selected.occurrence }))
+                            }}>
+                            <option value="">Pilih huruf kolom sumber…</option>
+                            {detectedColumns.map(column => <option key={column.index} value={sourceChoiceValue(column)}>{column.letter} · {column.header}{column.occurrence > 1 ? ' · duplikat ke-' + column.occurrence : ''}</option>)}
+                          </select>
+                        : <input value={draftFields[key] ?? mapping?.source_header ?? field.aliases[0] ?? ''}
+                            placeholder="Unggah workbook contoh untuk melihat huruf kolom"
+                            onChange={event => setDraftFields(current => ({ ...current, [key]: event.target.value }))}/>}
+                      {selectedColumn && <span className="qemMuted">Sumber: {selectedSheet}!{selectedColumn.letter}{headerRow}</span>}
+                    </td>
+                    <td>{mapping
+                      ? <span className="qemBadge">{mapping.mapping_status === 'approved' ? 'Tersimpan dan aktif' : 'Perlu ditinjau'}</span>
+                      : selectedColumn ? <span className="qemBadge">Kecocokan header</span> : <span className="qemMuted">Belum dipetakan</span>}</td>
+                  </tr>
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>}
+
         <div className="qemTableWrap">
           <table className="qemTable">
             <thead><tr><th>Kode / indikator</th><th>Header master saat ini</th><th>Kolom sumber Excel</th><th>NARA</th></tr></thead>
