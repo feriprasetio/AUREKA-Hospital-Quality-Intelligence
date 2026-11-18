@@ -58,7 +58,7 @@ const dayGroup = (t: number) => {
 }
 
 /** NARA AI — tata letak "fokus chat": riwayat percakapan di kiri, sapaan + kotak tanya besar di tengah. */
-export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: SupabaseClient; page?: string; userName?: string; rooms?: Room[]; roomId?: number | null; showSafety?: boolean }) {
+export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt, onInitialPromptConsumed }: { sb: SupabaseClient; page?: string; userName?: string; initialPrompt?: string; onInitialPromptConsumed?: () => void; rooms?: Room[]; roomId?: number | null; showSafety?: boolean }) {
   const [uid, setUid] = useState<string | null>(null)
   const [convos, setConvos] = useState<Convo[]>([])
   const [activeId, setActiveId] = useState<string>(() => newId())
@@ -159,7 +159,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '' }: { sb: Supab
           <button type="button" onClick={() => setListOpen((v) => !v)} aria-expanded={listOpen}>{listOpen ? 'Tutup riwayat' : 'Riwayat'}</button>
           <button type="button" onClick={startNew}>+ Baru</button>
         </div>
-        <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage}/>
+      <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage} initialPrompt={initialPrompt} onInitialPromptConsumed={onInitialPromptConsumed}/>
       </section>
     )}
 
