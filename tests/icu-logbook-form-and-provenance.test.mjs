@@ -109,5 +109,5 @@ test('monthly indicator cells open the exact Excel provenance for the selected m
   assert.match(results, /sourceMonth == null \|\| operationalCalendarParts\(row\)\?\.month === sourceMonth/)
   assert.match(results, /cellRef: columnLetter && excelRow/)
   assert.match(results, /createSignedUrl\(sourceProvenance\.storagePaths\[0\], 300\)/)
-  assert.match(results, /Worksheet:|Worksheet:/)\n  assert.match(results, /Baris Excel|cellRef/)
+  assert.match(results, /Worksheet:/)\n  assert.match(results, /Baris Excel/)\n  assert.match(results, /cellRef:/)
 })
