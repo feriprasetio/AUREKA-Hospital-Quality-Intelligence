@@ -22,6 +22,41 @@ type StoredMapping = {
 
 type StoredMappings = Record<string, StoredMapping>
 
+export type ServerHeaderMapping = {
+  importer_key: string
+  target_key: string
+  source_header: string
+  occurrence?: number | null
+  mapping_status?: string
+}
+
+let activeMappingScope = ''
+let serverMappings: Record<string, Record<string, StoredMapping>> = {}
+
+export function hydrateInteractiveExcelHeaderMappings(
+  roomId: number | null,
+  year: number,
+  rows: readonly ServerHeaderMapping[],
+): void {
+  activeMappingScope = roomId == null ? '' : String(roomId) + ':' + String(year)
+  const next: Record<string, Record<string, StoredMapping>> = {}
+  for (const row of rows) {
+    if (!row || !row.importer_key || !row.target_key || !row.source_header) continue
+    const importer = next[row.importer_key] ?? (next[row.importer_key] = {})
+    importer[row.target_key] = {
+      normalizedHeader: normalizeExactHeader(row.source_header),
+      occurrence: Math.max(1, Number(row.occurrence) || 1),
+    }
+  }
+  serverMappings = next
+}
+
+/** Clears the in-memory server mapping scope when the logbook changes unit/year. */
+export function clearInteractiveExcelHeaderMappingScope(): void {
+  activeMappingScope = ''
+  serverMappings = {}
+}
+
 const STORAGE_PREFIX = 'aureka:excel-header-mapping:v1:'
 
 function getPositions(columns: InteractiveHeaderColumns): Map<string, number[]> {
@@ -106,6 +141,20 @@ export function resolveInteractiveExcelHeaderColumn(
   options: InteractiveHeaderMappingOptions,
 ): number | null {
   const positions = getPositions(columns)
+  const serverSaved = activeMappingScope
+    ? serverMappings[options.importerKey]?.[options.fieldKey]
+    : undefined
+  if (serverSaved) {
+    const configuredPositions = positions.get(normalizeExactHeader(serverSaved.normalizedHeader)) ?? []
+    if (configuredPositions.length >= serverSaved.occurrence) {
+      return configuredPositions[serverSaved.occurrence - 1]
+    }
+    throw new Error(
+      'Aturan impor unit mengarahkan "' + (options.fieldLabel ?? options.fieldKey) +
+      '" ke kolom "' + serverSaved.normalizedHeader +
+      '", tetapi header tersebut tidak ditemukan. Perbarui Pusat Pemetaan Excel untuk unit ini sebelum melanjutkan.'
+    )
+  }
   const saved = readMappings(options.importerKey)[options.fieldKey]
   const savedPositions = saved ? positions.get(normalizeExactHeader(saved.normalizedHeader)) ?? [] : []
   if (saved && savedPositions.length >= saved.occurrence) {
