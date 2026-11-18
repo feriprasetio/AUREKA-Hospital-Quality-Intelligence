@@ -18,21 +18,26 @@ test('header menu is before hospital context and search controls are separate si
 })
 
 test('header layout prevents overlap on desktop and narrow screens', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  assert.match(css, /\.workspaceRoot \.workspaceHeaderBar\s*\{[\s\S]*display: flex !important;[\s\S]*flex-wrap: nowrap !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceSidebarMenuButton\s*\{[\s\S]*order: 0 !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceContext\s*\{[\s\S]*order: 1 !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceGlobalSearch\s*\{[\s\S]*order: 2 !important/)
-  assert.match(css, /\.workspaceRoot \.workspaceHeaderBar > \.commandPaletteTrigger\s*\{[\s\S]*order: 3 !important/)
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceRoot \.workspaceGlobalSearch\s*\{[\s\S]*min-width: 72px !important/)
+  const css = read('app/aureka-navigation-repair.css')
+  const bundle = read('app/aureka-global.css')
+  assert.ok(bundle.includes("@import './aureka-navigation-repair.css';"))
+  assert.ok(css.includes('.sidebarDomainTrigger'))
+  assert.ok(css.includes('.sidebarDomainItems'))
+  assert.ok(css.includes('.sidebarDomainItem.active'))
+  assert.match(css, /\.workspaceHeaderBar\s*\{[\s\S]*display: flex !important;[\s\S]*flex-wrap: nowrap !important/)
+  assert.match(css, /\.workspaceSidebarMenuButton\s*\{\s*order: 0 !important/)
+  assert.match(css, /\.workspaceContext\s*\{\s*order: 1 !important/)
+  assert.match(css, /\.workspaceGlobalSearch\s*\{\s*order: 3 !important/)
+  assert.match(css, /\.workspaceHeaderBar > \.workspaceNaraButton\s*\{ order: 4 !important; \}/)
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceGlobalSearch\s*\{[\s\S]*min-width: 64px !important/)
 })
 
 test('sidebar redesign retains desktop and mobile navigation behavior', () => {
   const css = read('app/aureka-solid-navigation.css')
   assert.match(css, /grid-template-columns: 264px minmax\(0, 1fr\) !important/)
-  assert.match(css, /\.workspaceRoot \.sidebar \.sideProfile\s*\{[\s\S]*display: flex !important/)
-  assert.match(css, /\.workspaceRoot\.sidebarIsCollapsed\s*\{\s*grid-template-columns: 76px minmax\(0, 1fr\) !important/)
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.workspaceRoot:not\(\.sidebarIsCollapsed\)\s*\{\s*grid-template-columns: minmax\(0, 1fr\) !important/)
+  assert.match(css, /\.sidebarDomainNav\s*\{[\s\S]*display: flex !important/)
+  assert.match(css, /\.sidebarIsCollapsed\s*\{\s*grid-template-columns: 76px minmax\(0, 1fr\) !important/)
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*display: block !important;[\s\S]*\.sidebar\.mobileOpen/)
 })
 
 test('mobile drawer and bottom navigation share one breakpoint with no 721–760px dead zone', () => {
