@@ -848,7 +848,18 @@ async function handle(req: Request): Promise<Response> {
       const message = awaitingReview
         ? "Tidak ada istilah diagnosis baru yang memerlukan usulan AI. Saat ini ada " + awaitingReview + " usulan ICD-10 yang menunggu verifikasi reviewer PMIK/DPJP."
         : "Tidak ada istilah diagnosis baru yang memenuhi kriteria untuk diusulkan. Istilah dengan kelompok kurang dari lima pasien tetap tidak dikirim ke provider AI demi perlindungan privasi.";
-      return reply(200, { answer: message, model: "database:icd10-review-queue", proposed: 0, pending: 0, awaiting_review: awaitingReview });
+      return reply(200, {
+        answer: message, model: "database:icd10-review-queue", proposed: 0, pending: 0, awaiting_review: awaitingReview,
+      intelligence: {
+        model: "database:icd10-review-queue",
+        skills: ["Clinical Intelligence"],
+        domains: ["clinical"],
+        snapshot_status: "available",
+        source: "aureka_nara_icd10_review_queue (secure RPC)",
+        generated_at: new Date().toISOString(),
+        page: null,
+      },
+      });
     }
     const allowedTerms = new Map(safeRows.map((r) => [normalizeIcd10Term(String(r.diagnosis)), String(r.diagnosis)]));
     const payload = { code_set: "WHO ICD-10 Version 2019", items: safeRows.map((r) => ({ diagnosis: String(r.diagnosis), patient_count: Number(r.patient_count) || 0 })) };
@@ -925,6 +936,15 @@ async function handle(req: Request): Promise<Response> {
       answer: "NARA membuat " + saved + " usulan pemetaan ICD-10 dari " + safeRows.length + " istilah diagnosis agregat. Semua disimpan sebagai usulan, bukan kode tervalidasi.\n\n" + reports.join("\n") + continuation +
         (awaitingReview ? "\n\n" + awaitingReview + " usulan sebelumnya juga masih menunggu validasi reviewer." : ""),
       model: selected.provider + ":" + selected.model, proposed: saved, pending, awaiting_review: awaitingReview + saved,
+      intelligence: {
+        model: selected.provider + ":" + selected.model,
+        skills: ["Clinical Intelligence"],
+        domains: ["clinical"],
+        snapshot_status: "available",
+        source: "aureka_nara_icd10_review_queue + aureka_nara_icd10_upsert_mapping (secure RPC)",
+        generated_at: new Date().toISOString(),
+        page: null,
+      },
     });
   }
 
@@ -942,6 +962,7 @@ async function handle(req: Request): Promise<Response> {
     return reply(200, {
       answer: formatTopDiseaseAnswer(clinical as Record<string, unknown>),
       model: "database:clinical-analytics",
+      intelligence: { model: "database:clinical-analytics", skills: ["Clinical Intelligence"], domains: ["clinical"], snapshot_status: "available", source: "aureka_nara_clinical_summary (secure RPC)", generated_at: new Date().toISOString(), page: null },
     });
   }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
@@ -1016,7 +1037,22 @@ async function handle(req: Request): Promise<Response> {
     for (const key of available[provider]) {
       if (Date.now() >= providerDeadline) break;
       const result = provider === "gemini" ? await askGemini(key, system, contents, providerDeadline) : await askOpenAi(OPENAI_PROVIDERS[provider], key, system, contents, providerDeadline);
-      if (!("status" in result)) { const answer = appendRiskDistributionFallback(question, result.answer, data); return reply(200, { answer, model: provider + ":" + result.model }); }
+      if (!("status" in result)) {
+        const answer = appendRiskDistributionFallback(question, result.answer, data);
+        return reply(200, {
+          answer,
+          model: provider + ":" + result.model,
+          intelligence: {
+            model: provider + ":" + result.model,
+            skills: skillPlan?.labels ?? [],
+            domains: snapshotDomains,
+            snapshot_status: data ? "available" : needsAggregateData ? "unavailable" : "not_required",
+            source: data ? "AUREKA secure aggregate snapshot (JWT/RLS)" : needsAggregateData ? "Snapshot domain tidak tersedia" : "Tidak menggunakan snapshot operasional",
+            generated_at: new Date().toISOString(),
+            page: page || null,
+          },
+        });
+      }
       last = result;
       console.warn("nara-ai", provider, "gagal:", result.error);
     }

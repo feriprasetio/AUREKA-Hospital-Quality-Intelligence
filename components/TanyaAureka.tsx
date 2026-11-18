@@ -7,7 +7,16 @@ import NaraVisualRenderer from '@/components/NaraVisualRenderer'
 import { parseNaraVisual, type NaraVisualSpec } from '@/lib/nara-visual'
 
 type Reminder = { units: string[]; message: string; selected?: string[]; status?: 'draft' | 'sending' | 'sent' | 'cancelled'; result?: string }
-type Msg = { role: 'user' | 'model'; text: string; error?: boolean; reminder?: Reminder; visual?: NaraVisualSpec }
+type NaraIntelligence = {
+  model?: string
+  skills?: string[]
+  domains?: string[]
+  snapshot_status?: 'available' | 'unavailable' | 'not_required'
+  source?: string
+  generated_at?: string
+  page?: string | null
+}
+type Msg = { role: 'user' | 'model'; text: string; error?: boolean; reminder?: Reminder; visual?: NaraVisualSpec; intelligence?: NaraIntelligence }
 type Room = { id: number; name: string }
 
 /** AI menandai draf pengingat dengan blok [[KIRIM_PENGINGAT]]{json}[[/KIRIM_PENGINGAT]]; dipisah dari teks jawaban. */
@@ -92,12 +101,13 @@ function NaraAvatar({ size = 34 }: { size?: number }) {
 export type TanyaStage = { title: string; subtitle: string; starters: { label: string; prompt: string; icon?: ReactNode }[] }
 export type TanyaMessage = Msg
 
-export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'NARA AI', assistantSubtitle = 'Hospital Intelligence Assistant · data sesuai hak akses Anda', showAvatar = false, initialPrompt, storageScope, onMessages, stage }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string; /** Riwayat terpisah (mis. satu percakapan NARA); tanpa ini riwayat dibagi dengan Tanya AUREKA. */ storageScope?: string; onMessages?: (msgs: Msg[]) => void; /** Tampilan awal ala aplikasi chat: sapaan besar + kotak tanya di tengah. */ stage?: TanyaStage }) {
+export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'NARA AI', assistantSubtitle = 'Hospital Intelligence Assistant · data sesuai hak akses Anda', showAvatar = false, initialPrompt, onInitialPromptConsumed, storageScope, onMessages, stage }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string; onInitialPromptConsumed?: () => void; /** Riwayat terpisah (mis. satu percakapan NARA); tanpa ini riwayat dibagi dengan Tanya AUREKA. */ storageScope?: string; onMessages?: (msgs: Msg[]) => void; /** Tampilan awal ala aplikasi chat: sapaan besar + kotak tanya di tengah. */ stage?: TanyaStage }) {
   const [open, setOpen] = useState(embedded)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [historyReady, setHistoryReady] = useState(false)
   const [rooms, setRooms] = useState<Room[]>([])
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -106,6 +116,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
   const storeKey = useRef<string | null>(null)
   const applyingRemote = useRef(false)
   const hydrated = useRef(false)
+  const handledInitialPrompt = useRef<string | null>(null)
 
   useEffect(() => {
     if (embedded) setOpen(true)
@@ -121,6 +132,7 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
         if (!storageScope) sessionStorage.removeItem(STORE_KEY)
       } catch { /* abaikan */ }
       hydrated.current = true
+      setHistoryReady(true)
     })
     const onSync = (e: Event) => {
       const d = (e as CustomEvent<{ from: string; msgs: Msg[]; scope?: string }>).detail
@@ -201,6 +213,8 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     const chosen = r.selected ?? r.units
     const body = r.message.trim()
     if (!chosen.length || !body) { updateReminder(index, { result: 'Pilih minimal satu unit dan isi pesannya.' }); return }
+    const confirmed = await aurekaConfirm(`Pesan pengingat akan dikirim ke ${chosen.length} unit melalui Pusat Komunikasi AUREKA.`, { title: 'Konfirmasi pengiriman pengingat', confirmLabel: 'Kirim pengingat' })
+    if (!confirmed) return
     updateReminder(index, { status: 'sending', result: '' })
     const list = await loadRooms()
     const { data: auth } = await sb.auth.getUser()
@@ -248,10 +262,18 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     const parsedVisual = parseNaraVisual(String(data.answer))
     const { text, reminder } = extractReminder(parsedVisual.text)
     if (reminder) void loadRooms()
-    setMsgs(m => [...m, { role: 'model', text: text || (parsedVisual.visual ? 'Berikut visualisasi berdasarkan data yang tersedia.' : 'Berikut jawabannya.'), reminder, visual: parsedVisual.visual }])
+    setMsgs(m => [...m, { role: 'model', text: text || (parsedVisual.visual ? 'Berikut visualisasi berdasarkan data yang tersedia.' : 'Berikut jawabannya.'), reminder, visual: parsedVisual.visual, intelligence: data.intelligence && typeof data.intelligence === 'object' ? data.intelligence as NaraIntelligence : undefined }])
   }
 
-  useEffect(() => { if (initialPrompt?.trim()) void ask(initialPrompt) }, [initialPrompt])
+  useEffect(() => {
+    if (!historyReady) return
+    const prompt = initialPrompt?.trim()
+    if (!prompt) { handledInitialPrompt.current = null; return }
+    if (handledInitialPrompt.current === prompt) return
+    handledInitialPrompt.current = prompt
+    void ask(prompt)
+    onInitialPromptConsumed?.()
+  }, [initialPrompt, onInitialPromptConsumed, historyReady])
 
   const staged = Boolean(stage) && msgs.length === 0 && !busy
   const panel = open && <section className={(embedded ? 'tanyaPanel tanyaPanelEmbedded' : 'tanyaPanel') + (staged ? ' tanyaStaged' : '')} role={embedded ? 'region' : 'dialog'} aria-label={assistantName}>
@@ -275,7 +297,16 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
         <div className="tanyaChips">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => void ask(s)}>{s}</button>)}</div>
       </div>}
       {msgs.map((m, i) => <div key={i} className={'tanyaMsg ' + m.role + (m.error ? ' error' : '') + (showAvatar && m.role === 'model' ? ' naraModelMsg' : '')}>
-        {m.role === 'model' && !m.error ? <>{showAvatar && <NaraAvatar size={28}/>}<div className="naraAnswerBody">{renderAnswer(m.text)}{m.visual && <NaraVisualRenderer spec={m.visual}/>}</div></> : <p>{m.text}</p>}
+        {m.role === 'model' && !m.error ? <>{showAvatar && <NaraAvatar size={28}/>}<div className="naraAnswerBody">{renderAnswer(m.text)}{m.visual && <NaraVisualRenderer spec={m.visual}/>}
+          {m.intelligence && <div className="naraEvidenceMeta" style={{ display: 'grid', gap: 3, marginTop: 10, padding: '8px 10px', border: '1px solid rgba(125,145,165,.24)', borderRadius: 10, fontSize: 11, lineHeight: 1.45, color: 'var(--muted, #66788a)' }}>
+            <span><b>Model:</b> {m.intelligence.model || 'Tidak tersedia'}</span>
+            {Boolean(m.intelligence.domains?.length) && <span><b>Domain data:</b> {m.intelligence.domains?.join(' · ')}</span>}
+            {Boolean(m.intelligence.skills?.length) && <span><b>Keahlian analitik:</b> {m.intelligence.skills?.join(' · ')}</span>}
+            <span><b>Status snapshot:</b> {m.intelligence.snapshot_status === 'available' ? 'Data agregat tersedia' : m.intelligence.snapshot_status === 'unavailable' ? 'Snapshot tidak tersedia; jawaban dibatasi' : 'Tidak diperlukan untuk pertanyaan ini'}</span>
+            {m.intelligence.source && <span><b>Basis jawaban:</b> {m.intelligence.source}</span>}
+            {m.intelligence.generated_at && <span><b>Waktu jawaban:</b> {new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(m.intelligence.generated_at))}</span>}
+          </div>}
+        </div></> : <p>{m.text}</p>}
         {m.reminder && <div className="tanyaReminder">
           <b>Draf pengingat ke PIC unit</b>
           <div className="tanyaReminderUnits">{m.reminder.units.map(u => {

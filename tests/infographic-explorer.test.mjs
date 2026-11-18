@@ -3,9 +3,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 const dashboard = readFileSync(new URL('../components/governance/InfographicsDashboard.tsx', import.meta.url), 'utf8')
+const metrics = readFileSync(new URL('../lib/aureka/metric-contracts.ts', import.meta.url), 'utf8')
 
 test('Infografis use a server-side aggregate and expose the approved KPI groups', () => {
-  assert.ok(dashboard.includes('aureka_gov_infographics_summary_secure'))
+  assert.ok(metrics.includes('aureka_gov_infographics_summary_secure'))
   assert.ok(dashboard.includes('value={year}'))
   assert.ok(dashboard.includes('value={roomValue}'))
   assert.ok(dashboard.includes('canChooseRoom'))
@@ -15,7 +16,7 @@ test('Infografis use a server-side aggregate and expose the approved KPI groups'
     'Manajemen Risiko',
     'Tren pengumpulan dan validasi indikator',
     'Tren laporan insiden keselamatan pasien',
-    'Distribusi indikator menurut kategori',
+    'Sebaran kategori indikator mutu',
     'Profil tingkat risiko',
     'Ringkasan program dan RTL',
   ]) assert.ok(dashboard.includes(label), 'Missing Infografis item: ' + label)
