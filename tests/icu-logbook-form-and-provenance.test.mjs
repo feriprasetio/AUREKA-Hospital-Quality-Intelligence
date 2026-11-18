@@ -64,7 +64,7 @@ test('ICU importer requires BHP/Linen source mapping, stores exact header/value,
 test('results load provenance for every unit and offer a clickable source-column detail', () => {
   const results = read('components/QualityResultsWorkspace.tsx')
   assert.match(results, /indicator_values:core_data->indicator_values,source_import:core_data->source_import/)
-  assert.match(results, /Sumber Excel · kolom/)
+  assert.match(results, /Sumber Excel · semua bulan/)
   assert.match(results, /source_indicator_columns\?\.\[code\]/)
   assert.match(results, /source_bhp_linen\?\.source_value/)
   assert.match(results, /source_indicator_column_refs\?\.\[code\]/)
@@ -99,4 +99,17 @@ test('private source workbook policy scopes reads to authorized rooms and writes
   assert.match(migration, /has_quality_room_access/)
   assert.match(migration, /source_indicator_column_refs/)
   assert.match(migration, /source_storage_path/)
+})
+
+test('monthly indicator cells open the exact Excel provenance for the selected month', () => {
+  const results = read('components/QualityResultsWorkspace.tsx')
+  assert.match(results, /const \[sourceMonth, setSourceMonth\] = useState<number \| null>\(null\)/)
+  assert.match(results, /openSourceTrace\(result\.profile, month\.month\)/)
+  assert.match(results, /className="qraSourceCell"/)
+  assert.match(results, /sourceMonth == null \|\| operationalCalendarParts\(row\)\?\.month === sourceMonth/)
+  assert.match(results, /cellRef: columnLetter && excelRow/)
+  assert.match(results, /createSignedUrl\(sourceProvenance\.storagePaths\[0\], 300\)/)
+  assert.match(results, /Worksheet:/)
+  assert.match(results, /Baris Excel/)
+  assert.match(results, /cellRef:/)
 })
