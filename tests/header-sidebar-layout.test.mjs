@@ -19,8 +19,12 @@ test('header menu is before hospital context and search controls are separate si
 
 test('header layout prevents overlap on desktop and narrow screens', () => {
   const css = read('app/aureka-navigation-repair.css')
+  const acrylic = read('app/aureka-acrylic-navigation-polish.css')
   const bundle = read('app/aureka-global.css')
   assert.ok(bundle.includes("@import './aureka-navigation-repair.css';"))
+  assert.ok(bundle.endsWith("@import './aureka-acrylic-navigation-polish.css';\n"))
+  assert.ok(acrylic.includes('.workspaceSidebarMenuButton svg path'))
+  assert.ok(acrylic.includes('stroke: currentColor !important'))
   assert.ok(css.includes('.sidebarDomainTrigger'))
   assert.ok(css.includes('.sidebarDomainItems'))
   assert.ok(css.includes('.sidebarDomainItem.active'))
