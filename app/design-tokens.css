@@ -11,25 +11,25 @@
   color-scheme: light;
 
   /* Brand */
-  --aureka-color-primary: #0f7656;
-  --aureka-color-primary-hover: #0b5d44;
-  --aureka-color-primary-active: #084f3a;
-  --aureka-color-primary-soft: #ecf7f1;
-  --aureka-color-sidebar: #084f3a;
+  --aureka-color-primary: #16507a;
+  --aureka-color-primary-hover: #0f2a44;
+  --aureka-color-primary-active: #0b1f33;
+  --aureka-color-primary-soft: #e3eff8;
+  --aureka-color-sidebar: rgba(255, 255, 255, 0.72);
 
   /* Semantic surfaces */
-  --aureka-color-background: #f3f6f4;
+  --aureka-color-background: #e9f1f8;
   --aureka-color-surface: #ffffff;
-  --aureka-color-surface-muted: #f8faf9;
+  --aureka-color-surface-muted: rgba(255, 255, 255, 0.55);
   --aureka-color-surface-raised: #ffffff;
 
   /* Text and boundaries */
-  --aureka-color-foreground: #1e293b;
-  --aureka-color-foreground-secondary: #475569;
-  --aureka-color-muted: #64748b;
-  --aureka-color-border: #e5e7eb;
-  --aureka-color-border-strong: #cbd5e1;
-  --aureka-color-ring: rgba(15, 118, 86, 0.32);
+  --aureka-color-foreground: #0b1f33;
+  --aureka-color-foreground-secondary: #2e4a66;
+  --aureka-color-muted: #536b80;
+  --aureka-color-border: rgba(255, 255, 255, 0.85);
+  --aureka-color-border-strong: rgba(140, 170, 200, 0.55);
+  --aureka-color-ring: rgba(29, 95, 153, 0.28);
 
   /* Feedback */
   --aureka-color-success: #15803d;
@@ -49,8 +49,7 @@
   --aureka-risk-very-high: #f05a5b;
 
   /* Typography — opt-in per component during progressive migration */
-  --aureka-font-sans: "Aptos", "Segoe UI", system-ui, -apple-system,
-    BlinkMacSystemFont, sans-serif;
+  --aureka-font-sans: var(--font-aureka), "Plus Jakarta Sans", system-ui, sans-serif;
   --aureka-font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   --aureka-font-size-xs: 0.75rem;
   --aureka-font-size-sm: 0.8125rem;

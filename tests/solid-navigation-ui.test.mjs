@@ -18,6 +18,16 @@ test('Arktik is the active workspace skin and Solid override layers are not load
   assert.ok(bundle.indexOf("@import './dark-mode-mobile-fixes.css'") < bundle.indexOf("@import './aureka-navigation-pill.css'"))
   assert.ok(bundle.indexOf("@import './aureka-global-navigation.css'") < bundle.indexOf("@import './aureka-navigation-pill.css'"))
   assert.ok(bundle.trimEnd().endsWith("@import './aureka-navigation-repair.css';"))
+  for (const legacy of ["clinical-ui.css", "medidash-ui.css", "medidash-polish.css", "solid-default.css", "aureka-solid-navigation.css", "aureka-solid-enterprise.css"]) {
+    assert.ok(!bundle.includes(legacy), legacy + ' must be removed from the active UI bundle')
+  }
+  const typography = read('app/typography.css')
+  const tokens = read('app/design-tokens.css')
+  const base = read('app/globals.css')
+  assert.match(typography, /Plus Jakarta Sans/)
+  assert.ok(tokens.includes('--aureka-font-sans: var(--font-aureka), "Plus Jakarta Sans"'))
+  assert.match(tokens, /--aureka-color-primary: #16507a/)
+  assert.ok(base.includes('font-family:var(--font-aureka),"Plus Jakarta Sans"'))
 })
 
 test('Arktik uses bundled Plus Jakarta Sans and does not download Inter', () => {
