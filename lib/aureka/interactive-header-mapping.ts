@@ -24,6 +24,52 @@ type StoredMappings = Record<string, StoredMapping>
 
 const STORAGE_PREFIX = 'aureka:excel-header-mapping:v1:'
 
+export type RemoteImporterMappingRow = {
+  importer_key?: string
+  mapping_json?: {
+    workbook?: { worksheet?: string; header_row?: number; data_start_row?: number; [key: string]: unknown }
+    fields?: Record<string, string>
+    indicators?: Record<string, { source_header?: string; occurrence?: number }>
+  }
+}
+type RemoteSourceMapping = { header: string; occurrence: number }
+type RemoteWorkbookLayout = { worksheet?: string; header_row?: number; data_start_row?: number }
+const remoteMappings: Record<string, Record<string, RemoteSourceMapping>> = Object.create(null)
+const remoteLayouts: Record<string, RemoteWorkbookLayout> = Object.create(null)
+
+/** Prime the shared header resolver from server-persisted unit/importer configuration. */
+export function primeInteractiveExcelHeaderMappings(rows: RemoteImporterMappingRow[]): void {
+  for (const key of Object.keys(remoteMappings)) delete remoteMappings[key]
+  for (const key of Object.keys(remoteLayouts)) delete remoteLayouts[key]
+  for (const row of rows ?? []) {
+    const importerKey = String(row.importer_key ?? '').trim()
+    if (!importerKey) continue
+    const mapping = row.mapping_json ?? {}
+    const target: Record<string, RemoteSourceMapping> = Object.create(null)
+    for (const [fieldKey, header] of Object.entries(mapping.fields ?? {})) {
+      if (typeof header === 'string' && header.trim()) target[fieldKey] = { header: header.trim(), occurrence: 1 }
+    }
+    for (const [code, item] of Object.entries(mapping.indicators ?? {})) {
+      const header = String(item?.source_header ?? '').trim()
+      if (header) target['indicator:' + code] = {
+        header,
+        occurrence: Math.max(1, Math.floor(Number(item?.occurrence ?? 1) || 1)),
+      }
+    }
+    remoteMappings[importerKey] = target
+    remoteLayouts[importerKey] = {
+      worksheet: String(mapping.workbook?.worksheet ?? '').trim() || undefined,
+      header_row: Number.isInteger(Number(mapping.workbook?.header_row)) ? Number(mapping.workbook?.header_row) : undefined,
+      data_start_row: Number.isInteger(Number(mapping.workbook?.data_start_row)) ? Number(mapping.workbook?.data_start_row) : undefined,
+    }
+  }
+}
+
+/** Return the saved workbook layout for one importer; undefined values keep parser defaults. */
+export function getRemoteImporterWorkbookLayout(importerKey: string): RemoteWorkbookLayout {
+  return remoteLayouts[importerKey] ?? {}
+}
+
 function getPositions(columns: InteractiveHeaderColumns): Map<string, number[]> {
   const positions = new Map<string, number[]>()
   for (const [rawKey, rawValue] of columns.entries()) {
@@ -106,6 +152,11 @@ export function resolveInteractiveExcelHeaderColumn(
   options: InteractiveHeaderMappingOptions,
 ): number | null {
   const positions = getPositions(columns)
+  const remote = remoteMappings[options.importerKey]?.[options.fieldKey]
+  if (remote) {
+    const remotePositions = positions.get(normalizeExactHeader(remote.header)) ?? []
+    if (remotePositions.length >= remote.occurrence) return remotePositions[remote.occurrence - 1]
+  }
   const saved = readMappings(options.importerKey)[options.fieldKey]
   const savedPositions = saved ? positions.get(normalizeExactHeader(saved.normalizedHeader)) ?? [] : []
   if (saved && savedPositions.length >= saved.occurrence) {
