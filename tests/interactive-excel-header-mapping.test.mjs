@@ -92,7 +92,7 @@ test('server unit mapping overrides workbook header aliases and follows changed 
   clearInteractiveExcelHeaderMappingScope()
 })
 
-test('missing configured unit header fails with a configuration-specific message instead of guessing', () => {
+test('a stale saved unit header falls back to an explicit column chooser instead of blocking the upload', () => {
   hydrateInteractiveExcelHeaderMappings(6, 2026, [{
     importer_key: 'igd',
     target_key: 'indicator:6.1',
@@ -101,14 +101,14 @@ test('missing configured unit header fails with a configuration-specific message
     mapping_status: 'approved',
   }])
   const columns = new Map([['nama pasien', 2], ['tanggal masuk', 4]])
-  assert.throws(
-    () => resolveInteractiveExcelHeaderColumn(columns, ['Angka Kematian di IGD ≤ 8 Jam'], {
-      importerKey: 'igd',
-      fieldKey: 'indicator:6.1',
-      fieldLabel: '6.1 · Kematian IGD ≤8h',
-      chooseColumn: () => 'A',
-    }),
-    /Pusat Pemetaan Excel/,
-  )
+  let promptCount = 0
+  const result = resolveInteractiveExcelHeaderColumn(columns, ['Angka Kematian di IGD ≤ 8 Jam'], {
+    importerKey: 'igd',
+    fieldKey: 'indicator:6.1',
+    fieldLabel: '6.1 · Kematian IGD ≤8h',
+    chooseColumn: () => { promptCount += 1; return 'D' },
+  })
+  assert.equal(result, 4)
+  assert.equal(promptCount, 1)
   clearInteractiveExcelHeaderMappingScope()
 })
