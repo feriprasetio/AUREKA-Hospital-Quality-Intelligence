@@ -4,60 +4,22 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('Solid White final layer loads after every legacy visual layer', () => {
+test('Arktik is the active workspace skin and Solid override layers are not loaded', () => {
   const layout = read('app/layout.tsx')
-  const styles = [
-    "./globals.css",
-    "./clinical-ui.css",
-    "./medidash-ui.css",
-    "./solid-default.css",
-    "./medidash-polish.css",
-    "./design-tokens.css",
-    "./layout-responsive.css",
-    "./aureka-solid-enterprise.css",
-    "./aureka-solid-navigation.css",
-  ]
-  let previous = -1
-  for (const style of styles) {
-    const position = layout.indexOf("import '" + style + "'")
-    assert.ok(position > previous, style + ' must remain in the intended CSS cascade')
-    previous = position
-  }
-})
-
-test('Solid White is applied without depending on client data-theme hydration', () => {
-  const navigation = read('app/aureka-solid-navigation.css')
   const home = read('components/HomeClient.tsx')
-  assert.ok(home.includes('data-aureka-theme="solid-white"'))
-  assert.doesNotMatch(navigation, /html\\[data-theme\\]/)
+  assert.match(layout, /<html lang="id" data-skin="arktik"/)
+  assert.ok(home.includes('data-aureka-theme='))
+  for (const legacy of ["./solid-default.css", "./aureka-solid-enterprise.css", "./aureka-solid-navigation.css"]) {
+    assert.ok(!layout.includes("import '" + legacy + "'"), legacy + ' must not override Arktik')
+  }
+  assert.ok(layout.indexOf("import './theme-arktik-dark.css'") > layout.indexOf("import './aureka-universal-tabs.css'"))
+  assert.ok(layout.trimEnd().endsWith("import './dark-mode-mobile-fixes.css'"))
 })
 
-test('primary navigation uses one white surface rather than glossy menu cards', () => {
-  const css = read('app/aureka-solid-navigation.css')
-  for (const selector of [
-    '.workspaceRoot .sidebar',
-    '.workspaceRoot .sidebar .sidebarNav',
-    '.workspaceRoot .sidebar .sidebarNavGroup',
-    '.workspaceRoot .sidebar .sidebarNavGroup > button',
-    '.workspaceRoot .sidebar .sidebarTreeChildren',
-    '.workspaceRoot .sidebar .sidebarFooter'
-  ]) {
-    assert.ok(css.includes(selector), 'Missing final navigation rule: ' + selector)
-  }
-  assert.match(css, /background:\s*#ffffff\s*!important/)
-  assert.match(css, /backdrop-filter:\s*none\s*!important/)
-  assert.match(css, /sidebarIsCollapsed/)
-  assert.match(css, /max-width:\s*720px/)
-  assert.match(css, /scrollbar-width:\s*none/)
-  assert.doesNotMatch(css, /backdrop-filter:\s*blur/)
-  assert.doesNotMatch(css, /linear-gradient/)
-  const solidReset = css.slice(css.indexOf('Final, high-specificity reset'))
-  assert.ok(solidReset.includes('.sidebarNavGroup:hover,'))
-  assert.ok(solidReset.includes('.sidebarNavGroup.isCurrent {'))
-  assert.ok(solidReset.includes('background: transparent !important;'))
-  assert.ok(solidReset.includes('box-shadow: none !important;'))
-  assert.match(css, /sidebarTreeChildren\[hidden\][\s\S]*?display: none !important/)
-
+test('Arktik uses bundled Plus Jakarta Sans and does not download Inter', () => {
+  const skin = read('app/theme-arktik.css')
+  assert.doesNotMatch(skin, /fonts\.googleapis\.com|font-family:\s*["']Inter["']/i)
+  assert.match(skin, /var\(--font-aureka\)/)
 })
 
 test('sidebar exposes six domain groups; operational destinations stay contextual', () => {
