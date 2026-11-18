@@ -27,6 +27,7 @@ import { calculateInclusiveDurationDays, matchLogbookOption } from '@/lib/aureka
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {toUserFacingError} from '@/lib/ui/error-feedback'
 import {readAllPages} from '@/lib/aureka/pagination'
+import { primeInteractiveExcelHeaderMappings } from '@/lib/aureka/interactive-header-mapping'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Audit Klinis dan Kematian" compact/>})
@@ -622,7 +623,18 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [isolasiInpatientImportOpen,setIsolasiInpatientImportOpen]=useState(false)
  const [sarafInpatientImportOpen,setSarafInpatientImportOpen]=useState(false)
  const [penyakitDalamInpatientImportOpen,setPenyakitDalamInpatientImportOpen]=useState(false)
- const openImportDialog=(key:ImportDialogKey)=>{
+ const openImportDialog=async(key:ImportDialogKey)=>{
+  // Load reusable server-side mapping before the workbook parser resolves headers.
+  // A failed read falls back to built-in aliases and still opens the importer.
+  try{
+   if(roomId!=null){
+    const {data,error}=await q().rpc('quality_import_mapping_list_for_room',{p_room_id:Number(roomId),p_profile_year:year})
+    if(error)throw error
+    primeInteractiveExcelHeaderMappings(Array.isArray(data)?data as any[]:[])
+   }
+  }catch(error){
+   setMessage('Konfigurasi pemetaan tersimpan belum dapat dimuat. AUREKA memakai alias bawaan dan tetap membuka impor. '+toUserFacingError(error,{fallback:'Periksa koneksi konfigurasi impor.'}))
+  }
   setLoadedImportDialogs(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);return next})
   if(key==='complaint')setComplaintImportOpen(true)
   else if(key==='it')setItImportOpen(true)
