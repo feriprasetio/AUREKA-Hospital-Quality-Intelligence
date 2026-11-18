@@ -495,7 +495,6 @@ export default function HomeClient(){
        setQualityMonitorOpen(false);setQualityReconciliationOpen(true);setQualityOpen(false);setQualityResultsView(null);setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Indikator Mutu');return
       }
       if(moduleId==='quality'){setQualityMonitorOpen(false);setQualityReconciliationOpen(false);setQualityProfileOpen(false)}
-      if(moduleId==='quality'&&childId==='profile-indicators'){setActive('analytics');setAnalyticsTab('profiles');setAnalyticsDirectoryTab('directory');setQualityOpen(false);setQualityResultsView(null);return}
       if(moduleId==='quality'&&childId==='profile-indicators'){setActive('quality');setQualityProfileOpen(true);setQualityOpen(false);setQualityResultsView(null);return}
    if(childId==='oppe-fppe'){setQualityOppeOpen(true);setQualityResultsView(null);setClinicalPathwayOpen(false);setQualityOpen(false);return}
    setQualityOppeOpen(false)
