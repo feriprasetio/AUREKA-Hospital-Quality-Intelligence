@@ -257,6 +257,9 @@ export default function HomeClient(){
      setActive('quality');setQualityMonitorOpen(false);setQualityReconciliationOpen(true);setQualityOpen(false);setQualityResultsView(null);return
     }
     setQualityReconciliationOpen(false)
+    if(section==='monitoring'){
+     setActive('quality');setQualityMonitorOpen(true);setQualityOpen(false);setQualityResultsView(null);return
+    }
     if(section==='usulan-indikator'){
      setActive('analytics');setAnalyticsTab('programs');setQualityResultsView(null);setQualityOpen(false)
     }else if(section==='profil-indikator'){
