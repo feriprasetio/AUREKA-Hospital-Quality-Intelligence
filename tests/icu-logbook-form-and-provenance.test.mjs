@@ -113,3 +113,24 @@ test('monthly indicator cells open the exact Excel provenance for the selected m
   assert.match(results, /Baris Excel/)
   assert.match(results, /cellRef:/)
 })
+
+test('ICU BHP/Linen header matching accepts combined-header variants but rejects split columns', () => {
+  const helper = read('lib/aureka/icu-excel-headers.ts')
+  assert.match(helper, /tokens\.includes\('bhp'\) && tokens\.includes\('linen'\)/)
+  assert.match(helper, /findIcuBhpLinenHeaderCandidates/)
+  assert.match(helper, /findIcuBhpLinenHeaderColumns/)
+  const importer = read('components/IcuExcelImportDialog.tsx')
+  assert.match(importer, /findIcuBhpLinenHeaderColumns\(columns\)/)
+  assert.match(importer, /findIcuBhpLinenHeaderCandidates\(bestColumns\)/)
+  assert.match(importer, /combinedBhpLinenColumns\.length === 1/)
+})
+
+test('opening an ICU patient refreshes stale indicator profiles and never renders blank unmatched cards', () => {
+  const workspace = read('components/QualityIndicatorWorkspace.tsx')
+  assert.match(workspace, /const openPatient=async\(p:Patient\)/)
+  assert.match(workspace, /\.eq\('room_id',selectedRoomId\)\.eq\('profile_year',year\)/)
+  assert.match(workspace, /setProfiles\(current=>\[/)
+  assert.match(workspace, /Formulir tidak dibuka dengan kartu kosong/)
+  assert.match(workspace, /selectedUnmatchedHeaders\.length>0&&<div className="aqNotice"/)
+  assert.doesNotMatch(workspace, /selectedUnmatchedHeaders\.map\(\(header,i\)=>\s*<article className="aqInd aqUnmatchedInd"/)
+})
