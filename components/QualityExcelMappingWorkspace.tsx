@@ -369,16 +369,27 @@ export default function QualityExcelMappingWorkspace({
       if (typeof data?.error === 'string') throw new Error(data.error)
       const suggestions = (Array.isArray(data?.suggestions) ? data.suggestions : []) as Suggestion[]
       setAiSuggestions(suggestions)
+      const acceptedSuggestions = suggestions.filter(item => item.source_header && item.confidence >= 0.8)
       setDraftHeaders(current => {
         const next = { ...current }
-        for (const item of suggestions) {
-          if (item.source_header && item.confidence >= 0.6) next[draftKey(selectedImporter.key, item.indicator_code)] = item.source_header
+        for (const item of acceptedSuggestions) {
+          const key = draftKey(selectedImporter.key, item.indicator_code)
+          if (!next[key]) next[key] = item.source_header as string
+        }
+        return next
+      })
+      setDraftOccurrences(current => {
+        const next = { ...current }
+        for (const item of acceptedSuggestions) {
+          const key = draftKey(selectedImporter.key, item.indicator_code)
+          const matches = detectedColumns.filter(column => normalize(column.header) === normalize(item.source_header))
+          if (matches.length === 1 && !next[key]) next[key] = matches[0].occurrence
         }
         return next
       })
       setNotice(
         'NARA menganalisis ' + detectedHeaders.length + ' header dan menghasilkan ' + suggestions.filter(item => item.source_header).length +
-        ' usulan pemetaan. Periksa setiap usulan sebelum menekan Simpan Aturan Unit.' +
+        ' usulan. ' + acceptedSuggestions.length + ' usulan dengan keyakinan ≥80% disiapkan sebagai draft; usulan lain tetap harus dipilih manual. Tidak ada perubahan tersimpan sebelum konfirmasi.' +
         (data?.model ? ' Provider/model: ' + data.model : '')
       )
     } catch (cause) {
@@ -394,21 +405,50 @@ export default function QualityExcelMappingWorkspace({
       return
     }
     const rules = activeProfiles.flatMap(profile => {
-      const sourceHeader = String(draftHeaders[draftKey(selectedImporter.key, profile.code)] ?? existingByCode.get(profile.code)?.source_header ?? '').trim()
+      const key = draftKey(selectedImporter.key, profile.code)
+      const existing = existingByCode.get(profile.code)
+      const sourceHeader = String(draftHeaders[key] ?? existing?.source_header ?? '').trim()
       if (!sourceHeader) return []
       const ai = aiSuggestions.find(item => item.indicator_code === profile.code && item.source_header === sourceHeader)
+      const occurrence = Number(draftOccurrences[key] ?? existing?.occurrence ?? 0)
+      const matchingColumns = detectedColumns.filter(column => normalize(column.header) === normalize(sourceHeader))
+      const selectedColumn = detectedColumnChoice(sourceHeader, occurrence)
+      if (detectedColumns.length && matchingColumns.length > 1 && !selectedColumn) {
+        return [{
+          target_type: 'indicator',
+          target_key: profileKey(profile.code),
+          target_label: profile.code + ' · ' + profile.title,
+          indicator_code: profile.code,
+          source_header: sourceHeader,
+          occurrence: 0,
+          transform_json: { requires_column_choice: true },
+          ai_confidence: ai?.confidence ?? null,
+          ai_rationale: ai?.rationale ?? null,
+        }]
+      }
+      const finalOccurrence = selectedColumn?.occurrence ?? (occurrence > 0 ? occurrence : matchingColumns[0]?.occurrence ?? existing?.occurrence ?? 1)
       return [{
         target_type: 'indicator',
         target_key: profileKey(profile.code),
         target_label: profile.code + ' · ' + profile.title,
         indicator_code: profile.code,
         source_header: sourceHeader,
-        occurrence: 1,
+        occurrence: finalOccurrence,
+        transform_json: {
+          sheet_name: selectedSheet || null,
+          header_row: detectedColumns.length ? headerRow : null,
+          column_index: selectedColumn?.index ?? matchingColumns[0]?.index ?? null,
+          column_letter: selectedColumn?.letter ?? matchingColumns[0]?.letter ?? null,
+        },
         ai_confidence: ai?.confidence ?? null,
         ai_rationale: ai?.rationale ?? null,
       }]
     })
-    if (!rules.length) { setError('Belum ada kolom sumber yang dipetakan.'); return }
+    if (!rules.length) { setError('Belum ada kolom sumber yang dipetakan. Unggah workbook contoh atau pilih header master secara manual.'); return }
+    if (rules.some(item => item.occurrence === 0)) {
+      setError('Ada header duplikat. Pilih huruf kolom fisik yang benar untuk setiap indikator sebelum menyimpan.')
+      return
+    }
     if (rules.some(item => detectedHeaders.length && !detectedHeaders.some(header => normalize(header) === normalize(item.source_header)))) {
       setError('Ada header sumber yang tidak ditemukan pada workbook contoh. Periksa kembali kolom yang dipilih.')
       return
@@ -422,7 +462,7 @@ export default function QualityExcelMappingWorkspace({
         p_profile_year: profileYear,
         p_importer_key: selectedImporter.key,
         p_rules: rules,
-        p_decision_note: 'Pemetaan diverifikasi Admin/PMKP pada Pusat Pemetaan Excel. ' + (workbookName ? 'Contoh workbook: ' + workbookName + '.' : ''),
+        p_decision_note: 'Pemetaan dikonfirmasi Admin/PMKP pada Pusat Rekonsiliasi Data. ' + (workbookName ? 'Contoh workbook: ' + workbookName + '; sheet: ' + selectedSheet + '; baris header: ' + headerRow + '.' : 'Header dikonfirmasi secara manual.'),
       })
       if (rpcError) throw rpcError
       const { data: refreshed, error: refreshError } = await q().rpc('quality_excel_header_mapping_list', {
