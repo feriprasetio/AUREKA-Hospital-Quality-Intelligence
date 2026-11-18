@@ -208,6 +208,10 @@ export default function QualityExcelMappingWorkspace({
     [profiles],
   )
   const activeFields = useMemo(() => unitFieldCatalog[selectedImporter?.key ?? ''] ?? [], [selectedImporter?.key])
+  const sourceIndicatorProfiles = useMemo(
+    () => selectedImporter?.key === 'igd-consult' ? [] : activeProfiles,
+    [selectedImporter?.key, activeProfiles],
+  )
   const existingByCode = useMemo(() => {
     const map = new Map<string, Mapping>()
     for (const row of mappings) {
@@ -367,8 +371,8 @@ export default function QualityExcelMappingWorkspace({
   // Exact matches against the indicator profile header/aliases can be prepared automatically.
   // NARA is reserved for semantic matches where the labels differ.
   useEffect(() => {
-    if (!roomId || !selectedImporter || !detectedColumns.length || !activeProfiles.length) return
-    const exactMatches = activeProfiles.flatMap(profile => {
+    if (!roomId || !selectedImporter || !detectedColumns.length || (!sourceIndicatorProfiles.length && !activeFields.length)) return
+    const exactMatches = sourceIndicatorProfiles.flatMap(profile => {
       const key = draftKey(selectedImporter.key, profile.code)
       const mapping = existingByCode.get(profile.code)
       if (draftOccurrences[key] || mapping?.occurrence) return []
@@ -413,7 +417,7 @@ export default function QualityExcelMappingWorkspace({
         return next
       })
     }
-  }, [roomId, selectedImporter?.key, detectedColumns, activeProfiles, activeFields, existingByCode, existingFields, draftHeaders, draftOccurrences, draftFields, draftFieldOccurrences])
+  }, [roomId, selectedImporter?.key, detectedColumns, sourceIndicatorProfiles, activeFields, existingByCode, existingFields, draftHeaders, draftOccurrences, draftFields, draftFieldOccurrences])
 
   const runNaraBulk = async () => {
     if (!roomId || !selectedImporter || !detectedHeaders.length || !activeProfiles.length) {
@@ -511,7 +515,7 @@ export default function QualityExcelMappingWorkspace({
       setError('Unggah workbook contoh terlebih dahulu agar AUREKA dapat menyimpan huruf kolom, sheet, baris header, dan posisi header duplikat dengan benar.')
       return
     }
-    const indicatorRules = activeProfiles.flatMap(profile => {
+    const indicatorRules = sourceIndicatorProfiles.flatMap(profile => {
       const key = draftKey(selectedImporter.key, profile.code)
       const existing = existingByCode.get(profile.code)
       const sourceHeader = String(draftHeaders[key] ?? existing?.source_header ?? '').trim()
@@ -765,6 +769,7 @@ export default function QualityExcelMappingWorkspace({
                 {activeFields.map(field => {
                   const key = draftKey(selectedImporter.key, field.key)
                   const mapping = existingFields.get(field.key)
+                  const suggestion = aiSuggestions.find(item => item.target_type === 'field' && item.target_key === 'field:' + field.key)
                   const sourceHeader = draftFields[key] ?? mapping?.source_header ?? field.aliases[0] ?? ''
                   const occurrence = draftFieldOccurrences[key] ?? mapping?.occurrence ?? 1
                   const selectedColumn = detectedColumnChoice(sourceHeader, occurrence)
@@ -789,9 +794,11 @@ export default function QualityExcelMappingWorkspace({
                             onChange={event => setDraftFields(current => ({ ...current, [key]: event.target.value }))}/>}
                       {selectedColumn && <span className="qemMuted">Sumber: {selectedSheet}!{selectedColumn.letter}{headerRow}</span>}
                     </td>
-                    <td>{mapping
-                      ? <span className="qemBadge">{mapping.mapping_status === 'approved' ? 'Tersimpan dan aktif' : 'Perlu ditinjau'}</span>
-                      : selectedColumn ? <span className="qemBadge">Kecocokan header</span> : <span className="qemMuted">Belum dipetakan</span>}</td>
+                    <td>{suggestion
+                      ? <><span className="qemBadge">{Math.round(suggestion.confidence * 100)}% keyakinan NARA</span><span className="qemMuted">{suggestion.rationale}</span>{suggestion.confidence < 0.8 && <span className="qemMuted">Perlu telaah manual.</span>}</>
+                      : mapping
+                        ? <span className="qemBadge">{mapping.mapping_status === 'approved' ? 'Tersimpan dan aktif' : 'Perlu ditinjau'}</span>
+                        : selectedColumn ? <span className="qemBadge">Kecocokan header</span> : <span className="qemMuted">Belum dipetakan</span>}</td>
                   </tr>
                 })}
               </tbody>
@@ -799,7 +806,7 @@ export default function QualityExcelMappingWorkspace({
           </div>
         </section>}
 
-        <div className="qemTableWrap">
+        {sourceIndicatorProfiles.length > 0 && <div className="qemTableWrap">
           <table className="qemTable">
             <thead><tr><th>Kode / indikator</th><th>Header master saat ini</th><th>Kolom sumber Excel</th><th>NARA</th></tr></thead>
             <tbody>
@@ -847,7 +854,7 @@ export default function QualityExcelMappingWorkspace({
             </tbody>
           </table>
           <datalist id="qem-detected-header-list">{headerOptions.map((header,index) => <option key={index} value={header}/>)}</datalist>
-        </div>
+        </div>}
       </>}
     </>}
 
