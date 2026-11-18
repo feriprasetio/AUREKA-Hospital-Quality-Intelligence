@@ -47,6 +47,17 @@ type Suggestion = {
   confidence: number
   rationale: string
 }
+type MappingUpsertRule = {
+  target_type: 'indicator' | 'field'
+  target_key: string
+  target_label: string
+  indicator_code?: string
+  source_header: string
+  occurrence: number
+  transform_json: Record<string, unknown>
+  ai_confidence: number | null
+  ai_rationale: string | null
+}
 type FieldTarget = { key: string; label: string; aliases: string[] }
 type Importer = { key: string; label: string; room_id: number; connected: boolean }
 type HeaderColumn = { header: string; index: number; letter: string; occurrence: number }
@@ -515,7 +526,7 @@ export default function QualityExcelMappingWorkspace({
       setError('Unggah workbook contoh terlebih dahulu agar AUREKA dapat menyimpan huruf kolom, sheet, baris header, dan posisi header duplikat dengan benar.')
       return
     }
-    const indicatorRules = sourceIndicatorProfiles.flatMap(profile => {
+    const indicatorRules: MappingUpsertRule[] = sourceIndicatorProfiles.flatMap<MappingUpsertRule>(profile => {
       const key = draftKey(selectedImporter.key, profile.code)
       const existing = existingByCode.get(profile.code)
       const sourceHeader = String(draftHeaders[key] ?? existing?.source_header ?? '').trim()
@@ -555,7 +566,7 @@ export default function QualityExcelMappingWorkspace({
         ai_rationale: ai?.rationale ?? null,
       }]
     })
-    const fieldRules = activeFields.flatMap(field => {
+    const fieldRules: MappingUpsertRule[] = activeFields.flatMap<MappingUpsertRule>(field => {
       const key = draftKey(selectedImporter.key, field.key)
       const existing = existingFields.get(field.key)
       const sourceHeader = String(draftFields[key] ?? existing?.source_header ?? '').trim()
@@ -581,7 +592,7 @@ export default function QualityExcelMappingWorkspace({
         ai_rationale: ai?.rationale ?? null,
       }]
     })
-    const rules = [...indicatorRules, ...fieldRules]
+    const rules: MappingUpsertRule[] = [...indicatorRules, ...fieldRules]
     if (!rules.length) { setError('Belum ada kolom sumber yang dipetakan. Pilih unit, unggah workbook contoh, lalu tetapkan kolom untuk field/indikator yang digunakan.'); return }
     if (rules.some(item => item.occurrence === 0)) {
       setError('Ada header duplikat. Pilih huruf kolom fisik yang benar untuk setiap field/indikator sebelum menyimpan.')
