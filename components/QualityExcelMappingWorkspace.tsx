@@ -38,39 +38,65 @@ type Mapping = {
   ai_rationale?: string | null
 }
 type Suggestion = { indicator_code: string; source_header: string | null; confidence: number; rationale: string }
-type Importer = { key: string; label: string; room_id: number }
-type HeaderSheet = { name: string; row: number; headers: string[] }
+type Importer = { key: string; label: string; room_id: number; connected: boolean }
+type HeaderColumn = { header: string; index: number; letter: string; occurrence: number }
+type HeaderSheet = { name: string; row: number; headers: string[]; columns: HeaderColumn[] }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
 const importers: Importer[] = [
-  { room_id: 1, key: 'complaint', label: 'Logbook Informasi & Pengaduan' },
-  { room_id: 2, key: 'it', label: 'Logbook Informatika & Teknologi' },
-  { room_id: 3, key: 'ambulance', label: 'Logbook Ambulance' },
-  { room_id: 4, key: 'ibs', label: 'Logbook Instalasi Bedah Sentral' },
-  { room_id: 5, key: 'pharmacy', label: 'Logbook Farmasi' },
-  { room_id: 6, key: 'igd', label: 'Logbook IGD' },
-  { room_id: 7, key: 'gizi', label: 'Logbook Gizi' },
-  { room_id: 9, key: 'laboratory', label: 'Logbook Laboratorium' },
-  { room_id: 11, key: 'outpatient', label: 'Logbook Rawat Jalan' },
-  { room_id: 12, key: 'rehab-medik', label: 'Logbook Rehabilitasi Medik' },
-  { room_id: 13, key: 'rekam-medis', label: 'Logbook Rekam Medis' },
-  { room_id: 14, key: 'icu', label: 'Logbook ICU/HCU' },
-  { room_id: 18, key: 'nicu', label: 'Logbook NICU/PICU' },
-  { room_id: 19, key: 'nifas', label: 'Logbook Nifas/Obstetri' },
-  { room_id: 20, key: 'perinatology', label: 'Logbook Perinatologi' },
-  { room_id: 22, key: 'pediatric-inpatient', label: 'Logbook Rawat Inap Anak' },
-  { room_id: 23, key: 'surgical-inpatient', label: 'Logbook Rawat Inap Bedah' },
-  { room_id: 24, key: 'isolasi-inpatient', label: 'Logbook Rawat Inap Isolasi' },
-  { room_id: 25, key: 'penyakit-dalam-inpatient', label: 'Logbook Penyakit Dalam' },
-  { room_id: 26, key: 'saraf-inpatient', label: 'Logbook Rawat Inap Saraf' },
-  { room_id: 30, key: 'timkordik', label: 'Logbook Tim Koordinasi Pendidikan' },
-  { room_id: 33, key: 'ponek', label: 'Logbook PONEK' },
+  { room_id: 1, key: 'complaint', label: 'Logbook Informasi & Pengaduan', connected: true },
+  { room_id: 2, key: 'it', label: 'Logbook Informatika & Teknologi', connected: true },
+  { room_id: 3, key: 'ambulance', label: 'Logbook Ambulance', connected: true },
+  { room_id: 4, key: 'ibs', label: 'Logbook Instalasi Bedah Sentral', connected: true },
+  { room_id: 5, key: 'pharmacy', label: 'Logbook Farmasi', connected: true },
+  { room_id: 6, key: 'igd', label: 'Logbook IGD', connected: true },
+  { room_id: 7, key: 'gizi', label: 'Logbook Gizi', connected: true },
+  { room_id: 8, key: 'unit-logbook', label: 'Workbook Logbook Hemodialisis', connected: false },
+  { room_id: 9, key: 'laboratory', label: 'Logbook Laboratorium', connected: true },
+  { room_id: 10, key: 'unit-logbook', label: 'Workbook Logbook Radiologi', connected: false },
+  { room_id: 11, key: 'outpatient', label: 'Logbook Rawat Jalan', connected: true },
+  { room_id: 12, key: 'rehab-medik', label: 'Logbook Rehabilitasi Medik', connected: true },
+  { room_id: 13, key: 'rekam-medis', label: 'Logbook Rekam Medis', connected: true },
+  { room_id: 14, key: 'icu', label: 'Logbook ICU/HCU', connected: true },
+  { room_id: 15, key: 'unit-logbook', label: 'Workbook Logbook Komite Medik', connected: false },
+  { room_id: 16, key: 'unit-logbook', label: 'Workbook Logbook PPI', connected: false },
+  { room_id: 17, key: 'unit-logbook', label: 'Workbook Logbook Manajemen Rumah Sakit', connected: false },
+  { room_id: 18, key: 'nicu', label: 'Logbook NICU/PICU', connected: true },
+  { room_id: 19, key: 'nifas', label: 'Logbook Nifas/Obstetri', connected: true },
+  { room_id: 20, key: 'perinatology', label: 'Logbook Perinatologi', connected: true },
+  { room_id: 21, key: 'unit-logbook', label: 'Workbook Logbook PKRS', connected: false },
+  { room_id: 22, key: 'pediatric-inpatient', label: 'Logbook Rawat Inap Anak', connected: true },
+  { room_id: 23, key: 'surgical-inpatient', label: 'Logbook Rawat Inap Bedah', connected: true },
+  { room_id: 24, key: 'isolasi-inpatient', label: 'Logbook Rawat Inap Isolasi', connected: true },
+  { room_id: 25, key: 'penyakit-dalam-inpatient', label: 'Logbook Rawat Inap Penyakit Dalam', connected: true },
+  { room_id: 26, key: 'saraf-inpatient', label: 'Logbook Rawat Inap Saraf', connected: true },
+  { room_id: 27, key: 'unit-logbook', label: 'Workbook Logbook Rawat Inap VIP', connected: false },
+  { room_id: 28, key: 'unit-logbook', label: 'Workbook Logbook Satuan Pengawas Intern', connected: false },
+  { room_id: 29, key: 'unit-logbook', label: 'Workbook Logbook Tim Investigasi', connected: false },
+  { room_id: 30, key: 'timkordik', label: 'Logbook Tim Koordinasi Pendidikan', connected: true },
+  { room_id: 31, key: 'unit-logbook', label: 'Workbook Logbook Tim Pelayanan HIV', connected: false },
+  { room_id: 32, key: 'unit-logbook', label: 'Workbook Logbook Tim Pelayanan KB', connected: false },
+  { room_id: 33, key: 'ponek', label: 'Logbook PONEK', connected: true },
+  { room_id: 34, key: 'unit-logbook', label: 'Workbook Logbook Tim Pelayanan Onkologi', connected: false },
+  { room_id: 35, key: 'unit-logbook', label: 'Workbook Logbook Tim PPRA', connected: false },
+  { room_id: 36, key: 'unit-logbook', label: 'Workbook Logbook Peningkatan Kinerja Klinis', connected: false },
+  { room_id: 37, key: 'unit-logbook', label: 'Workbook Logbook Verlos Kamer', connected: false },
 ]
 const normalize = (value: unknown) => String(value ?? '').normalize('NFKC').toLocaleLowerCase('id-ID').replace(/\s+/g, ' ').trim()
 const profileKey = (code: string) => 'indicator:' + code
 const draftKey = (importer: string, code: string) => importer + '|' + code
 const numberLabel = (value: number) => Number(value || 0).toLocaleString('id-ID')
+const excelColumnLetter = (column: number) => {
+  let value = column
+  let result = ''
+  while (value > 0) {
+    const remainder = (value - 1) % 26
+    result = String.fromCharCode(65 + remainder) + result
+    value = Math.floor((value - 1) / 26)
+  }
+  return result
+}
 
 export default function QualityExcelMappingWorkspace({
   rooms,
@@ -78,12 +104,16 @@ export default function QualityExcelMappingWorkspace({
   year,
   role,
   onClose,
+  initialTab = 'unit',
+  hideTabs = false,
 }: {
   rooms: Room[]
   initialRoomId: number | null
   year: number
   role: string | null
   onClose: () => void
+  initialTab?: 'unit' | 'indicator'
+  hideTabs?: boolean
 }) {
   const canManage = role === 'ADMIN' || role === 'PMKP'
   const [roomId, setRoomId] = useState<number | null>(initialRoomId)
@@ -99,9 +129,11 @@ export default function QualityExcelMappingWorkspace({
   const [sheets, setSheets] = useState<HeaderSheet[]>([])
   const [selectedSheet, setSelectedSheet] = useState('')
   const [detectedHeaders, setDetectedHeaders] = useState<string[]>([])
+  const [detectedColumns, setDetectedColumns] = useState<HeaderColumn[]>([])
   const [headerRow, setHeaderRow] = useState(1)
   const [workbookName, setWorkbookName] = useState('')
   const [draftHeaders, setDraftHeaders] = useState<Record<string, string>>({})
+  const [draftOccurrences, setDraftOccurrences] = useState<Record<string, number>>({})
   const [aiSuggestions, setAiSuggestions] = useState<Suggestion[]>([])
   const [aiBusy, setAiBusy] = useState(false)
   const [selectedProfileId, setSelectedProfileId] = useState('')
@@ -118,9 +150,12 @@ export default function QualityExcelMappingWorkspace({
     return [{
       room_id: Number(roomId),
       key: 'unit-logbook',
-      label: 'Workbook Logbook Unit · Konfigurasi Awal',
+      label: rooms.find(item => Number(item.id) === Number(roomId))?.name
+        ? 'Workbook logbook · ' + rooms.find(item => Number(item.id) === Number(roomId))!.name
+        : 'Workbook logbook unit',
+      connected: false,
     }]
-  }, [roomId])
+  }, [roomId, rooms])
   const selectedImporter = availableImporters.find(item => item.key === importerKey) ?? availableImporters[0] ?? null
   const selectedProfile = profiles.find(item => item.id === selectedProfileId) ?? profiles[0] ?? null
   const activeProfiles = useMemo(
@@ -137,9 +172,13 @@ export default function QualityExcelMappingWorkspace({
     return map
   }, [mappings, selectedImporter?.key, importerKey])
   const headerOptions = useMemo(() => detectedHeaders, [detectedHeaders])
+  const detectedColumnChoice = (header: string, occurrence: number) =>
+    detectedColumns.find(item => normalize(item.header) === normalize(header) && item.occurrence === occurrence)
+  const sourceChoiceValue = (column: HeaderColumn) => String(column.index) + ':' + String(column.occurrence)
 
   useEffect(() => setRoomId(initialRoomId), [initialRoomId])
   useEffect(() => setProfileYear(year), [year])
+  useEffect(() => setActiveTab(initialTab), [initialTab])
   useEffect(() => {
     if (!availableImporters.some(item => item.key === importerKey)) setImporterKey(availableImporters[0]?.key ?? '')
   }, [availableImporters, importerKey])
