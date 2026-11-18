@@ -28,6 +28,7 @@ test('Arktik uses bundled Plus Jakarta Sans and does not download Inter', () => 
 test('sidebar exposes six domain groups; operational destinations stay contextual', () => {
   const home = read('components/HomeClient.tsx')
   const navCss = read('app/aureka-navigation-consolidated.css')
+  const repairCss = read('app/aureka-navigation-repair.css')
   assert.ok(home.includes('aria-label="Enam domain utama AUREKA"'))
   assert.ok(home.includes('visibleSidebarDomains.map'))
   assert.ok(home.includes("import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'"))
@@ -36,6 +37,9 @@ test('sidebar exposes six domain groups; operational destinations stay contextua
   for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(navCss.includes('.workspaceRoot .sidebar .sidebarTreeChildren'))
+  assert.ok(repairCss.includes('.sidebarDomainTrigger'))
+  assert.ok(repairCss.includes('.sidebarDomainItems'))
+  assert.ok(repairCss.includes('.sidebarDomainItem.active'))
 })
 
 test('global navigation uses balanced one-line smart overflow and keeps the active tab visible', () => {
