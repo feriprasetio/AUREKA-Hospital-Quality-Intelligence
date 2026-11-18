@@ -70,7 +70,7 @@ test('NARA receives only header labels and indicator metadata, returns validated
   assert.match(nara, /saved: false/)
   assert.match(nara, /source_header: sourceHeader/)
   assert.doesNotMatch(nara.slice(nara.indexOf('if (task === "excel_mapping_suggest")'), nara.indexOf('// AI-assisted ICD-10')), /upsert|insert\(|update\(/)
-  assert.match(mappingUi, /NARA AI · Petakan massal/)
+  assert.match(mappingUi, /NARA AI · Petakan field & indikator massal/)
   assert.match(mappingUi, /Simpan aturan unit/)
   assert.match(mappingUi, /Periksa setiap usulan/)
 })
@@ -106,7 +106,7 @@ test('exact profile header and aliases are prepared before NARA, while low-confi
   assert.match(mappingUi, /schema\.excel_header_aliases/)
   assert.match(mappingUi, /item\.confidence >= 0\.8/)
   assert.match(mappingUi, /keyakinan ≥80%/)
-  assert.match(mappingUi, /Tidak ada perubahan tersimpan sebelum konfirmasi/)
+  assert.match(mappingUi, /tidak ada perubahan tersimpan sebelum konfirmasi/)
 })
 
 test('IGD main and consultation workbooks map base fields separately from indicator responses', () => {
