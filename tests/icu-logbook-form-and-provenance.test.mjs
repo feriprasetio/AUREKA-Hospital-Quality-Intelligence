@@ -77,3 +77,21 @@ test('database migration marks ICU responses categorical and backfills only an e
   assert.match(migration, /ON CONFLICT \(record_id, indicator_id\) DO NOTHING/)
   assert.match(migration, /source_indicator_columns/)
 })
+
+test('opening an ICU patient refreshes stale indicator profiles and never renders blank unmatched cards', () => {
+  const workspace = read('components/QualityIndicatorWorkspace.tsx')
+  assert.match(workspace, /const openPatient=async\(p:Patient\)/)
+  assert.match(workspace, /\.eq\('room_id',selectedRoomId\)\.eq\('profile_year',year\)/)
+  assert.match(workspace, /Formulir tidak dibuka dengan kartu kosong/)
+  assert.match(workspace, /selectedUnmatchedHeaders\.length>0&&<div className="aqNotice"/)
+  assert.doesNotMatch(workspace, /selectedUnmatchedHeaders\.map\(\(header,i\)=>\s*<article className="aqInd aqUnmatchedInd"/)
+})
+
+test('ICU BHP/Linen header matching uses a unique combined column or asks for explicit mapping', () => {
+  const helper = read('lib/aureka/icu-excel-headers.ts')
+  const importer = read('components/IcuExcelImportDialog.tsx')
+  assert.match(helper, /tokens\.includes\('bhp'\) && tokens\.includes\('linen'\)/)
+  assert.match(importer, /findIcuBhpLinenHeaderColumns\(columns\)/)
+  assert.match(importer, /findIcuBhpLinenHeaderCandidates\(bestColumns\)/)
+  assert.match(importer, /combinedBhpLinenColumns\.length === 1/)
+})
