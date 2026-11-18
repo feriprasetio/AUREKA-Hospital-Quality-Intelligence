@@ -88,7 +88,7 @@ AS $function$
     pg_catalog.regexp_replace(
       pg_catalog.lower(
         pg_catalog.regexp_replace(
-          pg_catalog.coalesce(p_value, ''),
+          COALESCE(p_value, ''),
           '\s*\(\s*code\s*[0-9]+\s*\)\s*$',
           '',
           'i'
@@ -125,7 +125,7 @@ BEGIN
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'Login diperlukan untuk membuka Pusat Rekonsiliasi Data.' USING ERRCODE = '28000';
   END IF;
-  IF v_role NOT IN ('ADMIN','PMKP') THEN
+  IF COALESCE(v_role,'') NOT IN ('ADMIN','PMKP') THEN
     RAISE EXCEPTION 'Pusat Rekonsiliasi Data hanya dapat dikelola Admin atau Komite PMKP.' USING ERRCODE = '42501';
   END IF;
   IF p_profile_year IS NULL OR p_profile_year < 2000 OR p_profile_year > 2100 THEN
@@ -135,7 +135,7 @@ BEGIN
     RAISE EXCEPTION 'Akses rekonsiliasi ke unit yang dipilih tidak diberikan.' USING ERRCODE = '42501';
   END IF;
 
-  SELECT pg_catalog.coalesce(pg_catalog.array_agg(r.id ORDER BY r.sort_order), '{}'::bigint[])
+  SELECT COALESCE(pg_catalog.array_agg(r.id ORDER BY r.sort_order), '{}'::bigint[])
     INTO v_rooms
   FROM public.master_rooms r
   WHERE r.is_active = true
@@ -203,7 +203,7 @@ BEGIN
         AND (opt.value->>'code') ~ '^[1-3]$'
     ) candidate ON true
   )
-  SELECT pg_catalog.coalesce(
+  SELECT COALESCE(
     pg_catalog.jsonb_agg(
       pg_catalog.jsonb_build_object(
         'room_id', room_id,
@@ -216,7 +216,7 @@ BEGIN
         'source_code', source_code,
         'mapping_status', mapping_status,
         'affected_count', affected_count,
-        'auto_fixable', pg_catalog.coalesce(auto_fixable, false),
+        'auto_fixable', COALESCE(auto_fixable, false),
         'suggested_target_label', CASE WHEN auto_fixable THEN target_label ELSE NULL END,
         'suggested_target_code', CASE WHEN auto_fixable THEN target_code ELSE NULL END,
         'options', CASE WHEN pg_catalog.jsonb_typeof(options_json) = 'array' THEN options_json ELSE '[]'::jsonb END
@@ -271,7 +271,7 @@ BEGIN
     JOIN public.master_rooms r ON r.id = wi.room_id
     GROUP BY wi.room_id, r.name, wi.profile_year, wi.warning_hash, wi.warning_text
   )
-  SELECT pg_catalog.coalesce(
+  SELECT COALESCE(
     pg_catalog.jsonb_agg(
       pg_catalog.jsonb_build_object(
         'room_id', room_id,
@@ -291,7 +291,7 @@ BEGIN
   INTO v_warning_groups
   FROM grouped_warnings;
 
-  SELECT pg_catalog.coalesce(
+  SELECT COALESCE(
     pg_catalog.jsonb_agg(
       pg_catalog.jsonb_build_object(
         'id', a.id,
@@ -390,7 +390,7 @@ BEGIN
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'Login diperlukan untuk rekonsiliasi massal.' USING ERRCODE = '28000';
   END IF;
-  IF v_role NOT IN ('ADMIN','PMKP') THEN
+  IF COALESCE(v_role,'') NOT IN ('ADMIN','PMKP') THEN
     RAISE EXCEPTION 'Rekonsiliasi massal hanya diizinkan bagi Admin atau Komite PMKP.' USING ERRCODE = '42501';
   END IF;
   IF NOT aureka_system.has_quality_room_access(p_room_id) THEN
@@ -603,7 +603,7 @@ BEGIN
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'Login diperlukan untuk telaah warning sumber.' USING ERRCODE = '28000';
   END IF;
-  IF v_role NOT IN ('ADMIN','PMKP') THEN
+  IF COALESCE(v_role,'') NOT IN ('ADMIN','PMKP') THEN
     RAISE EXCEPTION 'Telaah massal warning hanya diizinkan bagi Admin atau Komite PMKP.' USING ERRCODE = '42501';
   END IF;
   IF NOT aureka_system.has_quality_room_access(p_room_id) THEN
@@ -611,6 +611,7 @@ BEGIN
   END IF;
   IF p_profile_year IS NULL OR p_profile_year < 2000 OR p_profile_year > 2100
      OR p_warning_text IS NULL OR pg_catalog.btrim(p_warning_text) = ''
+     OR p_warning_hash IS NULL
      OR p_warning_hash <> pg_catalog.md5(pg_catalog.btrim(p_warning_text)) THEN
     RAISE EXCEPTION 'Identitas warning atau tahun tidak valid.' USING ERRCODE = '22023';
   END IF;
@@ -631,19 +632,22 @@ BEGIN
   v_state := CASE WHEN p_action = 'accept_derived_value' THEN 'resolved' ELSE 'needs_source_correction' END;
 
   FOR v_item IN
-    SELECT DISTINCT qr.id AS record_id
+    SELECT qr.id AS record_id
     FROM aureka_quality.quality_records qr
-    CROSS JOIN LATERAL pg_catalog.jsonb_array_elements_text(
-      CASE
-        WHEN pg_catalog.jsonb_typeof(qr.core_data->'source_import'->'source_warnings') = 'array'
-        THEN qr.core_data->'source_import'->'source_warnings'
-        ELSE '[]'::jsonb
-      END
-    ) AS w(warning_text)
     WHERE qr.room_id = p_room_id
       AND qr.profile_year = p_profile_year
       AND qr.status <> 'archived'
-      AND pg_catalog.btrim(w.warning_text) = pg_catalog.btrim(p_warning_text)
+      AND EXISTS (
+        SELECT 1
+        FROM pg_catalog.jsonb_array_elements_text(
+          CASE
+            WHEN pg_catalog.jsonb_typeof(qr.core_data->'source_import'->'source_warnings') = 'array'
+            THEN qr.core_data->'source_import'->'source_warnings'
+            ELSE '[]'::jsonb
+          END
+        ) AS w(warning_text)
+        WHERE pg_catalog.btrim(w.warning_text) = pg_catalog.btrim(p_warning_text)
+      )
     ORDER BY qr.id
     FOR UPDATE OF qr
   LOOP
