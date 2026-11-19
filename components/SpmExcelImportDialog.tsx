@@ -14,6 +14,7 @@ import {
 type ExistingMeasurement = {
   indicator_id: string
   period_month: number
+  room_id: number | null
 }
 
 type Props = {
@@ -53,8 +54,8 @@ function cellValue(cell: any): unknown {
   return value
 }
 
-function measurementKey(indicatorId: string, month: number) {
-  return indicatorId + ':' + month
+function measurementKey(indicatorId: string, month: number, roomId: number | null) {
+  return indicatorId + ':' + month + ':' + (roomId ?? 'all')
 }
 
 function inputSummary(row: SpmPreparedMeasurement) {
@@ -77,10 +78,10 @@ export default function SpmExcelImportDialog({
   const [progress, setProgress] = useState('')
 
   const existingKeys = useMemo(() => new Set(
-    measurements.map(row => measurementKey(String(row.indicator_id), Number(row.period_month))),
+    measurements.map(row => measurementKey(String(row.indicator_id), Number(row.period_month), row.room_id == null ? null : Number(row.room_id)),
   ), [measurements])
 
-  const newCount = preview?.rows.filter(row => !existingKeys.has(measurementKey(row.indicator_id, row.period_month))).length ?? 0
+  const newCount = preview?.rows.filter(row => !existingKeys.has(measurementKey(row.indicator_id, row.period_month, row.room_id))).length ?? 0
   const updateCount = preview ? preview.rows.length - newCount : 0
 
   const reset = useCallback(() => {
@@ -138,7 +139,9 @@ export default function SpmExcelImportDialog({
         grid.push(values)
       }
 
-      const prepared = prepareSpmExcelImport(grid, indicators, year, selected.name)
+      const { data: roomRows, error: roomError } = await aurekaSupabase.from('master_rooms').select('id,name,code').eq('is_active', true)
+      if (roomError) throw new Error('Master unit AUREKA tidak dapat dibaca untuk memetakan blok unit: ' + roomError.message)
+      const prepared = prepareSpmExcelImport(grid, indicators, year, selected.name, (roomRows ?? []) as Array<{id:number;name:string;code:string}>)
       const profileById = new Map(indicators.map(profile => [profile.id, profile]))
       const eligibleRows = prepared.rows.filter(row => {
         const profile = profileById.get(row.indicator_id)
@@ -191,21 +194,23 @@ export default function SpmExcelImportDialog({
         const payload = batch.map(row => ({
           indicator_id: row.indicator_id,
           profile_year: year,
+          room_id: row.room_id,
           period_month: row.period_month,
           input_json: row.input_json,
           status: 'submitted',
           notes: row.notes,
+          entered_by: authData.user!.id,
           updated_by: authData.user!.id,
           updated_at: new Date().toISOString(),
         }))
         const { error: saveError } = await aurekaSupabase
           .schema('aureka_quality')
           .from('spm_monthly_measurements')
-          .upsert(payload, { onConflict: 'indicator_id,profile_year,period_month' })
+          .upsert(payload, { onConflict: 'indicator_id,profile_year,period_month,room_id' })
         if (saveError) throw new Error('Batch ' + (batchIndex + 1) + ' gagal disimpan: ' + saveError.message)
 
         for (const row of batch) {
-          if (existingKeys.has(measurementKey(row.indicator_id, row.period_month))) updated++
+          if (existingKeys.has(measurementKey(row.indicator_id, row.period_month, row.room_id))) updated++
           else inserted++
         }
         written += batch.length
@@ -304,14 +309,14 @@ export default function SpmExcelImportDialog({
               <div><strong>Pratinjau nilai</strong><span>Menampilkan maksimal 12 baris pertama.</span></div>
               <div className="spmImportTableScroll">
                 <table>
-                  <thead><tr><th>Kode</th><th>Indikator</th><th>Bulan</th><th>Nilai sumber</th><th>Baris XLSX</th><th>Operasi</th></tr></thead>
+                  <thead><tr><th>Kode</th><th>Indikator / Unit</th><th>Bulan</th><th>Nilai sumber</th><th>Baris XLSX</th><th>Operasi</th></tr></thead>
                   <tbody>
                     {preview.rows.slice(0,12).map((row,index) => {
                       const monthName = MONTH_NAMES[row.period_month - 1]
-                      const exists = existingKeys.has(measurementKey(row.indicator_id,row.period_month))
+                      const exists = existingKeys.has(measurementKey(row.indicator_id,row.period_month,row.room_id))
                       return <tr key={row.indicator_id + ':' + row.period_month + ':' + index}>
                         <td><code>{row.code}</code></td>
-                        <td><span>{row.title}</span><small>{row.group_name}</small></td>
+                        <td><span>{row.title}</span><small>{row.group_name}{row.room_id != null ? ' · ' + (preview ? 'Unit #' + row.room_id : '') : ' · Rekap kelompok'}</small></td>
                         <td>{monthName}</td>
                         <td>{inputSummary(row)}</td>
                         <td>{row.source_row}</td>
