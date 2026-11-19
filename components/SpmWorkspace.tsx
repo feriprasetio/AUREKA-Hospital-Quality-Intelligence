@@ -140,7 +140,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const canConfigure = role === 'ADMIN' || role === 'PMKP'
   const canImport = role === 'ADMIN' || role === 'PMKP'
   const canEdit = (indicator: Indicator) => {
-    const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id
+    const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : null
     if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null) return false
     return isManager || (role === 'PIC' && roomId != null && rooms.some(room => Number(room.id) === Number(roomId)))
   }
@@ -254,7 +254,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
 
   const inpatientRoomIds = [22,23,24,25,26,27]
   const activeRoomId = selectedRoomId
-  const measurementKey = (indicator: Indicator, monthNumber: number) => indicator.id + ':' + monthNumber + ':' + ((indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id) ?? 'all')
+  const measurementKey = (indicator: Indicator, monthNumber: number) => indicator.id + ':' + monthNumber + ':' + ((indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : null) ?? 'all')
   const measurementFor = (indicator: Indicator, monthNumber: number): Measurement | undefined => {
     if (indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId == null) {
       const unitRows = inpatientRoomIds.map(roomId => measurementMap.get(indicator.id + ':' + monthNumber + ':' + roomId)).filter(Boolean) as Measurement[]
@@ -377,7 +377,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         indicator_id: editing.id,
         profile_year: year,
         period_month: month,
-        room_id: editing.group_name === 'Instalasi Rawat Inap' ? activeRoomId : editing.owner_room_id,
+        room_id: editing.group_name === 'Instalasi Rawat Inap' ? activeRoomId : null,
         input_json: next,
         status: 'submitted',
         notes: editNotes.trim() || null,
