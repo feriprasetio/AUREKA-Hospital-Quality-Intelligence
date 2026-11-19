@@ -16,10 +16,9 @@ test('UnifiedModuleNavigation renders the measured moving active pill in product
   const layout = read('app/aureka-global.css')
   const component = read('components/navigation/UnifiedModuleNavigation.tsx')
   const pill = read('app/aureka-navigation-pill.css')
-  const repair = read('app/aureka-navigation-repair.css')
 
   assert.ok(layout.indexOf("@import './aureka-global-navigation.css'") < layout.indexOf("@import './aureka-navigation-pill.css'"))
-  assert.ok(layout.indexOf("@import './aureka-universal-tabs.css'") < layout.indexOf("@import './aureka-navigation-repair.css'"))
+  assert.ok(layout.indexOf("@import './aureka-layout-integrity.css'") < layout.lastIndexOf("@import './aureka-navigation-pill.css'"))
   assert.match(component, /classList\.add\('hasPill'\)/)
   assert.match(component, /--pill-x/)
   assert.match(component, /--pill-w/)
