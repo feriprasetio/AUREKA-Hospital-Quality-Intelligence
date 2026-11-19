@@ -118,8 +118,3 @@ test('SPM has one domain destination and no duplicate direct-access shortcut', (
   assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'"))
   assert.ok(home.includes("if(moduleId==='quality'&&childId==='spm')"))
 })
-
-  assert.ok(home.includes("if(active==='quality'&&spmOpen)return 'quality_risk'"))
-  const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
-  assert.match(qualityDomain, /id:'spm',label:'Standar Pelayanan Minimal \(SPM\)',moduleId:'quality',childId:'spm'/)
-})
