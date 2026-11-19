@@ -616,7 +616,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
             <table>
               <thead><tr>
                 <th>Kode</th><th>Indikator / kelompok</th>
-                {tab==='entry' ? <>{MONTHS.map(name => <th key={name}>{name.slice(0,3)}</th>)}<th>Target</th><th>Sumber</th></> : <><th>Target</th><th>Metode aktif</th><th>Definisi N / D</th><th>Sumber</th><th>Aksi</>}
+                {tab==='entry' ? <>{MONTHS.map(name => <th key={name}>{name.slice(0,3)}</th>)}<th>Target</th><th>Sumber</th></> : <><th>Target</th><th>Metode aktif</th><th>Definisi N / D</th><th>Sumber</th><th>Aksi</th></>}
               </tr></thead>
               <tbody>
                 {visibleIndicators.map(indicator => {
