@@ -30,7 +30,8 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.ok(imports.indexOf('aureka-navigation-consolidated.css') < imports.indexOf('aureka-global-navigation.css'))
   assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'))
   assert.ok(imports.indexOf('aureka-universal-tabs.css') < imports.indexOf('aureka-navigation-repair.css'))
-  assert.equal(imports.at(-1), 'aureka-layout-integrity.css')
+  assert.ok(imports.indexOf('aureka-layout-integrity.css') < imports.indexOf('aureka-navigation-pill.css'))
+  assert.equal(imports.at(-1), 'aureka-navigation-pill.css')
 })
 
 test('Super Admin uses a compact static tab rail and a module-only sidebar', () => {
