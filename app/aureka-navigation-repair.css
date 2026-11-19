@@ -599,7 +599,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   top: calc(100% + 6px) !important;
   right: 0 !important;
   z-index: 100 !important;
-grid-template-columns: minmax(170px, 1fr) !important;
+  grid-template-columns: minmax(170px, 1fr) !important;
   gap: 3px !important;
   width: max-content !important;
   min-width: 190px !important;
