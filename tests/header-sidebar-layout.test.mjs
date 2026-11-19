@@ -44,10 +44,23 @@ test('sidebar redesign retains desktop and mobile navigation behavior', () => {
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*display: block !important;[\s\S]*\.sidebar\.mobileOpen/)
 })
 
-test('mobile drawer and bottom navigation share one breakpoint with no 721–760px dead zone', () => {
+test('mobile workspace uses one sidebar drawer and never duplicates navigation in a bottom bar', () => {
   const responsive = read('app/layout-responsive.css')
   const mobileNav = read('app/mobile-nav.css')
+  const acrylic = read('app/aureka-acrylic-navigation-polish.css')
   const home = read('components/HomeClient.tsx')
+  const finalMobile = acrylic.slice(acrylic.indexOf('/* Mobile: clear three-row header'))
+
+  assert.match(responsive, /@media \(max-width: 720px\)\s*\{\s*\.workspaceRoot\s*\{/)
+  assert.doesNotMatch(responsive, /@media \(max-width: 760px\)/)
+  assert.doesNotMatch(home, /mobileBottomNav/)
+  assert.match(home, /className="mobileMenuButton workspaceSidebarMenuButton"/)
+  assert.match(home, /mobileSidebar\.open\(event\.currentTarget\)/)
+  assert.doesNotMatch(mobileNav, /Navigasi bawah ala Android|workspaceContent::after/)
+  assert.match(finalMobile, /\.workspaceSidebarMenuButton \{[\s\S]*display: grid !important/)
+  assert.match(finalMobile, /\.workspaceHeaderBar > \.workspaceHeaderProfile \{[\s\S]*display: inline-flex !important/)
+  assert.match(finalMobile, /padding-bottom: calc\(24px \+ env\(safe-area-inset-bottom, 0px\)\) !important/)
+})
 
   assert.match(responsive, /@media \(max-width: 720px\)\s*\{\s*\.workspaceRoot\s*\{/)
   assert.doesNotMatch(responsive, /@media \(max-width: 760px\)/)
