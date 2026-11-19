@@ -267,7 +267,7 @@ export default function HomeLandingWorkspace({
       <section className="ccSection" aria-label="Akses cepat modul">
         <div className="ccSectionHead"><div><h2>Operational workspaces</h2><p>Akses langsung ke fungsi inti tanpa melewati halaman dashboard perantara.</p></div></div>
         <div className="ccModuleGrid">
-          {actions.map(action=><button type="button" key={action.id} className="ccModule" onClick={action.run}>
+          {actions.filter(action=>action.id!=='nara'||Boolean(onAskNara)).map(action=><button type="button" key={action.id} className="ccModule" onClick={action.run}>
             <span className="ccModuleTop"><span className="ccModuleCode">WORKSPACE / {action.id.toUpperCase()}</span><span className="ccModuleArrow" aria-hidden="true">↗</span></span>
             <strong>{action.title}</strong><small>{action.description}</small>
           </button>)}
