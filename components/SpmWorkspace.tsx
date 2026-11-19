@@ -141,7 +141,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const canImport = role === 'ADMIN' || role === 'PMKP'
   const canEdit = (indicator: Indicator) => {
     const accessRoomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id
-    if (indicator.group_name === 'Instalasi Rawat Inap' && accessRoomId == null) return false
+    if (indicator.group_name === 'Instalasi Rawat Inap' && accessRoomId == null) return isManager && indicator.source_mode === 'quality_denominator_linked'
     return isManager || (role === 'PIC' && accessRoomId != null && rooms.some(room => Number(room.id) === Number(accessRoomId)))
   }
 
@@ -406,8 +406,8 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     if (authError || !authData.user?.id) { setNotice('Sesi login tidak tersedia. Silakan masuk kembali.'); return }
     for (const indicator of visibleIndicators) {
       if (!canEdit(indicator) || indicator.source_mode === 'quality_linked') continue
-      if (indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap') continue
       const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : null
+      if (indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap' && roomId != null) continue
       if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null) continue
       for (let m = 1; m <= 12; m++) {
         const keys = inputKeys(indicator)
@@ -630,7 +630,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                         const rowMeasurement = measurementFor(indicator, monthNumber)
                         const keys = inputKeys(indicator)
                         const roomMissing = indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId == null
-                        const linkedRoomUnsupported = indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap'
+                        const linkedRoomUnsupported = indicator.source_mode !== 'standalone' && indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId != null
                         return <td className="spmAnnualCell" key={name}>
                           {keys.length === 0 ? <span className="spmLocked">Otomatis</span> : linkedRoomUnsupported ? <span className="spmLocked" title="Denominator per unit belum tersedia">Sumber per unit belum dipetakan</span> : keys.map(key => <input key={key} aria-label={indicator.code + ' ' + name + ' ' + key} type="number" min="0" step="any" placeholder={key==='numerator'?'N':key==='denominator'?'D':key==='score_mean'?'Skor':key==='respondents'?'n':'Nilai'} disabled={!canChange || roomMissing} value={annualDrafts[indicator.id + ':' + monthNumber + ':' + key] ?? ''} onChange={event => setAnnualDrafts(current => ({...current,[indicator.id + ':' + monthNumber + ':' + key]:event.target.value}))} />)}
                           {(() => { const result = calculations.monthly.get(indicator.id + ':' + monthNumber); return result ? <small className="spmAnnualResult">{formatResult(indicator,result.value)} · {statusText(result.status)}</small> : null })()}
