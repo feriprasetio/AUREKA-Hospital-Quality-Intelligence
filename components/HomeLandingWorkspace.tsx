@@ -17,16 +17,17 @@ type Props = {
   manager: boolean
   scopeToRoom?: boolean
   onNavigate: NavigateFn
+  availableModules: string[]
   onReminderRead?: () => void
   onAskNara?: (prompt: string, pageContext: string) => void
 }
 
 export default function HomeLandingWorkspace({
-  supabase,userName,userId,rooms,isAdmin,roomId,roomName,manager,scopeToRoom=false,onNavigate,onReminderRead,onAskNara
+  supabase,userName,userId,rooms,isAdmin,roomId,roomName,manager,scopeToRoom=false,onNavigate,availableModules,onReminderRead,onAskNara
 }:Props) {
   // Pengingat aktif hanya ditampilkan sampai pengguna menandainya sudah dibaca.
   // Status baca disimpan per akun di database; pesan asli pada Chat Komite PMKP tetap utuh.
-  const [reminders,setReminders] = useState<{id:string;at:string;body:string;sent?:number}[]>([])
+  const [refreshKey,setRefreshKey]=useState(0)\n  const [reminders,setReminders] = useState<{id:string;at:string;body:string;sent?:number}[]>([])
   // Admin: pengingat yang sudah dikirim bisa disembunyikan dari Beranda (disimpan per akun di perangkat ini).
   const hiddenKey='aureka-reminder-hidden:'+userId
   const [hiddenReminder,setHiddenReminder]=useState<string|null>(null)
@@ -96,7 +97,7 @@ export default function HomeLandingWorkspace({
       if(!cancelled)setReminders([])
     })
     return()=>{cancelled=true}
-  },[supabase,roomId,manager,userId])
+  },[supabase,roomId,manager,userId,refreshKey])
 
   const markReminderRead=async(reminderId:string)=>{
     if(!userId||reminderSaving===reminderId)return
@@ -156,7 +157,7 @@ export default function HomeLandingWorkspace({
       setActivity({lastAt,pending,partial:jobs.some(result=>Boolean(result.error))})
     })().catch(()=>{if(!cancelled)setActivity({lastAt:null,pending:[],partial:true})})
     return()=>{cancelled=true}
-  },[supabase,userId,scopeToRoom,roomId,roomName])
+  },[supabase,userId,scopeToRoom,roomId,roomName,refreshKey])
 
   const firstName = userName.trim().split(/\s+/)[0] || 'Pengguna'
   const greeting = (() => {
@@ -260,14 +261,14 @@ export default function HomeLandingWorkspace({
 
     <section className="ccSection" aria-label="Ringkasan operasional">
       <div className="ccSectionHead"><div><h2>Operational overview</h2><p>Indikator ringkas berdasarkan data yang tersedia dan cakupan akses akun.</p></div><span className="ccSectionMeta">Data tidak tersedia tidak dihitung sebagai nol</span></div>
-      <div className="ccPanel"><HomeKpis supabase={supabase} rooms={rooms} isAdmin={isAdmin||manager} roomId={roomId} showSafety={isAdmin||manager} onNavigate={onNavigate}/></div>
+      <div className="ccPanel"><HomeKpis key={refreshKey} supabase={supabase} rooms={rooms} isAdmin={isAdmin||manager} roomId={roomId} showSafety={isAdmin||manager} onNavigate={onNavigate}/></div>
     </section>
 
     <div className="ccMainGrid">
       <section className="ccSection" aria-label="Akses cepat modul">
         <div className="ccSectionHead"><div><h2>Operational workspaces</h2><p>Akses langsung ke fungsi inti tanpa melewati halaman dashboard perantara.</p></div></div>
         <div className="ccModuleGrid">
-          {actions.filter(action=>action.id!=='nara'||Boolean(onAskNara)).map(action=><button type="button" key={action.id} className="ccModule" onClick={action.run}>
+          {actions.filter(action=>action.id==='nara'?Boolean(onAskNara):availableModules.includes(action.id)).map(action=><button type="button" key={action.id} className="ccModule" onClick={action.run}>
             <span className="ccModuleTop"><span className="ccModuleCode">WORKSPACE / {action.id.toUpperCase()}</span><span className="ccModuleArrow" aria-hidden="true">↗</span></span>
             <strong>{action.title}</strong><small>{action.description}</small>
           </button>)}
