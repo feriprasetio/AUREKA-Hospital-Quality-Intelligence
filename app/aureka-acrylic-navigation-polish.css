@@ -1066,14 +1066,20 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
     grid-area: profile !important;
+    display: inline-flex !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
     margin-left: 0 !important;
     padding-inline: 4px !important;
   }
+  /* A legacy <=1180px rule hides the profile text; explicitly restore it here. */
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText {
+    display: grid !important;
     width: 100% !important;
+    min-width: 0 !important;
     max-width: 100% !important;
+    overflow: visible !important;
   }
 }
 
