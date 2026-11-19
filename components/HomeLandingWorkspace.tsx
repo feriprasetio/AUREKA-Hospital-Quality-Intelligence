@@ -253,7 +253,7 @@ export default function HomeLandingWorkspace({
       <div className="ccReminderBody"><strong>Pengingat Komite PMKP · {r.sent?r.sent+' unit':reminders.length+' belum dibaca'} · {when}</strong><span>{r.body||'Buka percakapan untuk membaca pengingat.'}</span></div>
       <div className="ccReminderActions">
         <button type="button" className="ccMiniBtn" onClick={()=>window.dispatchEvent(new CustomEvent('aureka-open-support',{detail:{id:r.id}}))}>{r.sent?'Buka pesan':'Balas'}</button>
-        {!r.sent&&<button type="button" className="ccMiniBtn" disabled={reminderSaving===r.id} onClick={()=>void markReminderRead(r.id)}>{reminderSaving===r.id?'Menyimpan…':'Tandai dibaca'}</button>}
+        {!r.sent&&<button type="button" className="ccMiniBtn" disabled={reminderSaving===r.id} onClick={()=>void markReminderRead(r.id)}>{reminderSaving===r.id?'Menyimpan…':'Tandai sudah dibaca'}</button>}
         {r.sent&&<button type="button" className="ccMiniBtn" onClick={()=>hideReminder(r.id)}>Sembunyikan</button>}
       </div>
     </section>})()}
