@@ -122,7 +122,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const [indicators, setIndicators] = useState<Indicator[]>([])
   const [measurements, setMeasurements] = useState<Measurement[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
-  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(currentRoomId)
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(currentRoomId != null && [22,23,24,25,26,27].includes(Number(currentRoomId)) ? Number(currentRoomId) : null)
   const [annualDrafts, setAnnualDrafts] = useState<Record<string, string>>({})
   const [sourceSummary, setSourceSummary] = useState<SpmSourceSummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -141,6 +141,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const canImport = role === 'ADMIN' || role === 'PMKP'
   const canEdit = (indicator: Indicator) => {
     const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id
+    if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null) return false
     return isManager || (role === 'PIC' && roomId != null && rooms.some(room => Number(room.id) === Number(roomId)))
   }
 
@@ -254,20 +255,38 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const inpatientRoomIds = [22,23,24,25,26,27]
   const activeRoomId = selectedRoomId
   const measurementKey = (indicator: Indicator, monthNumber: number) => indicator.id + ':' + monthNumber + ':' + ((indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id) ?? 'all')
+  const measurementFor = (indicator: Indicator, monthNumber: number): Measurement | undefined => {
+    if (indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId == null) {
+      const unitRows = inpatientRoomIds.map(roomId => measurementMap.get(indicator.id + ':' + monthNumber + ':' + roomId)).filter(Boolean) as Measurement[]
+      if (!unitRows.length) return measurementMap.get(indicator.id + ':' + monthNumber + ':all')
+      const input: Record<string, number> = {}
+      const keys = inputKeys(indicator)
+      for (const key of keys) {
+        if (key === 'score_mean') {
+          const respondents = unitRows.reduce((sum,row) => sum + Number(row.input_json.respondents ?? 0), 0)
+          input.score_mean = respondents > 0 ? unitRows.reduce((sum,row) => sum + Number(row.input_json.score_mean ?? 0) * Number(row.input_json.respondents ?? 0), 0) / respondents : 0
+          input.respondents = respondents
+        } else input[key] = unitRows.reduce((sum,row) => sum + Number(row.input_json[key] ?? 0), 0)
+      }
+      return { ...unitRows[0], input_json: input, room_id: null }
+    }
+    return measurementMap.get(measurementKey(indicator, monthNumber))
+  }
 
   useEffect(() => {
     if (selectedRoomId != null && inpatientRoomIds.includes(Number(selectedRoomId)) && rooms.some(room => Number(room.id) === Number(selectedRoomId))) return
+    if (selectedRoomId == null && isManager) return
     const preferred = currentRoomId != null && inpatientRoomIds.includes(Number(currentRoomId)) && rooms.some(room => Number(room.id) === Number(currentRoomId))
       ? Number(currentRoomId)
       : rooms.find(room => inpatientRoomIds.includes(Number(room.id)))?.id ?? null
     setSelectedRoomId(preferred == null ? null : Number(preferred))
-  }, [rooms, selectedRoomId, currentRoomId])
+  }, [rooms, selectedRoomId, currentRoomId, isManager])
 
   useEffect(() => {
     const next: Record<string, string> = {}
     for (const indicator of indicators) {
       for (let m = 1; m <= 12; m++) {
-        const saved = measurementMap.get(measurementKey(indicator, m))
+        const saved = measurementFor(indicator, m)
         for (const key of inputKeys(indicator)) next[indicator.id + ':' + m + ':' + key] = saved?.input_json?.[key] == null ? '' : String(saved.input_json[key])
       }
     }
@@ -280,7 +299,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     for (const indicator of indicators) {
       const months = Array.from({ length: 12 }, (_, index) => {
         const m = index + 1
-        const saved = measurementMap.get(measurementKey(indicator, m))
+        const saved = measurementFor(indicator, m)
         const input = saved?.input_json ?? {}
         const monthResult = calculateSpmMonthly(indicator, input, sourceSummary, m)
         monthly.set(indicator.id + ':' + m, monthResult)
@@ -554,8 +573,9 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
           </select>
         </label>
         {groupFilter === 'Instalasi Rawat Inap' && <label>Unit rawat inap
-          <select value={selectedRoomId ?? ''} onChange={event => setSelectedRoomId(event.target.value ? Number(event.target.value) : null)}>
-            <option value="">Pilih unit rawat inap</option>
+          <select value={selectedRoomId ?? 'all'} onChange={event => setSelectedRoomId(event.target.value === 'all' ? null : Number(event.target.value))}>
+            {(isManager || rooms.filter(room => inpatientRoomIds.includes(Number(room.id))).length > 1) && <option value="all">Semua unit — rekap instalasi</option>}
+            <option value="" disabled>Pilih unit rawat inap</option>
             {rooms.filter(room => inpatientRoomIds.includes(Number(room.id))).map(room => <option key={room.id} value={room.id}>{room.name}</option>)}
           </select>
         </label>}
@@ -611,7 +631,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                     {tab==='entry' ? <>
                       {MONTHS.map((name,index) => {
                         const monthNumber = index + 1
-                        const rowMeasurement = measurementMap.get(measurementKey(indicator, monthNumber))
+                        const rowMeasurement = measurementFor(indicator, monthNumber)
                         const keys = inputKeys(indicator)
                         const roomMissing = indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId == null
                         const linkedRoomUnsupported = indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap'
