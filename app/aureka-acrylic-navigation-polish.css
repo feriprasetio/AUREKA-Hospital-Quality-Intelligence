@@ -1230,3 +1230,11 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceModuleHeaderTools {
   flex-wrap: wrap !important;
 }
+
+/* Dark-mode contrast for the text-only account identity in the global header. */
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText b {
+  color: #e6eef8 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText small {
+  color: #b8c5d4 !important;
+}
