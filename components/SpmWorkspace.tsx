@@ -256,8 +256,8 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const measurementKey = (indicator: Indicator, monthNumber: number) => indicator.id + ':' + monthNumber + ':' + ((indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id) ?? 'all')
 
   useEffect(() => {
-    if (selectedRoomId != null && rooms.some(room => Number(room.id) === Number(selectedRoomId))) return
-    const preferred = currentRoomId != null && rooms.some(room => Number(room.id) === Number(currentRoomId))
+    if (selectedRoomId != null && inpatientRoomIds.includes(Number(selectedRoomId)) && rooms.some(room => Number(room.id) === Number(selectedRoomId))) return
+    const preferred = currentRoomId != null && inpatientRoomIds.includes(Number(currentRoomId)) && rooms.some(room => Number(room.id) === Number(currentRoomId))
       ? Number(currentRoomId)
       : rooms.find(room => inpatientRoomIds.includes(Number(room.id)))?.id ?? null
     setSelectedRoomId(preferred == null ? null : Number(preferred))
@@ -362,6 +362,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         input_json: next,
         status: 'submitted',
         notes: editNotes.trim() || null,
+        entered_by: (await aurekaSupabase.auth.getUser()).data.user?.id ?? null,
         updated_by: (await aurekaSupabase.auth.getUser()).data.user?.id ?? null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'indicator_id,profile_year,period_month,room_id' })
@@ -616,6 +617,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                         const linkedRoomUnsupported = indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap'
                         return <td className="spmAnnualCell" key={name}>
                           {keys.length === 0 ? <span className="spmLocked">Otomatis</span> : linkedRoomUnsupported ? <span className="spmLocked" title="Denominator per unit belum tersedia">Sumber per unit belum dipetakan</span> : keys.map(key => <input key={key} aria-label={indicator.code + ' ' + name + ' ' + key} type="number" min="0" step="any" placeholder={key==='numerator'?'N':key==='denominator'?'D':key==='score_mean'?'Skor':key==='respondents'?'n':'Nilai'} disabled={!canChange || roomMissing} value={annualDrafts[indicator.id + ':' + monthNumber + ':' + key] ?? ''} onChange={event => setAnnualDrafts(current => ({...current,[indicator.id + ':' + monthNumber + ':' + key]:event.target.value}))} />)}
+                          {(() => { const result = calculations.monthly.get(indicator.id + ':' + monthNumber); return result ? <small className="spmAnnualResult">{formatResult(indicator,result.value)} · {statusText(result.status)}</small> : null })()}
                           {rowMeasurement?.status === 'validated' && <small className="spmValidatedMark">Tervalidasi</small>}
                         </td>
                       })}
