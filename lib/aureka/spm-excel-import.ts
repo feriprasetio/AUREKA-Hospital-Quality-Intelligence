@@ -21,6 +21,7 @@ export type SpmPreparedMeasurement = {
   title: string
   group_name: string
   room_id: number | null
+  room_name: string | null
 }
 
 export type SpmImportRoom = { id: number; name: string; code?: string }
@@ -277,6 +278,7 @@ export function prepareSpmExcelImport(
           title: profile.title,
           group_name: profile.group_name,
           room_id: header.room_id,
+          room_name: header.room_id == null ? null : (rooms.find(item => Number(item.id) === Number(header.room_id))?.name ?? null),
         })
       }
     }
