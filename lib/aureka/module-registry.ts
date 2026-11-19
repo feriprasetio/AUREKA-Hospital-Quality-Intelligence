@@ -1,3 +1,5 @@
+export type SecretariatSection = 'invitations' | 'materials' | 'attendance' | 'minutes' | 'documentation'
+
 export type AurekaRole =
   | 'ADMIN' | 'PMKP' | 'MANAGEMENT' | 'KABID' | 'DIREKTUR'
   | 'DEWAN_PENGAWAS' | 'PIC' | 'VALIDATOR'

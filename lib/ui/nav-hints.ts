@@ -46,4 +46,10 @@ export const NAV_HINTS: Record<string, string> = {
   'Konfigurasi Sistem': 'Pengaturan teknis AUREKA, khusus admin.',
   'Audit Log': 'Catatan siapa melakukan apa dan kapan, termasuk error tampilan.',
   'Data Saya untuk PMKP': 'Data yang Anda kirimkan ke Komite PMKP.',
+  'Sekretariat': 'Kelola administrasi rapat dalam satu alur yang terhubung melalui satu Meeting ID.',
+  'Undangan': 'Siapkan undangan rapat, waktu, tempat, agenda, dan daftar peserta.',
+  'Materi': 'Kelola bahan rapat yang terhubung dengan kegiatan dan Meeting ID yang sama.',
+  'Absensi': 'Catat kehadiran peserta rapat berdasarkan daftar undangan.',
+  'Notulensi': 'Dokumentasikan pembahasan, keputusan, rekomendasi, dan tindak lanjut rapat.',
+  'Dokumentasi Foto': 'Hubungkan dokumentasi foto dengan kegiatan rapat dan arsip kelembagaan.',
 }

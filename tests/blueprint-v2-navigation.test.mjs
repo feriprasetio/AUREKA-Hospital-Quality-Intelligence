@@ -17,7 +17,7 @@ test('Beranda and Analitik & Infografis have separate canonical workspaces', () 
 
 test('primary navigation labels follow the approved domain terminology', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  for (const label of ["label:'Beranda'", "label:'Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
+  for (const label of ["label:'Beranda'", "label:'Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
 })
@@ -151,4 +151,16 @@ test('indicator proposal foreign-key columns have covering indexes', () => {
   assert.match(migration, /indicator_proposals_reviewed_by_idx/)
   assert.match(migration, /indicator_proposals_activated_by_idx/)
   assert.match(migration, /indicator_proposals_activated_profile_id_idx/)
+})
+
+
+test('SPM belongs to Performance Management and keeps its canonical legacy quality route', () => {
+  const app = read('components/HomeClient.tsx')
+  const qualityDomain = app.slice(app.indexOf("{id:'quality_risk'"), app.indexOf("{id:'performance_management'"))
+  const performanceDomain = app.slice(app.indexOf("{id:'performance_management'"), app.indexOf("{id:'governance_organization'"))
+  assert.ok(!qualityDomain.includes("id:'spm'"))
+  assert.ok(performanceDomain.includes("id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'"))
+  assert.ok(app.includes("if(active==='quality'&&spmOpen)return 'performance_management'"))
+  assert.ok(app.includes("spmOpen?'#indikator-mutu/spm'"))
+  assert.ok(!app.includes('sidebarSpmQuickLink'))
 })
