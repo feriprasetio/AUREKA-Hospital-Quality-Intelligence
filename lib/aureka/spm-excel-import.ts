@@ -26,6 +26,17 @@ export type SpmPreparedMeasurement = {
 
 export type SpmImportRoom = { id: number; name: string; code?: string }
 
+// Resolve workbook subunit labels to canonical AUREKA room identities. The existing
+// master_rooms records remain the source of identity and access; no duplicate units/accounts.
+const INPATIENT_SUBUNIT_ROOM_CODES: Record<string, string> = {
+  [normalizeSpmExcelText('Rawat Inap Anak')]: 'RANAK',
+  [normalizeSpmExcelText('Rawat Inap Bedah')]: 'RBEDAH',
+  [normalizeSpmExcelText('Rawat Inap Isolasi')]: 'RISOLASI',
+  [normalizeSpmExcelText('Rawat Inap Penyakit Dalam')]: 'RPENYDALAM',
+  [normalizeSpmExcelText('Rawat Inap Saraf')]: 'RSARAF',
+  [normalizeSpmExcelText('Rawat Inap VIP')]: 'RVIP',
+};
+
 export type SpmImportPreview = {
   rows: SpmPreparedMeasurement[]
   warnings: string[]
@@ -130,7 +141,11 @@ export function prepareSpmExcelImport(
         const group = start === 0 ? textValue(grid[rowIndex - 1]?.[start]) : textValue(grid[rowIndex - 1]?.[0])
         const subunit = start === 0 ? '' : textValue(grid[rowIndex - 1]?.[start])
         const isDistinctSubunit = !!subunit && normalizeSpmExcelText(subunit) !== normalizeSpmExcelText(group)
-        const room = isDistinctSubunit ? rooms.find(item => normalizeSpmExcelText(item.name) === normalizeSpmExcelText(subunit)) : undefined
+        const expectedRoomCode = INPATIENT_SUBUNIT_ROOM_CODES[normalizeSpmExcelText(subunit)]
+        const room = isDistinctSubunit
+          ? (expectedRoomCode ? rooms.find(item => String(item.code ?? '').toUpperCase() === expectedRoomCode) : undefined)
+            ?? rooms.find(item => normalizeSpmExcelText(item.name) === normalizeSpmExcelText(subunit))
+          : undefined
         headers.push({ row: rowIndex, start, end: grid.length, group, subunit, room_id: room ? Number(room.id) : null })
       }
     }

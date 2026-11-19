@@ -116,7 +116,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [importOpen, setImportOpen] = useState(false)
   const [openImportAfterYearLoad, setOpenImportAfterYearLoad] = useState(false)
-  const [tab, setTab] = useState<Tab>('overview')
+  const [tab, setTab] = useState<Tab>('entry')
   const [groupFilter, setGroupFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [indicators, setIndicators] = useState<Indicator[]>([])

@@ -196,7 +196,8 @@ test('SPM XLSX parser maps all six inpatient workbook subunits to existing AUREK
     ['Rawat Inap VIP',27,'RVIP'],
   ]
   grid[0][0] = 'Instalasi Rawat Inap'
-  const rooms = units.map(([name,id,code]) => ({name,id,code}))
+  // Deliberately vary the master display names so this test proves canonical room-code matching.
+  const rooms = units.map(([name,id,code]) => ({name:'Master ' + name,id,code}))
   const profiles = [{
     id:'profile-016',profile_year:2026,code:'SPM-016',group_name:'Instalasi Rawat Inap',
     title:'Pemberi pelayanan rawat inap',
@@ -214,6 +215,6 @@ test('SPM XLSX parser maps all six inpatient workbook subunits to existing AUREK
   const preview = prepareSpmExcelImport(grid,profiles,2026,'SPM-2026.xlsx',rooms)
   assert.equal(preview.rows.length,6)
   assert.deepEqual(preview.rows.map(row => row.room_id),[22,23,24,25,26,27])
-  assert.deepEqual(preview.rows.map(row => row.room_name),units.map(([name]) => name))
+  assert.deepEqual(preview.rows.map(row => row.room_name),rooms.map(room => room.name))
   assert.deepEqual(preview.rows.map(row => row.input_json.numerator),[10,11,12,13,14,15])
 })
