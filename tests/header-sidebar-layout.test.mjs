@@ -81,3 +81,12 @@ test('final workspace header has full-name wrapping and explicit tablet/mobile g
   assert.match(finalShell, /workspaceFullscreenButton/)
   assert.match(finalShell, /Workspace content containment/)
 })
+
+test('narrow desktop breakpoint explicitly restores account text after legacy compact-header rules', () => {
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  const finalShell = css.slice(css.indexOf('Final workspace shell correction'))
+  const tablet = finalShell.slice(finalShell.indexOf('@media (min-width: 861px) and (max-width: 1180px)'), finalShell.indexOf('/* Mobile:'))
+  assert.match(tablet, /\.workspaceHeaderBar > \.workspaceHeaderProfile[\s\S]*flex: 0 1 auto !important/)
+  assert.match(tablet, /\.workspaceHeaderProfileText[\s\S]*display: grid !important/)
+  assert.match(tablet, /\.workspaceHeaderProfileText[\s\S]*width: 170px !important/)
+})
