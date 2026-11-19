@@ -125,6 +125,7 @@ test('ICU BHP/Linen header matching accepts combined variants but rejects split 
   assert.match(importer, /findIcuBhpLinenHeaderColumns\(columns\)/)
   assert.match(importer, /findIcuBhpLinenHeaderCandidates\(bestColumns\)/)
   assert.match(importer, /combinedBhpLinenColumns\.length === 1/)
+  assert.ok(!importer.includes("'Kekosongan Linen'"), 'Linen-only headers must not map to combined BHP/Linen indicator')
 })
 
 test('BHP/Linen resolver uses a single combined source column and flags multiple candidates', () => {
@@ -142,6 +143,10 @@ test('BHP/Linen resolver uses a single combined source column and flags multiple
     ['ketersediaan bhp dan linen', [21]],
   ])
   assert.deepEqual(findIcuBhpLinenHeaderColumns(ambiguous), [18, 21])
+
+  const expanded = new Map([['kekosongan bahan habis pakai dan linen', [22]]])
+  assert.deepEqual(findIcuBhpLinenHeaderCandidates(expanded), ['kekosongan bahan habis pakai dan linen'])
+  assert.deepEqual(findIcuBhpLinenHeaderColumns(expanded), [22])
 
   const splitOnly = new Map([
     ['kekosongan bhp', [18]],

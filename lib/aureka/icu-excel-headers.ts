@@ -14,7 +14,8 @@ export function findIcuBhpLinenHeaderCandidates(
   return Array.from(columns.keys()).filter((header) => {
     const normalized = normalizeExactHeader(header)
     const tokens = normalized.split(/[^a-z0-9]+/).filter(Boolean)
-    return tokens.includes('bhp') && tokens.includes('linen')
+    const hasBhp = tokens.includes('bhp') || normalized.includes('bahan habis pakai')
+    return hasBhp && tokens.includes('linen')
   })
 }
 
