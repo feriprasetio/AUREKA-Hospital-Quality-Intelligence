@@ -1139,6 +1139,8 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
     grid-area: menu !important;
+    display: grid !important;
+    visibility: visible !important;
     width: 38px !important;
     min-width: 38px !important;
     height: 40px !important;
@@ -1186,6 +1188,15 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
     height: 40px !important;
     min-height: 40px !important;
     flex-basis: 40px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContent {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .aurToast {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .mobileBottomNav {
+    display: none !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspacePageHint,
