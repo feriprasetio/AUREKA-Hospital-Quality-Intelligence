@@ -155,8 +155,7 @@
   top: calc(100% + 7px) !important;
   right: 0 !important;
   z-index: 100 !important;
-  display: grid !important;
-  grid-template-columns: minmax(160px, 1fr) !important;
+grid-template-columns: minmax(160px, 1fr) !important;
   gap: 3px !important;
   width: max-content !important;
   min-width: 190px !important;
@@ -384,8 +383,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   top: calc(100% + 7px) !important;
   right: 0 !important;
   z-index: 100 !important;
-  display: grid !important;
-  gap: 3px !important;
+gap: 3px !important;
   min-width: 190px !important;
   max-width: min(320px, calc(100vw - 28px)) !important;
   max-height: min(60vh, 420px) !important;
@@ -517,4 +515,14 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   color: #ffffff !important;
   font-size: 12px !important;
   font-weight: 700 !important;
+}
+
+
+/* A details popup must not render its contents while the disclosure is closed.
+   The open-state selector is explicit because the visual menu uses !important. */
+.workspaceRoot details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu {
+  display: none !important;
+}
+.workspaceRoot details.workspaceNavigationOverflow[open] > .workspaceNavigationOverflowMenu {
+  display: grid !important;
 }
