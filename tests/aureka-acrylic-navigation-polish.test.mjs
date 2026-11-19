@@ -23,6 +23,11 @@ test('authoritative Arctic layout layer resolves shell and navigation geometry a
   assert.ok(css.includes('overflow-wrap: anywhere !important'))
   assert.ok(css.includes('> aside.sidebar.mobileOpen'))
   assert.ok(css.includes('> .workspaceContent'))
+  assert.ok(css.includes('.settingsWorkspace .stLayout'))
+  assert.ok(css.includes('grid-template-columns: minmax(210px, 240px) minmax(0, 1fr) !important'))
+  assert.ok(css.includes('.settingsWorkspace .stNavItem.on'))
+  assert.ok(css.includes('@media (max-width: 900px)'))
+  assert.ok(css.includes('overflow-x: auto !important'))
 })
 
 test('final Arktik navigation layer removes green sidebar states and the opaque logo tile', () => {
