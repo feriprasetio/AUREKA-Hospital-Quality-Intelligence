@@ -405,13 +405,13 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
 }
 
 /* Tablet: use two deliberate header rows instead of compressing controls. */
-@media (min-width: 721px) and (max-width: 1100px) {
+@media (min-width: 721px) and (max-width: 1180px) {
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
-    grid-template-columns: 210px minmax(0, 1fr) !important;
+    grid-template-columns: 238px minmax(0, 1fr) !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
-    width: 210px !important;
-    max-width: 210px !important;
+    width: 238px !important;
+    max-width: 238px !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
@@ -442,6 +442,16 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     max-width: 100% !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSearchToggle { display: none !important; }
+}
+
+@media (min-width: 721px) and (max-width: 860px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+    width: 210px !important;
+    max-width: 210px !important;
+  }
 }
 
 /* Narrow phones and tablets: preserve the two independent tab groups with horizontal scroll. */
