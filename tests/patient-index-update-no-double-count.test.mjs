@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
 test('Patient Index increments episode count on INSERT but never on UPDATE', () => {
-  const migration = read('supabase/migrations/20261119110000_patient_index_update_no_double_count.sql')
+  const migration = read('supabase/migrations/20261119105824_patient_index_update_no_double_count.sql')
   assert.match(migration, /if tg_op = 'INSERT' then[\s\S]*patient_index_touch/)
   assert.match(migration, /elsif tg_op = 'UPDATE' then[\s\S]*patient_index_update_metadata/)
   assert.match(migration, /total_episode = p\.total_episode/)
@@ -13,7 +13,7 @@ test('Patient Index increments episode count on INSERT but never on UPDATE', () 
 })
 
 test('Patient Index trigger covers metadata transitions and is not callable by API roles', () => {
-  const migration = read('supabase/migrations/20261119110000_patient_index_update_no_double_count.sql')
+  const migration = read('supabase/migrations/20261119105824_patient_index_update_no_double_count.sql')
   for (const field of ['core_data', 'room_id', 'record_date', 'measurement_grain', 'archived_at', 'status']) {
     assert.ok(migration.includes(field), 'Missing trigger coverage: ' + field)
   }
@@ -24,7 +24,7 @@ test('Patient Index trigger covers metadata transitions and is not callable by A
 })
 
 test('Patient Index metadata refresh preserves the MPI and never rebuilds or deletes historical rows', () => {
-  const migration = read('supabase/migrations/20261119110000_patient_index_update_no_double_count.sql')
+  const migration = read('supabase/migrations/20261119105824_patient_index_update_no_double_count.sql')
   assert.match(migration, /first_seen[\s\S]*least\(p\.first_seen, excluded\.first_seen\)/)
   assert.match(migration, /last_seen = greatest/)
   assert.match(migration, /room_ids =/)
