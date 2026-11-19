@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
+import SpmExcelImportDialog from '@/components/SpmExcelImportDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import {
   aggregateSpmMonths,
@@ -107,8 +108,12 @@ function inputKeys(indicator: Indicator) {
 }
 
 export default function SpmWorkspace({ role, currentRoomId }: { role: string | null; currentRoomId: number | null }) {
-  const [year, setYear] = useState(2026)
+  const initialYear = new Date().getFullYear()
+  const [year, setYear] = useState(initialYear)
+  const [yearDraft, setYearDraft] = useState(String(initialYear))
   const [month, setMonth] = useState(new Date().getMonth() + 1)
+  const [importOpen, setImportOpen] = useState(false)
+  const [openImportAfterYearLoad, setOpenImportAfterYearLoad] = useState(false)
   const [tab, setTab] = useState<Tab>('overview')
   const [groupFilter, setGroupFilter] = useState('all')
   const [search, setSearch] = useState('')
@@ -128,6 +133,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
 
   const isManager = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR'].includes(role || '')
   const canConfigure = role === 'ADMIN' || role === 'PMKP'
+  const canImport = role === 'ADMIN' || role === 'PMKP'
   const canEdit = (indicator: Indicator) =>
     isManager || (role === 'PIC' && indicator.owner_room_id != null && Number(indicator.owner_room_id) === Number(currentRoomId))
 
@@ -136,6 +142,9 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     setError('')
     setSourceWarning('')
     try {
+      const { error: profileSetupError } = await q().rpc('ensure_spm_profile', { p_year: year })
+      if (profileSetupError) throw profileSetupError
+
       const [profileResult, measurementResult, sourceResult] = await Promise.all([
         q().from('spm_indicators').select('*').eq('profile_year', year).eq('is_active', true).order('group_order').order('indicator_order'),
         q().from('spm_monthly_measurements').select('id,indicator_id,profile_year,period_month,input_json,status,notes,updated_at').eq('profile_year', year),
@@ -147,7 +156,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       setMeasurements((measurementResult.data ?? []) as Measurement[])
       if (sourceResult.error) {
         setSourceSummary(null)
-        setSourceWarning('Sumber Indikator Mutu belum tersedia. Pastikan migrasi SPM sudah diterapkan dan akses agregat diberikan.')
+        setSourceWarning('Sumber Indikator Mutu belum tersedia untuk tahun ini. Pengukuran SPM mandiri tetap dapat dikelola.')
       } else {
         setSourceSummary((sourceResult.data ?? null) as SpmSourceSummary | null)
       }
@@ -155,13 +164,61 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       const message = cause instanceof Error ? cause.message : String((cause as any)?.message || cause)
       setError(/spm_indicators|spm_monthly_measurements|schema cache|does not exist|could not find/i.test(message)
         ? 'Modul SPM belum tersedia pada basis data. Jalankan migrasi SPM AUREKA terlebih dahulu.'
-        : 'Data SPM belum dapat dimuat. Periksa koneksi, hak akses, dan migrasi basis data.')
+        : /1900|2200|tahun spm|profil spm/i.test(message)
+          ? 'Tahun SPM harus berupa bilangan bulat antara 1900 dan 2200.'
+          : 'Data SPM belum dapat dimuat. Periksa koneksi, hak akses, dan migrasi basis data.')
     } finally {
       setLoading(false)
     }
   }, [year])
 
   useEffect(() => { void load() }, [load])
+  useEffect(() => { setYearDraft(String(year)) }, [year])
+  useEffect(() => {
+    if (!openImportAfterYearLoad || loading) return
+    if (error) {
+      setOpenImportAfterYearLoad(false)
+      return
+    }
+    if (indicators.length > 0 && indicators.every(item => Number(item.profile_year) === year)) {
+      setOpenImportAfterYearLoad(false)
+      setImportOpen(true)
+    }
+  }, [openImportAfterYearLoad, loading, error, indicators, year])
+
+  const commitYear = () => {
+    const nextYear = Number(yearDraft.trim())
+    if (!Number.isInteger(nextYear) || nextYear < 1900 || nextYear > 2200) {
+      setYearDraft(String(year))
+      setNotice('Tahun SPM harus berupa bilangan bulat antara 1900 dan 2200.')
+      return false
+    }
+    setYearDraft(String(nextYear))
+    setNotice('')
+    if (nextYear !== year) setYear(nextYear)
+    return true
+  }
+
+  const openXlsxImport = () => {
+    const nextYear = Number(yearDraft.trim())
+    if (!Number.isInteger(nextYear) || nextYear < 1900 || nextYear > 2200) {
+      setYearDraft(String(year))
+      setNotice('Tahun SPM harus berupa bilangan bulat antara 1900 dan 2200.')
+      return
+    }
+    setYearDraft(String(nextYear))
+    if (nextYear !== year) {
+      setOpenImportAfterYearLoad(true)
+      setYear(nextYear)
+      return
+    }
+    if (loading || indicators.length === 0 || indicators.some(item => Number(item.profile_year) !== nextYear)) {
+      setOpenImportAfterYearLoad(true)
+      void load()
+      return
+    }
+    setImportOpen(true)
+  }
 
   const measurementMap = useMemo(() => {
     const map = new Map<string, Measurement>()
@@ -358,15 +415,25 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         </div>
         <div className="spmHeroFilters">
           <label>Tahun
-            <select value={year} onChange={event => setYear(Number(event.target.value))}>
-              {[2026].map(value => <option key={value} value={value}>{value}</option>)}
-            </select>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1900}
+              max={2200}
+              step={1}
+              value={yearDraft}
+              onChange={event => setYearDraft(event.target.value)}
+              onBlur={commitYear}
+              onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); commitYear() } }}
+              aria-label="Tahun pengukuran SPM"
+            />
           </label>
           <label>Bulan
             <select value={month} onChange={event => setMonth(Number(event.target.value))}>
               {MONTHS.map((name,index) => <option key={name} value={index+1}>{name}</option>)}
             </select>
           </label>
+          {canImport && <button type="button" className="spmPrimary spmUploadButton" onClick={openXlsxImport}>Unggah XLSX</button>}
         </div>
       </header>
 
@@ -557,6 +624,16 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
           </form>
         </div>
       )}
+
+      <SpmExcelImportDialog
+        open={importOpen && canImport}
+        year={year}
+        indicators={indicators}
+        measurements={measurements}
+        sourceSummary={sourceSummary}
+        onClose={() => setImportOpen(false)}
+        onImported={() => load(true)}
+      />
     </section>
   )
 }
