@@ -791,7 +791,7 @@ html[data-mode="gelap"] body:not(#_) .cpRoot .cpBuilderModalBody>.cpFooter{backg
 
 /* ═══ Audit antislop #001 (lihat DESIGN.md) ═══ */
 /* #6 Blur hanya di header & menu samping HP (dan latar popup); kartu/panel lain solid supaya hierarki jelas. */
-html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing) *:not(:is(.workspaceHeaderBar, .sidebar.mobileOpen, .mobileBottomNav, .a2-header, .akModalRoot, .aqEditorBack, .aqFoot, .cpBuilderOverlay, .overviewOverlay, .rmModalBackdrop, .stNav, .svLegend, .svNav, .svTop, .tanyaPanel, .workspaceScrim)) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing) *:not(:is(.workspaceHeaderBar, .sidebar.mobileOpen, .a2-header, .akModalRoot, .aqEditorBack, .aqFoot, .cpBuilderOverlay, .overviewOverlay, .rmModalBackdrop, .stNav, .svLegend, .svNav, .svTop, .tanyaPanel, .workspaceScrim)) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 /* #8 Label tidak lagi huruf kapital berjarak lebar. */
 html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) * { text-transform: none !important; }
 html body:not(#_) :is(.workspaceRoot, .authPage, .a2-landing, [aria-modal="true"]) :is([class*="Eyebrow"], [class*="eyebrow"], .navLabel, .workspaceUnitLabel, .sideProfileText, .themeModeLabel, .quickDockCaption, .workspaceSearchResultTag, th) { letter-spacing: normal !important; }
