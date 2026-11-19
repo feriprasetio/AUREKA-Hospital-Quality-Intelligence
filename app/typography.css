@@ -959,3 +959,426 @@ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlob
  html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { grid-column: 7 !important; grid-row: 1 !important; }
  html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch { grid-column: 1 / 7 !important; grid-row: 2 !important; }
 }
+
+
+/* ===== Standar Pelayanan Minimal: domain SPM yang berdiri sendiri ===== */
+html body:not(#_) .workspaceRoot .spmWorkspace {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  color: #0b1f33;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace :is(button,input,select,textarea) { font: inherit; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmHero {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: 20px;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid #d6e1ec;
+  border-radius: 16px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmEyebrow {
+  color: #42617e;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmHero h1 {
+  margin: 5px 0 7px;
+  color: #0b1f33;
+  font-size: clamp(23px,2.4vw,31px);
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmHero p {
+  max-width: 780px;
+  margin: 0;
+  color: #455f78;
+  font-size: 13px;
+  line-height: 1.55;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters label,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters label,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmField {
+  display: grid;
+  gap: 6px;
+  color: #294660;
+  font-size: 12px;
+  font-weight: 700;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace :is(input,select,textarea) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: #0b1f33;
+  background: #fff;
+  border: 1px solid #b9cada;
+  border-radius: 10px;
+  outline: none;
+  font-size: 13px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace textarea { min-height: 76px; resize: vertical; }
+html body:not(#_) .workspaceRoot .spmWorkspace :is(input,select,textarea):focus-visible {
+  border-color: #23689e;
+  box-shadow: 0 0 0 3px rgba(35,104,158,.16);
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 10px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis article {
+  display: grid;
+  gap: 5px;
+  min-height: 104px;
+  padding: 15px 16px;
+  background: #fff;
+  border: 1px solid #d6e1ec;
+  border-radius: 14px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis article > span {
+  color: #4a637a;
+  font-size: 12px;
+  font-weight: 700;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis strong {
+  color: #0b1f33;
+  font-size: 28px;
+  line-height: 1.1;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis small {
+  color: #536b80;
+  font-size: 11px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px;
+  background: #e9f1f8;
+  border: 1px solid #d2dfeb;
+  border-radius: 12px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button {
+  min-height: 42px;
+  padding: 9px 15px;
+  color: #294660;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button.active {
+  color: #0b467a;
+  background: #fff;
+  border-color: #c8d8e7;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters {
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #d6e1ec;
+  border-radius: 14px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters > label:first-child { min-width: 220px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmSearch { min-width: min(360px,100%); flex: 1; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmCount {
+  margin-left: auto;
+  padding: 9px 0;
+  color: #4b647c;
+  font-size: 12px;
+  font-weight: 700;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTablePanel,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmOverview {
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d6e1ec;
+  border-radius: 14px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 17px;
+  border-bottom: 1px solid #dce5ed;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead > div,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro > div {
+  display: grid;
+  gap: 4px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead strong,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro strong {
+  color: #0b1f33;
+  font-size: 15px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead span,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro span {
+  color: #536b80;
+  font-size: 12px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll { width: 100%; overflow: auto; overscroll-behavior: contain; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 12px 13px;
+  color: #415b73;
+  background: #f0f5f9;
+  border-bottom: 1px solid #d1deea;
+  text-align: left;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 750;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td {
+  padding: 12px 13px;
+  color: #203b54;
+  border-bottom: 1px solid #e3eaf0;
+  vertical-align: top;
+  font-size: 12px;
+  line-height: 1.45;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll tr:last-child td { border-bottom: 0; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td strong { display: block; color: #0b1f33; font-size: 13px; font-weight: 700; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td small {
+  display: block;
+  margin-top: 4px;
+  color: #60778c;
+  font-size: 11px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll code {
+  padding: 3px 6px;
+  color: #244c70;
+  background: #edf4fa;
+  border-radius: 6px;
+  font-size: 11px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDefinition { min-width: 280px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDefinition span { display: block; max-width: 430px; white-space: normal; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmValue { color: #0b1f33; font-weight: 750; white-space: nowrap; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmSource { color: #415d77; font-size: 11px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmLocked { color: #536b80; font-size: 11px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmAction,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmPrimary {
+  min-height: 42px;
+  padding: 9px 13px;
+  color: #fff;
+  background: #16507a;
+  border: 1px solid #16507a;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmAction:hover,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmPrimary:hover { background: #0f3f64; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmInfoTag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  color: #425b73;
+  background: #edf2f6;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.met { color: #15583b; background: #e9f5ee; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.not_met { color: #8b3d2d; background: #faeee9; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.invalid { color: #765216; background: #f7f1e3; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.no_data { color: #4e6275; background: #eef2f5; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupGrid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 9px;
+  padding: 14px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 13px;
+  color: #233e57;
+  background: #f8fbfd;
+  border: 1px solid #d9e4ed;
+  border-radius: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard > span:first-child { color: #34516b; font-size: 12px; font-weight: 700; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard strong { color: #0b1f33; font-size: 20px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard small { color: #587087; font-size: 11px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmMiniTrack { display: block; height: 5px; overflow: hidden; background: #dce6ee; border-radius: 99px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmMiniTrack i { display: block; height: 100%; background: #2f739f; border-radius: inherit; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmNotice {
+  padding: 11px 14px;
+  color: #2d4c68;
+  background: #eff5fa;
+  border: 1px solid #d1dfeb;
+  border-radius: 10px;
+  font-size: 12px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmNotice.warning { color: #725521; background: #fbf6e9; border-color: #e8d9b3; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmEmpty { padding: 24px; color: #5b7185; text-align: center; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(8,24,39,.58);
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog {
+  display: grid;
+  gap: 15px;
+  width: min(620px,100%);
+  max-height: min(88vh,900px);
+  overflow: auto;
+  padding: 21px;
+  color: #0b1f33;
+  background: #fff;
+  border: 1px solid #d0dce7;
+  border-radius: 16px;
+  box-shadow: 0 22px 65px rgba(4,20,35,.28);
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmConfigDialog { width: min(850px,100%); }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header { padding-bottom: 13px; border-bottom: 1px solid #dce5ed; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header > div { display: grid; gap: 4px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header span,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header small { color: #536b80; font-size: 11px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog h2 { margin: 2px 0; color: #0b1f33; font-size: 20px; line-height: 1.3; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header button {
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  color: #294660;
+  background: #edf2f6;
+  border: 0;
+  border-radius: 9px;
+  font-size: 22px;
+  cursor: pointer;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog footer {
+  justify-content: flex-end;
+  padding-top: 13px;
+  border-top: 1px solid #dce5ed;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmSecondary {
+  min-height: 42px;
+  padding: 9px 13px;
+  color: #294660;
+  background: #f4f7f9;
+  border: 1px solid #c9d7e3;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmConfigGrid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 11px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmHelp,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialogNotice {
+  margin: 0;
+  color: #526b80;
+  font-size: 12px;
+  line-height: 1.5;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmDialogNotice {
+  padding: 10px 12px;
+  color: #8b3d2d;
+  background: #faeee9;
+  border-radius: 8px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox,
+html body:not(#_) .workspaceRoot .spmWorkspace .spmLockedBox {
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  color: #294660;
+  background: #edf4f9;
+  border: 1px solid #d2e0eb;
+  border-radius: 10px;
+  font-size: 12px;
+}
+html body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox strong { color: #0b467a; font-size: 23px; }
+html body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox small { color: #516b81; line-height: 1.45; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace { color: #eef2fa; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(.spmHero,.spmKpis article,.spmFilters,.spmTablePanel,.spmOverview) {
+  background: #111d2b;
+  border-color: #2a3c50;
+}
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(.spmHero h1,.spmKpis strong,.spmTableHead strong,.spmOverviewIntro strong,.spmTableScroll td strong,.spmGroupCard strong,.spmDialog h2) { color: #eef2fa; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(.spmHero p,.spmKpis article > span,.spmKpis small,.spmTableHead span,.spmOverviewIntro span,.spmTableScroll td,.spmTableScroll td small,.spmSource,.spmLocked,.spmDialog header span,.spmDialog header small,.spmHelp) { color: #b0c0d0; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(input,select,textarea) { color: #eef2fa; background: #0b1522; border-color: #45596d; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll th { color: #b7c8d9; background: #172638; border-color: #34495e; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td { border-color: #263b50; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTabs { background: #0d1926; border-color: #2b3e53; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button { color: #c3d1de; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button.active { color: #b9dbff; background: #182a3d; border-color: #38536d; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard { color: #d3dfeb; background: #152538; border-color: #334a60; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard > span:first-child { color: #c0d0df; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmDialog { color: #eef2fa; background: #111d2b; border-color: #33475d; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header,
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmDialog footer { border-color: #2d4358; }
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox,
+html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmLockedBox { color: #c8d8e7; background: #162a3e; border-color: #38536d; }
+@media (max-width: 900px) {
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmHero { grid-template-columns: 1fr; align-items: stretch; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+  html body:not(#_) .workspaceRoot .spmWorkspace { gap: 11px; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmHero { padding: 17px; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis { gap: 7px; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis article { min-height: 94px; padding: 11px; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis strong { font-size: 23px; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupGrid { grid-template-columns: 1fr; padding: 10px; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters { align-items: stretch; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters > label { width: 100%; min-width: 0 !important; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmCount { width: 100%; margin: 0; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmConfigGrid { grid-template-columns: 1fr; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmOverlay { padding: 8px; }
+  html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog { max-height: 94vh; padding: 15px; border-radius: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body:not(#_) .workspaceRoot .spmWorkspace * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
