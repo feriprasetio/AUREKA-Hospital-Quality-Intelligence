@@ -117,5 +117,6 @@ test('SPM is available as a persistent direct sidebar shortcut', () => {
   assert.ok(home.includes('sidebarSpmQuickLink'))
   assert.ok(home.includes("selectDomainDestination('quality_risk',{moduleId:'quality',childId:'spm'})"))
   assert.ok(home.includes("if(active==='quality'&&spmOpen)return 'quality_risk'"))
-  assert.doesNotMatch(home, /id:'spm',label:'Standar Pelayanan Minimal',moduleId:'quality',childId:'spm'/)
+  const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
+  assert.match(qualityDomain, /id:'spm',label:'Standar Pelayanan Minimal \\(SPM\\)',moduleId:'quality',childId:'spm'/)
 })
