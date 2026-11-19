@@ -1571,3 +1571,96 @@ html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[da
   border-left-color: #789bb7 !important;
   color: #f1f5f9 !important;
 }
+
+
+/* AUREKA Arktik sidebar palette lock.
+   Override the original Material-3 green sidebar tokens at their point of use.
+   This is intentionally scoped to the navigation rail; semantic status colors
+   inside clinical and quality modules remain unchanged. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+  --accent: #315f83 !important;
+  --accent2: #244b6a !important;
+  --accent-rgb: 49,95,131 !important;
+  --accent-soft: #e8f0f6 !important;
+  --green: #315f83 !important;
+  --green2: #244b6a !important;
+  --sidebar-bg: rgba(242,248,252,.78) !important;
+  --sidebar-ink: #24445f !important;
+  --sidebar-muted: #5f788d !important;
+  --sidebar-active: rgba(255,255,255,.68) !important;
+  --sidebar-border: rgba(132,163,190,.25) !important;
+  color: #24445f !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sideBrand b {
+  color: #183b58 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sideBrand small,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .navLabel {
+  color: #7890a4 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainItem {
+  color: #49657d !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger:hover,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainItem:hover {
+  background: rgba(255,255,255,.46) !important;
+  border-color: rgba(169,193,213,.42) !important;
+  color: #244d6d !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger.navActive {
+  background: rgba(255,255,255,.72) !important;
+  border-color: rgba(166,190,210,.62) !important;
+  color: #183f60 !important;
+  box-shadow: 0 2px 8px rgba(36,70,98,.055), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarNavIcon,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainChevron {
+  color: #718ba1 !important;
+  stroke: currentColor !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger.navActive .sidebarNavIcon {
+  color: #416d8d !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainItem.active {
+  background: rgba(255,255,255,.58) !important;
+  border-color: rgba(166,190,210,.5) !important;
+  border-left-color: #789bb7 !important;
+  color: #214a69 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarFooter > .liquidButton button {
+  background: rgba(255,255,255,.66) !important;
+  background-image: none !important;
+  border: 1px solid rgba(160,185,205,.52) !important;
+  color: #42627c !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarFooter > .liquidButton button:hover {
+  background: rgba(255,255,255,.9) !important;
+  color: #214a69 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar :is(.profileAvatar,.workspaceLogo,.brandLogoWrap,.brandLogoFallback) {
+  background: rgba(224,236,246,.78) !important;
+  color: #315f83 !important;
+  border-color: rgba(160,185,205,.45) !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar :is(.profileText b,.profileText span,.profileChipHint) {
+  color: #49657d !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar :is(button,a,[role="button"]):focus-visible {
+  outline-color: rgba(49,95,131,.38) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+  --accent: #8eabc3 !important;
+  --accent2: #6f91ad !important;
+  --accent-rgb: 142,171,195 !important;
+  --sidebar-bg: rgba(17,30,44,.9) !important;
+  --sidebar-ink: #d9e4ee !important;
+  --sidebar-muted: #b5c7d7 !important;
+  --sidebar-active: rgba(255,255,255,.09) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarFooter > .liquidButton button {
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(170,193,212,.2) !important;
+  color: #c5d4e1 !important;
+}
