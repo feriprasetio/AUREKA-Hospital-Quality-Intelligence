@@ -108,3 +108,11 @@ test('721–860px tablet header restores profile text hidden by the legacy 1180p
   assert.match(tablet, /\.workspaceHeaderProfileText \{[\s\S]*display: grid !important/)
   assert.match(tablet, /grid-area: profile !important/)
 })
+
+
+test('text-only account identity maintains readable contrast in dark mode', () => {
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  const dark = css.slice(css.lastIndexOf('Dark-mode contrast for the text-only account identity'))
+  assert.match(dark, /data-mode="gelap"[\s\S]*workspaceHeaderProfileText b[\s\S]*color: #e6eef8 !important/)
+  assert.match(dark, /data-mode="gelap"[\s\S]*workspaceHeaderProfileText small[\s\S]*color: #b8c5d4 !important/)
+})
