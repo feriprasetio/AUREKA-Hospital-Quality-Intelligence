@@ -54,3 +54,30 @@ test('mobile drawer and bottom navigation share one breakpoint with no 721–760
   assert.match(mobileNav, /@media \(max-width: 720px\)/)
   assert.match(home, /matchMedia\('\(max-width: 720px\)'\)/)
 })
+
+
+test('workspace account identity has no generated initials and always renders the complete display name', () => {
+  const home = read('components/HomeClient.tsx')
+  const settings = read('components/GeneralSettings.tsx')
+  const headerStart = home.indexOf('<header className="workspaceHeaderBar">')
+  const headerEnd = home.indexOf('</header>', headerStart)
+  const header = home.slice(headerStart, headerEnd)
+  assert.doesNotMatch(home, /const initials=/)
+  assert.doesNotMatch(header, /workspaceHeaderAvatar|initials\(/)
+  assert.match(header, /workspaceHeaderProfileText"><b>\{profile\?\.full_name\|\|user\?\.email\|\|'Pengguna'\}<\/b>/)
+  assert.doesNotMatch(settings, /className="stAvatar(?: lg)?"/)
+  assert.doesNotMatch(settings, /slice\(0, 2\)\.map\(w => w\[0\]\)/)
+})
+
+test('final workspace header has full-name wrapping and explicit tablet/mobile grid layouts', () => {
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  const finalShell = css.slice(css.indexOf('Final workspace shell correction'))
+  assert.match(finalShell, /workspaceHeaderProfileText b,[\s\S]*white-space: normal !important/)
+  assert.match(finalShell, /text-overflow: clip !important/)
+  assert.match(finalShell, /@media \(min-width: 721px\) and \(max-width: 860px\)/)
+  assert.match(finalShell, /grid-template-areas:[\s\S]*"menu context nara inbox theme bell profile"/)
+  assert.match(finalShell, /@media \(max-width: 720px\)/)
+  assert.match(finalShell, /"profile profile nara inbox \."/)
+  assert.match(finalShell, /workspaceFullscreenButton/)
+  assert.match(finalShell, /Workspace content containment/)
+})
