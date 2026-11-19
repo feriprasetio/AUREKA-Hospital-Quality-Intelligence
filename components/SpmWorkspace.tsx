@@ -635,7 +635,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                         const monthNumber = index + 1
                         const rowMeasurement = measurementFor(indicator, monthNumber)
                         const keys = inputKeys(indicator)
-                        const roomMissing = indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId == null
+                        const roomMissing = indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId == null && indicator.source_mode !== 'quality_denominator_linked'
                         const linkedRoomUnsupported = indicator.source_mode !== 'standalone' && indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId != null
                         return <td className="spmAnnualCell" key={name}>
                           {keys.length === 0 ? <span className="spmLocked">Otomatis</span> : linkedRoomUnsupported ? <span className="spmLocked" title="Denominator per unit belum tersedia">Sumber per unit belum dipetakan</span> : keys.map(key => <input key={key} aria-label={indicator.code + ' ' + name + ' ' + key} type="number" min="0" step="any" placeholder={key==='numerator'?'N':key==='denominator'?'D':key==='score_mean'?'Skor':key==='respondents'?'n':'Nilai'} disabled={!canChange || roomMissing} value={annualDrafts[indicator.id + ':' + monthNumber + ':' + key] ?? ''} onChange={event => setAnnualDrafts(current => ({...current,[indicator.id + ':' + monthNumber + ':' + key]:event.target.value}))} />)}
