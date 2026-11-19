@@ -536,11 +536,11 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
               aria-label="Tahun pengukuran SPM"
             />
           </label>
-          <label>Bulan
+          {tab === 'overview' && <label>Bulan
             <select value={month} onChange={event => setMonth(Number(event.target.value))}>
               {MONTHS.map((name,index) => <option key={name} value={index+1}>{name}</option>)}
             </select>
-          </label>
+          </label>}
           {canImport && <button type="button" className="spmPrimary spmUploadButton" onClick={openXlsxImport}>Unggah XLSX</button>}
         </div>
       </header>
