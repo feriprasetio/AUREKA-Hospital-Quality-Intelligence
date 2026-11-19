@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import type { SpmSourceSummary } from '@/lib/aureka/spm-engine'
 import {
@@ -96,14 +97,7 @@ export default function SpmExcelImportDialog({
     onClose()
   }, [parsing, importing, reset, onClose])
 
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [open, close])
+  const importDialogRef = useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
 
   if (!open) return null
 
@@ -239,7 +233,7 @@ export default function SpmExcelImportDialog({
       role="presentation"
       onMouseDown={event => { if (event.target === event.currentTarget) close() }}
     >
-      <section className="spmDialog spmConfigDialog spmImportDialog" role="dialog" aria-modal="true" aria-labelledby="spm-import-title">
+      <section ref={importDialogRef} tabIndex={-1} className="spmDialog spmConfigDialog spmImportDialog" role="dialog" aria-modal="true" aria-labelledby="spm-import-title">
         <header>
           <div>
             <span>Impor data historis SPM · Tahun tujuan {year}</span>
