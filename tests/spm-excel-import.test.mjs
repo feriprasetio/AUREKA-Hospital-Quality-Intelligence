@@ -184,3 +184,36 @@ test('SPM XLSX parser preserves six inpatient unit blocks as separate room-scope
   assert.deepEqual(preview.rows.map(row => row.room_id),[22,22])
   assert.deepEqual(preview.rows[0].input_json,{numerator:22,denominator:30})
 })
+
+test('SPM XLSX parser maps all six inpatient workbook subunits to existing AUREKA room codes', () => {
+  const grid = Array.from({length:5}, () => blankRow(120))
+  const units = [
+    ['Rawat Inap Anak',22,'RANAK'],
+    ['Rawat Inap Bedah',23,'RBEDAH'],
+    ['Rawat Inap Isolasi',24,'RISOLASI'],
+    ['Rawat Inap Penyakit Dalam',25,'RPENYDALAM'],
+    ['Rawat Inap Saraf',26,'RSARAF'],
+    ['Rawat Inap VIP',27,'RVIP'],
+  ]
+  grid[0][0] = 'Instalasi Rawat Inap'
+  const rooms = units.map(([name,id,code]) => ({name,id,code}))
+  const profiles = [{
+    id:'profile-016',profile_year:2026,code:'SPM-016',group_name:'Instalasi Rawat Inap',
+    title:'Pemberi pelayanan rawat inap',
+    numerator_definition:'Jumlah tenaga dokter dan perawat sesuai ketentuan',
+    denominator_definition:'Jumlah seluruh tenaga yang bertugas',
+    source_mode:'standalone',calculation_config:{method:'ratio'},
+  }]
+  units.forEach(([name], index) => {
+    const start = 16 + index * 16
+    setHeader(grid,1,start,'Instalasi Rawat Inap')
+    grid[0][start] = name
+    setIndicator(grid,2,start,1,'Pemberi pelayanan rawat inap','Jumlah tenaga dokter dan perawat sesuai ketentuan',[10+index], 'Jumlah seluruh tenaga yang bertugas',[20+index])
+  })
+  setHeader(grid,1,0,'Instalasi Rawat Inap')
+  const preview = prepareSpmExcelImport(grid,profiles,2026,'SPM-2026.xlsx',rooms)
+  assert.equal(preview.rows.length,6)
+  assert.deepEqual(preview.rows.map(row => row.room_id),[22,23,24,25,26,27])
+  assert.deepEqual(preview.rows.map(row => row.room_name),units.map(([name]) => name))
+  assert.deepEqual(preview.rows.map(row => row.input_json.numerator),[10,11,12,13,14,15])
+})
