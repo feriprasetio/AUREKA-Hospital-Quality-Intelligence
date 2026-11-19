@@ -127,10 +127,14 @@ export default function UnifiedModuleNavigation({
         box.style.removeProperty('--pill-h')
         return
       }
-      box.style.setProperty('--pill-x', (active.offsetLeft - box.scrollLeft) + 'px')
-      box.style.setProperty('--pill-y', active.offsetTop + 'px')
-      box.style.setProperty('--pill-w', active.offsetWidth + 'px')
-      box.style.setProperty('--pill-h', active.offsetHeight + 'px')
+      const boxRect = box.getBoundingClientRect()
+      const activeRect = active.getBoundingClientRect()
+      const pillX = activeRect.left - boxRect.left + box.scrollLeft
+      const pillY = activeRect.top - boxRect.top + box.scrollTop
+      box.style.setProperty('--pill-x', `${pillX}px`)
+      box.style.setProperty('--pill-y', `${pillY}px`)
+      box.style.setProperty('--pill-w', `${activeRect.width}px`)
+      box.style.setProperty('--pill-h', `${activeRect.height}px`)
       if (!box.classList.contains('hasPill')) {
         box.classList.add('hasPill')
         requestAnimationFrame(() => { if (!disposed) box.classList.add('pillReady') })
@@ -181,10 +185,14 @@ export default function UnifiedModuleNavigation({
         box.style.removeProperty('--pill-h')
         return
       }
-      box.style.setProperty('--pill-x', (active.offsetLeft - box.scrollLeft) + 'px')
-      box.style.setProperty('--pill-y', active.offsetTop + 'px')
-      box.style.setProperty('--pill-w', active.offsetWidth + 'px')
-      box.style.setProperty('--pill-h', active.offsetHeight + 'px')
+      const boxRect = box.getBoundingClientRect()
+      const activeRect = active.getBoundingClientRect()
+      const pillX = activeRect.left - boxRect.left + box.scrollLeft
+      const pillY = activeRect.top - boxRect.top + box.scrollTop
+      box.style.setProperty('--pill-x', `${pillX}px`)
+      box.style.setProperty('--pill-y', `${pillY}px`)
+      box.style.setProperty('--pill-w', `${activeRect.width}px`)
+      box.style.setProperty('--pill-h', `${activeRect.height}px`)
       if (!box.classList.contains('hasPill')) {
         box.classList.add('hasPill')
         requestAnimationFrame(() => { if (!disposed) box.classList.add('pillReady') })

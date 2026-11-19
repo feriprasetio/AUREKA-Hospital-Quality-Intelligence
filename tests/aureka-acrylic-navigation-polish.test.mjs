@@ -8,7 +8,7 @@ const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf
 test('authoritative Arctic layout layer resolves shell and navigation geometry across breakpoints', () => {
   const bundle = read('app/aureka-global.css')
   const css = read('app/aureka-layout-integrity.css')
-  assert.ok(bundle.trimEnd().endsWith("@import './aureka-layout-integrity.css';"))
+  assert.ok(bundle.indexOf("@import './aureka-layout-integrity.css';") < bundle.lastIndexOf("@import './aureka-navigation-pill.css';"))
   assert.ok(css.includes('grid-template-columns: 264px minmax(0, 1fr) !important'))
   assert.ok(css.includes('grid-template-columns: 238px minmax(0, 1fr) !important'))
   assert.ok(css.includes('grid-template-columns: 210px minmax(0, 1fr) !important'))
@@ -55,12 +55,14 @@ test('hamburger has an explicit visible stroke and collapsed sidebar has a consi
 
 test('navigation rails and module tablists use fixed, flat compact geometry', () => {
   const css = read('app/aureka-acrylic-navigation-polish.css')
+  const pill = read('app/aureka-navigation-pill.css')
   assert.ok(css.includes('min-height: 42px !important'))
   assert.ok(css.includes('height: 34px !important'))
   assert.ok(css.includes('box-shadow: none !important'))
   assert.ok(css.includes('backdrop-filter: none !important'))
-  assert.ok(css.includes('workspaceNavigationSubItems.hasPill::before'))
-  assert.ok(css.includes('background: #dcebf8 !important'))
+  assert.ok(pill.includes('workspaceNavigationSubItems.hasPill::before'))
+  assert.ok(pill.includes('background: #dcebf8 !important'))
+  assert.ok(pill.includes('height: 32px !important'))
   assert.ok(css.includes('.moduleEnter :is('))
   assert.ok(css.includes('> [role="tab"]'))
 })

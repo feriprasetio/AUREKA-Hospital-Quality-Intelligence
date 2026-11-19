@@ -1,58 +1,137 @@
-/* UnifiedModuleNavigation active pill.
-   The component already measures the selected tab and writes --pill-x/y/w/h.
-   This stylesheet supplies the missing visual layer so the measured pill is
-   rendered as one continuous, animated surface instead of a static tab fill. */
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems {
+/* Canonical contextual-navigation pill.
+   One owner for the active surface; geometry comes from measured button rects
+   in UnifiedModuleNavigation and is expressed in each group's scroll-content
+   coordinates. The hit target remains the button, never the pseudo-element. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
   position: relative !important;
   isolation: isolate !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  box-sizing: border-box !important;
+  scrollbar-width: none !important;
+  overscroll-behavior-x: contain !important;
+  -webkit-overflow-scrolling: touch !important;
 }
-
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before {
-  content: "" !important;
-  position: absolute !important;
-  z-index: 0 !important;
-  left: var(--pill-x, 0) !important;
-  top: var(--pill-y, 0) !important;
-  width: var(--pill-w, 0) !important;
-  height: var(--pill-h, 0) !important;
-  border: 1px solid #172a40 !important;
-  border-radius: 9px !important;
-  background: #172a40 !important; /* Primary AUREKA */
-  box-shadow: 0 4px 12px rgba(23,42,64,.16) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: left 180ms cubic-bezier(.2,.75,.25,1), top 180ms cubic-bezier(.2,.75,.25,1), width 180ms cubic-bezier(.2,.75,.25,1), height 180ms cubic-bezier(.2,.75,.25,1), opacity 120ms ease !important;
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems::-webkit-scrollbar,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
-
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill.pillReady::before {
-  opacity: 1 !important;
-}
-
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem {
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem {
   position: relative !important;
   z-index: 1 !important;
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: max-content !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  max-height: 32px !important;
+  margin: 0 !important;
+  padding: 0 11px !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: #526b80 !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem:hover,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem:hover {
+  background: rgba(255,255,255,.58) !important;
+  border-color: rgba(155,181,203,.4) !important;
+  color: #244d6d !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem {
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
-
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
   color: #ffffff !important;
   font-weight: 750 !important;
 }
-
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
+  color: #244d6d !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  left: var(--pill-x, 0px) !important;
+  top: var(--pill-y, 0px) !important;
+  width: var(--pill-w, 0px) !important;
+  height: var(--pill-h, 32px) !important;
+  max-height: 32px !important;
+  box-sizing: border-box !important;
+  border: 1px solid #183f61 !important;
+  border-radius: 9px !important;
+  background: #183f61 !important;
+  background-image: none !important;
+  box-shadow: 0 2px 7px rgba(24,63,97,.13) !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transition: left 160ms cubic-bezier(.2,.75,.25,1), top 160ms cubic-bezier(.2,.75,.25,1), width 160ms cubic-bezier(.2,.75,.25,1), height 160ms cubic-bezier(.2,.75,.25,1), opacity 100ms ease !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill.pillReady::before {
+  opacity: 1 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill.pillReady::before {
+  opacity: 1 !important;
+  border-color: #bfd2e3 !important;
+  background: #dcebf8 !important;
+  box-shadow: 0 2px 7px rgba(44,86,121,.09) !important;
+}
 html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before {
-  border-color: #eef2f7 !important;
-  background: #eef2f7 !important;
-  box-shadow: 0 6px 16px rgba(0,0,0,.3) !important;
+  border-color: #9bb8d1 !important;
+  background: #315573 !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.22) !important;
 }
-
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
+  border-color: #4d7292 !important;
+  background: #203d56 !important;
+}
 html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
-  color: #0f1218 !important;
+  color: #ffffff !important;
 }
-
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
+  color: #eaf2f9 !important;
+}
+@media (max-width: 860px) and (min-width: 721px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
     transition: none !important;
   }
 }
