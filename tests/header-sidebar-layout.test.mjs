@@ -22,7 +22,7 @@ test('header layout prevents overlap on desktop and narrow screens', () => {
   const acrylic = read('app/aureka-acrylic-navigation-polish.css')
   const bundle = read('app/aureka-global.css')
   assert.ok(bundle.includes("@import './aureka-navigation-repair.css';"))
-  assert.ok(bundle.endsWith("@import './aureka-acrylic-navigation-polish.css';\n"))
+  assert.ok(bundle.includes("@import './aureka-acrylic-navigation-polish.css';") && bundle.indexOf("@import './aureka-acrylic-navigation-polish.css';") < bundle.indexOf("@import './aureka-layout-integrity.css';"))
   assert.ok(acrylic.includes('.workspaceSidebarMenuButton svg path'))
   assert.ok(acrylic.includes('stroke: currentColor !important'))
   assert.ok(css.includes('.sidebarDomainTrigger'))
