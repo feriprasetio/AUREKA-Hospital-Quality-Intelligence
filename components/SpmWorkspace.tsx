@@ -113,6 +113,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const [yearDraft, setYearDraft] = useState(String(initialYear))
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [importOpen, setImportOpen] = useState(false)
+  const [openImportAfterYearLoad, setOpenImportAfterYearLoad] = useState(false)
   const [tab, setTab] = useState<Tab>('overview')
   const [groupFilter, setGroupFilter] = useState('all')
   const [search, setSearch] = useState('')
@@ -173,6 +174,17 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
 
   useEffect(() => { void load() }, [load])
   useEffect(() => { setYearDraft(String(year)) }, [year])
+  useEffect(() => {
+    if (!openImportAfterYearLoad || loading) return
+    if (error) {
+      setOpenImportAfterYearLoad(false)
+      return
+    }
+    if (indicators.length > 0 && indicators.every(item => Number(item.profile_year) === year)) {
+      setOpenImportAfterYearLoad(false)
+      setImportOpen(true)
+    }
+  }, [openImportAfterYearLoad, loading, error, indicators, year])
 
   const commitYear = () => {
     const nextYear = Number(yearDraft.trim())
@@ -194,8 +206,17 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       setNotice('Tahun SPM harus berupa bilangan bulat antara 1900 dan 2200.')
       return
     }
-    if (nextYear !== year) setYear(nextYear)
     setYearDraft(String(nextYear))
+    if (nextYear !== year) {
+      setOpenImportAfterYearLoad(true)
+      setYear(nextYear)
+      return
+    }
+    if (loading || indicators.length === 0 || indicators.some(item => Number(item.profile_year) !== nextYear)) {
+      setOpenImportAfterYearLoad(true)
+      void load()
+      return
+    }
     setImportOpen(true)
   }
 
