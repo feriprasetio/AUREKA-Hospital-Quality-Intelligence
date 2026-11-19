@@ -48,6 +48,17 @@ test('mobile drawer restores full navigation labels even when desktop collapse s
   assert.ok(css.includes('width: min(320px, calc(100vw - 48px)) !important'))
 })
 
+test('overflow navigation items stay hidden until their disclosure menu is opened', () => {
+  const globalNavigation = read('app/aureka-global-navigation.css')
+  const repair = read('app/aureka-navigation-repair.css')
+  assert.match(globalNavigation, /details\\.workspaceNavigationOverflow:not\\(\\[open\\]\\) > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: none !important/)
+  assert.match(globalNavigation, /details\\.workspaceNavigationOverflow\\[open\\] > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: grid !important/)
+  assert.match(repair, /details\\.workspaceNavigationOverflow:not\\(\\[open\\]\\) > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: none !important/)
+  assert.match(repair, /details\\.workspaceNavigationOverflow\\[open\\] > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: grid !important/)
+  assert.doesNotMatch(globalNavigation, /\\.workspaceNavigationOverflowMenu \\{[^}]*display: grid !important/)
+  assert.doesNotMatch(repair, /\\.workspaceNavigationOverflowMenu \\{[^}]*display: grid !important/)
+})
+
 test('profile identity remains separated and bounded in compact workspace headers', () => {
   const css = read('app/aureka-acrylic-navigation-polish.css')
   assert.ok(css.includes('.workspaceHeaderProfileText {'))
