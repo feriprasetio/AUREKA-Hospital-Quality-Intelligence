@@ -20,7 +20,10 @@ export type SpmPreparedMeasurement = {
   code: string
   title: string
   group_name: string
+  room_id: number | null
 }
+
+export type SpmImportRoom = { id: number; name: string; code?: string }
 
 export type SpmImportPreview = {
   rows: SpmPreparedMeasurement[]
@@ -94,6 +97,7 @@ export function prepareSpmExcelImport(
   profiles: SpmImportProfile[],
   targetYear: number,
   fileName: string,
+  rooms: SpmImportRoom[] = [],
 ): SpmImportPreview {
   if (!Array.isArray(grid) || grid.length < 3) throw new Error('Sheet Logbook tidak berisi baris data yang cukup.')
   if (!Number.isInteger(targetYear) || targetYear < 1900 || targetYear > 2200) {
@@ -112,7 +116,7 @@ export function prepareSpmExcelImport(
     byGroupAndTitle.set(key, list)
   }
 
-  const headers: Array<{ row: number; start: number; end: number; group: string }> = []
+  const headers: Array<{ row: number; start: number; end: number; group: string; room_id: number | null }> = []
   for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
     const row = grid[rowIndex] ?? []
     for (let start = 0; start + 14 < row.length; start++) {
@@ -122,8 +126,10 @@ export function prepareSpmExcelImport(
         normalizeSpmExcelText(row[start + 2]) === 'parameter' &&
         monthHeadersMatch(row, start)
       ) {
-        const group = textValue(grid[rowIndex - 1]?.[start])
-        headers.push({ row: rowIndex, start, end: grid.length, group })
+        const group = start === 0 ? textValue(grid[rowIndex - 1]?.[start]) : textValue(grid[rowIndex - 1]?.[0])
+        const subunit = start === 0 ? '' : textValue(grid[rowIndex - 1]?.[start])
+        const room = rooms.find(item => normalizeSpmExcelText(item.name) === normalizeSpmExcelText(subunit))
+        headers.push({ row: rowIndex, start, end: grid.length, group, room_id: room ? Number(room.id) : null })
       }
     }
   }
@@ -152,6 +158,9 @@ export function prepareSpmExcelImport(
 
   for (const header of headers) {
     const groupKey = normalizeSpmExcelText(header.group)
+    const hasUnitBlocks = headers.some(item => item.row === header.row && item.room_id != null && normalizeSpmExcelText(item.group) === groupKey)
+    if (header.start === 0 && hasUnitBlocks) continue
+    if (header.start > 0 && !header.room_id) { ignoredUnmatchedRows++; warn('Blok unit ' + textValue(grid[header.row - 1]?.[header.start]) + ' tidak ditemukan pada master unit AUREKA; blok dilewati.'); continue }
     if (!groupKey || !knownGroups.has(groupKey)) {
       // Child services not represented as separate SPM master groups are intentionally ignored.
       ignoredUnmatchedRows++
@@ -174,6 +183,11 @@ export function prepareSpmExcelImport(
       const profile = candidates[0]
       if (profile.source_mode === 'quality_linked') {
         linkedIndicatorsSkipped++
+        continue
+      }
+      if (profile.source_mode === 'quality_denominator_linked' && header.room_id != null) {
+        ignoredUnmatchedRows++
+        warn('Baris Logbook ' + (rowIndex + 1) + ' (' + profile.code + '): numerator per unit dilewati sampai denominator Indikator Mutu tersedia per unit.');
         continue
       }
 
@@ -245,7 +259,7 @@ export function prepareSpmExcelImport(
         }
 
         const periodMonth = monthIndex + 1
-        const key = profile.id + ':' + periodMonth
+        const key = profile.id + ':' + periodMonth + ':' + (header.room_id ?? 'all')
         if (prepared.has(key)) {
           duplicateRowsSkipped++
           continue
@@ -260,6 +274,7 @@ export function prepareSpmExcelImport(
           code: profile.code,
           title: profile.title,
           group_name: profile.group_name,
+          room_id: header.room_id,
         })
       }
     }
@@ -274,6 +289,7 @@ export function prepareSpmExcelImport(
     rows: Array.from(prepared.values()).sort((a, b) =>
       a.group_name.localeCompare(b.group_name, 'id') ||
       a.code.localeCompare(b.code, 'id') ||
+      (a.room_id ?? 0) - (b.room_id ?? 0) ||
       a.period_month - b.period_month,
     ),
     warnings,
