@@ -1094,13 +1094,20 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
     max-width: 220px !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
+    display: inline-flex !important;
+    flex: 0 1 auto !important;
+    width: auto !important;
     max-width: 178px !important;
     margin-left: 2px !important;
     padding-inline: 4px !important;
+    overflow: visible !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText {
+    display: grid !important;
+    flex: 0 1 auto !important;
     width: 170px !important;
     max-width: 170px !important;
+    overflow: visible !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceFullscreenButton {
     display: none !important;
