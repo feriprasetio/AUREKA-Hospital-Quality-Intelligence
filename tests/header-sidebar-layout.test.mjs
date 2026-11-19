@@ -62,12 +62,6 @@ test('mobile workspace uses one sidebar drawer and never duplicates navigation i
   assert.match(finalMobile, /padding-bottom: calc\(24px \+ env\(safe-area-inset-bottom, 0px\)\) !important/)
 })
 
-  assert.match(responsive, /@media \(max-width: 720px\)\s*\{\s*\.workspaceRoot\s*\{/)
-  assert.doesNotMatch(responsive, /@media \(max-width: 760px\)/)
-  assert.match(mobileNav, /@media \(max-width: 720px\)/)
-  assert.match(home, /matchMedia\('\(max-width: 720px\)'\)/)
-})
-
 
 test('workspace account identity has no generated initials and always renders the complete display name', () => {
   const home = read('components/HomeClient.tsx')
@@ -102,4 +96,15 @@ test('narrow desktop breakpoint explicitly restores account text after legacy co
   assert.match(tablet, /\.workspaceHeaderBar > \.workspaceHeaderProfile[\s\S]*flex: 0 1 auto !important/)
   assert.match(tablet, /\.workspaceHeaderProfileText[\s\S]*display: grid !important/)
   assert.match(tablet, /\.workspaceHeaderProfileText[\s\S]*width: 170px !important/)
+})
+
+
+test('721–860px tablet header restores profile text hidden by the legacy 1180px compact rule', () => {
+  const desk = read('app/workspace-desk.css')
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  const compact = desk.slice(desk.indexOf('@media (max-width: 1180px)'), desk.indexOf('@media (min-width: 721px) and (max-width: 900px)'))
+  const tablet = css.slice(css.indexOf('@media (min-width: 721px) and (max-width: 860px)'), css.indexOf('@media (min-width: 861px) and (max-width: 1180px)'))
+  assert.match(compact, /\.workspaceHeaderProfileText \{ display: none !important; \}/)
+  assert.match(tablet, /\.workspaceHeaderProfileText \{[\s\S]*display: grid !important/)
+  assert.match(tablet, /grid-area: profile !important/)
 })
