@@ -811,7 +811,7 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot table thead th { color: #c4d
 /* Navigasi bawah HP: tetap kaca buram (navigasi, bukan kartu) dan tidak menutupi isi paling bawah. */
 html body:not(#_) .workspaceRoot .mobileBottomNav { -webkit-backdrop-filter: blur(18px) saturate(1.4) !important; backdrop-filter: blur(18px) saturate(1.4) !important; }
 @media (max-width: 900px) {
-  html body:not(#_) .workspaceRoot .workspaceContent { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+  html body:not(#_) .workspaceRoot .workspaceContent { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 
