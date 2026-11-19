@@ -101,7 +101,8 @@ test('Timkordik 2026 workbook import is available from the main quality audit wo
 
 test('SPM has its own route and workspace under Quality & Risk Management', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /id:'spm',label:'Standar Pelayanan Minimal',moduleId:'quality',childId:'spm'/)
+  assert.ok(home.includes('sidebarSpmQuickLink'))
+  assert.ok(home.includes("selectDomainDestination('quality_risk',{moduleId:'quality',childId:'spm'})"))
   assert.match(home, /if\(moduleId==='quality'&&childId==='spm'\)/)
   assert.match(home, /#indikator-mutu\/spm/)
   assert.match(home, /active==='quality'&&spmOpen/)
