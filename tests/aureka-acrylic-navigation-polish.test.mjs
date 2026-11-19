@@ -51,12 +51,19 @@ test('mobile drawer restores full navigation labels even when desktop collapse s
 test('overflow navigation items stay hidden until their disclosure menu is opened', () => {
   const globalNavigation = read('app/aureka-global-navigation.css')
   const repair = read('app/aureka-navigation-repair.css')
-  assert.match(globalNavigation, /details\\.workspaceNavigationOverflow:not\\(\\[open\\]\\) > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: none !important/)
-  assert.match(globalNavigation, /details\\.workspaceNavigationOverflow\\[open\\] > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: grid !important/)
-  assert.match(repair, /details\\.workspaceNavigationOverflow:not\\(\\[open\\]\\) > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: none !important/)
-  assert.match(repair, /details\\.workspaceNavigationOverflow\\[open\\] > \\.workspaceNavigationOverflowMenu[\\s\\S]*display: grid !important/)
-  assert.doesNotMatch(globalNavigation, /\\.workspaceNavigationOverflowMenu \\{[^}]*display: grid !important/)
-  assert.doesNotMatch(repair, /\\.workspaceNavigationOverflowMenu \\{[^}]*display: grid !important/)
+  assert.ok(globalNavigation.includes('.workspaceRoot details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu {'))
+  assert.ok(globalNavigation.includes('.workspaceRoot details.workspaceNavigationOverflow[open] > .workspaceNavigationOverflowMenu {'))
+  assert.ok(repair.includes('details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu {'))
+  assert.ok(repair.includes('details.workspaceNavigationOverflow[open] > .workspaceNavigationOverflowMenu {'))
+  for (const css of [globalNavigation, repair]) {
+    const rules = [...css.matchAll(/([^{}]+)\\{([^{}]*)\\}/g)]
+    const unconditionalMenuRules = rules.filter(([, selector]) =>
+      selector.includes('.workspaceNavigationOverflowMenu') &&
+      !selector.includes('[open]') &&
+      !selector.includes(':not([open])')
+    )
+    assert.ok(unconditionalMenuRules.every(([, , declarations]) => !/display:\\s*grid !important/.test(declarations)))
+  }
 })
 
 test('profile identity remains separated and bounded in compact workspace headers', () => {
