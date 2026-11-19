@@ -116,7 +116,7 @@ export function prepareSpmExcelImport(
     byGroupAndTitle.set(key, list)
   }
 
-  const headers: Array<{ row: number; start: number; end: number; group: string; room_id: number | null }> = []
+  const headers: Array<{ row: number; start: number; end: number; group: string; subunit: string; room_id: number | null }> = []
   for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
     const row = grid[rowIndex] ?? []
     for (let start = 0; start + 14 < row.length; start++) {
@@ -128,8 +128,9 @@ export function prepareSpmExcelImport(
       ) {
         const group = start === 0 ? textValue(grid[rowIndex - 1]?.[start]) : textValue(grid[rowIndex - 1]?.[0])
         const subunit = start === 0 ? '' : textValue(grid[rowIndex - 1]?.[start])
-        const room = rooms.find(item => normalizeSpmExcelText(item.name) === normalizeSpmExcelText(subunit))
-        headers.push({ row: rowIndex, start, end: grid.length, group, room_id: room ? Number(room.id) : null })
+        const isDistinctSubunit = !!subunit && normalizeSpmExcelText(subunit) !== normalizeSpmExcelText(group)
+        const room = isDistinctSubunit ? rooms.find(item => normalizeSpmExcelText(item.name) === normalizeSpmExcelText(subunit)) : undefined
+        headers.push({ row: rowIndex, start, end: grid.length, group, subunit, room_id: room ? Number(room.id) : null })
       }
     }
   }
@@ -158,9 +159,9 @@ export function prepareSpmExcelImport(
 
   for (const header of headers) {
     const groupKey = normalizeSpmExcelText(header.group)
-    const hasUnitBlocks = headers.some(item => item.row === header.row && item.room_id != null && normalizeSpmExcelText(item.group) === groupKey)
+    const hasUnitBlocks = headers.some(item => item.row === header.row && item.room_id != null && normalizeSpmExcelText(item.group) === groupKey && normalizeSpmExcelText(item.subunit) !== groupKey)
     if (header.start === 0 && hasUnitBlocks) continue
-    if (header.start > 0 && !header.room_id) { ignoredUnmatchedRows++; warn('Blok unit ' + textValue(grid[header.row - 1]?.[header.start]) + ' tidak ditemukan pada master unit AUREKA; blok dilewati.'); continue }
+    if (header.start > 0 && !header.room_id) { ignoredUnmatchedRows++; if (header.subunit) warn('Blok tambahan ' + header.subunit + ' tidak dipetakan ke master unit AUREKA; blok dilewati.'); continue }
     if (!groupKey || !knownGroups.has(groupKey)) {
       // Child services not represented as separate SPM master groups are intentionally ignored.
       ignoredUnmatchedRows++
