@@ -162,6 +162,5 @@ test('SPM XLSX parser rejects a workbook year outside the supported range and ig
     title:'Pemberi pelayanan rawat inap',numerator_definition:'Parameter induk',
     denominator_definition:'Denominator induk',source_mode:'standalone',calculation_config:{method:'ratio'},
   }]
-  const preview = prepareSpmExcelImport(grid,profile,2026,'SPM-2026.xlsx')
-  assert.equal(preview.rows.length,0)
+  assert.throws(() => prepareSpmExcelImport(grid,profile,2026,'SPM-2026.xlsx'), /Tidak ada nilai bulanan/)
 })
