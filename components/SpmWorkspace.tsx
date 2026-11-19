@@ -615,7 +615,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         <div className="spmTablePanel">
           <div className="spmTableHead">
             <div><strong>{tab==='entry'?'Lembar kerja tahunan':'Master dan aturan perhitungan'}</strong><span>{tab==='entry'?'Januari–Desember ditampilkan sekaligus. Perubahan dapat disimpan dalam satu kali proses.':'Metode awal dapat disesuaikan oleh Admin/PMKP.'}</span></div>
-            {tab==='entry' && <button type="button" className="spmPrimary" disabled={saving || (groupFilter==='Instalasi Rawat Inap' && activeRoomId==null)} onClick={() => void saveAnnualMeasurements()}>{saving?'Menyimpan…':'Simpan perubahan tahunan'}</button>}
+            {tab==='entry' && <button type="button" className="spmPrimary" disabled={saving || (groupFilter==='Instalasi Rawat Inap' && activeRoomId==null && !isManager)} onClick={() => void saveAnnualMeasurements()}>{saving?'Menyimpan…':'Simpan perubahan tahunan'}</button>}
             {tab==='config' && !canConfigure && <span className="spmInfoTag">Baca-saja · Admin/PMKP dapat mengubah</span>}
           </div>
           <div className="spmTableScroll">
