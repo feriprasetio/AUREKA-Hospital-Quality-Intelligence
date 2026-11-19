@@ -78,7 +78,6 @@ const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[] = [
  ]},
  {id:'quality_risk',label:'Quality & Risk Management',icon:'quality',items:[
   {id:'quality_indicators',label:'Indikator Mutu',moduleId:'quality',childId:'audit-indicators'},
-  {id:'spm',label:'Standar Pelayanan Minimal',moduleId:'quality',childId:'spm'},
   {id:'patient_safety',label:'Keselamatan Pasien',moduleId:'safety',childId:'incidents'},
   {id:'safety_culture',label:'Budaya Keselamatan',moduleId:'safety',childId:'survey'},
   {id:'risk_management',label:'Manajemen Risiko',moduleId:'risk',childId:'register'},
@@ -423,6 +422,7 @@ export default function HomeClient(){
  const visibleModuleIds=useMemo<Set<string>>(()=>new Set(visibleMods.map(([id])=>id)),[visibleMods])
  const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS.map(domain=>({...domain,items:domain.items.filter(item=>(item.moduleId==='home'||visibleModuleIds.has(item.moduleId))&&(item.moduleId!=='staff'||item.childId!=='pic-performance'||permissionFlags.readPicPerformance)&&(item.moduleId!=='staff'||item.childId!=='directory'||permissionFlags.readDirectory))})).filter(domain=>domain.items.length>0),[visibleModuleIds])
  const activeDomainId=useMemo(()=>{
+  if(active==='quality'&&spmOpen)return 'quality_risk'
   const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>{
    if(item.moduleId!==active)return false
    if(item.moduleId==='quality')return item.childId==='spm'?spmOpen:!spmOpen
@@ -1045,6 +1045,17 @@ export default function HomeClient(){
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>RSUD SSMA Pontianak</small></div></div>
    <button type="button" className="workspaceDrawerClose" aria-label="Tutup menu navigasi" onClick={mobileSidebar.close}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
   </div>
+  <div className="navLabel">Akses langsung</div>
+  <button
+   type="button"
+   className={'sidebarDomainTrigger sidebarSpmQuickLink '+(active==='quality'&&spmOpen?'navActive':'')}
+   aria-current={active==='quality'&&spmOpen?'page':undefined}
+   title="Buka Standar Pelayanan Minimal"
+   onClick={()=>selectDomainDestination('quality_risk',{moduleId:'quality',childId:'spm'})}
+  >
+   <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH.quality}</svg>
+   <span>Standar Pelayanan Minimal (SPM)</span>
+  </button>
   <div className="navLabel">Domain kerja</div>
   <nav className="sidebarNav sidebarDomainNav" aria-label="Enam domain utama AUREKA">
    {visibleSidebarDomains.map(domain=>{
