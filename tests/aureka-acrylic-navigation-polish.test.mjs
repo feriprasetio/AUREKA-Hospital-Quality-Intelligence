@@ -47,3 +47,22 @@ test('mobile drawer restores full navigation labels even when desktop collapse s
   assert.ok(css.includes('display: grid !important'))
   assert.ok(css.includes('width: min(320px, calc(100vw - 48px)) !important'))
 })
+
+test('profile identity remains separated and bounded in compact workspace headers', () => {
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  assert.ok(css.includes('.workspaceHeaderProfileText {'))
+  assert.ok(css.includes('grid-template-columns: minmax(0, 1fr) !important'))
+  assert.ok(css.includes('.workspaceHeaderProfileText b,'))
+  assert.ok(css.includes('text-overflow: ellipsis !important'))
+  assert.ok(css.includes('@media (min-width: 721px) and (max-width: 1180px)'))
+  assert.ok(css.includes('workspaceFullscreenButton'))
+})
+
+test('workspace navigation rails constrain tab widths without clipping the active content area', () => {
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  assert.ok(css.includes('.workspaceNavigationRailItems,'))
+  assert.ok(css.includes('min-width: max-content !important'))
+  assert.ok(css.includes('overflow-x: auto !important'))
+  assert.ok(css.includes('.workspacePageHint > span'))
+  assert.ok(css.includes('overflow-wrap: anywhere !important'))
+})
