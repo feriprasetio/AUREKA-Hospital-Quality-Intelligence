@@ -1,3 +1,5 @@
+export type SecretariatSection = 'invitations' | 'materials' | 'attendance' | 'minutes' | 'documentation'
+
 export type AurekaRole =
   | 'ADMIN' | 'PMKP' | 'MANAGEMENT' | 'KABID' | 'DIREKTUR'
   | 'DEWAN_PENGAWAS' | 'PIC' | 'VALIDATOR'
@@ -5,7 +7,7 @@ export type AurekaRole =
 export type ModuleStatus = 'available' | 'beta' | 'maintenance' | 'planned'
 export type ModuleVisibility = 'all-authenticated' | 'management-only'
 export type AurekaModule = {
-  id: 'home' | 'nara' | 'patients' | 'quality' | 'clinical' | 'safety' | 'risk' | 'insights' | 'analytics' | 'staff' | 'settings'
+  id: 'home' | 'nara' | 'patients' | 'quality' | 'clinical' | 'safety' | 'risk' | 'insights' | 'analytics' | 'secretariat' | 'staff' | 'settings'
   label: string
   group: 'overview' | 'clinical' | 'governance'
   status: ModuleStatus
@@ -32,6 +34,7 @@ export const AUREKA_MODULE_REGISTRY = [
   { id:'risk', label:'Manajemen Risiko', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:GOVERNANCE_ROLES, routeHash:'#manajemen-risiko', owner:'Manajemen risiko rumah sakit', lastReviewed:'2026-11-12', description:'Risk Register, konektor, profil risiko, FMEA, RTP, dan evaluasi efektivitas kontrol.' },
   { id:'insights', label:'Analitik & Infografis', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'], routeHash:'#analitik', owner:'Komite PMKP / Manajemen', lastReviewed:'2026-11-18', description:'Eksplorasi agregat lintas domain, tren, distribusi, perbandingan, laporan dan presentasi; baca-saja.' },
   { id:'analytics', label:'Program & RTL', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'], routeHash:'#program', owner:'Komite PMKP / Manajemen', lastReviewed:'2026-11-18', description:'Pemilik area prioritas, usulan indikator, rekomendasi, rencana tindak lanjut, progres, dan evaluasi.' },
+  { id:'secretariat', label:'Sekretariat', group:'governance', status:'planned', visibility:'all-authenticated', requiredRoles:GOVERNANCE_ROLES, routeHash:'#sekretariat', owner:'Sekretariat / Governance & Organization', lastReviewed:'2026-11-19', description:'Administrasi rapat: undangan, materi, absensi, notulensi, dokumentasi foto, dan tindak lanjut yang saling terhubung melalui satu Meeting ID. Penyimpanan backend belum diaktifkan.' },
   { id:'staff', label:'Sumber Daya Manusia', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#sumber-daya-manusia', owner:'Super Admin / Komite PMKP', lastReviewed:'2026-11-12', description:'Master tenaga kerja, tim dan penugasan, OPPE, FPPE, serta riwayat jabatan.' },
   { id:'settings', label:'Pengaturan', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:ALL_ROLES, routeHash:'#pengaturan', owner:'Super Admin / Komite PMKP', lastReviewed:'2026-11-12', description:'Profil/akun, pengguna dan role, unit, keamanan, preferensi, konfigurasi, dan audit log.' },
 ] as const satisfies readonly AurekaModule[]
