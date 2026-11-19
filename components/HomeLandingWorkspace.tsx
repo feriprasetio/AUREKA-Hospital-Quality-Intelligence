@@ -237,6 +237,7 @@ export default function HomeLandingWorkspace({
         <h1>{greeting}, {firstName}.</h1>
         <p>Command Centre · Pusat kendali aktivitas dan prioritas operasional rumah sakit.</p>
         <div className="ccHeroActions">
+          <button type="button" className="ccActionBtn" onClick={()=>setRefreshKey(value=>value+1)}>↻ Perbarui data</button>
           <button type="button" className="ccActionBtn primary" onClick={()=>onNavigate('quality')}>Buka pekerjaan mutu</button>
           <button type="button" className="ccActionBtn" onClick={()=>onNavigate('safety',{tab:'incidents',newReport:true})}>Laporkan insiden</button>
           {onAskNara&&<button type="button" className="ccActionBtn" onClick={()=>onAskNara('Tinjau kondisi operasional berdasarkan data AUREKA yang dapat saya akses. Sajikan temuan, prioritas, keterbatasan data, dan rekomendasi tindak lanjut.','Command Centre · '+(roomName||'Cakupan akun'))}>Analisis dengan NARA</button>}
