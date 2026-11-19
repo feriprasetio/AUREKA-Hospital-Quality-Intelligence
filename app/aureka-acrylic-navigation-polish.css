@@ -1238,3 +1238,200 @@ html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[da
 html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText small {
   color: #b8c5d4 !important;
 }
+
+
+/* Sidebar domain rail: neutral Arctic slate, readable full labels, restrained selection.
+   Keep the approved navy as the navigation accent; remove the saturated cyan blocks. */
+:root {
+  --aureka-acrylic-sidebar: rgba(241, 244, 247, .96);
+  --aureka-acrylic-sidebar-top: rgba(235, 240, 245, .98);
+  --aureka-acrylic-sidebar-edge: rgba(164, 178, 192, .42);
+  --aureka-acrylic-ink: #0b1f33;
+  --aureka-acrylic-muted: #52677b;
+  --aureka-acrylic-active: #e5ebf0;
+  --aureka-acrylic-active-edge: #c4d0db;
+  --aureka-acrylic-primary: #0f2a44;
+  --aureka-acrylic-primary-ink: #ffffff;
+  --aureka-acrylic-secondary: #edf1f5;
+  --aureka-acrylic-secondary-ink: #0f2a44;
+  --aureka-acrylic-rail: rgba(239, 243, 247, .98);
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar {
+  background: linear-gradient(180deg, #ebf0f4 0%, #f1f4f7 55%, #f5f7f9 100%) !important;
+  background-image: linear-gradient(180deg, #ebf0f4 0%, #f1f4f7 55%, #f5f7f9 100%) !important;
+  border-right-color: #d2dce4 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sideHeader,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarFooter {
+  border-color: #d6dfe6 !important;
+  background: transparent !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainNav {
+  gap: 5px !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain {
+  min-width: 0 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  align-items: center !important;
+  min-height: 46px !important;
+  height: auto !important;
+  padding: 7px 10px !important;
+  border-color: transparent !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: #2e4a66 !important;
+  font-size: 12.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.28 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > span {
+  display: block !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  hyphens: manual !important;
+  line-height: 1.28 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger:hover {
+  border-color: #d3dde5 !important;
+  background: #eaf0f4 !important;
+  color: #0f2a44 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive {
+  border-color: #c4d0db !important;
+  background: #e5ebf0 !important;
+  color: #0f2a44 !important;
+  font-weight: 750 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger .sidebarNavIcon {
+  color: #607b8e !important;
+  stroke: currentColor !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger .sidebarNavIcon,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive .sidebarNavIcon {
+  color: #16507a !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger .sidebarDomainChevron {
+  color: #708697 !important;
+  stroke: currentColor !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  margin: 3px 0 7px 0 !important;
+  padding: 5px 5px 6px 39px !important;
+  border-left: 1px solid #d0dbe3 !important;
+  background: transparent !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem {
+  min-height: 38px !important;
+  height: auto !important;
+  padding: 7px 9px !important;
+  border-color: transparent !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #425b70 !important;
+  font-size: 12px !important;
+  font-weight: 550 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  text-align: left !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem:hover {
+  border-color: #d9e1e8 !important;
+  background: #f5f7f9 !important;
+  color: #0f2a44 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem.active {
+  border-color: #d4dde5 !important;
+  border-left: 3px solid #16507a !important;
+  background: #f7f9fb !important;
+  color: #0f2a44 !important;
+  font-weight: 700 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarFooter > .liquidButton button {
+  border-color: #d5dfe6 !important;
+  background: #f7f9fa !important;
+  color: #3e586c !important;
+}
+
+/* Keep the same readable label treatment when the sidebar is opened as a phone drawer. */
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger {
+    min-height: 48px !important;
+    padding-block: 8px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger > span {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+}
+
+/* Dark mode counterpart: retain the same restrained hierarchy and readable labels. */
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+  background: linear-gradient(180deg, #111d2b 0%, #0e1926 100%) !important;
+  background-image: linear-gradient(180deg, #111d2b 0%, #0e1926 100%) !important;
+  border-right-color: #2a3b4e !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  color: #c2cfdb !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger:hover {
+  border-color: #31465a !important;
+  background: #17283a !important;
+  color: #f0f4f8 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive {
+  border-color: #3a5065 !important;
+  background: #1b3044 !important;
+  color: #f0f4f8 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger .sidebarNavIcon {
+  color: #91a9bc !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  border-left-color: #31465a !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem {
+  color: #b8c7d5 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem:hover {
+  border-color: #34495d !important;
+  background: #17283a !important;
+  color: #f0f4f8 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem.active {
+  border-color: #40566a !important;
+  border-left-color: #73a9d2 !important;
+  background: #1b3044 !important;
+  color: #f0f4f8 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarFooter > .liquidButton button {
+  border-color: #33495c !important;
+  background: #142235 !important;
+  color: #c6d4e1 !important;
+}
