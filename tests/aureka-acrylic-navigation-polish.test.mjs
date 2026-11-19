@@ -1,25 +1,29 @@
-test('authoritative Arctic layout layer resolves shell and navigation geometry across breakpoints', () => {
-  const bundle = read('app/aureka-global.css')
-  const css = read('app/aureka-layout-integrity.css')
-  assert.ok(bundle.endsWith("@import './aureka-layout-integrity.css';\\n"))
-  assert.ok(css.includes('grid-template-columns: 264px minmax(0, 1fr) !important'))
-  assert.ok(css.includes('grid-template-columns: 238px minmax(0, 1fr) !important'))
-  assert.ok(css.includes('grid-template-columns: 210px minmax(0, 1fr) !important'))
-  assert.ok(css.includes('grid-template-areas:\\n      "menu context nara inbox theme bell profile"\\n      "search search search search search search search"'))
-  assert.ok(css.includes('grid-template-areas:\\n      "menu context context theme bell"\\n      "search search search search search"\\n      "profile profile nara inbox ."'))
-  assert.ok(css.includes('grid-template-areas:\\n      "title primary primaryOverflow"\\n      "secondary secondary secondaryOverflow"'))
-  assert.ok(css.includes('details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu'))
-  assert.ok(css.includes('.workspacePageHint > span'))
-  assert.ok(css.includes('overflow-wrap: anywhere !important'))
-  assert.ok(css.includes('> aside.sidebar.mobileOpen'))
-  assert.ok(css.includes('> .workspaceContent'))
-})
 
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
+
+test('authoritative Arctic layout layer resolves shell and navigation geometry across breakpoints', () => {
+  const bundle = read('app/aureka-global.css')
+  const css = read('app/aureka-layout-integrity.css')
+  assert.ok(bundle.trimEnd().endsWith("@import './aureka-layout-integrity.css';"))
+  assert.ok(css.includes('grid-template-columns: 264px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('grid-template-columns: 238px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('grid-template-columns: 210px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('"menu context nara inbox theme bell profile"'))
+  assert.ok(css.includes('"search search search search search search search"'))
+  assert.ok(css.includes('"menu context context theme bell"'))
+  assert.ok(css.includes('"profile profile nara inbox ."'))
+  assert.ok(css.includes('"title primary primaryOverflow"'))
+  assert.ok(css.includes('"secondary secondary secondaryOverflow"'))
+  assert.ok(css.includes('details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu'))
+  assert.ok(css.includes('.workspacePageHint > span'))
+  assert.ok(css.includes('overflow-wrap: anywhere !important'))
+  assert.ok(css.includes('> aside.sidebar.mobileOpen'))
+  assert.ok(css.includes('> .workspaceContent'))
+})
 
 test('final Arktik navigation layer removes green sidebar states and the opaque logo tile', () => {
   const bundle = read('app/aureka-global.css')
