@@ -78,6 +78,7 @@ const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[] = [
  ]},
  {id:'quality_risk',label:'Quality & Risk Management',icon:'quality',items:[
   {id:'quality_indicators',label:'Indikator Mutu',moduleId:'quality',childId:'audit-indicators'},
+  {id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'},
   {id:'patient_safety',label:'Keselamatan Pasien',moduleId:'safety',childId:'incidents'},
   {id:'safety_culture',label:'Budaya Keselamatan',moduleId:'safety',childId:'survey'},
   {id:'risk_management',label:'Manajemen Risiko',moduleId:'risk',childId:'register'},
