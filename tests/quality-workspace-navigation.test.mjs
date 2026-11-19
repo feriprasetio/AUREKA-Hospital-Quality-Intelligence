@@ -109,3 +109,12 @@ test('SPM has its own route and workspace under Quality & Risk Management', () =
   const qualityMenu = home.slice(home.indexOf("quality:role==='DEWAN_PENGAWAS'"), home.indexOf('clinical:[', home.indexOf("quality:role==='DEWAN_PENGAWAS'")))
   assert.ok(qualityMenu.includes("{id:'spm',label:'Standar Pelayanan Minimal (SPM)'}"))
 })
+
+test('SPM is available as a persistent direct sidebar shortcut', () => {
+  const home = read('components/HomeClient.tsx')
+  assert.match(home, /<div className="navLabel">Akses langsung<\\/div>/)
+  assert.match(home, /sidebarSpmQuickLink/)
+  assert.match(home, /selectDomainDestination\\('quality_risk',\\{moduleId:'quality',childId:'spm'\\}\\)/)
+  assert.match(home, /if\\(active==='quality'&&spmOpen\\)return 'quality_risk'/)
+  assert.doesNotMatch(home, /id:'spm',label:'Standar Pelayanan Minimal',moduleId:'quality',childId:'spm'/)
+})
