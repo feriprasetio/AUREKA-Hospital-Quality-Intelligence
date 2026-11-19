@@ -630,6 +630,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         year={year}
         indicators={indicators}
         measurements={measurements}
+        sourceSummary={sourceSummary}
         onClose={() => setImportOpen(false)}
         onImported={() => load(true)}
       />
