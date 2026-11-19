@@ -37,7 +37,9 @@ type Measurement = {
   status: 'draft' | 'submitted' | 'validated'
   notes: string | null
   updated_at: string
+  room_id: number | null
 }
+type Room = { id: number; name: string; code: string }
 type Tab = 'overview' | 'entry' | 'config'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
@@ -119,6 +121,9 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const [search, setSearch] = useState('')
   const [indicators, setIndicators] = useState<Indicator[]>([])
   const [measurements, setMeasurements] = useState<Measurement[]>([])
+  const [rooms, setRooms] = useState<Room[]>([])
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(currentRoomId)
+  const [annualDrafts, setAnnualDrafts] = useState<Record<string, string>>({})
   const [sourceSummary, setSourceSummary] = useState<SpmSourceSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -134,8 +139,10 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const isManager = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR'].includes(role || '')
   const canConfigure = role === 'ADMIN' || role === 'PMKP'
   const canImport = role === 'ADMIN' || role === 'PMKP'
-  const canEdit = (indicator: Indicator) =>
-    isManager || (role === 'PIC' && indicator.owner_room_id != null && Number(indicator.owner_room_id) === Number(currentRoomId))
+  const canEdit = (indicator: Indicator) => {
+    const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id
+    return isManager || (role === 'PIC' && roomId != null && rooms.some(room => Number(room.id) === Number(roomId)))
+  }
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true)
@@ -145,15 +152,27 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       const { error: profileSetupError } = await q().rpc('ensure_spm_profile', { p_year: year })
       if (profileSetupError) throw profileSetupError
 
-      const [profileResult, measurementResult, sourceResult] = await Promise.all([
+      const [profileResult, measurementResult, sourceResult, roomResult] = await Promise.all([
         q().from('spm_indicators').select('*').eq('profile_year', year).eq('is_active', true).order('group_order').order('indicator_order'),
         q().from('spm_monthly_measurements').select('id,indicator_id,profile_year,period_month,input_json,status,notes,updated_at').eq('profile_year', year),
         q().rpc('spm_quality_source_summary', { p_year: year }),
+        aurekaSupabase.from('master_rooms').select('id,name,code').eq('is_active', true).order('sort_order'),
       ])
       if (profileResult.error) throw profileResult.error
       if (measurementResult.error) throw measurementResult.error
       setIndicators((profileResult.data ?? []) as Indicator[])
       setMeasurements((measurementResult.data ?? []) as Measurement[])
+      if (!roomResult.error) {
+        const allRooms = (roomResult.data ?? []) as Room[]
+        if (['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS'].includes(role || '')) setRooms(allRooms)
+        else {
+          const { data: authData } = await aurekaSupabase.auth.getUser()
+          const { data: assignments } = await aurekaSupabase.schema('aureka_system').from('user_room_assignments').select('room_id').eq('user_id', authData.user?.id ?? '').eq('is_active', true)
+          const allowed = new Set((assignments ?? []).map((item: any) => Number(item.room_id)))
+          if (currentRoomId != null) allowed.add(Number(currentRoomId))
+          setRooms(allRooms.filter(room => allowed.has(Number(room.id))))
+        }
+      }
       if (sourceResult.error) {
         setSourceSummary(null)
         setSourceWarning('Sumber Indikator Mutu belum tersedia untuk tahun ini. Pengukuran SPM mandiri tetap dapat dikelola.')
@@ -170,7 +189,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     } finally {
       setLoading(false)
     }
-  }, [year])
+  }, [year, role, currentRoomId])
 
   useEffect(() => { void load() }, [load])
   useEffect(() => { setYearDraft(String(year)) }, [year])
@@ -222,7 +241,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
 
   const measurementMap = useMemo(() => {
     const map = new Map<string, Measurement>()
-    measurements.forEach(item => map.set(item.indicator_id + ':' + item.period_month, item))
+    measurements.forEach(item => map.set(item.indicator_id + ':' + item.period_month + ':' + (item.room_id ?? 'all'), item))
     return map
   }, [measurements])
 
@@ -232,13 +251,36 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     return Array.from(seen.entries()).sort((a,b) => a[1] - b[1]).map(([name]) => name)
   }, [indicators])
 
+  const inpatientRoomIds = [22,23,24,25,26,27]
+  const activeRoomId = selectedRoomId
+  const measurementKey = (indicator: Indicator, monthNumber: number) => indicator.id + ':' + monthNumber + ':' + ((indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id) ?? 'all')
+
+  useEffect(() => {
+    if (selectedRoomId != null && rooms.some(room => Number(room.id) === Number(selectedRoomId))) return
+    const preferred = currentRoomId != null && rooms.some(room => Number(room.id) === Number(currentRoomId))
+      ? Number(currentRoomId)
+      : rooms.find(room => inpatientRoomIds.includes(Number(room.id)))?.id ?? null
+    setSelectedRoomId(preferred == null ? null : Number(preferred))
+  }, [rooms, selectedRoomId, currentRoomId])
+
+  useEffect(() => {
+    const next: Record<string, string> = {}
+    for (const indicator of indicators) {
+      for (let m = 1; m <= 12; m++) {
+        const saved = measurementMap.get(measurementKey(indicator, m))
+        for (const key of inputKeys(indicator)) next[indicator.id + ':' + m + ':' + key] = saved?.input_json?.[key] == null ? '' : String(saved.input_json[key])
+      }
+    }
+    setAnnualDrafts(next)
+  }, [indicators, measurementMap, selectedRoomId])
+
   const calculations = useMemo(() => {
     const monthly = new Map<string, ReturnType<typeof calculateSpmMonthly>>()
     const annual = new Map<string, ReturnType<typeof aggregateSpmMonths>>()
     for (const indicator of indicators) {
       const months = Array.from({ length: 12 }, (_, index) => {
         const m = index + 1
-        const saved = measurementMap.get(indicator.id + ':' + m)
+        const saved = measurementMap.get(measurementKey(indicator, m))
         const input = saved?.input_json ?? {}
         const monthResult = calculateSpmMonthly(indicator, input, sourceSummary, m)
         monthly.set(indicator.id + ':' + m, monthResult)
@@ -247,7 +289,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       annual.set(indicator.id, aggregateSpmMonths(indicator, months))
     }
     return { monthly, annual }
-  }, [indicators, measurementMap, sourceSummary])
+  }, [indicators, measurementMap, sourceSummary, selectedRoomId])
 
   const visibleIndicators = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('id-ID')
@@ -269,7 +311,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   }, [indicators, calculations, month])
 
   const openEdit = (indicator: Indicator) => {
-    const saved = measurementMap.get(indicator.id + ':' + month)
+    const saved = measurementMap.get(measurementKey(indicator, month))
     const initial = saved?.input_json ?? {}
     const values: Record<string, string> = {}
     inputKeys(indicator).forEach(key => { values[key] = initial[key] == null ? '' : String(initial[key]) })
@@ -316,12 +358,13 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         indicator_id: editing.id,
         profile_year: year,
         period_month: month,
+        room_id: editing.group_name === 'Instalasi Rawat Inap' ? activeRoomId : editing.owner_room_id,
         input_json: next,
         status: 'submitted',
         notes: editNotes.trim() || null,
         updated_by: (await aurekaSupabase.auth.getUser()).data.user?.id ?? null,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'indicator_id,profile_year,period_month' })
+      }, { onConflict: 'indicator_id,profile_year,period_month,room_id' })
       if (saveError) throw saveError
       setEditing(null)
       setNotice('Pengukuran SPM berhasil disimpan.')
@@ -334,6 +377,51 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     } finally {
       setSaving(false)
     }
+  }
+
+  const saveAnnualMeasurements = async () => {
+    if (saving) return
+    const payload: Array<Record<string, unknown>> = []
+    const { data: authData, error: authError } = await aurekaSupabase.auth.getUser()
+    if (authError || !authData.user?.id) { setNotice('Sesi login tidak tersedia. Silakan masuk kembali.'); return }
+    for (const indicator of visibleIndicators) {
+      if (!canEdit(indicator) || indicator.source_mode === 'quality_linked') continue
+      if (indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap') continue
+      const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id
+      if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null) continue
+      for (let m = 1; m <= 12; m++) {
+        const keys = inputKeys(indicator)
+        if (!keys.length) continue
+        const input: Record<string, number> = {}
+        let hasAny = false
+        for (const key of keys) {
+          const raw = annualDrafts[indicator.id + ':' + m + ':' + key] ?? ''
+          if (raw.trim() === '') continue
+          const value = asNumber(raw)
+          if (value == null || value < 0) { setNotice(indicator.code + ' bulan ' + MONTHS[m-1] + ': nilai harus numerik dan tidak negatif.'); return }
+          input[key] = value; hasAny = true
+        }
+        if (!hasAny) continue
+        if (keys.some(key => input[key] == null)) { setNotice(indicator.code + ' bulan ' + MONTHS[m-1] + ': lengkapi seluruh parameter sebelum menyimpan.'); return }
+        const method = indicator.calculation_config?.method
+        if ((method === 'ratio' || method === 'time_average' || method === 'no_event_rate') && Number(input.denominator) <= 0) { setNotice(indicator.code + ' bulan ' + MONTHS[m-1] + ': denominator harus lebih besar dari nol.'); return }
+        if (method === 'score_to_percent' && Number(input.respondents) <= 0) { setNotice(indicator.code + ' bulan ' + MONTHS[m-1] + ': jumlah responden harus lebih besar dari nol.'); return }
+        const existing = measurementMap.get(indicator.id + ':' + m + ':' + (roomId ?? 'all'))
+        if (existing && JSON.stringify(existing.input_json) === JSON.stringify(input)) continue
+        payload.push({ indicator_id: indicator.id, profile_year: year, period_month: m, room_id: roomId, input_json: input, status: 'submitted', notes: existing?.notes ?? null, entered_by: authData.user.id, updated_by: authData.user.id, updated_at: new Date().toISOString() })
+      }
+    }
+    if (!payload.length) { setNotice('Tidak ada perubahan nilai tahunan yang perlu disimpan.'); return }
+    setSaving(true); setNotice('')
+    try {
+      const { error: saveError } = await q().from('spm_monthly_measurements').upsert(payload, { onConflict: 'indicator_id,profile_year,period_month,room_id' })
+      if (saveError) throw saveError
+      setNotice(payload.length + ' pengukuran bulanan berhasil disimpan. Status: Menunggu Verifikasi.')
+      await load(true)
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String((cause as any)?.message || cause)
+      setNotice(/row-level security|permission|not allowed/i.test(message) ? 'Akun tidak memiliki kewenangan untuk menyimpan sebagian data unit yang dipilih.' : 'Penyimpanan tahunan gagal. ' + message)
+    } finally { setSaving(false) }
   }
 
   const openConfig = (indicator: Indicator) => {
@@ -464,6 +552,12 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
             {groups.map(name => <option key={name} value={name}>{name}</option>)}
           </select>
         </label>
+        {groupFilter === 'Instalasi Rawat Inap' && <label>Unit rawat inap
+          <select value={selectedRoomId ?? ''} onChange={event => setSelectedRoomId(event.target.value ? Number(event.target.value) : null)}>
+            <option value="">Pilih unit rawat inap</option>
+            {rooms.filter(room => inpatientRoomIds.includes(Number(room.id))).map(room => <option key={room.id} value={room.id}>{room.name}</option>)}
+          </select>
+        </label>}
         <label className="spmSearch">Cari indikator
           <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Nama atau kode indikator..." />
         </label>
@@ -493,14 +587,15 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       {(tab === 'entry' || tab === 'config') && (
         <div className="spmTablePanel">
           <div className="spmTableHead">
-            <div><strong>{tab==='entry'?'Pengukuran dan logbook bulanan':'Master dan aturan perhitungan'}</strong><span>{tab==='entry'?'Pilih indikator untuk mengisi atau meninjau data bulan terpilih.':'Metode awal dapat disesuaikan oleh Admin/PMKP.'}</span></div>
+            <div><strong>{tab==='entry'?'Lembar kerja tahunan':'Master dan aturan perhitungan'}</strong><span>{tab==='entry'?'Januari–Desember ditampilkan sekaligus. Perubahan dapat disimpan dalam satu kali proses.':'Metode awal dapat disesuaikan oleh Admin/PMKP.'}</span></div>
+            {tab==='entry' && <button type="button" className="spmPrimary" disabled={saving || (groupFilter==='Instalasi Rawat Inap' && activeRoomId==null)} onClick={() => void saveAnnualMeasurements()}>{saving?'Menyimpan…':'Simpan perubahan tahunan'}</button>}
             {tab==='config' && !canConfigure && <span className="spmInfoTag">Baca-saja · Admin/PMKP dapat mengubah</span>}
           </div>
           <div className="spmTableScroll">
             <table>
               <thead><tr>
                 <th>Kode</th><th>Indikator / kelompok</th><th>Target</th>
-                {tab==='entry' ? <><th>Capaian {MONTHS[month-1]}</th><th>Status</th><th>Sumber data</th><th>Aksi</th></>
+                {tab==='entry' ? <>{MONTHS.map(name => <th key={name}>{name.slice(0,3)}</th>)}<th>Target</th><th>Sumber</th></>
                   : <><th>Metode aktif</th><th>Definisi N / D</th><th>Sumber</th><th>Aksi</th></>}
               </tr></thead>
               <tbody>
@@ -513,11 +608,18 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                     <td><strong>{indicator.title}</strong><small>{indicator.group_name}</small></td>
                     <td>{formatTarget(indicator)}</td>
                     {tab==='entry' ? <>
-                      <td className="spmValue">{formatResult(indicator,monthly?.value)}</td>
-                      <td><span className={'spmStatus '+(monthly?.status ?? 'no_data')}>{statusText(monthly?.status ?? 'no_data')}</span>{measured?.status==='submitted'&&<small>Menunggu verifikasi</small>}</td>
-                      <td><span className="spmSource">{sourceText(indicator)}</span></td>
-                      <td>{indicator.source_mode==='quality_linked' ? <span className="spmLocked">Terhubung otomatis</span> :
-                        canChange ? <button type="button" className="spmAction" onClick={() => openEdit(indicator)}>{measured?'Perbarui':'Isi data'}</button> : <span className="spmLocked">Tidak ada akses edit</span>}</td>
+                      {MONTHS.map((name,index) => {
+                        const monthNumber = index + 1
+                        const rowMeasurement = measurementMap.get(measurementKey(indicator, monthNumber))
+                        const keys = inputKeys(indicator)
+                        const roomMissing = indicator.group_name === 'Instalasi Rawat Inap' && activeRoomId == null
+                        const linkedRoomUnsupported = indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap'
+                        return <td className="spmAnnualCell" key={name}>
+                          {keys.length === 0 ? <span className="spmLocked">Otomatis</span> : linkedRoomUnsupported ? <span className="spmLocked" title="Denominator per unit belum tersedia">Sumber per unit belum dipetakan</span> : keys.map(key => <input key={key} aria-label={indicator.code + ' ' + name + ' ' + key} type="number" min="0" step="any" placeholder={key==='numerator'?'N':key==='denominator'?'D':key==='score_mean'?'Skor':key==='respondents'?'n':'Nilai'} disabled={!canChange || roomMissing} value={annualDrafts[indicator.id + ':' + monthNumber + ':' + key] ?? ''} onChange={event => setAnnualDrafts(current => ({...current,[indicator.id + ':' + monthNumber + ':' + key]:event.target.value}))} />)}
+                          {rowMeasurement?.status === 'validated' && <small className="spmValidatedMark">Tervalidasi</small>}
+                        </td>
+                      })}
+                      <td>{formatTarget(indicator)}</td><td><span className="spmSource">{sourceText(indicator)}</span></td>
                     </> : <>
                       <td>{methodLabel(indicator.calculation_config?.method)}</td>
                       <td className="spmDefinition"><span>N: {indicator.numerator_definition || '-'}</span><span>D: {indicator.denominator_definition || '-'}</span></td>
@@ -526,7 +628,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                     </>}
                   </tr>
                 })}
-                {!visibleIndicators.length && <tr><td colSpan={tab==='entry'?7:7} className="spmEmpty">Tidak ada indikator yang cocok dengan filter.</td></tr>}
+                {!visibleIndicators.length && <tr><td colSpan={tab==='entry'?18:7} className="spmEmpty">Tidak ada indikator yang cocok dengan filter.</td></tr>}
               </tbody>
             </table>
           </div>
