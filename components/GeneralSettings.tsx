@@ -565,7 +565,6 @@ export default function GeneralSettings({
       <div className="stLayout">
       <nav className="stNav" aria-label="Menu pengaturan">
         <div className="stNavProfile">
-          <span className="stAvatar" aria-hidden="true">{(me?.full_name || 'A').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}</span>
           <span className="stNavWho"><b>{me?.full_name || 'Akun AUREKA'}</b><small>{roleLabel}</small></span>
         </div>
         {([
@@ -594,7 +593,6 @@ export default function GeneralSettings({
       {section === 'general' && (
         <>
           {tab === 'profile' && <LiquidGlass className="stHeroCard">
-            <span className="stAvatar lg" aria-hidden="true">{(me?.full_name || 'A').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}</span>
             <div className="stHeroText">
               <h3>{me?.full_name || 'Akun AUREKA'}</h3>
               <p>{me?.email || 'Akun AUREKA'}</p>
