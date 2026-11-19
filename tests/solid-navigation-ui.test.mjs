@@ -18,7 +18,7 @@ test('Arktik is the active workspace skin and Solid override layers are not load
   assert.ok(bundle.indexOf("@import './dark-mode-mobile-fixes.css'") < bundle.indexOf("@import './aureka-navigation-pill.css'"))
   assert.ok(bundle.indexOf("@import './aureka-global-navigation.css'") < bundle.indexOf("@import './aureka-navigation-pill.css'"))
   assert.ok(bundle.indexOf("@import './aureka-navigation-repair.css'") < bundle.indexOf("@import './aureka-acrylic-navigation-polish.css'"))
-  assert.ok(bundle.trimEnd().endsWith("@import './aureka-acrylic-navigation-polish.css';"))
+  assert.ok(bundle.includes("@import './aureka-acrylic-navigation-polish.css';") && bundle.indexOf("@import './aureka-acrylic-navigation-polish.css';") < bundle.indexOf("@import './aureka-layout-integrity.css';"))
   for (const legacy of ["clinical-ui.css", "medidash-ui.css", "medidash-polish.css", "solid-default.css", "aureka-solid-navigation.css", "aureka-solid-enterprise.css"]) {
     assert.ok(!bundle.includes(legacy), legacy + ' must be removed from the active UI bundle')
   }
