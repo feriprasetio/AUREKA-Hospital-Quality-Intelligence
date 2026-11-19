@@ -1435,3 +1435,139 @@ html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[da
   background: #142235 !important;
   color: #c6d4e1 !important;
 }
+
+
+/* -------------------------------------------------------------------------
+   Canonical Arktik sidebar surface — final cascade authority.
+   The six-domain navigation uses one acrylic surface and one active
+   treatment per level. Parent sections never paint a second active panel.
+   Keep this block last in this file; do not add another sidebar override.
+   ------------------------------------------------------------------------- */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar {
+  background: linear-gradient(180deg, rgba(255,255,255,.68) 0%, rgba(247,250,253,.48) 58%, rgba(241,246,250,.42) 100%) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.68) 0%, rgba(247,250,253,.48) 58%, rgba(241,246,250,.42) 100%) !important;
+  border: 1px solid rgba(255,255,255,.78) !important;
+  box-shadow: 0 12px 34px rgba(37,67,91,.075), inset 0 1px 0 rgba(255,255,255,.82) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(145%) !important;
+  backdrop-filter: blur(24px) saturate(145%) !important;
+}
+
+/* Section wrappers are structural only; never render a second active card. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Neutral rows stay transparent. Hover is a light glass tint, not a solid fill. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #405a70 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger:hover {
+  background: rgba(255,255,255,.34) !important;
+  border-color: rgba(255,255,255,.64) !important;
+  color: #193f5e !important;
+}
+
+/* Exactly one active surface for the selected top-level category. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive {
+  background: rgba(255,255,255,.62) !important;
+  background-image: none !important;
+  border: 1px solid rgba(191,210,227,.72) !important;
+  color: #173f5e !important;
+  box-shadow: 0 2px 8px rgba(37,67,91,.045), inset 0 1px 0 rgba(255,255,255,.86) !important;
+  font-weight: 750 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger .sidebarNavIcon {
+  color: #6e879b !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger .sidebarNavIcon,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive .sidebarNavIcon {
+  color: #416b89 !important;
+}
+
+/* Submenu remains visually subordinate; its active state is translucent. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-left-color: rgba(132,163,190,.34) !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #526b80 !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem:hover {
+  background: rgba(255,255,255,.34) !important;
+  border-color: rgba(255,255,255,.58) !important;
+  color: #193f5e !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem.active {
+  background: rgba(255,255,255,.48) !important;
+  border: 1px solid rgba(191,210,227,.52) !important;
+  border-left: 2px solid #789bb7 !important;
+  color: #193f5e !important;
+  font-weight: 700 !important;
+}
+
+/* Dark Arktik keeps the same hierarchy without green/cyan solid blocks. */
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+  background: linear-gradient(180deg, rgba(22,36,51,.88), rgba(15,27,40,.84)) !important;
+  background-image: linear-gradient(180deg, rgba(22,36,51,.88), rgba(15,27,40,.84)) !important;
+  border-color: rgba(150,174,195,.20) !important;
+  box-shadow: 0 12px 34px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.06) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  backdrop-filter: blur(24px) saturate(130%) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  background: transparent !important;
+  color: #c5d2df !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger:hover {
+  background: rgba(255,255,255,.055) !important;
+  border-color: rgba(255,255,255,.10) !important;
+  color: #f1f5f9 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger,
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger.navActive {
+  background: rgba(255,255,255,.085) !important;
+  border-color: rgba(170,193,212,.22) !important;
+  color: #f1f5f9 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  border-left-color: rgba(150,174,195,.22) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem {
+  background: transparent !important;
+  color: #b9c8d6 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem:hover {
+  background: rgba(255,255,255,.055) !important;
+  border-color: rgba(255,255,255,.09) !important;
+  color: #f1f5f9 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem.active {
+  background: rgba(255,255,255,.075) !important;
+  border-color: rgba(170,193,212,.18) !important;
+  border-left-color: #789bb7 !important;
+  color: #f1f5f9 !important;
+}
