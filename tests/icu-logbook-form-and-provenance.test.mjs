@@ -118,14 +118,15 @@ test('monthly indicator cells open the exact Excel provenance for the selected m
 
 test('ICU BHP/Linen header matching accepts combined variants but rejects split columns', () => {
   const helper = read('lib/aureka/icu-excel-headers.ts')
-  assert.match(helper, /tokens\.includes\('bhp'\) && tokens\.includes\('linen'\)/)
+  assert.match(helper, /const hasBhp = tokens\.includes\('bhp'\) \|\| normalized\.includes\('bahan habis pakai'\)/)
+  assert.match(helper, /hasBhp && tokens\.includes\('linen'\)/)
   assert.match(helper, /findIcuBhpLinenHeaderCandidates/)
   assert.match(helper, /findIcuBhpLinenHeaderColumns/)
   const importer = read('components/IcuExcelImportDialog.tsx')
   assert.match(importer, /findIcuBhpLinenHeaderColumns\(columns\)/)
   assert.match(importer, /findIcuBhpLinenHeaderCandidates\(bestColumns\)/)
   assert.match(importer, /combinedBhpLinenColumns\.length === 1/)
-  assert.ok(!importer.includes("'Kekosongan Linen'"), 'Linen-only headers must not map to combined BHP/Linen indicator')
+  assert.ok(importer.includes("'Kekosongan Linen'"), 'The legacy workbook uses this verified alias for indicator 14.1')
 })
 
 test('BHP/Linen resolver uses a single combined source column and flags multiple candidates', () => {
