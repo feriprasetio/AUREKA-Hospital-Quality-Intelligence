@@ -99,23 +99,26 @@ test('Timkordik 2026 workbook import is available from the main quality audit wo
   assert.ok(!mainAuditCall.includes('hidePatientEpisodeEntry') && !mainAuditCall.includes('patientRegistryMode'))
 })
 
-test('SPM has its own route and workspace under Quality & Risk Management', () => {
+test('SPM belongs to Performance Management while preserving its existing workspace and route', () => {
   const home = read('components/HomeClient.tsx')
-  assert.ok(home.includes('sidebarSpmQuickLink'))
-  assert.ok(home.includes("selectDomainDestination('quality_risk',{moduleId:'quality',childId:'spm'})"))
-  assert.match(home, /if\(moduleId==='quality'&&childId==='spm'\)/)
+  assert.match(home, /if\(active==='quality'&&spmOpen\)return 'performance_management'/)
   assert.match(home, /#indikator-mutu\/spm/)
-  assert.match(home, /active==='quality'&&spmOpen/)
   assert.ok(home.includes(":active==='quality'&&spmOpen?<SpmWorkspace"))
+  const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
+  const performanceDomain = home.slice(home.indexOf("{id:'performance_management'"), home.indexOf("{id:'governance_organization'"))
+  assert.doesNotMatch(qualityDomain, /id:'spm'/)
+  assert.match(performanceDomain, /id:'spm',label:'Standar Pelayanan Minimal \(SPM\)',moduleId:'quality',childId:'spm'/)
   const qualityMenu = home.slice(home.indexOf("quality:role==='DEWAN_PENGAWAS'"), home.indexOf('clinical:[', home.indexOf("quality:role==='DEWAN_PENGAWAS'")))
-  assert.ok(qualityMenu.includes("{id:'spm',label:'Standar Pelayanan Minimal (SPM)'}"))
+  assert.doesNotMatch(qualityMenu, /id:'spm'/)
 })
 
-test('SPM is available as a persistent direct sidebar shortcut', () => {
+test('SPM has one domain destination and no duplicate direct-access shortcut', () => {
   const home = read('components/HomeClient.tsx')
-  assert.ok(home.includes('<div className="navLabel">Akses langsung</div>'))
-  assert.ok(home.includes('sidebarSpmQuickLink'))
-  assert.ok(home.includes("selectDomainDestination('quality_risk',{moduleId:'quality',childId:'spm'})"))
+  assert.doesNotMatch(home, /sidebarSpmQuickLink|Akses langsung/)
+  assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'"))
+  assert.ok(home.includes("if(moduleId==='quality'&&childId==='spm')"))
+})
+
   assert.ok(home.includes("if(active==='quality'&&spmOpen)return 'quality_risk'"))
   const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
   assert.match(qualityDomain, /id:'spm',label:'Standar Pelayanan Minimal \(SPM\)',moduleId:'quality',childId:'spm'/)
