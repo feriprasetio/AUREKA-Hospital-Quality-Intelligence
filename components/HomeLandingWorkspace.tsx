@@ -119,7 +119,7 @@ export default function HomeLandingWorkspace({
     }
   }
 
-  const [activity,setActivity] = useState<{lastAt:string|null;pending:{label:string;count:number;module:string}[];partial:boolean}>({lastAt:null,pending:[],partial:false})
+  const [refreshKey,setRefreshKey]=useState(0)\n   const [refreshing,setRefreshing]=useState(false)\n   useEffect(()=>{if(refreshKey===0)return;setRefreshing(true);const done=window.setTimeout(()=>setRefreshing(false),700);return()=>window.clearTimeout(done)},[refreshKey])\n   const [activity,setActivity] = useState<{lastAt:string|null;pending:{label:string;count:number;module:string}[];partial:boolean}>({lastAt:null,pending:[],partial:false})
   useEffect(() => {
     let cancelled=false
     if(!userId){setActivity({lastAt:null,pending:[],partial:true});return}
@@ -156,7 +156,7 @@ export default function HomeLandingWorkspace({
       setActivity({lastAt,pending,partial:jobs.some(result=>Boolean(result.error))})
     })().catch(()=>{if(!cancelled)setActivity({lastAt:null,pending:[],partial:true})})
     return()=>{cancelled=true}
-  },[supabase,userId,scopeToRoom,roomId,roomName])
+  },[supabase,userId,scopeToRoom,roomId,roomName,refreshKey])
 
   const firstName = userName.trim().split(/\s+/)[0] || 'Pengguna'
   const greeting = (() => {
@@ -165,47 +165,141 @@ export default function HomeLandingWorkspace({
   })()
   const dateLabel = new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date())
 
-  return <section className="homeLanding">
+  return <section className="ccWorkspace" aria-label="AUREKA Command Center">
     <style>{`
-      .homeLanding{display:grid;gap:16px;color:var(--ink,#102A43)}.hlExplorer{display:grid;gap:18px}.hlExplorerHead,.hlVisualizationHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.hlExplorerHead h3,.hlVisualizationHead h4{margin:0;color:#102A43;font-size:16px;font-weight:750}.hlExplorerHead p,.hlVisualizationHead p{margin:4px 0 0;color:#7b8981;font-size:12px;line-height:1.5}.hlDataScope{padding:6px 10px;border-radius:8px;background:#EFF5FA;color:#16507A;font-size:12px;font-weight:700;white-space:nowrap}.hlFilterGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.hlFilterGrid label{display:grid;gap:6px;min-width:0}.hlFilterGrid label>span{font-size:12px;font-weight:750;color:#536B80}.hlFilterGrid select{width:100%;min-width:0;min-height:42px;border:1px solid #D7E2EB;border-radius:9px;background:#fff;color:#102A43;padding:8px 32px 8px 11px;font-size:12px;font-weight:650}.hlSummaryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.hlSummaryMetric{min-width:0;padding:13px 15px;border:1px solid #E6EDF3;border-radius:10px;background:#f8faf8}.hlSummaryMetric span,.hlSummaryMetric small{display:block;color:#62788B;font-size:12px;line-height:1.4}.hlSummaryMetric strong{display:block;margin:5px 0 2px;color:#102A43;font-size:22px;line-height:1.15;font-weight:800;overflow-wrap:anywhere}.hlVisualizationHead{padding-top:4px;border-top:1px solid #edf2ee}.hlVisualizationHead h4{font-size:15px}.hlVisualizationHead>span{color:#7B8FA3;font-size:12px;white-space:nowrap}.hlDonutLayout{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);align-items:center;gap:22px;max-width:760px;margin:0 auto}.hlDonutLayout svg{width:100%;height:auto;max-height:260px}.hlDonutLegend{display:grid;gap:9px;min-width:0}.hlLegendItem{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:9px;align-items:center;font-size:12px;color:#536B80}.hlLegendItem i{width:9px;height:9px;border-radius:50%}.hlLegendItem span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hlLegendItem b{color:#203447;font-size:12px;font-variant-numeric:tabular-nums}.hlTabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line,rgba(30,60,45,.14));padding-bottom:10px}.hlTab{border:1px solid transparent;border-radius:10px;padding:10px 14px;background:transparent;color:#66766d;font-size:12px;font-weight:750;cursor:pointer}.hlTab.active{background:#E3EFF8;color:#16507A;border-color:#C8DCEB}.hlWelcomeCard,.hlPanel{background:#fff;border:1px solid var(--line,rgba(30,60,45,.13));border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(28,60,43,.035)}.hlWelcomeCard{background:linear-gradient(125deg,#F3F7FA,#fff 70%);display:grid;gap:7px}.hlWelcomeCard .hlGreeting{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:-.04em;color:#102A43}.hlWelcomeCard p{margin:0;color:#62788B;font-size:12px}.hlUnitPicker{display:grid;gap:5px;max-width:420px;margin-top:4px}.hlUnitPicker span{font-size:12px;font-weight:800;color:#536B80}.hlUnitPicker select{width:100%;min-height:40px;border:1px solid #D7E2EB;border-radius:10px;background:#fff;color:#102A43;padding:8px 11px;font-size:12px;font-weight:700;outline:none}.hlUnitPicker select:focus-visible{border-color:#2D6E9E;box-shadow:0 0 0 3px rgba(57,124,88,.14)}.hlDate{font-size:12px;color:#62788B}.hlPanelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.hlPanelHead h3{font-size:15px;margin:0;color:#102A43}.hlPanelHead span{font-size:12px;color:#819087}.hlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hlMetric{padding:13px;border-radius:12px;background:#F7FAFC;border:1px solid #E6EDF3}.hlMetric span{display:block;font-size:12px;color:#62788B}.hlMetric strong{display:block;font-size:23px;margin-top:5px;color:#102A43}.hlMetric small{font-size:12px;color:#7B8FA3}.hlChart{width:100%}.hlChart svg{width:100%;height:auto;overflow:visible}.hlAxis{display:flex;justify-content:space-between;color:#7B8FA3;font-size:12px}.hlBars{display:grid;gap:8px}.hlBarRow{display:grid;grid-template-columns:minmax(90px,1fr) 3fr 28px;gap:8px;align-items:center;font-size:12px}.hlBarTrack{height:8px;background:#edf2ee;border-radius:10px;overflow:hidden}.hlBarFill{height:100%;background:#2D6E9E;border-radius:10px}.hlPendingRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid #E6EDF3;border-radius:10px;background:#fff;text-align:left;cursor:pointer}.hlPendingRow span{display:grid;gap:4px}.hlPendingRow b{font-size:12px;color:#315442}.hlPendingRow small{font-size:12px;color:#839087}.hlPendingRow strong{font-size:18px;color:#a45b28}.hlEmpty{padding:22px;text-align:center;color:#7B8FA3;font-size:12px}.hlInfoFilter{display:flex;justify-content:flex-end}.hlInfoFilter label{display:grid;gap:5px;font-size:12px;font-weight:700;color:#62788B}.hlInfoFilter select{min-width:240px;min-height:40px;border-radius:12px;padding:8px 12px;font-size:13px}.hlReminder{border-color:#f5c26b!important}.hlReminderRow{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid #f3e1b8;background:#fffaf0}.hlReminderRow small{font-size:12px;color:#8a6a2a}.hlReminderRow p{margin:4px 0 0;font-size:13px;line-height:1.5;color:#3d3220;white-space:pre-wrap}.hlReminderActions{display:flex;flex:0 0 auto;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.hlReminderBtn{flex:0 0 auto;border:0;border-radius:10px;padding:9px 14px;background:#0b467a;color:#fff;font-size:12px;font-weight:700;cursor:pointer}.hlReminderReadBtn{flex:0 0 auto;border:1px solid #d8e1e8;border-radius:10px;padding:8px 12px;background:#fff;color:#40556a;font-size:12px;font-weight:700;cursor:pointer}.hlReminderReadBtn:disabled{opacity:.6;cursor:wait}.hlNotice{padding:11px 13px;border-radius:10px;background:#fff7e9;color:#805e2b;font-size:12px}@media(max-width:1000px){.hlFilterGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.hlDonutLayout{grid-template-columns:minmax(180px,240px) minmax(0,1fr)}}@media(max-width:640px){.hlFilterGrid,.hlSummaryGrid{grid-template-columns:1fr}.hlExplorerHead,.hlVisualizationHead{display:grid}.hlDataScope,.hlVisualizationHead>span{justify-self:start}.hlDonutLayout{grid-template-columns:1fr}.hlDonutLayout svg{max-width:250px;margin:auto}.hlGrid{grid-template-columns:1fr}.hlWelcomeCard,.hlPanel{padding:14px}.hlTab{flex:1}}`}</style>
-    <section className="hlWelcomeCard hlAuroraHero">
-      <div className="hlHeroText">
-        <span className="hlHeroEyebrow">0° Khatulistiwa · {dateLabel}</span>
-        <span className="hlGreeting">{greeting}, <span className="hlGreetName">{firstName}</span></span>
-        <span className="hlHeroSub">RSUD Sultan Syarif Mohamad Alkadrie · {roomName && roomName!=='Seluruh rumah sakit' ? roomName : 'Kota Pontianak'}</span>
-        {scopeToRoom && <small className="hlUnitHint">Cakupan mengikuti unit aktif pada header AUREKA</small>}
+      .ccWorkspace{display:grid;gap:16px;min-width:0;color:#20384d}
+      .ccTop{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:21px 23px;border:1px solid rgba(255,255,255,.82);border-radius:18px;background:linear-gradient(125deg,rgba(255,255,255,.84),rgba(239,246,251,.76));box-shadow:0 8px 26px rgba(34,67,93,.055);backdrop-filter:blur(16px)}
+      .ccEyebrow{display:block;margin-bottom:7px;color:#71899d;font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
+      .ccTitle{margin:0;color:#183b58;font-size:clamp(23px,3vw,31px);font-weight:850;letter-spacing:-.045em;line-height:1.15}
+      .ccSub{margin:7px 0 0;color:#61798d;font-size:12px;line-height:1.55}
+      .ccScope{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:6px 10px;border:1px solid #dce7ef;border-radius:999px;background:rgba(255,255,255,.64);color:#476780;font-size:11px;font-weight:750}
+      .ccScopeDot{width:7px;height:7px;border-radius:50%;background:#789bb7}
+      .ccTopActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+      .ccAction{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:9px 12px;border:1px solid #d5e1eb;border-radius:10px;background:rgba(255,255,255,.74);color:#31536f;font-size:11px;font-weight:750;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+      .ccAction:hover{background:#fff;border-color:#aebfd0;transform:translateY(-1px)}
+      .ccAction.primary{background:#285a80;border-color:#285a80;color:#fff}
+      .ccAction.primary:hover{background:#204b6d}
+      .ccAction:disabled{opacity:.55;cursor:wait;transform:none}
+      .ccSection{min-width:0;padding:17px 18px;border:1px solid #e1e9f0;border-radius:15px;background:rgba(255,255,255,.84);box-shadow:0 4px 18px rgba(34,67,93,.035)}
+      .ccSectionHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}
+      .ccSectionHead h2{margin:0;color:#24455f;font-size:14px;font-weight:800}
+      .ccSectionHead p{margin:4px 0 0;color:#7a8fa1;font-size:11px;line-height:1.45}
+      .ccMeta{color:#7a8fa1;font-size:11px;text-align:right}
+      .ccKpiGrid{display:grid;gap:12px}
+      .ccKpiGrid .hlKpiRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+      .ccKpiGrid .hlKpiCard{min-width:0;padding:13px 14px;border:1px solid #e2eaf1;border-radius:12px;background:#f8fafc}
+      .ccKpiGrid .hlKpiCard>span{display:block;color:#6b8296;font-size:11px;line-height:1.4}
+      .ccKpiGrid .hlKpiCard>strong{display:block;margin:7px 0 3px;color:#1e405c;font-size:25px;line-height:1.1;font-weight:850}
+      .ccKpiGrid .hlKpiCard>small{color:#7b8fa1;font-size:10px}
+      .ccKpiGrid .hlKpiDanger{border-color:#ead8d7;background:#fcf8f8}
+      .ccKpiGrid .hlKpiDanger>strong{color:#a34b48}
+      .ccKpiGrid .hlDataTrust{margin-top:1px}
+      .ccKpiGrid .hlDataTrustState.complete{color:#426b87}
+      .ccKpiGrid .hlDeadlines{display:grid;gap:8px;margin-top:4px}
+      .ccKpiGrid .hlDeadline{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:9px;padding:10px 11px;border:1px solid #eadfc9;border-radius:10px;background:#fffaf2}
+      .ccKpiGrid .hlDeadline.danger{border-color:#ead6d5;background:#fff8f7}
+      .ccKpiGrid .hlDeadline p{margin:0;color:#66564c;font-size:11px;line-height:1.45}
+      .ccKpiGrid .hlDeadline button{padding:7px 10px;border:1px solid #d6e1e9;border-radius:8px;background:#fff;color:#315a79;font-size:10px;font-weight:750;cursor:pointer}
+      .ccKpiGrid .hlDeadlineIcon{color:#8b7a68}
+      .ccKpiGrid .hlRtlList{grid-column:2/-1;margin:0;padding-left:16px;color:#6e5b50;font-size:10px}
+      .ccKpiGrid .hlRtlList li{margin:3px 0}
+      .ccKpiGrid .hlRtlList span,.ccKpiGrid .hlRtlList em{margin-left:8px;color:#8b7c72;font-style:normal}
+      .ccColumns{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr);gap:14px;align-items:start}
+      .ccWorkList{display:grid;gap:8px}
+      .ccWorkItem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:11px 12px;border:1px solid #e4ebf1;border-radius:10px;background:#fbfcfd;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+      .ccWorkItem:hover{border-color:#bdcfde;background:#f5f9fc}
+      .ccWorkItem span{display:grid;gap:3px;min-width:0}
+      .ccWorkItem b{color:#35536c;font-size:11px;font-weight:750}
+      .ccWorkItem small{color:#8294a3;font-size:10px}
+      .ccWorkCount{flex:none;display:grid;place-items:center;min-width:31px;height:29px;padding:0 7px;border:1px solid #e0e8ef;border-radius:9px;background:#f0f5f9;color:#315b7a;font-size:13px;font-weight:850}
+      .ccEmpty{margin:0;padding:16px 12px;border:1px dashed #dce5ed;border-radius:10px;color:#778c9e;font-size:11px;line-height:1.5}
+      .ccActivityMeta{display:grid;gap:9px}
+      .ccActivityLine{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #edf1f4;font-size:11px}
+      .ccActivityLine:last-child{border-bottom:0}
+      .ccActivityLine span{color:#7a8fa1}
+      .ccActivityLine b{color:#35536c;text-align:right;font-weight:750}
+      .ccShortcutGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+      .ccShortcut{display:flex;align-items:center;gap:10px;min-width:0;padding:12px;border:1px solid #e1e9f0;border-radius:11px;background:#fbfcfd;color:#34556f;text-align:left;cursor:pointer}
+      .ccShortcut:hover{border-color:#b8cada;background:#f5f9fc}
+      .ccShortcutIcon{display:grid;place-items:center;flex:none;width:31px;height:31px;border-radius:9px;background:#eaf1f6;color:#527895;font-size:15px;font-weight:800}
+      .ccShortcut span:last-child{display:grid;gap:3px;min-width:0}
+      .ccShortcut b{font-size:11px;font-weight:800}
+      .ccShortcut small{color:#8395a4;font-size:10px;line-height:1.3}
+      .ccReminder{display:flex;align-items:flex-start;gap:12px;padding:13px;border:1px solid #e8d9bd;border-radius:12px;background:#fffaf2}
+      .ccReminderText{display:grid;gap:5px;min-width:0;flex:1}
+      .ccReminderText b{color:#725b37;font-size:11px}
+      .ccReminderText span{color:#695f50;font-size:12px;line-height:1.5;white-space:pre-wrap}
+      .ccReminderActions{display:flex;gap:7px;flex-wrap:wrap}
+      .ccReminderActions button{padding:7px 10px;border:1px solid #d9e2e9;border-radius:8px;background:#fff;color:#355b79;font-size:10px;font-weight:750;cursor:pointer}
+      .ccReminderActions button:first-child{background:#285a80;border-color:#285a80;color:#fff}
+      .ccFootnote{margin:0;color:#8293a1;font-size:10px;line-height:1.5}
+      @media(max-width:900px){.ccColumns{grid-template-columns:1fr}.ccKpiGrid .hlKpiRow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      @media(max-width:640px){.ccTop{display:grid;padding:16px}.ccTopActions{justify-content:flex-start}.ccSection{padding:13px}.ccKpiGrid .hlKpiRow{grid-template-columns:repeat(2,minmax(0,1fr))}.ccShortcutGrid{grid-template-columns:1fr}.ccShortcut{padding:10px}.ccReminder{display:grid}.ccReminderActions{justify-content:flex-start}.ccKpiGrid .hlDeadline{grid-template-columns:22px minmax(0,1fr)}.ccKpiGrid .hlDeadline button{grid-column:2;justify-self:start}.ccKpiGrid .hlRtlList{grid-column:2}}
+    `}</style>
+
+    <header className="ccTop">
+      <div>
+        <span className="ccEyebrow">AUREKA · Hospital Quality Intelligence · {dateLabel}</span>
+        <h1 className="ccTitle">{greeting}, {firstName}</h1>
+        <p className="ccSub">Pusat kendali operasional mutu, keselamatan pasien, risiko, dan tindak lanjut rumah sakit.</p>
+        <span className="ccScope"><i className="ccScopeDot"/>Cakupan: {roomName||'Cakupan akun'}{scopeToRoom?' · mengikuti unit aktif':''}</span>
       </div>
-      <div className="hlHeroActions">
-        <button type="button" className="hlHeroBtn" onClick={()=>onNavigate('safety',{tab:'incidents',newReport:true})}>Lapor insiden</button>
-        <button type="button" className="hlHeroBtn primary" onClick={()=>onNavigate('quality')}>Isi logbook</button>
-        {onAskNara && <button type="button" className="hlHeroBtn" onClick={()=>onAskNara('Bantu saya menentukan tiga prioritas perbaikan berdasarkan data yang dapat saya akses. Bedakan data, keterbatasan dan rekomendasi.','Beranda · '+(roomName||'Cakupan akun'))}>Analisis dengan NARA</button>}
-        <button type="button" className="hlPwBtn hlPwIcon" onClick={()=>window.dispatchEvent(new Event('aureka-open-password'))} title="Ubah password" aria-label="Ubah password">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
-        </button>
+      <div className="ccTopActions">
+        <button type="button" className="ccAction" onClick={()=>setRefreshKey(v=>v+1)} disabled={refreshing}>↻ {refreshing?'Memuat…':'Perbarui data'}</button>
+        <button type="button" className="ccAction" onClick={()=>window.dispatchEvent(new Event('aureka-open-password'))}>Keamanan akun</button>
+        <button type="button" className="ccAction primary" onClick={()=>onNavigate('quality')}>Buka logbook</button>
       </div>
-    </section>
-    {reminders.length>0 && !(reminders[0].sent && hiddenReminder===reminders[0].id) && (()=>{const r=reminders[0];const when=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',timeZone:'Asia/Pontianak'}).format(new Date(r.at));return <section className="hlReminderBar" role="region" aria-label="Pengingat dari Komite PMKP">
-      <span className="hlReminderIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>
-      <div className="hlReminderText"><b>Komite PMKP · {r.sent ? r.sent+' unit' : reminders.length+' belum dibaca'} · {when}</b><span title={r.body}>{r.body||'Buka pesan untuk membaca pengingat.'}</span></div>
-      <div className="hlReminderActions">
-        <button type="button" className="hlReminderBtn" onClick={()=>window.dispatchEvent(new CustomEvent('aureka-open-support',{detail:{id:r.id}}))}>{r.sent?'Buka pesan':'Balas'}</button>
-        {!r.sent&&<button type="button" className="hlReminderReadBtn" disabled={reminderSaving===r.id} onClick={()=>void markReminderRead(r.id)}>{reminderSaving===r.id?'Menyimpan…':'Tandai sudah dibaca'}</button>}
-        {r.sent&&<button type="button" className="hlReminderReadBtn" onClick={()=>hideReminder(r.id)}>Sembunyikan</button>}
+    </header>
+
+    {reminders.length>0 && !(reminders[0].sent && hiddenReminder===reminders[0].id) && (()=>{const r=reminders[0];const when=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',timeZone:'Asia/Pontianak'}).format(new Date(r.at));return <section className="ccReminder" role="region" aria-label="Pengingat dari Komite PMKP">
+      <span className="ccShortcutIcon" aria-hidden="true">!</span>
+      <div className="ccReminderText"><b>Pengingat Komite PMKP · {r.sent?r.sent+' unit':reminders.length+' belum dibaca'} · {when}</b><span>{r.body||'Buka pesan untuk membaca pengingat.'}</span></div>
+      <div className="ccReminderActions">
+        <button type="button" onClick={()=>window.dispatchEvent(new CustomEvent('aureka-open-support',{detail:{id:r.id}}))}>{r.sent?'Buka pesan':'Balas'}</button>
+        {!r.sent&&<button type="button" disabled={reminderSaving===r.id} onClick={()=>void markReminderRead(r.id)}>{reminderSaving===r.id?'Menyimpan…':'Tandai dibaca'}</button>}
+        {r.sent&&<button type="button" onClick={()=>hideReminder(r.id)}>Sembunyikan</button>}
       </div>
     </section>})()}
-    <section className="hlPanel" aria-label="Prioritas perhatian">
-      <header className="hlPanelHead"><h3>Priority attention</h3><span>Sinyal ringkas sesuai cakupan akses</span></header>
-      <HomeKpis supabase={supabase} rooms={rooms} isAdmin={isAdmin||manager} roomId={roomId} showSafety={isAdmin||manager} onNavigate={onNavigate}/>
+
+    <section className="ccSection" aria-label="Ringkasan kendali rumah sakit">
+      <header className="ccSectionHead"><div><h2>Situational overview</h2><p>Indikator ringkas berdasarkan data yang berhasil dibaca dari sumber AUREKA.</p></div><span className="ccMeta">Tahun {new Date().getFullYear()}</span></header>
+      <div className="ccKpiGrid">
+        <HomeKpis key={refreshKey} supabase={supabase} rooms={rooms} isAdmin={isAdmin||manager} roomId={roomId} showSafety={isAdmin||manager} onNavigate={onNavigate}/>
+      </div>
     </section>
-    <section className="hlPanel" aria-label="Pekerjaan dan aktivitas pengguna">
-      <header className="hlPanelHead">
-        <h3>My work / Unit tasks</h3>
-        <span>{activity.lastAt?new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(activity.lastAt)):'Belum ada aktivitas tercatat'}</span>
-      </header>
-      {activity.pending.length ? <div className="hlBars">{activity.pending.map(item=><button type="button" className="hlPendingRow" key={item.module+item.label} onClick={()=>onNavigate(item.module==='Keselamatan Pasien'?'safety':item.module==='Manajemen Risiko'?'risk':item.module==='Peningkatan Kinerja Klinis'?'clinical':'quality')}>
-        <span><b>{item.label}</b><small>{item.module}</small></span><strong>{item.count}</strong>
-      </button>)}</div> : <p className="hlEmpty">Tidak ada pekerjaan tertunda yang ditemukan pada sumber aktivitas yang terhubung.</p>}
-      {activity.partial&&<p className="hlDate">Sebagian sumber aktivitas belum dapat dibaca. Periksa modul terkait sebelum menyimpulkan bahwa tidak ada pekerjaan tertunda.</p>}
+
+    <div className="ccColumns">
+      <section className="ccSection" aria-label="Antrean pekerjaan">
+        <header className="ccSectionHead"><div><h2>Action queue</h2><p>Item pekerjaan yang masih memerlukan penyelesaian pada sumber aktivitas terhubung.</p></div><span className="ccMeta">{activity.pending.reduce((sum,item)=>sum+item.count,0)} item</span></header>
+        {activity.pending.length?<div className="ccWorkList">{activity.pending.map(item=><button type="button" className="ccWorkItem" key={item.module+item.label} onClick={()=>onNavigate(item.module==='Keselamatan Pasien'?'safety':item.module==='Manajemen Risiko'?'risk':item.module==='Peningkatan Kinerja Klinis'?'clinical':'quality')}>
+          <span><b>{item.label}</b><small>{item.module}</small></span><strong className="ccWorkCount">{item.count}</strong>
+        </button>)}</div>:<p className="ccEmpty">Tidak ada pekerjaan tertunda yang terdeteksi dari sumber yang berhasil dibaca. Periksa status koneksi data sebelum menyimpulkan seluruh pekerjaan telah selesai.</p>}
+        {activity.partial&&<p className="ccFootnote">Sebagian sumber aktivitas belum dapat dibaca. Angka antrean dapat belum lengkap.</p>}
+      </section>
+
+      <section className="ccSection" aria-label="Status aktivitas">
+        <header className="ccSectionHead"><div><h2>Operational pulse</h2><p>Aktivitas akun dan kualitas pembacaan data.</p></div></header>
+        <div className="ccActivityMeta">
+          <div className="ccActivityLine"><span>Pengguna</span><b>{firstName}</b></div>
+          <div className="ccActivityLine"><span>Peran</span><b>{manager?'Manajemen':isAdmin?'Administrator':'Pengguna unit'}</b></div>
+          <div className="ccActivityLine"><span>Unit / cakupan</span><b>{roomName||'Belum ditetapkan'}</b></div>
+          <div className="ccActivityLine"><span>Aktivitas terakhir</span><b>{activity.lastAt?new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(activity.lastAt)):'Belum tercatat'}</b></div>
+          <div className="ccActivityLine"><span>Status pembacaan</span><b>{activity.partial?'Sebagian sumber bermasalah':'Pemeriksaan sumber selesai'}</b></div>
+        </div>
+      </section>
+    </div>
+
+    <section className="ccSection" aria-label="Akses cepat">
+      <header className="ccSectionHead"><div><h2>Quick actions</h2><p>Akses langsung ke aktivitas utama tanpa membuka submenu.</p></div></header>
+      <div className="ccShortcutGrid">
+        <button type="button" className="ccShortcut" onClick={()=>onNavigate('safety',{tab:'incidents',newReport:true})}><span className="ccShortcutIcon">＋</span><span><b>Laporkan insiden</b><small>Mulai pelaporan keselamatan pasien</small></span></button>
+        <button type="button" className="ccShortcut" onClick={()=>onNavigate('quality')}><span className="ccShortcutIcon">▤</span><span><b>Isi logbook mutu</b><small>Masuk ke pencatatan indikator</small></span></button>
+        {onAskNara&&<button type="button" className="ccShortcut" onClick={()=>onAskNara('Analisis data yang dapat saya akses dan tampilkan tiga prioritas tindak lanjut. Pisahkan fakta, keterbatasan data, dan rekomendasi.','Command Center · '+(roomName||'Cakupan akun'))}><span className="ccShortcutIcon">✧</span><span><b>Analisis dengan NARA</b><small>Identifikasi prioritas berbasis data</small></span></button>}
+        {(isAdmin||manager)&&<button type="button" className="ccShortcut" onClick={()=>onNavigate('risk')}><span className="ccShortcutIcon">◇</span><span><b>Manajemen risiko</b><small>Tinjau register dan pengendalian risiko</small></span></button>}
+        {(isAdmin||manager)&&<button type="button" className="ccShortcut" onClick={()=>onNavigate('insights')}><span className="ccShortcutIcon">▥</span><span><b>Analitik eksekutif</b><small>Buka analisis dan infografis</small></span></button>}
+      </div>
     </section>
+
+    <p className="ccFootnote">Command Center menampilkan ringkasan sesuai kewenangan akun. Data yang tidak berhasil dibaca tidak diperlakukan sebagai nol; gunakan modul sumber untuk verifikasi dan tindak lanjut.</p>
   </section>
 }
