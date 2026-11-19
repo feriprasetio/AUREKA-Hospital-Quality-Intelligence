@@ -30,7 +30,7 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
 test('the results rail exposes only the active Hasil Capaian group and its two sub-tabs', () => {
   assert.ok(home.includes("{id:'result-indicators',label:'Hasil Capaian',children:[{id:'result-unit',label:'Unit Keseluruhan'},{id:'result-category',label:'Kategori Indikator'}]}"))
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
-  assert.ok(home.includes('const activeRailTitle=activeNavModuleLabel'))
+  assert.ok(home.includes("const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleLabel"))
   assert.ok(home.includes('title={activeRailTitle}'))
   assert.ok(home.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))

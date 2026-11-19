@@ -164,3 +164,12 @@ test('SPM belongs to Performance Management and keeps its canonical legacy quali
   assert.ok(app.includes("spmOpen?'#indikator-mutu/spm'"))
   assert.ok(!app.includes('sidebarSpmQuickLink'))
 })
+
+
+test('SPM selection state is reset when entering the general quality module', () => {
+  const app = read('components/HomeClient.tsx')
+  assert.ok(app.includes("if(next==='quality'){setSpmOpen(false);"))
+  assert.ok(app.includes("else if(id==='quality'){setSpmOpen(false);"))
+  assert.ok(app.includes("if(section==='spm'){"))
+  assert.ok(app.includes("setActive('quality');setSpmOpen(true);"))
+})
