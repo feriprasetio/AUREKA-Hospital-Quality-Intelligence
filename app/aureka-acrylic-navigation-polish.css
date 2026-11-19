@@ -1571,3 +1571,57 @@ html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[da
   border-left-color: #789bb7 !important;
   color: #f1f5f9 !important;
 }
+
+
+/* Final sidebar-only neutralizer: remove legacy green/cyan pseudo accents
+   from all historical navigation selectors without touching module status colors. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarNav,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainNav,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarFooter {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger.navActive,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainItem {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger::before,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger::after,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarNav > button.navActive::before,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarNav > button.navActive::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger.navActive {
+  background: rgba(255,255,255,.62) !important;
+  border-color: rgba(191,210,227,.72) !important;
+  color: #173f5e !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger:hover {
+  background: rgba(255,255,255,.34) !important;
+  border-color: rgba(255,255,255,.64) !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarFooter .liquidButton button {
+  background: rgba(255,255,255,.62) !important;
+  border-color: rgba(132,163,190,.28) !important;
+  color: #365a77 !important;
+  box-shadow: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarFooter .liquidButton button:hover {
+  background: rgba(255,255,255,.86) !important;
+  color: #193f5e !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger.navActive {
+  background: rgba(255,255,255,.085) !important;
+  border-color: rgba(170,193,212,.22) !important;
+  color: #f1f5f9 !important;
+}
+
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomain.isCommandCenter > .sidebarDomainTrigger {
+  grid-template-columns: 20px minmax(0,1fr) !important;
+}

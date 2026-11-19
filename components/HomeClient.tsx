@@ -72,7 +72,7 @@ type SupportMessage={id:string;conversation_id:string;sender_id:string;body:stri
 type SidebarChild={id:string;label:string;children?:SidebarChild[]}
 type AurekaSidebarDomain = { id:string; label:string; icon:string; items:Array<{id:string;label:string;moduleId:string;childId?:string}> }
 const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[] = [
- {id:'command_center',label:'Command Center',icon:'home',items:[{id:'dashboard',label:'Dashboard sesuai peran',moduleId:'home'}]},
+ {id:'command_center',label:'Command Center',icon:'home',items:[]},
  {id:'clinical_operations',label:'Clinical Operations',icon:'patients',items:[
   {id:'patient_episodes',label:'Data Pasien & Episode',moduleId:'patients',childId:'records'},
   {id:'medical_records',label:'Rekam Medis & Analisis',moduleId:'patients',childId:'analysis'},
@@ -429,7 +429,7 @@ export default function HomeClient(){
   .map(({id,label})=>[id,label] as const),[role,permissionFlags])
 
  const visibleModuleIds=useMemo<Set<string>>(()=>new Set(visibleMods.map(([id])=>id)),[visibleMods])
- const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS.map(domain=>({...domain,items:domain.items.filter(item=>(item.moduleId==='home'||visibleModuleIds.has(item.moduleId))&&(item.moduleId!=='staff'||item.childId!=='pic-performance'||permissionFlags.readPicPerformance)&&(item.moduleId!=='staff'||item.childId!=='directory'||permissionFlags.readDirectory))})).filter(domain=>domain.items.length>0),[visibleModuleIds])
+ const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS.map(domain=>({...domain,items:domain.items.filter(item=>(item.moduleId==='home'||visibleModuleIds.has(item.moduleId))&&(item.moduleId!=='staff'||item.childId!=='pic-performance'||permissionFlags.readPicPerformance)&&(item.moduleId!=='staff'||item.childId!=='directory'||permissionFlags.readDirectory))})).filter(domain=>domain.items.length>0||domain.id==='command_center'),[visibleModuleIds])
  const activeDomainId=useMemo(()=>{
   if(active==='quality'&&spmOpen)return 'performance_management'
   const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>{
@@ -1070,14 +1070,14 @@ export default function HomeClient(){
   <div className="navLabel">Domain kerja</div>
   <nav className="sidebarNav sidebarDomainNav" aria-label="Enam domain utama AUREKA">
    {visibleSidebarDomains.map(domain=>{
-    const expanded=effectiveExpandedDomain===domain.id
+    const expanded=domain.id!=='command_center'&&effectiveExpandedDomain===domain.id
     const selected=activeDomainId===domain.id
-    return <section className={'sidebarDomain '+(selected?'isCurrent ':'')+(expanded?'isExpanded':'')} key={domain.id}>
-     <button type="button" className={'sidebarDomainTrigger '+(selected?'navActive':'')} aria-label={domain.label} aria-expanded={expanded} aria-current={selected?'page':undefined} title={domain.label} onClick={()=>setExpandedDomain(expanded?'':domain.id)}>
+    return <section className={'sidebarDomain '+(domain.id==='command_center'?'isCommandCenter ':'')+(selected?'isCurrent ':'')+(expanded?'isExpanded':'')} key={domain.id}>
+     <button type="button" className={'sidebarDomainTrigger '+(selected?'navActive':'')} aria-label={domain.label} aria-expanded={expanded} aria-current={selected?'page':undefined} title={domain.label} onClick={()=>{if(domain.id==='command_center'){setExpandedDomain('');openMainModule('home')}else setExpandedDomain(expanded?'':domain.id)}}>
       <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[domain.icon]||BOTTOM_NAV_GLYPH.analytics}</svg>
-      <span>{domain.label}</span><svg className="sidebarDomainChevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      <span>{domain.label}</span>{domain.id!=='command_center'&&<svg className="sidebarDomainChevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>}
      </button>
-     {expanded&&<div className="sidebarDomainItems" role="group" aria-label={'Kelompok fungsi '+domain.label}>
+     {expanded&&domain.items.length>0&&<div className="sidebarDomainItems" role="group" aria-label={'Kelompok fungsi '+domain.label}>
       {domain.items.map(item=>{
        const itemSelected=item.moduleId===active&&(
         item.moduleId==='patients'?(item.childId==='analysis'?patientsRegistryTab==='analysis':patientsRegistryTab!=='analysis'):
