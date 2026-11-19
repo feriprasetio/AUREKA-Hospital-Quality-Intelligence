@@ -124,3 +124,27 @@ test('text-only account identity maintains readable contrast in dark mode', () =
   assert.match(dark, /data-mode="gelap"[\s\S]*workspaceHeaderProfileText b[\s\S]*color: #e6eef8 !important/)
   assert.match(dark, /data-mode="gelap"[\s\S]*workspaceHeaderProfileText small[\s\S]*color: #b8c5d4 !important/)
 })
+
+
+test('sidebar domain names wrap fully and use a restrained Arctic neutral active state', () => {
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  const finalSidebar = css.slice(css.indexOf('Sidebar domain rail: neutral Arctic slate'))
+  assert.match(finalSidebar, /--aureka-acrylic-active: #e5ebf0/)
+  assert.match(finalSidebar, /--aureka-acrylic-primary: #0f2a44/)
+  assert.match(finalSidebar, /\.sidebarDomainTrigger > span \{[\s\S]*white-space: normal !important/)
+  assert.match(finalSidebar, /text-overflow: clip !important/)
+  assert.match(finalSidebar, /overflow-wrap: normal !important/)
+  assert.match(finalSidebar, /\.sidebarDomainItem\.active \{[\s\S]*border-left: 3px solid #16507a !important/)
+  assert.match(finalSidebar, /data-mode="gelap"[\s\S]*\.sidebarDomainTrigger/)
+  assert.doesNotMatch(finalSidebar, /sidebarDomainTrigger > span \{[\s\S]{0,300}white-space: nowrap !important/)
+})
+
+test('sidebar long labels do not force the domain trigger into a single-line ellipsis', () => {
+  const repair = read('app/aureka-navigation-repair.css')
+  const finalSidebar = read('app/aureka-acrylic-navigation-polish.css').slice(
+    read('app/aureka-acrylic-navigation-polish.css').indexOf('Sidebar domain rail: neutral Arctic slate')
+  )
+  assert.match(repair, /\.sidebarDomainTrigger > span \{[\s\S]*text-overflow: ellipsis !important/)
+  assert.match(finalSidebar, /\.sidebarDomainTrigger > span \{[\s\S]*overflow: visible !important;[\s\S]*white-space: normal !important/)
+  assert.match(finalSidebar, /\.sidebarDomainTrigger \{[\s\S]*min-height: 46px !important/)
+})
