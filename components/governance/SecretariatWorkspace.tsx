@@ -58,9 +58,8 @@ export default function SecretariatWorkspace({ section }: { section: Secretariat
           description="Struktur menu dan navigasi sudah tersedia, tetapi penyimpanan undangan, berkas materi, absensi, notulensi, dan foto belum terhubung ke backend. Tidak ada data contoh atau catatan rapat fiktif yang ditampilkan. Aktivasi pencatatan memerlukan desain tabel, penyimpanan berkas, hak akses, serta audit trail khusus."
         />
 
-        <div className="rmNotice info" role="note">
-          <strong>Prinsip integrasi data</strong>
-          <p>Satu kegiatan rapat menggunakan satu Meeting ID untuk menghubungkan undangan, materi, absensi, notulensi, dokumentasi, rekomendasi, dan tindak lanjut. Dokumen terkendali seperti SK, SPO, pedoman, kebijakan, dan formulir tetap berada pada kelompok Dokumen Terkendali, bukan di Sekretariat.</p>
+        <div className="workspaceClinicalDisclaimer" role="note">
+          <strong>Prinsip integrasi data.</strong> Satu kegiatan rapat menggunakan satu Meeting ID untuk menghubungkan undangan, materi, absensi, notulensi, dokumentasi, rekomendasi, dan tindak lanjut. Dokumen terkendali seperti SK, SPO, pedoman, kebijakan, dan formulir tetap berada pada kelompok Dokumen Terkendali, bukan di Sekretariat.
         </div>
       </section>
     </section>
