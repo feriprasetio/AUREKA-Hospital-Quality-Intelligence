@@ -899,6 +899,14 @@ html[data-mode="gelap"] body:not(#_) .hlReminder .hlReminderRow { background: rg
 
 /* Hybrid Navigation V3: six domain groups, contextual functional groups.
    Reuse the current Arktik/sidebar tokens; no palette or theme replacement. */
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarSpmQuickLink {
+ margin: 0 0 9px !important;
+ border-color: var(--desk-line, #dfe7df) !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarSpmQuickLink:not(.navActive) {
+ background: #f7faf7 !important;
+ color: #355b48 !important;
+}
 html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainNav { gap: 6px !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomain { display: grid !important; gap: 3px !important; min-width: 0 !important; }
 html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainTrigger {
