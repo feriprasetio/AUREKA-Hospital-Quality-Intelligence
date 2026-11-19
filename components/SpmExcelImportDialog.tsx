@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import type { SpmSourceSummary } from '@/lib/aureka/spm-engine'
 import {
   prepareSpmExcelImport,
   type SpmImportPreview,
@@ -19,6 +20,7 @@ type Props = {
   year: number
   indicators: SpmImportProfile[]
   measurements: ExistingMeasurement[]
+  sourceSummary: SpmSourceSummary | null
   onClose: () => void
   onImported: () => void | Promise<void>
 }
@@ -63,7 +65,7 @@ function inputSummary(row: SpmPreparedMeasurement) {
 }
 
 export default function SpmExcelImportDialog({
-  open, year, indicators, measurements, onClose, onImported,
+  open, year, indicators, measurements, sourceSummary, onClose, onImported,
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [parsing, setParsing] = useState(false)
@@ -143,6 +145,26 @@ export default function SpmExcelImportDialog({
       }
 
       const prepared = prepareSpmExcelImport(grid, indicators, year, selected.name)
+      const profileById = new Map(indicators.map(profile => [profile.id, profile]))
+      const eligibleRows = prepared.rows.filter(row => {
+        const profile = profileById.get(row.indicator_id)
+        if (profile?.source_mode !== 'quality_denominator_linked') return true
+        const denominator = sourceSummary?.falls?.find(item => Number(item.month) === row.period_month)?.denominator
+        if (denominator != null && denominator > 0 && row.input_json.numerator > denominator) {
+          prepared.warnings.push(
+            row.code + ' bulan ' + MONTH_NAMES[row.period_month - 1]
+            + ': numerator ' + row.input_json.numerator
+            + ' melebihi denominator Indikator Mutu ' + denominator
+            + '; nilai ini dilewati agar hasil tidak berstatus tidak valid.',
+          )
+          return false
+        }
+        return true
+      })
+      prepared.rows = eligibleRows
+      if (!prepared.rows.length) {
+        throw new Error('Tidak ada nilai yang lolos pemeriksaan sumber. Periksa kecocokan tahun dan denominator Indikator Mutu.')
+      }
       setPreview(prepared)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String((cause as any)?.message ?? cause)
