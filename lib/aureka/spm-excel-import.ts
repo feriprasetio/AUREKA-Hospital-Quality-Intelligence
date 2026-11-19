@@ -160,7 +160,7 @@ export function prepareSpmExcelImport(
   for (const header of headers) {
     const groupKey = normalizeSpmExcelText(header.group)
     const hasUnitBlocks = headers.some(item => item.row === header.row && item.room_id != null && normalizeSpmExcelText(item.group) === groupKey && normalizeSpmExcelText(item.subunit) !== groupKey)
-    if (header.start === 0 && hasUnitBlocks) continue
+    const parentAggregateBlock = header.start === 0 && hasUnitBlocks
     if (header.start > 0 && !header.room_id) { ignoredUnmatchedRows++; if (header.subunit) warn('Blok tambahan ' + header.subunit + ' tidak dipetakan ke master unit AUREKA; blok dilewati.'); continue }
     if (!groupKey || !knownGroups.has(groupKey)) {
       // Child services not represented as separate SPM master groups are intentionally ignored.
@@ -182,6 +182,7 @@ export function prepareSpmExcelImport(
       }
 
       const profile = candidates[0]
+      if (parentAggregateBlock && profile.source_mode !== 'quality_denominator_linked') continue
       if (profile.source_mode === 'quality_linked') {
         linkedIndicatorsSkipped++
         continue
