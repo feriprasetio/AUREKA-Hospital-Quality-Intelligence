@@ -316,7 +316,7 @@ export default function SpmExcelImportDialog({
                       const exists = existingKeys.has(measurementKey(row.indicator_id,row.period_month,row.room_id))
                       return <tr key={row.indicator_id + ':' + row.period_month + ':' + index}>
                         <td><code>{row.code}</code></td>
-                        <td><span>{row.title}</span><small>{row.group_name}{row.room_id != null ? ' · ' + (preview ? 'Unit #' + row.room_id : '') : ' · Rekap kelompok'}</small></td>
+                        <td><span>{row.title}</span><small>{row.group_name}{row.room_name ? ' · ' + row.room_name : ' · Rekap kelompok'}</small></td>
                         <td>{monthName}</td>
                         <td>{inputSummary(row)}</td>
                         <td>{row.source_row}</td>
