@@ -140,9 +140,9 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const canConfigure = role === 'ADMIN' || role === 'PMKP'
   const canImport = role === 'ADMIN' || role === 'PMKP'
   const canEdit = (indicator: Indicator) => {
-    const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : null
-    if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null) return false
-    return isManager || (role === 'PIC' && roomId != null && rooms.some(room => Number(room.id) === Number(roomId)))
+    const accessRoomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id
+    if (indicator.group_name === 'Instalasi Rawat Inap' && accessRoomId == null) return false
+    return isManager || (role === 'PIC' && accessRoomId != null && rooms.some(room => Number(room.id) === Number(accessRoomId)))
   }
 
   const load = useCallback(async (quiet = false) => {
@@ -407,7 +407,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     for (const indicator of visibleIndicators) {
       if (!canEdit(indicator) || indicator.source_mode === 'quality_linked') continue
       if (indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap') continue
-      const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : indicator.owner_room_id
+      const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : null
       if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null) continue
       for (let m = 1; m <= 12; m++) {
         const keys = inputKeys(indicator)
