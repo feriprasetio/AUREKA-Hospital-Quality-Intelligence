@@ -414,7 +414,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       if (!canEdit(indicator) || indicator.source_mode === 'quality_linked') continue
       const roomId = indicator.group_name === 'Instalasi Rawat Inap' ? activeRoomId : null
       if (indicator.source_mode === 'quality_denominator_linked' && indicator.group_name === 'Instalasi Rawat Inap' && roomId != null) continue
-      if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null) continue
+      if (indicator.group_name === 'Instalasi Rawat Inap' && roomId == null && indicator.source_mode !== 'quality_denominator_linked') continue
       for (let m = 1; m <= 12; m++) {
         const keys = inputKeys(indicator)
         if (!keys.length) continue
