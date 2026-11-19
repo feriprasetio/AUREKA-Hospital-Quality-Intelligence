@@ -213,7 +213,7 @@ test('drawer breakpoint agrees with its controller and is dismissible from insid
 
 test('every workbook importer traps focus and delegates Escape to its original busy-guarded close', () => {
   const importers = readdirSync(new URL('../components', import.meta.url)).filter(name => name.endsWith('ExcelImportDialog.tsx'))
-  assert.equal(importers.length, 22)
+  assert.equal(importers.length, 23)
   for (const file of importers) {
     const source = read('components/' + file)
     assert.match(source, /useAccessibleDialog<HTMLElement>\(\{open,onClose:close,lockScroll:true\}\)/, file)
