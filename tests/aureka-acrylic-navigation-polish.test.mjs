@@ -1,3 +1,20 @@
+test('authoritative Arctic layout layer resolves shell and navigation geometry across breakpoints', () => {
+  const bundle = read('app/aureka-global.css')
+  const css = read('app/aureka-layout-integrity.css')
+  assert.ok(bundle.endsWith("@import './aureka-layout-integrity.css';\\n"))
+  assert.ok(css.includes('grid-template-columns: 264px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('grid-template-columns: 238px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('grid-template-columns: 210px minmax(0, 1fr) !important'))
+  assert.ok(css.includes('grid-template-areas:\\n      "menu context nara inbox theme bell profile"\\n      "search search search search search search search"'))
+  assert.ok(css.includes('grid-template-areas:\\n      "menu context context theme bell"\\n      "search search search search search"\\n      "profile profile nara inbox ."'))
+  assert.ok(css.includes('grid-template-areas:\\n      "title primary primaryOverflow"\\n      "secondary secondary secondaryOverflow"'))
+  assert.ok(css.includes('details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu'))
+  assert.ok(css.includes('.workspacePageHint > span'))
+  assert.ok(css.includes('overflow-wrap: anywhere !important'))
+  assert.ok(css.includes('> aside.sidebar.mobileOpen'))
+  assert.ok(css.includes('> .workspaceContent'))
+})
+
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
