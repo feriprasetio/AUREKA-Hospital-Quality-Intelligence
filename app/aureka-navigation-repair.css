@@ -599,8 +599,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   top: calc(100% + 6px) !important;
   right: 0 !important;
   z-index: 100 !important;
-  display: grid !important;
-  grid-template-columns: minmax(170px, 1fr) !important;
+grid-template-columns: minmax(170px, 1fr) !important;
   gap: 3px !important;
   width: max-content !important;
   min-width: 190px !important;
@@ -1030,4 +1029,18 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
     transition: none !important;
   }
+}
+
+
+/* Keep overflow entries out of the page flow until their own menu is opened.
+   This high-specificity guard wins over legacy !important menu declarations. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] details.workspaceNavigationOverflow[open] > .workspaceNavigationOverflowMenu {
+  display: grid !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
