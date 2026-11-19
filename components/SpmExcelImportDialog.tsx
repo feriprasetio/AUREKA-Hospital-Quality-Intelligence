@@ -78,7 +78,7 @@ export default function SpmExcelImportDialog({
   const [progress, setProgress] = useState('')
 
   const existingKeys = useMemo(() => new Set(
-    measurements.map(row => measurementKey(String(row.indicator_id), Number(row.period_month), row.room_id == null ? null : Number(row.room_id)),
+    measurements.map(row => measurementKey(String(row.indicator_id), Number(row.period_month), row.room_id == null ? null : Number(row.room_id))),
   ), [measurements])
 
   const newCount = preview?.rows.filter(row => !existingKeys.has(measurementKey(row.indicator_id, row.period_month, row.room_id))).length ?? 0
