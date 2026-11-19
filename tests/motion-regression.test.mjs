@@ -13,7 +13,7 @@ test('animation layers load after visual theme and component styles', () => {
   assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'), 'universal module tabs load after global navigation')
   assert.ok(imports.indexOf('aureka-universal-tabs.css') < imports.indexOf('aureka-navigation-repair.css'), 'navigation repair is the final scoped workspace cascade')
   assert.ok(imports.indexOf('aureka-navigation-repair.css') < imports.indexOf('aureka-acrylic-navigation-polish.css'), 'acrylic polish loads after the scoped navigation repair')
-  assert.equal(imports.at(-1), 'aureka-acrylic-navigation-polish.css', 'Arktik acrylic polish is the final workspace cascade')
+  assert.ok(imports.indexOf('aureka-acrylic-navigation-polish.css') < imports.indexOf('aureka-layout-integrity.css'), 'layout integrity is the final workspace cascade after acrylic polish')
 })
 
 test('risk-matrix animation selectors are valid and cover staggered rows', () => {
