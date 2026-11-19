@@ -27,7 +27,8 @@ export default function HomeLandingWorkspace({
 }:Props) {
   // Pengingat aktif hanya ditampilkan sampai pengguna menandainya sudah dibaca.
   // Status baca disimpan per akun di database; pesan asli pada Chat Komite PMKP tetap utuh.
-  const [refreshKey,setRefreshKey]=useState(0)\n  const [reminders,setReminders] = useState<{id:string;at:string;body:string;sent?:number}[]>([])
+  const [refreshKey,setRefreshKey]=useState(0)
+  const [reminders,setReminders] = useState<{id:string;at:string;body:string;sent?:number}[]>([])
   // Admin: pengingat yang sudah dikirim bisa disembunyikan dari Beranda (disimpan per akun di perangkat ini).
   const hiddenKey='aureka-reminder-hidden:'+userId
   const [hiddenReminder,setHiddenReminder]=useState<string|null>(null)
