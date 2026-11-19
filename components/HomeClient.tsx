@@ -47,6 +47,7 @@ const OppeAuditWorkspace=dynamic(()=>import('@/components/OppeAuditWorkspace'),{
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
 const BASE_PATH=process.env.NEXT_PUBLIC_BASE_PATH??'/AUREKA-Hospital-Quality-Intelligence'
+const MOBILE_WORKSPACE_TABS=process.env.NEXT_PUBLIC_AUREKA_MOBILE_WORKSPACE_TABS!=='false'
 const LOGO=`${BASE_PATH}/logo-aureka-v2.png`
 const PREVIEW_ONLY=process.env.NEXT_PUBLIC_SUPABASE_URL==='https://preview-disabled.invalid'
 const FALLBACK=['Informasi dan Pengaduan','Informatika dan Teknologi','Instalasi Ambulance','Instalasi Bedah Sentral','Instalasi Farmasi','Instalasi Gawat Darurat','Instalasi Gizi','Instalasi Hemodialisis','Instalasi Laboratorium','Instalasi Radiologi','Instalasi Rawat Jalan','Instalasi Rehab Medik','Instalasi Rekam Medis','Intensive Care Unit & High Care Unit','Komite Medik','Komite Pencegahan dan Pengendalian Infeksi','Manajemen rumah Sakit','Neonatal Intensive Care Unit & Pediatrics High Dependency Unit','Nifas Obstetrics & Gynecology','Perinatology & Neonatology','Promosi Kesehatan Rumah Sakit','Rawat Inap Anak','Rawat Inap Bedah','Rawat Inap Isolasi','Rawat Inap Penyakit Dalam','Rawat Inap Saraf','Rawat Inap VIP','Satuan Pengawas Intern','Tim Investigasi','Tim Koordinasi Pendidikan','Tim Pelayanan Human Immunodeficiency Virus','Tim Pelayanan Keluarga Berencana Rumah Sakit','Tim Pelayanan Obstetri Neonatal Emergensi Komprehensif','Tim Pelayanan Onkologi','Tim Pencegahan Resistensi Antimikroba','Tim Peningkatan Kinerja Klinis','Verlos Kamer']
@@ -1058,7 +1059,7 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="arktik" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed':'')}>
+ if(view==='workspace')return <main data-aureka-theme="arktik" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed ':'')+(MOBILE_WORKSPACE_TABS?'mobileWorkspaceTabsEnabled':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
@@ -1201,6 +1202,7 @@ export default function HomeClient(){
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>,document.body)}
   {activeNavModuleId&&<UnifiedModuleNavigation
+   mobileWorkspaceTabs={MOBILE_WORKSPACE_TABS}
    ariaLabel={'Navigasi '+activeNavModuleLabel}
    title={activeRailTitle}
    items={activeRailItemsHinted}

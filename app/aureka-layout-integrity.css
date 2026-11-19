@@ -703,3 +703,165 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
     max-width: 240px !important;
   }
 }
+
+
+
+/* Mobile workspace navigation: drawer + contextual breadcrumb + one tab row. */
+.workspaceMobileNavigation { display: none; }
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceNavigationRail {
+    display: none !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileNavigation {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    margin: 0 12px 12px !important;
+    padding: 0 4px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileNavigationHead {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileBreadcrumb {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    color: #2e4a66 !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileBreadcrumb strong {
+    color: #0b1f33 !important;
+    font-weight: 750 !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileBreadcrumbDivider {
+    color: #8498ad !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupPicker {
+    position: relative !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupPicker summary {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    max-width: min(45vw, 190px) !important;
+    min-height: 36px !important;
+    padding: 0 10px !important;
+    overflow: hidden !important;
+    border: 1px solid #cbd8e6 !important;
+    border-radius: 10px !important;
+    background: #f5f8fb !important;
+    color: #2e4a66 !important;
+    font-size: 11px !important;
+    list-style: none !important;
+    cursor: pointer !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupPicker summary::-webkit-details-marker { display: none !important; }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupPicker summary strong {
+    overflow: hidden !important;
+    color: #172a40 !important;
+    font-size: 11px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    right: 0 !important;
+    z-index: 120 !important;
+    display: grid !important;
+    gap: 3px !important;
+    width: max-content !important;
+    min-width: 190px !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: min(50vh, 360px) !important;
+    padding: 6px !important;
+    overflow: auto !important;
+    border: 1px solid #cbd8e6 !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: 0 10px 26px rgba(23, 42, 64, .16) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu button {
+    min-height: 40px !important;
+    padding: 7px 10px !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #2e4a66 !important;
+    text-align: left !important;
+    font-size: 12px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu button[aria-current="page"] {
+    background: #dcebf8 !important;
+    color: #164b7a !important;
+    font-weight: 750 !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileTabs {
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileTabs::-webkit-scrollbar { display: none !important; }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileTab {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 42px !important;
+    max-width: 78vw !important;
+    padding: 0 13px !important;
+    border: 1px solid #cbd8e6 !important;
+    border-radius: 10px !important;
+    background: #f5f8fb !important;
+    color: #2e4a66 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    white-space: nowrap !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileTab.active {
+    border-color: #b8d0e5 !important;
+    background: #dcebf8 !important;
+    color: #164b7a !important;
+    font-weight: 800 !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileTab:focus-visible,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupPicker summary:focus-visible {
+    outline: 2px solid #397db5 !important;
+    outline-offset: 2px !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileBreadcrumb { color: #b9c8d7 !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileBreadcrumb strong { color: #f1f5f9 !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupPicker summary,
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileTab {
+    border-color: #405b74 !important;
+    background: #20374d !important;
+    color: #d5e2ee !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu {
+    border-color: #405b74 !important;
+    background: #1b2e42 !important;
+  }
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu button { color: #d5e2ee !important; }
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu button[aria-current="page"],
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileTab.active {
+    border-color: #4d7292 !important;
+    background: #315573 !important;
+    color: #ffffff !important;
+  }
+}
