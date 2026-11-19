@@ -164,3 +164,23 @@ test('SPM XLSX parser rejects a workbook year outside the supported range and ig
   }]
   assert.throws(() => prepareSpmExcelImport(grid,profile,2026,'SPM-2026.xlsx'), /Tidak ada nilai bulanan/)
 })
+
+test('SPM XLSX parser preserves six inpatient unit blocks as separate room-scoped records', () => {
+  const grid = Array.from({length:5}, () => blankRow(120))
+  grid[0][0] = 'Instalasi Rawat Inap'
+  grid[0][16] = 'Rawat Inap Anak'
+  setHeader(grid,1,0,'Instalasi Rawat Inap')
+  setHeader(grid,1,16,'Rawat Inap Anak')
+  setIndicator(grid,2,16,1,'Pemberi pelayanan rawat inap','Jumlah Tenaga Dokter dan Perawat sesuai ketentuan',[22,21], 'Jumlah seluruh tenaga yang bertugas',[30,30])
+  const profile = [{
+    id:'profile-016',profile_year:2026,code:'SPM-016',group_name:'Instalasi Rawat Inap',
+    title:'Pemberi pelayanan rawat inap',
+    numerator_definition:'Jumlah Tenaga Dokter dan Perawat sesuai ketentuan',
+    denominator_definition:'Jumlah seluruh tenaga yang bertugas',
+    source_mode:'standalone',calculation_config:{method:'ratio'},
+  }]
+  const preview = prepareSpmExcelImport(grid,profile,2026,'SPM-2026.xlsx',[{id:22,name:'Rawat Inap Anak',code:'RANAK'}])
+  assert.equal(preview.rows.length,2)
+  assert.deepEqual(preview.rows.map(row => row.room_id),[22,22])
+  assert.deepEqual(preview.rows[0].input_json,{numerator:22,denominator:30})
+})
