@@ -44,15 +44,30 @@ test('sidebar redesign retains desktop and mobile navigation behavior', () => {
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*display: block !important;[\s\S]*\.sidebar\.mobileOpen/)
 })
 
-test('mobile drawer and bottom navigation share one breakpoint with no 721–760px dead zone', () => {
+test('mobile workspace uses one sidebar drawer and never duplicates navigation in a bottom bar', () => {
   const responsive = read('app/layout-responsive.css')
   const mobileNav = read('app/mobile-nav.css')
+  const acrylic = read('app/aureka-acrylic-navigation-polish.css')
   const home = read('components/HomeClient.tsx')
+  const desk = read('app/workspace-desk.css')
+  const typography = read('app/typography.css')
+  const finalMobile = acrylic.slice(acrylic.indexOf('/* Mobile: clear three-row header'))
 
-  assert.match(responsive, /@media \(max-width: 720px\)\s*\{\s*\.workspaceRoot\s*\{/)
+  assert.ok(responsive.includes('@media (max-width: 720px)'))
   assert.doesNotMatch(responsive, /@media \(max-width: 760px\)/)
-  assert.match(mobileNav, /@media \(max-width: 720px\)/)
-  assert.match(home, /matchMedia\('\(max-width: 720px\)'\)/)
+  assert.doesNotMatch(home, /mobileBottomNav/)
+  assert.match(home, /className="mobileMenuButton workspaceSidebarMenuButton"/)
+  assert.match(home, /mobileSidebar\.open\(event\.currentTarget\)/)
+  assert.doesNotMatch(mobileNav, /Navigasi bawah ala Android|workspaceContent::after/)
+  assert.match(mobileNav, /\.mobileBottomNav\s*\{\s*display: none !important;\s*\}/)
+  assert.doesNotMatch(typography, /mobileBottomNav/)
+  assert.ok(desk.includes('top: calc(var(--aur-header-h, 96px) + 10px) !important;'))
+  assert.ok(desk.includes('max-height: calc(100dvh - var(--aur-header-h, 96px) - 22px) !important;'))
+  assert.ok(finalMobile.includes('.workspaceSidebarMenuButton {'))
+  assert.ok(finalMobile.includes('display: grid !important;'))
+  assert.ok(finalMobile.includes('.workspaceHeaderBar > .workspaceHeaderProfile {'))
+  assert.ok(finalMobile.includes('display: inline-flex !important;'))
+  assert.ok(finalMobile.includes('padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;'))
 })
 
 
@@ -89,4 +104,23 @@ test('narrow desktop breakpoint explicitly restores account text after legacy co
   assert.match(tablet, /\.workspaceHeaderBar > \.workspaceHeaderProfile[\s\S]*flex: 0 1 auto !important/)
   assert.match(tablet, /\.workspaceHeaderProfileText[\s\S]*display: grid !important/)
   assert.match(tablet, /\.workspaceHeaderProfileText[\s\S]*width: 170px !important/)
+})
+
+
+test('721–860px tablet header restores profile text hidden by the legacy 1180px compact rule', () => {
+  const desk = read('app/workspace-desk.css')
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  const compact = desk.slice(desk.indexOf('@media (max-width: 1180px)'), desk.indexOf('@media (min-width: 721px) and (max-width: 900px)'))
+  const tablet = css.slice(css.indexOf('@media (min-width: 721px) and (max-width: 860px)'), css.indexOf('@media (min-width: 861px) and (max-width: 1180px)'))
+  assert.match(compact, /\.workspaceHeaderProfileText \{ display: none !important; \}/)
+  assert.match(tablet, /\.workspaceHeaderProfileText \{[\s\S]*display: grid !important/)
+  assert.match(tablet, /grid-area: profile !important/)
+})
+
+
+test('text-only account identity maintains readable contrast in dark mode', () => {
+  const css = read('app/aureka-acrylic-navigation-polish.css')
+  const dark = css.slice(css.lastIndexOf('Dark-mode contrast for the text-only account identity'))
+  assert.match(dark, /data-mode="gelap"[\s\S]*workspaceHeaderProfileText b[\s\S]*color: #e6eef8 !important/)
+  assert.match(dark, /data-mode="gelap"[\s\S]*workspaceHeaderProfileText small[\s\S]*color: #b8c5d4 !important/)
 })

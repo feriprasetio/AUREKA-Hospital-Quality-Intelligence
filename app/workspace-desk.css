@@ -644,7 +644,7 @@ html[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqFoot
   html[data-theme] .workspaceRoot.workspaceDesk .settingsWorkspace .userDetailInline { flex-wrap: wrap; }
   .workspaceTableHint { justify-content: space-between; }
   html[data-theme] .workspaceRoot.workspaceDesk .workspaceNotificationPanel,
-  html[data-theme] .workspaceRoot.workspaceDesk .workspaceSupportPanel { top: 96px !important; right: 10px !important; width: calc(100vw - 20px) !important; max-height: calc(100dvh - 112px) !important; }
+  html[data-theme] .workspaceRoot.workspaceDesk .workspaceSupportPanel { top: calc(var(--aur-header-h, 96px) + 10px) !important; right: 10px !important; width: calc(100vw - 20px) !important; max-height: calc(100dvh - var(--aur-header-h, 96px) - 22px) !important; }
   body:has(.workspaceDesk) .aqPortal .aqEditorDialog { width: calc(100vw - 16px) !important; }
   body:has(.workspaceDesk) .aqPortal .aqBody { padding: 12px !important; }
   body:has(.workspaceDesk) .aqPortal .aqDHead,

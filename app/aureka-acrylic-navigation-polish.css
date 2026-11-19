@@ -1066,14 +1066,20 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
     grid-area: profile !important;
+    display: inline-flex !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
     margin-left: 0 !important;
     padding-inline: 4px !important;
   }
+  /* A legacy <=1180px rule hides the profile text; explicitly restore it here. */
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText {
+    display: grid !important;
     width: 100% !important;
+    min-width: 0 !important;
     max-width: 100% !important;
+    overflow: visible !important;
   }
 }
 
@@ -1139,6 +1145,8 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
     grid-area: menu !important;
+    display: grid !important;
+    visibility: visible !important;
     width: 38px !important;
     min-width: 38px !important;
     height: 40px !important;
@@ -1187,6 +1195,15 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
     min-height: 40px !important;
     flex-basis: 40px !important;
   }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContent {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .aurToast {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .mobileBottomNav {
+    display: none !important;
+  }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspacePageHint,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] #workspace-main-content {
@@ -1212,4 +1229,12 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
 }
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceModuleHeaderTools {
   flex-wrap: wrap !important;
+}
+
+/* Dark-mode contrast for the text-only account identity in the global header. */
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText b {
+  color: #e6eef8 !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText small {
+  color: #b8c5d4 !important;
 }
