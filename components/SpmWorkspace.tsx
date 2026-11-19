@@ -615,19 +615,16 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
           <div className="spmTableScroll">
             <table>
               <thead><tr>
-                <th>Kode</th><th>Indikator / kelompok</th><th>Target</th>
-                {tab==='entry' ? <>{MONTHS.map(name => <th key={name}>{name.slice(0,3)}</th>)}<th>Target</th><th>Sumber</th></>
+                <th>Kode</th><th>Indikator / kelompok</th>
+                {tab==='entry' ? <>{MONTHS.map(name => <th key={name}>{name.slice(0,3)}</th>)}<th>Target</th><th>Sumber</th> : <><th>Target</th><th>Metode aktif</th><th>Definisi N / D</th><th>Sumber</th><th>Aksi</th></>}
                   : <><th>Metode aktif</th><th>Definisi N / D</th><th>Sumber</th><th>Aksi</th></>}
               </tr></thead>
               <tbody>
                 {visibleIndicators.map(indicator => {
-                  const measured = measurementMap.get(indicator.id+':'+month)
-                  const monthly = calculations.monthly.get(indicator.id+':'+month)
                   const canChange = canEdit(indicator)
                   return <tr key={indicator.id}>
                     <td><code>{indicator.code}</code></td>
                     <td><strong>{indicator.title}</strong><small>{indicator.group_name}</small></td>
-                    <td>{formatTarget(indicator)}</td>
                     {tab==='entry' ? <>
                       {MONTHS.map((name,index) => {
                         const monthNumber = index + 1
@@ -643,6 +640,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                       })}
                       <td>{formatTarget(indicator)}</td><td><span className="spmSource">{sourceText(indicator)}</span></td>
                     </> : <>
+                      <td>{formatTarget(indicator)}</td>
                       <td>{methodLabel(indicator.calculation_config?.method)}</td>
                       <td className="spmDefinition"><span>N: {indicator.numerator_definition || '-'}</span><span>D: {indicator.denominator_definition || '-'}</span></td>
                       <td><span className="spmSource">{sourceText(indicator)}</span></td>
@@ -650,7 +648,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                     </>}
                   </tr>
                 })}
-                {!visibleIndicators.length && <tr><td colSpan={tab==='entry'?18:7} className="spmEmpty">Tidak ada indikator yang cocok dengan filter.</td></tr>}
+                {!visibleIndicators.length && <tr><td colSpan={tab==='entry'?16:7} className="spmEmpty">Tidak ada indikator yang cocok dengan filter.</td></tr>}
               </tbody>
             </table>
           </div>
