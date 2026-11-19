@@ -33,7 +33,7 @@ test('authoritative Arctic layout layer resolves shell and navigation geometry a
 test('final Arktik navigation layer removes green sidebar states and the opaque logo tile', () => {
   const bundle = read('app/aureka-global.css')
   const css = read('app/aureka-acrylic-navigation-polish.css')
-  assert.ok(bundle.endsWith("@import './aureka-acrylic-navigation-polish.css';\n"))
+  assert.ok(bundle.includes("@import './aureka-acrylic-navigation-polish.css';") && bundle.indexOf("@import './aureka-acrylic-navigation-polish.css';") < bundle.indexOf("@import './aureka-layout-integrity.css';"))
   assert.ok(bundle.indexOf("@import './aureka-navigation-repair.css'") < bundle.indexOf("@import './aureka-acrylic-navigation-polish.css'"))
   assert.ok(css.includes('--aureka-acrylic-sidebar: rgba(233, 242, 250, .92)'))
   assert.ok(css.includes('.sidebarDomainTrigger.navActive'))
