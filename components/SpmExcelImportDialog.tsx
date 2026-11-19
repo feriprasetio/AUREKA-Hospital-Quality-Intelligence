@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import {
   prepareSpmExcelImport,
@@ -80,20 +80,19 @@ export default function SpmExcelImportDialog({
   const newCount = preview?.rows.filter(row => !existingKeys.has(measurementKey(row.indicator_id, row.period_month))).length ?? 0
   const updateCount = preview ? preview.rows.length - newCount : 0
 
-  const reset = () => {
-    if (parsing || importing) return
+  const reset = useCallback(() => {
     setFile(null)
     setPreview(null)
     setError('')
     setResult(null)
     setProgress('')
-  }
+  }, [])
 
-  const close = () => {
+  const close = useCallback(() => {
     if (parsing || importing) return
     reset()
     onClose()
-  }
+  }, [parsing, importing, reset, onClose])
 
   useEffect(() => {
     if (!open) return
@@ -102,7 +101,7 @@ export default function SpmExcelImportDialog({
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [open, parsing, importing])
+  }, [open, close])
 
   if (!open) return null
 
