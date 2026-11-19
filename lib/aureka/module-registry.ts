@@ -37,6 +37,8 @@ export const AUREKA_MODULE_REGISTRY = [
   { id:'settings', label:'Pengaturan', group:'governance', status:'beta', visibility:'all-authenticated', requiredRoles:ALL_ROLES, routeHash:'#pengaturan', owner:'Super Admin / Komite PMKP', lastReviewed:'2026-11-12', description:'Profil/akun, pengguna dan role, unit, keamanan, preferensi, konfigurasi, dan audit log.' },
 ] as const satisfies readonly AurekaModule[]
 
+export type SecretariatSection = 'invitations' | 'materials' | 'attendance' | 'minutes' | 'documentation'
+
 export type AurekaModuleId = (typeof AUREKA_MODULE_REGISTRY)[number]['id']
 export const AUREKA_PRIMARY_NAV: readonly AurekaModule[] = AUREKA_MODULE_REGISTRY.filter((module) => module.id !== 'home')
 
