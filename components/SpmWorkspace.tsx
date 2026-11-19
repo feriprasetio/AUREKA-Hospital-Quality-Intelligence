@@ -329,6 +329,12 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     }
   }, [indicators, calculations, month])
 
+  const annualStats = useMemo(() => {
+    const values = indicators.map(item => calculations.annual.get(item.id)?.status ?? 'no_data')
+    return { total: indicators.length, met: values.filter(value => value === 'met').length, notMet: values.filter(value => value === 'not_met').length, noData: values.filter(value => value === 'no_data').length, invalid: values.filter(value => value === 'invalid').length }
+  }, [indicators, calculations])
+  const displayStats = tab === 'entry' ? annualStats : currentStats
+
   const openEdit = (indicator: Indicator) => {
     const saved = measurementMap.get(measurementKey(indicator, month))
     const initial = saved?.input_json ?? {}
@@ -549,10 +555,10 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       {notice && <div className="spmNotice" role="status">{notice}</div>}
 
       <div className="spmKpis">
-        <article><span>Total indikator</span><strong>{currentStats.total}</strong><small>Master SPM {year}</small></article>
-        <article className="positive"><span>Memenuhi standar</span><strong>{currentStats.met}</strong><small>{month ? MONTHS[month-1] : ''}</small></article>
-        <article className="negative"><span>Belum memenuhi</span><strong>{currentStats.notMet}</strong><small>Perlu tindak lanjut</small></article>
-        <article><span>Belum ada data</span><strong>{currentStats.noData}</strong><small>{currentStats.invalid} data perlu koreksi</small></article>
+        <article><span>Total indikator</span><strong>{displayStats.total}</strong><small>Master SPM {year}</small></article>
+        <article className="positive"><span>Memenuhi standar</span><strong>{displayStats.met}</strong><small>{tab === 'entry' ? 'Agregat Januari–Desember' : MONTHS[month-1]}</small></article>
+        <article className="negative"><span>Belum memenuhi</span><strong>{displayStats.notMet}</strong><small>Perlu tindak lanjut</small></article>
+        <article><span>Belum ada data</span><strong>{displayStats.noData}</strong><small>{displayStats.invalid} data perlu koreksi</small></article>
       </div>
 
       <nav className="spmTabs" aria-label="Navigasi Standar Pelayanan Minimal">
