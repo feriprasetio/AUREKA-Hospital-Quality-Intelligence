@@ -154,7 +154,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
 
       const [profileResult, measurementResult, sourceResult, roomResult] = await Promise.all([
         q().from('spm_indicators').select('*').eq('profile_year', year).eq('is_active', true).order('group_order').order('indicator_order'),
-        q().from('spm_monthly_measurements').select('id,indicator_id,profile_year,period_month,input_json,status,notes,updated_at').eq('profile_year', year),
+        q().from('spm_monthly_measurements').select('id,indicator_id,profile_year,period_month,room_id,input_json,status,notes,updated_at').eq('profile_year', year),
         q().rpc('spm_quality_source_summary', { p_year: year }),
         aurekaSupabase.from('master_rooms').select('id,name,code').eq('is_active', true).order('sort_order'),
       ])
