@@ -112,9 +112,9 @@ test('SPM has its own route and workspace under Quality & Risk Management', () =
 
 test('SPM is available as a persistent direct sidebar shortcut', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /<div className="navLabel">Akses langsung<\\/div>/)
-  assert.match(home, /sidebarSpmQuickLink/)
-  assert.match(home, /selectDomainDestination\\('quality_risk',\\{moduleId:'quality',childId:'spm'\\}\\)/)
-  assert.match(home, /if\\(active==='quality'&&spmOpen\\)return 'quality_risk'/)
+  assert.ok(home.includes('<div className="navLabel">Akses langsung</div>'))
+  assert.ok(home.includes('sidebarSpmQuickLink'))
+  assert.ok(home.includes("selectDomainDestination('quality_risk',{moduleId:'quality',childId:'spm'})"))
+  assert.ok(home.includes("if(active==='quality'&&spmOpen)return 'quality_risk'"))
   assert.doesNotMatch(home, /id:'spm',label:'Standar Pelayanan Minimal',moduleId:'quality',childId:'spm'/)
 })
