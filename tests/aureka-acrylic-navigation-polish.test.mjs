@@ -51,21 +51,26 @@ test('mobile drawer restores full navigation labels even when desktop collapse s
 test('overflow navigation items stay hidden until their disclosure menu is opened', () => {
   const globalNavigation = read('app/aureka-global-navigation.css')
   const repair = read('app/aureka-navigation-repair.css')
+  const declarationsFor = (css, selector) => {
+    const start = css.indexOf(selector)
+    assert.notEqual(start, -1, 'Missing CSS rule: ' + selector)
+    const open = css.indexOf('{', start)
+    const close = css.indexOf('}', open)
+    return css.slice(open + 1, close)
+  }
+
   assert.ok(globalNavigation.includes('.workspaceRoot details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu {'))
   assert.ok(globalNavigation.includes('.workspaceRoot details.workspaceNavigationOverflow[open] > .workspaceNavigationOverflowMenu {'))
   assert.ok(repair.includes('details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu {'))
   assert.ok(repair.includes('details.workspaceNavigationOverflow[open] > .workspaceNavigationOverflowMenu {'))
-  for (const css of [globalNavigation, repair]) {
-    const rules = [...css.matchAll(/([^{}]+)\\{([^{}]*)\\}/g)]
-    const unconditionalMenuRules = rules.filter(([, selector]) =>
-      selector.includes('.workspaceNavigationOverflowMenu') &&
-      !selector.includes('[open]') &&
-      !selector.includes(':not([open])')
-    )
-    assert.ok(unconditionalMenuRules.every(([, , declarations]) => !/display:\\s*grid !important/.test(declarations)))
+
+  const globalBase = declarationsFor(globalNavigation, '.workspaceRoot .workspaceNavigationOverflowMenu {')
+  const globalArktik = declarationsFor(globalNavigation, '.workspaceNavigationRail .workspaceNavigationOverflowMenu {')
+  const repairBase = declarationsFor(repair, '.workspaceNavigationOverflowMenu {')
+  for (const declarations of [globalBase, globalArktik, repairBase]) {
+    assert.ok(!declarations.includes('display: grid !important'), 'Closed dropdown content must not be forced into view')
   }
 })
-
 test('profile identity remains separated and bounded in compact workspace headers', () => {
   const css = read('app/aureka-acrylic-navigation-polish.css')
   assert.ok(css.includes('.workspaceHeaderProfileText {'))
