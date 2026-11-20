@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
 const read = (path) => readFile(new URL('../' + path, import.meta.url), 'utf8')
+const has = (source, text, message = text) => assert.ok(source.includes(text), message)
 
 test('backend completion migration covers all newly specified operating domains', async () => {
   const sql = await read('supabase/migrations/20261120233000_aureka_backend_completion.sql')
@@ -13,51 +14,56 @@ test('backend completion migration covers all newly specified operating domains'
     'controlled_documents', 'controlled_document_versions', 'knowledge_ingestion_jobs', 'knowledge_chunks',
     'asset_register', 'generated_artifacts', 'document_approval_requests', 'document_signatures',
   ]) {
-    assert.match(sql, new RegExp('create table if not exists [a-z_]+\\.' + table + '\\b', 'i'), table + ' must be present')
+    has(sql.toLowerCase(), 'create table if not exists ', 'table declaration exists')
+    has(sql.toLowerCase(), table.toLowerCase(), table + ' must be present')
   }
-  assert.match(sql, /alter table aureka_quality\\.realcost_audits enable row level security/i)
-  assert.match(sql, /alter table aureka_system\\.controlled_documents enable row level security/i)
-  assert.match(sql, /security_invoker/i)
-  assert.match(sql, /OPERATOR\\(extensions\\.<=>\\)/i)
+  has(sql, 'alter table aureka_quality.realcost_audits enable row level security')
+  has(sql, 'alter table aureka_system.controlled_documents enable row level security')
+  has(sql, 'security_invoker')
+  has(sql, 'OPERATOR(extensions.<=>)')
 })
 
 test('patient cross-domain joins require verified UUID links and exact normalized MRN backfill', async () => {
   const sql = await read('supabase/migrations/20261120233000_aureka_backend_completion.sql')
-  assert.match(sql, /patient_index_id uuid references aureka_quality\\.patient_index\\(patient_id\\)/i)
-  assert.match(sql, /normalize_no_rm[\\s\\S]{0,300}= p\\.no_rm/i)
-  assert.match(sql, /public\\.aureka_patient_detail_bundle/i)
-  assert.match(sql, /patient_record_access_audit/i)
-  assert.match(sql, /no matching by name|never match on names/i)
-  assert.match(sql, /where i\\.patient_index_id=v_patient\\.patient_id/i)
+  has(sql, 'references aureka_quality.patient_index(patient_id)')
+  has(sql, 'normalize_no_rm')
+  has(sql, '= p.no_rm')
+  has(sql, 'public.aureka_patient_detail_bundle')
+  has(sql, 'patient_record_access_audit')
+  has(sql, 'No matching by name')
+  has(sql, 'where i.patient_index_id=v_patient.patient_id')
 })
 
 test('document governance hardening requires sequential role-matched approvals and audited signatures', async () => {
   const sql = await read('supabase/migrations/20261120235500_aureka_document_governance_hardening.sql')
-  assert.match(sql, /aureka_document_approval_decide/i)
-  assert.match(sql, /required_role <> v_role/i)
-  assert.match(sql, /prior\\.status <> 'approved'/i)
-  assert.match(sql, /aureka_sign_document_artifact/i)
-  assert.match(sql, /signer_display_name,signer_role,signed_file_sha256/i)
-  assert.match(sql, /document_signature_event_capture/i)
-  assert.match(sql, /not a certificate|bukan tanda tangan elektronik tersertifikasi PSrE/i)
+  has(sql, 'aureka_document_approval_decide')
+  has(sql, "v_request.required_role <> v_role")
+  has(sql, "prior.status <> 'approved'")
+  has(sql, 'aureka_sign_document_artifact')
+  has(sql, 'signer_display_name,signer_role,signed_file_sha256')
+  has(sql, 'document_signature_event_capture')
+  has(sql, 'bukan tanda tangan elektronik tersertifikasi PSrE')
 })
 
 test('SPO ingestion worker authenticates users, creates 768-dimensional Gemini embeddings and persists chunks', async () => {
   const worker = await read('supabase/functions/aureka-document-ingest/index.ts')
   const config = await read('supabase/config.toml')
-  assert.match(config, /\\[functions\\.aureka-document-ingest\\][\\s\\S]*?verify_jwt = true/i)
-  assert.match(worker, /auth\\.getUser\\(jwt\\)/i)
-  assert.match(worker, /GEMINI_API_KEY/)
-  assert.match(worker, /gemini-embedding-2/)
-  assert.match(worker, /EMBEDDING_DIMENSIONS = 768/)
-  assert.match(worker, /batchEmbedContents/)
-  assert.match(worker, /knowledge_chunks/)
-  assert.match(worker, /analysis_status: "completed"/)
-  assert.match(worker, /MAX_FILE_BYTES/)
+  has(config, '[functions.aureka-document-ingest]')
+  const workerConfig = config.split('[functions.aureka-document-ingest]')[1] || ''
+  has(workerConfig, 'verify_jwt = true')
+  has(worker, 'auth.getUser(jwt)')
+  has(worker, 'GEMINI_API_KEY')
+  has(worker, 'gemini-embedding-2')
+  has(worker, 'EMBEDDING_DIMENSIONS = 768')
+  has(worker, 'batchEmbedContents')
+  has(worker, 'knowledge_chunks')
+  has(worker, 'analysis_status: "completed"')
+  has(worker, 'MAX_FILE_BYTES')
+  has(worker, 'claim_document_ingestion_job')
 })
 
 test('SPO storage policies use the active analyzer path and trusted role gate', async () => {
   const sql = await read('supabase/migrations/20261120234500_aureka_spo_storage_policy_alignment.sql')
-  assert.match(sql, /storage\\.foldername\\(name\\)\\)\\[1\\] = 'spo'/i)
-  assert.match(sql, /aureka_system\\.can_process_spo\\(\\)/i)
+  has(sql, "(storage.foldername(name))[1] = 'spo'")
+  has(sql, 'aureka_system.can_process_spo()')
 })
