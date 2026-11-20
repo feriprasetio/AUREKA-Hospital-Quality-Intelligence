@@ -234,7 +234,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     const type = messageKind === 'error' || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(message) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(message) ? 'success' : 'info'
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message, type, module: 'Audit Clinical Pathway' } }))
   }, [message, messageKind])
-  const [screen, setScreen] = useState<'library' | 'diagnosis' | 'audit' | 'builder'>('library')
+  const [screen, setScreen] = useState<'overview' | 'library' | 'diagnosis' | 'audit' | 'builder'>('overview')
   useEffect(() => {
     if (!loading && !masterReady && screen !== 'library' && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: 'Master Clinical Pathway belum tersedia di server. Audit belum dapat disimpan sampai master tersinkron.', type: 'error', module: 'Audit Clinical Pathway' } }))
@@ -893,10 +893,10 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     <style>{CSS}</style>
     <WorkspaceModuleHeader
       className="cpHead"
-      title={view === 'library' ? 'Pustaka diagnosis & format CP' : view === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
+      title={view === 'overview' ? 'Visual Intelligence Clinical Pathway' : view === 'library' ? 'Daftar format dan diagnosis Clinical Pathway' : view === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
       actions={<div className="cpActions">
         {/* Tombol kembali ke Audit Indikator Mutu dihapus: Clinical Pathway kini menu tersendiri di Peningkatan Kinerja Klinis (Blueprint v2). */}
-        {view !== 'library' && <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(view === 'audit' ? 'diagnosis' : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
+        {view === 'overview' ? null : <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(view === 'audit' ? 'diagnosis' : view === 'diagnosis' || view === 'library' ? 'overview' : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
         {view === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={() => beginBuilder(selectedTemplate, 'diagnosis')}>⚙ Edit Form CP</button>}
         {view === 'diagnosis' && isAdmin && <button type="button" className="cpBtn" onClick={beginNewBuilder}>＋ Tambah CP baru</button>}
         {view === 'diagnosis' && <button type="button" className="cpBtn primary" onClick={newAudit}>＋ Audit pasien baru</button>}
@@ -907,6 +907,24 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     {message && screen !== 'builder' && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'} aria-live={messageKind === 'error' ? 'assertive' : 'polite'}>{message}</div>}
     {!masterReady && view !== 'library' && <div className="cpNotice error">Format Clinical Pathway belum lengkap. Audit belum dapat disimpan.</div>}
 
+    {view === 'overview' && <>
+      <div className="cpGrid" aria-label="Ringkasan master Clinical Pathway">
+        <LiquidGlass className="cpKpi"><span>Format aktif</span><strong>{templates.filter((template) => template.status === 'published').length.toLocaleString('id-ID')}</strong><small>Master yang sudah diterbitkan</small></LiquidGlass>
+        <LiquidGlass className="cpKpi"><span>Format keseluruhan</span><strong>{templates.length.toLocaleString('id-ID')}</strong><small>Termasuk draf sesuai kewenangan</small></LiquidGlass>
+        <LiquidGlass className="cpKpi"><span>Komponen checklist</span><strong>{templates.filter((template) => template.status === 'published').reduce((total, template) => total + template.items.length, 0).toLocaleString('id-ID')}</strong><small>Item dari format aktif</small></LiquidGlass>
+      </div>
+      <div className="cpGlass cpPanel">
+        <div className="cpSectionHead"><div><h4>Daftar diagnosis dan format Clinical Pathway</h4><p>Gunakan master yang telah disetujui. Setelah memilih diagnosis, AUREKA menampilkan rekam audit yang sudah tersimpan dan tindakan audit baru.</p></div></div>
+        <div className="cpActions">
+          <button type="button" className="cpBtn primary" disabled={!masterReady || templates.filter((template) => template.status === 'published').length === 0} onClick={() => setScreen('library')}>Lihat Daftar Pasien dengan Clinical Pathway</button>
+          {isAdmin && <button type="button" className="cpBtn" onClick={() => { setScreen('library'); beginNewBuilder() }}>Kelola Master Clinical Pathway</button>}
+          <button type="button" className="cpBtn" disabled={loading || saving} onClick={() => void loadTemplates()}>Muat ulang master</button>
+        </div>
+        <div className="cpNotice info" style={{marginTop:12}}>
+          Integrasi kandidat pasien otomatis berdasarkan diagnosis dan kriteria inklusi klinis belum diaktifkan pada workspace ini. Daftar operasional saat ini dimulai dari master diagnosis Clinical Pathway dan rekam audit yang sudah tersimpan; jangan menganggapnya sebagai daftar seluruh pasien yang memenuhi kriteria.
+        </div>
+      </div>
+    </>}
     {view === 'library' && <>
       <div className="cpGlass cpLibBar">
         <div className="cpLibStats" aria-label="Ringkasan master Clinical Pathway">

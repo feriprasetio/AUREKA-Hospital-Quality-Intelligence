@@ -60,7 +60,7 @@ type AuditRow = {
   created_at: string
   updated_at: string
 }
-type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; isValidator?: boolean; lockRoomScope?: boolean }
+type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; isValidator?: boolean; lockRoomScope?: boolean; initialAuditType?: AuditType; onAskNara?: (prompt: string, pageContext: string) => void }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -213,8 +213,10 @@ function reviewPeriod(episode: Episode): string {
   return /^\d{4}$/.test(value) ? value : String(new Date().getFullYear())
 }
 
-export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAdmin, isValidator = false, lockRoomScope = false }: Props) {
-  const [auditType, setAuditType] = useState<AuditType>('clinical')
+export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAdmin, isValidator = false, lockRoomScope = false, initialAuditType = 'clinical', onAskNara }: Props) {
+  const [auditType, setAuditType] = useState<AuditType>(initialAuditType)
+  const [showList, setShowList] = useState(false)
+  useEffect(() => { setAuditType(initialAuditType); setShowList(false) }, [initialAuditType])
   const [roomFilter, setRoomFilter] = useState<number | null>(lockRoomScope ? initialRoomId : isAdmin ? null : initialRoomId ?? rooms[0]?.id ?? null)
   useEffect(() => { if (lockRoomScope && initialRoomId != null && roomFilter !== initialRoomId) setRoomFilter(initialRoomId) }, [lockRoomScope, initialRoomId, roomFilter])
   const [yearFilter, setYearFilter] = useState<number>(new Date().getFullYear())
@@ -563,6 +565,25 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       />
       <p className="workspaceClinicalDisclaimer" role="note">Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>
 
+      {!showList ? <section className="acdVisualOverview" aria-label="Visual Intelligence audit klinis dan kematian">
+        <div className="acdKpis">
+          <article className="acdKpi"><span>Kandidat {auditType === 'death' ? 'audit kematian' : 'audit klinis'}</span><strong>{filteredEpisodes.length.toLocaleString('id-ID')}</strong><small>Episode sesuai cakupan dan tahun aktif</small></article>
+          <article className="acdKpi"><span>Sudah ditelaah</span><strong>{startedCount.toLocaleString('id-ID')}</strong><small>Memiliki rekam telaah pada periode</small></article>
+          <article className="acdKpi"><span>Belum diajukan / perlu perbaikan</span><strong>{pendingCount.toLocaleString('id-ID')}</strong><small>Perlu tindakan reviewer</small></article>
+        </div>
+        <section className="acdPanel">
+          <div className="acdSectionTitle"><div><h5>Visual Intelligence · {auditType === 'death' ? 'Audit Kematian' : 'Audit Klinis'}</h5><p>Ringkasan agregat dari episode yang dapat diakses. Identitas tidak ditampilkan pada ikhtisar.</p></div></div>
+          <div className="acdActions">
+            <button type="button" className="acdBtn primary" disabled={loading} onClick={() => setShowList(true)}>{auditType === 'death' ? 'Lihat Daftar Pasien Meninggal' : 'Lihat Daftar Pasien dengan Audit Klinis'}</button>
+            {onAskNara && <button type="button" className="acdBtn" onClick={() => onAskNara('Analisis agregat Audit ' + (auditType === 'death' ? 'Kematian' : 'Klinis') + ' pada cakupan dan periode yang sedang dipilih. Jelaskan jumlah kandidat, status telaah, kelengkapan data dan prioritas perbaikan. Jangan menampilkan nama atau nomor rekam medis dan jangan mengubah data.', 'Peningkatan Kinerja Klinis · Visual Intelligence · ' + (auditType === 'death' ? 'Audit Kematian' : 'Audit Klinis'))}>Analisis dengan NARA AI</button>}
+            <button type="button" className="acdBtn" disabled={loading || saving} onClick={() => void load()}>{loading ? 'Memuat…' : 'Muat ulang data'}</button>
+          </div>
+        </section>
+        <div className="acdInfo">Sumber data: episode pada Logbook AUREKA. Audit kematian hanya memasukkan episode dengan status hasil akhir meninggal yang tercatat eksplisit. Validasi sumber klinis tetap dilakukan oleh reviewer.</div>
+      </section> : <>
+        <div className="acdActions"><button type="button" className="acdBtn" onClick={() => setShowList(false)}>← Kembali ke Visual Intelligence</button></div>
+
+
       <section className="acdToolbar" aria-label="Jenis audit dan filter">
         <div className="acdSeg" role="tablist" aria-label="Jenis audit">
           <button type="button" role="tab" aria-selected={auditType === 'clinical'} className={auditType === 'clinical' ? 'active' : ''} onClick={() => setAuditType('clinical')} title="Semua episode dalam ruang lingkup yang dipilih">Audit klinis</button>
@@ -634,6 +655,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
           </tbody>
         </table></WorkspaceTableViewport>
       </section>
+      </>}
 
       {editorOpen && activeEpisode && <div className="acdDrawerBack" onClick={(event) => { if (event.target === event.currentTarget && !saving) setEditorOpen(false) }}>
         <section className="acdDrawer" role="dialog" aria-modal="true" aria-label={'Telaah kasus ' + activeEpisode.name}>
