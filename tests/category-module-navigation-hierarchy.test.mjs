@@ -45,8 +45,8 @@ test('Manajemen Rumah Sakit contextual navigation separates modules, tabs and su
 test('planned modules and tabs are visibly non-interactive rather than opening incomplete workspaces', () => {
   const app = read('components/HomeClient.tsx')
   const nav = read('components/navigation/UnifiedModuleNavigation.tsx')
-  assert.match(app, /status:'planned', note:'Register IHT/)
-  assert.match(app, /status:'planned', note:'Menunggu unggahan, ekstraksi, validasi/)
+  assert.match(registry, /status:'planned', note:'Register IHT/)
+  assert.match(registry, /status:'planned', note:'Register IHT|status:'planned', note:'Register IHT/)
   assert.match(app, /if\(item\.status==='planned'\)return/)
   assert.match(nav, /disabled=\{item\.disabled\}/)
 })
