@@ -524,9 +524,9 @@ keyword as (
   order by rank_no limit greatest(1,least(coalesce(p_limit,10),30))*3
 ),
 semantic as (
-  select v.id, row_number() over(order by v.embedding <=> p_embedding) as rank_no
+  select v.id, row_number() over(order by v.embedding OPERATOR(extensions.<=>) p_embedding) as rank_no
   from visible v where p_embedding is not null and v.embedding is not null
-  order by v.embedding <=> p_embedding limit greatest(1,least(coalesce(p_limit,10),30))*3
+  order by v.embedding OPERATOR(extensions.<=>) p_embedding limit greatest(1,least(coalesce(p_limit,10),30))*3
 ),
 fused as (
   select coalesce(k.id,s.id) as id,
