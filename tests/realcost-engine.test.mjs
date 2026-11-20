@@ -55,7 +55,7 @@ test('component reconciliation flags a row when component sum differs from TARIF
 test('monthly and CBG summaries are reproducible and retain encounter-level denominators', () => {
   const result = analyzeRealcostEpisodes([
     episode(),
-    episode({ id: 'episode-2', episode_key_hash: 'hash-2', discharge_date: '2025-02-01', inacbg_code: 'A-4-10-I' }),
+    episode({ id: 'episode-2', episode_key_hash: 'hash-2', discharge_date: '2025-02-01', inacbg_code: 'A-4-10-I', procedure_codes: ['PROC01'] }),
   ])
   assert.equal(result.monthly.length, 2)
   assert.equal(result.monthly[0].episodes, 1)
