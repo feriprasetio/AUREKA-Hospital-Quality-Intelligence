@@ -70,7 +70,8 @@ test('clinical and quality contextual navigation follows the document and preser
   assert.match(app, /label:'Pusat Rekonsiliasi'/)
   assert.doesNotMatch(app, /id:'result-indicators',label:'Hasil Capaian'/)
   assert.match(app, /qualityLogbookResultsStack/)
-  assert.match(quality, /Form Logbook/)
+  assert.match(quality, /Logbook/)
+  assert.match(app, /<QualityIndicatorWorkspace[\s\S]*?initialContainer=\{qualityInitialContainer\} showContainerTabs=\{false\}/)
   assert.match(app, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
 })
 
