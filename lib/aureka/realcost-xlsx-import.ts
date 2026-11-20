@@ -37,7 +37,8 @@ export type RealcostPreparedImport = {
 }
 
 const IDENTITY_HEADERS = new Set([
-  'NAMA_PASIEN', 'MRN', 'SEP', 'NOKARTU', 'DPJP', 'CODER_ID', 'C1',
+  'NAMA_PASIEN', 'MRN', 'SEP', 'NOKARTU', 'DPJP', 'CODER_ID',
+  'C1', 'C2', 'C3', 'C4', 'BIRTH_DATE',
 ])
 
 function plainValue(value: unknown): unknown {
