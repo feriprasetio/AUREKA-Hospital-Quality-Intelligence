@@ -70,7 +70,7 @@ type ReminderHistoryItem={id:string;body:string;createdAt:string;readAt:string}
 type SupportConversation={id:string;room_id:number;created_by:string;subject:string;status:'open'|'closed';created_at:string;updated_at:string}
 type SupportMessage={id:string;conversation_id:string;sender_id:string;body:string;created_at:string}
 
-type SidebarChild={id:string;label:string;children?:SidebarChild[]}
+type SidebarChild={id:string;label:string;children?:SidebarChild[];disabled?:boolean;hint?:string}
 type AurekaSidebarDomain=AurekaNavigationGroup
 const AUREKA_SIDEBAR_DOMAINS:readonly AurekaSidebarDomain[]=AUREKA_NAVIGATION_GROUPS
 type Room={id:number;name:string};type Profile={user_id:string;full_name:string;email:string;username?:string|null;primary_room_id:number|null;role_id:string|null;is_active:boolean;must_change_password?:boolean;role_code?:string|null;role_name?:string|null}
@@ -416,11 +416,7 @@ export default function HomeClient(){
    if(item.status==='planned')return true
    if(item.moduleId==='home'||item.moduleId==='nara')return true
    if(!visibleModuleIds.has(item.moduleId))return false
-   if(item.moduleId==='staff'){
-    if(['directory','team'].includes(item.childId||''))return permissionFlags.readDirectory
-    if(item.childId==='pic-performance')return permissionFlags.readPicPerformance
-    if(['oppe-fppe','fppe'].includes(item.childId||''))return permissionFlags.readPerformance
-   }
+   if(item.moduleId==='staff')return permissionFlags.readDirectory||permissionFlags.readPerformance||permissionFlags.readPicPerformance
    return true
   })}))
   ,[visibleModuleIds,permissionFlags,role])
@@ -440,16 +436,14 @@ export default function HomeClient(){
   if(item.moduleId==='safety')return child==='overview'?safetyTab==='overview':safetyTab===child
   if(item.moduleId==='risk')return riskTab===child
   if(item.moduleId==='secretariat')return secretariatSection===child
-  if(item.moduleId==='settings')return settingsSection===child
+  if(item.moduleId==='settings'){
+   if(active!=='settings')return false
+   return child==='profile'?['profile','users','units','permissions'].includes(settingsSection):['security','appearance','system','mydata','audit'].includes(settingsSection)
+  }
   if(item.moduleId==='insights')return active==='insights'
   if(item.moduleId==='analytics')return child==='recommendations'?programTab==='recommendations':programTab==='programs'
-  if(item.moduleId==='staff'){
-   if(child==='pic-performance')return staffTab==='pic-performance'
-   if(child==='directory')return staffTab==='directory'&&analyticsDirectoryTab==='directory'
-   if(child==='team')return staffTab==='directory'&&analyticsDirectoryTab==='team'
-   if(child==='oppe-fppe')return staffTab==='oppe'
-   if(child==='fppe')return staffTab==='fppe'
-  }
+  if(item.moduleId==='staff')return active==='staff'
+  
   return false
  }
  const activeDomainId=useMemo(()=>{
@@ -510,18 +504,23 @@ export default function HomeClient(){
    ],
    // Blueprint v2 §1/§10: Pengaturan — Profil/Akun; Pengguna dan Role; Unit dan Instalasi; Keamanan; Preferensi Tampilan; Konfigurasi Sistem; Audit Log
    settings:[
-    {id:'profile',label:'Profil / Akun'},
-    ...(admin?[{id:'users',label:'Pengguna dan Role'},{id:'units',label:'Unit dan Instalasi'}]:[]),
-    ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'permissions',label:'Hak Akses Role'}]:[]),
-    {id:'security',label:'Keamanan'},
-    {id:'appearance',label:'Preferensi Tampilan'},
-    ...(!admin?[{id:'mydata',label:'Data Saya untuk PMKP'}]:[]),
-    ...(admin?[{id:'system',label:'Konfigurasi Sistem'}]:[]),
-    ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'audit',label:'Audit Log'}]:[]),
+    {id:'account',label:'Preferensi Akun',children:[
+     {id:'profile',label:'Profil Pengguna'},
+     ...(admin?[{id:'users',label:'Role Pengguna dan Hak Akses'},{id:'units',label:'Unit dan Instalasi'}]:[]),
+     ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'permissions',label:'Pengaturan Hak Akses'}]:[]),
+    ]},
+    {id:'system',label:'Preferensi Sistem',children:[
+     {id:'security',label:'Keamanan'},
+     {id:'appearance',label:'Preferensi Tampilan'},
+     ...(!admin?[{id:'mydata',label:'Data Saya untuk PMKP'}]:[]),
+     ...(admin?[{id:'system',label:'Konfigurasi Sistem'}]:[]),
+     ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'audit',label:'Audit Log'}]:[]),
+     {id:'legal',label:'Legal dan Asset',disabled:true,hint:'Menunggu kebijakan persetujuan dan tanda tangan elektronik.'},
+    ]},
    ],
    staff:[
-    ...(permissionFlags.readDirectory?[{id:'directory',label:'Daftar Tenaga Kerja'},{id:'team',label:'Tim dan Penugasan'}]:[]),
-    ...(permissionFlags.readPerformance?[{id:'oppe-fppe',label:'OPPE'},{id:'fppe',label:'FPPE'}]:[]),
+    ...(permissionFlags.readDirectory?[{id:'workforce',label:'Sumber Daya Manusia',children:[{id:'directory',label:'Tenaga Kerja'},{id:'team',label:'Tim dan Penugasan'}]}]:[]),
+    ...(permissionFlags.readPerformance?[{id:'professional-performance',label:'OPPE dan FPPE',children:[{id:'oppe-fppe',label:'OPPE'},{id:'fppe',label:'FPPE'}]}]:[]),
    ],
   }
   return groups
@@ -633,7 +632,7 @@ export default function HomeClient(){
   if(moduleId==='patients')return 'register'
   if(moduleId==='settings')return settingsSection
   if(moduleId==='secretariat')return secretariatSection
-  if(moduleId==='quality'&&spmOpen)return ''
+  if(moduleId==='quality'&&spmOpen)return 'spm'
   if(moduleId==='quality'&&qualityReconciliationOpen)return 'quality-reconciliation'
   if(moduleId==='quality'&&qualityMonitorOpen)return qualityMonitorTab==='pic'?'pic-performance':'quality-reporting'
   if(moduleId==='quality')return active==='quality'&&qualityProfileOpen?'profile-indicators':qualityResultsView?(qualityResultsGroup==='category'?'result-category':'result-unit'):qualityReconciliationOpen?'quality-reconciliation':qualityMonitorOpen?'quality-monitoring':qualityOpen?'audit-indicators':'quality-overview'
@@ -656,7 +655,7 @@ export default function HomeClient(){
  // must not silently remove the horizontal navigation rail.
  const activeNavModuleId=activeNavEntry?.[0]||(active==='home'?'home':active)
  const activeNavModuleLabel=activeNavEntry?.[1]||(MODS.find(([id])=>id===active)?.[1])||(active==='home'?'Dashboard':active)
- const activeNavGroups=activeNavModuleId==='quality'&&spmOpen?[]:(sidebarChildGroups[activeNavModuleId]||[])
+ const activeNavGroups=activeNavModuleId==='quality'&&spmOpen?[{id:'quality-development',label:'Pengembangan dan Pengendalian Mutu',children:[{id:'spm',label:'Standar Pelayanan Minimal'},{id:'sop',label:'Standar Prosedur Operasional',disabled:true,hint:'Menunggu unggahan, ekstraksi, validasi, dan persetujuan SPO.'}]}]:(sidebarChildGroups[activeNavModuleId]||[])
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
  const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleLabel
@@ -666,7 +665,7 @@ export default function HomeClient(){
  const activeNavSecondaryId=activeNavModuleId==='patients'?patientsRegistryTab:(activeNestedNavGroup?activeNavSelectedId:'')
  const activeRailSubItems=activeNavModuleId==='patients'
   ? [{id:'overview',label:'Visual Intelligence',hint:'Ikhtisar Direktori Pasien dan keterhubungan data'},{id:'directory',label:'Daftar Pasien',hint:'Daftar pasien unik yang terindeks dari logbook'},{id:'analysis',label:'Pola Perawatan',hint:'ICD-10, length of stay, readmisi dan pola pelayanan'}]
-  : (activeNestedNavGroup?.children||[]).map(item=>({...item,hint:NAV_HINTS[item.label]}))
+  : (activeNestedNavGroup?.children||[]).map(item=>({...item,hint:item.hint||NAV_HINTS[item.label]}))
  const activeRailItemsHinted=activeRailItems.map(item=>({...item,hint:NAV_HINTS[item.label]}))
  const activePageHint=NAV_HINTS[(activeRailSubItems.find(item=>item.id===activeNavSecondaryId)||activeNavGroups.find(group=>group.id===activeNavPrimaryId))?.label||'']
  const dispatchWorkspaceSearch=(query:string)=>{

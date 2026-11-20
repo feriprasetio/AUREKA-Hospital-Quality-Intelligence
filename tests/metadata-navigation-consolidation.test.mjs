@@ -17,7 +17,7 @@ test('Sumber Daya Manusia is the primary entry point for workforce and OPPE func
   // Menu SDM mengikuti permission aktual (direktori / kinerja), bukan hanya daftar role
   assert.ok(home.includes("if(id==='staff')return permissionFlags.readDirectory||permissionFlags.readPerformance"))
   assert.ok(home.includes("staff:["))
-  assert.ok(home.includes("id:'directory',label:'Daftar Tenaga Kerja'"))
+  assert.ok(home.includes("id:'directory',label:'Tenaga Kerja'"))
   assert.ok(home.includes("id:'team',label:'Tim dan Penugasan'"))
   assert.match(metadata, /label: 'Program Kerja'/)
   assert.match(metadata, /label: 'Profil Indikator'/)

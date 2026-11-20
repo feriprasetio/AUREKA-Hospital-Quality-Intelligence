@@ -535,3 +535,14 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
 .qualityLogbookCard>header{display:grid;gap:5px;margin:0 0 14px}.qualityLogbookCard>header span{color:#56819c;font-size:10px;font-weight:800;letter-spacing:.12em}.qualityLogbookCard>header h2{margin:0;color:#24465f;font-size:17px;font-weight:800}.qualityLogbookCard>header p{margin:0;color:#718596;font-size:12px;line-height:1.5}
 html[data-mode="gelap"] .qualityLogbookResultsStack .qualityLogbookCard,html[data-mode="gelap"] .qualityReportingPerformanceStack>section{background:rgba(20,27,38,.62);border-color:rgba(255,255,255,.1);box-shadow:none}
 html[data-mode="gelap"] .qualityLogbookCard>header h2{color:#d9eaf5}html[data-mode="gelap"] .qualityLogbookCard>header p{color:#9dafbe}
+
+/* Planned contextual tabs remain visible for hierarchy clarity but cannot be activated. */
+.workspaceRoot .workspaceNavigationRailItem:disabled,
+.workspaceRoot .workspaceNavigationSubItem:disabled,
+.workspaceRoot .workspaceNavigationOverflowItem:disabled,
+.workspaceRoot .workspaceMobileTab:disabled {
+  opacity: .48 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+}
