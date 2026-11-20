@@ -105,15 +105,15 @@ test('Timkordik 2026 workbook import is available from the main quality audit wo
   assert.doesNotMatch(qualityBranch, /hidePatientEpisodeEntry|patientRegistryMode/)
 })
 
-test('SPM belongs to Performance Management while preserving its existing workspace and route', () => {
+test('SPM belongs to Manajemen Rumah Sakit while preserving its existing workspace and route', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /if\(active==='quality'&&spmOpen\)return 'performance_management'/)
+  assert.match(home, /if\(active==='quality'&&spmOpen\)return 'hospital_management'/)
   assert.match(home, /#indikator-mutu\/spm/)
   assert.ok(home.includes(":active==='quality'&&spmOpen?<SpmWorkspace"))
-  const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
-  const performanceDomain = home.slice(home.indexOf("{id:'performance_management'"), home.indexOf("{id:'governance_organization'"))
+  const qualityDomain = home.slice(home.indexOf("{id:'quality_patient_safety'"), home.indexOf("{id:'hospital_management'"))
+  const managementDomain = home.slice(home.indexOf("{id:'hospital_management'"), home.indexOf("{id:'director_supervisory_board'"))
   assert.doesNotMatch(qualityDomain, /id:'spm'/)
-  assert.match(performanceDomain, /id:'spm',label:'Standar Pelayanan Minimal \(SPM\)',moduleId:'quality',childId:'spm'/)
+  assert.match(managementDomain, /id:'spm',label:'Standar Pelayanan Minimal \(SPM\)',moduleId:'quality',childId:'spm'/)
   const qualityMenu = home.slice(home.indexOf("quality:role==='DEWAN_PENGAWAS'"), home.indexOf('clinical:[', home.indexOf("quality:role==='DEWAN_PENGAWAS'")))
   assert.doesNotMatch(qualityMenu, /id:'spm'/)
 })
@@ -121,6 +121,6 @@ test('SPM belongs to Performance Management while preserving its existing worksp
 test('SPM has one domain destination and no duplicate direct-access shortcut', () => {
   const home = read('components/HomeClient.tsx')
   assert.doesNotMatch(home, /sidebarSpmQuickLink|Akses langsung/)
-  assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'"))
+  assert.ok(home.includes("{id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'}"))
   assert.ok(home.includes("if(moduleId==='quality'&&childId==='spm')"))
 })

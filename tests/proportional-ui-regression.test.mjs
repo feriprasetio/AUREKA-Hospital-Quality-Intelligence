@@ -34,7 +34,7 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.equal(imports.at(-1), 'aureka-navigation-pill.css')
 })
 
-test('Super Admin uses a compact static tab rail and a module-only sidebar', () => {
+test('Super Admin uses a compact contextual rail and displays every AUREKA category simultaneously', () => {
   const homeClient = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
   const navCss = readFileSync(new URL('../app/aureka-navigation-consolidated.css', import.meta.url), 'utf8')
   const repairCss = readFileSync(new URL('../app/aureka-navigation-repair.css', import.meta.url), 'utf8')
@@ -49,7 +49,11 @@ test('Super Admin uses a compact static tab rail and a module-only sidebar', () 
   assert.ok(homeClient.includes("activeRailTitle"))
   assert.ok(homeClient.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'sidebarTreeChildren', 'closedNav', 'toggleNav(']) assert.ok(!homeClient.includes(legacy))
-  assert.ok(homeClient.includes('aria-label="Enam domain utama AUREKA"'))
+  assert.ok(homeClient.includes('aria-label="Tujuh kategori utama AUREKA"'))
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(homeClient.includes("id:'" + id + "'"), id)
+  assert.ok(homeClient.includes("+'isExpanded'"))
+  assert.ok(homeClient.includes("status==='planned'"))
+  assert.doesNotMatch(homeClient, /id:'records',label:'Rekapan Episode'/)
   assert.ok(navCss.includes(".workspaceNavigationRail"))
   assert.ok(navCss.includes("overflow-x: auto"))
   assert.ok(navCss.includes("max-width: 720px"))

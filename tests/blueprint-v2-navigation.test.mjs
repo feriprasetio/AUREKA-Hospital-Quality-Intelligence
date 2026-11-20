@@ -20,7 +20,7 @@ test('Beranda and Analitik & Infografis have separate canonical workspaces', () 
 
 test('primary navigation labels follow the approved domain terminology', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  for (const label of ["label:'Beranda'", "label:'Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
+  for (const label of ["label:'Dashboard'", "label:'Register Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
 })
@@ -54,15 +54,15 @@ test('legacy bookmarks remain mapped while the new HR route is canonical', () =>
   assert.ok(app.includes("'tenaga-klinis':'staff'"))
 })
 
-test('Beranda owns command-center functions while Infografis is an independent module', () => {
+test('Dashboard category exposes the command centre and NARA AI in the always-visible navigation', () => {
   const app = read('components/HomeClient.tsx')
   const home = read('components/HomeLandingWorkspace.tsx')
-  assert.ok(app.includes("id:'command_center',label:'Command Center'"))
-  assert.ok(!app.includes("label:'Dashboard sesuai peran'"))
-  assert.match(app, /\{id:'command_center',label:'Command Center',icon:'home',items:\[\]\}/)
-  assert.ok(app.includes("if(domain.id==='command_center'){setExpandedDomain('');openMainModule('home')}"))
-  assert.ok(app.includes("insights:[]"))
-  assert.ok(app.includes("active==='insights'?<InfographicsDashboard mode=\"full\""))
+  assert.ok(app.includes("id:'command_center',label:'Dashboard',icon:'home',items:["))
+  assert.ok(app.includes("{id:'dashboard',label:'Dashboard',moduleId:'home',childId:'overview'}"))
+  assert.ok(app.includes("{id:'nara_ai',label:'NARA AI',moduleId:'nara'}"))
+  assert.ok(app.includes('aria-label="Tujuh kategori utama AUREKA"'))
+  assert.ok(app.includes('role="heading" aria-level={2}'))
+  assert.ok(app.includes("+'isExpanded'"))
   assert.ok(app.includes("insights:'#analitik'"))
   assert.ok(home.includes('Operational overview'))
   assert.ok(home.includes('Operational workspaces'))
@@ -80,7 +80,7 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(app.includes("clinical:["))
   assert.match(app, /quality:role==='DEWAN_PENGAWAS'/)
   assert.ok(app.includes("qualityReconciliationOpen?'#indikator-mutu/rekonsiliasi'"))
-  assert.ok(app.includes("qualityResultsView?'#indikator-mutu/hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'#indikator-mutu/form-logbook'"))
+  assert.ok(app.includes("qualityResultsView?'#indikator-mutu/hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):qualityOpen?'#indikator-mutu/form-logbook':'#indikator-mutu'"))
   assert.ok(app.includes("if(section==='rekonsiliasi')"))
   assert.ok(app.includes("if(section==='usulan-indikator'){\n     setActive('analytics');setProgramTab('programs')"))
   assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
@@ -161,13 +161,13 @@ test('indicator proposal foreign-key columns have covering indexes', () => {
 })
 
 
-test('SPM belongs to Performance Management and keeps its canonical legacy quality route', () => {
+test('SPM belongs to Manajemen Rumah Sakit and keeps its canonical legacy quality route', () => {
   const app = read('components/HomeClient.tsx')
-  const qualityDomain = app.slice(app.indexOf("{id:'quality_risk'"), app.indexOf("{id:'performance_management'"))
-  const performanceDomain = app.slice(app.indexOf("{id:'performance_management'"), app.indexOf("{id:'governance_organization'"))
+  const qualityDomain = app.slice(app.indexOf("{id:'quality_patient_safety'"), app.indexOf("{id:'hospital_management'"))
+  const managementDomain = app.slice(app.indexOf("{id:'hospital_management'"), app.indexOf("{id:'director_supervisory_board'"))
   assert.ok(!qualityDomain.includes("id:'spm'"))
-  assert.ok(performanceDomain.includes("id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'"))
-  assert.ok(app.includes("if(active==='quality'&&spmOpen)return 'performance_management'"))
+  assert.ok(managementDomain.includes("{id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'}"))
+  assert.ok(app.includes("if(active==='quality'&&spmOpen)return 'hospital_management'"))
   assert.ok(app.includes("spmOpen?'#indikator-mutu/spm'"))
   assert.ok(!app.includes('sidebarSpmQuickLink'))
 })

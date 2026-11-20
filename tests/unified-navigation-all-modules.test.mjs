@@ -34,7 +34,7 @@ test('all navigation groups preserve the selected destination and use responsive
   assert.match(nav, /onSubSelect \?\? onSelect/)
 })
 
-test('Patient module contains only patient-centred read-only record views; all episode input stays in Quality', () => {
+test('Register Pasien shows Direktori and Pola Perawatan; episode history is not a navigation item', () => {
   const home = read('components/HomeClient.tsx')
   const registry = read('components/PatientRegistryWorkspace.tsx')
   const directory = read('components/patient-registry/PatientIndexTab.tsx')
@@ -44,9 +44,9 @@ test('Patient module contains only patient-centred read-only record views; all e
   assert.match(home, /registryTab=\{patientsRegistryTab\} onRegistryTabChange=\{setPatientsRegistryTab\}/)
   assert.match(home, /patientsRegistryTab==='directory'\?'direktori-pasien':patientsRegistryTab==='analysis'\?'pola-perawatan':patientsRegistryTab==='records'\?'rekapan-pasien':'ikhtisar'/)
   assert.match(home, /activeNavSecondaryId=activeNavModuleId==='patients'\?patientsRegistryTab/)
-  assert.match(home, /id:'records',label:'Rekapan Episode'/)
-  assert.match(home, /id:'directory',label:'Direktori Pasien'/)
-  assert.match(home, /id:'analysis',label:'Pola Perawatan'/)
+  assert.doesNotMatch(home, /id:'records',label:'Rekapan Episode'/)
+  assert.match(home, /id:'patient_directory',label:'Direktori Pasien'/)
+  assert.match(home, /id:'patient_patterns',label:'Pola Perawatan'/)
   assert.match(home, /patientView==='tambah-pasien'/)
   assert.match(home, /window\.location\.hash='#indikator-mutu\/form-logbook'/)
   assert.doesNotMatch(home, /id:'add',label:'Input Episode'/)
@@ -100,15 +100,17 @@ test('primary and secondary overflow menus stay independent and have no duplicat
   assert.match(nav, /className=\{'workspaceNavigationSubItem' \+ \(selected \? ' active' : ''\)\}/)
 })
 
-test('Hybrid Navigation V3 exposes exactly six role-filtered primary domains and keeps global services out of the sidebar', () => {
+test('AUREKA exposes exactly seven requirement categories with role-filtered destinations and NARA AI', () => {
   const home = read('components/HomeClient.tsx')
   const css = read('app/typography.css')
-  for (const id of ['command_center','clinical_operations','quality_risk','performance_management','governance_organization','intelligence_analytics']) {
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) {
     assert.ok(home.includes("id:'" + id + "'"), 'Missing domain ' + id)
   }
-  assert.equal((home.match(/\{id:'(?:command_center|clinical_operations|quality_risk|performance_management|governance_organization|intelligence_analytics)'/g)||[]).length,6)
-  assert.match(home,/\.filter\(\(\{id\}\)=>id!=='nara'\)/)
-  assert.match(home,/aria-label="Enam domain utama AUREKA"/)
+  assert.equal((home.match(/\{id:'(?:command_center|patient_registry|clinical_performance|quality_patient_safety|hospital_management|director_supervisory_board|settings)'/g)||[]).length,7)
+  assert.match(home,/aria-label="Tujuh kategori utama AUREKA"/)
+  assert.match(home,/\{id:'nara_ai',label:'NARA AI',moduleId:'nara'\}/)
+  assert.match(home,/role="heading" aria-level=\{2\}/)
+  assert.doesNotMatch(home,/id:'records',label:'Rekapan Episode'/)
   assert.match(home,/workspaceGlobalServiceButton/)
   assert.match(home,/Buka NARA AI/)
   assert.match(home,/Buka Pusat Komunikasi/)

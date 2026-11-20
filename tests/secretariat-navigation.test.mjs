@@ -4,18 +4,20 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('Sekretariat is owned by PMKP and remains visibly disabled until its backend is ready', () => {
+test('Sekretariat is owned by PMKP, visible in the PMKP category, and discloses backend readiness', () => {
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeClient.tsx')
   assert.ok(registry.includes("id:'secretariat', label:'Sekretariat', group:'governance'"))
   assert.ok(registry.includes("owner:'Komite Peningkatan Mutu dan Keselamatan Pasien'"))
   assert.ok(registry.includes("routeHash:'#sekretariat'"))
   assert.ok(registry.includes('requiredRoles:GOVERNANCE_ROLES'))
-  const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
-  assert.ok(qualityDomain.includes("id:'secretariat',label:'Sekretariat',moduleId:'secretariat',childId:'invitations',status:'planned',requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC']"))
+  const qualityDomain = home.slice(home.indexOf("{id:'quality_patient_safety'"), home.indexOf("{id:'hospital_management'"))
+  assert.ok(qualityDomain.includes("id:'secretariat',label:'Sekretariat · Administrasi Kegiatan',moduleId:'secretariat',childId:'invitations'"))
   assert.ok(home.includes("disabled={item.status==='planned'}"))
   assert.ok(home.includes("if(item.status==='planned')return"))
   assert.ok(home.includes("'sekretariat':'secretariat'"))
+  const workspace = read('components/governance/SecretariatWorkspace.tsx')
+  assert.ok(workspace.includes('Pencatatan Sekretariat belum diaktifkan'))
 })
 
 test('Sekretariat exposes exactly the five V3 contextual work areas', () => {

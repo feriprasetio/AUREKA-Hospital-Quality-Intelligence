@@ -43,12 +43,15 @@ test('Arktik uses bundled Plus Jakarta Sans and does not download Inter', () => 
   assert.match(skin, /var\(--font-aureka\)/)
 })
 
-test('sidebar exposes six domain groups; operational destinations stay contextual', () => {
+test('sidebar exposes all seven requirement categories simultaneously; operational destinations stay contextual', () => {
   const home = read('components/HomeClient.tsx')
   const navCss = read('app/aureka-navigation-consolidated.css')
   const repairCss = read('app/aureka-navigation-repair.css')
-  assert.ok(home.includes('aria-label="Enam domain utama AUREKA"'))
+  assert.ok(home.includes('aria-label="Tujuh kategori utama AUREKA"'))
   assert.ok(home.includes('visibleSidebarDomains.map'))
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(home.includes("id:'" + id + "'"), id)
+  assert.ok(home.includes("+'isExpanded'"))
+  assert.ok(home.includes('role="heading" aria-level={2}'))
   assert.ok(home.includes("import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'"))
   assert.ok(home.includes('<UnifiedModuleNavigation'))
   assert.ok(home.includes('activeNestedNavGroup'))
@@ -82,7 +85,9 @@ test('primary domain navigation uses the existing line glyphs and contextual rai
   const home = read('components/HomeClient.tsx')
   assert.doesNotMatch(home, /function NavIcon/)
   assert.doesNotMatch(home, /<NavIcon/)
-  assert.match(home, /aria-label="Enam domain utama AUREKA"/)
+  assert.match(home, /aria-label="Tujuh kategori utama AUREKA"/)
+  assert.match(home, /visibleSidebarDomains\.map\(domain=>/)
+  assert.doesNotMatch(home, /id:'records',label:'Rekapan Episode'/)
   assert.match(home, /className=\{'sidebarDomainTrigger '/)
   assert.match(home, /<UnifiedModuleNavigation/)
 })

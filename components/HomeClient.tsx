@@ -488,7 +488,7 @@ export default function HomeClient(){
   return false
  }
  const activeDomainId=useMemo(()=>{
-  if(active==='quality'&&spmOpen)return 'performance_management'
+  if(active==='quality'&&spmOpen)return 'hospital_management'
   const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>sidebarDestinationActive(item)))
   return match?.id||(active==='home'?'command_center':'')
  },[visibleSidebarDomains,active,patientsRegistryTab,clinicalPathwayOpen,qualityOpen,qualityProfileOpen,qualityMonitorOpen,qualityReconciliationOpen,qualityResultsView,spmOpen,safetyTab,riskTab,secretariatSection,settingsSection,programTab,staffTab,analyticsDirectoryTab])

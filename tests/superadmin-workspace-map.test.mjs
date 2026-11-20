@@ -39,9 +39,12 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes('selectSidebarChild(activeNavModuleId,childId)'))
 })
 
-test('sidebar renders six role-filtered domains and contains no legacy tree menu', () => {
-  assert.ok(home.includes('aria-label="Enam domain utama AUREKA"'))
+test('sidebar renders all seven role-filtered categories simultaneously and contains no legacy tree menu', () => {
+  assert.ok(home.includes('aria-label="Tujuh kategori utama AUREKA"'))
   assert.ok(home.includes('visibleSidebarDomains.map(domain=>'))
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(home.includes("id:'" + id + "'"), id)
+  assert.ok(home.includes("+'isExpanded'"))
+  assert.ok(home.includes('role="heading" aria-level={2}'))
   assert.ok(home.includes('onClick={()=>selectDomainDestination(domain.id,item)'))
   for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.ok(!home.includes("aria-expanded={hasKids"))
