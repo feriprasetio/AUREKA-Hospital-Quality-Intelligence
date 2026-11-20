@@ -117,7 +117,7 @@ export default function PatientMedicalRecordsAnalytics({
         html[data-mode="gelap"] .pmaNote{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:#bdc9d4}
       `}</style>
       <header>
-        <h2>Analisis Rekam Medis</h2>
+        <h2>Pola Perawatan</h2>
         <p>Analisis longitudinal dari episode yang sudah tercatat: LOS, diagnosis/ICD-10, kelengkapan identitas rekam medis, tren episode, dan pemanfaatan layanan. Halaman ini hanya membaca data agregat, bukan tempat input atau validasi logbook.</p>
       </header>
 

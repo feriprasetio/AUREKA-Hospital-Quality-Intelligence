@@ -5,6 +5,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { fetchRoomMonthCounts } from '@/lib/aureka/quality-counts'
 import PatientIndexTab from '@/components/patient-registry/PatientIndexTab'
+import PatientRegistryIntelligence from '@/components/PatientRegistryIntelligence'
 import PatientMedicalRecordsAnalytics from '@/components/patient-registry/PatientMedicalRecordsAnalytics'
 import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 
@@ -140,6 +141,7 @@ export default function PatientRegistryWorkspace({
   lockRoomScope = false,
   registryTab,
   onRegistryTabChange,
+  onAskNara,
 }: {
   rooms: Room[]
   initialRoomId: number | null
@@ -147,12 +149,13 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms: boolean
   lockRoomScope?: boolean
   /** Satu halaman operasional; statistik dan analitik berada di Visual Intelligence. */
-  registryTab?: 'records' | 'directory' | 'analysis'
-  onRegistryTabChange?: (tab: 'records' | 'directory' | 'analysis') => void
+  registryTab?: 'overview' | 'records' | 'directory' | 'analysis'
+  onRegistryTabChange?: (tab: 'overview' | 'records' | 'directory' | 'analysis') => void
+  onAskNara?: (prompt: string, pageContext: string) => void
 }) {
-  const [tab, setTab] = useState<'records' | 'directory' | 'analysis'>(registryTab ?? 'records')
-  const selectRegistryTab = (next: 'records' | 'directory' | 'analysis') => { setTab(next); onRegistryTabChange?.(next) }
-  useEffect(() => { setTab(registryTab ?? 'records') }, [registryTab])
+  const [tab, setTab] = useState<'overview' | 'records' | 'directory' | 'analysis'>(registryTab ?? 'overview')
+  const selectRegistryTab = (next: 'overview' | 'records' | 'directory' | 'analysis') => { setTab(next); onRegistryTabChange?.(next) }
+  useEffect(() => { setTab(registryTab ?? 'overview') }, [registryTab])
   // Super Admin mengikuti unit global; PMKP dapat memilih Semua Unit atau unit tertentu.
   const [roomFilter, setRoomFilter] = useState(lockRoomScope ? String(initialRoomId ?? rooms[0]?.id ?? '') : canViewAllRooms ? '' : String(initialRoomId ?? rooms[0]?.id ?? ''))
   const [roomCounts, setRoomCounts] = useState<Map<number, number>>(new Map())
@@ -266,7 +269,7 @@ export default function PatientRegistryWorkspace({
 
         @media(max-width:640px){.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      {tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'analysis' ? <PatientMedicalRecordsAnalytics rooms={rooms} initialRoomId={initialRoomId} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} /> : <>
+      {tab === 'overview' ? <PatientRegistryIntelligence onOpenDirectory={() => selectRegistryTab('directory')} onOpenPatterns={() => selectRegistryTab('analysis')} onAskNara={onAskNara} /> : tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'analysis' ? <PatientMedicalRecordsAnalytics rooms={rooms} initialRoomId={initialRoomId} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} /> : <>
       <header className="prHead">
         <p className="psStatsLead">Riwayat episode pelayanan lintas unit · identitas disamarkan · hanya-baca</p>
         <div className="prActions">

@@ -59,7 +59,7 @@ test('Beranda owns command-center functions while Infografis is an independent m
   const home = read('components/HomeLandingWorkspace.tsx')
   assert.ok(app.includes("id:'command_center',label:'Command Center'"))
   assert.ok(!app.includes("label:'Dashboard sesuai peran'"))
-  assert.ok(app.includes("label:'Command Center',icon:'home',items:[]"))
+  assert.match(app, /\{id:'command_center',label:'Command Center',icon:'home',items:\[\]\}/)
   assert.ok(app.includes("if(domain.id==='command_center'){setExpandedDomain('');openMainModule('home')}"))
   assert.ok(app.includes("insights:[]"))
   assert.ok(app.includes("active==='insights'?<InfographicsDashboard mode=\"full\""))

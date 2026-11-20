@@ -36,9 +36,10 @@ test('context navigation reuses authorized sidebar destinations and includes a n
 test('submodule navigation participates in history without discarding legacy quality paths', () => {
   assert.match(home, /const \[modulePath,section\]=path\.split\('\/'\)/)
   assert.match(home, /requiredRoles\.includes\(\(role\|\|''\) as AurekaRole\)/)
-  assert.ok(home.includes("patientsRegistryTab==='directory'?'direktori-pasien':patientsRegistryTab==='analysis'?'analisis-rekam-medis':'rekapan-pasien'"))
+  assert.ok(home.includes("patientsRegistryTab==='directory'?'direktori-pasien':patientsRegistryTab==='analysis'?'pola-perawatan':patientsRegistryTab==='records'?'rekapan-pasien':'ikhtisar'"))
+  assert.ok(home.includes("patientView==='rekapan-pasien'?'records':'overview'"))
   assert.match(home, /const patientView=path\.split\('\/'\)\[2\]\|\|legacyPatientView/)
-  assert.match(home, /legacyPatientView=\['tambah-pasien','rekapan-pasien','direktori-pasien','analisis-rekam-medis'\]/)
+  assert.match(home, /legacyPatientView=\['tambah-pasien','ikhtisar','rekapan-pasien','direktori-pasien','analisis-rekam-medis','pola-perawatan'\]/)
   assert.match(home, /audit-indikator\|clinical-pathway\|audit-klinis-dan-kematian/)
   assert.match(home, /window\.addEventListener\('hashchange',onHashChange\)/)
   for (const [module, setter] of [['PatientSafetyWorkspace', 'setSafetyTab'], ['RiskManagementWorkspace', 'setRiskTab']]) {
