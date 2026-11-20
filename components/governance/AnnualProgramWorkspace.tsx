@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import AurekaModal from '@/components/ui/AurekaModal'
@@ -17,8 +16,6 @@ type PriorityArea = {
 type Draft = Partial<PriorityArea>
 type ProgramPayload = { can_manage: boolean; priority_areas: PriorityArea[] }
 type Screen = 'home'|'priorities'
-
-const AnnualQualitySettings = dynamic(() => import('@/components/QualitySettings'), { ssr: false, loading: () => <AsyncStatePanel state="loading" title="Memuat Program Kerja" compact /> })
 
 const STATUS:Record<PriorityArea['status'],string>={aktif:'Aktif',berjalan:'Berjalan',tercapai:'Tercapai',ditunda:'Ditunda',dibatalkan:'Dibatalkan'}
 const PRIORITY:Record<PriorityArea['priority'],string>={tinggi:'Tinggi',sedang:'Sedang',rendah:'Rendah'}
@@ -67,7 +64,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
 
   return <section className="rmPanel govWorkspace annualProgramWorkspace" aria-label="Program kerja tahunan">
     <div className="rmSectionHead">
-      <div><span className="rmEyebrow">Program · Perencanaan Mutu</span><h3>{screen==='home'?'Program Kerja Tahunan':screen==='priorities'?'Area Prioritas':'Usulan Indikator Baru'}</h3>
+      <div><span className="rmEyebrow">Program · Perencanaan Mutu</span><h3>{screen==='home'?'Program Kerja Tahunan':'Area Prioritas'}</h3>
         <p>{screen==='home'?'Pusat pengelolaan prioritas peningkatan mutu dan pengembangan indikator rumah sakit.':screen==='priorities'?'Tetapkan masalah prioritas, sasaran hasil, pemilik, dan tenggat untuk tahun berjalan.':'Pengajuan dan telaah indikator mutu baru sebelum diaktifkan ke katalog indikator.'}</p>
       </div>
       <div className="govHeadTools">

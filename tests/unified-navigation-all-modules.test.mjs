@@ -108,7 +108,10 @@ test('AUREKA exposes exactly seven requirement categories with role-filtered des
   for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) {
     assert.ok(registry.includes("id:'" + id + "'"), 'Missing domain ' + id)
   }
-  assert.equal((registry.match(/\{ id:'(?:command_center|patient_registry|clinical_performance|quality_patient_safety|hospital_management|director_supervisory_board|settings)'/g)||[]).length,7)
+  const navStart = registry.indexOf('export const AUREKA_NAVIGATION_GROUPS')
+  const navEnd = registry.indexOf('] as const', navStart)
+  const navRegistry = registry.slice(navStart, navEnd)
+  assert.equal((navRegistry.match(/\{ id:'(?:command_center|patient_registry|clinical_performance|quality_patient_safety|hospital_management|director_supervisory_board|settings)'/g)||[]).length,7)
   assert.match(home,/aria-label="Tujuh kategori utama AUREKA"/)
   assert.match(registry,/\{ id:'nara_ai', label:'NARA AI', moduleId:'nara' \}/)
   assert.match(home,/role="heading" aria-level=\{2\}/)
