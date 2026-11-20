@@ -1,5 +1,6 @@
 import {
   REALCOST_COST_COMPONENTS,
+  analyzeRealcostEpisodes,
   type RealcostEpisode,
   type RealcostCostMap,
 } from '@/lib/aureka/realcost-engine'
@@ -311,7 +312,7 @@ export async function prepareRealcostImport(grid: unknown[][], sheetName: string
   }
 
   if (!episodes.length) throw new Error('Tidak ada episode yang lolos validasi. ' + (errors[0] ?? 'Periksa kembali isi worksheet.'))
-  const calculated = (await import('@/lib/aureka/realcost-engine')).analyzeRealcostEpisodes(episodes)
+  const calculated = analyzeRealcostEpisodes(episodes)
   if (calculated.reconciliation.component_total_mismatch_count > 0 && warnings.length < 25) {
     warnings.push(calculated.reconciliation.component_total_mismatch_count + ' episode memiliki jumlah 18 komponen yang berbeda dari TARIF_RS.')
   }
