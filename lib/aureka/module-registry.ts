@@ -78,7 +78,7 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
     { id:'patient_patterns', label:'Pola Perawatan', moduleId:'patients', childId:'analysis' },
   ]},
   { id:'clinical_performance', label:'Peningkatan Kinerja Klinis', icon:'clinical', items:[
-    { id:'realcost_audit', label:'Audit Realcost', moduleId:'clinical', childId:'realcost', status:'planned', note:'Menunggu workbook XLSX Realcost multi-worksheet dan validasi mapping biaya.' },
+    { id:'realcost_audit', label:'Audit Realcost', moduleId:'clinical', childId:'realcost', status:'available', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS'] },
     { id:'clinical_pathway', label:'Audit Clinical Pathway', moduleId:'clinical', childId:'audit-pathway' },
     { id:'clinical_audit_death', label:'Audit Klinis dan Kematian', moduleId:'clinical', childId:'audit-clinical' },
   ]},
