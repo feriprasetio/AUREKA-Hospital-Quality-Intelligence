@@ -61,6 +61,9 @@ export type RealcostDashboard = {
   tarif_gap_negative_total: number
   average_tarif_rs: number
   average_tarif_inacbg: number
+  median_tarif_rs: number
+  p90_tarif_rs: number
+  tarif_rs_per_los_day: number
   average_los: number
   median_los: number
   p90_los: number
@@ -72,6 +75,8 @@ export type RealcostDashboard = {
   cost_components: Array<{ code: string; label: string; total: number; share_pct: number }>
   class_distribution: Array<{ class_code: string; episodes: number; tarif_rs: number; tarif_inacbg: number; average_los: number }>
   top_inacbg: Array<{ code: string; description: string; episodes: number; tarif_rs: number; tarif_inacbg: number; gap: number; average_los: number }>
+  top_diagnoses: Array<{ code: string; episodes: number }>
+  top_procedures: Array<{ code: string; episodes: number }>
   discharge_status_distribution: Array<{ code: string; episodes: number }>
   reconciliation: {
     component_total_mismatch_count: number
@@ -114,6 +119,9 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
   const cbgs = new Map<string, { description: string; episodes: number; tarif_rs: number; tarif_inacbg: number; gap: number; los_total: number }>()
   const statuses = new Map<string, number>()
   const components = new Map<string, number>()
+  const diagnoses = new Map<string, number>()
+  const procedures = new Map<string, number>()
+  const tarifRsValues: number[] = []
   const losValues: number[] = []
   let tarifRsTotal = 0
   let tarifInacbgTotal = 0
@@ -136,6 +144,7 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
     const los = Math.max(0, finite(row.los))
     tarifRsTotal += tarifRs
     tarifInacbgTotal += tarifInacbg
+    tarifRsValues.push(tarifRs)
     totalTarifTotal += finite(row.total_tarif)
     losValues.push(los)
     if (row.icu_indicator) icuCount++
@@ -168,6 +177,9 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
     cbg.los_total += los
     if (!cbg.description && row.inacbg_description) cbg.description = row.inacbg_description
     cbgs.set(cbgCode, cbg)
+
+    for (const code of new Set(row.diagnosis_codes.map(value => String(value).trim()).filter(Boolean))) diagnoses.set(code, (diagnoses.get(code) ?? 0) + 1)
+    for (const code of new Set(row.procedure_codes.map(value => String(value).trim()).filter(Boolean))) procedures.set(code, (procedures.get(code) ?? 0) + 1)
 
     const status = row.discharge_status || 'Tidak diketahui'
     statuses.set(status, (statuses.get(status) ?? 0) + 1)
@@ -215,6 +227,9 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
     tarif_gap_negative_total: negativeTotal,
     average_tarif_rs: rows.length ? tarifRsTotal / rows.length : 0,
     average_tarif_inacbg: rows.length ? tarifInacbgTotal / rows.length : 0,
+    median_tarif_rs: median(tarifRsValues),
+    p90_tarif_rs: percentile(tarifRsValues, 0.9),
+    tarif_rs_per_los_day: losValues.reduce((a, b) => a + b, 0) > 0 ? tarifRsTotal / losValues.reduce((a, b) => a + b, 0) : 0,
     average_los: losValues.length ? losValues.reduce((a, b) => a + b, 0) / losValues.length : 0,
     median_los: median(losValues),
     p90_los: percentile(losValues, 0.9),
@@ -232,6 +247,8 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
       code, description: value.description, episodes: value.episodes, tarif_rs: value.tarif_rs,
       tarif_inacbg: value.tarif_inacbg, gap: value.gap, average_los: value.episodes ? value.los_total / value.episodes : 0,
     })),
+    top_diagnoses: [...diagnoses.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 20).map(([code, episodes]) => ({ code, episodes })),
+    top_procedures: [...procedures.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 20).map(([code, episodes]) => ({ code, episodes })),
     discharge_status_distribution: [...statuses.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([code, episodes]) => ({ code, episodes })),
     reconciliation: {
       component_total_mismatch_count: componentMismatchCount,
