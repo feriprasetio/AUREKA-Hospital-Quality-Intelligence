@@ -264,10 +264,11 @@ export async function prepareRealcostImport(grid: unknown[][], sheetName: string
 
     const c2 = extractRealcostBillingGroup(get(values, 'C2'))
     const episodeId = globalThis.crypto.randomUUID()
-    const billingMismatch = REALCOST_COST_COMPONENTS.some(component => {
+    const hasBillingGroup = Object.keys(c2.billing_group).length > 0
+    const billingMismatch = hasBillingGroup && REALCOST_COST_COMPONENTS.some(component => {
       const sourceValue = (costComponents as Record<string, number>)[component.key]
       const billingValue = c2.billing_group[component.billingKey]
-      return billingValue != null && Math.abs(sourceValue - billingValue) > 1
+      return billingValue == null || Math.abs(sourceValue - billingValue) > 1
     })
     if (billingMismatch && warnings.length < 25) warnings.push('Baris Excel ' + sourceRow + ': rincian C2 billing_group berbeda dari kolom komponen biaya.')
     if (!Object.keys(c2.billing_group).length && warnings.length < 25) warnings.push('Baris Excel ' + sourceRow + ': billing_group C2 tidak dapat diparse; rekonsiliasi C2 dilewati.')
