@@ -211,6 +211,9 @@ export async function prepareRealcostImport(grid: unknown[][], sheetName: string
   const episodes: RealcostEpisode[] = []
   const identities: RealcostPatientIdentity[] = []
   const seenKeys = new Set<string>()
+  const episodeSaltBytes = new Uint8Array(16)
+  globalThis.crypto.getRandomValues(episodeSaltBytes)
+  const episodeSalt = Array.from(episodeSaltBytes).map(value => value.toString(16).padStart(2, '0')).join('')
   const periodDates: string[] = []
   let sourceRows = 0
   let invalidRows = 0
@@ -252,7 +255,7 @@ export async function prepareRealcostImport(grid: unknown[][], sheetName: string
     const sep = realcostText(get(values, 'SEP'))
     const c1 = realcostText(get(values, 'C1'))
     const sourceKey = sep || c1 || (sheetName + ':row:' + sourceRow)
-    const episodeKeyHash = await hashEpisodeKey(sourceKey)
+    const episodeKeyHash = await hashEpisodeKey(episodeSalt + ':' + sourceKey)
     if (seenKeys.has(episodeKeyHash)) {
       duplicateEpisodeKeys++
       invalidRows++
