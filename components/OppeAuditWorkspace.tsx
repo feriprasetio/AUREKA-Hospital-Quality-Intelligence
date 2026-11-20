@@ -211,7 +211,7 @@ export default function OppeAuditWorkspace({
   canManage: boolean
   lockRoomScope?: boolean
   /** Blueprint v2: menu OPPE dan FPPE terpisah di Sumber Daya Manusia */
-  initialScreen?: 'assessment' | 'fppe'
+  initialScreen?: 'overview' | 'assessment' | 'fppe'
 }) {
   const initialRoom = initialRoomId ?? rooms[0]?.id ?? 0
   const [year, setYear] = useState(() => new Date().getFullYear())
@@ -236,7 +236,7 @@ export default function OppeAuditWorkspace({
     const type = error || /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(text) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(text) ? 'success' : 'info'
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'OPPE / FPPE' } }))
   }, [notice, error])
-  const [screen, setScreen] = useState<'assessment' | 'fppe' | 'rules' | 'history'>(initialScreen)
+  const [screen, setScreen] = useState<'overview' | 'assessment' | 'fppe' | 'rules' | 'history'>(initialScreen)
   // FPPE punya menu sendiri (SDM › FPPE): tampil mandiri tanpa header, filter, dan tab OPPE.
   const fppeOnly = initialScreen === 'fppe'
   useEffect(() => { if (!fppeOnly && screen === 'fppe') setScreen('assessment') }, [fppeOnly, screen])
@@ -1187,6 +1187,7 @@ export default function OppeAuditWorkspace({
         onChange={setScreen}
         panelId="oppe-active-panel"
         items={[
+          { value: 'overview', label: 'Visual Intelligence' },
           { value: 'assessment', label: 'Form & output OPPE' },
           { value: 'rules', label: 'Pemetaan indikator', count: selectedRuleCount },
           { value: 'history', label: 'Riwayat penilaian', count: assessments.length },
@@ -1194,6 +1195,24 @@ export default function OppeAuditWorkspace({
       />
 
       <div id="oppe-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'oppe-tab-' + screen} tabIndex={0}>
+      {screen === 'overview' && (
+        <section className="oppeGlass oppeSection" aria-label="Visual Intelligence OPPE">
+          <div className="oppeSectionHead"><div><div className="oppeEyebrow">Visual Intelligence · Evaluasi praktik profesional</div><h4>Ikhtisar OPPE {year} · {quarters.find((item) => item.value === quarter)?.label}</h4><p>Ikhtisar dihitung dari master indikator, pemetaan profesi, logbook tervalidasi dan penilaian yang tersimpan pada cakupan unit aktif. Angka bukan keputusan otomatis tentang kewenangan klinis.</p></div><span className="oppeStatus oppeNeutral">{loading ? 'Memuat data' : 'Data terukur'}</span></div>
+          <div className="oppeOverviewKpis" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}}>
+            <div className="oppeMiniMetric"><span>Profil indikator tersedia</span><strong>{loading?'…':profiles.length.toLocaleString('id-ID')}</strong></div>
+            <div className="oppeMiniMetric"><span>Pemetaan OPPE aktif</span><strong>{loading?'…':selectedRuleCount.toLocaleString('id-ID')}</strong></div>
+            <div className="oppeMiniMetric"><span>Logbook tervalidasi</span><strong>{loading?'…':records.filter((record) => record.status === 'validated').length.toLocaleString('id-ID')}</strong></div>
+            <div className="oppeMiniMetric"><span>Penilaian OPPE tersimpan</span><strong>{loading?'…':filteredAssessments.length.toLocaleString('id-ID')}</strong></div>
+          </div>
+          <div className="oppeOverviewActions" style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:14}}>
+            <button type="button" className="oppeBtn primary" onClick={() => setScreen('assessment')}>Lihat Form & Output OPPE</button>
+            <button type="button" className="oppeBtn" onClick={() => setScreen('rules')}>Lihat Pemetaan Indikator</button>
+            <button type="button" className="oppeBtn" onClick={() => setScreen('history')}>Lihat Riwayat Penilaian</button>
+            <button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading?'Memuat…':'Perbarui data'}</button>
+          </div>
+          <div className="oppeNotice oppeNoticeInfo" style={{marginTop:14}}>Skor otomatis hanya memakai logbook tervalidasi, atribusi profesi yang telah dipetakan, serta aturan indikator aktif. Data draf, tanpa atribusi, atau tidak cukup observasi tidak dihitung. Riwayat penilaian individual tetap dibatasi sesuai kewenangan dan dicatat saat dibuka.</div>
+        </section>
+      )}
       {screen === 'assessment' && (
         <div className="oppeWorkGrid">
           <main className="oppeMain">

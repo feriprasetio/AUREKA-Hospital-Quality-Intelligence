@@ -1262,7 +1262,7 @@ export default function HomeClient(){
    :active==='analytics'&&isGovProgramTab(programTab)?<GovernanceProgramWorkspace rooms={roomsList}/>
    :active==='analytics'?<AsyncStatePanel state="empty" title="Pilih ruang Program & RTL" description="Gunakan Program Kerja Tahunan atau Rekomendasi dan Rencana Tindak Lanjut pada navigasi Program & RTL." compact/>
    :active==='staff'&&staffTab==='pic-performance'?<PicPerformanceWorkspace/>
-   :active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace key={'staff-'+staffTab} initialScreen={staffTab==='fppe'?'fppe':'assessment'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
+   :active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace key={'staff-'+staffTab} initialScreen={staffTab==='fppe'?'fppe':'overview'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
    :active==='staff'?<MetadataStatisticsWorkspace key={'staff-directory-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin&&!allRoomsScope} initialContainer="directory" initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
    :active==='secretariat'?<SecretariatWorkspace section={secretariatSection}/>
    :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace/>
