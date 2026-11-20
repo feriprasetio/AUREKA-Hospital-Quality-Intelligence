@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { encodeQr, qrSvgPath } from '../lib/qr/qr.ts'
 
 test('ukuran versi sesuai panjang teks dan pola pencari di tiga sudut', () => {
