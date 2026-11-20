@@ -201,7 +201,7 @@ export default function HomeClient(){
  const [qualityResultsGroup,setQualityResultsGroup]=useState<'unit'|'category'>('unit')
  type SettingsSection='profile'|'security'|'users'|'units'|'appearance'|'system'|'permissions'|'mydata'|'audit'
  const [settingsSection,setSettingsSection]=useState<SettingsSection>('profile')
- const [secretariatSection,setSecretariatSection]=useState<SecretariatSection>('invitations')
+ const [secretariatSection,setSecretariatSection]=useState<SecretariatSection>('register')
  const [permissionFlags,setPermissionFlags]=useState({readDirectory:false,readPerformance:false,readPicPerformance:false,readQualityAggregate:false})
  useEffect(()=>{const h=()=>{setSettingsSection('security');setSettingsTab('security');setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()};window.addEventListener('aureka-open-password',h);return()=>window.removeEventListener('aureka-open-password',h)},[])
  useEffect(()=>{if(active!=='settings')setSettingsTab(null)},[active])
@@ -298,8 +298,8 @@ export default function HomeClient(){
    if(next==='staff'&&section==='kinerja-pic'&&!permissionFlags.readPicPerformance)next='home'
    if(next==='staff'){setStaffTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory');setAnalyticsDirectoryTab(section==='team'?'team':'directory')}
    if(next==='secretariat'){
-    const sectionMap:Record<string,SecretariatSection>={undangan:'invitations',invitations:'invitations',materi:'materials',materials:'materials',absensi:'attendance',attendance:'attendance',notulensi:'minutes',minutes:'minutes',dokumentasi:'documentation',documentation:'documentation'}
-    setSecretariatSection(sectionMap[section||'']||'invitations')
+    const sectionMap:Record<string,SecretariatSection>={register:'register',kegiatan:'register',undangan:'invitations',invitations:'invitations','kirim-undangan':'invitations'}
+    setSecretariatSection(sectionMap[section||'']||'register')
    }
    if(next==='clinical'){
     setQualityResultsView(null)
@@ -474,11 +474,10 @@ export default function HomeClient(){
     {id:'recommendations',label:'Rekomendasi dan Rencana Tindak Lanjut'},
    ],
    secretariat:[
-    {id:'invitations',label:'Undangan'},
-    {id:'materials',label:'Materi'},
-    {id:'attendance',label:'Absensi'},
-    {id:'minutes',label:'Notulensi'},
-    {id:'documentation',label:'Dokumentasi Foto'},
+    {id:'administration',label:'Administrasi Kegiatan',children:[
+      {id:'register',label:'Register Kegiatan'},
+      {id:'invitations',label:'Kirim Undangan'},
+    ]},
    ],
    settings:[
     {id:'account',label:'Preferensi Akun',children:[
@@ -538,7 +537,7 @@ export default function HomeClient(){
  const currentContainer=useMemo(()=>{
   if(active==='home')return 'Beranda'
   if(active==='patients')return patientsRegistryTab==='directory'?'Direktori Pasien':patientsRegistryTab==='analysis'?'Pola Perawatan':'Ikhtisar Register Pasien'
-  if(active==='secretariat')return ({invitations:'Undangan',materials:'Materi',attendance:'Absensi',minutes:'Notulensi',documentation:'Dokumentasi Foto'} as Record<SecretariatSection,string>)[secretariatSection]
+  if(active==='secretariat')return secretariatSection==='register'?'Administrasi Kegiatan · Register Kegiatan':'Administrasi Kegiatan · Kirim Undangan'
   if(active==='quality')return qualityProfileOpen?'Profil Indikator':spmOpen?'Standar Pelayanan Minimal (SPM)':qualityReconciliationOpen?'Pusat Rekonsiliasi Data':qualityMonitorOpen?'Monitoring Pelaporan Indikator Mutu':qualityResultsView?'Hasil Capaian · Indikator Mutu':qualityInitialContainer+' · Form Logbook'
   if(active==='clinical')return qualityResultsView?({pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<string,string>)[qualityResultsView]:(clinicalPathwayOpen?'Audit Clinical Pathway':'Audit Klinis dan Kematian')
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
@@ -581,7 +580,7 @@ export default function HomeClient(){
   setProfileFocus(0);mobileSidebar.close();setGlobalSearch('');setActive(moduleId)
   if(moduleId==='settings'){setSettingsSection((['profile','security','users','units','appearance','system','permissions','mydata','audit'].includes(childId)?childId:'profile') as SettingsSection);setSettingsTab(null)}
   if(moduleId==='secretariat'){
-   if(['invitations','materials','attendance','minutes','documentation'].includes(childId))setSecretariatSection(childId as SecretariatSection)
+   if(childId==='register'||childId==='invitations')setSecretariatSection(childId)
    return
   }
   if(moduleId==='patients'){
