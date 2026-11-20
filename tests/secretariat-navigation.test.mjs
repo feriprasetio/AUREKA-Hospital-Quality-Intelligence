@@ -8,10 +8,11 @@ test('Sekretariat is registered inside Governance & Organization with a canonica
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeClient.tsx')
   assert.ok(registry.includes("id:'secretariat', label:'Sekretariat', group:'governance'"))
+  assert.ok(registry.includes("owner:'Komite Peningkatan Mutu dan Keselamatan Pasien'"))
   assert.ok(registry.includes("routeHash:'#sekretariat'"))
   assert.ok(registry.includes('requiredRoles:GOVERNANCE_ROLES'))
-  assert.ok(home.includes("id:'governance_organization',label:'Governance & Organization'"))
-  assert.ok(home.includes("id:'secretariat',label:'Sekretariat',moduleId:'secretariat'"))
+  const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
+  assert.ok(qualityDomain.includes("id:'secretariat',label:'Sekretariat',moduleId:'secretariat'"))
   assert.ok(home.includes("'sekretariat':'secretariat'"))
 })
 
