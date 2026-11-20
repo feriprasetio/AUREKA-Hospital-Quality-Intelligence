@@ -51,3 +51,20 @@ test('planned modules and tabs are visibly non-interactive rather than opening i
   assert.match(app, /if\(item\.status==='planned'\)return/)
   assert.match(nav, /disabled=\{item\.disabled\}/)
 })
+
+
+test('module pages are navigated from the expanded category sidebar, not a duplicate horizontal rail', () => {
+  const app = read('components/HomeClient.tsx')
+  const css = read('app/aureka-global-navigation.css')
+  assert.match(app, /className="sidebarModuleChildren"/)
+  assert.match(app, /sidebarModuleChild/)
+  assert.match(app, /nestedItems\.map\(child/)
+  assert.match(app, /selectSidebarChild\(item\.moduleId,child\.id\)/)
+  assert.match(app, /item\.id==='quality_indicators'/)
+  assert.match(app, /item\.id==='patient_safety'/)
+  assert.match(app, /item\.id==='risk_management'/)
+  assert.match(app, /item\.id==='annual_program'/)
+  assert.match(app, /\{false&&activeNavModuleId&&<UnifiedModuleNavigation/)
+  assert.match(css, /\.sidebarModuleChildren/)
+  assert.match(css, /\.sidebarModuleChild\.active/)
+})

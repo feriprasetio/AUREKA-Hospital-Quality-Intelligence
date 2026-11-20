@@ -546,3 +546,55 @@ html[data-mode="gelap"] .qualityLogbookCard>header h2{color:#d9eaf5}html[data-mo
   pointer-events: none !important;
   box-shadow: none !important;
 }
+
+
+/* Hybrid navigation: module destinations and their contextual pages live in
+   the category sidebar. The horizontal rail is intentionally not rendered. */
+.workspaceRoot .sidebarModuleNode { display: block; min-width: 0; }
+.workspaceRoot .sidebarModuleChildren {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 7px 34px;
+  padding: 4px 0 4px 9px;
+  border-left: 1px solid #cbd8e4;
+}
+.workspaceRoot .sidebarModuleChild {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #64788b;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.workspaceRoot .sidebarModuleChild:hover {
+  border-color: #d7e3ed;
+  background: #edf4fa;
+  color: #164b7a;
+}
+.workspaceRoot .sidebarModuleChild.active {
+  border-color: #c4d9ea;
+  background: #e1edf7;
+  color: #164b7a;
+  font-weight: 750;
+}
+html[data-mode="gelap"] .workspaceRoot .sidebarModuleChildren { border-left-color: #49627a; }
+html[data-mode="gelap"] .workspaceRoot .sidebarModuleChild { color: #c0d0df; }
+html[data-mode="gelap"] .workspaceRoot .sidebarModuleChild:hover,
+html[data-mode="gelap"] .workspaceRoot .sidebarModuleChild.active {
+  border-color: #4d7292;
+  background: #243d55;
+  color: #ffffff;
+}
+@media (max-width: 720px) {
+  .workspaceRoot .sidebarModuleChildren { margin-left: 27px; }
+  .workspaceRoot .sidebarModuleChild { min-height: 34px; font-size: 12px; }
+}
