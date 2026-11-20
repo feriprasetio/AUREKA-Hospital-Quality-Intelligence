@@ -63,7 +63,7 @@ export type AurekaNavigationGroup = {
  * Module tabs/sub-tabs are owned by each module's contextual navigation.
  */
 /**
- * Canonical seven-category navigation.
+ * Canonical eight-category navigation, following Aureka Navigasi.docx.
  * Sidebar entries are MODULES only. Tabs/subtabs are rendered by each module workspace.
  * A module may route to an existing workspace section through moduleId + childId.
  */
