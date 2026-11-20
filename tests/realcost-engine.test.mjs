@@ -1,8 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { analyzeRealcostEpisodes, REALCOST_COST_COMPONENTS, type RealcostEpisode } from '../lib/aureka/realcost-engine.ts'
+import { analyzeRealcostEpisodes, REALCOST_COST_COMPONENTS } from '../lib/aureka/realcost-engine.ts'
 
-function episode(overrides: Partial<RealcostEpisode> = {}): RealcostEpisode {
+function episode(overrides = {}) {
   const costs = Object.fromEntries(REALCOST_COST_COMPONENTS.map(item => [item.key, 0]))
   costs.KAMAR_AKOMODASI = 60
   costs.OBAT = 40
@@ -55,7 +55,7 @@ test('component reconciliation flags a row when component sum differs from TARIF
 test('monthly and CBG summaries are reproducible and retain encounter-level denominators', () => {
   const result = analyzeRealcostEpisodes([
     episode(),
-    episode({ id: 'episode-2', episode_key_hash: 'hash-2', discharge_date: '2025-02-01', inacbg_code: 'A-4-10-I', procedure_codes: ['PROC01'] }),
+    episode({ id: 'episode-2', episode_key_hash: 'hash-2', discharge_date: '2025-02-01', inacbg_code: 'A-4-10-I' }),
   ])
   assert.equal(result.monthly.length, 2)
   assert.equal(result.monthly[0].episodes, 1)
