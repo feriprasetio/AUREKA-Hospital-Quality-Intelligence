@@ -4,18 +4,28 @@ import { readFileSync } from 'node:fs'
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('Infographics is a standalone Analytics workspace, not a Beranda tab', () => {
+test('Dashboard combines the operational landing, Visual Intelligence and NARA AI without extra sidebar trees', () => {
   const home = read('components/HomeClient.tsx')
   const landing = read('components/HomeLandingWorkspace.tsx')
   const registry = read('lib/aureka/module-registry.ts')
-  assert.ok(registry.includes("id:'insights', label:'Analitik & Infografis'"))
-  assert.ok(registry.includes("id:'analytics', label:'Program & RTL'"))
-  assert.ok(home.includes("active==='insights'?<InfographicsDashboard mode=\"full\""))
+  const navStart = registry.indexOf('export const AUREKA_NAVIGATION_GROUPS')
+  const navEnd = registry.indexOf('] as const', navStart)
+  const nav = registry.slice(navStart, navEnd)
+  assert.ok(registry.includes("id:'insights', label:'Visual Intelligence', group:'command_center'"))
+  assert.ok(registry.includes("routeHash:'#beranda'"))
+  assert.ok(home.includes("active==='home'?<>"))
+  assert.ok(home.includes('<HomeLandingWorkspace'))
+  assert.ok(home.includes('<InfographicsDashboard mode="full"'))
+  assert.match(home, /\.filter\(\(\{id\}\)=>id!=='nara'&&id!=='insights'\)/)
+  const dashboardStart = nav.indexOf("{ id:'command_center'")
+  const patientStart = nav.indexOf("{ id:'patient_registry'", dashboardStart)
+  const dashboard = nav.slice(dashboardStart, patientStart)
+  assert.match(dashboard, /id:'dashboard', label:'Dashboard', moduleId:'home'/)
+  assert.doesNotMatch(dashboard, /nara_ai|cross_domain_analytics|insights/)
+  assert.ok(landing.includes('onAskNara'))
+  assert.ok(landing.includes('NARA'))
+  assert.ok(home.includes("'analitik':'home','infografis':'home','analitik-laporan':'home'"))
   assert.doesNotMatch(home, /homeTab|setHomeTab/)
-  assert.doesNotMatch(landing, /InfographicsDashboard|initialTab|onTabChange/)
-  assert.ok(home.includes('beranda/infografis'))
-  assert.ok(home.includes("'infografis':'insights'") || home.includes("'infografis':'insights'"))
-  assert.ok(home.includes('pasien/statistik'))
 })
 
 test('Program and Workforce have independent active navigation and workspace renderers', () => {
