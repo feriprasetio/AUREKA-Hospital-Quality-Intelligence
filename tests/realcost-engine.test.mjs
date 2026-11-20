@@ -13,7 +13,7 @@ function episode(overrides: Partial<RealcostEpisode> = {}): RealcostEpisode {
     class_code: '3', inacbg_code: 'A-4-10-I', inacbg_description: 'Contoh',
     tariff_inacbg: 80, tarif_rs: 100, total_tarif: 80, tarif_poli_eks: 0,
     los: 2, icu_indicator: false, icu_los: 0, vent_hour: 0, discharge_status: '1',
-    diagnosis_codes: ['A00.1'], procedure_codes: [], cost_components: costs,
+    diagnosis_codes: ['A00.1'], procedure_codes: ['PROC01'], cost_components: costs,
     billing_group: billing, billing_group_total_tarif_rs: 100, ...overrides,
   }
 }
