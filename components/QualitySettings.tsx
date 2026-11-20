@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import IndicatorProposalWorkspace from '@/components/IndicatorProposalWorkspace'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 import AurekaModal from '@/components/ui/AurekaModal'
@@ -455,7 +456,7 @@ function UnitLiveProfileEditor({
   )
 }
 
-export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, lockRoomScope = false }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; lockRoomScope?: boolean }) {
+export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, lockRoomScope = false, role = null }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; lockRoomScope?: boolean; role?: string | null }) {
   const [year, setYear] = useState(2026)
   const [room, setRoom] = useState(lockRoomScope && initialRoomId != null ? String(initialRoomId) : '')
   useEffect(() => { if (lockRoomScope && initialRoomId != null) setRoom(String(initialRoomId)) }, [lockRoomScope, initialRoomId])
@@ -463,6 +464,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
   const [tab, setTab] = useState<MetadataTab>(initialTab)
+  const [profileWorkspaceOpen, setProfileWorkspaceOpen] = useState(false)
+  const [profileWorkspaceSection, setProfileWorkspaceSection] = useState<'profiles'|'proposals'>('profiles')
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
@@ -512,7 +515,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
   useEffect(() => { void load() }, [load])
 
-  useEffect(() => { setTab(initialTab) }, [initialTab])
+  useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(false); setProfileWorkspaceSection('profiles') }, [initialTab])
+  useEffect(() => { if (tab !== 'profiles') { setProfileWorkspaceOpen(false); setProfileWorkspaceSection('profiles') } }, [tab])
 
   const programs = useMemo(() => {
     const values = new Set<string>()
@@ -1010,8 +1014,29 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
           </div>
         )}
 
-        {tab === 'profiles' && (
+        {tab === 'profiles' && !profileWorkspaceOpen && (
+          <section className="qsProfileIntelligence" aria-label="Visual Intelligence Profil Indikator" style={{marginTop:12,display:'grid',gap:14}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:10}}>
+              <div className="qsProfileIntelligenceMetric"><span>Indikator aktif</span><strong>{activeProfileCount.toLocaleString('id-ID')}</strong></div>
+              <div className="qsProfileIntelligenceMetric"><span>Perlu perbaikan teknis</span><strong>{activeReviewCount.toLocaleString('id-ID')}</strong></div>
+              <div className="qsProfileIntelligenceMetric"><span>Target menunggu pengesahan</span><strong>{activeTargetPendingCount.toLocaleString('id-ID')}</strong></div>
+              <div className="qsProfileIntelligenceMetric"><span>Target belum tersedia / klarifikasi</span><strong>{activeTargetUnavailableCount.toLocaleString('id-ID')}</strong></div>
+            </div>
+            <div style={{border:'1px solid var(--line,rgba(20,34,27,.12))',borderRadius:14,padding:16,display:'grid',gap:10}}>
+              <div><strong>Visual Intelligence Profil Indikator</strong><p style={{margin:'5px 0 0',fontSize:12,lineHeight:1.55,color:'var(--muted)'}}>Ringkasan status kamus indikator untuk tahun dan cakupan unit yang dipilih. Angka dihitung dari profil yang berhasil dimuat; target yang belum disahkan tidak dianggap sebagai target resmi.</p></div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceSection('profiles');setProfileWorkspaceOpen(true)}}>Lihat Profil Indikator</button>
+                <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceSection('proposals');setProfileWorkspaceOpen(true)}}>Lihat Usulan Indikator Baru</button>
+              </div>
+            </div>
+          </section>
+        )}
+        {tab === 'profiles' && profileWorkspaceOpen && profileWorkspaceSection === 'profiles' && (
           <div style={{ marginTop: 12 }}>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
+              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceOpen(false)}>← Visual Intelligence</button>
+              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceSection('proposals')}>Usulan Indikator Baru</button>
+            </div>
             <div className="metadataProfileFilters" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <input className="qualitySettingsLocalSearch" aria-label="Cari kode, nama indikator, program, kategori, atau unit" placeholder="Cari kode, indikator, program, kategori, unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '1 1 240px', minWidth: 180 }} />
               <select
@@ -1179,6 +1204,16 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
 
 
+
+        {tab === 'profiles' && profileWorkspaceOpen && profileWorkspaceSection === 'proposals' && (
+          <div style={{marginTop:12,display:'grid',gap:10}}>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceSection('profiles')}>Kembali ke kamus profil</button>
+              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceOpen(false)}>Kembali ke Visual Intelligence</button>
+            </div>
+            <IndicatorProposalWorkspace rooms={rooms} role={role} currentRoomId={initialRoomId}/>
+          </div>
+        )}
         </div>
       </LiquidGlass>
     </div>

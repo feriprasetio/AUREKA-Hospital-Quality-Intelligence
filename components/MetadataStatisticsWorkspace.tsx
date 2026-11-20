@@ -133,7 +133,7 @@ export default function MetadataStatisticsWorkspace({
 
       {activeTab === 'profiles' && isSuperAdmin && (
         <div className="mswContent" role="tabpanel" aria-label="Profil Indikator">
-          <QualitySettings rooms={rooms} initialTab="profiles" showTabs={false} initialRoomId={initialRoomId} lockRoomScope={lockRoomScope} onTabChange={setActive} />
+          <QualitySettings rooms={rooms} initialTab="profiles" showTabs={false} initialRoomId={initialRoomId} lockRoomScope={lockRoomScope} onTabChange={setActive} role={role} />
         </div>
       )}
 
