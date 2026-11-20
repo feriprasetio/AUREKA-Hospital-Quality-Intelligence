@@ -466,9 +466,32 @@ export default function HomeClient(){
    patients:[],
    clinical:[],
    insights:[],
-   analytics:[],
-   secretariat:[],
-   settings:[],
+   analytics:[
+    {id:'programs',label:'Program Kerja Tahunan'},
+    {id:'recommendations',label:'Rekomendasi dan Rencana Tindak Lanjut'},
+   ],
+   secretariat:[
+    {id:'invitations',label:'Undangan'},
+    {id:'materials',label:'Materi'},
+    {id:'attendance',label:'Absensi'},
+    {id:'minutes',label:'Notulensi'},
+    {id:'documentation',label:'Dokumentasi Foto'},
+   ],
+   settings:[
+    {id:'account',label:'Preferensi Akun',children:[
+     {id:'profile',label:'Profil Pengguna'},
+     ...(admin?[{id:'users',label:'Role Pengguna dan Hak Akses'},{id:'units',label:'Unit dan Instalasi'}]:[]),
+     ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'permissions',label:'Pengaturan Hak Akses'}]:[]),
+    ]},
+    {id:'system',label:'Preferensi Sistem',children:[
+     {id:'security',label:'Keamanan'},
+     {id:'appearance',label:'Preferensi Tampilan'},
+     ...(!admin?[{id:'mydata',label:'Data Saya untuk PMKP'}]:[]),
+     ...(admin?[{id:'system',label:'Konfigurasi Sistem'}]:[]),
+     ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'audit',label:'Audit Log'}]:[]),
+     {id:'legal',label:'Legal dan Asset',disabled:true,hint:'Menunggu kebijakan persetujuan dan tanda tangan elektronik.'},
+    ]},
+   ],
    quality:role==='DEWAN_PENGAWAS' ? [] : [
     {id:'audit-indicators',label:'Form Logbook'},
     {id:'profile-indicators',label:'Profil Indikator'},
