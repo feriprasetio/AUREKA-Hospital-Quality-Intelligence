@@ -3,7 +3,7 @@ import {
   analyzeRealcostEpisodes,
   type RealcostEpisode,
   type RealcostCostMap,
-} from '@/lib/aureka/realcost-engine'
+} from './realcost-engine'
 
 export type RealcostPatientIdentity = {
   episode_id: string
