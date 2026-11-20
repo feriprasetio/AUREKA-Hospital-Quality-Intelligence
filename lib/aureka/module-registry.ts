@@ -23,6 +23,7 @@ export type AurekaModule = {
 const ALL_ROLES = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'] as const
 const GOVERNANCE_ROLES = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC'] as const
 const CLINICAL_ACCESS_ROLES = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC','VALIDATOR'] as const
+const CLINICAL_PERFORMANCE_ROLES = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'] as const
 const QUALITY_ACCESS_ROLES = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'] as const
 
 export const AUREKA_MODULE_REGISTRY = [
@@ -30,7 +31,7 @@ export const AUREKA_MODULE_REGISTRY = [
   { id:'nara', label:'NARA AI', group:'command_center', status:'available', visibility:'all-authenticated', requiredRoles:ALL_ROLES, routeHash:'#nara-ai', owner:'Komite PMKP / AUREKA Intelligence', lastReviewed:'2026-11-15', description:'Asisten kecerdasan rumah sakit dengan lima provider AI melalui gateway terautentikasi dan konteks data agregat.' },
   { id:'patients', label:'Register Pasien', group:'patient_registry', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#pasien', owner:'Unit pelayanan / Komite PMKP', lastReviewed:'2026-11-20', description:'Direktori pasien dan Pola Perawatan (ICD-10, LOS, readmisi) dengan penelusuran relasi lintas pelayanan sesuai hak akses.' },
   { id:'quality', label:'Indikator Mutu', group:'quality_patient_safety', status:'beta', visibility:'all-authenticated', requiredRoles:QUALITY_ACCESS_ROLES, routeHash:'#indikator-mutu', owner:'Komite PMKP / pemilik indikator', lastReviewed:'2026-11-12', description:'Form logbook dan profil indikator untuk pelaksana; hasil capaian agregat baca-saja untuk Dewan Pengawas.' },
-  { id:'clinical', label:'Peningkatan Kinerja Klinis', group:'clinical_performance', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#peningkatan-kinerja-klinis', owner:'Komite PMKP / Komite Medik', lastReviewed:'2026-11-12', description:'Audit Clinical Pathway serta Audit Klinis dan Kematian berbasis episode.' },
+  { id:'clinical', label:'Peningkatan Kinerja Klinis', group:'clinical_performance', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_PERFORMANCE_ROLES, routeHash:'#peningkatan-kinerja-klinis', owner:'Komite PMKP / Komite Medik', lastReviewed:'2026-11-12', description:'Audit Clinical Pathway serta Audit Klinis dan Kematian berbasis episode.' },
   { id:'safety', label:'Keselamatan Pasien', group:'quality_patient_safety', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC'], routeHash:'#keselamatan-pasien', owner:'Komite PMKP / Tim Keselamatan Pasien', lastReviewed:'2026-11-12', description:'Register insiden, investigasi/RCA, dan survei budaya keselamatan bernama.' },
   { id:'risk', label:'Manajemen Risiko', group:'quality_patient_safety', status:'beta', visibility:'all-authenticated', requiredRoles:GOVERNANCE_ROLES, routeHash:'#manajemen-risiko', owner:'Komite PMKP / Manajemen Risiko Rumah Sakit', lastReviewed:'2026-11-12', description:'Risk Register, konektor, profil risiko, FMEA, RTP, dan evaluasi efektivitas kontrol.' },
   { id:'insights', label:'Visual Intelligence', group:'command_center', status:'available', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'], routeHash:'#beranda', owner:'Komite PMKP / Manajemen', lastReviewed:'2026-11-21', description:'Analitik dan infografis lintas domain yang terintegrasi pada Dashboard; bukan tujuan navigasi mandiri.' },
@@ -79,8 +80,8 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
   ]},
   { id:'clinical_performance', label:'Peningkatan Kinerja Klinis', icon:'clinical', items:[
     { id:'realcost_audit', label:'Audit Realcost', moduleId:'clinical', childId:'realcost', status:'available', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS'] },
-    { id:'clinical_pathway', label:'Audit Clinical Pathway', moduleId:'clinical', childId:'audit-pathway' },
-    { id:'clinical_audit_death', label:'Audit Klinis dan Kematian', moduleId:'clinical', childId:'audit-clinical' },
+    { id:'clinical_pathway', label:'Audit Clinical Pathway', moduleId:'clinical', childId:'audit-pathway', requiredRoles:CLINICAL_ACCESS_ROLES },
+    { id:'clinical_audit_death', label:'Audit Klinis dan Kematian', moduleId:'clinical', childId:'audit-clinical', requiredRoles:CLINICAL_ACCESS_ROLES },
   ]},
   { id:'quality_patient_safety', label:'Peningkatan Mutu dan Keselamatan Pasien', icon:'quality', items:[
     { id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'planned', note:'Administrasi kegiatan, register kegiatan, dan pengiriman undangan belum terhubung ke backend.' },
