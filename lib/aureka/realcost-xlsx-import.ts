@@ -3,7 +3,7 @@ import {
   analyzeRealcostEpisodes,
   type RealcostEpisode,
   type RealcostCostMap,
-} from './realcost-engine'
+} from './realcost-engine.ts'
 
 export type RealcostPatientIdentity = {
   episode_id: string
