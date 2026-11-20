@@ -215,7 +215,7 @@ export default function SurveyWizard(props: Props) {
 
         {step.key === 'profil' ? (
           <div className="svProfile">
-            <div className="svPrivacy"><b>Survei anonim.</b> Formulir dan record respons tidak meminta atau menyimpan nama, nomor pegawai, ID responden, maupun ID akun pengirim. Autentikasi tetap dipakai untuk membatasi hak pengiriman; akun pengirim tidak disimpan pada baris survei. Unit dan metadata kelompok hanya dipakai untuk analisis agregat, dan keluaran kelompok di bawah lima responden disembunyikan. Instrumen ini adalah instrumen internal; belum dinyatakan sebagai AHRQ SOPS Hospital Survey 2.0 atau tervalidasi secara lokal. Perkiraan waktu 15–20 menit. Untuk pernyataan tidak relevan, pilih <b>TB</b> (tidak berlaku).</div>
+            <div className="svPrivacy"><b>Survei anonim.</b> Formulir dan record respons tidak meminta atau menyimpan nama, nomor pegawai, ID responden, maupun ID akun pengirim. Autentikasi tetap dipakai untuk membatasi hak pengiriman; akun pengirim tidak disimpan pada baris survei. Unit dan metadata kelompok hanya dipakai untuk analisis agregat, dan keluaran kelompok dengan minimum 5 responden (n≥5) baru ditampilkan; kelompok di bawah ambang itu disembunyikan. Instrumen ini adalah instrumen internal; belum dinyatakan sebagai AHRQ SOPS Hospital Survey 2.0 atau tervalidasi secara lokal. Perkiraan waktu 15–20 menit. Untuk pernyataan tidak relevan, pilih <b>TB</b> (tidak berlaku).</div>
             <label className="svField svSelect">
               <span>Unit kerja <span className="svReq" aria-hidden="true">*</span></span>
               <select value={meta.unit} onChange={e => meta.setUnit(e.target.value)}>

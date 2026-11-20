@@ -139,7 +139,8 @@ const INVESTIGATION_FIELDS: IncidentField[] = [
   { code: '14B', label: 'Tindakan untuk Mengurangi Risiko, Untuk Petugas', type: 'textarea' },
   { code: '14C', label: 'Tindakan untuk Mengurangi Risiko, Untuk Fasyankes', type: 'textarea' },
   { code: '14D', label: 'Tindakan untuk Mengurangi Risiko, Untuk Faktor Penyebab Terkait', type: 'textarea' },
-  { code: '15', label: 'Hierarki kekuatan tindakan (kuat / sedang / lemah) dan alasan pemilihan', type: 'textarea', hint: 'Uraikan apakah tindakan mengubah desain sistem/proses atau hanya mengandalkan edukasi dan pengingat.' },
+  { code: '15', label: 'Hierarki kekuatan tindakan', type: 'select', options: ['Kuat', 'Sedang', 'Lemah'], hint: 'Pilih tingkat kekuatan tindakan berdasarkan perubahan desain sistem dan ketergantungan pada perilaku manusia.' },
+  { code: '20', label: 'Alasan pemilihan hierarki kekuatan tindakan', type: 'textarea', hint: 'Jelaskan alasan klasifikasi dan mengapa tindakan tersebut diperkirakan efektif.' },
   { code: '16', label: 'Penanggung jawab tindakan (owner)', type: 'text' },
   { code: '17', label: 'Tenggat waktu tindakan (YYYY-MM-DD)', type: 'text' },
   { code: '18', label: 'Metode dan bukti verifikasi efektivitas', type: 'textarea', hint: 'Tetapkan ukuran keberhasilan, sumber bukti, dan siapa yang memverifikasi.' },
@@ -149,7 +150,7 @@ const INVESTIGATION_SECTIONS = [
   { title: 'Klasifikasi & Masalah', codes: ['1', '2', '3A', '3B'] },
   { title: 'Analisis Penyebab', codes: ['4A', '4B', '4C', '5', '6', '7'] },
   { title: 'Faktor Mitigasi & Deteksi', codes: ['8A', '8B', '8C', '9', '10'] },
-  { title: 'Rekomendasi, Tindakan & Verifikasi Efektivitas', codes: ['11', '12', '13A', '13B', '14A', '14B', '14C', '14D', '15', '16', '17', '18', '19'] },
+  { title: 'Rekomendasi, Tindakan & Verifikasi Efektivitas', codes: ['11', '12', '13A', '13B', '14A', '14B', '14C', '14D', '15', '16', '17', '18', '19', '20'] },
 ]
 
 const SURVEY_DIMENSIONS: { title: string; code: string; items: { code: string; text: string }[] }[] = [
@@ -737,13 +738,14 @@ export default function PatientSafetyWorkspace({
     const savedInvestigation = investigations.find(row => row.id === investigationId)
     const isNewClosure = investigationStatus === 'closed' && savedInvestigation?.status !== 'closed'
     if (isNewClosure) {
-      const requiredForClosure = ['12', '15', '16', '17', '18', '19']
+      const requiredForClosure = ['12', '15', '16', '17', '18', '19', '20']
       const missingClosureFields = requiredForClosure.filter(code => !String(investigationData[code] || '').trim())
       if (missingClosureFields.length) {
         setError('RCA2 belum dapat ditutup. Lengkapi tindakan, hierarki tindakan, owner, tenggat, metode/bukti verifikasi, dan tanggal verifikasi efektivitas.')
         return
       }
-      if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(investigationData['17'])) || !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(investigationData['19']))) {
+      const validIsoDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + 'T00:00:00Z')) && new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) === value
+      if (!validIsoDate(String(investigationData['17'])) || !validIsoDate(String(investigationData['19']))) {
         setError('Format tenggat dan tanggal verifikasi harus YYYY-MM-DD.')
         return
       }
