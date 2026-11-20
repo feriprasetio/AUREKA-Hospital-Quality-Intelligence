@@ -62,6 +62,11 @@ export type AurekaNavigationGroup = {
  * The sidebar renders categories only; the selected category reveals its modules.
  * Module tabs/sub-tabs are owned by each module's contextual navigation.
  */
+/**
+ * Canonical seven-category navigation.
+ * Sidebar entries are MODULES only. Tabs/subtabs are rendered by each module workspace.
+ * A module may route to an existing workspace section through moduleId + childId.
+ */
 export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
   { id:'command_center', label:'Dashboard', icon:'home', items:[
     { id:'dashboard', label:'Dashboard', moduleId:'home', childId:'overview' },
@@ -75,37 +80,26 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
   { id:'clinical_performance', label:'Peningkatan Kinerja Klinis', icon:'clinical', items:[
     { id:'realcost_audit', label:'Audit Realcost', moduleId:'clinical', childId:'realcost', status:'planned', note:'Menunggu workbook XLSX Realcost multi-worksheet dan validasi mapping biaya.' },
     { id:'clinical_pathway', label:'Audit Clinical Pathway', moduleId:'clinical', childId:'audit-pathway' },
-    { id:'clinical_audit', label:'Audit Klinis', moduleId:'clinical', childId:'audit-clinical' },
-    { id:'clinical_death', label:'Audit Kematian', moduleId:'clinical', childId:'audit-death' },
+    { id:'clinical_audit_death', label:'Audit Klinis dan Kematian', moduleId:'clinical', childId:'audit-clinical' },
   ]},
   { id:'quality_patient_safety', label:'Peningkatan Mutu dan Keselamatan Pasien', icon:'quality', items:[
-    { id:'secretariat', label:'Sekretariat · Administrasi Kegiatan', moduleId:'secretariat', childId:'invitations', status:'planned', note:'Tampilan konseptual tersedia; register dan penyimpanan UMANG belum terhubung ke backend.' },
+    { id:'secretariat', label:'Sekretariat Administrasi Kegiatan', moduleId:'secretariat', childId:'invitations', status:'planned', note:'Tampilan konseptual tersedia; register dan penyimpanan UMANG belum terhubung ke backend.' },
     { id:'annual_program', label:'Program Kerja Tahunan', moduleId:'analytics', childId:'programs' },
     { id:'quality_indicators', label:'Indikator Mutu', moduleId:'quality', childId:'quality-overview' },
     { id:'patient_safety', label:'Keselamatan Pasien', moduleId:'safety', childId:'overview' },
     { id:'risk_management', label:'Manajemen Risiko', moduleId:'risk', childId:'overview' },
   ]},
   { id:'hospital_management', label:'Manajemen Rumah Sakit', icon:'staff', items:[
-    { id:'spm', label:'Standar Pelayanan Minimal (SPM)', moduleId:'quality', childId:'spm' },
-    { id:'sop', label:'Standar Prosedur Operasional (SPO)', moduleId:'settings', childId:'sop', status:'planned', note:'Memerlukan bucket, ekstraksi dokumen, skema versi, validasi pemilik SPO dan audit trail.' },
-    { id:'organization_hr', label:'Tenaga Kerja', moduleId:'staff', childId:'directory' },
-    { id:'teams', label:'Tim dan Penugasan', moduleId:'staff', childId:'team' },
-    { id:'oppe', label:'OPPE', moduleId:'staff', childId:'oppe-fppe' },
-    { id:'fppe', label:'FPPE', moduleId:'staff', childId:'fppe' },
-    { id:'training', label:'In House Training', moduleId:'staff', childId:'training', status:'planned', note:'Register pelatihan dan penerbitan sertifikat PDF belum tersedia.' },
-    { id:'student_orientation', label:'Orientasi Mahasiswa', moduleId:'staff', childId:'orientation', status:'planned', note:'Menunggu integrasi laporan Tim Koordinasi Pendidikan dan template sertifikat yang disahkan.' },
+    { id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm' },
+    { id:'human_resources', label:'Sumber Daya Manusia', moduleId:'staff', childId:'directory' },
+    { id:'education_training', label:'Pendidikan dan Pelatihan', moduleId:'staff', childId:'training', status:'planned', note:'Register IHT, orientasi mahasiswa, integrasi sumber Tim Koordinasi Pendidikan dan penerbitan sertifikat masih menunggu prasyarat.' },
   ]},
   { id:'director_supervisory_board', label:'Direktur dan Dewan Pengawas', icon:'analytics', items:[
     { id:'recommendations', label:'Rekomendasi dan Rencana Tindak Lanjut (RTL)', moduleId:'analytics', childId:'recommendations' },
   ]},
   { id:'settings', label:'Pengaturan', icon:'settings', items:[
-    { id:'user_profile', label:'Profil Pengguna', moduleId:'settings', childId:'profile' },
-    { id:'user_roles', label:'Role Pengguna dan Hak Akses', moduleId:'settings', childId:'permissions', requiredRoles:['ADMIN','PMKP','DIREKTUR'] },
-    { id:'units', label:'Unit dan Instalasi', moduleId:'settings', childId:'units', requiredRoles:['ADMIN'] },
-    { id:'system_config', label:'Konfigurasi Sistem', moduleId:'settings', childId:'system', requiredRoles:['ADMIN'] },
-    { id:'display_preferences', label:'Preferensi Tampilan', moduleId:'settings', childId:'appearance' },
-    { id:'audit_log', label:'Audit Log', moduleId:'settings', childId:'audit', requiredRoles:['ADMIN','PMKP','DIREKTUR'] },
-    { id:'legal_assets', label:'Legal dan Asset', moduleId:'settings', childId:'legal', status:'planned', note:'Lembar persetujuan user, legal review, QR/barcode dan verifikasi dokumen belum terhubung ke backend.' },
+    { id:'account_preferences', label:'Preferensi Akun', moduleId:'settings', childId:'profile' },
+    { id:'system_preferences', label:'Preferensi Sistem', moduleId:'settings', childId:'appearance' },
   ]},
 ] as const
 
