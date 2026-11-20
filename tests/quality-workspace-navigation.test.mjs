@@ -124,6 +124,7 @@ test('SPM belongs to Manajemen Rumah Sakit while preserving its existing workspa
 test('SPM has one domain destination and no duplicate direct-access shortcut', () => {
   const home = read('components/HomeClient.tsx')
   assert.doesNotMatch(home, /sidebarSpmQuickLink|Akses langsung/)
-  assert.ok(read('lib/aureka/module-registry.ts').includes("{ id:'spm', label:'Standar Pelayanan Minimal (SPM)', moduleId:'quality', childId:'spm' }"))
+  assert.ok(read('lib/aureka/module-registry.ts').includes("{ id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm' }"))
   assert.ok(home.includes("if(moduleId==='quality'&&childId==='spm')"))
+  assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal'"))
 })
