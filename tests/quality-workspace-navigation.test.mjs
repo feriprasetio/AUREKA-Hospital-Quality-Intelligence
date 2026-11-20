@@ -127,4 +127,5 @@ test('SPM has one domain destination and no duplicate direct-access shortcut', (
   assert.ok(read('lib/aureka/module-registry.ts').includes("{ id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm' }"))
   assert.ok(home.includes("if(moduleId==='quality'&&childId==='spm')"))
   assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal'"))
+  assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal'"))
 })
