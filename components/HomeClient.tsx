@@ -416,11 +416,7 @@ export default function HomeClient(){
    if(item.status==='planned')return true
    if(item.moduleId==='home'||item.moduleId==='nara')return true
    if(!visibleModuleIds.has(item.moduleId))return false
-   if(item.moduleId==='staff'){
-    if(['directory','team'].includes(item.childId||''))return permissionFlags.readDirectory
-    if(item.childId==='pic-performance')return permissionFlags.readPicPerformance
-    if(['oppe-fppe','fppe'].includes(item.childId||''))return permissionFlags.readPerformance
-   }
+   if(item.moduleId==='staff')return permissionFlags.readDirectory||permissionFlags.readPerformance||permissionFlags.readPicPerformance
    return true
   })}))
   ,[visibleModuleIds,permissionFlags,role])
