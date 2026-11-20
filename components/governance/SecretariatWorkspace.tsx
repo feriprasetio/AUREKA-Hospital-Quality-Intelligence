@@ -139,7 +139,7 @@ export default function SecretariatWorkspace({
   const [search, setSearch] = useState('')
   const [notice, setNotice] = useState<{ kind: 'success' | 'error' | 'info'; text: string } | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  const [draft, setDraft] = useState<RegisterDraft>(() => emptyDraft(initialRoomId))
+  const [draft, setDraft] = useState<RegisterDraft>(() => ({ ...emptyDraft(initialRoomId), meeting_type: section === 'invitations' ? 'Undangan' : 'Kegiatan' }))
   const [activeMeeting, setActiveMeeting] = useState<MeetingRow | null>(null)
   const [metadataDraft, setMetadataDraft] = useState<RegisterDraft | null>(null)
   const [documents, setDocuments] = useState<MeetingDocument[]>([])
@@ -163,7 +163,7 @@ export default function SecretariatWorkspace({
   useEffect(() => { void loadRegister() }, [loadRegister])
 
   useEffect(() => {
-    if (!createOpen) setDraft(emptyDraft(initialRoomId))
+    if (!createOpen) setDraft({ ...emptyDraft(initialRoomId), meeting_type: section === 'invitations' ? 'Undangan' : 'Kegiatan' })
   }, [createOpen, initialRoomId])
 
   const filteredRows = useMemo(() => rows.filter((row) => {
@@ -214,11 +214,7 @@ export default function SecretariatWorkspace({
 
   const createRegister = async () => {
     if (!canManage || !userId) return
-    if (draft.title.trim().length < 2) {
-      setNotice({ kind: 'error', text: 'Judul dokumen atau kegiatan minimal dua karakter.' })
-      return
-    }
-    if (!draft.document_date) {
+        if (!draft.document_date) {
       setNotice({ kind: 'error', text: 'Tanggal dokumen wajib diisi.' })
       return
     }
@@ -234,7 +230,7 @@ export default function SecretariatWorkspace({
     setBusy(true)
     try {
       const { data, error } = await db().from('pmkp_meetings').insert({
-        title: draft.title.trim(),
+        title: draft.title.trim() || 'Dokumen Sekretariat',
         document_date: draft.document_date,
         document_number: draft.document_number.trim() || null,
         meeting_type: draft.meeting_type,
@@ -344,7 +340,7 @@ export default function SecretariatWorkspace({
           if (metadata.document_date && (!registerMeta.document_date || registerMeta.document_date === activeMeeting.document_date)) registerMeta.document_date = String(metadata.document_date)
           if (metadata.document_number && !registerMeta.document_number) registerMeta.document_number = String(metadata.document_number)
           const parsedTitle = String(metadata.document_title || '')
-          if (parsedTitle && (!registerMeta.title || registerMeta.title === activeMeeting.title)) registerMeta.title = parsedTitle
+          if (parsedTitle && (['Dokumen Sekretariat','Register Dokumen','Kegiatan baru','Dokumen baru'].includes(registerMeta.title) || registerMeta.title === activeMeeting.title)) registerMeta.title = parsedTitle
         }
         setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'done', message: parseError ? 'File tersimpan; pembacaan perlu ditinjau.' : statusLabel(extractionStatus) } : x))
       } catch (error) {
@@ -396,7 +392,7 @@ export default function SecretariatWorkspace({
       />
       <div className="secToolbar">
         <div><span className="secEyebrow">{section === 'invitations' ? 'ADMINISTRASI UNDANGAN' : 'REGISTER DOKUMEN'}</span><h2>{section === 'invitations' ? 'Register Undangan' : 'Register Sekretariat'}</h2><p>Setiap baris mewakili satu dokumen/kegiatan. Isi dokumen dibuka melalui pop-up pada baris yang sama.</p></div>
-        {canManage&&<button type="button" className="secPrimaryButton" onClick={()=>setCreateOpen(true)}>+ Tambah Register</button>}
+        {canManage&&<button type="button" className="secPrimaryButton" onClick={()=>{setDraft({ ...emptyDraft(initialRoomId), meeting_type: section === 'invitations' ? 'Undangan' : 'Kegiatan' });setCreateOpen(true)}}>+ Tambah Register</button>}
       </div>
       {notice&&!activeMeeting&&<div className={'secNotice secNotice-'+notice.kind} role="status">{notice.text}<button type="button" aria-label="Tutup pesan" onClick={()=>setNotice(null)}>×</button></div>}
       <div className="secSummary"><div><span>Total Register</span><strong>{filteredRows.length}</strong></div><div><span>Undangan</span><strong>{rows.filter((row)=>/undangan/i.test(row.meeting_type)).length}</strong></div><div><span>Kegiatan / Pelatihan</span><strong>{rows.filter((row)=>!/undangan/i.test(row.meeting_type)).length}</strong></div></div>
@@ -421,7 +417,7 @@ export default function SecretariatWorkspace({
           <div className="secFormGrid">
             <label>Tanggal Dokumen<input type="date" value={draft.document_date} onChange={(e)=>setDraft((old)=>({...old,document_date:e.target.value}))}/></label>
             <label>Nomor Dokumen<input value={draft.document_number} onChange={(e)=>setDraft((old)=>({...old,document_number:e.target.value}))} placeholder="Diisi manual atau dibaca otomatis dari berkas"/></label>
-            <label className="secSpan2">Judul Dokumen<input value={draft.title} onChange={(e)=>setDraft((old)=>({...old,title:e.target.value}))} placeholder="Judul kegiatan atau dokumen"/></label>
+            <label className="secSpan2">Judul Dokumen<input value={draft.title} onChange={(e)=>setDraft((old)=>({...old,title:e.target.value}))} placeholder="Boleh dikosongkan; judul akan dibaca dari berkas"/></label>
             <label>Jenis Dokumen<select value={draft.meeting_type} onChange={(e)=>setDraft((old)=>({...old,meeting_type:e.target.value}))}>{registerTypes.map((type)=><option key={type}>{type}</option>)}</select></label>
             {!lockRoomScope&&<label>Unit Kerja<select value={draft.room_id} onChange={(e)=>setDraft((old)=>({...old,room_id:e.target.value}))}><option value="">Seluruh Rumah Sakit</option>{rooms.map((room)=><option key={room.id} value={room.id}>{room.name}</option>)}</select></label>}
             {lockRoomScope&&<label>Unit Kerja<input value={rooms.find((room)=>room.id===initialRoomId)?.name||'Unit aktif'} disabled/></label>}
