@@ -1036,3 +1036,59 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].si
     padding-left: 22px !important;
   }
 }
+
+
+/* Blueprint navigation hierarchy: categories remain visible; only the selected group expands. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  display: block !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  pointer-events: auto !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > button {
+  display: grid !important;
+  grid-template-columns: 20px minmax(0,1fr) 14px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-height: 39px !important;
+  padding: 7px 8px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: #23394e !important;
+  text-align: left !important;
+  font: inherit !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .045em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > button:hover,
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > button:focus-visible {
+  background: #f2f6fa !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isCurrent > .sidebarDomainTrigger > button {
+  background: #eaf1f8 !important;
+  color: #164b7a !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > button .sidebarDomainChevron {
+  justify-self: end !important;
+  transition: transform .15s ease !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomain.isExpanded .sidebarDomainTrigger > button .sidebarDomainChevron {
+  transform: rotate(180deg) !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems[hidden] {
+  display: none !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems:not([hidden]) {
+  display: grid !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > button .sidebarDomainChevron {
+    transition: none !important;
+  }
+}

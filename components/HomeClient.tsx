@@ -17,7 +17,7 @@ import {aurekaSupabase} from '@/lib/aureka/supabase'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import PublicLandingPage from '@/components/PublicLandingPage'
-import { AUREKA_PRIMARY_NAV, type AurekaRole, type SecretariatSection } from '@/lib/aureka/module-registry'
+import { AUREKA_PRIMARY_NAV, AUREKA_NAVIGATION_GROUPS, type AurekaRole, type AurekaNavigationGroup, type SecretariatSection } from '@/lib/aureka/module-registry'
 import TableSortEnhancer from '@/components/TableSortEnhancer'
 import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
@@ -71,52 +71,8 @@ type SupportConversation={id:string;room_id:number;created_by:string;subject:str
 type SupportMessage={id:string;conversation_id:string;sender_id:string;body:string;created_at:string}
 
 type SidebarChild={id:string;label:string;children?:SidebarChild[]}
-type AurekaSidebarDomain={id:string;label:string;icon:string;requiredRoles?:readonly AurekaRole[];items:Array<{id:string;label:string;moduleId:string;childId?:string;status?:'available'|'planned';note?:string;requiredRoles?:readonly AurekaRole[]}>}
-/** Enam domain Hybrid Navigation V3. Pengelompokan mengikuti pemilik pekerjaan, bukan jenis layar. */
-const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[]=[
- {id:'command_center',label:'Dashboard',icon:'home',items:[
-  {id:'dashboard',label:'Dashboard',moduleId:'home',childId:'overview'},
-  {id:'nara_ai',label:'NARA AI',moduleId:'nara'},
- ]},
- {id:'patient_registry',label:'Register Pasien',icon:'patients',items:[
-  {id:'patient_directory',label:'Direktori Pasien',moduleId:'patients',childId:'overview'},
-  {id:'patient_patterns',label:'Pola Perawatan',moduleId:'patients',childId:'analysis'},
- ]},
- {id:'clinical_performance',label:'Peningkatan Kinerja Klinis',icon:'clinical',items:[
-  {id:'realcost_audit',label:'Audit Realcost',moduleId:'clinical',childId:'realcost',status:'planned',note:'Memerlukan workbook XLSX Realcost dan pemetaan seluruh worksheet.'},
-  {id:'clinical_pathway',label:'Audit Clinical Pathway',moduleId:'clinical',childId:'audit-pathway'},
-  {id:'clinical_death',label:'Audit Klinis dan Kematian',moduleId:'clinical',childId:'audit-clinical-death'},
- ]},
- {id:'quality_patient_safety',label:'Peningkatan Mutu dan Keselamatan Pasien',icon:'quality',items:[
-  {id:'secretariat',label:'Sekretariat · Administrasi Kegiatan',moduleId:'secretariat',childId:'invitations',note:'Workspace sudah dapat dibuka; penyimpanan backend register kegiatan belum diaktifkan.'},
-  {id:'annual_program',label:'Program Kerja Tahunan',moduleId:'analytics',childId:'programs'},
-  {id:'quality_indicators',label:'Indikator Mutu',moduleId:'quality',childId:'quality-overview'},
-  {id:'patient_safety',label:'Keselamatan Pasien',moduleId:'safety',childId:'overview'},
-  {id:'risk_management',label:'Manajemen Risiko',moduleId:'risk',childId:'overview'},
- ]},
- {id:'hospital_management',label:'Manajemen Rumah Sakit',icon:'staff',items:[
-  {id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'},
-  {id:'sop',label:'Standar Prosedur Operasional (SPO)',moduleId:'settings',childId:'sop',status:'planned',note:'Memerlukan alur unggah, ekstraksi, validasi, versi dan penyimpanan SPO.'},
-  {id:'organization_hr',label:'Tenaga Kerja',moduleId:'staff',childId:'directory'},
-  {id:'teams',label:'Tim dan Penugasan',moduleId:'staff',childId:'team'},
-  {id:'oppe',label:'OPPE',moduleId:'staff',childId:'oppe-fppe'},
-  {id:'fppe',label:'FPPE',moduleId:'staff',childId:'fppe'},
-  {id:'training',label:'In House Training',moduleId:'staff',childId:'training',status:'planned',note:'Memerlukan register pelatihan dan tata kelola penerbitan sertifikat PDF.'},
-  {id:'student_orientation',label:'Orientasi Mahasiswa',moduleId:'staff',childId:'orientation',status:'planned',note:'Memerlukan sumber data Tim Koordinasi Pendidikan dan tata kelola sertifikat PDF.'},
- ]},
- {id:'director_supervisory_board',label:'Direktur dan Dewan Pengawas',icon:'analytics',items:[
-  {id:'recommendations',label:'Rekomendasi dan Rencana Tindak Lanjut (RTL)',moduleId:'analytics',childId:'recommendations'},
- ]},
- {id:'settings',label:'Pengaturan',icon:'settings',items:[
-  {id:'user_profile',label:'Profil Pengguna',moduleId:'settings',childId:'profile'},
-  {id:'user_roles',label:'Role Pengguna dan Hak Akses',moduleId:'settings',childId:'permissions',requiredRoles:['ADMIN','PMKP','DIREKTUR']},
-  {id:'units',label:'Unit dan Instalasi',moduleId:'settings',childId:'units',requiredRoles:['ADMIN']},
-  {id:'system_config',label:'Konfigurasi Sistem',moduleId:'settings',childId:'system',requiredRoles:['ADMIN']},
-  {id:'display_preferences',label:'Preferensi Tampilan',moduleId:'settings',childId:'appearance'},
-  {id:'audit_log',label:'Audit Log',moduleId:'settings',childId:'audit',requiredRoles:['ADMIN','PMKP','DIREKTUR']},
-  {id:'legal_assets',label:'Legal dan Asset',moduleId:'settings',childId:'legal',status:'planned',note:'Memerlukan pengesahan dokumen legal, pengelolaan aset, persetujuan pengguna dan integrasi tanda tangan digital/QR.'},
- ]},
-]
+type AurekaSidebarDomain=AurekaNavigationGroup
+const AUREKA_SIDEBAR_DOMAINS:readonly AurekaSidebarDomain[]=AUREKA_NAVIGATION_GROUPS
 type Room={id:number;name:string};type Profile={user_id:string;full_name:string;email:string;username?:string|null;primary_room_id:number|null;role_id:string|null;is_active:boolean;must_change_password?:boolean;role_code?:string|null;role_name?:string|null}
 const logo=(c='')=><span className={'brandLogoWrap '+c}><img className="brandLogoImage" src={LOGO} width={160} height={136} alt="Logo AUREKA Hospital Quality Intelligence" loading="eager" decoding="async" onError={e=>{e.currentTarget.style.display='none'}}/></span>
 async function rooms(){const {data,error}=await sb.from('master_rooms').select('id,name').eq('is_active',true).order('sort_order');return !error&&data?.length?data as Room[]:FALLBACK.map((name,i)=>({id:i+1,name}))}
@@ -140,7 +96,7 @@ const BOTTOM_NAV_GLYPH:Record<string,ReactNode>={
 export default function HomeClient(){
  // Kotak cari baru bisa diketik setelah difokus pengguna: mencegah browser mengisi username otomatis ke sini.
  const [searchArmed,setSearchArmed]=useState(false)
- const [mobileSearchOpen,setMobileSearchOpen]=useState(false),[expandedDomain,setExpandedDomain]=useState('')
+ const [mobileSearchOpen,setMobileSearchOpen]=useState(false),[expandedDomain,setExpandedDomain]=useState<string|null>(null)
  const [view,setView]=useState<'public'|'login'|'signup'|'workspace'|'force-password'>('public'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[fullName,setFullName]=useState(''),[signupRoom,setSignupRoom]=useState(''),[roomsList,setRoomsList]=useState<Room[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[user,setUser]=useState<any>(null),[profile,setProfile]=useState<Profile|null>(null),[room,setRoom]=useState<Room|null>(null),[role,setRole]=useState<string|null>(null),[active,setActive]=useState('home'),[naraPendingPrompt,setNaraPendingPrompt]=useState<string|null>(null),[naraContextPage,setNaraContextPage]=useState('NARA AI'),[qualityOpen,setQualityOpen]=useState(false),[spmOpen,setSpmOpen]=useState(false),[qualityOppeOpen,setQualityOppeOpen]=useState(false),[qualityInitialContainer,setQualityInitialContainer]=useState<'Audit Indikator Mutu'|'Audit Clinical Pathway'|'Audit Klinis dan Kematian'>('Audit Indikator Mutu'),[clinicalPathwayOpen,setClinicalPathwayOpen]=useState(false),[qualityResultsView,setQualityResultsView]=useState<'indicators'|'pathway'|'clinical-death'|null>(null),[qualityMonitorOpen,setQualityMonitorOpen]=useState(false),[qualityReconciliationOpen,setQualityReconciliationOpen]=useState(false),[selectedQualityRoomId,setSelectedQualityRoomId]=useState<number|null>(null),[selectedWorkspaceRoomId,setSelectedWorkspaceRoomId]=useState<number|null>(null),[allRoomsScope,setAllRoomsScope]=useState(true),[signupDone,setSignupDone]=useState(false),[riskFocus,setRiskFocus]=useState<RiskFocus|null>(null),[safetyFocus,setSafetyFocus]=useState<SafetyFocus|null>(null),[showPw,setShowPw]=useState(false),[profileFocus,setProfileFocus]=useState(0),[username,setUsername]=useState(''),[needVerify,setNeedVerify]=useState(''),[authInfo,setAuthInfo]=useState(''),[authMode,setAuthMode]=useState<'normal'|'forgot'|'recovery'>('normal'),[resetSent,setResetSent]=useState(false),[password2,setPassword2]=useState(''),[routeReady,setRouteReady]=useState(false),[safetyTab,setSafetyTab]=useState<SafetyWorkspaceTab>('incidents'),[riskTab,setRiskTab]=useState<RiskWorkspaceTab>('register'),[qualityProfileOpen,setQualityProfileOpen]=useState(false),[programTab,setProgramTab]=useState<AnalyticsWorkspaceTab>('programs'),[staffTab,setStaffTab]=useState<AnalyticsWorkspaceTab>('directory'),[analyticsDirectoryTab,setAnalyticsDirectoryTab]=useState<AnalyticsDirectoryTab>('directory'),[globalSearch,setGlobalSearch]=useState(''),[searchResults,setSearchResults]=useState<WorkspaceSearchResult[]>([]),[searchResultsQuery,setSearchResultsQuery]=useState(''),[sidebarCollapsed,setSidebarCollapsed]=useState(false),[notifications,setNotifications]=useState<WorkspaceNotification[]>([]),[reminderHistory,setReminderHistory]=useState<ReminderHistoryItem[]>([]),[activeToast,setActiveToast]=useState<WorkspaceNotification|null>(null),[notificationHistoryOpen,setNotificationHistoryOpen]=useState(false),[supportOpen,setSupportOpen]=useState(false),[supportTab,setSupportTab]=useState<'admin'|'broadcast'>('admin'),[broadcastDraft,setBroadcastDraft]=useState(''),[broadcastSending,setBroadcastSending]=useState(false),[supportConversations,setSupportConversations]=useState<SupportConversation[]>([]),[supportConversationId,setSupportConversationId]=useState(''),[supportMessages,setSupportMessages]=useState<SupportMessage[]>([]),[supportDraft,setSupportDraft]=useState(''),[supportLoading,setSupportLoading]=useState(false),[supportSending,setSupportSending]=useState(false),[supportLoadError,setSupportLoadError]=useState(''),[supportMessagesLoading,setSupportMessagesLoading]=useState(false),[supportMessagesError,setSupportMessagesError]=useState('')
  const updateWorkspaceRoom=useCallback((nextRoomId:number|null)=>{
   if(nextRoomId==null){
@@ -493,7 +449,7 @@ export default function HomeClient(){
   const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>sidebarDestinationActive(item)))
   return match?.id||(active==='home'?'command_center':'')
  },[visibleSidebarDomains,active,patientsRegistryTab,clinicalPathwayOpen,qualityOpen,qualityProfileOpen,qualityMonitorOpen,qualityReconciliationOpen,qualityResultsView,spmOpen,safetyTab,riskTab,secretariatSection,settingsSection,programTab,staffTab,analyticsDirectoryTab])
- const effectiveExpandedDomain=expandedDomain||activeDomainId
+ const effectiveExpandedDomain=expandedDomain===null?activeDomainId:expandedDomain
  const selectDomainDestination=(domainId:string,item:AurekaSidebarDomain['items'][number])=>{
   if(item.status==='planned')return
   setExpandedDomain(domainId)
@@ -691,7 +647,7 @@ export default function HomeClient(){
  // The sidebar and route state are the source of truth; a missing registry match
  // must not silently remove the horizontal navigation rail.
  const activeNavModuleId=activeNavEntry?.[0]||(active==='home'?'home':active)
- const activeNavModuleLabel=activeNavEntry?.[1]||(MODS.find(([id])=>id===active)?.[1])||(active==='home'?'Beranda':active)
+ const activeNavModuleLabel=activeNavEntry?.[1]||(MODS.find(([id])=>id===active)?.[1])||(active==='home'?'Dashboard':active)
  const activeNavGroups=activeNavModuleId==='quality'&&spmOpen?[]:(sidebarChildGroups[activeNavModuleId]||[])
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
@@ -1127,12 +1083,15 @@ export default function HomeClient(){
   <nav className="sidebarNav sidebarDomainNav" aria-label="Tujuh kategori utama AUREKA">
    {visibleSidebarDomains.map(domain=>{
     const selected=activeDomainId===domain.id
-    return <section className={'sidebarDomain '+(domain.id==='command_center'?'isCommandCenter ':'')+(selected?'isCurrent ':'')+'isExpanded'} key={domain.id}>
+    const isExpanded=effectiveExpandedDomain===domain.id
+    return <section className={'sidebarDomain '+(domain.id==='command_center'?'isCommandCenter ':'')+(selected?'isCurrent ':'')+(isExpanded?'isExpanded':'')} key={domain.id}>
      <div className="sidebarDomainTrigger" role="heading" aria-level={2}>
-      <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[domain.icon]||BOTTOM_NAV_GLYPH.analytics}</svg>
-      <span>{domain.label}</span>
+      <button type="button" aria-expanded={isExpanded} aria-controls={'sidebar-items-'+domain.id} onClick={()=>setExpandedDomain(current=>(current===null?activeDomainId===domain.id:current===domain.id)?'':domain.id)}>
+       <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[domain.icon]||BOTTOM_NAV_GLYPH.analytics}</svg>
+       <span>{domain.label}</span><span className="sidebarDomainChevron" aria-hidden="true">⌄</span>
+      </button>
      </div>
-     <div className="sidebarDomainItems" role="group" aria-label={'Modul '+domain.label}>
+     <div id={'sidebar-items-'+domain.id} className="sidebarDomainItems" role="group" aria-label={'Modul '+domain.label} hidden={!isExpanded}>
       {domain.items.length===0?<div className="sidebarDomainEmpty">Belum ada modul.</div>:domain.items.map(item=>{
        const itemSelected=sidebarDestinationActive(item)
        return <button type="button" key={item.id} className={'sidebarDomainItem '+(itemSelected?'active':'')} aria-current={itemSelected?'page':undefined} disabled={item.status==='planned'} title={item.status==='planned'?(item.note||'Belum aktif'):item.label} onClick={()=>selectDomainDestination(domain.id,item)}>
