@@ -329,7 +329,7 @@ export default function SecretariatWorkspace({
           uploaded_by:userId,
           original_filename:item.file.name,
           extracted_text:extracted,
-          parsed_metadata:metadata || {},
+          parsed_metadata:metadata ? {...metadata,notes:parser?.notes || []} : {notes:parser?.notes || []},
           extraction_engine:parser?.extraction_engine || 'AUREKA Deterministic Secretariat Reader v1',
           extraction_status:extractionStatus,
           document_date:metadata?.document_date || null,
@@ -370,12 +370,17 @@ export default function SecretariatWorkspace({
   }
 
   const downloadDocument = async (doc: MeetingDocument) => {
-    const { data, error } = await aurekaSupabase.storage.from(doc.bucket_id || bucket).download(doc.object_path)
-    if (error || !data) { setNotice({ kind: 'error', text: error?.message || 'File tidak ditemukan.' }); return }
-    const url = URL.createObjectURL(data)
-    const anchor = document.createElement('a')
-    anchor.href = url; anchor.download = doc.original_filename || doc.title
-    document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url)
+    try {
+      const { data, error } = await aurekaSupabase.storage.from(doc.bucket_id || bucket).download(doc.object_path)
+      if (error || !data) throw error || new Error('File tidak ditemukan.')
+      const url = URL.createObjectURL(data)
+      const anchor = document.createElement('a')
+      anchor.href = url; anchor.download = doc.original_filename || doc.title
+      document.body.appendChild(anchor); anchor.click(); anchor.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (error) {
+      setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'File gagal diunduh.' })
+    }
   }
 
   const currentDocs = documents.filter((doc) => doc.document_type === activeCategory)
