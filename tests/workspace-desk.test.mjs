@@ -36,8 +36,8 @@ test('context navigation reuses authorized sidebar destinations and includes a n
 test('submodule navigation participates in history without discarding legacy quality paths', () => {
   assert.match(home, /const \[modulePath,section\]=path\.split\('\/'\)/)
   assert.match(home, /requiredRoles\.includes\(\(role\|\|''\) as AurekaRole\)/)
-  assert.ok(home.includes("patientsRegistryTab==='directory'?'direktori-pasien':patientsRegistryTab==='analysis'?'pola-perawatan':patientsRegistryTab==='records'?'rekapan-pasien':'ikhtisar'"))
-  assert.ok(home.includes("patientView==='rekapan-pasien'?'records':'overview'"))
+  assert.ok(home.includes("patientsRegistryTab==='directory'?'direktori-pasien':patientsRegistryTab==='analysis'?'pola-perawatan':'ikhtisar'"))
+  assert.ok(home.includes("patientView==='rekapan-pasien'?'directory':'overview'"))
   assert.match(home, /const patientView=path\.split\('\/'\)\[2\]\|\|legacyPatientView/)
   assert.match(home, /legacyPatientView=\['tambah-pasien','ikhtisar','rekapan-pasien','direktori-pasien','analisis-rekam-medis','pola-perawatan'\]/)
   assert.match(home, /audit-indikator\|clinical-pathway\|audit-klinis-dan-kematian/)
@@ -208,7 +208,7 @@ test('drawer breakpoint agrees with its controller and is dismissible from insid
   assert.match(home, /className="workspaceDrawerClose"[^>]*onClick=\{mobileSidebar\.close\}/)
   assert.match(home, /workspaceGlobalSearchInput/)
   assert.doesNotMatch(home, /data-sidebar-autofocus|sidebarSearch|Cari menu/)
-  assert.match(home, /<nav className="sidebarNav sidebarDomainNav" aria-label="Tujuh kategori utama AUREKA">/)
+  assert.match(home, /<nav className="sidebarNav sidebarDomainNav" aria-label="Delapan kategori utama AUREKA">/)
   assert.doesNotMatch(home, /sidebarTreeChildren|sidebarNestedGroup|closedNav|toggleNav\(/)
 })
 
