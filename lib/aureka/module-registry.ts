@@ -83,7 +83,7 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
     { id:'clinical_audit_death', label:'Audit Klinis dan Kematian', moduleId:'clinical', childId:'audit-clinical' },
   ]},
   { id:'quality_patient_safety', label:'Peningkatan Mutu dan Keselamatan Pasien', icon:'quality', items:[
-    { id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'planned', note:'Administrasi kegiatan, register kegiatan, dan pengiriman undangan belum terhubung ke backend.' },
+    { id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'active', note:'Register dokumen, administrasi kegiatan, dan lima kategori berkas UMANG dalam satu Meeting ID.' },
     { id:'annual_program', label:'Program Kerja Tahunan', moduleId:'analytics', childId:'programs' },
     { id:'quality_indicators', label:'Indikator Mutu', moduleId:'quality', childId:'quality-overview' },
     { id:'patient_safety', label:'Keselamatan Pasien', moduleId:'safety', childId:'overview' },
