@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const migration = readFileSync(new URL('../supabase/migrations/20261120140200_anonymous_safety_culture_survey.sql', import.meta.url), 'utf8')
+const migration = readFileSync(new URL('../supabase/migrations/20261120142226_anonymous_safety_culture_survey.sql', import.meta.url), 'utf8')
 const workspace = readFileSync(new URL('../components/PatientSafetyWorkspace.tsx', import.meta.url), 'utf8')
 
 test('new safety-culture responses are anonymous and unit-scoped at the database boundary', () => {

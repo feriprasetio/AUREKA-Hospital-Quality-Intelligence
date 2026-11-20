@@ -49,7 +49,7 @@ test('named survey records distinguish the respondent from the authenticated sub
 test('new safety-culture survey submissions and user interface are anonymous', () => {
   const workspace = read('components/PatientSafetyWorkspace.tsx')
   const wizard = read('components/patient-safety/SurveyWizard.tsx')
-  const migration = read('supabase/migrations/20261120140200_anonymous_safety_culture_survey.sql')
+  const migration = read('supabase/migrations/20261120142226_anonymous_safety_culture_survey.sql')
   assert.match(wizard, /Survei anonim/)
   assert.match(wizard, /minimum 5 responden/)
   assert.doesNotMatch(wizard, /Nama responden|Konfirmasi identitas responden|Kirim respons bernama/)
@@ -67,7 +67,7 @@ test('new safety-culture survey submissions and user interface are anonymous', (
 
 test('legacy named survey records are preserved without being exposed as row-level results', () => {
   const workspace = read('components/PatientSafetyWorkspace.tsx')
-  const migration = read('supabase/migrations/20261120140200_anonymous_safety_culture_survey.sql')
+  const migration = read('supabase/migrations/20261120142226_anonymous_safety_culture_survey.sql')
   assert.match(migration, /array\['legacy_anonymous'::text, 'anonymous'::text, 'named'::text\]/)
   assert.doesNotMatch(migration, /update\s+aureka_patient_safety\.culture_responses\s+set/i)
   assert.match(workspace, /Respons historis bernama tetap tersimpan sebagai data lama/)
@@ -77,7 +77,7 @@ test('legacy named survey records are preserved without being exposed as row-lev
 })
 
 test('anonymous survey submissions are constrained to the signed-in user unit scope', () => {
-  const migration = read('supabase/migrations/20261120140200_anonymous_safety_culture_survey.sql')
+  const migration = read('supabase/migrations/20261120142226_anonymous_safety_culture_survey.sql')
   assert.match(migration, /auth\.uid\(\) is null/)
   assert.match(migration, /aureka_system\.has_quality_room_access\(v_room_id\)/)
   assert.match(migration, /r\.is_active = true/)
