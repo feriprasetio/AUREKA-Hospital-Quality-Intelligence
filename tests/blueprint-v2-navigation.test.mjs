@@ -4,28 +4,34 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('Beranda and Analitik & Infografis have separate canonical workspaces', () => {
+test('Dashboard has one canonical navigation item and embeds Visual Intelligence with NARA AI', () => {
   const home = read('components/HomeLandingWorkspace.tsx')
   const app = read('components/HomeClient.tsx')
+  const registry = read('lib/aureka/module-registry.ts')
   assert.ok(home.includes('Operational overview'))
   assert.ok(home.includes('Operational workspaces'))
   assert.ok(home.includes('Action queue'))
-  assert.ok(home.includes('Action queue'))
   assert.ok(home.includes('Aktivitas terakhir:'))
   assert.doesNotMatch(home, /tabButton|InfographicsDashboard|aureka_patient_episode_stats/)
-  assert.ok(app.includes("active==='insights'?<InfographicsDashboard mode=\"full\""))
-  assert.ok(app.includes("insights:[],"))
-  assert.ok(!app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
+  assert.ok(app.includes("active==='home'?<>"))
+  assert.ok(app.includes('<HomeLandingWorkspace'))
+  assert.ok(app.includes('<InfographicsDashboard mode="full"'))
+  assert.ok(home.includes('onAskNara'))
+  assert.ok(home.includes('NARA'))
+  assert.ok(registry.includes("id:'insights', label:'Visual Intelligence', group:'command_center'"))
+  assert.match(app, /\.filter\(\(\{id\}\)=>id!=='nara'&&id!=='insights'\)/)
+  assert.ok(!registry.includes("id:'nara_ai', label:'NARA AI'"))
+  assert.ok(app.includes("'analitik':'home','infografis':'home','analitik-laporan':'home'"))
 })
 
-test('primary navigation labels and seven category ownership live in the central registry', () => {
+test('primary navigation labels and eight category ownership live in the central registry', () => {
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeClient.tsx')
   assert.ok(registry.includes("id:'home', label:'Dashboard', group:'command_center'"))
-  for (const label of ["label:'Dashboard'", "label:'Register Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
+  for (const label of ["label:'Dashboard'", "label:'Register Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Visual Intelligence'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pendidikan dan Pelatihan'", "label:'Pengaturan'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
-  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','education_training','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
   assert.ok(home.includes("AUREKA_SIDEBAR_DOMAINS:readonly AurekaSidebarDomain[]=AUREKA_NAVIGATION_GROUPS"))
 })
 
@@ -48,35 +54,43 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(app.includes("if(next==='staff'){setStaffTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory')"))
 })
 
-test('legacy bookmarks remain mapped while the new HR route is canonical', () => {
+test('legacy bookmarks remain mapped into the canonical destinations', () => {
   const app = read('components/HomeClient.tsx')
   assert.ok(app.includes("'metadata':'quality'"))
-  assert.ok(app.includes("'analitik-laporan':'insights'"))
-  assert.ok(app.includes("insights:'#analitik'"))
+  assert.ok(app.includes("'analitik-laporan':'home'"))
+  assert.ok(app.includes("'analitik':'home'"))
+  assert.ok(app.includes("'infografis':'home'"))
   assert.ok(app.includes("analytics:'#program'"))
   assert.ok(app.includes("staff:'#sumber-daya-manusia'"))
   assert.ok(app.includes("'tenaga-klinis':'staff'"))
+  assert.ok(app.includes("['statistik','stats'].includes(section||'')"))
+  assert.ok(app.includes("setPatientsRegistryTab('analysis');setActive('patients')"))
 })
 
-test('Dashboard category, NARA AI and accordion hierarchy are sourced from the central registry', () => {
+test('Dashboard accordion has a single destination and NARA is integrated rather than a child menu', () => {
   const app = read('components/HomeClient.tsx')
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeLandingWorkspace.tsx')
-  assert.ok(registry.includes("{ id:'command_center', label:'Dashboard', icon:'home', items:["))
-  assert.ok(registry.includes("{ id:'dashboard', label:'Dashboard', moduleId:'home', childId:'overview' }"))
-  assert.ok(registry.includes("{ id:'nara_ai', label:'NARA AI', moduleId:'nara' }"))
-  assert.ok(app.includes('aria-label="Tujuh kategori utama AUREKA"'))
+  const start = registry.indexOf('export const AUREKA_NAVIGATION_GROUPS')
+  const end = registry.indexOf('] as const', start)
+  const source = registry.slice(start, end)
+  const dashboardStart = source.indexOf("{ id:'command_center'")
+  const patientStart = source.indexOf("{ id:'patient_registry'", dashboardStart)
+  const dashboard = source.slice(dashboardStart, patientStart)
+  assert.match(dashboard, /id:'dashboard', label:'Dashboard', moduleId:'home'/)
+  assert.doesNotMatch(dashboard, /nara_ai|cross_domain_analytics|insights/)
+  assert.ok(app.includes('aria-label="Delapan kategori utama AUREKA"'))
   assert.ok(app.includes('role="heading" aria-level={2}'))
   assert.ok(app.includes('aria-expanded={isExpanded}'))
   assert.ok(app.includes('hidden={!isExpanded}'))
-  assert.ok(app.includes("insights:'#analitik'"))
+  assert.ok(app.includes('<InfographicsDashboard mode="full"'))
   assert.ok(home.includes('Operational overview'))
   assert.ok(home.includes('Operational workspaces'))
   assert.ok(home.includes('Action queue'))
   assert.ok(home.includes('Analisis dengan NARA'))
   assert.doesNotMatch(home, /InfographicsDashboard|homeTab|initialTab/)
+  assert.doesNotMatch(app, /sidebarModuleChildren|sidebarModuleChild/)
 })
-
 
 test('indicator and clinical audit domains have separate navigation and canonical routes', () => {
   const app = read('components/HomeClient.tsx')
