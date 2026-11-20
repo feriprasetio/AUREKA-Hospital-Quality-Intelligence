@@ -217,7 +217,7 @@ begin
     select * from aureka_quality.realcost_episodes where import_id = p_import_id
   ),
   component_totals as (
-    select component.key as code, sum(coalesce((component.value)::numeric, 0)) as total
+    select component.key as code, sum(coalesce(nullif(component.value #>> '{}', '')::numeric, 0)) as total
     from e
     cross join lateral jsonb_each(e.cost_components) component
     group by component.key
@@ -261,7 +261,7 @@ begin
     from (
       select distinct episode.id, trim(code) as code
       from e episode
-      cross join lateral unnest(episode.procedure_codes) as procedure(code)
+      cross join lateral unnest(episode.procedure_codes) as procedure_item(code)
       where nullif(trim(code), '') is not null
     ) p group by code
   ),
