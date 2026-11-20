@@ -1,24 +1,22 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, CSSProperties } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 import {
   REALCOST_COST_COMPONENTS,
-  analyzeRealcostEpisodes,
   type RealcostDashboard,
   type RealcostEpisode,
 } from '@/lib/aureka/realcost-engine'
 import {
   hashRealcostWorkbook,
   prepareRealcostImport,
-  realcostText,
   type RealcostPatientIdentity,
   type RealcostPreparedImport,
 } from '@/lib/aureka/realcost-xlsx-import'
 
-type Props = { sb: SupabaseClient; role: string | null }
+type Props = { sb: SupabaseClient }
 type ImportMeta = {
   id: string
   source_name: string
@@ -52,16 +50,16 @@ const dateTimeLabel = (value: string | null | undefined) => value
   ? new Date(value).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
   : '-'
 
-function cardStyle(): React.CSSProperties {
+function cardStyle(): CSSProperties {
   return { border: '1px solid var(--line, #dbe4ec)', borderRadius: 12, padding: 16, background: 'var(--surface, #fff)', minWidth: 0 }
 }
-function mutedStyle(): React.CSSProperties {
+function mutedStyle(): CSSProperties {
   return { color: 'var(--muted, #50677e)', fontSize: 12, lineHeight: 1.5 }
 }
-function titleStyle(): React.CSSProperties {
+function titleStyle(): CSSProperties {
   return { color: 'var(--ink, #0b1f33)', fontSize: 13, fontWeight: 600 }
 }
-function buttonStyle(primary = false, disabled = false): React.CSSProperties {
+function buttonStyle(primary = false, disabled = false): CSSProperties {
   return {
     minHeight: 44, borderRadius: 10, border: primary ? '1px solid #16507a' : '1px solid var(--line, #cbd7e2)',
     background: primary ? '#16507a' : 'var(--surface, #fff)',
@@ -107,7 +105,7 @@ function readGrid(worksheet: any): unknown[][] {
   return result
 }
 
-export default function RealcostAuditWorkspace({ sb, role }: Props) {
+export default function RealcostAuditWorkspace({ sb }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const db = useMemo(() => sb.schema('aureka_quality'), [sb])
   const [summary, setSummary] = useState<RealcostDashboard | null>(null)
