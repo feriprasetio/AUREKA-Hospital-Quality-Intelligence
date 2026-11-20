@@ -356,7 +356,6 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
   const topComponent = summary?.cost_components?.[0]
   const monthlyMax = Math.max(1, ...(summary?.monthly ?? []).map(item => item.episodes))
   const topComponentMax = Math.max(1, ...(summary?.cost_components ?? []).map(item => item.total))
-  const selectedTotal = summary?.episode_count ?? 0
   const detailTotalPages = Math.max(1, Math.ceil(detailCount / PAGE_SIZE))
   const classOptions = useMemo(() => summary?.class_distribution?.map(item => item.class_code) ?? [], [summary])
 
