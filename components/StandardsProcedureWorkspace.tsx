@@ -8,7 +8,7 @@ type Row = {
   id:string; title:string; document_number:string|null; revision_number:string; page_count:number|null; issue_date:string|null
   approval_title:string|null; approval_name:string|null; approval_identifier:string|null
   understanding:string; purpose:string; policy:string; procedure_steps:Step[]; related_units:string[]
-  flowchart:{format?:string;code?:string}|null; status:Status; source_file_name:string|null
+  flowchart:{format?:string;code?:string;labels?:string[];note?:string;page_number?:number}|null; status:Status; source_file_name:string|null
   source_file_mime_type:string|null; source_file_size_bytes:number|null; source_storage_path:string|null; source_sha256:string|null
   analysis_engine:string|null; analysis_confidence:Record<string,unknown>|null; analysis_notes:string[]; review_notes:string|null
   created_at:string; updated_at:string
@@ -16,7 +16,7 @@ type Row = {
 type Draft = {
   title:string; document_number:string; revision_number:string; page_count:string; issue_date:string
   approval_title:string; approval_name:string; approval_identifier:string; understanding:string; purpose:string; policy:string
-  procedure_steps:Step[]; related_units:string; flowchart_code:string; source_file_name:string; source_file_mime_type:string
+  procedure_steps:Step[]; related_units:string; flowchart_code:string; flowchart_labels:string[]; flowchart_note:string; source_file_name:string; source_file_mime_type:string
   source_file_size_bytes:number|null; source_storage_path:string; source_sha256:string; analysis_engine:string
   analysis_confidence:Record<string,unknown>|null; analysis_notes:string[]; review_notes:string
 }
@@ -28,8 +28,8 @@ const docx='application/vnd.openxmlformats-officedocument.wordprocessingml.docum
 const managers=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR']
 const approvers=['ADMIN','PMKP','DIREKTUR']
 const labels:Record<Status,string>={draft:'Draf',pending_review:'Menunggu review',approved:'Disahkan',archived:'Diarsipkan'}
-const empty=():Draft=>({title:'',document_number:'',revision_number:'00',page_count:'',issue_date:'',approval_title:'',approval_name:'',approval_identifier:'',understanding:'',purpose:'',policy:'',procedure_steps:[],related_units:'',flowchart_code:'',source_file_name:'',source_file_mime_type:'',source_file_size_bytes:null,source_storage_path:'',source_sha256:'',analysis_engine:'',analysis_confidence:null,analysis_notes:[],review_notes:''})
-function mapDraft(r:Row):Draft{return {...empty(),title:r.title||'',document_number:r.document_number||'',revision_number:r.revision_number||'00',page_count:r.page_count==null?'':String(r.page_count),issue_date:r.issue_date||'',approval_title:r.approval_title||'',approval_name:r.approval_name||'',approval_identifier:r.approval_identifier||'',understanding:r.understanding||'',purpose:r.purpose||'',policy:r.policy||'',procedure_steps:Array.isArray(r.procedure_steps)?r.procedure_steps:[],related_units:(r.related_units||[]).join('\n'),flowchart_code:r.flowchart?.code||'',source_file_name:r.source_file_name||'',source_file_mime_type:r.source_file_mime_type||'',source_file_size_bytes:r.source_file_size_bytes,source_storage_path:r.source_storage_path||'',source_sha256:r.source_sha256||'',analysis_engine:r.analysis_engine||'',analysis_confidence:r.analysis_confidence||null,analysis_notes:r.analysis_notes||[],review_notes:r.review_notes||''}}
+const empty=():Draft=>({title:'',document_number:'',revision_number:'00',page_count:'',issue_date:'',approval_title:'',approval_name:'',approval_identifier:'',understanding:'',purpose:'',policy:'',procedure_steps:[],related_units:'',flowchart_code:'',flowchart_labels:[],flowchart_note:'',source_file_name:'',source_file_mime_type:'',source_file_size_bytes:null,source_storage_path:'',source_sha256:'',analysis_engine:'',analysis_confidence:null,analysis_notes:[],review_notes:''})
+function mapDraft(r:Row):Draft{return {...empty(),title:r.title||'',document_number:r.document_number||'',revision_number:r.revision_number||'00',page_count:r.page_count==null?'':String(r.page_count),issue_date:r.issue_date||'',approval_title:r.approval_title||'',approval_name:r.approval_name||'',approval_identifier:r.approval_identifier||'',understanding:r.understanding||'',purpose:r.purpose||'',policy:r.policy||'',procedure_steps:Array.isArray(r.procedure_steps)?r.procedure_steps:[],related_units:(r.related_units||[]).join('\n'),flowchart_code:r.flowchart?.code||'',flowchart_labels:Array.isArray(r.flowchart?.labels)?r.flowchart.labels:[],flowchart_note:r.flowchart?.note||'',source_file_name:r.source_file_name||'',source_file_mime_type:r.source_file_mime_type||'',source_file_size_bytes:r.source_file_size_bytes,source_storage_path:r.source_storage_path||'',source_sha256:r.source_sha256||'',analysis_engine:r.analysis_engine||'',analysis_confidence:r.analysis_confidence||null,analysis_notes:r.analysis_notes||[],review_notes:r.review_notes||''}}
 function flowNodes(code:string){return code.split(/\s*-->\s*/).map(part=>{const m=/[A-Za-z][\w-]*(?:\[([^\]]+)\]|\(([^)]+)\)|\{([^}]+)\})/.exec(part);return m?(m[1]||m[2]||m[3]||'').trim():''}).filter(Boolean).slice(0,40)}
 function safeName(name:string){return name.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(0,120)||'dokumen-spo'}
 function dateLabel(value:string|null){if(!value)return 'Belum dicantumkan';const d=new Date(value+(value.length===10?'T00:00:00':''));return Number.isNaN(d.getTime())?value:d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}
@@ -70,16 +70,16 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
     const extension=file.name.toLowerCase().split('.').pop()
     const mime=file.type||(extension==='pdf'?pdf:extension==='docx'?docx:'')
     if(!((extension==='pdf'&&mime===pdf)||(extension==='docx'&&mime===docx))){setNotice({kind:'error',text:'Format tidak didukung. Gunakan dokumen PDF atau DOCX.'});return}
-    if(file.size<1||file.size>maxBytes){setNotice({kind:'error',text:'Ukuran maksimum file adalah 15 MB untuk menjaga batas payload analisis AI.'});return}
+    if(file.size<1||file.size>maxBytes){setNotice({kind:'error',text:'Ukuran maksimum file adalah 15 MB untuk menjaga pembacaan dokumen tetap terkendali.'});return}
     if(!userId){setNotice({kind:'error',text:'Identitas pengguna tidak ditemukan. Silakan masuk ulang.'});return}
-    setBusy(true);setNotice({kind:'info',text:'Mengunggah file ke Storage privat dan menganalisis struktur SPO…'})
+    setBusy(true);setNotice({kind:'info',text:'Mengunggah file ke Storage privat dan membaca teks/struktur dokumen dengan parser AUREKA…'})
     try{
       const id=crypto.randomUUID()
       const path='spo/'+id+'/'+safeName(file.name)
       const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await file.arrayBuffer()))).map(v=>v.toString(16).padStart(2,'0')).join('')
       const {error:upError}=await aurekaSupabase.storage.from(bucket).upload(path,file,{contentType:mime,cacheControl:'3600',upsert:false})
       if(upError)throw upError
-      const {data,error:aiError}=await aurekaSupabase.functions.invoke('aureka-spo-analyze',{body:{storage_path:path,file_name:file.name,mime_type:mime,size_bytes:file.size}})
+      const {data,error:parseError}=await aurekaSupabase.functions.invoke('aureka-spo-analyze',{body:{storage_path:path,file_name:file.name,mime_type:mime,size_bytes:file.size}})
       const result=data?.extracted||{}
       setSelected(null);setManual(false)
       setDraft({
@@ -89,14 +89,14 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
         approval_identifier:result.approval_identifier||'',understanding:result.understanding||'',purpose:result.purpose||'',policy:result.policy||'',
         procedure_steps:Array.isArray(result.procedure_steps)?result.procedure_steps.map((s:any,i:number)=>({step_number:Number(s.step_number)||i+1,content:String(s.content||s.description||'').trim()})).filter((s:Step)=>s.content):[],
         related_units:Array.isArray(result.related_units)?result.related_units.join('\n'):'',
-        flowchart_code:result.flowchart_mermaid||'',source_file_name:file.name,source_file_mime_type:mime,
-        source_file_size_bytes:file.size,source_storage_path:path,source_sha256:sha,analysis_engine:data?.engine||'',
+        flowchart_code:result.flowchart?.code||'',flowchart_labels:Array.isArray(result.flowchart?.labels)?result.flowchart.labels:[],flowchart_note:result.flowchart?.note||'',source_file_name:file.name,source_file_mime_type:mime,
+        source_file_size_bytes:file.size,source_storage_path:path,source_sha256:sha,analysis_engine:data?.engine||'AUREKA Local Document Parser v1',
         analysis_confidence:result.confidence&&typeof result.confidence==='object'?result.confidence:null,
-        analysis_notes:[...(Array.isArray(result.analysis_notes)?result.analysis_notes:[]),...(aiError?['Analisis otomatis tidak berhasil: '+aiError.message+'. Lengkapi atau koreksi field secara manual.']:[])],
+        analysis_notes:[...(Array.isArray(result.analysis_notes)?result.analysis_notes:[]),...(parseError?['Pembacaan dokumen otomatis tidak berhasil: '+parseError.message+'. Lengkapi atau koreksi field secara manual.']:[])],
       })
-      setNotice(aiError
-        ?{kind:'info',text:'File berhasil disimpan di Storage privat, tetapi ekstraksi AI belum tersedia. Lengkapi field secara manual atau ulangi analisis setelah layanan aktif. '+aiError.message}
-        :{kind:'success',text:'Analisis dokumen selesai. Periksa kembali isi SPO sebelum menyimpan sebagai draf.'})
+      setNotice(parseError
+        ?{kind:'info',text:'File berhasil disimpan di Storage privat, tetapi isi dokumen belum dapat dibaca otomatis. Lengkapi field secara manual. '+parseError.message}
+        :{kind:'success',text:'Pembacaan dokumen selesai tanpa API AI eksternal. Periksa kembali isi SPO sebelum menyimpan sebagai draf.'})
     }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Unggah file gagal.'})}
     finally{setBusy(false);if(inputRef.current)inputRef.current.value=''}
   }
@@ -113,7 +113,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
       approval_identifier:draft.approval_identifier.trim()||null,understanding:draft.understanding.trim(),purpose:draft.purpose.trim(),
       policy:draft.policy.trim(),procedure_steps:draft.procedure_steps.map((s,i)=>({step_number:i+1,content:s.content.trim()})).filter(s=>s.content),
       related_units:draft.related_units.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean),
-      flowchart:draft.flowchart_code.trim()?{format:'mermaid',code:draft.flowchart_code.trim()}:null,
+      flowchart:draft.flowchart_code.trim()?{format:'mermaid',code:draft.flowchart_code.trim()}:draft.flowchart_labels.length?{format:'extracted_diagram_labels',labels:draft.flowchart_labels,note:draft.flowchart_note}:draft.flowchart_note?{format:'source_page_text',note:draft.flowchart_note}:null,
       source_file_name:draft.source_file_name||null,source_file_mime_type:draft.source_file_mime_type||null,
       source_file_size_bytes:draft.source_file_size_bytes,source_storage_path:draft.source_storage_path||null,
       source_sha256:draft.source_sha256||null,analysis_engine:draft.analysis_engine||null,
@@ -197,12 +197,12 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
           <label>Unit Terkait<textarea rows={4} value={draft.related_units} onChange={e=>setField('related_units',e.target.value)} placeholder="Satu unit per baris"/></label>
           <label>Flowchart (opsional, format Mermaid)<textarea rows={7} value={draft.flowchart_code} onChange={e=>setField('flowchart_code',e.target.value)} placeholder={'flowchart TD\nA[Mulai] --> B[Langkah 1] --> C[Selesai]'}/></label>
         </section>
-        {draft.flowchart_code.trim()&&<section className="spoFlowPreview"><h3>Representasi Flowchart</h3><div className="spoFlowNodes">{flowNodes(draft.flowchart_code).map((node,i,nodes)=><div key={'f-'+i} className="spoFlowItem"><div>{node}</div>{i<nodes.length-1&&<span>↓</span>}</div>)}</div><details><summary>Lihat kode diagram</summary><pre>{draft.flowchart_code}</pre></details></section>}
+        {(draft.flowchart_code.trim()||draft.flowchart_labels.length||draft.flowchart_note)&&<section className="spoFlowPreview"><h3>Flowchart / Teks Diagram yang Terdeteksi</h3>{draft.flowchart_code.trim()?<><div className="spoFlowNodes">{flowNodes(draft.flowchart_code).map((node,i,nodes)=><div key={'f-'+i} className="spoFlowItem"><div>{node}</div>{i<nodes.length-1&&<span>↓</span>}</div>)}</div><details><summary>Lihat kode diagram</summary><pre>{draft.flowchart_code}</pre></details></>:<>{draft.flowchart_labels.length>0&&<div className="spoFlowLabels">{draft.flowchart_labels.map((label,i)=><span key={'fl-'+i}>{label}</span>)}</div>}<p className="spoMuted">{draft.flowchart_note}</p></>}</section>}
         <section className="spoSection spoGrid">
           <label>Catatan Review<textarea rows={3} value={draft.review_notes} onChange={e=>setField('review_notes',e.target.value)}/></label>
           <div className="spoSourceMeta"><h3>Dokumen Sumber dan Analisis</h3>
             {draft.source_file_name?<><strong>{draft.source_file_name}</strong><span>{((draft.source_file_size_bytes||0)/1024/1024).toFixed(2)} MB · tersimpan privat</span></>:<span>Belum ada file sumber.</span>}
-            {draft.analysis_engine&&<small>Mesin ekstraksi: {draft.analysis_engine}</small>}
+            {draft.analysis_engine&&<small>Mesin pembaca dokumen: {draft.analysis_engine}</small>}
             {draft.analysis_notes.map((n,i)=><small key={'note-'+i}>{n}</small>)}
             <small>Register AUREKA hanya menyimpan metadata, teks hasil ekstraksi, dan struktur flowchart. Bukan salinan PDF/DOCX.</small>
           </div>
