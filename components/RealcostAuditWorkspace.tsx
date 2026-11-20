@@ -29,7 +29,7 @@ type ImportMeta = {
   created_at: string
   completed_at: string | null
 }
-type DetailTab = 'episodes' | 'components' | 'inacbg' | 'reconciliation'
+type DetailTab = 'episodes' | 'components' | 'inacbg' | 'diagnosis' | 'reconciliation'
 type IdentityRecord = RealcostPatientIdentity | null
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024
@@ -401,6 +401,9 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14, marginTop: 14 }}>
               <div><div style={mutedStyle()}>Rata-rata LOS</div><strong style={{ fontSize: 20 }}>{number(summary.average_los, 2)} hari</strong></div>
               <div><div style={mutedStyle()}>Median LOS</div><strong style={{ fontSize: 20 }}>{number(summary.median_los, 0)} hari</strong></div>
+              <div><div style={mutedStyle()}>Median TARIF_RS / episode</div><strong style={{ fontSize: 20 }}>{money(summary.median_tarif_rs)}</strong></div>
+              <div><div style={mutedStyle()}>P90 TARIF_RS / episode</div><strong style={{ fontSize: 20 }}>{money(summary.p90_tarif_rs)}</strong></div>
+              <div><div style={mutedStyle()}>TARIF_RS per hari rawat</div><strong style={{ fontSize: 20 }}>{money(summary.tarif_rs_per_los_day)}</strong></div>
               <div><div style={mutedStyle()}>Persentil ke-90 LOS</div><strong style={{ fontSize: 20 }}>{number(summary.p90_los, 1)} hari</strong></div>
               <div><div style={mutedStyle()}>Episode ICU</div><strong style={{ fontSize: 20 }}>{number(summary.icu_episode_count)} ({number(summary.icu_episode_rate, 1)}%)</strong></div>
             </div>
@@ -561,6 +564,26 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
         ))}
       </section>
     </div>
+    if (detailTab === 'diagnosis') return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 12 }}>
+      <section style={cardStyle()}>
+        <strong>Diagnosis terbanyak (DIAGLIST)</strong>
+        <p style={{ ...mutedStyle(), margin: '6px 0 12px' }}>Frekuensi diagnosis per episode. Satu kode dihitung maksimal satu kali dalam episode yang sama.</p>
+        {summary.top_diagnoses.length ? summary.top_diagnoses.map((item, index) => (
+          <div key={item.code} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, borderTop: '1px solid var(--line, #e5ebf0)', padding: '8px 0', fontSize: 13 }}>
+            <span>{index + 1}. {item.code}</span><strong>{number(item.episodes)} episode</strong>
+          </div>
+        )) : <div style={mutedStyle()}>Tidak terdapat kode diagnosis pada sumber impor.</div>}
+      </section>
+      <section style={cardStyle()}>
+        <strong>Prosedur terbanyak (PROCLIST)</strong>
+        <p style={{ ...mutedStyle(), margin: '6px 0 12px' }}>Frekuensi kode prosedur per episode. Satu kode dihitung maksimal satu kali dalam episode yang sama.</p>
+        {summary.top_procedures.length ? summary.top_procedures.map((item, index) => (
+          <div key={item.code} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, borderTop: '1px solid var(--line, #e5ebf0)', padding: '8px 0', fontSize: 13 }}>
+            <span>{index + 1}. {item.code}</span><strong>{number(item.episodes)} episode</strong>
+          </div>
+        )) : <div style={mutedStyle()}>Tidak terdapat kode prosedur pada sumber impor.</div>}
+      </section>
+    </div>
     if (detailTab === 'inacbg') return <section style={{ ...cardStyle(), padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: 14 }}><strong>Distribusi kasus menurut kelompok INA-CBG</strong><div style={mutedStyle()}>Urutan berdasarkan volume episode, bukan ranking mutu klinis.</div></div>
       <div style={{ overflowX: 'auto' }}><table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 780, fontSize: 13 }}>
@@ -633,6 +656,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
             ['episodes', 'Daftar episode'],
             ['components', 'Komponen biaya'],
             ['inacbg', 'Analisis INA-CBG'],
+            ['diagnosis', 'Diagnosis & Prosedur'],
             ['reconciliation', 'Rekonsiliasi'],
           ] as Array<[DetailTab, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={detailTab === id} onClick={() => setDetailTab(id)} style={{
             ...buttonStyle(detailTab === id), minHeight: 40, padding: '8px 13px',
