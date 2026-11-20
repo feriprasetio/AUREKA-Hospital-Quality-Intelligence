@@ -30,3 +30,6 @@ verify_jwt = true
 
 [functions.aureka-spo-analyze]
 verify_jwt = true
+
+[functions.aureka-document-ingest]
+verify_jwt = true
