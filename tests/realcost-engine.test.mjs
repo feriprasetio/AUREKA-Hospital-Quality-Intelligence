@@ -47,9 +47,9 @@ test('total tariff-package exception is retained as a separate control', () => {
 })
 
 test('component reconciliation flags a row when component sum differs from TARIF_RS', () => {
-  const result = analyzeRealcostEpisodes([episode({ cost_components: { KAMAR_AKOMODASI: 61, OBAT: 40 } })])
+  const result = analyzeRealcostEpisodes([episode({ cost_components: { KAMAR_AKOMODASI: 62, OBAT: 40 } })])
   assert.equal(result.reconciliation.component_total_mismatch_count, 1)
-  assert.equal(result.reconciliation.component_total_mismatch_amount, 1)
+  assert.equal(result.reconciliation.component_total_mismatch_amount, 2)
 })
 
 test('monthly and CBG summaries are reproducible and retain encounter-level denominators', () => {
