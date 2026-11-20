@@ -440,7 +440,10 @@ export default function HomeClient(){
   if(item.moduleId==='safety')return child==='overview'?safetyTab==='overview':safetyTab===child
   if(item.moduleId==='risk')return riskTab===child
   if(item.moduleId==='secretariat')return secretariatSection===child
-  if(item.moduleId==='settings')return settingsSection===child
+  if(item.moduleId==='settings'){
+   if(active!=='settings')return false
+   return child==='profile'?['profile','users','units','permissions'].includes(settingsSection):['security','appearance','system','mydata','audit'].includes(settingsSection)
+  }
   if(item.moduleId==='insights')return active==='insights'
   if(item.moduleId==='analytics')return child==='recommendations'?programTab==='recommendations':programTab==='programs'
   if(item.moduleId==='staff')return active==='staff'
