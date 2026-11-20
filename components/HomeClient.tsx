@@ -1101,9 +1101,25 @@ export default function HomeClient(){
      <div id={'sidebar-items-'+domain.id} className="sidebarDomainItems" role="group" aria-label={'Modul '+domain.label} hidden={!isExpanded}>
       {domain.items.length===0?<div className="sidebarDomainEmpty">Belum ada modul.</div>:domain.items.map(item=>{
        const itemSelected=sidebarDestinationActive(item)
-       return <button type="button" key={item.id} className={'sidebarDomainItem '+(itemSelected?'active':'')} aria-current={itemSelected?'page':undefined} disabled={item.status==='planned'} title={item.status==='planned'?(item.note||'Belum aktif'):item.label} onClick={()=>selectDomainDestination(domain.id,item)}>
-        <span>{item.label}</span>{item.status==='planned'&&<small className="sidebarPlannedTag">Belum aktif</small>}
-       </button>
+       const showNested = item.status!=='planned' && (
+        item.id==='patient_directory' || item.id==='quality_indicators' || item.id==='patient_safety' ||
+        item.id==='risk_management' || item.id==='annual_program' || item.id==='organization_hr' ||
+        item.id==='user_profile'
+       )
+       const nestedItems = item.moduleId==='patients'
+        ? [{id:'overview',label:'Visual Intelligence'},{id:'directory',label:'Daftar Pasien'},{id:'analysis',label:'Pola Perawatan'}]
+        : (sidebarChildGroups[item.moduleId]||[]).flatMap(group=>group.children?.length?group.children:[group])
+       return <div className="sidebarModuleNode" key={item.id}>
+        <button type="button" className={'sidebarDomainItem '+(itemSelected?'active':'')} aria-current={itemSelected?'page':undefined} disabled={item.status==='planned'} title={item.status==='planned'?(item.note||'Belum aktif'):item.label} onClick={()=>selectDomainDestination(domain.id,item)}>
+         <span>{item.label}</span>{item.status==='planned'&&<small className="sidebarPlannedTag">Belum aktif</small>}
+        </button>
+        {showNested&&isExpanded&&nestedItems.length>0&&<div className="sidebarModuleChildren" role="group" aria-label={'Menu '+item.label}>
+         {nestedItems.map(child=>{
+          const selected= item.moduleId==='patients' ? patientsRegistryTab===child.id : selectedSidebarChild(item.moduleId)===child.id
+          return <button type="button" key={child.id} className={'sidebarModuleChild '+(selected?'active':'')} aria-current={selected?'page':undefined} onClick={()=>selectSidebarChild(item.moduleId,child.id)}>{child.label}</button>
+         })}
+        </div>}
+       </div>
       })}
      </div>
     </section>
@@ -1216,7 +1232,7 @@ export default function HomeClient(){
    </>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>,document.body)}
-  {activeNavModuleId&&<UnifiedModuleNavigation
+  {false&&activeNavModuleId&&<UnifiedModuleNavigation
    mobileWorkspaceTabs={MOBILE_WORKSPACE_TABS}
    ariaLabel={'Navigasi '+activeNavModuleLabel}
    title={activeRailTitle}
