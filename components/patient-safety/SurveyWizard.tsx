@@ -20,12 +20,6 @@ type Meta = {
 type Props = {
   meta: Meta
   roomOptions: string[]
-  respondentOptions: { id: string; label: string }[]
-  professionFromRespondent: string
-  selectedRespondentId: string
-  onRespondentChange: (value: string) => void
-  identityConfirmed: boolean
-  onIdentityConfirmedChange: (value: boolean) => void
   dimensions: Dimension[]
   whoItems: Item[]
   required: string[]
@@ -97,26 +91,26 @@ function Chips({ label, value, options, onChange, optional, name }: { label: str
 }
 
 export default function SurveyWizard(props: Props) {
-  const { meta, roomOptions, respondentOptions, professionFromRespondent, selectedRespondentId, onRespondentChange, identityConfirmed, onIdentityConfirmedChange, dimensions, whoItems, required, answers, setAnswer, saving, error, lastResponseCode, onSubmit, onReset } = props
+  const { meta, roomOptions, dimensions, whoItems, required, answers, setAnswer, saving, error, lastResponseCode, onSubmit, onReset } = props
   const rootRef = useRef<HTMLDivElement>(null)
   const [stepIndex, setStepIndex] = useState(0)
   const [done, setDone] = useState(false)
   const submitCodeRef = useRef<string | null>(null)
 
   const steps: Step[] = useMemo(() => [
-    { key: 'profil', title: 'Identitas & Profil Responden', subtitle: 'Survei tahunan bernama dengan pencatatan identitas responden dan akun pengirim secara terpisah.', codes: [] },
+    { key: 'profil', title: 'Profil umum tanpa identitas', subtitle: 'Survei anonim; hanya metadata kelompok minimum yang diperlukan untuk analisis agregat.', codes: [] },
     ...dimensions.map(d => ({ key: 'dim-' + d.code, title: d.title, subtitle: 'Dimensi ' + d.code + ' · seberapa setuju Anda?', codes: d.items.map(i => i.code) })),
     { key: 'kesejahteraan', title: 'Kesejahteraan Anda', subtitle: 'Kekerasan verbal 12 bulan terakhir dan perasaan Anda dua minggu terakhir.', codes: ['B26', ...whoItems.map(i => i.code)] },
     { key: 'burnout', title: 'Kondisi kelelahan kerja', subtitle: 'Pilih satu pernyataan yang paling menggambarkan Anda saat ini.', codes: ['D1'] },
     { key: 'hasil', title: 'Penilaian umum', subtitle: 'Dua pertanyaan terakhir sebelum meninjau jawaban.', codes: ['E1', 'E2'] },
-    { key: 'tinjau', title: 'Tinjau & kirim', subtitle: 'Periksa kembali profil, konfirmasi identitas, dan kelengkapan jawaban sebelum mengirim.', codes: [] },
+    { key: 'tinjau', title: 'Tinjau & kirim', subtitle: 'Periksa metadata kelompok dan kelengkapan jawaban sebelum mengirim respons anonim.', codes: [] },
   ], [dimensions, whoItems])
 
   const step = steps[stepIndex]
   const answered = (code: string) => Object.prototype.hasOwnProperty.call(answers, code) && answers[code] !== ''
   const totalAnswered = required.filter(answered).length
   const percent = Math.round((totalAnswered / Math.max(1, required.length)) * 100)
-  const profileOk = Boolean(meta.unit && meta.profession && selectedRespondentId && identityConfirmed)
+  const profileOk = Boolean(meta.unit && meta.profession)
   const stepMissing = (s: Step) => s.codes.filter(c => !answered(c)).length
   const isLast = stepIndex === steps.length - 1
 
@@ -187,7 +181,7 @@ export default function SurveyWizard(props: Props) {
         <section className="svDone" role="status">
           <div className="svDoneMark" aria-hidden="true">✓</div>
           <h3>Terima kasih, jawaban Anda sudah terkirim.</h3>
-          <p>Kode respons: <b>{lastResponseCode}</b>. Identitas responden dan akun pengirim dicatat terpisah untuk audit tata kelola.</p>
+          <p>Kode referensi respons: <b>{lastResponseCode}</b>. Identitas responden dan akun pengirim tidak disimpan pada record survei.</p>
           <button type="button" className="svBtn primary" onClick={() => { onReset(); setDone(false); goTo(0) }}>Isi untuk responden berikutnya</button>
         </section>
       </div>
@@ -198,7 +192,7 @@ export default function SurveyWizard(props: Props) {
     <div ref={rootRef} className="svWizard">
       <div className="svTop">
         <div className="svTopRow">
-          <span className="svEyebrow">Survei Budaya Keselamatan · bernama</span>
+          <span className="svEyebrow">Survei Budaya Keselamatan · anonim</span>
           <span className="svCount">{totalAnswered}/{required.length} terjawab</span>
         </div>
         <div className="svBar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label="Kemajuan pengisian"><i style={{ width: percent + '%' }} /></div>
@@ -221,7 +215,7 @@ export default function SurveyWizard(props: Props) {
 
         {step.key === 'profil' ? (
           <div className="svProfile">
-            <div className="svPrivacy"><b>Survei bernama dengan akses terbatas.</b> Identitas responden diambil dari Direktori Induk SDM dan disimpan terpisah dari akun yang mengirim. Jawaban individual dapat ditelusuri oleh petugas berwenang; hasil organisasi dilaporkan secara agregat dan digunakan untuk pembelajaran/perbaikan sistem. Perkiraan waktu 15–20 menit. Untuk pernyataan tidak relevan, pilih <b>TB</b> (tidak berlaku).</div>
+            <div className="svPrivacy"><b>Survei anonim.</b> Formulir dan record respons tidak meminta atau menyimpan nama, nomor pegawai, ID responden, maupun ID akun pengirim. Autentikasi tetap dipakai untuk membatasi hak pengiriman; akun pengirim tidak disimpan pada baris survei. Unit dan metadata kelompok hanya dipakai untuk analisis agregat, dan keluaran kelompok dengan minimum 5 responden (n≥5) baru ditampilkan; kelompok di bawah ambang itu disembunyikan. Instrumen ini adalah instrumen internal; belum dinyatakan sebagai AHRQ SOPS Hospital Survey 2.0 atau tervalidasi secara lokal. Perkiraan waktu 15–20 menit. Untuk pernyataan tidak relevan, pilih <b>TB</b> (tidak berlaku).</div>
             <label className="svField svSelect">
               <span>Unit kerja <span className="svReq" aria-hidden="true">*</span></span>
               <select value={meta.unit} onChange={e => meta.setUnit(e.target.value)}>
@@ -229,20 +223,7 @@ export default function SurveyWizard(props: Props) {
                 {roomOptions.map(name => <option key={name}>{name}</option>)}
               </select>
             </label>
-            <label className="svField svSelect">
-              <span>Nama responden (Direktori Induk SDM) <span className="svReq" aria-hidden="true">*</span></span>
-              <select value={selectedRespondentId} onChange={e => onRespondentChange(e.target.value)} disabled={!meta.unit || !respondentOptions.length}>
-                <option value="">{!meta.unit ? 'Pilih unit terlebih dahulu' : respondentOptions.length ? 'Pilih nama responden' : 'Tidak ada petugas dengan penugasan aktif pada unit ini'}</option>
-                {respondentOptions.map(person => <option key={person.id} value={person.id}>{person.label}</option>)}
-              </select>
-            </label>
-            <div className="svPrivacy" style={{ background: '#fff9eb', borderColor: '#f0dfb3' }}>
-              <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', cursor: 'pointer' }}>
-                <input type="checkbox" checked={identityConfirmed} onChange={e => onIdentityConfirmedChange(e.target.checked)} />
-                <span><b>Konfirmasi identitas responden.</b> Saya telah memeriksa identitas dan sepengetahuan responden melakukan pencatatan ini. Akun login yang mengirim tetap dicatat sebagai submitter; konfirmasi ini bukan bukti biometrik siapa yang secara fisik mengetik jawaban.</span>
-              </label>
-            </div>
-            <div className="svProfileReadonly"><span>Profesi / kelompok jabatan dari Direktori Induk SDM</span><b>{professionFromRespondent || 'Otomatis mengikuti tenaga kerja yang dipilih'}</b></div>
+            <Chips name="sv-profession" label="Profesi / kelompok jabatan" value={meta.profession} options={PROFESSIONS} onChange={meta.setProfession} />
             <Chips name="sv-ht" label="Lama bekerja di RS" value={meta.hospitalTenure} options={TENURE} onChange={meta.setHospitalTenure} optional />
             <Chips name="sv-ut" label="Lama bekerja di unit saat ini" value={meta.unitTenure} options={TENURE} onChange={meta.setUnitTenure} optional />
             <Chips name="sv-shift" label="Pola kerja / shift" value={meta.shift} options={SHIFTS} onChange={meta.setShift} optional />
@@ -292,7 +273,7 @@ export default function SurveyWizard(props: Props) {
           <div className="svReview">
             <div className="svRing" style={{ ['--p' as string]: percent }} aria-hidden="true"><b>{percent}%</b><small>lengkap</small></div>
             <ul>
-              <li className={profileOk ? 'ok' : 'miss'}><button type="button" onClick={() => goTo(0)}><span>Identitas & profil responden</span><em>{profileOk ? 'Lengkap' : 'Unit, profesi, nama & konfirmasi wajib'}</em></button></li>
+              <li className={profileOk ? 'ok' : 'miss'}><button type="button" onClick={() => goTo(0)}><span>Profil umum tanpa identitas</span><em>{profileOk ? 'Lengkap' : 'Unit dan profesi wajib'}</em></button></li>
               {steps.slice(1, -1).map((s, i) => {
                 const miss = stepMissing(s)
                 return <li key={s.key} className={miss ? 'miss' : 'ok'}><button type="button" onClick={() => goTo(i + 1)}><span>{s.title}</span><em>{miss ? miss + ' belum dijawab' : 'Lengkap'}</em></button></li>
@@ -308,7 +289,7 @@ export default function SurveyWizard(props: Props) {
         <span className="svNavInfo">{step.codes.length ? (stepMissing(step) ? stepMissing(step) + ' belum dijawab' : 'Bagian ini lengkap') : (step.key === 'profil' && !profileOk ? 'Pilih unit & profesi' : '')}</span>
         {isLast ? (
           <button type="button" className="svBtn primary" disabled={saving || !profileOk || totalAnswered < required.length}
-            onClick={() => { submitCodeRef.current = lastResponseCode || ''; void onSubmit() }}>{saving ? 'Mengirim…' : 'Kirim respons bernama'}</button>
+            onClick={() => { submitCodeRef.current = lastResponseCode || ''; void onSubmit() }}>{saving ? 'Mengirim…' : 'Kirim respons anonim'}</button>
         ) : (
           <button type="button" className={'svBtn primary' + (step.codes.length && !stepMissing(step) ? ' pulse' : '')}
             disabled={stepIndex === 0 && !profileOk} onClick={() => goTo(stepIndex + 1)}>Lanjut →</button>

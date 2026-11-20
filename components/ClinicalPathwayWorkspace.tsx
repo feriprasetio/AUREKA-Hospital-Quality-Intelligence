@@ -1,4 +1,5 @@
 'use client'
+import { CLINICAL_PATHWAY_INM_TARGET_PCT } from '@/lib/aureka/clinical-pathway-metrics'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -725,8 +726,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       clinical_fields: [], source_notes: [],
       scoring_rules: {
         completion_threshold_pct: 85, compliance_target_pct: 100,
-        completion_definition: 'Persentase kotak jadwal wajib dan kondisional pada item yang dipilih PPA dan telah diputuskan.',
-        compliance_definition: 'Jumlah sel sesuai dibagi seluruh sel yang dinilai sesuai atau tidak sesuai, dikalikan 100%.',
+        completion_definition: 'Persentase keterisian sel jadwal checklist CP pada episode ini; metrik internal, bukan INM.',
+        compliance_definition: 'Jumlah item checklist yang dinilai sesuai dibagi seluruh item checklist yang dinilai; metrik internal, bukan INM.',
         variation_required: true, variation_definition: 'Jika terjadi variasi, isi tanggal, ringkasan variasi, alasan, dan justifikasi.',
         inclusion_mode: 'all', inclusion_criteria: [], source_section_d: [],
       },
@@ -856,13 +857,14 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     const passClass = (pass: boolean) => pass ? 'cpPass' : 'cpFail'
     return <div className="cpRoot">
       <div className="cpScoreGrid">
-        <div className="cpGlass cpScore"><span>Keterisian CP</span><strong>{pct(c.completion)}</strong><small>{c.filled}/{c.expected} kotak harian dari {c.selectedItemCount} pilihan aktif sudah diputuskan · standar ≥{c.threshold}%</small><div className={'cpBadge ' + (c.completionPass ? '' : 'draft')}>{c.completionPass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
-        <div className="cpGlass cpScore"><span>Kepatuhan CP</span><strong>{pct(c.compliance)}</strong><small>{c.done} sesuai dari {c.evaluation} sel yang dinilai · target {c.target}%</small><div className={'cpBadge ' + (c.compliancePass ? '' : 'draft')}>{c.compliancePass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
+        <div className="cpGlass cpScore"><span>Keterisian jadwal CP (internal)</span><strong>{pct(c.completion)}</strong><small>{c.filled}/{c.expected} kotak harian dari {c.selectedItemCount} pilihan aktif sudah diputuskan · ambang checklist lokal ≥{c.threshold}%</small><div className={'cpBadge ' + (c.completionPass ? '' : 'draft')}>{c.completionPass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
+        <div className="cpGlass cpScore"><span>Kepatuhan item CP per episode (internal)</span><strong>{pct(c.compliance)}</strong><small>{c.done} sesuai dari {c.evaluation} sel checklist yang dinilai · target lokal {c.target}%</small><div className={'cpBadge ' + (c.compliancePass ? '' : 'draft')}>{c.compliancePass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
         <div className="cpGlass cpScore"><span>Inklusi penilaian</span><strong>{c.inclusionReady ? (c.included ? 'Ya' : 'Tidak') : '-'}</strong><small>{c.criteria.length} kriteria dari Bagian D harus diputuskan</small><div className={'cpBadge ' + (c.inclusionReady ? (c.included ? '' : 'draft') : 'draft')}>{!c.inclusionReady ? 'Belum lengkap' : c.included ? 'Layak dinilai' : 'Di luar inklusi'}</div></div>
         <div className="cpGlass cpScore"><span>Variasi pelayanan</span><strong>{c.variationCount}</strong><small>{c.variationRequired ? 'Justifikasi diperlukan untuk setiap variasi' : 'Tidak dipersyaratkan pada master CP'}</small><div className={'cpBadge ' + (c.variationComplete ? '' : 'draft')}>{!c.variationRequired ? 'Tidak diwajibkan' : c.variationComplete ? 'Terdokumentasi' : 'Belum lengkap'}</div></div>
       </div>
+      <div className="cpNotice info" style={{ marginBottom: 12 }}><b>INM Kepatuhan terhadap Alur Klinis · target ≥{CLINICAL_PATHWAY_INM_TARGET_PCT}%.</b> Rumus INM adalah pelayanan PPA yang sesuai CP dibagi seluruh pelayanan PPA pada CP yang diobservasi. Skor checklist pada episode ini bukan pembilang/penyebut INM dan tidak boleh dipakai sebagai penggantinya. Data observasi pelayanan PPA belum direkam terpisah pada formulir ini; karena itu nilai INM ditampilkan sebagai belum tersedia, bukan diperkirakan dari jumlah pasien atau sel checklist.</div>
       <div className="cpPanel cpGlass">
-        <div className="cpSectionHead"><div><h4>Bagian D · Kepatuhan Clinical Pathway</h4></div><span className={'cpBadge ' + (c.sectionDPass ? '' : 'draft')}>{c.sectionDPass ? 'Memenuhi seluruh kriteria' : 'Belum memenuhi seluruh kriteria'}</span></div>
+        <div className="cpSectionHead"><div><h4>Bagian D · Evaluasi checklist Clinical Pathway per episode</h4></div><span className={'cpBadge ' + (c.sectionDPass ? '' : 'draft')}>{c.sectionDPass ? 'Memenuhi seluruh kriteria' : 'Belum memenuhi seluruh kriteria'}</span></div>
         <div className="cpNotice info">{form.template.scoring_rules.completion_definition} {form.template.scoring_rules.compliance_definition}</div>
         <WorkspaceTableViewport label="Checklist dan format Clinical Pathway" className="cpTableWrap" style={{ maxHeight: 'none', marginTop: 12 }}>
           <table className="cpTable" style={{ minWidth: 760 }}>
@@ -1208,10 +1210,10 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           <div className="cpField"><label>Kode ICD-10</label><input aria-label="Kode ICD-10" value={builder.icd10} onChange={(e) => patchBuilder({ icd10: e.target.value })} placeholder="Kode ICD-10" /></div>
           <div className="cpField"><label>Status master</label><select aria-label="Status master" value={builder.status} onChange={(e) => patchBuilder({ status: e.target.value })}><option value="draft">Draf</option><option value="published">Aktif / diterbitkan</option><option value="retired">Tidak aktif</option></select></div>
           <div className="cpField span2"><label>Nama dokumen sumber / rujukan</label><input aria-label="Nama dokumen sumber" value={builder.source_filename} onChange={(e) => patchBuilder({ source_filename: e.target.value })} placeholder="Nama dokumen atau sumber penyusunan" /></div>
-          <div className="cpField"><label>Standar keterisian (%)</label><input aria-label="Standar keterisian persen" type="number" min="0" max="100" value={builder.scoring_rules.completion_threshold_pct} onChange={(e) => patchBuilderScoring({ completion_threshold_pct: n(e.target.value) })} /></div>
-          <div className="cpField"><label>Target kepatuhan (%)</label><input aria-label="Target kepatuhan persen" type="number" min="0" max="100" value={builder.scoring_rules.compliance_target_pct} onChange={(e) => patchBuilderScoring({ compliance_target_pct: n(e.target.value) })} /></div>
-          <div className="cpField span2"><label>Definisi persentase keterisian</label><textarea aria-label="Definisi persentase keterisian" rows={2} value={builder.scoring_rules.completion_definition} onChange={(e) => patchBuilderScoring({ completion_definition: e.target.value })} /></div>
-          <div className="cpField span2"><label>Definisi persentase kepatuhan</label><textarea aria-label="Definisi persentase kepatuhan" rows={2} value={builder.scoring_rules.compliance_definition} onChange={(e) => patchBuilderScoring({ compliance_definition: e.target.value })} /></div>
+          <div className="cpField"><label>Ambang keterisian checklist internal (%)</label><input aria-label="Standar keterisian persen" type="number" min="0" max="100" value={builder.scoring_rules.completion_threshold_pct} onChange={(e) => patchBuilderScoring({ completion_threshold_pct: n(e.target.value) })} /></div>
+          <div className="cpField"><label>Target kepatuhan checklist internal (%)</label><input aria-label="Target kepatuhan persen" type="number" min="0" max="100" value={builder.scoring_rules.compliance_target_pct} onChange={(e) => patchBuilderScoring({ compliance_target_pct: n(e.target.value) })} /></div>
+          <div className="cpField span2"><label>Definisi keterisian checklist internal</label><textarea aria-label="Definisi persentase keterisian" rows={2} value={builder.scoring_rules.completion_definition} onChange={(e) => patchBuilderScoring({ completion_definition: e.target.value })} /></div>
+          <div className="cpField span2"><label>Definisi kepatuhan checklist internal</label><textarea aria-label="Definisi persentase kepatuhan" rows={2} value={builder.scoring_rules.compliance_definition} onChange={(e) => patchBuilderScoring({ compliance_definition: e.target.value })} /></div>
           <div className="cpField"><label>Variasi pelayanan wajib diisi?</label><select aria-label="Variasi pelayanan wajib diisi" value={builder.scoring_rules.variation_required === false ? 'false' : 'true'} onChange={(e) => patchBuilderScoring({ variation_required: e.target.value === 'true' })}><option value="true">Ya, wajib dinyatakan</option><option value="false">Tidak diwajibkan</option></select></div>
           <div className="cpField span2"><label>Ketentuan variasi pelayanan</label><textarea aria-label="Ketentuan variasi pelayanan" rows={2} value={builder.scoring_rules.variation_definition} onChange={(e) => patchBuilderScoring({ variation_definition: e.target.value })} /></div>
         </div>
