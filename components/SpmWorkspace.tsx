@@ -597,6 +597,10 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
             <div><strong>Capaian {MONTHS[month-1]} {year}</strong><span>Status dihitung dari data yang tersedia. Data kosong tidak dianggap 0% atau memenuhi target.</span></div>
             <span className="spmInfoTag">22 kelompok pelayanan</span>
           </div>
+          <div className="spmOverviewActions" style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button type="button" className="spmPrimary" onClick={() => {setGroupFilter('all');setTab('entry')}}>Lihat Rekapan SPM</button>
+            {canConfigure && <button type="button" className="spmSecondary" onClick={() => setTab('config')}>Lihat Konfigurasi Perhitungan</button>}
+          </div>
           <div className="spmGroupGrid">
             {groups.filter(name => groupFilter==='all' || name===groupFilter).map(name => {
               const items = indicators.filter(item => item.group_name === name)

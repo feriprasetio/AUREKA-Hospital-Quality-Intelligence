@@ -4,18 +4,19 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('annual Program presents priority areas and new indicator proposals as first-class cards', () => {
+test('Annual Program owns priority areas while proposals are consolidated in Profile Indicators', () => {
   const home = read('components/HomeClient.tsx')
   const workspace = read('components/governance/AnnualProgramWorkspace.tsx')
-  assert.match(home, /\{id:'programs',label:'Program Kerja Tahunan'\}/)
+  const qualitySettings = read('components/QualitySettings.tsx')
+  const metadata = read('components/MetadataStatisticsWorkspace.tsx')
   assert.match(home, /AnnualProgramWorkspace/)
-  assert.doesNotMatch(home, /\{id:'proposals',label:'Usulan Indikator Baru'\}/)
   assert.match(workspace, /Area Prioritas/)
-  assert.match(workspace, /Usulan Indikator Baru/)
   assert.match(workspace, /aureka_gov_save_priority_area/)
-  assert.match(workspace, /IndicatorProposalWorkspace/)
-  assert.match(workspace, /AnnualQualitySettings/)
-  assert.match(workspace, /initialTab="programs" showTabs=\{false\}/)
+  assert.doesNotMatch(workspace, /Usulan Indikator Baru|IndicatorProposalWorkspace|AnnualQualitySettings/)
+  assert.match(qualitySettings, /IndicatorProposalWorkspace/)
+  assert.match(qualitySettings, /Visual Intelligence Profil Indikator/)
+  assert.match(qualitySettings, /Lihat Usulan Indikator Baru/)
+  assert.match(metadata, /initialTab="profiles"[^>]*role=\{role\}/)
 })
 
 test('recommendations and follow-up are one stakeholder-filtered workflow', () => {

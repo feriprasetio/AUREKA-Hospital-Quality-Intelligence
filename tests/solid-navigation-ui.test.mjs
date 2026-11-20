@@ -43,14 +43,16 @@ test('Arktik uses bundled Plus Jakarta Sans and does not download Inter', () => 
   assert.match(skin, /var\(--font-aureka\)/)
 })
 
-test('sidebar exposes all seven requirement categories simultaneously; operational destinations stay contextual', () => {
+test('sidebar exposes the seven requirement categories from one registry; modules expand contextually', () => {
   const home = read('components/HomeClient.tsx')
+  const registry = read('lib/aureka/module-registry.ts')
   const navCss = read('app/aureka-navigation-consolidated.css')
   const repairCss = read('app/aureka-navigation-repair.css')
   assert.ok(home.includes('aria-label="Tujuh kategori utama AUREKA"'))
   assert.ok(home.includes('visibleSidebarDomains.map'))
-  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(home.includes("id:'" + id + "'"), id)
-  assert.ok(home.includes("+'isExpanded'"))
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
+  assert.ok(home.includes('aria-expanded={isExpanded}'))
+  assert.ok(home.includes('hidden={!isExpanded}'))
   assert.ok(home.includes('role="heading" aria-level={2}'))
   assert.ok(home.includes("import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'"))
   assert.ok(home.includes('<UnifiedModuleNavigation'))

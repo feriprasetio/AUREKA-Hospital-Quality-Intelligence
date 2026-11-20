@@ -18,13 +18,15 @@ test('Beranda and Analitik & Infografis have separate canonical workspaces', () 
   assert.ok(!app.includes("home:[{id:'welcome',label:'Beranda'},{id:'infographics',label:'Infografis'}]"))
 })
 
-test('primary navigation labels follow the approved domain terminology', () => {
+test('primary navigation labels and seven category ownership live in the central registry', () => {
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeClient.tsx')
-  assert.ok(home.includes("id:'command_center',label:'Dashboard'"))
-  for (const label of ["label:'Beranda'", "label:'Register Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
+  assert.ok(registry.includes("id:'home', label:'Dashboard', group:'command_center'"))
+  for (const label of ["label:'Dashboard'", "label:'Register Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik & Infografis'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pengaturan'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
+  assert.ok(home.includes("AUREKA_SIDEBAR_DOMAINS:readonly AurekaSidebarDomain[]=AUREKA_NAVIGATION_GROUPS"))
 })
 
 test('OPPE and FPPE are reachable from SDM navigation and not from quality navigation', () => {
@@ -56,15 +58,17 @@ test('legacy bookmarks remain mapped while the new HR route is canonical', () =>
   assert.ok(app.includes("'tenaga-klinis':'staff'"))
 })
 
-test('Dashboard category exposes the command centre and NARA AI in the always-visible navigation', () => {
+test('Dashboard category, NARA AI and accordion hierarchy are sourced from the central registry', () => {
   const app = read('components/HomeClient.tsx')
+  const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeLandingWorkspace.tsx')
-  assert.ok(app.includes("id:'command_center',label:'Dashboard',icon:'home',items:["))
-  assert.ok(app.includes("{id:'dashboard',label:'Dashboard',moduleId:'home',childId:'overview'}"))
-  assert.ok(app.includes("{id:'nara_ai',label:'NARA AI',moduleId:'nara'}"))
+  assert.ok(registry.includes("{ id:'command_center', label:'Dashboard', icon:'home', items:["))
+  assert.ok(registry.includes("{ id:'dashboard', label:'Dashboard', moduleId:'home', childId:'overview' }"))
+  assert.ok(registry.includes("{ id:'nara_ai', label:'NARA AI', moduleId:'nara' }"))
   assert.ok(app.includes('aria-label="Tujuh kategori utama AUREKA"'))
   assert.ok(app.includes('role="heading" aria-level={2}'))
-  assert.ok(app.includes("+'isExpanded'"))
+  assert.ok(app.includes('aria-expanded={isExpanded}'))
+  assert.ok(app.includes('hidden={!isExpanded}'))
   assert.ok(app.includes("insights:'#analitik'"))
   assert.ok(home.includes('Operational overview'))
   assert.ok(home.includes('Operational workspaces'))
@@ -112,22 +116,30 @@ test('retired E-Regulasi is absent from application navigation and workspace sou
   assert.doesNotMatch(registry, /regulation|regulasi/i)
 })
 
-test('PIC performance remains in SDM while indicator proposals are accessed from annual Program', () => {
+test('PIC performance is integrated into Quality Monitoring and indicator proposals live under Profile Indicators', () => {
   const app = read('components/HomeClient.tsx')
   const annualProgram = read('components/governance/AnnualProgramWorkspace.tsx')
+  const qualitySettings = read('components/QualitySettings.tsx')
   const performance = read('components/PicPerformanceWorkspace.tsx')
   const proposals = read('components/IndicatorProposalWorkspace.tsx')
   const migration = read('supabase/migrations/20261112131846_pic_performance_and_indicator_proposals.sql')
   assert.match(app, /hr\.read\.pic_performance/)
-  assert.match(app, /id:'pic-performance',label:'Kinerja PIC'/)
+  assert.match(app, /qualityMonitorTab==='pic'/)
+  assert.match(app, /quality-reporting/)
+  assert.match(app, /Kinerja PIC/)
+  assert.doesNotMatch(app, /staff:\[[\s\S]{0,500}pic-performance/)
   assert.match(app, /<PicPerformanceWorkspace\/>/)
+  assert.match(app, /qualityMonitorTabs/)
   assert.match(performance, /aureka_pic_performance_dashboard/)
   assert.match(performance, /Data terakhir dibuat/)
   assert.match(performance, /records_validated/)
   assert.match(migration, /records_archived/)
   assert.match(app, /AnnualProgramWorkspace/)
-  assert.match(annualProgram, /Usulan Indikator Baru/)
-  assert.match(annualProgram, /<IndicatorProposalWorkspace/)
+  assert.doesNotMatch(annualProgram, /Usulan Indikator Baru|IndicatorProposalWorkspace|AnnualQualitySettings/)
+  assert.match(qualitySettings, /IndicatorProposalWorkspace/)
+  assert.match(qualitySettings, /Visual Intelligence Profil Indikator/)
+  assert.match(qualitySettings, /Lihat Usulan Indikator Baru/)
+  assert.match(qualitySettings, /profileWorkspaceSection === 'proposals'/)
   assert.doesNotMatch(app, /id:'proposals',label:'Usulan Indikator Baru'/)
   assert.match(proposals, /aureka_gov_indicator_proposal_save/)
   assert.match(proposals, /aureka_gov_indicator_proposal_review/)
@@ -167,12 +179,17 @@ test('indicator proposal foreign-key columns have covering indexes', () => {
 })
 
 
-test('SPM belongs to Manajemen Rumah Sakit and keeps its canonical legacy quality route', () => {
+test('SPM belongs to Manajemen Rumah Sakit in the central registry and retains its legacy route', () => {
   const app = read('components/HomeClient.tsx')
-  const qualityDomain = app.slice(app.indexOf("{id:'quality_patient_safety'"), app.indexOf("{id:'hospital_management'"))
-  const managementDomain = app.slice(app.indexOf("{id:'hospital_management'"), app.indexOf("{id:'director_supervisory_board'"))
-  assert.ok(!qualityDomain.includes("id:'spm'"))
-  assert.ok(managementDomain.includes("{id:'spm',label:'Standar Pelayanan Minimal (SPM)',moduleId:'quality',childId:'spm'}"))
+  const registry = read('lib/aureka/module-registry.ts')
+  const start = registry.indexOf("{ id:'hospital_management'")
+  const end = registry.indexOf("{ id:'director_supervisory_board'", start)
+  const managementGroup = registry.slice(start,end)
+  const qualityStart = registry.indexOf("{ id:'quality_patient_safety'")
+  const qualityEnd = registry.indexOf("{ id:'hospital_management'", qualityStart)
+  const qualityGroup = registry.slice(qualityStart,qualityEnd)
+  assert.ok(!qualityGroup.includes("id:'spm'"))
+  assert.ok(managementGroup.includes("{ id:'spm', label:'Standar Pelayanan Minimal (SPM)', moduleId:'quality', childId:'spm' }"))
   assert.ok(app.includes("if(active==='quality'&&spmOpen)return 'hospital_management'"))
   assert.ok(app.includes("spmOpen?'#indikator-mutu/spm'"))
   assert.ok(!app.includes('sidebarSpmQuickLink'))

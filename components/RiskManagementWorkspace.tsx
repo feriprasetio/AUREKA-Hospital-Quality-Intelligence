@@ -199,7 +199,7 @@ const roleLabel = (role: string | null) => ({
 }[role || ''] || role || 'Pengguna')
 
 export default function RiskManagementWorkspace({
-  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true, onTabChange, lockRoomScope = false,
+  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true, onTabChange, lockRoomScope = false, onAskNara,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -212,6 +212,7 @@ export default function RiskManagementWorkspace({
   initialTab?: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation'
   showTabs?: boolean
   onTabChange?: (tab: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation') => void
+  onAskNara?: (prompt: string, pageContext: string) => void
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
   const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation'>(initialTab)
@@ -870,6 +871,12 @@ export default function RiskManagementWorkspace({
       </div>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'overview' && <>
+        <div className="rmOverviewActions" style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+          <button type="button" className="rmButton primary" onClick={() => { setTab('register'); clearMessages() }}>Lihat Daftar Risiko</button>
+          <button type="button" className="rmButton" onClick={() => { setTab('fmea'); clearMessages() }}>Lihat FMEA Preventif</button>
+          <button type="button" className="rmButton" onClick={() => { setTab('mitigation'); clearMessages() }}>Lihat Mitigasi dan RTP</button>
+          {onAskNara && <button type="button" className="rmButton" onClick={() => onAskNara('Analisis data agregat manajemen risiko pada cakupan pengguna. Jelaskan distribusi tingkat risiko, kebutuhan mitigasi, status residual dan tindak lanjut, serta risiko prioritas. Jangan menyimpulkan relasi konektor dari kemiripan kata saja dan jangan mengubah data.', 'Manajemen Risiko · Visual Intelligence')}>Analisis dengan NARA AI</button>}
+        </div>
         <div className="rmKpis">
           <LiquidGlass className="rmKpi"><span>Risiko terdaftar</span><strong>{counts.total.toLocaleString('id-ID')}</strong><small>{scopedToUnit ? (currentRoom?.name || 'Unit Anda') : 'Seluruh unit kerja'}</small></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>Risiko utama · perlu mitigasi</span><strong>{counts.needsMitigation.toLocaleString('id-ID')}</strong><small>Sedang, Tinggi, Sangat Tinggi</small></LiquidGlass>
