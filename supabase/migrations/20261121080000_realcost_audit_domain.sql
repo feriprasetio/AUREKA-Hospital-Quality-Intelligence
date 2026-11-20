@@ -369,7 +369,7 @@ grant execute on function public.aureka_realcost_dashboard(uuid) to authenticate
 comment on table aureka_quality.realcost_imports is
   'Metadata and immutable provenance for imported Realcost workbooks. Raw XLSX files and patient identifiers are not stored here.';
 comment on table aureka_quality.realcost_episodes is
-  'De-identified episode-level Realcost audit dataset. Access requires realcost.read.detail; summary metrics are exposed through a guarded aggregate RPC.';
+  'Pseudonymized episode-level Realcost audit dataset. Episode-key hashes are salted per import; access requires realcost.read.detail, while summary metrics are exposed through a guarded aggregate RPC.';
 comment on table aureka_quality.realcost_patient_identity is
   'Patient-identifying fields separated from episode costs; read requires both patient.read.identifiable and realcost.read.detail with a logged access purpose.';
 
