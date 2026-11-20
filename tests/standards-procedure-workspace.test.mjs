@@ -15,6 +15,13 @@ test('SPO is enabled under the quality development navigation',()=>{
 test('SPO workspace provides upload, review, approval and structured text fields',()=>{
  for(const text of ['Upload SPO','aureka-spo-analyze','Simpan Draf SPO','Ajukan Review','Sahkan SPO','procedure_steps','flowchart_code'])assert.ok(workspace.includes(text),text);
 });
+test('SPO foreign-key indexes cover audit user references',async()=>{
+ const sql=await readFile(new URL('../supabase/migrations/20261121073000_standard_operating_procedures_fk_indexes.sql',import.meta.url),'utf8');
+ for(const column of ['created_by','updated_by','approved_by']) {
+  assert.ok(sql.includes('ON aureka_quality.standard_operating_procedures ('+column+')'));
+ }
+});
+
 test('SPO records do not store file bytes',()=>{
  assert.doesNotMatch(migration,/\bbytea\b|\bblob\b/i);
  assert.match(migration,/source_storage_path text/);assert.match(migration,/procedure_steps jsonb/);assert.match(migration,/flowchart jsonb/);
