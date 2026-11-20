@@ -29,6 +29,21 @@ test('SPO records do not store file bytes',()=>{
 test('SPO storage, table RLS and server analysis are restricted',()=>{
  for(const p of ['spo_register_read','spo_register_insert','spo_register_update','spo_source_documents_read','spo_source_documents_insert','spo_register_password_rotation'])assert.ok(migration.includes(p),p);
  assert.match(migration,/aureka_system\.current_role_code\(\)/);
- assert.match(edge,/getUser\(jwt\)/);assert.match(edge,/GEMINI_API_KEY/);
+ assert.match(edge,/getUser\(jwt\)/);
+ assert.match(edge,/pdfjs\.getDocument/);
+ assert.match(edge,/JSZip\.loadAsync/);
+ assert.match(edge,/parseStructuredSPO/);
+ assert.match(edge,/AUREKA Local Document Parser v1/);
+ assert.doesNotMatch(edge,/GEMINI_API_KEY|generativelanguage\.googleapis\.com|openai\.com\/v1/);
  assert.match(config,/\[functions\.aureka-spo-analyze\]/);
+});
+
+test('SPO uses deterministic PDF and DOCX extraction without external AI APIs',()=>{
+ assert.match(edge,/pdfjs\.getDocument/);
+ assert.match(edge,/JSZip\.loadAsync/);
+ assert.match(edge,/SECTION_PATTERN/);
+ assert.match(edge,/labelledValue/);
+ assert.match(edge,/extracted_diagram_labels/);
+ assert.doesNotMatch(edge,/GEMINI_API_KEY|generativelanguage\.googleapis\.com/);
+ assert.match(workspace,/AUREKA Local Document Parser v1/);
 });
