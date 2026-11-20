@@ -4,25 +4,31 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('quality audit navigation uses a compact contextual rail instead of a sidebar tree', () => {
+test('quality audit uses one contextual rail; Form Logbook and Hasil Capaian remain stacked, not separate tabs', () => {
   const home = read('components/HomeClient.tsx')
-  // The contextual rail reuses the authorized module group definitions.
-  assert.match(home, /quality:role==='DEWAN_PENGAWAS'[\s\S]{0,260}:\s*\[\s*\{id:'audit-indicators',label:'Form Logbook'\},\s*\{id:'result-indicators',label:'Hasil Capaian',children:\[\{id:'result-unit',label:'Unit Keseluruhan'\},\{id:'result-category',label:'Kategori Indikator'\}\]\},\s*\{id:'profile-indicators',label:'Profil Indikator'\}/)
-  assert.doesNotMatch(home, /id:'logbook-indicators'/)
+  const groupsStart = home.indexOf('const sidebarChildGroups')
+  const groupsEnd = home.indexOf('const currentContainer', groupsStart)
+  const groups = home.slice(groupsStart, groupsEnd)
+  assert.match(groups, /quality:role==='DEWAN_PENGAWAS' \? \[\] : \[/)
+  assert.match(groups, /\{id:'audit-indicators',label:'Form Logbook'\}/)
+  assert.match(groups, /\{id:'profile-indicators',label:'Profil Indikator'\}/)
+  assert.match(groups, /label:'Monitoring Pelaporan dan Kinerja PIC'/)
+  assert.match(groups, /label:'Pusat Rekonsiliasi'/)
+  assert.doesNotMatch(groups, /id:'result-indicators'|label:'Hasil Capaian'/)
   assert.ok(home.includes('UnifiedModuleNavigation'))
+  assert.match(home, /\{activeNavGroups.length>0&&<UnifiedModuleNavigation/)
   assert.match(home, /activeNestedNavGroup/)
-  for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
-  assert.doesNotMatch(home, /aria-label="Tampilan audit mutu"/)
-  assert.doesNotMatch(home, />Form Logbook<\/button>/)
+  assert.doesNotMatch(home, /sidebarModuleChildren|sidebarModuleChild/)
   assert.ok(home.includes("qualityReconciliationOpen?'quality-reconciliation':qualityMonitorOpen?'quality-monitoring'"))
   assert.ok(home.includes("qualityOpen?'audit-indicators':'quality-overview'"))
   assert.match(home, /if\(moduleId==='quality'&&qualityReconciliationOpen\)return 'quality-reconciliation'/)
   assert.match(home, /if\(moduleId==='quality'&&qualityMonitorOpen\)return qualityMonitorTab==='pic'\?'pic-performance':'quality-reporting'/)
   assert.match(home, /qualityMonitorTabs/)
   assert.match(home, /onAskNara=\{openNaraWithContext\}/)
-  const staffStart = home.indexOf('staff:[')
-  const staffEnd = home.indexOf('\\n   ],', staffStart)
-  assert.ok(home.slice(staffStart, staffEnd).includes('oppe-fppe'))
+  const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
+  assert.match(qualityBranch, /qualityLogbookResultsStack/)
+  assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?showContainerTabs=\{false\}/)
+  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
 })
 
 test('every non-validator unit logbook exposes a guarded add-note action', () => {
