@@ -87,7 +87,7 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
     { id:'annual_program', label:'Program Kerja Tahunan', moduleId:'analytics', childId:'programs' },
     { id:'quality_indicators', label:'Indikator Mutu', moduleId:'quality', childId:'quality-overview' },
     { id:'patient_safety', label:'Keselamatan Pasien', moduleId:'safety', childId:'overview' },
-    { id:'risk_management', label:'Manajemen Risiko', moduleId:'risk', childId:'overview' },
+    { id:'risk_management', label:'Manajemen Risiko', moduleId:'risk', childId:'register' },
   ]},
   { id:'hospital_management', label:'Manajemen Rumah Sakit', icon:'staff', items:[
     { id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm' },
