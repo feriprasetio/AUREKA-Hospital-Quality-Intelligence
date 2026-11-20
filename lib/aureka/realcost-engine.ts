@@ -186,6 +186,7 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
 
     let componentTotal = 0
     let componentCount = 0
+    let billingRowMismatch = false
     for (const item of REALCOST_COST_COMPONENTS) {
       const amount = finite(row.cost_components[item.key])
       componentTotal += amount
@@ -194,9 +195,10 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
       const billingAmount = row.billing_group[item.billingKey]
       const hasBillingGroup = Object.keys(row.billing_group ?? {}).length > 0
       if (hasBillingGroup && (billingAmount == null || Math.abs(finite(billingAmount) - amount) > 1)) {
-        billingMismatchCount++
+        billingRowMismatch = true
       }
     }
+    if (billingRowMismatch) billingMismatchCount++
     if (componentCount && Math.abs(componentTotal - tarifRs) > 1) {
       componentMismatchCount++
       componentMismatchAmount += componentTotal - tarifRs
