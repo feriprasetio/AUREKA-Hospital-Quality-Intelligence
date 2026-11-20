@@ -102,7 +102,8 @@ test('Manajemen Rumah Sakit contextual navigation separates workforce, professio
   assert.match(app, /\{id:'oppe-fppe',label:'OPPE'\}/)
   assert.match(app, /\{id:'fppe',label:'FPPE'\}/)
   assert.match(app, /quality-development.*children:\[\{id:'spm'/)
-  assert.match(app, /id:'sop',label:'Standar Prosedur Operasional',disabled:true/)
+  assert.match(app, /id:'sop',label:'Standar Prosedur Operasional'/)
+  assert.doesNotMatch(app, /id:'sop',label:'Standar Prosedur Operasional',disabled:true/)
   assert.match(registry, /id:'quality_development', label:'Pengembangan dan Pengendalian Mutu'/)
 })
 

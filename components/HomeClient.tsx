@@ -457,7 +457,8 @@ export default function HomeClient(){
   return false
  }
  const activeDomainId=useMemo(()=>{
-  if(active==='quality'&&(spmOpen||spoOpen))return 'hospital_management'
+  if(active==='quality'&&spmOpen)return 'hospital_management'
+  if(active==='quality'&&spoOpen)return 'hospital_management'
   const match=visibleSidebarDomains.find(domain=>domain.items.some(item=>sidebarDestinationActive(item)))
   return match?.id||(active==='home'?'command_center':'')
  },[visibleSidebarDomains,active,patientsRegistryTab,clinicalPathwayOpen,qualityOpen,qualityProfileOpen,qualityMonitorOpen,qualityReconciliationOpen,qualityResultsView,spmOpen,spoOpen,safetyTab,riskTab,secretariatSection,settingsSection,programTab,staffTab,analyticsDirectoryTab])
@@ -681,7 +682,8 @@ export default function HomeClient(){
   : (sidebarChildGroups[activeNavModuleId]||[])
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
- const activeRailTitle=activeNavModuleId==='quality'&&spoOpen?'Standar Prosedur Operasional':activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleLabel
+ const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleLabel
+ const displayedRailTitle=activeNavModuleId==='quality'&&spoOpen?'Standar Prosedur Operasional':activeRailTitle
  // Grup modul tetap menjadi navigasi utama; sub-tab berada pada rail horizontal yang sama.
  const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))
  const activeNavPrimaryId=activeNestedNavGroup?.id||(activeNavModuleId==='safety'&&safetyTab==='overview'?activeNavGroups[0]?.id:activeNavSelectedId)
@@ -1244,7 +1246,7 @@ export default function HomeClient(){
   {activeNavGroups.length>0&&<UnifiedModuleNavigation
    mobileWorkspaceTabs={MOBILE_WORKSPACE_TABS}
    ariaLabel={'Navigasi '+activeNavModuleLabel}
-   title={activeRailTitle}
+   title={displayedRailTitle}
    items={activeRailItemsHinted}
    activeId={activeNavPrimaryId}
    secondaryActiveId={activeNavSecondaryId}
