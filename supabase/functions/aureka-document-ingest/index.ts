@@ -192,23 +192,28 @@ Deno.serve(async (req: Request) => {
     if (dError || !document) return reply(404, { error: "Metadata dokumen tidak ditemukan atau akses ditolak." }, origin);
     const { data: j, error: jError } = await jobs.select("*").eq("document_version_id", versionId).single();
     if (jError || !j) return reply(404, { error: "Antrean knowledge ingestion tidak ditemukan." }, origin);
-    job = j;
-    if (job.status === "completed" && version.analysis_status === "completed") {
+    const jobCandidate = j;
+    if (jobCandidate.status === "completed" && version.analysis_status === "completed") {
       return reply(200, { success: true, already_processed: true, document_version_id: versionId }, origin);
     }
-    if (Number(job.attempts || 0) >= Number(job.max_attempts || 5)) {
-      return reply(409, { error: "Batas percobaan pemrosesan dokumen telah tercapai." }, origin);
+    if (jobCandidate.status === "cancelled") {
+      return reply(409, { error: "Antrean pemrosesan dokumen telah dibatalkan." }, origin);
     }
 
-    const attempt = Number(job.attempts || 0) + 1;
-    const now = new Date().toISOString();
-    const { error: lockError } = await jobs.update({
-      status: "processing", attempts: attempt, locked_at: now, locked_by: auth.user.id, last_error: null, updated_at: now,
-    }).eq("id", job.id);
-    if (lockError) throw new Error("Antrean gagal dikunci untuk pemrosesan.");
-    const { error: versionLockError } = await versions.update({ analysis_status: "processing", analysis_error: null })
-      .eq("id", versionId);
-    if (versionLockError) throw new Error("Status versi dokumen gagal diperbarui.");
+    // Atomic claim prevents two concurrent requests from processing the same document version.
+    const { data: claim, error: claimError } = await db.schema("aureka_system").rpc(
+      "claim_document_ingestion_job",
+      { p_document_version_id: versionId },
+    );
+    if (claimError) throw new Error("Antrean tidak dapat diklaim secara atomik.");
+    if (!claim?.claimed) {
+      return reply(409, { error: "Dokumen sedang diproses worker lain, belum masuk waktu retry, atau batas percobaan telah tercapai." }, origin);
+    }
+    job = {
+      id: claim.job_id,
+      attempts: Number(claim.attempts || 1),
+      max_attempts: Number(claim.max_attempts || 5),
+    };
 
     const bucket = String(version.bucket_id || "aureka-documents");
     const path = String(version.object_path || "");
@@ -309,7 +314,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Pemrosesan dokumen gagal.";
     if (job?.id) {
-      const attempts = Number(job.attempts || 0) + 1;
+      const attempts = Number(job.attempts || 1);
       const delayMinutes = Math.min(60, Math.max(1, 2 ** Math.min(attempts, 6)));
       await jobs.update({
         status: "failed", locked_at: null, locked_by: null, last_error: message.slice(0, 1000),
