@@ -63,3 +63,13 @@ test('OPPE / FPPE is nested under Sumber Daya Manusia and uses the canonical rou
   assert.ok(home.includes("staff:'#sumber-daya-manusia'"))
   assert.ok(home.includes("analytics:'#program'"))
 })
+
+
+test('Staff Directory opens with data-backed Visual Intelligence and a deliberate list action', () => {
+  const source = read('components/StaffDirectoryWorkspace.tsx')
+  assert.match(source, /const \[listOpen, setListOpen\] = useState\(false\)/)
+  assert.match(source, /aria-label="Komposisi direktori tenaga kerja"/)
+  assert.match(source, /Lihat Daftar Tenaga Kerja/)
+  assert.match(source, /hidden|listOpen/)
+  assert.match(source, /from\('staff_directory'\)/)
+})

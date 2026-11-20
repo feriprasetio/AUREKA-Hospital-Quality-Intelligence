@@ -13,6 +13,7 @@ test('Annual Program owns priority areas while proposals are consolidated in Pro
   assert.match(workspace, /Area Prioritas/)
   assert.match(workspace, /aureka_gov_save_priority_area/)
   assert.doesNotMatch(workspace, /Usulan Indikator Baru|IndicatorProposalWorkspace|AnnualQualitySettings/)
+  assert.doesNotMatch(workspace, /Pengajuan dan telaah indikator mutu baru/)
   assert.match(qualitySettings, /IndicatorProposalWorkspace/)
   assert.match(qualitySettings, /Visual Intelligence Profil Indikator/)
   assert.match(qualitySettings, /Lihat Usulan Indikator Baru/)

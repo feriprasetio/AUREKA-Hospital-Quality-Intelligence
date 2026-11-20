@@ -65,7 +65,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
   return <section className="rmPanel govWorkspace annualProgramWorkspace" aria-label="Program kerja tahunan">
     <div className="rmSectionHead">
       <div><span className="rmEyebrow">Program · Perencanaan Mutu</span><h3>{screen==='home'?'Program Kerja Tahunan':'Area Prioritas'}</h3>
-        <p>{screen==='home'?'Pusat pengelolaan prioritas peningkatan mutu dan pengembangan indikator rumah sakit.':screen==='priorities'?'Tetapkan masalah prioritas, sasaran hasil, pemilik, dan tenggat untuk tahun berjalan.':'Pengajuan dan telaah indikator mutu baru sebelum diaktifkan ke katalog indikator.'}</p>
+        <p>{screen==='home'?'Visual Intelligence status Area Prioritas Rumah Sakit berdasarkan data yang tersimpan.':'Tetapkan masalah prioritas, sasaran hasil, pemilik, dan tenggat untuk tahun berjalan.'}</p>
       </div>
       <div className="govHeadTools">
         {screen!=='home'&&<button type="button" className="rmButton" onClick={()=>setScreen('home')}>← Kembali ke Program</button>}

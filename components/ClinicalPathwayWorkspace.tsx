@@ -914,9 +914,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <LiquidGlass className="cpKpi"><span>Komponen checklist</span><strong>{templates.filter((template) => template.status === 'published').reduce((total, template) => total + template.items.length, 0).toLocaleString('id-ID')}</strong><small>Item dari format aktif</small></LiquidGlass>
       </div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Daftar diagnosis dan format Clinical Pathway</h4><p>Gunakan master yang telah disetujui. Setelah memilih diagnosis, AUREKA menampilkan rekam audit yang sudah tersimpan dan tindakan audit baru.</p></div></div>
+        <div className="cpSectionHead"><div><h4>Visual Intelligence Clinical Pathway</h4><p>Gunakan master yang telah disetujui. Setelah memilih diagnosis, AUREKA menampilkan rekam audit yang sudah tersimpan dan tindakan audit baru.</p></div></div>
         <div className="cpActions">
-          <button type="button" className="cpBtn primary" disabled={!masterReady || templates.filter((template) => template.status === 'published').length === 0} onClick={() => setScreen('library')}>Lihat Daftar Pasien dengan Clinical Pathway</button>
+          <button type="button" className="cpBtn primary" disabled={!masterReady || templates.filter((template) => template.status === 'published').length === 0} onClick={() => setScreen('library')}>Lihat Pustaka Diagnosis & Format Clinical Pathway</button>
           {isAdmin && <button type="button" className="cpBtn" onClick={() => { setScreen('library'); beginNewBuilder() }}>Kelola Master Clinical Pathway</button>}
           <button type="button" className="cpBtn" disabled={loading || saving} onClick={() => void loadTemplates()}>Muat ulang master</button>
         </div>

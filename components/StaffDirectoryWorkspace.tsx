@@ -91,6 +91,7 @@ export default function StaffDirectoryWorkspace() {
   const [draft, setDraft] = useState<StaffDraft | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [shown, setShown] = useState(120)
+  const [listOpen, setListOpen] = useState(false)
 
   const load = useCallback(async () => {
     setError('')
@@ -386,6 +387,13 @@ export default function StaffDirectoryWorkspace() {
             {loading ? <p className="sdDesc">Memuat komposisi…</p> : professionDistribution.length ? <div className="sdBlueprintBars">{professionDistribution.map((item) => <div className="sdBlueprintBar" key={item.label}><span>{item.label}</span><div><i style={{width:(item.count/professionMax*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="sdDesc">Belum ada data profesi.</p>}
           </div>
         </section>
+        {!listOpen ? <section className="sdBlueprintActions" aria-label="Tindakan direktori tenaga kerja" style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center',marginTop:14}}>
+          <button type="button" className="sdBtn primary" onClick={()=>setListOpen(true)}>Lihat Daftar Tenaga Kerja</button>
+          <span className="sdDesc">Daftar rinci, status verifikasi, pencarian, dan penyuntingan metadata dibuka setelah tombol ini dipilih.</span>
+        </section> : <>
+          <div className="sdActions" style={{marginTop:14}}>
+            <button type="button" className="sdBtn" onClick={()=>setListOpen(false)}>← Kembali ke Visual Intelligence</button>
+          </div>
         <div className="sdFilters">
           <select aria-label="Filter kelayakan penugasan" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">Semua kelayakan</option><option value="available">Siap dipetakan</option><option value="needs_review">Perlu verifikasi</option><option value="inactive">Nonaktif</option>
@@ -424,6 +432,7 @@ export default function StaffDirectoryWorkspace() {
             </table>
           </WorkspaceTableViewport>
         )}
+        </>}
       </div>
 
       {editingStaff && draft && (

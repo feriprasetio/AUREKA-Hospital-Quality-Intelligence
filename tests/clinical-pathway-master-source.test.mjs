@@ -28,3 +28,12 @@ test('newly saved CP masters are reflected only in the Supabase-backed template 
   assert.doesNotMatch(source, /setCatalog|\[catalog, setCatalog\]/)
   assert.match(source, /setTemplates\(\(old\)=>\[\.\.\.old\.filter\(/)
 })
+
+
+test('Clinical Pathway overview labels the action as the actual diagnosis library until patient cohort criteria are integrated', () => {
+  const source = read('components/ClinicalPathwayWorkspace.tsx')
+  assert.match(source, /Visual Intelligence Clinical Pathway/)
+  assert.match(source, /Lihat Pustaka Diagnosis &amp; Format Clinical Pathway|Lihat Pustaka Diagnosis & Format Clinical Pathway/)
+  assert.match(source, /Integrasi kandidat pasien otomatis berdasarkan diagnosis dan kriteria inklusi klinis belum diaktifkan/)
+  assert.doesNotMatch(source, /Lihat Daftar Pasien dengan Clinical Pathway/)
+})
