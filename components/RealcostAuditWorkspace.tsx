@@ -147,7 +147,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
       if (permissions[0].data !== true) {
         setSummary(null)
         setLatestImport(null)
-        setAccessError('Role pengguna belum memiliki hak melihat analisis agregat Audit Realcost.')
+        setAccessError('Hak analisis agregat belum tersedia. Pastikan migrasi Audit Realcost telah diterapkan, lalu verifikasi role pengguna pada pengaturan hak akses AUREKA.')
         return
       }
       setCanReadDetail(permissions[1].data === true)
