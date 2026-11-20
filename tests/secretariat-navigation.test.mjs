@@ -11,7 +11,7 @@ test('Sekretariat is owned by PMKP, visible in the PMKP category, and discloses 
   assert.ok(registry.includes("owner:'Komite Peningkatan Mutu dan Keselamatan Pasien'"))
   assert.ok(registry.includes("routeHash:'#sekretariat'"))
   assert.ok(registry.includes('requiredRoles:GOVERNANCE_ROLES'))
-  assert.ok(registry.includes("{ id:'secretariat', label:'Sekretariat Administrasi Kegiatan', moduleId:'secretariat', childId:'invitations', status:'planned'"))
+  assert.ok(registry.includes("{ id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'planned'"))
   assert.ok(home.includes("disabled={item.status==='planned'}"))
   assert.ok(home.includes("if(item.status==='planned')return"))
   assert.ok(home.includes("'sekretariat':'secretariat'"))
@@ -19,20 +19,16 @@ test('Sekretariat is owned by PMKP, visible in the PMKP category, and discloses 
   assert.ok(workspace.includes('Pencatatan Sekretariat belum diaktifkan'))
 })
 
-test('Sekretariat exposes exactly the five V3 contextual work areas', () => {
+test('Sekretariat follows Administrasi Kegiatan with Register Kegiatan and Kirim Undangan subtabs', () => {
   const home = read('components/HomeClient.tsx')
-  const start = home.indexOf('secretariat:[')
-  const end = home.indexOf('],', start)
+  const start = home.indexOf('secretariat:[', home.indexOf('const sidebarChildGroups'))
+  const end = home.indexOf('settings:[', start)
   assert.ok(start >= 0 && end > start)
-  const groups = home.slice(start, end)
-  for (const item of [
-    "{id:'invitations',label:'Undangan'}",
-    "{id:'materials',label:'Materi'}",
-    "{id:'attendance',label:'Absensi'}",
-    "{id:'minutes',label:'Notulensi'}",
-    "{id:'documentation',label:'Dokumentasi Foto'}",
-  ]) assert.ok(groups.includes(item), item)
-  assert.equal(groups.split("{id:'").length - 1, 5)
+  const group = home.slice(start, end)
+  assert.ok(group.includes("{id:'administration',label:'Administrasi Kegiatan',children:"))
+  assert.ok(group.includes("{id:'register',label:'Register Kegiatan'}"))
+  assert.ok(group.includes("{id:'invitations',label:'Kirim Undangan'}"))
+  assert.equal(group.split("{id:'").length - 1, 3)
 })
 
 test('Sekretariat contextual selection and deep links preserve one canonical module state', () => {
@@ -40,7 +36,7 @@ test('Sekretariat contextual selection and deep links preserve one canonical mod
   assert.ok(home.includes("if(moduleId==='secretariat')"))
   assert.ok(home.includes('setSecretariatSection(childId as SecretariatSection)'))
   assert.ok(home.includes("if(next==='secretariat')"))
-  assert.ok(home.includes("setSecretariatSection(sectionMap[section||'']||'invitations')"))
+  assert.ok(home.includes("setSecretariatSection(sectionMap[section||'']||'register')"))
   assert.ok(home.includes("secretariat:'#sekretariat'"))
   assert.ok(home.includes("active==='secretariat'?secretariatSection"))
   assert.ok(home.includes("active==='secretariat'?<SecretariatWorkspace section={secretariatSection}/>"))
@@ -48,7 +44,7 @@ test('Sekretariat contextual selection and deep links preserve one canonical mod
 
 test('Secretariat workspace is transparent about backend readiness and contains no synthetic records', () => {
   const workspace = read('components/governance/SecretariatWorkspace.tsx')
-  for (const label of ['Undangan', 'Materi', 'Absensi', 'Notulensi', 'Dokumentasi Foto']) assert.ok(workspace.includes(label), label)
+  for (const label of ['Register Kegiatan', 'Kirim Undangan', 'Undangan', 'Materi', 'Absensi Digital', 'Notulensi', 'Gambar']) assert.ok(workspace.includes(label), label)
   assert.ok(workspace.includes('Meeting ID'))
   assert.ok(workspace.includes('Pencatatan Sekretariat belum diaktifkan'))
   assert.ok(workspace.includes('Tidak ada data contoh atau catatan rapat fiktif'))
