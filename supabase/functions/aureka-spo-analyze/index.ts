@@ -15,7 +15,7 @@ const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.doc
 const MAX_SIZE = 15 * 1024 * 1024;
 
 function response(status:number, body:unknown, origin:string) {
-  const headers = {...cors, "Content-Type":"application/json"};
+  const headers: Record<string,string> = {...cors, "Content-Type":"application/json"};
   if (origin === "http://localhost:3000") headers["Access-Control-Allow-Origin"] = origin;
   return new Response(JSON.stringify(body), {status,headers});
 }

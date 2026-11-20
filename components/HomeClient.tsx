@@ -312,7 +312,7 @@ export default function HomeClient(){
     else if(section==='audit-klinis'||section==='clinical-audit'||section==='audit-klinis-dan-kematian'){setClinicalAuditType('clinical');setClinicalPathwayOpen(false);setQualityInitialContainer('Audit Klinis dan Kematian');setQualityOpen(true)}
     else{setClinicalPathwayOpen(true);setQualityInitialContainer('Audit Clinical Pathway');setQualityOpen(false)}
    }
-   if(next==='quality'){setSpmOpen(false);setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);if(role==='DEWAN_PENGAWAS'&&permissionFlags.readQualityAggregate){setQualityResultsView('indicators');setQualityResultsGroup('unit');setQualityOpen(false)}else{setQualityResultsView(null);setQualityOpen(false)}}
+   if(next==='quality'){setSpmOpen(false);setSpoOpen(false);setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);if(role==='DEWAN_PENGAWAS'&&permissionFlags.readQualityAggregate){setQualityResultsView('indicators');setQualityResultsGroup('unit');setQualityOpen(false)}else{setQualityResultsView(null);setQualityOpen(false)}}
       if(next==='settings')setSettingsSection((section==='audit-log'?'audit':['profile','security','users','units','appearance','system','permissions','mydata'].includes(section)?section:'profile') as SettingsSection)
    if(next==='patients'){
     if(['statistik','stats'].includes(section||'')){setPatientsRegistryTab('analysis');setActive('patients');return}
