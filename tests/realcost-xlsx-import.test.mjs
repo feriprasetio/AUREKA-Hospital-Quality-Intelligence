@@ -66,7 +66,11 @@ test('workbook import separates patient identities and never deduplicates repeat
   assert.equal('NAMA_PASIEN' in (result.episodes[0].source_payload ?? {}), false)
   assert.equal('MRN' in (result.episodes[0].source_payload ?? {}), false)
   assert.equal('SEP' in (result.episodes[0].source_payload ?? {}), false)
+  assert.equal('C1' in (result.episodes[0].source_payload ?? {}), false)
   assert.equal('C2' in (result.episodes[0].source_payload ?? {}), false)
+  assert.equal('C3' in (result.episodes[0].source_payload ?? {}), false)
+  assert.equal('C4' in (result.episodes[0].source_payload ?? {}), false)
+  assert.equal('BIRTH_DATE' in (result.episodes[0].source_payload ?? {}), false)
 })
 
 test('duplicate episode SEP is rejected rather than silently counted twice', async () => {
