@@ -447,10 +447,7 @@ export default function HomeClient(){
   if(item.moduleId==='insights')return active==='insights'
   if(item.moduleId==='analytics')return child==='recommendations'?programTab==='recommendations':programTab==='programs'
   if(item.moduleId==='staff')return active==='staff'
-  if(item.moduleId==='settings'){
-   if(active!=='settings')return false
-   return child==='profile'?['profile','users','units','permissions'].includes(settingsSection):['security','appearance','system','mydata','audit'].includes(settingsSection)
-  }
+  
   return false
  }
  const activeDomainId=useMemo(()=>{
