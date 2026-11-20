@@ -13,7 +13,7 @@ test('Secretariat renders the requested register columns and a popup for the fiv
   has(workspace,'Buka Isi Dokumen')
   has(workspace,'Unggah banyak berkas sekaligus')
   has(workspace,'multiple')
-  has(workspace,'Proses')
+  has(workspace,'Unggah dan Baca')
 })
 
 test('Register uses the active AUREKA room, role and identity scope', async () => {
@@ -32,7 +32,7 @@ test('Secretariat parser reads PDF, DOCX, XLSX, CSV, TXT and image metadata with
   const parser = await read('supabase/functions/aureka-secretariat-parse/index.ts')
   for (const marker of ['pdfjs.getDocument','JSZip.loadAsync','xl/workbook.xml','parseCsv','imageInfo','extracted_text','parsed_metadata']) has(parser,marker)
   assert.doesNotMatch(parser,/GEMINI_API_KEY|generativelanguage\\.googleapis\\.com|api\\.openai\\.com|openrouter/i)
-  has(parser,'Tidak ditemukan lapisan teks digital')
+  has(parser,'PDF tidak memiliki lapisan teks digital yang terbaca')
   has(parser,'does not call any generative-AI API')
 })
 
