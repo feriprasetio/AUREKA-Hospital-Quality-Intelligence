@@ -5,7 +5,7 @@ export type AurekaRole =
   | 'DEWAN_PENGAWAS' | 'PIC' | 'VALIDATOR'
 
 export type ModuleStatus = 'available' | 'beta' | 'maintenance' | 'planned'
-export type AurekaCategoryId = 'command_center' | 'patient_registry' | 'clinical_performance' | 'quality_patient_safety' | 'hospital_management' | 'director_supervisory_board' | 'settings'
+export type AurekaCategoryId = 'command_center' | 'patient_registry' | 'clinical_performance' | 'quality_patient_safety' | 'hospital_management' | 'education_training' | 'director_supervisory_board' | 'settings'
 export type ModuleVisibility = 'all-authenticated' | 'management-only'
 export type AurekaModule = {
   id: 'home' | 'nara' | 'patients' | 'quality' | 'clinical' | 'safety' | 'risk' | 'insights' | 'analytics' | 'secretariat' | 'staff' | 'settings'
@@ -33,7 +33,7 @@ export const AUREKA_MODULE_REGISTRY = [
   { id:'clinical', label:'Peningkatan Kinerja Klinis', group:'clinical_performance', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#peningkatan-kinerja-klinis', owner:'Komite PMKP / Komite Medik', lastReviewed:'2026-11-12', description:'Audit Clinical Pathway serta Audit Klinis dan Kematian berbasis episode.' },
   { id:'safety', label:'Keselamatan Pasien', group:'quality_patient_safety', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC'], routeHash:'#keselamatan-pasien', owner:'Komite PMKP / Tim Keselamatan Pasien', lastReviewed:'2026-11-12', description:'Register insiden, investigasi/RCA, dan survei budaya keselamatan bernama.' },
   { id:'risk', label:'Manajemen Risiko', group:'quality_patient_safety', status:'beta', visibility:'all-authenticated', requiredRoles:GOVERNANCE_ROLES, routeHash:'#manajemen-risiko', owner:'Komite PMKP / Manajemen Risiko Rumah Sakit', lastReviewed:'2026-11-12', description:'Risk Register, konektor, profil risiko, FMEA, RTP, dan evaluasi efektivitas kontrol.' },
-  { id:'insights', label:'Analitik & Infografis', group:'command_center', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'], routeHash:'#analitik', owner:'Komite PMKP / Manajemen', lastReviewed:'2026-11-18', description:'Eksplorasi agregat lintas domain, tren, distribusi, perbandingan, laporan dan presentasi; baca-saja.' },
+  { id:'insights', label:'Visual Intelligence', group:'command_center', status:'available', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'], routeHash:'#beranda', owner:'Komite PMKP / Manajemen', lastReviewed:'2026-11-21', description:'Analitik dan infografis lintas domain yang terintegrasi pada Dashboard; bukan tujuan navigasi mandiri.' },
   { id:'analytics', label:'Program & RTL', group:'quality_patient_safety', status:'beta', visibility:'all-authenticated', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'], routeHash:'#program', owner:'Komite PMKP / Manajemen', lastReviewed:'2026-11-18', description:'Pemilik area prioritas, usulan indikator, rekomendasi, rencana tindak lanjut, progres, dan evaluasi.' },
   { id:'secretariat', label:'Sekretariat', group:'quality_patient_safety', status:'planned', visibility:'all-authenticated', requiredRoles:GOVERNANCE_ROLES, routeHash:'#sekretariat', owner:'Komite Peningkatan Mutu dan Keselamatan Pasien', lastReviewed:'2026-11-19', description:'Administrasi rapat: undangan, materi, absensi, notulensi, dokumentasi foto, dan tindak lanjut yang saling terhubung melalui satu Meeting ID. Penyimpanan backend belum diaktifkan.' },
   { id:'staff', label:'Sumber Daya Manusia', group:'hospital_management', status:'beta', visibility:'all-authenticated', requiredRoles:CLINICAL_ACCESS_ROLES, routeHash:'#sumber-daya-manusia', owner:'Super Admin / Komite PMKP', lastReviewed:'2026-11-12', description:'Master tenaga kerja, tim dan penugasan, OPPE, FPPE, serta riwayat jabatan.' },
@@ -68,10 +68,10 @@ export type AurekaNavigationGroup = {
  * A module may route to an existing workspace section through moduleId + childId.
  */
 export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
+  // Susunan kategori dan modul mengikuti Aureka Navigasi.docx. Tab dan subtab
+  // ditangani oleh workspace masing-masing, bukan dijadikan pohon ketiga di sidebar.
   { id:'command_center', label:'Dashboard', icon:'home', items:[
     { id:'dashboard', label:'Dashboard', moduleId:'home', childId:'overview' },
-    { id:'nara_ai', label:'NARA AI', moduleId:'nara' },
-    { id:'cross_domain_analytics', label:'Analitik & Infografis', moduleId:'insights' },
   ]},
   { id:'patient_registry', label:'Register Pasien', icon:'patients', items:[
     { id:'patient_directory', label:'Direktori Pasien', moduleId:'patients', childId:'overview' },
@@ -83,7 +83,7 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
     { id:'clinical_audit_death', label:'Audit Klinis dan Kematian', moduleId:'clinical', childId:'audit-clinical' },
   ]},
   { id:'quality_patient_safety', label:'Peningkatan Mutu dan Keselamatan Pasien', icon:'quality', items:[
-    { id:'secretariat', label:'Sekretariat Administrasi Kegiatan', moduleId:'secretariat', childId:'invitations', status:'planned', note:'Tampilan konseptual tersedia; register dan penyimpanan UMANG belum terhubung ke backend.' },
+    { id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'invitations', status:'planned', note:'Administrasi kegiatan, register kegiatan, dan pengiriman undangan belum terhubung ke backend.' },
     { id:'annual_program', label:'Program Kerja Tahunan', moduleId:'analytics', childId:'programs' },
     { id:'quality_indicators', label:'Indikator Mutu', moduleId:'quality', childId:'quality-overview' },
     { id:'patient_safety', label:'Keselamatan Pasien', moduleId:'safety', childId:'overview' },
@@ -92,10 +92,13 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
   { id:'hospital_management', label:'Manajemen Rumah Sakit', icon:'staff', items:[
     { id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm' },
     { id:'human_resources', label:'Sumber Daya Manusia', moduleId:'staff', childId:'directory' },
-    { id:'education_training', label:'Pendidikan dan Pelatihan', moduleId:'staff', childId:'training', status:'planned', note:'Register IHT, orientasi mahasiswa, integrasi sumber Tim Koordinasi Pendidikan dan penerbitan sertifikat masih menunggu prasyarat.' },
+  ]},
+  { id:'education_training', label:'Pendidikan dan Pelatihan', icon:'education', items:[
+    { id:'in_house_training', label:'In House Training', moduleId:'staff', childId:'training', status:'planned', note:'Register IHT, dokumentasi pelatihan, dan penerbitan sertifikat PDF belum memiliki workspace aktif.' },
+    { id:'student_orientation', label:'Orientasi Mahasiswa', moduleId:'staff', childId:'student-orientation', status:'planned', note:'Integrasi daftar mahasiswa dari Tim Koordinasi Pendidikan dan penerbitan sertifikat PDF belum tersedia.' },
   ]},
   { id:'director_supervisory_board', label:'Direktur dan Dewan Pengawas', icon:'analytics', items:[
-    { id:'recommendations', label:'Rekomendasi dan Rencana Tindak Lanjut (RTL)', moduleId:'analytics', childId:'recommendations' },
+    { id:'recommendations', label:'Rekomendasi dan Rencana Tindak Lanjut', moduleId:'analytics', childId:'recommendations' },
   ]},
   { id:'settings', label:'Pengaturan', icon:'settings', items:[
     { id:'account_preferences', label:'Preferensi Akun', moduleId:'settings', childId:'profile' },
