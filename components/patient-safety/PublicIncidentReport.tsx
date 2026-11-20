@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 const TYPES = ['Kejadian Sentinel', 'Kejadian Tidak Diharapkan (KTD)', 'Kejadian Nyaris Cedera (KNC)', 'Kejadian Tidak Cedera (KTC)', 'Kejadian Potensial Cedera Signifikan (KPCs)']
 const TYPE_HINT: Record<string, string> = {
@@ -17,21 +18,37 @@ const today = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10)
 export default function PublicIncidentReport() {
   const [token, setToken] = useState('')
   const [room, setRoom] = useState<string | null>(null)
-  const [state, setState] = useState<'loading' | 'invalid' | 'form' | 'sending' | 'done'>('loading')
+  const [state, setState] = useState<'loading' | 'invalid' | 'unavailable' | 'form' | 'sending' | 'done'>('loading')
   const [err, setErr] = useState('')
   const [ref, setRef] = useState('')
   const [f, setF] = useState<Record<string, string>>({ A2: today() })
   const set = (k: string, v: string) => setF((c) => ({ ...c, [k]: v }))
 
   useEffect(() => {
+    let cancelled = false
     document.documentElement.removeAttribute('data-ak-booting')
     const t = new URLSearchParams(window.location.search).get('t') || ''
     setToken(t)
     if (!t) { setState('invalid'); return }
-    void aurekaSupabase.rpc('aureka_public_report_link_info', { p_token: t }).then(({ data, error }) => {
-      if (error || !data) { setState('invalid'); return }
-      setRoom(String((data as any).room_name || 'Ruangan')); setState('form')
-    })
+    void (async () => {
+      try {
+        const { data, error } = await aurekaSupabase.rpc('aureka_public_report_link_info', { p_token: t })
+        if (cancelled) return
+        if (error) {
+          setErr(toUserFacingError(error, { fallback: 'Tautan pelaporan belum dapat diperiksa. Periksa koneksi, lalu muat ulang halaman.' }))
+          setState('unavailable')
+          return
+        }
+        if (!data) { setState('invalid'); return }
+        setRoom(String((data as any).room_name || 'Ruangan'))
+        setState('form')
+      } catch (error) {
+        if (cancelled) return
+        setErr(toUserFacingError(error, { fallback: 'Tautan pelaporan belum dapat diperiksa. Periksa koneksi, lalu muat ulang halaman.' }))
+        setState('unavailable')
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   const submit = async (e: React.FormEvent) => {
@@ -43,9 +60,19 @@ export default function PublicIncidentReport() {
     setState('sending')
     const payload: Record<string, string> = {}
     for (const k of ['A1', 'A2', 'A3', 'A4', 'A7', 'A8', 'B1', 'D3', 'reporter_name', 'reporter_contact']) if ((f[k] || '').trim()) payload[k] = f[k].trim()
-    const { data, error } = await aurekaSupabase.rpc('aureka_public_submit_incident', { p_token: token, p_payload: payload })
-    if (error) { setErr(error.message || 'Laporan belum terkirim. Coba lagi.'); setState('form'); return }
-    setRef(String((data as any)?.reference || '')); setState('done')
+    try {
+      const { data, error } = await aurekaSupabase.rpc('aureka_public_submit_incident', { p_token: token, p_payload: payload })
+      if (error) {
+        setErr(toUserFacingError(error, { fallback: 'Laporan belum terkirim. Periksa koneksi, lalu coba lagi.' }))
+        setState('form')
+        return
+      }
+      setRef(String((data as any)?.reference || ''))
+      setState('done')
+    } catch (error) {
+      setErr(toUserFacingError(error, { fallback: 'Laporan belum terkirim. Periksa koneksi, lalu coba lagi.' }))
+      setState('form')
+    }
   }
 
   return <main className="plRoot">
@@ -53,6 +80,7 @@ export default function PublicIncidentReport() {
       <header className="plHead"><span className="plBrand">AUREKA · Keselamatan Pasien</span><h1>Lapor insiden</h1>{room && <p>Ruangan: <b>{room}</b></p>}</header>
       {state === 'loading' && <p className="plMuted">Memeriksa tautan…</p>}
       {state === 'invalid' && <div className="plNote warn"><b>Tautan tidak berlaku.</b> Pindai ulang kode QR di ruangan, atau laporkan lewat aplikasi AUREKA / Tim Keselamatan Pasien.</div>}
+      {state === 'unavailable' && <div className="plNote warn" role="alert">{err || 'Tautan pelaporan belum dapat diperiksa. Periksa koneksi, lalu muat ulang halaman.'}</div>}
       {state === 'done' && <div className="plDone"><div className="plCheck" aria-hidden="true">✓</div><h2>Terima kasih, laporan terkirim</h2><p>Nomor referensi: <b>{ref}</b></p><p className="plMuted">Tim Keselamatan Pasien akan menindaklanjuti. Melapor membantu mencegah kejadian berulang, bukan untuk mencari siapa yang salah.</p><button type="button" className="plBtn ghost" onClick={() => { setF({ A2: today() }); setState('form') }}>Buat laporan lain</button></div>}
       {(state === 'form' || state === 'sending') && <form onSubmit={submit} noValidate>
         <div className="plNote">Rahasia dan tidak untuk mencari kesalahan. <b>Jangan tulis nama atau No. RM pasien</b> di sini; Tim KP akan melengkapinya.</div>
