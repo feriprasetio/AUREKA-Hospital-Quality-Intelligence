@@ -13,7 +13,7 @@ if (!globalThis.crypto) globalThis.crypto = webcrypto
 
 function makeGrid() {
   const headers = [
-    'NAMA_PASIEN','MRN','SEP','DPJP','NOKARTU','CODER_ID','C1','ADMISSION_DATE',
+    'NAMA_PASIEN','MRN','SEP','DPJP','NOKARTU','CODER_ID','C1','C3','C4','BIRTH_DATE','ADMISSION_DATE',
     'DISCHARGE_DATE','INACBG','DESKRIPSI_INACBG','TARIF_INACBG','TARIF_RS',
     'TOTAL_TARIF','TARIF_POLI_EKS','LOS','KELAS_RAWAT','ICU_INDIKATOR',
     'ICU_LOS','VENT_HOUR','DISCHARGE_STATUS','DIAGLIST','PROCLIST','C2',
@@ -25,7 +25,7 @@ function makeGrid() {
   const billing = Object.fromEntries(REALCOST_COST_COMPONENTS.map(item => [item.billingKey, String(costs[item.key])]))
   const c2 = 'prefix#{"total_tarif_rs":"100","billing_group":' + JSON.stringify(billing) + '}'
   const row = [
-    'Pasien Contoh','00-00-01','SEP-001','dr. Contoh','KARTU-01','CODER-1','C1-001',
+    'Pasien Contoh','00-00-01','SEP-001','dr. Contoh','KARTU-01','CODER-1','C1-001',1,'HASH-123',new Date('1950-01-01T00:00:00Z'),
     new Date('2025-01-01T00:00:00Z'),new Date('2025-01-03T00:00:00Z'),
     'A-4-10-I','Contoh INA-CBG',80,100,80,0,2,'3','0',0,0,'1','A00.1;B00.2','PROC01',c2,
     ...REALCOST_COST_COMPONENTS.map(item => costs[item.key]),
