@@ -202,6 +202,8 @@ const MONTHS: Record<string,string> = {
 };
 function documentDate(text: string) {
   const source = text.replace(/,/g, " ");
+  const iso = source.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
+  if (iso) return iso[1] + "-" + iso[2] + "-" + iso[3];
   const numeric = source.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](20\d{2})\b/);
   if (numeric) return numeric[3] + "-" + numeric[2].padStart(2,"0") + "-" + numeric[1].padStart(2,"0");
   const lower = source.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("id-ID");
@@ -265,6 +267,7 @@ Deno.serve(async (req: Request) => {
     .select("id,room_id").eq("id",meetingId).maybeSingle();
   if(meetingError||!meeting)return reply(404,{error:"Register kegiatan tidak ditemukan atau akses unit ditolak."},origin);
   if(meeting.room_id===null&&!["ADMIN","PMKP","MANAGEMENT"].includes(role.code))return reply(403,{error:"Register seluruh rumah sakit memerlukan role pengelola sekretariat."},origin);
+  if(meeting.room_id===null&&!path.startsWith("global/"+meetingId+"/"))return reply(403,{error:"Path global tidak sesuai dengan register seluruh rumah sakit."},origin);
   if(meeting.room_id!==null&&!path.startsWith(String(meeting.room_id)+"/"+meetingId+"/"))return reply(403,{error:"Path berkas tidak sesuai dengan unit register."},origin);
 
   try {
