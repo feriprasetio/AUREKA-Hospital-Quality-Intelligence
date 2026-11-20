@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 type PatientIndexSummary = { total: number; kunjungan_berulang: number; dengan_nik: number; terhubung_simrs: number; terakhir_diperbarui: string | null }
-type Props = { onOpenDirectory: () => void; onOpenPatterns: () => void; onAskNara?: (prompt: string, pageContext: string) => void }
+type Props = { onOpenDirectory: () => void }
 const number = (value: unknown) => Number(value ?? 0).toLocaleString('id-ID')
 const percent = (value: number, total: number) => total > 0 ? Math.round(value / total * 100) : 0
 export default function PatientRegistryIntelligence({ onOpenDirectory, onOpenPatterns, onAskNara }: Props) {
@@ -33,7 +33,7 @@ export default function PatientRegistryIntelligence({ onOpenDirectory, onOpenPat
     <header className="priHero"><div><span className="priEyebrow">PATIENT INTELLIGENCE</span><h2 id="patient-registry-intelligence-title">Visual Intelligence Direktori Pasien</h2><p>Ikhtisar indeks pasien yang terbentuk dari data pelayanan dan logbook lintas unit. Identitas pasien tidak ditampilkan pada ringkasan ini.</p></div><span className="priStatus">{loading?'Memuat data':summary?'Data agregat tersedia':'Data belum tersedia'}</span></header>
     {error && <div className="priNotice" role="status">{error}</div>}
     <div className="priMetrics">{cards.map(card=><article className="priMetric" key={card.label}><span>{card.label}</span><strong>{loading?'…':card.value}</strong><small>{card.caption}</small></article>)}</div>
-    <div className="priActions"><button type="button" className="priPrimary" onClick={onOpenDirectory}>Lihat Direktori Pasien</button><button type="button" className="priSecondary" onClick={onOpenPatterns}>Lihat Pola Perawatan</button><button type="button" className="priNara" onClick={()=>onAskNara?.('Analisis ikhtisar direktori pasien AUREKA berdasarkan data agregat yang tersedia dan diizinkan. Jelaskan cakupan, kelengkapan indeks, keterhubungan SIMRS, keterbatasan data, dan prioritas perbaikan. Jangan meminta atau menampilkan identitas pasien dan jangan mengubah data.','Register Pasien · Visual Intelligence Direktori Pasien')}>Analisis dengan NARA AI</button></div>
+    <div className="priActions"><button type="button" className="priPrimary" onClick={onOpenDirectory}>Lihat Direktori</button></div>
     <div className="priFootnote">Data ditampilkan sesuai cakupan hak akses pengguna. Angka yang tidak tersedia ditampilkan sebagai tanda pisah dan tidak ditafsirkan sebagai nol.</div>
     <style jsx>{`
       .patientRegistryIntelligence{display:grid;gap:18px;min-width:0;color:var(--ink,#18324a)}

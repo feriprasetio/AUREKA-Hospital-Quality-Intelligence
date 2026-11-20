@@ -269,7 +269,7 @@ export default function PatientRegistryWorkspace({
 
         @media(max-width:640px){.prHead{display:grid}.prActions{width:100%}.prButton{flex:1}}
       `}</style>
-      {tab === 'overview' ? <PatientRegistryIntelligence onOpenDirectory={() => selectRegistryTab('directory')} onOpenPatterns={() => selectRegistryTab('analysis')} onAskNara={onAskNara} /> : tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'analysis' ? <PatientMedicalRecordsAnalytics rooms={rooms} initialRoomId={initialRoomId} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} /> : <>
+      {tab === 'overview' ? <PatientRegistryIntelligence onOpenDirectory={() => selectRegistryTab('directory')} /> : tab === 'directory' ? <PatientIndexTab isAdmin={isAdmin} rooms={rooms} /> : tab === 'analysis' ? <PatientMedicalRecordsAnalytics rooms={rooms} initialRoomId={initialRoomId} canViewAllRooms={canViewAllRooms} lockRoomScope={lockRoomScope} /> : <>
       <header className="prHead">
         <p className="psStatsLead">Riwayat episode pelayanan lintas unit · identitas disamarkan · hanya-baca</p>
         <div className="prActions">

@@ -990,3 +990,49 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] de
   visibility: visible !important;
   pointer-events: auto !important;
 }
+
+
+/* AUREKA navigation: show all seven requirement groups and every available entry together. */
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainNav {
+  gap: 9px !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger {
+  display: grid !important;
+  grid-template-columns: 20px minmax(0, 1fr) !important;
+  min-height: 34px !important;
+  padding: 4px 8px !important;
+  cursor: default !important;
+  pointer-events: none !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .055em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainTrigger > span {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+  margin: 1px 0 4px !important;
+  padding: 2px 4px 4px 28px !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItem {
+  min-height: 32px !important;
+  padding: 6px 8px !important;
+  font-size: 11px !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainEmpty {
+  padding: 5px 8px !important;
+  color: #8695a3 !important;
+  font-size: 11px !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed .sidebarDomainTrigger {
+  pointer-events: none !important;
+}
+@media (max-width: 860px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .sidebarDomainItems {
+    padding-left: 22px !important;
+  }
+}
