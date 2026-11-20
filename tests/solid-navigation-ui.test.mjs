@@ -88,6 +88,7 @@ test('primary domain navigation uses the existing line glyphs and contextual rai
   assert.match(home, /aria-label="Tujuh kategori utama AUREKA"/)
   assert.match(home, /visibleSidebarDomains\.map\(domain=>/)
   assert.doesNotMatch(home, /id:'records',label:'Rekapan Episode'/)
-  assert.match(home, /className=\{'sidebarDomainTrigger '/)
+  assert.match(home, /className="sidebarDomainTrigger"/)
+  assert.match(home, /role="heading" aria-level=\{2\}/)
   assert.match(home, /<UnifiedModuleNavigation/)
 })
