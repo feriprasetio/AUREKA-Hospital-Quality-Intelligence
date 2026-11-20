@@ -45,6 +45,9 @@ create table if not exists aureka_quality.realcost_imports (
 
 create index if not exists realcost_imports_status_created_idx
   on aureka_quality.realcost_imports(status, created_at desc);
+create unique index if not exists realcost_imports_completed_source_hash_uidx
+  on aureka_quality.realcost_imports(source_sha256)
+  where status = 'completed';
 
 create table if not exists aureka_quality.realcost_episodes (
   id uuid primary key default gen_random_uuid(),
@@ -244,6 +247,24 @@ begin
     select discharge_status as code, count(*)::integer as episodes
     from e group by discharge_status
   ),
+  diagnosis_groups as (
+    select code, count(*)::integer as episodes
+    from (
+      select distinct episode.id, trim(code) as code
+      from e episode
+      cross join lateral unnest(episode.diagnosis_codes) as diagnosis(code)
+      where nullif(trim(code), '') is not null
+    ) d group by code
+  ),
+  procedure_groups as (
+    select code, count(*)::integer as episodes
+    from (
+      select distinct episode.id, trim(code) as code
+      from e episode
+      cross join lateral unnest(episode.procedure_codes) as procedure(code)
+      where nullif(trim(code), '') is not null
+    ) p group by code
+  ),
   component_check as (
     select count(*) filter (where abs(
       coalesce((select sum(value::numeric) from jsonb_each_text(cost_components)), 0) - tarif_rs
@@ -299,6 +320,10 @@ begin
     'tarif_gap_negative_total', coalesce((select sum(tarif_rs - tariff_inacbg) from e where tarif_rs < tariff_inacbg), 0),
     'average_tarif_rs', coalesce((select avg(tarif_rs) from e), 0),
     'average_tarif_inacbg', coalesce((select avg(tariff_inacbg) from e), 0),
+    'median_tarif_rs', coalesce((select percentile_cont(0.5) within group (order by tarif_rs) from e), 0),
+    'p90_tarif_rs', coalesce((select percentile_cont(0.9) within group (order by tarif_rs) from e), 0),
+    'tarif_rs_per_los_day', case when coalesce((select sum(los) from e),0) > 0
+      then (select sum(tarif_rs) from e) / (select sum(los) from e) else 0 end,
     'average_los', coalesce((select avg(los) from e), 0),
     'median_los', coalesce((select percentile_cont(0.5) within group (order by los) from e), 0),
     'p90_los', coalesce((select percentile_cont(0.9) within group (order by los) from e), 0),
@@ -319,6 +344,8 @@ begin
     ), '[]'::jsonb),
     'class_distribution', coalesce((select jsonb_agg(to_jsonb(c) order by c.class_code) from class_groups c), '[]'::jsonb),
     'top_inacbg', coalesce((select jsonb_agg(to_jsonb(c) order by c.episodes desc, c.code) from (select * from cbg_groups order by episodes desc, code limit 15) c), '[]'::jsonb),
+    'top_diagnoses', coalesce((select jsonb_agg(to_jsonb(d) order by d.episodes desc, d.code) from (select * from diagnosis_groups order by episodes desc, code limit 20) d), '[]'::jsonb),
+    'top_procedures', coalesce((select jsonb_agg(to_jsonb(p) order by p.episodes desc, p.code) from (select * from procedure_groups order by episodes desc, code limit 20) p), '[]'::jsonb),
     'discharge_status_distribution', coalesce((select jsonb_agg(to_jsonb(s) order by s.code) from status_groups s), '[]'::jsonb),
     'reconciliation', jsonb_build_object(
       'component_total_mismatch_count', (select mismatch_count from component_check),
