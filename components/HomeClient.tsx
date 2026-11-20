@@ -91,6 +91,7 @@ const BOTTOM_NAV_GLYPH:Record<string,ReactNode>={
  clinical:<><path d="M9 4h6v3H9z"/><path d="M7 5.5H5.5v15h13v-15H17"/><path d="M9 12.5l2 2 4-4"/></>,
  analytics:<><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 9.5h16M9 3.5v3M15 3.5v3"/><path d="M8.5 14l2 2 4.5-4.5"/></>,
  staff:<><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.5 14.2A4.5 4.5 0 0 1 21 18.5"/></>,
+ education:<><path d="m3 9 9-5 9 5-9 5z"/><path d="M7 11.2V16c3.2 2.4 6.8 2.4 10 0v-4.8M21 9v6"/></>,
  settings:<><circle cx="12" cy="12" r="3"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6"/></>,
 }
 export default function HomeClient(){
