@@ -342,7 +342,7 @@ export default function SecretariatWorkspace({
           const parsedTitle = String(metadata.document_title || '')
           if (parsedTitle && (['Dokumen Sekretariat','Register Dokumen','Kegiatan baru','Dokumen baru'].includes(registerMeta.title) || registerMeta.title === activeMeeting.title)) registerMeta.title = parsedTitle
         }
-        setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'done', message: parseError ? 'File tersimpan; pembacaan perlu ditinjau.' : statusLabel(extractionStatus) } : x))
+        setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'done', message: parseError ? 'File tersimpan; pembacaan perlu ditinjau.' : statusLabel[extractionStatus] } : x))
       } catch (error) {
         errors++
         setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'error', message: error instanceof Error ? error.message : 'Gagal diproses.' } : x))
