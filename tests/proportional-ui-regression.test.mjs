@@ -34,7 +34,7 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.equal(imports.at(-1), 'aureka-navigation-pill.css')
 })
 
-test('Super Admin uses a compact contextual rail and shows seven registry-driven category groups', () => {
+test('Super Admin uses a compact contextual rail and shows eight registry-driven category groups', () => {
   const homeClient = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
   const registry = readFileSync(new URL('../lib/aureka/module-registry.ts', import.meta.url), 'utf8')
   const navCss = readFileSync(new URL('../app/aureka-navigation-consolidated.css', import.meta.url), 'utf8')
@@ -50,8 +50,8 @@ test('Super Admin uses a compact contextual rail and shows seven registry-driven
   assert.ok(homeClient.includes("activeRailTitle"))
   assert.ok(homeClient.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'sidebarTreeChildren', 'closedNav', 'toggleNav(']) assert.ok(!homeClient.includes(legacy))
-  assert.ok(homeClient.includes('aria-label="Tujuh kategori utama AUREKA"'))
-  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
+  assert.ok(homeClient.includes('aria-label="Delapan kategori utama AUREKA"'))
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','education_training','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
   assert.ok(homeClient.includes('aria-expanded={isExpanded}'))
   assert.ok(homeClient.includes('hidden={!isExpanded}'))
   assert.ok(registry.includes("status:'planned'"))

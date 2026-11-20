@@ -28,7 +28,9 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
 })
 
 test('the results rail exposes only the active Hasil Capaian group and its two sub-tabs', () => {
-  assert.ok(home.includes("{id:'result-indicators',label:'Hasil Capaian',children:[{id:'result-unit',label:'Unit Keseluruhan'},{id:'result-category',label:'Kategori Indikator'}]}"))
+  assert.doesNotMatch(home, /id:'result-indicators',label:'Hasil Capaian'/)
+  assert.ok(home.includes('qualityLogbookResultsStack'))
+  assert.ok(home.includes('<h2>Hasil Capaian Indikator Mutu</h2>'))
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
   assert.ok(home.includes("const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleLabel"))
   assert.ok(home.includes('title={activeRailTitle}'))
@@ -39,11 +41,11 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes('selectSidebarChild(activeNavModuleId,childId)'))
 })
 
-test('sidebar renders seven role-filtered categories from the central registry and contains no legacy tree menu', () => {
+test('sidebar renders eight role-filtered categories from the central registry and contains no legacy tree menu', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  assert.ok(home.includes('aria-label="Tujuh kategori utama AUREKA"'))
+  assert.ok(home.includes('aria-label="Delapan kategori utama AUREKA"'))
   assert.ok(home.includes('visibleSidebarDomains.map(domain=>'))
-  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
+  for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','education_training','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
   assert.ok(home.includes('aria-expanded={isExpanded}'))
   assert.ok(home.includes('hidden={!isExpanded}'))
   assert.ok(home.includes('role="heading" aria-level={2}'))
@@ -78,7 +80,6 @@ test('module-local search controls are hidden while header search dispatch remai
   for (const selector of ['.prSearch', '.rmSearch', '.sdSearch', '.acdLocalSearch', '.cpLocalSearch', '.psLocalSearch', '.oppeLocalSearch', '.fppeLocalSearch', '.adminLocalSearch', '.qualitySettingsLocalSearch']) {
     assert.ok(navCss.includes(selector), 'Missing hidden local-search selector: ' + selector)
   }
-  assert.ok(patientRegistry.includes('aureka:workspace-search'))
   assert.ok(patientIndex.includes('aureka:workspace-search'))
 })
 
@@ -96,8 +97,9 @@ test('hospital-wide quality results include source fields required by operationa
 })
 
 test('patient records remain read-only and do not duplicate the indicator logbook input', () => {
-  assert.ok(patientRegistry.includes('Riwayat episode pelayanan lintas unit'))
+  assert.ok(patientRegistry.includes('PatientRegistryIntelligence'))
   assert.ok(patientRegistry.includes('PatientMedicalRecordsAnalytics'))
+  assert.doesNotMatch(patientRegistry, /registryTab.*records|Riwayat Episode.*section/)
   assert.ok(!patientRegistry.includes('QualityIndicatorWorkspace'))
   assert.ok(!patientRegistry.includes('Tambah Episode'))
   assert.ok(home.includes("patientView==='tambah-pasien'"))

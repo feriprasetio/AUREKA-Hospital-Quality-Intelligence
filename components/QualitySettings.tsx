@@ -484,6 +484,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [saving, setSaving] = useState(false)
   const [unitBatchOpen, setUnitBatchOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Model | null>(null)
+  // Mutasi kamus profil hanya untuk Super Admin; role lain tetap dapat membaca profil dan memakai alur usulan yang memiliki otorisasi tersendiri.
+  const canManageCatalog = role === 'ADMIN'
 
   const editorOpen = Boolean(edit || newOne)
   useEffect(() => {
@@ -959,7 +961,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <WorkspaceModuleHeader
           title={tab === 'programs' ? 'Program Kerja' : 'Profil Indikator'}
           description={tab === 'programs' ? 'Kelola klasifikasi program kerja yang menjadi dasar pengelompokan indikator mutu.' : 'Kelola definisi, target, metode pengukuran, dan versi profil indikator lintas unit.'}
-          eyebrow="Metadata · Superadmin"
+          eyebrow={canManageCatalog ? 'Metadata · Superadmin' : 'Visual Intelligence · Profil Indikator'}
         />
 {showTabs && (
           <WorkspaceTabs
@@ -991,7 +993,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
           <div style={{ marginTop: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>Nama program kerja mengikuti klasifikasi <code>Program kerja / jenis indikator</code>. Pilih satu program untuk meninjau dan mengelola seluruh indikator di dalamnya.</div>
-              <LiquidGlassButton onClick={() => openNew()} disabled={saving}>+ Tambah indikator / program</LiquidGlassButton>
+              {canManageCatalog && <LiquidGlassButton onClick={() => openNew()} disabled={saving}>+ Tambah indikator / program</LiquidGlassButton>}
             </div>
             {programStats.length === 0 ? (
               <div style={{ border: '1px dashed rgba(20,34,27,.18)', borderRadius: 15, padding: 18, color: 'var(--muted)', fontSize: 12 }}>Belum ada profil indikator pada tahun dan unit terpilih. Tambahkan indikator untuk mulai membentuk kamus program kerja.</div>
@@ -1005,7 +1007,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     </div>
                     <div className="mpCardActions">
                       <button type="button" className="textButton" onClick={() => { setProgramFilter(program.name); setSearch(''); setTab('profiles'); onTabChange?.('profiles') }}>Kelola indikator</button>
-                      <button type="button" className="textButton" onClick={() => openNew(program.name)}>+ Tambah ke program</button>
+                      {canManageCatalog && <button type="button" className="textButton" onClick={() => openNew(program.name)}>+ Tambah ke program</button>}
                     </div>
                   </div>
                 ))}
@@ -1055,10 +1057,10 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
-              <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX</LiquidGlassButton>
+              {canManageCatalog && <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX</LiquidGlassButton>}
               <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
-              {room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
-              <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>
+              {canManageCatalog && room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
+              {canManageCatalog && <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>}
             </div>
             <input
               ref={importFileRef}
@@ -1190,10 +1192,10 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     {!needsMetadataReview(profile) && !needsTargetApproval(profile) && hasNeutralTargetStatus(profile) && <div style={{ marginTop: 5, padding: '7px 9px', borderRadius: 8, background: 'rgba(100,116,139,.08)', color: '#526170', fontSize: 12, lineHeight: 1.5 }}>{neutralTargetExplanation(profile)}</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {(profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
-                    {isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
+                    {canManageCatalog && (profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
+                    {canManageCatalog && isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
                     {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
-                    {profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(profile)} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
+                    {canManageCatalog && profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(profile)} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
                   </div>
                 </div>
               ))}

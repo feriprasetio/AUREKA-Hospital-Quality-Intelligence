@@ -10,28 +10,15 @@ type SecretariatArea = {
 }
 
 const AREAS: Record<SecretariatSection, SecretariatArea> = {
+  register: {
+    title: 'Register Kegiatan',
+    description: 'Halaman register untuk menyimpan daftar kegiatan dan nomor surat. Ketika nama kegiatan dipilih, detail UMANG (Undangan, Materi, Absensi Digital, Notulensi, dan Gambar) ditampilkan sebagai bagian dari kegiatan yang sama melalui satu Meeting ID.',
+  },
   invitations: {
-    title: 'Undangan',
-    description: 'Ruang kerja untuk menyiapkan undangan rapat, agenda, jadwal, tempat, dan daftar peserta. Setiap undangan nantinya menjadi bagian dari satu kegiatan dengan Meeting ID yang tetap.',
-  },
-  materials: {
-    title: 'Materi',
-    description: 'Ruang kerja untuk menghimpun dan menautkan bahan rapat ke kegiatan yang sama. Materi tidak dibuat sebagai arsip terpisah dari undangan dan notulensi.',
-  },
-  attendance: {
-    title: 'Absensi',
-    description: 'Ruang kerja untuk mencatat kehadiran peserta berdasarkan daftar undangan dan Meeting ID kegiatan. Riwayat kehadiran harus dapat ditelusuri.',
-  },
-  minutes: {
-    title: 'Notulensi',
-    description: 'Ruang kerja untuk mendokumentasikan pembahasan, keputusan, rekomendasi, penanggung jawab, dan tenggat tindak lanjut rapat.',
-  },
-  documentation: {
-    title: 'Dokumentasi Foto',
-    description: 'Ruang kerja untuk menghubungkan dokumentasi foto dengan kegiatan rapat, waktu, dan arsip kelembagaan yang sesuai.',
+    title: 'Kirim Undangan',
+    description: 'Ruang kerja untuk menyiapkan undangan, agenda, jadwal, tempat, dan peserta, kemudian mengirimkan undangan langsung kepada user PIC unit. Setiap undangan terhubung ke kegiatan dan Meeting ID yang sama.',
   },
 }
-
 export default function SecretariatWorkspace({ section }: { section: SecretariatSection }) {
   const area = AREAS[section]
 
