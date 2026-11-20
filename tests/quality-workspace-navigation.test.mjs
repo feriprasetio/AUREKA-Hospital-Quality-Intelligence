@@ -116,7 +116,7 @@ test('SPM belongs to Manajemen Rumah Sakit while preserving its existing workspa
   const qualityDomain = registry.slice(registry.indexOf("{ id:'quality_patient_safety'"), registry.indexOf("{ id:'hospital_management'"))
   const managementDomain = registry.slice(registry.indexOf("{ id:'hospital_management'"), registry.indexOf("{ id:'director_supervisory_board'"))
   assert.doesNotMatch(qualityDomain, /id:'spm'/)
-  assert.match(managementDomain, /id:'spm', label:'Standar Pelayanan Minimal \(SPM\)', moduleId:'quality', childId:'spm'/)
+  assert.match(managementDomain, /id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm'/)
   const qualityMenu = home.slice(home.indexOf("quality:role==='DEWAN_PENGAWAS'"), home.indexOf('clinical:[', home.indexOf("quality:role==='DEWAN_PENGAWAS'")))
   assert.doesNotMatch(qualityMenu, /id:'spm'/)
 })
@@ -124,6 +124,8 @@ test('SPM belongs to Manajemen Rumah Sakit while preserving its existing workspa
 test('SPM has one domain destination and no duplicate direct-access shortcut', () => {
   const home = read('components/HomeClient.tsx')
   assert.doesNotMatch(home, /sidebarSpmQuickLink|Akses langsung/)
-  assert.ok(read('lib/aureka/module-registry.ts').includes("{ id:'spm', label:'Standar Pelayanan Minimal (SPM)', moduleId:'quality', childId:'spm' }"))
+  assert.ok(read('lib/aureka/module-registry.ts').includes("{ id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm' }"))
   assert.ok(home.includes("if(moduleId==='quality'&&childId==='spm')"))
+  assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal'"))
+  assert.ok(home.includes("id:'spm',label:'Standar Pelayanan Minimal'"))
 })

@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
-export type UnifiedNavigationItem = { id: string; label: string; hint?: string }
+export type UnifiedNavigationItem = { id: string; label: string; hint?: string; disabled?: boolean }
 
 type UnifiedModuleNavigationProps = {
   ariaLabel: string; title: string; items: UnifiedNavigationItem[]; activeId: string; onSelect: (id: string) => void
@@ -268,14 +268,14 @@ export default function UnifiedModuleNavigation({
       <span ref={titleRef} className="workspaceNavigationRailTitle">{title}</span>
       {items.length > 0 && <span className="workspaceNavigationRailDivider" aria-hidden="true" />}
       <div ref={itemsRef} className="workspaceNavigationRailItems" role="group" aria-label={'Navigasi utama ' + title}>
-        {visibleItems.map(item => { const selected = item.id === resolvedActiveId; return <button type="button" key={item.id} className={'workspaceNavigationRailItem' + (selected ? ' active' : '')} title={item.hint} aria-current={selected ? 'page' : undefined} onClick={() => selectPrimary(item.id)}>{item.label}</button> })}
+        {visibleItems.map(item => { const selected = item.id === resolvedActiveId; return <button type="button" key={item.id} className={'workspaceNavigationRailItem' + (selected ? ' active' : '')} disabled={item.disabled} title={item.hint} aria-current={selected ? 'page' : undefined} onClick={() => selectPrimary(item.id)}>{item.label}</button> })}
       </div>
-      {overflowItems.length > 0 && <details ref={overflowRef} className="workspaceNavigationOverflow"><summary aria-label={'Navigasi utama lainnya untuk ' + title}>Lainnya</summary><div className="workspaceNavigationOverflowMenu" role="group" aria-label="Tab utama lainnya">{overflowItems.map(item => <button type="button" key={item.id} className="workspaceNavigationOverflowItem" title={item.hint} onClick={() => selectPrimary(item.id)}>{item.label}</button>)}</div></details>}
+      {overflowItems.length > 0 && <details ref={overflowRef} className="workspaceNavigationOverflow"><summary aria-label={'Navigasi utama lainnya untuk ' + title}>Lainnya</summary><div className="workspaceNavigationOverflowMenu" role="group" aria-label="Tab utama lainnya">{overflowItems.map(item => <button type="button" key={item.id} className="workspaceNavigationOverflowItem" disabled={item.disabled} title={item.hint} onClick={() => selectPrimary(item.id)}>{item.label}</button>)}</div></details>}
       {subItems.length > 0 && <span className="workspaceNavigationGroupDivider" aria-hidden="true" />}
       {subItems.length > 0 && <div ref={subItemsRef} className="workspaceNavigationSubItems" role="group" aria-label={'Navigasi lanjutan ' + (subTitle || title)}>
-        {visibleSubItems.map(item => { const selected = item.id === resolvedSecondaryActiveId; return <button type="button" key={item.id} className={'workspaceNavigationSubItem' + (selected ? ' active' : '')} title={item.hint} aria-current={selected ? 'page' : undefined} onClick={() => selectSecondary(item.id)}>{item.label}</button> })}
+        {visibleSubItems.map(item => { const selected = item.id === resolvedSecondaryActiveId; return <button type="button" key={item.id} className={'workspaceNavigationSubItem' + (selected ? ' active' : '')} disabled={item.disabled} title={item.hint} aria-current={selected ? 'page' : undefined} onClick={() => selectSecondary(item.id)}>{item.label}</button> })}
       </div>}
-      {overflowSubItems.length > 0 && <details ref={subOverflowRef} className="workspaceNavigationOverflow workspaceNavigationSubOverflow"><summary aria-label={'Navigasi lanjutan lainnya untuk ' + title}>Lainnya</summary><div className="workspaceNavigationOverflowMenu" role="group" aria-label="Tab lanjutan lainnya">{overflowSubItems.map(item => <button type="button" key={item.id} className={'workspaceNavigationOverflowItem' + (item.id === resolvedSecondaryActiveId ? ' active' : '')} title={item.hint} aria-current={item.id === resolvedSecondaryActiveId ? 'page' : undefined} onClick={() => selectSecondary(item.id)}>{item.label}</button>)}</div></details>}
+      {overflowSubItems.length > 0 && <details ref={subOverflowRef} className="workspaceNavigationOverflow workspaceNavigationSubOverflow"><summary aria-label={'Navigasi lanjutan lainnya untuk ' + title}>Lainnya</summary><div className="workspaceNavigationOverflowMenu" role="group" aria-label="Tab lanjutan lainnya">{overflowSubItems.map(item => <button type="button" key={item.id} className={'workspaceNavigationOverflowItem' + (item.id === resolvedSecondaryActiveId ? ' active' : '')} disabled={item.disabled} title={item.hint} aria-current={item.id === resolvedSecondaryActiveId ? 'page' : undefined} onClick={() => selectSecondary(item.id)}>{item.label}</button>)}</div></details>}
       <div ref={measureRef} className="workspaceNavigationMeasure" aria-hidden="true">{items.map(item => <span key={'primary-' + item.id} data-nav-measure={'primary:' + item.id}>{item.label}</span>)}{subItems.map(item => <span key={'secondary-' + item.id} data-nav-measure={'secondary:' + item.id}>{item.label}</span>)}</div>
     </nav>
     {mobileWorkspaceTabs && <section className="workspaceMobileNavigation" aria-label="Navigasi workspace">
@@ -297,7 +297,7 @@ export default function UnifiedModuleNavigation({
       {mobileTabItems.length > 0 && <nav ref={mobileTabsRef} className="workspaceMobileTabs" aria-label="Tab Workspace">
         {mobileTabItems.map(item => {
           const selected = item.id === activeMobileTabId
-          return <button type="button" key={item.id} className={'workspaceMobileTab' + (selected ? ' active' : '')} aria-current={selected ? 'page' : undefined} onClick={() => subItems.length ? selectSecondary(item.id) : selectPrimary(item.id)}>{item.label}</button>
+          return <button type="button" key={item.id} className={'workspaceMobileTab' + (selected ? ' active' : '')} disabled={item.disabled} aria-current={selected ? 'page' : undefined} onClick={() => subItems.length ? selectSecondary(item.id) : selectPrimary(item.id)}>{item.label}</button>
         })}
       </nav>}
     </section>}
