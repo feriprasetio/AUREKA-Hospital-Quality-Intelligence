@@ -10,12 +10,12 @@ test('Clinical Pathway labels episode checklist metrics separately from official
   assert.match(component, /Keterisian jadwal CP \(internal\)/)
   assert.match(component, /Kepatuhan item CP per episode \(internal\)/)
   assert.match(component, /INM Kepatuhan terhadap Alur Klinis/)
-  assert.match(component, /bukan pengganti INM/i)
+  assert.match(component, /bukan pembilang\/penyebut INM/i)
 })
 
 test('FMEA is identified as preventive and is not presented as reactive incident investigation', () => {
   assert.match(risk, /FMEA Preventif/)
-  assert.match(risk, /bukan investigasi pascainsiden/i)
+  assert.match(risk, /bukan metode investigasi pascainsiden/i)
   assert.match(risk, /bukan batas universal IHI/i)
   assert.match(safety, /Investigasi Pascainsiden \/ RCA2/)
   assert.match(safety, /Hierarki kekuatan tindakan/)
