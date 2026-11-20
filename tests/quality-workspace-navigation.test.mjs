@@ -123,7 +123,7 @@ test('SPM belongs to Manajemen Rumah Sakit while preserving its existing workspa
   const managementDomain = registry.slice(registry.indexOf("{ id:'hospital_management'"), registry.indexOf("{ id:'director_supervisory_board'"))
   assert.doesNotMatch(qualityDomain, /id:'spm'/)
   assert.match(managementDomain, /id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm'/)
-  const qualityMenu = home.slice(home.indexOf("quality:role==='DEWAN_PENGAWAS'"), home.indexOf('clinical:[', home.indexOf("quality:role==='DEWAN_PENGAWAS'")))
+  const qualityMenu = home.slice(home.indexOf("quality:role==='DEWAN_PENGAWAS'"), home.indexOf('safety:[', home.indexOf("quality:role==='DEWAN_PENGAWAS'")))
   assert.doesNotMatch(qualityMenu, /id:'spm'/)
 })
 
