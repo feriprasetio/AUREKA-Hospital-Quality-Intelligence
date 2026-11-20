@@ -12,7 +12,7 @@ test('Sekretariat is owned by PMKP and remains visibly disabled until its backen
   assert.ok(registry.includes("routeHash:'#sekretariat'"))
   assert.ok(registry.includes('requiredRoles:GOVERNANCE_ROLES'))
   const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
-  assert.ok(qualityDomain.includes("id:'secretariat',label:'Sekretariat',moduleId:'secretariat',childId:'invitations',status:'planned'"))
+  assert.ok(qualityDomain.includes("id:'secretariat',label:'Sekretariat',moduleId:'secretariat',childId:'invitations',status:'planned',requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC']"))
   assert.ok(home.includes("disabled={item.status==='planned'}"))
   assert.ok(home.includes("if(item.status==='planned')return"))
   assert.ok(home.includes("'sekretariat':'secretariat'"))

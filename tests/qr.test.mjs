@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { encodeQr, qrSvgPath } from '../lib/qr/qr.ts'
 
 test('ukuran versi sesuai panjang teks dan pola pencari di tiga sudut', () => {
@@ -15,4 +16,13 @@ test('ukuran versi sesuai panjang teks dan pola pencari di tiga sudut', () => {
 
 test('teks terlalu panjang ditolak', () => {
   assert.throws(() => encodeQr('x'.repeat(400)))
+})
+
+
+test('public incident QR form handles backend failures without exposing raw service errors', () => {
+  const source = readFileSync(new URL('../components/patient-safety/PublicIncidentReport.tsx', import.meta.url), 'utf8')
+  assert.match(source, /toUserFacingError/)
+  assert.match(source, /state === 'unavailable'/)
+  assert.match(source, /catch \(error\)/)
+  assert.doesNotMatch(source, /setErr\(error\.message/)
 })
