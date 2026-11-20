@@ -67,3 +67,20 @@ test('SPO storage policies use the active analyzer path and trusted role gate', 
   has(sql, "(storage.foldername(name))[1] = 'spo'")
   has(sql, 'aureka_system.can_process_spo()')
 })
+
+test('document ingestion queue uses an atomic PostgreSQL claim and bounded retry eligibility', async () => {
+  const sql = await read('supabase/migrations/20261121001500_aureka_document_ingestion_atomic_claim.sql')
+  has(sql, 'claim_document_ingestion_job')
+  has(sql, 'for update skip locked')
+  has(sql, "interval '10 minutes'")
+  has(sql, 'attempts < v_job.max_attempts')
+  has(sql, 'grant execute on function aureka_system.claim_document_ingestion_job(uuid) to authenticated')
+})
+
+test('Realcost encounter uniqueness and signature revocation preserve auditability', async () => {
+  const sql = await read('supabase/migrations/20261121002000_aureka_realcost_signature_lifecycle.sql')
+  has(sql, "btrim(encounter_ref) <> ''")
+  has(sql, 'realcost_import_batches_source_sha_uidx')
+  has(sql, 'aureka_revoke_document_signature')
+  has(sql, 'revoke_reason=left(trim(p_reason),1000)')
+})
