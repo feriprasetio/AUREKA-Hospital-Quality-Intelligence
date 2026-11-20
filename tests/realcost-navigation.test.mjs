@@ -15,7 +15,7 @@ test('Audit Realcost is an available module under Peningkatan Kinerja Klinis', (
   assert.match(app, /const RealcostAuditWorkspace=dynamic\(\(\)=>import\('@\/components\/RealcostAuditWorkspace'\)/)
   assert.match(app, /realcostAuditOpen/)
   assert.match(app, /#peningkatan-kinerja-klinis\/realcost/)
-  assert.match(app, /active==='clinical'&&realcostAuditOpen<\?RealcostAuditWorkspace/)
+  assert.match(app, /active==='clinical'&&realcostAuditOpen\\?<RealcostAuditWorkspace/)
 })
 
 test('Realcost import domain separates aggregate, episode detail and patient identity privileges', () => {
