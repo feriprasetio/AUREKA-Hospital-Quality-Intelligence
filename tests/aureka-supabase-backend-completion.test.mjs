@@ -30,7 +30,7 @@ test('patient cross-domain joins require verified UUID links and exact normalize
   has(sql, '= p.no_rm')
   has(sql, 'public.aureka_patient_detail_bundle')
   has(sql, 'patient_record_access_audit')
-  has(sql, 'No matching by name')
+  has(sql, 'never match on names or similarity')
   has(sql, 'where i.patient_index_id=v_patient.patient_id')
 })
 
@@ -73,7 +73,7 @@ test('document ingestion queue uses an atomic PostgreSQL claim and bounded retry
   has(sql, 'claim_document_ingestion_job')
   has(sql, 'for update skip locked')
   has(sql, "interval '10 minutes'")
-  has(sql, 'attempts < v_job.max_attempts')
+  has(sql, 'j.attempts < j.max_attempts')
   has(sql, 'grant execute on function aureka_system.claim_document_ingestion_job(uuid) to authenticated')
 })
 
