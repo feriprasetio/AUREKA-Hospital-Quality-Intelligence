@@ -33,6 +33,8 @@ Pengisian baru menggunakan mode anonim pada record respons: nama, nomor pegawai,
 
 Instrumen yang ada adalah instrumen internal campuran. Aplikasi tidak mengklaim bahwa instrumen tersebut adalah AHRQ SOPS Hospital Survey 2.0 atau telah tervalidasi dalam Bahasa Indonesia. Adaptasi bahasa/budaya, uji keterbacaan, validasi psikometrik, kunci reverse-scoring/positive response, dan denominator eligible workforce masih harus diselesaikan sebelum melaporkan composite score atau response rate AHRQ.
 
+**Gerbang adopsi AHRQ internasional:** SOPS Hospital Survey 2.0 merupakan instrumen tersendiri dengan 32 item komposit pada 10 komposit, ditambah dua ukuran single-item dan enam pertanyaan latar belakang. AHRQ meminta pengguna internasional menghubungi program SOPS untuk memperoleh izin menerjemahkan dan menggunakan survei di luar Amerika Serikat. Karena itu, AUREKA tidak boleh mengubah instrumen internal saat ini menjadi label SOPS 2.0 atau mengaktifkan terjemahan SOPS sebelum izin, kesetaraan instrumen, dan validasi lokal ditangani. Ambang suppression internal AUREKA n≥5 adalah kontrol privasi rumah sakit, bukan ambang kelayakan pengiriman ke AHRQ; AHRQ mensyaratkan setidaknya 10 survei lengkap per lokasi rumah sakit untuk pengiriman ke database SOPS.
+
 ## 5. RME, ICD, INM/SPM, SDM, SPO/TTE dan NARA
 
 - RME tetap menjadi sumber klinis; AUREKA adalah lapisan analitik dan quality intelligence. Identitas pasien/episode harus menggunakan key stabil dan No. RM hanya tersedia sesuai role. Kandidat normalisasi ICD oleh NARA harus ditinjau PMIK/klinisi; diagnosis sumber tidak ditimpa.
@@ -50,9 +52,15 @@ Workbook Realcost final; workbook logbook/profil indikator dan kamus kolom; SK/P
 - Kalkulasi INM, kelengkapan komponen wajib, dan kepatuhan episode mempunyai denominator terpisah; denominator kosong menghasilkan null.
 - Respons survei baru tidak memuat respondent_person_id, respondent_room_id, submitted_by_user_id, atau konfirmasi identitas; kebijakan RLS menahan SELECT mentah selain ADMIN.
 - UI/Excel hanya menampilkan agregat unit-periode dengan n≥5; tidak ada nama, response ID, timestamp, atau jawaban individu.
+- Instrumen internal tidak diberi label SOPS 2.0; penerjemahan/penggunaan SOPS di luar AS menunggu izin AHRQ, adaptasi, dan validasi lokal.
 - RCA2 memerlukan action hierarchy, owner, due date, metode/bukti efektivitas, dan tanggal verifikasi sebelum status closed.
 - FMEA secara eksplisit proaktif; RCA2 pascainsiden tidak disatukan ke FMEA.
 - Target lokal, daftar cohort, instrumen/versi, serta pengesahan tetap menunggu sumber dan pejabat berwenang.
 
 ---
+
 Rujukan baseline utama: Permenkes 30/2022, Permenkes 24/2022, Kepdirjen Yankes HK.02.02/I/0522/2022, AHRQ SOPS Hospital Survey 2.0, WHO Patient Safety Incident Reporting and Learning Systems, WHO Ethics and Governance of AI for Health, NIST AI RMF 1.0, IHI FMEA/RCA2, UU 27/2022, PP 71/2019, dan ISO 7101:2023. Status regulasi harus diverifikasi Bagian Hukum sebelum penetapan kebijakan internal.
+
+Referensi AHRQ tambahan:
+- https://www.ahrq.gov/sops/international/hospital/translators-version-2.html
+- https://www.ahrq.gov/sops/about/faq/index.html
