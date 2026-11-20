@@ -234,7 +234,10 @@ export default function HomeClient(){
    const path=raw.replace(/^#\/?/,'').toLowerCase()
    if(['beranda/infografis','beranda/infographics','infografis','infographics'].includes(path)){setActive('home');return}
    if(['pasien/statistik','pasien/stats'].includes(path)){setPatientsRegistryTab('analysis');setActive('patients');return}
-   if(['metadata','metadata/profiles','metadata/profil-indikator'].includes(path)){setActive('quality');setQualityProfileOpen(true);setQualityOpen(false);setQualityResultsView(null);return}
+   if(['metadata','metadata/profiles','metadata/profil-indikator'].includes(path)){
+    if(role==='DEWAN_PENGAWAS'||!['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC','VALIDATOR'].includes(role||'')){setActive('home');return}
+    setActive('quality');setQualityProfileOpen(true);setQualityMonitorOpen(false);setQualityReconciliationOpen(false);setQualityOpen(false);setQualityResultsView(null);return
+   }
     if(path==='mutu-klinis/oppe-fppe'||path==='tenaga-klinis/oppe'||path==='tenaga-klinis/oppe-fppe'){
      if(!permissionFlags.readPerformance){setActive('home');return}
      setActive('staff');setProgramTab('oppe');setAnalyticsDirectoryTab('directory')
