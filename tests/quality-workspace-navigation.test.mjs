@@ -14,7 +14,7 @@ test('quality audit navigation uses a compact contextual rail instead of a sideb
   for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.doesNotMatch(home, /aria-label="Tampilan audit mutu"/)
   assert.doesNotMatch(home, />Form Logbook<\/button>/)
-  assert.match(home, /if\(moduleId==='quality'\)return active==='quality'&&qualityProfileOpen\?'profile-indicators':qualityResultsView\?(qualityResultsGroup==='category'\?'result-category':'result-unit'):qualityOpen\?'audit-indicators':'quality-overview'/)
+  assert.match(home, /if\(moduleId==='quality'\)return active==='quality'&&qualityProfileOpen\?'profile-indicators':qualityResultsView\?(qualityResultsGroup==='category'\?'result-category':'result-unit'):qualityReconciliationOpen\?'quality-reconciliation':qualityMonitorOpen\?'quality-monitoring':qualityOpen\?'audit-indicators':'quality-overview'/)
   assert.match(home, /if\(moduleId==='quality'&&qualityReconciliationOpen\)return 'quality-reconciliation'/)
   assert.match(home, /if\(moduleId==='quality'&&qualityMonitorOpen\)return 'quality-monitoring'/)
   const staffStart = home.indexOf('staff:[')

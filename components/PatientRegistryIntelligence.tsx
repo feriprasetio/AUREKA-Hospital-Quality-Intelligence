@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-type PatientIndexSummary = { total: number; dengan_nik: number; terhubung_simrs: number }
+type PatientIndexSummary = { total: number; kunjungan_berulang: number; dengan_nik: number; terhubung_simrs: number; terakhir_diperbarui: string | null }
 type Props = { onOpenDirectory: () => void; onOpenPatterns: () => void; onAskNara?: (prompt: string, pageContext: string) => void }
 const number = (value: unknown) => Number(value ?? 0).toLocaleString('id-ID')
 const percent = (value: number, total: number) => total > 0 ? Math.round(value / total * 100) : 0
@@ -13,7 +13,7 @@ export default function PatientRegistryIntelligence({ onOpenDirectory, onOpenPat
     let cancelled = false
     void (async () => {
       setLoading(true); setError('')
-      const result = await aurekaSupabase.rpc('aureka_patient_index_overview')
+      const result = await aurekaSupabase.rpc('aureka_patient_index_summary')
       if (cancelled) return
       if (result.error) { setSummary(null); setError('Ringkasan direktori pasien belum tersedia. Pastikan migrasi indeks pasien dan hak akses database telah diterapkan.') }
       else setSummary(result.data as PatientIndexSummary)
