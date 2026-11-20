@@ -1,54 +1,468 @@
 'use client'
 
-import AsyncStatePanel from '@/components/AsyncStatePanel'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import { aurekaSupabase } from '@/lib/aureka/supabase'
 import type { SecretariatSection } from '@/lib/aureka/module-registry'
 
-type SecretariatArea = {
+type Room = { id: number; name: string }
+type Category = 'undangan' | 'materi' | 'absensi' | 'notulensi' | 'gambar'
+type ExtractionStatus = 'pending' | 'completed' | 'metadata_only' | 'manual_review' | 'failed'
+type MeetingRow = {
+  id: string
+  register_no: number
+  meeting_code: string
   title: string
-  description: string
+  meeting_type: string
+  document_date: string
+  document_number: string | null
+  meeting_date: string
+  room_id: number | null
+  organizer: string
+  status: string
+  created_at: string
+}
+type MeetingDocument = {
+  id: string
+  meeting_id: string
+  document_type: Category
+  title: string
+  bucket_id: string
+  object_path: string
+  mime_type: string | null
+  file_size_bytes: number | null
+  sha256: string | null
+  uploaded_at: string
+  uploaded_by: string
+  original_filename: string | null
+  extracted_text: string
+  parsed_metadata: Record<string, unknown>
+  extraction_engine: string | null
+  extraction_status: ExtractionStatus
+  document_date: string | null
+  document_number: string | null
+  document_title: string | null
+  extraction_error: string | null
+  preview_url?: string | null
+}
+type RegisterDraft = {
+  title: string
+  document_date: string
+  document_number: string
+  meeting_type: string
+  room_id: string
+}
+type FileQueueItem = { id: string; file: File; category: Category; status: 'queued' | 'processing' | 'done' | 'error'; message?: string }
+type ParserResult = {
+  success: boolean
+  extraction_engine: string
+  extraction_status: ExtractionStatus
+  extracted_text: string
+  parsed_metadata: {
+    document_date: string | null
+    document_number: string | null
+    document_title: string
+    detected_headings: string[]
+    extracted_line_count: number
+    attendance_row_count: number | null
+    page_count: number | null
+    document_kind: string
+    [key: string]: unknown
+  }
+  notes: string[]
+}
+const db = () => aurekaSupabase.schema('aureka_system')
+const bucket = 'aureka-documents'
+const maxBytes = 15 * 1024 * 1024
+const categories: Array<{ id: Category; label: string; hint: string }> = [
+  { id: 'undangan', label: 'Undangan', hint: 'Surat undangan, nomor surat, tanggal, perihal, dan agenda' },
+  { id: 'materi', label: 'Materi', hint: 'Bahan paparan, materi rapat, modul atau dokumen pendukung' },
+  { id: 'absensi', label: 'Absensi Digital', hint: 'Daftar hadir dari XLSX, CSV, PDF atau DOCX' },
+  { id: 'notulensi', label: 'Notulensi', hint: 'Pembahasan, keputusan, kesimpulan dan tindak lanjut' },
+  { id: 'gambar', label: 'Gambar', hint: 'Foto kegiatan, dokumentasi, atau gambar pendukung' },
+]
+const registerTypes = ['Undangan', 'Kegiatan', 'Pelatihan', 'Rapat', 'Sosialisasi', 'Monitoring', 'Evaluasi', 'Benchmarking', 'Lainnya']
+const managerRoles = ['ADMIN', 'PMKP', 'MANAGEMENT']
+const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Pontianak' })
+const emptyDraft = (roomId: number | null): RegisterDraft => ({
+  title: '', document_date: today(), document_number: '', meeting_type: 'Kegiatan', room_id: roomId == null ? '' : String(roomId),
+})
+const safeName = (name: string) => name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 110) || 'berkas'
+const categoryLabel = (id: Category) => categories.find((item) => item.id === id)?.label || id
+const fileMime = (file: File) => {
+  if (file.type) return file.type
+  const ext = file.name.toLowerCase().split('.').pop()
+  const mimes: Record<string, string> = {
+    pdf: 'application/pdf',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    csv: 'text/csv', txt: 'text/plain',
+    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif',
+  }
+  return mimes[ext || ''] || 'application/octet-stream'
+}
+const inferCategory = (file: File): Category => {
+  const name = file.name.toLocaleLowerCase('id-ID')
+  const mime = fileMime(file)
+  if (mime.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(name) || /(foto|gambar|dokumentasi)/i.test(name)) return 'gambar'
+  if (/(absen|absensi|daftar[-_ ]?hadir|attendance|presensi)/i.test(name)) return 'absensi'
+  if (/(notulen|notulensi|minutes|berita[-_ ]?acara)/i.test(name)) return 'notulensi'
+  if (/(undangan|invitation|surat[-_ ]?panggilan)/i.test(name)) return 'undangan'
+  return 'materi'
+}
+const dateLabel = (value: string | null | undefined) => {
+  if (!value) return '—'
+  const date = new Date(value + (value.length === 10 ? 'T00:00:00' : ''))
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Pontianak' })
+}
+const statusLabel: Record<ExtractionStatus, string> = {
+  pending: 'Menunggu pembacaan', completed: 'Teks berhasil dibaca', metadata_only: 'Metadata / pratinjau saja',
+  manual_review: 'Perlu pemeriksaan manual', failed: 'Pembacaan gagal',
 }
 
-const AREAS: Record<SecretariatSection, SecretariatArea> = {
-  register: {
-    title: 'Register Kegiatan',
-    description: 'Halaman register untuk menyimpan daftar kegiatan dan nomor surat. Ketika nama kegiatan dipilih, detail UMANG (Undangan, Materi, Absensi Digital, Notulensi, dan Gambar) ditampilkan sebagai bagian dari kegiatan yang sama melalui satu Meeting ID.',
-  },
-  invitations: {
-    title: 'Kirim Undangan',
-    description: 'Ruang kerja untuk menyiapkan undangan, agenda, jadwal, tempat, dan peserta, kemudian mengirimkan undangan langsung kepada user PIC unit. Setiap undangan terhubung ke kegiatan dan Meeting ID yang sama.',
-  },
-}
-export default function SecretariatWorkspace({ section }: { section: SecretariatSection }) {
-  const area = AREAS[section]
+export default function SecretariatWorkspace({
+  section, rooms = [], initialRoomId = null, lockRoomScope = false, role = null, userId = '', userName = 'Pengguna AUREKA',
+}: {
+  section: SecretariatSection
+  rooms?: Room[]
+  initialRoomId?: number | null
+  lockRoomScope?: boolean
+  role?: string | null
+  userId?: string
+  userName?: string
+}) {
+  const canManage = managerRoles.includes(role || '')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [rows, setRows] = useState<MeetingRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [search, setSearch] = useState('')
+  const [notice, setNotice] = useState<{ kind: 'success' | 'error' | 'info'; text: string } | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [draft, setDraft] = useState<RegisterDraft>(() => emptyDraft(initialRoomId))
+  const [activeMeeting, setActiveMeeting] = useState<MeetingRow | null>(null)
+  const [metadataDraft, setMetadataDraft] = useState<RegisterDraft | null>(null)
+  const [documents, setDocuments] = useState<MeetingDocument[]>([])
+  const [documentsLoading, setDocumentsLoading] = useState(false)
+  const [activeCategory, setActiveCategory] = useState<Category>('undangan')
+  const [queue, setQueue] = useState<FileQueueItem[]>([])
+  const [processingText, setProcessingText] = useState('')
+
+  const loadRegister = useCallback(async () => {
+    setLoading(true)
+    let query = db().from('pmkp_meetings').select('*').order('document_date', { ascending: false }).order('register_no', { ascending: false })
+    if (initialRoomId != null && lockRoomScope) query = query.eq('room_id', initialRoomId)
+    const { data, error } = await query
+    if (error) {
+      setRows([])
+      setNotice({ kind: 'error', text: 'Register Sekretariat belum dapat dimuat. Periksa migrasi dan hak akses Sekretariat. ' + error.message })
+    } else setRows((data || []) as MeetingRow[])
+    setLoading(false)
+  }, [initialRoomId, lockRoomScope])
+
+  useEffect(() => { void loadRegister() }, [loadRegister])
+
+  useEffect(() => {
+    if (!createOpen) setDraft(emptyDraft(initialRoomId))
+  }, [createOpen, initialRoomId])
+
+  const filteredRows = useMemo(() => rows.filter((row) => {
+    const haystack = [row.title, row.document_number || '', row.meeting_code, row.meeting_type, rooms.find((room) => room.id === row.room_id)?.name || ''].join(' ').toLocaleLowerCase('id-ID')
+    const matchesSearch = haystack.includes(search.trim().toLocaleLowerCase('id-ID'))
+    const matchesSection = section === 'invitations' ? /undangan/i.test(row.meeting_type) : true
+    return matchesSearch && matchesSection
+  }), [rows, rooms, search, section])
+
+  const loadDocuments = useCallback(async (meetingId: string) => {
+    setDocumentsLoading(true)
+    const { data, error } = await db().from('pmkp_meeting_documents').select('*').eq('meeting_id', meetingId).order('uploaded_at', { ascending: false })
+    if (error) {
+      setDocuments([])
+      setNotice({ kind: 'error', text: 'Daftar berkas UMANG belum dapat dimuat. ' + error.message })
+      setDocumentsLoading(false)
+      return
+    }
+    const mapped = await Promise.all(((data || []) as MeetingDocument[]).map(async (doc) => {
+      if (doc.document_type !== 'gambar') return doc
+      const { data: signed } = await aurekaSupabase.storage.from(doc.bucket_id || bucket).createSignedUrl(doc.object_path, 3600)
+      return { ...doc, preview_url: signed?.signedUrl || null }
+    }))
+    setDocuments(mapped)
+    setDocumentsLoading(false)
+  }, [])
+
+  const openDocuments = async (row: MeetingRow) => {
+    setActiveMeeting(row)
+    setMetadataDraft({
+      title: row.title || '', document_date: row.document_date || row.meeting_date || today(),
+      document_number: row.document_number || '', meeting_type: row.meeting_type || 'Kegiatan',
+      room_id: row.room_id == null ? '' : String(row.room_id),
+    })
+    setQueue([])
+    setActiveCategory('undangan')
+    setNotice(null)
+    await loadDocuments(row.id)
+  }
+
+  const closeDocuments = () => {
+    setActiveMeeting(null)
+    setMetadataDraft(null)
+    setDocuments([])
+    setQueue([])
+    setNotice(null)
+  }
+
+  const createRegister = async () => {
+    if (!canManage || !userId) return
+    if (draft.title.trim().length < 2) {
+      setNotice({ kind: 'error', text: 'Judul dokumen atau kegiatan minimal dua karakter.' })
+      return
+    }
+    if (!draft.document_date) {
+      setNotice({ kind: 'error', text: 'Tanggal dokumen wajib diisi.' })
+      return
+    }
+    const selectedRoom = draft.room_id ? Number(draft.room_id) : null
+    if (lockRoomScope && initialRoomId == null) {
+      setNotice({ kind: 'error', text: 'Unit kerja belum dipilih untuk pencatatan Sekretariat.' })
+      return
+    }
+    if (draft.room_id && !Number.isFinite(selectedRoom)) {
+      setNotice({ kind: 'error', text: 'Unit kerja tidak valid.' })
+      return
+    }
+    setBusy(true)
+    try {
+      const { data, error } = await db().from('pmkp_meetings').insert({
+        title: draft.title.trim(),
+        document_date: draft.document_date,
+        document_number: draft.document_number.trim() || null,
+        meeting_type: draft.meeting_type,
+        meeting_date: draft.document_date,
+        room_id: selectedRoom,
+        organizer: userName,
+        created_by: userId,
+        status: 'planned',
+      }).select('*').single()
+      if (error) throw error
+      const created = data as MeetingRow
+      setCreateOpen(false)
+      await loadRegister()
+      await openDocuments(created)
+      setNotice({ kind: 'success', text: 'Register berhasil dibuat. Unggah dokumen melalui pop-up Isi Dokumen.' })
+    } catch (error) {
+      setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'Register Sekretariat gagal dibuat.' })
+    } finally { setBusy(false) }
+  }
+
+  const saveMetadata = async () => {
+    if (!activeMeeting || !metadataDraft || !canManage) return
+    if (!metadataDraft.title.trim() || !metadataDraft.document_date) {
+      setNotice({ kind: 'error', text: 'Judul dan tanggal dokumen wajib diisi.' })
+      return
+    }
+    setBusy(true)
+    try {
+      const { data, error } = await db().from('pmkp_meetings').update({
+        title: metadataDraft.title.trim(),
+        document_date: metadataDraft.document_date,
+        document_number: metadataDraft.document_number.trim() || null,
+        meeting_type: metadataDraft.meeting_type,
+        meeting_date: metadataDraft.document_date,
+        updated_at: new Date().toISOString(),
+      }).eq('id', activeMeeting.id).select('*').single()
+      if (error) throw error
+      setActiveMeeting(data as MeetingRow)
+      await loadRegister()
+      setNotice({ kind: 'success', text: 'Metadata register diperbarui.' })
+    } catch (error) {
+      setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'Metadata register gagal disimpan.' })
+    } finally { setBusy(false) }
+  }
+
+  const addFiles = (files: FileList | File[], category?: Category) => {
+    const next: FileQueueItem[] = Array.from(files).map((file) => ({
+      id: crypto.randomUUID(), file, category: category || inferCategory(file), status: 'queued',
+    }))
+    if (!next.length) return
+    setQueue((current) => [...current, ...next])
+    setNotice({ kind: 'info', text: next.length === 1 ? '1 berkas ditambahkan ke antrean pembacaan.' : next.length + ' berkas ditambahkan. Periksa kategori otomatis sebelum memproses.' })
+  }
+
+  const processQueue = async () => {
+    if (!activeMeeting || !metadataDraft || !canManage || !queue.some((item) => item.status === 'queued')) return
+    setBusy(true)
+    let registerMeta = { ...metadataDraft }
+    let savedCount = 0
+    let errors = 0
+    const pending = queue.filter((item) => item.status === 'queued')
+    for (const item of pending) {
+      setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'processing', message: 'Mengunggah dan membaca…' } : x))
+      setProcessingText('Memproses ' + item.file.name)
+      try {
+        const mime = fileMime(item.file)
+        if (item.file.size < 1 || item.file.size > maxBytes) throw new Error('Ukuran berkas harus 1 byte sampai 15 MB.')
+        const allowed = ['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/csv','text/plain','image/png','image/jpeg','image/webp','image/gif']
+        const extension = item.file.name.toLowerCase().split('.').pop() || ''
+        if (!allowed.includes(mime) && !['pdf','docx','xlsx','csv','txt','png','jpg','jpeg','webp','gif'].includes(extension)) throw new Error('Format file tidak didukung.')
+        const root = activeMeeting.room_id == null ? 'global' : String(activeMeeting.room_id)
+        const path = root + '/' + activeMeeting.id + '/' + item.category + '/' + crypto.randomUUID() + '-' + safeName(item.file.name)
+        const { error: uploadError } = await aurekaSupabase.storage.from(bucket).upload(path,item.file,{contentType:mime,cacheControl:'3600',upsert:false})
+        if (uploadError) throw uploadError
+        const checksum = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await item.file.arrayBuffer()))).map((value) => value.toString(16).padStart(2,'0')).join('')
+        const { data: parsed, error: parseError } = await aurekaSupabase.functions.invoke('aureka-secretariat-parse',{
+          body:{meeting_id:activeMeeting.id,document_type:item.category,storage_path:path,file_name:item.file.name,mime_type:mime,size_bytes:item.file.size},
+        })
+        const parser = parsed as ParserResult | null
+        const metadata = parser?.parsed_metadata || null
+        const extracted = parser?.extracted_text || ''
+        const extractionStatus: ExtractionStatus = parseError ? 'failed' : parser?.extraction_status || 'failed'
+        const insertPayload = {
+          meeting_id:activeMeeting.id,
+          document_type:item.category,
+          title:metadata?.document_title || item.file.name,
+          bucket_id:bucket,
+          object_path:path,
+          mime_type:mime,
+          file_size_bytes:item.file.size,
+          sha256:checksum,
+          uploaded_by:userId,
+          original_filename:item.file.name,
+          extracted_text:extracted,
+          parsed_metadata:metadata || {},
+          extraction_engine:parser?.extraction_engine || 'AUREKA Deterministic Secretariat Reader v1',
+          extraction_status:extractionStatus,
+          document_date:metadata?.document_date || null,
+          document_number:metadata?.document_number || null,
+          document_title:metadata?.document_title || item.file.name,
+          extraction_error:parseError?.message || null,
+        }
+        const { error: insertError } = await db().from('pmkp_meeting_documents').insert(insertPayload)
+        if (insertError) throw insertError
+        savedCount++
+        if (metadata) {
+          if (metadata.document_date && (!registerMeta.document_date || registerMeta.document_date === activeMeeting.document_date)) registerMeta.document_date = String(metadata.document_date)
+          if (metadata.document_number && !registerMeta.document_number) registerMeta.document_number = String(metadata.document_number)
+          const parsedTitle = String(metadata.document_title || '')
+          if (parsedTitle && (!registerMeta.title || registerMeta.title === activeMeeting.title)) registerMeta.title = parsedTitle
+        }
+        setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'done', message: parseError ? 'File tersimpan; pembacaan perlu ditinjau.' : statusLabel(extractionStatus) } : x))
+      } catch (error) {
+        errors++
+        setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'error', message: error instanceof Error ? error.message : 'Gagal diproses.' } : x))
+      }
+    }
+    if (savedCount > 0 && (registerMeta.document_date !== metadataDraft.document_date || registerMeta.document_number !== metadataDraft.document_number || registerMeta.title !== metadataDraft.title)) {
+      setMetadataDraft(registerMeta)
+      const { data, error } = await db().from('pmkp_meetings').update({
+        document_date: registerMeta.document_date, meeting_date: registerMeta.document_date,
+        document_number: registerMeta.document_number.trim() || null, title: registerMeta.title,
+        updated_at: new Date().toISOString(),
+      }).eq('id', activeMeeting.id).select('*').single()
+      if (!error && data) setActiveMeeting(data as MeetingRow)
+      else if (error) setNotice({ kind: 'error', text: 'Berkas berhasil disimpan, tetapi metadata register belum diperbarui: ' + error.message })
+    }
+    await loadDocuments(activeMeeting.id)
+    await loadRegister()
+    setProcessingText('')
+    setBusy(false)
+    setNotice({ kind: errors ? 'info' : 'success', text: savedCount + ' berkas tersimpan dan dibaca. ' + errors + ' berkas gagal disimpan/dibaca. Tinjau teks hasil ekstraksi sebelum menggunakan metadata.' })
+  }
+
+  const downloadDocument = async (doc: MeetingDocument) => {
+    const { data, error } = await aurekaSupabase.storage.from(doc.bucket_id || bucket).download(doc.object_path)
+    if (error || !data) { setNotice({ kind: 'error', text: error?.message || 'File tidak ditemukan.' }); return }
+    const url = URL.createObjectURL(data)
+    const anchor = document.createElement('a')
+    anchor.href = url; anchor.download = doc.original_filename || doc.title
+    document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url)
+  }
+
+  const currentDocs = documents.filter((doc) => doc.document_type === activeCategory)
+  const totalDocs = documents.length
+  const currentType = categories.find((item) => item.id === activeCategory)
 
   return (
-    <section className="govWorkspace" aria-label="Sekretariat">
+    <section className="secWorkspace" aria-label="Sekretariat">
       <WorkspaceModuleHeader
         eyebrow="Governance & Organization"
         title="Sekretariat"
-        description="Administrasi rapat terintegrasi. Undangan, materi, absensi, notulensi, dokumentasi, rekomendasi, dan tindak lanjut dirancang terhubung melalui satu Meeting ID."
+        description="Register dokumen kegiatan dengan satu Meeting ID. Berkas Undangan, Materi, Absensi Digital, Notulensi, dan Gambar dibaca secara deterministik tanpa API AI eksternal."
       />
+      <div className="secToolbar">
+        <div><span className="secEyebrow">{section === 'invitations' ? 'ADMINISTRASI UNDANGAN' : 'REGISTER DOKUMEN'}</span><h2>{section === 'invitations' ? 'Register Undangan' : 'Register Sekretariat'}</h2><p>Setiap baris mewakili satu dokumen/kegiatan. Isi dokumen dibuka melalui pop-up pada baris yang sama.</p></div>
+        {canManage&&<button type="button" className="secPrimaryButton" onClick={()=>setCreateOpen(true)}>+ Tambah Register</button>}
+      </div>
+      {notice&&!activeMeeting&&<div className={'secNotice secNotice-'+notice.kind} role="status">{notice.text}<button type="button" aria-label="Tutup pesan" onClick={()=>setNotice(null)}>×</button></div>}
+      <div className="secSummary"><div><span>Total Register</span><strong>{filteredRows.length}</strong></div><div><span>Undangan</span><strong>{rows.filter((row)=>/undangan/i.test(row.meeting_type)).length}</strong></div><div><span>Kegiatan / Pelatihan</span><strong>{rows.filter((row)=>!/undangan/i.test(row.meeting_type)).length}</strong></div></div>
+      <div className="secTablePanel">
+        <div className="secTableToolbar"><div><h3>Daftar Dokumen</h3><span>{section === 'invitations' ? 'Dokumen undangan' : 'Seluruh dokumen kegiatan sekretariat'}</span></div><input aria-label="Cari register sekretariat" type="search" placeholder="Cari judul, nomor atau jenis…" value={search} onChange={(event)=>setSearch(event.target.value)}/></div>
+        {loading?<div className="secEmpty">Memuat register Sekretariat…</div>:filteredRows.length===0?<div className="secEmpty"><strong>Belum ada register.</strong><p>Gunakan Tambah Register untuk mulai mencatat dokumen dan kegiatan.</p></div>:<div className="secTableScroll"><table className="secTable"><thead><tr><th>No</th><th>Tanggal Dokumen</th><th>Nomor Dokumen</th><th>Judul Dokumen</th><th>Jenis Dokumen</th><th>Isi Dokumen</th></tr></thead><tbody>
+          {filteredRows.map((row)=><tr key={row.id}>
+            <td className="secNo">{row.register_no}</td>
+            <td>{dateLabel(row.document_date)}</td>
+            <td>{row.document_number||<span className="secMuted">Belum diekstrak</span>}</td>
+            <td><strong>{row.title}</strong><small>{row.meeting_code}{row.room_id!=null?' · '+(rooms.find((room)=>room.id===row.room_id)?.name||'Unit '+row.room_id):' · Seluruh RS'}</small></td>
+            <td><span className="secTypePill">{row.meeting_type}</span></td>
+            <td><button type="button" className="secOpenButton" onClick={()=>void openDocuments(row)}>Buka Isi Dokumen</button></td>
+          </tr>)}
+        </tbody></table></div>}
+      </div>
+      <p className="secPrivacyNote"><strong>Penyimpanan:</strong> berkas asli berada di Supabase Storage privat. Register menyimpan metadata, teks hasil ekstraksi, dan hasil pembacaan terstruktur agar pencarian serta pelaporan ringan. Tidak ada isi berkas yang dikirim ke API AI eksternal.</p>
 
-      <section className="rmPanel govWorkspace" aria-labelledby="secretariat-area-title">
-        <div className="rmSectionHead">
-          <div>
-            <span className="rmEyebrow">Sekretariat</span>
-            <h3 id="secretariat-area-title">{area.title}</h3>
-            <p>{area.description}</p>
+      {createOpen&&<div className="secModalBackdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!busy)setCreateOpen(false)}}>
+        <section className="secModal secCreateModal" role="dialog" aria-modal="true" aria-labelledby="sec-create-title">
+          <header className="secModalHeader"><div><span className="secEyebrow">SEKRETARIAT</span><h2 id="sec-create-title">Tambah Register Dokumen</h2><p>Nomor register dibuat otomatis oleh database.</p></div><button type="button" aria-label="Tutup" onClick={()=>setCreateOpen(false)} disabled={busy}>×</button></header>
+          <div className="secFormGrid">
+            <label>Tanggal Dokumen<input type="date" value={draft.document_date} onChange={(e)=>setDraft((old)=>({...old,document_date:e.target.value}))}/></label>
+            <label>Nomor Dokumen<input value={draft.document_number} onChange={(e)=>setDraft((old)=>({...old,document_number:e.target.value}))} placeholder="Diisi manual atau dibaca otomatis dari berkas"/></label>
+            <label className="secSpan2">Judul Dokumen<input value={draft.title} onChange={(e)=>setDraft((old)=>({...old,title:e.target.value}))} placeholder="Judul kegiatan atau dokumen"/></label>
+            <label>Jenis Dokumen<select value={draft.meeting_type} onChange={(e)=>setDraft((old)=>({...old,meeting_type:e.target.value}))}>{registerTypes.map((type)=><option key={type}>{type}</option>)}</select></label>
+            {!lockRoomScope&&<label>Unit Kerja<select value={draft.room_id} onChange={(e)=>setDraft((old)=>({...old,room_id:e.target.value}))}><option value="">Seluruh Rumah Sakit</option>{rooms.map((room)=><option key={room.id} value={room.id}>{room.name}</option>)}</select></label>}
+            {lockRoomScope&&<label>Unit Kerja<input value={rooms.find((room)=>room.id===initialRoomId)?.name||'Unit aktif'} disabled/></label>}
           </div>
-        </div>
+          <footer className="secModalFooter"><button type="button" className="secSecondaryButton" onClick={()=>setCreateOpen(false)} disabled={busy}>Batal</button><button type="button" className="secPrimaryButton" onClick={()=>void createRegister()} disabled={busy}>{busy?'Menyimpan…':'Simpan dan Isi Dokumen'}</button></footer>
+        </section>
+      </div>}
 
-        <AsyncStatePanel
-          state="empty"
-          title="Pencatatan Sekretariat belum diaktifkan"
-          description="Struktur menu dan navigasi sudah tersedia, tetapi penyimpanan undangan, berkas materi, absensi, notulensi, dan foto belum terhubung ke backend. Tidak ada data contoh atau catatan rapat fiktif yang ditampilkan. Aktivasi pencatatan memerlukan desain tabel, penyimpanan berkas, hak akses, serta audit trail khusus."
-        />
-
-        <div className="workspaceClinicalDisclaimer" role="note">
-          <strong>Prinsip integrasi data.</strong> Satu kegiatan rapat menggunakan satu Meeting ID untuk menghubungkan undangan, materi, absensi, notulensi, dokumentasi, rekomendasi, dan tindak lanjut. Dokumen terkendali seperti SK, SPO, pedoman, kebijakan, dan formulir tetap berada pada kelompok Dokumen Terkendali, bukan di Sekretariat.
-        </div>
-      </section>
+      {activeMeeting&&metadataDraft&&<div className="secModalBackdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!busy)closeDocuments()}}>
+        <section className="secModal secDocumentsModal" role="dialog" aria-modal="true" aria-labelledby="sec-document-title">
+          <header className="secModalHeader"><div><span className="secEyebrow">MEETING ID · {activeMeeting.meeting_code}</span><h2 id="sec-document-title">Isi Dokumen — {activeMeeting.title}</h2><p>Unggah kelima kategori sekaligus atau satu per satu. Setiap berkas dibaca otomatis tanpa API AI eksternal.</p></div><button type="button" aria-label="Tutup pop-up isi dokumen" onClick={closeDocuments} disabled={busy}>×</button></header>
+          <div className="secMetadataEditor">
+            <label>Tanggal Dokumen<input type="date" value={metadataDraft.document_date} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,document_date:e.target.value}):old)}/></label>
+            <label>Nomor Dokumen<input value={metadataDraft.document_number} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,document_number:e.target.value}):old)} placeholder="Otomatis dari hasil pembacaan"/></label>
+            <label>Judul Dokumen<input value={metadataDraft.title} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,title:e.target.value}):old)}/></label>
+            <label>Jenis Dokumen<select value={metadataDraft.meeting_type} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,meeting_type:e.target.value}):old)}>{registerTypes.map((type)=><option key={type}>{type}</option>)}</select></label>
+            {canManage&&<button type="button" className="secSecondaryButton" onClick={()=>void saveMetadata()} disabled={busy}>Simpan Metadata</button>}
+          </div>
+          {notice&&<div className={'secNotice secNotice-'+notice.kind} role="status">{notice.text}<button type="button" aria-label="Tutup pesan" onClick={()=>setNotice(null)}>×</button></div>}
+          <div className="secUploadAll">
+            <div><strong>Unggah banyak berkas sekaligus</strong><span>Pengenalan kategori awal memakai nama file/ekstensi. Periksa kategori sebelum memproses.</span></div>
+            <button type="button" className="secPrimaryButton" onClick={()=>fileInputRef.current?.click()} disabled={!canManage||busy}>Pilih Beberapa Berkas</button>
+            <input ref={fileInputRef} type="file" multiple hidden accept=".pdf,.docx,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.webp,.gif,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain,image/*" onChange={(e)=>{if(e.target.files)addFiles(e.target.files);e.currentTarget.value=''}}/>
+          </div>
+          {queue.length>0&&<div className="secQueue"><div className="secQueueHead"><strong>Antrean berkas ({queue.length})</strong><button type="button" className="secTextButton" onClick={()=>setQueue((old)=>old.filter((item)=>item.status==='processing'||item.status==='done'))} disabled={busy}>Hapus antrean belum diproses</button></div>
+            {queue.map((item)=><div className="secQueueItem" key={item.id}><span className="secQueueStatus">{item.status==='done'?'✓':item.status==='error'?'!':item.status==='processing'?'…':'•'}</span><div><strong>{item.file.name}</strong><small>{(item.file.size/1024/1024).toFixed(2)} MB {item.message?' · '+item.message:''}</small></div><select aria-label={'Kategori '+item.file.name} value={item.category} onChange={(e)=>setQueue((old)=>old.map((x)=>x.id===item.id?{...x,category:e.target.value as Category}:x))} disabled={busy||item.status==='done'}>{categories.map((cat)=><option key={cat.id} value={cat.id}>{cat.label}</option>)}</select></div>)}
+            <div className="secQueueFooter"><span>{processingText||'Periksa kategori dokumen sebelum pembacaan.'}</span><button type="button" className="secPrimaryButton" onClick={()=>void processQueue()} disabled={busy||!queue.some((item)=>item.status==='queued')}>{busy?'Memproses…':'Unggah dan Baca '+queue.filter((item)=>item.status==='queued').length+' Berkas'}</button></div>
+          </div>}
+          <nav className="secCategoryTabs" role="tablist" aria-label="Kategori isi dokumen">
+            {categories.map((cat)=>{const count=documents.filter((doc)=>doc.document_type===cat.id).length;return <button key={cat.id} type="button" role="tab" aria-selected={activeCategory===cat.id} className={activeCategory===cat.id?'active':''} onClick={()=>setActiveCategory(cat.id)}><span>{cat.label}</span><b>{count}</b></button>})}
+          </nav>
+          <section className="secCategoryPanel" aria-label={currentType?.label}>
+            <div className="secCategoryHead"><div><h3>{currentType?.label}</h3><p>{currentType?.hint}</p></div><label className="secUploadButton">+ Tambah Berkas<input type="file" multiple hidden accept=".pdf,.docx,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.webp,.gif,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain,image/*" disabled={!canManage||busy} onChange={(e)=>{if(e.target.files)addFiles(e.target.files,activeCategory);e.currentTarget.value=''}}/></label></div>
+            {documentsLoading?<div className="secEmpty">Memuat isi dokumen…</div>:currentDocs.length===0?<div className="secEmpty">Belum ada berkas pada kategori {currentType?.label}. Unggah berkas di sini atau melalui pilihan beberapa berkas di atas.</div>:<div className="secDocumentList">{currentDocs.map((doc)=><article className="secDocumentCard" key={doc.id}>
+              <div className="secDocumentTop"><div><strong>{doc.document_title||doc.title}</strong><small>{doc.original_filename||doc.title} · {(Number(doc.file_size_bytes||0)/1024/1024).toFixed(2)} MB · {dateLabel(doc.document_date||null)}</small></div><span className={'secExtractionStatus secStatus-'+doc.extraction_status}>{statusLabel[doc.extraction_status]||doc.extraction_status}</span></div>
+              {doc.document_type==='gambar'&&doc.preview_url&&<img className="secImagePreview" src={doc.preview_url} alt={doc.document_title||doc.title} loading="lazy"/>}
+              <div className="secDocumentMeta">{doc.document_number&&<span>Nomor: {doc.document_number}</span>}{doc.parsed_metadata?.attendance_row_count!=null&&<span>Baris peserta terdeteksi: {String(doc.parsed_metadata.attendance_row_count)}</span>}{doc.extraction_engine&&<span>{doc.extraction_engine}</span>}</div>
+              {doc.extraction_error&&<p className="secWarningText">{doc.extraction_error}</p>}
+              {Array.isArray(doc.parsed_metadata?.notes)&&<p className="secMuted">{(doc.parsed_metadata.notes as string[]).join(' ')}</p>}
+              {doc.extracted_text&&<details className="secExtractedText"><summary>Lihat teks hasil pembacaan ({doc.extracted_text.length.toLocaleString('id-ID')} karakter)</summary><pre>{doc.extracted_text}</pre></details>}
+              <div className="secDocumentActions"><button type="button" className="secTextButton" onClick={()=>void downloadDocument(doc)}>Unduh Berkas Asli</button><span>Diupload {dateLabel(doc.uploaded_at)}</span></div>
+            </article>)}</div>}
+          </section>
+          <footer className="secModalFooter"><span>{totalDocs} berkas terhubung ke Meeting ID ini</span><button type="button" className="secPrimaryButton" onClick={closeDocuments}>Selesai</button></footer>
+        </section>
+      </div>}
     </section>
   )
 }
