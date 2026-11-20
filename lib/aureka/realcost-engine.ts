@@ -192,7 +192,8 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
       componentCount++
       components.set(item.key, (components.get(item.key) ?? 0) + amount)
       const billingAmount = row.billing_group[item.billingKey]
-      if (billingAmount != null && Math.abs(finite(billingAmount) - amount) > 1) {
+      const hasBillingGroup = Object.keys(row.billing_group ?? {}).length > 0
+      if (hasBillingGroup && (billingAmount == null || Math.abs(finite(billingAmount) - amount) > 1)) {
         billingMismatchCount++
       }
     }
@@ -200,7 +201,7 @@ export function analyzeRealcostEpisodes(rows: RealcostEpisode[]): RealcostDashbo
       componentMismatchCount++
       componentMismatchAmount += componentTotal - tarifRs
     }
-    if (row.billing_group_total_tarif_rs != null && Math.abs(finite(row.billing_group_total_tarif_rs) - tarifRs) > 1) {
+    if (row.billing_group_total_tarif_rs == null || Math.abs(finite(row.billing_group_total_tarif_rs) - tarifRs) > 1) {
       c2TarifMismatchCount++
     }
     if (Math.abs(finite(row.total_tarif) - (tarifInacbg + finite(row.tarif_poli_eks))) > 1) {
