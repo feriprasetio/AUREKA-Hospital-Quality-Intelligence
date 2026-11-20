@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('Sekretariat is registered inside Governance & Organization with a canonical route', () => {
+test('Sekretariat is owned by PMKP and remains visibly disabled until its backend is ready', () => {
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeClient.tsx')
   assert.ok(registry.includes("id:'secretariat', label:'Sekretariat', group:'governance'"))
@@ -12,7 +12,9 @@ test('Sekretariat is registered inside Governance & Organization with a canonica
   assert.ok(registry.includes("routeHash:'#sekretariat'"))
   assert.ok(registry.includes('requiredRoles:GOVERNANCE_ROLES'))
   const qualityDomain = home.slice(home.indexOf("{id:'quality_risk'"), home.indexOf("{id:'performance_management'"))
-  assert.ok(qualityDomain.includes("id:'secretariat',label:'Sekretariat',moduleId:'secretariat'"))
+  assert.ok(qualityDomain.includes("id:'secretariat',label:'Sekretariat',moduleId:'secretariat',childId:'invitations',status:'planned'"))
+  assert.ok(home.includes("disabled={item.status==='planned'}"))
+  assert.ok(home.includes("if(item.status==='planned')return"))
   assert.ok(home.includes("'sekretariat':'secretariat'"))
 })
 

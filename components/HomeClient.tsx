@@ -86,7 +86,7 @@ const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[]=[
   {id:'quality_indicators',label:'Indikator Mutu',moduleId:'quality',childId:'quality-overview'},
   {id:'patient_safety',label:'Keselamatan Pasien',moduleId:'safety',childId:'overview'},
   {id:'risk_management',label:'Manajemen Risiko',moduleId:'risk',childId:'overview'},
-  {id:'secretariat',label:'Sekretariat',moduleId:'secretariat',childId:'invitations'},
+  {id:'secretariat',label:'Sekretariat',moduleId:'secretariat',childId:'invitations',status:'planned',note:'Penyimpanan backend Sekretariat belum diaktifkan'},
   {id:'annual_program',label:'Program Kerja Tahunan',moduleId:'analytics',childId:'programs'},
   {id:'recommendations',label:'Rekomendasi dan Rencana Tindak Lanjut',moduleId:'analytics',childId:'recommendations'},
  ]},
