@@ -5,7 +5,7 @@ type PatientIndexSummary = { total: number; kunjungan_berulang: number; dengan_n
 type Props = { onOpenDirectory: () => void }
 const number = (value: unknown) => Number(value ?? 0).toLocaleString('id-ID')
 const percent = (value: number, total: number) => total > 0 ? Math.round(value / total * 100) : 0
-export default function PatientRegistryIntelligence({ onOpenDirectory, onOpenPatterns, onAskNara }: Props) {
+export default function PatientRegistryIntelligence({ onOpenDirectory }: Props) {
   const [summary, setSummary] = useState<PatientIndexSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
