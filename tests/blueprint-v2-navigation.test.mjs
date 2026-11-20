@@ -87,6 +87,10 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(app.includes("if(section==='usulan-indikator'){\n     setActive('analytics');setProgramTab('programs')"))
   assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
+  assert.ok(app.includes("const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace')"))
+  assert.ok(app.includes(":active==='clinical'&&qualityOpen?<ClinicalDeathAuditWorkspace"))
+  assert.ok(!app.includes(":active==='clinical'&&qualityOpen?<QualityIndicatorWorkspace"))
+
 })
 
 test('Program navigation combines stakeholder recommendations and RTL into one workspace', () => {
