@@ -44,7 +44,7 @@ test('Register Pasien exposes only Direktori and Pola Perawatan; Riwayat Episode
   assert.match(home, /patients:\[\]/)
   assert.match(home, /registryTab=\{patientsRegistryTab\} onRegistryTabChange=\{setPatientsRegistryTab\}/)
   assert.match(home, /patientsRegistryTab==='directory'\?'direktori-pasien':patientsRegistryTab==='analysis'\?'pola-perawatan':'ikhtisar'/)
-  assert.match(home, /patientView==='rekapan-pasien'?'directory':'overview'/)
+  assert.match(home, /patientView==='rekapan-pasien'\?'directory':'overview'/)
   assert.doesNotMatch(home, /patientsRegistryTab==='records'|childId==='records'/)
   assert.doesNotMatch(home, /id:'records',label:'Rekapan Episode'/)
   assert.ok(navigationRegistry.includes("{ id:'patient_directory', label:'Direktori Pasien', moduleId:'patients', childId:'overview' }"))
