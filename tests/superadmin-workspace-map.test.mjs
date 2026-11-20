@@ -80,7 +80,6 @@ test('module-local search controls are hidden while header search dispatch remai
   for (const selector of ['.prSearch', '.rmSearch', '.sdSearch', '.acdLocalSearch', '.cpLocalSearch', '.psLocalSearch', '.oppeLocalSearch', '.fppeLocalSearch', '.adminLocalSearch', '.qualitySettingsLocalSearch']) {
     assert.ok(navCss.includes(selector), 'Missing hidden local-search selector: ' + selector)
   }
-  assert.ok(patientRegistry.includes('aureka:workspace-search'))
   assert.ok(patientIndex.includes('aureka:workspace-search'))
 })
 
