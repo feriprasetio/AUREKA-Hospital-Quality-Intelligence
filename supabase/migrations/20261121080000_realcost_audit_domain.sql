@@ -301,11 +301,14 @@ begin
         ('OBAT_KRONIS','drug_chronic_amt'),
         ('OBAT_KEMO','drug_chemo_amt')
       ) mapping(cost_key, billing_key)
-      where billing_group ? mapping.billing_key
-        and abs(
-          coalesce((cost_components ->> mapping.cost_key)::numeric, 0)
-          - coalesce((billing_group ->> mapping.billing_key)::numeric, 0)
-        ) > 1
+      where jsonb_object_length(billing_group) > 0
+        and (
+          not (billing_group ? mapping.billing_key)
+          or abs(
+            coalesce((cost_components ->> mapping.cost_key)::numeric, 0)
+            - coalesce((billing_group ->> mapping.billing_key)::numeric, 0)
+          ) > 1
+        )
     )
   )
   select jsonb_build_object(
