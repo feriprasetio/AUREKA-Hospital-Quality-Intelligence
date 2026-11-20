@@ -70,7 +70,7 @@ test('IT workbook upload is visible from the main quality audit workspace', () =
   const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
   assert.ok(qualityBranch.includes('qualityLogbookResultsStack'), 'main Audit Indikator Mutu workspace must retain the integrated logbook/results layout')
   assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?initialContainer=\{qualityInitialContainer\} showContainerTabs=\{false\}/)
-  assert.match(qualityBranch, /<QualityResultsWorkspace[\\s\\S]*?mode="indicators"/)
+  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
   assert.doesNotMatch(qualityBranch, /hidePatientEpisodeEntry|patientRegistryMode/)
 })
 test('Rekam Medis 2026 workbook import is available from the main quality audit workspace', () => {
@@ -84,7 +84,7 @@ test('Rekam Medis 2026 workbook import is available from the main quality audit 
   const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
   assert.ok(qualityBranch.includes('qualityLogbookResultsStack'), 'main Audit Indikator Mutu workspace must retain the integrated logbook/results layout')
   assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?initialContainer=\{qualityInitialContainer\} showContainerTabs=\{false\}/)
-  assert.match(qualityBranch, /<QualityResultsWorkspace[\\s\\S]*?mode="indicators"/)
+  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
   assert.doesNotMatch(qualityBranch, /hidePatientEpisodeEntry|patientRegistryMode/)
 })
 test('Timkordik 2026 workbook import is available from the main quality audit workspace', () => {
@@ -98,7 +98,7 @@ test('Timkordik 2026 workbook import is available from the main quality audit wo
   const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
   assert.ok(qualityBranch.includes('qualityLogbookResultsStack'), 'main Audit Indikator Mutu workspace must retain the integrated logbook/results layout')
   assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?initialContainer=\{qualityInitialContainer\} showContainerTabs=\{false\}/)
-  assert.match(qualityBranch, /<QualityResultsWorkspace[\\s\\S]*?mode="indicators"/)
+  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
   assert.doesNotMatch(qualityBranch, /hidePatientEpisodeEntry|patientRegistryMode/)
 })
 
