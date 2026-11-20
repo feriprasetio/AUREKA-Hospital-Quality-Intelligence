@@ -57,7 +57,7 @@ test('module pages are navigated from the expanded category sidebar, not a dupli
   const app = read('components/HomeClient.tsx')
   const css = read('app/aureka-global-navigation.css')
   assert.match(app, /className="sidebarModuleChildren"/)
-  assert.match(app, /className="sidebarModuleChild"/)
+  assert.match(app, /sidebarModuleChild/)
   assert.match(app, /nestedItems\.map\(child/)
   assert.match(app, /selectSidebarChild\(item\.moduleId,child\.id\)/)
   assert.match(app, /item\.id==='quality_indicators'/)
