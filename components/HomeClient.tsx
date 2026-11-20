@@ -78,7 +78,7 @@ const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[]=[
   {id:'nara_ai',label:'NARA AI',moduleId:'nara'},
  ]},
  {id:'patient_registry',label:'Register Pasien',icon:'patients',items:[
-  {id:'patient_directory',label:'Direktori Pasien',moduleId:'patients',childId:'directory'},
+  {id:'patient_directory',label:'Direktori Pasien',moduleId:'patients',childId:'overview'},
   {id:'patient_patterns',label:'Pola Perawatan',moduleId:'patients',childId:'analysis'},
  ]},
  {id:'clinical_performance',label:'Peningkatan Kinerja Klinis',icon:'clinical',items:[
@@ -87,7 +87,7 @@ const AUREKA_SIDEBAR_DOMAINS:AurekaSidebarDomain[]=[
   {id:'clinical_death',label:'Audit Klinis dan Kematian',moduleId:'clinical',childId:'audit-clinical-death'},
  ]},
  {id:'quality_patient_safety',label:'Peningkatan Mutu dan Keselamatan Pasien',icon:'quality',items:[
-  {id:'secretariat',label:'Sekretariat · Administrasi Kegiatan',moduleId:'secretariat',childId:'invitations',status:'planned',note:'Tampilan dan navigasi tersedia; backend register kegiatan belum diaktifkan.'},
+  {id:'secretariat',label:'Sekretariat · Administrasi Kegiatan',moduleId:'secretariat',childId:'invitations',note:'Workspace sudah dapat dibuka; penyimpanan backend register kegiatan belum diaktifkan.'},
   {id:'annual_program',label:'Program Kerja Tahunan',moduleId:'analytics',childId:'programs'},
   {id:'quality_indicators',label:'Indikator Mutu',moduleId:'quality',childId:'quality-overview'},
   {id:'patient_safety',label:'Keselamatan Pasien',moduleId:'safety',childId:'overview'},
@@ -341,7 +341,7 @@ export default function HomeClient(){
     setSecretariatSection(sectionMap[section||'']||'invitations')
    }
    if(next==='clinical'){setQualityInitialContainer('Audit Clinical Pathway');setClinicalPathwayOpen(true);setQualityOpen(false)}
-   if(next==='quality'){setSpmOpen(false);setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);if(role==='DEWAN_PENGAWAS'&&permissionFlags.readQualityAggregate){setQualityResultsView('indicators');setQualityResultsGroup('unit');setQualityOpen(false)}else{setQualityResultsView(null);setQualityOpen(true)}}
+   if(next==='quality'){setSpmOpen(false);setQualityInitialContainer('Audit Indikator Mutu');setClinicalPathwayOpen(false);if(role==='DEWAN_PENGAWAS'&&permissionFlags.readQualityAggregate){setQualityResultsView('indicators');setQualityResultsGroup('unit');setQualityOpen(false)}else{setQualityResultsView(null);setQualityOpen(false)}}
       if(next==='settings')setSettingsSection((section==='audit-log'?'audit':['profile','security','users','units','appearance','system','permissions','mydata'].includes(section)?section:'profile') as SettingsSection)
    if(next==='patients'){
     if(['statistik','stats'].includes(section||'')){setActive('insights');return}
@@ -381,7 +381,7 @@ export default function HomeClient(){
   if(view!=='workspace'||!routeReady||typeof window==='undefined')return
   let hash='#beranda'
   if(active==='quality'&&qualityProfileOpen)hash='#indikator-mutu/profil-indikator'
-  if(active==='quality')hash=spmOpen?'#indikator-mutu/spm':qualityReconciliationOpen?'#indikator-mutu/rekonsiliasi':qualityMonitorOpen?'#indikator-mutu/monitoring':(qualityResultsView?'#indikator-mutu/hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):'#indikator-mutu/form-logbook')
+  if(active==='quality')hash=spmOpen?'#indikator-mutu/spm':qualityReconciliationOpen?'#indikator-mutu/rekonsiliasi':qualityMonitorOpen?'#indikator-mutu/monitoring':(qualityResultsView?'#indikator-mutu/hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):qualityOpen?'#indikator-mutu/form-logbook':'#indikator-mutu')
   else if(active==='clinical'){const audit=qualityResultsView==='pathway'||clinicalPathwayOpen?'clinical-pathway':'audit-klinis-dan-kematian';hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')}
   else{
    const routes:Record<string,string>={home:'#beranda',nara:'#nara-ai',patients:'#pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',insights:'#analitik',analytics:'#program',staff:'#sumber-daya-manusia',secretariat:'#sekretariat',settings:'#pengaturan'}
@@ -451,7 +451,7 @@ export default function HomeClient(){
   .map(domain=>({...domain,items:domain.items.filter(item=>{
    if(item.requiredRoles&&!item.requiredRoles.includes((role||'') as AurekaRole))return false
    if(item.status==='planned')return true
-   if(item.moduleId==='home')return true
+   if(item.moduleId==='home'||item.moduleId==='nara')return true
    if(!visibleModuleIds.has(item.moduleId))return false
    if(item.moduleId==='staff'){
     if(['directory','team'].includes(item.childId||''))return permissionFlags.readDirectory
@@ -466,7 +466,7 @@ export default function HomeClient(){
   const child=item.childId||''
   if(item.moduleId==='home')return active==='home'
   if(item.moduleId==='nara')return active==='nara'
-  if(item.moduleId==='patients')return child==='directory'?patientsRegistryTab==='directory':child==='analysis'?patientsRegistryTab==='analysis':false
+  if(item.moduleId==='patients')return child==='overview'?patientsRegistryTab==='overview':child==='directory'?patientsRegistryTab==='directory':child==='analysis'?patientsRegistryTab==='analysis':false
   if(item.moduleId==='clinical')return child==='audit-pathway'?clinicalPathwayOpen:child==='audit-clinical-death'?qualityOpen:false
   if(item.moduleId==='quality'){
    if(child==='spm')return spmOpen
@@ -700,7 +700,7 @@ export default function HomeClient(){
  const activeNavPrimaryId=activeNestedNavGroup?.id||activeNavSelectedId
  const activeNavSecondaryId=activeNavModuleId==='patients'?patientsRegistryTab:(activeNestedNavGroup?activeNavSelectedId:'')
  const activeRailSubItems=activeNavModuleId==='patients'
-  ? [{id:'directory',label:'Direktori Pasien',hint:'Daftar pasien unik yang terindeks dari logbook'},{id:'analysis',label:'Pola Perawatan',hint:'ICD-10, length of stay, readmisi dan pola pelayanan'}]
+  ? [{id:'overview',label:'Visual Intelligence',hint:'Ikhtisar Direktori Pasien dan keterhubungan data'},{id:'directory',label:'Daftar Pasien',hint:'Daftar pasien unik yang terindeks dari logbook'},{id:'analysis',label:'Pola Perawatan',hint:'ICD-10, length of stay, readmisi dan pola pelayanan'}]
   : (activeNestedNavGroup?.children||[]).map(item=>({...item,hint:NAV_HINTS[item.label]}))
  const activeRailItemsHinted=activeRailItems.map(item=>({...item,hint:NAV_HINTS[item.label]}))
  const activePageHint=NAV_HINTS[(activeRailSubItems.find(item=>item.id===activeNavSecondaryId)||activeNavGroups.find(group=>group.id===activeNavPrimaryId))?.label||'']
