@@ -106,7 +106,7 @@ test('indicator and clinical audit domains have separate navigation and canonica
   assert.ok(app.includes("setActive('quality');setQualityProfileOpen(true)"))
   assert.ok(app.includes("<QualitySettingsWorkspace rooms={roomsList} initialTab=\"profiles\" showTabs={false}"))
   assert.ok(app.includes("const QualitySettingsWorkspace=dynamic(()=>import('@/components/QualitySettings')"))
-  assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView?'/hasil-capaian':'')"))
+  assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView&&!realcostAuditOpen?'/hasil-capaian':'')"))
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
   assert.ok(app.includes("const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace')"))
   assert.ok(app.includes(":active==='clinical'&&qualityOpen?<ClinicalDeathAuditWorkspace"))
