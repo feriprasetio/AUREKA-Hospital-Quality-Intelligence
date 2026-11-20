@@ -10,15 +10,16 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
  * cek permission di server, minta tujuan akses, lalu catat ke audit log.
  * Jika verifikasi izin, konfigurasi tujuan, atau pencatatan audit gagal, data sensitif tidak ditampilkan.
  */
-type AccessType = 'patient_identity' | 'patient_profile' | 'incident_investigation' | 'survey_named_response' | 'hr_performance' | 'data_export'
+type AccessType = 'patient_identity' | 'patient_profile' | 'incident_investigation' | 'survey_named_response' | 'hr_performance' | 'data_export' | 'realcost_detail'
 const PERMISSION: Record<AccessType, string> = {
   patient_identity: 'patient.read.identifiable', patient_profile: 'patient.read.identifiable',
   incident_investigation: 'incident.read.investigation_detail', survey_named_response: 'survey.read.named_response',
-  hr_performance: 'hr.read.performance', data_export: 'data.export.sensitive',
+  hr_performance: 'hr.read.performance', data_export: 'data.export.sensitive', realcost_detail: 'realcost.read.detail',
 }
 const LABEL: Record<AccessType, string> = {
   patient_identity: 'Melihat identitas pasien', patient_profile: 'Melihat identitas pasien', incident_investigation: 'Melihat rincian investigasi',
   survey_named_response: 'Melihat respons survei bernama', hr_performance: 'Melihat OPPE/FPPE', data_export: 'Mengekspor data sensitif',
+  realcost_detail: 'Melihat rincian episode dan komponen biaya Realcost',
 }
 let purposeCache: { type: string; purpose: string; at: number } | null = null
 
