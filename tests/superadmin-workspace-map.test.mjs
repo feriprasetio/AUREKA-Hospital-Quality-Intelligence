@@ -41,7 +41,7 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
 
 test('sidebar renders seven role-filtered categories from the central registry and contains no legacy tree menu', () => {
   const registry = read('lib/aureka/module-registry.ts')
-  assert.ok(home.includes('aria-label="Tujuh kategori utama AUREKA"'))
+  assert.ok(home.includes('aria-label="Delapan kategori utama AUREKA"'))
   assert.ok(home.includes('visibleSidebarDomains.map(domain=>'))
   for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
   assert.ok(home.includes('aria-expanded={isExpanded}'))
