@@ -62,7 +62,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
     const text=[r.title,r.document_number||'',r.approval_name||'',...(r.related_units||[])].join(' ').toLocaleLowerCase('id-ID')
     return (filter==='all'||r.status===filter)&&text.includes(search.trim().toLocaleLowerCase('id-ID'))
   }),[rows,filter,search])
-  const setField=<K extends keyof Draft>(key:K,value:Draft[K])=>setDraft(old=>({...old,[key]:value}))
+  const setField=<K extends keyof Draft,>(key:K,value:Draft[K])=>setDraft(old=>({...old,[key]:value}))
   const startManual=()=>{setSelected(null);setDraft(empty());setManual(true);setNotice({kind:'info',text:'Form SPO baru siap diisi. Anda dapat mengunggah berkas sumber atau melengkapi teks secara manual.'})}
   const openRow=(row:Row)=>{setSelected(row);setDraft(mapDraft(row));setManual(false);setNotice(null)}
   const uploadFile=async(file?:File)=>{
