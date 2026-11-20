@@ -116,6 +116,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
   const [canImport, setCanImport] = useState(false)
   const [canReadDetail, setCanReadDetail] = useState(false)
   const [canReadIdentity, setCanReadIdentity] = useState(false)
+  const [detailAccessLogged, setDetailAccessLogged] = useState(false)
   const [accessError, setAccessError] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
@@ -163,9 +164,11 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
       if (!data) {
         setLatestImport(null)
         setSummary(null)
+        setDetailAccessLogged(false)
         return
       }
       setLatestImport(data as ImportMeta)
+      setDetailAccessLogged(false)
       const { data: result, error: dashboardError } = await sb.rpc('aureka_realcost_dashboard', { p_import_id: data.id })
       if (dashboardError) throw dashboardError
       setSummary(result as RealcostDashboard)
@@ -178,6 +181,38 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
   }, [db, sb])
 
   useEffect(() => { void loadDashboard() }, [loadDashboard])
+
+  const changeDetailTab = async (next: DetailTab) => {
+    if (next === 'episodes' && canReadDetail && latestImport && !detailAccessLogged) {
+      const allowed = await requestSensitiveAccess(
+        'realcost_detail',
+        latestImport.id,
+        'Melihat daftar episode dan rincian komponen biaya Audit Realcost',
+      )
+      if (!allowed) return
+      setDetailAccessLogged(true)
+    }
+    setDetailTab(next)
+  }
+
+  const openAuditWorkspace = async () => {
+    if (latestImport && canReadDetail && !detailAccessLogged) {
+      const allowed = await requestSensitiveAccess(
+        'realcost_detail',
+        latestImport.id,
+        'Membuka rincian Audit Realcost untuk telaah episode dan komponen biaya',
+      )
+      if (allowed) {
+        setDetailAccessLogged(true)
+        setDetailTab('episodes')
+      } else {
+        setDetailTab('components')
+      }
+    } else if (!canReadDetail) {
+      setDetailTab('components')
+    }
+    setDetailMode(true)
+  }
 
   const loadDetails = useCallback(async (page = detailPage) => {
     if (!latestImport || !canReadDetail) return
@@ -410,7 +445,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
           </section>
         </>}
       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-        <button type="button" style={buttonStyle(true, loading)} disabled={loading} onClick={() => setDetailMode(true)}>Lihat Audit Realcost</button>
+        <button type="button" style={buttonStyle(true, loading)} disabled={loading} onClick={() => void openAuditWorkspace()}>Lihat Audit Realcost</button>
       </div>
     </div>
   )
@@ -658,7 +693,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
             ['inacbg', 'Analisis INA-CBG'],
             ['diagnosis', 'Diagnosis & Prosedur'],
             ['reconciliation', 'Rekonsiliasi'],
-          ] as Array<[DetailTab, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={detailTab === id} onClick={() => setDetailTab(id)} style={{
+          ] as Array<[DetailTab, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={detailTab === id} onClick={() => void changeDetailTab(id)} style={{
             ...buttonStyle(detailTab === id), minHeight: 40, padding: '8px 13px',
           }}>{label}</button>)}
         </nav>
