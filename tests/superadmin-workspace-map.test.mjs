@@ -33,7 +33,7 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes('<h2>Hasil Capaian Indikator Mutu</h2>'))
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
   assert.ok(home.includes("const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleLabel"))
-  assert.ok(home.includes('title={activeRailTitle}'))
+  assert.ok(home.includes('title={displayedRailTitle}'))
   assert.ok(home.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))
   assert.ok(home.includes('secondaryActiveId={activeNavSecondaryId}'))

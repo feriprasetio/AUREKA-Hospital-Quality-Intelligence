@@ -27,3 +27,6 @@ enabled = true
 
 [functions.aureka-tanya]
 verify_jwt = true
+
+[functions.aureka-spo-analyze]
+verify_jwt = true
