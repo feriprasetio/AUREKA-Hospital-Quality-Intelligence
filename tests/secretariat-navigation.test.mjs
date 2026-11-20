@@ -34,7 +34,7 @@ test('Sekretariat follows Administrasi Kegiatan with Register Kegiatan and Kirim
 test('Sekretariat contextual selection and deep links preserve one canonical module state', () => {
   const home = read('components/HomeClient.tsx')
   assert.ok(home.includes("if(moduleId==='secretariat')"))
-  assert.ok(home.includes('setSecretariatSection(childId as SecretariatSection)'))
+  assert.ok(home.includes("if(childId==='register'||childId==='invitations')setSecretariatSection(childId)"))
   assert.ok(home.includes("if(next==='secretariat')"))
   assert.ok(home.includes("setSecretariatSection(sectionMap[section||'']||'register')"))
   assert.ok(home.includes("secretariat:'#sekretariat'"))
