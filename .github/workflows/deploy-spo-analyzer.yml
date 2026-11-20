@@ -1,16 +1,15 @@
-name: Deploy AUREKA SPO Analyzer
+name: Manually Deploy AUREKA SPO Analyzer
+
 on:
-  push:
-    branches: [main]
-    paths:
-      - "supabase/functions/aureka-spo-analyze/**"
-      - ".github/workflows/deploy-spo-analyzer.yml"
   workflow_dispatch:
+
 permissions:
   contents: read
+
 concurrency:
   group: aureka-spo-analyzer-production
   cancel-in-progress: false
+
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
@@ -22,18 +21,24 @@ jobs:
         with:
           ref: main
           persist-credentials: false
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
+
       - name: Validate deployment credentials
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || 'ktukmjscopggkzrkgnzp' }}
         run: |
-          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::Missing SUPABASE_ACCESS_TOKEN secret"; exit 1; }
+          case "$SUPABASE_ACCESS_TOKEN" in
+            sbp_*) ;;
+            *) echo "::error::SUPABASE_ACCESS_TOKEN must be a Supabase Personal Access Token beginning with sbp_."; exit 1 ;;
+          esac
           test "$SUPABASE_PROJECT_REF" = "ktukmjscopggkzrkgnzp" || { echo "::error::Unexpected Supabase project ref"; exit 1; }
           test -f supabase/functions/aureka-spo-analyze/index.ts
+
       - name: Deploy SPO Analyzer (JWT verification enabled)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
