@@ -28,28 +28,19 @@ test('SPO records do not store file bytes',()=>{
  assert.doesNotMatch(migration,/\bbytea\b|\bblob\b/i);
  assert.match(migration,/source_storage_path text/);assert.match(migration,/procedure_steps jsonb/);assert.match(migration,/flowchart jsonb/);
 });
-test('SPO storage, table RLS and server analysis are restricted',()=>{
- for(const p of ['spo_register_read','spo_register_insert','spo_register_update','spo_source_documents_read','spo_source_documents_insert','spo_register_password_rotation'])assert.ok(migration.includes(p),p);
- assert.match(migration,/aureka_system\.current_role_code\(\)/);
- assert.match(edge,/getUser\(jwt\)/);
- assert.match(edge,/pdfjs\.getDocument/);
- assert.match(edge,/JSZip\.loadAsync/);
- assert.match(edge,/parseStructuredSPO/);
- assert.match(edge,/AUREKA Local Document Parser v1/);
- assert.doesNotMatch(edge,/GEMINI_API_KEY|generativelanguage\.googleapis\.com|openai\.com\/v1/);
- assert.match(config,/\[functions\.aureka-spo-analyze\]/);
+test('SPO legacy policies remain documented while the old edge parser is retired', () => {
+  for (const p of ['spo_register_read','spo_register_insert','spo_register_update','spo_source_documents_read','spo_source_documents_insert','spo_register_password_rotation']) assert.ok(migration.includes(p),p);
+  assert.match(migration,/aureka_system\.current_role_code\(\)/);
+  assert.match(config,/\[functions\.aureka-spo-analyze\]/);
+  assert.match(edge,/ENDPOINT_RETIRED_ZERO_FILE/);
+  assert.match(edge,/status: 410/);
+  assert.doesNotMatch(edge,/storage\.from\(|\.download\(|pdfjs|JSZip|file\.arrayBuffer/);
 });
-
-test('SPO uses deterministic PDF and DOCX extraction without external AI APIs',()=>{
- assert.match(edge,/pdfjs\.getDocument/);
- assert.match(edge,/JSZip\.loadAsync/);
- assert.match(edge,/SECTION_PATTERN/);
- assert.match(edge,/labelledValue/);
- assert.match(edge,/extracted_diagram_labels/);
- assert.doesNotMatch(edge,/GEMINI_API_KEY|generativelanguage\.googleapis\.com/);
- assert.match(workspace,/AUREKA Browser Local Document Parser v2/);
- assert.match(workspace,/parseSpoSections\(local.extractedText\)/);
- assert.doesNotMatch(workspace,/\.storage\.from\(/);
+test('SPO reads PDF/DOCX locally, preserving browser-only processing',()=>{
+  assert.match(workspace,/AUREKA Browser Local Document Parser v2/);
+  assert.match(workspace,/parseSpoSections\(local.extractedText\)/);
+  assert.match(workspace,/readLocalDocument\(file\)/);
+  assert.doesNotMatch(workspace,/\.storage\.from\(/);
 });
 
 test('SPO typography and mobile touch controls honor design accessibility baseline', async () => {
