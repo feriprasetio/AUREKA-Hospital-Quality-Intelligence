@@ -82,5 +82,4 @@ begin
   end if;
   return v_id;
 end;
-$function$
-
+$function$;
