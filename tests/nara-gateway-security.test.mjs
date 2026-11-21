@@ -36,7 +36,7 @@ test('NARA uses shared atomic per-user rate limits and fails closed before warmu
   const quotaCheck = gateway.indexOf('db.rpc("aureka_consume_user_rate_limit", { p_bucket: "tanya" })')
   const warmup = gateway.indexOf('if (body.warmup)')
   assert.ok(quotaCheck > 0 && quotaCheck < warmup)
-  assert.match(gateway, /if (\u006cimitError \|\| typeof overLimit !== "boolean")/)
+  assert.ok(gateway.includes('if (limitError || typeof overLimit !== "boolean")'))
   assert.match(gateway, /if \(overLimit\) return reply\(429/)
   assert.match(gateway, /return reply\(503, \{ error: "Pembatas permintaan sementara tidak tersedia/)
   assert.doesNotMatch(gateway, /const hits = new Map|function rateLimited\(/)
