@@ -60,9 +60,13 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
+  const visibleElements = useMemo(
+    () => CERTIFICATE_ELEMENTS.filter((item) => templateKey === 'student_orientation' || !['materials', 'program_info'].includes(item.id)),
+    [templateKey],
+  )
   const selectedLabel = useMemo(
-    () => CERTIFICATE_ELEMENTS.find((item) => item.id === selected)?.label || selected,
-    [selected],
+    () => visibleElements.find((item) => item.id === selected)?.label || selected,
+    [selected, visibleElements],
   )
 
   const load = useCallback(async () => {
@@ -198,7 +202,7 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
                 <div className="certificateEditorCorner topLeft" />
                 <div className="certificateEditorCorner bottomRight" />
 
-                {CERTIFICATE_ELEMENTS.map((element) => {
+                {visibleElements.map((element) => {
                   const point = layout[element.id]
                   const active = selected === element.id
                   const style: CSSProperties = {
@@ -255,7 +259,7 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
             </div>
             <div className="certificateEditorElementList">
               <span>Semua elemen</span>
-              {CERTIFICATE_ELEMENTS.map((element) => (
+              {visibleElements.map((element) => (
                 <button key={element.id} type="button" className={selected === element.id ? 'active' : ''} onClick={() => setSelected(element.id)}>
                   {element.label}
                   <small>{layout[element.id].x.toFixed(1)}%, {layout[element.id].y.toFixed(1)}%</small>
