@@ -1305,7 +1305,7 @@ export default function HomeClient(){
    :active==='analytics'&&programTab==='programs'?<AnnualProgramWorkspace rooms={roomsList} role={role} currentRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):(room?.id??null)}/>
    :active==='analytics'&&isGovProgramTab(programTab)?<GovernanceProgramWorkspace rooms={roomsList}/>
    :active==='analytics'?<AsyncStatePanel state="empty" title="Pilih ruang Program & RTL" description="Gunakan Program Kerja Tahunan atau Rekomendasi dan Rencana Tindak Lanjut pada navigasi Program & RTL." compact/>
-   :active==='staff'&&staffTab==='student-orientation'?<StudentOrientationWorkspace role={role} userId={user?.id||''} canManage={admin||role==='PMKP'||(role==='PIC'&&Number(room?.id)===30)}/>
+   :active==='staff'&&staffTab==='student-orientation'?<StudentOrientationWorkspace role={role} userId={user?.id||''} canManage={['ADMIN','PMKP','MANAGEMENT','KABID'].includes(role||'')}/>
    :active==='staff'&&staffTab==='pic-performance'?<PicPerformanceWorkspace/>
    :active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace key={'staff-'+staffTab} initialScreen={staffTab==='fppe'?'fppe':'overview'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
    :active==='staff'?<MetadataStatisticsWorkspace key={'staff-directory-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin&&!allRoomsScope} initialContainer="directory" initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
