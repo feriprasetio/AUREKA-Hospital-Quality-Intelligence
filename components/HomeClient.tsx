@@ -351,7 +351,7 @@ export default function HomeClient(){
   window.addEventListener('hashchange',onHashChange)
   setRouteReady(true)
   return ()=>window.removeEventListener('hashchange',onHashChange)
- },[view,role,permissionFlags.readPerformance,permissionFlags.readDirectory,permissionFlags.readPicPerformance,permissionFlags.readQualityAggregate])
+ },[view,role,room?.id,canAccessStudentOrientation,permissionFlags.readPerformance,permissionFlags.readDirectory,permissionFlags.readPicPerformance,permissionFlags.readQualityAggregate])
  useEffect(()=>{
   if(view!=='workspace'||!routeReady||typeof window==='undefined')return
   let hash='#beranda'
