@@ -325,6 +325,7 @@ export default function SecretariatWorkspace({
           title:metadata.document_title || item.file.name,
           bucket_id:null,
           object_path:null,
+          source_mode:'data_only',
           mime_type:mime,
           file_size_bytes:item.file.size,
           sha256:local.sha256,
