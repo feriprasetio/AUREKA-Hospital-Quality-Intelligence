@@ -73,7 +73,6 @@ export default function AdaptiveWorkspaceShell({
         </div>
         <details className="adaptiveWorkspacePreferences">
           <summary aria-label="Preferensi tampilan ruang kerja">
-            <span aria-hidden="true">⚙</span>
             Preferensi tampilan
           </summary>
           <div className="adaptiveWorkspacePreferencePanel">

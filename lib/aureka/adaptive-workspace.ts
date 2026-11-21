@@ -61,6 +61,7 @@ function resolveLayout(moduleId: string, label: string): AdaptiveLayoutId {
   const module = normalizeText(moduleId)
   const context = normalizeText(label)
 
+  if (includesAny(context, ['canvas editor', 'editor sertifikat', 'sertifikat'])) return 'canvas-editor'
   if (module === 'home' || module === 'insights') return 'bento-grid'
   if (module === 'nara') return 'chat-artifact'
 
