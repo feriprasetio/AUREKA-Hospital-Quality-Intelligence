@@ -18,18 +18,10 @@ const corsHeaders = {
   "Cache-Control": "no-store, max-age=0",
   "Vary": "Origin",
 };
-const hits = new Map<string, number[]>();
-
 function reply(status: number, body: unknown, origin = "") {
   const headers: Record<string, string> = { ...corsHeaders, "Content-Type": "application/json" };
   if (origin === "http://localhost:3000") headers["Access-Control-Allow-Origin"] = origin;
   return new Response(JSON.stringify(body), { status, headers });
-}
-function rateLimited(userId: string) {
-  const now = Date.now();
-  const recent = (hits.get(userId) || []).filter((t) => now - t < 60_000);
-  if (recent.length >= 5) { hits.set(userId, recent); return true; }
-  recent.push(now); hits.set(userId, recent); return false;
 }
 function base64(bytes: Uint8Array) {
   let raw = "";
@@ -164,11 +156,21 @@ Deno.serve(async (req: Request) => {
   });
   const { data: auth, error: authError } = await db.auth.getUser(jwt);
   if (authError || !auth.user) return reply(401, { error: "Sesi pengguna tidak valid." }, origin);
-  if (rateLimited(auth.user.id)) return reply(429, { error: "Batas pemrosesan dokumen 5 permintaan per menit telah tercapai." }, origin);
+  const { data: rateLimited, error: rateLimitError } = await db.rpc(
+    "aureka_consume_user_rate_limit",
+    { p_bucket: "document_ingest" },
+  );
+  if (rateLimitError || typeof rateLimited !== "boolean") {
+    console.error("document-ingest persistent rate limit", rateLimitError);
+    return reply(503, { error: "Layanan pembatasan pemrosesan dokumen sementara tidak tersedia." }, origin);
+  }
+  if (rateLimited) {
+    return reply(429, { error: "Batas pemrosesan dokumen 5 permintaan per menit telah tercapai." }, origin);
+  }
 
   const { data: profile, error: profileError } = await db.schema("aureka_system").from("user_profiles")
-    .select("is_active, role_id, must_change_password").eq("user_id", auth.user.id).maybeSingle();
-  if (profileError || !profile?.is_active || profile.must_change_password) {
+    .select("is_active, deactivated_at, role_id, must_change_password").eq("user_id", auth.user.id).maybeSingle();
+  if (profileError || !profile?.is_active || profile.deactivated_at || profile.must_change_password) {
     return reply(403, { error: "Akun tidak aktif atau masih wajib mengganti password." }, origin);
   }
   const { data: role, error: roleError } = await db.schema("aureka_system").from("app_roles")
