@@ -19,7 +19,7 @@
 5. Confirm no browser Storage uploads; examine DevTools network traffic and verify Storage object count/size is unchanged after import and export.
 6. Apply **only** `20261122181000_zero_file_storage_policies.sql`, which denies authenticated and anonymous clients INSERT/UPDATE on Storage. It does **not** remove historical files or their read privileges.
 7. Confirm upload is rejected using a test authenticated session, while all data-only imports, generated downloads, and access controls continue to work. Check security advisors and PostgREST/edge logs.
-8. Review `service_role` and Edge Functions independently: RLS does not block service roles. Old `aureka-spo-analyze`, `aureka-secretariat-parse`, and `aureka-document-ingest` accept storage paths, but new frontend paths no longer call those endpoints. Retire or replace the old worker contracts before declaring a complete zero-binary system.
+8. Review `service_role` and Edge Functions independently: RLS does not block service roles. The `aureka-document-ingest` source now indexes pre-extracted structured text and no longer reads Storage or forwards PDF bytes; redeploy that function and test authorization and knowledge indexing. The legacy `aureka-spo-analyze` and `aureka-secretariat-parse` endpoints still read historical Storage objects and must be retired or restricted separately after confirming no remaining callers.
 9. For existing documents where only a file exists and no extracted text, re-import original from an approved external source or preserve the archive in a separate institutional records system. Never claim that reconstructed files are identical to originals.
 
 ## Rollback
@@ -40,3 +40,7 @@
 - [ ] Certificate template/content are snapshotted if cryptographic print reproducibility is required.
 - [ ] Auth, unit-based RLS and audit trails remain tested.
 - [ ] Existing file retention policy is documented outside AUREKA.
+
+## Knowledge ingestion migration note
+
+The updated `aureka-document-ingest` requires a reviewed `controlled_document_versions.extracted_text` value. Versions that have only an old `object_path` must be re-imported through the browser-local reader; the worker intentionally refuses to fetch the original file. Do not enable a server-side binary fallback. The embedding service still receives extracted text: review privacy, consent, data minimization and external processor requirements before ingesting patient-related content. Source-code changes do not deploy an Edge Function automatically; publish and verify the function separately.
