@@ -185,7 +185,7 @@ begin
     raise exception 'Login diperlukan untuk menerbitkan sertifikat orientasi.'
       using errcode = '28000';
   end if;
-  if not (
+  if v_role is null or not (
     v_role in ('ADMIN', 'PMKP')
     or (v_role = 'PIC' and aureka_system.has_quality_room_access(30))
   ) then
