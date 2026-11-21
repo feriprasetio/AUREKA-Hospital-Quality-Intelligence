@@ -1,3 +1,5 @@
+import { aurekaSupabase } from '@/lib/aureka/supabase'
+
 export type LegalSignatureStamp = {
   signature_id: string
   signer_name: string
@@ -18,12 +20,9 @@ export function documentVerificationUrl(verificationCode: string, origin?: strin
   return base + normalized + '#v/' + encodeURIComponent(verificationCode)
 }
 
-/** Mengambil cap tanda tangan terotorisasi untuk ditempel oleh penerbit dokumen setelah approval selesai. */
-export async function getDocumentSignatureStamps(
-  client: { rpc: (name: string, args: Record<string, unknown>) => Promise<{data: unknown; error: {message?: string} | null}> },
-  artifactId: string,
-): Promise<LegalSignatureStamp[]> {
-  const {data,error}=await client.rpc('aureka_get_artifact_signature_stamps',{p_artifact_id:artifactId})
+/** Mengambil cap tanda tangan terotorisasi untuk ditempel penerbit ke dokumen setelah semua approval selesai. */
+export async function getDocumentSignatureStamps(artifactId: string): Promise<LegalSignatureStamp[]> {
+  const {data,error}=await aurekaSupabase.rpc('aureka_get_artifact_signature_stamps',{p_artifact_id:artifactId})
   if(error)throw new Error(error.message || 'Aset tanda tangan dokumen tidak dapat dimuat.')
   return (data || []) as LegalSignatureStamp[]
 }
