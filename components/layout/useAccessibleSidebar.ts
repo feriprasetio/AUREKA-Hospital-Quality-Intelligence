@@ -30,7 +30,7 @@ export function useAccessibleSidebar() {
   const close = useCallback(() => setIsOpen(false), [])
 
   useEffect(() => {
-    const width = window.matchMedia('(max-width: 720px)')
+    const width = window.matchMedia('(max-width: 1180px)')
     const update = () => setIsMobile(width.matches)
     update()
     width.addEventListener('change', update)
@@ -93,7 +93,7 @@ export function useAccessibleSidebar() {
     }
 
     const handleResize = () => {
-      if (window.innerWidth > 720) close()
+      if (window.innerWidth > 1180) close()
     }
 
     document.addEventListener('keydown', handleKeyDown)
