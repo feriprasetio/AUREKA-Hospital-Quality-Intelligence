@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import ExcelJS from 'exceljs-hardened'
 import {
   buildEpisodeMappings, detectEpisodeFields, inspectEpisodeWorkbook, matchEpisodeOption,
-  prepareEpisodeImport, supportsEpisodeWorkbook,
+  prepareEpisodeImport, prepareMissingEpisodeProfiles, supportsEpisodeWorkbook,
 } from '../lib/aureka/patient-episode-workbook.ts'
 import { calculateIndicatorResult } from '../lib/aureka/quality-results-engine.ts'
 
@@ -148,4 +148,53 @@ test('an unchanged workbook profile does not create a fresh version during a lat
   assert.deepEqual(next.issues, [])
   assert.deepEqual(next.profiles, [])
   assert.equal(next.rows.length, 3)
+})
+
+test('profile-only XLSX fills an empty master without a Logbook or invented answer options', () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Master Indikator')
+  sheet.addRows([
+    ['Kode indikator', 'Nama indikator', 'Arah indikator', 'Target'],
+    ['6.51', 'Kepatuhan pemeriksaan sumber', 'Positif', '≥ 90%'],
+  ])
+  const parsed = inspectEpisodeWorkbook(workbook)
+  assert.equal(parsed.hasLogbook, false)
+  assert.equal(parsed.profileSheet, 'Master Indikator')
+  const plan = prepareMissingEpisodeProfiles(parsed, [], [], 6, 'IGD Uji', 2026)
+  assert.deepEqual(plan.issues, [])
+  assert.equal(plan.profiles.length, 1)
+  assert.equal(plan.profiles[0].code, '6.51')
+  assert.equal(plan.profiles[0].target_value, 90)
+  assert.equal(plan.profiles[0].measurement_grain, 'patient_episode')
+  assert.deepEqual(plan.profiles[0].options_json, [])
+  assert.equal(plan.profiles[0].schema_json.import_requires_review, true)
+})
+
+test('auto-fill remains independent from invalid Logbook records and is idempotent', () => {
+  const book = fixture()
+  book.getWorksheet('Logbook').getCell('E3').value = 'Invalid code'
+  const parsed = inspectEpisodeWorkbook(book)
+  const plan = prepareMissingEpisodeProfiles(parsed, [], [], 6, 'IGD Uji', 2026)
+  assert.deepEqual(plan.issues, [])
+  assert.deepEqual(plan.profiles.map(profile => profile.code), ['6.10', '6.11'])
+  const unchanged = prepareMissingEpisodeProfiles(parsed, plan.profiles, [], 6, 'IGD Uji', 2026)
+  assert.equal(unchanged.profiles.length, 0)
+  assert.equal(unchanged.skipped, 2)
+})
+
+test('auto-fill refuses duplicate and cross-unit profile codes without touching published records', () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Profil')
+  sheet.addRows([
+    ['Kode indikator', 'Nama indikator'],
+    ['6.50', 'Indikator 1'],
+    ['6.50', 'Indikator 2'],
+    ['7.1', 'Indikator unit lain'],
+  ])
+  const parsed = inspectEpisodeWorkbook(workbook)
+  const plan = prepareMissingEpisodeProfiles(parsed, [], [], 6, 'IGD Uji', 2026)
+  assert.equal(plan.profiles.length, 1)
+  assert.equal(plan.issues.length, 2)
+  assert.match(plan.issues[0].message, /berulang/)
+  assert.match(plan.issues[1].message, /bukan milik unit/)
 })

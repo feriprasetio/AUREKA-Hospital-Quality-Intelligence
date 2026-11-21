@@ -42,6 +42,7 @@ export type EpisodeWorkbook = {
   workbook: Workbook
   logbook: EpisodeSheet
   profileSheet: string | null
+  hasLogbook: boolean
   entries: WorkbookProfile[]
 }
 
@@ -393,14 +394,95 @@ function profileEntries(sheet: Worksheet, logbook: EpisodeSheet, groups: Map<str
 export function inspectEpisodeWorkbook(workbook: Workbook, roomDateField?: string): EpisodeWorkbook {
   const sheet = workbook.worksheets.find(item => normalize(item.name) === 'logbook')
     ?? workbook.worksheets.find(item => /^logbook\b/.test(normalize(item.name)))
-  if (!sheet) throw new Error('Sheet Logbook tidak ditemukan.')
-  const logbook = detectLogbook(sheet, roomDateField)
-  if (!logbook.columns.length) throw new Error('Header sheet Logbook tidak ditemukan.')
   const profile = workbook.worksheets.find(item => ['profil', 'profil indikator', 'profil indikator mutu', 'master indikator'].includes(normalize(item.name)))
+  if (!sheet && !profile) throw new Error('Sheet Logbook atau Profil/Master Indikator tidak ditemukan.')
+  // A profile-only workbook can seed the empty master without any patient rows.
+  const logbook: EpisodeSheet = sheet ? detectLogbook(sheet, roomDateField) :
+    { sheet: profile!, header: 0, columns: [] }
+  if (sheet && !logbook.columns.length) throw new Error('Header sheet Logbook tidak ditemukan.')
   return {
-    workbook, logbook, profileSheet: profile?.name ?? null,
+    workbook, logbook, profileSheet: profile?.name ?? null, hasLogbook: Boolean(sheet),
     entries: profile ? profileEntries(profile, logbook, readOptionsSheet(workbook)) : [],
   }
+}
+
+/**
+ * Derive only *missing* patient-episode indicator profiles from the workbook.
+ * This path deliberately does not depend on valid Logbook rows, nor does it
+ * invent clinical answer choices or numerator/denominator definitions.
+ * The server repeats all security and uniqueness checks transactionally.
+ */
+export function prepareMissingEpisodeProfiles(
+  book: EpisodeWorkbook, active: EpisodeProfile[], reference: EpisodeProfile[],
+  roomId: number, roomName: string, year: number,
+) {
+  const issues: WorkbookIssue[] = []
+  const profiles: EpisodeProfile[] = []
+  const seen = new Set<string>()
+  const activeCodes = new Set(active.map(profile => normalizeCode(profile.code)))
+  let skipped = 0
+  let needsReview = 0
+  for (const entry of book.entries) {
+    const code = clean(entry.code)
+    const title = clean(entry.title)
+    const key = normalizeCode(code)
+    const location = (book.profileSheet ?? 'Profil') + ' · baris ' + entry.row
+    if (!code || !title) {
+      issues.push({ location, message: 'Kode dan nama indikator wajib tersedia untuk mengisi master otomatis.' })
+      continue
+    }
+    if (code.length > 120 || title.length > 500) {
+      issues.push({ location, message: 'Kode atau nama indikator terlalu panjang.' })
+      continue
+    }
+    const codedRoom = /^(\d+)\./.exec(code)
+    if (codedRoom && Number(codedRoom[1]) !== roomId) {
+      issues.push({ location, message: 'Kode ' + code + ' bukan milik unit ' + roomId + '.' })
+      continue
+    }
+    if (seen.has(key)) {
+      issues.push({ location, message: 'Kode ' + code + ' berulang pada sheet Profil.' })
+      continue
+    }
+    seen.add(key)
+    if (activeCodes.has(key)) { skipped++; continue }
+    const baseline = reference.find(profile => normalizeCode(profile.code) === key &&
+      profile.measurement_grain === 'patient_episode')
+    const schema: Record<string, unknown> = {
+      ...(baseline?.schema_json ?? {}), ...(entry.metadata.schema_json ?? {}),
+      episode_workbook_profile: true, source_profile_sheet: book.profileSheet,
+      response_capture_mode: 'categorical',
+    }
+    const sourceColumn = declaredSourceIndex(entry.source, book.logbook.columns) ||
+      (entry.sourceColumns.length === 1 ? entry.sourceColumns[0] : 0) ||
+      matchColumn(book.logbook.columns, [title, code, baseline?.title])
+    const dropdownOptions = book.hasLogbook ? optionsFromValidation(book, sourceColumn) : []
+    const options = entry.options.length ? entry.options :
+      dropdownOptions.length ? dropdownOptions : normalizeOptions(baseline?.options_json)
+    const direction = entry.direction || directionValue(schema.indicator_direction)
+    if (direction) schema.indicator_direction = direction
+    if (!options.length || !direction || !schema.measurement_type) {
+      schema.import_requires_review = true
+      needsReview++
+    }
+    const metadata = entry.metadata
+    profiles.push({
+      profile_year: year, room_id: roomId, unit_name: roomName, code, title,
+      indicator_type: metadata.indicator_type ?? baseline?.indicator_type ?? null,
+      category: metadata.category ?? baseline?.category ?? null,
+      unit_of_measure: metadata.unit_of_measure ?? baseline?.unit_of_measure ?? null,
+      target_text: metadata.target_text ?? baseline?.target_text ?? null,
+      target_operator: metadata.target_operator ?? baseline?.target_operator ?? '=',
+      target_value: metadata.target_value ?? baseline?.target_value ?? null,
+      numerator_definition: metadata.numerator_definition ?? baseline?.numerator_definition ?? null,
+      denominator_definition: metadata.denominator_definition ?? baseline?.denominator_definition ?? null,
+      measurement_grain: 'patient_episode', schema_json: schema, options_json: options,
+    })
+  }
+  if (profiles.length > 250) issues.push({
+    location: 'Profil', message: 'Maksimal 250 indikator baru dapat diisi dalam satu unggahan.',
+  })
+  return { profiles, issues, skipped, needsReview }
 }
 
 export function isWorkbookCodedProfile(profile: EpisodeProfile) {

@@ -6,7 +6,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import {
   EPISODE_WORKBOOK_IMPORTER, buildEpisodeMappings, detectEpisodeFields, inspectEpisodeWorkbook,
-  overrideEpisodeLogbookHeader, prepareEpisodeImport, workbookSha256,
+  overrideEpisodeLogbookHeader, prepareEpisodeImport, prepareMissingEpisodeProfiles, workbookSha256,
   type EpisodeColumn, type EpisodeFields, type EpisodeProfile, type EpisodeWorkbook, type ProfileMapping,
 } from '@/lib/aureka/patient-episode-workbook'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -80,6 +80,7 @@ export default function PatientEpisodeWorkbookDialog({
   const [preview, setPreview] = useState<Preview | null>(null)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
+  const [autofillNotice, setAutofillNotice] = useState('')
   const running = useRef(false)
   const aliases = year === 2026 ? (unitAliases as Record<string, Record<string, string>>)[roomId] ?? {} : {}
 
@@ -104,6 +105,7 @@ export default function PatientEpisodeWorkbookDialog({
     if (running.current) return
     setFile(null)
     setMappings([])
+    setAutofillNotice('')
     invalidatePreview()
     if (!/\.xlsx$/i.test(input.name) || input.size === 0 || input.size > fileLimit) {
       setError('Pilih berkas .xlsx dengan ukuran maksimal 25 MB.')
@@ -125,12 +127,51 @@ export default function PatientEpisodeWorkbookDialog({
       const parsed = inspectEpisodeWorkbook(workbook, dateField)
       const next = { name: input.name, hash: await workbookSha256(bytes), parsed, profiles, reference,
         saved: Array.isArray(saved.data?.mappings) ? saved.data.mappings as SavedMapping[] : [] }
-      const useProfiles = admin && parsed.entries.length > 0
-      setApplyProfiles(useProfiles)
+      // Missing profiles are created independently of Logbook validation.
+      // Never switch to destructive whole-set replacement as a side effect of uploading.
+      setApplyProfiles(false)
       setFile(next)
-      initializeColumns(next, useProfiles)
+      initializeColumns(next, false)
       if (parsed.profileSheet && !parsed.entries.length) {
         setError('Sheet Profil belum terbaca. Periksa kolom nama, kode, dan sumber indikator.')
+      } else if (parsed.entries.length > 0) {
+        const plan = prepareMissingEpisodeProfiles(parsed, profiles, reference, roomId, roomName, year)
+        if (plan.issues.length) {
+          setError('Master belum diubah: ' + plan.issues.slice(0, 5).map(issue =>
+            issue.location + ': ' + issue.message).join(' | '))
+        } else if (plan.profiles.length && admin) {
+          setBusy('Mengisi master/profil indikator yang belum tersedia…')
+          const { data, error: fillError } = await quality().rpc('autofill_missing_indicator_profiles', {
+            p_room_id: roomId, p_profile_year: year, p_profiles: plan.profiles,
+          })
+          if (fillError) throw fillError
+          const result = data as { inserted_profiles?: number; skipped_existing?: number } | null
+          const inserted = Number(result?.inserted_profiles ?? NaN)
+          if (!Number.isInteger(inserted) || inserted < 0) {
+            throw new Error('Server belum mengonfirmasi jumlah profil yang disimpan.')
+          }
+          setAutofillNotice(inserted.toLocaleString('id-ID') +
+            ' profil indikator baru otomatis tersimpan; ' +
+            (plan.skipped + Number(result?.skipped_existing ?? 0)).toLocaleString('id-ID') +
+            ' profil yang sudah ada tidak ditimpa.' +
+            (plan.needsReview ? ' ' + plan.needsReview + ' profil memerlukan verifikasi definisi/opsi sebelum pengukuran.' : ''))
+          const latest = await fetchProfiles(roomId, year, admin)
+          const refreshed = { ...next, profiles: latest }
+          setFile(refreshed)
+          initializeColumns(refreshed, false)
+          window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', {
+            detail: { year, scopeRoomId: roomId },
+          }))
+        } else if (plan.profiles.length && !admin) {
+          setAutofillNotice('Workbook memuat ' + plan.profiles.length +
+            ' indikator belum tersedia. Hanya Superadmin yang dapat membuat master; minta Superadmin mengunggah workbook ini.')
+        } else {
+          setAutofillNotice('Semua ' + plan.skipped + ' profil dari workbook sudah ada di master; tidak ada profil yang ditimpa.')
+        }
+      }
+      if (!parsed.hasLogbook) {
+        setAutofillNotice(previous => previous + (previous ? ' ' : '') +
+          'Workbook profil saja: tidak perlu data Logbook untuk mengisi master.')
       }
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook belum dapat dibaca. Periksa berkas dan koneksi, lalu coba lagi.' }))
@@ -159,7 +200,7 @@ export default function PatientEpisodeWorkbookDialog({
   }
 
   async function buildPreview() {
-    if (!file || running.current) return
+    if (!file || !file.parsed.hasLogbook || running.current) return
     running.current = true
     invalidatePreview()
     setBusy('Memeriksa episode…')
@@ -268,7 +309,7 @@ export default function PatientEpisodeWorkbookDialog({
     onClose={onClose} closeDisabled={!!busy}
     footer={<div className="episodeWorkbookActions">
       <button type="button" disabled={!!busy} onClick={onClose}>Tutup</button>
-      <button type="button" disabled={!file || !!busy} onClick={() => void buildPreview()}>Pratinjau</button>
+      <button type="button" disabled={!file?.parsed.hasLogbook || !!busy} onClick={() => void buildPreview()}>Pratinjau Logbook</button>
       <button type="button" className="episodeWorkbookPrimary" disabled={!!busy || !preview?.rows.length || !!preview?.issues.length} onClick={() => void runImport()}>{labelImport}</button>
     </div>}>
     <div className="episodeWorkbook">
@@ -282,16 +323,13 @@ export default function PatientEpisodeWorkbookDialog({
           {!file && onLegacyImport && <button type="button" onClick={onLegacyImport}>Buka impor khusus unit</button>}
         </div>
         {file && <>
-          <p className="episodeWorkbookMeta">{file.name} · {file.parsed.logbook.sheet.name} · header baris {file.parsed.logbook.header}
+          <p className="episodeWorkbookMeta">{file.name} · {file.parsed.hasLogbook
+            ? file.parsed.logbook.sheet.name + ' · header baris ' + file.parsed.logbook.header
+            : 'Workbook Profil tanpa Logbook'}
             {file.parsed.profileSheet && <> · {file.parsed.profileSheet}: {file.parsed.entries.length} indikator episode</>}
           </p>
-          {admin && file.parsed.entries.length > 0 && <label className="episodeWorkbookCheck">
-            <input type="checkbox" checked={applyProfiles} onChange={event => {
-              setApplyProfiles(event.target.checked)
-              initializeColumns(file, event.target.checked)
-            }}/> Terapkan profil workbook
-          </label>}
-          <details open={!fields.date || !(fields.mrn || fields.episode) || undefined}>
+          {!!file.parsed.entries.length && <p className="episodeWorkbookMeta">Profil yang belum tersedia di master otomatis dibuat oleh Superadmin; profil yang sudah aktif tidak diganti.</p>}
+          {file.parsed.hasLogbook && <details open={!fields.date || !(fields.mrn || fields.episode) || undefined}>
             <summary>Identitas episode dan header Logbook</summary>
             <div className="episodeWorkbookHeaderRow">
               <label>Baris judul kolom<input type="number" min={1} value={matchingHeader} onChange={event => setMatchingHeader(event.target.value)}/></label>
@@ -304,8 +342,8 @@ export default function PatientEpisodeWorkbookDialog({
                   invalidatePreview()
                 }}/>)}
             </div>
-          </details>
-          <section className="episodeWorkbookMappings" aria-label="Pemetaan profil ke Logbook">
+          </details>}
+          {file.parsed.hasLogbook && <section className="episodeWorkbookMappings" aria-label="Pemetaan profil ke Logbook">
             <h4>Kolom respons 1, 2, 3 <span>{selectedCount} dari {mappings.length} dipetakan</span></h4>
             {!mappings.length && <p role="status">{admin ? 'Belum ada profil episode. Unggah workbook dengan sheet Profil yang memuat kode dan nama indikator.' : 'Belum ada profil episode aktif. Hubungi Superadmin untuk menerapkan profil workbook.'}</p>}
             {mappings.map(mapping => <div className="episodeWorkbookMapping" key={mapping.key}>
@@ -324,9 +362,10 @@ export default function PatientEpisodeWorkbookDialog({
               <ColumnSelect label={'Kolom Logbook · ' + (mapping.code || mapping.title)}
                 value={mapping.column} columns={columns} onChange={value => updateMapping(mapping.key, { column: value })}/>
             </div>)}
-          </section>
+          </section>}
         </>}
       </fieldset>
+      {autofillNotice && <p className="episodeWorkbookSuccess" role="status">{autofillNotice}</p>}
       {!!busy && <p className="episodeWorkbookMeta" role="status">{busy}</p>}
       {error && <p className="episodeWorkbookError" role="alert">{error}</p>}
       {preview && (preview.issues.length ? <div className="episodeWorkbookError" role="alert">
