@@ -192,7 +192,6 @@ export default function HomeClient(){
   }catch{}
  },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id,allRoomsScope])
  const mobileSidebar=useAccessibleSidebar()
- const [workspacePresentationTarget,setWorkspacePresentationTarget]=useState<HTMLDivElement|null>(null)
  const sidebarButtonLabel=mobileSidebar.isMobile?'Buka menu navigasi':sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'
  useEffect(()=>{
   if(typeof document==='undefined')return
@@ -1076,7 +1075,7 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="arktik" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed ':'')+(MOBILE_WORKSPACE_TABS?'mobileWorkspaceTabsEnabled':'')}>
+ if(view==='workspace')return <main data-aureka-theme="arktik" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed ':'')+(MOBILE_WORKSPACE_TABS?'mobileWorkspaceTabsEnabled':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
  {typeof document!=='undefined'&&createPortal(
@@ -1162,7 +1161,6 @@ export default function HomeClient(){
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
    </div>
-   <div className="workspacePresentationSlot" ref={setWorkspacePresentationTarget}/>
    <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceNaraButton" title="Buka NARA AI" aria-label="Buka NARA AI" onClick={()=>active==='nara'?openMainModule('nara'):openNaraWithContext('Analisis halaman '+currentContainer+' pada cakupan '+(activeWorkspaceRoom?.name||room?.name||'unit yang diizinkan')+'. Gunakan hanya data AUREKA yang tersedia dan diizinkan oleh role saya. Sajikan ringkasan, tren, anomali, sumber dan periode data, keterbatasan, serta rekomendasi prioritas. Jangan menampilkan identitas pasien, jangan mengubah data, dan tandai bagian yang memerlukan verifikasi manusia.',activeNavModuleLabel+' · '+currentContainer)}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span className="srOnly">NARA AI</span>
    </button>
@@ -1237,7 +1235,7 @@ export default function HomeClient(){
    onSelect={id=>selectContextualTab(id,true)}
    onSubSelect={selectContextualTab}
   />}
-   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer} userId={user?.id||''} controlTarget={workspacePresentationTarget}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
+   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer} userId={user?.id||''}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
    {!routeReady?<WorkspaceSkeleton label="AUREKA"/>:active==='home'?<>
     <HomeLandingWorkspace availableModules={[...visibleModuleIds]} supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} isAdmin={admin} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'||(manager&&!admin)?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??null} roomName={role==='DEWAN_PENGAWAS'||(manager&&!admin)||admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??room?.name??'Unit aktif'} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} onAskNara={openNaraWithContext} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){if(id==='clinicalPathway')navigateWorkspace('clinical','audit-pathway');else if(id==='rtl')navigateWorkspace('analytics','recommendations');else if(id==='logbook')navigateWorkspace('quality','audit-indicators');else navigateWorkspace(id,f&&'tab' in f?f.tab:'',f?{...f,nonce:Date.now()}:null)}}}/>
     {['ADMIN','PMKP','DIREKTUR','MANAGEMENT'].includes(role||'')&&<details className="aurekaPublishDisclosure"><summary>Kelola publikasi landing page Aureka <span>Verifikasi, persetujuan dan transparansi data</span></summary><PublicPublicationDesk role={role} userId={user?.id||''}/></details>}
