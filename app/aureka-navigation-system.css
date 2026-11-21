@@ -58,6 +58,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > 
 
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger {
   display: block !important;
+  pointer-events: auto !important;
   width: 100% !important;
   min-width: 0 !important;
   margin: 0 !important;
@@ -66,6 +67,8 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > 
 
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .sidebarDomainTrigger > button {
   display: grid !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
   grid-template-columns: 20px minmax(0, 1fr) 16px !important;
   align-items: center !important;
   gap: 8px !important;

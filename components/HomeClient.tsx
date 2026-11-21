@@ -491,9 +491,12 @@ export default function HomeClient(){
   return match?.id||(active==='home'?'command_center':'')
  },[visibleSidebarDomains,active,patientsRegistryTab,clinicalPathwayOpen,realcostAuditOpen,qualityOpen,qualityProfileOpen,qualityMonitorOpen,qualityReconciliationOpen,qualityResultsView,spmOpen,spoOpen,safetyTab,riskTab,secretariatSection,settingsSection,programTab,staffTab,analyticsDirectoryTab])
  const effectiveExpandedDomain=expandedDomain===null?activeDomainId:expandedDomain
+ // Keep the active category open when navigation changes outside the sidebar.
+ useEffect(()=>{if(activeDomainId)setExpandedDomain(activeDomainId)},[activeDomainId])
  const selectDomainDestination=(domainId:string,item:AurekaSidebarDomain['items'][number])=>{
   if(item.status==='planned')return
   setExpandedDomain(domainId)
+  mobileSidebar.close()
   if(item.moduleId==='home'){openMainModule('home');return}
   openMainModule(item.moduleId,true)
   if(item.childId)selectSidebarChild(item.moduleId,item.childId)
