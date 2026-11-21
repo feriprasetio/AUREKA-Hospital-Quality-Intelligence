@@ -1,5 +1,6 @@
 'use client'
 import { supportsEpisodeWorkbook } from '@/lib/aureka/patient-episode-workbook'
+import { aggregateRoomOverviewCounts } from '@/lib/aureka/room-overview'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import AurekaModal from '@/components/ui/AurekaModal'
 
@@ -576,14 +577,18 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   }
   let cancelled=false
   setRoomOverviewBusy(true)
-  Promise.all(rooms.map(async room=>{
-   try{
-    const {count,error}=await q().from('quality_records').select('id',{count:'exact',head:true})
-     .eq('room_id',room.id).eq('profile_year',year).neq('status','archived')
+  // Avoid 37 simultaneous PostgREST COUNT requests against quality_records.
+  // The existing aggregate RPC checks auth and room scope on the server.
+  sb.rpc('aureka_quality_room_month_counts',{p_year:year,p_grain:null})
+   .then(({data,error})=>{
     if(error)throw error
-    return {roomId:Number(room.id),records:count??0}
-   }catch{return {roomId:Number(room.id),records:null}}
-  })).then(rows=>{if(!cancelled)setRoomOverview(rows)}).finally(()=>{if(!cancelled)setRoomOverviewBusy(false)})
+    if(!cancelled)setRoomOverview(aggregateRoomOverviewCounts(rooms,data??[]))
+   })
+   .catch(()=>{
+    // RPC error is unknown, not a claim that an entire room has zero records.
+    if(!cancelled)setRoomOverview(rooms.map(room=>({roomId:Number(room.id),records:null})))
+   })
+   .finally(()=>{if(!cancelled)setRoomOverviewBusy(false)})
   return()=>{cancelled=true}
  },[isAdmin,initialRoomId,roomId,rooms,year])
  const canImportWorkbook=isAdmin||canViewAllRooms
