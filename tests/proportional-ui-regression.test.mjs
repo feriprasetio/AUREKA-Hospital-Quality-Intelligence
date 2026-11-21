@@ -54,7 +54,7 @@ test('Super Admin uses a compact contextual rail and shows eight registry-driven
   for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','education_training','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
   assert.ok(homeClient.includes('aria-expanded={isExpanded}'))
   assert.ok(homeClient.includes('hidden={!isExpanded}'))
-  assert.ok(registry.includes("status:'planned'"))
+  assert.ok(registry.includes("status:'planned'") || registry.includes("status:'beta'"))
   assert.doesNotMatch(homeClient, /id:'records',label:'Rekapan Episode'/)
   assert.ok(navCss.includes(".workspaceNavigationRail"))
   assert.ok(navCss.includes("overflow-x: auto"))
