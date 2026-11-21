@@ -44,6 +44,9 @@ test('orientation participant and certificate records reuse the existing AUREKA 
   assert.ok(migration.includes('complete_student_orientation_certificate'))
   assert.ok(migration.includes('can_manage_education()'))
   assert.ok(migration.includes('can_access_room_or_global(30)'))
+  assert.ok(!migration.includes('education_participants_orientation_role_check'))
+  assert.ok(!migration.includes('education_participants_orientation_materials_check'))
+  assert.ok(!migration.includes('education_participants_orientation_notes_check'))
   assert.ok(!migration.includes('create table if not exists aureka_quality.student_orientation_records'))
   assert.ok(!migration.includes('patient_index'))
 })
@@ -57,4 +60,12 @@ test('certificate PDF is generated and saved to private export storage with SHA-
   assert.ok(workspace.includes("createSignedUrl(objectPath, 600)"))
   assert.ok(migration.includes("bucket_id = 'aureka-exports'"))
   assert.ok(migration.includes("p_file_sha256"))
+})
+
+
+test('follow-up migration removes globally scoped orientation checks from shared education participants', () => {
+  const migration = read('supabase/migrations/20261121130000_student_orientation_constraint_scope.sql')
+  assert.ok(migration.includes('drop constraint if exists education_participants_orientation_role_check'))
+  assert.ok(migration.includes('drop constraint if exists education_participants_orientation_materials_check'))
+  assert.ok(migration.includes('drop constraint if exists education_participants_orientation_notes_check'))
 })
