@@ -1,5 +1,6 @@
 'use client'
 import { supportsEpisodeWorkbook } from '@/lib/aureka/patient-episode-workbook'
+import { aggregateRoomOverviewCounts } from '@/lib/aureka/room-overview'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import AurekaModal from '@/components/ui/AurekaModal'
 
@@ -563,6 +564,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [roomId,setRoomId]=useState<number|null>(()=>defaultAuditRoomId(rooms,initialRoomId,isAdmin))
  const [roomOverview,setRoomOverview]=useState<{roomId:number;records:number|null}[]>([])
  const [roomOverviewBusy,setRoomOverviewBusy]=useState(false)
+ // Parents may pass a new rooms array identity every render; only semantic
+ // room changes should trigger an aggregate refetch.
+ const roomKey=rooms.map(r=>r.id+':'+r.name).join('|')
  const [excelMappingOpen,setExcelMappingOpen]=useState(false)
  useEffect(()=>{
   const incoming=normalizeRoomIdValue(initialRoomId)
@@ -576,16 +580,22 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   }
   let cancelled=false
   setRoomOverviewBusy(true)
-  Promise.all(rooms.map(async room=>{
+  // Avoid 37 simultaneous PostgREST COUNT requests against quality_records.
+  // The existing aggregate RPC checks auth and room scope on the server.
+  void (async()=>{
    try{
-    const {count,error}=await q().from('quality_records').select('id',{count:'exact',head:true})
-     .eq('room_id',room.id).eq('profile_year',year).neq('status','archived')
+    const {data,error}=await sb.rpc('aureka_quality_room_month_counts',{p_year:year,p_grain:null})
     if(error)throw error
-    return {roomId:Number(room.id),records:count??0}
-   }catch{return {roomId:Number(room.id),records:null}}
-  })).then(rows=>{if(!cancelled)setRoomOverview(rows)}).finally(()=>{if(!cancelled)setRoomOverviewBusy(false)})
+    if(!cancelled)setRoomOverview(aggregateRoomOverviewCounts(rooms,data??[]))
+   }catch{
+    // RPC error is unknown, not a claim that an entire room has zero records.
+    if(!cancelled)setRoomOverview(rooms.map(room=>({roomId:Number(room.id),records:null})))
+   }finally{
+    if(!cancelled)setRoomOverviewBusy(false)
+   }
+  })()
   return()=>{cancelled=true}
- },[isAdmin,initialRoomId,roomId,rooms,year])
+ },[isAdmin,initialRoomId,roomId,roomKey,year])
  const canImportWorkbook=isAdmin||canViewAllRooms
  const canImportOutpatientWorkbook=canImportWorkbook||(!isValidator&&Number(initialRoomId)===11)
  useEffect(()=>{
@@ -675,8 +685,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
 
- // Kunci stabil: induk sering mengirim array rooms baru (hasil filter) di setiap render; tanpa ini logbook dimuat ulang terus-menerus.
- const roomKey=rooms.map(r=>r.id+':'+r.name).join('|')
+ // Shared semantic room key also prevents duplicate overview RPC requests.
  // eslint-disable-next-line react-hooks/exhaustive-deps
  const roomMap=useMemo(()=>new Map(rooms.map(r=>[Number(r.id),r.name])),[roomKey])
  const activeLayout=useMemo(()=>getLayout(roomId),[roomId])
