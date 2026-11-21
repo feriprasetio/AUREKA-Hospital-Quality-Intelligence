@@ -31,7 +31,8 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'))
   assert.ok(imports.indexOf('aureka-universal-tabs.css') < imports.indexOf('aureka-navigation-repair.css'))
   assert.ok(imports.indexOf('aureka-layout-integrity.css') < imports.indexOf('aureka-navigation-pill.css'))
-  assert.equal(imports.at(-1), 'aureka-navigation-pill.css')
+  assert.ok(imports.indexOf('aureka-navigation-pill.css') < imports.indexOf('aureka-navigation-system.css'))
+  assert.equal(imports.at(-1), 'aureka-navigation-system.css')
 })
 
 test('Super Admin uses a compact contextual rail and shows eight registry-driven category groups', () => {
@@ -48,7 +49,7 @@ test('Super Admin uses a compact contextual rail and shows eight registry-driven
   assert.ok(homeClient.includes('UnifiedModuleNavigation'))
   assert.ok(homeClient.includes("activeNestedNavGroup"))
   assert.ok(homeClient.includes("activeRailTitle"))
-  assert.ok(homeClient.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
+  assert.ok(homeClient.includes("const activeRailItems: {id:string;label:string;hint?:string}[]=activeNavModuleId==='patients'?patientRailItems:activeNavModuleId==='clinical'?clinicalRailItems:activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'sidebarTreeChildren', 'closedNav', 'toggleNav(']) assert.ok(!homeClient.includes(legacy))
   assert.ok(homeClient.includes('aria-label="Delapan kategori utama AUREKA"'))
   for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','education_training','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
