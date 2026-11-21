@@ -101,7 +101,7 @@ test('pre-paint bootstrap supports the same persisted options and legacy migrati
   assert.match(layout,/const APPEARANCE_BOOTSTRAP/)
   assert.match(layout,/aureka:appearance:v2/)
   assert.match(layout,/data-aureka-/)
-  assert.match(layout,/data-aureka-surface','')
+  assert.match(layout,/data-aureka-surface/)
   assert.match(layout,/aureka-text-size/)
   assert.match(layout,/__html: APPEARANCE_BOOTSTRAP/)
 })
