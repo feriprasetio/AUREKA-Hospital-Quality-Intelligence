@@ -21,7 +21,7 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
   assert.ok(home.includes('<UnifiedModuleNavigation'))
   assert.ok(home.includes('activeNestedNavGroup'))
   assert.ok(home.includes('activeRailTitle'))
-  assert.ok(home.includes('const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))'))
+  assert.ok(home.includes("const activeRailItems=activeNavModuleId==='patients'?patientRailItems:activeNavModuleId==='clinical'?clinicalRailItems:activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'wmmMap']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(!/onPointerEnter|onPointerLeave|wmmMapPanel/.test(navCss))
