@@ -57,7 +57,7 @@ test('sidebar exposes the eight requirement categories from one registry; module
   assert.ok(home.includes("import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'"))
   assert.ok(home.includes('<UnifiedModuleNavigation'))
   assert.ok(home.includes('activeNestedNavGroup'))
-  assert.match(home, /\{activeNavGroups.length>0&&<UnifiedModuleNavigation/)
+  assert.match(home, /\{\(activeNavGroups.length>0\|\|activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'\)&&<UnifiedModuleNavigation/)
   assert.doesNotMatch(home, /sidebarModuleChildren|sidebarModuleChild/)
   for (const legacy of ['sidebarTreeChildren', 'sidebarNestedGroup', 'closedNav', 'toggleNav(']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
