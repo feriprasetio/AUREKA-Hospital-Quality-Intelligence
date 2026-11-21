@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { readLocalDocument, makeStructuredDocx, downloadBrowserBlob, printStructuredContent } from '@/lib/aureka/local-documents'
 import type { SecretariatSection } from '@/lib/aureka/module-registry'
 
 type Room = { id: number; name: string }
@@ -28,8 +29,8 @@ type MeetingDocument = {
   meeting_id: string
   document_type: Category
   title: string
-  bucket_id: string
-  object_path: string
+  bucket_id: string | null
+  object_path: string | null
   mime_type: string | null
   file_size_bytes: number | null
   sha256: string | null
@@ -73,7 +74,6 @@ type ParserResult = {
   notes: string[]
 }
 const db = () => aurekaSupabase.schema('aureka_system')
-const bucket = 'aureka-documents'
 const maxBytes = 15 * 1024 * 1024
 const categories: Array<{ id: Category; label: string; hint: string }> = [
   { id: 'undangan', label: 'Undangan', hint: 'Surat undangan, nomor surat, tanggal, perihal, dan agenda' },
@@ -186,12 +186,7 @@ export default function SecretariatWorkspace({
       setDocumentsLoading(false)
       return
     }
-    const mapped = await Promise.all(((data || []) as MeetingDocument[]).map(async (doc) => {
-      if (doc.document_type !== 'gambar') return doc
-      const { data: signed } = await aurekaSupabase.storage.from(doc.bucket_id || bucket).createSignedUrl(doc.object_path, 3600)
-      return { ...doc, preview_url: signed?.signedUrl || null }
-    }))
-    setDocuments(mapped)
+    setDocuments((data || []) as MeetingDocument[])
     setDocumentsLoading(false)
   }, [])
 
@@ -300,7 +295,7 @@ export default function SecretariatWorkspace({
     let errors = 0
     const pending = queue.filter((item) => item.status === 'queued')
     for (const item of pending) {
-      setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'processing', message: 'Mengunggah dan membaca…' } : x))
+      setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'processing', message: 'Membaca di browser…' } : x))
       setProcessingText('Memproses ' + item.file.name)
       try {
         const mime = fileMime(item.file)
@@ -308,37 +303,41 @@ export default function SecretariatWorkspace({
         const allowed = ['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/csv','text/plain','image/png','image/jpeg','image/webp','image/gif']
         const extension = item.file.name.toLowerCase().split('.').pop() || ''
         if (!allowed.includes(mime) && !['pdf','docx','xlsx','csv','txt','png','jpg','jpeg','webp','gif'].includes(extension)) throw new Error('Format file tidak didukung.')
-        const root = activeMeeting.room_id == null ? 'global' : String(activeMeeting.room_id)
-        const path = root + '/' + activeMeeting.id + '/' + item.category + '/' + crypto.randomUUID() + '-' + safeName(item.file.name)
-        const { error: uploadError } = await aurekaSupabase.storage.from(bucket).upload(path,item.file,{contentType:mime,cacheControl:'3600',upsert:false})
-        if (uploadError) throw uploadError
-        const checksum = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await item.file.arrayBuffer()))).map((value) => value.toString(16).padStart(2,'0')).join('')
-        const { data: parsed, error: parseError } = await aurekaSupabase.functions.invoke('aureka-secretariat-parse',{
-          body:{meeting_id:activeMeeting.id,document_type:item.category,storage_path:path,file_name:item.file.name,mime_type:mime,size_bytes:item.file.size},
-        })
-        const parser = parsed as ParserResult | null
-        const metadata = parser?.parsed_metadata || null
-        const extracted = parser?.extracted_text || ''
-        const extractionStatus: ExtractionStatus = parseError ? 'failed' : parser?.extraction_status || 'failed'
+        const local = await readLocalDocument(item.file)
+        const extracted = local.extractedText
+        const rawLines = extracted.split('\n').map(line => line.trim()).filter(Boolean)
+        const numberLine = rawLines.slice(0, 35).find(line => /(?:nomor|no\.|nomor surat)\s*:/i.test(line)) || ''
+        const documentNumber = numberLine.match(/(?:nomor|no\.|nomor surat)\s*:\s*(.{2,100})/i)?.[1]?.trim() || null
+        const metadata: ParserResult['parsed_metadata'] = {
+          document_date: null,
+          document_number: documentNumber,
+          document_title: rawLines.find(line => line.length > 5 && line.length < 160) || local.title,
+          detected_headings: rawLines.filter(line => line.length < 75 && /^[A-Z\s\d:.-]+$/.test(line)).slice(0, 30),
+          extracted_line_count: rawLines.length,
+          attendance_row_count: null,
+          page_count: local.pageCount,
+          document_kind: local.kind,
+        }
+        const extractionStatus: ExtractionStatus = local.status
         const insertPayload = {
           meeting_id:activeMeeting.id,
           document_type:item.category,
-          title:metadata?.document_title || item.file.name,
-          bucket_id:bucket,
-          object_path:path,
+          title:metadata.document_title || item.file.name,
+          bucket_id:null,
+          object_path:null,
           mime_type:mime,
           file_size_bytes:item.file.size,
-          sha256:checksum,
+          sha256:local.sha256,
           uploaded_by:userId,
           original_filename:item.file.name,
           extracted_text:extracted,
-          parsed_metadata:metadata ? {...metadata,notes:parser?.notes || []} : {notes:parser?.notes || []},
-          extraction_engine:parser?.extraction_engine || 'AUREKA Deterministic Secretariat Reader v1',
+          parsed_metadata:{...metadata,notes:local.notes,storage_mode:'data_only'},
+          extraction_engine:'AUREKA Browser Local Document Parser v2',
           extraction_status:extractionStatus,
-          document_date:metadata?.document_date || null,
-          document_number:metadata?.document_number || null,
-          document_title:metadata?.document_title || item.file.name,
-          extraction_error:parseError?.message || null,
+          document_date:metadata.document_date,
+          document_number:metadata.document_number,
+          document_title:metadata.document_title,
+          extraction_error:null,
         }
         const { error: insertError } = await db().from('pmkp_meeting_documents').insert(insertPayload)
         if (insertError) throw insertError
@@ -349,7 +348,7 @@ export default function SecretariatWorkspace({
           const parsedTitle = String(metadata.document_title || '')
           if (parsedTitle && (['Dokumen Sekretariat','Register Dokumen','Kegiatan baru','Dokumen baru'].includes(registerMeta.title) || registerMeta.title === activeMeeting.title)) registerMeta.title = parsedTitle
         }
-        setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'done', message: parseError ? 'File tersimpan; pembacaan perlu ditinjau.' : statusLabel[extractionStatus] } : x))
+        setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'done', message: statusLabel[extractionStatus] } : x))
       } catch (error) {
         errors++
         setQueue((current) => current.map((x) => x.id === item.id ? { ...x, status: 'error', message: error instanceof Error ? error.message : 'Gagal diproses.' } : x))
@@ -363,27 +362,35 @@ export default function SecretariatWorkspace({
         updated_at: new Date().toISOString(),
       }).eq('id', activeMeeting.id).select('*').single()
       if (!error && data) setActiveMeeting(data as MeetingRow)
-      else if (error) setNotice({ kind: 'error', text: 'Berkas berhasil disimpan, tetapi metadata register belum diperbarui: ' + error.message })
+      else if (error) setNotice({ kind: 'error', text: 'Data hasil ekstraksi tersimpan, tetapi metadata register belum diperbarui: ' + error.message })
     }
     await loadDocuments(activeMeeting.id)
     await loadRegister()
+    setQueue(current=>current.filter(item=>item.status!=='done'))
     setProcessingText('')
     setBusy(false)
-    setNotice({ kind: errors ? 'info' : 'success', text: savedCount + ' berkas tersimpan dan dibaca. ' + errors + ' berkas gagal disimpan/dibaca. Tinjau teks hasil ekstraksi sebelum menggunakan metadata.' })
+    setNotice({ kind: errors ? 'info' : 'success', text: savedCount + ' hasil ekstraksi tersimpan tanpa file asli. ' + errors + ' file gagal diproses. Tinjau teks hasil ekstraksi sebelum menggunakan metadata.' })
   }
 
+  const documentSections = (doc:MeetingDocument) => [
+    {heading:'Jenis Arsip',text:categoryLabel(doc.document_type)},
+    {heading:'Nomor Dokumen',text:doc.document_number||'-'},
+    {heading:'Tanggal Dokumen',text:doc.document_date||'-'},
+    {heading:'Konten Terekstraksi',text:doc.extracted_text||'Tidak ada teks digital yang tersimpan. File asli tidak diarsipkan.'},
+    {heading:'Jejak Ekstraksi',text:'SHA-256 file sumber: '+(doc.sha256||'-')},
+  ]
   const downloadDocument = async (doc: MeetingDocument) => {
     try {
-      const { data, error } = await aurekaSupabase.storage.from(doc.bucket_id || bucket).download(doc.object_path)
-      if (error || !data) throw error || new Error('File tidak ditemukan.')
-      const url = URL.createObjectURL(data)
-      const anchor = document.createElement('a')
-      anchor.href = url; anchor.download = doc.original_filename || doc.title
-      document.body.appendChild(anchor); anchor.click(); anchor.remove()
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      const blob=await makeStructuredDocx(doc.document_title||doc.title,documentSections(doc))
+      downloadBrowserBlob(safeName(doc.document_number||doc.title||'dokumen-sekretariat')+'.docx',blob)
+      setNotice({kind:'success',text:'DOCX dibuat dari konten register, bukan salinan file asli.'})
     } catch (error) {
-      setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'File gagal diunduh.' })
+      setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'Dokumen tidak dapat dibangun.' })
     }
+  }
+  const printDocument = (doc:MeetingDocument) => {
+    try { printStructuredContent(doc.document_title||doc.title,documentSections(doc)) }
+    catch (error) { setNotice({kind:'error',text:error instanceof Error?error.message:'Pratinjau gagal.'}) }
   }
 
   const currentDocs = documents.filter((doc) => doc.document_type === activeCategory)
@@ -463,7 +470,7 @@ export default function SecretariatWorkspace({
               {doc.extraction_error&&<p className="secWarningText">{doc.extraction_error}</p>}
               {Array.isArray(doc.parsed_metadata?.notes)&&<p className="secMuted">{(doc.parsed_metadata.notes as string[]).join(' ')}</p>}
               {doc.extracted_text&&<details className="secExtractedText"><summary>Lihat teks hasil pembacaan ({doc.extracted_text.length.toLocaleString('id-ID')} karakter)</summary><pre>{doc.extracted_text}</pre></details>}
-              <div className="secDocumentActions"><button type="button" className="secTextButton" onClick={()=>void downloadDocument(doc)}>Unduh Berkas Asli</button><span>Diupload {dateLabel(doc.uploaded_at)}</span></div>
+              <div className="secDocumentActions"><button type="button" className="secTextButton" onClick={()=>void downloadDocument(doc)}>Unduh DOCX Arsip</button><button type="button" className="secTextButton" onClick={()=>printDocument(doc)}>Cetak / PDF</button><span>Diimpor {dateLabel(doc.uploaded_at)}</span></div>
             </article>)}</div>}
           </section>
           <footer className="secModalFooter"><span>{totalDocs} berkas terhubung ke Meeting ID ini</span><button type="button" className="secPrimaryButton" onClick={closeDocuments}>Selesai</button></footer>
