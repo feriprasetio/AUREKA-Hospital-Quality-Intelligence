@@ -221,6 +221,11 @@ export default function QualityWorkbookImportPanel({
       setProfileSheet(pSheet?.name ?? '')
       setOptionsSheet(oSheet?.name ?? '')
       setDataSheet(dSheet?.name ?? '')
+      // Empty master: prefer a non-destructive profile-only bootstrap first.
+      // The user can later import logbook rows separately after reviewing the new profiles.
+      if (roleCanImportProfiles && pSheet && (activeProfiles.length === 0 || !dSheet)) {
+        setImportMode('profiles_only')
+      }
       setProfileHeaderRow(pSheet?.headerRow ?? 1)
       setOptionsHeaderRow(oSheet?.headerRow ?? 1)
       setDataHeaderRow(dSheet?.headerRow ?? 1)
