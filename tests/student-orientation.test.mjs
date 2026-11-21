@@ -37,9 +37,9 @@ test('orientation participant and certificate records reuse the existing AUREKA 
   assert.ok(workspace.includes(".from('education_events')"))
   assert.ok(workspace.includes(".from('education_participants')"))
   assert.ok(workspace.includes(".from('education_certificates')"))
-  assert.ok(workspace.includes("storage.from('aureka-exports')"))
+  assert.doesNotMatch(workspace, /\.storage\.from\(/)
   assert.ok(workspace.includes("reserve_student_orientation_certificate"))
-  assert.ok(workspace.includes("complete_student_orientation_certificate"))
+  assert.ok(workspace.includes("freeze_browser_certificate_snapshot"))
   assert.ok(workspace.includes('window.open'))
   assert.ok(migration.includes('alter table aureka_system.education_participants'))
   assert.ok(migration.includes('references aureka_quality.quality_records') || migration.includes('source_quality_record_id'))
@@ -52,17 +52,17 @@ test('orientation participant and certificate records reuse the existing AUREKA 
   assert.ok(!migration.includes('patient_index'))
 })
 
-test('certificate PDF is generated and saved to private export storage with SHA-256 verification', () => {
+test('certificate PDF renders locally from an immutable structured snapshot without Storage', () => {
   const workspace = read('components/StudentOrientationWorkspace.tsx')
-  const migration = read('supabase/migrations/20261121120000_student_orientation_workspace.sql')
-  assert.ok(workspace.includes("createCertificatePdf"))
-  assert.ok(workspace.includes("crypto.subtle.digest('SHA-256'"))
-  assert.ok(workspace.includes("contentType: 'application/pdf'"))
-  assert.ok(workspace.includes("createSignedUrl(objectPath, 600)"))
-  assert.ok(migration.includes("bucket_id = 'aureka-exports'"))
-  assert.ok(migration.includes("p_file_sha256"))
+  const migration = read('supabase/migrations/20261122180500_zero_file_certificate_snapshots.sql')
+  assert.match(workspace, /createCertificatePdf/)
+  assert.match(workspace, /URL.createObjectURL\(pdf\)/)
+  assert.match(workspace, /freeze_browser_certificate_snapshot/)
+  assert.doesNotMatch(workspace, /\.storage\.from\(|createSignedUrl\(/)
+  assert.match(migration, /render_snapshot jsonb/)
+  assert.match(migration, /render_snapshot_sha256/)
+  assert.match(migration, /IF v_certificate.render_snapshot IS NOT NULL THEN/)
 })
-
 
 test('follow-up migration removes globally scoped orientation checks from shared education participants', () => {
   const migration = read('supabase/migrations/20261121130000_student_orientation_constraint_scope.sql')
