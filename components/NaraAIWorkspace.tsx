@@ -159,7 +159,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       .naraHistory > :not(.naraHistoryList){flex-shrink:0}
       .naraNew{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:14px;background:#1f2430;color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .12s ease}
       .naraNew:active{transform:scale(.98)}.naraNew span{font-size:18px;line-height:1}
-      .naraReviewNav{display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 12px;border:1px solid #d7e1eb;border-radius:13px;background:#fff;color:#1f5c7a;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s ease,background .12s ease}
+      .naraReviewNav{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border:1px solid #d7e1eb;border-radius:13px;background:#fff;color:#1f5c7a;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s ease,background .12s ease}
       .naraReviewNav[aria-pressed=true]{background:#e8f3f8;border-color:#9dc6d7}
       .naraReviewWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden;padding:18px}
       .naraReviewWrap .naraMobileBar{display:none}
@@ -170,11 +170,12 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       .naraItem{display:flex;align-items:center;min-width:0;max-width:100%;overflow:hidden;border-radius:11px;transition:background-color .15s ease}
       .naraItem:hover{background:rgba(255,255,255,.7)}
       .naraItem.on{background:#fff;box-shadow:0 4px 12px rgba(15,35,60,.06)}
-      .naraItemOpen{display:block;flex:1 1 0;width:0;min-width:0;min-height:38px;padding:0 6px 0 10px!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;text-align:left;font:inherit;font-size:13px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+      .naraItemOpen{display:block;flex:1 1 0;width:0;min-width:0;min-height:44px;padding:0 6px 0 10px!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;text-align:left;font:inherit;font-size:13px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
       .naraItem.on .naraItemOpen{color:#1f2430;font-weight:700}
-      .naraItemDel{width:30px;height:30px;min-width:30px;flex:0 0 30px;margin-right:4px;padding:0!important;border:0!important;border-radius:8px!important;background:transparent!important;box-shadow:none!important;color:#94a3b8;font-size:16px;cursor:pointer;opacity:0;transition:opacity .15s ease,background-color .15s ease,color .15s ease}
+      .naraItemDel{width:44px;height:44px;min-width:44px;flex:0 0 44px;margin-right:4px;padding:0!important;border:0!important;border-radius:8px!important;background:transparent!important;box-shadow:none!important;color:#94a3b8;font-size:16px;cursor:pointer;opacity:.85;transition:opacity .15s ease,background-color .15s ease,color .15s ease}
       .naraItem:hover .naraItemDel,.naraItem.on .naraItemDel,.naraItemDel:focus-visible{opacity:1}
       .naraItemDel:hover{background:#fdecea!important;color:#b42318}
+      .naraItemOpen:focus-visible,.naraItemDel:focus-visible,.naraMobileBar button:focus-visible{outline:2px solid #0e7490;outline-offset:2px}
       @media(hover:none){.naraItemDel{opacity:1}}
 
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
@@ -190,7 +191,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       .naraStageWrap :global(.tanyaStaged .tanyaComposer textarea){font-size:15px;border:0!important;background:transparent!important;padding:10px 4px!important;box-shadow:none!important}
       .naraStageWrap :global(.tanyaStaged .tanyaComposer){border-top:1px solid #dfe7f0}
       .naraStageWrap :global(.tanyaStageChips){display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:780px}
-      .naraStageWrap :global(.tanyaStageChips button){display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#1f2430;cursor:pointer;transition:border-color .15s ease,transform .15s ease}
+      .naraStageWrap :global(.tanyaStageChips button){display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#1f2430;cursor:pointer;transition:border-color .15s ease,transform .15s ease}
       .naraStageWrap :global(.tanyaStageChips button:hover){border-color:rgba(14,116,144,.45);transform:translateY(-1px)}
       .naraStageWrap :global(.naraStarterIco){width:16px;height:16px;fill:none;stroke:#0e7490;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
       .naraStageWrap :global(.tanyaStaged .tanyaNote){margin-top:4px;text-align:center}
@@ -200,11 +201,11 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
         .naraWorkspace{grid-template-columns:1fr;min-height:calc(100dvh - 230px)}
         .naraHistory{display:none;position:static;max-height:none;overflow:visible}
 
-        .naraWorkspace.listOpen .naraHistory{display:flex}
+        .naraWorkspace.listOpen .naraHistory{display:flex;max-height:min(52dvh,420px);overflow:hidden}
         .naraMobileBar{display:flex;justify-content:space-between;gap:8px;padding:10px 12px 0}
         .naraReviewWrap{padding:10px;border-radius:18px}
         .naraReviewWrap .naraMobileBar{display:flex}
-        .naraMobileBar button{min-height:38px;padding:0 14px;border-radius:12px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:700;color:#1f2430}
+        .naraMobileBar button{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:700;color:#1f2430}
         .naraStageWrap :global(.tanyaStaged){padding:28px 16px 20px}
       }
       @media(prefers-reduced-motion:reduce){.naraNew,.naraItem,.naraItemDel{transition:none}}
