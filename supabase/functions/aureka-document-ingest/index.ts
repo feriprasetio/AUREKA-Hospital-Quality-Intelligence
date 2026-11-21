@@ -217,30 +217,16 @@ Deno.serve(async (req: Request) => {
       max_attempts: Number(claim.max_attempts || 5),
     };
 
-    const bucket = String(version.bucket_id || "aureka-documents");
-    const path = String(version.object_path || "");
-    if (!path || path.startsWith("/") || path.includes("..")) throw new Error("Path objek dokumen tidak valid.");
-    const { data: file, error: fileError } = await db.storage.from(bucket).download(path);
-    if (fileError || !file) throw new Error("File sumber tidak ditemukan atau Storage menolak akses.");
-    if (file.size < 1 || file.size > MAX_FILE_BYTES) throw new Error("Ukuran dokumen melewati batas ingest 15 MB.");
-
-    const mime = String(version.mime_type || "").toLowerCase();
-    let extractedText = "";
-    let extractionModel = "docx-jszip";
-    if (mime === "application/pdf" || /\.pdf$/i.test(String(version.original_filename || ""))) {
-      const result = await extractPdf(file);
-      extractedText = result.text;
-      extractionModel = result.model;
-    } else if (
-      mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      /\.docx$/i.test(String(version.original_filename || ""))
-    ) {
-      extractedText = await extractDocx(file);
-    } else {
-      throw new Error("Format ingest saat ini hanya PDF dan DOCX.");
+    // Zero-File policy: only indexed, user-reviewed structured text is accepted.
+    // Never fetch a source Blob from Supabase Storage or send raw PDF bytes to AI.
+    const extractedText = String(version.extracted_text || "").trim();
+    const extractionModel = "aureka-browser-structured-text";
+    if (!extractedText) {
+      throw new Error("Versi dokumen belum memiliki konten teks terstruktur. Impor ulang melalui parser lokal dan verifikasi isinya sebelum ingestion.");
     }
-
-    if (!extractedText.trim()) throw new Error("Tidak ada teks yang dapat diekstrak dari dokumen.");
+    if (extractedText.length > MAX_EXTRACTED_CHARS) {
+      throw new Error("Konten terstruktur melebihi batas ingestion; tinjau dan pecah dokumen terlebih dahulu.");
+    }
     const split = makeChunks(extractedText);
     if (!split.chunks.length) throw new Error("Teks dokumen terlalu pendek untuk proses knowledge ingestion.");
 
