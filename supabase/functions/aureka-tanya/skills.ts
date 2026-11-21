@@ -44,7 +44,7 @@ const CROSS_DOMAIN = [
 
 /** Only explicit greetings are small talk; short audit/engineering requests must still be routed. */
 export function isNaraSmallTalk(question: string): boolean {
-  return /^(?:halo|hai|hi|hello|hey|assalamualaikum(?:\\s+wr\\.?\\s*wb\\.?)?|selamat (?:pagi|siang|sore|malam)|apa kabar|terima kasih|makasih|thanks)[!.,?\\s]*$/i.test(question.trim());
+  return /^(?:halo|hai|hi|hello|hey|assalamualaikum(?:\s+wr\.?\s*wb\.?)?|selamat (?:pagi|siang|sore|malam)|apa kabar|terima kasih|makasih|thanks)[!.,?\s]*$/i.test(question.trim());
 }
 
 // Retain explicitly requested specialist instructions when broad questions exceed the skill cap.
