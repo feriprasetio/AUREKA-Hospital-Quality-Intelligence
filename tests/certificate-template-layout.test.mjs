@@ -5,7 +5,7 @@ import {
   defaultCertificateLayout,
   normalizeCertificateLayout,
   pdfPoint,
-} from '../lib/aureka/certificate-template.ts'
+} from '../lib/aureka/certificate-template-layout.ts'
 
 test('default certificate layouts include every movable element in normalized coordinates', () => {
   for (const key of ['in_house_training', 'student_orientation']) {
