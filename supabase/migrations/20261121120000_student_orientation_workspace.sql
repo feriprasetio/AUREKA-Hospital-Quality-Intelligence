@@ -67,18 +67,36 @@ declare
   v_form jsonb;
   v_name text;
 begin
-  if new.participant_type <> 'student' or new.source_quality_record_id is null then
+  select * into v_event
+    from aureka_system.education_events
+   where id = new.event_id;
+  if not found or v_event.event_type <> 'orientasi_mahasiswa' or v_event.room_id <> 30 then
     return new;
   end if;
 
-  select * into v_event
-    from aureka_system.education_events
-   where id = new.event_id
-     and event_type = 'orientasi_mahasiswa'
-     and room_id = 30;
-  if not found then
-    raise exception 'Peserta mahasiswa hanya dapat ditautkan ke kegiatan Orientasi Mahasiswa unit 30.'
-      using errcode = '42501';
+  if new.participant_type <> 'student' then
+    if new.source_quality_record_id is not null then
+      raise exception 'Narasumber dan peserta non-mahasiswa tidak boleh menggunakan sumber logbook mahasiswa.'
+        using errcode = '22023';
+    end if;
+    if new.participant_role not in ('Peserta', 'Narasumber', 'Sumpah Rekam Medik') then
+      raise exception 'Peran orientasi tidak valid.' using errcode = '22023';
+    end if;
+    if cardinality(new.materials) > 7 or length(new.orientation_notes) > 1000 then
+      raise exception 'Jumlah materi atau panjang catatan orientasi melebihi batas.' using errcode = '22023';
+    end if;
+    return new;
+  end if;
+
+  if new.source_quality_record_id is null then
+    raise exception 'Peserta mahasiswa wajib ditautkan ke laporan Tim Koordinasi Pendidikan.'
+      using errcode = '23503';
+  end if;
+  if new.participant_role not in ('Peserta', 'Narasumber', 'Sumpah Rekam Medik') then
+    raise exception 'Peran orientasi tidak valid.' using errcode = '22023';
+  end if;
+  if cardinality(new.materials) > 7 or length(new.orientation_notes) > 1000 then
+    raise exception 'Jumlah materi atau panjang catatan orientasi melebihi batas.' using errcode = '22023';
   end if;
 
   select * into v_source
@@ -153,7 +171,9 @@ declare
   v_user_id uuid := auth.uid();
   v_event aureka_system.education_events%rowtype;
   v_participant aureka_system.education_participants%rowtype;
+  v_source aureka_quality.quality_records%rowtype;
   v_certificate aureka_system.education_certificates%rowtype;
+  v_form jsonb;
   v_year integer;
   v_number integer;
   v_certificate_number text;
@@ -186,6 +206,24 @@ begin
     raise exception 'Peserta belum tertaut ke laporan Tim Koordinasi Pendidikan.'
       using errcode = 'P0002';
   end if;
+  select * into v_source
+    from aureka_quality.quality_records
+   where id = v_participant.source_quality_record_id
+     and room_id = 30
+     and measurement_grain = 'activity'
+     and profile_year = extract(year from v_event.start_at)::integer
+     and status <> 'archived'
+     and archived_at is null;
+  if not found then
+    raise exception 'Rekam sumber Tim Koordinasi Pendidikan sudah tidak aktif atau tidak sesuai tahun kegiatan.'
+      using errcode = '23503';
+  end if;
+  v_form := coalesce(v_source.core_data->'form_fields', v_source.core_data->'form_data', '{}'::jsonb);
+  if nullif(trim(v_form->>'Nama Mahasiswa'), '') is null then
+    raise exception 'Nama mahasiswa pada laporan sumber belum tersedia.'
+      using errcode = '22023';
+  end if;
+
   if v_participant.signed_date is null or cardinality(v_participant.materials) < 1
      or nullif(trim(v_participant.activity_name), '') is null
      or nullif(trim(v_participant.period_label), '') is null then
@@ -305,3 +343,5 @@ comment on function aureka_system.reserve_student_orientation_certificate(uuid, 
 is 'Reserves an annual student orientation certificate number in the existing education certificate domain.';
 comment on function aureka_system.complete_student_orientation_certificate(uuid, text, text)
 is 'Stores an owner-scoped private PDF path and SHA-256 for a reserved student orientation certificate.';
+
+notify pgrst, 'reload schema';
