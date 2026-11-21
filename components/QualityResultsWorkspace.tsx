@@ -20,6 +20,7 @@ import {
   aggregatePathwayByMonth,
   calculateIndicatorResult,
   calculateIndicatorResultsForProfiles,
+  diagnoseIndicator,
   type ClinicalDeathAuditResultRow,
   type ClinicalPathwayRow,
   type IndicatorProfileForResults,
@@ -275,11 +276,10 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       }
 
       if (mode === 'indicators') {
-        const includeOperationalFields = selectedRoom == null || selectedRoom === 5 || selectedRoom === 11
-        const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values,source_import:core_data->source_import' +
-          (includeOperationalFields
-            ? ',form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit'
-            : '')
+        // Tanggal pelayanan bisa tersimpan di record_date, core_data.record_date, admission_at, atau
+        // kolom tanggal di formulir. Semua sumber itu harus ikut terbaca untuk setiap unit; bila tidak,
+        // catatan yang record_date-nya kosong gugur diam-diam saat satu unit dipilih.
+        const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values,source_import:core_data->source_import,core_record_date:core_data->>record_date,form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit'
         let profileQuery: any = q().from('indicator_profiles')
           .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
           .eq('profile_year', year)
@@ -305,6 +305,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               indicator_values: row.indicator_values ?? {},
               ...(row.form_fields != null || row.form_data != null ? { form_fields: row.form_fields ?? row.form_data ?? {} } : {}),
               ...(row.admission_at != null ? { admission_at: row.admission_at } : {}),
+              ...(row.core_record_date != null ? { record_date: row.core_record_date } : {}),
               ...(row.admit != null ? { admit: row.admit } : {}),
               ...(row.source_import != null ? { source_import: row.source_import } : {}),
             },
@@ -395,6 +396,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     document.body.appendChild(a); a.click(); a.remove()
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
+  const [whyFor, setWhyFor] = useState<IndicatorProfileForResults | null>(null)
+  const whyDiagnosis = useMemo(() => whyFor ? diagnoseIndicator(whyFor, rawIndicatorData.rows, year) : null, [whyFor, rawIndicatorData, year])
   const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
   const [sourceFor, setSourceFor] = useState<IndicatorProfileForResults | null>(null)
   const [sourceMonth, setSourceMonth] = useState<number | null>(null)
@@ -777,9 +780,22 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
                     <td>{formatDateTime(result.latestInputAt)}</td>
-                    <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small></td>
+                    <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small>{result.observations === 0 && <button type="button" className="qraWhyBtn" onClick={() => setWhyFor(result.profile)}>Kenapa kosong?</button>}</td>
                   </tr>)}</tbody>
                 </table></WorkspaceTableViewport>}
+              <AurekaModal open={!!whyFor} size="md" onClose={() => setWhyFor(null)}
+                title={whyFor ? 'Kenapa ' + (whyFor.code ?? 'indikator ini') + ' belum ada capaian?' : ''}
+                subtitle={whyFor ? (whyFor.title ?? '') + ' · ' + (rooms.find((room) => Number(room.id) === Number(whyFor.room_id))?.name ?? selectedRoomName) + ' · ' + year : ''}>
+                {whyDiagnosis && <div className="qraWhy">
+                  <div className="qraWhyStats">
+                    <span><b>{formatCount(whyDiagnosis.total)}</b>catatan unit</span>
+                    <span><b>{formatCount(whyDiagnosis.counted)}</b>terhitung</span>
+                    <span><b>{formatCount(whyDiagnosis.total - whyDiagnosis.counted)}</b>tidak terhitung</span>
+                  </div>
+                  <ul>{whyDiagnosis.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
+                  <p className="qraMuted">Perbaiki di Form Logbook unit terkait. Untuk kode indikator yang berbeda atau pilihan jawaban yang tidak cocok, samakan dulu profil indikatornya di Pengaturan → Profil Indikator.</p>
+                </div>}
+              </AurekaModal>
               <AurekaModal open={!!spcFor} size="lg" onClose={() => setSpcFor(null)}
                 title={spcFor ? (spcFor.profile.code ? spcFor.profile.code + ' · ' : '') + (spcFor.profile.title ?? 'Indikator') : ''}
                 subtitle={spcFor ? 'Grafik kendali ' + year + ' · ' + (rooms.find((room) => Number(room.id) === Number(spcFor.profile.room_id))?.name ?? selectedRoomName) + ' · target ' + targetLabel(spcFor.profile) : ''}>

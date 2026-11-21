@@ -744,3 +744,68 @@ export function aggregateClinicalDeathByValidationMonth(rows: ClinicalDeathAudit
     return { month, validated: selected.length }
   })
 }
+
+export type IndicatorDiagnosis = {
+  total: number
+  draft: number
+  noDate: number
+  otherYear: number
+  noValue: number
+  notCountable: number
+  /** Rincian notCountable. */
+  needsProfileSetup: number
+  optionMismatch: number
+  invalidNumbers: number
+  needsReview: number
+  counted: number
+  /** Kalimat awam: penyebab utama mengapa capaian kosong / sedikit. */
+  reasons: string[]
+}
+
+/**
+ * Menjelaskan mengapa catatan logbook sebuah unit tidak masuk perhitungan indikator.
+ * Urutan pemeriksaan sama dengan calculateIndicatorResult, sehingga setiap catatan
+ * dihitung tepat satu kali pada alasan pertama yang menggugurkannya.
+ */
+export function diagnoseIndicator(profile: IndicatorProfileForResults, rows: ResultRecord[], year: number): IndicatorDiagnosis {
+  const d: IndicatorDiagnosis = { total: 0, draft: 0, noDate: 0, otherYear: 0, noValue: 0, notCountable: 0, needsProfileSetup: 0, optionMismatch: 0, invalidNumbers: 0, needsReview: 0, counted: 0, reasons: [] }
+  const kind = resolveMeasurementKind(profile)
+  const direction = indicatorDirection(profile)
+  const unitRows = profile.room_id == null ? rows : rows.filter((row) => Number(row.room_id) === Number(profile.room_id))
+  for (const row of unitRows) {
+    d.total++
+    const status = String(row.status ?? '').toLowerCase()
+    if (status !== 'ready' && status !== 'validated') { d.draft++; continue }
+    const date = recordDate(row)
+    if (!date) { d.noDate++; continue }
+    if (Number(date.slice(0, 4)) !== year) { d.otherYear++; continue }
+    const values = (row.core_data ?? {}).indicator_values ?? {}
+    const response = values[String(profile.code ?? '')] ?? values[String(profile.id ?? '')]
+    if (!response || typeof response !== 'object') { d.noValue++; continue }
+    if (!extractObservation(profile, row, Number(date.slice(5, 7)))) {
+      d.notCountable++
+      const r = response as Record<string, any>
+      const hasNd = finiteNumber(r.numerator) != null || finiteNumber(r.denominator) != null
+      const option = findOption(profile, r)
+      const mapping = String(r.mapping_status ?? '').trim()
+      if (hasNd && (kind === 'ratio')) d.invalidNumbers++
+      else if (hasNd && kind !== 'ratio') d.needsProfileSetup++
+      else if ((r.answer != null || r.code != null) && !option) d.optionMismatch++
+      else if (r.review_required === true || (mapping && mapping !== 'mapped')) d.needsReview++
+      else if (option && !direction && typeof option.numerator !== 'boolean') d.needsProfileSetup++
+      else d.invalidNumbers++
+      continue
+    }
+    d.counted++
+  }
+  if (!d.total) d.reasons.push('Belum ada catatan logbook untuk unit ini pada tahun ' + year + '.')
+  if (d.draft) d.reasons.push(`${d.draft} catatan masih draf (belum dikirim), jadi belum dihitung.`)
+  if (d.noDate) d.reasons.push(`${d.noDate} catatan tidak punya tanggal pelayanan yang terbaca.`)
+  if (d.otherYear) d.reasons.push(`${d.otherYear} catatan bertanggal di luar tahun ${year}.`)
+  if (d.noValue) d.reasons.push(`${d.noValue} catatan tidak mengisi indikator ${profile.code ?? ''} (kolom indikator kosong atau kode indikator di logbook berbeda dengan kode profil).`)
+  if (d.needsProfileSetup) d.reasons.push(`${d.needsProfileSetup} catatan tidak bisa dihitung karena profil indikator belum lengkap: belum ada jenis pengukuran (mis. rasio N/D) atau arah indikator (positif/negatif) dan pilihan jawabannya belum ditandai mana yang masuk numerator. Lengkapi di Profil Indikator.`)
+  if (d.optionMismatch) d.reasons.push(`${d.optionMismatch} catatan memakai pilihan jawaban yang tidak ada di profil indikator (label atau kode berbeda).`)
+  if (d.needsReview) d.reasons.push(`${d.needsReview} catatan hasil impor Excel masih menunggu tinjauan pemetaan, jadi belum dihitung.`)
+  if (d.invalidNumbers) d.reasons.push(`${d.invalidNumbers} catatan berisi angka yang tidak valid (mis. penyebut 0 atau pembilang lebih besar dari penyebut).`)
+  return d
+}
