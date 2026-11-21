@@ -240,7 +240,7 @@ function duplicateKey(row: PreparedRow): string {
   ].join('|')
 }
 
-function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: string, userId: string, profiles: IcuIndicatorProfile[]) {
+function preparePayload(row: PreparedRow, fileName: string, sourceFileSha256: string, userId: string, profiles: IcuIndicatorProfile[]) {
   const profileByCode = new Map(
     profiles
       .filter(profile => Number(profile.room_id) === 14 && Number(profile.profile_year) === 2026 && profile.is_active === true && profile.status === 'published')
@@ -282,8 +282,8 @@ function preparePayload(row: PreparedRow, fileName: string, sourceStoragePath: s
     source_indicator_values: sourceIndicatorValues,
     source_indicator_columns: row.indicatorHeaders,
     source_indicator_column_refs: row.indicatorColumnRefs,
-    source_storage_bucket: 'aureka-quality-source-workbooks',
-    source_storage_path: sourceStoragePath,
+    source_mode: 'data_only',
+    source_file_sha256: sourceFileSha256,
     source_bhp_linen: {
       source_header: row.indicatorHeaders['14.1'] ?? '',
       source_column: row.indicatorColumnRefs['14.1']?.column_letter ?? '',
@@ -578,17 +578,12 @@ export default function IcuExcelImportDialog({
       const { data: { user }, error: userError } = await sb.auth.getUser()
       if (userError || !user) throw new Error('Sesi login tidak tersedia.')
       if (!file) throw new Error('Workbook sumber belum tersedia. Pilih ulang file Excel ICU sebelum memulai impor.')
-      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-120) || 'icu-source.xlsx'
-      const sourceStoragePath = '14/2026/' + Date.now() + '_' + safeFileName
-      const { error: storageError } = await sb.storage
-        .from('aureka-quality-source-workbooks')
-        .upload(sourceStoragePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        })
-      if (storageError) throw new Error('Workbook belum dapat disimpan secara privat untuk jejak audit: ' + storageError.message)
-      const items = rows.map(row => preparePayload(row, file.name, sourceStoragePath, user.id, profiles))
+      // The workbook stays in memory only. The SHA-256 is provenance metadata,
+      // not a claim that the original file is archived or recoverable.
+      const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
+      const sourceFileSha256 = Array.from(new Uint8Array(digest), value =>
+        value.toString(16).padStart(2, '0')).join('')
+      const items = rows.map(row => preparePayload(row, file.name, sourceFileSha256, user.id, profiles))
       const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, completedBatches: 0, backfilled: 0, preserved: 0 }
       let start = 0
       let batchSize = BATCH_SIZE
@@ -634,6 +629,8 @@ export default function IcuExcelImportDialog({
         throw new Error('Ringkasan akhir impor tidak konsisten.')
       }
       setResult(counts)
+      // Release the source and parsed patient rows after a successful commit.
+      setFile(null); setRows([]); setErrors([])
       await onImported({ imported: counts.imported, skipped: counts.skipped, received: counts.received })
     } catch (error) {
       setErrorMessage('Impor belum tuntas. ' + (error instanceof Error ? error.message : 'Periksa koneksi atau hak akses.'))

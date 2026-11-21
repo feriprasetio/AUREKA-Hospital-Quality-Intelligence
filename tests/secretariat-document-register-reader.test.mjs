@@ -28,12 +28,15 @@ test('Register uses the active AUREKA room, role and identity scope', async () =
   has(sql,'pmkp_meeting_children_update')
 })
 
-test('Secretariat parser reads PDF, DOCX, XLSX, CSV, TXT and image metadata without generative AI', async () => {
-  const parser = await read('supabase/functions/aureka-secretariat-parse/index.ts')
-  for (const marker of ['pdfjs.getDocument','JSZip.loadAsync','xl/workbook.xml','parseCsv','imageInfo','extracted_text','parsed_metadata']) has(parser,marker)
-  assert.doesNotMatch(parser,/GEMINI_API_KEY|generativelanguage|api\\.openai\\.com|openrouter/i)
-  has(parser,'PDF tidak memiliki lapisan teks digital yang terbaca')
-  has(parser,'does not call any generative-AI API')
+test('retired Secretariat binary endpoint rejects new server-side parsing', async () => {
+  const endpoint = await read('supabase/functions/aureka-secretariat-parse/index.ts')
+  assert.match(endpoint, /ENDPOINT_RETIRED_ZERO_FILE/)
+  assert.match(endpoint, /status: 410/)
+  assert.doesNotMatch(endpoint, /storage\.from\(|\.download\(|pdfjs|JSZip|file\.arrayBuffer|inline_data/)
+  const local = await read('lib/aureka/local-documents.ts')
+  has(local, 'readLocalDocument')
+  has(local, 'makeStructuredDocx')
+  assert.doesNotMatch(local, /supabase|fetch\(/i)
 })
 
 test('legacy Storage policies remain documented, but new Secretariat records never reference binary sources', async () => {

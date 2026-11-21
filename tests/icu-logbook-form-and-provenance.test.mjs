@@ -51,9 +51,10 @@ test('ICU importer requires BHP/Linen source mapping, stores exact header/value,
   assert.match(importer, /indicatorColumnRefs: Record<string, \{ header_text: string; column_letter: string; column_index: number \}>/)
   assert.match(importer, /source_indicator_column_refs: row\.indicatorColumnRefs/)
   assert.match(importer, /excelColumnLetter\(column\)/)
-  assert.match(importer, /\.from\('aureka-quality-source-workbooks'\)[\s\S]*?\.upload\(sourceStoragePath, file/)
-  assert.match(importer, /source_storage_bucket: 'aureka-quality-source-workbooks'/)
-  assert.match(importer, /source_storage_path: sourceStoragePath/)
+  assert.match(importer, /source_mode: 'data_only'/)
+  assert.match(importer, /source_file_sha256: sourceFileSha256/)
+  assert.match(importer, /crypto\.subtle\.digest\('SHA-256', await file\.arrayBuffer\(\)\)/)
+  assert.doesNotMatch(importer, /\.storage\s*\.from\(|\.upload\(/)
   assert.match(importer, /source_bhp_linen:/)
   assert.match(importer, /indicator_code: '14\.1'/)
   assert.match(importer, /Respons indikator Kekosongan BHP\/Linen \(14\.1\) kosong/)
@@ -92,7 +93,7 @@ test('database migration marks ICU responses categorical and backfills only an e
 })
 
 
-test('private source workbook policy scopes reads to authorized rooms and writes to Admin/PMKP', () => {
+test('legacy ICU workbook policy is superseded by restrictive zero-file upload guard', () => {
   const migration = read('supabase/migrations/20261118115000_icu_source_workbook_provenance_storage.sql')
   assert.match(migration, /'aureka-quality-source-workbooks'[\s\S]*?false/)
   assert.match(migration, /CREATE POLICY aureka_quality_source_workbooks_select/)
@@ -101,6 +102,14 @@ test('private source workbook policy scopes reads to authorized rooms and writes
   assert.match(migration, /has_quality_room_access/)
   assert.match(migration, /source_indicator_column_refs/)
   assert.match(migration, /source_storage_path/)
+  const guard = read('supabase/migrations/20261122181000_zero_file_storage_policies.sql')
+  assert.match(guard, /AS RESTRICTIVE FOR INSERT TO anon, authenticated/)
+  assert.match(guard, /WITH CHECK \(false\)/)
+  const dataOnly = read('supabase/migrations/20261122183000_icu_data_only_provenance_and_backfill.sql')
+  assert.match(dataOnly, /source_file_sha256/)
+  assert.match(dataOnly, /source_backfill_sha256/)
+  assert.match(dataOnly, /source_mode/)
+  assert.doesNotMatch(dataOnly, /aureka-quality-source-workbooks/)
 })
 
 test('monthly indicator cells open the exact Excel provenance for the selected month', () => {
