@@ -620,7 +620,9 @@ export default function HomeClient(){
    setPatientsRegistryTab(childId==='directory'?'directory':childId==='analysis'?'analysis':'overview')
   }
   if(moduleId==='quality'&&childId==='quality-overview'){
-   setSpmOpen(false);setQualityOpen(false);setQualityOppeOpen(false);setQualityProfileOpen(false);setQualityMonitorOpen(false);setQualityReconciliationOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);return
+   // Indikator Mutu adalah workspace operasional, bukan dashboard Visual Intelligence.
+   // Form Logbook dan navigasi kontekstual harus tetap tersedia saat menu dipilih.
+   setQualityInitialContainer('Audit Indikator Mutu');setSpmOpen(false);setSpoOpen(false);setQualityOpen(true);setQualityOppeOpen(false);setQualityProfileOpen(false);setQualityMonitorOpen(false);setQualityReconciliationOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);return
   }
   if(moduleId==='quality'||moduleId==='clinical'){
       if(moduleId==='quality'&&childId==='spm'){
