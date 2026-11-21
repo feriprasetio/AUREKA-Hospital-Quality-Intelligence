@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import StaffCrossModuleProfilePanel from '@/components/StaffCrossModuleProfilePanel'
 
 const q = () => aurekaSupabase.schema('aureka_quality')
 
@@ -88,6 +89,7 @@ export default function StaffDirectoryWorkspace() {
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: text, type, module: 'Direktori Tenaga' } }))
   }, [message, error])
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
+  const [profileStaff, setProfileStaff] = useState<Staff | null>(null)
   const [draft, setDraft] = useState<StaffDraft | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [shown, setShown] = useState(120)
@@ -419,6 +421,7 @@ export default function StaffDirectoryWorkspace() {
                     <td>{staff.position_title || '-'}<div className="sdSub">{staff.source_unit || 'Unit sumber belum dicantumkan'}</div></td>
                     <td><span className={`sdPill ${staff.directory_status}`}>{statusLabel[staff.directory_status]}</span></td>
                     <td><div className="sdActionsCell">
+                      <button type="button" className="sdEditBtn" disabled={busy} onClick={() => setProfileStaff(staff)}>Profil lintas modul</button>
                       <button type="button" className="sdEditBtn" disabled={busy} onClick={() => beginEdit(staff)}>Edit metadata</button>
                       {staff.directory_status !== 'available' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'available')}>Verifikasi / aktifkan</button>}
                       {staff.directory_status === 'available' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'needs_review')}>Tahan</button>}
@@ -465,6 +468,7 @@ export default function StaffDirectoryWorkspace() {
           </section>
         </div>
       )}
+      {profileStaff && <StaffCrossModuleProfilePanel staff={profileStaff} onClose={() => setProfileStaff(null)} />}
     </section>
   )
 }
