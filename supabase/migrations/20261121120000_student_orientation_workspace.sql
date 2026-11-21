@@ -19,7 +19,7 @@ create table if not exists aureka_quality.student_orientation_records (
     check (length(notes) <= 1000),
   certificate_number text unique,
   certificate_issued_at timestamptz,
-  created_by uuid references auth.users(id) on delete set null,
+  created_by uuid default auth.uid() references auth.users(id) on delete set null,
   updated_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -30,7 +30,11 @@ create index if not exists student_orientation_records_year_idx
 
 alter table aureka_quality.student_orientation_records enable row level security;
 grant usage on schema aureka_quality to authenticated;
-grant select, insert, update on aureka_quality.student_orientation_records to authenticated;
+grant select on aureka_quality.student_orientation_records to authenticated;
+grant insert (source_quality_record_id, profile_year, role_type, activity_name, period_label, signed_date, materials, notes, updated_by)
+  on aureka_quality.student_orientation_records to authenticated;
+grant update (source_quality_record_id, profile_year, role_type, activity_name, period_label, signed_date, materials, notes, updated_by)
+  on aureka_quality.student_orientation_records to authenticated;
 revoke delete on aureka_quality.student_orientation_records from authenticated, anon;
 
 drop policy if exists student_orientation_read_governed
@@ -59,14 +63,14 @@ create policy student_orientation_insert_governed
         and aureka_system.has_quality_room_access(30)
       )
     )
-    and created_by is not distinct from auth.uid()
-    and updated_by is not distinct from auth.uid()
+    and student_orientation_records.created_by is not distinct from auth.uid()
+    and student_orientation_records.updated_by is not distinct from auth.uid()
     and exists (
       select 1
       from aureka_quality.quality_records source
-      where source.id = source_quality_record_id
+      where source.id = student_orientation_records.source_quality_record_id
         and source.room_id = 30
-        and source.profile_year = profile_year
+        and source.profile_year = student_orientation_records.profile_year
         and source.measurement_grain = 'activity'
         and source.status <> 'archived'
         and source.archived_at is null
@@ -97,13 +101,13 @@ create policy student_orientation_update_governed
         and aureka_system.has_quality_room_access(30)
       )
     )
-    and updated_by is not distinct from auth.uid()
+    and student_orientation_records.updated_by is not distinct from auth.uid()
     and exists (
       select 1
       from aureka_quality.quality_records source
-      where source.id = source_quality_record_id
+      where source.id = student_orientation_records.source_quality_record_id
         and source.room_id = 30
-        and source.profile_year = profile_year
+        and source.profile_year = student_orientation_records.profile_year
         and source.measurement_grain = 'activity'
         and source.status <> 'archived'
         and source.archived_at is null
