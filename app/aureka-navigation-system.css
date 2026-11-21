@@ -481,10 +481,25 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     overflow: hidden !important;
     overscroll-behavior: contain !important;
     box-sizing: border-box !important;
+    /* Drawer is a real navigation surface, not a fullscreen frosted backdrop. */
+    background: rgba(239, 247, 253, .98) !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: 18px 0 44px rgba(12, 32, 52, .2) !important;
     transform: translate3d(-105%, 0, 0) !important;
     visibility: hidden !important;
     pointer-events: none !important;
     transition: transform .22s cubic-bezier(.2,.75,.25,1), visibility 0s linear .22s !important;
+  }
+
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar,
+  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar {
+    background: rgba(20, 32, 47, .985) !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-color: rgba(173, 199, 223, .28) !important;
   }
 
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar.mobileOpen,
