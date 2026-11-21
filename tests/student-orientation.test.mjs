@@ -16,9 +16,9 @@ test('Orientasi Mahasiswa is active under Pendidikan dan Pelatihan', () => {
 
 test('student names are read from Tim Koordinasi Pendidikan quality logbooks', () => {
   const workspace = read('components/StudentOrientationWorkspace.tsx')
-  assert.match(workspace, /from\\('quality_records'\\)/)
-  assert.match(workspace, /\\.eq\\('room_id', 30\\)/)
-  assert.match(workspace, /\\.eq\\('measurement_grain', 'activity'\\)/)
+  assert.ok(workspace.includes(".from('quality_records')"))
+  assert.ok(workspace.includes(".eq('room_id', 30)"))
+  assert.ok(workspace.includes(".eq('measurement_grain', 'activity')"))
   assert.match(workspace, /Nama Mahasiswa/)
   assert.match(workspace, /source_quality_record_id/)
   assert.match(workspace, /onConflict: 'source_quality_record_id'/)
@@ -29,7 +29,7 @@ test('orientation certificates use a guarded database number and browser PDF pri
   const workspace = read('components/StudentOrientationWorkspace.tsx')
   const migration = read('supabase/migrations/20261121120000_student_orientation_workspace.sql')
   assert.match(workspace, /issue_student_orientation_certificate/)
-  assert.match(workspace, /window\\.print\\(\\)/)
+  assert.ok(workspace.includes('window.print()'))
   assert.match(migration, /enable row level security/i)
   assert.match(migration, /issue_student_orientation_certificate/)
   assert.match(migration, /REVOKE ALL ON FUNCTION/i)
@@ -40,9 +40,9 @@ test('orientation certificates use a guarded database number and browser PDF pri
 
 test('orientation metadata remains linked to non-patient source records', () => {
   const migration = read('supabase/migrations/20261121120000_student_orientation_workspace.sql')
-  assert.match(migration, /references aureka_quality\\.quality_records\\(id\\)/i)
-  assert.match(migration, /source\\.room_id = 30/i)
-  assert.match(migration, /measurement_grain = 'activity'/i)
+  assert.ok(migration.includes('references aureka_quality.quality_records(id)'))
+  assert.ok(migration.includes('source.room_id = 30'))
+  assert.ok(migration.includes("measurement_grain = 'activity'"))
   assert.match(migration, /guard_student_orientation_source/)
   assert.doesNotMatch(migration, /patient_index/i)
 })
