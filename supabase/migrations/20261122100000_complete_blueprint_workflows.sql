@@ -61,8 +61,8 @@ begin
     coalesce(nullif(trim(pi.nama_pasien),''), qr.core_data->'form_fields'->>'Nama Pasien',''),
     coalesce(pi.jenis_kelamin,''),
     pi.tanggal_lahir,
-    coalesce(nullif(qr.core_data->>'admission_at','')::date, qr.record_date),
-    nullif(qr.core_data->>'discharge_at','')::date,
+    coalesce(nullif(substr(qr.core_data->>'admission_at',1,10),'')::date, qr.record_date),
+    nullif(substr(qr.core_data->>'discharge_at',1,10),'')::date,
     qr.room_id,
     coalesce(mr.name, qr.core_data->'form_fields'->>'unit_name','Unit tidak tercatat'),
     coalesce(nullif(trim(qr.core_data->'form_fields'->>'DPJP'),''),'Belum tercatat'),
@@ -474,10 +474,11 @@ begin
     ) order by s.submitted_at desc),'[]'::jsonb)
     into v_culture
     from (
-      select survey_period,unit_name,max(submitted_at) as submitted_at,count(*)::integer as response_count
-      from aureka_patient_safety.culture_responses
-      where respondent_person_id=p_staff_id and identity_mode='named'
-      group by survey_period,unit_name
+      select cr.survey_period,mr.name as unit_name,max(cr.submitted_at) as submitted_at,count(*)::integer as response_count
+      from aureka_patient_safety.culture_responses cr
+      left join public.master_rooms mr on mr.id=cr.respondent_room_id
+      where cr.respondent_person_id=p_staff_id and cr.identity_mode='named'
+      group by cr.survey_period,mr.name
     ) s;
   end if;
 
