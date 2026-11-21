@@ -334,7 +334,7 @@
 .aurekaPublicHeader{position:sticky;top:0;z-index:65;border-bottom:1px solid var(--ap-line);background:var(--ap-surface);backdrop-filter:blur(10px)}
 .aurekaPublicHeaderInner{min-height:78px;display:flex;align-items:center;gap:22px}
 .aurekaPublicBrand{display:flex;align-items:center;gap:12px;min-width:220px}
-.aurekaPublicBrand img{object-fit:contain;flex:none}
+.aurekaPublicBrand img{object-fit:contain;flex:none;width:47px;height:43px}
 .aurekaPublicBrand span{display:flex;flex-direction:column;line-height:1.2;gap:4px}
 .aurekaPublicBrand strong{font-size:17px;font-weight:850;letter-spacing:.03em}
 .aurekaPublicBrand small{font-size:11px;font-weight:650;color:var(--ap-muted)}

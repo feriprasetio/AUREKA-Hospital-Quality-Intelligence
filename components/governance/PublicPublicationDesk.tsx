@@ -168,7 +168,7 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
               <label>Target<input inputMode="decimal" value={row.target} onChange={e=>patchRow(i,'target',e.target.value)} placeholder="Sesuai versi profil"/></label>
               <label>Satuan<input value={row.unit} onChange={e=>patchRow(i,'unit',e.target.value)} maxLength={30}/></label>
               <label>Operator<select value={row.operator} onChange={e=>patchRow(i,'operator',e.target.value)}>
-                <option value=">=">≥</option><option value=">">></option><option value="<=">≤</option><option value="<">{"<"}</option><option value="=">=</option>
+                <option value=">=">≥</option><option value=">">{">"}</option><option value="<=">≤</option><option value="<">{"<"}</option><option value="=">=</option>
               </select></label>
               <label>Numerator (opsional)<input inputMode="decimal" value={row.numerator} onChange={e=>patchRow(i,'numerator',e.target.value)}/></label>
               <label>Denominator (opsional)<input inputMode="decimal" value={row.denominator} onChange={e=>patchRow(i,'denominator',e.target.value)}/></label>
@@ -193,7 +193,7 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
           <div className="aurekaPublishHistory">
             {snapshots.map(item=><article key={item.id}>
               <div className="aurekaPublishHistoryHeader"><strong>{TYPES[item.domain]} · {item.period}</strong><PublicationState status={item.status}/></div>
-              <p>{item.status==='draft'?'Diajukan':'Dibuat'} {dateLabel(item.created_at)} · {Object.values(item.payload).reduce((n,v)=>n+(Array.isArray(v)?v.length:0),0)} kelompok data</p>
+              <p>{item.status==='draft'?'Diajukan':'Dibuat'} {dateLabel(item.created_at)} · {Object.values(item.payload).reduce<number>((n,v)=>n+(Array.isArray(v)?v.length:0),0)} kelompok data</p>
               <details><summary>Tinjau data dan sumber</summary><pre>{JSON.stringify(item.payload,null,2)}</pre></details>
               <div className="aurekaPublishHistoryActions">
                 {item.status==='draft'&&canApprove&&item.created_by!==userId&&<button className="aurekaPublishPrimary" type="button" disabled={busy} onClick={()=>void decide(item,'approve')}>Setujui dan terbitkan</button>}
