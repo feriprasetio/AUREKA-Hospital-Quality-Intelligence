@@ -18,6 +18,15 @@
     "dead stock": "5.1",
     "angka ketidakpatuhan penggunaan label high alert": "5.3"
   },
+  "6": {
+    "antrian rawat inap": "6.4",
+    "overcrowding index": "6.6",
+    "kematian igd 8h": "6.1",
+    "kelengkapan assessment keperawatan": "6.5",
+    "door to decision": "6.2",
+    "response triage": "6.7",
+    "response time dpjp": "6.3"
+  },
   "7": {
     "assessment": "7.1",
     "instruksi dpjp": "7.2"
