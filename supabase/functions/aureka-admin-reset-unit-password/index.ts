@@ -8,10 +8,11 @@ const corsHeaders = {
 };
 
 function reply(status: number, body: unknown) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store, max-age=0" },
-  });
+  const headers: Record<string, string> = {
+    ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store, max-age=0",
+  };
+  if (status === 429) headers["Retry-After"] = "600";
+  return new Response(JSON.stringify(body), { status, headers });
 }
 
 Deno.serve(async (req) => {
@@ -65,6 +66,21 @@ Deno.serve(async (req) => {
   if (callerRoleError || callerRole?.code !== "ADMIN" || !callerRole?.is_active) {
     return reply(403, { error: "Hanya Super Admin yang dapat menyetel password akun lain." });
   }
+
+  // Only a verified, active Super Admin reaches this point. Apply the same
+  // atomic database-backed limiter used by other privileged AUREKA endpoints.
+  // Use the caller's JWT (not the service-role context) so auth.uid() is correct.
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (!anonKey) return reply(503, { error: "Konfigurasi pembatasan akses tidak tersedia." });
+  const caller = createClient(supabaseUrl, anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { Authorization: `Bearer ${jwt}` } },
+  });
+  const { data: overLimit, error: limitError } = await caller.rpc(
+    "aureka_consume_user_rate_limit", { p_bucket: "admin_password_reset" },
+  );
+  if (limitError) return reply(503, { error: "Verifikasi batas permintaan belum tersedia. Coba kembali." });
+  if (overLimit) return reply(429, { error: "Batas reset password tercapai. Coba kembali setelah 10 menit." });
 
   const { data: target, error: targetError } = await admin
     .schema("aureka_system").from("user_profiles")
