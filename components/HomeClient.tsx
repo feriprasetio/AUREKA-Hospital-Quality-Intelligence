@@ -601,6 +601,14 @@ export default function HomeClient(){
  const consumeNaraPrompt=useCallback(()=>setNaraPendingPrompt(null),[])
  const activeNavModuleId=active==='analytics'&&programTab!=='recommendations'?'secretariat':active
  const activeNavModuleLabel=MODS.find(([id])=>id===activeNavModuleId)?.[1]||(active==='home'?'Dashboard':active)
+ // Native quick destinations use the exact same role-filtered registry as the sidebar.
+ // Secondary and less frequently used modules remain reachable via the accessible drawer.
+ const nativeNavigationItems=([
+  {id:'home',label:'Beranda'},
+  {id:'patients',label:'Pasien'},
+  {id:'quality',label:'Mutu'},
+  {id:'nara',label:'NARA'},
+ ] as const).filter(item=>item.id==='home'||item.id==='nara'||visibleModuleIds.has(item.id))
  let activeRailTitle:string=activeNavModuleLabel
  let activeNavGroups=sidebarChildGroups[activeNavModuleId]||[]
  let activeNavSelectedId=''
@@ -1068,6 +1076,15 @@ export default function HomeClient(){
  if(view==='workspace')return <main data-aureka-theme="arktik" data-density="comfortable" className={'workspaceRoot workspaceDesk '+(sidebarCollapsed?'sidebarIsCollapsed ':'')+(MOBILE_WORKSPACE_TABS?'mobileWorkspaceTabsEnabled':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  <button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>
+ {typeof document!=='undefined'&&createPortal(
+  <nav className="workspaceNativeNavigation" aria-label="Navigasi cepat aplikasi AUREKA" data-drawer-open={mobileSidebar.isOpen?'true':'false'} style={{gridTemplateColumns:`repeat(${nativeNavigationItems.length+1}, minmax(0, 1fr))`}}>
+   {nativeNavigationItems.map(item=><button key={item.id} type="button" className="workspaceNativeNavItem" aria-current={activeNavModuleId===item.id?'page':undefined} onClick={()=>{mobileSidebar.close();navigateWorkspace(item.id)}}>
+    <svg viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[item.id]}</svg><span>{item.label}</span>
+   </button>)}
+   <button type="button" className="workspaceNativeNavItem workspaceNativeNavMore" aria-label="Lihat semua modul AUREKA" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen} aria-current={!nativeNavigationItems.some(item=>item.id===activeNavModuleId)?'page':undefined} onClick={event=>mobileSidebar.open(event.currentTarget)}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span>
+   </button>
+  </nav>,document.body)}
  <aside id="aureka-primary-sidebar" ref={mobileSidebar.panelRef} className={'sidebar glassPanel '+(mobileSidebar.isOpen?'mobileOpen':'')} aria-label="Navigasi utama AUREKA" role={mobileSidebar.isOpen?'dialog':undefined} aria-modal={mobileSidebar.isOpen?true:undefined} tabIndex={-1}>
   <div className="sideHeader">
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>RSUD SSMA Pontianak</small></div></div>
@@ -1104,7 +1121,7 @@ export default function HomeClient(){
  </aside>
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
-   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 720px)').matches){mobileSidebar.open(event.currentTarget)}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarButtonLabel} title={sidebarButtonLabel} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isMobile?mobileSidebar.isOpen:!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 1180px)').matches){mobileSidebar.open(event.currentTarget)}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarButtonLabel} title={sidebarButtonLabel} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isMobile?mobileSidebar.isOpen:!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
    <div className="workspaceContext" title={(admin?(allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name||'Unit belum dipetakan'):manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
      {admin
       ? <label className="workspaceUnitSelect" title="Cakupan ruangan untuk workspace">
