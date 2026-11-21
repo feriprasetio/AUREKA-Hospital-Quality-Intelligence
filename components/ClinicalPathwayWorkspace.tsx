@@ -2,6 +2,7 @@
 import { CLINICAL_PATHWAY_INM_TARGET_PCT } from '@/lib/aureka/clinical-pathway-metrics'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { createPortal } from 'react-dom'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
@@ -949,6 +950,12 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   // Editor format CP tampil sebagai popup di atas layar asal (pustaka/diagnosis).
   const view = screen === 'builder' ? builderReturnScreen : screen
   const closeBuilder = () => { setBuilder(null); setBuilderIsNew(false); setMessage(''); setScreen(builderReturnScreen) }
+  const builderDialogRef = useAccessibleDialog<HTMLDivElement>({
+    open:screen==='builder'&&Boolean(builder)&&isAdmin,
+    onClose:()=>{if(!saving)void (async()=>{if(await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.'))closeBuilder()})()},
+    closeOnEscape:!saving,
+    lockScroll:true,
+  })
   return <div className="cpRoot">
     <style>{CSS}</style>
     <WorkspaceModuleHeader
@@ -1265,7 +1272,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     </>}
 
     {screen === 'builder' && builder && isAdmin && typeof document !== 'undefined' && createPortal(<div className="cpBuilderOverlay" onMouseDown={(e) => { if (e.target === e.currentTarget && !saving) void (async () => { if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) closeBuilder() })() }}>
-      <div className="cpBuilderModal" role="dialog" aria-modal="true" aria-labelledby="cpBuilderTitle">
+      <div ref={builderDialogRef} tabIndex={-1} className="cpBuilderModal" role="dialog" aria-modal="true" aria-labelledby="cpBuilderTitle">
       <div className="cpBuilderModalHead"><div><span className="cpEyebrow">Master Clinical Pathway</span><h3 id="cpBuilderTitle">{builderIsNew ? 'Tambah Clinical Pathway baru' : 'Edit format · ' + builder.name}</h3></div><button type="button" className="cpBuilderClose" aria-label="Tutup editor" disabled={saving} onClick={() => void (async () => { if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) closeBuilder() })()}>✕</button></div>
       <div className="cpBuilderModalBody">
       {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'}>{message}</div>}
