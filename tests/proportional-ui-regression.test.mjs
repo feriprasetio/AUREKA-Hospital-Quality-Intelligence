@@ -31,7 +31,8 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.ok(imports.indexOf('aureka-global-navigation.css') < imports.indexOf('aureka-universal-tabs.css'))
   assert.ok(imports.indexOf('aureka-universal-tabs.css') < imports.indexOf('aureka-navigation-repair.css'))
   assert.ok(imports.indexOf('aureka-layout-integrity.css') < imports.indexOf('aureka-navigation-pill.css'))
-  assert.equal(imports.at(-1), 'aureka-navigation-pill.css')
+  assert.ok(imports.indexOf('aureka-navigation-pill.css') < imports.indexOf('aureka-navigation-system.css'))
+  assert.equal(imports.at(-1), 'aureka-navigation-system.css')
 })
 
 test('Super Admin uses a compact contextual rail and shows eight registry-driven category groups', () => {

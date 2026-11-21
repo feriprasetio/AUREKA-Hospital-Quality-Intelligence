@@ -320,6 +320,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar.mobileOpen,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar.mobileOpen {
     left: 0 !important;
+    z-index: 1301 !important;
     transform: translate3d(0, 0, 0) !important;
     visibility: visible !important;
     pointer-events: auto !important;

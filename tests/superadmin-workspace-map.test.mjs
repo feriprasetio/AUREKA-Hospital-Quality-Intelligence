@@ -34,7 +34,7 @@ test('the results rail exposes only the active Hasil Capaian group and its two s
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
   assert.ok(home.includes("const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleId==='staff'&&staffTab==='student-orientation'?'Orientasi Mahasiswa':activeNavModuleId==='staff'&&staffTab==='training'?'In House Training':activeNavModuleLabel"))
   assert.ok(home.includes('title={displayedRailTitle}'))
-  assert.ok(home.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
+  assert.ok(home.includes("const activeRailItems=activeNavModuleId==='patients'?patientRailItems:activeNavModuleId==='clinical'?clinicalRailItems:activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))
   assert.ok(home.includes('secondaryActiveId={activeNavSecondaryId}'))
   assert.ok(home.includes("onSubSelect={childId=>{if(activeNavModuleId==='patients')"))
