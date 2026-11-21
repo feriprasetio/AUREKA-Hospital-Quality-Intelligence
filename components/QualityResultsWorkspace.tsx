@@ -330,15 +330,18 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             throw new Error('Pemuatan status rekonsiliasi melampaui 50.000 respons. Hasil indikator dihentikan agar respons yang belum ditelaah tidak terhitung tanpa status.')
           }
         }
-        const profileById = new Map(activeProfiles.map((profile) => [String(profile.id ?? ''), profile]))
-        const rowById = new Map(recordResult.rows.map((row: any) => [String(row.id), row]))
+        const profileById = new Map<string, IndicatorProfileForResults>()
+        activeProfiles.forEach((profile) => profileById.set(String(profile.id ?? ''), profile))
+        const rowById = new Map<string, ResultRecord>()
+        recordResult.rows.forEach((row) => rowById.set(String(row.id), row))
         const reviewByRecordProfile = new Map<string, string>()
         for (const item of reviewResult.rows) {
           const key = String(item.record_id) + '|' + String(item.indicator_id)
           const status = String(item.review_status ?? 'pending').trim().toLowerCase() || 'pending'
           const existing = reviewByRecordProfile.get(key)
-          // A pending/unknown duplicate must never be downgraded by an approved row.
-          if (!existing || (existing !== 'pending' && status === 'pending')) reviewByRecordProfile.set(key, status)
+          const isApproved = (value: string) => value === 'classified' || value === 'not_required'
+          // Any unknown/pending duplicate must never be downgraded by an approved row.
+          if (!existing || (!isApproved(status) && isApproved(existing))) reviewByRecordProfile.set(key, status)
         }
         for (const [key, reviewStatus] of reviewByRecordProfile) {
           const separator = key.indexOf('|')
