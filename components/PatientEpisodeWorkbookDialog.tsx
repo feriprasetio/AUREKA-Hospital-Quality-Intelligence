@@ -345,7 +345,7 @@ export default function PatientEpisodeWorkbookDialog({
                   invalidatePreview()
                 }}/>)}
             </div>
-          </details>
+          </details>}
           <section className="episodeWorkbookMappings" aria-label={profilesOnly ? 'Validasi profil indikator' : 'Pemetaan profil ke Logbook'}>
             <h4>{profilesOnly ? 'Profil indikator dari workbook' : 'Kolom respons 1, 2, 3'} <span>{profilesOnly ? mappings.length + ' profil diperiksa' : selectedCount + ' dari ' + mappings.length + ' dipetakan'}</span></h4>
             {!mappings.length && <p role="status">{admin ? 'Belum ada profil episode. Unggah workbook dengan sheet Profil yang memuat kode dan nama indikator.' : 'Belum ada profil episode aktif. Hubungi Superadmin untuk menerapkan profil workbook.'}</p>}
