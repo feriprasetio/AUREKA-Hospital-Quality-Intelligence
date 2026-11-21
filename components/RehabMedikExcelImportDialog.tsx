@@ -4,6 +4,7 @@ import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-he
 
 
 import { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
@@ -362,7 +363,8 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
  }
 
  if(!open)return null
- return <div className="aqBack" role="presentation" onClick={event=>{if(event.target===event.currentTarget)close()}}>
+ if (typeof document === 'undefined') return null
+ return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event=>{if(event.target===event.currentTarget)close()}}>
   <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqRehabImport" role="dialog" aria-modal="true" aria-labelledby="aqRehabImportTitle">
    <style>{'.aqRehabImport .aqBody{display:grid;align-content:start;gap:12px}.aqRehabImport .riBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:12px;line-height:1.55}.aqRehabImport .riError{background:#fff1f0;color:#8b2822}.aqRehabImport .riWarn{background:#fff8e8;color:#795c26}.aqRehabImport .riSuccess{background:#ebf8ef;color:#1e6544}.aqRehabImport .riTable{max-height:320px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqRehabImport table{width:100%;border-collapse:collapse;font-size:12px}.aqRehabImport th,.aqRehabImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;white-space:nowrap}.aqRehabImport th{position:sticky;top:0;background:#f5f8f6}.aqRehabImport .riStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.aqRehabImport .riStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff}.aqRehabImport .riStat span{display:block;color:#65736b;font-size:12px}.aqRehabImport .riStat strong{display:block;font-size:17px;margin-top:4px}.aqRehabImport .riMuted{font-size:12px;color:#65736b;line-height:1.5}@media(max-width:560px){.aqRehabImport .riStats{grid-template-columns:1fr 1fr}}'}</style>
    <div className="aqDHead"><div><div className="eyebrow">Audit Indikator Mutu · Instalasi Rehab Medik</div><h4 id="aqRehabImportTitle">Unggah workbook Rehab Medik (.xlsx)</h4><p>Impor baris pelayanan pasien dan respons indikator 12.1–12.6.</p></div><button type="button" className="aqClose" disabled={parsing||importing} onClick={close} aria-label="Batal">×</button></div>
@@ -386,5 +388,5 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
    </div>
    <div className="aqFoot"><span className="riMuted">Pastikan pratinjau sesuai sumber sebelum melaporkan.</span><div style={{display:'flex',gap:8}}><button type="button" className="aqBtn" disabled={parsing||importing} onClick={close}>Batal</button><button type="button" className="aqBtn primary" disabled={!eligible||!authorized||!rows.length||errors.length>0||parsing||importing||!!result} onClick={()=>void importRows()}>{importing?'Mengimpor…':'Laporkan '+rows.length.toLocaleString('id-ID')+' catatan'}</button></div></div>
   </section>
- </div>
+ </div></div>, document.body)
 }
