@@ -87,7 +87,7 @@ function CertificateVerification({code,logoSrc}:{code:string;logoSrc:string}){
   return <main className="aurekaPublic aurekaPublicVerification">
     <header className="aurekaPublicHeader"><div className="aurekaPublicContainer aurekaPublicHeaderInner">
       <a href="#" className="aurekaPublicBrand" onClick={event=>{event.preventDefault();goBack()}}>
-        <img src={logoSrc} alt="" width={43} height={43}/><span><strong>AUREKA</strong><small>Certificate Trust Center</small></span>
+        <img src={logoSrc} alt="" width={160} height={136}/><span><strong>AUREKA</strong><small>Certificate Trust Center</small></span>
       </a>
       <button className="aurekaPublicSecondary" type="button" onClick={goBack}>Kembali ke portal</button>
     </div></header>
@@ -144,7 +144,7 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
     <a className="aurekaPublicSkip" href="#konten">Lewati ke konten</a>
     <header className="aurekaPublicHeader">
       <div className="aurekaPublicContainer aurekaPublicHeaderInner">
-        <a className="aurekaPublicBrand" href="#beranda"><img src={logoSrc} alt="" width={43} height={43}/><span><strong>AUREKA</strong><small>Hospital Quality Intelligence</small></span></a>
+        <a className="aurekaPublicBrand" href="#beranda"><img src={logoSrc} alt="" width={160} height={136}/><span><strong>AUREKA</strong><small>Hospital Quality Intelligence</small></span></a>
         <nav className="aurekaPublicNav" aria-label="Navigasi publik">
           <a href="#inm">Indikator Mutu</a><a href="#safety">Keselamatan Pasien</a><a href="#risk">Manajemen Risiko</a><a href="#trust">Verifikasi</a>
         </nav>
