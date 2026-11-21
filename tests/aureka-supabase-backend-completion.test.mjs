@@ -60,7 +60,9 @@ test('NARA ingestion worker authenticates users, indexes structured text, and cr
   has(worker, 'analysis_status: "completed"')
   has(worker, 'MAX_EXTRACTED_CHARS')
   has(worker, 'version.extracted_text')
-  assert.doesNotMatch(worker, /\\.storage\\.from\\(|inline_data|file\\.arrayBuffer\\(/)
+  for (const forbidden of ['.storage.from(', 'inline_data', 'file.arrayBuffer(']) {
+    assert.ok(!worker.includes(forbidden), 'binary file access forbidden: ' + forbidden)
+  }
   has(worker, 'claim_document_ingestion_job')
 })
 
