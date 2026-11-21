@@ -451,8 +451,14 @@ export function prepareMissingEpisodeProfiles(
     const schema: Record<string, unknown> = {
       ...(baseline?.schema_json ?? {}), ...(entry.metadata.schema_json ?? {}),
       episode_workbook_profile: true, source_profile_sheet: book.profileSheet,
+      response_capture_mode: 'categorical',
     }
-    const options = entry.options.length ? entry.options : normalizeOptions(baseline?.options_json)
+    const sourceColumn = declaredSourceIndex(entry.source, book.logbook.columns) ||
+      (entry.sourceColumns.length === 1 ? entry.sourceColumns[0] : 0) ||
+      matchColumn(book.logbook.columns, [title, code, baseline?.title])
+    const dropdownOptions = book.hasLogbook ? optionsFromValidation(book, sourceColumn) : []
+    const options = entry.options.length ? entry.options :
+      dropdownOptions.length ? dropdownOptions : normalizeOptions(baseline?.options_json)
     const direction = entry.direction || directionValue(schema.indicator_direction)
     if (direction) schema.indicator_direction = direction
     if (!options.length || !direction || !schema.measurement_type) {
