@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
+import { NATIONAL_INDICATORS } from '@/lib/aureka/national-indicators'
 
 type Indicator = {
   code?: string; title?: string; actual?: number | null; target?: number | null
@@ -24,21 +25,7 @@ type CertificateResult = {
   issue_date?: string; issued_at?: string; manifest_sha256?: string
   issuer?: string; signature_type?: string
 }
-const NATIONAL_INDICATORS = [
-  ['KKT','Kepatuhan Kebersihan Tangan'],
-  ['KPAPD','Kepatuhan Penggunaan Alat Pelindung Diri'],
-  ['KIP','Kepatuhan Identifikasi Pasien'],
-  ['WTSC','Waktu Tanggap Seksio Sesarea Emergensi'],
-  ['WTRJ','Waktu Tunggu Rawat Jalan'],
-  ['POE','Penundaan Operasi Elektif'],
-  ['KWVD','Kepatuhan Waktu Visite Dokter'],
-  ['PHKL','Pelaporan Hasil Kritis Laboratorium'],
-  ['KF','Kepatuhan Penggunaan Formularium Nasional'],
-  ['KCP','Kepatuhan terhadap Clinical Pathway'],
-  ['KPRPJ','Kepatuhan Upaya Pencegahan Risiko Pasien Jatuh'],
-  ['KWTK','Kecepatan Waktu Tanggap terhadap Komplain'],
-  ['IKP','Kepuasan Pasien'],
-] as const
+
 const normalize = (input: string) => input.toLocaleLowerCase('id-ID').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')
 const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : null
 const display = (value: unknown, unit = '') => {
