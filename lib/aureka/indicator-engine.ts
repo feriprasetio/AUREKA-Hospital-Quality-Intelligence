@@ -38,6 +38,21 @@ export function usesCategoricalResponseCapture(profile: IndicatorProfile): boole
   if (normalize(schema.input_mode) === 'free_text_event') return false
   if (normalize(profile.measurement_grain) !== 'patient_episode') return false
 
+  const explicitMeasurementKinds = [
+    schema.measurement_type,
+    schema.input_type,
+    schema.measurement_method,
+    profile.measurement_method,
+    profile.input_type,
+  ].map(normalize)
+  const dedicatedContinuousModes = [
+    'visit_window', 'clock_window', 'time_window', 'visit_time',
+    'door_to_decision', 'duration_between_times', 'time_interval', 'duration_between_events',
+    'duration', 'duration_minutes', 'minutes', 'response_time_minutes',
+    'numeric', 'number', 'numeric_target', 'continuous_numeric',
+  ]
+  if (explicitMeasurementKinds.some(value => dedicatedContinuousModes.includes(value))) return false
+
   const direction = normalize(schema.indicator_direction)
   if (direction !== 'positive' && direction !== 'negative') return false
 
