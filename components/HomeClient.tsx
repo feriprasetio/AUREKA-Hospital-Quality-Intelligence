@@ -5,6 +5,7 @@ import type {ReactNode} from 'react'
 import dynamic from 'next/dynamic'
 import {createPortal,flushSync} from 'react-dom'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
+import { TOUCH_DRAWER_MEDIA_QUERY } from '@/lib/ui/device-navigation'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceSkeleton from '@/components/WorkspaceSkeleton'
 import AdaptiveWorkspaceShell from '@/components/workspace/AdaptiveWorkspaceShell'
@@ -1123,7 +1124,7 @@ export default function HomeClient(){
  </aside>
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
-   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>{if(typeof window!=='undefined'&&window.matchMedia('(max-width: 1180px)').matches){mobileSidebar.open(event.currentTarget)}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarButtonLabel} title={sidebarButtonLabel} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isMobile?mobileSidebar.isOpen:!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+   <button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>{if(typeof window!=='undefined'&&window.matchMedia(TOUCH_DRAWER_MEDIA_QUERY).matches){mobileSidebar.open(event.currentTarget)}else{setSidebarCollapsed(v=>!v)}}} aria-label={sidebarButtonLabel} title={sidebarButtonLabel} aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isMobile?mobileSidebar.isOpen:!sidebarCollapsed}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
    <div className="workspaceContext" title={(admin?(allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name||'Unit belum dipetakan'):manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
      {admin
       ? <label className="workspaceUnitSelect" title="Cakupan ruangan untuk workspace">
