@@ -193,7 +193,7 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
           <div className="aurekaPublishHistory">
             {snapshots.map(item=><article key={item.id}>
               <div className="aurekaPublishHistoryHeader"><strong>{TYPES[item.domain]} · {item.period}</strong><PublicationState status={item.status}/></div>
-              <p>{item.status==='draft'?'Diajukan':'Dibuat'} {dateLabel(item.created_at)} · {Object.values(item.payload).reduce((n,v)=>n+(Array.isArray(v)?v.length:0),0)} kelompok data</p>
+              <p>{item.status==='draft'?'Diajukan':'Dibuat'} {dateLabel(item.created_at)} · {Object.values(item.payload).reduce<number>((n,v)=>n+(Array.isArray(v)?v.length:0),0)} kelompok data</p>
               <details><summary>Tinjau data dan sumber</summary><pre>{JSON.stringify(item.payload,null,2)}</pre></details>
               <div className="aurekaPublishHistoryActions">
                 {item.status==='draft'&&canApprove&&item.created_by!==userId&&<button className="aurekaPublishPrimary" type="button" disabled={busy} onClick={()=>void decide(item,'approve')}>Setujui dan terbitkan</button>}
