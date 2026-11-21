@@ -34,7 +34,7 @@ test('Public QR verification discloses signature metadata only and disclaims PSr
  const page=await read('components/governance/DocumentVerificationPage.tsx')
  has(page,'aureka_verify_artifact_signature')
  has(page,'Persetujuan terverifikasi')
- has(page,'bukan Sertifikat Elektronik atau Tanda Tangan Elektronik Tersertifikasi')
+ has(page,'bukan Sertifikat Elektronik atau Tanda Tangan Elektronik Tersertifikasi dari PSrE.')
  const helper=await read('lib/aureka/document-signature-stamp.ts')
  has(helper,'aureka_get_artifact_signature_stamps')
  has(helper,'documentVerificationQrUrl')
