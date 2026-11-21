@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { planNaraSkills, NARA_SKILL_REGISTRY } from "../supabase/functions/aureka-tanya/skills.ts";
+import { planNaraSkills, isNaraSmallTalk, NARA_SKILL_REGISTRY } from "../supabase/functions/aureka-tanya/skills.ts";
 import { scopeSnapshotForSkills } from "../supabase/functions/aureka-tanya/skill-policy.ts";
 
 test("registry exposes fourteen specialist skill families", () => {
@@ -132,4 +132,21 @@ test("snapshot scoping fails closed for non-data or unknown domains", () => {
   assert.equal(scopeSnapshotForSkills(snapshot, ["engineering"]), null);
   assert.equal(scopeSnapshotForSkills(snapshot, ["unknown-domain"]), null);
   assert.equal(scopeSnapshotForSkills(null, ["risk"]), null);
+});
+
+
+test("short audit and engineering requests are routed, not dismissed as small talk", () => {
+  assert.equal(isNaraSmallTalk("Halo!"), true);
+  assert.equal(isNaraSmallTalk("Terima kasih."), true);
+  assert.equal(isNaraSmallTalk("Audit seluruh fitur AUREKA"), false);
+  assert.equal(isNaraSmallTalk("Debug UI AUREKA"), false);
+  assert.equal(planNaraSkills("Audit seluruh fitur AUREKA").primary, "audit");
+});
+
+test("broad cross-domain questions retain explicitly requested engineering and governance specialties", () => {
+  const plan = planNaraSkills("Direktur: statistik audit indikator mutu, risiko, IKP, diagnosis, OPPE, diagram, Supabase, tata kelola");
+  assert.ok(plan.selected.length <= 5);
+  assert.equal(plan.primary, "executive");
+  assert.ok(plan.selected.includes("engineering"));
+  assert.ok(plan.selected.includes("governance"));
 });

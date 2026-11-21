@@ -3,7 +3,7 @@
 // Data diambil dengan JWT pengguna sehingga RLS berlaku: AI hanya melihat data yang boleh dilihat pengguna itu.
 // Tidak ada data identitas pasien yang dikirim ke AI (ringkasan IKP hanya berupa hitungan).
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
-import { planNaraSkills } from "./skills.ts";
+import { planNaraSkills, isNaraSmallTalk } from "./skills.ts";
 import { scopeSnapshotForSkills } from "./skill-policy.ts";
 
 const corsHeaders = {
@@ -1117,8 +1117,7 @@ async function handle(req: Request): Promise<Response> {
     });
   }
   // Obrolan ringan (salam, terima kasih, basa-basi) tidak perlu data: jawab langsung tanpa menarik data.
-  const DATA_WORDS = /\b(unit|ruang|risiko|risk|ikp|insiden|kejadian|data|berapa|jumlah|total|mutu|indikator|logbook|lapor|input|pasien|episode|diagnosis|diagnosa|koding|icd-?10|dpjp|clinical|pathway|kematian|oppe|fppe|angka|persen|triwulan|tw|bulan|tahun|capaian|target|rtp|rencana|fmea|rca|survei|budaya|prioritas|tren|grafik|rekap|ringkas|fokus|kpi|validasi|tenggat|kirim|pesan|ingatkan|pengingat|pic|rekomendasi|tindak lanjut|supabase|next\.js|react|typescript|javascript|sql|database|basis data|schema|migrasi|migration|rls|edge function|api|frontend|backend|fullstack|debug|deploy|deployment|ci.?cd|github|repository|repositori|kode program|bug|error teknis|integrasi sistem|arsitektur sistem|pipeline|dewan pengawas|tata kelola|keputusan direksi|kebijakan rumah sakit)\b/i;
-  const smallTalk = question.length < 80 && !DATA_WORDS.test(question);
+  const smallTalk = isNaraSmallTalk(question);
   const page = (body.page || "").toString().slice(0, 80);
   // Deterministic skill routing runs before model invocation; the LLM may synthesize, never select data access.
   const skillPlan = smallTalk ? null : planNaraSkills(question);
