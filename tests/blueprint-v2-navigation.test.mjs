@@ -51,7 +51,10 @@ test('OPPE and FPPE are reachable from SDM navigation and not from quality navig
   assert.ok(app.includes("active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace"))
   assert.ok(staffGroup.includes("{id:'fppe',label:'FPPE'}"))
   assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
-  assert.ok(app.includes("if(next==='staff'){setStaffTab(section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory')"))
+  assert.ok(app.includes("section==='student-orientation'?'student-orientation'"))
+  assert.ok(app.includes("section==='oppe-fppe'||section==='oppe'?'oppe'"))
+  assert.ok(app.includes("section==='fppe'?'fppe'"))
+  assert.ok(app.includes("section==='kinerja-pic'?'pic-performance'"))
 })
 
 test('legacy bookmarks remain mapped into the canonical destinations', () => {
