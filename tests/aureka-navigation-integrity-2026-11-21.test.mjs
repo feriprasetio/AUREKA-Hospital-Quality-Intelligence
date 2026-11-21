@@ -39,7 +39,7 @@ test('patient and clinical modules have explicit primary contextual tabs with sy
   const home = read('components/HomeClient.tsx')
   assert.match(home, /const patientRailItems=\[/)
   assert.match(home, /const clinicalRailItems=\[/)
-  assert.match(home, /const activeRailItems=activeNavModuleId==='patients'\?patientRailItems:activeNavModuleId==='clinical'\?clinicalRailItems:/)
+  assert.match(home, /const activeRailItems(?::\s*\{id:string;label:string;hint\?:string\}\[\])?=activeNavModuleId==='patients'\?patientRailItems:activeNavModuleId==='clinical'\?clinicalRailItems:/)
   assert.match(home, /const activeNavPrimaryId=activeNavModuleId==='patients'\?patientsRegistryTab:activeNavModuleId==='clinical'/)
   assert.match(home, /activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'\?'':activeNestedNavGroup/)
   assert.match(home, /activeNavGroups.length>0\|\|activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'/)

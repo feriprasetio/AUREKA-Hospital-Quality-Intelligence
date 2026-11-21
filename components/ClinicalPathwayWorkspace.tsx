@@ -43,7 +43,7 @@ type Answers = Record<string, Record<string, CellAnswer>>
 type Variation = { id: string; date: string; item_id?: string; variation: string; reason: string; justification: string }
 type VariationState = { reviewed: boolean; items: Variation[] }
 type AuditForm = {
-  id?: string; room_id: number | null; template: Template; patient_name: string
+  id?: string; source_quality_record_id?: string | null; patient_index_id?: string | null; room_id: number | null; template: Template; patient_name: string
   medical_record_no: string; sex: string; date_of_birth: string; admission_date: string
   discharge_date: string; unit_name: string; dpjp: string; clinical_data: Record<string, string>
   ppa_names: Record<string, string>; selected_items_json: Record<string, boolean>; additional_phases_json: string[]
@@ -54,7 +54,13 @@ type AuditRow = {
   id: string; room_id: number; template_code: string; template_name: string
   patient_name: string; medical_record_no: string; admission_date: string | null
   status: string; calculation_json: Record<string, any>; created_at: string
-  unit_name?: string
+  unit_name?: string; source_quality_record_id?: string | null; patient_index_id?: string | null
+}
+type ClinicalPathwayCandidate = {
+  source_quality_record_id: string; patient_index_id: string; medical_record_no: string; patient_name: string
+  sex: string; date_of_birth: string | null; admission_date: string | null; discharge_date: string | null
+  unit_id: number; unit_name: string; dpjp: string; diagnosis: string
+  match_status: 'possible_code_match' | 'possible_name_match' | 'requires_clinical_review'; existing_audit_id: string | null
 }
 type Room = { id: number; name: string }
 type StaffOption = { id: string; employee_code: string; display_name: string; profession_group: string; position_title: string; room_id: number; room_name: string }
@@ -209,7 +215,7 @@ function fromDatabase(row: any, fallback: Template | null, roomName: string): Au
   const t = row.template_snapshot && row.template_snapshot.items ? row.template_snapshot as Template : fallback
   if (!t) throw new Error('Snapshot Clinical Pathway pada audit ini tidak tersedia dan master penggantinya belum dimuat.')
   return {
-    id: row.id, room_id: Number(row.room_id), template: clone(t), patient_name: row.patient_name || '',
+    id: row.id, source_quality_record_id: row.source_quality_record_id || null, patient_index_id: row.patient_index_id || null, room_id: Number(row.room_id), template: clone(t), patient_name: row.patient_name || '',
     medical_record_no: row.medical_record_no || '', sex: row.sex || '', date_of_birth: row.date_of_birth || '',
     admission_date: row.admission_date || '', discharge_date: row.discharge_date || '',
     unit_name: row.unit_name || roomName || '', dpjp: row.dpjp || '',
@@ -249,6 +255,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [audits, setAudits] = useState<AuditRow[]>([])
   const [auditLoading, setAuditLoading] = useState(false)
+  const [patientCandidates, setPatientCandidates] = useState<ClinicalPathwayCandidate[]>([])
+  const [candidateLoading, setCandidateLoading] = useState(false)
+  const [candidateLimit, setCandidateLimit] = useState(12)
   const [form, setForm] = useState<AuditForm | null>(null)
   const [focusedCell, setFocusedCell] = useState<{ itemId: string; day: string } | null>(null)
   const [collapsedProfessions, setCollapsedProfessions] = useState<Record<string, boolean>>({})
@@ -445,6 +454,27 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     if (screen === 'diagnosis' && selectedCode) void loadAudits(selectedCode)
   }, [screen, selectedCode, selectedRoomId, loadAudits])
 
+  const loadCandidates = useCallback(async (code: string) => {
+    if (!code) { setPatientCandidates([]); return }
+    setCandidateLoading(true)
+    try {
+      const { data, error } = await sb.rpc('aureka_clinical_pathway_patient_candidates', {
+        p_template_code: code, p_room_id: selectedRoomId,
+      })
+      if (error) throw error
+      setPatientCandidates((data || []) as ClinicalPathwayCandidate[])
+      setCandidateLimit(12)
+    } catch (e: any) {
+      setPatientCandidates([])
+      setMessage('Daftar kandidat Clinical Pathway belum dapat dimuat: ' + toUserFacingError(e, { fallback: 'Periksa koneksi dan hak akses unit.' }))
+      setMessageKind('error')
+    } finally { setCandidateLoading(false) }
+  }, [selectedRoomId])
+
+  useEffect(() => {
+    if (screen === 'diagnosis' && selectedCode) void loadCandidates(selectedCode)
+  }, [screen, selectedCode, selectedRoomId, loadCandidates])
+
   function chooseTemplate(t: Template) {
     setSelectedCode(t.code)
     setMessage('')
@@ -456,7 +486,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     if (selectedTemplate.status !== 'published') { setMessage('Format Clinical Pathway ini belum diterbitkan. Super Admin perlu menerbitkannya sebelum digunakan untuk audit pasien.'); setMessageKind('error'); return }
     const roomId = selectedRoomId ?? (isAdmin ? null : initialRoomId)
     setForm({
-      room_id: roomId, template: clone(selectedTemplate), patient_name: '', medical_record_no: '', sex: '',
+      room_id: roomId, source_quality_record_id: null, patient_index_id: null, template: clone(selectedTemplate), patient_name: '', medical_record_no: '', sex: '',
       date_of_birth: '', admission_date: '', discharge_date: '',
       unit_name: roomNames.get(Number(roomId)) || (roomId == null ? '' : ''), dpjp: '',
       clinical_data: {}, ppa_names: { dpjp: '' }, selected_items_json: {}, additional_phases_json: [], inclusion_json: {}, answers_json: {},
@@ -468,6 +498,33 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     setPatientPanelCollapsed(false)
     setMessage('')
     setScreen('audit')
+  }
+
+  function newAuditFromCandidate(candidate: ClinicalPathwayCandidate) {
+    if (!candidate.unit_id || !candidate.source_quality_record_id) {
+      setMessage('Episode sumber belum mempunyai unit atau identitas rekam mutu yang dapat ditautkan. Audit baru tidak dibuat.'); setMessageKind('error'); return
+    }
+    newAudit()
+    setForm((current) => current ? {
+      ...current,
+      room_id: Number(candidate.unit_id),
+      source_quality_record_id: candidate.source_quality_record_id,
+      patient_index_id: candidate.patient_index_id,
+      patient_name: candidate.patient_name || '',
+      medical_record_no: candidate.medical_record_no || '',
+      sex: /^(L|laki|male)$/i.test(candidate.sex || '') ? 'Laki-laki' : /^(P|perempuan|female)$/i.test(candidate.sex || '') ? 'Perempuan' : candidate.sex || '',
+      date_of_birth: candidate.date_of_birth || '',
+      admission_date: candidate.admission_date || '',
+      discharge_date: candidate.discharge_date || '',
+      unit_name: candidate.unit_name || roomNames.get(Number(candidate.unit_id)) || '',
+      dpjp: candidate.dpjp || '',
+      ppa_names: { ...current.ppa_names, dpjp: candidate.dpjp || '' },
+      clinical_data: { ...current.clinical_data, source_diagnosis: candidate.diagnosis || '' },
+    } : current)
+    setMessage(candidate.match_status === 'requires_clinical_review'
+      ? 'Identitas dan diagnosis sumber telah diprefill. Kecocokan dengan format CP belum terkonfirmasi; DPJP wajib memverifikasi diagnosis dan kriteria inklusi sebelum audit diajukan.'
+      : 'Kandidat memiliki kecocokan istilah/kode awal. Tetap verifikasi diagnosis, inklusi, dan episode sebelum mengajukan audit.')
+    setMessageKind('info')
   }
 
   async function openAudit(row: AuditRow) {
@@ -650,7 +707,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       const auth = await sb.auth.getUser()
       if (auth.error || !auth.data.user) throw new Error('Sesi login tidak tersedia. Silakan masuk kembali.')
       const payload: any = {
-        room_id: form.room_id, template_code: form.template.code, template_name: form.template.name,
+        room_id: form.room_id, patient_index_id: form.patient_index_id || null, source_quality_record_id: form.source_quality_record_id || null,
+        template_code: form.template.code, template_name: form.template.name,
         template_version: form.template.version, template_snapshot: form.template,
         patient_name: form.patient_name.trim(), medical_record_no: form.medical_record_no.trim(),
         sex: form.sex, date_of_birth: form.date_of_birth || null,
@@ -923,7 +981,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           <button type="button" className="cpBtn" disabled={loading || saving} onClick={() => void loadTemplates()}>Muat ulang master</button>
         </div>
         <div className="cpNotice info" style={{marginTop:12}}>
-          Integrasi kandidat pasien otomatis berdasarkan diagnosis dan kriteria inklusi klinis belum diaktifkan pada workspace ini. Daftar operasional saat ini dimulai dari master diagnosis Clinical Pathway dan rekam audit yang sudah tersimpan; jangan menganggapnya sebagai daftar seluruh pasien yang memenuhi kriteria.
+          Kandidat ditarik dari episode logbook yang tertaut ke Direktori Pasien dan dibatasi menurut kewenangan unit. Kecocokan teks/kode hanya penyaringan awal; kelayakan klinis tetap harus dikonfirmasi DPJP dan kriteria inklusi pada Section D.
         </div>
       </div>
     </>}
@@ -983,6 +1041,16 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <LiquidGlass className="cpKpi"><span>Hari / tahap</span><strong>{selectedTemplate.days.length}</strong><small>{selectedTemplate.days.join(' · ')}</small></LiquidGlass>
         <LiquidGlass className="cpKpi"><span>Standar keterisian</span><strong>≥{selectedTemplate.scoring_rules.completion_threshold_pct}%</strong></LiquidGlass>
         <LiquidGlass className="cpKpi"><span>Target kepatuhan</span><strong>{selectedTemplate.scoring_rules.compliance_target_pct}%</strong></LiquidGlass>
+      </div>
+      <div className="cpGlass cpPanel">
+        <div className="cpSectionHead"><div><h4>Kandidat pasien dari logbook · {selectedTemplate.name}</h4><p>Episode terhubung yang dapat diakses pada unit Anda. Kecocokan awal bukan keputusan klinis atau bukti memenuhi inklusi.</p></div><span className="cpBadge">{patientCandidates.length} episode</span></div>
+        <div className="cpActions" style={{marginBottom:10}}><button type="button" className="cpBtn" disabled={candidateLoading} onClick={() => void loadCandidates(selectedTemplate.code)}>↻ Muat ulang kandidat</button><small className="cpTiny">Hanya episode yang tertaut ke indeks pasien dan dapat diakses role/unit akun.</small></div>
+        {candidateLoading ? <div className="cpEmpty">Memuat kandidat dari logbook…</div> : patientCandidates.length === 0 ? <div className="cpEmpty">Belum ada episode sumber pada ruang lingkup akses untuk format ini. Periksa pengisian diagnosis DPJP dan tautan indeks pasien di logbook.</div> : <div className="cpRecordList">{patientCandidates.slice(0,candidateLimit).map((candidate) => {
+          const label = candidate.match_status === 'possible_code_match' ? 'Kecocokan kode awal' : candidate.match_status === 'possible_name_match' ? 'Kecocokan istilah awal' : 'Perlu verifikasi klinis'
+          const linked = candidate.existing_audit_id ? audits.find((item) => item.id === candidate.existing_audit_id) : null
+          return <div className="cpRecord" key={candidate.source_quality_record_id}><div><b>{candidate.patient_name || 'Nama pasien tidak tersedia'} <span className="cpSubtle">· RM {candidate.medical_record_no || '-'}</span></b><small>{candidate.unit_name} · Masuk {fmtDate(candidate.admission_date)} · DPJP {candidate.dpjp || 'Belum tercatat'}</small><small>Diagnosis sumber: {candidate.diagnosis || 'Belum tercatat'}</small><small>{label} {candidate.existing_audit_id ? '· sudah ada audit terkait' : ''}</small></div><div className="cpRecordRight">{linked ? <button type="button" className="cpBtn" onClick={() => void openAudit(linked)}>Buka audit terkait</button> : <button type="button" className="cpBtn primary" onClick={() => newAuditFromCandidate(candidate)}>Periksa &amp; buat audit</button>}</div></div>
+        })}</div>}
+        {patientCandidates.length > candidateLimit && <div className="cpActions" style={{marginTop:10}}><button type="button" className="cpBtn" onClick={() => setCandidateLimit((value) => Math.min(value+20,patientCandidates.length))}>Tampilkan 20 kandidat berikutnya</button></div>}
       </div>
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Audit pasien · {selectedTemplate.name}</h4></div><span className="cpBadge">{audits.length} rekam audit</span></div>

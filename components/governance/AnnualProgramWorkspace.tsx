@@ -16,6 +16,13 @@ type PriorityArea = {
 type Draft = Partial<PriorityArea>
 type ProgramPayload = { can_manage: boolean; priority_areas: PriorityArea[] }
 type Screen = 'home'|'priorities'
+type ProgramActivity = {
+  id:string;program_year:number;title:string;description:string;expected_output:string
+  owner_room_id:number|null;room_name:string|null;responsible_person:string
+  start_date:string;end_date:string;status:'planned'|'in_progress'|'completed'|'on_hold'|'cancelled'
+  progress_percent:number
+}
+type ActivityDraft = Partial<ProgramActivity>
 
 const STATUS:Record<PriorityArea['status'],string>={aktif:'Aktif',berjalan:'Berjalan',tercapai:'Tercapai',ditunda:'Ditunda',dibatalkan:'Dibatalkan'}
 const PRIORITY:Record<PriorityArea['priority'],string>={tinggi:'Tinggi',sedang:'Sedang',rendah:'Rendah'}
@@ -30,7 +37,37 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
   const [busy,setBusy]=useState(false)
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
+  const [activityRows,setActivityRows]=useState<ProgramActivity[]>([])
+  const [activityDraft,setActivityDraft]=useState<ActivityDraft|null>(null)
+  const [activityLoading,setActivityLoading]=useState(false)
+  const [activityBusy,setActivityBusy]=useState(false)
+  const [activityError,setActivityError]=useState('')
   const canManage=role==='ADMIN'||role==='PMKP'
+
+  const loadActivities=useCallback(async()=>{
+    setActivityLoading(true);setActivityError('')
+    const {data,error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_activity_list',{p_year:year})
+    if(rpcError){setActivityRows([]);setActivityError(toUserFacingError(rpcError,{fallback:'Timeline program belum dapat dimuat.'}))}
+    else setActivityRows((data?.activities||[]) as ProgramActivity[])
+    setActivityLoading(false)
+  },[year])
+  useEffect(()=>{void loadActivities()},[loadActivities])
+
+  const startActivity=()=>{
+    setActivityDraft({program_year:year,title:'',description:'',expected_output:'',owner_room_id:currentRoomId,responsible_person:'',start_date:year+'-01-01',end_date:year+'-01-07',status:'planned',progress_percent:0})
+  }
+  const saveActivity=async()=>{
+    if(!activityDraft||activityBusy)return
+    if(String(activityDraft.title||'').trim().length<5){setActivityError('Nama kegiatan minimal lima karakter.');return}
+    if(!activityDraft.start_date||!activityDraft.end_date||activityDraft.end_date<activityDraft.start_date){setActivityError('Tanggal kegiatan wajib benar dan tanggal selesai tidak boleh mendahului tanggal mulai.');return}
+    setActivityBusy(true);setActivityError('')
+    const payload={...activityDraft,program_year:year,progress_percent:Number(activityDraft.progress_percent||0)}
+    const {error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_activity_save',{p:payload})
+    setActivityBusy(false)
+    if(rpcError){setActivityError(toUserFacingError(rpcError,{fallback:'Kegiatan timeline belum dapat disimpan.'}));return}
+    setActivityDraft(null);setNotice('Kegiatan timeline berhasil disimpan.');await loadActivities()
+  }
+  const editActivity=(activity:ProgramActivity)=>setActivityDraft({...activity})
 
   const load=useCallback(async()=>{
     setLoading(true);setError('')
@@ -91,6 +128,29 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
         <span className="annualProgramCardBody"><strong>Area Prioritas</strong><small>Daftar masalah strategis, sasaran mutu, unit pemilik, dan rencana penyelesaian.</small><span className="annualProgramCardMeta">{loading?'Memuat…':`${rows.length} area · ${activeCount} masih berjalan`}</span></span>
         
       </button>    </div>
+      <section className="annualTimelinePanel" aria-label="Timeline kegiatan tahunan">
+        <div className="annualTimelineHead">
+          <div><span className="rmEyebrow">PELAKSANAAN PROGRAM · GANTT</span><h4>Timeline Kegiatan Tahunan · {year}</h4><p>Rentang waktu berdasarkan tanggal mulai dan selesai yang dicatat. Panjang batang menunjukkan durasi kalender, sedangkan isian di dalamnya menunjukkan progres manual yang dilaporkan.</p></div>
+          {canManage&&<button type="button" className="rmButton primary" onClick={startActivity}>+ Tambah Kegiatan Timeline</button>}
+        </div>
+        {activityError&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{activityError}</p></div>}
+        {activityLoading?<div className="rmLoading">Memuat timeline kegiatan…</div>:activityRows.length===0?<AsyncStatePanel state="empty" title="Belum ada kegiatan pada timeline" description={canManage?'Tambahkan aktivitas dengan tanggal mulai, selesai, unit pemilik, dan penanggung jawab untuk membentuk Gantt tahunan.':'Belum ada aktivitas tahunan yang dicatat untuk periode ini.'} compact/>:
+        <div className="annualTimelineScroll">
+          <div className="annualTimelineMonthHead">{['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'].map((m,i)=><span key={i}>{m}</span>)}</div>
+          <div className="annualTimelineRows">{activityRows.map(activity=>{
+            const startMonth=Math.max(1,Math.min(12,Number(activity.start_date.slice(5,7))))
+            const endMonth=Math.max(startMonth,Math.min(12,Number(activity.end_date.slice(5,7))))
+            return <article className="annualTimelineRow" key={activity.id}>
+              <div className="annualTimelineRowMeta"><div><strong>{activity.title}</strong><small>{roomLabel(activity.owner_room_id)} · {activity.responsible_person||'Penanggung jawab belum diisi'} · {fmtDate(activity.start_date)} – {fmtDate(activity.end_date)}</small></div><div className="annualTimelineRowActions"><span className={'govStatus '+(activity.status==='completed'?'tercapai':activity.status==='on_hold'?'ditunda':activity.status==='cancelled'?'dibatalkan':activity.status==='in_progress'?'berjalan':'aktif')}>{activity.status==='completed'?'Selesai':activity.status==='in_progress'?'Berjalan':activity.status==='on_hold'?'Ditunda':activity.status==='cancelled'?'Dibatalkan':'Direncanakan'} · {activity.progress_percent}%</span>{canManage&&<button type="button" className="rmIconButton" onClick={()=>editActivity(activity)}>Edit</button>}</div></div>
+              <div className="annualTimelineTrack">
+                {Array.from({length:12},(_,i)=><i className="annualTimelineMonthCell" key={i}/>)}
+                <div className={'annualTimelineBar '+activity.status} style={{gridColumnStart:startMonth,gridColumnEnd:endMonth+1}}><span style={{width:activity.progress_percent+'%'}}/></div>
+              </div>
+              {activity.expected_output&&<p className="annualTimelineOutput">Output: {activity.expected_output}</p>}
+            </article>
+          })}</div>
+        </div>}
+      </section>
     </div>}
 
     {screen==='priorities'&&<div className="annualPriorityContent">
@@ -136,8 +196,48 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       </div>}
     </AurekaModal>
 
+    <AurekaModal open={Boolean(activityDraft)} title={activityDraft?.id?'Edit Kegiatan Timeline':'Tambah Kegiatan Timeline'} subtitle="Catat rentang waktu dan progres kegiatan yang dapat ditelusuri pada Gantt tahunan." closeDisabled={activityBusy} onClose={()=>setActivityDraft(null)}
+      footer={<><button type="button" className="akBtn akBtnGhost" disabled={activityBusy} onClick={()=>setActivityDraft(null)}>Batal</button><button type="button" className="akBtn akBtnPrimary" disabled={activityBusy||String(activityDraft?.title||'').trim().length<5||!activityDraft?.start_date||!activityDraft?.end_date} onClick={()=>void saveActivity()}>{activityBusy?'Menyimpan…':'Simpan Kegiatan'}</button></>}>
+      {activityDraft&&<div className="govForm">
+        <label>Nama kegiatan<input value={activityDraft.title||''} onChange={e=>setActivityDraft({...activityDraft,title:e.target.value})} placeholder="Contoh: Audit kepatuhan identifikasi pasien"/></label>
+        <label>Deskripsi / ruang lingkup<textarea rows={2} value={activityDraft.description||''} onChange={e=>setActivityDraft({...activityDraft,description:e.target.value})}/></label>
+        <label>Output yang diharapkan<textarea rows={2} value={activityDraft.expected_output||''} onChange={e=>setActivityDraft({...activityDraft,expected_output:e.target.value})}/></label>
+        <div className="govFormRow">
+          <label>Tanggal mulai<input type="date" value={activityDraft.start_date||''} onChange={e=>setActivityDraft({...activityDraft,start_date:e.target.value})}/></label>
+          <label>Tanggal selesai<input type="date" value={activityDraft.end_date||''} onChange={e=>setActivityDraft({...activityDraft,end_date:e.target.value})}/></label>
+        </div>
+        <div className="govFormRow">
+          <label>Unit pemilik<select value={activityDraft.owner_room_id??''} onChange={e=>setActivityDraft({...activityDraft,owner_room_id:e.target.value?Number(e.target.value):null})}><option value="">Lintas Rumah Sakit</option>{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
+          <label>Penanggung jawab<input value={activityDraft.responsible_person||''} onChange={e=>setActivityDraft({...activityDraft,responsible_person:e.target.value})}/></label>
+        </div>
+        <div className="govFormRow">
+          <label>Status<select value={activityDraft.status||'planned'} onChange={e=>setActivityDraft({...activityDraft,status:e.target.value as ProgramActivity['status']})}><option value="planned">Direncanakan</option><option value="in_progress">Berjalan</option><option value="completed">Selesai</option><option value="on_hold">Ditunda</option><option value="cancelled">Dibatalkan</option></select></label>
+          <label>Progres (%)<input type="number" min="0" max="100" value={activityDraft.progress_percent??0} onChange={e=>setActivityDraft({...activityDraft,progress_percent:Math.max(0,Math.min(100,Number(e.target.value)||0))})}/></label>
+        </div>
+      </div>}
+      {activityError&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{activityError}</p></div>}
+    </AurekaModal>
+
     <style jsx>{`
-      .annualProgramHome{display:grid;gap:16px}.annualProgramLegacy{margin-top:4px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:12px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}
+      .annualProgramHome{display:grid;gap:16px}
+      .annualTimelinePanel{border:1px solid var(--line,rgba(20,34,27,.12));border-radius:18px;padding:16px;background:var(--surface,#fff);display:grid;gap:12px;min-width:0}
+      .annualTimelineHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+      .annualTimelineHead h4{margin:4px 0;font-size:15px}.annualTimelineHead p{margin:0;color:var(--muted,#718078);font-size:12px;line-height:1.55;max-width:760px}
+      .annualTimelineScroll{overflow-x:auto;min-width:0;padding-bottom:4px}
+      .annualTimelineMonthHead,.annualTimelineTrack{display:grid;grid-template-columns:repeat(12,minmax(38px,1fr));min-width:610px}
+      .annualTimelineMonthHead span{text-align:center;padding:7px 2px;font-size:11px;font-weight:800;color:var(--muted,#65756c);border-bottom:1px solid var(--line,rgba(20,34,27,.12))}
+      .annualTimelineRows{display:grid}
+      .annualTimelineRow{padding:10px 0;border-bottom:1px solid var(--line,rgba(20,34,27,.09));min-width:0}
+      .annualTimelineRowMeta{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+      .annualTimelineRowMeta strong{display:block;font-size:12px}.annualTimelineRowMeta small{display:block;margin-top:3px;color:var(--muted,#718078);font-size:11px;line-height:1.45}
+      .annualTimelineRowActions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+      .annualTimelineTrack{position:relative;min-width:610px;min-height:24px;align-items:stretch}
+      .annualTimelineMonthCell{grid-row:1;height:24px;border-left:1px solid var(--line,rgba(20,34,27,.09));background:rgba(80,110,90,.025)}
+      .annualTimelineBar{grid-row:1;z-index:1;align-self:center;height:13px;border-radius:20px;overflow:hidden;background:rgba(80,110,90,.18);position:relative;margin:0 2px}
+      .annualTimelineBar>span{display:block;height:100%;border-radius:20px;background:var(--accent,#26866a)}
+      .annualTimelineBar.completed>span{background:#26866a}.annualTimelineBar.on_hold>span{background:#bb8a32}.annualTimelineBar.cancelled>span{background:#a94c45}
+      .annualTimelineOutput{font-size:11px;color:var(--muted,#718078);margin:5px 0 0}
+      .annualProgramLegacy{margin-top:4px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:12px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}
       .annualProgramCard{display:flex;align-items:flex-start;gap:14px;text-align:left;padding:20px;border:1px solid var(--line,rgba(20,34,27,.12));border-radius:18px;background:var(--surface,#fff);color:var(--text,#20372d);cursor:pointer;min-width:0;transition:border-color .18s,transform .18s}
       .annualProgramCard:hover{border-color:var(--accent,#26866a);transform:translateY(-1px)}
       .annualProgramCardIcon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:var(--surface-soft,#eef5f1);font-size:22px}
