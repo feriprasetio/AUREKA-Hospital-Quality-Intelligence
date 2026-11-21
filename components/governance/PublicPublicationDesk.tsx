@@ -168,7 +168,7 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
               <label>Target<input inputMode="decimal" value={row.target} onChange={e=>patchRow(i,'target',e.target.value)} placeholder="Sesuai versi profil"/></label>
               <label>Satuan<input value={row.unit} onChange={e=>patchRow(i,'unit',e.target.value)} maxLength={30}/></label>
               <label>Operator<select value={row.operator} onChange={e=>patchRow(i,'operator',e.target.value)}>
-                <option value=">=">≥</option><option value=">">></option><option value="<=">≤</option><option value="<">{"<"}</option><option value="=">=</option>
+                <option value=">=">≥</option><option value=">">{">"}</option><option value="<=">≤</option><option value="<">{"<"}</option><option value="=">=</option>
               </select></label>
               <label>Numerator (opsional)<input inputMode="decimal" value={row.numerator} onChange={e=>patchRow(i,'numerator',e.target.value)}/></label>
               <label>Denominator (opsional)<input inputMode="decimal" value={row.denominator} onChange={e=>patchRow(i,'denominator',e.target.value)}/></label>
