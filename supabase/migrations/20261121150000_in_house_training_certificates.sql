@@ -51,12 +51,9 @@ begin
     from aureka_system.education_certificates
    where event_id = p_event_id
      and participant_id = p_participant_id
+     and revoked_at is null
    for update;
   if found then
-    if v_certificate.revoked_at is not null then
-      raise exception 'Sertifikat sebelumnya telah dicabut; penerbitan ulang memerlukan proses verifikasi manual.'
-        using errcode = '23505';
-    end if;
     return jsonb_build_object(
       'id', v_certificate.id,
       'certificate_number', v_certificate.certificate_number,
