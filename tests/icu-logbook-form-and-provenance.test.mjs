@@ -32,7 +32,7 @@ test('ICU layout headers resolve to the published profile codes instead of blank
 test('ICU profiles use categorical capture even when the measurement engine classifies them as ratios', () => {
   const workspace = read('components/QualityIndicatorWorkspace.tsx')
   assert.match(workspace, /function isCategoricalResponseCapture\(p:Profile\)/)
-  assert.match(workspace, /if\\(isCategoricalResponseCapture\\(p\\)\\)\\{[\\s\\S]*?selected\\?\\.code!=null/)
+  assert.match(workspace, /if\(isCategoricalResponseCapture\(p\)\)\{[\s\S]*?selected\?\.code!=null/)
   assert.match(workspace, /if\(isCategoricalResponseCapture\(p\)\)return\{answer:'',code:null\}/)
   const start = workspace.indexOf('const indicatorEditor=')
   const end = workspace.indexOf('const reviewRecord=', start)
