@@ -585,6 +585,13 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .workspaceContent {
     padding-bottom: calc(105px + env(safe-area-inset-bottom, 0px)) !important;
   }
+  /* Avoid automatic iOS page zoom when editing worksheet cells and forms. */
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select, textarea
+  ) {
+    font-size: max(16px, 1em);
+  }
   html[data-skin="arktik"] body:has(:is(input:focus, textarea:focus, select:focus, [contenteditable="true"]:focus)) > .workspaceNativeNavigation {
     visibility: hidden;
     pointer-events: none;
@@ -639,7 +646,9 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body > .workspaceNativeNavigation[data-drawer-open="true"],
   html[data-skin="arktik"] body:has(:is(.akModalRoot, .rmModalBackdrop, .psModalBackdrop,
     .oppeModalBackdrop, .sdEditBackdrop, .secModalBackdrop, .spmOverlay,
-    .cpBuilderOverlay, .idleWarnBackdrop, .pmRoot, .aqEditorDialog, .aqBack))
+    .cpBuilderOverlay, .idleWarnBackdrop, .pmRoot, .aqEditorDialog, .aqBack,
+    .certificateEditorBackdrop, .acdDrawerBack, .ihtBackdrop, .rfmeaBackdrop,
+    .scProfileBackdrop, .ipOverlay, .ptBackdrop))
     > .workspaceNativeNavigation {
     visibility: hidden;
     pointer-events: none;
