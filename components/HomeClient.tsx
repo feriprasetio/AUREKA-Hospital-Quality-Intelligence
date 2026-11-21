@@ -210,7 +210,8 @@ export default function HomeClient(){
  type SettingsSection=GeneralSettingsSection|'audit'|'legal'
  const [settingsSection,setSettingsSection]=useState<SettingsSection>('profile')
  const [publicVerificationCode,setPublicVerificationCode]=useState<string|null>(null)
- useEffect(()=>{const readCode=()=>{const match=window.location.hash.match(/^#v\/([^/?#]+)/i);if(!match){setPublicVerificationCode(null);return}try{setPublicVerificationCode(decodeURIComponent(match[1]))}catch{setPublicVerificationCode(null)}};readCode();window.addEventListener('hashchange',readCode);return()=>window.removeEventListener('hashchange',readCode)},[])
+ const [publicCertificateCode,setPublicCertificateCode]=useState<string|null>(null)
+ useEffect(()=>{const readCode=()=>{const hash=window.location.hash;const doc=hash.match(/^#v\/([^/?#]+)/i);const cert=hash.match(/^#cert\/([^/?#]+)/i);try{setPublicVerificationCode(doc?decodeURIComponent(doc[1]):null);setPublicCertificateCode(cert?decodeURIComponent(cert[1]):null)}catch{setPublicVerificationCode(null);setPublicCertificateCode(null)}};readCode();window.addEventListener('hashchange',readCode);return()=>window.removeEventListener('hashchange',readCode)},[])
  const [secretariatSection,setSecretariatSection]=useState<SecretariatSection>('register')
  const [permissionsReady,setPermissionsReady]=useState(false)
  const [permissionFlags,setPermissionFlags]=useState({readDirectory:false,readPerformance:false,readPicPerformance:false,readQualityAggregate:false})
@@ -248,7 +249,7 @@ export default function HomeClient(){
   if(!permissionsReady)return
   const applyHash=()=>{
    const hash=window.location.hash
-   if(hash===lastAppliedHash.current||/^#v\//i.test(hash))return
+   if(hash===lastAppliedHash.current||/^#(?:v|cert)\//i.test(hash))return
    lastAppliedHash.current=hash
    setIncomingHash(hash)
    const {module,section}=readWorkspaceHash(hash)
@@ -942,6 +943,7 @@ export default function HomeClient(){
 
  useEffect(()=>{if(!manager&&MANAGER_ONLY_MODULES.includes(active))setActive('home')},[manager,active])
  if(publicVerificationCode)return <DocumentVerificationPage verificationCode={publicVerificationCode}/>
+ if(publicCertificateCode)return <PublicLandingPage logoSrc={LOGO} onLogin={()=>{window.location.hash='';setView('login')}} verificationCode={publicCertificateCode}/>
  if(view==='force-password')return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="auroraBg" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||roomsList.find(r=>Number(r.id)===Number(profile?.primary_room_id))?.name||'belum ditetapkan, hubungi Super Admin'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'}</button></form><button type="button" className="authBack authLogoutInline" onClick={()=>void logout()} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
  if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="auroraBg" aria-hidden="true"><span/><span/><span/></div>
