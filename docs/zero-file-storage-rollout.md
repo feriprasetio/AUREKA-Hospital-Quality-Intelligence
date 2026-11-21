@@ -19,7 +19,7 @@
 5. Confirm no browser Storage uploads; examine DevTools network traffic and verify Storage object count/size is unchanged after import and export.
 6. Apply **only** `20261122181000_zero_file_storage_policies.sql`, which denies authenticated and anonymous clients INSERT/UPDATE on Storage. It does **not** remove historical files or their read privileges.
 7. Confirm upload is rejected using a test authenticated session, while all data-only imports, generated downloads, and access controls continue to work. Check security advisors and PostgREST/edge logs.
-8. Review `service_role` and Edge Functions independently: RLS does not block service roles. The `aureka-document-ingest` source now indexes pre-extracted structured text and no longer reads Storage or forwards PDF bytes; redeploy that function and test authorization and knowledge indexing. The legacy `aureka-spo-analyze` and `aureka-secretariat-parse` endpoints still read historical Storage objects and must be retired or restricted separately after confirming no remaining callers.
+8. Review `service_role` and Edge Functions independently: RLS does not block service roles. The `aureka-document-ingest` source now indexes pre-extracted structured text and no longer reads Storage or forwards PDF bytes; redeploy that function and test authorization and knowledge indexing. The legacy `aureka-spo-analyze` and `aureka-secretariat-parse` endpoint sources are now replaced with explicit HTTP 410 (Gone) stubs that do not inspect requests or reach Storage; deploy both stubs with `verify_jwt=true`, then verify production versions. Any old clients must use the browser-local parser.
 9. For existing documents where only a file exists and no extracted text, re-import original from an approved external source or preserve the archive in a separate institutional records system. Never claim that reconstructed files are identical to originals.
 
 ## Rollback
@@ -44,3 +44,11 @@
 ## Knowledge ingestion migration note
 
 The updated `aureka-document-ingest` requires a reviewed `controlled_document_versions.extracted_text` value. Versions that have only an old `object_path` must be re-imported through the browser-local reader; the worker intentionally refuses to fetch the original file. Do not enable a server-side binary fallback. The embedding service still receives extracted text: review privacy, consent, data minimization and external processor requirements before ingesting patient-related content. Source-code changes do not deploy an Edge Function automatically; publish and verify the function separately.
+
+## Legacy parser retirement, 22 November 2026
+
+- After CI passes, deploy both `aureka-spo-analyze` and `aureka-secretariat-parse` from repository `main` using JWT verification. The endpoints must respond 410 to authenticated POST and never download any Storage object or raw file.
+- The regression suite checks **every** active TypeScript/JavaScript file under `app`, `components`, `lib` and `supabase/functions` for Storage client access and direct object API paths. Keep this enforcement test running in PR CI.
+- Do not remove historical Storage objects or revoke historical read permission until legal retention and backup review is complete. Current operational database counts do not establish legal disposability.
+- Gemini embeddings still receive text when NARA knowledge ingestion is invoked. This is separate from raw-file storage and requires ongoing processor/privacy control.
+- If a document consisted only of a scanned image, the browser-local reader can return metadata only. User validation or approved local OCR is required; there is no server-side binary fallback.
