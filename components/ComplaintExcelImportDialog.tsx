@@ -4,6 +4,7 @@ import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-he
 
 
 import { useCallback, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { calculateInclusiveDurationDays, complaintSourceWarnings, matchLogbookOption } from '@/lib/aureka/complaint-logbook'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
@@ -432,8 +433,8 @@ export default function ComplaintExcelImportDialog({
   }
 
   if (!open) return null
-  return (
-    <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
+  if (typeof document === 'undefined') return null
+ return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqComplaintImport" role="dialog" aria-modal="true" aria-labelledby="aqComplaintImportTitle">
         <style>{'.aqComplaintImport .aqBody{display:grid;align-content:start;gap:14px}.aqComplaintImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqComplaintImport .ciUpload{display:grid;gap:8px;padding:16px;border:1px dashed var(--line);border-radius:16px;background:rgba(255,255,255,.65)}.aqComplaintImport .ciUpload input{width:100%;font-size:12px}.aqComplaintImport .ciStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.aqComplaintImport .ciStat{padding:11px;background:#fff;border:1px solid var(--line);border-radius:12px;min-width:0}.aqComplaintImport .ciStat span{display:block;color:var(--muted);font-size:12px}.aqComplaintImport .ciStat strong{display:block;margin-top:4px;font-size:20px;overflow-wrap:anywhere}.aqComplaintImport .ciMessage{padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqComplaintImport .ciError{background:#fff0ef;color:#8b2822}.aqComplaintImport .ciSuccess{background:#eaf8ef;color:#206443}.aqComplaintImport .ciTable{overflow:auto;max-height:300px;border:1px solid var(--line);border-radius:12px}.aqComplaintImport table{width:100%;border-collapse:collapse;font-size:12px}.aqComplaintImport th,.aqComplaintImport td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqComplaintImport th{position:sticky;top:0;background:#f7faf8}.aqComplaintImport .ciPrivacy{font-size:12px;color:var(--muted);line-height:1.5}@media(max-width:560px){.aqComplaintImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
         <div className="aqDHead">
@@ -496,6 +497,6 @@ export default function ComplaintExcelImportDialog({
           </div>
         </div>
       </section>
-    </div>
+    </div></div>, document.body
   )
 }
