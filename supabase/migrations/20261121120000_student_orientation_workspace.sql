@@ -142,6 +142,28 @@ create trigger student_orientation_updated_at
   before update on aureka_quality.student_orientation_records
   for each row execute function aureka_quality.set_student_orientation_updated_at();
 
+
+create or replace function aureka_quality.guard_student_orientation_source()
+returns trigger
+language plpgsql
+set search_path = pg_catalog
+as $function$
+begin
+  if new.source_quality_record_id is distinct from old.source_quality_record_id
+     or new.profile_year is distinct from old.profile_year then
+    raise exception 'Referensi sumber dan tahun laporan orientasi bersifat tetap.'
+      using errcode = '42501';
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists student_orientation_source_immutable
+  on aureka_quality.student_orientation_records;
+create trigger student_orientation_source_immutable
+  before update on aureka_quality.student_orientation_records
+  for each row execute function aureka_quality.guard_student_orientation_source();
+
 create or replace function aureka_quality.issue_student_orientation_certificate(p_record_id uuid)
 returns jsonb
 language plpgsql
