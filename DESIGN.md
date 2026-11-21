@@ -26,9 +26,9 @@ Dial: ENERGY 1 / RHYTHM 1 / MOTION 2
 - **Ukuran huruf:** minimal 11px untuk teks apa pun. Isi tabel dan formulir 13 sampai 15px. Input di HP 16px supaya iOS tidak zoom.
 - **Kontras:** teks normal minimal 4,5:1 dan teks besar 3:1, di kedua mode.
 - **Label:** huruf biasa (sentence case), tanpa huruf kapital berjarak lebar. Singkatan resmi (PMKP, FMEA, OPPE, ICU) tetap kapital.
-- **Blur (kaca):** hanya di header atas, panel menu samping HP, dan latar popup. Kartu dan panel di halaman memakai latar solid atau semi-solid tanpa blur.
-- **Bayangan:** hanya untuk yang benar-benar melayang (popup, dropdown, toast). Kartu di halaman rata, dipisahkan dengan garis tipis.
-- **Radius:** 10 sampai 12px untuk tombol, input, dan kartu; 16 sampai 20px untuk popup. Tidak semua elemen dibuat pil.
+- **Permukaan:** halaman workspace memakai **Canvas Arktik cardless**. Judul, deskripsi, KPI dan ringkasan dibaca langsung di atas latar AUREKA; gunakan whitespace, skala huruf, pemisah tipis, bukan panel putih solid. **Jangan** meratakan permukaan form, input, menu popup, konfirmasi, atau dialog keselamatan pasien. Preset `Samar` boleh menambah warna sangat tipis, tidak menjadikan kartu solid lagi. Blur tidak dipakai untuk panel isi.
+- **Bayangan:** hanya untuk lapisan yang benar-benar melayang (popup, dropdown, toast). Konten biasa tanpa bayangan, border kartu ataupun latar putih; gunakan pemisah tipis bila diperlukan.
+- **Radius:** 10 sampai 12px untuk kontrol form dan tombol; 16 sampai 20px untuk popup. Konten cardless tidak perlu radius; tidak semua kontrol dibuat pil.
 - **Panah (→ ↗):** hanya kalau menunjukkan arah yang nyata (Berikutnya, Lanjut, alur A → B). Tidak dipakai sebagai hiasan tombol.
 - **Emoji:** tidak dipakai di UI. Pakai ikon yang relevan atau tidak sama sekali.
 - **Em dash (—):** tidak dipakai di teks UI. Sel kosong diisi `-`.
@@ -42,4 +42,4 @@ Dial: ENERGY 1 / RHYTHM 1 / MOTION 2
 
 - Angka, testimoni, atau klaim yang tidak berasal dari data nyata.
 - Kembali ke tema Solid / "Solid Default" atau menghidupkan lagi komponen lama yang sudah dihapus.
-- Menambah file CSS penimpa baru. Perbaikan gaya ditulis di `app/typography.css` (atau file pemilik komponennya).
+- Menambah CSS override acak setelah desain Canvas v2. `app/aureka-canvas-preferences.css` adalah **satu-satunya kebijakan terminal** permukaan dan header workspace; perbaikan komponen spesifik dilakukan di file komponen, bukan ditambal dengan stylesheet baru. Jangan memakai reset generik yang menghilangkan batas form, dialog atau tabel yang diperlukan.
