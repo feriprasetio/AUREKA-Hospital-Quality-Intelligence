@@ -29,5 +29,5 @@ test('tablets and desktop keep real visible sidebars, without any mobile rail', 
   assert.match(nav, /body > \.workspaceNativeNavigation\s*\{\s*display: none !important;/)
   assert.match(nav, /\.workspaceSidebarMenuButton,[\s\S]*?\.workspaceScrim\s*\{\s*display: none !important;/)
   assert.match(head, /grid-template-areas: "context search nara inbox theme fullscreen bell profile"/)
-  assert.match(head, /"context nara inbox theme bell profile"\s+"search search search search search search"/)
+  assert.match(head, /"context find nara inbox theme bell profile"\s+"search search search search search search search"/)
 })

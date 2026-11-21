@@ -21,8 +21,8 @@ html[data-skin="arktik"] {
   --aureka-canvas-block-pad: 12px;
   --aureka-canvas-table-y: 10px;
   --aureka-canvas-reading-width: 100%;
-  --aureka-canvas-header-pad: 6px clamp(8px, 1.2vw, 16px);
-  --aureka-canvas-header-min: 56px;
+  --aureka-canvas-header-pad: 3px clamp(8px, 1.2vw, 16px);
+  --aureka-canvas-header-min: 50px;
 }
 html[data-skin="arktik"][data-mode="gelap"] {
   --aureka-header-surface: rgba(12, 24, 39, .92);
@@ -259,7 +259,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   padding: var(--aureka-canvas-header-pad) !important;
   width: 100% !important;
   max-width: 100% !important;
-  margin: 0 0 14px !important;
+  margin: 0 0 7px !important;
   border: 0 !important;
   border-bottom: 1px solid var(--aureka-canvas-divider) !important;
   border-radius: 0 !important;
@@ -391,15 +391,16 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 @media (min-width: 721px) and (max-width: 1180px) {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
-    grid-template-columns: minmax(0,1fr) repeat(4,44px) minmax(116px,190px) !important;
+    grid-template-columns: minmax(0,1fr) repeat(5,44px) minmax(72px,150px) !important;
     grid-template-areas:
-      "context nara inbox theme bell profile"
-      "search search search search search search" !important;
-    gap: 6px 8px !important;
+      "context find nara inbox theme bell profile"
+      "search search search search search search search" !important;
+    gap: 4px !important;
   }
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle,
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle { display: grid !important; grid-area: find !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { display: none !important; }
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch { display: flex !important; width: 100% !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch:not([data-open="true"]) { display: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch[data-open="true"] { display: flex !important; width: 100% !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfileText {
     display: grid !important;
     min-width: 0 !important;

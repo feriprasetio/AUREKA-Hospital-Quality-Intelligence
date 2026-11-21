@@ -252,7 +252,7 @@ html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter > :is(.aq,.ps,.rm,.cp
 html[data-theme] .workspaceRoot.workspaceDesk .moduleEnter .workspaceModuleHeader {
   position: relative !important; display: flex !important; align-items: center !important;
   justify-content: space-between !important; flex-wrap: wrap !important; gap: 10px !important;
-  min-height: 48px !important; padding: 10px 0 !important; margin: 0 !important;
+  min-height: 42px !important; padding: 6px 0 !important; margin: 0 !important;
   border: 0 !important; border-bottom: 1px solid var(--aureka-canvas-divider) !important; border-radius: 0 !important;
   background: transparent !important; box-shadow: none !important; overflow: visible !important;
 }
@@ -263,7 +263,7 @@ html[data-theme] .workspaceRoot.workspaceDesk .workspaceModuleHeader h2 {
   font-size: calc(clamp(1.125rem, 2vw, 1.375rem) * var(--aureka-canvas-heading-scale)) !important;
   font-weight: 750 !important; letter-spacing: -.025em !important; line-height: 1.3 !important;
 }
-.workspaceModuleHeaderTools, .workspaceModuleActions { min-width: 0; max-width: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.workspaceModuleHeaderTools, .workspaceModuleActions { min-width: 0; max-width: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .workspaceModuleActions > :is(button, a) { max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .workspaceSummary { border: 1px solid #e0e7dc; background: #fff; border-radius: 8px; min-width: 0; }
 .workspaceSummary > summary { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 11px 14px; font-size: 12px; color: #5a7950; cursor: pointer; }

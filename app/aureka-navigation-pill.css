@@ -1,78 +1,68 @@
-/* The active tab paints its own pill within the shared navigation rail. */
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
-  position: relative !important;
-  isolation: isolate !important;
-  display: flex !important;
-  align-items: center !important;
-  flex-wrap: nowrap !important;
-  gap: 4px !important;
-  min-width: 0 !important;
-  min-height: 34px !important;
-  height: 34px !important;
-  max-height: 34px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  box-sizing: border-box !important;
-  scrollbar-width: none !important;
-  overscroll-behavior-x: contain !important;
-  -webkit-overflow-scrolling: touch !important;
+/* Contextual navigation stays in a single band whenever both levels fit. */
+.workspacePillNavigation {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+  margin: 0 clamp(8px, 1.2vw, 16px) 8px;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems::-webkit-scrollbar,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+.workspacePillStrip {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 3px 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--aureka-control-edge) transparent;
+  border-block-end: 1px solid var(--aureka-canvas-divider);
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem {
-  position: relative !important;
-  z-index: 1 !important;
-  display: inline-flex !important;
-  flex: 0 0 auto !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: auto !important;
-  min-width: max-content !important;
-  min-height: 32px !important;
-  height: 32px !important;
-  max-height: 32px !important;
-  margin: 0 !important;
-  padding: 0 11px !important;
-  border: 1px solid transparent !important;
-  border-radius: 11px !important;
-  background: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  color: #526b80 !important;
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
-  line-height: 1 !important;
-  text-align: center !important;
-  white-space: nowrap !important;
-  box-sizing: border-box !important;
-  cursor: pointer !important;
+.workspacePillStrip[data-secondary] {
+  border-inline-start: 1px solid var(--aureka-canvas-divider);
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem:hover,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem:hover {
-  background: rgba(255,255,255,.58) !important;
-  border-color: rgba(155,181,203,.4) !important;
-  color: #244d6d !important;
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk .workspacePillStrip > button {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: min(28ch, 100%);
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--aureka-color-foreground-secondary);
+  font-size: .8125rem;
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
 }
-html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem.active {
-  border-color: #24577d !important;
-  background: linear-gradient(155deg, #286794, #153c61) !important;
-  color: #fff !important;
-  font-weight: 750 !important;
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk .workspacePillStrip > button:hover:not(:disabled) {
+  background: var(--aureka-header-hover);
 }
-html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem.active {
-  border-color: var(--aureka-control-edge) !important;
-  background: var(--aureka-header-control) !important;
-  color: var(--aureka-color-foreground) !important;
-  font-weight: 750 !important;
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk .workspacePillStrip > button[aria-current="page"] {
+  background: linear-gradient(155deg, #286794, #153c61);
+  color: #fff;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] :is(.workspaceNavigationRailItems, .workspaceNavigationSubItems)::before {
-  content: none !important;
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk .workspacePillStrip[data-secondary] > button[aria-current="page"] {
+  background: var(--aureka-header-control);
+  color: var(--aureka-color-foreground);
+  border-color: var(--aureka-control-edge);
+}
+.workspacePillStrip > button:focus-visible {
+  outline: 2px solid var(--aureka-color-primary);
+  outline-offset: -2px;
+}
+.workspacePillStrip > button:disabled { opacity: .55; cursor: default; }
+@media (max-width: 720px) {
+  .workspacePillNavigation { flex-direction: column; gap: 0; }
+  .workspacePillStrip[data-secondary] { border-inline-start: 0; }
+}
+@media (pointer: coarse) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk .workspacePillStrip > button {
+    min-height: 44px;
+  }
 }

@@ -61,7 +61,6 @@ const OppeAuditWorkspace=dynamic(()=>import('@/components/OppeAuditWorkspace'),{
 const sb:SupabaseClient=aurekaSupabase
 const sys=()=>sb.schema('aureka_system')
 const BASE_PATH=process.env.NEXT_PUBLIC_BASE_PATH??'/AUREKA-Hospital-Quality-Intelligence'
-const MOBILE_WORKSPACE_TABS=process.env.NEXT_PUBLIC_AUREKA_MOBILE_WORKSPACE_TABS!=='false'
 const LOGO=`${BASE_PATH}/logo-aureka-v2.png`
 const PREVIEW_ONLY=process.env.NEXT_PUBLIC_SUPABASE_URL==='https://preview-disabled.invalid'
 const MODS=AUREKA_PRIMARY_NAV.map(({id,label})=>[id,label] as const)
@@ -1073,7 +1072,7 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="arktik" className={'workspaceRoot workspaceDesk '+(MOBILE_WORKSPACE_TABS?'mobileWorkspaceTabsEnabled':'')}>
+ if(view==='workspace')return <main data-aureka-theme="arktik" className="workspaceRoot workspaceDesk">
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  {mobileSidebar.isMobile&&<button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>}
  {mobileSidebar.isMobile&&typeof document!=='undefined'&&createPortal(
@@ -1226,7 +1225,6 @@ export default function HomeClient(){
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>,document.body)}
   {activeNavGroups.length>0&&<UnifiedModuleNavigation
-   mobileWorkspaceTabs={MOBILE_WORKSPACE_TABS}
    ariaLabel={'Navigasi '+activeRailTitle}
    title={activeRailTitle}
    items={activeRailItems}

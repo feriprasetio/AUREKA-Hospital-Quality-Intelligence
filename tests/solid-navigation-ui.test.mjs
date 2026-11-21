@@ -67,21 +67,13 @@ test('sidebar exposes the eight requirement categories from one registry; module
   assert.ok(repairCss.includes('.sidebarDomainItem.active'))
 })
 
-test('global navigation uses balanced one-line smart overflow and keeps the active tab visible', () => {
+test('global navigation scrolls without relocating items to a menu', () => {
   const component = read('components/navigation/UnifiedModuleNavigation.tsx')
-  const css = read('app/aureka-global-navigation.css')
-  assert.ok(component.includes('new ResizeObserver(calculate)'))
-  assert.ok(component.includes("const primaryMin = items.length ?"))
-  assert.ok(component.includes("const secondaryMin = subItems.length ?"))
-  assert.ok(component.includes('overflowItems.map'))
-  assert.ok(component.includes('overflowSubItems.map'))
-  assert.ok(component.includes('<summary aria-label='))
-  assert.ok(component.includes("onClick={() => selectPrimary(item.id)}"))
-  assert.ok(component.includes("onClick={() => selectSecondary(item.id)}"))
-  assert.match(css, /--aureka-nav-primary:\s*#172a40/)
-  assert.match(css, /--aureka-nav-secondary:\s*#dcebf8/)
-  assert.match(css, /workspaceNavigationOverflowMenu/)
-  assert.match(css, /@media \(max-width: 720px\)/)
+  const css = read('app/aureka-navigation-pill.css')
+  assert.match(component, /ResizeObserver\(reveal\)/)
+  assert.match(component, /scroller\.scrollLeft/)
+  assert.doesNotMatch(component, /<summary|overflowItems|hiddenIds/)
+  assert.match(css, /overflow-x: auto/)
   assert.doesNotMatch(css, /position:\s*sticky/)
 })
 

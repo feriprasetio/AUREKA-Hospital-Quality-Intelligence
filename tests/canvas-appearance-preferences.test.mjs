@@ -92,7 +92,7 @@ test('canvas is the final authenticated-only visual policy with protected input/
   assert.match(css,/\.moduleEnter table > thead > tr > th/)
   assert.match(css,/\.workspaceHeaderBar::before/)
   assert.match(css,/grid-template-areas: "context search nara inbox theme fullscreen bell profile"/)
-  assert.match(css,/"context nara inbox theme bell profile"/)
+  assert.match(css,/"context find nara inbox theme bell profile"/)
   assert.match(css,/"profile profile nara inbox find"/)
   assert.match(css,/\[role="dialog"\]/)
   assert.doesNotMatch(css,/body \* \{ background: transparent/)

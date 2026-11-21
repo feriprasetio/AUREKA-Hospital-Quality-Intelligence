@@ -10,11 +10,8 @@ test('AUREKA navigation has independent primary and secondary active states', ()
   const home = read('components/HomeClient.tsx')
   assert.match(nav, /secondaryActiveId\?: string/)
   assert.match(nav, /onSubSelect\?: \(id: string\) => void/)
-  assert.match(nav, /resolvedActiveId/)
-  assert.match(nav, /resolvedSecondaryActiveId/)
-  assert.match(nav, /workspaceNavigationGroupDivider/)
-  assert.match(nav, /workspaceNavigationSubItems/)
-  assert.match(nav, /workspaceNavigationSubOverflow/)
+  assert.match(nav, /activeId=\{activeId\}/)
+  assert.match(nav, /activeId=\{secondaryActiveId\}/)
   assert.match(home, /const activeNavPrimaryId=activeNestedNavGroup\?\.id\|\|activeNavDefaultGroup\|\|activeNavSelectedId/)
   assert.match(home, /const activeNavSecondaryId=activeNestedNavGroup\?activeNavSelectedId:''/)
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))
@@ -29,17 +26,12 @@ test('workspace error boundary resets when switching between contextual tabs and
   assert.match(home, /moduleLabel=\{currentContainer\}/)
 })
 
-test('all navigation groups preserve the selected destination and use responsive overflow', () => {
+test('all navigation groups preserve the order and reveal the active destination', () => {
   const nav = read('components/navigation/UnifiedModuleNavigation.tsx')
-  assert.match(nav, /function overflowFor\(/)
-  assert.match(nav, /item\.id === resolvedActiveId \|\| !hiddenIds\.includes\(item\.id\)/)
-  assert.match(nav, /item\.id === resolvedSecondaryActiveId \|\| !hiddenSubIds\.includes\(item\.id\)/)
-  assert.match(nav, /max-width: 860px/)
+  assert.match(nav, /items\.map\(item =>/)
   assert.match(nav, /ResizeObserver/)
-  assert.match(nav, /group\.scrollLeft = active\.offsetLeft/)
-  assert.match(nav, /groups: Array<\[HTMLDivElement \| null, string\]>|groups: Array/)
   assert.match(nav, /aria-label=\{ariaLabel\}/)
-  assert.match(nav, /aria-current=\{selected \? 'page' : undefined\}/)
+  assert.match(nav, /aria-current=\{item\.id === selectedId/)
   assert.match(nav, /onSubSelect \?\? onSelect/)
 })
 
@@ -91,12 +83,10 @@ test('one final stylesheet normalizes tablists throughout workspace modules', ()
   assert.match(alignment, /height: 32px !important/)
 })
 
-test('primary and secondary overflow menus stay independent and have no duplicate active tab', () => {
+test('the extra strip is mounted only for the current group’s subtabs', () => {
   const nav = read('components/navigation/UnifiedModuleNavigation.tsx')
-  assert.match(nav, /className="workspaceNavigationOverflow"/)
-  assert.match(nav, /className="workspaceNavigationOverflow workspaceNavigationSubOverflow"/)
-  assert.match(nav, /className=\{'workspaceNavigationRailItem' \+ \(selected \? ' active' : ''\)\}/)
-  assert.match(nav, /className=\{'workspaceNavigationSubItem' \+ \(selected \? ' active' : ''\)\}/)
+  assert.match(nav, /subItems\.length > 0 &&/)
+  assert.doesNotMatch(nav, /workspaceNavigationOverflow|<details/)
 })
 
 test('AUREKA exposes exactly eight requirement categories with role-filtered destinations and integrated NARA AI', () => {

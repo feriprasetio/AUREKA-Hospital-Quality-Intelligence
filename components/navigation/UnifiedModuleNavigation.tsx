@@ -1,187 +1,69 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 export type UnifiedNavigationItem = { id: string; label: string; hint?: string; disabled?: boolean }
 
 type UnifiedModuleNavigationProps = {
   ariaLabel: string; title: string; items: UnifiedNavigationItem[]; activeId: string; onSelect: (id: string) => void
   secondaryActiveId?: string; onSubSelect?: (id: string) => void; subTitle?: string; subItems?: UnifiedNavigationItem[]
-  mobileWorkspaceTabs?: boolean
 }
 
-const OVERFLOW_WIDTH = 82
-const ITEM_GAP = 5
-function naturalWidth(items: UnifiedNavigationItem[], widths: Map<string, number>, prefix: string) {
-  return items.reduce((sum, item) => sum + (widths.get(prefix + ':' + item.id) ?? 92), 0) + Math.max(0, items.length - 1) * ITEM_GAP
-}
-function overflowFor(items: UnifiedNavigationItem[], activeId: string, budget: number, widths: Map<string, number>, prefix: string) {
-  if (items.length <= 1 || naturalWidth(items, widths, prefix) <= budget) return []
-  const active = items.find(item => item.id === activeId) ?? items[0]
-  const itemBudget = Math.max(0, budget - OVERFLOW_WIDTH - ITEM_GAP)
-  let used = widths.get(prefix + ':' + active.id) ?? 92
-  const visible = new Set<string>([active.id])
-  for (const item of items) {
-    if (visible.has(item.id)) continue
-    const width = widths.get(prefix + ':' + item.id) ?? 92
-    if (used + ITEM_GAP + width <= itemBudget) { visible.add(item.id); used += ITEM_GAP + width }
-  }
-  return items.filter(item => !visible.has(item.id)).map(item => item.id)
-}
-function sameIds(a: string[], b: string[]) { return a.length === b.length && a.every((id, index) => id === b[index]) }
+function NavigationStrip({ label, items, activeId, onSelect, secondary = false }: {
+  label: string
+  items: UnifiedNavigationItem[]
+  activeId: string
+  onSelect: (id: string) => void
+  secondary?: boolean
+}) {
+  const strip = useRef<HTMLDivElement>(null)
+  const selectedId = items.some(item => item.id === activeId) ? activeId : items[0]?.id
+  const layoutKey = JSON.stringify(items.map(({ id, label }) => [id, label]))
 
-/** One shared two-group navigation for every authenticated AUREKA workspace. */
+  useEffect(() => {
+    const scroller = strip.current
+    const active = scroller?.querySelector<HTMLButtonElement>('[aria-current="page"]')
+    if (!scroller || !active) return
+    const reveal = () => {
+      const viewport = scroller.getBoundingClientRect()
+      const button = active.getBoundingClientRect()
+      if (button.left < viewport.left + 4) scroller.scrollLeft += button.left - viewport.left - 4
+      else if (button.right > viewport.right - 4) scroller.scrollLeft += button.right - viewport.right + 4
+    }
+    reveal()
+    const observer = new ResizeObserver(reveal)
+    observer.observe(scroller)
+    observer.observe(active)
+    return () => observer.disconnect()
+  }, [selectedId, layoutKey])
+
+  return (
+    <div ref={strip} className="workspacePillStrip" data-secondary={secondary || undefined} role="group" aria-label={label}>
+      {items.map(item => (
+        <button
+          key={item.id} type="button" disabled={item.disabled} title={item.hint}
+          aria-current={item.id === selectedId ? 'page' : undefined}
+          onClick={() => onSelect(item.id)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function UnifiedModuleNavigation({
   ariaLabel, title, items, activeId, onSelect, secondaryActiveId = '', onSubSelect, subTitle, subItems = [],
-  mobileWorkspaceTabs = true,
 }: UnifiedModuleNavigationProps) {
-  const [hiddenIds, setHiddenIds] = useState<string[]>([])
-  const [hiddenSubIds, setHiddenSubIds] = useState<string[]>([])
-  const railRef = useRef<HTMLElement>(null)
-  const titleRef = useRef<HTMLSpanElement>(null)
-  const measureRef = useRef<HTMLDivElement>(null)
-  const itemsRef = useRef<HTMLDivElement>(null)
-  const subItemsRef = useRef<HTMLDivElement>(null)
-  const overflowRef = useRef<HTMLDetailsElement>(null)
-  const subOverflowRef = useRef<HTMLDetailsElement>(null)
-  const mobileGroupRef = useRef<HTMLDetailsElement>(null)
-  const mobileTabsRef = useRef<HTMLElement>(null)
-  const itemsSignature = items.map(item => item.id + ':' + item.label).join('|')
-  const subItemsSignature = subItems.map(item => item.id + ':' + item.label).join('|')
-  const resolvedActiveId = items.some(item => item.id === activeId) ? activeId : (items[0]?.id ?? '')
-  const resolvedSecondaryActiveId = subItems.some(item => item.id === secondaryActiveId) ? secondaryActiveId : (subItems[0]?.id ?? '')
-  const activePrimaryItem = items.find(item => item.id === resolvedActiveId)
-  const mobileTabItems = subItems.length ? subItems : items
-  const activeMobileTabId = subItems.length ? resolvedSecondaryActiveId : resolvedActiveId
-
-  useEffect(() => {
-    const rail = railRef.current
-    if (!rail) return
-    const calculate = () => {
-      if (window.matchMedia('(max-width: 720px)').matches) {
-        setHiddenIds(previous => previous.length ? [] : previous)
-        setHiddenSubIds(previous => previous.length ? [] : previous)
-        return
-      }
-      const widths = new Map<string, number>()
-      measureRef.current?.querySelectorAll<HTMLElement>('[data-nav-measure]').forEach(node => {
-        const key = node.dataset.navMeasure
-        if (key) widths.set(key, node.getBoundingClientRect().width)
-      })
-      const titleWidth = titleRef.current?.getBoundingClientRect().width ?? 0
-      const separators = 18 + (subItems.length ? 18 : 0)
-      const gapsAndOverflow = 34 + (subItems.length ? 10 : 0)
-      const available = Math.max(0, rail.clientWidth - titleWidth - separators - gapsAndOverflow)
-      const primaryNatural = naturalWidth(items, widths, 'primary')
-      const secondaryNatural = naturalWidth(subItems, widths, 'secondary')
-      if (primaryNatural + secondaryNatural <= available) {
-        setHiddenIds(previous => previous.length ? [] : previous)
-        setHiddenSubIds(previous => previous.length ? [] : previous)
-        return
-      }
-      const primaryMin = items.length ? (widths.get('primary:' + resolvedActiveId) ?? 92) + (items.length > 1 ? OVERFLOW_WIDTH + ITEM_GAP : 0) : 0
-      const secondaryMin = subItems.length ? (widths.get('secondary:' + resolvedSecondaryActiveId) ?? 92) + (subItems.length > 1 ? OVERFLOW_WIDTH + ITEM_GAP : 0) : 0
-      const extraPrimary = Math.max(0, primaryNatural - primaryMin)
-      const extraSecondary = Math.max(0, secondaryNatural - secondaryMin)
-      const extraTotal = extraPrimary + extraSecondary
-      const remaining = Math.max(0, available - primaryMin - secondaryMin)
-      const primaryBudget = Math.min(primaryNatural, primaryMin + (extraTotal ? remaining * extraPrimary / extraTotal : 0))
-      const secondaryBudget = Math.min(secondaryNatural, secondaryMin + (extraTotal ? remaining * extraSecondary / extraTotal : 0))
-      const nextPrimary = overflowFor(items, resolvedActiveId, primaryBudget, widths, 'primary')
-      const nextSecondary = overflowFor(subItems, resolvedSecondaryActiveId, secondaryBudget, widths, 'secondary')
-      setHiddenIds(previous => sameIds(previous, nextPrimary) ? previous : nextPrimary)
-      setHiddenSubIds(previous => sameIds(previous, nextSecondary) ? previous : nextSecondary)
-    }
-    calculate()
-    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(calculate) : null
-    observer?.observe(rail); if (rail.parentElement) observer?.observe(rail.parentElement)
-    window.addEventListener('resize', calculate)
-    document.fonts?.addEventListener('loadingdone', calculate)
-    return () => {
-      observer?.disconnect()
-      window.removeEventListener('resize', calculate)
-      document.fonts?.removeEventListener('loadingdone', calculate)
-    }
-  }, [itemsSignature, subItemsSignature, resolvedActiveId, resolvedSecondaryActiveId, title])
-
-  useEffect(() => {
-    if (!window.matchMedia('(max-width: 860px)').matches) return
-    // Each group scrolls independently so both active choices remain visible
-    // even when the combined primary + secondary labels exceed phone width.
-    const groups: Array<[HTMLDivElement | null, string]> = [
-      [itemsRef.current, '.workspaceNavigationRailItem.active'],
-      [subItemsRef.current, '.workspaceNavigationSubItem.active'],
-    ]
-    for (const [group, selector] of groups) {
-      if (!group) continue
-      const active = group.querySelector<HTMLElement>(selector)
-      if (!active) continue
-      if (active.offsetLeft < group.scrollLeft + 8) group.scrollLeft = Math.max(0, active.offsetLeft - 8)
-      else if (active.offsetLeft + active.offsetWidth > group.scrollLeft + group.clientWidth - 8) {
-        group.scrollLeft = active.offsetLeft + active.offsetWidth - group.clientWidth + 8
-      }
-    }
-  }, [resolvedActiveId, resolvedSecondaryActiveId, hiddenIds, hiddenSubIds])
-
-  useEffect(() => {
-    if (!mobileWorkspaceTabs) return
-    const box = mobileTabsRef.current
-    const active = box?.querySelector<HTMLElement>('.workspaceMobileTab.active')
-    if (!box || !active) return
-    if (active.offsetLeft < box.scrollLeft + 8) box.scrollLeft = Math.max(0, active.offsetLeft - 8)
-    else if (active.offsetLeft + active.offsetWidth > box.scrollLeft + box.clientWidth - 8) {
-      box.scrollLeft = active.offsetLeft + active.offsetWidth - box.clientWidth + 8
-    }
-  }, [mobileWorkspaceTabs, activeMobileTabId, itemsSignature, subItemsSignature])
-
-  const visibleItems = items.filter(item => item.id === resolvedActiveId || !hiddenIds.includes(item.id))
-  const overflowItems = items.filter(item => !visibleItems.some(visible => visible.id === item.id))
-  const visibleSubItems = subItems.filter(item => item.id === resolvedSecondaryActiveId || !hiddenSubIds.includes(item.id))
-  const overflowSubItems = subItems.filter(item => !visibleSubItems.some(visible => visible.id === item.id))
-  const selectPrimary = (id: string) => {
-    onSelect(id)
-    if (overflowRef.current) overflowRef.current.open = false
-    if (subOverflowRef.current) subOverflowRef.current.open = false
-  }
-  const selectSecondary = (id: string) => { (onSubSelect ?? onSelect)(id); if (subOverflowRef.current) subOverflowRef.current.open = false }
-
-  return <>
-    <nav ref={railRef} className="workspaceNavigationRail" aria-label={ariaLabel}>
-      <span ref={titleRef} className="workspaceNavigationRailTitle">{title}</span>
-      {items.length > 0 && <span className="workspaceNavigationRailDivider" aria-hidden="true" />}
-      <div ref={itemsRef} className="workspaceNavigationRailItems" role="group" aria-label={'Navigasi utama ' + title}>
-        {visibleItems.map(item => { const selected = item.id === resolvedActiveId; return <button type="button" key={item.id} className={'workspaceNavigationRailItem' + (selected ? ' active' : '')} disabled={item.disabled} title={item.hint} aria-current={selected ? 'page' : undefined} onClick={() => selectPrimary(item.id)}>{item.label}</button> })}
-      </div>
-      {overflowItems.length > 0 && <details ref={overflowRef} className="workspaceNavigationOverflow"><summary aria-label={'Navigasi utama lainnya untuk ' + title}>Lainnya</summary><div className="workspaceNavigationOverflowMenu" role="group" aria-label="Tab utama lainnya">{overflowItems.map(item => <button type="button" key={item.id} className="workspaceNavigationOverflowItem" disabled={item.disabled} title={item.hint} onClick={() => selectPrimary(item.id)}>{item.label}</button>)}</div></details>}
-      {subItems.length > 0 && <span className="workspaceNavigationGroupDivider" aria-hidden="true" />}
-      {subItems.length > 0 && <div ref={subItemsRef} className="workspaceNavigationSubItems" role="group" aria-label={'Navigasi lanjutan ' + (subTitle || title)}>
-        {visibleSubItems.map(item => { const selected = item.id === resolvedSecondaryActiveId; return <button type="button" key={item.id} className={'workspaceNavigationSubItem' + (selected ? ' active' : '')} disabled={item.disabled} title={item.hint} aria-current={selected ? 'page' : undefined} onClick={() => selectSecondary(item.id)}>{item.label}</button> })}
-      </div>}
-      {overflowSubItems.length > 0 && <details ref={subOverflowRef} className="workspaceNavigationOverflow workspaceNavigationSubOverflow"><summary aria-label={'Navigasi lanjutan lainnya untuk ' + title}>Lainnya</summary><div className="workspaceNavigationOverflowMenu" role="group" aria-label="Tab lanjutan lainnya">{overflowSubItems.map(item => <button type="button" key={item.id} className={'workspaceNavigationOverflowItem' + (item.id === resolvedSecondaryActiveId ? ' active' : '')} disabled={item.disabled} title={item.hint} aria-current={item.id === resolvedSecondaryActiveId ? 'page' : undefined} onClick={() => selectSecondary(item.id)}>{item.label}</button>)}</div></details>}
-      <div ref={measureRef} className="workspaceNavigationMeasure" aria-hidden="true">{items.map(item => <span key={'primary-' + item.id} data-nav-measure={'primary:' + item.id}>{item.label}</span>)}{subItems.map(item => <span key={'secondary-' + item.id} data-nav-measure={'secondary:' + item.id}>{item.label}</span>)}</div>
+  return (
+    <nav className="workspacePillNavigation" aria-label={ariaLabel}>
+      {items.length > 0 && <NavigationStrip label={title} items={items} activeId={activeId} onSelect={onSelect} />}
+      {subItems.length > 0 && (
+        <NavigationStrip
+          label={subTitle || 'Bagian ' + title} items={subItems} activeId={secondaryActiveId}
+          onSelect={onSubSelect ?? onSelect} secondary
+        />
+      )}
     </nav>
-    {mobileWorkspaceTabs && <section className="workspaceMobileNavigation" aria-label="Navigasi workspace">
-      <div className="workspaceMobileNavigationHead">
-        <div className="workspaceMobileBreadcrumb" aria-label="Lokasi kerja">
-          <span>{title}</span>
-          {subItems.length > 0 && <>
-            <span className="workspaceMobileBreadcrumbDivider" aria-hidden="true">/</span>
-            <strong>{subTitle || activePrimaryItem?.label || 'Bagian workspace'}</strong>
-          </>}
-        </div>
-        {subItems.length > 0 && items.length > 1 && <details ref={mobileGroupRef} className="workspaceMobileGroupPicker">
-          <summary><span>Bagian</span><strong>{activePrimaryItem?.label || 'Pilih bagian'}</strong></summary>
-          <div className="workspaceMobileGroupMenu" role="group" aria-label="Pilih bagian workspace">
-            {items.map(item => <button type="button" key={item.id} disabled={item.disabled} aria-current={item.id === resolvedActiveId ? 'page' : undefined} onClick={() => { selectPrimary(item.id); if (mobileGroupRef.current) mobileGroupRef.current.open = false }}>{item.label}</button>)}
-          </div>
-        </details>}
-      </div>
-      {mobileTabItems.length > 0 && <nav ref={mobileTabsRef} className="workspaceMobileTabs" aria-label="Tab Workspace">
-        {mobileTabItems.map(item => {
-          const selected = item.id === activeMobileTabId
-          return <button type="button" key={item.id} className={'workspaceMobileTab' + (selected ? ' active' : '')} disabled={item.disabled} aria-current={selected ? 'page' : undefined} onClick={() => subItems.length ? selectSecondary(item.id) : selectPrimary(item.id)}>{item.label}</button>
-        })}
-      </nav>}
-    </section>}
-  </>
+  )
 }
