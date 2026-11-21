@@ -6,7 +6,8 @@ import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/au
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
-type Profile = Record<string, any> & {
+type Profile = {
+  [key: string]: any
   id?: string
   source_id?: string | null
   source_code?: string
@@ -22,9 +23,9 @@ type Profile = Record<string, any> & {
   target_value?: number | null
   numerator_definition?: string | null
   denominator_definition?: string | null
-  measurement_grain?: string
-  schema_json: Record<string, any>
-  options_json: Array<Record<string, any>>
+  measurement_grain?: string | null
+  schema_json?: Record<string, any> | null
+  options_json?: Array<{ label?: unknown; code?: unknown; review_required?: boolean }> | null
 }
 type SheetMeta = { name: string; headerRow: number; headers: string[] }
 type ImportIssue = { sheet: string; row: number; field: string; message: string }
@@ -226,14 +227,14 @@ export default function QualityWorkbookImportPanel({
       const nextProfile: Record<string, string> = {}
       for (const [key, , synonyms] of PROFILE_FIELDS) nextProfile[key] = pSheet ? findHeader(pSheet.headers, [...synonyms]) : ''
       setProfileColumns(nextProfile)
-      const nextOptions = oSheet ? {
+      const nextOptions: Record<string, string> = oSheet ? {
         indicator_code: findHeader(oSheet.headers, ['kode indikator', 'indicator code', 'indicator', 'kode']),
         label: findHeader(oSheet.headers, ['label opsi', 'pilihan', 'opsi', 'option label', 'label', 'jawaban']),
         code: findHeader(oSheet.headers, ['kode opsi', 'kode jawaban', 'option code', 'response code', 'code']),
         review_required: findHeader(oSheet.headers, ['perlu review', 'review required']),
       } : {}
       setOptionColumns(nextOptions)
-      const nextData = dSheet ? {
+      const nextData: Record<string, string> = dSheet ? {
         date: findHeader(dSheet.headers, ['tanggal', 'tanggal pengamatan', 'tanggal pelayanan', 'date', 'record date']),
         subject_key: findHeader(dSheet.headers, ['no. rm', 'no rm', 'nomor rekam medis', 'no. rekam medis', 'id subjek', 'kode pegawai']),
         patient_name: findHeader(dSheet.headers, ['nama pasien', 'nama', 'patient name']),
@@ -398,7 +399,7 @@ export default function QualityWorkbookImportPanel({
           if (!hasValue) continue
           try {
             const kind = resolveMeasurementKind(profile)
-            const categorical = usesCategoricalResponseCapture(profile) || shouldUseIndicatorDropdown(profile)
+            const categorical = usesCategoricalResponseCapture(profile) || shouldUseIndicatorDropdown(profile as any)
             let response: Record<string, any> = { indicator_code: profile.code, response_label: null, response_code: null, raw_value: {}, review_status: 'not_required' }
             if (categorical) {
               const option = optionForValue(profile, rawCell)
