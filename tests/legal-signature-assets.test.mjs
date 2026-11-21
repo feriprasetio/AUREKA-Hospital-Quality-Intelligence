@@ -26,7 +26,7 @@ test('Legal and Asset UI requires exact matching signer role/name for owner acti
  const ui=await read('components/governance/LegalAssetsWorkspace.tsx')
  for(const s of ['aureka_list_legal_signature_assets','aureka_activate_legal_signature_asset','normalize(userName)===normalize(asset.signer_name)','Menunggu otorisasi pemilik','aureka_list_legal_artifacts','qrUrl(sig.verification_code)'])has(ui,s)
  const home=await read('components/HomeClient.tsx')
- for(const s of ["'legal'","LegalAssetsWorkspace","publicVerificationCode","DocumentVerificationPage","#v/"])has(home,s)
+ for(const s of ["'legal'","LegalAssetsWorkspace","publicVerificationCode","DocumentVerificationPage","setPublicVerificationCode"])has(home,s)
  assert.doesNotMatch(home,/id:'legal',label:'Legal dan Asset',disabled:true/)
 })
 
