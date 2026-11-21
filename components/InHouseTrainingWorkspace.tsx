@@ -174,40 +174,38 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
  }
  const issueCertificate=async(p:Participant)=>{
   if(!canManage||!active||p.status!=='completed'||busyId)return
-  const preview=window.open('about:blank','_blank');if(!preview){setError('Izinkan pop-up browser untuk menerbitkan PDF.');return}
+  const preview=window.open('about:blank','_blank')
+  if(!preview){setError('Izinkan jendela browser untuk menampilkan sertifikat.');return}
   setBusyId(p.id);setError('')
   try{
    const layout=await loadCertificateLayout('in_house_training')
    const {data,error:e}=await education().rpc('reserve_in_house_training_certificate',{p_event_id:active.id,p_participant_id:p.id})
    if(e)throw e
    const reservation=(Array.isArray(data)?data[0]:data) as any
-   const certId=String(reservation?.id||''),number=String(reservation?.certificate_number||''),code=String(reservation?.verification_code||'')
-   if(!certId||!number)throw new Error('Nomor sertifikat tidak dikembalikan server.')
-   let path=String(reservation?.object_path||'')
-   if(!path){
-    const pdf=makePdf(active,p,number,code,layout),hash=await digest(pdf)
-    path=userId+'/education/in-house-training/'+filename(number)+'.pdf'
-    const {error:uploadError}=await aurekaSupabase.storage.from('aureka-exports').upload(path,pdf,{contentType:'application/pdf',upsert:false})
-    if(uploadError){
-     const {data:existing,error:downloadError}=await aurekaSupabase.storage.from('aureka-exports').download(path)
-     if(downloadError||!existing||await digest(existing)!==hash)throw uploadError
-    }
-    const {error:completeError}=await education().rpc('complete_in_house_training_certificate',{p_certificate_id:certId,p_object_path:path,p_file_sha256:hash})
-    if(completeError)throw completeError
-   }
-   const {data:signed,error:signedError}=await aurekaSupabase.storage.from('aureka-exports').createSignedUrl(path,600)
-   if(signedError||!signed?.signedUrl)throw signedError||new Error('PDF telah tersimpan, tautan sementara gagal dibuat.')
-   preview.location.href=signed.signedUrl
+   const number=String(reservation?.certificate_number||''),code=String(reservation?.verification_code||'')
+   if(!number)throw new Error('Nomor sertifikat tidak dikembalikan server.')
+   const pdf=makePdf(active,p,number,code,layout)
+   const url=URL.createObjectURL(pdf)
+   preview.location.href=url
+   window.setTimeout(()=>URL.revokeObjectURL(url),60_000)
    await openEvent(active)
-   setNotice('Sertifikat '+number+' berhasil diterbitkan.')
+   setNotice('Sertifikat '+number+' diterbitkan sebagai data nomor/verifikasi; PDF dibuat sementara di browser tanpa Storage.')
   }catch(err){preview.close();setError('Sertifikat gagal diterbitkan: '+(err instanceof Error?err.message:'Kesalahan tidak diketahui.'))}
   finally{setBusyId('')}
  }
  const download=async(c:Certificate)=>{
-  if(!c.object_path){setError('Berkas PDF belum tersimpan.');return}
-  const {data,error:e}=await aurekaSupabase.storage.from('aureka-exports').createSignedUrl(c.object_path,600)
-  if(e||!data?.signedUrl){setError('Tautan PDF gagal dibuat: '+(e?.message||''));return}
-  window.open(data.signedUrl,'_blank','noopener,noreferrer')
+  if(!active){setError('Pilih kegiatan sebelum membuka sertifikat.');return}
+  const participant=participants.find(p=>p.id===c.participant_id)
+  if(!participant){setError('Peserta sertifikat tidak dapat ditemukan.');return}
+  const preview=window.open('about:blank','_blank')
+  if(!preview){setError('Izinkan jendela browser untuk membuka PDF.');return}
+  try{
+   const layout=await loadCertificateLayout('in_house_training')
+   const pdf=makePdf(active,participant,c.certificate_number,c.verification_code,layout)
+   const url=URL.createObjectURL(pdf)
+   preview.location.href=url
+   window.setTimeout(()=>URL.revokeObjectURL(url),60_000)
+  }catch(err){preview.close();setError(err instanceof Error?err.message:'PDF gagal dibangun.')}
  }
  const countUpcoming=useMemo(()=>events.filter(x=>new Date(x.start_at).getTime()>=Date.now()&&x.status!=='cancelled').length,[events])
  const countDone=useMemo(()=>events.filter(x=>x.status==='completed').length,[events])
