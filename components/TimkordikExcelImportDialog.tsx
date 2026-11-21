@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
@@ -388,8 +389,8 @@ export default function TimkordikExcelImportDialog({
   }
 
   if (!open) return null
-  return (
-    <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
+  if (typeof document === 'undefined') return null
+ return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqTimkordikImport"
         role="dialog" aria-modal="true" aria-labelledby="aqTimkordikImportTitle">
         <style>{'.aqTimkordikImport .aqBody{display:grid;align-content:start;gap:13px}.aqTimkordikImport .tkIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqTimkordikImport .tkUpload{display:grid;gap:8px;padding:15px;border:1px dashed var(--line);border-radius:14px;background:#fff}.aqTimkordikImport .tkUpload input{width:100%;font-size:12px}.aqTimkordikImport .tkStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqTimkordikImport .tkStat{padding:11px;background:#fff;border:1px solid var(--line);border-radius:12px;min-width:0}.aqTimkordikImport .tkStat span{display:block;color:var(--muted);font-size:12px}.aqTimkordikImport .tkStat strong{display:block;margin-top:4px;font-size:19px;overflow-wrap:anywhere}.aqTimkordikImport .tkMessage{padding:11px 13px;border-radius:12px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqTimkordikImport .tkError{background:#fff0ef;color:#8b2822}.aqTimkordikImport .tkSuccess{background:#eaf8ef;color:#206443}.aqTimkordikImport .tkTable{overflow:auto;max-height:320px;border:1px solid var(--line);border-radius:12px;background:#fff}.aqTimkordikImport table{width:100%;border-collapse:collapse;font-size:12px}.aqTimkordikImport th,.aqTimkordikImport td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqTimkordikImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqTimkordikImport .tkPrivacy{font-size:12px;color:var(--muted);line-height:1.5}@media(max-width:600px){.aqTimkordikImport .tkStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
@@ -470,6 +471,6 @@ export default function TimkordikExcelImportDialog({
           </div>
         </div>
       </section>
-    </div>
+    </div></div>, document.body
   )
 }
