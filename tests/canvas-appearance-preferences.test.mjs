@@ -84,6 +84,8 @@ test('canvas is the final authenticated-only visual policy with protected input/
   const bundle=read('app/aureka-global.css'),css=read('app/aureka-canvas-preferences.css')
   assert.ok(bundle.indexOf("@import './aureka-navigation-system.css';") < bundle.indexOf("@import './aureka-canvas-preferences.css';"))
   assert.match(css,/--aureka-canvas-surface: transparent/)
+  assert.match(css,/html\[data-skin="arktik"\] body:not\(#_\) \.workspaceRoot\.workspaceDesk/)
+  assert.doesNotMatch(css,/html\[data-skin="arktik"\] body \.workspaceRoot\.workspaceDesk/)
   assert.match(css,/\.secTablePanel, \.secSummary > div/)
   assert.match(css,/\.ppPanel, \.ppKpi/)
   assert.match(css,/border-inline-start: 2px solid var\(--aureka-canvas-divider\)/)
