@@ -37,6 +37,7 @@ const examples: Record<CertificateElementId, string> = {
   activity: 'Nama kegiatan pelatihan atau orientasi',
   details: 'Pontianak · Tanggal pelaksanaan · Penyelenggara',
   materials: 'Daftar materi kegiatan',
+  program_info: 'Program / Profesi · Institusi',
   issue_date: 'Pontianak, 21 November 2026',
   signature_left: 'Direktur',
   signature_right: 'Ketua Penyelenggara',
