@@ -686,3 +686,39 @@ test('ICU negative BHP/Linen profile 14.1 counts an exact master-pending source 
   assert.equal(result.annualRate, 100)
   assert.equal(result.targetMet, false)
 })
+
+
+test('unreviewed reconciliation response is excluded from numerator and denominator', () => {
+  const profile = {
+    id: 'p-room-3', room_id: 3, code: '3.1', title: 'Keterlambatan Ambulance',
+    measurement_grain: 'event', schema_json: { measurement_type: 'ratio' },
+  }
+  const rows = [{
+    room_id: 3, record_date: '2026-02-14', status: 'validated',
+    core_data: { indicator_values: { '3.1': {
+      numerator: 2, denominator: 5, answer: 'Terlambat', code: 3,
+      review_status: 'pending',
+    } } },
+  }]
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.observations, 0)
+  assert.equal(result.annualNumerator, 0)
+  assert.equal(result.annualDenominator, 0)
+  assert.equal(result.annualRate, null)
+})
+
+test('classified and not-required reconciliation responses remain eligible', () => {
+  const profile = {
+    id: 'p-room-3-approved', room_id: 3, code: '3.1', title: 'Keterlambatan Ambulance',
+    measurement_grain: 'event', schema_json: { measurement_type: 'ratio' },
+  }
+  const rows = [
+    { room_id: 3, record_date: '2026-02-14', status: 'validated', core_data: { indicator_values: { '3.1': { numerator: 1, denominator: 2, review_status: 'classified' } } } },
+    { room_id: 3, record_date: '2026-02-15', status: 'validated', core_data: { indicator_values: { '3.1': { numerator: 0, denominator: 3, review_status: 'not_required' } } } },
+  ]
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.observations, 2)
+  assert.equal(result.annualNumerator, 1)
+  assert.equal(result.annualDenominator, 5)
+  assert.equal(result.annualRate, 20)
+})
