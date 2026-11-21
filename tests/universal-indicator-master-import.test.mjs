@@ -29,7 +29,16 @@ test('universal importer supports profile-only without patient data, and checks 
 
 
 test('empty master defaults to profile-only import before any patient logbook ingestion', () => {
-  assert.match(panel, /if \(roleCanImportProfiles && pSheet && \(activeProfiles\.length === 0 \|\| !dSheet\)\)/)
+  assert.match(panel, /if \(roleCanImportProfiles && pSheet && activeProfiles\.length === 0\)/)
   assert.match(panel, /setImportMode\('profiles_only'\)/)
   assert.match(panel, /p_expected_rows: importMode === 'profiles_only' \? 0 : preview\.rows\.length/)
+})
+
+
+test('bulk profile set replacement cannot occur without explicit Superadmin confirmation', () => {
+  assert.match(panel, /const \[replaceConfirmed, setReplaceConfirmed\] = useState\(false\)/)
+  assert.match(panel, /importMode !== 'data_only' && activeProfiles\.length > 0 && !replaceConfirmed/)
+  assert.match(panel, /setError\('Impor set profil penuh akan memensiunkan versi master/)
+  assert.match(panel, /checked=\{replaceConfirmed\}/)
+  assert.match(panel, /setReplaceConfirmed\(false\)/)
 })
