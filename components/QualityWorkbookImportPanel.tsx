@@ -257,7 +257,40 @@ export default function QualityWorkbookImportPanel({
       setIndicatorColumns(nextIndicators)
       setNumeratorColumns(nextNums)
       setDenominatorColumns(nextDens)
-      setNotice('Worksheet dikenali. Periksa kembali peran sheet dan pemetaan setiap kolom sebelum membuat pratinjau. Baris data tidak dikirim ke NARA.')
+      // Reuse previously approved mappings for this unit/year/workbook type.
+      try {
+        const { data: savedMap, error: savedMapError } = await q().rpc('quality_excel_header_mapping_list', {
+          p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
+        })
+        if (!savedMapError) {
+          const saved = Array.isArray(savedMap?.mappings) ? savedMap.mappings : []
+          const sourceFor = (type: string, key: string) => saved.find((item: any) => item.target_type === type && item.target_key === key)?.source_header ?? ''
+          setDataColumns(current => ({
+            ...current,
+            date: sourceFor('field','field:record_date') || current.date,
+            subject_key: sourceFor('field','field:subject_key') || current.subject_key,
+            patient_name: sourceFor('field','field:patient_name') || current.patient_name,
+            diagnosis: sourceFor('field','field:diagnosis') || current.diagnosis,
+            dpjp: sourceFor('field','field:dpjp') || current.dpjp,
+          }))
+          setIndicatorColumns(current => {
+            const next = { ...current }
+            for (const profile of activeProfiles) next[profile.code] = sourceFor('indicator','indicator:' + profile.code) || next[profile.code] || ''
+            return next
+          })
+          setNumeratorColumns(current => {
+            const next = { ...current }
+            for (const profile of activeProfiles) next[profile.code] = sourceFor('field','field:' + profile.code + ':numerator') || next[profile.code] || ''
+            return next
+          })
+          setDenominatorColumns(current => {
+            const next = { ...current }
+            for (const profile of activeProfiles) next[profile.code] = sourceFor('field','field:' + profile.code + ':denominator') || next[profile.code] || ''
+            return next
+          })
+        }
+      } catch { /* mapping lookup is optional; explicit user mapping remains available */ }
+      setNotice('Worksheet dikenali. Periksa kembali peran sheet dan pemetaan setiap kolom sebelum membuat pratinjau. Aturan tersimpan per unit akan dipakai kembali. Baris data tidak dikirim ke NARA.')
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook gagal dibaca. Pastikan berkas bukan hasil ekspor rusak atau dilindungi kata sandi.' }))
     }
@@ -528,9 +561,43 @@ export default function QualityWorkbookImportPanel({
       const { data: committed, error: commitError } = await q().rpc('commit_quality_import_batch', { p_batch_id: createdBatch })
       if (commitError) throw commitError
       if (committed?.status !== 'committed') throw new Error('Server belum menyatakan batch berhasil di-commit.')
+
+      // Persist selected source columns so the next upload for this unit can reuse them.
+      let mappingSaved = 0
+      if (importMode !== 'profiles_only' && dataSheet) {
+        const profilesForMapping = importMode === 'data_only' ? activeProfiles : preview.profiles
+        const rules: Array<Record<string, any>> = []
+        const addField = (key: string, label: string, header: string) => {
+          if (header) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: label, source_header: header, occurrence: 1, transform_json: {} })
+        }
+        addField('record_date', 'Tanggal pencatatan', dataColumns.date)
+        addField('subject_key', 'Kunci subjek / No. RM', dataColumns.subject_key)
+        addField('patient_name', 'Nama pasien / subjek', dataColumns.patient_name)
+        addField('diagnosis', 'Diagnosis', dataColumns.diagnosis)
+        addField('dpjp', 'DPJP / penanggung jawab', dataColumns.dpjp)
+        for (const profile of profilesForMapping) {
+          const schemaMapping = profile.schema_json?.excel_mapping ?? {}
+          const valueHeader = indicatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.indicator_header, profile.schema_json?.header_label, profile.code, profile.title].filter(Boolean))
+          if (valueHeader) rules.push({ target_type: 'indicator', target_key: 'indicator:' + profile.code, indicator_code: profile.code, target_label: profile.code + ' · ' + profile.title, source_header: valueHeader, occurrence: 1, transform_json: {} })
+          const numHeader = numeratorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.numerator_header].filter(Boolean))
+          const denHeader = denominatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.denominator_header].filter(Boolean))
+          if (numHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':numerator', target_label: profile.code + ' · numerator', source_header: numHeader, occurrence: 1, transform_json: {} })
+          if (denHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':denominator', target_label: profile.code + ' · denominator', source_header: denHeader, occurrence: 1, transform_json: {} })
+        }
+        for (let index = 0; index < rules.length; index += 200) {
+          const { error: mapError, data: mapResult } = await q().rpc('quality_excel_header_mapping_upsert_bulk', {
+            p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
+            p_rules: rules.slice(index, index + 200),
+            p_decision_note: 'Pemetaan kolom diverifikasi melalui impor workbook AUREKA V2.',
+          })
+          if (mapError) { setError('Data berhasil diimpor, tetapi penyimpanan aturan pemetaan tidak berhasil: ' + toUserFacingError(mapError)); break }
+          mappingSaved += Number(mapResult?.saved_count ?? 0)
+        }
+      }
       setNotice('Impor selesai. ' + Number(committed.imported_rows ?? 0).toLocaleString('id-ID') +
         ' record tersimpan dan ' + Number(committed.profile_count ?? 0).toLocaleString('id-ID') +
-        ' profil diproses. Batch: ' + createdBatch)
+        ' profil diproses. ' + mappingSaved.toLocaleString('id-ID') + ' aturan kolom disimpan untuk impor berikutnya. Batch: ' + createdBatch)
+      setBatchId('')
       setPreview(null)
       onImported()
     } catch (cause) {
