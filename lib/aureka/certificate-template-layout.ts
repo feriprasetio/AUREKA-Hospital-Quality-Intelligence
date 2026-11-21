@@ -2,7 +2,7 @@ export type CertificateTemplateKey = 'in_house_training' | 'student_orientation'
 export type CertificateElementId =
   | 'logo_pemkot' | 'logo_rsud' | 'institution' | 'title' | 'subtitle'
   | 'recipient_label' | 'recipient_name' | 'role' | 'activity' | 'details'
-  | 'materials' | 'issue_date' | 'signature_left' | 'signature_right' | 'verification' | 'footer'
+  | 'materials' | 'program_info' | 'issue_date' | 'signature_left' | 'signature_right' | 'verification' | 'footer'
 
 export type CertificatePoint = { x: number; y: number }
 export type CertificateLayout = Record<CertificateElementId, CertificatePoint>
@@ -19,6 +19,7 @@ export const CERTIFICATE_ELEMENTS: Array<{ id: CertificateElementId; label: stri
   { id: 'activity', label: 'Nama kegiatan' },
   { id: 'details', label: 'Keterangan kegiatan' },
   { id: 'materials', label: 'Daftar materi' },
+  { id: 'program_info', label: 'Program / institusi peserta' },
   { id: 'issue_date', label: 'Tanggal penerbitan' },
   { id: 'signature_left', label: 'Area pengesahan kiri' },
   { id: 'signature_right', label: 'Area pengesahan kanan' },
@@ -38,6 +39,7 @@ const sharedDefaults: CertificateLayout = {
   activity: { x: 50, y: 59 },
   details: { x: 50, y: 65 },
   materials: { x: 25, y: 72 },
+  program_info: { x: 50, y: 84 },
   issue_date: { x: 77, y: 79 },
   signature_left: { x: 24, y: 86 },
   signature_right: { x: 76, y: 86 },
@@ -74,4 +76,18 @@ export function normalizeCertificateLayout(value: unknown, key: CertificateTempl
     }
   }
   return defaults
+}
+
+export function pdfPoint(
+  layout: CertificateLayout,
+  id: CertificateElementId,
+  fallback: { x: number; y: number },
+  width = 842,
+  height = 595,
+): { x: number; y: number } {
+  const point = layout[id] || fallback
+  return {
+    x: Math.round((Math.min(100, Math.max(0, point.x)) / 100) * width),
+    y: Math.round(height - (Math.min(100, Math.max(0, point.y)) / 100) * height),
+  }
 }
