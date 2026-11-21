@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import PatientReadmissionPanel from '@/components/patient-registry/PatientReadmissionPanel'
 
 type Room = { id: number; name: string }
 type Analytics = {
@@ -37,6 +38,7 @@ export default function PatientMedicalRecordsAnalytics({
   const initialScope = lockRoomScope || !canViewAllRooms ? String(initialRoomId ?? rooms[0]?.id ?? '') : ''
   const [room, setRoom] = useState(initialScope)
   const [year, setYear] = useState('2026')
+  const [view, setView] = useState<'icd' | 'los' | 'readmisi'>('icd')
   const [data, setData] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -107,6 +109,14 @@ export default function PatientMedicalRecordsAnalytics({
         .pmaQualityRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;margin:11px 0;font-size:11px}
         .pmaQualityRow span{color:#516779}.pmaQualityRow b{font-size:11px;color:#26465e;font-variant-numeric:tabular-nums}
         .pmaQualityRow progress{grid-column:1/-1}
+        .pmaTabs{display:inline-flex;gap:2px;padding:4px;border-radius:14px;background:rgba(255,255,255,.55);border:1px solid rgba(30,60,45,.12);max-width:100%;overflow-x:auto}
+        .pmaTabs button{min-height:36px;padding:0 16px;border:0;border-radius:10px;background:transparent;color:#4b5565;font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
+        .pmaTabs button[aria-selected=true]{background:#1f2430;color:#fff}
+        .pmaKpis3{grid-template-columns:repeat(3,minmax(0,1fr))}.pmaDef{font-size:18px!important}
+        .pmaReadmit{display:grid;gap:10px}.pmaReadmitBadge{display:inline-block;padding:2px 8px;border-radius:99px;background:#fef3c7;color:#92400e;font-weight:700;font-size:11px}
+        .pmaPager{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:10px;font-size:12px;color:#516779}
+        html[data-mode="gelap"] .pmaTabs{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}html[data-mode="gelap"] .pmaTabs button{color:#bdc9d4}html[data-mode="gelap"] .pmaTabs button[aria-selected=true]{background:#22d3ee;color:#0f1218}html[data-mode="gelap"] .pmaReadmitBadge{background:rgba(245,158,11,.18);color:#fcd34d}
+        @media(max-width:640px){.pmaKpis3{grid-template-columns:1fr}}
         .pmaNote{padding:12px 14px;border:1px solid #dbe7ef;border-radius:11px;background:#f6f9fb;color:#4d6477;font-size:11px;line-height:1.6}
         @media(max-width:1100px){.pmaKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.pmaGrid{grid-template-columns:1fr}}
         @media(max-width:640px){.pmaKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pmaBand{grid-template-columns:95px minmax(45px,1fr) 30px}.pmaTrend{gap:2px}.pmaMonth b,.pmaMonth small{font-size:8px}}
@@ -143,9 +153,14 @@ export default function PatientMedicalRecordsAnalytics({
         <button type="button" className="prButton" disabled={loading} onClick={() => void load()}>{loading ? 'Memuat…' : 'Muat ulang'}</button>
       </div>
 
-      {error && <div className="prAlert" role="alert">{error}</div>}
-      {loading && !data ? <div className="prPanel prEmpty">Memuat ringkasan rekam medis…</div> : null}
-      {data && <>
+      <div className="pmaTabs" role="tablist" aria-label="Analisis pola perawatan">
+        {([['icd', 'ICD-10'], ['los', 'Length of Stay'], ['readmisi', 'Readmisi']] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={view === id} onClick={() => setView(id)}>{label}</button>)}
+      </div>
+
+      {view === 'readmisi' && <PatientReadmissionPanel room={room} year={year} />}
+      {view !== 'readmisi' && error && <div className="prAlert" role="alert">{error}</div>}
+      {view !== 'readmisi' && loading && !data ? <div className="prPanel prEmpty">Memuat ringkasan rekam medis…</div> : null}
+      {view !== 'readmisi' && data && <>
         <div className="pmaKpis">
           <article><span>Catatan episode pasien</span><strong>{fmt(data.episodes)}</strong><small>Record dengan grain patient_episode</small></article>
           <article><span>Pasien unik</span><strong>{fmt(data.unique_patients)}</strong><small>Berdasarkan No. RM valid</small></article>
@@ -155,7 +170,7 @@ export default function PatientMedicalRecordsAnalytics({
           <article><span>No. RM kosong / tidak valid</span><strong>{fmt(data.invalid_mrn)}</strong><small>{fmt(mrnRate, 1)}% No. RM valid</small></article>
         </div>
 
-        <div className="pmaGrid">
+        {view === 'icd' && <div className="pmaGrid">
           <section className="prPanel">
             <h3>Tren catatan episode per bulan</h3>
             <p>Jumlah record patient_episode berdasarkan tanggal pelayanan dalam tahun profil terpilih.</p>
@@ -166,18 +181,6 @@ export default function PatientMedicalRecordsAnalytics({
               </div>)}
             </div> : <p className="prEmpty">Belum ada catatan episode pada periode ini.</p>}
           </section>
-
-          <section className="prPanel">
-            <h3>Distribusi LOS</h3>
-            <p>LOS hanya dihitung pada episode rawat inap dengan tanggal masuk dan keluar yang dapat dihitung.</p>
-            {(data.los_bands ?? []).map(b => <div className="pmaBand" key={b.label}>
-              <span>{b.label}</span><progress max={Math.max(1, Number(data.los_count) || 0)} value={Number(b.count) || 0} /><b>{fmt(b.count)}</b>
-            </div>)}
-            {!data.los_count && <p className="prEmpty">Belum ada LOS yang dapat dihitung.</p>}
-          </section>
-        </div>
-
-        <div className="pmaGrid">
           <section className="prPanel">
             <h3>Sepuluh diagnosis dengan kode ICD-10 terbanyak</h3>
             <p>Pengelompokan berdasarkan kode yang dikenali dari kolom kode/diagnosis; bukan validasi coding oleh coder.</p>
@@ -186,7 +189,28 @@ export default function PatientMedicalRecordsAnalytics({
                 <tbody>{data.top_icd10.map(d => <tr key={d.code}><td><b>{d.code}</b></td><td>{d.diagnosis}</td><td>{fmt(d.count)}</td></tr>)}</tbody></table></div>
               : <p className="prEmpty">Belum ditemukan kode ICD-10 yang dapat dikenali.</p>}
           </section>
+        </div>}
 
+        {view === 'los' && <div className="pmaGrid">
+          <section className="prPanel">
+            <h3>Distribusi LOS</h3>
+            <p>LOS hanya dihitung pada episode rawat inap dengan tanggal masuk dan keluar yang dapat dihitung.</p>
+            {(data.los_bands ?? []).map(b => <div className="pmaBand" key={b.label}>
+              <span>{b.label}</span><progress max={Math.max(1, Number(data.los_count) || 0)} value={Number(b.count) || 0} /><b>{fmt(b.count)}</b>
+            </div>)}
+            {!data.los_count && <p className="prEmpty">Belum ada LOS yang dapat dihitung.</p>}
+          </section>
+          <section className="prPanel">
+            <h3>Pemanfaatan layanan menurut unit</h3>
+            <p>Jumlah catatan episode dan rata-rata LOS per unit yang termasuk cakupan akses saat ini.</p>
+            {data.units?.length
+              ? <div className="prTableWrap"><table className="prTable"><thead><tr><th>Unit</th><th>Catatan episode</th><th>Rawat inap</th><th>Masih dirawat</th><th>Rata-rata LOS</th></tr></thead>
+                <tbody>{data.units.map(u => <tr key={u.unit}><td>{u.unit}</td><td>{fmt(u.episodes)}</td><td>{fmt(u.inpatient)}</td><td>{fmt(u.active)}</td><td>{u.average_los == null ? '—' : fmt(u.average_los,2)+' hari'}</td></tr>)}</tbody></table></div>
+              : <p className="prEmpty">Belum ada ringkasan unit pada periode ini.</p>}
+          </section>
+        </div>}
+
+        {view === 'icd' && <div className="pmaGrid">
           <section className="prPanel">
             <h3>Kelengkapan dokumentasi rekam medis</h3>
             <p>Proporsi terhadap seluruh catatan episode pada filter aktif. Ini bukan pengganti audit kelengkapan rekam medis.</p>
@@ -195,16 +219,7 @@ export default function PatientMedicalRecordsAnalytics({
             <div className="pmaQualityRow"><span>Kode ICD-10 dikenali</span><b>{fmt(icdRate,1)}% · {fmt(data.icd10_coded)}/{fmt(total)}</b><progress max="100" value={icdRate} /></div>
             <p>Diagnosis tanpa kode: {fmt(data.diagnosis_uncoded)} · Diagnosis kosong: {fmt(data.diagnosis_missing)}</p>
           </section>
-        </div>
-
-        <section className="prPanel">
-          <h3>Pemanfaatan layanan menurut unit</h3>
-          <p>Jumlah catatan episode dan indikator LOS per unit yang termasuk cakupan akses saat ini.</p>
-          {data.units?.length
-            ? <div className="prTableWrap"><table className="prTable"><thead><tr><th>Unit</th><th>Catatan episode</th><th>Rawat inap</th><th>Masih dirawat</th><th>Rata-rata LOS</th></tr></thead>
-              <tbody>{data.units.map(u => <tr key={u.unit}><td>{u.unit}</td><td>{fmt(u.episodes)}</td><td>{fmt(u.inpatient)}</td><td>{fmt(u.active)}</td><td>{u.average_los == null ? '—' : fmt(u.average_los,2)+' hari'}</td></tr>)}</tbody></table></div>
-            : <p className="prEmpty">Belum ada ringkasan unit pada periode ini.</p>}
-        </section>
+        </div>}
       </>}
 
       <div className="pmaNote">
