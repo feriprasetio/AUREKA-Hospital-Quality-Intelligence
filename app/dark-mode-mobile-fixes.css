@@ -13,8 +13,6 @@ html[data-skin="arktik"][data-mode="gelap"] {
 }
 @media (max-width: 760px) {
   html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot :is(
-    .workspaceNotificationPanel,.workspaceSupportPanel,.workspacePopoverHead,
-    .workspaceCommunicationPanel,.workspaceCommunicationTabs,
     .workspaceRoot .moduleEnter :is(.modal,.dialog,.popover,.dropdownMenu,.menuPanel,[role="dialog"],[role="menu"],[role="listbox"]),
     .workspaceRoot .moduleEnter :is(.ovPanel,.ovKpi,.aqPanel,.psPanel,.rmPanel,.cpPanel,.oppePanel,.qraPanel,.sdPanel,.stPanel)
   ) {
@@ -24,19 +22,6 @@ html[data-skin="arktik"][data-mode="gelap"] {
     border-color: rgba(180,198,219,.22) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
-  }
-  html[data-skin="arktik"][data-mode="gelap"] .workspaceNotificationPanel,
-  html[data-skin="arktik"][data-mode="gelap"] .workspaceSupportPanel {
-    z-index: 260 !important;
-    box-shadow: 0 18px 48px rgba(0,0,0,.62) !important;
-  }
-  html[data-skin="arktik"][data-mode="gelap"] .workspaceNotificationPanel :is(strong,p,span,time,button),
-  html[data-skin="arktik"][data-mode="gelap"] .workspaceSupportPanel :is(strong,p,span,time,button) {
-    color: #dce6f1 !important;
-  }
-  html[data-skin="arktik"][data-mode="gelap"] .workspaceNotificationItem,
-  html[data-skin="arktik"][data-mode="gelap"] .workspacePopoverHead {
-    border-color: rgba(180,198,219,.18) !important;
   }
   html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .workspaceContextNav button {
     color: #dce6f1 !important;

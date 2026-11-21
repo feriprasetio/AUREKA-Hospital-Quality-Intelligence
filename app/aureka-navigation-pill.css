@@ -45,7 +45,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   margin: 0 !important;
   padding: 0 11px !important;
   border: 1px solid transparent !important;
-  border-radius: 9px !important;
+  border-radius: 11px !important;
   background: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
@@ -90,9 +90,9 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   max-height: 32px !important;
   box-sizing: border-box !important;
   border: 1px solid #183f61 !important;
-  border-radius: 9px !important;
-  background: #183f61 !important;
-  background-image: none !important;
+  border-radius: 11px !important;
+  background: #16507a !important;
+  background-image: linear-gradient(155deg, #286794, #153c61) !important;
   box-shadow: 0 2px 7px rgba(24,63,97,.13) !important;
   pointer-events: none !important;
   opacity: 0 !important;
@@ -110,6 +110,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
 html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before {
   border-color: #9bb8d1 !important;
   background: #315573 !important;
+  background-image: linear-gradient(155deg, #426b8d, #253f5b) !important;
   box-shadow: 0 3px 10px rgba(0,0,0,.22) !important;
 }
 html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {

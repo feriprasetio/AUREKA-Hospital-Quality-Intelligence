@@ -680,13 +680,22 @@ export default function HomeClient(){
   if(typeof window==='undefined'||view!=='workspace')return
   window.dispatchEvent(new CustomEvent('aureka:workspace-search',{detail:{query:globalSearch,module:active,container:currentContainer}}))
  },[globalSearch,active,currentContainer,view])
+ const closeWorkspacePopover = (kind: 'notifications' | 'inbox', restoreFocus = true) => {
+  if(kind==='notifications')setNotificationHistoryOpen(false)
+  else setSupportOpen(false)
+  if(restoreFocus)document.querySelector<HTMLButtonElement>(`[data-workspace-popover-trigger="${kind}"]`)?.focus()
+ }
  useEffect(()=>{
   if(!notificationHistoryOpen&&!supportOpen)return
+  const kind = notificationHistoryOpen?'notifications':'inbox'
+  const panel = document.getElementById('workspace-popover-'+kind)
+  panel?.querySelector<HTMLButtonElement>('.workspacePopoverClose')?.focus({preventScroll:true})
   const dismiss=(event:KeyboardEvent|PointerEvent)=>{
    if(event instanceof KeyboardEvent){
-    if(event.key!=='Escape')return
+    if(event.key!=='Escape'||event.defaultPrevented||!panel?.contains(document.activeElement))return
+    event.preventDefault()
    }else if(event.target instanceof Element&&event.target.closest('.workspaceNotificationPanel,.workspaceSupportPanel,[data-workspace-popover-trigger]'))return
-   setNotificationHistoryOpen(false);setSupportOpen(false)
+   closeWorkspacePopover(kind,event instanceof KeyboardEvent)
   }
   document.addEventListener('keydown',dismiss)
   document.addEventListener('pointerdown',dismiss)
@@ -951,73 +960,67 @@ export default function HomeClient(){
  useEffect(()=>{if(!manager&&MANAGER_ONLY_MODULES.includes(active))setActive('home')},[manager,active])
  if(publicVerificationCode)return <DocumentVerificationPage verificationCode={publicVerificationCode}/>
  if(publicCertificateCode)return <PublicLandingPage logoSrc={LOGO} onLogin={()=>{window.location.hash='';setView('login')}} verificationCode={publicCertificateCode}/>
- if(view==='force-password')return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="auroraBg" aria-hidden="true"><span/><span/><span/></div><div className="authShell authShellSingle"><LiquidGlass className="authCard"><div className="authLogo">{logo()}</div><div className="eyebrow authEyebrow">AUREKA · Keamanan akun</div><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authAlert" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||roomsList.find(r=>Number(r.id)===Number(profile?.primary_room_id))?.name||'belum ditetapkan, hubungi Super Admin'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authAlert" role="alert">{message}</div>}<button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'}</button></form><button type="button" className="authBack authLogoutInline" onClick={()=>void logout()} disabled={busy}>Keluar dari akun</button></LiquidGlass></div></main>
- if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authPage authRedesigned"><header className="authTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header>
-  <div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="auroraBg" aria-hidden="true"><span/><span/><span/></div>
-  {!rec&&<button type="button" className="authBack" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('normal')}}><span aria-hidden="true">←</span> Kembali ke login</button>}
-  <div className="authShell authShellSingle">
-   <LiquidGlass className="authCard">
-    {!rec&&resetSent?<div className="authSuccess">
-     <div className="authSuccessIcon" aria-hidden="true">✉</div>
+ if(view==='force-password')return <main className="authArctic"><header className="authArcticTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div></header><div className="authArcticShell authArcticShellSingle"><section className="authArcticCard"><h1>Ganti password awal</h1><p>Akun ini wajib menggunakan password baru sebelum Anda dapat membuka workspace. Password awal hanya berlaku untuk masuk pertama kali.</p><div className="authArcticAlert ok" role="note"><b>Username:</b> {profile?.username||username||'akun unit'}<br/><b>Unit:</b> {room?.name||roomsList.find(r=>Number(r.id)===Number(profile?.primary_room_id))?.name||'belum ditetapkan, hubungi Super Admin'}<br/>Gunakan password baru minimal 12 karakter dan jangan gunakan password yang sama dengan akun lain.</div><form className="authArcticForm" onSubmit={e=>{e.preventDefault();saveFirstPassword()}} noValidate><div className="field"><label htmlFor="firstPassword">Password baru</label><div className="pwWrap"><input id="firstPassword" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter" required/><button type="button" className="pwToggle" aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)}>{showPw?'Sembunyikan':'Lihat'}</button></div></div><div className="field"><label htmlFor="firstPassword2">Konfirmasi password baru</label><input id="firstPassword2" type={showPw?'text':'password'} autoComplete="new-password" minLength={12} value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru" required/></div>{message&&<div className="authArcticAlert" role="alert">{message}</div>}<button type="submit" className="authArcticWide" disabled={busy}>{busy?'Menyimpan password…':'Simpan password baru'}</button></form><button type="button" className="authArcticBack authArcticLogoutInline" onClick={()=>void logout()} disabled={busy}>Keluar dari akun</button></section></div></main>
+ if(view==='login'&&authMode!=='normal'){const rec=authMode==='recovery';return <main className="authArctic"><header className="authArcticTopbar"><div className="brand">{logo()}<div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div></div>{!rec&&!resetSent&&<button type="button" className="authArcticBack" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('normal')}}>Kembali ke login</button>}</header>
+  <div className="authArcticShell authArcticShellSingle">
+   <section className="authArcticCard">
+    {!rec&&resetSent?<div className="authArcticSuccess">
      <h1>Cek email Anda</h1>
      <p>Jika akun <b>{email.trim()}</b> terdaftar di AUREKA, tautan untuk membuat password baru sudah dikirim.</p>
-     <ol className="authSteps">
+     <ol className="authArcticSteps">
       <li><b>Buka email</b><span>Cari email dari AUREKA. Cek juga folder Spam/Promosi.</span></li>
       <li><b>Klik tautan reset</b><span>Anda akan dibawa kembali ke AUREKA untuk membuat password baru.</span></li>
       <li><b>Tidak menerima email?</b><span>Hubungi Super Admin/Komite PMKP untuk dibuatkan password sementara.</span></li>
      </ol>
-     <button type="button" className="landingCta big authWide" onClick={()=>{setResetSent(false);setMessage('');setAuthMode('normal')}}>Kembali ke login</button>
-    </div>:<form onSubmit={(e)=>{e.preventDefault();rec?saveNewPassword():sendReset()}} noValidate>
-     <div className="authLogo">{logo()}</div>
-     <div className="eyebrow authEyebrow">AUREKA workspace</div>
+     <button type="button" className="authArcticWide" onClick={()=>{setResetSent(false);setMessage('');setAuthMode('normal')}}>Kembali ke login</button>
+    </div>:<form className="authArcticForm" onSubmit={(e)=>{e.preventDefault();rec?saveNewPassword():sendReset()}} noValidate>
      <h1>{rec?'Buat password baru':'Lupa password'}</h1>
      <p>{rec?'Masukkan password baru untuk akun Anda.':'Masukkan username atau email akun. Jika akun memiliki email, tautan reset akan dikirim ke sana. Untuk akun unit tanpa email, hubungi Super Admin.'}</p>
      {rec?<>
-      <div className="field"><label htmlFor="newPassword">Password baru</label><div className="pwWrap"><input id="newPassword" type={showPw?'text':'password'} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter"/><button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)} aria-label={showPw?'Sembunyikan password':'Tampilkan password'}>{showPw?'Sembunyikan':'Lihat'}</button></div></div>
+      <div className="field"><label htmlFor="newPassword">Password baru</label><div className="pwWrap"><input id="newPassword" type={showPw?'text':'password'} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 12 karakter"/><button type="button" className="pwToggle" aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)} aria-label={showPw?'Sembunyikan password':'Tampilkan password'}>{showPw?'Sembunyikan':'Lihat'}</button></div></div>
       <div className="field"><label htmlFor="newPassword2">Ulangi password baru</label><input id="newPassword2" type={showPw?'text':'password'} autoComplete="new-password" value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="Ketik ulang password baru"/></div>
-     </>:<div className="field"><label htmlFor="forgotEmail">Username atau email</label><input id="forgotEmail" type="text" autoCapitalize="none" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="pic.isolasi atau nama@email.com"/></div>}
-     {message&&<div className="authAlert" role="alert">{message}</div>}
-     <button type="submit" className="landingCta big authWide" disabled={busy}>{busy?'Memproses…':rec?'Simpan password baru':'Kirim tautan reset'}</button>
-     {!rec&&<div className="authSwitch">Ingat password? <button type="button" onClick={()=>{setMessage('');setAuthMode('normal')}}>Masuk di sini</button></div>}
+     </>:<div className="field"><label htmlFor="forgotEmail">Username atau email</label><input id="forgotEmail" type="text" autoCapitalize="none" autoComplete="username" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} placeholder="pic.isolasi atau nama@email.com"/></div>}
+     {message&&<div className="authArcticAlert" role="alert">{message}</div>}
+     <button type="submit" className="authArcticWide" disabled={busy}>{busy?'Memproses…':rec?'Simpan password baru':'Kirim tautan reset'}</button>
+     {!rec&&<div className="authArcticSwitch">Ingat password? <button type="button" onClick={()=>{setMessage('');setAuthMode('normal')}}>Masuk di sini</button></div>}
     </form>}
-   </LiquidGlass>
+   </section>
   </div>
  </main>}
  if(view==='login'||view==='signup'){
   const l=view==='login'
   const submit=(e:any)=>{e.preventDefault();l?login():signup()}
-  return <main className="authPage authRedesigned authProfessional">
-   <header className="authTopbar">
+  return <main className="authArctic">
+   <header className="authArcticTopbar">
     <div className="brand">
      {logo()}
      <div><b>AUREKA</b><small>Hospital Quality Intelligence</small></div>
     </div>
-    <div className="authTopbarMeta authTopbarActions">
-     <button type="button" className="authBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}>
+    <div className="authArcticTopbarActions">
+     <button type="button" className="authArcticBack" onClick={()=>{setMessage('');setSignupDone(false);setView('public')}}>
       <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Kembali ke beranda
      </button>
     </div>
    </header>
-   <div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="auroraBg" aria-hidden="true"><span/><span/><span/></div>
-   <div className={'authShell '+(!l?'authShellRegistration':'')}>
-    <aside className="authAside" aria-hidden="true">
-     <figure className="authArchitecture"><img src={`${BASE_PATH}/images/architecture-joel-filipe.jpg`} alt="" loading="lazy" /></figure>
-    </aside>
-    <LiquidGlass className="authCard">
-     {!l&&signupDone?<div className="authSuccess">
-      <div className="authSuccessIcon" aria-hidden="true">✓</div>
+   <div className="authArcticShell">
+    <figure className="authArcticArt">
+     <img src={`${BASE_PATH}/images/architecture-joel-filipe.jpg`} alt="" />
+     <figcaption>RSUD Sultan Syarif Mohamad Alkadrie</figcaption>
+    </figure>
+    <section className="authArcticCard">
+     {!l&&signupDone?<div className="authArcticSuccess">
       <h1>Akun berhasil dibuat</h1>
       <p>Akun <b>{email.trim()}</b> untuk unit <b>{roomsList.find(r=>String(r.id)===String(signupRoom))?.name||'-'}</b> sudah terdaftar dan sedang <b>menunggu aktivasi</b>.</p>
-      <ol className="authSteps">
+      <ol className="authArcticSteps">
        <li><b>Verifikasi email</b><span>Buka email <i className="authStrong">{email.trim()}</i> dan klik tautan verifikasi (cek juga folder Spam).</span></li>
        <li><b>Aktivasi oleh Komite PMKP</b><span>Super Admin akan memeriksa unit dan mengaktifkan akun Anda.</span></li>
        <li><b>Masuk ke workspace</b><span>Setelah aktif, login dengan username <i className="authStrong">{username||'-'}</i> (atau email) dan password Anda.</span></li>
       </ol>
-      <button type="button" className="landingCta big authWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login</button>
-     </div>:<form className="authForm" onSubmit={submit} noValidate>
-      <div className="authFormIntro">
-       <img className="authBrandMark" src={LOGO} alt="" width={160} height={136} aria-hidden="true"/>
-       <h1>{l?'Masuk':'Daftar akun unit'}</h1>
+      <button type="button" className="authArcticWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login</button>
+     </div>:<form className="authArcticForm" onSubmit={submit} noValidate>
+      <div className="authArcticFormIntro">
+       <h1>{l?'Masuk ke AUREKA':'Daftar akun unit'}</h1>
+       {!l&&<p>Akun dapat digunakan setelah verifikasi email dan aktivasi oleh Komite PMKP.</p>}
       </div>
       
       {!l&&<>
@@ -1044,33 +1047,29 @@ export default function HomeClient(){
        <label htmlFor="email">{l?'Username atau email':'Email aktif'}</label>
        <input id="email" type={l?'text':'email'} autoComplete={l?'username':'email'} autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} placeholder={l?'Masukkan username atau email':'nama@email.com'}/>
       </div>
-      <div className="field authPasswordField">
-       <div className="authFieldLabelRow">
+      <div className="field authArcticPasswordField">
+       <div className="authArcticFieldLabelRow">
         <label htmlFor="password">Password</label>
-        {l&&<button type="button" className="authForgot" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('forgot')}}>Lupa password?</button>}
+        {l&&<button type="button" className="authArcticForgot" onClick={()=>{setMessage('');setResetSent(false);setAuthMode('forgot')}}>Lupa password?</button>}
        </div>
        <div className="pwWrap">
         <input id="password" type={showPw?'text':'password'} autoComplete={l?'current-password':'new-password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder={l?'Masukkan password':'Minimal 12 karakter'}/>
-        <button type="button" className="pwToggle" onClick={()=>setShowPw(v=>!v)} aria-label={showPw?'Sembunyikan password':'Tampilkan password'}>{showPw?'Sembunyikan':'Tampilkan'}</button>
+        <button type="button" className="pwToggle" aria-pressed={showPw} onClick={()=>setShowPw(v=>!v)} aria-label={showPw?'Sembunyikan password':'Tampilkan password'}>{showPw?'Sembunyikan':'Tampilkan'}</button>
        </div>
       </div>
-      {authInfo&&<div className="authAlert ok" role="status">{authInfo}</div>}
-      {message&&<div className={/tersimpan|dikirim ulang/.test(message)?'authAlert ok':'authAlert'} role="alert">{message}</div>}
-      {l&&needVerify&&<button type="button" className="authResend" disabled={busy} onClick={resendVerify}>Kirim ulang email verifikasi</button>}
-      <button type="submit" className="landingCta big authWide" disabled={busy}>
+      {authInfo&&<div className="authArcticAlert ok" role="status">{authInfo}</div>}
+      {message&&<div className={/tersimpan|dikirim ulang/.test(message)?'authArcticAlert ok':'authArcticAlert'} role="alert">{message}</div>}
+      {l&&needVerify&&<button type="button" className="authArcticResend" disabled={busy} onClick={resendVerify}>Kirim ulang email verifikasi</button>}
+      <button type="submit" className="authArcticWide" disabled={busy}>
        {busy&&<span className="authSpin" aria-hidden="true"/>}{busy?(l?'Memeriksa akun…':'Mengirim pendaftaran…'):l?'Masuk ke Workspace':'Kirim Pendaftaran'}
       
       </button>
-      <div className="authSwitch">
+      <div className="authArcticSwitch">
        {l?'Belum memiliki akun unit?':'Sudah memiliki akun?'}
        <button type="button" onClick={()=>{setMessage('');setView(l?'signup':'login')}}>{l?'Daftar akun unit':'Masuk di sini'}</button>
       </div>
-      <div className="authFormFootnote">
-       <span aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z"/></svg></span>
-       <p>{l?'Akses hanya untuk pengguna yang telah memiliki akun dan kewenangan.':'Akun baru dapat digunakan setelah verifikasi dan aktivasi oleh Komite PMKP.'}</p>
-      </div>
      </form>}
-    </LiquidGlass>
+    </section>
    </div>
   </main>
  }
@@ -1117,7 +1116,7 @@ export default function HomeClient(){
    })}
   </nav>
   <div className="sidebarFooter">
-   <LiquidGlassButton onClick={()=>void logout()}><span className="logoutIcon">↪</span><span className="logoutLabel">Logout</span></LiquidGlassButton>
+   <LiquidGlassButton onClick={()=>void logout()}><svg className="logoutIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5m4-12 4 4-4 4m4-4H9"/></svg><span className="logoutLabel">Keluar</span></LiquidGlassButton>
   </div>
  </aside>
  <section className="workspaceContent">
@@ -1163,7 +1162,7 @@ export default function HomeClient(){
    <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceNaraButton" title="Buka NARA AI" aria-label="Buka NARA AI" onClick={()=>active==='nara'?openMainModule('nara'):openNaraWithContext('Analisis halaman '+currentContainer+' pada cakupan '+(activeWorkspaceRoom?.name||room?.name||'unit yang diizinkan')+'. Gunakan hanya data AUREKA yang tersedia dan diizinkan oleh role saya. Sajikan ringkasan, tren, anomali, sumber dan periode data, keterbatasan, serta rekomendasi prioritas. Jangan menampilkan identitas pasien, jangan mengubah data, dan tandai bagian yang memerlukan verifikasi manusia.',activeNavModuleLabel+' · '+currentContainer)}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span className="srOnly">NARA AI</span>
    </button>
-   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceInboxButton" data-workspace-popover-trigger="inbox" title="Buka Pusat Komunikasi" aria-label="Buka Pusat Komunikasi" aria-expanded={supportOpen} onClick={()=>{openSupportChat('admin');setNotificationHistoryOpen(false)}}>
+   <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceInboxButton" data-workspace-popover-trigger="inbox" title="Buka Pusat Komunikasi" aria-label="Buka Pusat Komunikasi" aria-expanded={supportOpen} aria-controls={supportOpen?'workspace-popover-inbox':undefined} onClick={()=>{openSupportChat('admin');setNotificationHistoryOpen(false)}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 7l8 6 8-6M4 15h5l1.5 2h3L15 15h5"/></svg><span className="srOnly">Pusat Komunikasi</span>
    </button>
    <button type="button" className="workspaceHeaderIcon workspaceThemeButton" title={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-label={uiMode==='terang'?'Ganti ke tema gelap':'Ganti ke tema terang'} aria-pressed={uiMode==='gelap'} onClick={toggleUiMode}>
@@ -1172,7 +1171,7 @@ export default function HomeClient(){
    <button type="button" className="workspaceHeaderIcon workspaceFullscreenButton" title="Layar penuh" aria-label="Aktifkan atau keluar dari layar penuh" onClick={()=>{if(typeof document==='undefined')return;if(document.fullscreenElement){void document.exitFullscreen().catch(()=>undefined)}else if(document.documentElement.requestFullscreen){void document.documentElement.requestFullscreen().catch(()=>undefined)}}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
    </button>
-   <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="notifications" title="Riwayat notifikasi" aria-label="Riwayat notifikasi" aria-expanded={notificationHistoryOpen} onClick={()=>{setNotificationHistoryOpen(v=>!v);setSupportOpen(false)}}>
+   <button type="button" className="workspaceHeaderIcon" data-workspace-popover-trigger="notifications" title="Riwayat notifikasi" aria-label="Riwayat notifikasi" aria-expanded={notificationHistoryOpen} aria-controls={notificationHistoryOpen?'workspace-popover-notifications':undefined} onClick={()=>{setNotificationHistoryOpen(v=>!v);setSupportOpen(false)}}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>{notifications.length>0&&<span className="workspaceHeaderBadge">{notifications.length>9?'9+':notifications.length}</span>}
    </button>
 
@@ -1191,33 +1190,37 @@ export default function HomeClient(){
    <div className="dynamicIslandText"><strong>{activeToast.kind==='error'?'Perlu perhatian':activeToast.kind==='success'?'Berhasil':'Informasi'}</strong><span>{activeToast.message}</span></div>
    <button type="button" aria-label="Tutup notifikasi" onClick={()=>setActiveToast(null)}>×</button>
   </div>}
-  {notificationHistoryOpen&&typeof document!=='undefined'&&createPortal(<section className="workspaceNotificationPanel" aria-label="Riwayat notifikasi">
-   <div className="workspacePopoverHead"><div><strong>Riwayat notifikasi</strong><span>{notifications.length} notifikasi sesi ini · {reminderHistory.length} riwayat pengingat</span></div><button type="button" aria-label="Tutup riwayat" onClick={()=>setNotificationHistoryOpen(false)}>×</button></div>
+  {notificationHistoryOpen&&typeof document!=='undefined'&&createPortal(<section id="workspace-popover-notifications" className="workspaceNotificationPanel" aria-label="Riwayat notifikasi">
+   <div className="workspacePopoverHead"><div><strong>Riwayat notifikasi</strong><span>{notifications.length} notifikasi sesi ini · {reminderHistory.length} riwayat pengingat</span></div><button type="button" className="workspacePopoverClose" aria-label="Tutup riwayat" onClick={()=>closeWorkspacePopover('notifications')}>×</button></div>
+   <div className="workspaceNotificationBody" tabIndex={0}>
    {notifications.length===0&&reminderHistory.length===0?<div className="workspacePopoverEmpty">Belum ada notifikasi.</div>:<>
     {reminderHistory.length>0&&<div className="workspaceNotificationList">
-     <div className="workspacePopoverEmpty"><strong>Riwayat Pengingat Komite PMKP</strong></div>
+     <h3>Riwayat Pengingat Komite PMKP</h3>
      {reminderHistory.map(item=><article key={'reminder-'+item.id} className="workspaceNotificationItem info"><span className="workspaceNotificationDot"/><div><strong>Pengingat dari Komite PMKP</strong><p>{item.body}</p><time>Dikirim {new Date(item.createdAt).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})} · Dibaca {new Date(item.readAt).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})}</time></div></article>)}
     </div>}
     {notifications.length>0&&<div className="workspaceNotificationList">
-     <div className="workspacePopoverEmpty"><strong>Notifikasi sesi ini</strong></div>
+     <h3>Notifikasi sesi ini</h3>
      {notifications.map(item=><article key={item.id} className={'workspaceNotificationItem '+item.kind}><span className="workspaceNotificationDot"/><div><strong>{item.module||'AUREKA'}</strong><p>{item.message}</p><time>{new Date(item.createdAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</time></div></article>)}
     </div>}
    </>}
+   </div>
    {notifications.length>0&&<button type="button" className="workspaceClearHistory" onClick={()=>setNotifications([])}>Hapus riwayat sesi</button>}
   </section>,document.body)}
-  {supportOpen&&typeof document!=='undefined'&&createPortal(<section className="workspaceSupportPanel workspaceCommunicationPanel" aria-label="Pusat komunikasi AUREKA">
-   <div className="workspacePopoverHead"><div><strong>Pusat Komunikasi</strong><span>{admin?'Komunikasi seluruh rumah sakit':(room?.name||'Unit belum dipetakan')}</span></div><div className="workspacePopoverActions"><button type="button" aria-label="Tutup pusat komunikasi" onClick={()=>setSupportOpen(false)}>×</button></div></div>
+  {supportOpen&&typeof document!=='undefined'&&createPortal(<section id="workspace-popover-inbox" className="workspaceSupportPanel workspaceCommunicationPanel" aria-label="Pusat komunikasi AUREKA">
+   <div className="workspacePopoverHead"><div><strong>Pusat Komunikasi</strong><span>{admin?'Komunikasi seluruh rumah sakit':(room?.name||'Unit belum dipetakan')}</span></div><button type="button" className="workspacePopoverClose" aria-label="Tutup pusat komunikasi" onClick={()=>closeWorkspacePopover('inbox')}>×</button></div>
    <nav className="workspaceCommunicationTabs" role="tablist" aria-label="Jenis komunikasi">
     <button type="button" role="tab" aria-selected={supportTab==='admin'} className={supportTab==='admin'?'selected':''} onClick={()=>{setSupportTab('admin');void loadSupportConversations()}}>Pesan Admin</button>
     {admin&&<button type="button" role="tab" aria-selected={supportTab==='broadcast'} className={supportTab==='broadcast'?'selected':''} onClick={()=>setSupportTab('broadcast')}>Semua Ruangan</button>}
    </nav>
    {supportTab==='admin'&&<>
+    <div className="workspaceCommunicationBody">
     {supportLoading&&<AsyncStatePanel state="loading" title="Memuat percakapan" description="Mengambil daftar percakapan Anda." compact/>}
     {supportLoadError&&<AsyncStatePanel state="error" title="Percakapan belum dapat dimuat" description={supportLoadError} retrying={supportLoading} onRetry={()=>void loadSupportConversations()} compact/>}
-    {!supportLoading&&!supportLoadError&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}{supportConversations.length===0&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Mulai percakapan dengan Super Admin atau tunggu pengumuman dari rumah sakit." compact/>}</div>}
-    {!admin&&!supportConversationId&&!supportLoading&&!supportLoadError&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description="Kirim pesan untuk memulai percakapan dengan Super Admin." compact/>}
-    {!supportConversationId&&!supportLoading&&!supportLoadError&&supportConversations.length>0&&<div className="workspacePopoverEmpty">Pilih percakapan untuk membaca pesan. Anda juga dapat memulai percakapan baru melalui kotak pesan.</div>}
+    {!supportLoading&&!supportLoadError&&supportConversations.length>0&&<div className="workspaceSupportInbox">{supportConversations.map(item=><button type="button" key={item.id} className={supportConversationId===item.id?'selected':''} onClick={()=>setSupportConversationId(item.id)}><strong>{roomsList.find(r=>Number(r.id)===Number(item.room_id))?.name||'Unit '+item.room_id}</strong><span>{item.subject}</span></button>)}</div>}
+    {!supportConversationId&&!supportLoading&&!supportLoadError&&supportConversations.length===0&&<AsyncStatePanel state="empty" title="Belum ada percakapan" description={admin?'Percakapan dari unit akan muncul di sini.':'Kirim pesan untuk memulai percakapan dengan Super Admin.'} compact/>}
+    {!supportConversationId&&!supportLoading&&!supportLoadError&&supportConversations.length>0&&<div className="workspacePopoverEmpty">Pilih percakapan untuk membaca dan membalas pesan.</div>}
     {supportConversationId&&<div className="workspaceSupportMessages">{supportMessagesLoading?<AsyncStatePanel state="loading" title="Memuat pesan" description="Mengambil isi percakapan." compact/>:supportMessagesError?<AsyncStatePanel state="error" title="Pesan belum dapat dimuat" description={supportMessagesError} retrying={supportMessagesLoading} onRetry={()=>void loadSupportMessages(supportConversationId)} compact/>:supportMessages.length===0?<AsyncStatePanel state="empty" title="Belum ada pesan" description="Percakapan ini belum memiliki pesan." compact/>:supportMessages.map(item=><div key={item.id} className={'workspaceSupportMessage '+(item.sender_id===user?.id?'mine':'theirs')}><span>{item.sender_id===user?.id?(admin?'Super Admin':'Anda'):(admin?'PIC Unit':'Super Admin')}</span><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></div>)}</div>}
+    </div>
     <form className="workspaceSupportComposer" onSubmit={event=>{event.preventDefault();void sendSupportMessage()}}><textarea value={supportDraft} onChange={event=>setSupportDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Tulis pesan kepada Super Admin…" aria-label="Pesan ke Super Admin" disabled={supportSending||(admin&&!supportConversationId)}/><button type="submit" disabled={supportSending||!supportDraft.trim()||(admin&&!supportConversationId)}>{supportSending?'Mengirim…':'Kirim'}</button></form>
    </>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}

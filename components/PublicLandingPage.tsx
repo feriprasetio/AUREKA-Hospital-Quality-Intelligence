@@ -41,7 +41,7 @@ const safeAggregates = (rows?: Aggregate[]) => Array.isArray(rows) ? rows.filter
 const publishedItems = (feed:PortalFeed|null) => Array.isArray(feed?.inm?.payload?.indicators) ? feed.inm.payload.indicators : []
 
 function EmptyData({message}:{message:string}) {
-  return <div className="aurekaPublicEmpty" role="status"><span aria-hidden="true">○</span><strong>Belum ada data terpublikasi</strong><p>{message}</p></div>
+  return <div className="aurekaPublicEmpty" role="status"><strong>Belum ada data terpublikasi</strong><p>{message}</p></div>
 }
 function DomainHeader({kicker,title,description,id}:{kicker:string;title:string;description:string;id:string}){
   return <div className="aurekaPublicSectionHead" id={id}>
@@ -159,45 +159,44 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
       <section className="aurekaPublicHero">
         <div className="aurekaPublicContainer aurekaPublicHeroGrid">
           <div>
-            <p className="aurekaPublicEyebrow">PORTAL INFORMASI PUBLIK RUMAH SAKIT</p>
-            <h1>Transparansi mutu. <em>Keselamatan yang dapat dipahami.</em></h1>
+            <p className="aurekaPublicEyebrow">Portal informasi publik</p>
+            <h1>Mutu dan keselamatan pasien <em>di RSUD Kota Pontianak</em></h1>
             <p className="aurekaPublicLead">Jelajahi indikator mutu nasional, upaya keselamatan pasien, manajemen risiko, serta pengesahan sertifikat melalui satu portal institusional.</p>
             <div className="aurekaPublicHeroButtons"><a className="aurekaPublicPrimary" href="#inm">Lihat capaian mutu</a><a className="aurekaPublicSecondary" href="#trust">Verifikasi sertifikat</a></div>
             <p className="aurekaPublicInstitution">UPT RSUD Sultan Syarif Mohamad Alkadrie · Kota Pontianak</p>
           </div>
-          <div className="aurekaPublicHeroPanel" aria-label="Ikhtisar data publik">
-            <div className="aurekaPublicPanelTitle"><span>Public intelligence overview</span><span className="aurekaPublicPill">Data terotorisasi</span></div>
+          <section className="aurekaPublicHeroPanel" aria-labelledby="aureka-public-overview" aria-busy={loading}>
+            <h2 className="aurekaPublicPanelTitle" id="aureka-public-overview">Ikhtisar data publik</h2>
             <div className="aurekaPublicHighlights">
               <div><span>Indikator dengan capaian</span><strong>{loading?'…':indicators.length?String(measured.length)+' / '+String(indicators.length):'-'}</strong><small>Dari profil yang terpublikasi</small></div>
               <div><span>Domain terpublikasi</span><strong>{loading?'…':String(available)+' / 3'}</strong><small>INM, keselamatan, risiko</small></div>
             </div>
             <div className="aurekaPublicPreview">
-              <div><span>Informasi</span><b>Periode publikasi</b></div>
+              <strong>Periode publikasi</strong>
               <p>{updated?'Pembaruan terakhir '+dateText(updated):'Belum ada dataset yang disetujui untuk tayang di ruang publik.'}</p>
               {loadError&&<p role="alert">Layanan data publik belum dapat dijangkau.</p>}
             </div>
-            <div className="aurekaPublicProvenance"><span aria-hidden="true">✓</span> Hanya hasil yang telah disetujui untuk publikasi</div>
-          </div>
+          </section>
         </div>
       </section>
 
       <section className="aurekaPublicSection aurekaPublicContainer">
         <div className="aurekaPublicQuickGrid">
-          <a href="#inm"><span>01</span><strong>Indikator Nasional Mutu</strong><small>Capaian, target, tren dan metodologi</small></a>
-          <a href="#safety"><span>02</span><strong>Keselamatan Pasien</strong><small>Pelaporan agregat dan pembelajaran</small></a>
-          <a href="#risk"><span>03</span><strong>Manajemen Risiko</strong><small>Profil risiko dan pengendalian</small></a>
-          <a href="#trust"><span>04</span><strong>Keaslian Sertifikat</strong><small>Pengesahan tanpa login</small></a>
+          <a href="#inm"><strong>Indikator Nasional Mutu</strong><small>Capaian, target, tren dan metodologi</small></a>
+          <a href="#safety"><strong>Keselamatan Pasien</strong><small>Pelaporan agregat dan pembelajaran</small></a>
+          <a href="#risk"><strong>Manajemen Risiko</strong><small>Profil risiko dan pengendalian</small></a>
+          <a href="#trust"><strong>Keaslian Sertifikat</strong><small>Pengesahan tanpa login</small></a>
         </div>
       </section>
 
       <section className="aurekaPublicSection aurekaPublicContainer" aria-labelledby="inm-title">
-        <DomainHeader id="inm" kicker="QUALITY INTELLIGENCE" title="Indikator Nasional Mutu" description="Jelajahi 13 indikator mutu rumah sakit. Nilai hanya ditampilkan bila sudah direkonsiliasi dan disetujui untuk publikasi."/>
+        <DomainHeader id="inm" kicker="Indikator mutu" title="Indikator Nasional Mutu" description="Jelajahi 13 indikator mutu rumah sakit. Nilai hanya ditampilkan bila sudah direkonsiliasi dan disetujui untuk publikasi."/>
         <div className="aurekaPublicSectionMeta" id="inm-title"><span>{feed?.inm?'Periode: '+feed.inm.period:'Belum ada periode terpublikasi'}</span><span>{feed?.inm?'Terbit: '+dateText(feed.inm.published_at):'Data tidak direkayasa'}</span></div>
         <div className="aurekaPublicIndicatorGrid">
-          {NATIONAL_INDICATORS.map(([code,title],index)=>{
+          {NATIONAL_INDICATORS.map(([code,title])=>{
             const item=indicators.find(i=>normalize(i.title||'')===normalize(title)||normalize(i.code||'')===normalize(code))
             return <details className="aurekaPublicIndicator" key={code}>
-              <summary><span className="aurekaPublicIndex">{String(index+1).padStart(2,'0')}</span><span className="aurekaPublicIndicatorInfo"><strong>{title}</strong><small>{item?.period||feed?.inm?.period||'Belum ada data resmi'}</small></span><span className="aurekaPublicIndicatorValue">{item&&number(item.actual)!==null?display(item.actual,item.unit):'—'}</span><span className="aurekaPublicChevron" aria-hidden="true">⌄</span></summary>
+              <summary><span className="aurekaPublicIndicatorInfo"><strong>{title}</strong><small>{item?.period||feed?.inm?.period||'Belum ada data resmi'}</small></span><span className="aurekaPublicIndicatorValue">{item&&number(item.actual)!==null?display(item.actual,item.unit):'—'}</span><span className="aurekaPublicChevron" aria-hidden="true">⌄</span></summary>
               <div className="aurekaPublicIndicatorDetail">
                 <div><span>Target</span><strong>{item?display(item.target,item.unit):'Belum tersedia'}</strong></div>
                 <div><span>Status capaian</span><strong>{item?.status||'Belum dapat dinilai'}</strong></div>

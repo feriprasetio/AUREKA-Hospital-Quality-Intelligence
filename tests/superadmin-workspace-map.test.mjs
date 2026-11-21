@@ -69,8 +69,8 @@ test('navigation rail visually follows the current AUREKA workspace tabs', () =>
   assert.ok(navigation.includes('background: #fff !important;'))
   assert.ok(navigation.includes('color: #205f46 !important;'))
   assert.ok(navigation.includes('min-height: 34px !important;'))
-  assert.ok(workspace.includes('background: #f1f5ef !important;'))
-  assert.ok(workspace.includes('border-color: #dce5d8 !important; background: #fff !important; color: #205f46 !important;'))
+  assert.ok(workspace.includes('background: var(--aureka-header-hover) !important;'))
+  assert.ok(workspace.includes('border-color: var(--aureka-control-edge) !important; background: var(--aureka-header-control) !important; color: var(--aureka-color-foreground) !important;'))
 })
 
 test('module-local search controls are hidden while header search dispatch remains available', () => {

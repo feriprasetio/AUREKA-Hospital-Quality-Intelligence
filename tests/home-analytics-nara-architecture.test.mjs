@@ -1,4 +1,5 @@
 import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
+import { readAurekaPortfolioSummary } from '../lib/aureka/metric-contracts.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -55,6 +56,17 @@ test('shared metric contracts preserve unavailable states and reuse secured sour
   assert.match(kpis, /<time dateTime=\{t.retrievedAt\}/)
   assert.match(dashboard, /readAurekaPortfolioSummary/)
   assert.match(dashboard, /Analisis dengan NARA/)
+})
+
+test('a missing portfolio section becomes unavailable before reaching Dashboard charts', async () => {
+  const readSummary = data => readAurekaPortfolioSummary({ rpc: async () => ({ data, error: null }) }, 2026, null)
+  const complete = { quality: {}, clinical: {}, incidents: {}, risk: {}, program: {} }
+  assert.equal((await readSummary(complete)).status, 'complete')
+  for (const payload of [[], { ...complete, quality: null }, { ...complete, risk: [] }]) {
+    const result = await readSummary(payload)
+    assert.equal(result.status, 'unavailable')
+    assert.equal(result.data, null)
+  }
 })
 
 test('NARA accepts contextual handoff and exposes response provenance', () => {

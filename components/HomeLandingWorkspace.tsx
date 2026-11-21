@@ -173,50 +173,50 @@ export default function HomeLandingWorkspace({
 
   return <section className="commandCentre">
     <style>{`
-      .commandCentre{display:grid;gap:var(--workspace-gap,18px);color:var(--aureka-color-foreground);min-width:0}
-      .ccHero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:24px 26px;border:1px solid var(--aureka-color-border);border-radius:16px;background:var(--aureka-color-surface)}
-      .ccHero h1{margin:8px 0 5px;color:var(--aureka-color-foreground);font-size:clamp(23px,3vw,32px);font-weight:850;letter-spacing:-.045em;line-height:1.12}
+      .commandCentre{display:grid;gap:var(--aureka-canvas-section-gap);color:var(--aureka-color-foreground);min-width:0}
+      .ccHero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start;padding:clamp(12px,3vw,24px) 0 20px;border-bottom:1px solid var(--aureka-canvas-divider-strong)}
+      .ccHero h1{margin:8px 0 5px;color:var(--aureka-color-foreground);font-size:calc(clamp(24px,3vw,36px) * var(--aureka-canvas-heading-scale));font-weight:800;letter-spacing:-.045em;line-height:1.12}
       .ccHero p{margin:0;color:#637c91;font-size:13px;line-height:1.6}
       .ccHeroMeta{display:grid;gap:7px;justify-items:end;text-align:right}
       .ccDate{color:var(--aureka-color-foreground-secondary);font-size:12px;font-weight:750}
-      .ccScope{padding:7px 11px;border:1px solid rgba(151,177,198,.35);border-radius:999px;background:var(--aureka-color-surface-muted);color:var(--aureka-color-foreground-secondary);font-size:11px;font-weight:750}
+      .ccScope{color:var(--aureka-canvas-muted);font-size:12px;overflow-wrap:anywhere}
       .ccHeroActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-      .ccActionBtn{min-height:38px;padding:9px 13px;border:1px solid var(--aureka-color-border-strong);border-radius:9px;background:var(--aureka-color-surface-muted);color:var(--aureka-color-foreground);font-size:12px;font-weight:750;cursor:pointer}
+      .ccActionBtn{min-height:44px;padding:9px 13px;border:1px solid var(--aureka-control-edge);border-radius:10px;background:var(--aureka-control-surface);color:var(--aureka-color-foreground);font-size:12px;font-weight:750;cursor:pointer}
       .ccActionBtn.primary{border-color:transparent;background:var(--aureka-color-primary);color:var(--aureka-color-on-primary)}
-      .ccActionBtn:hover{background:var(--aureka-color-surface-raised)}
+      .ccActionBtn:hover{background:var(--aureka-header-hover)}
       .ccActionBtn.primary:hover{background:var(--aureka-color-primary-hover);color:var(--aureka-color-on-primary)}
       .ccSection{display:grid;gap:12px;min-width:0}
       .ccSectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-      .ccSectionHead h2{margin:0;color:var(--aureka-color-foreground);font-size:15px;font-weight:850;letter-spacing:-.015em}
+      .ccSectionHead h2{margin:0;color:var(--aureka-color-foreground);font-size:calc(18px * var(--aureka-canvas-heading-scale));font-weight:850;letter-spacing:-.015em}
       .ccSectionHead p{margin:4px 0 0;color:#7b90a2;font-size:11px;line-height:1.5}
       .ccSectionMeta{color:var(--aureka-color-foreground-secondary);font-size:12px;text-align:right}
-      .ccPanel{min-width:0;padding:17px;border:1px solid var(--aureka-color-border);border-radius:15px;background:var(--aureka-color-surface)}
+      .ccPanel{min-width:0;padding:0}
       .ccWorkList{display:grid;gap:8px}
-      .ccWorkItem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px;border:1px solid #e0e8ef;border-radius:10px;background:rgba(255,255,255,.76);text-align:left;cursor:pointer}
-      .ccWorkItem:hover{border-color:#aec3d5;background:#fff}
+      .ccWorkItem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px;border:1px solid var(--aureka-canvas-divider);border-radius:10px;background:transparent;color:var(--aureka-color-foreground);text-align:left;cursor:pointer}
+      .ccWorkItem:hover{border-color:var(--aureka-control-edge);background:var(--aureka-header-hover)}
       .ccWorkText{display:grid;gap:4px;min-width:0}
-      .ccWorkText strong{color:#34556f;font-size:12px;font-weight:750;line-height:1.4}
-      .ccWorkText small{color:#8194a4;font-size:10px}
-      .ccWorkCount{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border:1px solid #d7e3ed;border-radius:10px;background:#f1f6fa;color:#244d6d;font-size:14px;font-weight:850;font-variant-numeric:tabular-nums}
-      .ccEmpty{padding:20px 12px;border:1px dashed #d5e1ea;border-radius:10px;color:var(--aureka-color-foreground-secondary);font-size:13px;line-height:1.6;text-align:center}
-      .ccFoot{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 14px;border:1px solid #dfe8ef;border-radius:11px;background:var(--aureka-color-surface-muted);color:var(--aureka-color-foreground-secondary);font-size:11px}
+      .ccWorkText strong{color:var(--aureka-color-foreground);font-size:12px;font-weight:750;line-height:1.4}
+      .ccWorkText small{color:var(--aureka-canvas-muted);font-size:12px}
+      .ccWorkCount{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border:1px solid var(--aureka-canvas-divider-strong);border-radius:10px;background:var(--aureka-header-control);color:var(--aureka-color-foreground);font-size:14px;font-weight:850;font-variant-numeric:tabular-nums}
+      .ccEmpty{padding:12px 0;border-top:1px solid var(--aureka-canvas-divider);color:var(--aureka-color-foreground-secondary);font-size:13px;line-height:1.6;text-align:center}
+      .ccFoot{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--aureka-canvas-divider);color:var(--aureka-color-foreground-secondary);font-size:11px}
       .ccFoot strong{color:var(--aureka-color-foreground);font-weight:750}
-      .ccReminder{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border:1px solid #d9e4ed;border-radius:12px;background:rgba(247,250,253,.9)}
+      .ccReminder{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border:1px solid var(--aureka-canvas-divider-strong);border-radius:12px;background:var(--aureka-header-control);flex-wrap:wrap}
       .ccReminderMark{flex:0 0 8px;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#7c9db8}
       .ccReminderBody{display:grid;gap:4px;min-width:0;flex:1}
-      .ccReminderBody strong{color:#34546e;font-size:11px}
-      .ccReminderBody span{color:#647d91;font-size:12px;line-height:1.5;white-space:pre-wrap}
+      .ccReminderBody strong{color:var(--aureka-color-foreground);font-size:13px}
+      .ccReminderBody span{color:var(--aureka-canvas-muted);font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
       .ccReminderActions{display:flex;gap:7px;flex-wrap:wrap}
-      .ccMiniBtn{padding:7px 10px;border:1px solid #d1dee8;border-radius:8px;background:#fff;color:#365a77;font-size:10px;font-weight:750;cursor:pointer}
+      .ccMiniBtn{min-height:44px;padding:7px 10px;border:1px solid var(--aureka-control-edge);border-radius:10px;background:transparent;color:var(--aureka-color-foreground);font-size:10px;font-weight:750;cursor:pointer}
       .ccNotice{padding:10px 12px;border:1px solid #e5d9c5;border-radius:9px;background:#fbf8f2;color:#806b4d;font-size:11px;line-height:1.5}
-      @media(max-width:720px){.ccHero{grid-template-columns:1fr;padding:16px}.ccHeroMeta{justify-items:start;text-align:left}.ccActionBtn{min-height:44px}.ccPanel{padding:12px}.ccFoot{flex-wrap:wrap}}
+      @media(max-width:900px){.ccHero{grid-template-columns:minmax(0,1fr)}.ccHeroMeta{display:flex;flex-wrap:wrap;justify-items:start;text-align:left}.ccFoot{flex-wrap:wrap}}
     `}</style>
 
     <header className="ccHero">
       <div>
         <h1>{greeting}, {firstName}.</h1>
         <div className="ccHeroActions">
-          <button type="button" className="ccActionBtn" onClick={()=>setRefreshKey(value=>value+1)}>↻ Perbarui data</button>
+          <button type="button" className="ccActionBtn" onClick={()=>setRefreshKey(value=>value+1)}>Perbarui data</button>
           {availableModules.includes('quality')&&<button type="button" className="ccActionBtn primary" onClick={()=>onNavigate('logbook')}>Buka logbook</button>}
           {availableModules.includes('safety')&&<button type="button" className="ccActionBtn" onClick={()=>onNavigate('safety',{tab:'incidents',newReport:true})}>Laporkan insiden</button>}
           {onAskNara&&<button type="button" className="ccActionBtn" onClick={()=>onAskNara('Tinjau kondisi operasional berdasarkan data AUREKA yang dapat saya akses. Sajikan temuan, prioritas, keterbatasan data, dan rekomendasi tindak lanjut.','Command Centre · '+(roomName||'Cakupan akun'))}>Analisis dengan NARA</button>}

@@ -805,14 +805,14 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
     align-items: center !important;
     gap: 5px !important;
     max-width: min(45vw, 190px) !important;
-    min-height: 36px !important;
+    min-height: 44px !important;
     padding: 0 10px !important;
     overflow: hidden !important;
     border: 1px solid #cbd8e6 !important;
     border-radius: 10px !important;
-    background: #f5f8fb !important;
+    background: var(--aureka-header-control) !important;
     color: #2e4a66 !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     list-style: none !important;
     cursor: pointer !important;
   }
@@ -820,7 +820,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupPicker summary strong {
     overflow: hidden !important;
     color: #172a40 !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
@@ -833,24 +833,26 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
     gap: 3px !important;
     width: max-content !important;
     min-width: 190px !important;
-    max-width: calc(100vw - 32px) !important;
+    max-width: min(20rem, calc(100vw - 40px)) !important;
     max-height: min(50vh, 360px) !important;
     padding: 6px !important;
     overflow: auto !important;
+    overscroll-behavior: contain;
     border: 1px solid #cbd8e6 !important;
-    border-radius: 12px !important;
-    background: #ffffff !important;
+    border-radius: 16px !important;
+    background: var(--aureka-header-control) !important;
     box-shadow: 0 10px 26px rgba(23, 42, 64, .16) !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu button {
-    min-height: 40px !important;
+    min-height: 44px !important;
     padding: 7px 10px !important;
     border: 0 !important;
     border-radius: 8px !important;
     background: transparent !important;
     color: #2e4a66 !important;
     text-align: left !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
+    overflow-wrap: anywhere;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk.mobileWorkspaceTabsEnabled[data-aureka-theme] .workspaceMobileGroupMenu button[aria-current="page"] {
     background: #dcebf8 !important;

@@ -12,11 +12,11 @@ const authScreen = homeClient.slice(loginStart, workspaceStart)
 test('login and registration use the professional AUREKA authentication shell', () => {
   assert.ok(loginStart >= 0, 'Missing login/signup rendering branch')
   assert.ok(workspaceStart > loginStart, 'Missing workspace boundary')
-  assert.match(authScreen, /authProfessional/)
-  assert.match(authScreen, /authTopbarMeta/)
+  assert.match(authScreen, /className="authArctic"/)
+  assert.match(authScreen, /authArcticTopbarActions/)
   assert.doesNotMatch(authScreen, /authAsideEyebrow|authAsideSignals/)
-  assert.match(authScreen, /authFormIntro/)
-  assert.match(authStyles, /\.authPage\.authProfessional/)
+  assert.match(authScreen, /authArcticFormIntro/)
+  assert.match(authStyles, /\.authArctic/)
 })
 
 test('login keeps username/email, password, password visibility and recovery actions', () => {
@@ -59,22 +59,22 @@ test('forgot-password, recovery and reset-success states remain present', () => 
 
 test('login shell avoids duplicate branding and keeps the return link in document flow', () => {
   assert.doesNotMatch(authScreen, /authAsideBrand/)
-  assert.match(authStyles, /\.authPage\.authProfessional \.authBack\s*\{[\s\S]*?position: static !important/)
-  assert.match(authStyles, /\.authPage\.authProfessional \.authTopbar\s*\{[\s\S]*?1080px/)
-  assert.match(authStyles, /\.authPage\.authProfessional \.authShell\s*\{[\s\S]*?1080px/)
+  assert.match(authStyles, /\.authArctic \.authArcticBack\s*\{\s*position: static/)
+  assert.match(authStyles, /\.authArctic \.authArcticTopbar,\s*\.authArctic \.authArcticShell\s*\{\s*width: min\(1080px, 100%\)/)
+  assert.match(authStyles, /\.authArctic \.authArcticTopbar\s*\{\s*position: static/)
 })
 
 test('browser autofill retains AUREKA neutral input styling', () => {
   assert.match(authStyles, /input:-webkit-autofill/)
-  assert.match(authStyles, /-webkit-text-fill-color: var\(--aureka-color-foreground\)/)
-  assert.match(authStyles, /0 0 0 1000px var\(--aureka-color-surface\) inset/)
+  assert.match(authStyles, /-webkit-text-fill-color: var\(--auth-ink\)/)
+  assert.match(authStyles, /0 0 0 1000px var\(--auth-control\) inset/)
 })
 
 test('professional auth styles provide responsive layouts and visible keyboard focus', () => {
-  assert.match(authStyles, /\.authPage\.authProfessional \.authShell/)
+  assert.match(authStyles, /\.authArctic \.authArcticShell/)
   assert.match(authStyles, /@media \(max-width: 780px\)/)
   assert.match(authStyles, /@media \(max-width: 420px\)/)
   assert.match(authStyles, /:focus-visible/)
   assert.match(authStyles, /prefers-reduced-motion/)
-  assert.match(authStyles, /\.authPage\.authProfessional \.authCard/)
+  assert.match(authStyles, /\.authArctic \.authArcticCard/)
 })

@@ -6,22 +6,30 @@
  */
 html[data-skin="arktik"] {
   --aureka-canvas-surface: transparent;
-  --aureka-header-surface: rgba(234, 243, 250, .96);
+  --aureka-header-surface: rgba(236, 246, 253, .91);
+  --aureka-header-control: #f7fcff;
+  --aureka-header-hover: rgba(22, 80, 122, .12);
+  --aureka-control-edge: #8da8bf;
+  --aureka-control-surface: rgba(255, 255, 255, .55);
   --aureka-canvas-divider: rgba(38, 75, 106, .18);
   --aureka-canvas-divider-strong: rgba(38, 75, 106, .27);
   --aureka-canvas-muted: #496178;
   --aureka-canvas-body-size: 14px;
   --aureka-canvas-small-size: 12px;
   --aureka-canvas-heading-scale: 1;
-  --aureka-canvas-section-gap: 18px;
+  --aureka-canvas-section-gap: 20px;
   --aureka-canvas-block-pad: 12px;
   --aureka-canvas-table-y: 10px;
   --aureka-canvas-reading-width: 100%;
-  --aureka-canvas-header-pad: 7px 10px;
-  --aureka-canvas-header-min: 52px;
+  --aureka-canvas-header-pad: 6px clamp(8px, 1.2vw, 16px);
+  --aureka-canvas-header-min: 56px;
 }
 html[data-skin="arktik"][data-mode="gelap"] {
-  --aureka-header-surface: rgba(12, 20, 32, .97);
+  --aureka-header-surface: rgba(12, 24, 39, .92);
+  --aureka-header-control: #15263a;
+  --aureka-header-hover: rgba(164, 213, 251, .16);
+  --aureka-control-edge: #647f99;
+  --aureka-control-surface: rgba(21, 38, 58, .72);
   --aureka-canvas-divider: rgba(175, 207, 230, .22);
   --aureka-canvas-divider-strong: rgba(175, 207, 230, .36);
   --aureka-canvas-muted: #bed1e2;
@@ -112,7 +120,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   .stMain, .stNav, .stPrefExtras,
   [class$="Card"], [class$="Panel"], [class$="Kpi"], [class$="Tile"],
   [class$="KPI"], [class$="Metrics"]
-):not(:is([role="dialog"], [role="alertdialog"], [aria-modal="true"], .akModalRoot) *) {
+):not(:is([role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"], form, .akModalRoot)):not(:is([role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"], form, .akModalRoot) *) {
   background: var(--aureka-canvas-surface) !important;
   background-image: none !important;
   border: 0 !important;
@@ -233,9 +241,10 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   input:not([type="checkbox"]):not([type="radio"]), select, textarea
 ) {
-  background-color: color-mix(in srgb, var(--aureka-color-surface) 24%, transparent) !important;
+  background-color: var(--aureka-control-surface) !important;
   color: var(--aureka-color-foreground) !important;
-  border-color: var(--aureka-canvas-divider-strong) !important;
+  border-color: var(--aureka-control-edge) !important;
+  max-width: 100%;
 }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(input, select, textarea, button):focus-visible {
   outline: 2px solid var(--aureka-color-primary) !important;
@@ -250,16 +259,16 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   padding: var(--aureka-canvas-header-pad) !important;
   width: 100% !important;
   max-width: 100% !important;
-  margin: 0 0 12px !important;
+  margin: 0 0 14px !important;
   border: 0 !important;
   border-bottom: 1px solid var(--aureka-canvas-divider) !important;
   border-radius: 0 !important;
-  /* Sticky header stays readable while clinical worksheets scroll beneath it. */
+  /* Keep scrolling content readable through the acrylic header. */
   background: var(--aureka-header-surface) !important;
   background-image: none !important;
   box-shadow: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
+  -webkit-backdrop-filter: blur(16px) saturate(135%) !important;
+  backdrop-filter: blur(16px) saturate(135%) !important;
   overflow: visible !important;
   align-items: center !important;
   box-sizing: border-box !important;
@@ -283,25 +292,23 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 ) {
   border: 0 !important;
   background: transparent !important;
-  border-radius: 9px !important;
+  border-radius: 11px !important;
   color: var(--aureka-color-foreground-secondary) !important;
 }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(.workspaceGlobalSearch,.workspaceContext,.workspaceUnitSelect) {
   min-width: 0 !important;
   max-width: none !important;
 }
-/* A flat search field replaces the nested white capsule and leaves room for
- * its results popover. Applied only to the search shell, not the results. */
+/* Search and the unit selector share a control surface, with results outside its border. */
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch {
   position: relative !important;
   min-width: 0 !important;
   max-width: none !important;
   min-height: 44px !important;
   padding: 0 8px !important;
-  border: 0 !important;
-  border-bottom: 1px solid var(--aureka-canvas-divider-strong) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
+  border: 1px solid var(--aureka-control-edge) !important;
+  border-radius: 10px !important;
+  background: var(--aureka-header-control) !important;
   background-image: none !important;
   box-shadow: none !important;
   overflow: visible !important;
@@ -312,10 +319,9 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   min-width: 0 !important;
   max-width: 100% !important;
   min-height: 44px !important;
-  border: 0 !important;
-  border-bottom: 1px solid var(--aureka-canvas-divider-strong) !important;
-  border-radius: 0 !important;
-  background-color: transparent !important;
+  border: 1px solid var(--aureka-control-edge) !important;
+  border-radius: 10px !important;
+  background-color: var(--aureka-header-control) !important;
   color: var(--aureka-color-foreground) !important;
   box-shadow: none !important;
   overflow: hidden;
@@ -353,6 +359,18 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   min-height: 44px !important;
   flex: 0 0 44px !important;
   place-items: center !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(
+  .workspaceSidebarMenuButton, .workspaceHeaderIcon, .workspaceHeaderProfile
+):is(:hover, [aria-expanded="true"]) {
+  background: var(--aureka-header-hover) !important;
+  color: var(--aureka-color-foreground) !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchResults {
+  background: var(--aureka-header-control) !important;
+  border-color: var(--aureka-control-edge) !important;
+  max-height: min(48dvh, 26rem);
+  overscroll-behavior: contain;
 }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(button,select,input):focus-visible {
   outline: 2px solid var(--aureka-color-primary) !important;
@@ -419,6 +437,13 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
     min-width: 0 !important;
     grid-area: context !important;
   }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
+    .moduleEnter input:not([type="checkbox"], [type="radio"], [type="range"]),
+    .moduleEnter select, .moduleEnter textarea, .workspaceHeaderBar .workspaceGlobalSearch input,
+    .workspaceHeaderBar .workspaceUnitSelect select
+  ) {
+    font-size: max(16px, var(--aureka-canvas-body-size)) !important;
+  }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(.secSummary,.legalMetrics) {
     grid-template-columns: repeat(auto-fit, minmax(112px,1fr)) !important;
   }
@@ -462,7 +487,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stPrefRow {
   display: grid !important;
-  grid-template-columns: minmax(170px, 1fr) minmax(230px, 1.1fr) !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) !important;
   align-items: center !important;
   justify-content: stretch !important;
   gap: 12px !important;
@@ -498,8 +523,8 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceReset {
   min-height: 44px;
   padding: 9px 12px !important;
-  border: 1px solid var(--aureka-canvas-divider-strong) !important;
-  background: transparent !important;
+  border: 1px solid var(--aureka-control-edge) !important;
+  background: var(--aureka-control-surface) !important;
   color: var(--aureka-color-foreground) !important;
   border-radius: 9px !important;
   box-shadow: none !important;

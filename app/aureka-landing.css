@@ -313,14 +313,16 @@
 /* AUREKA Public Intelligence Portal — component-owned, Arktik-aligned styles.
    Scoped to .aurekaPublic to avoid interfering with auth or internal workspace. */
 .aurekaPublic{
-  --ap-bg:#f6f9fc;--ap-surface:#fff;--ap-soft:#edf4f8;--ap-ink:#0b1f33;
+  --ap-bg:#e9f1f8;--ap-surface:#f8fcff;--ap-soft:#e1ecf5;--ap-ink:#0b1f33;
+  --ap-glass:#f1f8fce8;--ap-highlight:#d2e8fa;
   --ap-muted:#51677d;--ap-line:#dce6ef;--ap-navy:#0f2a44;--ap-accent:#165c7b;
   --ap-good:#17684e;color:var(--ap-ink);background:var(--ap-bg);
   min-height:100dvh;font-family:var(--font-aureka),system-ui,sans-serif;
   font-size:14px;line-height:1.6;overflow-x:clip;
 }
 :root[data-mode="gelap"] .aurekaPublic{
-  --ap-bg:#070b16;--ap-surface:#111d2c;--ap-soft:#192b40;--ap-ink:#eef2fa;
+  --ap-bg:#0b1523;--ap-surface:#132236;--ap-soft:#1a3047;--ap-ink:#eef2fa;
+  --ap-glass:#101e2fe8;--ap-highlight:#1c3651;
   --ap-muted:#b5c8dd;--ap-line:#34465a;--ap-navy:#112e47;--ap-accent:#6bc4dd;--ap-good:#8ee0c0;
 }
 .aurekaPublic,.aurekaPublic *,.aurekaPublic *::before,.aurekaPublic *::after{box-sizing:border-box}
@@ -331,7 +333,7 @@
 .aurekaPublicContainer{width:min(1180px,calc(100% - 48px));margin-inline:auto}
 .aurekaPublicSkip{position:fixed;top:8px;left:8px;z-index:220;background:var(--ap-navy);color:#fff!important;padding:11px 16px;border-radius:10px;transform:translateY(-150%)}
 .aurekaPublicSkip:focus{transform:none}
-.aurekaPublicHeader{position:sticky;top:0;z-index:65;border-bottom:1px solid var(--ap-line);background:var(--ap-surface);backdrop-filter:blur(10px)}
+.aurekaPublicHeader{position:sticky;top:0;z-index:65;border-bottom:1px solid var(--ap-line);background:var(--ap-glass);backdrop-filter:blur(16px) saturate(135%)}
 .aurekaPublicHeaderInner{min-height:78px;display:flex;align-items:center;gap:22px}
 .aurekaPublicBrand{display:flex;align-items:center;gap:12px;min-width:220px}
 .aurekaPublicBrand img{object-fit:contain;flex:none;width:47px;height:43px}
@@ -344,7 +346,7 @@
 .aurekaPublicHeaderActions{display:flex;gap:8px;align-items:center;flex:none}
 .aurekaPublicPrimary,.aurekaPublicSecondary{
   display:inline-flex;justify-content:center;align-items:center;min-height:44px;
-  padding:10px 17px;border-radius:10px;font-size:12px;font-weight:750;
+  padding:10px 17px;border-radius:11px;font-size:13px;font-weight:750;
   text-align:center;white-space:normal;transition:background-color .2s,border-color .2s,transform .2s;
 }
 .aurekaPublicPrimary{color:#fff!important;background:#165c7b;border:1px solid #165c7b}
@@ -352,35 +354,31 @@
 .aurekaPublicSecondary{background:var(--ap-surface);border:1px solid var(--ap-line);color:var(--ap-ink)!important}
 .aurekaPublicSecondary:hover{background:var(--ap-soft)}
 .aurekaPublicTheme{display:grid;place-items:center;background:var(--ap-soft);border:1px solid var(--ap-line);color:var(--ap-ink);border-radius:10px;min-width:44px;min-height:44px;font-size:21px}
-.aurekaPublicHero{background:radial-gradient(ellipse 62% 90% at 90% 16%,rgba(72,162,199,.1),transparent),var(--ap-bg);border-bottom:1px solid var(--ap-line)}
-.aurekaPublicHeroGrid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:clamp(24px,5vw,74px);padding-block:clamp(54px,7vw,104px);align-items:center}
-.aurekaPublicEyebrow{margin:0;font-size:11px;letter-spacing:.085em;color:var(--ap-accent);font-weight:850}
+.aurekaPublicHero{background:radial-gradient(ellipse 85% 120% at 92% 3%,var(--ap-highlight),transparent 70%),var(--ap-bg);border-bottom:1px solid var(--ap-line)}
+.aurekaPublicHeroGrid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:clamp(24px,5vw,74px);padding-block:clamp(48px,6vw,88px);align-items:center}
+.aurekaPublicEyebrow{margin:0;font-size:13px;color:var(--ap-accent);font-weight:800}
 .aurekaPublicHero h1{max-width:720px;color:var(--ap-ink);margin:17px 0 21px;font-size:clamp(36px,4.4vw,62px);font-weight:800;letter-spacing:-.058em;line-height:1.12}
 .aurekaPublicHero h1 em{font-style:normal;color:#287e93}
 :root[data-mode="gelap"] .aurekaPublicHero h1 em{color:#8cd1e2}
-.aurekaPublicLead{max-width:585px;color:var(--ap-muted);font-size:15px;line-height:1.85}
+.aurekaPublicLead{max-width:585px;color:var(--ap-muted);font-size:16px;line-height:1.65}
 .aurekaPublicHeroButtons{display:flex;flex-wrap:wrap;gap:10px;margin-top:29px}
 .aurekaPublicInstitution{font-size:12px;color:var(--ap-muted);margin-top:36px}
-.aurekaPublicHeroPanel{min-width:0;background:var(--ap-surface);border:1px solid var(--ap-line);border-radius:17px;padding:24px}
-.aurekaPublicPanelTitle{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;font-weight:800}
-.aurekaPublicPill{border:1px solid var(--ap-line);padding:5px 10px;border-radius:20px;color:var(--ap-muted);font-size:10px;font-weight:650}
+.aurekaPublicHeroPanel{min-width:0;background:var(--ap-glass);border:1px solid var(--ap-line);border-radius:20px;padding:clamp(18px,3.5vw,34px)}
+.aurekaPublicPanelTitle{margin:0;color:var(--ap-ink);font-size:clamp(18px,2.5vw,24px);letter-spacing:-.025em}
 .aurekaPublicHighlights{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:23px}
-.aurekaPublicHighlights>div{min-width:0;background:var(--ap-soft);padding:17px;border:1px solid var(--ap-line);border-radius:12px;display:flex;flex-direction:column;gap:7px}
-.aurekaPublicHighlights span,.aurekaPublicHighlights small{font-size:11px;color:var(--ap-muted)}
+.aurekaPublicHighlights>div{min-width:0;padding:8px 12px;border-inline-start:2px solid var(--ap-line);display:flex;flex-direction:column;gap:7px}
+.aurekaPublicHighlights span,.aurekaPublicHighlights small{font-size:12px;color:var(--ap-muted)}
 .aurekaPublicHighlights strong{font-size:clamp(22px,2.4vw,30px);line-height:1.2;letter-spacing:-.035em}
 .aurekaPublicPreview{margin-top:20px;padding:17px 0;border-top:1px solid var(--ap-line)}
 .aurekaPublicPreview>div{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px}
-.aurekaPublicPreview>div span{color:var(--ap-muted)}
 .aurekaPublicPreview p{font-size:12px;color:var(--ap-muted);line-height:1.7;margin:9px 0 0}
-.aurekaPublicProvenance{display:flex;align-items:center;gap:9px;color:var(--ap-good);font-size:11px;font-weight:700}
-.aurekaPublicProvenance span{font-size:17px}
 .aurekaPublicSection{padding-block:clamp(48px,6vw,85px)}
 .aurekaPublicSectionHead{max-width:760px;scroll-margin-top:100px}
 .aurekaPublicSectionHead h2{color:var(--ap-ink);margin:9px 0 12px;letter-spacing:-.045em;font-size:clamp(27px,3vw,41px);line-height:1.17;font-weight:800}
 .aurekaPublicSectionHead>p:last-child{margin:0;color:var(--ap-muted);font-size:14px;line-height:1.8}
 .aurekaPublicSectionMeta{margin:23px 0;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;color:var(--ap-muted);font-size:11px;font-weight:700}
 .aurekaPublicQuickGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.aurekaPublicQuickGrid>a{display:flex;flex-direction:column;gap:9px;min-height:140px;padding:21px;border:1px solid var(--ap-line);border-radius:13px;background:var(--ap-surface);transition:border-color .2s,transform .2s}
+.aurekaPublicQuickGrid>a{display:flex;flex-direction:column;gap:9px;min-height:108px;padding:21px;border:1px solid var(--ap-line);border-radius:13px;background:var(--ap-surface);transition:border-color .2s,transform .2s}
 .aurekaPublicQuickGrid>a:hover{border-color:var(--ap-accent);transform:translateY(-2px)}
 .aurekaPublicQuickGrid span{font-size:12px;color:var(--ap-accent);font-weight:800}
 .aurekaPublicQuickGrid strong{font-size:15px;line-height:1.4}
@@ -390,7 +388,6 @@
 .aurekaPublicIndicator[open]{border-color:var(--ap-accent)}
 .aurekaPublicIndicator>summary{display:flex;align-items:center;gap:12px;min-height:85px;list-style:none;cursor:pointer;padding:16px}
 .aurekaPublicIndicator>summary::-webkit-details-marker{display:none}
-.aurekaPublicIndex{flex:none;border-radius:8px;display:grid;place-items:center;width:31px;height:31px;background:var(--ap-soft);color:var(--ap-accent);font-size:12px;font-weight:800}
 .aurekaPublicIndicatorInfo{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
 .aurekaPublicIndicatorInfo strong{font-size:13px;font-weight:750;line-height:1.4}
 .aurekaPublicIndicatorInfo small{font-size:11px;color:var(--ap-muted)}
@@ -410,7 +407,6 @@
 .aurekaPublicPanel h3{font-size:16px;margin:0 0 18px;line-height:1.45}
 .aurekaPublicMuted{color:var(--ap-muted);font-size:12px;line-height:1.75}
 .aurekaPublicEmpty{border:1px dashed var(--ap-line);border-radius:14px;background:var(--ap-surface);padding:40px 23px;display:flex;align-items:center;flex-direction:column;text-align:center;gap:10px}
-.aurekaPublicEmpty>span{font-size:30px;color:var(--ap-accent);line-height:1}
 .aurekaPublicEmpty strong{font-size:16px}
 .aurekaPublicEmpty p{max-width:550px;color:var(--ap-muted);margin:0;font-size:12px}
 .aurekaPublicBars{display:flex;flex-direction:column;gap:17px}
@@ -460,19 +456,21 @@
 }
 @media(max-width:640px){
  .aurekaPublicContainer{width:calc(100% - 30px)}
- .aurekaPublicBrand small{font-size:10px}
+ .aurekaPublicBrand{min-width:0}
+ .aurekaPublicBrand small{font-size:11px}
+ .aurekaPublicBrand img{width:36px;height:36px}
  .aurekaPublicHeaderActions .aurekaPublicPrimary{min-height:44px;padding-inline:10px;font-size:11px}
  .aurekaPublicTheme{min-width:44px}
  .aurekaPublicHeroGrid{padding-block:43px}
  .aurekaPublicHero h1{font-size:clamp(33px,9vw,44px)}
- .aurekaPublicLead{font-size:13px}
+ .aurekaPublicLead{font-size:15px}
  .aurekaPublicInstitution{margin-top:24px}
  .aurekaPublicHeroPanel{padding:17px}
  .aurekaPublicHighlights{gap:8px}
  .aurekaPublicHighlights>div{padding:13px}
  .aurekaPublicHighlights strong{font-size:22px}
  .aurekaPublicQuickGrid{gap:8px}
- .aurekaPublicQuickGrid>a{padding:14px;min-height:145px}
+ .aurekaPublicQuickGrid>a{padding:14px;min-height:105px}
  .aurekaPublicQuickGrid strong{font-size:13px}
  .aurekaPublicIndicatorGrid,.aurekaPublicTwoColumns,.aurekaPublicTrustGrid{grid-template-columns:1fr}
  .aurekaPublicIndicator>summary{padding:13px;gap:10px}
@@ -480,6 +478,11 @@
  .aurekaPublicPanel{padding:18px}
  .aurekaPublicFooter>.aurekaPublicContainer{grid-template-columns:1fr;gap:13px}
  .aurekaPublicVerifyDetails>div{grid-template-columns:1fr;gap:4px}
+}
+@media(max-width:370px){
+ .aurekaPublicHeaderInner{flex-wrap:wrap;gap:4px;padding-block:8px}
+ .aurekaPublicHeaderActions{margin-inline-start:auto}
+ .aurekaPublicSectionHead{scroll-margin-top:132px}
 }
 @media(prefers-reduced-motion:reduce){
  .aurekaPublic *{scroll-behavior:auto!important;transition:none!important;animation:none!important}

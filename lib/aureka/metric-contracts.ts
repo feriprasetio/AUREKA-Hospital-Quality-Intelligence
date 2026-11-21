@@ -91,7 +91,10 @@ export async function readAurekaPortfolioSummary(
   try {
     const { data, error } = await client.rpc(source, { p_year: year, p_room: roomId })
     if (error) return failure(source, error)
-    if (!data || typeof data !== 'object') return failure(source, new Error('Ringkasan tidak mengembalikan payload.'))
+    const sections = ['quality', 'clinical', 'incidents', 'risk', 'program'] as const
+    if (!data || sections.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key]))) {
+      return failure(source, new Error('Ringkasan belum memuat seluruh bagian yang diperlukan.'))
+    }
     return { status: 'complete', data: data as AurekaPortfolioSummary, source, retrievedAt: stamp() }
   } catch (error) {
     return failure(source, error)

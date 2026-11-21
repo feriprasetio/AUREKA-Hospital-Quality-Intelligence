@@ -15,7 +15,7 @@
 .profileText{min-width:0}
 .sidebar>.liquidButton{width:100%;display:block;margin-top:0}
 .sidebar>.liquidButton button{width:100%;display:flex;align-items:center;justify-content:center;gap:7px}
-.logoutIcon{font-size:17px;line-height:1}
+.logoutIcon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .logoutLabel{font-size:12px}
 .workspaceRoot.sidebarIsCollapsed{grid-template-columns:86px 1fr}
 .workspaceRoot.sidebarIsCollapsed .sidebar{padding:14px 10px}
@@ -994,46 +994,196 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .dynamicIslandText span{font-size:12px;line-height:1.35;color:#e0e7e3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .dynamicIslandToast>button{flex:0 0 24px;width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:#c4ceca;font-size:19px;line-height:1}
 @keyframes aurekaIslandIn{from{opacity:0;transform:translate(-50%,-8px) scale(.97)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
-.workspaceNotificationPanel,.workspaceSupportPanel{position:fixed;z-index:180;top:58px;right:76px;width:min(360px,calc(100vw - 20px));max-height:min(74vh,630px);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 16px 50px rgba(0,0,0,.18)}
-.workspaceSupportPanel{right:18px;width:min(420px,calc(100vw - 20px));height:min(640px,calc(100dvh - 74px));max-height:none;z-index:260}
-.workspaceNotificationPanel{position:fixed;z-index:260;top:calc(var(--aur-header-h,58px) + 8px);right:76px;width:min(380px,calc(100vw - 24px));max-height:min(74vh,630px);box-sizing:border-box;isolation:isolate}
-.workspacePopoverHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-bottom:1px solid var(--border);background:var(--surface)}
-.workspacePopoverHead>div:first-child{display:grid;gap:2px;min-width:0}
-.workspacePopoverHead strong{font-size:12px;font-weight:850;color:var(--ink)}
-.workspacePopoverHead span{font-size:12px;color:var(--muted)}
-.workspacePopoverHead>button,.workspacePopoverActions>button{display:grid;place-items:center;width:27px;height:27px;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:17px}
-.workspacePopoverActions{display:flex;gap:5px}
-.workspacePopoverActions svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.workspaceNotificationList{overflow:auto;padding:4px 10px;display:grid;gap:2px}
-.workspaceNotificationItem{display:flex;gap:9px;padding:9px 3px;border-bottom:1px solid var(--border)}
-.workspaceNotificationDot{width:7px;height:7px;flex:0 0 7px;margin-top:4px;border-radius:50%;background:#8d9a93}
-.workspaceNotificationItem.error .workspaceNotificationDot{background:#c95750}
-.workspaceNotificationItem.success .workspaceNotificationDot{background:#25865e}
-.workspaceNotificationItem>div{min-width:0;flex:1}
-.workspaceNotificationItem strong{display:block;font-size:12px;color:var(--muted);font-weight:800}
-.workspaceNotificationItem p{margin:3px 0 4px;font-size:12px;line-height:1.4;color:var(--ink);overflow-wrap:anywhere}
-.workspaceNotificationItem time{font-size:12px;color:var(--muted)}
-.workspacePopoverEmpty{padding:18px 14px;color:var(--muted);font-size:12px;line-height:1.5}
-.workspaceClearHistory{margin:7px 10px 10px;padding:7px 10px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--muted);font-size:12px}
-.workspaceSupportInbox{display:flex;gap:6px;overflow-x:auto;padding:8px;border-bottom:1px solid var(--border)}
-.workspaceSupportInbox>button{display:grid;gap:3px;min-width:125px;max-width:180px;padding:8px;border:1px solid var(--border);border-radius:10px;background:var(--surface-raised);color:var(--ink);text-align:left}
-.workspaceSupportInbox>button.selected{border-color:var(--accent);background:var(--accent-soft)}
-.workspaceSupportInbox strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.workspaceSupportInbox span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.workspaceSupportMessages{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--page-bg)}
-.workspaceSupportInbox{flex:0 0 auto;max-width:100%;overscroll-behavior-x:contain}
-.workspaceSupportComposer{flex:0 0 auto;min-width:0}
-.workspaceSupportComposer textarea{min-height:38px;resize:vertical}
-.workspaceSupportMessage{max-width:88%;align-self:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow-wrap:anywhere}
-.workspaceSupportMessage.mine{align-self:flex-end;background:var(--accent-soft);border-color:rgba(var(--accent-rgb),.2)}
-.workspaceSupportMessage>span{font-size:12px;color:var(--muted);font-weight:800}
-.workspaceSupportMessage p{margin:4px 0 5px;font-size:12px;line-height:1.45;color:var(--ink);white-space:pre-wrap}
-.workspaceSupportMessage time{font-size:12px;color:var(--muted)}
-.workspaceSupportComposer{display:flex;align-items:flex-end;gap:7px;padding:9px;border-top:1px solid var(--border);background:var(--surface)}
-.workspaceSupportComposer textarea{flex:1;min-width:0;max-height:120px;resize:vertical;padding:8px 9px;border:1px solid var(--border);border-radius:10px;background:var(--page-bg);color:var(--ink);font:inherit;font-size:12px;line-height:1.4;outline:none}
-.workspaceSupportComposer textarea:focus{outline:none!important;border-color:var(--border)!important;box-shadow:none!important}
-.workspaceSupportComposer button{min-height:34px;padding:7px 11px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:12px;font-weight:850}
-.workspaceSupportComposer button:disabled{opacity:.45;cursor:not-allowed}
+/* Header popovers live in document.body so scrolled workspaces cannot clip them. */
+.workspaceNotificationPanel, .workspaceSupportPanel {
+  --popover-surface: #f8fcff;
+  --popover-raised: #eaf3fa;
+  --popover-line: #afc4d7;
+  --popover-ink: #0b1f33;
+  --popover-muted: #435f77;
+  --popover-accent: #16507a;
+  --popover-top: calc(var(--aur-header-h, 64px) + 16px + env(safe-area-inset-top, 0px));
+  position: fixed;
+  z-index: 260;
+  inset: var(--popover-top) max(12px, env(safe-area-inset-right)) auto auto;
+  display: flex;
+  flex-direction: column;
+  width: min(28rem, calc(100% - 24px));
+  max-height: min(38rem, calc(100dvh - var(--popover-top) - 12px - env(safe-area-inset-bottom)));
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--popover-line);
+  border-radius: 18px;
+  background: var(--popover-surface);
+  color: var(--popover-ink);
+  box-shadow: 0 16px 48px #0a233b29;
+}
+.workspaceSupportPanel {
+  width: min(31rem, calc(100% - 24px));
+  height: min(42rem, calc(100dvh - var(--popover-top) - 12px - env(safe-area-inset-bottom)));
+  max-height: none;
+}
+html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel) {
+  --popover-surface: #132236;
+  --popover-raised: #1b3047;
+  --popover-line: #526e89;
+  --popover-ink: #eef5ff;
+  --popover-muted: #bed0e4;
+  --popover-accent: #a4d5fb;
+}
+.workspacePopoverHead {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--popover-line);
+  background: var(--popover-raised);
+}
+.workspacePopoverHead > div:first-child { display: grid; min-width: 0; gap: 3px; }
+.workspacePopoverHead strong { color: var(--popover-ink); font-size: 1rem; font-weight: 750; }
+.workspacePopoverHead span { color: var(--popover-muted); font-size: .75rem; overflow-wrap: anywhere; }
+.workspacePopoverClose {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--popover-ink);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.workspacePopoverClose:hover { border-color: var(--popover-line); background: var(--popover-surface); }
+:is(.workspaceNotificationPanel, .workspaceSupportPanel) :is(button, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--popover-accent);
+  outline-offset: 2px;
+}
+.workspaceNotificationBody, .workspaceCommunicationBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.workspaceNotificationList { padding: 8px 16px; }
+.workspaceNotificationList h3 { margin: 8px 0 0; color: var(--popover-muted); font-size: .8125rem; }
+.workspaceNotificationItem {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--popover-line) 50%, transparent);
+}
+.workspaceNotificationDot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--popover-accent); }
+.workspaceNotificationItem.error .workspaceNotificationDot { background: var(--aureka-color-danger); }
+.workspaceNotificationItem.success .workspaceNotificationDot { background: var(--aureka-color-success); }
+.workspaceNotificationItem > div { min-width: 0; overflow-wrap: anywhere; }
+.workspaceNotificationItem :is(strong, time) { color: var(--popover-muted); font-size: .75rem; }
+.workspaceNotificationItem p { margin: 3px 0; color: var(--popover-ink); font-size: .875rem; line-height: 1.5; }
+.workspacePopoverEmpty { padding: 16px; color: var(--popover-muted); font-size: .875rem; line-height: 1.5; }
+.workspaceClearHistory {
+  flex: none;
+  align-self: flex-end;
+  min-height: 44px;
+  margin: 8px 12px;
+  padding: 7px 12px;
+  border: 1px solid var(--popover-line);
+  border-radius: 10px;
+  background: var(--popover-surface);
+  color: var(--popover-accent);
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.workspaceClearHistory:hover { background: var(--popover-raised); }
+.workspaceSupportInbox { display: flex; flex: 0 0 auto; gap: 8px; overflow-x: auto; padding: 10px 14px; overscroll-behavior-inline: contain; }
+.workspaceSupportInbox > button {
+  display: grid;
+  gap: 3px;
+  min-width: 8rem;
+  max-width: 12rem;
+  padding: 8px 11px;
+  border: 1px solid var(--popover-line);
+  border-radius: 10px;
+  background: var(--popover-surface);
+  color: var(--popover-ink);
+  text-align: start;
+  cursor: pointer;
+}
+.workspaceSupportInbox > button:is(:hover, .selected) { border-color: var(--popover-accent); background: var(--popover-raised); }
+.workspaceSupportInbox :is(strong, span) { font-size: .8125rem; overflow-wrap: anywhere; }
+.workspaceSupportInbox span { color: var(--popover-muted); }
+.workspaceSupportMessages {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--popover-raised) 55%, transparent);
+}
+.workspaceSupportMessage { max-width: min(90%, 55ch); align-self: flex-start; padding: 10px 12px; border: 1px solid var(--popover-line); border-radius: 12px 12px 12px 4px; background: var(--popover-surface); overflow-wrap: anywhere; }
+.workspaceSupportMessage.mine { align-self: flex-end; border-radius: 12px 12px 4px 12px; background: var(--popover-raised); }
+.workspaceSupportMessage :is(span, time) { font-size: .75rem; color: var(--popover-muted); }
+.workspaceSupportMessage p { margin: 3px 0 5px; font-size: .875rem; line-height: 1.55; color: var(--popover-ink); white-space: pre-wrap; }
+.workspaceSupportComposer {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--popover-line);
+}
+:is(.workspaceSupportComposer, .workspaceBroadcastPanel) textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  max-height: 120px;
+  resize: vertical;
+  padding: 9px 11px;
+  border: 1px solid var(--popover-line);
+  border-radius: 10px;
+  background: var(--popover-surface);
+  color: var(--popover-ink);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+:is(.workspaceSupportComposer, .workspaceBroadcastFooter) button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--popover-accent);
+  color: var(--aureka-color-on-primary);
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+:is(.workspaceSupportComposer, .workspaceBroadcastFooter) button:disabled { opacity: .48; cursor: not-allowed; }
+@media (max-width: 720px) {
+  .workspaceNotificationPanel, .workspaceSupportPanel {
+    --popover-top: calc(var(--aur-header-h, 110px) + 10px + env(safe-area-inset-top));
+    --popover-available: calc(100dvh - var(--popover-top) - var(--aureka-dock-clearance, 76px) - env(safe-area-inset-bottom));
+    inset-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right));
+    width: auto;
+    max-height: max(0px, var(--popover-available));
+  }
+  .workspaceSupportPanel { height: min(42rem, var(--popover-available)); }
+}
+@media (max-height: 500px) {
+  .workspaceNotificationPanel, .workspaceSupportPanel {
+    --popover-top: max(8px, env(safe-area-inset-top));
+  }
+}
 .moduleEnter .aqGrid{grid-template-columns:minmax(0,1.2fr) minmax(80px,.6fr) minmax(100px,.8fr) minmax(120px,.85fr)!important;gap:7px!important}
 .moduleEnter .aqField{min-width:0}
 .moduleEnter .aqFilters{padding:8px 10px!important}
@@ -1080,8 +1230,6 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
  .workspaceGlobalSearch>svg{width:13px;height:13px;flex-basis:13px}
  .workspaceGlobalSearch input{font-size:12px!important}
  .workspaceHeaderIcon{width:28px;height:28px;flex-basis:28px}
- .workspaceNotificationPanel{right:8px;top:52px}
- .workspaceSupportPanel{right:8px;top:52px}
  .dynamicIslandToast{top:5px;width:calc(100vw - 12px);padding:8px 10px}
  .moduleEnter .aqGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
  .moduleEnter .aqWrap{max-height:calc(100vh - 180px)!important}
@@ -1852,29 +2000,38 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 }
 
 
-/* Unified AUREKA communication hub */
-.workspaceCommunicationPanel{position:fixed;top:calc(var(--aur-header-h,58px) + 12px);right:18px;bottom:auto;z-index:260;width:min(460px,calc(100vw - 24px));height:min(680px,calc(100dvh - var(--aur-header-h,58px) - 30px));max-height:calc(100dvh - var(--aur-header-h,58px) - 30px);min-height:280px;box-sizing:border-box;isolation:isolate}
-.workspaceCommunicationTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px;border-bottom:1px solid var(--border);background:var(--surface)}
-.workspaceCommunicationTabs button{min-height:34px;padding:7px 9px;border:1px solid transparent;border-radius:9px;background:var(--surface-raised);color:var(--muted);font-size:12px;font-weight:750}
-.workspaceCommunicationTabs button.selected,.workspaceCommunicationTabs button[aria-selected="true"]{border-color:rgba(var(--accent-rgb),.32);background:var(--accent-soft);color:var(--accent)}
-.workspaceCommunicationAi{display:flex;flex:1;min-height:0;overflow:hidden}
-.workspaceCommunicationAi .tanyaPanelEmbedded{position:relative;inset:auto;z-index:auto;width:100%;height:100%;max-height:none;min-height:260px;flex:1;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;animation:none}
-.workspaceCommunicationAi .tanyaHead{padding:10px 13px}
-.workspaceCommunicationAi .tanyaHead .tanyaClose{display:none}
-.workspaceCommunicationAi .tanyaList{padding:12px}
-.workspaceCommunicationAi .tanyaNote{padding:4px 12px 9px;font-size:12px}
-.workspaceBroadcastPanel{display:flex;flex:1;min-height:0;flex-direction:column;gap:12px;padding:14px}
-.workspaceBroadcastIntro{display:grid;gap:4px}
-.workspaceBroadcastIntro strong{font-size:12px;color:var(--ink)}
-.workspaceBroadcastIntro span{font-size:12px;line-height:1.5;color:var(--muted)}
-.workspaceBroadcastPanel textarea{width:100%;min-height:170px;resize:vertical;padding:11px;border:1px solid var(--border);border-radius:11px;background:var(--page-bg);color:var(--ink);font:inherit;font-size:12px;line-height:1.5}
-.workspaceBroadcastFooter{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
-.workspaceBroadcastFooter span{font-size:12px;color:var(--muted)}
-.workspaceBroadcastFooter button{min-height:36px;padding:8px 12px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:12px;font-weight:800}
-.workspaceBroadcastFooter button:disabled{opacity:.45}
-@media(max-width:640px){.workspaceCommunicationPanel{top:calc(var(--aur-header-h,54px) + 8px);left:8px;right:8px;bottom:auto;width:auto;height:calc(100dvh - var(--aur-header-h,54px) - 20px - env(safe-area-inset-bottom));max-height:calc(100dvh - var(--aur-header-h,54px) - 20px - env(safe-area-inset-bottom));min-height:260px;border-radius:16px}}
-@media(max-width:640px){.workspaceNotificationPanel{top:calc(var(--aur-header-h,54px) + 8px);left:auto;right:8px;width:min(380px,calc(100vw - 16px));max-height:calc(100dvh - var(--aur-header-h,54px) - 20px - env(safe-area-inset-bottom));}}
-
+.workspaceCommunicationTabs {
+  display: grid;
+  flex: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--popover-line);
+}
+.workspaceCommunicationTabs button {
+  min-height: 44px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--popover-muted);
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.workspaceCommunicationTabs button.selected {
+  background: var(--popover-raised);
+  border-color: var(--popover-line);
+  color: var(--popover-accent);
+}
+.workspaceBroadcastPanel { display: grid; flex: 1 1 auto; align-content: start; gap: 14px; padding: 16px; overflow: auto; }
+.workspaceBroadcastIntro { display: grid; gap: 6px; }
+.workspaceBroadcastIntro strong { font-size: .9375rem; }
+.workspaceBroadcastIntro span, .workspaceBroadcastFooter span { font-size: .8125rem; line-height: 1.5; color: var(--popover-muted); }
+.workspaceBroadcastPanel textarea { width: 100%; min-height: 110px; max-height: none; }
+.workspaceBroadcastFooter { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 
 /* Blueprint Visual Intelligence: compact data panels, aligned with the current AUREKA design tokens. */
 .rmBlueprintVisuals{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}

@@ -154,14 +154,14 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
 
 
     <style jsx>{`
-      .naraWorkspace{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;min-width:0;min-height:calc(100dvh - 190px);color:#1f2430}
-      .naraHistory{display:flex;flex-direction:column;gap:12px;min-height:0;padding:14px;border-radius:22px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);position:sticky;top:96px;align-self:start;max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain}
+      .naraWorkspace{display:grid;grid-template-columns:minmax(150px, 22%) minmax(0,1fr);gap:clamp(12px, 2vw, 22px);min-width:0;min-height:calc(100dvh - 190px);color:var(--aureka-color-foreground)}
+      .naraHistory{display:flex;flex-direction:column;gap:10px;min-height:0;padding:4px 12px 4px 0;border-inline-end:1px solid var(--aureka-canvas-divider);position:sticky;top:calc(var(--aur-header-h, 64px) + 12px);align-self:start;max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain}
       .naraHistory > :not(.naraHistoryList){flex-shrink:0}
-      .naraNew{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:14px;background:#1f2430;color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .12s ease}
+      .naraNew{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:10px;background:var(--aureka-color-primary);color:var(--aureka-color-on-primary);font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .12s ease}
       .naraNew:active{transform:scale(.98)}.naraNew span{font-size:18px;line-height:1}
       .naraReviewNav{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border:1px solid #d7e1eb;border-radius:13px;background:#fff;color:#1f5c7a;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s ease,background .12s ease}
       .naraReviewNav[aria-pressed=true]{background:#e8f3f8;border-color:#9dc6d7}
-      .naraReviewWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden;padding:18px}
+      .naraReviewWrap{min-width:0;display:flex;flex-direction:column;border:0;background:transparent;box-shadow:none;overflow:hidden;padding:18px}
       .naraReviewWrap .naraMobileBar{display:none}
       .naraHistoryList{flex:1;min-height:0;overflow:auto;display:grid;align-content:start;gap:12px;margin:0 -4px;padding:0 4px}
       .naraEmpty{margin:4px;font-size:13px;line-height:1.5;color:#6b7684}
@@ -178,7 +178,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       .naraItemOpen:focus-visible,.naraItemDel:focus-visible,.naraMobileBar button:focus-visible{outline:2px solid #0e7490;outline-offset:2px}
       @media(hover:none){.naraItemDel{opacity:1}}
 
-      .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
+      .naraStageWrap{min-width:0;display:flex;flex-direction:column;border:0;background:transparent;box-shadow:none;overflow:hidden}
       .naraMobileBar{display:none}
       .naraStageWrap :global(.tanyaPanelEmbedded){flex:1;min-height:0;display:flex;flex-direction:column;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
       .naraStageWrap :global(.tanyaPanelEmbedded .tanyaClose){display:none}
@@ -187,11 +187,11 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       .naraStageWrap :global(.tanyaStage){display:grid;justify-items:center;gap:10px;text-align:center}
       .naraStageWrap :global(.tanyaStage h2){margin:6px 0 0!important;font-size:clamp(24px,2.6vw,34px)!important;line-height:1.15!important;font-weight:800!important;letter-spacing:-.03em;color:#1f2430;text-wrap:balance}
       .naraStageWrap :global(.tanyaStage p){margin:0;max-width:56ch;font-size:15px;color:#4b5565}
-      .naraStageWrap :global(.tanyaStaged .tanyaComposer){width:min(740px,100%);padding:8px 8px 8px 16px;border-radius:20px;background:#fff;border:1px solid #dfe7f0;box-shadow:0 12px 32px rgba(15,35,60,.09)}
+      .naraStageWrap :global(.tanyaStaged .tanyaComposer){width:min(740px,100%);padding:8px 10px;border-radius:13px;background:var(--aureka-header-control);border:1px solid var(--aureka-control-edge);box-shadow:0 12px 32px rgba(15,35,60,.09)}
       .naraStageWrap :global(.tanyaStaged .tanyaComposer textarea){font-size:15px;border:0!important;background:transparent!important;padding:10px 4px!important;box-shadow:none!important}
-      .naraStageWrap :global(.tanyaStaged .tanyaComposer){border-top:1px solid #dfe7f0}
+      .naraStageWrap :global(.tanyaStaged .tanyaComposer){border-top:1px solid var(--aureka-control-edge)}
       .naraStageWrap :global(.tanyaStageChips){display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:780px}
-      .naraStageWrap :global(.tanyaStageChips button){display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#1f2430;cursor:pointer;transition:border-color .15s ease,transform .15s ease}
+      .naraStageWrap :global(.tanyaStageChips button){display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid #dfe7f0;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#1f2430;cursor:pointer;transition:border-color .15s ease,transform .15s ease}
       .naraStageWrap :global(.tanyaStageChips button:hover){border-color:rgba(14,116,144,.45);transform:translateY(-1px)}
       .naraStageWrap :global(.naraStarterIco){width:16px;height:16px;fill:none;stroke:#0e7490;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
       .naraStageWrap :global(.tanyaStaged .tanyaNote){margin-top:4px;text-align:center}
@@ -199,7 +199,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       @keyframes naraRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
       @media(max-width:900px){
         .naraWorkspace{grid-template-columns:1fr;min-height:calc(100dvh - 230px)}
-        .naraHistory{display:none;position:static;max-height:none;overflow:visible}
+        .naraHistory{display:none;position:static;max-height:none;overflow:visible;border-inline-end:0;border-block-end:1px solid var(--aureka-canvas-divider);padding:0 0 10px}
 
         .naraWorkspace.listOpen .naraHistory{display:flex;max-height:min(52dvh,420px);overflow:hidden}
         .naraMobileBar{display:flex;justify-content:space-between;gap:8px;padding:10px 12px 0}
@@ -210,7 +210,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       }
       @media(prefers-reduced-motion:reduce){.naraNew,.naraItem,.naraItemDel{transition:none}}
       :global(html[data-mode="gelap"]) .naraWorkspace{color:#eef2f7}
-      :global(html[data-mode="gelap"]) .naraHistory,:global(html[data-mode="gelap"]) .naraStageWrap{background:rgba(20,27,38,.72);border-color:rgba(255,255,255,.1);box-shadow:none}
+      :global(html[data-mode="gelap"]) .naraHistory,:global(html[data-mode="gelap"]) .naraStageWrap{background:transparent;border-color:var(--aureka-canvas-divider);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraNew{background:#eef2f7;color:#0f1218}
       :global(html[data-mode="gelap"]) .naraReviewNav{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#b9e5f4}
       :global(html[data-mode="gelap"]) .naraReviewWrap{background:rgba(20,27,38,.72);border-color:rgba(255,255,255,.1);box-shadow:none}
