@@ -211,14 +211,6 @@ html body:not(#_) .workspaceRoot .psStatsHead { align-items: center !important; 
 html body:not(#_) .workspaceRoot :is(.prHead, .piHead) { align-items: center !important; margin: 0 !important; }
 html body:not(#_) .workspaceRoot .psStatsEmpty { margin: 0; padding: 28px 16px; text-align: center; font-size: 13.5px; opacity: .75; border: 1px dashed rgba(11, 70, 122, .2); border-radius: 14px; }
 
-/* ===== Baris alat modul (Panduan + tombol) ringkas: tidak menambah jarak kosong di bawah judul ===== */
-html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) {
-  margin: 0 0 12px !important; padding: 0 !important; min-height: 0 !important; display: flex !important; justify-content: flex-end !important; align-items: center !important;
-}
-html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) .workspaceModuleHeaderTools { display: flex !important; align-items: center !important; gap: 8px !important; flex-wrap: wrap; margin: 0 0 0 auto !important; }
-html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero):not(:has(.workspaceModuleActions, .workspaceModuleGuide)) { display: none !important; }
-html body:not(#_) .workspaceRoot .workspaceContent .moduleEnter > :first-child { margin-top: 0 !important; }
-
 /* ===== Clinical Pathway: pustaka ringkas (tanpa scroll panjang) ===== */
 html body:not(#_) .cpLibBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 14px; border-radius: 16px; }
 html body:not(#_) .cpLibStats { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -954,21 +946,6 @@ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlob
  html[data-theme] .workspaceRoot.workspaceDesk .sidebar .sidebarDomainChevron { transition: none !important; }
 }
 
-/* Mobile header: reserve one predictable slot for each global service. */
-@media (max-width: 720px) {
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar {
-  grid-template-columns: 34px minmax(0,1fr) repeat(5,32px) !important;
- }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceSearchToggle { display: none !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceNaraButton { grid-column: 3 !important; grid-row: 1 !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceInboxButton { grid-column: 4 !important; grid-row: 1 !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceThemeButton { grid-column: 5 !important; grid-row: 1 !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderIcon[data-workspace-popover-trigger="notifications"] { grid-column: 6 !important; grid-row: 1 !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderProfile { grid-column: 7 !important; grid-row: 1 !important; }
- html[data-theme] .workspaceRoot.workspaceDesk .workspaceGlobalSearch { grid-column: 1 / 7 !important; grid-row: 2 !important; }
-}
-
-
 /* ===== Standar Pelayanan Minimal: domain SPM yang berdiri sendiri ===== */
 html body:not(#_) .workspaceRoot .spmWorkspace {
   display: grid;
@@ -1565,4 +1542,10 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters input[type="numbe
   html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters { align-items: end; }
   html body:not(#_) .workspaceRoot .spmWorkspace .spmImportStats { grid-template-columns: repeat(2,minmax(0,1fr)); }
   html body:not(#_) .workspaceRoot .spmWorkspace .spmImportDialog { max-height: 94vh; padding: 16px; }
+}
+
+@media (max-width: 720px) {
+  html[data-skin="arktik"] body:not(#_) :is(.workspaceRoot, .authPage, [aria-modal="true"]) :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="hidden"]), select, textarea) {
+    font-size: 16px !important;
+  }
 }

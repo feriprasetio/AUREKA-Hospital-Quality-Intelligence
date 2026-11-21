@@ -2,15 +2,20 @@
 
 import { useEffect, useRef } from 'react'
 
-const DIALOG_FOCUSABLE_SELECTOR = [
+const FOCUSABLE = [
   'a[href]',
   'area[href]',
-  'button:not([disabled])',
-  'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
+  'button',
+  'input:not([type="hidden"])',
+  'select',
+  'textarea',
+  'summary',
+  '[tabindex]',
 ].join(',')
+
+const dialogStack: HTMLElement[] = []
+let scrollLocks = 0
+let bodyOverflow = ''
 
 type AccessibleDialogOptions = {
   open: boolean
@@ -19,13 +24,16 @@ type AccessibleDialogOptions = {
   lockScroll?: boolean
 }
 
-/**
- * Adds keyboard focus management to an existing dialog without changing
- * its data flow, visual structure, or business logic.
- *
- * The caller remains responsible for rendering role="dialog",
- * aria-modal, and an accessible name.
- */
+function getFocusableElements(dialog: HTMLElement) {
+  return Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((element) =>
+    element.tabIndex >= 0 &&
+    !element.matches(':disabled') &&
+    !element.closest('[inert], [aria-hidden="true"]') &&
+    element.getClientRects().length > 0 &&
+    getComputedStyle(element).visibility === 'visible',
+  )
+}
+
 export function useAccessibleDialog<T extends HTMLElement = HTMLElement>({
   open,
   onClose,
@@ -33,78 +41,70 @@ export function useAccessibleDialog<T extends HTMLElement = HTMLElement>({
   lockScroll = false,
 }: AccessibleDialogOptions) {
   const dialogRef = useRef<T | null>(null)
-  const onCloseRef = useRef(onClose)
+  const closeOptions = useRef({ onClose, closeOnEscape })
+  useEffect(() => { closeOptions.current = { onClose, closeOnEscape } }, [onClose, closeOnEscape])
 
   useEffect(() => {
-    onCloseRef.current = onClose
-  }, [onClose])
-
-  useEffect(() => {
-    if (!open || typeof document === 'undefined') return
-
+    if (!open) return
     const dialog = dialogRef.current
     if (!dialog) return
 
-    const previousFocus = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null
-    const previousBodyOverflow = document.body.style.overflow
-    if (lockScroll) document.body.style.overflow = 'hidden'
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    dialogStack.push(dialog)
+    if (lockScroll) {
+      if (scrollLocks === 0) bodyOverflow = document.body.style.overflow
+      scrollLocks += 1
+      document.body.style.overflow = 'hidden'
+    }
 
-    const getFocusableElements = (): HTMLElement[] =>
-      Array.from(dialog.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTOR)).filter(
-        (element) =>
-          !element.hasAttribute('hidden') &&
-          element.getAttribute('aria-hidden') !== 'true' &&
-          element.getAttribute('disabled') === null &&
-          element.getClientRects().length > 0,
-      )
-
-    const initialFocus =
-      dialog.querySelector<HTMLElement>('[data-dialog-autofocus]') ??
-      getFocusableElements()[0] ??
-      dialog
-
-    initialFocus.focus()
+    const focusable = getFocusableElements(dialog)
+    const initialFocus = focusable.find(element => element.hasAttribute('data-dialog-autofocus')) ?? focusable[0] ?? dialog
+    initialFocus.focus({ preventScroll: true })
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && closeOnEscape && onCloseRef.current) {
+      if (dialogStack.at(-1) !== dialog || event.defaultPrevented) return
+      if (event.key === 'Escape') {
         event.preventDefault()
         event.stopPropagation()
-        onCloseRef.current()
+        if (closeOptions.current.closeOnEscape) closeOptions.current.onClose?.()
         return
       }
-
       if (event.key !== 'Tab') return
 
-      const focusableElements = getFocusableElements()
-      if (focusableElements.length === 0) {
+      const focusable = getFocusableElements(dialog)
+      const first = focusable[0]
+      const last = focusable.at(-1)
+      const active = document.activeElement
+      if (!first || !last) {
         event.preventDefault()
         dialog.focus()
-        return
-      }
-
-      const firstElement = focusableElements[0]
-      const lastElement = focusableElements[focusableElements.length - 1]
-      const activeElement = document.activeElement
-
-      if (event.shiftKey && (activeElement === firstElement || activeElement === dialog)) {
+      } else if (!focusable.includes(active as HTMLElement) || (event.shiftKey ? active === first : active === last)) {
         event.preventDefault()
-        lastElement.focus()
-      } else if (!event.shiftKey && activeElement === lastElement) {
-        event.preventDefault()
-        firstElement.focus()
+        const target = event.shiftKey ? last : first
+        target.focus()
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
-
     return () => {
+      const index = dialogStack.lastIndexOf(dialog)
+      const wasTop = index === dialogStack.length - 1
+      if (index >= 0) dialogStack.splice(index, 1)
       document.removeEventListener('keydown', handleKeyDown)
-      if (lockScroll) document.body.style.overflow = previousBodyOverflow
-      if (previousFocus?.isConnected) previousFocus.focus()
+      if (lockScroll) {
+        scrollLocks -= 1
+        if (scrollLocks === 0) document.body.style.overflow = bodyOverflow
+      }
+      if (!wasTop) return
+      const remaining = dialogStack.at(-1)
+      if (previousFocus?.isConnected && (!remaining || remaining.contains(previousFocus))) {
+        previousFocus.focus({ preventScroll: true })
+      } else if (remaining) {
+        const target = getFocusableElements(remaining)[0] ?? remaining
+        target.focus({ preventScroll: true })
+      }
     }
-  }, [closeOnEscape, lockScroll, open])
+  }, [lockScroll, open])
 
   return dialogRef
 }

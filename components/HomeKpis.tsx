@@ -10,7 +10,7 @@ type Room={id:number;name:string}
 type OverdueRtl={id:string;title:string;pj:string;due:string}
 type Totals={overdueRtl?:OverdueRtl[];overdueIkp?:number|null;done?:boolean;reported:number|null;rooms:number;riskTotal:number|null;riskVeryHigh:number|null;incidentsOpen:number|null;dataStatus:'loading'|'complete'|'partial'|'unavailable';retrievedAt:string|null}
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-const fmt=(v:number|null,done?:boolean):ReactNode=>v==null?(done?'–':<span className="hlKpiSkel" aria-label="Memuat"/>):<CountUp value={v}/>
+const fmt=(v:number|null,done?:boolean):ReactNode=>v==null?(done?'-':<span className="hlKpiSkel" aria-label="Memuat"/>):<CountUp value={v}/>
 
 /** Empat angka utama Beranda: pelaporan bulan ini, risiko, risiko sangat tinggi, IKP terbuka. */
 export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNavigate}:{supabase:SupabaseClient;rooms:Room[];isAdmin:boolean;roomId:number|null;showSafety:boolean;onNavigate?:NavigateFn}){
@@ -60,7 +60,7 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNav
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[supabase,year,month,roomId,isAdmin,rooms.length,showSafety])
  const cards=[
-  {label:`Ruangan lapor ${MONTHS[month-1]}`,value:t.reported==null?(t.done?'–':<span className="hlKpiSkel" aria-label="Memuat"/>):<><CountUp value={t.reported}/>/{t.rooms}</>,note:'Periode berjalan',tone:''},
+  {label:`Ruangan lapor ${MONTHS[month-1]}`,value:t.reported==null?(t.done?'-':<span className="hlKpiSkel" aria-label="Memuat"/>):<><CountUp value={t.reported}/>/{t.rooms}</>,note:'Periode berjalan',tone:''},
   ...(showSafety?[
    {label:'Risiko terdaftar',value:fmt(t.riskTotal,t.done),note:roomId!=null?'Ruangan terpilih':'Seluruh unit kerja',tone:''},
    {label:'Risiko sangat tinggi',value:fmt(t.riskVeryHigh,t.done),note:'Prioritas manajemen',tone:'hlKpiDanger'},
@@ -85,7 +85,7 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNav
  </div>
  <div className="hlDataTrust" role="status">
   <span className={'hlDataTrustState '+t.dataStatus}>{t.dataStatus==='complete'?'Sumber terbaca':t.dataStatus==='partial'?'Sebagian sumber belum tersedia':t.dataStatus==='loading'?'Memeriksa sumber':'Sumber belum tersedia'}</span>
-  <small>{t.retrievedAt?'Pembacaan terakhir '+new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(t.retrievedAt)):'Nilai yang tidak tersedia ditampilkan sebagai - dan tidak dianggap nol.'}</small>
+  {t.retrievedAt&&<time dateTime={t.retrievedAt}>{new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(t.retrievedAt))}</time>}
  </div>
  {deadlines.length>0&&<section className="hlDeadlines" aria-label="Batas waktu yang perlu diperhatikan">
   {deadlines.map(d=><div key={d.key} className={'hlDeadline '+d.tone}>
@@ -96,14 +96,19 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNav
   </div>)}
  </section>}
  <style>{`
+  .commandCentre .hlKpiRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:10px}
+  .commandCentre .hlKpiCard{display:grid;gap:6px;min-width:0;padding:12px;border:1px solid var(--aureka-color-border-strong);border-radius:10px;background:var(--aureka-color-surface)}
+  .commandCentre .hlKpiCard strong{font-size:25px;line-height:1.15;color:var(--aureka-color-foreground);font-variant-numeric:tabular-nums}
+  .commandCentre .hlKpiCard span,.commandCentre .hlKpiCard small{font-size:12px;color:var(--aureka-color-foreground-secondary)}
+  .commandCentre .hlKpiCard.hlKpiDanger strong{color:var(--aureka-color-danger)}
   .hlDataTrust{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;padding:9px 12px;border:1px solid rgba(120,145,165,.24);border-radius:10px;background:rgba(245,249,252,.7)}
   .hlDataTrustState{font-size:11px;font-weight:800;color:#34536d}
   .hlDataTrustState.complete{color:#176b4a}
   .hlDataTrustState.partial{color:#92601d}
   .hlDataTrustState.unavailable{color:#a33a36}
-  .hlDataTrust small{font-size:11px;color:#62788b}
+  .hlDataTrust time{font-size:11px;color:#62788b}
   html[data-mode="gelap"] .hlDataTrust{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
-  html[data-mode="gelap"] .hlDataTrustState,html[data-mode="gelap"] .hlDataTrust small{color:#c3ccd8}
+  html[data-mode="gelap"] .hlDataTrustState,html[data-mode="gelap"] .hlDataTrust time{color:#c3ccd8}
  `}</style>
  </>
 }

@@ -1,6 +1,4 @@
 'use client'
-import { NAV_HINTS } from '@/lib/ui/nav-hints'
-import WelcomeTour from '@/components/layout/WelcomeTour'
 import TrainingBanner from '@/components/layout/TrainingBanner'
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import type {ReactNode} from 'react'
@@ -22,6 +20,7 @@ import { AUREKA_PRIMARY_NAV, AUREKA_NAVIGATION_GROUPS, type AurekaRole, type Aur
 import TableSortEnhancer from '@/components/TableSortEnhancer'
 import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
 import type {GeneralSettingsSection} from '@/components/GeneralSettings'
+import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import { readWorkspaceHash } from '@/lib/aureka/workspace-route'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
 import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
@@ -192,20 +191,17 @@ export default function HomeClient(){
   }catch{}
  },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id,allRoomsScope])
  const mobileSidebar=useAccessibleSidebar()
+ const [workspacePresentationTarget,setWorkspacePresentationTarget]=useState<HTMLDivElement|null>(null)
  const sidebarButtonLabel=mobileSidebar.isMobile?'Buka menu navigasi':sidebarCollapsed?'Lebarkan sidebar':'Ciutkan sidebar'
  useEffect(()=>{
   if(typeof document==='undefined')return
-  window.localStorage.removeItem('aureka-theme-mode')
-  window.localStorage.removeItem('aureka-tone')
   document.documentElement.dataset.theme='solid'
-  document.documentElement.style.colorScheme='light'
  },[])
- const [uiMode,setUiMode]=useState<'terang'|'gelap'>('terang')
+ const uiMode=useAurekaMode()
  // Tinggi bar atas dipublikasikan sebagai --aur-header-h agar kepala tabel dapat menempel tepat di bawahnya (satu scroll halaman).
  useEffect(()=>{const root=document.documentElement;let raf=0;const check=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{const main=document.querySelector('.workspaceMain') as HTMLElement|null;const y=Math.max(window.scrollY,document.scrollingElement?.scrollTop||0,main&&main.scrollHeight>main.clientHeight+4?main.scrollTop:0);if(y>4)root.setAttribute('data-ak-scrolled','');else root.removeAttribute('data-ak-scrolled')})};window.addEventListener('scroll',check,{capture:true,passive:true});check();return()=>{window.removeEventListener('scroll',check,{capture:true} as any);cancelAnimationFrame(raf);root.removeAttribute('data-ak-scrolled')}},[])
  useEffect(()=>{if(typeof ResizeObserver==='undefined')return;let ro:ResizeObserver|null=null;const attach=()=>{const el=document.querySelector('.workspaceHeaderBar');if(!el)return false;const set=()=>document.documentElement.style.setProperty('--aur-header-h',Math.round(el.getBoundingClientRect().height)+'px');set();ro=new ResizeObserver(set);ro.observe(el);return true};if(!attach()){const t=window.setInterval(()=>{if(attach())window.clearInterval(t)},800);return()=>{window.clearInterval(t);ro?.disconnect()}}return()=>ro?.disconnect()},[view])
- useEffect(()=>{const h=(e:Event)=>{const d=(e as CustomEvent).detail;if(d==='gelap'||d==='terang')setUiMode(d)};window.addEventListener('aureka-mode-change',h);return()=>window.removeEventListener('aureka-mode-change',h)},[])
- useEffect(()=>{if(typeof document==='undefined')return;document.documentElement.setAttribute('data-skin','arktik');document.documentElement.removeAttribute('data-dark');document.documentElement.style.colorScheme='';try{localStorage.removeItem('aureka-theme');localStorage.removeItem('aureka-dark')}catch{}if(document.documentElement.getAttribute('data-mode')==='gelap')setUiMode('gelap')},[])
+ useEffect(()=>{if(typeof document==='undefined')return;document.documentElement.setAttribute('data-skin','arktik');document.documentElement.removeAttribute('data-dark');try{localStorage.removeItem('aureka-theme');localStorage.removeItem('aureka-dark')}catch{}},[])
  const [settingsTab,setSettingsTab]=useState<'security'|null>(null)
  const [patientsRegistryTab,setPatientsRegistryTab]=useState<'overview'|'directory'|'patterns'|'analysis'>('overview')
  const [patientPatternTab,setPatientPatternTab]=useState<'icd'|'los'|'readmisi'>('icd')
@@ -243,7 +239,7 @@ export default function HomeClient(){
  },[view,user?.id,role])
  // Setiap pindah menu/submenu (dan setelah login) halaman mulai dari paling atas.
  useEffect(()=>{if(view!=='workspace'||typeof window==='undefined')return;const top=()=>{window.scrollTo({top:0,left:0,behavior:'auto'});document.querySelectorAll<HTMLElement>('.workspaceMain,.workspaceContent,#workspace-main-content').forEach(el=>{if(el.scrollTop)el.scrollTop=0})};top();const t=window.setTimeout(top,60);return()=>window.clearTimeout(t)},[view,active,patientsRegistryTab,settingsSection,qualityOpen,clinicalPathwayOpen,qualityResultsView,qualityResultsGroup,qualityReconciliationOpen,qualityMonitorOpen,safetyTab,riskTab,programTab,staffTab,qualityProfileOpen,analyticsDirectoryTab])
- const toggleUiMode=()=>{const next=uiMode==='terang'?'gelap':'terang';const apply=()=>{document.documentElement.setAttribute('data-mode',next);try{localStorage.setItem('aureka-mode',next)}catch{}};const doc=document as Document&{startViewTransition?:(cb:()=>void)=>unknown};if(doc.startViewTransition&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){try{doc.startViewTransition(apply)}catch{apply()}}else apply();setUiMode(next)}
+ const toggleUiMode=()=>setAurekaMode(uiMode==='terang'?'gelap':'terang')
  useEffect(()=>{rooms().then(rows=>{setRoomsList(rows);setRoomOptionsLoaded(true)});const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setView(p.must_change_password?'force-password':'workspace')}}).finally(()=>{requestAnimationFrame(()=>document.documentElement.removeAttribute('data-ak-booting'))})},[])
  const lastAppliedHash=useRef<string|null>(null)
  const [incomingHash,setIncomingHash]=useState<string|null>(null)
@@ -655,9 +651,8 @@ export default function HomeClient(){
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
  const activeNavPrimaryId=activeNestedNavGroup?.id||activeNavDefaultGroup||activeNavSelectedId
  const activeNavSecondaryId=activeNestedNavGroup?activeNavSelectedId:''
- const activeRailSubItems=(activeNestedNavGroup?.children||[]).map(item=>({...item,hint:item.hint||NAV_HINTS[item.label]}))
- const activeRailItemsHinted=activeNavGroups.map(item=>({...item,hint:item.hint||NAV_HINTS[item.label]}))
- const activePageHint=NAV_HINTS[(activeRailSubItems.find(item=>item.id===activeNavSecondaryId)||activeNavGroups.find(item=>item.id===activeNavPrimaryId))?.label||'']
+ const activeRailSubItems=activeNestedNavGroup?.children||[]
+ const activeRailItems=activeNavGroups
  const selectContextualTab=(id:string,primary=false)=>{
   const group=primary?activeNavGroups.find(item=>item.id===id):undefined
   if(activeNavModuleId==='secretariat'){
@@ -996,21 +991,12 @@ export default function HomeClient(){
    </header>
    <div className="landingAura" aria-hidden="true"><span/><span/><span/></div><div className="auroraBg" aria-hidden="true"><span/><span/><span/></div>
    <div className={'authShell '+(!l?'authShellRegistration':'')}>
-    <aside className="authAside">
-     <span className="authAsideEyebrow"><span className="auroraDot" aria-hidden="true"/>0° Khatulistiwa · Kota Pontianak</span>
-     <h2>{l?'Setiap perbaikan dimulai dari Anda.':'Peran Anda. Dampak yang lebih besar.'}</h2>
-     
-     
-     <div className="authAsideBottom">
-      <span className="authAsideBottomMark" aria-hidden="true">A</span>
-      <small>UPT RSUD Sultan Syarif Mohamad Alkadrie<br/>Komite Peningkatan Mutu dan Keselamatan Pasien</small>
-     </div>
-     <figure className="authArchitecture"><img src={`${BASE_PATH}/images/architecture-joel-filipe.jpg`} alt="Ilustrasi arsitektur bangunan modern, bukan foto RSUD" loading="lazy" /><figcaption>Ruang untuk tumbuh. Komitmen untuk terus membaik.<small>Ilustrasi arsitektur · Joel Filipe / Unsplash</small></figcaption></figure>
+    <aside className="authAside" aria-hidden="true">
+     <figure className="authArchitecture"><img src={`${BASE_PATH}/images/architecture-joel-filipe.jpg`} alt="" loading="lazy" /></figure>
     </aside>
     <LiquidGlass className="authCard">
      {!l&&signupDone?<div className="authSuccess">
       <div className="authSuccessIcon" aria-hidden="true">✓</div>
-      <span className="authFormEyebrow">Registrasi akun unit</span>
       <h1>Akun berhasil dibuat</h1>
       <p>Akun <b>{email.trim()}</b> untuk unit <b>{roomsList.find(r=>String(r.id)===String(signupRoom))?.name||'-'}</b> sudah terdaftar dan sedang <b>menunggu aktivasi</b>.</p>
       <ol className="authSteps">
@@ -1022,9 +1008,7 @@ export default function HomeClient(){
      </div>:<form className="authForm" onSubmit={submit} noValidate>
       <div className="authFormIntro">
        <img className="authBrandMark" src={LOGO} alt="" width={160} height={136} aria-hidden="true"/>
-       <span className="authFormEyebrow">{l?'Akses workspace':'Registrasi pengguna'}</span>
-       <h1>{l?'Selamat datang kembali.':'Daftar Akun Unit'}</h1>
-       <p>{l?'Masuk ke AUREKA dan lanjutkan langkah perbaikan Anda.':'Lengkapi identitas dan unit kerja. Pengajuan akun akan diperiksa sebelum aktivasi.'}</p>
+       <h1>{l?'Masuk':'Daftar akun unit'}</h1>
       </div>
       
       {!l&&<>
@@ -1038,8 +1022,8 @@ export default function HomeClient(){
          <option value="">Pilih unit kerja</option>
          {roomsList.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
-        {!roomOptionsLoaded&&<small className="fieldHint" role="status">Memuat unit aktif dari database…</small>}
-        {roomOptionsLoaded&&roomsList.length===0&&<div role="alert"><small className="fieldHint">Daftar unit tidak dapat dimuat. Jangan melanjutkan registrasi sebelum unit aktif tersedia.</small><button type="button" onClick={()=>{setRoomOptionsLoaded(false);rooms().then(rows=>{setRoomsList(rows);setRoomOptionsLoaded(true)})}}>Coba muat ulang unit</button></div>}
+        {!roomOptionsLoaded&&<small className="fieldHint" role="status">Memuat daftar unit…</small>}
+        {roomOptionsLoaded&&roomsList.length===0&&<div role="alert"><small className="fieldHint">Daftar unit belum dapat dimuat.</small><button type="button" onClick={()=>{setRoomOptionsLoaded(false);rooms().then(rows=>{setRoomsList(rows);setRoomOptionsLoaded(true)})}}>Coba muat ulang unit</button></div>}
        </div>
        <div className="field">
         <label htmlFor="username">Username</label>
@@ -1050,7 +1034,6 @@ export default function HomeClient(){
       <div className="field">
        <label htmlFor="email">{l?'Username atau email':'Email aktif'}</label>
        <input id="email" type={l?'text':'email'} autoComplete={l?'username':'email'} autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} placeholder={l?'Masukkan username atau email':'nama@email.com'}/>
-       {!l&&<small className="fieldHint">Email digunakan untuk verifikasi akun dan pemulihan password.</small>}
       </div>
       <div className="field authPasswordField">
        <div className="authFieldLabelRow">
@@ -1090,9 +1073,9 @@ export default function HomeClient(){
    <div className="sideBrand">{logo('workspaceLogo')}<div><b>AUREKA</b><small>RSUD SSMA Pontianak</small></div></div>
    <button type="button" className="workspaceDrawerClose" aria-label="Tutup menu navigasi" onClick={mobileSidebar.close}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
   </div>
-  <div className="navLabel">Kategori dan modul</div>
   <nav className="sidebarNav sidebarDomainNav" aria-label="Delapan kategori utama AUREKA">
    {visibleSidebarDomains.map(domain=>{
+    if(!domain.items.length)return null
     const selected=activeDomainId===domain.id
     const isExpanded=effectiveExpandedDomain===domain.id
     return <section className={'sidebarDomain '+(domain.id==='command_center'?'isCommandCenter ':'')+(selected?'isCurrent ':'')+(isExpanded?'isExpanded':'')} key={domain.id}>
@@ -1103,7 +1086,7 @@ export default function HomeClient(){
       </button>
      </div>
      <div id={'sidebar-items-'+domain.id} className="sidebarDomainItems" role="group" aria-label={'Modul '+domain.label} hidden={!isExpanded}>
-      {domain.items.length===0?<div className="sidebarDomainEmpty">Belum ada modul.</div>:domain.items.map(item=>{
+      {domain.items.map(item=>{
        const itemSelected=sidebarDestinationActive(item)
        return <div className="sidebarModuleNode" key={item.id}>
         <button type="button" className={'sidebarDomainItem '+(itemSelected?'active':'')} aria-current={itemSelected?'page':undefined} disabled={item.status==='planned'} title={item.status==='planned'?(item.note||'Belum aktif'):item.label} onClick={()=>selectDomainDestination(domain.id,item)}>
@@ -1159,6 +1142,7 @@ export default function HomeClient(){
      </button>):<p>Tidak ditemukan kata kunci yang cocok pada kontainer ini.</p>}
     </div>}
    </div>
+   <div className="workspacePresentationSlot" ref={setWorkspacePresentationTarget}/>
    <button type="button" className="workspaceHeaderIcon workspaceGlobalServiceButton workspaceNaraButton" title="Buka NARA AI" aria-label="Buka NARA AI" onClick={()=>active==='nara'?openMainModule('nara'):openNaraWithContext('Analisis halaman '+currentContainer+' pada cakupan '+(activeWorkspaceRoom?.name||room?.name||'unit yang diizinkan')+'. Gunakan hanya data AUREKA yang tersedia dan diizinkan oleh role saya. Sajikan ringkasan, tren, anomali, sumber dan periode data, keterbatasan, serta rekomendasi prioritas. Jangan menampilkan identitas pasien, jangan mengubah data, dan tandai bagian yang memerlukan verifikasi manusia.',activeNavModuleLabel+' · '+currentContainer)}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span className="srOnly">NARA AI</span>
    </button>
@@ -1180,7 +1164,6 @@ export default function HomeClient(){
    </button>
   </header>
   {view==='workspace'&&<TrainingBanner/>}
-  {view==='workspace'&&user?.id&&<WelcomeTour userId={user.id} isAdmin={admin} role={role} onNavigate={id=>openMainModule(id)}/>}
   {idle.secondsLeft!=null&&<div className="idleWarnBackdrop"><div className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
@@ -1222,22 +1205,21 @@ export default function HomeClient(){
    </>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>,document.body)}
-  {(activeNavGroups.length>0||active!=='home')&&<UnifiedModuleNavigation
+  {activeNavGroups.length>0&&<UnifiedModuleNavigation
    mobileWorkspaceTabs={MOBILE_WORKSPACE_TABS}
    ariaLabel={'Navigasi '+activeRailTitle}
    title={activeRailTitle}
-   items={activeRailItemsHinted}
+   items={activeRailItems}
    activeId={activeNavPrimaryId}
    secondaryActiveId={activeNavSecondaryId}
-   pageHint={activePageHint}
    subTitle={activeNestedNavGroup?.label}
    subItems={activeRailSubItems}
    onSelect={id=>selectContextualTab(id,true)}
    onSubSelect={selectContextualTab}
   />}
-   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
+   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer} userId={user?.id||''} controlTarget={workspacePresentationTarget}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
    {!routeReady?<WorkspaceSkeleton label="AUREKA"/>:active==='home'?<>
-    <HomeLandingWorkspace availableModules={[...visibleModuleIds]} supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} isAdmin={admin} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'||(manager&&!admin)?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??null} roomName={role==='DEWAN_PENGAWAS'||(manager&&!admin)||admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??room?.name??'Unit aktif'} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} onAskNara={openNaraWithContext} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){if(id==='clinicalPathway')navigateWorkspace('clinical','audit-pathway');else if(id==='rtl')navigateWorkspace('analytics','recommendations');else navigateWorkspace(id,f&&'tab' in f?f.tab:'',f?{...f,nonce:Date.now()}:null)}}}/>
+    <HomeLandingWorkspace availableModules={[...visibleModuleIds]} supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} isAdmin={admin} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'||(manager&&!admin)?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??null} roomName={role==='DEWAN_PENGAWAS'||(manager&&!admin)||admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??room?.name??'Unit aktif'} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} onAskNara={openNaraWithContext} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){if(id==='clinicalPathway')navigateWorkspace('clinical','audit-pathway');else if(id==='rtl')navigateWorkspace('analytics','recommendations');else if(id==='logbook')navigateWorkspace('quality','audit-indicators');else navigateWorkspace(id,f&&'tab' in f?f.tab:'',f?{...f,nonce:Date.now()}:null)}}}/>
     <InfographicsDashboard mode="full" role={role} rooms={roomsList} initialRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):(manager||role==='DEWAN_PENGAWAS'?null:activeWorkspaceRoomId)} unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role||'')} onNavigate={(id)=>openMainModule(id)} onRoomChange={admin?updateWorkspaceRoom:undefined} onAskNara={({period,scope})=>openNaraWithContext('Analisis data agregat AUREKA untuk periode '+period+' dan cakupan '+scope+'. Jelaskan pola penting, temuan, keterbatasan data, dan prioritas tindak lanjut tanpa mengubah data.','Dashboard · '+period+' · '+scope)}/>
    </>
    :active==='insights'?<InfographicsDashboard mode="full" role={role} rooms={roomsList} initialRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):(manager||role==='DEWAN_PENGAWAS'?null:activeWorkspaceRoomId)} unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role||'')} onNavigate={(id)=>openMainModule(id)} onRoomChange={admin?updateWorkspaceRoom:undefined} onAskNara={({period,scope})=>openNaraWithContext('Analisis data agregat AUREKA untuk periode '+period+' dan cakupan '+scope+'. Jelaskan pola penting, temuan, keterbatasan data, dan prioritas tindak lanjut tanpa mengubah data.','Analitik & Infografis · '+period+' · '+scope)}/>
@@ -1256,7 +1238,7 @@ export default function HomeClient(){
     </section>
    :active==='quality'&&role==='DEWAN_PENGAWAS'?<InfographicsDashboard mode="quality" role={role} rooms={roomsList} initialRoomId={null} unitLocked={false}/>
    :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView+'-'+qualityResultsGroup+'-'+String(activeWorkspaceRoomId??'profile')} groupBy={qualityResultsGroup} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom}/>
-      :active==='quality'&&qualityOpen?<div className="qualityLogbookResultsStack"><section className="qualityLogbookCard"><header><h2>Form Logbook</h2><p>Pengisian indikator mutu sesuai profil, periode, dan unit kerja.</p></header><QualityIndicatorWorkspace key={'audit-indicators-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} initialContainer="Audit Indikator Mutu" showContainerTabs={false}/></section><section className="qualityLogbookCard"><header><h2>Hasil Capaian Indikator Mutu</h2></header><QualityResultsWorkspace key={'quality-inline-results-'+String(activeWorkspaceRoomId??'profile')} mode="indicators" initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} groupBy={qualityResultsGroup}/></section></div>
+      :active==='quality'&&qualityOpen?<div className="qualityLogbookResultsStack"><section className="qualityLogbookCard"><header><h2>Form Logbook</h2></header><QualityIndicatorWorkspace key={'audit-indicators-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} initialContainer="Audit Indikator Mutu" showContainerTabs={false}/></section><section className="qualityLogbookCard"><header><h2>Hasil Capaian Indikator Mutu</h2></header><QualityResultsWorkspace key={'quality-inline-results-'+String(activeWorkspaceRoomId??'profile')} mode="indicators" initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} groupBy={qualityResultsGroup}/></section></div>
    :active==='quality'?<InfographicsDashboard mode="quality" onOpenLogbook={()=>navigateWorkspace('quality','audit-indicators')} role={role} rooms={roomsList} initialRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):activeWorkspaceRoomId} unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role||'')} onNavigate={(id)=>openMainModule(id)} onRoomChange={admin?updateWorkspaceRoom:undefined} onAskNara={({period,scope})=>openNaraWithContext('Analisis indikator mutu untuk periode '+period+' dan cakupan '+scope+'. Identifikasi indikator yang tidak memenuhi target, tren, variasi, keterbatasan data, dan prioritas tindak lanjut. Jangan mengubah data.','Indikator Mutu · Ikhtisar · '+period+' · '+scope)}/>
    :active==='safety'&&safetyTab==='fmea-reactive'?<ReactiveFmeaWorkspace role={role} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={!admin&&!manager}/>
    :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={canManageSafety} focus={safetyFocus} activeTab={safetyTab==='fmea-reactive'?'incidents':safetyTab} showTabs={false} onTabChange={setSafetyTab} onAskNara={openNaraWithContext}/>

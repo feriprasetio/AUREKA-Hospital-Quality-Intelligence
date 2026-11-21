@@ -538,7 +538,6 @@ export default function FppeEvaluationWorkspace({
       <WorkspaceModuleHeader
         className="fppeHeader"
         title="Evaluasi terfokus (FPPE)"
-        description="FPPE terintegrasi di dalam Kontainer Audit OPPE. Identitas tenaga mengikuti Metadata dan roster Tim Tenaga Kerja. Pengajuan memerlukan validasi oleh akun yang berbeda dari pembuat."
         actions={<div className="fppeHeaderActions">
           <label className="fppeUnitChoice"><span>Unit FPPE</span><select value={roomId} disabled={busy || lockRoomScope} onChange={(e) => startNew(Number(e.target.value))}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
           <button type="button" onClick={() => void loadEvaluations()} disabled={loading || busy}>↻ Perbarui riwayat</button><button type="button" onClick={exportFppeListCsv} disabled={!filtered.length}>Ekspor daftar CSV</button><button type="button" className="fppePrimary" onClick={() => startNew()} disabled={busy}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> FPPE baru</button>
@@ -645,7 +644,7 @@ const CSS = `
 .fppeHeaderActions,.fppeReviewActions{display:flex;gap:7px;flex-wrap:wrap}
 .fppeWorkspace button{cursor:pointer;border:1px solid rgba(32,73,51,.12);border-radius:10px;background:rgba(255,255,255,.62);color:var(--ink);padding:9px 11px;font:inherit;font-size:12.5px;font-weight:650}
 .fppeWorkspace button:disabled{opacity:.52;cursor:not-allowed}
-.fppeWorkspace .fppePrimary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.fppeWorkspace .fppePrimary{background:var(--aureka-color-primary);color:var(--aureka-color-on-primary);border-color:transparent}
 .fppeWorkspace .fppeWarnButton{background:#fff0dc;color:#865615;border-color:#efd6a7}
 .fppeAlert{border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6}
 .fppeError{background:#fff0ee;color:#903c34;border:1px solid #f0d1cc}

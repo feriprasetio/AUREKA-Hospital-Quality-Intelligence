@@ -60,7 +60,7 @@ test('submodule navigation participates in history and legacy links resolve to a
 
 test('operational modules use the same small header while retaining their own actions', () => {
   const header = read('components/workspace/WorkspaceModuleHeader.tsx')
-  assert.match(header, /<details className="workspaceModuleGuide">/)
+  assert.doesNotMatch(header, /workspaceModuleGuide|description|eyebrow/)
   assert.match(header, /<h2>\{title\}<\/h2>/)
   assert.match(header, /\{actions\}/)
   assert.doesNotMatch(header, /fetch\(|localStorage|supabase/i)
@@ -84,7 +84,7 @@ test('table regions measure actual column overflow and provide keyboard and butt
   assert.match(table, /disabled=\{!edges\.left\}/)
   assert.match(table, /disabled=\{!edges\.right\}/)
   assert.match(table, /prefers-reduced-motion/)
-  assert.match(table, /observer\.disconnect\(\)/)
+  assert.match(table, /observer\?\.disconnect\(\)/)
   assert.match(table, /removeEventListener\('scroll', measure\)/)
   assert.doesNotMatch(table, /localStorage|sessionStorage/)
   for (const name of [
@@ -231,16 +231,13 @@ test('every workbook importer traps focus and delegates Escape to its original b
     assert.match(source, /ref=\{importDialogRef\} tabIndex=\{-1\}/, file)
     assert.match(source, /if\s*\(parsing\s*\|\|\s*importing\)\s*return/, file)
   }
-  assert.match(read('components/layout/useAccessibleDialog.ts'), /if \(lockScroll\) document\.body\.style\.overflow = previousBodyOverflow/)
+  assert.match(read('components/layout/useAccessibleDialog.ts'), /if \(scrollLocks === 0\) document\.body\.style\.overflow = bodyOverflow/)
 })
 
-test('page header exposes no comfortable/compact density control', () => {
-  const home = read('components/HomeClient.tsx')
-  const desk = read('app/workspace-desk.css')
-  assert.doesNotMatch(home, /workspaceDensityToggle|workspaceDensityControl|setDensity|const \[density,|>Nyaman<|>Ringkas</)
-  assert.match(home, /data-density="comfortable"/)
-  assert.match(desk, /workspaceDensityToggle/)
-  assert.match(desk, /button\[title\*="nyaman" i\]/)
+test('page header accepts the active workspace density control without hiding it', () => {
+  assert.match(home, /className="workspacePresentationSlot" ref=\{setWorkspacePresentationTarget\}/)
+  assert.match(home, /controlTarget=\{workspacePresentationTarget\}/)
+  assert.doesNotMatch(css, /workspaceDensityToggle|button\[title\*="nyaman" i\]/)
 })
 
 test('logbook filters and workbook actions use separate grid rows with non-shrinking controls', () => {
@@ -252,7 +249,6 @@ test('logbook filters and workbook actions use separate grid rows with non-shrin
   assert.match(quality, /grid-template-areas:"unit unit" "year month" "actions actions"/)
   assert.match(desk, /grid-template-areas: "unit year month" "actions actions actions" !important/)
   assert.match(desk, /min-width: max-content !important/)
-  assert.match(desk, /workspaceDensityToggle/)
   assert.doesNotMatch(quality, /<div className="aqFilterActions">[\s\S]{0,500}<button[^>]*style=\{\{[^}]*flex/)
 })
 

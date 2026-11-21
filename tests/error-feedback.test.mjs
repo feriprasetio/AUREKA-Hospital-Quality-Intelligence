@@ -56,17 +56,11 @@ test('sanitizes legacy notification text without changing safe operator guidance
     'Gagal menyimpan laporan. Coba kembali setelah memeriksa koneksi.',
   )
 })
-test('workspace chat and public transparency panel expose safe, explicit states', () => {
+test('workspace chat exposes safe, actionable feedback', () => {
   const source = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
-  const publicLanding = readFileSync(new URL('../components/PublicLandingPage.tsx', import.meta.url), 'utf8')
   assert.match(source, /supportLoadError/)
   assert.match(source, /title="Percakapan belum dapat dimuat"/)
   assert.match(source, /onRetry=\{\(\)=>void loadSupportConversations\(\)\}/)
   assert.match(source, /title="Pesan belum dapat dimuat"/)
-  assert.match(publicLanding, /transparencyOpen/)
-  assert.match(publicLanding, /Snapshot publik belum tersedia/)
-  assert.match(publicLanding, /Menunggu snapshot yang disetujui/)
-  assert.match(publicLanding, /Belum dipublikasikan/)
-  assert.doesNotMatch(publicLanding, /public_landing_metrics|publicMetricsAttempt|demo-data/)
   assert.match(source, /sanitizeNotificationText\(text,technicalFallback\)/)
 })

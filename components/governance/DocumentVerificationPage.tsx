@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
 type Verification={
@@ -26,12 +27,12 @@ export default function DocumentVerificationPage({verificationCode}:{verificatio
     aurekaSupabase.rpc('aureka_verify_artifact_signature',{p_verification_code:verificationCode})
       .then(({data,error})=>{
         if(cancelled)return
-        if(error)setError(error.message||'Kode verifikasi tidak dapat diperiksa.')
+        if(error)setError(toUserFacingError(error, { fallback: 'Kode verifikasi belum dapat diperiksa.' }))
         else setData((data||null) as Verification|null)
         setLoading(false)
       },(e:unknown)=>{
         if(cancelled)return
-        setError(e instanceof Error?e.message:'Verifikasi tanda tangan tidak dapat dilakukan.')
+        setError(toUserFacingError(e, { fallback: 'Tanda tangan belum dapat diverifikasi.' }))
         setLoading(false)
       })
     return()=>{cancelled=true}
@@ -40,8 +41,8 @@ export default function DocumentVerificationPage({verificationCode}:{verificatio
   const valid=data?.valid===true
   return <main className="legalVerifyPage">
     <section className="legalVerifyCard">
-      <div className="legalVerifyBrand">AUREKA · DOCUMENT VERIFICATION</div>
-      {loading?<><div className="legalVerifyMark">…</div><h1>Memeriksa dokumen</h1><p>Memverifikasi kode dan status persetujuan melalui register AUREKA.</p></>:error?<><div className="legalVerifyMark legalVerifyInvalid">!</div><h1>Verifikasi gagal</h1><p>{error}</p></>:!valid?<><div className="legalVerifyMark legalVerifyInvalid">×</div><h1>Kode tidak valid atau telah dicabut</h1><p>Kode verifikasi tidak ditemukan pada register tanda tangan aktif AUREKA.</p></>:<><div className="legalVerifyMark legalVerifyValid">✓</div><h1>Persetujuan terverifikasi</h1><p>Dokumen terdaftar dengan rekam persetujuan elektronik pada sistem AUREKA.</p>
+      <div className="legalVerifyBrand">AUREKA · VERIFIKASI DOKUMEN</div>
+      {loading?<><div className="legalVerifyMark">…</div><h1>Memeriksa dokumen</h1></>:error?<><div className="legalVerifyMark legalVerifyInvalid">!</div><h1>Verifikasi gagal</h1><p>{error}</p></>:!valid?<><div className="legalVerifyMark legalVerifyInvalid">×</div><h1>Kode tidak valid atau telah dicabut</h1></>:<><div className="legalVerifyMark legalVerifyValid">✓</div><h1>Persetujuan terverifikasi</h1>
         <dl className="legalVerifyMeta">
           <div><dt>Kode dokumen</dt><dd>{data.artifact_code||'—'}</dd></div>
           <div><dt>Judul dokumen</dt><dd>{data.title||'—'}</dd></div>

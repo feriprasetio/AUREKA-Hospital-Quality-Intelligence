@@ -151,7 +151,6 @@ export default function NaraIcd10ReviewWorkspace({ sb, onBack }: { sb: SupabaseC
       <div>
         <p className="naraIcdEyebrow">NARA · CLINICAL INTELLIGENCE</p>
         <h2>Validasi terminologi & ICD-10</h2>
-        <p className="naraIcdIntro">Tinjau variasi penulisan diagnosis yang telah dikelompokkan. Pemetaan yang divalidasi akan menjadi kamus rujukan AUREKA untuk analisis berikutnya.</p>
       </div>
       <div className="naraIcdActions">
         {onBack && <button type="button" className="naraIcdSecondary" onClick={onBack}>Kembali ke NARA</button>}

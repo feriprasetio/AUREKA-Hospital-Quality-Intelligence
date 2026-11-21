@@ -214,7 +214,7 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKp
 /* ── Aurora desktop: sidebar dan header melayang seperti kartu kaca ── */
 @media (min-width: 721px) {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar { margin: 16px 0 16px 16px !important; width: calc(100% - 16px) !important; height: calc(100dvh - 32px) !important; top: 16px !important; border-radius: 26px !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; }
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar { margin: 16px 24px 0 !important; top: 16px !important; border-radius: 22px !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar { margin: 16px 24px 10px !important; top: 16px !important; border-radius: 22px !important; border: 1px solid rgba(255, 255, 255, 0.85) !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot :is(aside.sidebar, .workspaceHeaderBar) { border-color: rgba(255, 255, 255, 0.1) !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceUnitLabel { display: none !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspaceContext > :last-child:not(label) { display: none !important; }

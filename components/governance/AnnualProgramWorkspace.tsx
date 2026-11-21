@@ -127,7 +127,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,
     {screen!=='priorities'&&<div className="annualProgramHome">
       <section className="annualTimelinePanel" aria-label="Timeline kegiatan tahunan">
         <div className="annualTimelineHead">
-          <div><span className="rmEyebrow">PELAKSANAAN PROGRAM · GANTT</span><h4>Timeline Kegiatan Tahunan · {year}</h4><p>Rentang waktu berdasarkan tanggal mulai dan selesai yang dicatat. Panjang batang menunjukkan durasi kalender, sedangkan isian di dalamnya menunjukkan progres manual yang dilaporkan.</p></div>
+          <div><h4>Timeline kegiatan tahunan · {year}</h4></div>
           {screen==='home'?<button type="button" className="rmButton primary" onClick={()=>onScreenChange('timeline')}>Lihat Program Kerja</button>:canManage&&<button type="button" className="rmButton primary" onClick={startActivity}>+ Tambah Kegiatan Timeline</button>}
         </div>
         {activityError&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{activityError}</p></div>}
@@ -233,7 +233,13 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,
       .annualTimelineBar{grid-row:1;z-index:1;align-self:center;height:13px;border-radius:20px;overflow:hidden;background:rgba(80,110,90,.18);position:relative;margin:0 2px}
       .annualTimelineBar>span{display:block;height:100%;border-radius:20px;background:var(--accent,#26866a)}
       .annualTimelineBar.completed>span{background:#26866a}.annualTimelineBar.on_hold>span{background:#bb8a32}.annualTimelineBar.cancelled>span{background:#a94c45}
-      .annualTimelineOutput{font-size:11px;color:var(--muted,#718078);margin:5px 0 0}
+      .annualTimelineOutput{font-size:12px;color:var(--aureka-color-foreground-secondary);margin:5px 0 0}
+      @media(max-width:720px){
+        .annualTimelineMonthHead,.annualTimelineTrack{display:none}
+        .annualTimelineRows{gap:9px}
+        .annualTimelineRow{padding:11px 10px;border:1px solid var(--aureka-color-border);border-inline-start:3px solid var(--aureka-color-information);border-radius:10px}
+        .annualTimelineRowMeta{margin:0}
+      }
       .annualProgramLegacy{margin-top:4px;padding-top:16px;border-top:1px solid var(--line,rgba(20,34,27,.1));display:grid;gap:10px}.annualProgramLegacyHead h4{margin:4px 0;font-size:14px}.annualProgramLegacyHead p{margin:0;color:var(--muted,#718078);font-size:12px;line-height:1.55}.annualProgramCards{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}
       .annualProgramCard{display:flex;align-items:flex-start;gap:14px;text-align:left;padding:20px;border:1px solid var(--line,rgba(20,34,27,.12));border-radius:18px;background:var(--surface,#fff);color:var(--text,#20372d);cursor:pointer;min-width:0;transition:border-color .18s,transform .18s}
       .annualProgramCard:hover{border-color:var(--accent,#26866a);transform:translateY(-1px)}

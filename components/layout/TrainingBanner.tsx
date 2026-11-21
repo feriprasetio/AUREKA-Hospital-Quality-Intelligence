@@ -20,7 +20,7 @@ export default function TrainingBanner() {
   if (!on) return null
   return <div className={'akTraining' + (pulse ? ' pulse' : '')} role="status">
     <b>Mode latihan</b>
-    <span>{pulse ? 'Berhasil disimpan pura-pura. Data asli tidak berubah dan isian ini tidak muncul di daftar.' : 'Silakan coba semua formulir. Tidak ada isian yang disimpan ke server.'}</span>
+    {pulse && <span>Simulasi selesai</span>}
     <button type="button" onClick={() => { setTrainingMode(false); window.location.reload() }}>Selesai latihan</button>
   </div>
 }

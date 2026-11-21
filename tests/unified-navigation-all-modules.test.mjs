@@ -60,7 +60,7 @@ test('Register Pasien exposes only Direktori and Pola Perawatan; Riwayat Episode
   assert.ok(navigationRegistry.includes("{ id:'patient_patterns', label:'Pola Perawatan', moduleId:'patients', childId:'analysis' }"))
   assert.match(intelligence, /Lihat Direktori/)
   assert.match(directory, /aureka:workspace-search/)
-  assert.match(directory, /search bar global pada header AUREKA/)
+  assert.doesNotMatch(directory, /search bar global pada header AUREKA|className="piHint"/)
   assert.doesNotMatch(directory, /<input[^>]+type="search"/)
   assert.match(analysis, /aureka_patient_record_analytics/)
   assert.match(analysis, /Lihat Pola Perawatan/)

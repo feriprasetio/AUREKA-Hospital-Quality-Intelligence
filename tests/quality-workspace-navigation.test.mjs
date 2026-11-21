@@ -16,7 +16,7 @@ test('quality audit uses one contextual rail; Form Logbook and Hasil Capaian rem
   assert.match(groups, /label:'Pusat Rekonsiliasi'/)
   assert.doesNotMatch(groups, /id:'result-indicators'|label:'Hasil Capaian'/)
   assert.ok(home.includes('UnifiedModuleNavigation'))
-  assert.match(home, /\{\(activeNavGroups.length>0\|\|active!=='home'\)&&<UnifiedModuleNavigation/)
+  assert.match(home, /\{activeNavGroups\.length>0&&<UnifiedModuleNavigation/)
   assert.match(home, /activeNestedNavGroup/)
   assert.doesNotMatch(home, /sidebarModuleChildren|sidebarModuleChild/)
   assert.match(home, /activeNavSelectedId=.*qualityReconciliationOpen\?'quality-reconciliation':qualityMonitorOpen/)

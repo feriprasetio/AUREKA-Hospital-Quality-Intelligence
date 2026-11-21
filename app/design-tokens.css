@@ -31,6 +31,17 @@
   --aureka-color-border-strong: rgba(140, 170, 200, 0.55);
   --aureka-color-ring: rgba(29, 95, 153, 0.28);
 
+  --surface-app: var(--aureka-color-background);
+  --surface-card: var(--aureka-color-surface);
+  --surface-elevated: var(--aureka-color-surface-raised);
+  --surface-soft: var(--aureka-color-surface-muted);
+  --surface-input: var(--aureka-color-surface-raised);
+  --border-subtle: var(--aureka-color-border-strong);
+  --text-primary: var(--aureka-color-foreground);
+  --text-secondary: var(--aureka-color-foreground-secondary);
+  --text-tertiary: var(--aureka-color-muted);
+  --aureka-color-on-primary: #fff;
+
   /* Feedback */
   --aureka-color-success: #15803d;
   --aureka-color-success-soft: #f0fdf4;
@@ -104,3 +115,30 @@
  * (dokumen fase lama telah dihapus). CSS custom properties cannot be
  * substituted into media-query conditions, so keep breakpoint values explicit.
  */
+
+:root[data-skin="arktik"][data-mode="gelap"] {
+  color-scheme: dark;
+  --aureka-color-background: #0d1420;
+  --aureka-color-surface: #172331;
+  --aureka-color-surface-muted: #1d2a39;
+  --aureka-color-surface-raised: #233346;
+  --aureka-color-foreground: #ecf3fb;
+  --aureka-color-foreground-secondary: #becddd;
+  --aureka-color-muted: #abc0d1;
+  --aureka-color-border: #324457;
+  --aureka-color-border-strong: #526b84;
+  --aureka-color-primary: #9bccf3;
+  --aureka-color-primary-hover: #b4dafa;
+  --aureka-color-primary-active: #d2e8fa;
+  --aureka-color-on-primary: #10263b;
+  --aureka-color-primary-soft: #1d3955;
+  --aureka-color-ring: #8bc7f1;
+  --aureka-color-danger: #f6a8ac;
+  --aureka-color-danger-soft: #39232c;
+  --aureka-color-warning: #f3ca80;
+  --aureka-color-warning-soft: #342b1e;
+  --aureka-color-success: #a4e0ba;
+  --aureka-color-success-soft: #17362d;
+  --aureka-color-information: #9accf2;
+  --aureka-color-information-soft: #1e344c;
+}

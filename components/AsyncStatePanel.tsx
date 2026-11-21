@@ -47,7 +47,7 @@ export default function AsyncStatePanel({
         }
         .aurekaAsyncState.compact { padding: 11px 12px; border-radius: 11px; }
         .aurekaAsyncState.error {
-          border-color: color-mix(in srgb, var(--aureka-color-danger, #dc2626) 25%, white);
+          border-color: color-mix(in srgb, var(--aureka-color-danger, #dc2626) 45%, var(--aureka-color-surface));
           background: var(--aureka-color-danger-soft, #fef2f2);
         }
         .aurekaAsyncState.empty { background: var(--aureka-color-surface-muted, #f8faf9); }
@@ -92,10 +92,10 @@ export default function AsyncStatePanel({
         .stateAction:focus-visible { outline: 3px solid var(--aureka-color-ring, rgba(15,118,86,.32)); outline-offset: 2px; }
         .stateAction:disabled { cursor: wait; opacity: .65; }
         @keyframes aureka-spin { to { transform: rotate(360deg); } }
-        @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }
+        @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
         @media (max-width: 480px) {
           .aurekaAsyncState { flex-wrap: wrap; }
-          .stateAction { margin-left: 40px; }
+          .stateAction { margin-left: 40px; min-height: 44px; }
         }
       `}</style>
       <span className="stateIcon" aria-hidden="true">

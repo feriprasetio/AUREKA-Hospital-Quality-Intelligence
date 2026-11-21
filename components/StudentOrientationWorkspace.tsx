@@ -83,46 +83,44 @@ type Draft = {
 }
 
 const styles = [
-  '.studentOrientation{display:grid;gap:14px;min-width:0;color:var(--text,#0b1f33)}',
-  '.soPanel{padding:18px 20px;border:1px solid var(--border,rgba(100,125,150,.24));border-radius:16px;background:var(--panel,rgba(255,255,255,.76));min-width:0}',
-  '.soEyebrow{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#58718a)}',
+  '.studentOrientation{display:grid;gap:14px;min-width:0;color:var(--aureka-color-foreground)}',
+  '.soPanel{padding:18px 20px;border:1px solid var(--border,rgba(100,125,150,.24));border-radius:16px;background:var(--aureka-color-surface);min-width:0}',
+  '.soEyebrow{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--aureka-color-foreground-secondary)}',
   '.soTitle{font-size:23px;line-height:1.2;letter-spacing:-.035em;font-weight:850;margin:5px 0 7px}',
-  '.soDesc{font-size:13px;line-height:1.6;color:var(--muted,#58718a);max-width:900px;margin:0}',
+  '.soDesc{font-size:13px;line-height:1.6;color:var(--aureka-color-foreground-secondary);max-width:900px;margin:0}',
   '.soHead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}',
   '.soActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}',
-  '.soBtn{min-height:40px;padding:9px 13px;border-radius:10px;border:1px solid var(--border,rgba(100,125,150,.3));background:var(--surface,rgba(255,255,255,.7));color:var(--text,#0b1f33);font:inherit;font-size:12px;font-weight:800;cursor:pointer}',
+  '.soBtn{min-height:40px;padding:9px 13px;border-radius:10px;border:1px solid var(--border,rgba(100,125,150,.3));background:var(--aureka-color-surface-raised);color:var(--aureka-color-foreground);font:inherit;font-size:12px;font-weight:800;cursor:pointer}',
   '.soBtn.primary{background:#164b7a;border-color:#164b7a;color:#fff}',
   '.soBtn:disabled{opacity:.48;cursor:not-allowed}',
   '.soKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}',
-  '.soKpi{padding:13px 15px;border:1px solid var(--border,rgba(100,125,150,.22));border-radius:13px;background:var(--surface,rgba(255,255,255,.58));min-width:0}',
-  '.soKpi span{display:block;color:var(--muted,#58718a);font-size:11px;font-weight:750}',
+  '.soKpi{padding:13px 15px;border:1px solid var(--border,rgba(100,125,150,.22));border-radius:13px;background:var(--aureka-color-surface);min-width:0}',
+  '.soKpi span{display:block;color:var(--aureka-color-foreground-secondary);font-size:11px;font-weight:750}',
   '.soKpi strong{display:block;margin-top:5px;font-size:25px;line-height:1.1;font-weight:850;font-variant-numeric:tabular-nums}',
-  '.soSource{padding:12px 14px;border-radius:11px;background:rgba(22,75,122,.07);border:1px solid rgba(22,75,122,.16);font-size:12px;line-height:1.55;color:var(--text,#0b1f33)}',
-  '.soSource b{display:block;margin-bottom:2px}',
   '.soToolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}',
-  '.soToolbar input,.soToolbar select,.soEditor input,.soEditor select,.soEditor textarea{min-height:40px;border:1px solid var(--border,rgba(100,125,150,.3));border-radius:9px;background:var(--surface,#fff);color:var(--text,#0b1f33);padding:8px 10px;font:inherit;font-size:13px;min-width:0}',
+  '.soToolbar input,.soToolbar select,.soEditor input,.soEditor select,.soEditor textarea{min-height:40px;border:1px solid var(--border,rgba(100,125,150,.3));border-radius:9px;background:var(--aureka-color-surface-raised);color:var(--aureka-color-foreground);padding:8px 10px;font:inherit;font-size:13px;min-width:0}',
   '.soSearch{flex:1 1 260px}',
   '.soTableWrap{overflow:auto;max-width:100%;border:1px solid var(--border,rgba(100,125,150,.22));border-radius:12px;margin-top:13px}',
   '.soTable{border-collapse:separate;border-spacing:0;width:100%;min-width:1580px;font-size:12px}',
-  '.soTable th{position:sticky;top:0;z-index:1;background:var(--surface,#edf3f8);color:var(--text,#0b1f33);font-size:11px;font-weight:850;text-align:left;padding:10px 9px;border-bottom:1px solid var(--border,rgba(100,125,150,.25));white-space:nowrap}',
+  '.soTable th{position:sticky;top:0;z-index:1;background:var(--surface,#edf3f8);color:var(--aureka-color-foreground);font-size:11px;font-weight:850;text-align:left;padding:10px 9px;border-bottom:1px solid var(--border,rgba(100,125,150,.25));white-space:nowrap}',
   '.soTable td{padding:10px 9px;vertical-align:top;border-bottom:1px solid var(--border,rgba(100,125,150,.16));max-width:190px;line-height:1.45}',
   '.soTable tr:last-child td{border-bottom:0}',
   '.soTable td:first-child,.soTable th:first-child{text-align:center;width:48px}',
   '.soName{font-weight:800;min-width:190px}',
-  '.soMeta{display:block;margin-top:4px;color:var(--muted,#58718a);font-size:10px;line-height:1.5}',
+  '.soMeta{display:block;margin-top:4px;color:var(--aureka-color-foreground-secondary);font-size:10px;line-height:1.5}',
   '.soMaterial{min-width:125px;white-space:normal}',
-  '.soEmpty{padding:24px 16px;text-align:center;color:var(--muted,#58718a);font-size:13px}',
+  '.soEmpty{padding:24px 16px;text-align:center;color:var(--aureka-color-foreground-secondary);font-size:13px}',
   '.soStatus{display:inline-block;padding:4px 7px;border-radius:7px;background:rgba(22,75,122,.08);color:#164b7a;font-size:10px;font-weight:800}',
   '.soEditor{display:grid;gap:13px;margin-top:14px;border:1px solid var(--border,rgba(100,125,150,.25));border-radius:14px;padding:16px;background:var(--surface,rgba(255,255,255,.52))}',
   '.soEditorHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}',
   '.soEditorGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}',
   '.soField{display:grid;gap:5px;min-width:0}',
-  '.soField label{font-size:11px;font-weight:800;color:var(--muted,#58718a)}',
+  '.soField label{font-size:11px;font-weight:800;color:var(--aureka-color-foreground-secondary)}',
   '.soField input,.soField select,.soField textarea{width:100%;box-sizing:border-box}',
   '.soField textarea{min-height:66px;resize:vertical}',
   '.soMaterials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}',
   '.soMaterialInput{display:grid;grid-template-columns:24px minmax(0,1fr);gap:7px;align-items:center}',
-  '.soMaterialInput span{font-size:11px;font-weight:850;color:var(--muted,#58718a)}',
+  '.soMaterialInput span{font-size:11px;font-weight:850;color:var(--aureka-color-foreground-secondary)}',
   '.soMaterialInput input{width:100%;box-sizing:border-box}',
   '.soMessage{padding:11px 13px;border-radius:10px;background:rgba(22,75,122,.07);border:1px solid rgba(22,75,122,.17);font-size:12px;line-height:1.5}',
   '.soError{background:rgba(185,28,28,.07);border-color:rgba(185,28,28,.2);color:#991b1b}',
@@ -584,11 +582,7 @@ export default function StudentOrientationWorkspace({
       <style>{styles}</style>
       <section className="soPanel">
         <div className="soHead">
-          <div>
-            <div className="soEyebrow">Pendidikan dan Pelatihan · Domain Pendidikan AUREKA</div>
-            <h2 className="soTitle">Orientasi Mahasiswa</h2>
-            <p className="soDesc">Daftar identitas mahasiswa dibaca langsung dari Laporan Indikator Mutu Tim Koordinasi Pendidikan. Register peserta dan sertifikat menggunakan tabel pendidikan AUREKA yang sudah tersedia.</p>
-          </div>
+          <h2 className="soTitle">Orientasi Mahasiswa</h2>
           <div className="soActions">
             <select aria-label="Tahun data orientasi" value={selectedYear} onChange={(event) => { setSelectedYear(Number(event.target.value)); setSelectedSourceId(null); setDraft(null) }}>
               {[2025, 2026, 2027, 2028, 2029].map((year) => <option key={year} value={year}>{year}</option>)}
@@ -607,11 +601,6 @@ export default function StudentOrientationWorkspace({
         <div className="soKpi"><span>Sertifikat PDF diterbitkan</span><strong>{certificateCount.toLocaleString('id-ID')}</strong></div>
       </section>
 
-      <div className="soSource">
-        <b>Sumber data: Tim Koordinasi Pendidikan · Unit 30</b>
-        Nama, profesi/prodi, kampus, stase, CI, dan periode praktik mengikuti rekam sumber indikator mutu. Data peserta disinkronkan ke tabel education_participants dengan tautan source_quality_record_id; file sertifikat disimpan di bucket privat aureka-exports.
-      </div>
-
       {error && <div className="soMessage soError" role="alert">{error}</div>}
       {message && <div className="soMessage" role="status">{message}</div>}
 
@@ -623,7 +612,6 @@ export default function StudentOrientationWorkspace({
             <div>
               <div className="soEyebrow">Register</div>
               <h3 className="soTitle">Daftar Orientasi Mahasiswa {selectedYear}</h3>
-              <p className="soDesc">Format mengikuti Database.xlsx. Satu rekam sumber Tim Koordinasi Pendidikan ditautkan ke satu peserta pada kegiatan orientasi tahun berjalan.</p>
             </div>
             <span className="soStatus">{event ? event.title + ' · ' + event.status : 'Kegiatan belum diaktifkan'} · {role || 'Pengguna'}</span>
           </div>
@@ -638,7 +626,7 @@ export default function StudentOrientationWorkspace({
             <span className="soStatus">{filteredRows.length.toLocaleString('id-ID')} baris</span>
           </div>
           {loading ? <div className="soEmpty">Memuat daftar mahasiswa dari logbook Tim Koordinasi Pendidikan…</div> :
-            filteredRows.length === 0 ? <div className="soEmpty">Belum ada data mahasiswa pada laporan indikator mutu Tim Koordinasi Pendidikan tahun {selectedYear}. Daftar ini akan terisi otomatis setelah PIC mengirim laporan indikator mutu.</div> :
+            filteredRows.length === 0 ? <div className="soEmpty">Belum ada mahasiswa dari logbook Tim Koordinasi Pendidikan tahun {selectedYear}</div> :
             <div className="soTableWrap">
               <table className="soTable">
                 <thead><tr>

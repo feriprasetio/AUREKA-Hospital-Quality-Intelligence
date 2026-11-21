@@ -202,9 +202,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
           <label>Catatan Review<textarea rows={3} value={draft.review_notes} onChange={e=>setField('review_notes',e.target.value)}/></label>
           <div className="spoSourceMeta"><h3>Dokumen Sumber dan Analisis</h3>
             {draft.source_file_name?<><strong>{draft.source_file_name}</strong><span>{((draft.source_file_size_bytes||0)/1024/1024).toFixed(2)} MB · tersimpan privat</span></>:<span>Belum ada file sumber.</span>}
-            {draft.analysis_engine&&<small>Mesin pembaca dokumen: {draft.analysis_engine}</small>}
             {draft.analysis_notes.map((n,i)=><small key={'note-'+i}>{n}</small>)}
-            <small>Register AUREKA hanya menyimpan metadata, teks hasil ekstraksi, dan struktur flowchart. Bukan salinan PDF/DOCX.</small>
           </div>
         </section>
       </fieldset>

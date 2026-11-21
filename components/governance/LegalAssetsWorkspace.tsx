@@ -99,7 +99,7 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
 
   return <section className="legalWorkspace">
     <header className="legalHero">
-      <div><span className="legalEyebrow">TATA KELOLA DOKUMEN</span><h1>Legal dan Asset</h1><p>Register aset tanda tangan pejabat, otorisasi pemilik, dokumen terbit, dan verifikasi QR.</p></div>
+      <div><h1>Legal dan Asset</h1></div>
       <button className="legalRefresh" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button>
     </header>
 
@@ -113,7 +113,7 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
     {notice&&<div className="legalAlert legalAlertSuccess" role="status">{notice}</div>}
 
     <div className="legalPanel">
-      <div className="legalPanelHeading"><div><h2>Aset tanda tangan pejabat</h2><p>Gambar asli disimpan sebagai aset visual. Status aktif hanya dapat diberikan melalui akun pemilik dengan role yang cocok.</p></div><span className="legalCount">{assets.length} aset</span></div>
+      <div className="legalPanelHeading"><div><h2>Aset tanda tangan pejabat</h2></div><span className="legalCount">{assets.length} aset</span></div>
       {loading?<p className="legalMuted">Memuat register aset...</p>:assets.length===0?<p className="legalMuted">Belum ada aset tanda tangan yang terdaftar.</p>:<div className="legalAssetGrid">
         {assets.map(asset=><article className="legalAssetCard" key={asset.asset_id}>
           <div className="legalAssetTop"><div><span className="legalAssetCode">{asset.asset_code}</span><h3>{asset.signer_name}</h3><p>{asset.signer_position}</p></div><span className={'legalStatus legalStatus-'+asset.status}>{statusLabels[asset.status]}</span></div>
@@ -122,14 +122,14 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
           {asset.status==='pending_authorization'&&<div className="legalOwnerAction">
             {isOwner(asset)?<><p>Akun Anda cocok dengan identitas dan role pejabat pada register. Aktivasi akan dicatat dalam audit trail.</p><button type="button" onClick={()=>void activate(asset)} disabled={busy!==''}>{busy===asset.asset_code?'Memproses...':'Otorisasi sebagai pemilik'}</button></>:<p>Menunggu otorisasi oleh akun AUREKA milik pejabat yang tercantum. Akun pengguna harus aktif, menyelesaikan perubahan password awal, dan memiliki nama serta role yang cocok persis.</p>}
           </div>}
-          {asset.status==='active'&&<div className="legalActiveNote">Terotorisasi oleh akun pemilik yang diverifikasi server. Aset akan ditautkan ke rekam persetujuan baru atas dokumen yang disahkan.</div>}
-          {asset.status==='revoked'&&<div className="legalRevokedNote">Aset telah dicabut dan tidak dapat digunakan untuk persetujuan dokumen baru.</div>}
+          {asset.status==='active'&&<div className="legalActiveNote">Diotorisasi pemilik.</div>}
+          {asset.status==='revoked'&&<div className="legalRevokedNote">Aset dicabut.</div>}
         </article>)}
       </div>}
     </div>
 
     <div className="legalPanel">
-      <div className="legalPanelHeading"><div><h2>Lembar Persetujuan Pengguna</h2><p>Daftar artefak yang telah terdaftar di AUREKA beserta kode verifikasi publiknya.</p></div><span className="legalCount">{artifacts.length} dokumen</span></div>
+      <div className="legalPanelHeading"><div><h2>Lembar Persetujuan Pengguna</h2></div><span className="legalCount">{artifacts.length} dokumen</span></div>
       {loading?<p className="legalMuted">Memuat indeks dokumen...</p>:artifacts.length===0?<p className="legalMuted">Belum ada artefak dokumen terbit yang terindeks pada register ini.</p>:<div className="legalArtifactList">
         {artifacts.map(artifact=><article className="legalArtifact" key={artifact.artifact_id}>
           <div className="legalArtifactHead"><div><span>{artifact.artifact_code}</span><h3>{artifact.title}</h3><p>{artifact.artifact_type} · {fmt(artifact.created_at)}</p><small>SHA-256: {artifact.sha256}</small></div></div>
@@ -141,6 +141,5 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
       </div>}
     </div>
 
-    <div className="legalDisclaimer"><strong>Catatan hukum dan keamanan.</strong> QR mengarah ke laman verifikasi AUREKA dan menampilkan metadata persetujuan serta hash dokumen, bukan isi dokumen. Gambar tanda tangan hanya elemen visual yang ditautkan setelah persetujuan akun tercatat; mekanisme ini bukan Sertifikat Elektronik atau Tanda Tangan Elektronik Tersertifikasi dari PSrE.</div>
   </section>
 }

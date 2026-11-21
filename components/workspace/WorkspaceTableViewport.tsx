@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 
 type WorkspaceTableViewportProps = {
   children: ReactNode
@@ -17,23 +17,25 @@ export default function WorkspaceTableViewport({
   style,
 }: WorkspaceTableViewportProps) {
   const viewportRef = useRef<HTMLDivElement>(null)
-  const hintId = useId()
   const [edges, setEdges] = useState({ left: false, right: false })
 
   useEffect(() => {
     const viewport = viewportRef.current
     if (!viewport) return
-    const measure = () => setEdges({
-      left: viewport.scrollLeft > 1,
-      right: viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - 1,
-    })
-    const observer = new ResizeObserver(measure)
-    observer.observe(viewport)
-    if (viewport.firstElementChild) observer.observe(viewport.firstElementChild)
+    const measure = () => {
+      const left = viewport.scrollLeft > 1
+      const right = viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - 1
+      setEdges(previous => previous.left === left && previous.right === right ? previous : { left, right })
+    }
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+    observer?.observe(viewport)
+    if (viewport.firstElementChild) observer?.observe(viewport.firstElementChild)
+    if (!observer) window.addEventListener('resize', measure)
     viewport.addEventListener('scroll', measure, { passive: true })
     measure()
     return () => {
-      observer.disconnect()
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
       viewport.removeEventListener('scroll', measure)
     }
   }, [children])
@@ -45,7 +47,11 @@ export default function WorkspaceTableViewport({
     const table = viewport?.querySelector('table')
     if (!viewport || !table || table.getAttribute('data-ak-cards') === 'off') return
     const label = () => {
-      const heads = Array.from(table.querySelectorAll('thead tr:last-child th')).map((th) => (th.textContent || '').replace(/[↕▲▼]/g, '').trim())
+      const headerRows = table.tHead?.rows
+      const headers = headerRows?.length === 1 ? Array.from(headerRows[0].cells) : []
+      const heads = headers.every(cell => cell.colSpan === 1 && cell.rowSpan === 1)
+        ? headers.map(cell => (cell.textContent || '').replace(/[↕▲▼]/g, '').trim())
+        : []
       const rows = Array.from(table.querySelectorAll('tbody > tr'))
       const editable = rows.some((tr) => tr.querySelector('select, textarea, input:not([type="checkbox"])') || Array.from(tr.children).some((td, i) => i > 0 && td.querySelector('input[type="checkbox"]')))
       if (heads.length < 2 || heads.length > 9 || editable) { if (table.getAttribute('data-ak-cards') === 'on') table.removeAttribute('data-ak-cards'); return }
@@ -77,8 +83,7 @@ export default function WorkspaceTableViewport({
   return (
     <div className="workspaceTableFrame">
       {overflows && (
-        <div className="workspaceTableHint" id={hintId}>
-          <span>Kolom lainnya tersedia di samping</span>
+        <div className="workspaceTableHint" role="group" aria-label="Geser kolom">
           <div>
             <button type="button" aria-label={`Geser ${label} ke kiri`} disabled={!edges.left} onClick={() => scrollColumns(-1)}>
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m11 5-5 5 5 5M6 10h9" /></svg>
@@ -95,7 +100,6 @@ export default function WorkspaceTableViewport({
         style={style}
         role="region"
         aria-label={label}
-        aria-describedby={overflows ? hintId : undefined}
         tabIndex={0}
       >
         {children}

@@ -218,7 +218,6 @@ export default function StaffTeamWorkspace({
         <WorkspaceModuleHeader
           className="stHead"
           title="Tim dan Penugasan"
-          description="Pantau komposisi profesi dan kelola penugasan tenaga kerja pada unit."
           actions={<div className="stStatBar">
             <span className="stStat"><b>{assignments.length.toLocaleString('id-ID')}</b> anggota tim</span>
             <span className="stStat"><b>{directory.filter((row) => row.directory_status === 'available' && !row.already_locked_here).length.toLocaleString('id-ID')}</b> kandidat</span>

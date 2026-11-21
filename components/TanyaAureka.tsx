@@ -98,10 +98,10 @@ function NaraAvatar({ size = 34 }: { size?: number }) {
   </span>
 }
 
-export type TanyaStage = { title: string; subtitle: string; starters: { label: string; prompt: string; icon?: ReactNode }[] }
+export type TanyaStage = { title: string; subtitle?: string; starters: { label: string; prompt: string; icon?: ReactNode }[] }
 export type TanyaMessage = Msg
 
-export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'NARA AI', assistantSubtitle = 'Hospital Intelligence Assistant · data sesuai hak akses Anda', showAvatar = false, initialPrompt, onInitialPromptConsumed, storageScope, onMessages, stage }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string; onInitialPromptConsumed?: () => void; /** Riwayat terpisah (mis. satu percakapan NARA); tanpa ini riwayat dibagi dengan Tanya AUREKA. */ storageScope?: string; onMessages?: (msgs: Msg[]) => void; /** Tampilan awal ala aplikasi chat: sapaan besar + kotak tanya di tengah. */ stage?: TanyaStage }) {
+export default function TanyaAureka({ sb, page, embedded = false, assistantName = 'NARA AI', assistantSubtitle, showAvatar = false, initialPrompt, onInitialPromptConsumed, storageScope, onMessages, stage }: { sb: SupabaseClient; page?: string; embedded?: boolean; assistantName?: string; assistantSubtitle?: string; showAvatar?: boolean; initialPrompt?: string; onInitialPromptConsumed?: () => void; /** Riwayat terpisah (mis. satu percakapan NARA); tanpa ini riwayat dibagi dengan Tanya AUREKA. */ storageScope?: string; onMessages?: (msgs: Msg[]) => void; /** Tampilan awal ala aplikasi chat: sapaan besar + kotak tanya di tengah. */ stage?: TanyaStage }) {
   const [open, setOpen] = useState(embedded)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')
@@ -280,11 +280,11 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
     {staged && stage && <div className="tanyaStage">
       {showAvatar && <NaraAvatar size={56}/>}
       <h2>{stage.title}</h2>
-      <p>{stage.subtitle}</p>
+      {stage.subtitle && <p>{stage.subtitle}</p>}
     </div>}
     {!staged && <header className="tanyaHead">
       {showAvatar ? <NaraAvatar size={40}/> : <span className="tanyaMark" aria-hidden="true">✦</span>}
-      <div><strong>{assistantName}</strong><span>{assistantSubtitle}</span></div>
+      <div><strong>{assistantName}</strong>{assistantSubtitle && <span>{assistantSubtitle}</span>}</div>
       {msgs.length > 0 && <>
         <button type="button" className="tanyaGhost" onClick={saveChat} title="Unduh percakapan sebagai file teks">Simpan</button>
         <button type="button" className="tanyaGhost danger" onClick={clearChat} title="Hapus riwayat chat di perangkat ini">Hapus</button>
@@ -336,7 +336,6 @@ export default function TanyaAureka({ sb, page, embedded = false, assistantName 
       </button>
     </form>
     {staged && stage && <div className="tanyaStageChips">{stage.starters.map((st) => <button type="button" key={st.label} onClick={() => void ask(st.prompt)}>{st.icon}{st.label}</button>)}</div>}
-    <p className="tanyaNote">Jawaban AI bisa keliru, cek kembali angka penting di modul terkait. Identitas pasien tidak dikirim ke AI.</p>
   </section>
 
   const fab = <button type="button" className={'tanyaFab' + (open ? ' on' : '')} title={assistantName} aria-label={open ? 'Tutup ' + assistantName : assistantName} aria-expanded={open} onClick={() => setOpen(v => !v)}>

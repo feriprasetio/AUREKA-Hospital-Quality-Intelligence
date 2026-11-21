@@ -559,7 +559,6 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       <WorkspaceModuleHeader
         className="acdHero"
         title="Penemuan kasus & telaah episode"
-        description="Penemuan kasus berbasis episode pasien, penilaian mutu pelayanan per fase, dan rekomendasi perbaikan."
         actions={<button type="button" className="acdBtn" disabled={loading || saving} onClick={() => void load()}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button>}
       />
       <p className="workspaceClinicalDisclaimer" role="note">Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>

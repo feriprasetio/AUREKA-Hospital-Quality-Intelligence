@@ -40,7 +40,6 @@ export function SystemConfigPanel() {
   return (
     <section className="stPanel govSettingsPanel" aria-label="Konfigurasi sistem">
       <h4>Konfigurasi Sistem</h4>
-      <p className="stPanelHint">Kebijakan yang menurut Blueprint v2 §16 harus ditetapkan sebelum operasional. {canEdit ? 'Hanya Super Admin yang dapat mengubah.' : 'Hanya dapat dilihat; perubahan oleh Super Admin.'}</p>
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
       {notice && <div className="rmNotice" role="status"><span>Informasi</span><p>{notice}</p></div>}
       <div className="govSettingList">
@@ -102,11 +101,9 @@ export function PermissionMatrixPanel() {
   return (
     <section className="stPanel govSettingsPanel" aria-label="Hak akses role">
       <h4>Hak Akses Role</h4>
-      <p className="stPanelHint">Halaman ini menentukan <b>siapa boleh melihat atau melakukan apa</b> di AUREKA. Setiap baris adalah satu jenis akses, setiap kolom adalah peran pengguna. Centang berarti peran tersebut boleh. Peran tiap akun diatur di <b>Pengguna dan Role</b>. Akses bertanda <b>sensitif</b> (data pribadi pasien atau pegawai) dicatat di Audit Log setiap kali dipakai.</p>
       <details className="govRoleInfo"><summary>Arti tiap peran</summary><dl>{ROLES.map(([k, l]) => <div key={k}><dt>{l}</dt><dd>{ROLE_INFO[k]}</dd></div>)}</dl></details>
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
       {matrix.length === 0 && perms.length > 0 && <>
-        <p className="stPanelHint">Hak akses role Anda ({role}):</p>
         <ul className="govPermMine">{perms.map((p) => <li key={p.code} className={mine.includes(p.code) ? 'on' : ''}>{mine.includes(p.code) ? '✓' : '-'} {p.label}{p.sensitive ? ' · sensitif' : ''}</li>)}</ul>
       </>}
       {matrix.length > 0 && <div className="govPermMobile">
@@ -123,8 +120,6 @@ export function PermissionMatrixPanel() {
           </td> })}
         </tr>)}
       </tbody></table></div>}
-      {matrix.length > 0 && !canEdit && <p className="stPanelHint">Hanya Super Admin yang dapat mengubah matriks ini.</p>}
-      <p className="stPanelHint">Catatan: matriks ini dipakai untuk identitas pasien, fitur tata kelola (Program, Regulasi, Audit Log), serta tambahan akses baca rincian investigasi, respons survei bernama, dan OPPE/FPPE. Aturan akses lama tetap berlaku (tahap 1 hanya menambah akses, tidak mengurangi).</p>
     </section>
   )
 }

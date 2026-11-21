@@ -15,7 +15,6 @@ export type AdaptiveWorkspaceDensity = 'comfortable' | 'compact'
 export type AdaptiveLayoutDefinition = {
   id: AdaptiveLayoutId
   label: string
-  purpose: string
 }
 
 export type AdaptiveWorkspaceDefinition = {
@@ -26,16 +25,16 @@ export type AdaptiveWorkspaceDefinition = {
 }
 
 export const AUREKA_ADAPTIVE_LAYOUTS: readonly AdaptiveLayoutDefinition[] = [
-  { id: 'bento-grid', label: 'Bento Intelligence', purpose: 'Ringkasan kinerja, status, dan prioritas dalam kartu analitik.' },
-  { id: 'three-pane', label: 'Three-Pane Workspace', purpose: 'Daftar, detail, dan konteks pekerjaan dalam satu ruang.' },
-  { id: 'analytical', label: 'Analytical Workspace', purpose: 'Analisis tren, distribusi, perbandingan, dan rekonsiliasi.' },
-  { id: 'clinical-case', label: 'Clinical Case Workspace', purpose: 'Penelaahan kasus, episode, bukti, dan keputusan klinis.' },
-  { id: 'risk-intelligence', label: 'Risk Intelligence', purpose: 'Matriks risiko, register, profil, dan relasi risiko.' },
-  { id: 'workflow-kanban', label: 'Workflow / Kanban', purpose: 'Pengelolaan status, tahapan, pemilik, dan tindak lanjut.' },
-  { id: 'timeline-gantt', label: 'Timeline / Gantt', purpose: 'Perencanaan waktu, target, progres, dan tenggat.' },
-  { id: 'document-intelligence', label: 'Document Intelligence', purpose: 'Register, struktur, versi, dan verifikasi dokumen.' },
-  { id: 'chat-artifact', label: 'Chat + Artifact', purpose: 'Percakapan AI berdampingan dengan hasil analisis.' },
-  { id: 'canvas-editor', label: 'Canvas Editor', purpose: 'Penyusunan elemen visual dan dokumen terstruktur.' },
+  { id: 'bento-grid', label: 'Bento Intelligence' },
+  { id: 'three-pane', label: 'Three-Pane Workspace' },
+  { id: 'analytical', label: 'Analytical Workspace' },
+  { id: 'clinical-case', label: 'Clinical Case Workspace' },
+  { id: 'risk-intelligence', label: 'Risk Intelligence' },
+  { id: 'workflow-kanban', label: 'Workflow / Kanban' },
+  { id: 'timeline-gantt', label: 'Timeline / Gantt' },
+  { id: 'document-intelligence', label: 'Document Intelligence' },
+  { id: 'chat-artifact', label: 'Chat + Artifact' },
+  { id: 'canvas-editor', label: 'Canvas Editor' },
 ] as const
 
 const LAYOUT_BY_ID = new Map(AUREKA_ADAPTIVE_LAYOUTS.map((layout) => [layout.id, layout]))
@@ -75,12 +74,13 @@ function resolveLayout(moduleId: string, label: string): AdaptiveLayoutId {
 
   if (module === 'quality') {
     if (includesAny(context, ['standar prosedur', 'spo', 'legal'])) return 'document-intelligence'
-    if (includesAny(context, ['standar pelayanan', 'spm', 'monitoring', 'hasil capaian'])) return 'analytical'
+    if (includesAny(context, ['standar pelayanan', 'spm', 'monitoring', 'hasil capaian', 'kinerja pic', 'rekonsiliasi'])) return 'analytical'
     return 'three-pane'
   }
 
   if (module === 'secretariat') {
-    return includesAny(context, ['undangan', 'kirim']) ? 'workflow-kanban' : 'three-pane'
+    if (includesAny(context, ['program kerja', 'timeline', 'rencana kegiatan'])) return 'timeline-gantt'
+    return includesAny(context, ['undangan', 'kirim', 'prioritas', 'usulan']) ? 'workflow-kanban' : 'three-pane'
   }
 
   if (module === 'analytics') {
@@ -136,8 +136,9 @@ export function normalizeWorkspaceDensity(value: unknown): AdaptiveWorkspaceDens
   return value === 'compact' ? 'compact' : 'comfortable'
 }
 
-export function workspacePreferenceStorageKey(workspaceId: string): string {
-  return 'aureka:adaptive-workspace:v1:' + slug(workspaceId)
+export function workspacePreferenceStorageKey(workspaceId: string, userId?: string): string {
+  const prefix = 'aureka:adaptive-workspace:v1:'
+  return prefix + (userId ? encodeURIComponent(userId) + ':' : '') + slug(workspaceId)
 }
 
 export function parseWorkspacePreference(value: string | null): { version: 1; density: AdaptiveWorkspaceDensity } {

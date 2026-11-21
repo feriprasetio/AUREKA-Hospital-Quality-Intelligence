@@ -6,7 +6,7 @@ export type UnifiedNavigationItem = { id: string; label: string; hint?: string; 
 
 type UnifiedModuleNavigationProps = {
   ariaLabel: string; title: string; items: UnifiedNavigationItem[]; activeId: string; onSelect: (id: string) => void
-  secondaryActiveId?: string; onSubSelect?: (id: string) => void; subTitle?: string; subItems?: UnifiedNavigationItem[]; pageHint?: string
+  secondaryActiveId?: string; onSubSelect?: (id: string) => void; subTitle?: string; subItems?: UnifiedNavigationItem[]
   mobileWorkspaceTabs?: boolean
 }
 
@@ -32,10 +32,9 @@ function sameIds(a: string[], b: string[]) { return a.length === b.length && a.e
 
 /** One shared two-group navigation for every authenticated AUREKA workspace. */
 export default function UnifiedModuleNavigation({
-  ariaLabel, title, items, activeId, onSelect, secondaryActiveId = '', onSubSelect, subTitle, subItems = [], pageHint,
+  ariaLabel, title, items, activeId, onSelect, secondaryActiveId = '', onSubSelect, subTitle, subItems = [],
   mobileWorkspaceTabs = true,
 }: UnifiedModuleNavigationProps) {
-  const [hintsHidden, setHintsHidden] = useState(false)
   const [hiddenIds, setHiddenIds] = useState<string[]>([])
   const [hiddenSubIds, setHiddenSubIds] = useState<string[]>([])
   const railRef = useRef<HTMLElement>(null)
@@ -54,16 +53,6 @@ export default function UnifiedModuleNavigation({
   const activePrimaryItem = items.find(item => item.id === resolvedActiveId)
   const mobileTabItems = subItems.length ? subItems : items
   const activeMobileTabId = subItems.length ? resolvedSecondaryActiveId : resolvedActiveId
-
-  useEffect(() => {
-    const read = () => { try { setHintsHidden(localStorage.getItem('aureka-hide-hints') === '1') } catch { /* ignore */ } }
-    read(); window.addEventListener('aureka-hints-change', read)
-    return () => window.removeEventListener('aureka-hints-change', read)
-  }, [])
-  const toggleHints = (hide: boolean) => {
-    setHintsHidden(hide)
-    try { if (hide) localStorage.setItem('aureka-hide-hints', '1'); else localStorage.removeItem('aureka-hide-hints') } catch { /* ignore */ }
-  }
 
   useEffect(() => {
     const rail = railRef.current
@@ -305,6 +294,5 @@ export default function UnifiedModuleNavigation({
         })}
       </nav>}
     </section>}
-    {pageHint && !hintsHidden && <p className="workspacePageHint" role="note"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" /><path d="M10 9v5M10 6.2v.3" /></svg><span>{pageHint}</span><button type="button" onClick={() => toggleHints(true)} aria-label="Sembunyikan penjelasan halaman" title="Sembunyikan penjelasan (bisa dimunculkan lagi di Pengaturan → Preferensi Tampilan)">×</button></p>}
   </>
 }

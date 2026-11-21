@@ -842,7 +842,6 @@ export default function RiskManagementWorkspace({
       {tab === 'overview' && <WorkspaceModuleHeader
         className="rmHero"
         title="Pengelolaan risiko"
-        description="Identifikasi, pemetaan selera risiko, analisis HFMEA, konektor antar-risiko, dan rencana mitigasi dengan alur persetujuan berjenjang."
         actions={<div className="rmHeroActions">
           <span className="rmRoleChip">{roleLabel(role)}{scopedToUnit && currentRoom ? ' · ' + currentRoom.name : ''}</span>
           <button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Risiko baru</button>

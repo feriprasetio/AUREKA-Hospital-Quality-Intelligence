@@ -10,6 +10,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
+import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import AurekaModal from '@/components/ui/AurekaModal'
 import { SystemConfigPanel, PermissionMatrixPanel } from '@/components/governance/SettingsGovernancePanels'
@@ -212,7 +213,7 @@ export default function GeneralSettings({
     const { error } = await sb.auth.updateUser({ email: em }, { emailRedirectTo: `${window.location.origin}${BASE_PATH}/` })
     setBusy(false)
     if (error) return setAcctNote({ ok: false, text: /rate limit|too many/i.test(error.message) ? 'Terlalu banyak permintaan email. Coba lagi beberapa menit lagi.' : /already|registered/i.test(error.message) ? 'Email sudah dipakai akun lain.' : `Gagal mengubah email: ${toUserFacingError(error, { fallback: 'Email belum dapat diubah. Coba kembali.' })}` })
-    setAcctNote({ ok: true, text: `Link konfirmasi dikirim ke ${em}. Email baru berlaku setelah Anda klik link tersebut (Supabase juga dapat mengirim konfirmasi ke email lama). Sampai saat itu, login tetap memakai email lama.` })
+    setAcctNote({ ok: true, text: `Tautan konfirmasi dikirim ke ${em}. Gunakan email lama untuk masuk hingga perubahan dikonfirmasi.` })
   }
 
   const saveMe = async () => {
@@ -271,7 +272,7 @@ export default function GeneralSettings({
     if (error) {
       const t = error.message || ''
       setMsg(/DUPLICATE_ROOM/.test(t) ? 'Gagal: nama atau kode unit sudah dipakai unit lain.'
-        : error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Gagal: fitur kelola unit belum aktif. Jalankan migration 20261014093000_user_lifecycle_and_room_admin.sql di Supabase.'
+        : error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(t) ? 'Perubahan unit belum dapat disimpan. Hubungi administrator.'
         : `Gagal menyimpan unit: ${toUserFacingError(error, { fallback: 'Unit belum dapat disimpan.' })}`)
       return
     }
@@ -327,7 +328,7 @@ export default function GeneralSettings({
       const text = error.message || ''
       let note = `Gagal menghapus: ${toUserFacingError(error, { fallback: 'Akun belum dapat dihapus.' })}`
       if (/USER_HAS_DATA/.test(text)) note = 'Akun ini sudah memiliki data operasional sehingga tidak dihapus agar data tetap utuh. Gunakan “Nonaktifkan”.'
-      else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Fitur hapus akun belum aktif di database.'
+      else if (error.code === 'PGRST202' || /Could not find the function|schema cache/i.test(text)) note = 'Akun belum dapat dihapus. Hubungi administrator.'
       setMsg(note)
       setRowNote({ id: u.user_id, ok: false, text: note })
       return
@@ -766,7 +767,7 @@ export default function GeneralSettings({
             <LiquidGlass style={{ padding: 18 }}>
               <div id="aureka-password-form" className="pwHead">
                 <span className="pwHeadIcon" aria-hidden="true"><SettingsIcon kind="lock" /></span>
-                <div><h4>Ubah Password Saya</h4><p>Ganti password akun Anda sendiri kapan saja. Berlaku untuk login berikutnya.</p></div>
+                <h4>Ubah password</h4>
               </div>
               {/* Form + kolom username tersembunyi: pengelola password browser mengisi username di sini, bukan di kotak cari header. */}
               <form className="pwForm" onSubmit={(e) => e.preventDefault()}>
@@ -784,21 +785,6 @@ export default function GeneralSettings({
                 <LiquidGlassButton onClick={changePassword} disabled={busy || !pw.current || !pw.next || !pw.confirm}>{busy ? 'Memproses…' : 'Simpan password baru'}</LiquidGlassButton>
               </div>
               <p className="pwForgot">Lupa password saat ini? <button type="button" className="uBtn outline sm" disabled={resetBusy} onClick={sendResetLink}>{resetBusy ? 'Mengirim…' : 'Kirim link reset ke email saya'}</button></p>
-              <h4 style={{ margin: '0 0 12px' }}>Keamanan & Session</h4>
-              <div style={{ display: 'grid', gap: 9 }}>
-                {[
-                  ['Authentication', 'Supabase Auth'],
-                  ['Session', 'Persistent session + automatic refresh'],
-                  ['Authorization', `Role-based access · ${roleLabel}`],
-                  ['Password', 'Dikelola oleh sistem login AUREKA, bukan disimpan di halaman Pengaturan.'],
-                  ['Kepadatan tampilan', 'Gunakan tombol Nyaman / Ringkas di atas area kerja.'],
-                ].map(([label, value]) => (
-                  <div key={label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 10, padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.22)', border: '1px solid rgba(255,255,255,.48)' }}>
-                    <b style={{ fontSize: 12 }}>{label}</b>
-                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>{value}</span>
-                  </div>
-                ))}
-              </div>
             </LiquidGlass>
           )}
           </div>
@@ -1006,30 +992,21 @@ export default function GeneralSettings({
 
 
 function AppearancePanel() {
-  const [mode, setMode] = useState<'terang' | 'gelap'>(() => (typeof document !== 'undefined' && document.documentElement.getAttribute('data-mode') === 'gelap') ? 'gelap' : 'terang')
-  const choose = (next: 'terang' | 'gelap') => {
-    setMode(next)
-    document.documentElement.setAttribute('data-mode', next)
-    try { localStorage.setItem('aureka-mode', next) } catch { /* abaikan */ }
-    window.dispatchEvent(new CustomEvent('aureka-mode-change', { detail: next }))
-  }
+  const mode = useAurekaMode()
   return (
     <LiquidGlass className="stPanel">
       <h4>Tampilan</h4>
-      <p className="stPanelHint">Pilihan disimpan di perangkat ini.</p>
       <div className="stModeGrid" role="radiogroup" aria-label="Mode tampilan">
-        {([['terang', 'Terang', 'Kaca es, cocok untuk siang hari'], ['gelap', 'Gelap', 'Kaca malam, nyaman di ruangan redup']] as const).map(([value, label, hint]) => (
-          <button key={value} type="button" role="radio" aria-checked={mode === value} className={'stMode ' + value + (mode === value ? ' on' : '')} onClick={() => choose(value)}>
+        {([['terang', 'Terang'], ['gelap', 'Gelap']] as const).map(([value, label]) => (
+          <label key={value} className={'stMode ' + value + (mode === value ? ' on' : '')}>
+            <input type="radio" name="aureka-display-mode" value={value} checked={mode === value} onChange={() => setAurekaMode(value)} />
             <span className="stModePreview" aria-hidden="true"><i /><i /><i /></span>
-            <b>{label}</b><small>{hint}</small>
-          </button>
+            <b>{label}</b>
+          </label>
         ))}
       </div>
       <PreferenceExtras />
-      <h4 style={{ marginTop: 18 }}>Bantuan</h4>
       <div className="akHelpRow">
-        <button type="button" className="akInstallBtn ghost" onClick={() => window.dispatchEvent(new Event('aureka-open-tour'))}>Buka panduan singkat</button>
-        <button type="button" className="akInstallBtn ghost" onClick={() => { try { localStorage.removeItem('aureka-hide-hints') } catch { /* abaikan */ } window.dispatchEvent(new Event('aureka-hints-change')) }}>Tampilkan lagi penjelasan halaman</button>
         <InstallAppButton />
       </div>
       <TrainingToggle />
@@ -1041,7 +1018,7 @@ function TrainingToggle() {
   const [on, setOn] = useState(false)
   useEffect(() => { setOn(isTrainingMode()) }, [])
   return <div className="akTrainingRow">
-    <div><b>Mode latihan</b><p className="stPanelHint">Untuk sosialisasi: coba isi logbook, IKP, dan risiko tanpa mengubah data asli. Hanya berlaku di perangkat ini.</p></div>
+    <b>Mode latihan</b>
     <button type="button" className={'akInstallBtn' + (on ? '' : ' ghost')} onClick={() => { setTrainingMode(!on); window.location.reload() }}>{on ? 'Matikan mode latihan' : 'Mulai mode latihan'}</button>
   </div>
 }

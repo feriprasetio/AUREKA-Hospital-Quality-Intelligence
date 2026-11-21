@@ -14,7 +14,7 @@ test('signup room options come from the database, not hardcoded IDs', () => {
 
 test('signup prevents phantom unit selection and offers a retry when rooms fail to load', () => {
   assert.match(page, /id="signupRoom"[^\n]*disabled=\{!roomsList\.length\}/)
-  assert.match(page, /role="alert"[^\n]*Daftar unit tidak dapat dimuat/)
+  assert.match(page, /role="alert"[^\n]*Daftar unit belum dapat dimuat/)
   assert.match(page, /Coba muat ulang unit/)
   assert.match(page, /setRoomOptionsLoaded\(true\)/)
 })

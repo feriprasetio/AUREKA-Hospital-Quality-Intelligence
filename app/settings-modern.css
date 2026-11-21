@@ -50,7 +50,7 @@ html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .s
 .workspaceRoot .settingsWorkspace .stHeroText p { margin: 2px 0 10px; font-size: 13.5px; opacity: .75; }
 .workspaceRoot .settingsWorkspace .stChips { display: flex; flex-wrap: wrap; gap: 6px; }
 .workspaceRoot .settingsWorkspace .stChip { padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: rgba(127, 150, 175, .16); }
-.workspaceRoot .settingsWorkspace .stChip.ok { background: rgba(47, 122, 85, .16); color: #2f7a55; }
+.workspaceRoot .settingsWorkspace .stChip.ok { background: var(--aureka-color-success-soft); color: var(--aureka-color-success); }
 .workspaceRoot .settingsWorkspace .stChip.warn { background: rgba(179, 53, 46, .14); color: #b3352e; }
 
 .workspaceRoot .settingsWorkspace .stPanel { padding: 22px !important; border-radius: 24px !important; }
@@ -79,4 +79,15 @@ html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .s
   .workspaceRoot .settingsWorkspace .stNav { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 6px; }
   .workspaceRoot .settingsWorkspace .stNavProfile { display: none; }
   .workspaceRoot .settingsWorkspace .stNavItem { flex: 0 0 auto; white-space: nowrap; }
+}
+
+.stMode { position: relative; }
+.stMode > input[type="radio"] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.stMode:has(input:focus-visible) { outline: 2px solid var(--aureka-color-information); outline-offset: 3px; }
+
+.workspaceRoot .settingsWorkspace .filterChip.active {
+  background: var(--aureka-color-primary);
+  color: var(--aureka-color-on-primary);
+  border-color: transparent;
+  box-shadow: none;
 }

@@ -14,8 +14,8 @@ test('Arktik adalah tema baku (pilihan Feri) dan tidak ditimpa tema Solid lama',
   assert.doesNotMatch(layout, /data-skin="solid"/)
 })
 
-test('Infografis diagnostic points to the deployed aggregate and permission-guard migrations in execution order', () => {
-  assert.match(infographic, /20261112140000_aureka_infographics_aggregate\.sql/)
-  assert.match(infographic, /20261112044800_infographics_permission_guard\.sql/)
-  assert.doesNotMatch(infographic, /20261112150000_infographics_permission_guard\.sql/)
+test('Infographics show a user-facing failure state without database setup instructions', () => {
+  assert.match(infographic, /Ringkasan belum dapat dimuat/)
+  assert.match(infographic, /className="ifError" role="alert"/)
+  assert.doesNotMatch(infographic, /infographics_(?:permission_guard|aggregate)\.sql|Ringkasan tidak mengembalikan payload/)
 })

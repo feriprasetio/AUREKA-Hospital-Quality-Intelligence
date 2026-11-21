@@ -746,9 +746,6 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     flex-basis: 145px !important;
     min-width: 100px !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderIcon:not(.workspaceSearchToggle) {
-    display: none !important;
-  }
 }
 
 @media (max-width: 860px) and (min-width: 721px) {
@@ -904,9 +901,6 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     max-width: none !important;
   }
 
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderIcon:not(.workspaceSearchToggle) {
-    display: none !important;
-  }
 
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
     margin-left: 0 !important;

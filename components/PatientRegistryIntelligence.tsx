@@ -25,23 +25,25 @@ export default function PatientRegistryIntelligence({ onOpenDirectory }: Props) 
   const withNik = summary ? Number(summary.dengan_nik ?? 0) : 0
   const simrs = summary ? Number(summary.terhubung_simrs ?? 0) : 0
   const cards = [
-    { label: 'Pasien unik terindeks', value: summary ? number(total) : '—', caption: 'Satu identitas pasien per nomor rekam medis' },
-    { label: 'Memiliki NIK', value: summary ? number(withNik) : '—', caption: summary ? percent(withNik,total)+'% dari pasien terindeks' : 'Menunggu ringkasan database' },
-    { label: 'Terhubung SIMRS', value: summary ? number(simrs) : '—', caption: summary ? percent(simrs,total)+'% dari pasien terindeks' : 'Menunggu status integrasi' },
+    { label: 'Pasien terdaftar', value: summary ? number(total) : '—', caption: '' },
+    { label: 'Memiliki NIK', value: summary ? number(withNik) : '—', caption: summary && total > 0 ? percent(withNik,total)+'% dari pasien terindeks' : '' },
+    { label: 'Terhubung SIMRS', value: summary ? number(simrs) : '—', caption: summary && total > 0 ? percent(simrs,total)+'% dari pasien terindeks' : '' },
   ]
   return <section className="patientRegistryIntelligence" aria-labelledby="patient-registry-intelligence-title" aria-busy={loading}>
-    <header className="priHero"><div><span className="priEyebrow">PATIENT INTELLIGENCE</span><h2 id="patient-registry-intelligence-title">Visual Intelligence Direktori Pasien</h2><p>Ikhtisar indeks pasien yang terbentuk dari data pelayanan dan logbook lintas unit. Identitas pasien tidak ditampilkan pada ringkasan ini.</p></div><span className="priStatus">{loading?'Memuat data':summary?'Data agregat tersedia':'Data belum tersedia'}</span></header>
+    <header className="priHero">
+      <h2 id="patient-registry-intelligence-title">Ringkasan pasien</h2>
+      {loading && <span className="priStatus" role="status">Memuat data</span>}
+    </header>
     {error && <div className="priNotice" role="status">{error}</div>}
-    <div className="priMetrics">{cards.map(card=><article className="priMetric" key={card.label}><span>{card.label}</span><strong>{loading?'…':card.value}</strong><small>{card.caption}</small></article>)}</div>
+    <div className="priMetrics">{cards.map(card=><article className="priMetric" key={card.label}><span>{card.label}</span><strong>{loading?'…':card.value}</strong>{card.caption && <small>{card.caption}</small>}</article>)}</div>
     <div className="priActions"><button type="button" className="priPrimary" onClick={onOpenDirectory}>Lihat Direktori</button></div>
-    <div className="priFootnote">Data ditampilkan sesuai cakupan hak akses pengguna. Angka yang tidak tersedia ditampilkan sebagai tanda pisah dan tidak ditafsirkan sebagai nol.</div>
     <style jsx>{`
       .patientRegistryIntelligence{display:grid;gap:18px;min-width:0;color:var(--ink,#18324a)}
       .priHero{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:22px;border:1px solid rgba(255,255,255,.8);border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(231,241,249,.66));box-shadow:0 10px 30px rgba(36,65,90,.06)}
       .priEyebrow{font-size:10px;letter-spacing:.14em;font-weight:800;color:#38799f}.priHero h2{margin:8px 0 7px;font-size:clamp(20px,2vw,27px);line-height:1.2;font-weight:800;color:#193c59}.priHero p{max-width:68ch;margin:0;color:#657b8d;font-size:13px;line-height:1.65}
-      .priStatus{flex:none;border:1px solid rgba(85,137,171,.22);border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.66);font-size:11px;font-weight:700;color:#446c86}
+      .priStatus{flex:none;font-size:12px;font-weight:700;color:var(--aureka-color-foreground-secondary)}
       .priMetrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.priMetric{display:grid;gap:9px;min-width:0;padding:18px;border:1px solid rgba(255,255,255,.88);border-radius:18px;background:rgba(255,255,255,.68);box-shadow:0 8px 24px rgba(36,65,90,.045)}
-      .priMetric span{font-size:12px;font-weight:700;color:#63798a}.priMetric strong{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.04em;color:#1d5274;font-variant-numeric:tabular-nums}.priMetric small{font-size:11px;line-height:1.5;color:#8796a2}
+      .priMetric span{font-size:12px;font-weight:700;color:var(--aureka-color-foreground-secondary)}.priMetric strong{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.04em;color:#1d5274;font-variant-numeric:tabular-nums}.priMetric small{font-size:11px;line-height:1.5;color:var(--aureka-color-foreground-secondary)}
       .priActions{display:flex;flex-wrap:wrap;gap:9px}.priActions button{min-height:42px;padding:0 15px;border-radius:12px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
       .priPrimary{border:1px solid #245f86;background:#245f86;color:#fff;box-shadow:0 5px 14px rgba(36,95,134,.16)}.priSecondary{border:1px solid #c8d9e5;background:rgba(255,255,255,.76);color:#285674}.priNara{border:1px solid rgba(67,151,177,.38);background:rgba(222,244,247,.72);color:#246678}
       .priNotice{padding:12px 14px;border:1px solid #e5d4b1;border-radius:12px;background:rgba(255,248,232,.82);color:#7a5d2b;font-size:12px;line-height:1.5}.priFootnote{font-size:11px;line-height:1.5;color:#82919d}

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import {
   parseWorkspacePreference,
   resolveAdaptiveWorkspace,
@@ -11,51 +12,49 @@ import {
 type AdaptiveWorkspaceShellProps = {
   moduleId: string
   containerLabel: string
+  userId: string
+  controlTarget: HTMLElement | null
   children: ReactNode
 }
 
-/**
- * Adds a shared, low-impact adaptive layer around existing domain workspaces.
- * Domain forms, calculations, data access, and authorization remain owned by
- * their existing modules. Personal preferences are presentation-only.
- */
+/** The layout and density are presentation-only. Each module owns its data and actions. */
 export default function AdaptiveWorkspaceShell({
   moduleId,
   containerLabel,
+  userId,
+  controlTarget,
   children,
 }: AdaptiveWorkspaceShellProps) {
-  const definition = useMemo(
-    () => resolveAdaptiveWorkspace(moduleId, containerLabel),
-    [moduleId, containerLabel],
-  )
-  const storageKey = useMemo(
-    () => workspacePreferenceStorageKey(definition.workspaceId),
-    [definition.workspaceId],
-  )
-  const [density, setDensity] = useState<AdaptiveWorkspaceDensity>('comfortable')
-  const [hydratedKey, setHydratedKey] = useState<string | null>(null)
+  const definition = resolveAdaptiveWorkspace(moduleId, containerLabel)
+  const legacyKey = workspacePreferenceStorageKey(definition.workspaceId)
+  const storageKey = workspacePreferenceStorageKey(definition.workspaceId, userId)
+  const [preference, setPreference] = useState<{ key: string; density: AdaptiveWorkspaceDensity } | null>(null)
+  const density = preference?.key === storageKey ? preference.density : 'comfortable'
 
   useEffect(() => {
-    let nextDensity: AdaptiveWorkspaceDensity = 'comfortable'
-    try {
-      nextDensity = parseWorkspacePreference(window.localStorage.getItem(storageKey)).density
-    } catch {
-      // Private browsing and managed devices may deny local storage access.
+    const read = () => {
+      let density: AdaptiveWorkspaceDensity = 'comfortable'
+      try {
+        const stored = window.localStorage.getItem(storageKey) ?? window.localStorage.getItem(legacyKey)
+        density = parseWorkspacePreference(stored).density
+      } catch { /* Preferences remain available for the current view. */ }
+      setPreference({ key: storageKey, density })
     }
-    setDensity(nextDensity)
-    setHydratedKey(storageKey)
-  }, [storageKey])
-
-  useEffect(() => {
-    if (hydratedKey !== storageKey) return
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify({ version: 1, density }))
-    } catch {
-      // The workspace remains usable when preferences cannot be persisted.
+    read()
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === storageKey || event.key === null) read()
     }
-  }, [density, hydratedKey, storageKey])
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [storageKey, legacyKey])
 
-  const resetPreference = () => setDensity('comfortable')
+  const toggleDensity = () => {
+    const next = density === 'compact' ? 'comfortable' : 'compact'
+    setPreference({ key: storageKey, density: next })
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify({ version: 1, density: next }))
+    } catch { /* Preferences remain available for the current view. */ }
+  }
 
   return (
     <section
@@ -63,40 +62,22 @@ export default function AdaptiveWorkspaceShell({
       data-adaptive-workspace={definition.workspaceId}
       data-adaptive-layout={definition.layout.id}
       data-adaptive-density={density}
-      aria-label={'Ruang kerja ' + definition.containerLabel}
+      aria-label={definition.containerLabel}
     >
-      <header className="adaptiveWorkspaceHeader">
-        <div className="adaptiveWorkspaceHeading">
-          <span className="adaptiveWorkspaceKicker">AUREKA WORKSPACE</span>
-          <strong className="adaptiveWorkspaceLayoutName">{definition.layout.label}</strong>
-          <p className="adaptiveWorkspaceDescription">{definition.layout.purpose}</p>
-        </div>
-        <details className="adaptiveWorkspacePreferences">
-          <summary aria-label="Preferensi tampilan ruang kerja">
-            Preferensi tampilan
-          </summary>
-          <div className="adaptiveWorkspacePreferencePanel">
-            <label>
-              <span>Kepadatan tampilan</span>
-              <select
-                aria-label="Kepadatan tampilan ruang kerja"
-                value={density}
-                onChange={(event) => setDensity(event.target.value === 'compact' ? 'compact' : 'comfortable')}
-              >
-                <option value="comfortable">Nyaman</option>
-                <option value="compact">Ringkas</option>
-              </select>
-            </label>
-            <button type="button" onClick={resetPreference} disabled={density === 'comfortable'}>
-              Kembalikan default
-            </button>
-            <small>Preferensi disimpan pada perangkat ini dan tidak mengubah data pelayanan.</small>
-          </div>
-        </details>
-      </header>
-      <div className="adaptiveWorkspaceContent" data-adaptive-density={density}>
-        {children}
-      </div>
+      {controlTarget && createPortal(
+        <button
+          type="button"
+          className="workspaceHeaderIcon workspaceDensityToggle"
+          aria-label="Tampilan ringkas"
+          aria-pressed={density === 'compact'}
+          title={density === 'compact' ? 'Tampilan nyaman' : 'Tampilan ringkas'}
+          onClick={toggleDensity}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M8 5v4m8 1v4m-8 1v4" /></svg>
+        </button>,
+        controlTarget,
+      )}
+      <div className="adaptiveWorkspaceContent" data-adaptive-density={density}>{children}</div>
     </section>
   )
 }

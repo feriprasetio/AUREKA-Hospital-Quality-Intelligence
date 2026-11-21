@@ -8,9 +8,10 @@ test('shared dialog controller traps keyboard focus and restores focus', () => {
   const source = read('components/layout/useAccessibleDialog.ts')
   assert.match(source, /event\.key === 'Escape'/)
   assert.match(source, /event\.key !== 'Tab'/)
-  assert.match(source, /lastElement\.focus\(\)/)
-  assert.match(source, /firstElement\.focus\(\)/)
-  assert.match(source, /previousFocus\.focus\(\)/)
+  assert.match(source, /dialogStack\.at\(-1\) !== dialog/)
+  assert.match(source, /event\.shiftKey \? last : first/)
+  assert.match(source, /remaining\.contains\(previousFocus\)/)
+  assert.match(source, /previousFocus\.focus\(\{ preventScroll: true \}\)/)
 })
 
 test('mobile sidebar keeps Escape, traps focus in the drawer, and restores the visible invoking control', () => {

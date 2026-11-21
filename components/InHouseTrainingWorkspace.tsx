@@ -215,13 +215,13 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
  const certFor=(participantId:string)=>certificates.find(x=>x.participant_id===participantId&&!x.revoked_at)||null
 
  return <section className="ihtWorkspace">
-  <WorkspaceModuleHeader eyebrow="Pendidikan dan Pelatihan" title="In House Training" description="Register pelatihan, peserta tenaga kerja, presensi, dan penerbitan sertifikat PDF."/>
+  <WorkspaceModuleHeader title="In House Training"/>
   {canManage&&<div className="ihtActions"><button type="button" onClick={()=>setShowTemplateEditor(true)}>Atur template sertifikat</button></div>}
   {showTemplateEditor&&<CertificateTemplateEditor templateKey="in_house_training" role={role} onClose={()=>setShowTemplateEditor(false)}/>} 
   {error&&<div className="ihtNotice error" role="alert">{error}</div>}{notice&&<div className="ihtNotice" role="status">{notice}</div>}
   {view==='overview'&&<>
    <div className="ihtMetrics"><div><span>Total Kegiatan</span><b>{events.length}</b></div><div><span>Kegiatan Selesai</span><b>{countDone}</b></div><div><span>Kegiatan Terjadwal</span><b>{countUpcoming}</b></div></div>
-   <div className="ihtCard"><h3>Visual Intelligence · In House Training</h3><p>Ringkasan kegiatan pendidikan internal sesuai cakupan akses. Daftar peserta, presensi, dan sertifikat dibuka dari detail setiap kegiatan.</p><button type="button" disabled={loading} onClick={()=>setView('list')}>Lihat In House Training</button>{canManage&&<button type="button" onClick={()=>setShowForm(true)}>＋ Tambah Kegiatan</button>}</div>
+   <div className="ihtCard"><h3>Ringkasan pelatihan</h3><button type="button" disabled={loading} onClick={()=>setView('list')}>Lihat In House Training</button>{canManage&&<button type="button" onClick={()=>setShowForm(true)}>＋ Tambah Kegiatan</button>}</div>
   </>}
   {view==='list'&&<>
    <div className="ihtActions"><button type="button" onClick={()=>setView('overview')}>← Visual Intelligence</button><input aria-label="Cari kegiatan IHT" placeholder="Cari kegiatan…" value={search} onChange={e=>setSearch(e.target.value)}/>{canManage&&<button type="button" onClick={()=>setShowForm(true)}>＋ Tambah Kegiatan</button>}</div>

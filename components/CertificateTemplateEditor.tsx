@@ -234,7 +234,7 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
                 })}
               </div>
             </div>
-            <p className="certificateEditorHint">Pilih elemen lalu seret. Posisi tersimpan sebagai persentase bidang A4 sehingga proporsinya tetap saat dicetak.</p>
+            <p className="certificateEditorHint">Pilih elemen, lalu seret atau atur posisinya.</p>
           </div>
 
           <aside className="certificateEditorControls">

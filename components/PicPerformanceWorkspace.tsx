@@ -79,8 +79,8 @@ export default function PicPerformanceWorkspace() {
       @media(max-width:420px){.ppKpi strong{font-size:20px}}
     `}</style>
     <div className="ppPanel">
-      <WorkspaceModuleHeader title="Monitoring Kinerja PIC" description="Pantau aktivitas penginputan logbook mutu berdasarkan akun PIC yang masih memiliki penugasan unit aktif. Angka menunjukkan catatan logbook yang dibuat akun tersebut, bukan penilaian kinerja klinis individual." actions={<div className="ppActions"><label className="ppSub" htmlFor="pp-days">Periode</label><select id="pp-days" className="ppSelect" value={days} onChange={e=>setDays(Number(e.target.value))}><option value={30}>30 hari</option><option value={90}>90 hari</option><option value={180}>180 hari</option><option value={365}>1 tahun</option></select><button className="ppBtn" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button></div>} />
-      <p className="ppIntro">Sumber data: logbook indikator mutu AUREKA (akun pembuat, unit, waktu pembuatan, dan status penyimpanan). Pengguna PIC hanya dapat melihat aktivitas akunnya sendiri. Monitoring ini tidak menghitung kualitas isi klinis atau ketepatan validasi.</p>
+      <WorkspaceModuleHeader title="Monitoring Kinerja PIC" actions={<div className="ppActions"><label className="ppSub" htmlFor="pp-days">Periode</label><select id="pp-days" className="ppSelect" value={days} onChange={e=>setDays(Number(e.target.value))}><option value={30}>30 hari</option><option value={90}>90 hari</option><option value={180}>180 hari</option><option value={365}>1 tahun</option></select><button className="ppBtn" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button></div>} />
+
     </div>
     {loading && <AsyncStatePanel state="loading" title="Memuat aktivitas PIC" description="Mengambil data penugasan dan logbook dari server." compact/>}
     {error && <AsyncStatePanel state="error" title="Data monitoring belum tersedia" description={error} onRetry={()=>void load()} compact/>}
@@ -92,7 +92,7 @@ export default function PicPerformanceWorkspace() {
         <div className="ppKpi"><span>Sudah tervalidasi</span><strong>{number(totals.validated)}</strong></div>
       </div>
       <div className="ppPanel">
-        <div className="ppHead"><div><strong>Daftar PIC dan aktivitas terakhir</strong><p className="ppIntro">Satu baris mewakili akun PIC dan unit penugasan aktif. Jika PIC belum membuat logbook, kolom aktivitas terakhir akan menampilkan keterangan tersebut.</p></div><span className="ppBadge">Diperbarui {fmtDate(data?.generated_at)}</span></div>
+        <div className="ppHead"><div><strong>Daftar PIC dan aktivitas terakhir</strong></div><span className="ppBadge">Diperbarui {fmtDate(data?.generated_at)}</span></div>
         <div className="ppTableWrap"><table className="ppTable"><thead><tr><th>PIC</th><th>Unit</th><th>Total logbook</th><th>{days} hari</th><th>Draft / siap / tervalidasi / arsip</th><th>Data terakhir dibuat</th></tr></thead><tbody>
           {rows.map(row=><tr key={row.user_id+'-'+row.room_id}><td><strong>{row.pic_name}</strong><span className="ppSub">{row.email || row.user_id}</span></td><td>{row.room_name}</td><td>{number(row.records_total)}</td><td>{number(row.records_window)}</td><td>{number(row.records_draft)} / {number(row.records_ready)} / {number(row.records_validated)} / {number(row.records_archived)}</td><td><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date ? 'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID') : 'Tanggal data belum tersedia'}{row.last_status ? ' · Status: '+row.last_status : ''}</span></td></tr>)}
           {rows.length===0&&<tr><td colSpan={6}><div className="ppEmpty">Belum ada akun PIC dengan penugasan aktif yang dapat ditampilkan.</div></td></tr>}

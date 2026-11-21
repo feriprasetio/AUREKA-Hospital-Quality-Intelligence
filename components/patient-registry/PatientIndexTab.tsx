@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
 
@@ -75,7 +76,6 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
   const [syncing, setSyncing] = useState(false)
   const [note, setNote] = useState('')
   const [invalid, setInvalid] = useState<InvalidRm[] | null>(null)
-  const [showSpec, setShowSpec] = useState(false)
   const [detail, setDetail] = useState<PatientRow | null>(null)
 
   useEffect(() => { const t = window.setTimeout(() => { setQuery(search.trim()); setPage(0) }, 400); return () => window.clearTimeout(t) }, [search])
@@ -123,36 +123,16 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
   const showBridge = Boolean((summary?.terhubung_simrs ?? 0) > 0 || rows.some((r) => r.bridging_status && r.bridging_status !== 'belum_terhubung'))
   const colCount = 5 + (showNik ? 1 : 0) + (showBridge ? 1 : 0)
 
-  if (notReady) return <section className="piPanel">
-    <h3>Direktori Pasien belum diaktifkan</h3>
-    <p>Struktur database pasien (No. Rekam Medis sebagai kunci utama) perlu dipasang sekali oleh pemilik Supabase: jalankan
-      <code> supabase/migrations/20261111140000_patient_index.sql</code> di SQL Editor. Setelah itu daftar pasien terisi otomatis dari Logbook yang sudah ada.</p>
-  </section>
+  if (notReady) return <AsyncStatePanel state="error" title="Direktori pasien belum tersedia" description="Jika kendala berlanjut, hubungi administrator." retrying={loading} onRetry={() => void load()} compact />
 
   return <section className="piWrap">
     <header className="piHead">
-      <p className="psStatsLead" title="Diisi otomatis dari Logbook semua unit. Disiapkan untuk bridging SIMRS / SATUSEHAT.">Satu baris per pasien unik · No. Rekam Medis menjadi identitas internal rumah sakit</p>
       <div className="piActions">
         <button type="button" className="prButton" onClick={() => void toggleIdentity()}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>
-        <button type="button" className="prButton" onClick={() => setShowSpec((v) => !v)}>{showSpec ? 'Tutup informasi' : 'Informasi interoperabilitas'}</button>
         {isAdmin && <button type="button" className="prButton primary" disabled={syncing} onClick={() => void sync()}>{syncing ? 'Menyinkronkan…' : 'Sinkron ulang dari Logbook'}</button>}
       </div>
     </header>
     {note && <div className="prAlert" role="status">{note}</div>}
-
-    {showSpec && <div className="piPanel piSpec">
-      <h4>Spesifikasi data &amp; bridging SIMRS</h4>
-      <ul>
-        <li><b>Kunci utama:</b> No. RM dinormalisasi ke 6 digit <code>XX-XX-XX</code> (nol depan dikembalikan; 36539 = 03-65-39). 7–12 digit disimpan angka saja.</li>
-        <li><b>Ditolak sebagai No. RM:</b> nilai berisi huruf atau berbentuk tanggal (mis. hasil salah format Excel), tampil di daftar &ldquo;No. RM bermasalah&rdquo;.</li>
-        <li><b>Kolom dari AUREKA:</b> nama, kunjungan pertama/terakhir, jumlah episode, unit &amp; diagnosis terakhir.</li>
-        <li><b>Kolom diisi SIMRS saat bridging:</b> NIK (16 digit), No. IHS SATUSEHAT, ID pasien SIMRS, tanggal lahir, jenis kelamin (L/P), alamat, telepon.</li>
-        <li><b>Status bridging:</b> Belum terhubung → Menunggu → Terhubung / Gagal / Konflik data.</li>
-        <li><b>Pemetaan FHIR (SATUSEHAT Patient):</b> identifier No. RM (sistem RS), identifier NIK &amp; IHS, name, gender, birthDate, address, telecom.</li>
-        <li><b>Keamanan:</b> tabel hanya lewat fungsi berizin; pengguna unit hanya melihat pasien yang pernah dilayani di unitnya; identitas disamarkan secara bawaan.</li>
-      </ul>
-      <p className="prMuted">Dokumen lengkap: docs/SPEC-BRIDGING-SIMRS.md di repositori AUREKA.</p>
-    </div>}
 
     <div className="piToolbar">
       <div className="piActions">
@@ -165,14 +145,12 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
             {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </label>
-        <label className="piDate"><span>Datang terakhir</span>
+        <div className="piDate" role="group" aria-label="Kunjungan terakhir"><span>Kunjungan terakhir</span>
           <input type="date" value={from} max={to || undefined} disabled={v2 === false} onChange={(e) => { setFrom(e.target.value); setPage(0) }} aria-label="Kunjungan terakhir dari tanggal" />
-          <i aria-hidden="true">–</i>
           <input type="date" value={to} min={from || undefined} disabled={v2 === false} onChange={(e) => { setTo(e.target.value); setPage(0) }} aria-label="Kunjungan terakhir sampai tanggal" />
-        </label>
+        </div>
         {(roomId != null || from || to) && <button type="button" className="piReset" onClick={() => { setRoomId(null); setFrom(''); setTo(''); setPage(0) }}>Reset filter</button>}
       </div>
-      <p className="piHint">Pencarian menggunakan satu search bar global pada header AUREKA. Filter unit dan tanggal membatasi daftar pasien yang ditampilkan.</p>
     </div>
 
     {invalid && <div className="piPanel" id="pi-invalid-rm">
@@ -185,7 +163,6 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
 
     {error && <div className="prAlert" role="alert">{error}</div>}
     <div className="prPanel">
-      {(!showNik || !showBridge) && <p className="piColNote">Kolom NIK dan status bridging disembunyikan karena SIMRS belum terhubung. Kolom itu muncul sendiri begitu datanya masuk.</p>}
       <div className="prTableWrap">
         <table className="prTable piTable" data-ak-sort="off">
           <thead><tr><th>No. RM</th><th>Nama Pasien</th>{showNik && <th>NIK</th>}<th>Kunjungan</th><th>Unit terakhir</th><th>Diagnosis terakhir</th>{showBridge && <th>Bridging SIMRS</th>}</tr></thead>
@@ -230,22 +207,27 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piBridge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#eef2f7;color:#4a5b6d;white-space:nowrap}
       .piBridge.terhubung{background:#e3f4ea;color:#1f6b43}.piBridge.menunggu{background:#fff4e0;color:#8a5a12}
       .piBridge.gagal,.piBridge.konflik{background:#fde8e8;color:#9b2c2c}
-      .piToolbar{display:grid;gap:10px;padding:14px 16px;border-radius:16px;border:1px solid rgba(11,70,122,.12);background:rgba(255,255,255,.7)}
+      .piToolbar{display:grid;gap:10px;padding:14px 16px;border-radius:12px;border:1px solid var(--aureka-color-border-strong);background:var(--aureka-color-surface)}
       .piFilters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start}
       .piSearch{flex:1 1 260px;min-width:0}.piSelect select,.piDate input{width:100%;min-height:40px;padding:0 12px;border-radius:12px;border:1.5px solid #d9e4ef;background:#f5f8fc;font:inherit;font-size:13px;color:#1f2430}
       .piSelect{flex:0 1 220px;min-width:160px}
-      .piDate{display:flex;align-items:center;gap:6px;flex:0 1 auto;font-size:12px;font-weight:700;color:#4b5565}.piDate input{width:auto;min-width:138px}.piDate i{font-style:normal;color:#94a3b8}
+      .piDate{display:grid;grid-template-columns:auto repeat(2,minmax(0,144px));align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--aureka-color-foreground-secondary)}
+      .piDate input{box-sizing:border-box;min-width:0;width:100%}
+      @media(max-width:720px){.piSelect{flex:1 0 100%;min-width:0}.piDate{flex:1 0 100%;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}.piDate span{grid-column:1/-1}.piDate input{padding-inline:6px}}
       .piReset{min-height:40px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:#0e7490;font:inherit;font-size:13px;font-weight:700;cursor:pointer}.piReset:hover{background:rgba(14,116,144,.08)}
-      .piHint{margin:0;font-size:12px;color:#64748b}.piHint code{font-size:12px}
       .piSr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-      .piColNote{margin:0 0 10px;padding:8px 12px;border-radius:10px;background:#f2f6fa;color:#4b5565;font-size:12px}
       .piRow{cursor:pointer;transition:background-color .12s ease}.piRow:hover td,.piRow:focus-visible td{background:rgba(94,196,207,.09)}.piRow:focus-visible{outline:2px solid rgba(34,211,238,.6);outline-offset:-2px}
       .piVisits{white-space:nowrap}.piVisits b{font-variant-numeric:tabular-nums}.piVisits span{color:#4b5565}
       .piDiag{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:420px}
       html[data-mode="gelap"] :is(.piSelect select,.piDate input){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
-      html[data-mode="gelap"] .piColNote{background:rgba(255,255,255,.05);color:#aab6c6}html[data-mode="gelap"] .piVisits span{color:#aab6c6}
+      html[data-mode="gelap"] .piVisits span{color:#aab6c6}
       html[data-mode="gelap"] .piPanel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
       html[data-mode="gelap"] .piHead p{color:#9fb3c8}
+      html[data-mode="gelap"] .piToolbar .prButton {
+        background:var(--aureka-color-surface-raised)!important;
+        color:var(--aureka-color-foreground)!important;
+        border-color:var(--aureka-color-border-strong)!important;
+      }
     `}</style>
   </section>
 }

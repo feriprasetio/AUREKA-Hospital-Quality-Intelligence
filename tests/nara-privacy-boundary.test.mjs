@@ -158,5 +158,5 @@ test('legacy assistant is absent from Beranda and NARA is the only embedded AI w
   assert.doesNotMatch(landing, /TanyaAureka|hlAi/)
   assert.match(home, /Pesan Admin/)
   assert.match(nara, /TanyaAureka key=\{activeId\}[^>]*embedded/)
-  assert.match(nara, /No\. RM hanya digunakan internal/)
+  assert.doesNotMatch(nara, /Gateway memilih provider|No\. RM hanya digunakan internal/)
 })

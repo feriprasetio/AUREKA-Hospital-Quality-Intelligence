@@ -7,14 +7,9 @@ const landing = source('../components/PublicLandingPage.tsx')
 const home = source('../components/HomeClient.tsx')
 const css = source('../app/aureka-refined.css')
 
-test('module discovery filters real module metadata and offers an empty-state reset', () => {
-  assert.match(landing, /modules\.filter/)
-  assert.match(landing, /module\.title.*module\.description.*module\.tags/)
-  assert.match(landing, /visibleModules\.map/)
-  assert.match(landing, /type="search" value=\{moduleQuery\}/)
-  assert.match(landing, /visibleModules\.length === 0/)
-  assert.match(landing, /setModuleQuery\(''\)/)
-  assert.match(landing, /aria-live="polite"/)
+test('module discovery stays in signed-in navigation', () => {
+  assert.doesNotMatch(landing, /modules\.filter|moduleQuery|visibleModules/)
+  assert.match(home, /dispatchWorkspaceSearch/)
 })
 
 test('the refined theme reaches every operational module without recoloring clinical bands', () => {

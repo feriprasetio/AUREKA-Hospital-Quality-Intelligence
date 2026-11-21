@@ -24,7 +24,6 @@ const pct = (v: unknown) => n(v).toLocaleString('id-ID', { maximumFractionDigits
 const css = [
 '.infographicsDashboard{display:grid;gap:14px;color:var(--arktik-ink,#21374f)}',
 '.ifHero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:18px;background:linear-gradient(120deg,rgba(232,242,250,.94),rgba(247,250,253,.98));}',
-'.ifEyebrow{display:block;margin-bottom:5px;color:#16507A;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}',
 '.ifHero h2{margin:0;color:var(--arktik-ink,#21374f);font-size:20px;font-weight:850;letter-spacing:-.03em}',
 '.ifHero p{max-width:720px;margin:6px 0 0;color:var(--ak-muted,#73849a);font-size:12px;line-height:1.6}',
 '.ifFilters{display:flex;align-items:end;gap:9px;flex-wrap:wrap}',
@@ -229,19 +228,16 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
     void readAurekaPortfolioSummary(aurekaSupabase, Number(year), roomId).then((result) => {
       if (cancelled) return
       if (result.status !== 'complete' || !result.data) {
-        const missing = /PGRST202|schema cache|Could not find the function/i.test(result.error || '')
         setSummary(null)
         setSummaryRetrievedAt(null)
-        setError(missing
-          ? 'Ringkasan lintas unit belum aktif di server. Periksa migrasi agregasi (20261112140000_aureka_infographics_aggregate.sql) dan permission guard (20261112044800_infographics_permission_guard.sql).'
-          : toUserFacingError(new Error(result.error || 'Sumber ringkasan tidak tersedia.'), { fallback: 'Ikhtisar belum dapat dimuat. Periksa koneksi lalu coba lagi.' }))
+        setError('Ringkasan belum dapat dimuat. Coba lagi atau hubungi administrator.')
       } else {
         setSummary(result.data)
         setSummaryRetrievedAt(result.retrievedAt)
       }
       setLoading(false)
     }).catch((cause: unknown) => {
-      if (!cancelled) { setSummary(null); setSummaryRetrievedAt(null); setError(cause instanceof Error ? cause.message : 'Ikhtisar belum dapat dimuat.'); setLoading(false) }
+      if (!cancelled) { setSummary(null); setSummaryRetrievedAt(null); setError(toUserFacingError(cause, { fallback: 'Ringkasan belum dapat dimuat.' })); setLoading(false) }
     })
     return () => { cancelled = true }
   }, [year, roomId])
@@ -292,8 +288,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ikhtisar indikator mutu' : 'Ikhtisar kinerja rumah sakit'}>
     <style>{css}</style>
     <header className="ifHero">
-      <div><span className="ifEyebrow">{qualityOnly ? 'Ikhtisar domain mutu' : 'Analitik lintas domain'}</span><h2>{qualityOnly ? 'Visual Intelligence Capaian Indikator Mutu' : 'Analitik & Infografis Rumah Sakit'}</h2>
-        <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Eksplorasi agregat mutu, keselamatan pasien, risiko, klinis dan program. Data operasional tetap dikelola pada modul pemilik.'}</p></div>
+      <h2>{qualityOnly ? 'Capaian Indikator Mutu' : 'Analitik & Infografis Rumah Sakit'}</h2>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
         {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => { const next = event.target.value; setRoomValue(next); onRoomChange?.(next ? Number(next) : null) }}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}
@@ -311,7 +306,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       </div>
     </header>
     {error && <div className="ifError" role="alert">{error}</div>}
-    {loading && <div className="ifLoading" role="status">Menghitung ikhtisar agregat sesuai periode dan ruang lingkup akses…</div>}
+    {loading && <div className="ifLoading" role="status">Memuat ringkasan…</div>}
     {!loading && summary && <>
       <div className="ifKpiGrid">
         <Kpi label="Indikator aktif" value={summary.quality.active_indicators} note="Master indikator pada periode terpilih"/>
@@ -325,7 +320,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         {!qualityOnly && <Kpi label="RTL belum selesai" value={summary.program.open_actions} note={fmt(summary.program.overdue_actions) + ' melewati tenggat'}/>}
       </div>
       {activeChart && <section className="ifChartCard" aria-label="Eksplorasi grafik ikhtisar">
-        <div className="ifSectionHead"><div><span className="ifEyebrow">Eksplorasi data</span><h3>Eksplorasi Ikhtisar</h3><p>Pilih topik dan bentuk visualisasi untuk membaca pola data yang sama dari sudut berbeda.</p></div></div>
+        <div className="ifSectionHead"><h3>Eksplorasi Ikhtisar</h3></div>
         <div className="ifChartToolbar">
           <label className="ifChartChoice">Pilih grafik<select value={activeChart.id} onChange={(event) => { const next = chartModels.find((model) => model.id === event.target.value); setChartId(event.target.value); setChartType(next?.kind === 'trend' ? 'line' : 'column') }}>{chartModels.map((model) => <option key={model.id} value={model.id}>{model.label}</option>)}</select></label>
           <div><span style={{display:'block',marginBottom:5,color:'var(--ak-muted,#73849a)',fontSize: 12,fontWeight:750}}>Bentuk grafik</span><div className="ifTypeSwitch" role="group" aria-label="Pilih bentuk grafik">

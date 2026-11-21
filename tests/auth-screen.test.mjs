@@ -14,7 +14,7 @@ test('login and registration use the professional AUREKA authentication shell', 
   assert.ok(workspaceStart > loginStart, 'Missing workspace boundary')
   assert.match(authScreen, /authProfessional/)
   assert.match(authScreen, /authTopbarMeta/)
-  assert.match(authScreen, /authAsideEyebrow/)
+  assert.doesNotMatch(authScreen, /authAsideEyebrow|authAsideSignals/)
   assert.match(authScreen, /authFormIntro/)
   assert.match(authStyles, /\.authPage\.authProfessional/)
 })
@@ -31,7 +31,7 @@ test('login keeps username/email, password, password visibility and recovery act
 })
 
 test('unit registration remains available within the authentication form', () => {
-  assert.match(authScreen, /Daftar Akun Unit/)
+  assert.match(authScreen, /Daftar akun unit/)
   assert.match(authScreen, /htmlFor="fullName"/)
   assert.match(authScreen, /htmlFor="signupRoom"/)
   assert.match(authScreen, /htmlFor="username"/)
@@ -66,8 +66,8 @@ test('login shell avoids duplicate branding and keeps the return link in documen
 
 test('browser autofill retains AUREKA neutral input styling', () => {
   assert.match(authStyles, /input:-webkit-autofill/)
-  assert.match(authStyles, /-webkit-text-fill-color: #1d3327/)
-  assert.match(authStyles, /0 0 0 1000px #fbfdfb inset/)
+  assert.match(authStyles, /-webkit-text-fill-color: var\(--aureka-color-foreground\)/)
+  assert.match(authStyles, /0 0 0 1000px var\(--aureka-color-surface\) inset/)
 })
 
 test('professional auth styles provide responsive layouts and visible keyboard focus', () => {

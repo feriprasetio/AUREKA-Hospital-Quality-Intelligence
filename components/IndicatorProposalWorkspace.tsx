@@ -129,8 +129,8 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       @media(max-width:640px){.ipPanel{padding:13px}.ipFormGrid{grid-template-columns:1fr}.ipField.full{grid-column:auto}.ipActivation{grid-template-columns:1fr}}
     `}</style>
     <div className="ipPanel">
-      <WorkspaceModuleHeader title="Usulan Indikator Mutu Baru" description="Sarana resmi bagi PIC untuk mengusulkan indikator baru. Usulan ditelaah Komite PMKP, dikembalikan untuk revisi bila diperlukan, lalu disetujui dan diaktifkan ke katalog Profil Indikator Mutu." actions={<div className="ipToolbar">{canSubmit&&<button className="ipBtn primary" type="button" onClick={startNew}>+ Ajukan indikator</button>}<button className="ipBtn" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button></div>}/>
-      <p className="ipIntro">Pengajuan tidak langsung menjadi indikator aktif. Aktivasi hanya dilakukan setelah telaah dan persetujuan Komite PMKP. Data logbook historis tidak diubah oleh proses ini.</p>
+      <WorkspaceModuleHeader title="Usulan Indikator Mutu Baru" actions={<div className="ipToolbar">{canSubmit&&<button className="ipBtn primary" type="button" onClick={startNew}>+ Ajukan indikator</button>}<button className="ipBtn" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button></div>}/>
+
       {error&&<div className="ipError" role="alert">{error}</div>}{message&&<div className="ipSuccess" role="status">{message}</div>}
       <div className="ipFilters"><select aria-label="Filter status usulan" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">Semua status</option>{Object.entries(statusText).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><span className="ipMeta">{visible.length} dari {rows.length} usulan</span></div>
     </div>
@@ -146,7 +146,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       </article>)}
       {visible.length===0&&<div className="ipPanel"><AsyncStatePanel state="empty" title="Tidak ada usulan pada filter ini" description="Ubah filter status atau ajukan indikator baru." compact/></div>}
     </div>}
-    {form&&typeof document!=='undefined'&&createPortal(<div className="ipOverlay" role="presentation"><div ref={proposalDialogRef} tabIndex={-1} className="ipPanel ipModal" role="dialog" aria-modal="true" aria-labelledby="ip-form-title"><div className="ipCardHead"><div><h3 id="ip-form-title" className="ipFormTitle">{editingId?'Revisi usulan indikator':'Form pengajuan indikator baru'}</h3><p className="ipIntro">Lengkapi definisi indikator agar dapat ditelaah secara metodologis.</p></div><button className="ipBtn" type="button" data-dialog-autofocus onClick={closeForm} disabled={busy}>Tutup</button></div>
+    {form&&typeof document!=='undefined'&&createPortal(<div className="ipOverlay" role="presentation"><div ref={proposalDialogRef} tabIndex={-1} className="ipPanel ipModal" role="dialog" aria-modal="true" aria-labelledby="ip-form-title"><div className="ipCardHead"><div><h3 id="ip-form-title" className="ipFormTitle">{editingId?'Revisi usulan indikator':'Form pengajuan indikator baru'}</h3></div><button className="ipBtn" type="button" data-dialog-autofocus onClick={closeForm} disabled={busy}>Tutup</button></div>
       <div className="ipFormGrid">
         <label className="ipField"><span>Unit pemilik</span><select value={String(form.room_id)} disabled={role==='PIC'} onChange={e=>setForm(v=>v?{...v,room_id:Number(e.target.value)}:v)}>{roomChoices.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
         {field('profile_year','Tahun profil','number')}

@@ -53,7 +53,7 @@ test('Secretariat workspace uses the existing backend register and contains no s
   assert.ok(workspace.includes("from('pmkp_meeting_documents')"))
   assert.ok(workspace.includes("functions.invoke('aureka-secretariat-parse'"))
   assert.ok(workspace.includes('Meeting ID'))
-  assert.ok(workspace.includes('Tidak ada isi berkas yang dikirim ke API AI eksternal.'))
+  assert.doesNotMatch(workspace, /className="secPrivacyNote"|fetch\(.*https?:/)
   assert.ok(!workspace.includes('Pencatatan Sekretariat belum diaktifkan'))
   assert.ok(!workspace.includes('Tidak ada data contoh atau catatan rapat fiktif'))
   assert.ok(!workspace.includes('upsert('))

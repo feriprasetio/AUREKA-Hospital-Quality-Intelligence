@@ -8,8 +8,6 @@ import NaraIcd10ReviewWorkspace from '@/components/NaraIcd10ReviewWorkspace'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 
 
-const ENGINES = ['Groq', 'NVIDIA', 'Gemini', 'DeepSeek', 'LLM7'] as const
-
 // Ikon garis seragam (stroke 1.8) untuk tiap fokus analisis.
 const GLYPH: Record<string, ReactNode> = {
   executive: <><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M8 9h8M8 13h8M8 17h5" /></>,
@@ -120,7 +118,6 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
   const firstName = (userName || '').split(/[\s@]/)[0]
   const stage = useMemo(() => ({
     title: `${greetingFor(new Date().getHours())}${firstName ? ', ' + firstName : ''}. Mau analisis apa?`,
-    subtitle: 'NARA menganalisis data AUREKA sesuai hak akses. No. RM hanya digunakan internal untuk deduplikasi dan tidak dikirim ke provider AI.',
     starters: MODES.map((m) => ({ label: m.label, prompt: m.prompt, icon: <svg className="naraStarterIco" viewBox="0 0 24 24" aria-hidden="true">{GLYPH[m.id]}</svg> })),
   }), [firstName])
 
@@ -129,7 +126,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       <button type="button" className="naraNew" onClick={startNew}><span aria-hidden="true">+</span> Percakapan baru</button>
       <button type="button" className="naraReviewNav" aria-pressed={workspaceView === 'icd10'} onClick={() => { setWorkspaceView('icd10'); setListOpen(false) }}>Validasi ICD-10</button>
       <div className="naraHistoryList">
-        {groups.length === 0 && <p className="naraEmpty">Belum ada percakapan. Pertanyaan Anda akan tersimpan di sini, hanya di perangkat ini.</p>}
+        {groups.length === 0 && <p className="naraEmpty">Belum ada percakapan</p>}
         {groups.map(([label, items]) => <div key={label} className="naraGroup">
           <h3>{label}</h3>
           {items.map((c) => <div key={c.id} className={'naraItem' + (c.id === activeId ? ' on' : '')}>
@@ -138,14 +135,6 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
           </div>)}
         </div>)}
       </div>
-      <details className="naraEngines">
-        <summary><span className="naraLiveDot" aria-hidden="true"/> {ENGINES.length} provider didukung</summary>
-        <div className="naraEnginesMenu">
-          <ul>{ENGINES.map((name) => <li key={name}><span className="naraEngineDot" aria-hidden="true"/>{name}</li>)}</ul>
-          <p>Gateway memilih provider sesuai ketersediaan secret, konfigurasi, kuota, dan waktu respons. Tidak semua provider harus aktif bersamaan; kunci API tetap di server.</p>
-        </div>
-      </details>
-
     </aside>
 
     {workspaceView === 'icd10' ? (
@@ -159,7 +148,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
           <button type="button" onClick={() => setListOpen((v) => !v)} aria-expanded={listOpen}>{listOpen ? 'Tutup riwayat' : 'Riwayat'}</button>
           <button type="button" onClick={startNew}>+ Baru</button>
         </div>
-      <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" assistantSubtitle="Membaca data sesuai hak akses Anda" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage} initialPrompt={initialPrompt} onInitialPromptConsumed={onInitialPromptConsumed}/>
+      <TanyaAureka key={activeId} sb={sb} page={page || 'NARA AI'} embedded assistantName="NARA AI" showAvatar storageScope={'nara:' + activeId} onMessages={onMessages} stage={stage} initialPrompt={initialPrompt} onInitialPromptConsumed={onInitialPromptConsumed}/>
       </section>
     )}
 
@@ -187,15 +176,6 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       .naraItem:hover .naraItemDel,.naraItem.on .naraItemDel,.naraItemDel:focus-visible{opacity:1}
       .naraItemDel:hover{background:#fdecea!important;color:#b42318}
       @media(hover:none){.naraItemDel{opacity:1}}
-      .naraNew:focus-visible,.naraReviewNav:focus-visible,.naraItemOpen:focus-visible,.naraItemDel:focus-visible,.naraEngines summary:focus-visible{outline:2px solid rgba(34,211,238,.7);outline-offset:2px}
-      .naraEngines{position:relative}
-      .naraEngines summary{display:flex;align-items:center;gap:8px;min-height:38px;padding:0 12px;border-radius:12px;background:rgba(255,255,255,.7);border:1px solid #dfe7f0;font-size:13px;font-weight:700;color:#1f2430;cursor:pointer;list-style:none}
-      .naraEngines summary::-webkit-details-marker{display:none}
-      .naraEnginesMenu{position:absolute;left:0;bottom:calc(100% + 8px);z-index:20;width:240px;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid #dfe7f0;box-shadow:0 18px 40px rgba(31,36,48,.14)}
-      .naraEnginesMenu ul{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
-      .naraEnginesMenu li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
-      .naraEnginesMenu p{margin:0;font-size:12px;line-height:1.5;color:#5b6878}
-      .naraLiveDot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);flex:0 0 auto}.naraEngineDot{width:7px;height:7px;border-radius:50%;background:#7b91a8;flex:0 0 auto}
 
       .naraStageWrap{min-width:0;display:flex;flex-direction:column;border-radius:26px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(31,36,48,.05);overflow:hidden}
       .naraMobileBar{display:none}
@@ -236,9 +216,6 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       :global(html[data-mode="gelap"]) .naraItem:hover{background:rgba(255,255,255,.05)}
       :global(html[data-mode="gelap"]) .naraItem.on{background:rgba(255,255,255,.08);box-shadow:none}
       :global(html[data-mode="gelap"]) .naraItemOpen{color:#c3ccd8}:global(html[data-mode="gelap"]) .naraItem.on .naraItemOpen{color:#eef2f7}
-      :global(html[data-mode="gelap"]) .naraGroup h3,:global(html[data-mode="gelap"]) .naraEmpty,:global(html[data-mode="gelap"]) .naraEnginesMenu p{color:#93a1b3}
-      :global(html[data-mode="gelap"]) .naraEngines summary,:global(html[data-mode="gelap"]) .naraMobileBar button{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#eef2f7}
-      :global(html[data-mode="gelap"]) .naraEnginesMenu{background:#141b26;border-color:rgba(255,255,255,.1);color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraStageWrap :global(.tanyaStage h2){color:#eef2f7}
       :global(html[data-mode="gelap"]) .naraStageWrap :global(.tanyaStage p){color:#aab6c6}
       :global(html[data-mode="gelap"]) .naraStageWrap :global(.tanyaStaged .tanyaComposer textarea){color:#eef2f7}

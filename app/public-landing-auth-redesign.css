@@ -1389,16 +1389,16 @@
 .authPage.authProfessional .authCard .field input:-webkit-autofill:hover,
 .authPage.authProfessional .authCard .field input:-webkit-autofill:focus,
 .authPage.authProfessional .authCard .field input:-webkit-autofill:active {
-  -webkit-text-fill-color: #1d3327 !important;
-  caret-color: #1d3327;
-  -webkit-box-shadow: 0 0 0 1000px #fbfdfb inset !important;
-  box-shadow: 0 0 0 1000px #fbfdfb inset !important;
-  border: 1px solid #dbe6de !important;
+  -webkit-text-fill-color: var(--aureka-color-foreground) !important;
+  caret-color: var(--aureka-color-foreground);
+  -webkit-box-shadow: 0 0 0 1000px var(--aureka-color-surface) inset !important;
+  box-shadow: 0 0 0 1000px var(--aureka-color-surface) inset !important;
+  border: 1px solid var(--aureka-color-border-strong) !important;
   transition: background-color 9999s ease-out 0s;
 }
 .authPage.authProfessional .authCard .field input:-moz-autofill {
-  color: #1d3327 !important;
-  box-shadow: 0 0 0 1000px #fbfdfb inset !important;
+  color: var(--aureka-color-foreground) !important;
+  box-shadow: 0 0 0 1000px var(--aureka-color-surface) inset !important;
 }
 @media (max-width: 780px) {
   .authPage.authProfessional {
@@ -1427,4 +1427,115 @@
     left: 10px;
     right: 10px;
   }
+}
+
+/* Public entry */
+.aurekaEntry {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 5vw, 72px);
+  background: var(--aureka-color-background);
+  color: var(--aureka-color-foreground);
+  font-family: var(--aureka-font-sans);
+}
+.aurekaEntryCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  width: min(100%, 920px);
+  overflow: hidden;
+  border: 1px solid var(--aureka-color-border-strong);
+  border-radius: 22px;
+  background: var(--aureka-color-surface);
+}
+.aurekaEntryIdentity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  min-width: 0;
+  padding: clamp(28px, 5vw, 64px);
+}
+.aurekaEntryIdentity > img { width: 100px; height: auto; object-fit: contain; }
+.aurekaEntryIdentity h1 { margin: 0; font-size: clamp(42px, 7vw, 68px); font-weight: 800; letter-spacing: -.07em; line-height: 1; }
+.aurekaEntryIdentity p { margin: 8px 0 0; color: var(--aureka-color-foreground-secondary); font-weight: 600; }
+.aurekaEntryIdentity .aurekaEntryInstitution { font-size: 13px; line-height: 1.55; }
+.aurekaEntryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 26px;
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: var(--aureka-color-primary);
+  color: var(--aureka-color-on-primary, #fff);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+.aurekaEntryAction:hover { background: var(--aureka-color-primary-hover); }
+.aurekaEntryAction:focus-visible { outline: 3px solid var(--aureka-color-information); outline-offset: 4px; }
+.aurekaEntryAction svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.aurekaEntryImage { position: relative; min-height: 460px; background: #102a44; }
+.aurekaEntryImage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.aurekaEntryImage::after { content: ''; position: absolute; inset: 0; background: linear-gradient(155deg, #153e601c, #0f27456b); }
+@media (max-width: 640px) {
+  .aurekaEntryCard { grid-template-columns: minmax(0, 1fr); max-width: 420px; }
+  .aurekaEntryImage { min-height: 138px; }
+  .aurekaEntryIdentity { gap: 19px; }
+  .aurekaEntryAction { width: 100%; }
+}
+
+.aurekaEntryIdentity { position: relative; }
+.aurekaEntryTheme {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--aureka-color-border-strong);
+  border-radius: 10px;
+  background: var(--aureka-color-surface);
+  color: var(--aureka-color-foreground);
+  cursor: pointer;
+}
+.aurekaEntryTheme svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned :is(.authCard, .authTopbar) {
+  background: var(--aureka-color-surface) !important;
+  border-color: var(--aureka-color-border) !important;
+  color: var(--aureka-color-foreground) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned :is(.authFormIntro h1, .authCard h1, .brand b, .authSuccess b) {
+  color: var(--aureka-color-foreground) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned :is(.field label, .fieldHint, .authCard p, .authCard small, .authSwitch, .authTopbar .brand small, .authSteps li, .authSteps li span, .authStrong) {
+  color: var(--aureka-color-foreground-secondary) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned .authCard :is(input, select) {
+  background: var(--aureka-color-surface-raised) !important;
+  color: var(--aureka-color-foreground) !important;
+  border-color: var(--aureka-color-border-strong) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned .authCard :is(input, select)::placeholder {
+  color: var(--aureka-color-muted) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned :is(.authBack, .authForgot, .authSwitch button, .pwToggle) {
+  color: var(--aureka-color-information) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned .authAlert {
+  background: var(--aureka-color-danger-soft) !important;
+  border-color: var(--aureka-color-danger) !important;
+  color: var(--aureka-color-danger) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .authPage.authRedesigned .authAlert.ok {
+  background: var(--aureka-color-success-soft) !important;
+  border-color: var(--aureka-color-success) !important;
+  color: var(--aureka-color-success) !important;
 }

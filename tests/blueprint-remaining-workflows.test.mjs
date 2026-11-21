@@ -72,7 +72,7 @@ test('Staff directory offers permission-scoped cross-module profile without attr
 test('Annual program includes an editable month-based Gantt timeline over governed activity records',()=>{
   const home=read('components/governance/AnnualProgramWorkspace.tsx')
   const migration=read('supabase/migrations/20261122100000_complete_blueprint_workflows.sql')
-  assert.match(home,/Timeline Kegiatan Tahunan/)
+  assert.match(home,/Timeline kegiatan tahunan/)
   assert.match(home,/annualTimelineTrack/)
   assert.match(home,/aureka_gov_program_activity_list/)
   assert.match(home,/aureka_gov_program_activity_save/)

@@ -60,8 +60,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[d
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch > svg { stroke: #abb5be; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch input { color: #c0ccd6; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .sidebarSearch:focus-within { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.006); }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle { border: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); color: #b3bcc5; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot[data-aureka-theme] .workspaceDensityToggle[aria-pressed="true"] { color: #bedebb; border-color: rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); }
 
 /* from aureka-solid-enterprise.css */
 :root:where([data-skin="arktik"][data-mode="gelap"]) { --aureka-ink: #dae4ed; --aureka-ink-2: #ced6de; --aureka-muted: #bdc6c2; --aureka-line: rgba(255, 255, 255, 0.02); --aureka-line-strong: rgba(255, 255, 255, 0.02); --aureka-canvas: rgba(255, 255, 255, 0.005); --aureka-surface: rgba(255, 255, 255, 0.005); --aureka-surface-soft: rgba(255, 255, 255, 0.005); --aureka-green: #55a3e7; --aureka-green-hover: #4993d4; --aureka-green-soft: rgba(255, 255, 255, 0.005); --aureka-focus: rgba(85, 163, 231, 0.2); --aureka-shadow-card: 0 1px 2px rgba(73, 147, 212, 0.035), 0 5px 16px rgba(73, 147, 212, 0.025); --aureka-shadow-float: 0 16px 42px rgba(104, 160, 212, 0.16); }
@@ -1043,7 +1041,7 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.w
 
 /* from components/FppeEvaluationWorkspace.tsx */
 html[data-skin="arktik"][data-mode="gelap"] .fppePanel { background: linear-gradient(135deg,rgba(255, 255, 255, 0.041),rgba(255, 255, 255, 0.021)); border: 1px solid rgba(255, 255, 255, 0.105); box-shadow: var(--shadow),inset 0 1px 0 rgba(255, 255, 255, 0.064); }
-html[data-skin="arktik"][data-mode="gelap"] .fppeWorkspace button { border: 1px solid rgba(255, 255, 255, 0.022); background: rgba(255, 255, 255, 0.043); }
+html[data-skin="arktik"][data-mode="gelap"] .fppeWorkspace button:not(.fppePrimary) { border: 1px solid rgba(255, 255, 255, 0.022); background: rgba(255, 255, 255, 0.043); }
 html[data-skin="arktik"][data-mode="gelap"] .fppeWorkspace .fppeWarnButton { background: rgba(255, 255, 255, 0.005); color: #e0d2bf; border-color: rgba(194, 139, 35, 0.5); }
 html[data-skin="arktik"][data-mode="gelap"] .fppeError { background: rgba(255, 255, 255, 0.005); color: #c87e77; border: 1px solid rgba(177, 70, 52, 0.5); }
 html[data-skin="arktik"][data-mode="gelap"] .fppeSuccess { background: rgba(255, 255, 255, 0.005); color: #c4d4e2; border: 1px solid rgba(255, 255, 255, 0.02); }

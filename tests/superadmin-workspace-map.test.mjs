@@ -22,7 +22,7 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
   assert.ok(home.includes('<UnifiedModuleNavigation'))
   assert.ok(home.includes('activeNestedNavGroup'))
   assert.ok(home.includes('activeRailTitle'))
-  assert.ok(home.includes("const activeRailItemsHinted=activeNavGroups.map("))
+  assert.ok(home.includes("const activeRailItems=activeNavGroups"))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'wmmMap']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(!/onPointerEnter|onPointerLeave|wmmMapPanel/.test(navCss))
@@ -34,7 +34,7 @@ test('the quality rail keeps the logbook and results together and tracks context
   assert.ok(home.includes('<h2>Hasil Capaian Indikator Mutu</h2>'))
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
   assert.ok(home.includes('title={activeRailTitle}'))
-  assert.ok(home.includes("const activeRailItemsHinted=activeNavGroups.map("))
+  assert.ok(home.includes("const activeRailItems=activeNavGroups"))
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))
   assert.ok(home.includes('secondaryActiveId={activeNavSecondaryId}'))
   assert.ok(home.includes('onSubSelect={selectContextualTab}'))
@@ -88,7 +88,9 @@ test('Superadmin logbook opens a privacy-safe index of every active room', () =>
   assert.ok(audit.includes('Logbook semua ruangan'))
   assert.ok(audit.includes("select('id',{count:'exact',head:true})"))
   assert.ok(audit.includes('onRoomChange?.(nextRoomId)'))
-  assert.ok(audit.includes('data individual tidak ditampilkan'))
+  const roomIndex = audit.slice(audit.indexOf('aria-label="Logbook semua ruangan"'), audit.indexOf('return <div className="aq aqAuditWorkspace">'))
+  assert.match(roomIndex, /summary\.records\.toLocaleString/)
+  assert.doesNotMatch(roomIndex, /nama_pasien|no_rm|core_data/)
 })
 
 test('quality results always read every service-date source so single-unit views do not drop records', () => {

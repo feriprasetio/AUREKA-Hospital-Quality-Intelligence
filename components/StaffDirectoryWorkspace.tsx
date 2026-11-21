@@ -364,7 +364,6 @@ export default function StaffDirectoryWorkspace() {
         <WorkspaceModuleHeader
           className="sdHead"
           title="Direktori induk tenaga kerja"
-          description="Satu direktori induk untuk seluruh modul. Kode AUREKA menjadi penanda internal; nama ganda tidak digabungkan otomatis. NIP, NIK, dan status kepegawaian tidak digunakan sebagai identitas atau dasar penugasan AUREKA."
           actions={<div className="sdActions">
             <span className="sdStat"><b>{rows.length.toLocaleString('id-ID')}</b> total</span>
             <span className="sdStat ok"><b>{availableCount.toLocaleString('id-ID')}</b> siap dipetakan</span>
@@ -391,7 +390,6 @@ export default function StaffDirectoryWorkspace() {
         </section>
         {!listOpen ? <section className="sdBlueprintActions" aria-label="Tindakan direktori tenaga kerja" style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center',marginTop:14}}>
           <button type="button" className="sdBtn primary" onClick={()=>setListOpen(true)}>Lihat Daftar Tenaga Kerja</button>
-          <span className="sdDesc">Daftar rinci, status verifikasi, pencarian, dan penyuntingan metadata dibuka setelah tombol ini dipilih.</span>
         </section> : <>
           <div className="sdActions" style={{marginTop:14}}>
             <button type="button" className="sdBtn" onClick={()=>setListOpen(false)}>← Kembali ke Visual Intelligence</button>

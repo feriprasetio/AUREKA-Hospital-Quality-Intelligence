@@ -961,7 +961,6 @@ export default function PatientSafetyWorkspace({
           </span>
         })}
       </div>
-      <div className="psHint">Nama yang dipilih akan disimpan sebagai staff_id terpisah dari catatan teks. Survei budaya tetap anonim dan tidak ditautkan ke direktori.</div>
     </div>
     return <div className={'psField' + (wide ? ' full' : '')} key={field.code}>
       <label className="psLabel" id={`investigation-field-${field.code}-label`} htmlFor={`investigation-field-${field.code}`}>{field.code} · {field.label}</label>
@@ -989,7 +988,6 @@ export default function PatientSafetyWorkspace({
     {tab !== 'survey' && <WorkspaceModuleHeader
       className="psHead"
       title="Alur kerja keselamatan pasien"
-      description="Pelaporan IKP, investigasi dan pembelajaran insiden, serta pemetaan budaya keselamatan dan kesejahteraan staf dalam satu workspace."
       actions={<div className="psActions">
         <span className="psPill green">{canManageWorkflow ? 'Pengelola alur' : 'Ruang kerja PIC'}</span>
         <button type="button" className="psBtn" disabled={loading} onClick={() => void loadData()}>{loading ? 'Memuat…' : '↻ Refresh'}</button>

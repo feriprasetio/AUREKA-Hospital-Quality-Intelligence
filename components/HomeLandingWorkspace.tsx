@@ -167,49 +167,30 @@ export default function HomeLandingWorkspace({
   })()
   const dateLabel = new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}).format(new Date())
 
-  const actions = [
-    {id:'quality',title:'Indikator Mutu',description:'Buka logbook, hasil capaian, dan tindak lanjut pelaporan',label:'Buka modul',run:()=>onNavigate('quality'),tone:'blue'},
-    {id:'safety',title:'Keselamatan Pasien',description:'Kelola laporan insiden dan proses investigasi',label:'Buka modul',run:()=>onNavigate('safety'),tone:'slate'},
-    {id:'risk',title:'Manajemen Risiko',description:'Pantau register risiko dan rencana pengendalian',label:'Buka modul',run:()=>onNavigate('risk'),tone:'steel'},
-    {id:'clinical',title:'Audit Klinis',description:'Akses clinical pathway dan evaluasi klinis',label:'Buka modul',run:()=>onNavigate('clinical'),tone:'blue'},
-    {id:'insights',title:'Intelligence & Analytics',description:'Telusuri analitik dan infografis rumah sakit',label:'Lihat analitik',run:()=>onNavigate('insights'),tone:'slate'},
-    {id:'nara',title:'NARA AI',description:'Ajukan pertanyaan analitis berdasarkan data yang dapat diakses',label:'Mulai analisis',run:()=>onAskNara?.('Tinjau kondisi operasional berdasarkan data AUREKA yang dapat saya akses. Tampilkan temuan, prioritas, keterbatasan data, dan rekomendasi tindak lanjut.','Command Centre · '+(roomName||'Cakupan akun')),tone:'steel'},
-  ]
   const lastActivityLabel = activity.lastAt
     ? new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(activity.lastAt))
     : 'Belum ada aktivitas tercatat'
 
   return <section className="commandCentre">
     <style>{`
-      .commandCentre{display:grid;gap:18px;color:#19364f;min-width:0}
-      .ccHero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:24px 26px;border:1px solid rgba(255,255,255,.82);border-radius:18px;background:linear-gradient(118deg,rgba(255,255,255,.82),rgba(235,243,249,.66));box-shadow:0 10px 30px rgba(36,65,88,.055);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-      .ccEyebrow{display:inline-flex;align-items:center;gap:8px;color:#71889b;font-size:10px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
-      .ccEyebrow:before{content:"";width:18px;height:1px;background:#8ba8bf}
-      .ccHero h1{margin:8px 0 5px;color:#173b59;font-size:clamp(23px,3vw,32px);font-weight:850;letter-spacing:-.045em;line-height:1.12}
+      .commandCentre{display:grid;gap:var(--workspace-gap,18px);color:var(--aureka-color-foreground);min-width:0}
+      .ccHero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:24px 26px;border:1px solid var(--aureka-color-border);border-radius:16px;background:var(--aureka-color-surface)}
+      .ccHero h1{margin:8px 0 5px;color:var(--aureka-color-foreground);font-size:clamp(23px,3vw,32px);font-weight:850;letter-spacing:-.045em;line-height:1.12}
       .ccHero p{margin:0;color:#637c91;font-size:13px;line-height:1.6}
       .ccHeroMeta{display:grid;gap:7px;justify-items:end;text-align:right}
-      .ccDate{color:#536f86;font-size:12px;font-weight:750}
-      .ccScope{padding:7px 11px;border:1px solid rgba(151,177,198,.35);border-radius:999px;background:rgba(255,255,255,.58);color:#365a77;font-size:11px;font-weight:750}
+      .ccDate{color:var(--aureka-color-foreground-secondary);font-size:12px;font-weight:750}
+      .ccScope{padding:7px 11px;border:1px solid rgba(151,177,198,.35);border-radius:999px;background:var(--aureka-color-surface-muted);color:var(--aureka-color-foreground-secondary);font-size:11px;font-weight:750}
       .ccHeroActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-      .ccActionBtn{min-height:38px;padding:9px 13px;border:1px solid #cbdbe8;border-radius:9px;background:rgba(255,255,255,.68);color:#244b69;font-size:12px;font-weight:750;cursor:pointer}
-      .ccActionBtn.primary{border-color:#244e70;background:#244e70;color:white}
-      .ccActionBtn:hover,.ccModule:hover{border-color:#9fb9ce;background:#fff}
-      .ccActionBtn.primary:hover{background:#193f5e;color:#fff}
+      .ccActionBtn{min-height:38px;padding:9px 13px;border:1px solid var(--aureka-color-border-strong);border-radius:9px;background:var(--aureka-color-surface-muted);color:var(--aureka-color-foreground);font-size:12px;font-weight:750;cursor:pointer}
+      .ccActionBtn.primary{border-color:transparent;background:var(--aureka-color-primary);color:var(--aureka-color-on-primary)}
+      .ccActionBtn:hover{background:var(--aureka-color-surface-raised)}
+      .ccActionBtn.primary:hover{background:var(--aureka-color-primary-hover);color:var(--aureka-color-on-primary)}
       .ccSection{display:grid;gap:12px;min-width:0}
       .ccSectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-      .ccSectionHead h2{margin:0;color:#1d405d;font-size:15px;font-weight:850;letter-spacing:-.015em}
+      .ccSectionHead h2{margin:0;color:var(--aureka-color-foreground);font-size:15px;font-weight:850;letter-spacing:-.015em}
       .ccSectionHead p{margin:4px 0 0;color:#7b90a2;font-size:11px;line-height:1.5}
-      .ccSectionMeta{color:#8195a6;font-size:11px;text-align:right}
-      .ccPanel{min-width:0;padding:17px;border:1px solid rgba(203,218,230,.72);border-radius:15px;background:rgba(255,255,255,.72);box-shadow:0 5px 18px rgba(37,67,91,.035)}
-      .ccMainGrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:15px;align-items:start}
-      .ccModuleGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-      .ccModule{display:grid;gap:8px;min-width:0;min-height:126px;padding:14px;border:1px solid #dce6ee;border-radius:12px;background:rgba(250,252,254,.8);text-align:left;cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
-      .ccModule:hover{transform:translateY(-1px)}
-      .ccModuleTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
-      .ccModuleCode{color:#8097aa;font-size:9px;font-weight:850;letter-spacing:.13em}
-      .ccModuleArrow{color:#7893a8;font-size:16px}
-      .ccModule strong{color:#244966;font-size:13px;font-weight:800}
-      .ccModule small{color:#71879a;font-size:11px;line-height:1.5}
+      .ccSectionMeta{color:var(--aureka-color-foreground-secondary);font-size:12px;text-align:right}
+      .ccPanel{min-width:0;padding:17px;border:1px solid var(--aureka-color-border);border-radius:15px;background:var(--aureka-color-surface)}
       .ccWorkList{display:grid;gap:8px}
       .ccWorkItem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px;border:1px solid #e0e8ef;border-radius:10px;background:rgba(255,255,255,.76);text-align:left;cursor:pointer}
       .ccWorkItem:hover{border-color:#aec3d5;background:#fff}
@@ -217,9 +198,9 @@ export default function HomeLandingWorkspace({
       .ccWorkText strong{color:#34556f;font-size:12px;font-weight:750;line-height:1.4}
       .ccWorkText small{color:#8194a4;font-size:10px}
       .ccWorkCount{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border:1px solid #d7e3ed;border-radius:10px;background:#f1f6fa;color:#244d6d;font-size:14px;font-weight:850;font-variant-numeric:tabular-nums}
-      .ccEmpty{padding:20px 12px;border:1px dashed #d5e1ea;border-radius:10px;color:#8295a5;font-size:12px;line-height:1.6;text-align:center}
-      .ccFoot{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 14px;border:1px solid #dfe8ef;border-radius:11px;background:rgba(246,249,252,.78);color:#71879a;font-size:11px}
-      .ccFoot strong{color:#3b5d78;font-weight:750}
+      .ccEmpty{padding:20px 12px;border:1px dashed #d5e1ea;border-radius:10px;color:var(--aureka-color-foreground-secondary);font-size:13px;line-height:1.6;text-align:center}
+      .ccFoot{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 14px;border:1px solid #dfe8ef;border-radius:11px;background:var(--aureka-color-surface-muted);color:var(--aureka-color-foreground-secondary);font-size:11px}
+      .ccFoot strong{color:var(--aureka-color-foreground);font-weight:750}
       .ccReminder{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border:1px solid #d9e4ed;border-radius:12px;background:rgba(247,250,253,.9)}
       .ccReminderMark{flex:0 0 8px;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#7c9db8}
       .ccReminderBody{display:grid;gap:4px;min-width:0;flex:1}
@@ -228,26 +209,22 @@ export default function HomeLandingWorkspace({
       .ccReminderActions{display:flex;gap:7px;flex-wrap:wrap}
       .ccMiniBtn{padding:7px 10px;border:1px solid #d1dee8;border-radius:8px;background:#fff;color:#365a77;font-size:10px;font-weight:750;cursor:pointer}
       .ccNotice{padding:10px 12px;border:1px solid #e5d9c5;border-radius:9px;background:#fbf8f2;color:#806b4d;font-size:11px;line-height:1.5}
-      @media(max-width:900px){.ccMainGrid{grid-template-columns:1fr}.ccHero{grid-template-columns:1fr}.ccHeroMeta{justify-items:start;text-align:left}}
-      @media(max-width:600px){.ccHero{padding:18px}.ccModuleGrid{grid-template-columns:1fr}.ccModule{min-height:105px}.ccPanel{padding:13px}.ccSectionHead{align-items:flex-start;flex-direction:column}.ccFoot{align-items:flex-start;flex-direction:column}}
+      @media(max-width:720px){.ccHero{grid-template-columns:1fr;padding:16px}.ccHeroMeta{justify-items:start;text-align:left}.ccActionBtn{min-height:44px}.ccPanel{padding:12px}.ccFoot{flex-wrap:wrap}}
     `}</style>
 
     <header className="ccHero">
       <div>
-        <span className="ccEyebrow">AUREKA · Hospital Quality Intelligence</span>
         <h1>{greeting}, {firstName}.</h1>
-        <p>Command Centre · Pusat kendali aktivitas dan prioritas operasional rumah sakit.</p>
         <div className="ccHeroActions">
           <button type="button" className="ccActionBtn" onClick={()=>setRefreshKey(value=>value+1)}>↻ Perbarui data</button>
-          <button type="button" className="ccActionBtn primary" onClick={()=>onNavigate('quality')}>Buka pekerjaan mutu</button>
-          <button type="button" className="ccActionBtn" onClick={()=>onNavigate('safety',{tab:'incidents',newReport:true})}>Laporkan insiden</button>
+          {availableModules.includes('quality')&&<button type="button" className="ccActionBtn primary" onClick={()=>onNavigate('logbook')}>Buka logbook</button>}
+          {availableModules.includes('safety')&&<button type="button" className="ccActionBtn" onClick={()=>onNavigate('safety',{tab:'incidents',newReport:true})}>Laporkan insiden</button>}
           {onAskNara&&<button type="button" className="ccActionBtn" onClick={()=>onAskNara('Tinjau kondisi operasional berdasarkan data AUREKA yang dapat saya akses. Sajikan temuan, prioritas, keterbatasan data, dan rekomendasi tindak lanjut.','Command Centre · '+(roomName||'Cakupan akun'))}>Analisis dengan NARA</button>}
         </div>
       </div>
       <div className="ccHeroMeta">
         <span className="ccDate">{dateLabel}</span>
         <span className="ccScope">{roomName||'Cakupan akun'}</span>
-        <span className="ccSectionMeta">Pembaruan mengikuti sumber data modul</span>
       </div>
     </header>
 
@@ -262,31 +239,19 @@ export default function HomeLandingWorkspace({
     </section>})()}
 
     <section className="ccSection" aria-label="Ringkasan operasional">
-      <div className="ccSectionHead"><div><h2>Operational overview</h2><p>Indikator ringkas berdasarkan data yang tersedia dan cakupan akses akun.</p></div><span className="ccSectionMeta">Data tidak tersedia tidak dihitung sebagai nol</span></div>
+      <div className="ccSectionHead"><h2>Ringkasan kinerja</h2></div>
       <div className="ccPanel"><HomeKpis key={refreshKey} supabase={supabase} rooms={rooms} isAdmin={isAdmin||manager} roomId={roomId} showSafety={isAdmin||manager} onNavigate={onNavigate}/></div>
     </section>
 
-    <div className="ccMainGrid">
-      <section className="ccSection" aria-label="Akses cepat modul">
-        <div className="ccSectionHead"><div><h2>Operational workspaces</h2><p>Akses langsung ke fungsi inti tanpa melewati halaman dashboard perantara.</p></div></div>
-        <div className="ccModuleGrid">
-          {actions.filter(action=>action.id==='nara'?Boolean(onAskNara):availableModules.includes(action.id)).map(action=><button type="button" key={action.id} className="ccModule" onClick={action.run}>
-            <span className="ccModuleTop"><span className="ccModuleCode">WORKSPACE / {action.id.toUpperCase()}</span><span className="ccModuleArrow" aria-hidden="true">↗</span></span>
-            <strong>{action.title}</strong><small>{action.description}</small>
-          </button>)}
-        </div>
-      </section>
-
       <section className="ccSection" aria-label="Antrean pekerjaan">
-        <div className="ccSectionHead"><div><h2>Action queue</h2><p>Item yang masih membutuhkan penyelesaian atau tindak lanjut.</p></div><span className="ccSectionMeta">{activity.pending.reduce((sum,item)=>sum+item.count,0)} item</span></div>
+        <div className="ccSectionHead"><h2>Perlu tindak lanjut</h2><span className="ccSectionMeta">{activity.pending.reduce((sum,item)=>sum+item.count,0)} item</span></div>
         <div className="ccPanel">
           {activity.pending.length ? <div className="ccWorkList">{activity.pending.map(item=><button type="button" className="ccWorkItem" key={item.module+item.label} onClick={()=>onNavigate(item.module==='Keselamatan Pasien'?'safety':item.module==='Manajemen Risiko'?'risk':item.module==='Peningkatan Kinerja Klinis'?'clinical':'quality')}>
             <span className="ccWorkText"><strong>{item.label}</strong><small>{item.module}</small></span><span className="ccWorkCount">{item.count}</span>
-          </button>)}</div> : <div className="ccEmpty">{activity.partial?'Antrean belum dapat dipastikan karena sebagian sumber aktivitas belum terbaca. Buka modul terkait untuk verifikasi.':'Tidak ditemukan pekerjaan tertunda pada sumber aktivitas yang terhubung.'}</div>}
-          {activity.partial&&<p className="ccNotice">Sebagian sumber data aktivitas tidak dapat dibaca. Kondisi ini bukan bukti bahwa seluruh pekerjaan telah selesai.</p>}
+          </button>)}</div> : <div className="ccEmpty">{activity.partial?'Antrean belum dapat dimuat sepenuhnya.':'Tidak ada pekerjaan tertunda.'}</div>}
+          {activity.partial&&activity.pending.length>0&&<p className="ccNotice">Sebagian pekerjaan belum dapat dimuat.</p>}
         </div>
       </section>
-    </div>
 
     <footer className="ccFoot">
       <span><strong>Aktivitas terakhir:</strong> {lastActivityLabel}</span>

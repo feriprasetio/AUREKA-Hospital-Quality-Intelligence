@@ -135,6 +135,13 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   box-sizing: border-box !important;
 }
 
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
   display: grid !important;
   flex: 0 0 38px !important;
@@ -404,6 +411,32 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   box-sizing: border-box !important;
 }
 
+
+/* Shared presentation control in the app header. */
+.workspacePresentationSlot { grid-area: density; flex: 0 0 auto; }
+.workspacePresentationSlot:empty { display: none; }
+.workspaceHeaderBar .workspaceDensityToggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+html[data-skin="arktik"] body .workspaceRoot .workspaceHeaderBar .workspaceDensityToggle[aria-pressed="true"] {
+  background: var(--aureka-color-primary-soft) !important;
+  color: var(--aureka-color-primary) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceSidebarMenuButton {
+  background: var(--aureka-color-surface-raised) !important;
+  border-color: var(--aureka-color-border-strong) !important;
+  color: var(--aureka-color-foreground) !important;
+}
+html[data-skin="arktik"] .workspaceHeaderBar :is(button, select, input):focus-visible {
+  outline: 2px solid var(--aureka-color-information) !important;
+  outline-offset: 2px;
+}
+
 /* Tablet: use two deliberate header rows instead of compressing controls. */
 @media (min-width: 721px) and (max-width: 1180px) {
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
@@ -415,10 +448,10 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
-    grid-template-columns: 38px minmax(0, 1fr) repeat(4, 34px) minmax(120px, 180px) !important;
+    grid-template-columns: 38px minmax(0, 1fr) repeat(5, 34px) minmax(108px, 160px) !important;
     grid-template-areas:
-      "menu context nara inbox theme bell profile"
-      "search search search search search search search" !important;
+      "menu context density nara inbox theme bell profile"
+      "search search search search search search search search" !important;
     gap: 6px !important;
     padding: 8px 10px !important;
   }
@@ -428,7 +461,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNaraButton { grid-area: nara !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceInboxButton { grid-area: inbox !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceThemeButton { grid-area: theme !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceFullscreenButton { display: none !important; }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceFullscreenButton.workspaceHeaderIcon { display: none !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
     grid-area: profile !important;
@@ -518,11 +551,11 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     position: relative !important;
     display: grid !important;
-    grid-template-columns: 44px minmax(0, 1fr) repeat(3, 44px) !important;
+    grid-template-columns: 44px minmax(0, 1fr) repeat(4, 44px) !important;
     grid-template-areas:
-      "menu context context theme bell"
-      "profile profile nara inbox find"
-      "search search search search search" !important;
+      "menu context context context theme bell"
+      "profile profile density nara inbox find"
+      "search search search search search search" !important;
     gap: 7px !important;
     min-height: 0 !important;
     padding: 8px !important;
@@ -534,7 +567,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNaraButton { grid-area: nara !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceInboxButton { grid-area: inbox !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceThemeButton { grid-area: theme !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceFullscreenButton { display: none !important; }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceFullscreenButton.workspaceHeaderIcon { display: none !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile {
     grid-area: profile !important;
@@ -705,9 +738,24 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   ) > :is(button, [role="tab"]) {
     max-width: 240px !important;
   }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .workspaceViewTabs > .workspaceViewTabList {
+    display: none !important;
+  }
 }
 
-
+@media (max-width: 1100px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(.spmWorkspace > .spmTabs, .workspaceViewTabs > .workspaceViewTabList) {
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .spmWorkspace > .spmTabs > button {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 44px !important;
+    white-space: normal !important;
+  }
+}
 
 /* Mobile workspace navigation: drawer + contextual breadcrumb + one tab row. */
 .workspaceMobileNavigation { display: none; }

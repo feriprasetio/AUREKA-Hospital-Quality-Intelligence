@@ -973,8 +973,6 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       <LiquidGlass className="qualitySettingsSurface" style={{ padding: 14 }}>
         <WorkspaceModuleHeader
           title={tab === 'programs' ? 'Program Kerja' : 'Profil Indikator'}
-          description={tab === 'programs' ? 'Kelola klasifikasi program kerja yang menjadi dasar pengelompokan indikator mutu.' : 'Kelola definisi, target, metode pengukuran, dan versi profil indikator lintas unit.'}
-          eyebrow={canManageCatalog ? 'Metadata · Superadmin' : 'Visual Intelligence · Profil Indikator'}
         />
 {showTabs && (
           <WorkspaceTabs

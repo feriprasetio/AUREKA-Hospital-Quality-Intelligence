@@ -306,24 +306,6 @@ html[data-skin="arktik"][data-mode="gelap"]:root .workspaceRoot :is(h1, h2, h3, 
   html[data-skin="arktik"][data-mode="gelap"]:root { --arktik-glass: rgba(22, 30, 52, 0.94); }
 }
 /* Halaman publik & login tetap terang walau mode gelap tersimpan */
-html[data-skin="arktik"][data-mode="gelap"]:root :is(.a2-landing, .authPage) {
-  color-scheme: light;
-  --arktik-bg: #e9f1f8;
-  --arktik-ink: #0b1f33;
-  --arktik-ink-2: #2e4a66;
-  --arktik-glass: rgba(255, 255, 255, 0.55);
-  --arktik-glass-strong: rgba(255, 255, 255, 0.78);
-  --arktik-edge: rgba(255, 255, 255, 0.85);
-  --arktik-shadow: 0 14px 34px rgba(20, 60, 110, 0.10), inset 0 1px 0 rgba(255, 255, 255, 1);
-  --arktik-blur: blur(20px) saturate(175%);
-}
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) {
-  padding: 0 !important; min-height: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important; margin: 0 0 -4px !important;
-}
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) .workspaceModuleHeaderCopy {
-  position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important;
-}
-html[data-skin="arktik"]:root .workspaceRoot .workspaceContent .moduleEnter .workspaceModuleHeader:not(.ovHero) .workspaceModuleHeaderTools { margin-left: auto !important; }
 html[data-skin="arktik"]:root .workspaceRoot .workspaceHeaderBar .workspaceGlobalSearch input:not([type="checkbox"]):not([type="radio"]) {
   background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important;
 }

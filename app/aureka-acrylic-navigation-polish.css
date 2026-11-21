@@ -539,56 +539,6 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
 
 /* Mobile drawer is always full width and readable, even when desktop was collapsed. */
 @media (max-width: 720px) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
-    display: grid !important;
-    grid-template-columns: 40px minmax(0, 1fr) 40px 40px 40px !important;
-    grid-template-areas: "menu ctx theme bell ai" "search search search search search" !important;
-    align-items: center !important;
-    gap: 6px !important;
-    min-height: 0 !important;
-    height: auto !important;
-    padding: 12px 14px !important;
-    background: rgba(248, 251, 254, .94) !important;
-    border-bottom: 1px solid rgba(132, 163, 190, .28) !important;
-  }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
-    grid-area: menu !important;
-    display: grid !important;
-    order: 0 !important;
-  }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceContext {
-    grid-area: ctx !important;
-    flex: 1 1 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin: 0 !important;
-  }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceSearchToggle,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceNaraButton {
-    grid-area: ai !important;
-  }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceThemeButton {
-    grid-area: theme !important;
-  }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] {
-    grid-area: bell !important;
-  }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceGlobalSearch {
-    grid-area: search !important;
-    display: flex !important;
-    width: 100% !important;
-    max-width: none !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-  }
-
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed {
     display: block !important;
     grid-template-columns: minmax(0, 1fr) !important;
