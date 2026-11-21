@@ -30,3 +30,11 @@ test('admin overview uses a single existing authorized aggregate, avoiding N+1 R
   assert.doesNotMatch(source, /\.select\('id',\{count:'exact',head:true\}\)\s*\.eq\('room_id',room\.id\)/)
   assert.match(source, /records:null/)
 })
+
+
+test('overview refetches only when semantic room membership changes, not array identity', async () => {
+  const source = await readFile(new URL('../components/QualityIndicatorWorkspace.tsx', import.meta.url), 'utf8')
+  assert.match(source, /const roomKey=rooms\.map\(r=>r\.id\+':'\+r\.name\)\.join\('\|'\)/)
+  assert.match(source, /\},\[isAdmin,initialRoomId,roomId,roomKey,year\]\)/)
+  assert.doesNotMatch(source, /\},\[isAdmin,initialRoomId,roomId,rooms,year\]\)/)
+})
