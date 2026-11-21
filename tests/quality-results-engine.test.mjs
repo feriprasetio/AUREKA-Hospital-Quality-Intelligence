@@ -747,7 +747,7 @@ test('IBS 4.2 patient-episode categorical codes aggregate through the positive r
   assert.equal(result.observations, 3)
   assert.equal(result.annualNumerator, 1)
   assert.equal(result.annualDenominator, 3)
-  assert.equal(result.annualRate, 100 / 3)
+  assert.equal(result.annualRate, 33.33)
 })
 
 test('IBS 4.3 patient-episode categorical codes aggregate through the negative ratio direction', () => {
@@ -773,7 +773,7 @@ test('IBS 4.3 patient-episode categorical codes aggregate through the negative r
   assert.equal(result.observations, 3)
   assert.equal(result.annualNumerator, 2)
   assert.equal(result.annualDenominator, 3)
-  assert.equal(result.annualRate, 200 / 3)
+  assert.equal(result.annualRate, 66.67)
 })
 
 
