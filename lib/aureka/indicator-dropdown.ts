@@ -1,4 +1,4 @@
-import { resolveMeasurementKind, type IndicatorProfile } from './indicator-engine.ts'
+import { resolveMeasurementKind, usesCategoricalResponseCapture, type IndicatorProfile } from './indicator-engine.ts'
 
 export type IndicatorDropdownMasterOption = {
   label: string
@@ -47,6 +47,7 @@ export function shouldUseIndicatorDropdown(profile: IndicatorDropdownProfile): b
     ? profile.options_json.filter(option => option && String(option.label ?? '').trim())
     : []
   if (options.length < 2) return false
+  if (usesCategoricalResponseCapture(profile)) return true
   return !['ratio', 'visit', 'door', 'minutes', 'numeric'].includes(resolveMeasurementKind(profile))
 }
 

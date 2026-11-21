@@ -2,6 +2,7 @@ import {
   compareToTarget,
   isWithinVisitWindow,
   resolveMeasurementKind,
+  usesCategoricalResponseCapture,
   type MeasurementKind,
 } from './indicator-engine.ts'
 
@@ -238,9 +239,16 @@ function extractObservation(
 
   // ICU/HCU 2026 uses one coded categorical response per patient episode,
   // even when a legacy profile still declares ratio or visit as its type.
-  if (String(profile.schema_json?.response_capture_mode ?? '') === 'categorical') {
+  if (usesCategoricalResponseCapture(profile)) {
     const categorical = extractOptionObservation(profile, response, month, inputAt)
-    return categorical === undefined ? null : categorical
+    if (categorical !== undefined) return categorical
+    const hasCategoricalValue = !!String(response.answer ?? '').trim() ||
+      response.code != null || response.source_code != null ||
+      !!String(response.source_value ?? response.source_label ?? '').trim()
+    // Explicit categorical captures never fall back to numeric inputs. Inferred
+    // patient-episode captures retain compatibility with historical N/D records
+    // that predate coded answer storage.
+    if (String(profile.schema_json?.response_capture_mode ?? '').trim() || hasCategoricalValue) return null
   }
 
   const kind = resolveMeasurementKind(profile)

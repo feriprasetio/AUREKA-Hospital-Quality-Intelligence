@@ -89,3 +89,45 @@ test('restores an imported unmatched source value into the visible dropdown sele
     code: 1,
   }), 0)
 })
+
+
+test('uses the master 1/2/3 category dropdown for patient-episode profiles even when aggregation type is ratio', () => {
+  const profile = {
+    title: 'Kelengkapan Laporan Operasi <24 Jam',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'ratio', indicator_direction: 'positive' },
+    options_json: choices,
+  }
+  assert.equal(shouldUseIndicatorDropdown(profile), true)
+})
+
+test('does not infer per-patient categorical entry for an aggregate ratio profile', () => {
+  const profile = {
+    title: 'Kepatuhan Hand Hygiene',
+    measurement_grain: 'daily_metric',
+    schema_json: { measurement_type: 'ratio', indicator_direction: 'positive' },
+    options_json: choices,
+  }
+  assert.equal(shouldUseIndicatorDropdown(profile), false)
+})
+
+test('does not infer category entry without a published indicator direction', () => {
+  const profile = {
+    title: 'Unclassified patient indicator',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'ratio' },
+    options_json: choices,
+  }
+  assert.equal(shouldUseIndicatorDropdown(profile), false)
+})
+
+
+test('keeps explicitly numeric patient-episode measurements on numeric controls', () => {
+  const profile = {
+    title: 'Waktu tanggap',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'minutes', indicator_direction: 'positive' },
+    options_json: choices,
+  }
+  assert.equal(shouldUseIndicatorDropdown(profile), false)
+})
