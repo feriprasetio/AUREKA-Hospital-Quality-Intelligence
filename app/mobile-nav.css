@@ -50,7 +50,9 @@ html[data-skin]:root body .workspaceRoot .workspaceContent table.aqData thead th
 html body .workspaceRoot .workspaceContent .piWrap { grid-template-columns: minmax(0, 1fr) !important; min-width: 0; max-width: 100%; }
 html body .workspaceRoot .workspaceContent .piWrap > *, html body .workspaceRoot .workspaceContent .moduleEnter { min-width: 0; max-width: 100%; }
 html body .workspaceRoot .workspaceContent :is(.prTableWrap, .aqWrap) { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-@media (max-width: 760px) {
+/* Keep phone-only overflow clipping below the canonical 721px tablet boundary.
+   At 721–760px the navigation is desktop/tablet and popovers must not be clipped. */
+@media (max-width: 720px) {
   html body .workspaceRoot .workspaceContent { max-width: 100vw !important; overflow-x: clip !important; }
 }
 
