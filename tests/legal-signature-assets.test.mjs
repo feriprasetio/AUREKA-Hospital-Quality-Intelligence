@@ -39,3 +39,8 @@ test('Public QR verification discloses signature metadata only and disclaims PSr
  has(helper,'aureka_get_artifact_signature_stamps')
  has(helper,'documentVerificationQrUrl')
 })
+
+test('QR verification RPC is executable by both public visitors and authenticated AUREKA sessions',async()=>{
+ const sql=await read('supabase/migrations/20261121091500_legal_verification_authenticated_access.sql')
+ has(sql,"grant execute on function public.aureka_verify_artifact_signature(text) to authenticated")
+})
