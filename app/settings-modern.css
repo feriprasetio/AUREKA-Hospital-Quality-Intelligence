@@ -91,3 +91,10 @@ html[data-skin="arktik"][data-mode="gelap"] .workspaceRoot .settingsWorkspace .s
   border-color: transparent;
   box-shadow: none;
 }
+
+.stAccountFields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 12px;
+}
+.stAccountFields > .field { min-width: 0; margin: 0; }

@@ -152,7 +152,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   box-shadow: none !important;
 }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
-  .secTablePanel, .ppPanel, .legalPanel, .spoHeader, .stPanel, .settingsActivePanel, .workspaceActivePanel
+  .secTablePanel, .ppPanel, .legalPanel, .spoHeader, .stPanel, .workspaceActivePanel
 ) {
   padding-block: var(--aureka-canvas-block-pad) !important;
   padding-inline: 0 !important;

@@ -96,19 +96,20 @@ export default function HomeKpis({supabase,rooms,isAdmin,roomId,showSafety,onNav
   </div>)}
  </section>}
  <style>{`
-  .commandCentre .hlKpiRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:10px}
-  .commandCentre .hlKpiCard{display:grid;gap:6px;min-width:0;padding:12px;border:1px solid var(--aureka-color-border-strong);border-radius:10px;background:var(--aureka-color-surface)}
-  .commandCentre .hlKpiCard strong{font-size:25px;line-height:1.15;color:var(--aureka-color-foreground);font-variant-numeric:tabular-nums}
-  .commandCentre .hlKpiCard span,.commandCentre .hlKpiCard small{font-size:12px;color:var(--aureka-color-foreground-secondary)}
+  .commandCentre .hlKpiRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:var(--aureka-canvas-section-gap)}
+  .commandCentre .hlKpiCard{display:grid;align-content:start;gap:6px;min-width:0;padding:var(--aureka-canvas-block-pad) 12px;border-inline-start:2px solid var(--aureka-canvas-divider-strong)}
+  .commandCentre .hlKpiCard strong{font-size:calc(clamp(1.5rem,3vw,2rem) * var(--aureka-canvas-heading-scale));line-height:1.15;color:var(--aureka-color-foreground);font-variant-numeric:tabular-nums}
+  .commandCentre .hlKpiCard > :is(span,small){font-size:var(--aureka-canvas-small-size);color:var(--aureka-canvas-muted)}
   .commandCentre .hlKpiCard.hlKpiDanger strong{color:var(--aureka-color-danger)}
-  .hlDataTrust{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;padding:9px 12px;border:1px solid rgba(120,145,165,.24);border-radius:10px;background:rgba(245,249,252,.7)}
-  .hlDataTrustState{font-size:11px;font-weight:800;color:#34536d}
+  .hlDataTrust{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;padding:8px 0;border-block:1px solid var(--aureka-canvas-divider)}
+  .hlDataTrustState{font-size:12px;font-weight:750;color:var(--aureka-canvas-muted)}
   .hlDataTrustState.complete{color:#176b4a}
   .hlDataTrustState.partial{color:#92601d}
   .hlDataTrustState.unavailable{color:#a33a36}
-  .hlDataTrust time{font-size:11px;color:#62788b}
-  html[data-mode="gelap"] .hlDataTrust{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
-  html[data-mode="gelap"] .hlDataTrustState,html[data-mode="gelap"] .hlDataTrust time{color:#c3ccd8}
+  .hlDataTrust time{font-size:12px;color:var(--aureka-canvas-muted)}
+  html[data-mode="gelap"] .hlDataTrustState.complete{color:var(--aureka-color-success)}
+  html[data-mode="gelap"] .hlDataTrustState.partial{color:var(--aureka-color-warning)}
+  html[data-mode="gelap"] .hlDataTrustState.unavailable{color:var(--aureka-color-danger)}
  `}</style>
  </>
 }

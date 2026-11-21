@@ -622,7 +622,7 @@ export default function GeneralSettings({
           {tab === 'profile' && (
             <LiquidGlass style={{ padding: 18 }}>
               <h4 style={{ margin: '0 0 12px' }}>Akun & Akses</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12 }}>
+              <div className="stAccountFields">
                 <label className="field">
                   <span>Nama lengkap</span>
                   <input value={me?.full_name || ''} onChange={(e) => me && setMe({ ...me, full_name: e.target.value })} />
