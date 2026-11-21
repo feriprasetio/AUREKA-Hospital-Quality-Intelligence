@@ -23,15 +23,20 @@ const fetchWithSessionRetry: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
   const fake = trainingIntercept(url, init)
   if (fake) return fake
+  // Fetch consumes Request bodies; clone before the first attempt so a 401 can
+  // be replayed safely, including POST/PATCH requests with JSON payloads.
+  const retryInput = input instanceof Request ? input.clone() : input
   const response = await fetch(input, init)
   if (response.status !== 401 || /\/auth\/v1\//.test(url)) return response
   const body = await response.clone().text().catch(() => '')
   if (!/jwt expired|PGRST301|PGRST303|invalid jwt|token is expired/i.test(body)) return response
+  // A ReadableStream passed via init cannot be replayed safely after consumption.
+  if (init?.body instanceof ReadableStream) return response
   const token = await refreshAccessToken()
   if (!token) return response
   const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined))
   headers.set('Authorization', 'Bearer ' + token)
-  return fetch(input, { ...init, headers })
+  return fetch(retryInput, { ...init, headers })
 }
 
 export const aurekaSupabase: SupabaseClient = createClient(AUREKA_SUPABASE_URL, AUREKA_SUPABASE_PUBLISHABLE_KEY, {
