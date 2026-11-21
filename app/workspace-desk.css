@@ -729,3 +729,158 @@ html[data-theme] .workspaceRoot.workspaceDesk :is(
     justify-content: flex-start !important;
   }
 }
+
+
+/* AUREKA Adaptive Workspace — presentation layer only; domain modules keep data ownership. */
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceShell {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--border-subtle, rgba(126, 148, 171, .24));
+  border-radius: 12px;
+  background: var(--surface-card, rgba(255, 255, 255, .68));
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceHeading {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceKicker {
+  color: var(--text-secondary, #587087);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceLayoutName {
+  color: var(--text-primary, #18344f);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceDescription {
+  margin: 0;
+  color: var(--text-secondary, #587087);
+  font-size: 11px;
+  line-height: 1.4;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferences {
+  position: relative;
+  flex: 0 0 auto;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferences > summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 7px 11px;
+  border: 1px solid var(--border-subtle, rgba(126, 148, 171, .28));
+  border-radius: 10px;
+  background: var(--surface-soft, rgba(126, 148, 171, .08));
+  color: var(--text-primary, #18344f);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferences > summary::-webkit-details-marker { display: none; }
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferences > summary:focus-visible,
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel :is(select, button):focus-visible {
+  outline: 2px solid var(--accent, #315f95);
+  outline-offset: 2px;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 35;
+  display: grid;
+  gap: 10px;
+  width: min(290px, calc(100vw - 32px));
+  padding: 13px;
+  border: 1px solid var(--border-subtle, rgba(126, 148, 171, .3));
+  border-radius: 12px;
+  background: var(--surface-card, #fff);
+  color: var(--text-primary, #18344f);
+  box-shadow: 0 12px 32px rgba(17, 39, 61, .14);
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel label {
+  display: grid;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel select,
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel button {
+  min-height: 44px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle, rgba(126, 148, 171, .3));
+  border-radius: 9px;
+  background: var(--surface-card, #fff);
+  color: var(--text-primary, #18344f);
+  font: inherit;
+  font-size: 12px;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel button {
+  background: var(--surface-soft, rgba(126, 148, 171, .08));
+  font-weight: 700;
+  cursor: pointer;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel small {
+  color: var(--text-secondary, #587087);
+  font-size: 11px;
+  line-height: 1.5;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceContent {
+  min-width: 0;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceShell[data-adaptive-density="compact"] .adaptiveWorkspaceContent > :is(
+  .commandCentre, .patientRegistry, .patientRegistryIntelligence, .cpRoot, .acd,
+  .rmWorkspace, .psWorkspace, .staffDirectory, .secWorkspace, .naraWorkspace,
+  .spoWorkspace, .spmWorkspace, .annualProgramWorkspace, .qualityLogbookResultsStack
+) {
+  gap: 10px !important;
+}
+html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceShell[data-adaptive-layout="chat-artifact"] .adaptiveWorkspaceContent > .naraWorkspace {
+  min-height: min(760px, calc(100dvh - 190px));
+}
+@media (max-width: 720px) {
+  html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 9px 10px;
+  }
+  html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferences {
+    margin-left: auto;
+  }
+  html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspacePreferencePanel {
+    position: fixed;
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    width: min(320px, calc(100vw - 24px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceShell *,
+  html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceShell *::before,
+  html[data-theme] .workspaceRoot.workspaceDesk .adaptiveWorkspaceShell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
