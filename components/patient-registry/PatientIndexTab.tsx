@@ -254,7 +254,26 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
 function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: { patient: PatientRow; showIdentity: boolean; onToggleIdentity: () => void; onClose: () => void }) {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null)
   const [error, setError] = useState('')
+  type LinkedHistory = { episodes: Array<{ id:string; record_date:string; profile_year:number; unit:string|null; status:string; review_required:boolean; validated_at:string|null; validation_note:string|null; indicators:Array<{ code:string; title:string; category:string|null; answer:string|null; review_required:boolean }> }>; incidents: Array<{ id:string; incident_code:string; incident_date:string; unit_name:string; incident_type:string; status:string; summary:string }>; incidents_visible:boolean }
+  const [linkedHistory, setLinkedHistory] = useState<LinkedHistory | null>(null)
+  const [linkedHistoryError, setLinkedHistoryError] = useState('')
   const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLinkedHistory(null)
+    setLinkedHistoryError('')
+    void aurekaSupabase.rpc('aureka_patient_linked_history', { p_no_rm: patient.no_rm }).then(({ data, error: linkedError }) => {
+      if (cancelled) return
+      if (linkedError) {
+        setLinkedHistoryError(toUserFacingError(linkedError, { fallback: 'Keterkaitan indikator mutu dan keselamatan pasien belum dapat dimuat.' }))
+        setLinkedHistory(null)
+        return
+      }
+      setLinkedHistory(data as LinkedHistory)
+    })
+    return () => { cancelled = true }
+  }, [patient.no_rm])
 
   useEffect(() => {
     let cancelled = false
@@ -299,6 +318,19 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
         </div>
       </header>
       <div className="ptBody">
+        <section className="ptLinkedPanel" aria-label="Keterkaitan lintas modul pasien">
+          <h4>Jejak layanan lintas modul</h4>
+          {linkedHistoryError ? <p className="ptEmpty">{linkedHistoryError}</p> : linkedHistory === null ? <p className="ptEmpty">Memuat keterkaitan indikator mutu dan keselamatan pasien…</p> : <>
+            <div className="ptLinkedSection">
+              <b>Pengukuran indikator mutu terkait episode pasien</b>
+              {linkedHistory.episodes.length === 0 ? <p className="ptEmpty">Belum ada episode logbook pasien yang dapat ditampilkan pada unit dalam kewenangan Anda.</p> : linkedHistory.episodes.map((item) => <div className="ptLinkedRow" key={item.id}><strong>{fmt(item.record_date)} · {item.unit || 'Unit tidak tercatat'}</strong><em>{item.status === 'validated' ? 'Tervalidasi' : item.review_required ? 'Perlu review' : 'Tercatat'}</em>{item.validation_note && <small>{item.validation_note}</small>}{item.indicators?.length > 0 && <div className="ptLinkedIndicators">{item.indicators.map((indicator) => <div className="ptLinkedIndicator" key={indicator.code}><span>{indicator.code} · {indicator.title}</span><b>{indicator.answer || 'Belum ada jawaban'}</b>{indicator.review_required && <small>Perlu verifikasi</small>}</div>)}</div>}</div>)}
+            </div>
+            <div className="ptLinkedSection">
+              <b>Insiden keselamatan pasien</b>
+              {!linkedHistory.incidents_visible ? <p className="ptEmpty">Detail insiden hanya tersedia bagi role pengelola alur keselamatan pasien.</p> : linkedHistory.incidents.length === 0 ? <p className="ptEmpty">Belum ada insiden yang tertaut pada indeks pasien ini.</p> : linkedHistory.incidents.map((item) => <div className="ptLinkedRow" key={item.id}><strong>{item.incident_code} · {fmt(item.incident_date)}</strong><span>{item.unit_name} · {item.incident_type}</span><em>{item.status}</em>{item.summary && <small>{item.summary}</small>}</div>)}
+            </div>
+          </>}
+        </section>
         {episodes === null ? <div className="ptLoading" role="status"><i /><i /><i /></div>
           : error ? <p className="ptEmpty">{error}</p>
           : episodes.length === 0 ? <p className="ptEmpty">Belum ada episode yang dapat ditampilkan untuk No. RM ini di unit yang boleh Anda akses.</p>
@@ -329,7 +361,7 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
       .ptGhost{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid #d9e4ef;background:#fff;font:inherit;font-size:12px;font-weight:700;color:#1f2430;cursor:pointer}
       .ptClose{width:38px;height:38px;border-radius:12px;border:1px solid #d9e4ef;background:#fff;font-size:20px;line-height:1;color:#1f2430;cursor:pointer}
       .ptBody{flex:1;overflow:auto;padding:16px 22px}
-      .ptList{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid #e3eaf1;display:grid;gap:12px}
+      .ptLinkedPanel{display:grid;gap:12px;margin-bottom:16px;padding:13px 14px;border:1px solid #dce7ef;border-radius:14px;background:#f8fbfd}.ptLinkedPanel h4{margin:0;font-size:14px}.ptLinkedSection{display:grid;gap:7px}.ptLinkedSection>b{font-size:12px;color:#315e77}.ptLinkedRow{display:grid;gap:3px;padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #e5edf3;font-size:12px}.ptLinkedRow strong{font-variant-numeric:tabular-nums}.ptLinkedRow span,.ptLinkedRow small{color:#64748b}.ptLinkedRow em{font-style:normal;font-size:11px;color:#0b6b50;font-weight:700}.ptLinkedIndicators{display:grid;gap:5px;margin-top:5px}.ptLinkedIndicator{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px;padding:6px 8px;border-radius:8px;background:#f2f7fa;font-size:11px}.ptLinkedIndicator span{color:#475569}.ptLinkedIndicator b{color:#123f5b}.ptLinkedIndicator small{color:#a16207;font-weight:700}.ptList{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid #e3eaf1;display:grid;gap:12px}
       .ptList li{position:relative}.ptDot{position:absolute;left:-25px;top:16px;width:12px;height:12px;border-radius:99px;background:#5ec4cf;border:2px solid #fff;box-shadow:0 0 0 2px #cdeef1}
       .ptCard{padding:12px 14px;border-radius:14px;border:1px solid #e3eaf1;background:#fbfcfe}
       .ptRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px}.ptRow b{font-variant-numeric:tabular-nums}.ptRow span{color:#334155;font-weight:600}
@@ -347,6 +379,7 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
       html[data-mode="gelap"] .ptEyebrow{color:#8ee3ea}
       html[data-mode="gelap"] :is(.ptGhost,.ptClose){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
       html[data-mode="gelap"] .ptCard{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+      html[data-mode="gelap"] .ptLinkedPanel{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}html[data-mode="gelap"] .ptLinkedRow{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}html[data-mode="gelap"] .ptLinkedSection>b{color:#8ee3ea}html[data-mode="gelap"] .ptLinkedRow span,html[data-mode="gelap"] .ptLinkedRow small{color:#aab6c6}html[data-mode="gelap"] .ptLinkedIndicator{background:rgba(255,255,255,.06)}html[data-mode="gelap"] .ptLinkedIndicator span{color:#aab6c6}html[data-mode="gelap"] .ptLinkedIndicator b{color:#bde5f1}
       html[data-mode="gelap"] .ptRow span,html[data-mode="gelap"] .ptDiag{color:#dbe3ee}
       html[data-mode="gelap"] .ptList{border-color:rgba(255,255,255,.12)}html[data-mode="gelap"] .ptDot{border-color:#121821}
       html[data-mode="gelap"] .ptFoot{border-color:rgba(255,255,255,.08)}
