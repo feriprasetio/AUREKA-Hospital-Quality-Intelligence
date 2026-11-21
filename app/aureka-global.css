@@ -42,7 +42,7 @@
 .spoHeader{flex-wrap:wrap;padding:clamp(16px,2.2vw,26px);border:1px solid var(--border-subtle,rgba(128,140,160,.22));border-radius:20px;background:var(--surface-card,rgba(255,255,255,.72))}
 .spoHeader h1{margin:5px 0 4px;font-size:clamp(22px,2.4vw,30px);letter-spacing:-.035em}
 .spoHeader p,.spoRegisterToolbar p,.spoEditorHeading p{margin:0;color:var(--text-secondary,#687386);font-size:13px}
-.spoEyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--text-tertiary,#7b8495)}
+.spoEyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--text-tertiary,#7b8495)}
 .spoHeaderActions{flex-wrap:wrap}
 .spoButton{border:1px solid transparent;border-radius:11px;padding:10px 15px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
 .spoButton:disabled{opacity:.55;cursor:not-allowed}
@@ -57,17 +57,17 @@
 .spoStats span{font-size:11px;color:var(--text-secondary,#687386)}.spoStats strong{font-size:25px;font-variant-numeric:tabular-nums}
 .spoRegister,.spoEditor{border:1px solid var(--border-subtle,rgba(128,140,160,.22));border-radius:18px;background:var(--surface-card,rgba(255,255,255,.7));padding:clamp(15px,2vw,22px);min-width:0}
 .spoRegisterToolbar{flex-wrap:wrap}.spoRegisterToolbar h2,.spoEditorHeading h2{margin:0 0 4px;font-size:18px}
-.spoRegisterToolbar input{width:min(360px,100%);padding:10px 12px;border:1px solid var(--border-subtle,rgba(128,140,160,.3));border-radius:10px;background:var(--surface-input,transparent);color:inherit;font:inherit;font-size:12px}
+.spoRegisterToolbar input{width:min(360px,100%);padding:10px 12px;border:1px solid var(--border-subtle,rgba(128,140,160,.3));border-radius:10px;background:var(--surface-input,transparent);color:inherit;font:inherit;font-size:14px}
 .spoFilters{display:flex;gap:7px;flex-wrap:wrap;margin:17px 0}
 .spoFilters button{border:1px solid var(--border-subtle,rgba(128,140,160,.22));border-radius:999px;background:transparent;padding:7px 11px;color:inherit;font:inherit;font-size:11px;cursor:pointer}
 .spoFilters button.active{background:var(--surface-soft,rgba(70,95,130,.12));border-color:var(--accent-solid,#315fba);font-weight:800}
 .spoRecords{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .spoRecord{display:flex;flex-direction:column;gap:8px;text-align:left;padding:15px;border:1px solid var(--border-subtle,rgba(128,140,160,.2));border-radius:14px;background:var(--surface-soft,rgba(120,135,155,.05));color:inherit;cursor:pointer;min-width:0}
 .spoRecord:hover{border-color:var(--accent-solid,#315fba)}.spoRecord h3{font-size:15px;margin:1px 0 0;font-weight:800;line-height:1.35}.spoRecord p{font-size:11px;color:var(--text-secondary,#687386);margin:0}
-.spoRecordTop,.spoRecordBottom{width:100%;font-size:10px;color:var(--text-secondary,#687386);min-width:0}
+.spoRecordTop,.spoRecordBottom{width:100%;font-size:11px;color:var(--text-secondary,#687386);min-width:0}
 .spoRecordTop>span:first-child,.spoRecordBottom>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .spoRecordBottom{border-top:1px solid var(--border-subtle,rgba(128,140,160,.15));padding-top:9px}
-.spoStatus{display:inline-flex;align-items:center;white-space:nowrap;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;background:rgba(120,130,150,.12);color:var(--text-secondary,#687386)}
+.spoStatus{display:inline-flex;align-items:center;white-space:nowrap;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;background:rgba(120,130,150,.12);color:var(--text-secondary,#687386)}
 .spoStatus-approved{background:rgba(25,143,91,.11);color:#168454}.spoStatus-pending_review{background:rgba(190,130,28,.12);color:#a16a11}.spoStatus-archived{background:rgba(120,130,150,.14);color:#7b8495}.spoStatus-draft{background:rgba(68,117,190,.1);color:#4776b9}
 .spoEmpty{padding:32px 16px;text-align:center;border:1px dashed var(--border-subtle,rgba(128,140,160,.3));border-radius:14px;color:var(--text-secondary,#687386);font-size:12px;line-height:1.6}.spoEmpty strong{display:block;font-size:14px;margin-bottom:5px}.spoEmpty p{max-width:650px;margin:0 auto}
 .spoEditorTop{justify-content:flex-start;margin-bottom:15px}.spoLinkButton{border:0;background:transparent;color:var(--accent-solid,#315fba);font:inherit;font-size:12px;font-weight:750;cursor:pointer;padding:6px 0}
@@ -76,10 +76,10 @@
 .spoSection h3,.spoFlowPreview h3,.spoSourceMeta h3{font-size:13px;margin:0 0 13px;font-weight:850}
 .spoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .spoSection label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:750;color:var(--text-secondary,#687386);min-width:0}
-.spoSection input,.spoSection textarea{width:100%;border:1px solid var(--border-subtle,rgba(128,140,160,.28));border-radius:9px;padding:10px 11px;background:var(--surface-input,transparent);color:var(--text-primary,inherit);font:inherit;font-size:12px;line-height:1.55;min-width:0;resize:vertical}
-.spoStep{display:grid;grid-template-columns:28px minmax(0,1fr) 28px;gap:9px;align-items:start;margin:9px 0}.spoStep>b{width:26px;height:26px;border-radius:8px;background:var(--surface-soft,rgba(70,95,130,.12));display:grid;place-items:center;font-size:11px}
-.spoStep textarea{width:100%;border:1px solid var(--border-subtle,rgba(128,140,160,.28));border-radius:9px;padding:9px 11px;background:var(--surface-input,transparent);color:inherit;font:inherit;font-size:12px;resize:vertical}
-.spoStep button{border:0;border-radius:8px;background:var(--surface-soft,rgba(128,140,160,.12));color:inherit;font-size:18px;cursor:pointer;height:27px}
+.spoSection input,.spoSection textarea{width:100%;border:1px solid var(--border-subtle,rgba(128,140,160,.28));border-radius:9px;padding:10px 11px;background:var(--surface-input,transparent);color:var(--text-primary,inherit);font:inherit;font-size:14px;line-height:1.55;min-width:0;resize:vertical}
+.spoStep{display:grid;grid-template-columns:28px minmax(0,1fr) 44px;gap:9px;align-items:start;margin:9px 0}.spoStep>b{width:26px;height:26px;border-radius:8px;background:var(--surface-soft,rgba(70,95,130,.12));display:grid;place-items:center;font-size:11px}
+.spoStep textarea{width:100%;border:1px solid var(--border-subtle,rgba(128,140,160,.28));border-radius:9px;padding:9px 11px;background:var(--surface-input,transparent);color:inherit;font:inherit;font-size:14px;resize:vertical}
+.spoStep button{border:0;border-radius:8px;background:var(--surface-soft,rgba(128,140,160,.12));color:inherit;font-size:18px;cursor:pointer;height:44px;width:44px}
 .spoMuted{font-size:11px;color:var(--text-secondary,#687386);margin:0}
 .spoFlowPreview{padding:17px 0;border-bottom:1px solid var(--border-subtle,rgba(128,140,160,.17))}
 .spoFlowNodes{display:flex;flex-direction:column;align-items:center;gap:5px}.spoFlowItem{display:flex;flex-direction:column;align-items:center;gap:5px;max-width:520px;width:100%;text-align:center}
@@ -87,7 +87,7 @@
 .spoFlowPreview details{margin-top:10px;font-size:11px;color:var(--text-secondary,#687386)}.spoFlowPreview pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:10px;border-radius:8px;background:var(--surface-soft,rgba(120,135,155,.08));font-size:10px}
 .spoSourceMeta{display:flex;flex-direction:column;gap:6px;padding:10px 0;font-size:11px;color:var(--text-secondary,#687386);min-width:0}.spoSourceMeta h3{color:var(--text-primary,inherit);margin-bottom:3px}.spoSourceMeta strong{overflow-wrap:anywhere;color:var(--text-primary,inherit)}.spoSourceMeta small{font-size:10px;line-height:1.5;overflow-wrap:anywhere}
 .spoActions{justify-content:flex-start;flex-wrap:wrap;padding-top:17px}.spoHiddenFile{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-@media(max-width:760px){.spoStats{grid-template-columns:repeat(2,minmax(0,1fr))}.spoRecords{grid-template-columns:1fr}.spoGrid{grid-template-columns:1fr}.spoRegisterToolbar{align-items:stretch;flex-direction:column}.spoRegisterToolbar input{width:100%}.spoHeader{align-items:flex-start}.spoHeaderActions{width:100%}.spoHeaderActions .spoButton{flex:1}.spoRecordBottom{align-items:flex-start;flex-direction:column}}
+@media(max-width:760px){.spoStats{grid-template-columns:repeat(2,minmax(0,1fr))}.spoRecords{grid-template-columns:1fr}.spoGrid{grid-template-columns:1fr}.spoRegisterToolbar{align-items:stretch;flex-direction:column}.spoRegisterToolbar input{width:100%}.spoHeader{align-items:flex-start}.spoHeaderActions{width:100%}.spoHeaderActions .spoButton{flex:1}.spoRecordBottom{align-items:flex-start;flex-direction:column}.spoRegisterToolbar input,.spoSection input,.spoSection textarea,.spoStep textarea{font-size:16px}.spoButton,.spoFilters button,.spoLinkButton{min-height:44px}}
 
 
 /* Secretariat register and deterministic multi-document reader */
