@@ -242,7 +242,7 @@ test('the header no longer mounts an independent Nyaman/Ringkas control', () => 
   assert.match(adaptive, /readAppearancePreferences\(\)\.density/)
 })
 
-test('logbook filters and workbook actions use separate grid rows with non-shrinking controls', () => {
+test('logbook filters and workbook actions use separate grid rows with wrapping control labels', () => {
   const quality = read('components/QualityIndicatorWorkspace.tsx')
   const desk = read('app/workspace-desk.css')
   assert.match(quality, /grid-template-areas:"unit year month" "actions actions actions"/)
@@ -250,7 +250,7 @@ test('logbook filters and workbook actions use separate grid rows with non-shrin
   assert.match(quality, /\.aqFilterActions>button\{flex:0 0 auto;width:auto;min-width:max-content/)
   assert.match(quality, /grid-template-areas:"unit unit" "year month" "actions actions"/)
   assert.match(desk, /grid-template-areas: "unit year month" "actions actions actions" !important/)
-  assert.match(desk, /min-width: max-content !important/)
+  assert.match(desk, /\.aqFilterActions>button \{[^}]*min-width: 0 !important;[^}]*white-space: normal !important;/)
   assert.doesNotMatch(quality, /<div className="aqFilterActions">[\s\S]{0,500}<button[^>]*style=\{\{[^}]*flex/)
 })
 

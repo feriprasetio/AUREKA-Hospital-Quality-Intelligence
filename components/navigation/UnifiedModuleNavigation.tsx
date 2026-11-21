@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export type UnifiedNavigationItem = { id: string; label: string; hint?: string; disabled?: boolean }
 
@@ -96,124 +96,13 @@ export default function UnifiedModuleNavigation({
     const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(calculate) : null
     observer?.observe(rail); if (rail.parentElement) observer?.observe(rail.parentElement)
     window.addEventListener('resize', calculate)
-    return () => { observer?.disconnect(); window.removeEventListener('resize', calculate) }
+    document.fonts?.addEventListener('loadingdone', calculate)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', calculate)
+      document.fonts?.removeEventListener('loadingdone', calculate)
+    }
   }, [itemsSignature, subItemsSignature, resolvedActiveId, resolvedSecondaryActiveId, title])
-
-  useLayoutEffect(() => {
-    const box = itemsRef.current
-    if (!box) return
-    let frame = 0
-    let disposed = false
-    let observedActive: HTMLElement | null = null
-    const place = () => {
-      if (disposed) return
-      const active = box.querySelector<HTMLElement>('.workspaceNavigationRailItem.active')
-      if (!active) {
-        box.classList.remove('hasPill', 'pillReady')
-        box.style.removeProperty('--pill-x')
-        box.style.removeProperty('--pill-y')
-        box.style.removeProperty('--pill-w')
-        box.style.removeProperty('--pill-h')
-        return
-      }
-      const boxRect = box.getBoundingClientRect()
-      const activeRect = active.getBoundingClientRect()
-      const pillX = activeRect.left - boxRect.left + box.scrollLeft
-      const pillY = activeRect.top - boxRect.top + box.scrollTop
-      box.style.setProperty('--pill-x', `${pillX}px`)
-      box.style.setProperty('--pill-y', `${pillY}px`)
-      box.style.setProperty('--pill-w', `${activeRect.width}px`)
-      box.style.setProperty('--pill-h', `${activeRect.height}px`)
-      if (!box.classList.contains('hasPill')) {
-        box.classList.add('hasPill')
-        requestAnimationFrame(() => { if (!disposed) box.classList.add('pillReady') })
-      }
-      if (observedActive !== active) {
-        observer?.disconnect()
-        observer?.observe(box)
-        observer?.observe(active)
-        observedActive = active
-      }
-    }
-    const schedule = () => {
-      if (disposed) return
-      if (frame) cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(place)
-    }
-    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
-    observer?.observe(box)
-    box.addEventListener('scroll', schedule, { passive: true })
-    window.addEventListener('resize', schedule)
-    document.fonts?.ready.then(schedule)
-    document.fonts?.addEventListener('loadingdone', schedule)
-    schedule()
-    return () => {
-      disposed = true
-      if (frame) cancelAnimationFrame(frame)
-      observer?.disconnect()
-      box.removeEventListener('scroll', schedule)
-      window.removeEventListener('resize', schedule)
-      document.fonts?.removeEventListener('loadingdone', schedule)
-    }
-  }, [resolvedActiveId, hiddenIds, itemsSignature])
-
-  useLayoutEffect(() => {
-    const box = subItemsRef.current
-    if (!box) return
-    let frame = 0
-    let disposed = false
-    let observedActive: HTMLElement | null = null
-    const place = () => {
-      if (disposed) return
-      const active = box.querySelector<HTMLElement>('.workspaceNavigationSubItem.active')
-      if (!active) {
-        box.classList.remove('hasPill', 'pillReady')
-        box.style.removeProperty('--pill-x')
-        box.style.removeProperty('--pill-y')
-        box.style.removeProperty('--pill-w')
-        box.style.removeProperty('--pill-h')
-        return
-      }
-      const boxRect = box.getBoundingClientRect()
-      const activeRect = active.getBoundingClientRect()
-      const pillX = activeRect.left - boxRect.left + box.scrollLeft
-      const pillY = activeRect.top - boxRect.top + box.scrollTop
-      box.style.setProperty('--pill-x', `${pillX}px`)
-      box.style.setProperty('--pill-y', `${pillY}px`)
-      box.style.setProperty('--pill-w', `${activeRect.width}px`)
-      box.style.setProperty('--pill-h', `${activeRect.height}px`)
-      if (!box.classList.contains('hasPill')) {
-        box.classList.add('hasPill')
-        requestAnimationFrame(() => { if (!disposed) box.classList.add('pillReady') })
-      }
-      if (observedActive !== active) {
-        observer?.disconnect()
-        observer?.observe(box)
-        observer?.observe(active)
-        observedActive = active
-      }
-    }
-    const schedule = () => {
-      if (disposed) return
-      if (frame) cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(place)
-    }
-    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
-    observer?.observe(box)
-    box.addEventListener('scroll', schedule, { passive: true })
-    window.addEventListener('resize', schedule)
-    document.fonts?.ready.then(schedule)
-    document.fonts?.addEventListener('loadingdone', schedule)
-    schedule()
-    return () => {
-      disposed = true
-      if (frame) cancelAnimationFrame(frame)
-      observer?.disconnect()
-      box.removeEventListener('scroll', schedule)
-      window.removeEventListener('resize', schedule)
-      document.fonts?.removeEventListener('loadingdone', schedule)
-    }
-  }, [resolvedSecondaryActiveId, hiddenSubIds, subItemsSignature])
 
   useEffect(() => {
     if (!window.matchMedia('(max-width: 860px)').matches) return

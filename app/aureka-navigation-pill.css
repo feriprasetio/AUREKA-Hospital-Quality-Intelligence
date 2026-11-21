@@ -1,7 +1,4 @@
-/* Canonical contextual-navigation pill.
-   One owner for the active surface; geometry comes from measured button rects
-   in UnifiedModuleNavigation and is expressed in each group's scroll-content
-   coordinates. The hit target remains the button, never the pseudo-element. */
+/* The active tab paints its own pill within the shared navigation rail. */
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
   position: relative !important;
@@ -64,75 +61,18 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   border-color: rgba(155,181,203,.4) !important;
   color: #244d6d !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
-  color: #ffffff !important;
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItem.active {
+  border-color: #24577d !important;
+  background: linear-gradient(155deg, #286794, #153c61) !important;
+  color: #fff !important;
   font-weight: 750 !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
-  color: #244d6d !important;
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItem.active {
+  border-color: var(--aureka-control-edge) !important;
+  background: var(--aureka-header-control) !important;
+  color: var(--aureka-color-foreground) !important;
   font-weight: 750 !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
-  content: "" !important;
-  position: absolute !important;
-  z-index: 0 !important;
-  left: var(--pill-x, 0px) !important;
-  top: var(--pill-y, 0px) !important;
-  width: var(--pill-w, 0px) !important;
-  height: var(--pill-h, 32px) !important;
-  max-height: 32px !important;
-  box-sizing: border-box !important;
-  border: 1px solid #183f61 !important;
-  border-radius: 11px !important;
-  background: #16507a !important;
-  background-image: linear-gradient(155deg, #286794, #153c61) !important;
-  box-shadow: 0 2px 7px rgba(24,63,97,.13) !important;
-  pointer-events: none !important;
-  opacity: 0 !important;
-  transition: left 160ms cubic-bezier(.2,.75,.25,1), top 160ms cubic-bezier(.2,.75,.25,1), width 160ms cubic-bezier(.2,.75,.25,1), height 160ms cubic-bezier(.2,.75,.25,1), opacity 100ms ease !important;
-}
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill.pillReady::before {
-  opacity: 1 !important;
-}
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill.pillReady::before {
-  opacity: 1 !important;
-  border-color: #bfd2e3 !important;
-  background: #dcebf8 !important;
-  box-shadow: 0 2px 7px rgba(44,86,121,.09) !important;
-}
-html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before {
-  border-color: #9bb8d1 !important;
-  background: #315573 !important;
-  background-image: linear-gradient(155deg, #426b8d, #253f5b) !important;
-  box-shadow: 0 3px 10px rgba(0,0,0,.22) !important;
-}
-html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
-  border-color: #4d7292 !important;
-  background: #203d56 !important;
-}
-html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill .workspaceNavigationRailItem.active {
-  color: #ffffff !important;
-}
-html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill .workspaceNavigationSubItem.active {
-  color: #eaf2f9 !important;
-}
-@media (max-width: 860px) and (min-width: 721px) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems {
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRailItems.hasPill::before,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationSubItems.hasPill::before {
-    transition: none !important;
-  }
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] :is(.workspaceNavigationRailItems, .workspaceNavigationSubItems)::before {
+  content: none !important;
 }
