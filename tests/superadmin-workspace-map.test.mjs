@@ -86,7 +86,9 @@ test('module-local search controls are hidden while header search dispatch remai
 test('Superadmin logbook opens a privacy-safe index of every active room', () => {
   assert.ok(audit.includes('if(isAdmin)return null'))
   assert.ok(audit.includes('Logbook semua ruangan'))
-  assert.ok(audit.includes("select('id',{count:'exact',head:true})"))
+  assert.ok(audit.includes("sb.rpc('aureka_quality_room_month_counts'"))
+  assert.ok(audit.includes('aggregateRoomOverviewCounts(rooms,data??[])'))
+  assert.ok(!audit.includes("select('id',{count:'exact',head:true})"))
   assert.ok(audit.includes('onRoomChange?.(nextRoomId)'))
   const roomIndex = audit.slice(audit.indexOf('aria-label="Logbook semua ruangan"'), audit.indexOf('return <div className="aq aqAuditWorkspace">'))
   assert.match(roomIndex, /summary\.records\.toLocaleString/)
