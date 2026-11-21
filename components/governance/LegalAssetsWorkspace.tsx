@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { documentVerificationQrUrl, documentVerificationUrl } from '@/lib/aureka/document-signature-stamp'
 
 type SignatureAsset = {
   asset_id:string
@@ -45,11 +46,10 @@ const normalize=(value:string)=>value.trim().toLocaleLowerCase('id-ID')
 const basePath=()=>typeof window==='undefined'?'':window.location.pathname.replace(/\/?$/,'/')
 
 function verificationUrl(code:string){
-  return typeof window==='undefined'?'':window.location.origin+basePath()+'#v/'+encodeURIComponent(code)
+  return typeof window==='undefined'?'':documentVerificationUrl(code,window.location.origin,basePath())
 }
 function qrUrl(code:string){
-  const target=verificationUrl(code)
-  return target?'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data='+encodeURIComponent(target):''
+  return typeof window==='undefined'?'':documentVerificationQrUrl(code,window.location.origin,basePath())
 }
 
 export default function LegalAssetsWorkspace({role,userId,userName}:Props){
