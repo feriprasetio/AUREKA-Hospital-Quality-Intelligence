@@ -1,12 +1,12 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
-type Profile = {
+type Profile = Record<string, any> & {
   id?: string
   source_id?: string | null
   source_code?: string
@@ -22,7 +22,7 @@ type Profile = {
   target_value?: number | null
   numerator_definition?: string | null
   denominator_definition?: string | null
-  measurement_grain: string
+  measurement_grain?: string
   schema_json: Record<string, any>
   options_json: Array<Record<string, any>>
 }
@@ -352,6 +352,12 @@ export default function QualityWorkbookImportPanel({
               !['minutes', 'numeric', 'visit_window', 'door_to_decision'].includes(normalize(measurementType))) {
             schema = { ...schema, response_capture_mode: 'categorical' }
           }
+          if (normalize(schema.response_capture_mode) && ['categorical', 'coded_choice', 'option_response'].includes(normalize(schema.response_capture_mode))) {
+            const coded = options.filter((option: any) => [1, 2, 3].includes(Number(option.code)))
+            if (coded.length < 2 || options.some((option: any) => option.code != null && ![1, 2, 3].includes(Number(option.code)))) {
+              throw new Error('Profil kategorikal wajib memiliki sekurang-kurangnya dua opsi berkode 1, 2, atau 3.')
+            }
+          }
           const targetValue = get(row.values, 'target_value')
           profiles.push({
             code, source_code: code, room_id: roomId, unit_name: roomName,
@@ -396,9 +402,9 @@ export default function QualityWorkbookImportPanel({
             let response: Record<string, any> = { indicator_code: profile.code, response_label: null, response_code: null, raw_value: {}, review_status: 'not_required' }
             if (categorical) {
               const option = optionForValue(profile, rawCell)
-              if (!option) throw new Error('Nilai "' + clean(rawCell) + '" tidak cocok tepat dengan opsi profil (kode 1/2/3). Periksa pemetaan atau master opsi.')
+              if (!option || ![1, 2, 3].includes(Number(option.code))) throw new Error('Nilai "' + clean(rawCell) + '" tidak cocok tepat dengan opsi berkode 1/2/3. Periksa pemetaan atau master opsi.')
               response.response_label = String(option.label)
-              response.response_code = option.code == null ? null : Number(option.code)
+              response.response_code = Number(option.code)
               response.raw_value = { answer: String(option.label), code: response.response_code }
               response.review_status = option.review_required ? 'pending' : 'not_required'
             } else if (kind === 'ratio') {
@@ -546,8 +552,8 @@ export default function QualityWorkbookImportPanel({
     } finally { setBusy(false) }
   }
 
-  const selectStyle: React.CSSProperties = { width: '100%', minHeight: 36, border: '1px solid #d7e2e9', borderRadius: 8, padding: '6px 8px', background: '#fff', color: '#243b4d', fontSize: 12 }
-  const fieldStyle: React.CSSProperties = { display: 'grid', gap: 4, minWidth: 0, color: '#5e7381', fontSize: 11, fontWeight: 700 }
+  const selectStyle: CSSProperties = { width: '100%', minHeight: 36, border: '1px solid #d7e2e9', borderRadius: 8, padding: '6px 8px', background: '#fff', color: '#243b4d', fontSize: 12 }
+  const fieldStyle: CSSProperties = { display: 'grid', gap: 4, minWidth: 0, color: '#5e7381', fontSize: 11, fontWeight: 700 }
   const mappingSelect = (headers: string[], value: string, onChange: (value: string) => void, label: string) => (
     <label style={fieldStyle}>{label}
       <select style={selectStyle} value={value} onChange={event => { onChange(event.target.value); setPreview(null) }}>
