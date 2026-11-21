@@ -1,6 +1,6 @@
 /* Pop-up AUREKA (AurekaModal + aurekaConfirm) */
 .akModalRoot {
-  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px;
+  position: fixed; inset: 0; z-index: var(--aureka-z-dialog, 2147483500); display: grid; place-items: center; padding: 20px;
   background: rgba(8, 20, 36, .42);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
@@ -15,7 +15,7 @@
 .akModalHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px 20px 14px; border-bottom: 1px solid rgba(11, 70, 122, .08); }
 .akModalHead h3 { margin: 0; font-size: 18px; font-weight: 750; letter-spacing: -.01em; }
 .akModalHead p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; opacity: .7; }
-.akModalClose { flex: 0 0 36px; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 12px; background: rgba(11, 70, 122, .07); color: inherit; cursor: pointer; transition: background-color .2s ease, rotate .3s ease; }
+.akModalClose { flex: 0 0 44px; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 12px; background: rgba(11, 70, 122, .07); color: inherit; cursor: pointer; transition: background-color .2s ease, rotate .3s ease; }
 .akModalClose:hover { background: rgba(11, 70, 122, .14); rotate: 90deg; }
 .akModalClose svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .akModalBody { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 16px 20px 20px; overscroll-behavior: contain; }
@@ -23,7 +23,7 @@
 .akModalEditor > div:first-child { margin-top: 0 !important; padding: 0 !important; background: transparent !important; border: 0 !important; }
 .akModalEditor .eyebrow { display: none; }
 .akConfirmText { margin: 4px 0 6px; font-size: 15px; line-height: 1.6; }
-.akBtn { min-height: 42px; padding: 0 18px; border-radius: 12px; border: 1px solid transparent; font: 650 14px/1 inherit; cursor: pointer; transition: translate .2s ease, box-shadow .2s ease, background-color .2s ease; }
+.akBtn { min-height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid transparent; font: 650 14px/1 inherit; cursor: pointer; transition: translate .2s ease, box-shadow .2s ease, background-color .2s ease; }
 .akBtnGhost { background: transparent; border-color: rgba(11, 70, 122, .2); color: inherit; }
 .akBtnPrimary { background: #0b467a; color: #fff; }
 .akBtnDanger { background: #c0392b; color: #fff; }
@@ -41,6 +41,8 @@ html[data-mode="gelap"] .akModalClose { background: rgba(255, 255, 255, .08); }
   .akModalGrip { display: block; width: 42px; height: 5px; margin: 8px auto 0; border-radius: 5px; background: rgba(11, 70, 122, .2); }
   .akModalHead { padding-top: 10px; }
   .akModalBody { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .akModalFoot { flex-wrap: wrap; }
+  .akModalFoot > .akBtn { flex: 1 1 120px; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
