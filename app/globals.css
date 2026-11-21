@@ -269,7 +269,7 @@ button.placeholderCard:hover{transform:translateY(-3px);box-shadow:0 22px 50px r
 @media(max-width:900px){.userRowGrid{grid-template-columns:1fr}}
 
 /* Jendela pop-up form Manajemen Risiko */
-.rmModalBackdrop{position:fixed;inset:0;z-index:200;display:flex;justify-content:center;align-items:flex-start;padding:4vh 18px;overflow-y:auto;
+.rmModalBackdrop{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);display:flex;justify-content:center;align-items:flex-start;padding:4vh 18px;overflow-y:auto;
   background:rgba(20,34,27,.28);backdrop-filter:blur(10px) saturate(130%);-webkit-backdrop-filter:blur(10px) saturate(130%);animation:aurFade .18s ease both}
 .rmModalSheet{width:min(980px,100%);display:grid;gap:10px;animation:aurScaleIn .28s var(--ease) both}
 .rmModalSheet>.rmPanel{background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,255,255,.78));box-shadow:0 30px 90px rgba(17,45,33,.25)}
@@ -556,7 +556,7 @@ button.ovCell:not(:disabled):hover{transform:scale(1.07);box-shadow:0 8px 18px r
 .authAlert.ok{background:rgba(22,80,122,.08);border-color:rgba(22,80,122,.25);color:#0b5a41}
 
 /* ---- Formulir Laporan IKP sebagai jendela (Keselamatan Pasien) ---- */
-.psModalBackdrop{position:fixed;inset:0;z-index:200;display:flex;justify-content:center;align-items:flex-start;padding:3vh 18px 4vh;overflow-y:auto;overscroll-behavior:contain;background:rgba(20,34,27,.55);animation:psFade .18s ease-out}
+.psModalBackdrop{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);display:flex;justify-content:center;align-items:flex-start;padding:3vh 18px 4vh;overflow-y:auto;overscroll-behavior:contain;background:rgba(20,34,27,.55);animation:psFade .18s ease-out}
 @keyframes psFade{from{opacity:0}to{opacity:1}}
 .psModalSheet{width:min(1000px,100%);display:grid;gap:10px;animation:aurScaleIn .28s var(--ease) both}
 .psModalSheet>.liquidGlass{background:#fbfdfc!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid rgba(20,34,27,.08)!important;box-shadow:0 30px 90px rgba(17,45,33,.25)!important}
@@ -1459,25 +1459,25 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 
 
 /* Unit selection is a compact dialog, not a full-height empty drawer. */
-.moduleEnter .aqBack:has(.aqUnitPicker){justify-content:center!important;align-items:center!important;padding:18px!important}
-.moduleEnter .aqUnitPicker{
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqBack:has(.aqUnitPicker){justify-content:center!important;align-items:center!important;padding:18px!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker{
  display:flex!important;flex-direction:column!important;flex:0 1 auto!important;
  width:min(520px,calc(100vw - 28px))!important;height:auto!important;max-height:calc(100dvh - 36px)!important;
  min-height:0!important;margin:0!important;overflow:hidden!important;border:1px solid var(--border)!important;
  border-radius:16px!important;background:var(--surface)!important;color:var(--ink)!important;
  box-shadow:0 22px 70px rgba(0,0,0,.22)!important
 }
-.moduleEnter .aqUnitPicker .aqDHead{flex:0 0 auto!important;align-items:center!important;gap:10px!important;padding:13px 15px!important;background:var(--surface)!important;border-color:var(--border)!important}
-.moduleEnter .aqUnitPicker .aqDHead .eyebrow{font-size:12px!important;letter-spacing:.1em!important}
-.moduleEnter .aqUnitPicker .aqDHead h4{font-size:17px!important;line-height:1.2!important;margin:3px 0!important;color:var(--ink)!important}
-.moduleEnter .aqUnitPicker .aqDHead p{display:none!important}
-.moduleEnter .aqUnitPicker .aqClose{width:28px!important;height:28px!important;flex:0 0 28px!important;border-radius:8px!important;font-size:16px!important;background:var(--surface-raised)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
-.moduleEnter .aqUnitPicker .aqBody{flex:0 1 auto!important;min-height:0!important;padding:12px 15px!important;overflow:auto!important}
-.moduleEnter .aqUnitPicker .aqBody .aqField>span{font-size:12px!important;margin:0 0 4px!important;color:var(--muted)!important}
-.moduleEnter .aqUnitPicker .aqBody .aqField select{width:100%!important;min-height:34px!important;height:34px!important;padding:6px 9px!important;border-radius:8px!important;background:var(--surface-raised)!important;color:var(--ink)!important;border-color:var(--border)!important;font-size:12px!important}
-.moduleEnter .aqUnitPicker .aqFoot{position:static!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex:0 0 auto!important;margin:10px -15px -12px!important;padding:10px 15px!important;border-top:1px solid var(--border)!important;background:var(--surface-raised)!important}
-.moduleEnter .aqUnitPicker .aqFoot .aqMetaText{display:none!important}
-.moduleEnter .aqUnitPicker .aqFoot .aqBtn{min-height:30px!important;height:30px!important;padding:6px 11px!important;border-radius:8px!important;font-size:12px!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqDHead{flex:0 0 auto!important;align-items:center!important;gap:10px!important;padding:13px 15px!important;background:var(--surface)!important;border-color:var(--border)!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqDHead .eyebrow{font-size:12px!important;letter-spacing:.1em!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqDHead h4{font-size:17px!important;line-height:1.2!important;margin:3px 0!important;color:var(--ink)!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqDHead p{display:none!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqClose{width:28px!important;height:28px!important;flex:0 0 28px!important;border-radius:8px!important;font-size:16px!important;background:var(--surface-raised)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqBody{flex:0 1 auto!important;min-height:0!important;padding:12px 15px!important;overflow:auto!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqBody .aqField>span{font-size:12px!important;margin:0 0 4px!important;color:var(--muted)!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqBody .aqField select{width:100%!important;min-height:34px!important;height:34px!important;padding:6px 9px!important;border-radius:8px!important;background:var(--surface-raised)!important;color:var(--ink)!important;border-color:var(--border)!important;font-size:12px!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqFoot{position:static!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex:0 0 auto!important;margin:10px -15px -12px!important;padding:10px 15px!important;border-top:1px solid var(--border)!important;background:var(--surface-raised)!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqFoot .aqMetaText{display:none!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqUnitPicker .aqFoot .aqBtn{min-height:30px!important;height:30px!important;padding:6px 11px!important;border-radius:8px!important;font-size:12px!important}
 
 
 /* Unified density pass for every workspace: compact headers, filters, KPIs and record rows. */
@@ -1619,23 +1619,23 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 }
 
 /* Visible, accessible confirmation for logbook deletion; no browser-native confirm dependency. */
-.moduleEnter .aqDeleteConfirmBack{
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirmBack{
  display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;
- z-index:10020!important;background:rgba(9,22,16,.38)!important;backdrop-filter:blur(5px)!important
+ z-index:var(--aureka-z-dialog,2147483500)!important;background:rgba(9,22,16,.38)!important;backdrop-filter:blur(5px)!important
 }
-.moduleEnter .aqDeleteConfirm{
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirm{
  display:flex!important;flex-direction:column!important;gap:8px!important;width:min(410px,calc(100vw - 28px))!important;
  padding:16px!important;border:1px solid var(--border)!important;border-radius:15px!important;
  background:var(--surface)!important;color:var(--ink)!important;box-shadow:0 24px 70px rgba(0,0,0,.24)!important
 }
-.moduleEnter .aqDeleteConfirmHeader{display:flex!important;align-items:center!important;justify-content:space-between!important}
-.moduleEnter .aqDeleteConfirmIcon{display:grid!important;place-items:center!important;width:28px!important;height:28px!important;border-radius:50%!important;background:#fce8e7!important;color:#a92c27!important;font-size:15px!important;font-weight:900!important}
-.moduleEnter .aqDeleteConfirmClose{display:grid!important;place-items:center!important;width:27px!important;height:27px!important;border:1px solid var(--border)!important;border-radius:8px!important;background:var(--surface-raised)!important;color:var(--ink)!important;font-size:16px!important}
-.moduleEnter .aqDeleteConfirm h4{margin:0!important;font-size:15px!important;line-height:1.25!important;color:var(--ink)!important}
-.moduleEnter .aqDeleteConfirm p{margin:0!important;font-size:12px!important;line-height:1.45!important;color:var(--muted)!important}
-.moduleEnter .aqDeleteConfirmActions{display:flex!important;justify-content:flex-end!important;gap:6px!important;margin-top:6px!important}
-.moduleEnter .aqDeleteConfirmActions .aqBtn{min-height:29px!important;height:29px!important;padding:5px 10px!important;border-radius:7px!important;font-size:12px!important}
-.moduleEnter .aqDeleteConfirmActions .aqBtn.danger{border:1px solid #be3b34!important;background:#b8322c!important;color:white!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirmHeader{display:flex!important;align-items:center!important;justify-content:space-between!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirmIcon{display:grid!important;place-items:center!important;width:28px!important;height:28px!important;border-radius:50%!important;background:#fce8e7!important;color:#a92c27!important;font-size:15px!important;font-weight:900!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirmClose{display:grid!important;place-items:center!important;width:27px!important;height:27px!important;border:1px solid var(--border)!important;border-radius:8px!important;background:var(--surface-raised)!important;color:var(--ink)!important;font-size:16px!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirm h4{margin:0!important;font-size:15px!important;line-height:1.25!important;color:var(--ink)!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirm p{margin:0!important;font-size:12px!important;line-height:1.45!important;color:var(--muted)!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirmActions{display:flex!important;justify-content:flex-end!important;gap:6px!important;margin-top:6px!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirmActions .aqBtn{min-height:29px!important;height:29px!important;padding:5px 10px!important;border-radius:7px!important;font-size:12px!important}
+:is(.moduleEnter, .aq.aqPortal.aqAuditWorkspace) .aqDeleteConfirmActions .aqBtn.danger{border:1px solid #be3b34!important;background:#b8322c!important;color:white!important}
 
 
 .moduleEnter .rmTabs,.moduleEnter .psTabs,.moduleEnter .oppeTabs{

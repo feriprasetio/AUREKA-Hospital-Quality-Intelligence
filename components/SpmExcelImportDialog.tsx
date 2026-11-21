@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import type { SpmSourceSummary } from '@/lib/aureka/spm-engine'
@@ -232,8 +233,9 @@ export default function SpmExcelImportDialog({
     }
   }
 
-  return (
-    <div
+  if (!open || typeof document === 'undefined') return null
+  return createPortal(
+    <div className="spmPortal" style={{display:'contents'}}><div className="spmWorkspace" style={{display:'contents'}}><div
       className="spmOverlay"
       role="presentation"
       onMouseDown={event => { if (event.target === event.currentTarget) close() }}
@@ -355,6 +357,6 @@ export default function SpmExcelImportDialog({
           )}
         </footer>
       </section>
-    </div>
+    </div></div></div>, document.body
   )
 }

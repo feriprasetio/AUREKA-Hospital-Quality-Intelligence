@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import SpmExcelImportDialog from '@/components/SpmExcelImportDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -135,6 +137,8 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   const [editNotes, setEditNotes] = useState('')
   const [configuring, setConfiguring] = useState<Indicator | null>(null)
   const [configForm, setConfigForm] = useState<Record<string, string>>({})
+  const editDialogRef = useAccessibleDialog<HTMLFormElement>({open:Boolean(editing),onClose:()=>{if(!saving)setEditing(null)},closeOnEscape:!saving,lockScroll:true})
+  const configDialogRef = useAccessibleDialog<HTMLFormElement>({open:Boolean(configuring),onClose:()=>{if(!saving)setConfiguring(null)},closeOnEscape:!saving,lockScroll:true})
 
   const isManager = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR'].includes(role || '')
   const canConfigure = role === 'ADMIN' || role === 'PMKP'
@@ -664,9 +668,9 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         </div>
       )}
 
-      {editing && (
-        <div className="spmOverlay" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setEditing(null)}}>
-          <form className="spmDialog" onSubmit={event => {event.preventDefault();void saveMeasurement()}}>
+      {editing && typeof document !== 'undefined' && createPortal(
+        <div className="spmPortal" style={{display:'contents'}}><div className="spmWorkspace" style={{display:'contents'}}><div className="spmOverlay" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setEditing(null)}}>
+          <form ref={editDialogRef} role="dialog" aria-modal="true" aria-label="Input pengukuran SPM" tabIndex={-1} className="spmDialog" onSubmit={event => {event.preventDefault();void saveMeasurement()}}>
             <header><div><span>Input pengukuran · {MONTHS[month-1]} {year}</span><h2>{editing.title}</h2><small>{editing.code} · {editing.group_name}</small></div><button type="button" onClick={() => setEditing(null)} aria-label="Tutup">×</button></header>
             {editing.source_mode==='quality_denominator_linked' ? <>
               <div className="spmLinkedBox">
@@ -697,12 +701,12 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
             {notice && <p className="spmDialogNotice" role="alert">{notice}</p>}
             <footer><button type="button" className="spmSecondary" onClick={() => setEditing(null)}>Batal</button><button type="submit" className="spmPrimary" disabled={saving}>{saving?'Menyimpan...':'Simpan pengukuran'}</button></footer>
           </form>
-        </div>
+        </div></div></div>,document.body
       )}
 
-      {configuring && (
-        <div className="spmOverlay" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setConfiguring(null)}}>
-          <form className="spmDialog spmConfigDialog" onSubmit={event => {event.preventDefault();void saveConfig()}}>
+      {configuring && typeof document !== 'undefined' && createPortal(
+        <div className="spmPortal" style={{display:'contents'}}><div className="spmWorkspace" style={{display:'contents'}}><div className="spmOverlay" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setConfiguring(null)}}>
+          <form ref={configDialogRef} role="dialog" aria-modal="true" aria-label="Konfigurasi indikator SPM" tabIndex={-1} className="spmDialog spmConfigDialog" onSubmit={event => {event.preventDefault();void saveConfig()}}>
             <header><div><span>Konfigurasi perhitungan</span><h2>{configuring.title}</h2><small>{configuring.code} · perubahan dicatat dalam audit log</small></div><button type="button" onClick={() => setConfiguring(null)} aria-label="Tutup">×</button></header>
             {configuring.source_mode!=='standalone' && <div className="spmLockedBox">Sumber data indikator ini dikunci sesuai integrasi mutu yang telah ditetapkan. Target dan pengali tetap dapat disesuaikan oleh Admin/PMKP.</div>}
             <div className="spmConfigGrid">
@@ -753,7 +757,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
             {notice && <p className="spmDialogNotice" role="alert">{notice}</p>}
             <footer><button type="button" className="spmSecondary" onClick={() => setConfiguring(null)}>Batal</button><button type="submit" className="spmPrimary" disabled={saving}>{saving?'Menyimpan...':'Simpan konfigurasi'}</button></footer>
           </form>
-        </div>
+        </div></div></div>,document.body
       )}
 
       <SpmExcelImportDialog

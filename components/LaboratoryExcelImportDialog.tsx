@@ -4,6 +4,7 @@ import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-he
 
 
 import { useCallback, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
 import {
@@ -612,8 +613,8 @@ export default function LaboratoryExcelImportDialog({
 
   if (!open) return null
 
-  return (
-    <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
+  if (typeof document === 'undefined') return null
+ return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqLaboratoryImport" role="dialog" aria-modal="true" aria-labelledby="aqLaboratoryImportTitle">
         <style>{'.aqLaboratoryImport .aqBody{display:grid;align-content:start;gap:12px}.aqLaboratoryImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqLaboratoryImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqLaboratoryImport .ciUpload input{width:100%;font-size:12px}.aqLaboratoryImport .ciStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.aqLaboratoryImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqLaboratoryImport .ciStat span{display:block;color:var(--muted);font-size:12px}.aqLaboratoryImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqLaboratoryImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqLaboratoryImport .ciError{background:#fff0ef;color:#8b2822}.aqLaboratoryImport .ciSuccess{background:#eaf8ef;color:#206443}.aqLaboratoryImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqLaboratoryImport .ciTable{overflow:auto;max-height:310px;border:1px solid var(--line);border-radius:11px}.aqLaboratoryImport table{width:100%;border-collapse:collapse;font-size:12px}.aqLaboratoryImport th,.aqLaboratoryImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqLaboratoryImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqLaboratoryImport td.ciWrap{white-space:normal;min-width:190px;max-width:360px;overflow-wrap:anywhere}.aqLaboratoryImport .ciPrivacy{font-size:12px;color:var(--muted);line-height:1.5}.aqLaboratoryImport .ciCode{font-size:12px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}.aqLaboratoryImport .ciPreviewName{white-space:nowrap}@media(max-width:800px){.aqLaboratoryImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
         <div className="aqDHead">
@@ -689,6 +690,6 @@ export default function LaboratoryExcelImportDialog({
           </div>
         </div>
       </section>
-    </div>
+    </div></div>, document.body
   )
 }

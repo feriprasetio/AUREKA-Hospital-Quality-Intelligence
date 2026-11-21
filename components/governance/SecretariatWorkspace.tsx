@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -424,7 +425,7 @@ export default function SecretariatWorkspace({
         </tbody></table></div>}
       </div>
 
-      {createOpen&&<div className="secModalBackdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!busy)setCreateOpen(false)}}>
+      {createOpen&&typeof document!=='undefined'&&createPortal(<div className="secModalBackdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!busy)setCreateOpen(false)}}>
         <section ref={createDialogRef} tabIndex={-1} className="secModal secCreateModal" role="dialog" aria-modal="true" aria-labelledby="sec-create-title">
           <header className="secModalHeader"><div><span className="secEyebrow">SEKRETARIAT</span><h2 id="sec-create-title">Tambah Register Dokumen</h2></div><button type="button" aria-label="Tutup" onClick={()=>setCreateOpen(false)} disabled={busy}>×</button></header>
           <div className="secFormGrid">
@@ -437,9 +438,9 @@ export default function SecretariatWorkspace({
           </div>
           <footer className="secModalFooter"><button type="button" className="secSecondaryButton" onClick={()=>setCreateOpen(false)} disabled={busy}>Batal</button><button type="button" className="secPrimaryButton" onClick={()=>void createRegister()} disabled={busy}>{busy?'Menyimpan…':'Simpan dan Isi Dokumen'}</button></footer>
         </section>
-      </div>}
+      </div>,document.body)}
 
-      {activeMeeting&&metadataDraft&&<div className="secModalBackdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!busy)closeDocuments()}}>
+      {activeMeeting&&metadataDraft&&typeof document!=='undefined'&&createPortal(<div className="secModalBackdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!busy)closeDocuments()}}>
         <section ref={documentsDialogRef} tabIndex={-1} className="secModal secDocumentsModal" role="dialog" aria-modal="true" aria-labelledby="sec-document-title">
           <header className="secModalHeader"><div><span className="secEyebrow">MEETING ID · {activeMeeting.meeting_code}</span><h2 id="sec-document-title">Isi Dokumen — {activeMeeting.title}</h2></div><button type="button" aria-label="Tutup pop-up isi dokumen" onClick={closeDocuments} disabled={busy}>×</button></header>
           <div className="secMetadataEditor">
@@ -476,7 +477,7 @@ export default function SecretariatWorkspace({
           </section>
           <footer className="secModalFooter"><span>{totalDocs} berkas terhubung ke Meeting ID ini</span><button type="button" className="secPrimaryButton" onClick={closeDocuments}>Selesai</button></footer>
         </section>
-      </div>}
+      </div>,document.body)}
       </> : <div className="secLanding">
         <div className="secSummary"><div><span>Total Kegiatan / Register</span><strong>{rows.length}</strong></div><div><span>Undangan Tercatat</span><strong>{rows.filter((row)=>/undangan/i.test(row.meeting_type)).length}</strong></div><div><span>Kategori UMANG</span><strong>5</strong></div></div>
         <section className="secTablePanel"><span className="secEyebrow">VISUAL INTELLIGENCE · SEKRETARIAT</span><h2>Administrasi Kegiatan</h2><p>Ringkasan register kegiatan dan dokumentasi UMANG dalam satu Meeting ID. Pilih register untuk menelusuri nomor surat dan seluruh dokumen kegiatan.</p><div className="secToolbar"><div><strong>Administrasi Kegiatan Rumah Sakit</strong><p>Undangan, Materi, Absensi Digital, Notulensi, dan Gambar disimpan sebagai dokumen terstruktur.</p></div><button type="button" className="secPrimaryButton" onClick={()=>setShowRegister(true)}>Lihat Register Kegiatan</button></div>

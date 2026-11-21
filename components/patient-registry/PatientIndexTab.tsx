@@ -335,13 +335,13 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
       <footer className="ptFoot">Sumber: Logbook episode pasien semua unit yang dapat Anda akses. Identitas mengikuti pengaturan samaran.</footer>
     </aside>
     <style>{`
-      .ptBackdrop{position:fixed;inset:0;z-index:1200;display:flex;justify-content:flex-end;background:rgba(15,18,24,.32)}
+      .ptBackdrop{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);display:flex;justify-content:flex-end;background:rgba(15,18,24,.32)}
       .ptDrawer{width:min(520px,100%);height:100%;display:flex;flex-direction:column;background:#fff;color:#1f2430;box-shadow:-24px 0 60px rgba(15,18,24,.18);font-family:var(--font-aureka),system-ui,sans-serif}
       .ptHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:22px 22px 16px;border-bottom:1px solid #e6edf4;background:linear-gradient(180deg,rgba(236,243,250,.9),#fff)}
       .ptEyebrow{font-size:12px;font-weight:700;color:#2c6aa0}.ptHead h3{margin:2px 0 4px;font-size:24px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}.ptHead p{margin:0;font-size:13px;color:#4b5565}
       .ptHeadActions{display:flex;gap:6px;align-items:center}
-      .ptGhost{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid #d9e4ef;background:#fff;font:inherit;font-size:12px;font-weight:700;color:#1f2430;cursor:pointer}
-      .ptClose{width:38px;height:38px;border-radius:12px;border:1px solid #d9e4ef;background:#fff;font-size:20px;line-height:1;color:#1f2430;cursor:pointer}
+      .ptGhost{min-height:44px;padding:0 12px;border-radius:10px;border:1px solid #d9e4ef;background:#fff;font:inherit;font-size:12px;font-weight:700;color:#1f2430;cursor:pointer}
+      .ptClose{width:44px;height:44px;border-radius:12px;border:1px solid #d9e4ef;background:#fff;font-size:20px;line-height:1;color:#1f2430;cursor:pointer}
       .ptBody{flex:1;overflow:auto;padding:16px 22px}
       .ptLinkedPanel{display:grid;gap:12px;margin-bottom:16px;padding:13px 14px;border:1px solid #dce7ef;border-radius:14px;background:#f8fbfd}.ptLinkedPanel h4{margin:0;font-size:14px}.ptLinkedSection{display:grid;gap:7px}.ptLinkedSection>b{font-size:12px;color:#315e77}.ptLinkedRow{display:grid;gap:3px;padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #e5edf3;font-size:12px}.ptLinkedRow strong{font-variant-numeric:tabular-nums}.ptLinkedRow span,.ptLinkedRow small{color:#64748b}.ptLinkedRow em{font-style:normal;font-size:11px;color:#0b6b50;font-weight:700}.ptLinkedIndicators{display:grid;gap:5px;margin-top:5px}.ptLinkedIndicator{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px;padding:6px 8px;border-radius:8px;background:#f2f7fa;font-size:11px}.ptLinkedIndicator span{color:#475569}.ptLinkedIndicator b{color:#123f5b}.ptLinkedIndicator small{color:#a16207;font-weight:700}.ptList{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid #e3eaf1;display:grid;gap:12px}
       .ptList li{position:relative}.ptDot{position:absolute;left:-25px;top:16px;width:12px;height:12px;border-radius:99px;background:#5ec4cf;border:2px solid #fff;box-shadow:0 0 0 2px #cdeef1}

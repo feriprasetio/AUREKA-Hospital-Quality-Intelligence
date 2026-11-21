@@ -743,12 +743,12 @@ html body:not(#_) .psFormGrid { gap: 16px !important; }
 html body:not(#_) :is(.oppeFlash, .fppeFlash) { animation: formFlash 1.2s ease-out 1; border-radius: 16px; }
 
 /* ── Clinical Pathway: editor format (CP baru / Edit) sebagai popup ── */
-html body:not(#_) .cpBuilderOverlay{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:24px;background:rgba(15,23,42,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:cpOvIn .18s ease-out}
+html body:not(#_) .cpBuilderOverlay{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);display:grid;place-items:center;padding:24px;background:rgba(15,23,42,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:cpOvIn .18s ease-out}
 html body:not(#_) .cpBuilderModal{width:min(1180px,100%);max-height:calc(100dvh - 48px);display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:var(--aur-surface,#f6f9fc);box-shadow:0 30px 80px rgba(15,23,42,.28);border:1px solid rgba(148,163,184,.25);animation:cpMdIn .22s cubic-bezier(.2,.8,.2,1)}
 html body:not(#_) .cpBuilderModalHead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px;background:linear-gradient(135deg,#0f2a44,#16507a);color:#fff}
 html body:not(#_) .cpBuilderModalHead h3{margin:2px 0 0;font-size:1.15rem;color:#fff;font-family:var(--font-aureka)}
 html body:not(#_) .cpBuilderModalHead .cpEyebrow{color:rgba(255,255,255,.75)}
-html body:not(#_) .cpBuilderClose{flex:0 0 auto;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:1rem;cursor:pointer;transition:background .15s}
+html body:not(#_) .cpBuilderClose{flex:0 0 auto;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:1rem;cursor:pointer;transition:background .15s}
 html body:not(#_) .cpBuilderClose:hover{background:rgba(255,255,255,.24)}
 html body:not(#_) .cpBuilderModalBody{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px 0;display:flex;flex-direction:column;gap:14px}
 html body:not(#_) .cpBuilderModalBody>.cpFooter{position:sticky;bottom:0;z-index:2;margin:0 -20px;border-radius:0;box-shadow:0 -8px 24px rgba(15,23,42,.08)}
@@ -947,15 +947,15 @@ html[data-theme] .workspaceRoot.workspaceDesk .workspaceHeaderBar .workspaceGlob
 }
 
 /* ===== Standar Pelayanan Minimal: domain SPM yang berdiri sendiri ===== */
-html body:not(#_) .workspaceRoot .spmWorkspace {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace {
   display: grid;
   gap: 16px;
   width: 100%;
   min-width: 0;
   color: #0b1f33;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace :is(button,input,select,textarea) { font: inherit; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmHero {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace :is(button,input,select,textarea) { font: inherit; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHero {
   display: grid;
   grid-template-columns: minmax(0,1fr) auto;
   align-items: end;
@@ -965,44 +965,44 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmHero {
   border: 1px solid #d6e1ec;
   border-radius: 16px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmEyebrow {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmEyebrow {
   color: #42617e;
   font-size: 12px;
   font-weight: 750;
   letter-spacing: .07em;
   text-transform: uppercase;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmHero h1 {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHero h1 {
   margin: 5px 0 7px;
   color: #0b1f33;
   font-size: clamp(23px,2.4vw,31px);
   line-height: 1.2;
   letter-spacing: -.025em;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmHero p {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHero p {
   max-width: 780px;
   margin: 0;
   color: #455f78;
   font-size: 13px;
   line-height: 1.55;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHeroFilters,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmFilters {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
   gap: 10px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters label,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters label,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmField {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHeroFilters label,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmFilters label,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmField {
   display: grid;
   gap: 6px;
   color: #294660;
   font-size: 12px;
   font-weight: 700;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace :is(input,select,textarea) {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace :is(input,select,textarea) {
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -1014,17 +1014,17 @@ html body:not(#_) .workspaceRoot .spmWorkspace :is(input,select,textarea) {
   outline: none;
   font-size: 13px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace textarea { min-height: 76px; resize: vertical; }
-html body:not(#_) .workspaceRoot .spmWorkspace :is(input,select,textarea):focus-visible {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace textarea { min-height: 76px; resize: vertical; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace :is(input,select,textarea):focus-visible {
   border-color: #23689e;
   box-shadow: 0 0 0 3px rgba(35,104,158,.16);
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis {
   display: grid;
   grid-template-columns: repeat(4,minmax(0,1fr));
   gap: 10px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis article {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis article {
   display: grid;
   gap: 5px;
   min-height: 104px;
@@ -1033,21 +1033,21 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis article {
   border: 1px solid #d6e1ec;
   border-radius: 14px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis article > span {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis article > span {
   color: #4a637a;
   font-size: 12px;
   font-weight: 700;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis strong {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis strong {
   color: #0b1f33;
   font-size: 28px;
   line-height: 1.1;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis small {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis small {
   color: #536b80;
   font-size: 11px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -1056,7 +1056,7 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs {
   border: 1px solid #d2dfeb;
   border-radius: 12px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTabs button {
   min-height: 42px;
   padding: 9px 15px;
   color: #294660;
@@ -1067,36 +1067,36 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button {
   font-weight: 700;
   cursor: pointer;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button.active {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTabs button.active {
   color: #0b467a;
   background: #fff;
   border-color: #c8d8e7;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmFilters {
   padding: 14px 16px;
   background: #fff;
   border: 1px solid #d6e1ec;
   border-radius: 14px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters > label:first-child { min-width: 220px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmSearch { min-width: min(360px,100%); flex: 1; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmCount {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmFilters > label:first-child { min-width: 220px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmSearch { min-width: min(360px,100%); flex: 1; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmCount {
   margin-left: auto;
   padding: 9px 0;
   color: #4b647c;
   font-size: 12px;
   font-weight: 700;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTablePanel,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmOverview {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTablePanel,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmOverview {
   min-width: 0;
   overflow: hidden;
   background: #fff;
   border: 1px solid #d6e1ec;
   border-radius: 14px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableHead,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmOverviewIntro {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1104,30 +1104,30 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro {
   padding: 15px 17px;
   border-bottom: 1px solid #dce5ed;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead > div,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro > div {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableHead > div,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmOverviewIntro > div {
   display: grid;
   gap: 4px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead strong,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro strong {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableHead strong,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmOverviewIntro strong {
   color: #0b1f33;
   font-size: 15px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableHead span,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmOverviewIntro span {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableHead span,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmOverviewIntro span {
   color: #536b80;
   font-size: 12px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll { width: 100%; overflow: auto; overscroll-behavior: contain; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll table {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll { width: 100%; overflow: auto; overscroll-behavior: contain; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll table {
   width: 100%;
   min-width: 980px;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: auto;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll th {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll th {
   position: sticky;
   top: 0;
   z-index: 2;
@@ -1140,7 +1140,7 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll th {
   font-size: 11px;
   font-weight: 750;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll td {
   padding: 12px 13px;
   color: #203b54;
   border-bottom: 1px solid #e3eaf0;
@@ -1148,28 +1148,28 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td {
   font-size: 12px;
   line-height: 1.45;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll tr:last-child td { border-bottom: 0; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td strong { display: block; color: #0b1f33; font-size: 13px; font-weight: 700; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td small {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll tr:last-child td { border-bottom: 0; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll td strong { display: block; color: #0b1f33; font-size: 13px; font-weight: 700; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll td small {
   display: block;
   margin-top: 4px;
   color: #60778c;
   font-size: 11px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll code {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll code {
   padding: 3px 6px;
   color: #244c70;
   background: #edf4fa;
   border-radius: 6px;
   font-size: 11px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDefinition { min-width: 280px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDefinition span { display: block; max-width: 430px; white-space: normal; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmValue { color: #0b1f33; font-weight: 750; white-space: nowrap; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmSource { color: #415d77; font-size: 11px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmLocked { color: #536b80; font-size: 11px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmAction,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmPrimary {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDefinition { min-width: 280px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDefinition span { display: block; max-width: 430px; white-space: normal; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmValue { color: #0b1f33; font-weight: 750; white-space: nowrap; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmSource { color: #415d77; font-size: 11px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmLocked { color: #536b80; font-size: 11px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmAction,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmPrimary {
   min-height: 42px;
   padding: 9px 13px;
   color: #fff;
@@ -1180,10 +1180,10 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmPrimary {
   font-weight: 750;
   cursor: pointer;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmAction:hover,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmPrimary:hover { background: #0f3f64; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmInfoTag {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmAction:hover,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmPrimary:hover { background: #0f3f64; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmStatus,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmInfoTag {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
@@ -1195,17 +1195,17 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmInfoTag {
   font-weight: 750;
   white-space: nowrap;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.met { color: #15583b; background: #e9f5ee; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.not_met { color: #8b3d2d; background: #faeee9; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.invalid { color: #765216; background: #f7f1e3; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmStatus.no_data { color: #4e6275; background: #eef2f5; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupGrid {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmStatus.met { color: #15583b; background: #e9f5ee; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmStatus.not_met { color: #8b3d2d; background: #faeee9; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmStatus.invalid { color: #765216; background: #f7f1e3; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmStatus.no_data { color: #4e6275; background: #eef2f5; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupGrid {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));
   gap: 9px;
   padding: 14px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupCard {
   display: grid;
   gap: 5px;
   min-width: 0;
@@ -1217,12 +1217,12 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard {
   text-align: left;
   cursor: pointer;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard > span:first-child { color: #34516b; font-size: 12px; font-weight: 700; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard strong { color: #0b1f33; font-size: 20px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard small { color: #587087; font-size: 11px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmMiniTrack { display: block; height: 5px; overflow: hidden; background: #dce6ee; border-radius: 99px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmMiniTrack i { display: block; height: 100%; background: #2f739f; border-radius: inherit; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmNotice {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupCard > span:first-child { color: #34516b; font-size: 12px; font-weight: 700; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupCard strong { color: #0b1f33; font-size: 20px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupCard small { color: #587087; font-size: 11px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmMiniTrack { display: block; height: 5px; overflow: hidden; background: #dce6ee; border-radius: 99px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmMiniTrack i { display: block; height: 100%; background: #2f739f; border-radius: inherit; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmNotice {
   padding: 11px 14px;
   color: #2d4c68;
   background: #eff5fa;
@@ -1230,18 +1230,18 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmNotice {
   border-radius: 10px;
   font-size: 12px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmNotice.warning { color: #725521; background: #fbf6e9; border-color: #e8d9b3; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmEmpty { padding: 24px; color: #5b7185; text-align: center; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmOverlay {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmNotice.warning { color: #725521; background: #fbf6e9; border-color: #e8d9b3; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmEmpty { padding: 24px; color: #5b7185; text-align: center; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmOverlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: var(--aureka-z-dialog,2147483500);
   display: grid;
   place-items: center;
   padding: 18px;
   background: rgba(8,24,39,.58);
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog {
   display: grid;
   gap: 15px;
   width: min(620px,100%);
@@ -1254,20 +1254,20 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog {
   border-radius: 16px;
   box-shadow: 0 22px 65px rgba(4,20,35,.28);
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmConfigDialog { width: min(850px,100%); }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog footer {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmConfigDialog { width: min(850px,100%); }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog header,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog footer {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header { padding-bottom: 13px; border-bottom: 1px solid #dce5ed; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header > div { display: grid; gap: 4px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header span,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header small { color: #536b80; font-size: 11px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog h2 { margin: 2px 0; color: #0b1f33; font-size: 20px; line-height: 1.3; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header button {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog header { padding-bottom: 13px; border-bottom: 1px solid #dce5ed; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog header > div { display: grid; gap: 4px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog header span,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog header small { color: #536b80; font-size: 11px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog h2 { margin: 2px 0; color: #0b1f33; font-size: 20px; line-height: 1.3; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog header button {
   width: 40px;
   min-width: 40px;
   min-height: 40px;
@@ -1278,12 +1278,12 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header button {
   font-size: 22px;
   cursor: pointer;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog footer {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog footer {
   justify-content: flex-end;
   padding-top: 13px;
   border-top: 1px solid #dce5ed;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmSecondary {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmSecondary {
   min-height: 42px;
   padding: 9px 13px;
   color: #294660;
@@ -1294,26 +1294,26 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmSecondary {
   font-weight: 700;
   cursor: pointer;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmConfigGrid {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmConfigGrid {
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
   gap: 11px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmHelp,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialogNotice {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHelp,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialogNotice {
   margin: 0;
   color: #526b80;
   font-size: 12px;
   line-height: 1.5;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmDialogNotice {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialogNotice {
   padding: 10px 12px;
   color: #8b3d2d;
   background: #faeee9;
   border-radius: 8px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmLockedBox {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmLinkedBox,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmLockedBox {
   display: grid;
   gap: 5px;
   padding: 13px 14px;
@@ -1323,66 +1323,66 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmLockedBox {
   border-radius: 10px;
   font-size: 12px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox strong { color: #0b467a; font-size: 23px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox small { color: #516b81; line-height: 1.45; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace { color: #eef2fa; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(.spmHero,.spmKpis article,.spmFilters,.spmTablePanel,.spmOverview) {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmLinkedBox strong { color: #0b467a; font-size: 23px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmLinkedBox small { color: #516b81; line-height: 1.45; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace { color: #eef2fa; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace :is(.spmHero,.spmKpis article,.spmFilters,.spmTablePanel,.spmOverview) {
   background: #111d2b;
   border-color: #2a3c50;
 }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(.spmHero h1,.spmKpis strong,.spmTableHead strong,.spmOverviewIntro strong,.spmTableScroll td strong,.spmGroupCard strong,.spmDialog h2) { color: #eef2fa; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(.spmHero p,.spmKpis article > span,.spmKpis small,.spmTableHead span,.spmOverviewIntro span,.spmTableScroll td,.spmTableScroll td small,.spmSource,.spmLocked,.spmDialog header span,.spmDialog header small,.spmHelp) { color: #b0c0d0; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace :is(input,select,textarea) { color: #eef2fa; background: #0b1522; border-color: #45596d; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll th { color: #b7c8d9; background: #172638; border-color: #34495e; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTableScroll td { border-color: #263b50; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTabs { background: #0d1926; border-color: #2b3e53; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button { color: #c3d1de; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmTabs button.active { color: #b9dbff; background: #182a3d; border-color: #38536d; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard { color: #d3dfeb; background: #152538; border-color: #334a60; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmGroupCard > span:first-child { color: #c0d0df; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmDialog { color: #eef2fa; background: #111d2b; border-color: #33475d; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmDialog header,
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmDialog footer { border-color: #2d4358; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmLinkedBox,
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .spmWorkspace .spmLockedBox { color: #c8d8e7; background: #162a3e; border-color: #38536d; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace :is(.spmHero h1,.spmKpis strong,.spmTableHead strong,.spmOverviewIntro strong,.spmTableScroll td strong,.spmGroupCard strong,.spmDialog h2) { color: #eef2fa; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace :is(.spmHero p,.spmKpis article > span,.spmKpis small,.spmTableHead span,.spmOverviewIntro span,.spmTableScroll td,.spmTableScroll td small,.spmSource,.spmLocked,.spmDialog header span,.spmDialog header small,.spmHelp) { color: #b0c0d0; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace :is(input,select,textarea) { color: #eef2fa; background: #0b1522; border-color: #45596d; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll th { color: #b7c8d9; background: #172638; border-color: #34495e; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTableScroll td { border-color: #263b50; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTabs { background: #0d1926; border-color: #2b3e53; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTabs button { color: #c3d1de; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmTabs button.active { color: #b9dbff; background: #182a3d; border-color: #38536d; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupCard { color: #d3dfeb; background: #152538; border-color: #334a60; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupCard > span:first-child { color: #c0d0df; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog { color: #eef2fa; background: #111d2b; border-color: #33475d; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog header,
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog footer { border-color: #2d4358; }
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmLinkedBox,
+html[data-mode="gelap"] body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmLockedBox { color: #c8d8e7; background: #162a3e; border-color: #38536d; }
 @media (max-width: 900px) {
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmHero { grid-template-columns: 1fr; align-items: stretch; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHero { grid-template-columns: 1fr; align-items: stretch; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 @media (max-width: 600px) {
-  html body:not(#_) .workspaceRoot .spmWorkspace { gap: 11px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmHero { padding: 17px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis { gap: 7px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis article { min-height: 94px; padding: 11px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmKpis strong { font-size: 23px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmGroupGrid { grid-template-columns: 1fr; padding: 10px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters { align-items: stretch; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmFilters > label { width: 100%; min-width: 0 !important; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmCount { width: 100%; margin: 0; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmConfigGrid { grid-template-columns: 1fr; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmOverlay { padding: 8px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmDialog { max-height: 94vh; padding: 15px; border-radius: 13px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace { gap: 11px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHero { padding: 17px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis { gap: 7px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis article { min-height: 94px; padding: 11px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmKpis strong { font-size: 23px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmGroupGrid { grid-template-columns: 1fr; padding: 10px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmFilters { align-items: stretch; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmFilters > label { width: 100%; min-width: 0 !important; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmCount { width: 100%; margin: 0; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmConfigGrid { grid-template-columns: 1fr; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmOverlay { padding: 8px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmDialog { max-height: 94vh; padding: 15px; border-radius: 13px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  html body:not(#_) .workspaceRoot .spmWorkspace * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 
 
 
 /* SPM workbook import: compact review grid, explicit overwrite counts, and mobile-safe actions. */
-html body:not(#_) .workspaceRoot .spmWorkspace .spmUploadButton {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmUploadButton {
   min-width: 132px;
   white-space: nowrap;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportDialog {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportDialog {
   width: min(980px,100%);
   max-height: min(92vh,980px);
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportInstructions,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportNote,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportWarnings,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportInstructions,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportNote,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportWarnings,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportSuccess {
   display: grid;
   gap: 7px;
   padding: 13px 15px;
@@ -1393,15 +1393,15 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess {
   font-size: 12px;
   line-height: 1.5;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportInstructions p,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess p { margin: 0; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportInstructions strong,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportNote strong,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportWarnings strong {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportInstructions p,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportSuccess p { margin: 0; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportInstructions strong,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportNote strong,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportWarnings strong {
   color: #123854;
   font-size: 13px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportFile {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportFile {
   display: grid;
   gap: 8px;
   padding: 14px 15px;
@@ -1411,22 +1411,22 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmImportFile {
   color: #294660;
   font-size: 12px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportFile input[type="file"] {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportFile input[type="file"] {
   min-height: 42px;
   padding: 8px;
   background: #fff;
   border: 1px solid #c8d8e6;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportFile small {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportFile small {
   color: #536b80;
   font-size: 11px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportStats {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportStats {
   display: grid;
   grid-template-columns: repeat(4,minmax(0,1fr));
   gap: 9px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportStats article {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportStats article {
   display: grid;
   gap: 5px;
   min-width: 0;
@@ -1435,64 +1435,64 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmImportStats article {
   border-radius: 10px;
   background: #fff;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportStats span,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess span {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportStats span,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportSuccess span {
   color: #536b80;
   font-size: 11px;
   font-weight: 650;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportStats strong {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportStats strong {
   color: #0b1f33;
   font-size: 22px;
   line-height: 1.2;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportNote ul,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportWarnings ul {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportNote ul,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportWarnings ul {
   display: grid;
   gap: 4px;
   margin: 0;
   padding-left: 19px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportWarnings {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportWarnings {
   max-height: 180px;
   overflow: auto;
   border-color: #e4d4a5;
   background: #fffbef;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportWarnings strong { color: #755213; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportPreview {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportWarnings strong { color: #755213; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportPreview {
   display: grid;
   gap: 9px;
   min-width: 0;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportPreview > div:first-child {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportPreview > div:first-child {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportPreview > div:first-child strong {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportPreview > div:first-child strong {
   color: #0b1f33;
   font-size: 13px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportPreview > div:first-child span {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportPreview > div:first-child span {
   color: #536b80;
   font-size: 11px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll {
   width: 100%;
   overflow: auto;
   border: 1px solid #d6e1ec;
   border-radius: 10px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll table {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll table {
   width: 100%;
   min-width: 850px;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 11px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll th {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll th {
   position: sticky;
   top: 0;
   padding: 9px 10px;
@@ -1501,47 +1501,47 @@ html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll th {
   text-align: left;
   white-space: nowrap;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll td {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll td {
   padding: 9px 10px;
   border-top: 1px solid #e4ebf1;
   vertical-align: top;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll td:nth-child(2) {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll td:nth-child(2) {
   min-width: 240px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll td:nth-child(2) span,
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll td:nth-child(2) small {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll td:nth-child(2) span,
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll td:nth-child(2) small {
   display: block;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportTableScroll td:nth-child(2) small {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportTableScroll td:nth-child(2) small {
   margin-top: 3px;
   color: #63798d;
   font-size: 10px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportSuccess {
   border-color: #b8d7c4;
   background: #f3faf5;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess > strong { color: #155d35; font-size: 15px; }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess > div {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportSuccess > strong { color: #155d35; font-size: 15px; }
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportSuccess > div {
   display: flex;
   justify-content: space-between;
   padding-top: 6px;
   border-top: 1px solid #d9eadf;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmImportSuccess b {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportSuccess b {
   color: #124c2d;
   font-size: 14px;
 }
-html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters input[type="number"] {
+html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHeroFilters input[type="number"] {
   width: 112px;
   max-width: 120px;
 }
 @media (max-width: 720px) {
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmHero { grid-template-columns: minmax(0,1fr); padding: 17px; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmHeroFilters { align-items: end; }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmImportStats { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  html body:not(#_) .workspaceRoot .spmWorkspace .spmImportDialog { max-height: 94vh; padding: 16px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHero { grid-template-columns: minmax(0,1fr); padding: 17px; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmHeroFilters { align-items: end; }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportStats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html body:not(#_) :is(.workspaceRoot, .spmPortal) .spmWorkspace .spmImportDialog { max-height: 94vh; padding: 16px; }
 }
 
 @media (max-width: 720px) {

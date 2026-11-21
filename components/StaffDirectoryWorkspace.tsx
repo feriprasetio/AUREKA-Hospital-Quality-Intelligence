@@ -4,6 +4,7 @@ import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewpor
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -340,7 +341,7 @@ export default function StaffDirectoryWorkspace() {
         .sdActionsCell{display:flex;gap:5px;flex-wrap:wrap}
         .sdMini{border:1px solid #d7e2db;background:#fff;border-radius:9px;padding:6px 8px;font-size:12px;font-weight:850;cursor:pointer;color:#335143;white-space:nowrap}
         .sdMini:disabled{opacity:.55;cursor:wait}
-        .sdEditBackdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:rgba(17,33,25,.48);backdrop-filter:blur(8px)}
+        .sdEditBackdrop{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);display:grid;place-items:center;padding:18px;background:rgba(17,33,25,.48);backdrop-filter:blur(8px)}
         .sdEditDialog{width:min(880px,100%);max-height:min(92vh,920px);overflow:auto;padding:22px;border:1px solid rgba(255,255,255,.8);border-radius:22px;background:#f8fbf9;color:#20372d;box-shadow:0 24px 80px rgba(0,0,0,.24)}
         .sdEditHeader{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}
         .sdEditGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -436,7 +437,7 @@ export default function StaffDirectoryWorkspace() {
         </>}
       </div>
 
-      {editingStaff && draft && (
+      {editingStaff && draft && typeof document !== 'undefined' && createPortal(
         <div className="sdEditBackdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEdit() }}>
           <section ref={editDialogRef} className="sdEditDialog" role="dialog" aria-modal="true" aria-labelledby="sd-edit-title" tabIndex={-1}>
             <div className="sdEditHeader">
@@ -464,7 +465,7 @@ export default function StaffDirectoryWorkspace() {
               <button type="button" className="sdBtn primary" disabled={busy} onClick={() => void saveEdit()}>{busy ? 'Menyimpan…' : 'Simpan perubahan'}</button>
             </div>
           </section>
-        </div>
+        </div>, document.body
       )}
       {profileStaff && <StaffCrossModuleProfilePanel staff={profileStaff} onClose={() => setProfileStaff(null)} />}
     </section>

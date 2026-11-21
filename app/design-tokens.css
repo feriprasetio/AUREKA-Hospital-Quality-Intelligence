@@ -100,13 +100,15 @@
   --aureka-duration-slow: 240ms;
   --aureka-easing-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Layering — use consistently when components migrate */
+  /* Layering: shared blocking dialogs must clear the legacy fullscreen
+   * presentation surface (.pmRoot, z-index 2147483000), the mobile drawer,
+   * and module-specific overlays. Keep this below the browser z-index limit. */
   --aureka-z-sticky: 10;
   --aureka-z-sidebar: 20;
   --aureka-z-scrim: 30;
   --aureka-z-drawer: 40;
   --aureka-z-popover: 50;
-  --aureka-z-dialog: 60;
+  --aureka-z-dialog: 2147483500;
   --aureka-z-toast: 70;
 }
 

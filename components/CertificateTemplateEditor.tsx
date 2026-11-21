@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { createPortal } from 'react-dom'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import {
   CERTIFICATE_ELEMENTS,
@@ -167,11 +169,12 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
     setNotice('Posisi dikembalikan ke tata letak awal. Simpan untuk menjadikannya default.')
   }
 
-  if (!canManage) return null
+  const templateDialogRef = useAccessibleDialog<HTMLElement>({open:canManage,onClose,closeOnEscape:!saving,lockScroll:true})
+  if (!canManage || typeof document === 'undefined') return null
 
-  return (
+  return createPortal(
     <div className="certificateEditorBackdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onClose() }}>
-      <section className="certificateEditorDialog" role="dialog" aria-modal="true" aria-labelledby="certificate-editor-title">
+      <section ref={templateDialogRef} tabIndex={-1} className="certificateEditorDialog" role="dialog" aria-modal="true" aria-labelledby="certificate-editor-title">
         <header className="certificateEditorHeader">
           <div>
             <span className="certificateEditorEyebrow">PENGATURAN TEMPLATE DOKUMEN</span>
@@ -275,13 +278,13 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
       </section>
 
       <style>{`
-        .certificateEditorBackdrop{position:fixed;inset:0;z-index:1400;background:rgba(7,20,34,.68);display:grid;place-items:center;padding:14px}
+        .certificateEditorBackdrop{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);background:rgba(7,20,34,.68);display:grid;place-items:center;padding:14px}
         .certificateEditorDialog{width:min(1460px,100%);max-height:96vh;overflow:auto;border:1px solid var(--border,rgba(100,125,150,.25));border-radius:18px;background:var(--surface,#f4f8fc);color:var(--text,#0b1f33);box-shadow:0 24px 70px rgba(0,0,0,.28)}
         .certificateEditorHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:18px 20px;border-bottom:1px solid var(--border,rgba(100,125,150,.2));background:var(--panel,rgba(255,255,255,.75))}
         .certificateEditorEyebrow{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted,#58718a)}
         .certificateEditorHeader h2{margin:4px 0;font-size:20px;letter-spacing:-.03em}
         .certificateEditorHeader p{margin:0;color:var(--muted,#58718a);font-size:12px;line-height:1.5}
-        .certificateEditorClose{width:40px;height:40px;border:1px solid var(--border,rgba(100,125,150,.24));border-radius:10px;background:transparent;color:inherit;font-size:24px;cursor:pointer}
+        .certificateEditorClose{width:44px;height:44px;border:1px solid var(--border,rgba(100,125,150,.24));border-radius:10px;background:transparent;color:inherit;font-size:24px;cursor:pointer}
         .certificateEditorMessage{margin:12px 18px 0;padding:10px 12px;border-radius:9px;background:rgba(22,80,122,.08);font-size:12px}
         .certificateEditorMessage.error{background:rgba(185,28,28,.08);color:#991b1b}
         .certificateEditorBody{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;padding:16px;align-items:start}
@@ -325,6 +328,6 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
         @media(max-width:900px){.certificateEditorBody{grid-template-columns:1fr}.certificateEditorControls{grid-template-columns:repeat(2,minmax(0,1fr))}.certificateEditorElementList{grid-column:1/-1;max-height:180px}.certificateEditorActions{grid-column:1/-1}}
         @media(max-width:560px){.certificateEditorBackdrop{padding:5px}.certificateEditorDialog{max-height:99vh;border-radius:12px}.certificateEditorHeader{padding:13px}.certificateEditorBody{padding:10px}.certificateEditorControls{grid-template-columns:1fr}.certificateEditorStage{min-width:620px}}
       `}</style>
-    </div>
+    </div>, document.body
   )
 }

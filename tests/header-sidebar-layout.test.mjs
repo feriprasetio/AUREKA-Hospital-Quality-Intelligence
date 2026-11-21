@@ -44,7 +44,7 @@ test('sidebar redesign retains desktop and mobile navigation behavior', () => {
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*display: block !important;[\s\S]*\.sidebar\.mobileOpen/)
 })
 
-test('mobile workspace uses one sidebar drawer and never duplicates navigation in a bottom bar', () => {
+test('native mobile dock uses the same authorization-aware drawer without a duplicate module registry', () => {
   const responsive = read('app/layout-responsive.css')
   const mobileNav = read('app/mobile-nav.css')
   const acrylic = read('app/aureka-acrylic-navigation-polish.css')
@@ -55,7 +55,9 @@ test('mobile workspace uses one sidebar drawer and never duplicates navigation i
 
   assert.ok(responsive.includes('@media (max-width: 720px)'))
   assert.doesNotMatch(responsive, /@media \(max-width: 760px\)/)
-  assert.doesNotMatch(home, /mobileBottomNav/)
+  assert.match(home, /className="workspaceNativeNavigation"/)
+  assert.match(home, /nativeNavigationItems\.map/)
+  assert.match(home, /aria-label="Lihat semua modul AUREKA"/)
   assert.match(home, /className="mobileMenuButton workspaceSidebarMenuButton"/)
   assert.match(home, /mobileSidebar\.open\(event\.currentTarget\)/)
   assert.doesNotMatch(mobileNav, /Navigasi bawah ala Android|workspaceContent::after/)
