@@ -1,25 +1,25 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
-
-test('sidebar collapse is controlled only by the hamburger beside global search', () => {
+test('only smartphones render the hamburger; tablet and desktop sidebar cannot collapse', () => {
   const home = read('components/HomeClient.tsx')
   const workspace = home.slice(home.indexOf("if(view==='workspace')"))
-  assert.ok(workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"') < workspace.indexOf('className="workspaceContext"'), 'hamburger must precede hospital context')
-  assert.match(workspace, /setSidebarCollapsed\(v=>!v\)/)
-  assert.doesNotMatch(workspace, /className="sidebarToggle"/)
-  assert.doesNotMatch(workspace, /className="mobileSidebarClose"/)
-  assert.ok(workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"') < workspace.indexOf('className="workspaceContext"'), 'hamburger must precede hospital context')
+  const menu = workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"')
+  const context = workspace.indexOf('className="workspaceContext"')
+  assert.ok(menu >= 0 && context > menu, 'phone menu precedes contextual search')
+  assert.match(workspace, /mobileSidebar\.isMobile&&<button type="button" ref=\{mobileSidebar\.triggerRef\}/)
+  assert.match(workspace, /onClick=\{event=>mobileSidebar\.open\(event\.currentTarget\)\}/)
+  assert.doesNotMatch(workspace, /setSidebarCollapsed|sidebarIsCollapsed|className="sidebarToggle"|className="mobileSidebarClose"/)
 })
 
-test('Arktik acrylic sidebar keeps a compact six-domain rail and usable collapsed state', () => {
-  const css = read('app/aureka-acrylic-navigation-polish.css')
-  assert.ok(css.includes('.sidebarDomainNav'))
-  assert.ok(css.includes('.sidebarDomainTrigger'))
-  assert.ok(css.includes('.sidebarDomainItems'))
-  assert.ok(css.includes('.sidebarIsCollapsed'))
-  assert.ok(css.includes('grid-template-columns: 84px minmax(0, 1fr) !important'))
-  assert.ok(css.includes('@media (max-width: 720px)'))
+test('Arktik original sidebar stays visible on tablet and desktop, and phone keeps accessible navigation', () => {
+  const css = read('app/aureka-navigation-system.css')
+  const controller = read('components/layout/useAccessibleSidebar.ts')
+  assert.match(css, /@media \(min-width: 721px\) \{[\s\S]*?position: sticky !important/)
+  assert.match(css, /@media \(min-width: 721px\)[\s\S]*?visibility: visible !important/)
+  assert.match(css, /\.sidebarDomainNav\s*\{[\s\S]*?overflow-y: auto !important/)
+  assert.match(css, /@media \(max-width: 720px\) \{[\s\S]*?transform: translate3d\(-105%, 0, 0\) !important/)
+  assert.match(controller, /matchMedia\(PHONE_DRAWER_MEDIA_QUERY\)/)
 })
