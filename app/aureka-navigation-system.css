@@ -530,6 +530,10 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainItems:not([hidden]) {
     display: grid !important;
   }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
+    display: grid !important;
+    place-items: center !important;
+  }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .workspaceContent {
     width: 100% !important;
     max-width: 100% !important;
@@ -580,6 +584,10 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .workspaceContent {
     padding-bottom: calc(105px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  html[data-skin="arktik"] body:has(:is(input:focus, textarea:focus, select:focus, [contenteditable="true"]:focus)) > .workspaceNativeNavigation {
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 @media (max-width: 1180px) {
