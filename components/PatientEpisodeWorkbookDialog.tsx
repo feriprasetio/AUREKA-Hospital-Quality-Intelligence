@@ -76,6 +76,7 @@ export default function PatientEpisodeWorkbookDialog({
   const [fields, setFields] = useState<EpisodeFields>(() => detectEpisodeFields([]))
   const [mappings, setMappings] = useState<ProfileMapping[]>([])
   const [applyProfiles, setApplyProfiles] = useState(false)
+  const [profilesOnly, setProfilesOnly] = useState(false)
   const [matchingHeader, setMatchingHeader] = useState('')
   const [preview, setPreview] = useState<Preview | null>(null)
   const [busy, setBusy] = useState('')
@@ -95,9 +96,11 @@ export default function PatientEpisodeWorkbookDialog({
     }
     setFields(nextFields)
     setMatchingHeader(String(next.parsed.logbook.header))
-    setMappings(buildEpisodeMappings(next.parsed, next.profiles.filter(profile => profile.status !== 'draft'),
-      next.reference, aliases, next.saved, useProfiles))
+    const nextMappings = buildEpisodeMappings(next.parsed, next.profiles.filter(profile => profile.status !== 'draft'),
+      next.reference, aliases, next.saved, useProfiles)
+    setMappings(nextMappings)
     invalidatePreview()
+    return { nextFields, nextMappings }
   }
 
   async function openFile(input: File) {
@@ -126,11 +129,32 @@ export default function PatientEpisodeWorkbookDialog({
       const next = { name: input.name, hash: await workbookSha256(bytes), parsed, profiles, reference,
         saved: Array.isArray(saved.data?.mappings) ? saved.data.mappings as SavedMapping[] : [] }
       const useProfiles = admin && parsed.entries.length > 0
+      const autoFillMissingMaster = useProfiles && profiles.length === 0
+      const onlyProfiles = !parsed.hasLogbook || autoFillMissingMaster
       setApplyProfiles(useProfiles)
+      setProfilesOnly(onlyProfiles)
       setFile(next)
-      initializeColumns(next, useProfiles)
+      const { nextFields, nextMappings } = initializeColumns(next, useProfiles)
       if (parsed.profileSheet && !parsed.entries.length) {
         setError('Sheet Profil belum terbaca. Periksa kolom nama, kode, dan sumber indikator.')
+      } else if (autoFillMissingMaster) {
+        // A missing master can be populated directly from explicit workbook definitions.
+        // Never upload the .xlsx bytes or auto-import patient episodes. Any ambiguous
+        // direction/option is rejected locally before a server-side atomic commit.
+        setBusy('Memeriksa profil indikator dari workbook…')
+        const prepared = await prepareEpisodeImport({
+          parsed, fields: nextFields, mappings: nextMappings, activeProfiles: profiles,
+          includeProfiles: true, profilesOnly: true, roomId, roomName, year, layoutFields,
+        })
+        setPreview(prepared)
+        if (prepared.issues.length || !prepared.profiles.length) {
+          setError('Pengisian otomatis master dihentikan: periksa temuan profil dan pemetaan terlebih dahulu.')
+        } else {
+          setBusy('Mengisi master indikator yang kosong…')
+          await commitBatch(next, prepared, true)
+        }
+      } else if (!parsed.hasLogbook) {
+        setError('Workbook hanya berisi profil. Gunakan mode profil saja dan periksa pratinjau sebelum menyimpan.')
       }
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook belum dapat dibaca. Periksa berkas dan koneksi, lalu coba lagi.' }))
@@ -166,7 +190,7 @@ export default function PatientEpisodeWorkbookDialog({
     try {
       setPreview(await prepareEpisodeImport({
         parsed: file.parsed, fields, mappings, activeProfiles: file.profiles,
-        includeProfiles: applyProfiles, roomId, roomName, year, layoutFields,
+        includeProfiles: applyProfiles, profilesOnly, roomId, roomName, year, layoutFields,
       }))
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Pratinjau belum dapat dibuat. Periksa pemetaan dan nilai pada workbook.' }))
@@ -203,17 +227,13 @@ export default function PatientEpisodeWorkbookDialog({
     }
   }
 
-  async function runImport() {
-    if (!file || !preview || preview.issues.length || !preview.rows.length || running.current) return
-    running.current = true
-    setError('')
-    setBusy('Menyiapkan impor…')
+  async function commitBatch(source: OpenWorkbook, ready: Preview, onlyProfiles: boolean) {
     let batchId = ''
     let committed = false
     try {
       const latest = await fetchProfiles(roomId, year, admin)
-      if (!sameProfileVersions(file.profiles, latest)) {
-        const next = { ...file, profiles: latest }
+      if (!sameProfileVersions(source.profiles, latest)) {
+        const next = { ...source, profiles: latest }
         setFile(next)
         initializeColumns(next, applyProfiles)
         setError('Profil unit berubah. Periksa pemetaan terbaru dan buat pratinjau kembali.')
@@ -221,55 +241,69 @@ export default function PatientEpisodeWorkbookDialog({
       }
       const { data, error } = await quality().rpc('create_quality_import_batch', {
         p_room_id: roomId, p_profile_year: year, p_importer_key: EPISODE_WORKBOOK_IMPORTER,
-        p_file_name: file.name, p_file_sha256: file.hash, p_import_mode: preview.profiles.length ? 'profiles_and_data' : 'data_only',
-        p_data_mode: 'append', p_profiles: preview.profiles, p_expected_rows: preview.rows.length,
+        p_file_name: source.name, p_file_sha256: source.hash,
+        p_import_mode: onlyProfiles ? 'profiles_only' : ready.profiles.length ? 'profiles_and_data' : 'data_only',
+        p_data_mode: 'append', p_profiles: ready.profiles, p_expected_rows: onlyProfiles ? 0 : ready.rows.length,
       })
       if (error) throw error
       batchId = String(data?.batch_id ?? '')
       if (!batchId) throw new Error('Impor belum dapat dibuat.')
-      for (let offset = 0; offset < preview.rows.length; offset += 80) {
-        setBusy('Menyiapkan episode ' + (offset + 1) + '–' + Math.min(offset + 80, preview.rows.length) + '…')
+      for (let offset = 0; offset < ready.rows.length; offset += 80) {
+        if (onlyProfiles) break
+        setBusy('Menyiapkan episode ' + (offset + 1) + '–' + Math.min(offset + 80, ready.rows.length) + '…')
         const { error: stageError } = await quality().rpc('stage_quality_import_batch_rows', {
-          p_batch_id: batchId, p_rows: preview.rows.slice(offset, offset + 80),
+          p_batch_id: batchId, p_rows: ready.rows.slice(offset, offset + 80),
         })
         if (stageError) throw stageError
       }
       const checked = await quality().rpc('validate_quality_import_batch', { p_batch_id: batchId })
       if (checked.error) throw checked.error
       if (checked.data?.status !== 'validated') throw new Error('Validasi impor belum berhasil.')
-      setBusy('Menyimpan episode…')
+      setBusy(onlyProfiles ? 'Menyimpan master indikator…' : 'Menyimpan episode…')
       const result = await quality().rpc('commit_quality_import_batch', { p_batch_id: batchId })
       if (result.error) throw result.error
-      if (result.data?.status !== 'committed') throw new Error('Penyimpanan belum dikonfirmasi. Periksa daftar episode.')
+      if (result.data?.status !== 'committed') throw new Error('Penyimpanan belum dikonfirmasi. Periksa master indikator/daftar episode.')
       committed = true
-      let message = Number(result.data.imported_rows ?? preview.rows.length).toLocaleString('id-ID') + ' episode berhasil diimpor.'
-      if (preview.profiles.length) message += ' Profil workbook tersimpan.'
-      try { await saveMappings(preview) } catch {
-        message += ' Pemetaan belum tersimpan untuk unggahan berikutnya.'
+      let message = onlyProfiles
+        ? Number(result.data.profile_count ?? ready.profiles.length).toLocaleString('id-ID') + ' profil indikator berhasil mengisi master yang kosong.'
+        : Number(result.data.imported_rows ?? ready.rows.length).toLocaleString('id-ID') + ' episode berhasil diimpor.'
+      if (!onlyProfiles && ready.profiles.length) message += ' Profil workbook tersimpan.'
+      if (!onlyProfiles) {
+        try { await saveMappings(ready) } catch {
+          message += ' Pemetaan belum tersimpan untuk unggahan berikutnya.'
+        }
       }
       onImported(message)
     } catch (cause) {
       const duplicate = Boolean(cause && typeof cause === 'object' && 'code' in cause && cause.code === '23505')
-      setError(duplicate ? 'Episode sudah ada dalam impor sebelumnya. Periksa No. RM, waktu kunjungan, atau ID episode.' :
-        toUserFacingError(cause, { fallback: 'Impor belum berhasil. Periksa daftar episode sebelum mencoba kembali.' }))
+      setError(duplicate ? 'Impor terduplikasi. Periksa kode profil, No. RM, waktu kunjungan, atau ID episode.' :
+        toUserFacingError(cause, { fallback: 'Impor belum berhasil. Periksa profil/episode sebelum mencoba kembali.' }))
     } finally {
       if (batchId && !committed) {
-        try { await quality().rpc('cancel_quality_import_batch', { p_batch_id: batchId }) } catch { /* Pending batches expire through the existing retention process. */ }
+        try { await quality().rpc('cancel_quality_import_batch', { p_batch_id: batchId }) } catch { /* Pending batches expire through retention. */ }
       }
-      running.current = false
-      setBusy('')
     }
+  }
+
+  async function runImport() {
+    if (!file || !preview || preview.issues.length || running.current) return
+    if (profilesOnly ? !preview.profiles.length : !preview.rows.length) return
+    running.current = true
+    setError('')
+    setBusy('Menyiapkan impor…')
+    try { await commitBatch(file, preview, profilesOnly) }
+    finally { running.current = false; setBusy('') }
   }
 
   const columns = file?.parsed.logbook.columns ?? []
   const selectedCount = mappings.filter(mapping => mapping.column).length
-  const labelImport = (preview ? preview.profiles.length > 0 : applyProfiles) ? 'Simpan profil dan impor' : 'Impor episode'
+  const labelImport = profilesOnly ? 'Simpan master indikator' : (preview ? preview.profiles.length > 0 : applyProfiles) ? 'Simpan profil dan impor' : 'Impor episode'
   return <AurekaModal open title="Impor workbook episode pasien" subtitle={roomName + ' · ' + year} size="xl"
     onClose={onClose} closeDisabled={!!busy}
     footer={<div className="episodeWorkbookActions">
       <button type="button" disabled={!!busy} onClick={onClose}>Tutup</button>
       <button type="button" disabled={!file || !!busy} onClick={() => void buildPreview()}>Pratinjau</button>
-      <button type="button" className="episodeWorkbookPrimary" disabled={!!busy || !preview?.rows.length || !!preview?.issues.length} onClick={() => void runImport()}>{labelImport}</button>
+      <button type="button" className="episodeWorkbookPrimary" disabled={!!busy || !!preview?.issues.length || !(profilesOnly ? preview?.profiles.length : preview?.rows.length)} onClick={() => void runImport()}>{labelImport}</button>
     </div>}>
     <div className="episodeWorkbook">
       <fieldset disabled={!!busy}>
@@ -282,16 +316,23 @@ export default function PatientEpisodeWorkbookDialog({
           {!file && onLegacyImport && <button type="button" onClick={onLegacyImport}>Buka impor khusus unit</button>}
         </div>
         {file && <>
-          <p className="episodeWorkbookMeta">{file.name} · {file.parsed.logbook.sheet.name} · header baris {file.parsed.logbook.header}
-            {file.parsed.profileSheet && <> · {file.parsed.profileSheet}: {file.parsed.entries.length} indikator episode</>}
+          <p className="episodeWorkbookMeta">{file.name}
+            {file.parsed.hasLogbook && <> · {file.parsed.logbook.sheet.name} · header baris {file.parsed.logbook.header}</>}
+            {file.parsed.profileSheet && <> · {file.parsed.profileSheet}: {file.parsed.entries.length} profil indikator episode</>}
           </p>
           {admin && file.parsed.entries.length > 0 && <label className="episodeWorkbookCheck">
             <input type="checkbox" checked={applyProfiles} onChange={event => {
               setApplyProfiles(event.target.checked)
+              if (!event.target.checked && file.parsed.hasLogbook) setProfilesOnly(false)
               initializeColumns(file, event.target.checked)
             }}/> Terapkan profil workbook
           </label>}
-          <details open={!fields.date || !(fields.mrn || fields.episode) || undefined}>
+          {admin && applyProfiles && file.parsed.entries.length > 0 && <label className="episodeWorkbookCheck">
+            <input type="checkbox" checked={profilesOnly} disabled={!file.parsed.hasLogbook}
+              onChange={event => { setProfilesOnly(event.target.checked); invalidatePreview() }}/>
+            Hanya isi master indikator tanpa mengimpor data pasien
+          </label>}
+          {!profilesOnly && file.parsed.hasLogbook && <details open={!fields.date || !(fields.mrn || fields.episode) || undefined}>
             <summary>Identitas episode dan header Logbook</summary>
             <div className="episodeWorkbookHeaderRow">
               <label>Baris judul kolom<input type="number" min={1} value={matchingHeader} onChange={event => setMatchingHeader(event.target.value)}/></label>
@@ -305,8 +346,8 @@ export default function PatientEpisodeWorkbookDialog({
                 }}/>)}
             </div>
           </details>
-          <section className="episodeWorkbookMappings" aria-label="Pemetaan profil ke Logbook">
-            <h4>Kolom respons 1, 2, 3 <span>{selectedCount} dari {mappings.length} dipetakan</span></h4>
+          <section className="episodeWorkbookMappings" aria-label={profilesOnly ? 'Validasi profil indikator' : 'Pemetaan profil ke Logbook'}>
+            <h4>{profilesOnly ? 'Profil indikator dari workbook' : 'Kolom respons 1, 2, 3'} <span>{profilesOnly ? mappings.length + ' profil diperiksa' : selectedCount + ' dari ' + mappings.length + ' dipetakan'}</span></h4>
             {!mappings.length && <p role="status">{admin ? 'Belum ada profil episode. Unggah workbook dengan sheet Profil yang memuat kode dan nama indikator.' : 'Belum ada profil episode aktif. Hubungi Superadmin untuk menerapkan profil workbook.'}</p>}
             {mappings.map(mapping => <div className="episodeWorkbookMapping" key={mapping.key}>
               <div className="episodeWorkbookIndicator">
@@ -321,8 +362,8 @@ export default function PatientEpisodeWorkbookDialog({
                 <option value="positive">Positif · kode 1</option>
                 <option value="negative">Negatif · kode 2 dan 3</option>
               </select></label>}
-              <ColumnSelect label={'Kolom Logbook · ' + (mapping.code || mapping.title)}
-                value={mapping.column} columns={columns} onChange={value => updateMapping(mapping.key, { column: value })}/>
+              {!profilesOnly && <ColumnSelect label={'Kolom Logbook · ' + (mapping.code || mapping.title)}
+                value={mapping.column} columns={columns} onChange={value => updateMapping(mapping.key, { column: value })}/>}
             </div>)}
           </section>
         </>}
@@ -333,7 +374,8 @@ export default function PatientEpisodeWorkbookDialog({
         <strong>Periksa {preview.issues.length} temuan sebelum impor</strong>
         <ul>{preview.issues.map((issue, index) => <li key={index}>{issue.location}: {issue.message}</li>)}</ul>
       </div> : <p className="episodeWorkbookSuccess" role="status">
-        {preview.rows.length.toLocaleString('id-ID')} episode siap diimpor · {preview.codes.map((count, index) => 'Kode ' + (index + 1) + ': ' + count.toLocaleString('id-ID')).join(' · ')}
+        {profilesOnly ? preview.profiles.length.toLocaleString('id-ID') + ' profil indikator siap mengisi master · tanpa data pasien'
+          : preview.rows.length.toLocaleString('id-ID') + ' episode siap diimpor · ' + preview.codes.map((count, index) => 'Kode ' + (index + 1) + ': ' + count.toLocaleString('id-ID')).join(' · ')}
       </p>)}
     </div>
   </AurekaModal>
