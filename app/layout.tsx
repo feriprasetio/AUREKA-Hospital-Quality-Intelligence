@@ -19,10 +19,9 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  // iPhone memperbesar layar saat kotak isian disentuh; maximumScale 1 mencegahnya (cubit-zoom tetap bisa di iOS).
+  // Pertahankan pinch-to-zoom untuk aksesibilitas; input ponsel sebaiknya berukuran minimal 16px.
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#eef1f5' },
     { media: '(prefers-color-scheme: dark)', color: '#0a0d13' },
