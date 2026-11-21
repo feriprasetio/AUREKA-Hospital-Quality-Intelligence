@@ -119,6 +119,7 @@
       "Catatan harian"
     ],
     "indicators": [
+      "Dead Stock",
       "Angka Copy Resep",
       "Angka Ketidakpatuhan Penggunaan Label High Alert",
       "Kepatuhan Penggunaan Formularium Nasional",
@@ -601,6 +602,40 @@
     ]
   },
   {
+    "roomId": 16,
+    "fields": [
+      "Tanggal Pengamatan",
+      "Area Pengamatan",
+      "Catatan Pengamatan"
+    ],
+    "indicators": [
+      "Kepatuhan Kebersihan Tangan"
+    ],
+    "measurementGrain": "activity",
+    "fieldTypes": {
+      "Tanggal Pengamatan": "date",
+      "Area Pengamatan": "text",
+      "Catatan Pengamatan": "textarea"
+    }
+  },
+  {
+    "roomId": 17,
+    "fields": [
+      "Tanggal Pengukuran",
+      "Metode/Area Survei",
+      "Catatan Pengukuran"
+    ],
+    "indicators": [
+      "Indeks Kepuasan Pasien"
+    ],
+    "measurementGrain": "activity",
+    "fieldTypes": {
+      "Tanggal Pengukuran": "date",
+      "Metode/Area Survei": "text",
+      "Catatan Pengukuran": "textarea"
+    }
+  },
+  {
     "roomId": 18,
     "fields": [
       "Nama Pasien",
@@ -771,6 +806,7 @@
     "indicators": [
       "Visite Spesialis",
       "Validitas Asesmen Keperawatan",
+      "Transfer IGD",
       "Oksigen Transfer IGD",
       "Kekosongan Obat",
       "Kekosongan Linen",
@@ -1025,7 +1061,8 @@
       "Rute"
     ],
     "indicators": [
-      "Kepatuhan Terapi"
+      "Kepatuhan Terapi",
+      "Ketepatan Penggunaan Antibiotik"
     ]
   },
   {

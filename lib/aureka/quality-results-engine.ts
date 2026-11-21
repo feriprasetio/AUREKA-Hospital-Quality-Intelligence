@@ -231,6 +231,8 @@ function extractObservation(
   const values = core.indicator_values ?? {}
   const response = values[String(profile.code ?? '')] ?? values[String(profile.id ?? '')]
   if (!response || typeof response !== 'object') return null
+  const reviewStatus = String(response.review_status ?? '').trim().toLowerCase()
+  if (reviewStatus && !['classified', 'not_required'].includes(reviewStatus)) return null
 
   const inputAt = row.created_at ?? row.updated_at ?? null
 
@@ -785,10 +787,13 @@ export function diagnoseIndicator(profile: IndicatorProfileForResults, rows: Res
     if (!extractObservation(profile, row, Number(date.slice(5, 7)))) {
       d.notCountable++
       const r = response as Record<string, any>
+      const reviewStatus = String(r.review_status ?? '').trim().toLowerCase()
+      const hasUnapprovedReview = !!reviewStatus && !['classified', 'not_required'].includes(reviewStatus)
       const hasNd = finiteNumber(r.numerator) != null || finiteNumber(r.denominator) != null
       const option = findOption(profile, r)
       const mapping = String(r.mapping_status ?? '').trim()
-      if (hasNd && (kind === 'ratio')) d.invalidNumbers++
+      if (hasUnapprovedReview) d.needsReview++
+      else if (hasNd && (kind === 'ratio')) d.invalidNumbers++
       else if (hasNd && kind !== 'ratio') d.needsProfileSetup++
       else if ((r.answer != null || r.code != null) && !option) d.optionMismatch++
       else if (r.review_required === true || (mapping && mapping !== 'mapped')) d.needsReview++
