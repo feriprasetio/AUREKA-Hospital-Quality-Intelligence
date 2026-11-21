@@ -14,23 +14,11 @@ const corsHeaders = {
 };
 const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
 const FALLBACK_MODEL = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-latest";
-const LIMIT_PER_WINDOW = 20;
-const WINDOW_MS = 10 * 60 * 1000;
 const PROVIDER_TIMEOUT_MS = Math.max(5000, Math.min(Number(Deno.env.get("AI_PROVIDER_TIMEOUT_MS")) || 18000, 30000));
 const PROVIDER_ROUTE_BUDGET_MS = Math.max(20000, Math.min(Number(Deno.env.get("AI_ROUTE_BUDGET_MS")) || 65000, 90000));
-const hits = new Map<string, number[]>();
 
 function reply(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
-
-function rateLimited(userId: string) {
-  const now = Date.now();
-  const list = (hits.get(userId) || []).filter((t) => now - t < WINDOW_MS);
-  if (list.length >= LIMIT_PER_WINDOW) { hits.set(userId, list); return true; }
-  list.push(now);
-  hits.set(userId, list);
-  return false;
 }
 
 // Ambil semua baris: halaman pertama dulu, sisanya diambil paralel (bukan satu per satu).
@@ -805,7 +793,13 @@ async function handle(req: Request): Promise<Response> {
   let body: { question?: string; history?: { role?: string; text?: string }[]; page?: string; warmup?: boolean; task?: string; room_id?: number; profile_year?: number; importer_key?: string; headers?: string[] };
   try { body = await req.json(); } catch { return reply(400, { error: "Format permintaan tidak valid." }); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return reply(400, { error: "Format permintaan tidak valid." });
-  if (rateLimited(who.user.id)) return reply(429, { error: "Batas permintaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
+  // Atomic per-user quota is shared by every Edge Function instance; fail closed if unavailable.
+  const { data: overLimit, error: limitError } = await db.rpc("aureka_consume_user_rate_limit", { p_bucket: "tanya" });
+  if (limitError || typeof overLimit !== "boolean") {
+    console.warn("nara-ai rate-limit unavailable", limitError?.code || "invalid_response");
+    return reply(503, { error: "Pembatas permintaan sementara tidak tersedia. Silakan coba kembali." });
+  }
+  if (overLimit) return reply(429, { error: "Batas permintaan tercapai (20 per 10 menit). Coba lagi sebentar lagi." });
   // Pemanasan saat panel dibuka: siapkan ringkasan data di cache, tanpa memanggil AI.
   if (body.warmup) {
     // Domain is not known until the user asks a question; never prefetch every hospital domain.

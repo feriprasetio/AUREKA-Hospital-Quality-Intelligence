@@ -32,8 +32,14 @@ test('NARA minimizes incident fields before constructing provider context', () =
   assert.doesNotMatch(gateway, /from\("incidents"\)\s*\.select\("\*"\)/)
 })
 
-test('rate limit is applied before warmup and oversized requests are rejected', () => {
-  assert.ok(gateway.indexOf('rateLimited(who.user.id)') < gateway.indexOf('if (body.warmup)'))
+test('NARA uses shared atomic per-user rate limits and fails closed before warmup', () => {
+  const quotaCheck = gateway.indexOf('db.rpc("aureka_consume_user_rate_limit", { p_bucket: "tanya" })')
+  const warmup = gateway.indexOf('if (body.warmup)')
+  assert.ok(quotaCheck > 0 && quotaCheck < warmup)
+  assert.ok(gateway.includes('if (limitError || typeof overLimit !== "boolean")'))
+  assert.match(gateway, /if \(overLimit\) return reply\(429/)
+  assert.match(gateway, /return reply\(503, \{ error: "Pembatas permintaan sementara tidak tersedia/)
+  assert.doesNotMatch(gateway, /const hits = new Map|function rateLimited\(/)
   assert.match(gateway, /contentLength > 32768/)
 })
 
