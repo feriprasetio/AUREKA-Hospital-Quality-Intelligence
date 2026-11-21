@@ -342,7 +342,7 @@ export default function PatientEpisodeWorkbookDialog({
                   invalidatePreview()
                 }}/>)}
             </div>
-          </details>
+          </details>}
           {file.parsed.hasLogbook && <section className="episodeWorkbookMappings" aria-label="Pemetaan profil ke Logbook">
             <h4>Kolom respons 1, 2, 3 <span>{selectedCount} dari {mappings.length} dipetakan</span></h4>
             {!mappings.length && <p role="status">{admin ? 'Belum ada profil episode. Unggah workbook dengan sheet Profil yang memuat kode dan nama indikator.' : 'Belum ada profil episode aktif. Hubungi Superadmin untuk menerapkan profil workbook.'}</p>}
