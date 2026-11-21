@@ -23,7 +23,7 @@ test('Infografis use a server-side aggregate and expose the approved KPI groups'
 })
 
 test('Infografis remain aggregate and never present individual patient-level detail', () => {
-  assert.doesNotMatch(dashboard, /Eksplorasi agregat|className="ifEyebrow"/)
+  assert.doesNotMatch(dashboard, /Eksplorasi agregat|className="ifEyebrow"|Sumber: snapshot agregat|Angka dihitung otomatis/)
   assert.ok(dashboard.includes('Jumlah episode pasien per kategori'))
   assert.ok(!dashboard.includes('medical_record_number'))
   assert.ok(!dashboard.includes('patient_name'))

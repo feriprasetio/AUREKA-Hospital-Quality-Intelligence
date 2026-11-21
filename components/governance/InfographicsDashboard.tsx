@@ -348,7 +348,6 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
       </div>
     </>}
     {!qualityOnly && onNavigate && <nav className="ifLinks" aria-label="Buka ruang kerja sumber">{sourceLinks.map((link) => <button type="button" className="ifLink" key={link.id} onClick={() => onNavigate(link.id)}>{link.label}</button>)}</nav>}
-    {summaryRetrievedAt && <p className="ifNote">Sumber: snapshot agregat AUREKA sesuai hak akses. Pembacaan dilakukan {new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(summaryRetrievedAt))}. Nilai kosong/error tidak diperlakukan sebagai nol.</p>}
-    <p className="ifNote">Angka dihitung otomatis dari data yang boleh Anda lihat, sesuai periode dan unit yang dipilih. Bulan berisi 0 berarti belum ada data masuk, bukan capaian 0%. Jumlah laporan insiden menunjukkan banyaknya laporan, bukan tingkat kejadian.</p>
+    {summaryRetrievedAt && <time className="ifNote" dateTime={summaryRetrievedAt}>{new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'}).format(new Date(summaryRetrievedAt))}</time>}
   </section>
 }
