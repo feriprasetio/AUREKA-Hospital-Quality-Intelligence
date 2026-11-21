@@ -95,7 +95,7 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
   ]},
   { id:'education_training', label:'Pendidikan dan Pelatihan', icon:'education', items:[
     { id:'in_house_training', label:'In House Training', moduleId:'staff', childId:'training', status:'planned', note:'Register IHT, dokumentasi pelatihan, dan penerbitan sertifikat PDF belum memiliki workspace aktif.' },
-    { id:'student_orientation', label:'Orientasi Mahasiswa', moduleId:'staff', childId:'student-orientation', status:'planned', note:'Integrasi daftar mahasiswa dari Tim Koordinasi Pendidikan dan penerbitan sertifikat PDF belum tersedia.' },
+    { id:'student_orientation', label:'Orientasi Mahasiswa', moduleId:'staff', childId:'student-orientation', status:'available', requiredRoles:['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC'], note:'Daftar peserta dibaca otomatis dari logbook Tim Koordinasi Pendidikan; metadata orientasi dan sertifikat PDF dikelola di sini.' },
   ]},
   { id:'director_supervisory_board', label:'Direktur dan Dewan Pengawas', icon:'analytics', items:[
     { id:'recommendations', label:'Rekomendasi dan Rencana Tindak Lanjut', moduleId:'analytics', childId:'recommendations' },
