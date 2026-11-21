@@ -134,6 +134,7 @@ export default function SecretariatWorkspace({
   const canManage = managerRoles.includes(role || '')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [rows, setRows] = useState<MeetingRow[]>([])
+  const [showRegister, setShowRegister] = useState(false)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [search, setSearch] = useState('')
@@ -161,6 +162,8 @@ export default function SecretariatWorkspace({
   }, [initialRoomId, lockRoomScope])
 
   useEffect(() => { void loadRegister() }, [loadRegister])
+
+  useEffect(() => { setShowRegister(false) }, [section])
 
   useEffect(() => {
     if (!createOpen) setDraft({ ...emptyDraft(initialRoomId), meeting_type: section === 'invitations' ? 'Undangan' : 'Kegiatan' })
@@ -390,6 +393,7 @@ export default function SecretariatWorkspace({
         title="Sekretariat"
         description="Register dokumen kegiatan dengan satu Meeting ID. Berkas Undangan, Materi, Absensi Digital, Notulensi, dan Gambar dibaca secara deterministik tanpa API AI eksternal."
       />
+      {showRegister ? <>
       <div className="secToolbar">
         <div><span className="secEyebrow">{section === 'invitations' ? 'ADMINISTRASI UNDANGAN' : 'REGISTER DOKUMEN'}</span><h2>{section === 'invitations' ? 'Register Undangan' : 'Register Sekretariat'}</h2><p>Setiap baris mewakili satu dokumen/kegiatan. Isi dokumen dibuka melalui pop-up pada baris yang sama.</p></div>
         {canManage&&<button type="button" className="secPrimaryButton" onClick={()=>{setDraft({ ...emptyDraft(initialRoomId), meeting_type: section === 'invitations' ? 'Undangan' : 'Kegiatan' });setCreateOpen(true)}}>+ Tambah Register</button>}
@@ -462,6 +466,12 @@ export default function SecretariatWorkspace({
             </article>)}</div>}
           </section>
           <footer className="secModalFooter"><span>{totalDocs} berkas terhubung ke Meeting ID ini</span><button type="button" className="secPrimaryButton" onClick={closeDocuments}>Selesai</button></footer>
+        </section>
+      </div>}
+      </> : <div className="secLanding">
+        <div className="secSummary"><div><span>Total Kegiatan / Register</span><strong>{rows.length}</strong></div><div><span>Undangan Tercatat</span><strong>{rows.filter((row)=>/undangan/i.test(row.meeting_type)).length}</strong></div><div><span>Kategori UMANG</span><strong>5</strong></div></div>
+        <section className="secTablePanel"><span className="secEyebrow">VISUAL INTELLIGENCE · SEKRETARIAT</span><h2>Administrasi Kegiatan</h2><p>Ringkasan register kegiatan dan dokumentasi UMANG dalam satu Meeting ID. Pilih register untuk menelusuri nomor surat dan seluruh dokumen kegiatan.</p><div className="secToolbar"><div><strong>Administrasi Kegiatan Rumah Sakit</strong><p>Undangan, Materi, Absensi Digital, Notulensi, dan Gambar disimpan sebagai dokumen terstruktur.</p></div><button type="button" className="secPrimaryButton" onClick={()=>setShowRegister(true)}>Lihat Register Kegiatan</button></div>
+          {section === 'invitations' && <div className="secNotice secNotice-info" role="status">Bagian ini saat ini menampilkan register dokumen undangan. Pengiriman undangan langsung ke PIC unit belum diaktifkan; tidak ada undangan yang dikirim otomatis.</div>}
         </section>
       </div>}
     </section>

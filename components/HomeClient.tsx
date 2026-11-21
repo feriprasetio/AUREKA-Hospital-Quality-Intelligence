@@ -25,6 +25,7 @@ import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
 import {useIdleLogout} from '@/components/layout/useIdleLogout'
 const PicPerformanceWorkspace=dynamic(()=>import('@/components/PicPerformanceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Monitoring Kinerja PIC')})
 const StudentOrientationWorkspace=dynamic(()=>import('@/components/StudentOrientationWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Orientasi Mahasiswa')})
+const InHouseTrainingWorkspace=dynamic(()=>import('@/components/InHouseTrainingWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('In House Training')})
 const NaraAIWorkspace=dynamic(()=>import('@/components/NaraAIWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('NARA AI')})
 const InfographicsDashboard=dynamic(()=>import('@/components/governance/InfographicsDashboard'),{ssr:false,loading:()=>workspaceChunkLoading('Infografis')})
 const workspaceChunkLoading=(label:string)=><WorkspaceSkeleton label={label}/>
@@ -65,7 +66,7 @@ const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR']
 const ROLE_LABEL:Record<string,string>={ADMIN:'Super Admin',PMKP:'Komite PMKP',MANAGEMENT:'Manajemen',PIC:'PIC Unit',VALIDATOR:'Validator Unit',KABID:'Kepala Bidang',DIREKTUR:'Direktur',DEWAN_PENGAWAS:'Dewan Pengawas'}
 type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
 type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'|'profile'|'evaluation'
-type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'|'oppe'|'fppe'|'recommendations'|'pic-performance'|'student-orientation'
+type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'|'oppe'|'fppe'|'recommendations'|'pic-performance'|'student-orientation'|'training'
 const GOV_PROGRAM_TABS=['recommendations'] as const
 type GovProgramTab=typeof GOV_PROGRAM_TABS[number]
 const isGovProgramTab=(t:string):t is GovProgramTab=>(GOV_PROGRAM_TABS as readonly string[]).includes(t)
@@ -211,6 +212,7 @@ export default function HomeClient(){
  const [secretariatSection,setSecretariatSection]=useState<SecretariatSection>('register')
  const [permissionFlags,setPermissionFlags]=useState({readDirectory:false,readPerformance:false,readPicPerformance:false,readQualityAggregate:false})
  const canAccessStudentOrientation = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR'].includes(role||'') || (role==='PIC' && Number(room?.id)===30)
+ const canAccessInHouseTraining = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'].includes(role||'')
  useEffect(()=>{const h=()=>{setSettingsSection('security');setSettingsTab('security');setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()};window.addEventListener('aureka-open-password',h);return()=>window.removeEventListener('aureka-open-password',h)},[])
  useEffect(()=>{if(active!=='settings')setSettingsTab(null)},[active])
  useEffect(()=>{
@@ -305,11 +307,12 @@ export default function HomeClient(){
    const [modulePath,section]=path.split('/')
    let next=routes[modulePath]||'home'
    if(next!=='home'&&!AUREKA_PRIMARY_NAV.some(module=>module.id===next&&module.requiredRoles.includes((role||'') as AurekaRole)))next='home'
-   if(next==='staff'&&!permissionFlags.readDirectory&&!permissionFlags.readPerformance&&!permissionFlags.readPicPerformance&&!canAccessStudentOrientation)next='home'
+   if(next==='staff'&&!permissionFlags.readDirectory&&!permissionFlags.readPerformance&&!permissionFlags.readPicPerformance&&!canAccessStudentOrientation&&!canAccessInHouseTraining)next='home'
    if(next==='staff'&&section==='student-orientation'&&!canAccessStudentOrientation)next='home'
+   if(next==='staff'&&section==='training'&&!canAccessInHouseTraining)next='home'
    if(next==='staff'&&['oppe-fppe','oppe','fppe'].includes(section||'')&&!permissionFlags.readPerformance)next='home'
    if(next==='staff'&&section==='kinerja-pic'&&!permissionFlags.readPicPerformance)next='home'
-   if(next==='staff'){setStaffTab(section==='student-orientation'?'student-orientation':section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory');setAnalyticsDirectoryTab(section==='team'?'team':'directory')}
+   if(next==='staff'){setStaffTab(section==='student-orientation'?'student-orientation':section==='training'?'training':section==='oppe-fppe'||section==='oppe'?'oppe':section==='fppe'?'fppe':section==='kinerja-pic'?'pic-performance':'directory');setAnalyticsDirectoryTab(section==='team'?'team':'directory')}
    if(next==='secretariat'){
     const sectionMap:Record<string,SecretariatSection>={register:'register',kegiatan:'register',undangan:'invitations',invitations:'invitations','kirim-undangan':'invitations'}
     setSecretariatSection(sectionMap[section||'']||'register')
@@ -356,7 +359,7 @@ export default function HomeClient(){
   window.addEventListener('hashchange',onHashChange)
   setRouteReady(true)
   return ()=>window.removeEventListener('hashchange',onHashChange)
- },[view,role,room?.id,canAccessStudentOrientation,permissionFlags.readPerformance,permissionFlags.readDirectory,permissionFlags.readPicPerformance,permissionFlags.readQualityAggregate])
+ },[view,role,room?.id,canAccessStudentOrientation,canAccessInHouseTraining,permissionFlags.readPerformance,permissionFlags.readDirectory,permissionFlags.readPicPerformance,permissionFlags.readQualityAggregate])
  useEffect(()=>{
   if(view!=='workspace'||!routeReady||typeof window==='undefined'||publicVerificationCode)return
   let hash='#beranda'
@@ -365,7 +368,7 @@ export default function HomeClient(){
   else{
    const routes:Record<string,string>={home:'#beranda',nara:'#nara-ai',patients:'#pasien',safety:'#keselamatan-pasien',risk:'#manajemen-risiko',analytics:'#program',staff:'#sumber-daya-manusia',secretariat:'#sekretariat',settings:'#pengaturan'}
    hash=routes[active]||'#ringkasan'
-   const section=active==='patients'?'register-pasien':active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?programTab:active==='staff'?(staffTab==='student-orientation'?'student-orientation':staffTab==='oppe'?'oppe':staffTab==='fppe'?'fppe':staffTab==='pic-performance'?'kinerja-pic':analyticsDirectoryTab):active==='secretariat'?secretariatSection:null
+   const section=active==='patients'?'register-pasien':active==='safety'?safetyTab:active==='risk'?riskTab:active==='analytics'?programTab:active==='staff'?(staffTab==='student-orientation'?'student-orientation':staffTab==='training'?'training':staffTab==='oppe'?'oppe':staffTab==='fppe'?'fppe':staffTab==='pic-performance'?'kinerja-pic':analyticsDirectoryTab):active==='secretariat'?secretariatSection:null
    const extra=active==='settings'?(settingsSection==='audit'?'audit-log':settingsSection):null
    if(section){hash+='/'+section;if(active==='patients')hash+='/'+(patientsRegistryTab==='directory'?'direktori-pasien':patientsRegistryTab==='analysis'?'pola-perawatan':'ikhtisar')}
    else if(extra)hash+='/'+extra
@@ -418,11 +421,11 @@ export default function HomeClient(){
   .filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole))
   .filter(({id})=>id!=='nara'&&id!=='insights')
   .filter(({id})=>{
-   if(id==='staff')return permissionFlags.readDirectory||permissionFlags.readPerformance||permissionFlags.readPicPerformance||canAccessStudentOrientation
+   if(id==='staff')return permissionFlags.readDirectory||permissionFlags.readPerformance||permissionFlags.readPicPerformance||canAccessStudentOrientation||canAccessInHouseTraining
    if(id==='quality'&&role==='DEWAN_PENGAWAS')return permissionFlags.readQualityAggregate
    return true
   })
-  .map(({id,label})=>[id,label] as const),[role,permissionFlags,canAccessStudentOrientation])
+  .map(({id,label})=>[id,label] as const),[role,permissionFlags,canAccessStudentOrientation,canAccessInHouseTraining])
 
  const visibleModuleIds=useMemo<Set<string>>(()=>new Set(visibleMods.map(([id])=>id)),[visibleMods])
  const visibleSidebarDomains=useMemo(()=>AUREKA_SIDEBAR_DOMAINS
@@ -432,10 +435,10 @@ export default function HomeClient(){
    if(item.status==='planned')return true
    if(item.moduleId==='home'||item.moduleId==='nara')return true
    if(!visibleModuleIds.has(item.moduleId))return false
-   if(item.moduleId==='staff')return item.childId==='student-orientation'?canAccessStudentOrientation:(permissionFlags.readDirectory||permissionFlags.readPerformance||permissionFlags.readPicPerformance)
+   if(item.moduleId==='staff')return item.childId==='student-orientation'?canAccessStudentOrientation:item.childId==='training'?canAccessInHouseTraining:(permissionFlags.readDirectory||permissionFlags.readPerformance||permissionFlags.readPicPerformance)
    return true
   })}))
-  ,[visibleModuleIds,permissionFlags,role,canAccessStudentOrientation])
+  ,[visibleModuleIds,permissionFlags,role,canAccessStudentOrientation,canAccessInHouseTraining])
  const sidebarDestinationActive=(item:AurekaSidebarDomain['items'][number])=>{
   if(item.status==='planned'||item.moduleId!==active)return false
   const child=item.childId||''
@@ -462,6 +465,7 @@ export default function HomeClient(){
   if(item.moduleId==='analytics')return child==='recommendations'?programTab==='recommendations':programTab==='programs'
   if(item.moduleId==='staff'){
    if(child==='student-orientation')return active==='staff'&&staffTab==='student-orientation'
+   if(child==='training')return active==='staff'&&staffTab==='training'
    if(child==='directory')return active==='staff'&&staffTab==='directory'&&analyticsDirectoryTab==='directory'
    if(child==='team')return active==='staff'&&staffTab==='directory'&&analyticsDirectoryTab==='team'
    if(child==='oppe-fppe')return active==='staff'&&staffTab==='oppe'
@@ -553,11 +557,11 @@ export default function HomeClient(){
    staff:[
     ...(permissionFlags.readDirectory?[{id:'workforce',label:'Tenaga Kerja',children:[{id:'directory',label:'Tenaga Kerja'},{id:'team',label:'Tim dan Penugasan'}]}]:[]),
     ...(permissionFlags.readPerformance?[{id:'professional-performance',label:'OPPE dan FPPE',children:[{id:'oppe-fppe',label:'OPPE'},{id:'fppe',label:'FPPE'}]}]:[]),
-    ...(canAccessStudentOrientation?[{id:'education-training',label:'Pendidikan dan Pelatihan',children:[{id:'student-orientation',label:'Orientasi Mahasiswa',hint:'Register orientasi berbasis daftar mahasiswa dari logbook Tim Koordinasi Pendidikan.'}]}]:[]),
+    ...(canAccessStudentOrientation||canAccessInHouseTraining?[{id:'education-training',label:'Pendidikan dan Pelatihan',children:[...(canAccessInHouseTraining?[{id:'training',label:'In House Training',hint:'Register pelatihan internal dan sertifikat PDF.'}]:[]),...(canAccessStudentOrientation?[{id:'student-orientation',label:'Orientasi Mahasiswa',hint:'Register orientasi berbasis daftar mahasiswa dari logbook Tim Koordinasi Pendidikan.'}]:[])]}]:[]),
    ],
   }
   return groups
- },[admin,role,permissionFlags,canAccessStudentOrientation])
+ },[admin,role,permissionFlags,canAccessStudentOrientation,canAccessInHouseTraining])
  const currentContainer=useMemo(()=>{
   if(active==='home')return 'Beranda'
   if(active==='settings'&&settingsSection==='legal')return 'Legal dan Asset'
@@ -568,7 +572,7 @@ export default function HomeClient(){
   if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Register Risiko · Daftar Risiko',connections:'Register Risiko · Konektor Risiko',profile:'Register Risiko · Profil Risiko',fmea:'FMEA · Analisis',mitigation:'FMEA · Mitigasi & RTP',evaluation:'FMEA · Evaluasi Keberhasilan'} as Record<RiskWorkspaceTab,string>)[riskTab]
   if(active==='analytics')return programTab==='recommendations'?'Rekomendasi dan Rencana Tindak Lanjut':'Program Kerja Tahunan'
-  if(active==='staff')return staffTab==='student-orientation'?'Orientasi Mahasiswa':staffTab==='oppe'?'OPPE':staffTab==='fppe'?'FPPE':staffTab==='pic-performance'?'Monitoring Kinerja PIC':analyticsDirectoryTab==='team'?'Tim dan Penugasan':'Direktori Tenaga Kerja'
+  if(active==='staff')return staffTab==='student-orientation'?'Orientasi Mahasiswa':staffTab==='training'?'In House Training':staffTab==='oppe'?'OPPE':staffTab==='fppe'?'FPPE':staffTab==='pic-performance'?'Monitoring Kinerja PIC':analyticsDirectoryTab==='team'?'Tim dan Penugasan':'Direktori Tenaga Kerja'
   if(active==='settings')return ({profile:'Profil / Akun',security:'Keamanan',users:'Pengguna dan Role',units:'Unit dan Instalasi',appearance:'Preferensi Tampilan',system:'Konfigurasi Sistem',permissions:'Hak Akses Role',mydata:'Data Saya untuk PMKP',audit:'Audit Log'} as Record<SettingsSection,string>)[settingsSection]
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  },[active,clinicalPathwayOpen,qualityOppeOpen,qualityInitialContainer,qualityResultsView,safetyTab,riskTab,programTab,staffTab,qualityProfileOpen,settingsSection,spmOpen,spoOpen,secretariatSection])
@@ -578,7 +582,7 @@ export default function HomeClient(){
   if(id!=='home'){
    const module=AUREKA_PRIMARY_NAV.find(item=>item.id===id)
    if(!module||!module.requiredRoles.includes((role||'') as AurekaRole))return
-   if(id==='staff'&&!permissionFlags.readDirectory&&!permissionFlags.readPerformance&&!permissionFlags.readPicPerformance&&!canAccessStudentOrientation)return
+   if(id==='staff'&&!permissionFlags.readDirectory&&!permissionFlags.readPerformance&&!permissionFlags.readPicPerformance&&!canAccessStudentOrientation&&!canAccessInHouseTraining)return
    if(id==='quality'&&role==='DEWAN_PENGAWAS'&&!permissionFlags.readQualityAggregate)return
   }
   // On phones, tapping a module that has sub-menus keeps the drawer open so the sub-menu can be chosen.
@@ -592,7 +596,7 @@ export default function HomeClient(){
   else {setQualityOppeOpen(false);setRealcostAuditOpen(false);setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null)}
   if(id==='safety')setSafetyTab('overview')
   if(id==='risk')setRiskTab('register')
-  if(id==='staff'){if(permissionFlags.readDirectory){setStaffTab('directory');setAnalyticsDirectoryTab('directory')}else if(permissionFlags.readPerformance){setStaffTab('oppe')}else if(permissionFlags.readPicPerformance){setStaffTab('pic-performance')}else if(canAccessStudentOrientation){setStaffTab('student-orientation')}}
+  if(id==='staff'){if(permissionFlags.readDirectory){setStaffTab('directory');setAnalyticsDirectoryTab('directory')}else if(permissionFlags.readPerformance){setStaffTab('oppe')}else if(permissionFlags.readPicPerformance){setStaffTab('pic-performance')}else if(canAccessStudentOrientation){setStaffTab('student-orientation')}else if(canAccessInHouseTraining){setStaffTab('training')}}
   if(id==='analytics'){setProgramTab('programs');setAnalyticsDirectoryTab('directory')}
  }
  const openNaraWithContext=(prompt:string,pageContext:string)=>{
@@ -659,6 +663,7 @@ export default function HomeClient(){
   else if(moduleId==='staff'){
    setActive('staff')
    if(childId==='student-orientation')setStaffTab('student-orientation')
+   else if(childId==='training')setStaffTab('training')
    else if(childId==='pic-performance')setStaffTab('pic-performance')
    else if(childId==='oppe-fppe')setStaffTab('oppe')
    else if(childId==='fppe')setStaffTab('fppe')
@@ -701,7 +706,7 @@ export default function HomeClient(){
   : (sidebarChildGroups[activeNavModuleId]||[])
  const activeNavSelectedId=selectedSidebarChild(activeNavModuleId)
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
- const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleId==='staff'&&staffTab==='student-orientation'?'Orientasi Mahasiswa':activeNavModuleLabel
+ const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleId==='staff'&&staffTab==='student-orientation'?'Orientasi Mahasiswa':activeNavModuleId==='staff'&&staffTab==='training'?'In House Training':activeNavModuleLabel
  const displayedRailTitle=activeNavModuleId==='quality'&&spoOpen?'Standar Prosedur Operasional':activeRailTitle
  // Grup modul tetap menjadi navigasi utama; sub-tab berada pada rail horizontal yang sama.
  const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))
@@ -1311,6 +1316,7 @@ export default function HomeClient(){
    :active==='analytics'&&programTab==='programs'?<AnnualProgramWorkspace rooms={roomsList} role={role} currentRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):(room?.id??null)}/>
    :active==='analytics'&&isGovProgramTab(programTab)?<GovernanceProgramWorkspace rooms={roomsList}/>
    :active==='analytics'?<AsyncStatePanel state="empty" title="Pilih ruang Program & RTL" description="Gunakan Program Kerja Tahunan atau Rekomendasi dan Rencana Tindak Lanjut pada navigasi Program & RTL." compact/>
+    :active==='staff'&&staffTab==='training'?<InHouseTrainingWorkspace role={role} userId={user?.id||''} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={admin&&!allRoomsScope}/>
    :active==='staff'&&staffTab==='student-orientation'?<StudentOrientationWorkspace role={role} userId={user?.id||''} canManage={['ADMIN','PMKP','MANAGEMENT','KABID'].includes(role||'')}/>
    :active==='staff'&&staffTab==='pic-performance'?<PicPerformanceWorkspace/>
    :active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace key={'staff-'+staffTab} initialScreen={staffTab==='fppe'?'fppe':'overview'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
