@@ -1,273 +1,307 @@
--- Student orientation workspace: source names stay in Tim Koordinasi Pendidikan quality logbooks.
--- One orientation metadata row is linked to one source quality record; no student directory is duplicated.
+-- Extend the existing AUREKA education domain for Orientasi Mahasiswa.
+-- Student identity is sourced from Tim Koordinasi Pendidikan quality records (room 30).
+-- This reuses education_events, education_participants and education_certificates.
 
-create table if not exists aureka_quality.student_orientation_records (
-  id uuid primary key default gen_random_uuid(),
-  source_quality_record_id uuid not null unique
-    references aureka_quality.quality_records(id) on delete restrict,
-  profile_year smallint not null check (profile_year between 2000 and 2200),
-  role_type text not null default 'Peserta'
-    check (role_type in ('Peserta', 'Narasumber', 'Sumpah Rekam Medik')),
-  activity_name text not null default 'Orientasi Mahasiswa'
-    check (length(trim(activity_name)) between 1 and 240),
-  period_label text not null default ''
-    check (length(period_label) <= 160),
-  signed_date date,
-  materials text[] not null default array[]::text[]
-    check (cardinality(materials) <= 7),
-  notes text not null default ''
-    check (length(notes) <= 1000),
-  certificate_number text unique,
-  certificate_issued_at timestamptz,
-  created_by uuid default auth.uid() references auth.users(id) on delete set null,
-  updated_by uuid references auth.users(id) on delete set null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+alter table aureka_system.education_participants
+  add column if not exists participant_role text not null default 'Peserta',
+  add column if not exists activity_name text not null default 'Orientasi Mahasiswa',
+  add column if not exists period_label text not null default '',
+  add column if not exists signed_date date,
+  add column if not exists materials text[] not null default array[]::text[],
+  add column if not exists orientation_notes text not null default '';
 
-create index if not exists student_orientation_records_year_idx
-  on aureka_quality.student_orientation_records(profile_year, created_at desc);
-
-alter table aureka_quality.student_orientation_records enable row level security;
-grant usage on schema aureka_quality to authenticated;
-grant select on aureka_quality.student_orientation_records to authenticated;
-grant insert (source_quality_record_id, profile_year, role_type, activity_name, period_label, signed_date, materials, notes, updated_by)
-  on aureka_quality.student_orientation_records to authenticated;
-grant update (source_quality_record_id, profile_year, role_type, activity_name, period_label, signed_date, materials, notes, updated_by)
-  on aureka_quality.student_orientation_records to authenticated;
-revoke delete on aureka_quality.student_orientation_records from authenticated, anon;
-
-drop policy if exists student_orientation_read_governed
-  on aureka_quality.student_orientation_records;
-create policy student_orientation_read_governed
-  on aureka_quality.student_orientation_records
-  for select to authenticated
-  using (
-    aureka_system.current_role_code() in ('ADMIN', 'PMKP', 'MANAGEMENT', 'KABID', 'DIREKTUR')
-    or (
-      aureka_system.current_role_code() = 'PIC'
-      and aureka_system.has_quality_room_access(30)
-    )
-  );
-
-drop policy if exists student_orientation_insert_governed
-  on aureka_quality.student_orientation_records;
-create policy student_orientation_insert_governed
-  on aureka_quality.student_orientation_records
-  for insert to authenticated
-  with check (
-    (
-      aureka_system.current_role_code() in ('ADMIN', 'PMKP')
-      or (
-        aureka_system.current_role_code() = 'PIC'
-        and aureka_system.has_quality_room_access(30)
-      )
-    )
-    and student_orientation_records.created_by is not distinct from auth.uid()
-    and student_orientation_records.updated_by is not distinct from auth.uid()
-    and exists (
-      select 1
-      from aureka_quality.quality_records source
-      where source.id = student_orientation_records.source_quality_record_id
-        and source.room_id = 30
-        and source.profile_year = student_orientation_records.profile_year
-        and source.measurement_grain = 'activity'
-        and source.status <> 'archived'
-        and source.archived_at is null
-        and nullif(trim(coalesce(
-          source.core_data->'form_fields'->>'Nama Mahasiswa',
-          source.core_data->'form_data'->>'Nama Mahasiswa'
-        )), '') is not null
-    )
-  );
-
-drop policy if exists student_orientation_update_governed
-  on aureka_quality.student_orientation_records;
-create policy student_orientation_update_governed
-  on aureka_quality.student_orientation_records
-  for update to authenticated
-  using (
-    aureka_system.current_role_code() in ('ADMIN', 'PMKP')
-    or (
-      aureka_system.current_role_code() = 'PIC'
-      and aureka_system.has_quality_room_access(30)
-    )
-  )
-  with check (
-    (
-      aureka_system.current_role_code() in ('ADMIN', 'PMKP')
-      or (
-        aureka_system.current_role_code() = 'PIC'
-        and aureka_system.has_quality_room_access(30)
-      )
-    )
-    and student_orientation_records.updated_by is not distinct from auth.uid()
-    and exists (
-      select 1
-      from aureka_quality.quality_records source
-      where source.id = student_orientation_records.source_quality_record_id
-        and source.room_id = 30
-        and source.profile_year = student_orientation_records.profile_year
-        and source.measurement_grain = 'activity'
-        and source.status <> 'archived'
-        and source.archived_at is null
-        and nullif(trim(coalesce(
-          source.core_data->'form_fields'->>'Nama Mahasiswa',
-          source.core_data->'form_data'->>'Nama Mahasiswa'
-        )), '') is not null
-    )
-  );
-
-create table if not exists aureka_quality.student_orientation_certificate_counters (
-  certificate_year integer primary key check (certificate_year between 2000 and 2200),
-  last_number integer not null check (last_number > 0)
-);
-alter table aureka_quality.student_orientation_certificate_counters enable row level security;
-revoke all on aureka_quality.student_orientation_certificate_counters from public, anon, authenticated;
-
-create or replace function aureka_quality.set_student_orientation_updated_at()
-returns trigger
-language plpgsql
-set search_path = pg_catalog
-as $function$
+do $block$
 begin
-  new.updated_at := clock_timestamp();
-  return new;
-end;
-$function$;
-
-drop trigger if exists student_orientation_updated_at
-  on aureka_quality.student_orientation_records;
-create trigger student_orientation_updated_at
-  before update on aureka_quality.student_orientation_records
-  for each row execute function aureka_quality.set_student_orientation_updated_at();
-
-
-create or replace function aureka_quality.guard_student_orientation_source()
-returns trigger
-language plpgsql
-set search_path = pg_catalog
-as $function$
-begin
-  if new.source_quality_record_id is distinct from old.source_quality_record_id
-     or new.profile_year is distinct from old.profile_year then
-    raise exception 'Referensi sumber dan tahun laporan orientasi bersifat tetap.'
-      using errcode = '42501';
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'aureka_system.education_participants'::regclass
+      and conname = 'education_participants_orientation_role_check'
+  ) then
+    alter table aureka_system.education_participants
+      add constraint education_participants_orientation_role_check
+      check (participant_role in ('Peserta', 'Narasumber', 'Sumpah Rekam Medik'));
   end if;
-  return new;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'aureka_system.education_participants'::regclass
+      and conname = 'education_participants_orientation_materials_check'
+  ) then
+    alter table aureka_system.education_participants
+      add constraint education_participants_orientation_materials_check
+      check (cardinality(materials) <= 7);
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'aureka_system.education_participants'::regclass
+      and conname = 'education_participants_orientation_notes_check'
+  ) then
+    alter table aureka_system.education_participants
+      add constraint education_participants_orientation_notes_check
+      check (length(orientation_notes) <= 1000);
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'aureka_system.education_participants'::regclass
+      and conname = 'education_participants_event_source_quality_record_key'
+  ) then
+    alter table aureka_system.education_participants
+      add constraint education_participants_event_source_quality_record_key
+      unique (event_id, source_quality_record_id);
+  end if;
 end;
-$function$;
+$block$;
 
-drop trigger if exists student_orientation_source_immutable
-  on aureka_quality.student_orientation_records;
-create trigger student_orientation_source_immutable
-  before update on aureka_quality.student_orientation_records
-  for each row execute function aureka_quality.guard_student_orientation_source();
+create index if not exists education_participants_source_quality_record_idx
+  on aureka_system.education_participants(source_quality_record_id)
+  where source_quality_record_id is not null;
 
-create or replace function aureka_quality.issue_student_orientation_certificate(p_record_id uuid)
-returns jsonb
+-- Keep source identity and academic attributes anchored to the source logbook row.
+create or replace function aureka_system.sync_student_orientation_participant_source()
+returns trigger
 language plpgsql
-security definer
-set search_path to 'pg_catalog', 'aureka_quality', 'aureka_system', 'auth'
+set search_path to 'pg_catalog', 'aureka_system', 'aureka_quality'
 as $function$
 declare
-  v_user_id uuid := auth.uid();
-  v_role text := aureka_system.current_role_code();
-  v_record aureka_quality.student_orientation_records%rowtype;
   v_source aureka_quality.quality_records%rowtype;
-  v_student_name text;
-  v_year integer;
-  v_sequence integer;
-  v_certificate_number text;
-  v_issued_at timestamptz;
+  v_event aureka_system.education_events%rowtype;
+  v_form jsonb;
+  v_name text;
 begin
-  if v_user_id is null then
-    raise exception 'Login diperlukan untuk menerbitkan sertifikat orientasi.'
-      using errcode = '28000';
-  end if;
-  if v_role is null or not (
-    v_role in ('ADMIN', 'PMKP')
-    or (v_role = 'PIC' and aureka_system.has_quality_room_access(30))
-  ) then
-    raise exception 'Role tidak memiliki kewenangan menerbitkan sertifikat orientasi.'
-      using errcode = '42501';
+  if new.participant_type <> 'student' or new.source_quality_record_id is null then
+    return new;
   end if;
 
-  select * into v_record
-    from aureka_quality.student_orientation_records
-   where id = p_record_id
-   for update;
+  select * into v_event
+    from aureka_system.education_events
+   where id = new.event_id
+     and event_type = 'orientasi_mahasiswa'
+     and room_id = 30;
   if not found then
-    raise exception 'Data orientasi tidak ditemukan.'
-      using errcode = 'P0002';
-  end if;
-
-  if v_record.certificate_number is not null then
-    return jsonb_build_object(
-      'id', v_record.id,
-      'certificate_number', v_record.certificate_number,
-      'certificate_issued_at', v_record.certificate_issued_at
-    );
+    raise exception 'Peserta mahasiswa hanya dapat ditautkan ke kegiatan Orientasi Mahasiswa unit 30.'
+      using errcode = '42501';
   end if;
 
   select * into v_source
     from aureka_quality.quality_records
-   where id = v_record.source_quality_record_id;
+   where id = new.source_quality_record_id;
   if not found
      or v_source.room_id <> 30
-     or v_source.profile_year <> v_record.profile_year
      or v_source.measurement_grain <> 'activity'
+     or v_source.profile_year <> extract(year from v_event.start_at)::integer
      or v_source.status = 'archived'
      or v_source.archived_at is not null then
-    raise exception 'Rekam sumber Tim Koordinasi Pendidikan tidak aktif atau tidak sesuai.'
+    raise exception 'Sumber mahasiswa harus berasal dari logbook aktif Tim Koordinasi Pendidikan pada tahun kegiatan.'
       using errcode = '23503';
   end if;
 
-  v_student_name := nullif(trim(coalesce(
-    v_source.core_data->'form_fields'->>'Nama Mahasiswa',
-    v_source.core_data->'form_data'->>'Nama Mahasiswa'
-  )), '');
-  if v_student_name is null then
-    raise exception 'Nama mahasiswa pada laporan sumber belum tersedia.'
-      using errcode = '22023';
-  end if;
-  if nullif(trim(v_record.activity_name), '') is null
-     or nullif(trim(v_record.period_label), '') is null
-     or v_record.signed_date is null
-     or cardinality(v_record.materials) < 1 then
-    raise exception 'Kegiatan, periode, tanggal tanda tangan, dan minimal satu materi wajib dilengkapi.'
+  v_form := coalesce(v_source.core_data->'form_fields', v_source.core_data->'form_data', '{}'::jsonb);
+  v_name := nullif(trim(v_form->>'Nama Mahasiswa'), '');
+  if v_name is null then
+    raise exception 'Nama mahasiswa pada laporan indikator mutu belum tersedia.'
       using errcode = '22023';
   end if;
 
-  v_year := extract(year from v_record.signed_date)::integer;
-  insert into aureka_quality.student_orientation_certificate_counters(certificate_year, last_number)
+  new.full_name := v_name;
+  new.institution := coalesce(nullif(trim(v_form->>'Kampus'), ''), '');
+  new.profession_or_program := coalesce(
+    nullif(trim(v_form->>'Profesi/Prodi'), ''),
+    nullif(trim(v_form->>'Profesi'), ''),
+    nullif(trim(v_form->>'Prodi'), ''),
+    ''
+  );
+  new.room_id := 30;
+  new.participant_code := coalesce(nullif(trim(new.participant_code), ''), new.source_quality_record_id::text);
+  new.participant_role := coalesce(nullif(trim(new.participant_role), ''), 'Peserta');
+  new.activity_name := coalesce(nullif(trim(new.activity_name), ''), v_event.title, 'Orientasi Mahasiswa');
+  new.period_label := coalesce(
+    nullif(trim(new.period_label), ''),
+    concat_ws(' s.d. ',
+      nullif(v_form->>'Tanggal Mulai Praktek', ''),
+      nullif(v_form->>'Tanggal Selesai Praktek', '')
+    )
+  );
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists education_student_orientation_source_sync
+  on aureka_system.education_participants;
+create trigger education_student_orientation_source_sync
+  before insert or update of source_quality_record_id, event_id, participant_type, full_name, institution, profession_or_program
+  on aureka_system.education_participants
+  for each row execute function aureka_system.sync_student_orientation_participant_source();
+
+-- Certificate counters are private; a SECURITY DEFINER RPC is the only write path.
+create table if not exists aureka_system.education_certificate_counters (
+  certificate_year integer primary key check (certificate_year between 2000 and 2200),
+  last_number integer not null check (last_number > 0)
+);
+alter table aureka_system.education_certificate_counters enable row level security;
+revoke all on aureka_system.education_certificate_counters from public, anon, authenticated;
+
+create or replace function aureka_system.reserve_student_orientation_certificate(
+  p_event_id uuid,
+  p_participant_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to 'pg_catalog', 'aureka_system', 'auth'
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+  v_event aureka_system.education_events%rowtype;
+  v_participant aureka_system.education_participants%rowtype;
+  v_certificate aureka_system.education_certificates%rowtype;
+  v_year integer;
+  v_number integer;
+  v_certificate_number text;
+begin
+  if v_user_id is null or not aureka_system.can_manage_education()
+     or not aureka_system.can_access_room_or_global(30) then
+    raise exception 'Role tidak memiliki kewenangan menerbitkan sertifikat Orientasi Mahasiswa.'
+      using errcode = '42501';
+  end if;
+
+  select * into v_event
+    from aureka_system.education_events
+   where id = p_event_id
+     and event_type = 'orientasi_mahasiswa'
+     and room_id = 30
+     and status in ('published', 'ongoing', 'completed');
+  if not found then
+    raise exception 'Kegiatan Orientasi Mahasiswa tidak ditemukan atau belum dipublikasikan.'
+      using errcode = 'P0002';
+  end if;
+
+  select * into v_participant
+    from aureka_system.education_participants
+   where id = p_participant_id
+     and event_id = p_event_id
+     and participant_type = 'student'
+     and source_quality_record_id is not null
+   for update;
+  if not found then
+    raise exception 'Peserta belum tertaut ke laporan Tim Koordinasi Pendidikan.'
+      using errcode = 'P0002';
+  end if;
+  if v_participant.signed_date is null or cardinality(v_participant.materials) < 1
+     or nullif(trim(v_participant.activity_name), '') is null
+     or nullif(trim(v_participant.period_label), '') is null then
+    raise exception 'Tanggal tanda tangan, kegiatan, periode, dan minimal satu materi wajib dilengkapi.'
+      using errcode = '22023';
+  end if;
+
+  select * into v_certificate
+    from aureka_system.education_certificates
+   where event_id = p_event_id
+     and participant_id = p_participant_id
+     and revoked_at is null
+   for update;
+  if found then
+    return jsonb_build_object(
+      'id', v_certificate.id,
+      'certificate_number', v_certificate.certificate_number,
+      'verification_code', v_certificate.verification_code,
+      'issue_date', v_certificate.issue_date,
+      'object_path', v_certificate.object_path,
+      'file_sha256', v_certificate.file_sha256
+    );
+  end if;
+
+  v_year := extract(year from v_participant.signed_date)::integer;
+  insert into aureka_system.education_certificate_counters(certificate_year, last_number)
   values (v_year, 1)
   on conflict (certificate_year)
-  do update set last_number = aureka_quality.student_orientation_certificate_counters.last_number + 1
-  returning last_number into v_sequence;
+  do update set last_number = aureka_system.education_certificate_counters.last_number + 1
+  returning last_number into v_number;
 
-  v_certificate_number := 'OM/' || v_year::text || '/' || lpad(v_sequence::text, 4, '0');
-  v_issued_at := clock_timestamp();
-
-  update aureka_quality.student_orientation_records
-     set certificate_number = v_certificate_number,
-         certificate_issued_at = v_issued_at,
-         updated_by = v_user_id,
-         updated_at = v_issued_at
-   where id = v_record.id;
+  v_certificate_number := 'OM/' || v_year::text || '/' || lpad(v_number::text, 4, '0');
+  insert into aureka_system.education_certificates(
+    event_id, participant_id, certificate_number, issue_date, competency_result, issued_by
+  )
+  values (
+    p_event_id, p_participant_id, v_certificate_number, v_participant.signed_date,
+    'Orientasi Mahasiswa', v_user_id
+  )
+  returning * into v_certificate;
 
   return jsonb_build_object(
-    'id', v_record.id,
-    'certificate_number', v_certificate_number,
-    'certificate_issued_at', v_issued_at
+    'id', v_certificate.id,
+    'certificate_number', v_certificate.certificate_number,
+    'verification_code', v_certificate.verification_code,
+    'issue_date', v_certificate.issue_date,
+    'object_path', v_certificate.object_path,
+    'file_sha256', v_certificate.file_sha256
   );
 end;
 $function$;
 
-revoke all on function aureka_quality.issue_student_orientation_certificate(uuid) from public, anon;
-grant execute on function aureka_quality.issue_student_orientation_certificate(uuid) to authenticated;
+create or replace function aureka_system.complete_student_orientation_certificate(
+  p_certificate_id uuid,
+  p_object_path text,
+  p_file_sha256 text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to 'pg_catalog', 'aureka_system', 'auth'
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+  v_certificate aureka_system.education_certificates%rowtype;
+begin
+  if v_user_id is null or not aureka_system.can_manage_education()
+     or not aureka_system.can_access_room_or_global(30) then
+    raise exception 'Role tidak memiliki kewenangan menyelesaikan sertifikat Orientasi Mahasiswa.'
+      using errcode = '42501';
+  end if;
+  if nullif(trim(p_object_path), '') is null
+     or split_part(p_object_path, '/', 1) <> v_user_id::text
+     or p_object_path !~* '\.pdf$'
+     or coalesce(p_file_sha256, '') !~ '^[0-9a-f]{64}$' then
+    raise exception 'Lokasi atau SHA-256 PDF tidak valid.'
+      using errcode = '22023';
+  end if;
 
-comment on table aureka_quality.student_orientation_records
-is 'Operational orientation metadata linked one-to-one to Tim Koordinasi Pendidikan quality logbook records. Student names remain sourced from quality_records.';
-comment on function aureka_quality.issue_student_orientation_certificate(uuid)
-is 'Idempotently allocates an annual certificate number after validating the live Tim Koordinasi Pendidikan source record and required orientation metadata.';
+  select * into v_certificate
+    from aureka_system.education_certificates
+   where id = p_certificate_id
+     and issued_by = v_user_id
+     and revoked_at is null
+   for update;
+  if not found then
+    raise exception 'Reservasi sertifikat tidak ditemukan atau bukan milik penerbit.'
+      using errcode = 'P0002';
+  end if;
+
+  update aureka_system.education_certificates
+     set bucket_id = 'aureka-exports',
+         object_path = p_object_path,
+         file_sha256 = p_file_sha256
+   where id = v_certificate.id;
+
+  return jsonb_build_object(
+    'id', v_certificate.id,
+    'certificate_number', v_certificate.certificate_number,
+    'verification_code', v_certificate.verification_code,
+    'object_path', p_object_path,
+    'file_sha256', p_file_sha256
+  );
+end;
+$function$;
+
+revoke all on function aureka_system.reserve_student_orientation_certificate(uuid, uuid) from public, anon;
+revoke all on function aureka_system.complete_student_orientation_certificate(uuid, text, text) from public, anon;
+grant execute on function aureka_system.reserve_student_orientation_certificate(uuid, uuid) to authenticated;
+grant execute on function aureka_system.complete_student_orientation_certificate(uuid, text, text) to authenticated;
+
+comment on column aureka_system.education_participants.source_quality_record_id
+is 'Links student orientation participants directly to the Tim Koordinasi Pendidikan quality logbook source.';
+comment on table aureka_system.education_certificate_counters
+is 'Private annual sequence allocator for student orientation certificate numbers.';
+comment on function aureka_system.reserve_student_orientation_certificate(uuid, uuid)
+is 'Reserves an annual student orientation certificate number in the existing education certificate domain.';
+comment on function aureka_system.complete_student_orientation_certificate(uuid, text, text)
+is 'Stores an owner-scoped private PDF path and SHA-256 for a reserved student orientation certificate.';
