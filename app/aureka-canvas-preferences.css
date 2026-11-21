@@ -349,7 +349,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch { display: flex !important; width: 100% !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { grid-area: fullscreen !important; }
 }
-@media (min-width: 721px) and (max-width: 1180px) {
+@media (min-width: 721px) and (max-width: 1180px), (pointer: coarse) and (min-width: 1181px) and (max-width: 1600px) {
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
     grid-template-columns: 44px minmax(0,1fr) repeat(4,44px) minmax(116px,190px) !important;
