@@ -503,7 +503,7 @@ export default function HomeClient(){
      ...(!admin?[{id:'mydata',label:'Data Saya untuk PMKP'}]:[]),
      ...(admin?[{id:'system',label:'Konfigurasi Sistem'}]:[]),
      ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'audit',label:'Audit Log'}]:[]),
-     ...(['ADMIN','DIREKTUR','PMKP','MANAGEMENT','KABID','DEWAN_PENGAWAS'].includes(role||'')?[{id:'legal',label:'Legal dan Asset',hint:'Register aset tanda tangan pejabat, otorisasi pemilik, dokumen terbit, dan verifikasi QR.'}]:[]),,
+     ...(['ADMIN','DIREKTUR','PMKP','MANAGEMENT','KABID','DEWAN_PENGAWAS'].includes(role||'')?[{id:'legal',label:'Legal dan Asset',hint:'Register aset tanda tangan pejabat, otorisasi pemilik, dokumen terbit, dan verifikasi QR.'} ]:[]),
     ]},
    ],
    quality:role==='DEWAN_PENGAWAS' ? [] : [
@@ -1304,7 +1304,7 @@ export default function HomeClient(){
    :active==='secretariat'?<SecretariatWorkspace section={secretariatSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={admin&&!allRoomsScope} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'}/>
    :active==='settings'&&settingsSection==='legal'?<LegalAssetsWorkspace role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||''}/>
    :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace/>
-   :active==='settings'?<GeneralSettings key={profileFocus+(settingsTab||'')} startAt={settingsSection==='audit'?'profile':settingsSection} openProfile={profileFocus>0} initialTab={settingsTab||undefined} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
+   :active==='settings'?<GeneralSettings key={profileFocus+(settingsTab||'')} startAt={settingsSection==='audit'||settingsSection==='legal'?'profile':settingsSection} openProfile={profileFocus>0} initialTab={settingsTab||undefined} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
   </ModuleErrorBoundary></div>
  </section>
