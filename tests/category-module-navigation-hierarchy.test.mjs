@@ -53,7 +53,7 @@ test('sidebar is two levels only; module tabs and subtabs use the contextual nav
   const nav = read('components/navigation/UnifiedModuleNavigation.tsx')
   assert.match(app, /className="sidebarModuleNode"/)
   assert.doesNotMatch(app, /sidebarModuleChildren|sidebarModuleChild|showNested|nestedItems/)
-  assert.match(app, /\{activeNavGroups\.length>0&&<UnifiedModuleNavigation/)
+  assert.match(app, /\{\(activeNavGroups\.length>0\|\|activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'\)&&<UnifiedModuleNavigation/)
   assert.match(app, /activeRailItems/)
   assert.match(app, /activeRailSubItems/)
   assert.match(nav, /subItems\?: UnifiedNavigationItem\[\]/)
