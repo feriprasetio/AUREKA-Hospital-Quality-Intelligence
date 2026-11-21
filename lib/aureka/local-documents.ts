@@ -60,7 +60,7 @@ async function readDocx(bytes: ArrayBuffer) {
 async function readPdf(bytes: ArrayBuffer): Promise<{ text: string; pages: number }> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
   pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url).toString()
-  // PDF.js 6 removed isEvalSupported. Only extract page text; do not execute PDF scripts.
+  // PDF.js 6 removed the legacy evaluation toggle. Extract page text only; never run embedded scripts.
   const loading = pdfjs.getDocument({ data: new Uint8Array(bytes), useSystemFonts: true })
   try {
     const document = await loading.promise
