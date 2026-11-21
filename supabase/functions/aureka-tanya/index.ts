@@ -785,8 +785,17 @@ async function handle(req: Request): Promise<Response> {
   const { data: who, error: whoError } = await db.auth.getUser();
   if (whoError || !who.user) return reply(401, { error: "Sesi tidak valid. Silakan masuk kembali." });
 
-  const { data: profile } = await db.schema("aureka_system").from("user_profiles").select("is_active").eq("user_id", who.user.id).maybeSingle();
-  if (!profile?.is_active) return reply(403, { error: "Akun belum aktif." });
+  // Recheck current profile authorization on every request, including warmup.
+  // Previously cached aggregate snapshots must not survive a role/unit/password-rotation change.
+  const { data: profile, error: profileError } = await db.schema("aureka_system").from("user_profiles")
+    .select("is_active,deactivated_at,must_change_password,role_id,primary_room_id,updated_at")
+    .eq("user_id", who.user.id).maybeSingle();
+  if (profileError || !profile?.is_active || profile.deactivated_at) {
+    return reply(403, { error: "Akun tidak aktif atau akses profil tidak tersedia." });
+  }
+  if (profile.must_change_password) {
+    return reply(403, { error: "Ubah kata sandi awal sebelum menggunakan NARA AI." });
+  }
 
   const contentLength = Number(req.headers.get("content-length") || 0);
   if (contentLength > 32768) return reply(413, { error: "Permintaan terlalu besar." });
@@ -1123,7 +1132,10 @@ async function handle(req: Request): Promise<Response> {
   const skillPlan = smallTalk ? null : planNaraSkills(question);
 
   const snapshotDomains = [...new Set(skillPlan?.domains || [])].sort();
-  const snapshotCacheKey = who.user.id + "::" + snapshotDomains.join(",");
+  // Cache partition includes the latest role, room and profile revision. Role/room changes
+  // immediately bypass snapshots produced under an earlier authorization scope.
+  const authorizationScope = [who.user.id, profile.role_id || "none", profile.primary_room_id ?? "none", profile.updated_at || "unknown"].join("::");
+  const snapshotCacheKey = authorizationScope + "::" + snapshotDomains.join(",");
   const cached = snapshotCache.get(snapshotCacheKey);
   const fresh = cached && Date.now() - cached.at < SNAPSHOT_TTL;
   // Queries are selected by skill domain, and the server-side cache is partitioned by domain set.
