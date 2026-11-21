@@ -1,12 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
-import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") || "";
 const EMBEDDING_MODEL = "gemini-embedding-2";
 const EMBEDDING_DIMENSIONS = 768;
-const MAX_FILE_BYTES = 15 * 1024 * 1024;
 const MAX_EXTRACTED_CHARS = 500_000;
 const MAX_CHUNKS = 120;
 const CHUNK_CHARS = 3_500;
@@ -22,67 +20,6 @@ function reply(status: number, body: unknown, origin = "") {
   const headers: Record<string, string> = { ...corsHeaders, "Content-Type": "application/json" };
   if (origin === "http://localhost:3000") headers["Access-Control-Allow-Origin"] = origin;
   return new Response(JSON.stringify(body), { status, headers });
-}
-function base64(bytes: Uint8Array) {
-  let raw = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    raw += String.fromCharCode(...bytes.subarray(i, Math.min(i + 0x8000, bytes.length)));
-  }
-  return btoa(raw);
-}
-function decodeXml(value: string) {
-  return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"")
-    .replace(/&apos;/g, "'").replace(/&amp;/g, "&")
-    .replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_m, n) => String.fromCodePoint(parseInt(n, 16)));
-}
-async function extractDocx(file: Blob) {
-  const zip = await JSZip.loadAsync(new Uint8Array(await file.arrayBuffer()));
-  const names = Object.keys(zip.files).filter((n) => /^word\/(document|header\d+|footer\d+)\.xml$/i.test(n)).sort();
-  const blocks: string[] = [];
-  for (const name of names) {
-    const xml = await zip.file(name)?.async("string");
-    if (!xml) continue;
-    for (const paragraph of xml.matchAll(/<w:p(?:\s[^>]*)?>([\s\S]*?)<\/w:p>/g)) {
-      const text = [...paragraph[1].matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)]
-        .map((x) => decodeXml(x[1])).join("").trim();
-      if (text) blocks.push(text);
-    }
-  }
-  const imageCount = Object.keys(zip.files).filter((n) => /^word\/media\//i.test(n)).length;
-  if (imageCount > 0) blocks.push("[Catatan: dokumen mengandung gambar/diagram yang perlu ditinjau secara visual.]");
-  return blocks.join("\n");
-}
-async function extractPdf(file: Blob) {
-  if (!GEMINI_API_KEY) throw new Error("Secret GEMINI_API_KEY belum dikonfigurasi.");
-  const model = Deno.env.get("GEMINI_DOCUMENT_MODEL") || Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
-  const payload = {
-    contents: [{
-      role: "user",
-      parts: [
-        { text: "Ekstrak isi teks PDF rumah sakit ini selengkap mungkin sesuai urutan halaman. Pertahankan judul, nomor dokumen, isi tabel, butir prosedur dan catatan kaki. Jangan merangkum, mengarang, menormalkan, atau menambahkan informasi yang tidak tertulis. Gunakan penanda [HALAMAN n] bila dapat dikenali. Jika bagian berupa gambar/scan tidak terbaca, tulis [TEKS TIDAK TERBACA] pada bagian terkait. Keluarkan teks saja." },
-        { inline_data: { mime_type: "application/pdf", data: base64(new Uint8Array(await file.arrayBuffer())) } },
-      ],
-    }],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 16000 },
-  };
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 90_000);
-  try {
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error("PDF extraction provider returned HTTP " + response.status + ".");
-    const text = (body?.candidates?.[0]?.content?.parts || []).map((p: any) => p.text || "").join("\n").trim();
-    if (!text) throw new Error("Mesin ekstraksi tidak mengembalikan teks PDF.");
-    return { text, model };
-  } finally {
-    clearTimeout(timer);
-  }
 }
 function makeChunks(input: string) {
   const text = input.replace(/\u0000/g, "").replace(/\r\n?/g, "\n").replace(/[ \t]+\n/g, "\n").trim().slice(0, MAX_EXTRACTED_CHARS);
