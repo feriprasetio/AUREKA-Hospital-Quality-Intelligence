@@ -3,6 +3,7 @@
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { useCallback, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import {
@@ -331,8 +332,8 @@ export default function ItExcelImportDialog({
   }, {} as Record<string, number>)
 
   if (!open) return null
-  return (
-    <div className="aqBack" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) close() }}>
+  if (typeof document === 'undefined') return null
+ return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1}
         className="aqDrawer aqWide aqITImport"
         role="dialog"
@@ -432,6 +433,6 @@ export default function ItExcelImportDialog({
           </div>
         </div>
       </section>
-    </div>
+    </div></div>, document.body
   )
 }
