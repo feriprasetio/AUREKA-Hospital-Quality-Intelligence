@@ -48,7 +48,7 @@ test('Super Admin uses a compact contextual rail and shows eight registry-driven
   assert.ok(homeClient.includes('UnifiedModuleNavigation'))
   assert.ok(homeClient.includes("activeNestedNavGroup"))
   assert.ok(homeClient.includes("activeRailTitle"))
-  assert.ok(homeClient.includes("const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
+  assert.ok(homeClient.includes("const activeRailItems=activeNavModuleId==='patients'?patientRailItems:activeNavModuleId==='clinical'?clinicalRailItems:activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'sidebarTreeChildren', 'closedNav', 'toggleNav(']) assert.ok(!homeClient.includes(legacy))
   assert.ok(homeClient.includes('aria-label="Delapan kategori utama AUREKA"'))
   for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','education_training','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
