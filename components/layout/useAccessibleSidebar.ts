@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { TOUCH_DRAWER_MEDIA_QUERY } from '@/lib/ui/device-navigation'
+import { PHONE_DRAWER_MEDIA_QUERY } from '@/lib/ui/device-navigation'
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -25,13 +25,15 @@ export function useAccessibleSidebar() {
 
   // Preserve the control that actually opened the drawer (header or phone menu).
   const open = useCallback((trigger?: HTMLElement | null) => {
+    // Defend against an accidental desktop/tablet caller, not just CSS.
+    if (typeof window === 'undefined' || !window.matchMedia(PHONE_DRAWER_MEDIA_QUERY).matches) return
     if (trigger) requestedTriggerRef.current = trigger
     setIsOpen(true)
   }, [])
   const close = useCallback(() => setIsOpen(false), [])
 
   useEffect(() => {
-    const width = window.matchMedia(TOUCH_DRAWER_MEDIA_QUERY)
+    const width = window.matchMedia(PHONE_DRAWER_MEDIA_QUERY)
     const update = () => {
       const nowMobile = width.matches
       setIsMobile(nowMobile)
@@ -100,7 +102,7 @@ export function useAccessibleSidebar() {
     }
 
     const handleResize = () => {
-      if (!window.matchMedia(TOUCH_DRAWER_MEDIA_QUERY).matches) close()
+      if (!window.matchMedia(PHONE_DRAWER_MEDIA_QUERY).matches) close()
     }
 
     document.addEventListener('keydown', handleKeyDown)
