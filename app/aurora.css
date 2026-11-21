@@ -214,7 +214,7 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .homeLanding .hlKpiCard.hlKp
 
 /* Workspace shell geometry belongs exclusively to aureka-navigation-system.css
  * and the header to aureka-canvas-preferences.css. The old Aurora rule applied
- * width:calc(100% - 16px) to aside.sidebar at EVERY viewport >=721px with
+ * a viewport-wide size to aside.sidebar at EVERY viewport >=721px with
  * body:not(#_) specificity. It overrode the 360px native tablet drawer and
  * caused the full-screen translucent sidebar shown in the tablet screenshot.
  * This background-effects file must not set sidebar/header position, size,
