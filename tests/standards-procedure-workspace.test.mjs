@@ -15,7 +15,7 @@ test('SPO is enabled under the quality development navigation',()=>{
  assert.match(home,/StandardsProcedureWorkspace/);
 });
 test('SPO workspace provides upload, review, approval and structured text fields',()=>{
- for(const text of ['Upload SPO','aureka-spo-analyze','Simpan Draf SPO','Ajukan Review','Sahkan SPO','procedure_steps','flowchart_code'])assert.ok(workspace.includes(text),text);
+ for(const text of ['Upload SPO','readLocalDocument(file)','Simpan Draf SPO','Ajukan Review','Sahkan SPO','procedure_steps','flowchart_code'])assert.ok(workspace.includes(text),text);
 });
 test('SPO foreign-key indexes cover audit user references',async()=>{
  const sql=await readFile(new URL('../supabase/migrations/20261121073000_standard_operating_procedures_fk_indexes.sql',import.meta.url),'utf8');
@@ -47,7 +47,9 @@ test('SPO uses deterministic PDF and DOCX extraction without external AI APIs',(
  assert.match(edge,/labelledValue/);
  assert.match(edge,/extracted_diagram_labels/);
  assert.doesNotMatch(edge,/GEMINI_API_KEY|generativelanguage\.googleapis\.com/);
- assert.match(workspace,/AUREKA Local Document Parser v1/);
+ assert.match(workspace,/AUREKA Browser Local Document Parser v2/);
+ assert.match(workspace,/parseSpoSections\(local.extractedText\)/);
+ assert.doesNotMatch(workspace,/\.storage\.from\(/);
 });
 
 test('SPO typography and mobile touch controls honor design accessibility baseline', async () => {

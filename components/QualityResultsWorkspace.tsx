@@ -868,24 +868,26 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <div>Kolom Excel: <b>{sourceProvenance.columnLetters.join(', ') || 'Koordinat kolom belum direkam pada impor lama'}</b></div>
                     <div>Workbook: <b>{sourceProvenance.workbooks.join(', ') || 'Belum ada provenance workbook'}</b></div>
                     <div>Data bernilai: <b>{formatCount(sourceProvenance.rowsWithValues)}</b> dari <b>{formatCount(sourceProvenance.totalRows)}</b> episode sumber</div>
-                    {sourceProvenance.storagePaths.length > 0
-                      ? <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
-                          <button type="button" className="qraBtn" disabled={sourceWorkbookBusy} onClick={async () => {
-                            setSourceWorkbookBusy(true); setSourceWorkbookError(''); setSourceWorkbookUrl('')
-                            try {
-                              const { data, error } = await sb.storage.from('aureka-quality-source-workbooks').createSignedUrl(sourceProvenance.storagePaths[0], 300)
-                              if (error || !data?.signedUrl) setSourceWorkbookError(error?.message || 'Tautan workbook tidak tersedia.')
-                              else setSourceWorkbookUrl(data.signedUrl)
-                            } catch (error) {
-                              setSourceWorkbookError(error instanceof Error ? error.message : 'Tautan workbook tidak tersedia.')
-                            } finally {
-                              setSourceWorkbookBusy(false)
-                            }
-                          }}>{sourceWorkbookBusy ? 'Membuat tautan…' : 'Buka / unduh workbook sumber'}</button>
-                          {sourceWorkbookUrl && <a href={sourceWorkbookUrl} target="_blank" rel="noreferrer" className="qraSourceBtn">Buka workbook privat</a>}
-                          {sourceWorkbookError && <small role="alert">{sourceWorkbookError}</small>}
-                        </div>
-                      : <small>Workbook lama belum disimpan sebagai berkas privat. Upload ulang workbook sumber untuk membuat tautan unduhan.</small>}
+                    <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+                      <button type="button" className="qraBtn" disabled={sourceProvenance.rows.length===0} onClick={() => {
+                        const columns=['Baris Excel','Referensi sel','Tanggal episode','Header','Nilai','Status']
+                        const cleanCsv=(value:unknown) => {
+                          const raw=String(value??'')
+                          const safe=/^[=+@\-\t\r]/.test(raw)?'\''+raw:raw
+                          return '"'+safe.replace(/"/g,'""')+'"'
+                        }
+                        const csv=[columns,...sourceProvenance.rows.map(r=>[
+                          r.excelRow,r.cellRef||'',r.recordDate||'',r.header||'',r.value,r.status||''
+                        ])].map(row=>row.map(cleanCsv).join(',')).join('\r\n')
+                        const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'})
+                        const url=URL.createObjectURL(blob)
+                        const anchor=document.createElement('a')
+                        anchor.href=url;anchor.download='aureka-jejak-sumber-'+year+'.csv'
+                        document.body.appendChild(anchor);anchor.click();anchor.remove()
+                        window.setTimeout(()=>URL.revokeObjectURL(url),60000)
+                      }}>Ekspor jejak data sumber (CSV)</button>
+                      <small>File Excel asli tidak tersedia untuk diunduh ulang. CSV ini hanya memuat baris sumber yang telah tercatat di database AUREKA.</small>
+                    </div>
                   </div>
                   {sourceFor.code === '14.1' && sourceProvenance.rowsWithValues === 0 && <div className="qraNotice">
                     Data BHP/Linen pada impor ICU sebelumnya tersimpan kosong dan belum pernah ditautkan ke indikator 14.1. Upload ulang workbook asli ICU untuk mengisi kolom ini; proses backfill akan memperbarui hanya field 14.1 yang masih kosong dan mempertahankan data indikator lainnya.

@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { readLocalDocument, parseSpoSections, makeStructuredDocx, downloadBrowserBlob, printStructuredContent, type StructuredSection } from '@/lib/aureka/local-documents'
 
 type Status = 'draft' | 'pending_review' | 'approved' | 'archived'
 type Step = { step_number: number; content: string }
@@ -21,7 +22,6 @@ type Draft = {
   analysis_confidence:Record<string,unknown>|null; analysis_notes:string[]; review_notes:string
 }
 const q=()=>aurekaSupabase.schema('aureka_quality')
-const bucket='aureka-documents'
 const maxBytes=15*1024*1024
 const pdf='application/pdf'
 const docx='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -63,41 +63,40 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
     return (filter==='all'||r.status===filter)&&text.includes(search.trim().toLocaleLowerCase('id-ID'))
   }),[rows,filter,search])
   const setField=<K extends keyof Draft,>(key:K,value:Draft[K])=>setDraft(old=>({...old,[key]:value}))
-  const startManual=()=>{setSelected(null);setDraft(empty());setManual(true);setNotice({kind:'info',text:'Form SPO baru siap diisi. Anda dapat mengunggah berkas sumber atau melengkapi teks secara manual.'})}
+  const startManual=()=>{setSelected(null);setDraft(empty());setManual(true);setNotice({kind:'info',text:'Form SPO baru siap diisi. Dokumen sumber hanya diproses sementara di browser.'})}
   const openRow=(row:Row)=>{setSelected(row);setDraft(mapDraft(row));setManual(false);setNotice(null)}
+  // Browser-local extraction only; no Storage upload, server file payload or original binary archive.
   const uploadFile=async(file?:File)=>{
     if(!file)return
-    const extension=file.name.toLowerCase().split('.').pop()
-    const mime=file.type||(extension==='pdf'?pdf:extension==='docx'?docx:'')
-    if(!((extension==='pdf'&&mime===pdf)||(extension==='docx'&&mime===docx))){setNotice({kind:'error',text:'Format tidak didukung. Gunakan dokumen PDF atau DOCX.'});return}
-    if(file.size<1||file.size>maxBytes){setNotice({kind:'error',text:'Ukuran maksimum file adalah 15 MB untuk menjaga pembacaan dokumen tetap terkendali.'});return}
-    if(!userId){setNotice({kind:'error',text:'Identitas pengguna tidak ditemukan. Silakan masuk ulang.'});return}
-    setBusy(true);setNotice({kind:'info',text:'Mengunggah file ke Storage privat dan membaca teks/struktur dokumen dengan parser AUREKA…'})
+    const ext=file.name.toLowerCase().split('.').pop()
+    if(!['pdf','docx'].includes(ext||'')){setNotice({kind:'error',text:'Gunakan PDF atau DOCX.'});return}
+    if(file.size<1||file.size>maxBytes){setNotice({kind:'error',text:'File maksimal 15 MB.'});return}
+    setBusy(true);setNotice({kind:'info',text:'Membaca dokumen sementara di browser. Tidak ada file dikirim ke Storage.'})
     try{
-      const id=crypto.randomUUID()
-      const path='spo/'+id+'/'+safeName(file.name)
-      const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await file.arrayBuffer()))).map(v=>v.toString(16).padStart(2,'0')).join('')
-      const {error:upError}=await aurekaSupabase.storage.from(bucket).upload(path,file,{contentType:mime,cacheControl:'3600',upsert:false})
-      if(upError)throw upError
-      const {data,error:parseError}=await aurekaSupabase.functions.invoke('aureka-spo-analyze',{body:{storage_path:path,file_name:file.name,mime_type:mime,size_bytes:file.size}})
-      const result=data?.extracted||{}
+      const local=await readLocalDocument(file)
+      const parsed=parseSpoSections(local.extractedText)
       setSelected(null);setManual(false)
       setDraft({
-        ...empty(),title:result.title||file.name.replace(/\.(pdf|docx)$/i,''),document_number:result.document_number||'',
-        revision_number:result.revision_number||'00',page_count:result.page_count==null?'':String(result.page_count),
-        issue_date:result.issue_date||'',approval_title:result.approval_title||'',approval_name:result.approval_name||'',
-        approval_identifier:result.approval_identifier||'',understanding:result.understanding||'',purpose:result.purpose||'',policy:result.policy||'',
-        procedure_steps:Array.isArray(result.procedure_steps)?result.procedure_steps.map((s:any,i:number)=>({step_number:Number(s.step_number)||i+1,content:String(s.content||s.description||'').trim()})).filter((s:Step)=>s.content):[],
-        related_units:Array.isArray(result.related_units)?result.related_units.join('\n'):'',
-        flowchart_code:result.flowchart?.code||'',flowchart_labels:Array.isArray(result.flowchart?.labels)?result.flowchart.labels:[],flowchart_note:result.flowchart?.note||'',source_file_name:file.name,source_file_mime_type:mime,
-        source_file_size_bytes:file.size,source_storage_path:path,source_sha256:sha,analysis_engine:data?.engine||'AUREKA Local Document Parser v1',
-        analysis_confidence:result.confidence&&typeof result.confidence==='object'?result.confidence:null,
-        analysis_notes:[...(Array.isArray(result.analysis_notes)?result.analysis_notes:[]),...(parseError?['Pembacaan dokumen otomatis tidak berhasil: '+parseError.message+'. Lengkapi atau koreksi field secara manual.']:[])],
+        ...empty(),
+        title:local.title,
+        page_count:local.pageCount==null?'':String(local.pageCount),
+        understanding:parsed.understanding,
+        purpose:parsed.purpose,
+        policy:parsed.policy,
+        procedure_steps:parsed.procedure_steps,
+        related_units:parsed.related_units.join('\n'),
+        source_file_name:file.name,
+        source_file_mime_type:file.type||(ext==='pdf'?pdf:docx),
+        source_file_size_bytes:file.size,
+        source_storage_path:'',
+        source_sha256:local.sha256,
+        analysis_engine:'AUREKA Browser Local Document Parser v2',
+        analysis_notes:[...local.notes,'Periksa seluruh bagian dan ketepatan hasil ekstraksi sebelum mengesahkan SPO.'],
       })
-      setNotice(parseError
-        ?{kind:'info',text:'File berhasil disimpan di Storage privat, tetapi isi dokumen belum dapat dibaca otomatis. Lengkapi field secara manual. '+parseError.message}
-        :{kind:'success',text:'Pembacaan dokumen selesai tanpa API AI eksternal. Periksa kembali isi SPO sebelum menyimpan sebagai draf.'})
-    }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Unggah file gagal.'})}
+      setNotice({kind:'success',text:local.status==='completed'
+        ?'Ekstraksi selesai sepenuhnya di browser. Periksa isi dan koreksi hasil pembacaan sebelum menyimpan.'
+        :'Tidak ada teks digital terbaca. Isi SPO wajib dilengkapi secara manual; file asli tidak diarsipkan.'})
+    }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Pembacaan lokal gagal.'})}
     finally{setBusy(false);if(inputRef.current)inputRef.current.value=''}
   }
 
@@ -115,7 +114,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
       related_units:draft.related_units.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean),
       flowchart:draft.flowchart_code.trim()?{format:'mermaid',code:draft.flowchart_code.trim()}:draft.flowchart_labels.length?{format:'extracted_diagram_labels',labels:draft.flowchart_labels,note:draft.flowchart_note}:draft.flowchart_note?{format:'source_page_text',note:draft.flowchart_note}:null,
       source_file_name:draft.source_file_name||null,source_file_mime_type:draft.source_file_mime_type||null,
-      source_file_size_bytes:draft.source_file_size_bytes,source_storage_path:draft.source_storage_path||null,
+      source_file_size_bytes:draft.source_file_size_bytes,source_storage_path:null,
       source_sha256:draft.source_sha256||null,analysis_engine:draft.analysis_engine||null,
       analysis_confidence:draft.analysis_confidence,analysis_notes:draft.analysis_notes,review_notes:draft.review_notes.trim()||null,
       status:'draft' as Status,updated_by:userId,...(selected?{}:{created_by:userId}),
@@ -126,7 +125,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
         :await q().from('standard_operating_procedures').insert(payload).select('*').single()
       if(result.error)throw result.error
       setSelected(result.data as Row);setDraft(mapDraft(result.data as Row));setManual(false)
-      setNotice({kind:'success',text:'Draf SPO tersimpan. Register hanya menyimpan teks, metadata, dan flowchart terstruktur; file sumber tetap terpisah di Storage privat.'})
+      setNotice({kind:'success',text:'Draf SPO tersimpan sebagai konten terstruktur. Tidak ada file sumber disimpan di Storage.'})
       await load()
     }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Draf SPO gagal disimpan.'})}
     finally{setBusy(false)}
@@ -145,16 +144,29 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
     }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Perubahan status tidak berhasil.'})}
     finally{setBusy(false)}
   }
+  const sections=():StructuredSection[]=>[
+    {heading:'Nomor Dokumen',text:draft.document_number||'-'},
+    {heading:'Revisi',text:draft.revision_number||'00'},
+    {heading:'Tanggal Terbit',text:draft.issue_date||'-'},
+    {heading:'Pengertian',text:draft.understanding},
+    {heading:'Tujuan',text:draft.purpose},
+    {heading:'Kebijakan',text:draft.policy},
+    {heading:'Prosedur',text:draft.procedure_steps.map((step,i)=>(i+1)+'. '+step.content).join('\n')},
+    {heading:'Unit Terkait',text:draft.related_units},
+    {heading:'Pengesahan',text:[draft.approval_title,draft.approval_name,draft.approval_identifier].filter(Boolean).join(' · ')},
+  ]
   const download=async()=>{
-    if(!draft.source_storage_path)return
     setBusy(true)
     try{
-      const {data,error}=await aurekaSupabase.storage.from(bucket).download(draft.source_storage_path)
-      if(error||!data)throw error||new Error('File sumber tidak ditemukan.')
-      const url=URL.createObjectURL(data),a=document.createElement('a');a.href=url;a.download=draft.source_file_name||'SPO'
-      document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)
-    }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'File sumber tidak dapat diunduh.'})}
+      const blob=await makeStructuredDocx(draft.title||'SPO AUREKA',sections())
+      downloadBrowserBlob(safeName(draft.document_number||draft.title||'SPO')+'.docx',blob)
+      setNotice({kind:'success',text:'DOCX diregenerasi dari data tersimpan. Ini bukan salinan identik file sumber.'})
+    }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'DOCX tidak dapat dibuat.'})}
     finally{setBusy(false)}
+  }
+  const printPdf=()=>{
+    try{printStructuredContent(draft.title||'SPO AUREKA',sections())}
+    catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Pratinjau PDF tidak dapat dibuka.'})}
   }
   const back=()=>{setSelected(null);setDraft(empty());setManual(false);setNotice(null)}
   const editing=(!selected||(['draft','pending_review'].includes(selected.status)))&&canManage
@@ -172,7 +184,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
 
     {selected||manual?<section className="spoEditor">
       <div className="spoEditorTop"><button type="button" className="spoLinkButton" onClick={back}>← Kembali ke Register</button><span className={'spoStatus spoStatus-'+(selected?.status||'draft')}>{labels[selected?.status||'draft']}</span></div>
-      <div className="spoEditorHeading"><div><span className="spoEyebrow">{selected?'DETAIL DAN REVISI DOKUMEN':'DOKUMEN BARU'}</span><h2>{draft.title||'SPO baru'}</h2><p>Pastikan isi hasil ekstraksi sesuai dokumen sumber sebelum diajukan.</p></div>{draft.source_storage_path&&<button type="button" className="spoButton spoButtonSecondary" onClick={()=>void download()} disabled={busy}>Unduh Sumber</button>}</div>
+      <div className="spoEditorHeading"><div><span className="spoEyebrow">{selected?'DETAIL DAN REVISI DOKUMEN':'DOKUMEN BARU'}</span><h2>{draft.title||'SPO baru'}</h2><p>Pastikan isi hasil ekstraksi sesuai dokumen sumber sebelum diajukan.</p></div><div><button type="button" className="spoButton spoButtonSecondary" onClick={()=>void download()} disabled={busy}>Unduh DOCX</button><button type="button" className="spoButton spoButtonSecondary" onClick={printPdf} disabled={busy}>Cetak / Simpan PDF</button></div></div>
       <fieldset className="spoFieldset" disabled={!editing||busy}>
         <section className="spoSection"><h3>Identitas dan Pengesahan</h3><div className="spoGrid">
           <label>Judul SPO<input value={draft.title} onChange={e=>setField('title',e.target.value)}/></label>

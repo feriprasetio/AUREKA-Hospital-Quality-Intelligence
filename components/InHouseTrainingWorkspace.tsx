@@ -9,7 +9,7 @@ type Room={id:number;name:string}
 type EventRow={id:string;event_code:string;title:string;topic:string;organizer:string;room_id:number|null;start_at:string;end_at:string|null;venue:string;instructor_json:string[];learning_objectives:string[];status:string}
 type Staff={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;source_unit:string}
 type Participant={id:string;event_id:string;participant_type:string;staff_id:string|null;full_name:string;participant_code:string;profession_or_program:string;room_id:number|null;status:string}
-type Certificate={id:string;event_id:string;participant_id:string;certificate_number:string;verification_code:string;issue_date:string;object_path:string|null;revoked_at:string|null}
+type Certificate={id:string;event_id:string;participant_id:string;certificate_number:string;verification_code:string;issue_date:string;object_path:string|null;revoked_at:string|null;render_snapshot?:{kind:string;layout:CertificateLayout;data:{event:EventRow;participant:Participant}}|null}
 const education=()=>aurekaSupabase.schema('aureka_system')
 const managers=['ADMIN','PMKP','MANAGEMENT','KABID']
 const dateLabel=(v:string)=>new Date(v).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})
@@ -121,7 +121,7 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
   setActive(event);setView('detail');setWorking(true);setError('');setNotice('')
   const [p,c]=await Promise.all([
    education().from('education_participants').select('id,event_id,participant_type,staff_id,full_name,participant_code,profession_or_program,room_id,status').eq('event_id',event.id).neq('status','cancelled').order('full_name'),
-   education().from('education_certificates').select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,revoked_at').eq('event_id',event.id).is('revoked_at',null)
+   education().from('education_certificates').select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,revoked_at,render_snapshot').eq('event_id',event.id).is('revoked_at',null)
   ])
   if(p.error)setError('Daftar peserta tidak dapat dimuat: '+p.error.message);else setParticipants((p.data||[]) as Participant[])
   if(c.error)setError('Register sertifikat tidak dapat dimuat: '+c.error.message);else setCertificates((c.data||[]) as Certificate[])
@@ -174,40 +174,46 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
  }
  const issueCertificate=async(p:Participant)=>{
   if(!canManage||!active||p.status!=='completed'||busyId)return
-  const preview=window.open('about:blank','_blank');if(!preview){setError('Izinkan pop-up browser untuk menerbitkan PDF.');return}
+  const preview=window.open('about:blank','_blank')
+  if(!preview){setError('Izinkan jendela browser untuk menampilkan sertifikat.');return}
   setBusyId(p.id);setError('')
   try{
    const layout=await loadCertificateLayout('in_house_training')
    const {data,error:e}=await education().rpc('reserve_in_house_training_certificate',{p_event_id:active.id,p_participant_id:p.id})
    if(e)throw e
    const reservation=(Array.isArray(data)?data[0]:data) as any
-   const certId=String(reservation?.id||''),number=String(reservation?.certificate_number||''),code=String(reservation?.verification_code||'')
-   if(!certId||!number)throw new Error('Nomor sertifikat tidak dikembalikan server.')
-   let path=String(reservation?.object_path||'')
-   if(!path){
-    const pdf=makePdf(active,p,number,code,layout),hash=await digest(pdf)
-    path=userId+'/education/in-house-training/'+filename(number)+'.pdf'
-    const {error:uploadError}=await aurekaSupabase.storage.from('aureka-exports').upload(path,pdf,{contentType:'application/pdf',upsert:false})
-    if(uploadError){
-     const {data:existing,error:downloadError}=await aurekaSupabase.storage.from('aureka-exports').download(path)
-     if(downloadError||!existing||await digest(existing)!==hash)throw uploadError
-    }
-    const {error:completeError}=await education().rpc('complete_in_house_training_certificate',{p_certificate_id:certId,p_object_path:path,p_file_sha256:hash})
-    if(completeError)throw completeError
-   }
-   const {data:signed,error:signedError}=await aurekaSupabase.storage.from('aureka-exports').createSignedUrl(path,600)
-   if(signedError||!signed?.signedUrl)throw signedError||new Error('PDF telah tersimpan, tautan sementara gagal dibuat.')
-   preview.location.href=signed.signedUrl
+   const number=String(reservation?.certificate_number||''),code=String(reservation?.verification_code||'')
+   if(!number)throw new Error('Nomor sertifikat tidak dikembalikan server.')
+   const proposedSnapshot={kind:'in_house_training',event_id:active.id,participant_id:p.id,
+    layout,data:{event:active,participant:p}}
+   const {data:frozen,error:freezeError}=await education().rpc('freeze_browser_certificate_snapshot',{
+    p_certificate_id:String(reservation.id),p_snapshot:proposedSnapshot
+   })
+   if(freezeError)throw freezeError
+   const snapshot=(frozen?.snapshot||proposedSnapshot) as typeof proposedSnapshot
+   const pdf=makePdf(snapshot.data.event,snapshot.data.participant,number,code,snapshot.layout)
+   const url=URL.createObjectURL(pdf)
+   preview.location.href=url
+   window.setTimeout(()=>URL.revokeObjectURL(url),60_000)
    await openEvent(active)
-   setNotice('Sertifikat '+number+' berhasil diterbitkan.')
+   setNotice('Sertifikat '+number+' diterbitkan sebagai data nomor/verifikasi; PDF dibuat sementara di browser tanpa Storage.')
   }catch(err){preview.close();setError('Sertifikat gagal diterbitkan: '+(err instanceof Error?err.message:'Kesalahan tidak diketahui.'))}
   finally{setBusyId('')}
  }
  const download=async(c:Certificate)=>{
-  if(!c.object_path){setError('Berkas PDF belum tersimpan.');return}
-  const {data,error:e}=await aurekaSupabase.storage.from('aureka-exports').createSignedUrl(c.object_path,600)
-  if(e||!data?.signedUrl){setError('Tautan PDF gagal dibuat: '+(e?.message||''));return}
-  window.open(data.signedUrl,'_blank','noopener,noreferrer')
+  if(!active){setError('Pilih kegiatan sebelum membuka sertifikat.');return}
+  const participant=participants.find(p=>p.id===c.participant_id)
+  if(!participant){setError('Peserta sertifikat tidak dapat ditemukan.');return}
+  const preview=window.open('about:blank','_blank')
+  if(!preview){setError('Izinkan jendela browser untuk membuka PDF.');return}
+  try{
+   const layout=await loadCertificateLayout('in_house_training')
+   const frozen=c.render_snapshot
+   const pdf=makePdf(frozen?.data?.event||active,frozen?.data?.participant||participant,c.certificate_number,c.verification_code,frozen?.layout||layout)
+   const url=URL.createObjectURL(pdf)
+   preview.location.href=url
+   window.setTimeout(()=>URL.revokeObjectURL(url),60_000)
+  }catch(err){preview.close();setError(err instanceof Error?err.message:'PDF gagal dibangun.')}
  }
  const countUpcoming=useMemo(()=>events.filter(x=>new Date(x.start_at).getTime()>=Date.now()&&x.status!=='cancelled').length,[events])
  const countDone=useMemo(()=>events.filter(x=>x.status==='completed').length,[events])
@@ -231,7 +237,7 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
    <div className="ihtActions"><button type="button" onClick={()=>setView('list')}>← Kembali ke Register</button><button type="button" disabled={working} onClick={()=>void openEvent(active)}>Muat Ulang</button></div>
    <div className="ihtCard"><b>{active.event_code} · {active.status}</b><h3>{active.title}</h3><p>{active.topic} · {dateLabel(active.start_at)} · {active.venue}</p><p>Penyelenggara: {active.organizer} · Narasumber: {(active.instructor_json||[]).join(', ')||'-'}</p></div>
    {canManage&&<div className="ihtCard"><h4>Tambah Peserta Tenaga Kerja</h4><div className="ihtActions"><select value={selectedStaff} onChange={e=>setSelectedStaff(e.target.value)}><option value="">Pilih dari Direktori Tenaga Kerja</option>{staff.map(p=><option key={p.id} value={p.id}>{p.display_name} · {p.profession_group||p.position_title}</option>)}</select><button type="button" disabled={!selectedStaff||working} onClick={()=>void addStaff()}>Tambah Peserta</button></div></div>}
-   <div className="ihtCard"><h4>Daftar Peserta · {participants.length}</h4>{working?<p>Memuat peserta…</p>:participants.length===0?<p>Belum ada peserta.</p>:<div className="ihtTableWrap"><table><thead><tr><th>Nama</th><th>Profesi / Unit</th><th>Status</th><th>Sertifikat</th><th>Aksi</th></tr></thead><tbody>{participants.map(p=>{const c=certFor(p.id);return <tr key={p.id}><td>{p.full_name}</td><td>{p.profession_or_program||'-'} · {rooms.find(x=>x.id===p.room_id)?.name||'-'}</td><td>{p.status}</td><td>{c?.certificate_number||'Belum diterbitkan'}</td><td><div className="ihtActions">{canManage&&p.status!=='completed'&&<button type="button" disabled={busyId===p.id} onClick={()=>void markPresent(p)}>Konfirmasi Hadir</button>}{c?.object_path?<button type="button" onClick={()=>void download(c)}>Unduh PDF</button>:canManage&&p.status==='completed'?<button type="button" disabled={busyId===p.id} onClick={()=>void issueCertificate(p)}>Terbitkan Sertifikat PDF</button>:null}</div></td></tr>})}</tbody></table></div>}</div>
+   <div className="ihtCard"><h4>Daftar Peserta · {participants.length}</h4>{working?<p>Memuat peserta…</p>:participants.length===0?<p>Belum ada peserta.</p>:<div className="ihtTableWrap"><table><thead><tr><th>Nama</th><th>Profesi / Unit</th><th>Status</th><th>Sertifikat</th><th>Aksi</th></tr></thead><tbody>{participants.map(p=>{const c=certFor(p.id);return <tr key={p.id}><td>{p.full_name}</td><td>{p.profession_or_program||'-'} · {rooms.find(x=>x.id===p.room_id)?.name||'-'}</td><td>{p.status}</td><td>{c?.certificate_number||'Belum diterbitkan'}</td><td><div className="ihtActions">{canManage&&p.status!=='completed'&&<button type="button" disabled={busyId===p.id} onClick={()=>void markPresent(p)}>Konfirmasi Hadir</button>}{c?.certificate_number?<button type="button" onClick={()=>void download(c)}>Unduh PDF</button>:canManage&&p.status==='completed'?<button type="button" disabled={busyId===p.id} onClick={()=>void issueCertificate(p)}>Terbitkan Sertifikat PDF</button>:null}</div></td></tr>})}</tbody></table></div>}</div>
   </>}
   {showForm&&<div className="ihtBackdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!working)setShowForm(false)}}><section className="ihtCard ihtDialog" role="dialog" aria-modal="true" aria-labelledby="iht-create-title"><h3 id="iht-create-title">Tambah Kegiatan In House Training</h3>
    <label>Nama kegiatan *<input value={title} onChange={e=>setTitle(e.target.value)}/></label><label>Topik / materi<input value={topic} onChange={e=>setTopic(e.target.value)}/></label><label>Penyelenggara *<input value={organizer} onChange={e=>setOrganizer(e.target.value)}/></label><label>Unit<select value={room} disabled={lockRoomScope} onChange={e=>setRoom(e.target.value)}><option value="">Seluruh Rumah Sakit</option>{rooms.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Mulai *<input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)}/></label><label>Selesai<input type="datetime-local" value={end} onChange={e=>setEnd(e.target.value)}/></label><label>Tempat<input value={venue} onChange={e=>setVenue(e.target.value)}/></label><label>Narasumber (pisahkan dengan koma)<textarea value={instructors} onChange={e=>setInstructors(e.target.value)}/></label>

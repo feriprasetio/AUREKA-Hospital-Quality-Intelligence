@@ -61,6 +61,7 @@ type EducationCertificate = {
   object_path: string | null
   file_sha256: string | null
   revoked_at: string | null
+  render_snapshot?: {kind:string;layout:CertificateLayout;data:{name:string;profession:string;campus:string;saved:EducationParticipant}} | null
 }
 type OrientationRow = {
   source: SourceRecord
@@ -373,7 +374,7 @@ export default function StudentOrientationWorkspace({
         }
         for (let offset = 0; offset < 10000; offset += PAGE_SIZE) {
           const { data, error: certificateError } = await sys().from('education_certificates')
-            .select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,file_sha256,revoked_at')
+            .select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,file_sha256,revoked_at,render_snapshot')
             .eq('event_id', currentEvent.id)
             .is('revoked_at', null)
             .range(offset, offset + PAGE_SIZE - 1)
@@ -532,29 +533,21 @@ export default function StudentOrientationWorkspace({
       const verificationCode = str(reserved?.verification_code)
       if (!certificateId || !certificateNumber) throw new Error('Nomor sertifikat tidak dikembalikan oleh server.')
 
-      let objectPath = str(reserved?.object_path)
-      if (!objectPath) {
-        const pdf = createCertificatePdf(row, certificateNumber, verificationCode, layout)
-        const digest = await sha256Hex(pdf)
-        objectPath = userId + '/education/orientasi-mahasiswa/' + selectedYear + '/' + safeFileName(certificateNumber) + '.pdf'
-        const { error: uploadError } = await aurekaSupabase.storage.from('aureka-exports')
-          .upload(objectPath, pdf, { contentType: 'application/pdf', upsert: false })
-        if (uploadError) {
-          const { data: existingPdf, error: downloadError } = await aurekaSupabase.storage.from('aureka-exports').download(objectPath)
-          if (downloadError || !existingPdf || await sha256Hex(existingPdf) !== digest) throw uploadError
-        }
-        const { error: completeError } = await sys().rpc('complete_student_orientation_certificate', {
-          p_certificate_id: certificateId,
-          p_object_path: objectPath,
-          p_file_sha256: digest,
-        })
-        if (completeError) throw completeError
+      // Certificate identity remains in PostgreSQL; PDF is generated locally
+      // and never uploaded or archived as a binary object.
+      const proposedSnapshot = {
+        kind: 'student_orientation', event_id: event.id, participant_id: row.saved.id,
+        layout, data: {name:row.name,profession:row.profession,campus:row.campus,saved:row.saved},
       }
-
-      const { data: signed, error: signedError } = await aurekaSupabase.storage.from('aureka-exports')
-        .createSignedUrl(objectPath, 600)
-      if (signedError || !signed?.signedUrl) throw signedError || new Error('PDF tersimpan, tetapi tautan unduh belum dapat dibuat.')
-      preview.location.href = signed.signedUrl
+      const {data:frozen,error:freezeError} = await sys().rpc('freeze_browser_certificate_snapshot',{
+        p_certificate_id: certificateId,p_snapshot:proposedSnapshot
+      })
+      if(freezeError)throw freezeError
+      const snapshot = (frozen?.snapshot || proposedSnapshot) as typeof proposedSnapshot
+      const pdf = createCertificatePdf({...row,...snapshot.data}, certificateNumber, verificationCode, snapshot.layout)
+      const url = URL.createObjectURL(pdf)
+      preview.location.href = url
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
 
       const certificate: EducationCertificate = {
         id: certificateId,
@@ -563,12 +556,13 @@ export default function StudentOrientationWorkspace({
         certificate_number: certificateNumber,
         verification_code: verificationCode,
         issue_date: str(reserved?.issue_date) || row.saved.signed_date,
-        object_path: objectPath,
+        object_path: null,
         file_sha256: null,
         revoked_at: null,
+        render_snapshot: snapshot,
       }
       setRows((current) => current.map((item) => item.source.id === row.source.id ? { ...item, certificate } : item))
-      setMessage('Sertifikat ' + certificateNumber + ' berhasil diterbitkan dan disimpan sebagai PDF pada penyimpanan privat AUREKA.')
+      setMessage('Sertifikat ' + certificateNumber + ' diterbitkan sebagai data terstruktur; PDF hanya dibuat sementara di browser.')
     } catch (cause) {
       preview.close()
       setError(toUserFacingError(cause, { fallback: 'Sertifikat belum dapat diterbitkan.' }))
@@ -647,7 +641,7 @@ export default function StudentOrientationWorkspace({
                       <td>
                         <div className="soActions">
                           <button type="button" className="soBtn" disabled={!canManage || !event || !!row.certificate} onClick={() => beginEdit(row)}>{row.saved ? 'Ubah' : 'Lengkapi'}</button>
-                          <button type="button" className="soBtn primary" disabled={!canManage || !event || !row.saved?.signed_date || !row.saved?.materials?.length || issuing} onClick={() => void issueCertificate(row)}>{row.certificate?.object_path ? 'Buka PDF' : 'Terbitkan PDF'}</button>
+                          <button type="button" className="soBtn primary" disabled={!canManage || !event || !row.saved?.signed_date || !row.saved?.materials?.length || issuing} onClick={() => void issueCertificate(row)}>{row.certificate?.certificate_number ? 'Buka PDF' : 'Terbitkan PDF'}</button>
                         </div>
                         {row.certificate?.certificate_number && <span className="soMeta">{row.certificate.certificate_number}</span>}
                       </td>
