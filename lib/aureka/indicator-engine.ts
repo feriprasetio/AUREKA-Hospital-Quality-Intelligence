@@ -11,6 +11,7 @@ export type IndicatorProfile = {
   numerator_definition?: string | null
   denominator_definition?: string | null
   schema_json?: Record<string, unknown> | null
+  options_json?: Array<{ label?: unknown; code?: unknown }> | null
 }
 
 function normalize(value: unknown): string {
@@ -19,6 +20,34 @@ function normalize(value: unknown): string {
 
 function readText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
+}
+
+/**
+ * Separates the per-episode response control from the aggregation method.
+ * Patient episodes with a directional master and coded 1/2/3 options are
+ * entered as one categorical response; the results engine still aggregates
+ * the selected codes into the declared ratio.
+ */
+export function usesCategoricalResponseCapture(profile: IndicatorProfile): boolean {
+  const schema = profile.schema_json ?? {}
+  const declaredMode = normalize(schema.response_capture_mode)
+  if (declaredMode) {
+    return ['categorical', 'coded_choice', 'option_response'].includes(declaredMode)
+  }
+
+  if (normalize(schema.input_mode) === 'free_text_event') return false
+  if (normalize(profile.measurement_grain) !== 'patient_episode') return false
+
+  const direction = normalize(schema.indicator_direction)
+  if (direction !== 'positive' && direction !== 'negative') return false
+
+  const options = Array.isArray(profile.options_json) ? profile.options_json : []
+  const codedOptions = options.filter(option => {
+    const label = readText(option?.label)
+    const code = Number(option?.code)
+    return !!label && Number.isInteger(code) && [1, 2, 3].includes(code)
+  })
+  return codedOptions.length >= 2
 }
 
 export function resolveMeasurementKind(profile: IndicatorProfile): MeasurementKind {
