@@ -579,16 +579,18 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
   setRoomOverviewBusy(true)
   // Avoid 37 simultaneous PostgREST COUNT requests against quality_records.
   // The existing aggregate RPC checks auth and room scope on the server.
-  sb.rpc('aureka_quality_room_month_counts',{p_year:year,p_grain:null})
-   .then(({data,error})=>{
+  void (async()=>{
+   try{
+    const {data,error}=await sb.rpc('aureka_quality_room_month_counts',{p_year:year,p_grain:null})
     if(error)throw error
     if(!cancelled)setRoomOverview(aggregateRoomOverviewCounts(rooms,data??[]))
-   })
-   .catch(()=>{
+   }catch{
     // RPC error is unknown, not a claim that an entire room has zero records.
     if(!cancelled)setRoomOverview(rooms.map(room=>({roomId:Number(room.id),records:null})))
-   })
-   .finally(()=>{if(!cancelled)setRoomOverviewBusy(false)})
+   }finally{
+    if(!cancelled)setRoomOverviewBusy(false)
+   }
+  })()
   return()=>{cancelled=true}
  },[isAdmin,initialRoomId,roomId,rooms,year])
  const canImportWorkbook=isAdmin||canViewAllRooms
