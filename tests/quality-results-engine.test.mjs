@@ -775,3 +775,28 @@ test('IBS 4.3 patient-episode categorical codes aggregate through the negative r
   assert.equal(result.annualDenominator, 3)
   assert.equal(result.annualRate, 200 / 3)
 })
+
+
+test('inferred categorical episode profiles retain legacy numeric N/D records', () => {
+  const profile = {
+    id: 'ibs-4-2-legacy', room_id: 4, code: '4.2',
+    title: 'Kelengkapan Laporan Operasi <24 Jam',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'ratio', indicator_direction: 'positive' },
+    options_json: [
+      { code: 1, label: 'Laporan Lengkap & Tuntas < 24 Jam' },
+      { code: 2, label: 'Laporan > 24 Jam karena kendala sistem' },
+      { code: 3, label: 'Laporan > 24 Jam tanpa alasan valid' },
+    ],
+  }
+  const rows = [{
+    record_date: '2026-02-01',
+    status: 'validated',
+    core_data: { indicator_values: { '4.2': { numerator: 8, denominator: 10 } } },
+  }]
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.equal(result.observations, 1)
+  assert.equal(result.annualNumerator, 8)
+  assert.equal(result.annualDenominator, 10)
+  assert.equal(result.annualRate, 80)
+})
