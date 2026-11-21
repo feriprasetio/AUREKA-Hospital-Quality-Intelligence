@@ -71,6 +71,15 @@ html[data-mode="gelap"] .tanyaFab { box-shadow: 0 12px 30px rgba(0, 0, 0, .5), i
 body:has([aria-modal="true"], .rmModalBackdrop, .psModalBackdrop, .oppeModalBackdrop, .sdEditBackdrop, .overviewOverlay, .aqEditorDialog, .svNav) .tanyaFab:not(.on) { display: none; }
 /* A visible shared dialog owns the interaction; even the active FAB must not cover it. */
 body:has(.akModalRoot) .tanyaFab { visibility: hidden; pointer-events: none; }
+/* All blocking surfaces suspend the floating assistant, including when it was
+ * already open. Several legacy workspaces still mount non-portal dialogs. */
+body:has(:is(.akModalRoot, .rmModalBackdrop, .psModalBackdrop, .oppeModalBackdrop,
+  .sdEditBackdrop, .overviewOverlay, .aqEditorDialog, .secModalBackdrop,
+  .spmOverlay, .cpBuilderOverlay, .aqDeleteConfirmBack))
+  > :is(.tanyaFab, .tanyaPanel:not(.tanyaPanelEmbedded)) {
+  visibility: hidden;
+  pointer-events: none;
+}
 /* Notifikasi pojok kanan bawah naik sedikit agar tidak tertutup tombol */
 body:has(.tanyaFab) .aurToast { bottom: 92px; }
 
