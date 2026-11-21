@@ -35,10 +35,12 @@ test('nested destinations retain their authorized module and full breadcrumb', (
   assert.equal(results[0].key, 'quality/results')
 })
 
-test('workspace keeps the comfortable baseline without a density toggle', () => {
+test('workspace uses system-controlled density instead of a hardcoded header toggle', () => {
   const css = readFileSync(new URL('../app/aureka-refined.css', import.meta.url), 'utf8')
   const home = readFileSync(new URL('../components/HomeClient.tsx', import.meta.url), 'utf8')
-  assert.match(home, /data-density="comfortable"/)
+  assert.doesNotMatch(home, /data-density="comfortable"/)
+  assert.match(readFileSync(new URL('../lib/ui/appearance-preferences.ts', import.meta.url), 'utf8'), /density: 'comfortable'/)
+  assert.match(readFileSync(new URL('../components/workspace/AdaptiveWorkspaceShell.tsx', import.meta.url), 'utf8'), /readAppearancePreferences\(\)\.density/)
   assert.doesNotMatch(home, /workspaceDensityToggle|setDensity|const \[density,/)
   assert.match(css, /\[data-density="compact"\] \.moduleEnter td \{ padding-block: 7px/)
   assert.match(css, /\[data-density="compact"\] \.moduleEnter th \{ padding-block: 8px/)
