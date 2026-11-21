@@ -234,10 +234,11 @@ test('every workbook importer traps focus and delegates Escape to its original b
   assert.match(read('components/layout/useAccessibleDialog.ts'), /if \(scrollLocks === 0\) document\.body\.style\.overflow = bodyOverflow/)
 })
 
-test('page header accepts the active workspace density control without hiding it', () => {
-  assert.match(home, /className="workspacePresentationSlot" ref=\{setWorkspacePresentationTarget\}/)
-  assert.match(home, /controlTarget=\{workspacePresentationTarget\}/)
-  assert.doesNotMatch(css, /workspaceDensityToggle|button\[title\*="nyaman" i\]/)
+test('the header no longer mounts an independent Nyaman/Ringkas control', () => {
+  assert.doesNotMatch(home, /workspacePresentationSlot|workspacePresentationTarget|controlTarget=/)
+  const adaptive = read('components/workspace/AdaptiveWorkspaceShell.tsx')
+  assert.doesNotMatch(adaptive, /workspaceDensityToggle|toggleDensity|createPortal/)
+  assert.match(adaptive, /readAppearancePreferences\(\)\.density/)
 })
 
 test('logbook filters and workbook actions use separate grid rows with non-shrinking controls', () => {
