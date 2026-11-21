@@ -9,6 +9,7 @@ import {createPortal,flushSync} from 'react-dom'
 import {useAccessibleSidebar} from '@/components/layout/useAccessibleSidebar'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceSkeleton from '@/components/WorkspaceSkeleton'
+import AdaptiveWorkspaceShell from '@/components/workspace/AdaptiveWorkspaceShell'
 import {sanitizeNotificationText,toUserFacingError} from '@/lib/ui/error-feedback'
 import {parseAuthCallbackError} from '@/lib/aureka/auth-callback'
 import {resolveAdminWorkspaceRoomId} from '@/lib/aureka/workspace-scope'
@@ -1299,7 +1300,7 @@ export default function HomeClient(){
    onSelect={primaryId=>{const group=activeNavGroups.find(item=>item.id===primaryId);selectSidebarChild(activeNavModuleId,group?.children?.[0]?.id||primaryId)}}
    onSubSelect={childId=>{if(activeNavModuleId==='patients'){if(childId==='overview'||childId==='directory'||childId==='analysis')setPatientsRegistryTab(childId);return}selectSidebarChild(activeNavModuleId,childId)}}
   />}
-   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+currentContainer+'-'+qualityOpen+'-'+spmOpen+'-'+spoOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+qualityReconciliationOpen+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><ModuleErrorBoundary moduleLabel={active==='staff'?currentContainer:(activeNavModuleLabel||'Modul')} onHome={()=>openMainModule('home')}>
+   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+currentContainer+'-'+qualityOpen+'-'+spmOpen+'-'+spoOpen+'-'+qualityOppeOpen+'-'+clinicalPathwayOpen+'-'+qualityResultsView+'-'+qualityReconciliationOpen+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell key={activeNavModuleId+'-'+currentContainer} moduleId={activeNavModuleId} containerLabel={currentContainer}><ModuleErrorBoundary moduleLabel={active==='staff'?currentContainer:(activeNavModuleLabel||'Modul')} onHome={()=>openMainModule('home')}>
    {active==='home'?<>
     <HomeLandingWorkspace availableModules={[...visibleModuleIds]} supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} isAdmin={admin} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'||(manager&&!admin)?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??null} roomName={role==='DEWAN_PENGAWAS'||(manager&&!admin)||admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??room?.name??'Unit aktif'} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} onAskNara={openNaraWithContext} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){setRiskFocus(id==='risk'&&f?{...(f as any),nonce:Date.now()}:null);setSafetyFocus(id==='safety'&&f?{...(f as any),nonce:Date.now()}:null);if(id==='clinicalPathway')selectSidebarChild('clinical','audit-pathway');else if(id==='rtl')selectSidebarChild('analytics','recommendations');else openMainModule(id)}}}/>
     <InfographicsDashboard mode="full" role={role} rooms={roomsList} initialRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):(manager||role==='DEWAN_PENGAWAS'?null:activeWorkspaceRoomId)} unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role||'')} onNavigate={(id)=>openMainModule(id)} onRoomChange={admin?updateWorkspaceRoom:undefined} onAskNara={({period,scope})=>openNaraWithContext('Analisis data agregat AUREKA untuk periode '+period+' dan cakupan '+scope+'. Jelaskan pola penting, temuan, keterbatasan data, dan prioritas tindak lanjut tanpa mengubah data.','Dashboard · '+period+' · '+scope)}/>
@@ -1346,7 +1347,7 @@ export default function HomeClient(){
    :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace/>
    :active==='settings'?<GeneralSettings key={profileFocus+(settingsTab||'')} startAt={settingsSection==='audit'||settingsSection==='legal'?'profile':settingsSection} openProfile={profileFocus>0} initialTab={settingsTab||undefined} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{rooms().then(setRoomsList)}}/>
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
-  </ModuleErrorBoundary></div>
+  </ModuleErrorBoundary></AdaptiveWorkspaceShell></div>
  </section>
  <TableSortEnhancer/><FormSpeedEnhancer/>
  
