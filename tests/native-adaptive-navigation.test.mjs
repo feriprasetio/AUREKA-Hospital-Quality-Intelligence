@@ -51,7 +51,9 @@ test('blocking workspace editors portal to body and use the high dialog layer', 
     assert.match(content, /document\.body/, path)
     assert.ok(content.includes(cls), path)
   }
-  assert.match(read('components/ClinicalPathwayWorkspace.tsx'), /builderDialogRef = useAccessibleDialog/)
+  const clinical = read('components/ClinicalPathwayWorkspace.tsx')
+  assert.match(clinical, /builderDialogRef = useAccessibleDialog/)
+  assert.ok(clinical.indexOf('builderDialogRef = useAccessibleDialog') < clinical.indexOf('if (loading) return <div className="cpRoot"'), 'dialog hooks must precede early loading return')
   assert.match(read('components/SpmWorkspace.tsx'), /editDialogRef = useAccessibleDialog/)
   assert.match(read('components/SpmWorkspace.tsx'), /configDialogRef = useAccessibleDialog/)
   assert.match(read('app/typography.css'), /:is\(\.workspaceRoot, \.spmPortal\) \.spmWorkspace/)
