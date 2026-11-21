@@ -26,11 +26,14 @@ export default function DocumentVerificationPage({verificationCode}:{verificatio
     aurekaSupabase.rpc('aureka_verify_artifact_signature',{p_verification_code:verificationCode})
       .then(({data,error})=>{
         if(cancelled)return
-        if(error)throw error
-        setData((data||null) as Verification|null)
+        if(error)setError(error.message||'Kode verifikasi tidak dapat diperiksa.')
+        else setData((data||null) as Verification|null)
+        setLoading(false)
+      },(e:unknown)=>{
+        if(cancelled)return
+        setError(e instanceof Error?e.message:'Verifikasi tanda tangan tidak dapat dilakukan.')
+        setLoading(false)
       })
-      .catch(e=>{if(!cancelled)setError(e instanceof Error?e.message:'Verifikasi tanda tangan tidak dapat dilakukan.')})
-      .finally(()=>{if(!cancelled)setLoading(false)})
     return()=>{cancelled=true}
   },[verificationCode])
 
@@ -49,7 +52,7 @@ export default function DocumentVerificationPage({verificationCode}:{verificatio
           <div className="legalVerifyHash"><dt>Hash SHA-256 dokumen</dt><dd>{data.sha256||'—'}</dd></div>
         </dl>
       </>}
-      <div className="legalVerifyFoot">{data?.note||'Laman verifikasi ini hanya menampilkan metadata persetujuan yang diizinkan untuk akses publik. Konten dokumen dan file sumber tetap privat.'}</div>
+      <div className="legalVerifyFoot">{data?.note||'Laman verifikasi ini hanya menampilkan metadata persetujuan yang diizinkan untuk akses publik. Konten dokumen dan file sumber tetap privat. Bukti ini bukan Sertifikat Elektronik atau Tanda Tangan Elektronik Tersertifikasi dari PSrE.'}</div>
     </section>
   </main>
 }
