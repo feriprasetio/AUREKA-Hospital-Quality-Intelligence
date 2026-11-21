@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import {
   CERTIFICATE_ELEMENTS,
@@ -89,7 +89,7 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
     return () => { document.body.style.overflow = previous }
   }, [])
 
-  const moveToPointer = (event: React.PointerEvent<HTMLDivElement>) => {
+  const moveToPointer = (event: PointerEvent<HTMLDivElement>) => {
     const id = dragRef.current
     const bounds = stageRef.current?.getBoundingClientRect()
     if (!id || !bounds || bounds.width <= 0 || bounds.height <= 0) return
@@ -98,7 +98,7 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
     setLayout((current) => ({ ...current, [id]: { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 } }))
   }
 
-  const startDrag = (event: React.PointerEvent<HTMLButtonElement>, id: CertificateElementId) => {
+  const startDrag = (event: PointerEvent<HTMLButtonElement>, id: CertificateElementId) => {
     if (!canManage || loading || saving) return
     event.preventDefault()
     dragRef.current = id
@@ -200,7 +200,7 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
                 {CERTIFICATE_ELEMENTS.map((element) => {
                   const point = layout[element.id]
                   const active = selected === element.id
-                  const style: React.CSSProperties = {
+                  const style: CSSProperties = {
                     left: point.x + '%',
                     top: point.y + '%',
                     fontFamily: fontFor(element.id),
