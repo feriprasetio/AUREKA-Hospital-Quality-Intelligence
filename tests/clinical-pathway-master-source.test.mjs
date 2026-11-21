@@ -33,10 +33,9 @@ test('newly saved CP masters are reflected only in the Supabase-backed template 
 test('Clinical Pathway overview exposes linked patient-episode candidates with a clinical verification boundary', () => {
   const source = read('components/ClinicalPathwayWorkspace.tsx')
   assert.match(source, /Visual Intelligence Clinical Pathway/)
-  assert.match(source, /Lihat Pustaka Diagnosis &amp; Format Clinical Pathway|Lihat Pustaka Diagnosis & Format Clinical Pathway/)
+  assert.match(source, /Lihat Daftar Pasien dengan Clinical Pathway/)
   assert.match(source, /Kandidat ditarik dari episode logbook yang tertaut ke Direktori Pasien/)
   assert.match(source, /kelayakan klinis tetap harus dikonfirmasi DPJP/)
   assert.match(source, /aureka_clinical_pathway_patient_candidates/)
   assert.doesNotMatch(source, /Integrasi kandidat pasien otomatis berdasarkan diagnosis dan kriteria inklusi klinis belum diaktifkan/)
-  assert.doesNotMatch(source, /Lihat Daftar Pasien dengan Clinical Pathway/)
 })

@@ -20,6 +20,7 @@ export function SystemConfigPanel() {
   const load = useCallback(async () => {
     const { data, error: e } = await aurekaSupabase.rpc('aureka_gov_settings_get')
     if (e) { setError(isMissing(e.message) ? missingMsg : toUserFacingError(e, { fallback: 'Konfigurasi belum dapat dimuat.' })); return }
+    if (!data) { setError('Konfigurasi belum dapat dimuat.'); return }
     const d = data as { can_edit: boolean; settings: Setting[] }
     setItems(d.settings || []); setCanEdit(Boolean(d.can_edit))
     setDraft(Object.fromEntries((d.settings || []).map((s) => [s.key, typeof s.value === 'string' ? s.value : JSON.stringify(s.value)])))
@@ -85,6 +86,7 @@ export function PermissionMatrixPanel() {
   const load = useCallback(async () => {
     const { data, error: e } = await aurekaSupabase.rpc('aureka_gov_perm_matrix')
     if (e) { setError(isMissing(e.message) ? missingMsg : toUserFacingError(e, { fallback: 'Hak akses belum dapat dimuat.' })); return }
+    if (!data) { setError('Hak akses belum dapat dimuat.'); return }
     const d = data as { role: string; can_edit: boolean; mine: string[]; permissions: Perm[]; matrix: Cell[] }
     setPerms(d.permissions || []); setMatrix(d.matrix || []); setMine(d.mine || []); setRole(d.role); setCanEdit(Boolean(d.can_edit))
   }, [])

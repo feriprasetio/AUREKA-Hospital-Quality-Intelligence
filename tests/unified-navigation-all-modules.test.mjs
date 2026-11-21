@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -14,18 +15,18 @@ test('AUREKA navigation has independent primary and secondary active states', ()
   assert.match(nav, /workspaceNavigationGroupDivider/)
   assert.match(nav, /workspaceNavigationSubItems/)
   assert.match(nav, /workspaceNavigationSubOverflow/)
-  assert.match(home, /const activeNavPrimaryId=activeNavModuleId==='patients'\?patientsRegistryTab:activeNavModuleId==='clinical'/)
-  assert.match(home, /const activeNavSecondaryId=activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'\?'':activeNestedNavGroup/)
+  assert.match(home, /const activeNavPrimaryId=activeNestedNavGroup\?\.id\|\|activeNavDefaultGroup\|\|activeNavSelectedId/)
+  assert.match(home, /const activeNavSecondaryId=activeNestedNavGroup\?activeNavSelectedId:''/)
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))
   assert.ok(home.includes('secondaryActiveId={activeNavSecondaryId}'))
 })
 
 test('workspace error boundary resets when switching between contextual tabs and staff education workspaces', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /key=\{active\+'-'\+currentContainer\+'-'/)
+  assert.match(home, /<ModuleErrorBoundary resetKey=\{currentContainer\}/)
   assert.match(home, /active==='staff'&&staffTab==='training'\?<InHouseTrainingWorkspace/)
   assert.match(home, /active==='staff'&&staffTab==='student-orientation'\?<StudentOrientationWorkspace/)
-  assert.match(home, /moduleLabel=\{active==='staff'\?currentContainer:/)
+  assert.match(home, /moduleLabel=\{currentContainer\}/)
 })
 
 test('all navigation groups preserve the selected destination and use responsive overflow', () => {
@@ -49,10 +50,10 @@ test('Register Pasien exposes only Direktori and Pola Perawatan; Riwayat Episode
   const intelligence = read('components/PatientRegistryIntelligence.tsx')
   const directory = read('components/patient-registry/PatientIndexTab.tsx')
   const analysis = read('components/patient-registry/PatientMedicalRecordsAnalytics.tsx')
-  assert.match(home, /patients:\[\]/)
+  assert.match(home, /case 'patients':/)
   assert.match(home, /registryTab=\{patientsRegistryTab\} onRegistryTabChange=\{setPatientsRegistryTab\}/)
-  assert.match(home, /patientsRegistryTab==='directory'\?'direktori-pasien':patientsRegistryTab==='analysis'\?'pola-perawatan':'ikhtisar'/)
-  assert.match(home, /patientView==='rekapan-pasien'\?'directory':'overview'/)
+  assert.match(home, /patientsRegistryTab==='directory'\?'direktori-pasien'/)
+  assert.deepEqual(readWorkspaceHash('#pasien/rekapan-pasien'), {module:'patients',section:'directory'})
   assert.doesNotMatch(home, /patientsRegistryTab==='records'|childId==='records'/)
   assert.doesNotMatch(home, /id:'records',label:'Rekapan Episode'/)
   assert.ok(navigationRegistry.includes("{ id:'patient_directory', label:'Direktori Pasien', moduleId:'patients', childId:'overview' }"))
@@ -62,7 +63,7 @@ test('Register Pasien exposes only Direktori and Pola Perawatan; Riwayat Episode
   assert.match(directory, /search bar global pada header AUREKA/)
   assert.doesNotMatch(directory, /<input[^>]+type="search"/)
   assert.match(analysis, /aureka_patient_record_analytics/)
-  assert.match(analysis, /Pola Perawatan/)
+  assert.match(analysis, /Lihat Pola Perawatan/)
   assert.match(analysis, /LOS/)
   assert.match(analysis, /ICD-10/)
   assert.doesNotMatch(registry, /registryTab\?:[^\n]*records|tab === 'records'|rekap-episode-pasien\.csv/)

@@ -5,7 +5,7 @@ import PatientRegistryIntelligence from '@/components/PatientRegistryIntelligenc
 import PatientMedicalRecordsAnalytics from '@/components/patient-registry/PatientMedicalRecordsAnalytics'
 
 type Room = { id: number; name: string }
-type PatientRegistryTab = 'overview' | 'directory' | 'analysis'
+type PatientRegistryTab = 'overview' | 'directory' | 'patterns' | 'analysis'
 
 type Props = {
   rooms: Room[]
@@ -14,6 +14,7 @@ type Props = {
   canViewAllRooms: boolean
   lockRoomScope?: boolean
   registryTab?: PatientRegistryTab
+  patternTab?: 'icd' | 'los' | 'readmisi'
   onRegistryTabChange?: (tab: PatientRegistryTab) => void
   onAskNara?: (prompt: string, pageContext: string) => void
 }
@@ -32,16 +33,23 @@ export default function PatientRegistryWorkspace({
   lockRoomScope = false,
   registryTab = 'overview',
   onRegistryTabChange,
+  patternTab = 'icd',
 }: Props) {
   const openDirectory = () => onRegistryTabChange?.('directory')
 
   return (
     <section className="patientRegistry" aria-label="Register Pasien">
       {registryTab === 'directory' ? (
-        <PatientIndexTab isAdmin={isAdmin} rooms={rooms} />
-      ) : registryTab === 'analysis' ? (
+        <>
+          <button type="button" className="prButton" onClick={() => onRegistryTabChange?.('overview')}>Kembali ke Direktori Pasien</button>
+          <PatientIndexTab isAdmin={isAdmin} rooms={rooms} />
+        </>
+      ) : registryTab === 'patterns' || registryTab === 'analysis' ? (
         <PatientMedicalRecordsAnalytics
           rooms={rooms}
+          view={registryTab === 'patterns' ? 'overview' : patternTab}
+          onOpenPatterns={() => onRegistryTabChange?.('analysis')}
+          onBack={() => onRegistryTabChange?.('patterns')}
           initialRoomId={initialRoomId}
           canViewAllRooms={canViewAllRooms}
           lockRoomScope={lockRoomScope}

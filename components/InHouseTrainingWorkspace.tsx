@@ -197,7 +197,9 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
    }
    const {data:signed,error:signedError}=await aurekaSupabase.storage.from('aureka-exports').createSignedUrl(path,600)
    if(signedError||!signed?.signedUrl)throw signedError||new Error('PDF telah tersimpan, tautan sementara gagal dibuat.')
-   preview.location.href=signed.signedUrl;setNotice('Sertifikat '+number+' berhasil diterbitkan.');await openEvent(active)
+   preview.location.href=signed.signedUrl
+   await openEvent(active)
+   setNotice('Sertifikat '+number+' berhasil diterbitkan.')
   }catch(err){preview.close();setError('Sertifikat gagal diterbitkan: '+(err instanceof Error?err.message:'Kesalahan tidak diketahui.'))}
   finally{setBusyId('')}
  }

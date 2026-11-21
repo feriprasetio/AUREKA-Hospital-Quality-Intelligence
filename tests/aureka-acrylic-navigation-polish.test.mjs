@@ -15,7 +15,7 @@ test('authoritative Arctic layout layer resolves shell and navigation geometry a
   assert.ok(css.includes('"menu context nara inbox theme bell profile"'))
   assert.ok(css.includes('"search search search search search search search"'))
   assert.ok(css.includes('"menu context context theme bell"'))
-  assert.ok(css.includes('"profile profile nara inbox ."'))
+  assert.ok(css.includes('"profile profile nara inbox find"'))
   assert.ok(css.includes('"title primary primaryOverflow"'))
   assert.ok(css.includes('"secondary secondary secondaryOverflow"'))
   assert.ok(css.includes('details.workspaceNavigationOverflow:not([open]) > .workspaceNavigationOverflowMenu'))

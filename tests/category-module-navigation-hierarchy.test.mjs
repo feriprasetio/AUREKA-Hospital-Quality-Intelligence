@@ -26,10 +26,11 @@ test('global navigation follows the eight categories in Aureka Navigasi.docx', (
   const qualityStart = source.indexOf("{ id:'quality_patient_safety'")
   const managementStart = source.indexOf("{ id:'hospital_management'", qualityStart)
   const qualityGroup = source.slice(qualityStart, managementStart)
-  for (const id of ['secretariat','annual_program','quality_indicators','patient_safety','risk_management']) {
+  for (const id of ['secretariat','quality_indicators','patient_safety','risk_management']) {
     assert.ok(qualityGroup.includes("id:'" + id + "'"), 'Peningkatan Mutu and Keselamatan Pasien must own ' + id)
   }
-  assert.doesNotMatch(qualityGroup, /id:'safety'|id:'risk'/)
+  assert.doesNotMatch(qualityGroup, /id:'safety'|id:'risk'|id:'annual_program'/)
+  assert.match(app, /id:'programs',label:'Program Kerja Tahunan',children:/)
 
   const dashboardStart = source.indexOf("{ id:'command_center'")
   const patientStart = source.indexOf("{ id:'patient_registry'", dashboardStart)
@@ -53,8 +54,8 @@ test('sidebar is two levels only; module tabs and subtabs use the contextual nav
   const nav = read('components/navigation/UnifiedModuleNavigation.tsx')
   assert.match(app, /className="sidebarModuleNode"/)
   assert.doesNotMatch(app, /sidebarModuleChildren|sidebarModuleChild|showNested|nestedItems/)
-  assert.match(app, /\{\(activeNavGroups\.length>0\|\|activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'\)&&<UnifiedModuleNavigation/)
-  assert.match(app, /activeRailItems/)
+  assert.match(app, /\{\(activeNavGroups\.length>0\|\|active!=='home'\)&&<UnifiedModuleNavigation/)
+  assert.match(app, /activeRailItemsHinted/)
   assert.match(app, /activeRailSubItems/)
   assert.match(nav, /subItems\?: UnifiedNavigationItem\[\]/)
   assert.match(nav, /disabled=\{item\.disabled\}/)
@@ -71,7 +72,7 @@ test('clinical and quality contextual navigation follows the document and preser
   assert.doesNotMatch(app, /id:'result-indicators',label:'Hasil Capaian'/)
   assert.match(app, /qualityLogbookResultsStack/)
   assert.match(quality, /Logbook/)
-  assert.match(app, /<QualityIndicatorWorkspace[\s\S]*?initialContainer=\{qualityInitialContainer\} showContainerTabs=\{false\}/)
+  assert.match(app, /<QualityIndicatorWorkspace[\s\S]*?initialContainer="Audit Indikator Mutu" showContainerTabs=\{false\}/)
   assert.match(app, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
 })
 
@@ -97,13 +98,12 @@ test('patient safety and risk tabs use the specified hierarchy without invented 
 test('Manajemen Rumah Sakit contextual navigation separates workforce, professional performance and SPM/SPO', () => {
   const app = read('components/HomeClient.tsx')
   const registry = read('lib/aureka/module-registry.ts')
-  assert.match(app, /id:'workforce',label:'Tenaga Kerja',children:/)
   assert.match(app, /id:'professional-performance',label:'OPPE dan FPPE',children:/)
   assert.match(app, /\{id:'directory',label:'Tenaga Kerja'\}/)
   assert.match(app, /\{id:'team',label:'Tim dan Penugasan'\}/)
   assert.match(app, /\{id:'oppe-fppe',label:'OPPE'\}/)
   assert.match(app, /\{id:'fppe',label:'FPPE'\}/)
-  assert.match(app, /quality-development.*children:\[\{id:'spm'/)
+  assert.match(app, /activeNavGroups=\[\{id:'spm',label:'Standar Pelayanan Minimal'/)
   assert.match(app, /id:'sop',label:'Standar Prosedur Operasional'/)
   assert.doesNotMatch(app, /id:'sop',label:'Standar Prosedur Operasional',disabled:true/)
   assert.match(registry, /id:'quality_development', label:'Pengembangan dan Pengendalian Mutu'/)

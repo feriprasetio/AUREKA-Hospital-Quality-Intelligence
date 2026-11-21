@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -24,22 +25,18 @@ test('Dashboard combines the operational landing, Visual Intelligence and NARA A
   assert.doesNotMatch(dashboard, /nara_ai|cross_domain_analytics|insights/)
   assert.ok(landing.includes('onAskNara'))
   assert.ok(landing.includes('NARA'))
-  assert.ok(home.includes("'analitik':'home','infografis':'home','analitik-laporan':'home'"))
+  assert.equal(readWorkspaceHash("#analitik-laporan").module, "home")
   assert.doesNotMatch(home, /homeTab|setHomeTab/)
 })
 
-test('Program and Workforce have independent active navigation and workspace renderers', () => {
+test('Annual Program appears under Sekretariat and workforce remains independent', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /setActive\(id\)/)
-  assert.match(home, /setActive\(moduleId\)/)
-  assert.match(home, /if\(id==='staff'\)return active==='staff'/)
-  assert.match(home, /if\(id==='analytics'\)return active==='analytics'/)
-  assert.ok(home.includes("active==='analytics'&&programTab==='programs'?<AnnualProgramWorkspace"))
-  assert.ok(home.includes("active==='staff'&&staffTab==='pic-performance'?<PicPerformanceWorkspace"))
-  assert.ok(home.includes("active==='staff'?<MetadataStatisticsWorkspace"))
+  assert.match(home, /active==='analytics'&&programTab!=='recommendations'\?'secretariat':active/)
+  assert.match(home, /<AnnualProgramWorkspace/)
+  assert.match(home, /active==='staff'\?<MetadataStatisticsWorkspace/)
+  assert.match(home, /qualityMonitorTab==='pic'&&permissionFlags.readPicPerformance\?<PicPerformanceWorkspace/)
   assert.match(home, /\[staffTab,setStaffTab\]=useState/)
   assert.match(home, /\[programTab,setProgramTab\]=useState/)
-  assert.doesNotMatch(home, /analyticsTab|setAnalyticsTab/)
 })
 
 test('shared metric contracts preserve unavailable states and reuse secured sources', () => {

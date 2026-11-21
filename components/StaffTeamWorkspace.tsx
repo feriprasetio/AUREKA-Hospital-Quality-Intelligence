@@ -51,6 +51,7 @@ export default function StaffTeamWorkspace({
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [selectedStaffId, setSelectedStaffId] = useState('')
+  const [showRoster, setShowRoster] = useState(false)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -216,8 +217,8 @@ export default function StaffTeamWorkspace({
       <div className="stPanel">
         <WorkspaceModuleHeader
           className="stHead"
-          title="Roster & penugasan unit"
-          description="Pilih tenaga dari master AUREKA untuk mengunci ke tim/unit kerja. Identitas tidak dapat ditetapkan ke dua tim aktif sekaligus. Nama dengan status perlu verifikasi belum dapat dipilih. Pelepasan atau perpindahan hanya dapat dilakukan Super Admin/Komite PMKP dan meninggalkan jejak audit."
+          title="Tim dan Penugasan"
+          description="Pantau komposisi profesi dan kelola penugasan tenaga kerja pada unit."
           actions={<div className="stStatBar">
             <span className="stStat"><b>{assignments.length.toLocaleString('id-ID')}</b> anggota tim</span>
             <span className="stStat"><b>{directory.filter((row) => row.directory_status === 'available' && !row.already_locked_here).length.toLocaleString('id-ID')}</b> kandidat</span>
@@ -237,7 +238,7 @@ export default function StaffTeamWorkspace({
         )}
         {message && <div className="stNotice" role="status" aria-live="polite">{message}</div>}
         {error && <div className="stError" role="alert">{error}</div>}
-        {!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Metadata → Tenaga Kerja terlebih dahulu.</div>}
+        {showRoster && <>{!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Sumber Daya Manusia → Tenaga Kerja terlebih dahulu.</div>}
         {!loading && directory.length > 0 && availableToChoose.length === 0 && <div className="stNotice">Tidak ada kandidat yang cocok. Tenaga yang telah terkunci pada tim ini sudah tercatat di roster; tenaga yang terkunci pada unit lain sengaja tidak ditampilkan.</div>}
         <div className="stForm">
           <label className="stField stLocalSearch"><span>Cari tenaga</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nama, kode, profesi, jabatan…"/></label>
@@ -248,16 +249,18 @@ export default function StaffTeamWorkspace({
             </select>
           </label>
           <button type="button" className="stBtn primary" onClick={() => void addStaff()} disabled={loading || busy || !roomId || !selectedStaffId}>{busy ? 'Memproses…' : '＋ Kunci ke tim'}</button>
-        </div>
-        <section className="stPanel" aria-label="Komposisi roster berdasarkan profesi" style={{marginTop:14,padding:14,boxShadow:'none'}}>
+        </div></>}
+        {!showRoster && <section className="stPanel" aria-label="Komposisi roster berdasarkan profesi" style={{marginTop:14,padding:14,boxShadow:'none'}}>
           <div className="stRosterHead"><b>Komposisi roster menurut kelompok profesi</b><span>{roster.length.toLocaleString('id-ID')} penugasan aktif</span></div>
           {professionSummary.length ? professionSummary.map(item=><div key={item.label} style={{display:'grid',gridTemplateColumns:'minmax(110px,1fr) minmax(80px,2fr) 34px',gap:9,alignItems:'center',margin:'9px 0',fontSize:12}}>
             <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={item.label}>{item.label}</span>
             <span style={{height:8,borderRadius:99,background:'rgba(80,110,130,.13)',overflow:'hidden'}}><i style={{display:'block',height:'100%',width:(roster.length?item.count/roster.length*100:0)+'%',background:'#16507a',borderRadius:99}}/></span>
             <b>{item.count}</b>
           </div>) : <div className="stEmpty">Belum ada anggota roster untuk diringkas.</div>}
-          <p className="stSub">Dihitung dari {roster.length} tenaga yang terpetakan pada roster unit ini. Grafik menunjukkan komposisi penugasan, bukan kecukupan tenaga atau beban kerja; kebutuhan formasi/slot belum dihitung karena standar kebutuhan tidak tersedia pada sumber ini.</p>
-        </section>
+          <button type="button" className="stBtn primary" onClick={()=>setShowRoster(true)}>Lihat Tim dan Penugasan</button>
+        </section>}
+        {showRoster && <>
+        <button type="button" className="stBtn" onClick={()=>setShowRoster(false)}>Kembali ke ringkasan tim</button>
         <div className="stRosterHead"><b>Daftar tim aktif · {roomName}</b><span>{roster.length.toLocaleString('id-ID')} orang</span></div>
         {loading ? <div className="stEmpty">Memuat daftar tim…</div> : roster.length ? (
           <div className="stRows">
@@ -270,7 +273,7 @@ export default function StaffTeamWorkspace({
               </div>
             ))}
           </div>
-        ) : <div className="stEmpty">Belum ada tenaga yang ditetapkan pada tim ini. Pilih tenaga di atas untuk membuat pemetaan pertama.</div>}
+        ) : <div className="stEmpty">Belum ada tenaga yang ditetapkan pada tim ini. Pilih tenaga di atas untuk membuat pemetaan pertama.</div>}</>}
       </div>
     </section>
   )

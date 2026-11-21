@@ -260,7 +260,11 @@ export default function UnifiedModuleNavigation({
   const overflowItems = items.filter(item => !visibleItems.some(visible => visible.id === item.id))
   const visibleSubItems = subItems.filter(item => item.id === resolvedSecondaryActiveId || !hiddenSubIds.includes(item.id))
   const overflowSubItems = subItems.filter(item => !visibleSubItems.some(visible => visible.id === item.id))
-  const selectPrimary = (id: string) => { onSelect(id); if (overflowRef.current) overflowRef.current.open = false }
+  const selectPrimary = (id: string) => {
+    onSelect(id)
+    if (overflowRef.current) overflowRef.current.open = false
+    if (subOverflowRef.current) subOverflowRef.current.open = false
+  }
   const selectSecondary = (id: string) => { (onSubSelect ?? onSelect)(id); if (subOverflowRef.current) subOverflowRef.current.open = false }
 
   return <>
@@ -290,7 +294,7 @@ export default function UnifiedModuleNavigation({
         {subItems.length > 0 && items.length > 1 && <details ref={mobileGroupRef} className="workspaceMobileGroupPicker">
           <summary><span>Bagian</span><strong>{activePrimaryItem?.label || 'Pilih bagian'}</strong></summary>
           <div className="workspaceMobileGroupMenu" role="group" aria-label="Pilih bagian workspace">
-            {items.map(item => <button type="button" key={item.id} aria-current={item.id === resolvedActiveId ? 'page' : undefined} onClick={() => { selectPrimary(item.id); if (mobileGroupRef.current) mobileGroupRef.current.open = false }}>{item.label}</button>)}
+            {items.map(item => <button type="button" key={item.id} disabled={item.disabled} aria-current={item.id === resolvedActiveId ? 'page' : undefined} onClick={() => { selectPrimary(item.id); if (mobileGroupRef.current) mobileGroupRef.current.open = false }}>{item.label}</button>)}
           </div>
         </details>}
       </div>

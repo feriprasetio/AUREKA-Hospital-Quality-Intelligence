@@ -3,19 +3,23 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { reportClientError } from '@/lib/ui/report-client-error'
 
-type Props = { moduleLabel: string; onHome: () => void; children: ReactNode }
+type Props = { moduleLabel: string; resetKey?: string; onHome: () => void; children: ReactNode }
 type State = { error: Error | null }
 
 /**
  * Pengaman per modul: bila satu modul gagal dirender, hanya area modul yang
  * menampilkan pesan dan tombol coba lagi; sidebar, header, dan modul lain tetap jalan.
- * Dipasang dengan `key` per modul sehingga pindah modul otomatis mereset keadaan galat.
+ * Pindah bagian mereset galat dan mempertahankan state konten yang sehat.
  */
 export default class ModuleErrorBoundary extends Component<Props, State> {
   state: State = { error: null }
 
   static getDerivedStateFromError(error: Error): State {
     return { error }
+  }
+
+  componentDidUpdate(previous: Props) {
+    if (this.state.error && previous.resetKey !== this.props.resetKey) this.setState({ error: null })
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {

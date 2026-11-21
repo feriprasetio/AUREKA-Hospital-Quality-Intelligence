@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -9,7 +10,8 @@ const config=await readFile(new URL('../supabase/config.toml',import.meta.url),'
 test('SPO is enabled under the quality development navigation',()=>{
  assert.match(home,/id:'sop',label:'Standar Prosedur Operasional'/);
  assert.doesNotMatch(home,/id:'sop',label:'Standar Prosedur Operasional',disabled:true/);
- assert.match(home,/section==='spo'/);assert.match(home,/setSpoOpen\(true\)/);
+ assert.deepEqual(readWorkspaceHash('#indikator-mutu/spo'), {module:'quality',section:'sop'});
+ assert.match(home,/setSpoOpen\(section==='sop'\)/);
  assert.match(home,/StandardsProcedureWorkspace/);
 });
 test('SPO workspace provides upload, review, approval and structured text fields',()=>{

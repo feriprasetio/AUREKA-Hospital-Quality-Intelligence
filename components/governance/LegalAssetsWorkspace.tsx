@@ -129,7 +129,7 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
     </div>
 
     <div className="legalPanel">
-      <div className="legalPanelHeading"><div><h2>Indeks dokumen dan bukti persetujuan</h2><p>Daftar artefak yang telah terdaftar di AUREKA beserta kode verifikasi publiknya.</p></div><span className="legalCount">{artifacts.length} dokumen</span></div>
+      <div className="legalPanelHeading"><div><h2>Lembar Persetujuan Pengguna</h2><p>Daftar artefak yang telah terdaftar di AUREKA beserta kode verifikasi publiknya.</p></div><span className="legalCount">{artifacts.length} dokumen</span></div>
       {loading?<p className="legalMuted">Memuat indeks dokumen...</p>:artifacts.length===0?<p className="legalMuted">Belum ada artefak dokumen terbit yang terindeks pada register ini.</p>:<div className="legalArtifactList">
         {artifacts.map(artifact=><article className="legalArtifact" key={artifact.artifact_id}>
           <div className="legalArtifactHead"><div><span>{artifact.artifact_code}</span><h3>{artifact.title}</h3><p>{artifact.artifact_type} · {fmt(artifact.created_at)}</p><small>SHA-256: {artifact.sha256}</small></div></div>

@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -13,7 +14,7 @@ test('NARA AI is registered as a dedicated authenticated primary module', () => 
 
 test('NARA AI route, hash navigation, lazy workspace and idle prefetch are wired', () => {
   assert.match(home, /NaraAIWorkspace=dynamic\(\(\)=>import\('@\/components\/NaraAIWorkspace'\)/)
-  assert.match(home, /'nara-ai':'nara'/)
+  assert.deepEqual(readWorkspaceHash("#nara-ai"), { module:"nara", section:"" })
   assert.match(home, /nara:'#nara-ai'/)
   assert.match(home, /active==='nara'\?<NaraAIWorkspace sb=\{sb\}/)
   assert.match(home, /import\('@\/components\/NaraAIWorkspace'\)/)

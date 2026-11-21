@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
@@ -33,17 +34,26 @@ test('context navigation reuses authorized sidebar destinations and includes a n
   assert.match(home, /id="workspace-main-content" tabIndex=\{-1\}/)
 })
 
-test('submodule navigation participates in history without discarding legacy quality paths', () => {
-  assert.match(home, /const \[modulePath,section\]=path\.split\('\/'\)/)
-  assert.match(home, /requiredRoles\.includes\(\(role\|\|''\) as AurekaRole\)/)
-  assert.ok(home.includes("patientsRegistryTab==='directory'?'direktori-pasien':patientsRegistryTab==='analysis'?'pola-perawatan':'ikhtisar'"))
-  assert.ok(home.includes("patientView==='rekapan-pasien'?'directory':'overview'"))
-  assert.match(home, /const patientView=path\.split\('\/'\)\[2\]\|\|legacyPatientView/)
-  assert.match(home, /legacyPatientView=\['tambah-pasien','ikhtisar','rekapan-pasien','direktori-pasien','analisis-rekam-medis','pola-perawatan'\]/)
-  assert.match(home, /audit-indikator\|clinical-pathway\|audit-klinis-dan-kematian/)
-  assert.match(home, /window\.addEventListener\('hashchange',onHashChange\)/)
+test('submodule navigation participates in history and legacy links resolve to authorized destinations', () => {
+  assert.match(home, /window\.history\.pushState\(/)
+  assert.match(home, /window\.history\.replaceState\(/)
+  assert.match(home, /window\.addEventListener\('hashchange',applyHash\)/)
+  assert.match(home, /if\(!navigateWorkspace\(module,section\)\)navigateWorkspace\('home'\)/)
+  assert.match(home, /if\(!permissionsReady\)return/)
+  for (const [url, module, section] of [
+    ['#mutu-klinis/audit-indikator/hasil-capaian', 'quality', 'result-unit'],
+    ['#mutu-klinis/audit-klinis-dan-kematian', 'clinical', 'audit-clinical'],
+    ['#mutu-klinis/clinical-pathway', 'clinical', 'audit-pathway'],
+    ['#pasien/register-pasien/rekapan-pasien', 'patients', 'directory'],
+    ['#indikator-mutu/usulan-indikator', 'analytics', 'proposals'],
+    ['#sekretariat/program-kerja/timeline', 'analytics', 'timeline'],
+    ['#indikator-mutu/monitoring/kinerja-pic', 'quality', 'pic-performance'],
+    ['#peningkatan-kinerja-klinis/audit-kematian', 'clinical', 'audit-death'],
+    ['#pasien/register-pasien/pola-perawatan/readmisi', 'patients', 'readmisi'],
+    ['#constructor', 'home', ''],
+  ]) assert.deepEqual(readWorkspaceHash(url), { module, section }, url)
   for (const [module, setter] of [['PatientSafetyWorkspace', 'setSafetyTab'], ['RiskManagementWorkspace', 'setRiskTab']]) {
-    assert.match(read(`components/${module}.tsx`), /onTabChange\?\.\(tab\)/)
+    assert.match(read(`components/${module}.tsx`), /onTabChange\?\.\(next\)/)
     assert.ok(home.includes(`onTabChange={${setter}}`))
   }
 })

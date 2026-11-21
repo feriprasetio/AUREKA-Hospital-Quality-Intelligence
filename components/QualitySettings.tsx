@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
-import IndicatorProposalWorkspace from '@/components/IndicatorProposalWorkspace'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 import AurekaModal from '@/components/ui/AurekaModal'
@@ -463,9 +462,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [profiles, setProfiles] = useState<Model[]>([])
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
+  const [profileGrouping, setProfileGrouping] = useState<'all'|'category'|'unit'>('all')
   const [tab, setTab] = useState<MetadataTab>(initialTab)
   const [profileWorkspaceOpen, setProfileWorkspaceOpen] = useState(false)
-  const [profileWorkspaceSection, setProfileWorkspaceSection] = useState<'profiles'|'proposals'>('profiles')
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
@@ -517,8 +516,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
   useEffect(() => { void load() }, [load])
 
-  useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(false); setProfileWorkspaceSection('profiles') }, [initialTab])
-  useEffect(() => { if (tab !== 'profiles') { setProfileWorkspaceOpen(false); setProfileWorkspaceSection('profiles') } }, [tab])
+  useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(false) }, [initialTab])
+  useEffect(() => { if (tab !== 'profiles') { setProfileWorkspaceOpen(false) } }, [tab])
 
   const programs = useMemo(() => {
     const values = new Set<string>()
@@ -570,6 +569,20 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         .some((value) => String(value || '').toLocaleLowerCase('id').includes(normalized))
     })
   }, [profiles, search, programFilter, profileViewFilter])
+
+  const profileGroups = useMemo(() => {
+    if (profileGrouping === 'all') return [['', filteredProfiles] as const]
+    const groups = new Map<string, typeof filteredProfiles>()
+    for (const profile of filteredProfiles) {
+      const label = profileGrouping === 'category'
+        ? profile.category || 'Kategori belum diisi'
+        : profile.unit_name || rooms.find(item => Number(item.id) === Number(profile.room_id))?.name || 'Unit belum ditentukan'
+      const group = groups.get(label)
+      if (group) group.push(profile)
+      else groups.set(label, [profile])
+    }
+    return [...groups].sort(([a], [b]) => a.localeCompare(b, 'id'))
+  }, [filteredProfiles, profileGrouping, rooms])
 
   const openNew = (programName = '') => {
     const selectedRoom = rooms.find((item) => String(item.id) === room)
@@ -1027,17 +1040,15 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
             <div style={{border:'1px solid var(--line,rgba(20,34,27,.12))',borderRadius:14,padding:16,display:'grid',gap:10}}>
               <div><strong>Visual Intelligence Profil Indikator</strong><p style={{margin:'5px 0 0',fontSize:12,lineHeight:1.55,color:'var(--muted)'}}>Ringkasan status kamus indikator untuk tahun dan cakupan unit yang dipilih. Angka dihitung dari profil yang berhasil dimuat; target yang belum disahkan tidak dianggap sebagai target resmi.</p></div>
               <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceSection('profiles');setProfileWorkspaceOpen(true)}}>Lihat Profil Indikator</button>
-                <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceSection('proposals');setProfileWorkspaceOpen(true)}}>Lihat Usulan Indikator Baru</button>
+                <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceOpen(true)}}>Lihat Profil Indikator</button>
               </div>
             </div>
           </section>
         )}
-        {tab === 'profiles' && profileWorkspaceOpen && profileWorkspaceSection === 'profiles' && (
+        {tab === 'profiles' && profileWorkspaceOpen && (
           <div style={{ marginTop: 12 }}>
             <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
               <button type="button" className="textButton" onClick={()=>setProfileWorkspaceOpen(false)}>← Visual Intelligence</button>
-              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceSection('proposals')}>Usulan Indikator Baru</button>
             </div>
             <div className="metadataProfileFilters" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <input className="qualitySettingsLocalSearch" aria-label="Cari kode, nama indikator, program, kategori, atau unit" placeholder="Cari kode, indikator, program, kategori, unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '1 1 240px', minWidth: 180 }} />
@@ -1055,8 +1066,13 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 <option value="retired">Riwayat versi (retired)</option>
                 <option value="all">Semua versi</option>
               </select>
+              <select aria-label="Kelompokkan profil indikator" value={profileGrouping} onChange={(e) => setProfileGrouping(e.target.value as typeof profileGrouping)}>
+                <option value="all">Tampil semua</option>
+                <option value="category">Kategori Indikator</option>
+                <option value="unit">Unit Pelaksana</option>
+              </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
-              <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active') }}>Reset filter</button>
+              <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active'); setProfileGrouping('all') }}>Reset filter</button>
               {canManageCatalog && <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX</LiquidGlassButton>}
               <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
               {canManageCatalog && room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
@@ -1171,7 +1187,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               </div>
             </AurekaModal>
             <div style={{ display: 'grid', gap: 7 }}>
-              {filteredProfiles.map((profile) => (
+              {profileGroups.map(([label, group]) => <section key={label} style={{ display: 'grid', gap: 7 }}>
+                {label && <h3>{label} ({group.length})</h3>}
+                {group.map((profile) => (
                 <div key={profile.id} style={{ padding: 11, border: needsMetadataReview(profile) ? '1px solid rgba(184,52,52,.48)' : needsTargetApproval(profile) ? '1px solid rgba(190,125,35,.48)' : hasNeutralTargetStatus(profile) ? '1px solid rgba(100,116,139,.28)' : '1px solid rgba(20,34,27,.09)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', opacity: profile.is_active ? 1 : .62, background: 'rgba(255,255,255,.19)' }}>
                   <div style={{ minWidth: 0, flex: '1 1 260px' }}>
                     <div style={{ fontSize: 12, fontWeight: 850, overflowWrap: 'anywhere' }}>{profile.code} · {profile.title || '(Tanpa nama)'}</div>
@@ -1199,6 +1217,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                   </div>
                 </div>
               ))}
+              </section>)}
               {!filteredProfiles.length && <div style={{ padding: 16, textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>Tidak ada indikator yang cocok dengan filter ini.</div>}
             </div>
           </div>
@@ -1207,15 +1226,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
 
 
-        {tab === 'profiles' && profileWorkspaceOpen && profileWorkspaceSection === 'proposals' && (
-          <div style={{marginTop:12,display:'grid',gap:10}}>
-            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceSection('profiles')}>Kembali ke kamus profil</button>
-              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceOpen(false)}>Kembali ke Visual Intelligence</button>
-            </div>
-            <IndicatorProposalWorkspace rooms={rooms} role={role} currentRoomId={initialRoomId}/>
-          </div>
-        )}
+
         </div>
       </LiquidGlass>
     </div>

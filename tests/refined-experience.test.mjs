@@ -32,7 +32,7 @@ test('workspace header stays compact while retaining the actual navigation and d
   assert.ok(home.includes('UnifiedModuleNavigation'))
   assert.doesNotMatch(home, /workspacePageIntro/)
   assert.doesNotMatch(home, /Gambaran yang jelas|Pencatatan, pemeriksaan, dan evaluasi mutu pelayanan/)
-  for (const control of ['selectSidebarChild', 'triggerWorkspaceExport', 'dispatchWorkspaceSearch', 'saveFirstPassword', 'resendVerify', 'sendReset']) {
+  for (const control of ['navigateWorkspace', 'triggerWorkspaceExport', 'dispatchWorkspaceSearch', 'saveFirstPassword', 'resendVerify', 'sendReset']) {
     assert.ok(home.includes(control), `Missing workflow: ${control}`)
   }
 })

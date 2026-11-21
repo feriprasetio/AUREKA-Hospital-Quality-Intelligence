@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -14,7 +15,7 @@ test('Sekretariat is owned by PMKP, visible in the PMKP category, and active', (
   assert.ok(registry.includes("{ id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'available'"))
   assert.ok(home.includes("disabled={item.status==='planned'}"))
   assert.ok(home.includes("if(item.status==='planned')return"))
-  assert.ok(home.includes("'sekretariat':'secretariat'"))
+  assert.deepEqual(readWorkspaceHash("#sekretariat"), { module:"secretariat", section:"register" })
   const workspace = read('components/governance/SecretariatWorkspace.tsx')
   assert.ok(workspace.includes('Register Dokumen'))
   assert.ok(workspace.includes('Meeting ID'))
@@ -23,24 +24,26 @@ test('Sekretariat is owned by PMKP, visible in the PMKP category, and active', (
 test('Sekretariat follows Administrasi Kegiatan with Register Kegiatan and Kirim Undangan subtabs', () => {
   const home = read('components/HomeClient.tsx')
   const start = home.indexOf('secretariat:[', home.indexOf('const sidebarChildGroups'))
-  const end = home.indexOf('settings:[', start)
+  const end = home.indexOf('account:[', start)
   assert.ok(start >= 0 && end > start)
   const group = home.slice(start, end)
   assert.ok(group.includes("{id:'administration',label:'Administrasi Kegiatan',children:"))
   assert.ok(group.includes("{id:'register',label:'Register Kegiatan'}"))
   assert.ok(group.includes("{id:'invitations',label:'Kirim Undangan'}"))
-  assert.equal(group.split("{id:'").length - 1, 3)
+  assert.match(group, /id:'programs',label:'Program Kerja Tahunan',children:/)
+  assert.match(group, /Rencana Kegiatan dan Timeline/)
+  assert.match(group, /Area Prioritas/)
+  assert.match(group, /Usulan Indikator Baru/)
 })
 
 test('Sekretariat contextual selection and deep links preserve one canonical module state', () => {
   const home = read('components/HomeClient.tsx')
-  assert.ok(home.includes("if(moduleId==='secretariat')"))
-  assert.ok(home.includes("if(childId==='register'||childId==='invitations')setSecretariatSection(childId)"))
-  assert.ok(home.includes("if(next==='secretariat')"))
-  assert.ok(home.includes("setSecretariatSection(sectionMap[section||'']||'register')"))
-  assert.ok(home.includes("secretariat:'#sekretariat'"))
-  assert.ok(home.includes("active==='secretariat'?secretariatSection"))
-  assert.ok(home.includes("active==='secretariat'?<SecretariatWorkspace section={secretariatSection} rooms={roomsList}"))
+  for (const alias of ['undangan', 'invitations', 'kirim-undangan']) {
+    assert.deepEqual(readWorkspaceHash('#sekretariat/' + alias), { module: 'secretariat', section: 'invitations' })
+  }
+  assert.deepEqual(readWorkspaceHash('#sekretariat/program-kerja/area-prioritas'), { module: 'analytics', section: 'priorities' })
+  assert.match(home, /setSecretariatSection\(section==='invitations'\?'invitations':'register'\)/)
+  assert.match(home, /active==='secretariat'\?<SecretariatWorkspace section=\{secretariatSection\}/)
 })
 
 test('Secretariat workspace uses the existing backend register and contains no synthetic records', () => {

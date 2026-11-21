@@ -288,6 +288,8 @@ function PsFormModal({ label, children, onClose }: { label: string; children: Re
   )
 }
 
+type SafetyTab = 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'
+
 export default function PatientSafetyWorkspace({
   supabase,
   rooms,
@@ -296,6 +298,7 @@ export default function PatientSafetyWorkspace({
   canManageWorkflow,
   focus,
   initialTab = 'overview',
+  activeTab,
   showTabs = true,
   onTabChange,
   scopeRoomId = null,
@@ -309,20 +312,25 @@ export default function PatientSafetyWorkspace({
   isSuperAdmin: boolean
   canManageWorkflow: boolean
   focus?: SafetyFocus | null
-  initialTab?: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'
+  initialTab?: SafetyTab
+  activeTab?: SafetyTab
   showTabs?: boolean
-  onTabChange?: (tab: 'overview' | 'incidents' | 'investigation' | 'survey' | 'responses') => void
+  onTabChange?: (tab: SafetyTab) => void
   onAskNara?: (prompt: string, pageContext: string) => void
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_patient_safety'), [supabase])
   const qualityDb = useMemo(() => (supabase as any).schema('aureka_quality'), [supabase])
   const scopeUnitName = scopeRoomId == null ? '' : (rooms.find((room) => Number(room.id) === Number(scopeRoomId))?.name ?? '')
   const normalizeUnitName = (value: unknown) => String(value ?? '').trim().toLocaleLowerCase('id-ID')
-  const [tab, setTab] = useState<'overview' | 'incidents' | 'investigation' | 'survey' | 'responses'>(initialTab)
+  const [localTab, setLocalTab] = useState<SafetyTab>(initialTab)
+  const tab = activeTab ?? localTab
+  const setTab = (next: SafetyTab) => {
+    if (activeTab === undefined) setLocalTab(next)
+    onTabChange?.(next)
+  }
   // Akses investigasi dan agregat survei tetap dicatat sebagai aktivitas sensitif.
   useEffect(() => { if (tab === 'investigation') logSensitiveView('incident_investigation', 'workspace-investigasi'); else if (tab === 'responses') logSensitiveView('survey_named_response', 'rekapan-survei-agregat') }, [tab])
-  useEffect(() => { setTab(initialTab) }, [initialTab])
-  useEffect(() => { onTabChange?.(tab) }, [tab, onTabChange])
+  useEffect(() => { setLocalTab(initialTab) }, [initialTab])
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
   const [responses, setResponses] = useState<CultureResponse[]>([])

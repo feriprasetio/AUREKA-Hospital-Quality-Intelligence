@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -51,17 +52,17 @@ test('the unclear Other response review and Statistics & Reports tabs are remove
 
 test('OPPE / FPPE is nested under Sumber Daya Manusia and uses the canonical route', () => {
   const home = read('components/HomeClient.tsx')
-  const qualityStart = home.indexOf('quality:[')
+  const qualityStart = home.indexOf("quality:role==='DEWAN_PENGAWAS'")
   const qualityEnd = home.indexOf('\n   ],', qualityStart)
   const staffStart = home.indexOf('staff:[')
   const staffEnd = home.indexOf('\n   ],', staffStart)
   assert.ok(!home.slice(qualityStart, qualityEnd).includes('oppe-fppe'))
   assert.ok(home.slice(staffStart, staffEnd).includes('oppe-fppe'))
   assert.ok(home.includes("(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace"))
-  assert.ok(home.includes("'tenaga-klinis':'staff'"))
+  assert.deepEqual(readWorkspaceHash("#tenaga-klinis/oppe"), { module:"staff", section:"oppe-fppe" })
   // Blueprint v2: rute hash per modul ditetapkan di satu peta
   assert.ok(home.includes("staff:'#sumber-daya-manusia'"))
-  assert.ok(home.includes("analytics:'#program'"))
+  assert.match(home, /#sekretariat\/program-kerja/)
 })
 
 

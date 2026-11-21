@@ -15,7 +15,7 @@ type PriorityArea = {
 }
 type Draft = Partial<PriorityArea>
 type ProgramPayload = { can_manage: boolean; priority_areas: PriorityArea[] }
-type Screen = 'home'|'priorities'
+type Screen = 'home'|'timeline'|'priorities'
 type ProgramActivity = {
   id:string;program_year:number;title:string;description:string;expected_output:string
   owner_room_id:number|null;room_name:string|null;responsible_person:string
@@ -28,8 +28,9 @@ const STATUS:Record<PriorityArea['status'],string>={aktif:'Aktif',berjalan:'Berj
 const PRIORITY:Record<PriorityArea['priority'],string>={tinggi:'Tinggi',sedang:'Sedang',rendah:'Rendah'}
 const fmtDate=(v?:string|null)=>v?new Date(v+'T12:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'Belum ditetapkan'
 
-export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms:Room[];role:string|null;currentRoomId:number|null}) {
-  const [screen,setScreen]=useState<Screen>('home')
+export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,onScreenChange}:{
+  rooms:Room[];role:string|null;currentRoomId:number|null;screen:Screen;onScreenChange:(screen:Screen)=>void
+}) {
   const [year,setYear]=useState(new Date().getFullYear())
   const [rows,setRows]=useState<PriorityArea[]>([])
   const [draft,setDraft]=useState<Draft|null>(null)
@@ -101,11 +102,11 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
 
   return <section className="rmPanel govWorkspace annualProgramWorkspace" aria-label="Program kerja tahunan">
     <div className="rmSectionHead">
-      <div><span className="rmEyebrow">Program · Perencanaan Mutu</span><h3>{screen==='home'?'Program Kerja Tahunan':'Area Prioritas'}</h3>
-        <p>{screen==='home'?'Visual Intelligence status Area Prioritas Rumah Sakit berdasarkan data yang tersimpan.':'Tetapkan masalah prioritas, sasaran hasil, pemilik, dan tenggat untuk tahun berjalan.'}</p>
+      <div><span className="rmEyebrow">Program · Perencanaan Mutu</span><h3>{screen==='priorities'?'Area Prioritas':'Program Kerja Tahunan'}</h3>
+        <p>{screen==='priorities'?'Tetapkan masalah prioritas, sasaran hasil, pemilik, dan tenggat.':'Jadwal dan progres kegiatan untuk tahun yang dipilih.'}</p>
       </div>
       <div className="govHeadTools">
-        {screen!=='home'&&<button type="button" className="rmButton" onClick={()=>setScreen('home')}>← Kembali ke Program</button>}
+        {screen!=='home'&&<button type="button" className="rmButton" onClick={()=>onScreenChange('home')}>← Kembali ke Program</button>}
         <label className="govYear">Tahun <select value={year} onChange={e=>setYear(Number(e.target.value))}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
       </div>
     </div>
@@ -122,16 +123,12 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
         <div><h5>Tenggat berdasarkan triwulan</h5><div className="annualProgramQuarterGrid">{quarterDeadlines.map(item=><div key={item.quarter}><span>{item.quarter}</span><b>{loading?'…':item.count.toLocaleString('id-ID')}</b><small>area dengan tenggat</small></div>)}</div><p className="annualProgramVisualNote">Area tanpa tanggal tenggat tidak dimasukkan ke distribusi triwulan.</p></div>
       </div>
     </section>
-    <div className="annualProgramCards">
-      <button type="button" className="annualProgramCard" onClick={()=>setScreen('priorities')}>
-        <span className="annualProgramCardIcon" aria-hidden="true">◎</span>
-        <span className="annualProgramCardBody"><strong>Area Prioritas</strong><small>Daftar masalah strategis, sasaran mutu, unit pemilik, dan rencana penyelesaian.</small><span className="annualProgramCardMeta">{loading?'Memuat…':`${rows.length} area · ${activeCount} masih berjalan`}</span></span>
-        
-      </button>    </div>
+    </div>}
+    {screen!=='priorities'&&<div className="annualProgramHome">
       <section className="annualTimelinePanel" aria-label="Timeline kegiatan tahunan">
         <div className="annualTimelineHead">
           <div><span className="rmEyebrow">PELAKSANAAN PROGRAM · GANTT</span><h4>Timeline Kegiatan Tahunan · {year}</h4><p>Rentang waktu berdasarkan tanggal mulai dan selesai yang dicatat. Panjang batang menunjukkan durasi kalender, sedangkan isian di dalamnya menunjukkan progres manual yang dilaporkan.</p></div>
-          {canManage&&<button type="button" className="rmButton primary" onClick={startActivity}>+ Tambah Kegiatan Timeline</button>}
+          {screen==='home'?<button type="button" className="rmButton primary" onClick={()=>onScreenChange('timeline')}>Lihat Program Kerja</button>:canManage&&<button type="button" className="rmButton primary" onClick={startActivity}>+ Tambah Kegiatan Timeline</button>}
         </div>
         {activityError&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{activityError}</p></div>}
         {activityLoading?<div className="rmLoading">Memuat timeline kegiatan…</div>:activityRows.length===0?<AsyncStatePanel state="empty" title="Belum ada kegiatan pada timeline" description={canManage?'Tambahkan aktivitas dengan tanggal mulai, selesai, unit pemilik, dan penanggung jawab untuk membentuk Gantt tahunan.':'Belum ada aktivitas tahunan yang dicatat untuk periode ini.'} compact/>:
@@ -141,7 +138,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
             const startMonth=Math.max(1,Math.min(12,Number(activity.start_date.slice(5,7))))
             const endMonth=Math.max(startMonth,Math.min(12,Number(activity.end_date.slice(5,7))))
             return <article className="annualTimelineRow" key={activity.id}>
-              <div className="annualTimelineRowMeta"><div><strong>{activity.title}</strong><small>{roomLabel(activity.owner_room_id)} · {activity.responsible_person||'Penanggung jawab belum diisi'} · {fmtDate(activity.start_date)} – {fmtDate(activity.end_date)}</small></div><div className="annualTimelineRowActions"><span className={'govStatus '+(activity.status==='completed'?'tercapai':activity.status==='on_hold'?'ditunda':activity.status==='cancelled'?'dibatalkan':activity.status==='in_progress'?'berjalan':'aktif')}>{activity.status==='completed'?'Selesai':activity.status==='in_progress'?'Berjalan':activity.status==='on_hold'?'Ditunda':activity.status==='cancelled'?'Dibatalkan':'Direncanakan'} · {activity.progress_percent}%</span>{canManage&&<button type="button" className="rmIconButton" onClick={()=>editActivity(activity)}>Edit</button>}</div></div>
+              <div className="annualTimelineRowMeta"><div><strong>{activity.title}</strong><small>{roomLabel(activity.owner_room_id)} · {activity.responsible_person||'Penanggung jawab belum diisi'} · {fmtDate(activity.start_date)} – {fmtDate(activity.end_date)}</small></div><div className="annualTimelineRowActions"><span className={'govStatus '+(activity.status==='completed'?'tercapai':activity.status==='on_hold'?'ditunda':activity.status==='cancelled'?'dibatalkan':activity.status==='in_progress'?'berjalan':'aktif')}>{activity.status==='completed'?'Selesai':activity.status==='in_progress'?'Berjalan':activity.status==='on_hold'?'Ditunda':activity.status==='cancelled'?'Dibatalkan':'Direncanakan'} · {activity.progress_percent}%</span>{canManage&&screen==='timeline'&&<button type="button" className="rmIconButton" onClick={()=>editActivity(activity)}>Edit</button>}</div></div>
               <div className="annualTimelineTrack">
                 {Array.from({length:12},(_,i)=><i className="annualTimelineMonthCell" key={i}/>)}
                 <div className={'annualTimelineBar '+activity.status} style={{gridColumnStart:startMonth,gridColumnEnd:endMonth+1}}><span style={{width:activity.progress_percent+'%'}}/></div>
@@ -173,7 +170,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       </article>)}</div>}
     </div>}
 
-    <AurekaModal open={Boolean(draft)} title={draft?.id?'Edit Area Prioritas':'Tambah Area Prioritas'} subtitle="Rumusan masalah dan sasaran hasil menjadi dasar penetapan intervensi." closeDisabled={busy} onClose={()=>setDraft(null)}
+    <AurekaModal open={screen==='priorities'&&Boolean(draft)} title={draft?.id?'Edit Area Prioritas':'Tambah Area Prioritas'} subtitle="Rumusan masalah dan sasaran hasil menjadi dasar penetapan intervensi." closeDisabled={busy} onClose={()=>setDraft(null)}
       footer={<><button type="button" className="akBtn akBtnGhost" onClick={()=>setDraft(null)}>Batal</button><button type="button" className="akBtn akBtnPrimary" disabled={busy||String(draft?.title||'').trim().length<5||String(draft?.problem_statement||'').trim().length<10} onClick={()=>void save()}>{busy?'Menyimpan…':'Simpan Area Prioritas'}</button></>}>
       {draft&&<div className="govForm">
         <div className="govFormRow">
@@ -196,7 +193,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId}:{rooms
       </div>}
     </AurekaModal>
 
-    <AurekaModal open={Boolean(activityDraft)} title={activityDraft?.id?'Edit Kegiatan Timeline':'Tambah Kegiatan Timeline'} subtitle="Catat rentang waktu dan progres kegiatan yang dapat ditelusuri pada Gantt tahunan." closeDisabled={activityBusy} onClose={()=>setActivityDraft(null)}
+    <AurekaModal open={screen==='timeline'&&Boolean(activityDraft)} title={activityDraft?.id?'Edit Kegiatan Timeline':'Tambah Kegiatan Timeline'} subtitle="Catat rentang waktu dan progres kegiatan yang dapat ditelusuri pada Gantt tahunan." closeDisabled={activityBusy} onClose={()=>setActivityDraft(null)}
       footer={<><button type="button" className="akBtn akBtnGhost" disabled={activityBusy} onClick={()=>setActivityDraft(null)}>Batal</button><button type="button" className="akBtn akBtnPrimary" disabled={activityBusy||String(activityDraft?.title||'').trim().length<5||!activityDraft?.start_date||!activityDraft?.end_date} onClick={()=>void saveActivity()}>{activityBusy?'Menyimpan…':'Simpan Kegiatan'}</button></>}>
       {activityDraft&&<div className="govForm">
         <label>Nama kegiatan<input value={activityDraft.title||''} onChange={e=>setActivityDraft({...activityDraft,title:e.target.value})} placeholder="Contoh: Audit kepatuhan identifikasi pasien"/></label>

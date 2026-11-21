@@ -27,6 +27,13 @@ test('mobile drawer has one coherent hidden/open transform state and a correctly
   assert.match(css, /\.workspaceScrim\[data-open="false"\][\s\S]*?display: none !important/)
 })
 
+test('phone header reserves independent slots for the drawer, profile and search trigger', () => {
+  const layout = read('app/aureka-layout-integrity.css')
+  const aurora = read('app/aurora.css')
+  assert.match(layout, /"menu context context theme bell"\s+"profile profile nara inbox find"\s+"search search search search search"/)
+  assert.doesNotMatch(aurora, /grid-template-areas: "ctx find theme bell ai"/)
+})
+
 test('collapsed desktop navigation hides button labels while phone drawers restore readable labels', () => {
   const css = read('app/aureka-navigation-system.css')
   assert.match(css, /sidebarIsCollapsed[\s\S]*?\.sidebarDomainTrigger > button > span/)
@@ -35,17 +42,17 @@ test('collapsed desktop navigation hides button labels while phone drawers resto
   assert.match(css, /\.sidebarDomainItems:not\(\[hidden\]\)[\s\S]*?display: grid !important/)
 })
 
-test('patient and clinical modules have explicit primary contextual tabs with synchronized active identifiers', () => {
+test('patient and clinical workspaces show contextual navigation for the selected sidebar module', () => {
   const home = read('components/HomeClient.tsx')
-  assert.match(home, /const patientRailItems=\[/)
-  assert.match(home, /const clinicalRailItems=\[/)
-  assert.match(home, /const activeRailItems(?::\s*\{id:string;label:string;hint\?:string\}\[\])?=activeNavModuleId==='patients'\?patientRailItems:activeNavModuleId==='clinical'\?clinicalRailItems:/)
-  assert.match(home, /const activeNavPrimaryId=activeNavModuleId==='patients'\?patientsRegistryTab:activeNavModuleId==='clinical'/)
-  assert.match(home, /activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'\?'':activeNestedNavGroup/)
-  assert.match(home, /activeNavGroups.length>0\|\|activeNavModuleId==='patients'\|\|activeNavModuleId==='clinical'/)
+  for (const [id, label] of [
+    ['icd', 'ICD-10'], ['los', 'Length of Stay'], ['readmisi', 'Readmisi'],
+    ['audit-pathway', 'Form Clinical Pathway'], ['pathway-analysis', 'Analisis Clinical Pathway'],
+    ['audit-clinical', 'Form Audit Klinis'], ['audit-death', 'Form Audit Kematian'],
+  ]) assert.ok(home.includes(`id:'${id}',label:'${label}'`))
   assert.match(home, /if\(child==='realcost'\)return active==='clinical'&&realcostAuditOpen/)
-  assert.match(home, /qualityResultsView==='pathway'/)
-  assert.match(home, /qualityResultsView==='clinical-death'/)
+  assert.match(home, /activeNavSelectedId=patientPatternTab/)
+  assert.match(home, /activeNavSelectedId=qualityResultsView==='pathway'\?'pathway-analysis'/)
+  assert.match(home, /onSubSelect=\{selectContextualTab\}/)
 })
 
 test('category sidebar controls retain accessible names and the active quality domain stays selected', () => {

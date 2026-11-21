@@ -17,6 +17,7 @@ const FOCUSABLE_SELECTOR = [
  */
 export function useAccessibleSidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const requestedTriggerRef = useRef<HTMLElement | null>(null)
   const panelRef = useRef<HTMLElement | null>(null)
@@ -27,6 +28,14 @@ export function useAccessibleSidebar() {
     setIsOpen(true)
   }, [])
   const close = useCallback(() => setIsOpen(false), [])
+
+  useEffect(() => {
+    const width = window.matchMedia('(max-width: 720px)')
+    const update = () => setIsMobile(width.matches)
+    update()
+    width.addEventListener('change', update)
+    return () => width.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -95,7 +104,6 @@ export function useAccessibleSidebar() {
       window.removeEventListener('resize', handleResize)
       document.body.style.overflow = previousBodyOverflow
 
-      // The bottom Menu trigger is visible on phones; the header trigger is not.
       // After a resize, restore focus to whichever trigger remains visible.
       const candidates = [requestedTriggerRef.current, triggerRef.current]
       const restoreTarget = candidates.find((element) => {
@@ -108,5 +116,5 @@ export function useAccessibleSidebar() {
     }
   }, [close, isOpen])
 
-  return { isOpen, open, close, triggerRef, panelRef }
+  return { isOpen, isMobile, open, close, triggerRef, panelRef }
 }

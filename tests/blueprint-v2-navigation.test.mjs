@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -21,7 +22,7 @@ test('Dashboard has one canonical navigation item and embeds Visual Intelligence
   assert.ok(registry.includes("id:'insights', label:'Visual Intelligence', group:'command_center'"))
   assert.match(app, /\.filter\(\(\{id\}\)=>id!=='nara'&&id!=='insights'\)/)
   assert.ok(!registry.includes("id:'nara_ai', label:'NARA AI'"))
-  assert.ok(app.includes("'analitik':'home','infografis':'home','analitik-laporan':'home'"))
+  assert.equal(readWorkspaceHash("#analitik-laporan").module, "home")
 })
 
 test('primary navigation labels and eight category ownership live in the central registry', () => {
@@ -35,39 +36,31 @@ test('primary navigation labels and eight category ownership live in the central
   assert.ok(home.includes("AUREKA_SIDEBAR_DOMAINS:readonly AurekaSidebarDomain[]=AUREKA_NAVIGATION_GROUPS"))
 })
 
-test('OPPE and FPPE are reachable from SDM navigation and not from quality navigation', () => {
-  const app = read('components/HomeClient.tsx')
-  const qualityStart = app.indexOf('quality:[')
-  const qualityEnd = app.indexOf('\n   ],', qualityStart)
-  const staffStart = app.indexOf('staff:[')
-  const staffEnd = app.indexOf('\n   ],', staffStart)
-  const qualityGroup = app.slice(qualityStart, qualityEnd)
-  const staffGroup = app.slice(staffStart, staffEnd)
-  assert.ok(!qualityGroup.includes('oppe-fppe'))
-  assert.ok(staffGroup.includes('Tenaga Kerja'))
-  assert.ok(staffGroup.includes('Tim dan Penugasan'))
-  assert.ok(staffGroup.includes('oppe-fppe'))
-  // Blueprint v2 §9: OPPE dan FPPE menu terpisah, satu workspace dengan layar awal berbeda
-  assert.ok(app.includes("active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace"))
-  assert.ok(staffGroup.includes("{id:'fppe',label:'FPPE'}"))
-  assert.ok(app.includes("'sumber-daya-manusia':'staff'"))
-  assert.ok(app.includes("section==='student-orientation'?'student-orientation'"))
-  assert.ok(app.includes("section==='oppe-fppe'||section==='oppe'?'oppe'"))
-  assert.ok(app.includes("section==='fppe'?'fppe'"))
-  assert.ok(app.includes("section==='kinerja-pic'?'pic-performance'"))
+test('OPPE, FPPE and education resolve to their own workforce destinations', () => {
+  const home = read('components/HomeClient.tsx')
+  const staff = home.slice(home.indexOf('staff:['), home.indexOf('return groups'))
+  assert.match(staff, /Tenaga Kerja/)
+  assert.match(staff, /Tim dan Penugasan/)
+  assert.match(staff, /id:'oppe-fppe',label:'OPPE'/)
+  assert.match(staff, /id:'fppe',label:'FPPE'/)
+  assert.match(home, /active==='staff'&&\(staffTab==='oppe'\|\|staffTab==='fppe'\)\?<OppeAuditWorkspace/)
+  assert.deepEqual(readWorkspaceHash('#sumber-daya-manusia/fppe'), { module: 'staff', section: 'fppe' })
+  assert.deepEqual(readWorkspaceHash('#sumber-daya-manusia/student-orientation'), { module: 'staff', section: 'student-orientation' })
+  assert.deepEqual(readWorkspaceHash('#sumber-daya-manusia/kinerja-pic'), { module: 'quality', section: 'pic-performance' })
 })
 
 test('legacy bookmarks remain mapped into the canonical destinations', () => {
-  const app = read('components/HomeClient.tsx')
-  assert.ok(app.includes("'metadata':'quality'"))
-  assert.ok(app.includes("'analitik-laporan':'home'"))
-  assert.ok(app.includes("'analitik':'home'"))
-  assert.ok(app.includes("'infografis':'home'"))
-  assert.ok(app.includes("analytics:'#program'"))
-  assert.ok(app.includes("staff:'#sumber-daya-manusia'"))
-  assert.ok(app.includes("'tenaga-klinis':'staff'"))
-  assert.ok(app.includes("['statistik','stats'].includes(section||'')"))
-  assert.ok(app.includes("setPatientsRegistryTab('analysis');setActive('patients')"))
+  const cases = [
+    ['#metadata/profiles', 'quality', 'profile-indicators'],
+    ['#analitik-laporan', 'home', ''],
+    ['#analitik', 'home', ''],
+    ['#infografis', 'home', ''],
+    ['#program/programs', 'analytics', 'programs'],
+    ['#tenaga-klinis/oppe', 'staff', 'oppe-fppe'],
+    ['#pasien/statistik', 'patients', 'icd'],
+    ['#pasien/stats', 'patients', 'icd'],
+  ]
+  for (const [hash, module, section] of cases) assert.deepEqual(readWorkspaceHash(hash), { module, section }, hash)
 })
 
 test('Dashboard accordion has a single destination and NARA is integrated rather than a child menu', () => {
@@ -100,16 +93,16 @@ test('indicator and clinical audit domains have separate navigation and canonica
   const registry = read('lib/aureka/module-registry.ts')
   assert.ok(registry.includes("id:'quality', label:'Indikator Mutu'"))
   assert.ok(registry.includes("id:'clinical', label:'Peningkatan Kinerja Klinis'"))
-  assert.ok(app.includes("clinical:["))
+  assert.match(app, /clinical:realcostAuditOpen\?\[\]/)
   assert.match(app, /quality:role==='DEWAN_PENGAWAS'/)
   assert.ok(app.includes("qualityReconciliationOpen?'#indikator-mutu/rekonsiliasi'"))
   assert.ok(app.includes("qualityResultsView?'#indikator-mutu/hasil-capaian/'+(qualityResultsGroup==='category'?'kategori-indikator':'unit-keseluruhan'):qualityOpen?'#indikator-mutu/form-logbook':'#indikator-mutu'"))
-  assert.ok(app.includes("if(section==='rekonsiliasi')"))
-  assert.ok(app.includes("if(section==='usulan-indikator'||section==='profil-indikator')"))
-  assert.ok(app.includes("setActive('quality');setQualityProfileOpen(true)"))
+  assert.equal(readWorkspaceHash("#indikator-mutu/rekonsiliasi").section, "quality-reconciliation")
+  assert.equal(readWorkspaceHash("#indikator-mutu/profil-indikator").section, "profile-indicators")
+  assert.ok(app.includes("setQualityProfileOpen(section==='profile-indicators')"))
   assert.ok(app.includes("<QualitySettingsWorkspace rooms={roomsList} initialTab=\"profiles\" showTabs={false}"))
   assert.ok(app.includes("const QualitySettingsWorkspace=dynamic(()=>import('@/components/QualitySettings')"))
-  assert.ok(app.includes("hash='#peningkatan-kinerja-klinis/'+audit+(qualityResultsView&&!realcostAuditOpen?'/hasil-capaian':'')"))
+  assert.equal(readWorkspaceHash("#peningkatan-kinerja-klinis/clinical-pathway/hasil-capaian").section, "pathway-analysis")
   assert.ok(app.includes("active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace"))
   assert.ok(app.includes("const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeathAuditWorkspace')"))
   assert.ok(app.includes(":active==='clinical'&&qualityOpen?<ClinicalDeathAuditWorkspace"))
@@ -120,8 +113,8 @@ test('indicator and clinical audit domains have separate navigation and canonica
 test('Program navigation combines stakeholder recommendations and RTL into one workspace', () => {
   const app = read('components/HomeClient.tsx')
   const workspace = read('components/governance/GovernanceProgramWorkspace.tsx')
-  assert.match(app, /\{id:'programs',label:'Program Kerja Tahunan'\}/)
-  assert.match(app, /\{id:'recommendations',label:'Rekomendasi dan Rencana Tindak Lanjut'\}/)
+  assert.match(app, /id:'programs',label:'Program Kerja Tahunan',children:/)
+  assert.match(app, /programTab==='recommendations'\?<GovernanceProgramWorkspace/)
   assert.doesNotMatch(app, /\{id:'rtl',label:'Rencana Tindak Lanjut/)
   assert.match(workspace, /Pemberi rekomendasi/)
   for (const level of ['DEWAN_PENGAWAS','DIREKTUR','KETUA_PMKP','KABID']) assert.ok(workspace.includes(level))
@@ -136,7 +129,7 @@ test('retired E-Regulasi is absent from application navigation and workspace sou
   assert.doesNotMatch(registry, /regulation|regulasi/i)
 })
 
-test('PIC performance is integrated into Quality Monitoring and indicator proposals live under Profile Indicators', () => {
+test('PIC performance is integrated into Quality Monitoring and indicator proposals live under Sekretariat', () => {
   const app = read('components/HomeClient.tsx')
   const annualProgram = read('components/governance/AnnualProgramWorkspace.tsx')
   const qualitySettings = read('components/QualitySettings.tsx')
@@ -149,22 +142,21 @@ test('PIC performance is integrated into Quality Monitoring and indicator propos
   assert.match(app, /Kinerja PIC/)
   assert.doesNotMatch(app, /staff:\[[\s\S]{0,500}pic-performance/)
   assert.match(app, /<PicPerformanceWorkspace\/>/)
-  assert.match(app, /qualityMonitorTabs/)
+  assert.match(app, /activeNavSelectedId=.*qualityMonitorOpen\?\(qualityMonitorTab==='pic'\?'pic-performance':'quality-reporting'\)/)
   assert.match(performance, /aureka_pic_performance_dashboard/)
   assert.match(performance, /Data terakhir dibuat/)
   assert.match(performance, /records_validated/)
   assert.match(migration, /records_archived/)
   assert.match(app, /AnnualProgramWorkspace/)
   assert.doesNotMatch(annualProgram, /Usulan Indikator Baru|IndicatorProposalWorkspace|AnnualQualitySettings/)
-  assert.match(qualitySettings, /IndicatorProposalWorkspace/)
+  assert.match(app, /programTab==='proposals'\?<IndicatorProposalWorkspace/)
   assert.match(app, /active==='quality'&&qualityProfileOpen\?<QualitySettingsWorkspace/)
   assert.match(app, /if\(child==='profile-indicators'\)return qualityProfileOpen/)
   assert.match(qualitySettings, /Visual Intelligence Profil Indikator/)
   assert.match(qualitySettings, /const canManageCatalog = role === 'ADMIN'/)
   assert.match(qualitySettings, /canManageCatalog &&/)
-  assert.match(qualitySettings, /Lihat Usulan Indikator Baru/)
-  assert.match(qualitySettings, /profileWorkspaceSection === 'proposals'/)
-  assert.doesNotMatch(app, /id:'proposals',label:'Usulan Indikator Baru'/)
+  assert.doesNotMatch(qualitySettings, /IndicatorProposalWorkspace/)
+  assert.match(app, /id:'proposals',label:'Usulan Indikator Baru'/)
   assert.match(proposals, /aureka_gov_indicator_proposal_save/)
   assert.match(proposals, /aureka_gov_indicator_proposal_review/)
   assert.match(proposals, /aureka_gov_indicator_proposal_activate/)
@@ -226,10 +218,11 @@ test('SPM belongs to Manajemen Rumah Sakit in the central registry and retains i
 })
 
 
-test('SPM selection state is reset when entering the general quality module', () => {
+test('SPM and SPO resolve independently from the quality logbook', () => {
   const app = read('components/HomeClient.tsx')
-  assert.ok(app.includes("if(next==='quality'){setSpmOpen(false);"))
-  assert.ok(app.includes("else if(id==='quality'){setSpmOpen(false);"))
-  assert.ok(app.includes("if(section==='spm'){"))
-  assert.ok(app.includes("setActive('quality');setSpmOpen(true);"))
+  assert.deepEqual(readWorkspaceHash('#indikator-mutu/spm'), { module: 'quality', section: 'spm' })
+  assert.deepEqual(readWorkspaceHash('#indikator-mutu/spo'), { module: 'quality', section: 'sop' })
+  assert.deepEqual(readWorkspaceHash('#indikator-mutu'), { module: 'quality', section: 'quality-overview' })
+  assert.match(app, /setSpmOpen\(section==='spm'\)/)
+  assert.match(app, /setSpoOpen\(section==='sop'\)/)
 })

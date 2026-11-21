@@ -518,18 +518,18 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     position: relative !important;
     display: grid !important;
-    grid-template-columns: 38px minmax(0, 1fr) 40px 40px 40px !important;
+    grid-template-columns: 44px minmax(0, 1fr) repeat(3, 44px) !important;
     grid-template-areas:
       "menu context context theme bell"
-      "search search search search search"
-      "profile profile nara inbox ." !important;
+      "profile profile nara inbox find"
+      "search search search search search" !important;
     gap: 7px !important;
     min-height: 0 !important;
     padding: 8px !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton { grid-area: menu !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceContext { grid-area: context !important; width: 100% !important; max-width: none !important; overflow: hidden !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSearchToggle { display: none !important; }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSearchToggle { grid-area: find !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceGlobalSearch { grid-area: search !important; display: flex !important; width: 100% !important; min-width: 0 !important; max-width: none !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNaraButton { grid-area: nara !important; }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceInboxButton { grid-area: inbox !important; }
@@ -540,16 +540,16 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     grid-area: profile !important;
     width: 100% !important;
     max-width: 100% !important;
-    min-height: 40px !important;
+    min-height: 44px !important;
     margin: 0 !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderProfileText { width: 100% !important; max-width: 100% !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderIcon:not(.workspaceSearchToggle) {
-    flex-basis: 40px !important;
-    width: 40px !important;
-    min-width: 40px !important;
-    height: 40px !important;
-    min-height: 40px !important;
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderIcon {
+    flex-basis: 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {
     margin-bottom: 8px !important;
@@ -581,6 +581,9 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
   grid-template-columns: minmax(210px, 240px) minmax(0, 1fr) !important;
   align-items: start !important;
   gap: 14px !important;
+}
+html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .settingsWorkspace .stLayoutWithContextNavigation {
+  grid-template-columns: minmax(0, 1fr) !important;
 }
 html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .settingsWorkspace .stNav {
   position: sticky !important;

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('Annual Program owns priority areas while proposals are consolidated in Profile Indicators', () => {
+test('Annual Program owns the timeline, priority areas and proposals', () => {
   const home = read('components/HomeClient.tsx')
   const workspace = read('components/governance/AnnualProgramWorkspace.tsx')
   const qualitySettings = read('components/QualitySettings.tsx')
@@ -14,9 +14,11 @@ test('Annual Program owns priority areas while proposals are consolidated in Pro
   assert.match(workspace, /aureka_gov_save_priority_area/)
   assert.doesNotMatch(workspace, /Usulan Indikator Baru|IndicatorProposalWorkspace|AnnualQualitySettings/)
   assert.doesNotMatch(workspace, /Pengajuan dan telaah indikator mutu baru/)
-  assert.match(qualitySettings, /IndicatorProposalWorkspace/)
+  assert.match(home, /programTab==='proposals'\?<IndicatorProposalWorkspace/)
+  assert.match(home, /Rencana Kegiatan dan Timeline/)
+  assert.match(workspace, /Lihat Program Kerja/)
   assert.match(qualitySettings, /Visual Intelligence Profil Indikator/)
-  assert.match(qualitySettings, /Lihat Usulan Indikator Baru/)
+  assert.doesNotMatch(qualitySettings, /IndicatorProposalWorkspace/)
   assert.match(metadata, /initialTab="profiles"[^>]*role=\{role\}/)
 })
 

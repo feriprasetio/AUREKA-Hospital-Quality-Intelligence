@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -21,24 +22,23 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
   assert.ok(home.includes('<UnifiedModuleNavigation'))
   assert.ok(home.includes('activeNestedNavGroup'))
   assert.ok(home.includes('activeRailTitle'))
-  assert.ok(home.includes("const activeRailItems: {id:string;label:string;hint?:string}[]=activeNavModuleId==='patients'?patientRailItems:activeNavModuleId==='clinical'?clinicalRailItems:activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
+  assert.ok(home.includes("const activeRailItemsHinted=activeNavGroups.map("))
   for (const legacy of ['WorkspaceModuleMap', 'mapNodes', 'wmmMap']) assert.ok(!home.includes(legacy))
   assert.ok(navCss.includes('.workspaceNavigationRail'))
   assert.ok(!/onPointerEnter|onPointerLeave|wmmMapPanel/.test(navCss))
 })
 
-test('the results rail exposes only the active Hasil Capaian group and its two sub-tabs', () => {
+test('the quality rail keeps the logbook and results together and tracks contextual selections', () => {
   assert.doesNotMatch(home, /id:'result-indicators',label:'Hasil Capaian'/)
   assert.ok(home.includes('qualityLogbookResultsStack'))
   assert.ok(home.includes('<h2>Hasil Capaian Indikator Mutu</h2>'))
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
-  assert.ok(home.includes("const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleId==='staff'&&staffTab==='student-orientation'?'Orientasi Mahasiswa':activeNavModuleId==='staff'&&staffTab==='training'?'In House Training':activeNavModuleLabel"))
-  assert.ok(home.includes('title={displayedRailTitle}'))
-  assert.ok(home.includes("const activeRailItems: {id:string;label:string;hint?:string}[]=activeNavModuleId==='patients'?patientRailItems:activeNavModuleId==='clinical'?clinicalRailItems:activeNavGroups.map(group=>({id:group.id,label:group.label}))"))
+  assert.ok(home.includes('title={activeRailTitle}'))
+  assert.ok(home.includes("const activeRailItemsHinted=activeNavGroups.map("))
   assert.ok(home.includes('activeId={activeNavPrimaryId}'))
   assert.ok(home.includes('secondaryActiveId={activeNavSecondaryId}'))
-  assert.ok(home.includes("onSubSelect={childId=>{if(activeNavModuleId==='patients')"))
-  assert.ok(home.includes('selectSidebarChild(activeNavModuleId,childId)'))
+  assert.ok(home.includes('onSubSelect={selectContextualTab}'))
+  assert.ok(home.includes('navigateWorkspace(activeNavModuleId,'))
 })
 
 test('sidebar renders eight role-filtered categories from the central registry and contains no legacy tree menu', () => {
@@ -103,8 +103,7 @@ test('patient records remain read-only and do not duplicate the indicator logboo
   assert.doesNotMatch(patientRegistry, /registryTab.*records|Riwayat Episode.*section/)
   assert.ok(!patientRegistry.includes('QualityIndicatorWorkspace'))
   assert.ok(!patientRegistry.includes('Tambah Episode'))
-  assert.ok(home.includes("patientView==='tambah-pasien'"))
-  assert.ok(home.includes("window.location.hash='#indikator-mutu/form-logbook'"))
+  assert.deepEqual(readWorkspaceHash('#pasien/register-pasien/tambah-pasien'), {module:'quality',section:'audit-indicators'})
   assert.ok(audit.includes("q().rpc('save_quality_logbook'"))
 })
 
@@ -141,8 +140,7 @@ test('Arktik module tabs use blue shapes and lighter blue subtabs', () => {
 
 
 test('global contextual navigation cannot disappear when a module route lacks a registry match', () => {
-  assert.ok(home.includes("const activeNavModuleId=activeNavEntry?.[0]||(active==='home'?'home':active)"))
-  assert.ok(home.includes("(MODS.find(([id])=>id===active)?.[1])"))
+  assert.match(home, /const activeNavModuleLabel=MODS\.find.*\|\|\(active==='home'\?'Dashboard':active\)/)
   const globalNavigation = read('app/aureka-global-navigation.css')
   assert.ok(globalNavigation.includes('html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceNavigationRail {'))
   assert.ok(globalNavigation.includes('visibility: visible !important;'))

@@ -11,7 +11,7 @@ import PresentationMode from '@/components/governance/PresentationMode'
 type Room = { id: number; name: string }
 type CountItem = MetricCount
 type MonthItem = MetricMonth
-type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn; onRoomChange?: (roomId: number | null) => void; onAskNara?: (context: { period: string; scope: string }) => void }
+type Props = { rooms: Room[]; role: string | null; mode?: 'full' | 'quality'; initialRoomId?: number | null; unitLocked?: boolean; onNavigate?: NavigateFn; onOpenLogbook?: () => void; onRoomChange?: (roomId: number | null) => void; onAskNara?: (context: { period: string; scope: string }) => void }
 type ChartSeries = { label: string; color: string; values: Array<number | null> }
 type ChartModel = { id: string; label: string; description: string; insight: string; labels: string[]; series: ChartSeries[]; kind: 'trend' | 'distribution' | 'progress' }
 
@@ -167,7 +167,7 @@ function ChartLegend({ series }: { series: ChartSeries[] }) {
   return <div className="ifChartLegend">{series.map((item) => <span key={item.label}><i style={{ background: item.color }}/>{item.label}</span>)}</div>
 }
 
-export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate, onRoomChange, onAskNara }: Props) {
+export default function InfographicsDashboard({ rooms, role, mode = 'full', initialRoomId = null, unitLocked = false, onNavigate, onOpenLogbook, onRoomChange, onAskNara }: Props) {
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [roomValue, setRoomValue] = useState(initialRoomId == null ? '' : String(initialRoomId))
   const [summary, setSummary] = useState<AurekaPortfolioSummary | null>(null)
@@ -292,7 +292,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ikhtisar indikator mutu' : 'Ikhtisar kinerja rumah sakit'}>
     <style>{css}</style>
     <header className="ifHero">
-      <div><span className="ifEyebrow">{qualityOnly ? 'Ikhtisar domain mutu' : 'Analitik lintas domain'}</span><h2>{qualityOnly ? 'Ikhtisar Indikator Mutu' : 'Analitik & Infografis Rumah Sakit'}</h2>
+      <div><span className="ifEyebrow">{qualityOnly ? 'Ikhtisar domain mutu' : 'Analitik lintas domain'}</span><h2>{qualityOnly ? 'Visual Intelligence Capaian Indikator Mutu' : 'Analitik & Infografis Rumah Sakit'}</h2>
         <p>{qualityOnly ? 'Ringkasan agregat indikator mutu untuk fungsi pengawasan. Tidak menampilkan identitas atau data pasien individual.' : 'Eksplorasi agregat mutu, keselamatan pasien, risiko, klinis dan program. Data operasional tetap dikelola pada modul pemilik.'}</p></div>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
@@ -305,7 +305,8 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
         </select></label>}
         {!qualityOnly && <button type="button" className="ifReportBtn" disabled={!summary || reportBusy} onClick={() => void openReport()}>{reportBusy ? 'Menyusun…' : 'Laporan PDF'}</button>}
         {!qualityOnly && <button type="button" className="ifReportBtn ifPresentBtn" disabled={!summary} onClick={openPresentation} title="Tampilkan ringkasan sebagai slide layar penuh untuk rapat">Presentasi</button>}
-        {!qualityOnly && onAskNara && <button type="button" className="ifReportBtn" disabled={!summary} onClick={() => onAskNara({ period: year, scope: selectedRoomName })}>Analisis dengan NARA</button>}
+        {onOpenLogbook && <button type="button" className="ifReportBtn" onClick={onOpenLogbook}>Lihat Logbook</button>}
+        {onAskNara && <button type="button" className="ifReportBtn" disabled={!summary} onClick={() => onAskNara({ period: year, scope: selectedRoomName })}>Analisis dengan NARA</button>}
         {!qualityOnly && summary && <PresentationMode open={presentOpen} onClose={() => setPresentOpen(false)} summary={summary as any} year={Number(year)} scope={selectedRoomName} reported={presentReported} />}
       </div>
     </header>

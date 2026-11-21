@@ -1,3 +1,4 @@
+import { readWorkspaceHash } from '../lib/aureka/workspace-route.ts'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -8,9 +9,12 @@ test('Orientasi Mahasiswa is active under Pendidikan dan Pelatihan', () => {
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeClient.tsx')
   assert.match(registry, /id:'student_orientation', label:'Orientasi Mahasiswa', moduleId:'staff', childId:'student-orientation', status:'available'/)
-  assert.match(home, /id:'education-training',label:'Pendidikan dan Pelatihan'/)
+  assert.match(registry, /id:'education_training', label:'Pendidikan dan Pelatihan'/)
   assert.match(home, /childId==='student-orientation'/)
-  assert.match(home, /section==='student-orientation'/)
+  assert.deepEqual(readWorkspaceHash('#sumber-daya-manusia/student-orientation'), {module:'staff',section:'student-orientation'})
+  assert.deepEqual(readWorkspaceHash('#pendidikan-dan-pelatihan/orientasi-mahasiswa'), {module:'staff',section:'student-orientation'})
+  assert.deepEqual(readWorkspaceHash('#sumber-daya-manusia/training'), {module:'staff',section:'training'})
+  assert.match(home, /'student-orientation':canAccessStudentOrientation/)
   assert.match(home, /staffTab==='student-orientation'/)
   assert.ok(home.includes("canManage={['ADMIN','PMKP','MANAGEMENT','KABID'].includes(role||'')}") )
 })

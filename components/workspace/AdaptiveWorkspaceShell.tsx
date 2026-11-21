@@ -33,7 +33,7 @@ export default function AdaptiveWorkspaceShell({
     [definition.workspaceId],
   )
   const [density, setDensity] = useState<AdaptiveWorkspaceDensity>('comfortable')
-  const [hydrated, setHydrated] = useState(false)
+  const [hydratedKey, setHydratedKey] = useState<string | null>(null)
 
   useEffect(() => {
     let nextDensity: AdaptiveWorkspaceDensity = 'comfortable'
@@ -43,17 +43,17 @@ export default function AdaptiveWorkspaceShell({
       // Private browsing and managed devices may deny local storage access.
     }
     setDensity(nextDensity)
-    setHydrated(true)
+    setHydratedKey(storageKey)
   }, [storageKey])
 
   useEffect(() => {
-    if (!hydrated) return
+    if (hydratedKey !== storageKey) return
     try {
       window.localStorage.setItem(storageKey, JSON.stringify({ version: 1, density }))
     } catch {
       // The workspace remains usable when preferences cannot be persisted.
     }
-  }, [density, hydrated, storageKey])
+  }, [density, hydratedKey, storageKey])
 
   const resetPreference = () => setDensity('comfortable')
 

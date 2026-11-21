@@ -58,11 +58,6 @@ export type AurekaNavigationGroup = {
 }
 
 /**
- * One source of truth for the global seven-category navigation.
- * The sidebar renders categories only; the selected category reveals its modules.
- * Module tabs/sub-tabs are owned by each module's contextual navigation.
- */
-/**
  * Canonical eight-category navigation, following Aureka Navigasi.docx.
  * Sidebar entries are MODULES only. Tabs/subtabs are rendered by each module workspace.
  * A module may route to an existing workspace section through moduleId + childId.
@@ -84,10 +79,9 @@ export const AUREKA_NAVIGATION_GROUPS: readonly AurekaNavigationGroup[] = [
   ]},
   { id:'quality_patient_safety', label:'Peningkatan Mutu dan Keselamatan Pasien', icon:'quality', items:[
     { id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'available', note:'Register dokumen, administrasi kegiatan, dan lima kategori berkas UMANG dalam satu Meeting ID.' },
-    { id:'annual_program', label:'Program Kerja Tahunan', moduleId:'analytics', childId:'programs' },
     { id:'quality_indicators', label:'Indikator Mutu', moduleId:'quality', childId:'quality-overview' },
     { id:'patient_safety', label:'Keselamatan Pasien', moduleId:'safety', childId:'overview' },
-    { id:'risk_management', label:'Manajemen Risiko', moduleId:'risk', childId:'register' },
+    { id:'risk_management', label:'Manajemen Risiko', moduleId:'risk', childId:'overview' },
   ]},
   { id:'hospital_management', label:'Manajemen Rumah Sakit', icon:'staff', items:[
     { id:'quality_development', label:'Pengembangan dan Pengendalian Mutu', moduleId:'quality', childId:'spm' },

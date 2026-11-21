@@ -64,7 +64,7 @@ type ClinicalPathwayCandidate = {
 }
 type Room = { id: number; name: string }
 type StaffOption = { id: string; employee_code: string; display_name: string; profession_group: string; position_title: string; room_id: number; room_name: string }
-type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; userName: string; onBack: () => void; lockRoomScope?: boolean }
+type Props = { initialRoomId: number | null; rooms: Room[]; isAdmin: boolean; userName: string; inputMode?: 'soap' | 'manual'; lockRoomScope?: boolean }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -226,8 +226,7 @@ function fromDatabase(row: any, fallback: Template | null, roomName: string): Au
   }
 }
 
-export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin, userName, onBack, lockRoomScope = false }: Props) {
-  void onBack
+export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin, userName, inputMode = 'soap', lockRoomScope = false }: Props) {
   const [templates, setTemplates] = useState<Template[]>([])
   const [masterReady, setMasterReady] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -976,7 +975,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
       <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Visual Intelligence Clinical Pathway</h4><p>Gunakan master yang telah disetujui. Setelah memilih diagnosis, AUREKA menampilkan rekam audit yang sudah tersimpan dan tindakan audit baru.</p></div></div>
         <div className="cpActions">
-          <button type="button" className="cpBtn primary" disabled={!masterReady || templates.filter((template) => template.status === 'published').length === 0} onClick={() => setScreen('library')}>Lihat Pustaka Diagnosis & Format Clinical Pathway</button>
+          <button type="button" className="cpBtn primary" disabled={!masterReady || templates.filter((template) => template.status === 'published').length === 0} onClick={() => setScreen('library')}>Lihat Daftar Pasien dengan Clinical Pathway</button>
           {isAdmin && <button type="button" className="cpBtn" onClick={() => { setScreen('library'); beginNewBuilder() }}>Kelola Master Clinical Pathway</button>}
           <button type="button" className="cpBtn" disabled={loading || saving} onClick={() => void loadTemplates()}>Muat ulang master</button>
         </div>
@@ -1106,13 +1105,13 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         </>}
       </div>
 
-      <ClinicalPathwayTextMiningPanel
+      <div hidden={inputMode === 'manual'}><ClinicalPathwayTextMiningPanel
         items={form.template.items as ClinicalTextMiningItem[]}
         days={form.template.days}
         admissionDate={form.admission_date}
         disabled={!isAdmin && form.status === 'validated'}
         onAccept={acceptTextMiningSuggestion}
-      />
+      /></div>
 
       {form.template.clinical_fields?.length > 0 && <div className="cpGlass cpPanel">
         <div className="cpSectionHead"><div><h4>Data klinis khusus format ini</h4></div><span className="cpBadge">{form.template.clinical_fields.filter((field) => !!String(form.clinical_data?.[field.id] || '').trim()).length} dari {form.template.clinical_fields.length} terisi</span></div>

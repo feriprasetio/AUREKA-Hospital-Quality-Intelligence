@@ -1205,7 +1205,7 @@ export default function OppeAuditWorkspace({
             <div className="oppeMiniMetric"><span>Penilaian OPPE tersimpan</span><strong>{loading?'…':filteredAssessments.length.toLocaleString('id-ID')}</strong></div>
           </div>
           <div className="oppeOverviewActions" style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:14}}>
-            <button type="button" className="oppeBtn primary" onClick={() => setScreen('assessment')}>Lihat Form & Output OPPE</button>
+            <button type="button" className="oppeBtn primary" onClick={() => setScreen('assessment')}>Lihat OPPE</button>
             <button type="button" className="oppeBtn" onClick={() => setScreen('rules')}>Lihat Pemetaan Indikator</button>
             <button type="button" className="oppeBtn" onClick={() => setScreen('history')}>Lihat Riwayat Penilaian</button>
             <button type="button" className="oppeBtn" disabled={loading} onClick={() => void load()}>{loading?'Memuat…':'Perbarui data'}</button>

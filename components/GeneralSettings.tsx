@@ -51,12 +51,15 @@ const friendlyRole = (r?: Role | null) => {
   return r.name || r.code
 }
 
+export type GeneralSettingsSection = 'profile' | 'security' | 'units' | 'users' | 'appearance' | 'system' | 'permissions' | 'mydata'
+
 export default function GeneralSettings({
   profile,
   role,
   rooms,
   onNavigate,
   onRoomsChanged,
+  onSettingsNavigate,
   openProfile,
   initialTab,
   startAt,
@@ -66,12 +69,13 @@ export default function GeneralSettings({
   rooms: Room[]
   onNavigate?: (moduleId: string) => void
   onRoomsChanged?: () => void
+  onSettingsNavigate?: (section: GeneralSettingsSection) => void
   /** Dibuka dari kartu nama di sidebar: langsung ke Akun Saya → Profil. */
   openProfile?: boolean
   /** Dibuka dari tombol "Ubah password": langsung ke Keamanan & Password. */
   initialTab?: 'security'
   /** Blueprint v2 §1: submenu Pengaturan di sidebar membuka bagian yang sesuai. */
-  startAt?: 'profile' | 'security' | 'units' | 'users' | 'appearance' | 'system' | 'permissions' | 'mydata'
+  startAt?: GeneralSettingsSection
 }) {
   const startSection = startAt === 'users' ? 'users' : startAt === 'appearance' ? 'appearance' : startAt === 'system' ? 'system' : startAt === 'permissions' ? 'permissions' : startAt === 'mydata' ? 'mydata' : 'general'
   const [section, setSection] = useState<'general' | 'users' | 'mydata' | 'appearance' | 'system' | 'permissions'>(startSection)
@@ -562,8 +566,8 @@ export default function GeneralSettings({
           <button type="button" onClick={() => setMsg('')} aria-label="Tutup notifikasi">×</button>
         </div>
       )}
-      <div className="stLayout">
-      <nav className="stNav" aria-label="Menu pengaturan">
+      <div className={onSettingsNavigate ? 'stLayout stLayoutWithContextNavigation' : 'stLayout'}>
+      {!onSettingsNavigate && <nav className="stNav" aria-label="Menu pengaturan">
         <div className="stNavProfile">
           <span className="stNavWho"><b>{me?.full_name || 'Akun AUREKA'}</b><small>{roleLabel}</small></span>
         </div>
@@ -583,9 +587,16 @@ export default function GeneralSettings({
             <span className="stNavIcon"><SettingsIcon kind={icon} /></span><span>{label}</span>
           </button>
         })}
-      </nav>
+      </nav>}
       <div className="stMain">
-      <WorkspaceModuleHeader title="Pengaturan" />
+      <WorkspaceModuleHeader title="Pengaturan" actions={onSettingsNavigate && (
+        <>
+          {section === 'general' && tab === 'profile' && !isAdmin && <button type="button" className="uBtn" onClick={() => onSettingsNavigate('mydata')}>Data Saya untuk PMKP</button>}
+          {(section === 'mydata' || (section === 'general' && tab === 'security')) && <button type="button" className="uBtn" onClick={() => onSettingsNavigate('profile')}>Kembali ke Profil Pengguna</button>}
+          {isAdmin && section === 'users' && <button type="button" className="uBtn" onClick={() => onSettingsNavigate('permissions')}>Hak Akses Role</button>}
+          {isAdmin && section === 'permissions' && <button type="button" className="uBtn" onClick={() => onSettingsNavigate('users')}>Kembali ke Pengguna</button>}
+        </>
+      )} />
       {section === 'appearance' && <AppearancePanel />}
       {section === 'system' && <><SystemConfigPanel /><div style={{ marginTop: 12 }}><BackupPanel rooms={rooms} /></div></>}
       {section === 'permissions' && <PermissionMatrixPanel />}
@@ -646,7 +657,7 @@ export default function GeneralSettings({
                   <span className="pwHeadIcon" aria-hidden="true"><SettingsIcon kind="lock" /></span>
                   <div><h4>Password</h4><p>Ganti password akun Anda sendiri. Lupa password lama? Bisa kirim link reset ke email.</p></div>
                 </div>
-                <button type="button" className="uBtn primary" onClick={() => { setSection('general'); setTab('security'); window.setTimeout(() => document.getElementById('aureka-password-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80) }}>Ubah password</button>
+                <button type="button" className="uBtn primary" onClick={() => { if (onSettingsNavigate) onSettingsNavigate('security'); else { setSection('general'); setTab('security') } window.setTimeout(() => document.getElementById('aureka-password-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80) }}>Ubah password</button>
               </LiquidGlass>
               <LiquidGlass style={{ padding: 18 }}>
               <h4 style={{ margin: '0 0 4px' }}>Username & Email Login</h4>

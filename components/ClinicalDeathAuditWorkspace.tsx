@@ -214,9 +214,8 @@ function reviewPeriod(episode: Episode): string {
 }
 
 export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAdmin, isValidator = false, lockRoomScope = false, initialAuditType = 'clinical', onAskNara }: Props) {
-  const [auditType, setAuditType] = useState<AuditType>(initialAuditType)
+  const auditType = initialAuditType
   const [showList, setShowList] = useState(false)
-  useEffect(() => { setAuditType(initialAuditType); setShowList(false) }, [initialAuditType])
   const [roomFilter, setRoomFilter] = useState<number | null>(lockRoomScope ? initialRoomId : isAdmin ? null : initialRoomId ?? rooms[0]?.id ?? null)
   useEffect(() => { if (lockRoomScope && initialRoomId != null && roomFilter !== initialRoomId) setRoomFilter(initialRoomId) }, [lockRoomScope, initialRoomId, roomFilter])
   const [yearFilter, setYearFilter] = useState<number>(new Date().getFullYear())
@@ -585,10 +584,6 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
 
 
       <section className="acdToolbar" aria-label="Jenis audit dan filter">
-        <div className="acdSeg" role="tablist" aria-label="Jenis audit">
-          <button type="button" role="tab" aria-selected={auditType === 'clinical'} className={auditType === 'clinical' ? 'active' : ''} onClick={() => setAuditType('clinical')} title="Semua episode dalam ruang lingkup yang dipilih">Audit klinis</button>
-          <button type="button" role="tab" aria-selected={auditType === 'death'} className={auditType === 'death' ? 'active' : ''} onClick={() => setAuditType('death')} title="Hanya episode dengan status akhir meninggal yang tercatat eksplisit">Audit kematian</button>
-        </div>
         <div className="acdToolbarFields">
           <label className="acdTField"><span>Unit</span><select id="acd-room" value={roomFilter ?? ''} disabled={!isAdmin || lockRoomScope} onChange={(event) => setRoomFilter(event.target.value ? Number(event.target.value) : null)}>{isAdmin && !lockRoomScope && <option value="">Semua unit</option>}{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
           <label className="acdTField acdTYear"><span>Tahun</span><select id="acd-year" value={yearFilter} onChange={(event) => setYearFilter(Number(event.target.value))}><option value={0}>Semua tahun</option>{[2024,2025,2026,2027,2028,2029,2030].map((year) => <option key={year} value={year}>{year}</option>)}</select></label>

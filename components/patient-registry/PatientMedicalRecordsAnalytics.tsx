@@ -31,14 +31,16 @@ const fmt = (v: unknown, digits = 0) => (Number(v) || 0).toLocaleString('id-ID',
 const pct = (a: unknown, b: unknown) => Number(b) > 0 ? Number(a) / Number(b) * 100 : 0
 
 export default function PatientMedicalRecordsAnalytics({
-  rooms, initialRoomId, canViewAllRooms, lockRoomScope = false,
+  rooms, initialRoomId, canViewAllRooms, lockRoomScope = false, view, onOpenPatterns, onBack,
 }: {
   rooms: Room[]; initialRoomId: number | null; canViewAllRooms: boolean; lockRoomScope?: boolean
+  view: 'overview' | 'icd' | 'los' | 'readmisi'
+  onOpenPatterns: () => void
+  onBack: () => void
 }) {
   const initialScope = lockRoomScope || !canViewAllRooms ? String(initialRoomId ?? rooms[0]?.id ?? '') : ''
   const [room, setRoom] = useState(initialScope)
   const [year, setYear] = useState('2026')
-  const [view, setView] = useState<'icd' | 'los' | 'readmisi'>('icd')
   const [data, setData] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -109,13 +111,10 @@ export default function PatientMedicalRecordsAnalytics({
         .pmaQualityRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;margin:11px 0;font-size:11px}
         .pmaQualityRow span{color:#516779}.pmaQualityRow b{font-size:11px;color:#26465e;font-variant-numeric:tabular-nums}
         .pmaQualityRow progress{grid-column:1/-1}
-        .pmaTabs{display:inline-flex;gap:2px;padding:4px;border-radius:14px;background:rgba(255,255,255,.55);border:1px solid rgba(30,60,45,.12);max-width:100%;overflow-x:auto}
-        .pmaTabs button{min-height:36px;padding:0 16px;border:0;border-radius:10px;background:transparent;color:#4b5565;font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
-        .pmaTabs button[aria-selected=true]{background:#1f2430;color:#fff}
         .pmaKpis3{grid-template-columns:repeat(3,minmax(0,1fr))}.pmaDef{font-size:18px!important}
         .pmaReadmit{display:grid;gap:10px}.pmaReadmitBadge{display:inline-block;padding:2px 8px;border-radius:99px;background:#fef3c7;color:#92400e;font-weight:700;font-size:11px}
         .pmaPager{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:10px;font-size:12px;color:#516779}
-        html[data-mode="gelap"] .pmaTabs{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}html[data-mode="gelap"] .pmaTabs button{color:#bdc9d4}html[data-mode="gelap"] .pmaTabs button[aria-selected=true]{background:#22d3ee;color:#0f1218}html[data-mode="gelap"] .pmaReadmitBadge{background:rgba(245,158,11,.18);color:#fcd34d}
+        html[data-mode="gelap"] .pmaReadmitBadge{background:rgba(245,158,11,.18);color:#fcd34d}
         @media(max-width:640px){.pmaKpis3{grid-template-columns:1fr}}
         .pmaNote{padding:12px 14px;border:1px solid #dbe7ef;border-radius:11px;background:#f6f9fb;color:#4d6477;font-size:11px;line-height:1.6}
         @media(max-width:1100px){.pmaKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.pmaGrid{grid-template-columns:1fr}}
@@ -127,7 +126,7 @@ export default function PatientMedicalRecordsAnalytics({
         html[data-mode="gelap"] .pmaNote{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:#bdc9d4}
       `}</style>
       <header>
-        <h2>Pola Perawatan</h2>
+        <h2>{view === 'overview' ? 'Visual Intelligence Pola Perawatan' : 'Pola Perawatan'}</h2>
         <p>Analisis longitudinal dari episode yang sudah tercatat: LOS, diagnosis/ICD-10, kelengkapan identitas rekam medis, tren episode, dan pemanfaatan layanan. Halaman ini hanya membaca data agregat, bukan tempat input atau validasi logbook.</p>
       </header>
 
@@ -153,8 +152,10 @@ export default function PatientMedicalRecordsAnalytics({
         <button type="button" className="prButton" disabled={loading} onClick={() => void load()}>{loading ? 'Memuat…' : 'Muat ulang'}</button>
       </div>
 
-      <div className="pmaTabs" role="tablist" aria-label="Analisis pola perawatan">
-        {([['icd', 'ICD-10'], ['los', 'Length of Stay'], ['readmisi', 'Readmisi']] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={view === id} onClick={() => setView(id)}>{label}</button>)}
+      <div>
+        {view === 'overview'
+          ? <button type="button" className="prButton primary" onClick={onOpenPatterns}>Lihat Pola Perawatan</button>
+          : <button type="button" className="prButton" onClick={onBack}>Kembali ke Pola Perawatan</button>}
       </div>
 
       {view === 'readmisi' && <PatientReadmissionPanel room={room} year={year} />}

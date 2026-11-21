@@ -198,8 +198,10 @@ const roleLabel = (role: string | null) => ({
   KABID: 'Kepala Bidang', DIREKTUR: 'Direktur', DEWAN_PENGAWAS: 'Dewan Pengawas',
 }[role || ''] || role || 'Pengguna')
 
+type RiskTab = 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation' | 'fmea-overview'
+
 export default function RiskManagementWorkspace({
-  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', showTabs = true, onTabChange, lockRoomScope = false, onAskNara,
+  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', activeTab, showTabs = true, onTabChange, lockRoomScope = false, onAskNara,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -209,15 +211,20 @@ export default function RiskManagementWorkspace({
   userId: string
   userName: string
   focus?: RiskFocus | null
-  initialTab?: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation'
+  initialTab?: RiskTab
+  activeTab?: RiskTab
   showTabs?: boolean
-  onTabChange?: (tab: 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation') => void
+  onTabChange?: (tab: RiskTab) => void
   onAskNara?: (prompt: string, pageContext: string) => void
 }) {
   const db = useMemo(() => (supabase as any).schema('aureka_risk'), [supabase])
-  const [tab, setTab] = useState<'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation'>(initialTab)
-  useEffect(() => { setTab(initialTab) }, [initialTab])
-  useEffect(() => { onTabChange?.(tab) }, [tab, onTabChange])
+  const [localTab, setLocalTab] = useState<RiskTab>(initialTab)
+  const tab = activeTab ?? localTab
+  const setTab = (next: RiskTab) => {
+    if (activeTab === undefined) setLocalTab(next)
+    onTabChange?.(next)
+  }
+  useEffect(() => { setLocalTab(initialTab) }, [initialTab])
   const [risks, setRisks] = useState<RiskRow[]>([])
   const [plans, setPlans] = useState<PlanRow[]>([])
   const [planRisks, setPlanRisks] = useState<PlanRiskRow[]>([])
@@ -237,7 +244,8 @@ export default function RiskManagementWorkspace({
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [unitFilter, setUnitFilter] = useState('all')
-  const [registerListOpen, setRegisterListOpen] = useState(false)
+  const [registerListOpen, setRegisterListOpen] = useState(tab === 'register')
+  useEffect(() => { if (tab === 'register') setRegisterListOpen(true) }, [tab])
   useEffect(() => { if (tab !== 'register') setRegisterListOpen(false) }, [tab])
   const [levelFilter, setLevelFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -872,9 +880,7 @@ export default function RiskManagementWorkspace({
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'overview' && <>
         <div className="rmOverviewActions" style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
-          <button type="button" className="rmButton primary" onClick={() => { setTab('register'); clearMessages() }}>Lihat Daftar Risiko</button>
-          <button type="button" className="rmButton" onClick={() => { setTab('fmea'); clearMessages() }}>Lihat FMEA Preventif</button>
-          <button type="button" className="rmButton" onClick={() => { setTab('mitigation'); clearMessages() }}>Lihat Mitigasi dan RTP</button>
+          <button type="button" className="rmButton primary" onClick={() => { openRegisterList(); setTab('register'); clearMessages() }}>Lihat Daftar Risiko</button>
           {onAskNara && <button type="button" className="rmButton" onClick={() => onAskNara('Analisis data agregat manajemen risiko pada cakupan pengguna. Jelaskan distribusi tingkat risiko, kebutuhan mitigasi, status residual dan tindak lanjut, serta risiko prioritas. Jangan menyimpulkan relasi konektor dari kemiripan kata saja dan jangan mengubah data.', 'Manajemen Risiko · Visual Intelligence')}>Analisis dengan NARA AI</button>}
         </div>
         <div className="rmKpis">
@@ -1217,6 +1223,17 @@ export default function RiskManagementWorkspace({
           </tbody></table></WorkspaceTableViewport>
         </section>
       })()}
+
+      {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'fmea-overview' && <LiquidGlass className="rmPanel">
+        <div className="rmSectionHead"><h4>Visual Intelligence FMEA, Mitigasi dan RTP</h4></div>
+        <div className="rmKpis">
+          <LiquidGlass className="rmKpi"><span>Analisis FMEA</span><strong>{fmeas.length}</strong></LiquidGlass>
+          <LiquidGlass className="rmKpi"><span>FMEA prioritas tinggi</span><strong>{fmeas.filter(item => item.priority === 'Tinggi').length}</strong></LiquidGlass>
+          <LiquidGlass className="rmKpi"><span>Rencana tindak pengendalian</span><strong>{plans.length}</strong></LiquidGlass>
+          <LiquidGlass className="rmKpi"><span>Mitigasi berjalan</span><strong>{plans.filter(item => item.status === 'in_progress').length}</strong></LiquidGlass>
+        </div>
+        <div className="rmActions"><button type="button" className="rmButton primary" onClick={() => setTab('fmea')}>Lihat FMEA Preventif</button></div>
+      </LiquidGlass>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'fmea' && <>
         <div className="rmNotice" role="note"><span>FMEA PROAKTIF / PREVENTIF</span><p>Gunakan FMEA sebelum proses baru atau perubahan proses diterapkan. Analisis ini bukan metode investigasi pascainsiden; insiden/near miss ditangani melalui menu Keselamatan Pasien dengan investigasi RCA2. Skala S/O/D 1–5 dan ambang RPN ≥30 atau S ≥4 yang tampil adalah konfigurasi aplikasi saat ini, bukan batas universal IHI. Versi instrumen dan ambang final harus mengikuti instrumen yang disahkan rumah sakit.</p></div>
