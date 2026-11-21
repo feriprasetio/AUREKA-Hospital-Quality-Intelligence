@@ -33,3 +33,6 @@ verify_jwt = true
 
 [functions.aureka-document-ingest]
 verify_jwt = true
+
+[functions.aureka-secretariat-parse]
+verify_jwt = true
