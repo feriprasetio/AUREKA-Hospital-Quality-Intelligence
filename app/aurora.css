@@ -169,8 +169,9 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .moduleE
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .moduleEnter :is(.aqRoomOverviewCard, .roomCard) { transition: none !important; }
 }
 
-/* Header & sidebar: kaca terang menyatu dengan latar aurora */
-@media (min-width: 721px) {
+/* Desktop-only Aurora chrome; tablet header/canvas and drawer own their
+ * appearance independently, with an opaque drawer for legible controls. */
+@media (min-width: 1181px) and (pointer: fine) {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(255, 255, 255, 0.42) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar { background: rgba(255, 255, 255, 0.42) !important; border-right: 1px solid rgba(255, 255, 255, 0.8) !important; box-shadow: none !important; }
   html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar { background: rgba(15, 18, 24, 0.6) !important; border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
