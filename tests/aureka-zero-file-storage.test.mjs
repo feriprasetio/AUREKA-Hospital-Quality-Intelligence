@@ -43,3 +43,16 @@ test('local reader never transfers File, Blob or binary to Supabase', () => {
   assert.match(source, /makeStructuredDocx\(/)
   assert.doesNotMatch(source, /supabase|fetch\(/i)
 })
+
+test('issued IHT certificates remain downloadable when no Storage path exists', () => {
+  const code = read('components/InHouseTrainingWorkspace.tsx')
+  assert.match(code, /c\?\.certificate_number\?<button type="button" onClick=\{\(\)=>void download\(c\)\}/)
+  assert.doesNotMatch(code, /c\?\.object_path\?<button/)
+  assert.match(code, /c\.render_snapshot/)
+})
+test('browser-local parsers preserve PDF row boundaries and do not upload file bytes', () => {
+  const code = read('lib/aureka/local-documents.ts')
+  assert.match(code, /Preserve real page row boundaries/)
+  assert.match(code, /grouped\.entries\(\)/)
+  assert.doesNotMatch(code, /\.storage\.from\(|functions\.invoke\(/)
+})
