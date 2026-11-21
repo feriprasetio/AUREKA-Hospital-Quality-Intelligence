@@ -639,7 +639,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   html[data-skin="arktik"] body > .workspaceNativeNavigation[data-drawer-open="true"],
   html[data-skin="arktik"] body:has(:is(.akModalRoot, .rmModalBackdrop, .psModalBackdrop,
     .oppeModalBackdrop, .sdEditBackdrop, .secModalBackdrop, .spmOverlay,
-    .cpBuilderOverlay, .idleWarnBackdrop, .pmRoot, .aqEditorDialog))
+    .cpBuilderOverlay, .idleWarnBackdrop, .pmRoot, .aqEditorDialog, .aqBack))
     > .workspaceNativeNavigation {
     visibility: hidden;
     pointer-events: none;
