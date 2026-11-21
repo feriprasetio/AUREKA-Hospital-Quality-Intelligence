@@ -91,8 +91,9 @@ test('Superadmin logbook opens a privacy-safe index of every active room', () =>
   assert.ok(audit.includes('data individual tidak ditampilkan'))
 })
 
-test('hospital-wide quality results include source fields required by operational indicators', () => {
-  assert.ok(results.includes('selectedRoom == null || selectedRoom === 5 || selectedRoom === 11'))
+test('quality results always read every service-date source so single-unit views do not drop records', () => {
+  assert.match(results, /const indicatorRecordSelect = '[^']*core_record_date:core_data->>record_date,form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at/)
+  assert.ok(!results.includes('selectedRoom === 5 || selectedRoom === 11'))
   assert.ok(results.includes('calculateIndicatorResultsForProfiles'))
 })
 

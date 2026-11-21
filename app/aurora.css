@@ -1811,3 +1811,13 @@ html[data-skin="arktik"][data-ak-scrolled] body:not(#_) .workspaceRoot .workspac
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .workspaceNavigationRail { flex-wrap: wrap !important; row-gap: 8px !important; }
 }
 html body:not(#_) .workspaceRoot :is(.workspaceNavigationSubItem, .workspaceNavigationRailItem):focus:not(:focus-visible) { outline: none !important; }
+
+/* Hasil indikator: penjelasan mengapa capaian kosong. */
+body:not(#_) .qraWhyBtn { display: block; margin-top: 6px; padding: 3px 9px; border: 1px solid #fcd34d; border-radius: 999px; background: #fffbeb; color: #92400e; font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+body:not(#_) .qraWhy { display: grid; gap: 12px; }
+body:not(#_) .qraWhyStats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+body:not(#_) .qraWhyStats span { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1px solid #dfe7f0; font-size: 12px; color: #5b6676; }
+body:not(#_) .qraWhyStats b { font-size: 22px; color: #1f2430; font-variant-numeric: tabular-nums; }
+body:not(#_) .qraWhy ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; line-height: 1.5; }
+html[data-mode="gelap"] body:not(#_) .qraWhyBtn { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.4); color: #fcd34d; }
+html[data-mode="gelap"] body:not(#_) .qraWhyStats span { border-color: rgba(255,255,255,.1); color: #a3b0c2; } html[data-mode="gelap"] body:not(#_) .qraWhyStats b { color: #eef2f7; }
