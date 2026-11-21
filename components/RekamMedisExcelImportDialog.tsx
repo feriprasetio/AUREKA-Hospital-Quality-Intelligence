@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
@@ -328,8 +329,8 @@ export default function RekamMedisExcelImportDialog({
   }
 
   if (!open) return null
-  return (
-    <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
+  if (typeof document === 'undefined') return null
+ return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
       <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqRekamMedisImport"
         role="dialog" aria-modal="true" aria-labelledby="aqRekamMedisImportTitle">
         <style>{'.aqRekamMedisImport .aqBody{display:grid;align-content:start;gap:13px}.aqRekamMedisImport .rmIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqRekamMedisImport .rmUpload{display:grid;gap:8px;padding:15px;border:1px dashed var(--line);border-radius:14px;background:#fff}.aqRekamMedisImport .rmUpload input{width:100%;font-size:12px}.aqRekamMedisImport .rmStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.aqRekamMedisImport .rmStat{padding:11px;background:#fff;border:1px solid var(--line);border-radius:12px;min-width:0}.aqRekamMedisImport .rmStat span{display:block;color:var(--muted);font-size:12px}.aqRekamMedisImport .rmStat strong{display:block;margin-top:4px;font-size:19px;overflow-wrap:anywhere}.aqRekamMedisImport .rmMessage{padding:11px 13px;border-radius:12px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqRekamMedisImport .rmError{background:#fff0ef;color:#8b2822}.aqRekamMedisImport .rmSuccess{background:#eaf8ef;color:#206443}.aqRekamMedisImport .rmTable{overflow:auto;max-height:320px;border:1px solid var(--line);border-radius:12px;background:#fff}.aqRekamMedisImport table{width:100%;border-collapse:collapse;font-size:12px}.aqRekamMedisImport th,.aqRekamMedisImport td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqRekamMedisImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqRekamMedisImport .rmPrivacy{font-size:12px;color:var(--muted);line-height:1.5}@media(max-width:600px){.aqRekamMedisImport .rmStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
@@ -409,6 +410,6 @@ export default function RekamMedisExcelImportDialog({
           </div>
         </div>
       </section>
-    </div>
+    </div></div>, document.body
   )
 }
