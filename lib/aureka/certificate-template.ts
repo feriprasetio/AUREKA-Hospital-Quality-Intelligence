@@ -1,6 +1,6 @@
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import type { CertificateTemplateKey, CertificateLayout } from '@/lib/aureka/certificate-template-layout'
-import { defaultCertificateLayout, normalizeCertificateLayout } from '@/lib/aureka/certificate-template-layout'
+import { normalizeCertificateLayout } from '@/lib/aureka/certificate-template-layout'
 
 export * from '@/lib/aureka/certificate-template-layout'
 
