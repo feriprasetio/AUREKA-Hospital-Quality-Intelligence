@@ -294,10 +294,10 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot :is(.ifLink, .stStat.ok, .pp
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .ifLink * { color: inherit !important; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .psLabel { color: #cbd5e1 !important; }
 
-/* Sidebar desktop sedikit lebih lebar agar "RSUD SSMA Pontianak" dan "Peningkatan Kinerja Klinis" muat utuh */
+/* Labels may wrap, but sidebar/grid width belong to the canonical navigation
+ * system. The old max-width:none and 256px grid definitions could override
+ * the native 360px tablet drawer and the 264px desktop sidebar. */
 @media (min-width: 721px) {
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk:not(.sidebarIsCollapsed) { grid-template-columns: 256px minmax(0, 1fr) !important; }
-  html[data-skin="arktik"] body:not(#_) .workspaceRoot:not(.sidebarIsCollapsed) aside.sidebar { min-width: 0 !important; max-width: none !important; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sideBrand { min-width: 0; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sideBrand > div { min-width: 0; }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot .sidebar .sideBrand small { white-space: normal !important; line-height: 1.3; }
@@ -427,8 +427,8 @@ html body:not(#_) .authPage.authProfessional .authCard { border-radius: 0 30px 3
 @media (max-width: 900px) { html body:not(#_) .authPage.authProfessional .authCard { border-radius: 26px !important; } }
 html[data-mode="gelap"] body:not(#_) .authPage:is(.authProfessional, .authRedesigned) { background: #0f1218 !important; }
 
-/* ── Sidebar lebih tegas + efek kaca buram (desktop) ── */
-@media (min-width: 721px) {
+/* ── Desktop-only decorative glass: no translucent/blurred tablet drawer ── */
+@media (min-width: 1181px) and (pointer: fine) {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot aside.sidebar {
     background: rgba(255, 255, 255, 0.34) !important;
     -webkit-backdrop-filter: blur(24px) saturate(160%) !important; backdrop-filter: blur(24px) saturate(160%) !important;
