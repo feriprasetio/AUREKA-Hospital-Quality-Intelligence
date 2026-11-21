@@ -42,6 +42,16 @@ const CROSS_DOMAIN = [
   { pattern: /direktur|manajemen rumah sakit|manajemen puncak|manajemen eksekutif|eksekutif|pimpinan|strategis|prioritas rumah sakit/i, ids: ["executive", "quality", "risk", "patient_safety"] as NaraSkillId[] },
 ];
 
+/** Only explicit greetings are small talk; short audit/engineering requests must still be routed. */
+export function isNaraSmallTalk(question: string): boolean {
+  return /^(?:halo|hai|hi|hello|hey|assalamualaikum(?:\\s+wr\\.?\\s*wb\\.?)?|selamat (?:pagi|siang|sore|malam)|apa kabar|terima kasih|makasih|thanks)[!.,?\\s]*$/i.test(question.trim());
+}
+
+// Retain explicitly requested specialist instructions when broad questions exceed the skill cap.
+const SPECIALISTS_TO_RETAIN: readonly NaraSkillId[] = [
+  "engineering", "governance", "data_quality", "research", "audit", "visual",
+];
+
 export function planNaraSkills(question: string): { primary: NaraSkillId; selected: NaraSkillId[]; labels: string[]; domains: string[]; instructions: string[]; requiresAggregateData: boolean; mode: "single-domain" | "cross-domain" } {
   const q = question.trim();
   const matched = NARA_SKILL_REGISTRY.filter((skill) => skill.intents.some((pattern) => pattern.test(q)));
@@ -49,8 +59,12 @@ export function planNaraSkills(question: string): { primary: NaraSkillId; select
   const cross = CROSS_DOMAIN.find((rule) => rule.pattern.test(q));
   if (cross) selected = [...new Set([...selected, ...cross.ids])];
   if (!selected.length) selected = ["knowledge"];
-  // Keep orchestration bounded and deterministic; specialist skills are not invented by the model.
-  selected = selected.slice(0, 5);
+  // Keep the five-skill budget without silently dropping explicit Engineering/Governance intent.
+  if (selected.length > 5) {
+    const primary = selected[0];
+    const retained = SPECIALISTS_TO_RETAIN.filter((id) => id !== primary && selected.includes(id));
+    selected = [primary, ...retained, ...selected.filter((id) => id !== primary && !retained.includes(id))].slice(0, 5);
+  }
   const skills = selected.map((id) => NARA_SKILL_REGISTRY.find((skill) => skill.id === id)!).filter(Boolean);
   return {
     primary: selected[0],
