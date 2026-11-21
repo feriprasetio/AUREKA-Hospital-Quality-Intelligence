@@ -44,6 +44,8 @@ const RiskManagementWorkspace=dynamic(()=>import('@/components/RiskManagementWor
 const AnnualProgramWorkspace=dynamic(()=>import('@/components/governance/AnnualProgramWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Program Kerja Tahunan')})
 const GovernanceProgramWorkspace=dynamic(()=>import('@/components/governance/GovernanceProgramWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Rekomendasi dan RTL')})
 const SecretariatWorkspace=dynamic(()=>import('@/components/governance/SecretariatWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Sekretariat')})
+const SecretariatInvitationWorkspace=dynamic(()=>import('@/components/governance/SecretariatInvitationWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Undangan PIC')})
+const ReactiveFmeaWorkspace=dynamic(()=>import('@/components/ReactiveFmeaWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('FMEA Reaktif')})
 const LegalAssetsWorkspace=dynamic(()=>import('@/components/governance/LegalAssetsWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Legal dan Asset')})
 const DocumentVerificationPage=dynamic(()=>import('@/components/governance/DocumentVerificationPage'),{ssr:false,loading:()=>workspaceChunkLoading('Verifikasi Dokumen')})
 const AuditLogWorkspace=dynamic(()=>import('@/components/governance/AuditLogWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Audit Log')})
@@ -64,7 +66,7 @@ const MANAGER_ONLY_MODULES:string[]=AUREKA_PRIMARY_NAV.filter(({visibility})=>vi
 // Role pengelola melihat seluruh rumah sakit; role unit (PIC) hanya modul input unitnya.
 const MANAGER_ROLES=['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR']
 const ROLE_LABEL:Record<string,string>={ADMIN:'Super Admin',PMKP:'Komite PMKP',MANAGEMENT:'Manajemen',PIC:'PIC Unit',VALIDATOR:'Validator Unit',KABID:'Kepala Bidang',DIREKTUR:'Direktur',DEWAN_PENGAWAS:'Dewan Pengawas'}
-type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'survey'|'responses'
+type SafetyWorkspaceTab='overview'|'incidents'|'investigation'|'fmea-reactive'|'survey'|'responses'
 type RiskWorkspaceTab='overview'|'register'|'mitigation'|'connections'|'fmea'|'profile'|'evaluation'
 type AnalyticsWorkspaceTab='programs'|'profiles'|'directory'|'oppe'|'fppe'|'recommendations'|'pic-performance'|'student-orientation'|'training'
 const GOV_PROGRAM_TABS=['recommendations'] as const
@@ -336,7 +338,7 @@ export default function HomeClient(){
     }
     setPatientsRegistryTab(patientView==='direktori-pasien'||['metadata-pasien','database-pasien'].includes(section||'')?'directory':['analisis-rekam-medis','pola-perawatan'].includes(patientView)?'analysis':patientView==='rekapan-pasien'?'directory':'overview')
    }
-   if(next==='safety')setSafetyTab((['overview','incidents','investigation','survey',...(role==='ADMIN'||role==='DIREKTUR'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
+   if(next==='safety')setSafetyTab((['overview','incidents','investigation','fmea-reactive','survey',...(role==='ADMIN'||role==='DIREKTUR'?['responses']:[])].includes(section)?section:'overview') as SafetyWorkspaceTab)
    if(next==='risk')setRiskTab((['overview','register','mitigation','connections','fmea','profile','evaluation'].includes(section)?section:'overview') as RiskWorkspaceTab)
    if(next==='analytics'){
     const legacySection=section||'programs'
@@ -530,12 +532,12 @@ export default function HomeClient(){
     ]},
     ...(role==='ADMIN'||role==='PMKP'?[{id:'quality-reconciliation',label:'Pusat Rekonsiliasi'}]:[]),
    ],
-   // Keselamatan Pasien: tab Insiden dan Budaya; FMEA Reaktif ditandai belum tersedia.
+   // Keselamatan Pasien: tab Insiden, analisis reaktif, dan Budaya.
    safety:[
     {id:'grp-incident',label:'Insiden',children:[
       {id:'incidents',label:'Register Insiden'},
       {id:'investigation',label:'Investigasi'},
-      {id:'fmea-reactive',label:'FMEA Reaktif',disabled:true,hint:'Fitur FMEA Reaktif belum tersedia sebagai workspace aktif.'},
+      ...(admin||role==='PMKP'||role==='MANAGEMENT'?[{id:'fmea-reactive',label:'FMEA Reaktif',hint:'Analisis FMEA yang ditautkan langsung ke insiden sumber.'}]:[]),
     ]},
     {id:'grp-culture',label:'Budaya',children:[
       {id:'survey',label:'Form Survei Tahunan'},
@@ -569,7 +571,7 @@ export default function HomeClient(){
   if(active==='secretariat')return secretariatSection==='register'?'Administrasi Kegiatan · Register Kegiatan':'Administrasi Kegiatan · Kirim Undangan'
   if(active==='quality')return qualityProfileOpen?'Profil Indikator':spoOpen?'Standar Prosedur Operasional':spmOpen?'Standar Pelayanan Minimal (SPM)':qualityReconciliationOpen?'Pusat Rekonsiliasi Data':qualityMonitorOpen?'Monitoring Pelaporan Indikator Mutu':qualityResultsView?'Hasil Capaian · Indikator Mutu':qualityInitialContainer+' · Form Logbook'
   if(active==='clinical')return qualityResultsView?({pathway:'Audit Clinical Pathway · Hasil Capaian','clinical-death':'Audit Klinis dan Kematian · Hasil Capaian'} as Record<string,string>)[qualityResultsView]:(clinicalPathwayOpen?'Audit Clinical Pathway':'Audit Klinis dan Kematian')
-  if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
+  if(active==='safety')return ({overview:'Ringkasan Keselamatan',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi','fmea-reactive':'Insiden · FMEA Reaktif',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as Record<SafetyWorkspaceTab,string>)[safetyTab]
   if(active==='risk')return ({overview:'Ikhtisar Risiko',register:'Register Risiko · Daftar Risiko',connections:'Register Risiko · Konektor Risiko',profile:'Register Risiko · Profil Risiko',fmea:'FMEA · Analisis',mitigation:'FMEA · Mitigasi & RTP',evaluation:'FMEA · Evaluasi Keberhasilan'} as Record<RiskWorkspaceTab,string>)[riskTab]
   if(active==='analytics')return programTab==='recommendations'?'Rekomendasi dan Rencana Tindak Lanjut':'Program Kerja Tahunan'
   if(active==='staff')return staffTab==='student-orientation'?'Orientasi Mahasiswa':staffTab==='training'?'In House Training':staffTab==='oppe'?'OPPE':staffTab==='fppe'?'FPPE':staffTab==='pic-performance'?'Monitoring Kinerja PIC':analyticsDirectoryTab==='team'?'Tim dan Penugasan':'Direktori Tenaga Kerja'
@@ -620,7 +622,9 @@ export default function HomeClient(){
    setPatientsRegistryTab(childId==='directory'?'directory':childId==='analysis'?'analysis':'overview')
   }
   if(moduleId==='quality'&&childId==='quality-overview'){
-   setSpmOpen(false);setQualityOpen(false);setQualityOppeOpen(false);setQualityProfileOpen(false);setQualityMonitorOpen(false);setQualityReconciliationOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);return
+   // Indikator Mutu adalah workspace operasional, bukan dashboard Visual Intelligence.
+   // Form Logbook dan navigasi kontekstual harus tetap tersedia saat menu dipilih.
+   setQualityInitialContainer('Audit Indikator Mutu');setSpmOpen(false);setSpoOpen(false);setQualityOpen(true);setQualityOppeOpen(false);setQualityProfileOpen(false);setQualityMonitorOpen(false);setQualityReconciliationOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);return
   }
   if(moduleId==='quality'||moduleId==='clinical'){
       if(moduleId==='quality'&&childId==='spm'){
@@ -1311,6 +1315,7 @@ export default function HomeClient(){
    :active==='quality'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} lockRoomScope={admin&&!allRoomsScope} onBack={()=>openMainModule('quality')}/>
       :active==='quality'&&qualityOpen?<div className="qualityLogbookResultsStack"><section className="qualityLogbookCard"><header><span>01 · INPUT OPERASIONAL</span><h2>Form Logbook</h2><p>Pengisian indikator mutu sesuai profil, periode, dan unit kerja.</p></header><QualityIndicatorWorkspace key={qualityInitialContainer+'-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} initialContainer={qualityInitialContainer} showContainerTabs={false}/></section><section className="qualityLogbookCard"><header><span>02 · HASIL PENGUKURAN</span><h2>Hasil Capaian Indikator Mutu</h2><p>Rekapan capaian disajikan setelah area pengisian logbook.</p></header><QualityResultsWorkspace key={'quality-inline-results-'+String(activeWorkspaceRoomId??'profile')} mode="indicators" initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} groupBy={qualityResultsGroup}/></section></div>
    :active==='quality'?<InfographicsDashboard mode="quality" role={role} rooms={roomsList} initialRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):activeWorkspaceRoomId} unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role||'')} onNavigate={(id)=>openMainModule(id)} onRoomChange={admin?updateWorkspaceRoom:undefined} onAskNara={({period,scope})=>openNaraWithContext('Analisis indikator mutu untuk periode '+period+' dan cakupan '+scope+'. Identifikasi indikator yang tidak memenuhi target, tren, variasi, keterbatasan data, dan prioritas tindak lanjut. Jangan mengubah data.','Indikator Mutu · Ikhtisar · '+period+' · '+scope)}/>
+    :active==='safety'&&safetyTab==='fmea-reactive'?<ReactiveFmeaWorkspace role={role} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={!admin&&!manager}/>
    :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={admin||role==='PMKP'||role==='MANAGEMENT'} focus={safetyFocus} initialTab={safetyTab} showTabs={false} onTabChange={setSafetyTab} onAskNara={openNaraWithContext}/>
    :active==='risk'?<RiskManagementWorkspace key={'risk-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin&&!allRoomsScope} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} initialTab={riskTab} showTabs={false} onTabChange={setRiskTab} onAskNara={openNaraWithContext}/>
    :active==='analytics'&&programTab==='programs'?<AnnualProgramWorkspace rooms={roomsList} role={role} currentRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):(room?.id??null)}/>
@@ -1321,6 +1326,7 @@ export default function HomeClient(){
    :active==='staff'&&staffTab==='pic-performance'?<PicPerformanceWorkspace/>
    :active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace key={'staff-'+staffTab} initialScreen={staffTab==='fppe'?'fppe':'overview'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
    :active==='staff'?<MetadataStatisticsWorkspace key={'staff-directory-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin&&!allRoomsScope} initialContainer="directory" initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
+   :active==='secretariat'&&secretariatSection==='invitations'?<SecretariatInvitationWorkspace role={role} userId={user?.id||''} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={!admin&&!manager}/>
    :active==='secretariat'?<SecretariatWorkspace section={secretariatSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={admin&&!allRoomsScope} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'}/>
    :active==='settings'&&settingsSection==='legal'?<LegalAssetsWorkspace role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||''}/>
    :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace/>
