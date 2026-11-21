@@ -448,7 +448,7 @@ export default function HomeClient(){
   if(item.moduleId==='clinical'){
    if(child==='realcost')return active==='clinical'&&realcostAuditOpen
    if(child==='audit-pathway')return active==='clinical'&&(clinicalPathwayOpen||qualityResultsView==='pathway')
-   if(child==='audit-clinical'||child==='audit-death')return active==='clinical'&&!realcostAuditOpen&&!clinicalPathwayOpen&&(qualityOpen||qualityResultsView==='clinical-death')&&clinicalAuditType===(child==='audit-death'?'death':'clinical')
+   if(child==='audit-clinical'||child==='audit-death')return active==='clinical'&&!realcostAuditOpen&&!clinicalPathwayOpen&&(qualityOpen||qualityResultsView==='clinical-death')
    return false
   }if(item.moduleId==='quality'){
    if(child==='profile-indicators')return qualityProfileOpen
