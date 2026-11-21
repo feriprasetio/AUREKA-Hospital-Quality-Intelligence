@@ -49,9 +49,10 @@ export function parseAppearancePreferences(value: unknown): AppearancePreference
 }
 
 export function readAppearancePreferences(storage?: Pick<Storage, 'getItem'> | null): AppearancePreferences {
-  const source = storage === undefined ? (typeof window !== 'undefined' ? window.localStorage : null) : storage
-  if (!source) return { ...DEFAULT_APPEARANCE }
   try {
+    // Accessing the localStorage getter itself can throw in restricted browsers.
+    const source = storage === undefined ? (typeof window !== 'undefined' ? window.localStorage : null) : storage
+    if (!source) return { ...DEFAULT_APPEARANCE }
     const serialized = source.getItem(APPEARANCE_KEY)
     if (serialized) return parseAppearancePreferences(JSON.parse(serialized))
     // Preserve previously chosen magnification and reduced motion.
