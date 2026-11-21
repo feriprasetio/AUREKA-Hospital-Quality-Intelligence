@@ -28,6 +28,7 @@ test('mobile tabs are horizontally scrollable, keyboard-visible, dark-mode aware
   assert.doesNotMatch(shell, /data-skin="solid"/)
 })
 
-test('tablet widths retain the desktop rail overflow calculation rather than forcing all tabs into one row', () => {
+test('phone contextual tabs remain scoped to 720px while tablet drawer spans 1180px', () => {
   assert.match(navigation, /matchMedia\('\(max-width: 720px\)'\)/)
+  assert.match(read('components/layout/useAccessibleSidebar.ts'), /matchMedia\('\(max-width: 1180px\)'\)/)
 })
