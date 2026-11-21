@@ -12,7 +12,7 @@ test('Orientasi Mahasiswa is active under Pendidikan dan Pelatihan', () => {
   assert.match(home, /childId==='student-orientation'/)
   assert.match(home, /section==='student-orientation'/)
   assert.match(home, /staffTab==='student-orientation'/)
-  assert.match(home, /canManage=\\{\\['ADMIN','PMKP','MANAGEMENT','KABID'\\]\\.includes\\(role\\|\\|'\\'\\)\\}/)
+  assert.ok(home.includes("canManage={['ADMIN','PMKP','MANAGEMENT','KABID'].includes(role||'')}") )
 })
 
 test('student roster is queried live from Tim Koordinasi Pendidikan logbooks', () => {
