@@ -468,15 +468,19 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     z-index: 1301 !important;
     display: flex !important;
     flex-direction: column !important;
-    width: min(360px, calc(100vw - 100px)) !important;
+    /* Fixed upper bound: prevent Aurora desktop layout from stretching the tablet drawer. */
+    width: min(360px, calc(100vw - 48px)) !important;
     min-width: 0 !important;
-    max-width: calc(100vw - 100px) !important;
+    max-width: min(360px, calc(100vw - 48px)) !important;
     height: 100dvh !important;
+    min-height: 0 !important;
     max-height: 100dvh !important;
     margin: 0 !important;
     padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) !important;
     border-radius: 0 20px 20px 0 !important;
     overflow: hidden !important;
+    overscroll-behavior: contain !important;
+    box-sizing: border-box !important;
     transform: translate3d(-105%, 0, 0) !important;
     visibility: hidden !important;
     pointer-events: none !important;
@@ -597,7 +601,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     pointer-events: none;
   }
 }
-@media (max-width: 1180px) {
+@media (max-width: 1180px), (pointer: coarse) and (min-width: 1181px) and (max-width: 1600px) {
   html[data-skin="arktik"] body > .workspaceNativeNavigation .workspaceNativeNavItem {
     position: relative;
     display: flex;
