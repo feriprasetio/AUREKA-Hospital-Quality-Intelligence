@@ -14,6 +14,9 @@ test('Aurora no longer stretches tablet sidebar to viewport or moves the workspa
   assert.doesNotMatch(shell, /\.workspaceHeaderBar\s*\{[^}]*?(?:margin|top|border-radius)\s*:/)
   assert.doesNotMatch(shell, /calc\(100%\s*-\s*16px\)/)
   assert.doesNotMatch(shell, /height:\s*calc\(100dvh\s*-\s*32px\)/)
+  assert.doesNotMatch(aurora, /\.workspaceRoot:not\(\.sidebarIsCollapsed\) aside\.sidebar\s*\{[^}]*max-width:\s*none\s*!important/)
+  assert.doesNotMatch(aurora, /\.workspaceRoot\.workspaceDesk:not\(\.sidebarIsCollapsed\)\s*\{\s*grid-template-columns:\s*256px/)
+  assert.match(aurora, /Desktop-only Aurora chrome; tablet header\/canvas and drawer own their/)
 })
 
 test('native tablet drawer remains bounded, scrollable, hidden when closed, and above its scrim', () => {
@@ -27,6 +30,9 @@ test('native tablet drawer remains bounded, scrollable, hidden when closed, and 
   assert.match(tablet, /position: fixed !important/)
   assert.match(tablet, /height: 100dvh !important/)
   assert.match(tablet, /overflow: hidden !important/)
+  assert.match(tablet, /background: rgba\(239, 247, 253, \.98\) !important/)
+  assert.match(tablet, /background: rgba\(20, 32, 47, \.985\) !important/)
+  assert.match(tablet, /backdrop-filter: none !important/)
   assert.match(tablet, /transform: translate3d\(-105%, 0, 0\) !important/)
   assert.match(tablet, /\.sidebar\.mobileOpen,[\s\S]*?transform: translate3d\(0, 0, 0\) !important/)
   assert.match(tablet, /z-index: 1301 !important/)
