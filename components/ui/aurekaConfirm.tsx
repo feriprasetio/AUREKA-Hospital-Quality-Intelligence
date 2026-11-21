@@ -31,8 +31,8 @@ export function aurekaConfirm(
           title={opts.title || (opts.danger ? 'Konfirmasi tindakan' : 'Konfirmasi')}
           onClose={() => done(false)}
           footer={<>
-            <button type="button" className="akBtn akBtnGhost" onClick={() => done(false)}>{opts.cancelLabel || 'Batal'}</button>
-            <button type="button" className={opts.danger ? 'akBtn akBtnDanger' : 'akBtn akBtnPrimary'} autoFocus onClick={() => done(true)}>{opts.confirmLabel || (opts.danger ? 'Ya, lanjutkan' : 'Ya')}</button>
+            <button type="button" className="akBtn akBtnGhost" data-dialog-autofocus={opts.danger || undefined} onClick={() => done(false)}>{opts.cancelLabel || 'Batal'}</button>
+            <button type="button" className={opts.danger ? 'akBtn akBtnDanger' : 'akBtn akBtnPrimary'} data-dialog-autofocus={!opts.danger || undefined} onClick={() => done(true)}>{opts.confirmLabel || (opts.danger ? 'Ya, lanjutkan' : 'Ya')}</button>
           </>}
         >
           <p className="akConfirmText">{message}</p>
