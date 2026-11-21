@@ -32,7 +32,13 @@ export function useAccessibleSidebar() {
 
   useEffect(() => {
     const width = window.matchMedia(TOUCH_DRAWER_MEDIA_QUERY)
-    const update = () => setIsMobile(width.matches)
+    const update = () => {
+      const nowMobile = width.matches
+      setIsMobile(nowMobile)
+      // Pointer/desktop-site changes can occur without a resize event. Never
+      // retain an open modal drawer when returning to the desktop sidebar.
+      if (!nowMobile) setIsOpen(false)
+    }
     update()
     width.addEventListener('change', update)
     return () => width.removeEventListener('change', update)
