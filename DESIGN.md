@@ -32,11 +32,11 @@ Dial: ENERGY 1 / RHYTHM 1 / MOTION 2
 - **Panah (→ ↗):** hanya kalau menunjukkan arah yang nyata (Berikutnya, Lanjut, alur A → B). Tidak dipakai sebagai hiasan tombol.
 - **Emoji:** tidak dipakai di UI. Pakai ikon yang relevan atau tidak sama sekali.
 - **Em dash (—):** tidak dipakai di teks UI. Sel kosong diisi `-`.
-- **Target sentuh di HP:** minimal 44 × 44px dengan jarak antar tombol.
+- **Target sentuh di HP/tablet:** minimal 44 × 44px dengan jarak antar tombol. Dock/rail harus menghormati safe-area, keyboard virtual, gesture OS, dan `prefers-reduced-motion`.
 - **Animasi:** halus (0,15 sampai 0,3 detik) untuk masuk halaman, hover, dan popup. Tidak ada animasi hiasan yang berulang terus. Semua berhenti saat `prefers-reduced-motion`.
 - **Formulir:** di popup. Enter pindah kolom, Ctrl+S simpan, ada "Simpan & isi berikutnya" untuk input berulang.
 - **Keadaan kosong / memuat / gagal:** selalu ada. Keadaan kosong menyebut penyebab dan satu langkah lanjut.
-- **Navigasi:** satu navigasi utama (sidebar). Di HP: menu samping dan submenu ringkas di bawah judul.
+- **Navigasi:** satu sumber modul dan otorisasi untuk tiga presentasi perangkat: **desktop** sidebar kategori, **tablet** rail ikon di kiri + drawer lengkap, **smartphone** dock bawah 3–5 tujuan penting + drawer untuk seluruh modul. Submenu kontekstual tetap tersedia di area kerja. Jangan gandakan sumber rute atau akses.
 
 ## Yang tidak boleh
 
