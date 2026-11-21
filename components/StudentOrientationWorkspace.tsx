@@ -8,7 +8,7 @@ const q = () => aurekaSupabase.schema('aureka_quality')
 const PAGE_SIZE = 500
 const MATERIALS = [
   'Sasaran Keselamatan Pasien',
-  'Peningkatan Mutu dan Keselamatan Pasien',
+  'Peningkatan Mutu  Dan Keselamatan Pasien',
   'Pelayanan Kefarmasian dan Penggunaan Obat',
   'Pengendalian dan Pencegahan Infeksi',
   'Bantuan Hidup Dasar',
@@ -125,9 +125,8 @@ function sourcePeriod(form: Record<string, unknown>, recordDate: string | null):
   return formatDate(recordDate)
 }
 function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[char] || char))
+  const entities: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+  return value.replace(/[&<>"']/g, (char) => entities[char] || char)
 }
 function buildCertificateHtml(row: OrientationRow, certificateNumber: string): string {
   const saved = row.saved
@@ -268,7 +267,6 @@ export default function StudentOrientationWorkspace({
 
   const participantCount = useMemo(() => new Set(rows.map((row) => row.name.trim().toLocaleLowerCase('id'))).size, [rows])
   const savedCount = rows.filter((row) => row.saved).length
-  const signedCount = rows.filter((row) => !!row.saved?.signed_date).length
   const certificateCount = rows.filter((row) => !!row.saved?.certificate_number).length
   const selectedRow = selectedSourceId ? rows.find((row) => row.source.id === selectedSourceId) || null : null
 
@@ -442,7 +440,7 @@ export default function StudentOrientationWorkspace({
                 </tr></thead>
                 <tbody>
                   {filteredRows.map((row, index) => {
-                    const materials = row.saved?.materials?.length ? row.saved.materials : [MATERIALS[0], MATERIALS[1], MATERIALS[2], MATERIALS[3]]
+                    const materials = row.saved ? row.saved.materials : [MATERIALS[0], MATERIALS[1], MATERIALS[2], MATERIALS[3]]
                     return <tr key={row.source.id}>
                       <td>{index + 1}</td>
                       <td className="soName">{row.name}<span className="soMeta">{[row.profession, row.campus, row.rotation, row.ci ? 'CI: ' + row.ci : ''].filter(Boolean).join(' · ')}</span></td>
