@@ -13,6 +13,7 @@ import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import AurekaModal from '@/components/ui/AurekaModal'
+import { APPEARANCE_EVENT, APPEARANCE_KEY, DEFAULT_APPEARANCE, applyAppearancePreferences, readAppearancePreferences, saveAppearancePreferences, resetAppearancePreferences, type AppearancePreferences } from '@/lib/ui/appearance-preferences'
 import { SystemConfigPanel, PermissionMatrixPanel } from '@/components/governance/SettingsGovernancePanels'
 
 function SettingsIcon({ kind }: { kind: 'settings' | 'lock' | 'data' | 'users' | 'profile' | 'unit' | 'palette' }) {
@@ -1023,21 +1024,94 @@ function TrainingToggle() {
   </div>
 }
 
-/** Preferensi per perangkat: ukuran teks & animasi (Blueprint v2 §1 · Preferensi Tampilan). */
+/** Presentation settings are local to this browser and never modify clinical data. */
+const APPEARANCE_FIELDS: {
+  key: keyof AppearancePreferences
+  title: string
+  detail: string
+  options: { value: string; label: string }[]
+}[] = [
+  {
+    key: 'textSize', title: 'Ukuran teks', detail: 'Skala tipografi konsisten pada form, tabel, navigasi, dan laporan.',
+    options: [{value:'xs',label:'XS'},{value:'s',label:'S'},{value:'m',label:'M'},{value:'l',label:'L'}],
+  },
+  {
+    key: 'surface', title: 'Permukaan konten', detail: 'Canvas langsung di atas latar AUREKA adalah standar baru. Samar menambah warna tipis tanpa kartu solid.',
+    options: [{value:'canvas',label:'Tanpa kartu'},{value:'soft',label:'Samar'}],
+  },
+  {
+    key: 'density', title: 'Kerapatan tampilan', detail: 'Mengatur jarak antarkonten. Pengaturan Nyaman/Ringkas tidak lagi ada di header.',
+    options: [{value:'compact',label:'Ringkas'},{value:'comfortable',label:'Nyaman'},{value:'spacious',label:'Lapang'}],
+  },
+  {
+    key: 'contrast', title: 'Kontras tulisan', detail: 'Tingkatkan kejelasan label dan data terutama pada latar yang berwarna.',
+    options: [{value:'standard',label:'Standar'},{value:'high',label:'Tinggi'}],
+  },
+  {
+    key: 'dividers', title: 'Pemisah seksi', detail: 'Garis pemisah tipis menggantikan outline kartu. Tidak memengaruhi batas form atau tabel klinis.',
+    options: [{value:'subtle',label:'Tipis'},{value:'none',label:'Tanpa garis'}],
+  },
+  {
+    key: 'tableDensity', title: 'Jarak baris tabel', detail: 'Mengatur kenyamanan baca logbook dan tabel audit tanpa mengubah kolom atau data.',
+    options: [{value:'compact',label:'Rapat'},{value:'regular',label:'Normal'},{value:'relaxed',label:'Lega'}],
+  },
+  {
+    key: 'header', title: 'Ketinggian header', detail: 'Header minimal memprioritaskan konten. Header standar memberi ruang untuk kontrol.',
+    options: [{value:'minimal',label:'Minimal'},{value:'standard',label:'Standar'}],
+  },
+  {
+    key: 'readingWidth', title: 'Lebar konten', detail: 'Gunakan lebar layar untuk tabel atau fokus untuk teks panjang. Tabel tetap dapat digeser horizontal.',
+    options: [{value:'fluid',label:'Selebar layar'},{value:'focused',label:'Fokus baca'}],
+  },
+  {
+    key: 'motion', title: 'Animasi', detail: 'Matikan transisi dekoratif untuk perangkat lambat atau sensitivitas gerakan.',
+    options: [{value:'on',label:'Aktif'},{value:'off',label:'Nonaktif'}],
+  },
+]
+
 function PreferenceExtras() {
-  const read = (k: string, d: string) => { try { return localStorage.getItem(k) || d } catch { return d } }
-  const [size, setSize] = useState(() => (typeof window === 'undefined' ? 'normal' : read('aureka-text-size', 'normal')))
-  const [motion, setMotion] = useState(() => (typeof window === 'undefined' ? 'on' : read('aureka-motion', 'on')))
-  const apply = (k: string, attr: string, v: string, def: string) => {
-    try { localStorage.setItem(k, v) } catch { /* abaikan */ }
-    if (v === def) document.documentElement.removeAttribute(attr); else document.documentElement.setAttribute(attr, v)
+  const [preferences, setPreferences] = useState<AppearancePreferences>({ ...DEFAULT_APPEARANCE })
+  useEffect(() => {
+    const sync = () => setPreferences(applyAppearancePreferences(readAppearancePreferences()))
+    sync()
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === APPEARANCE_KEY || event.key === null) sync()
+    }
+    window.addEventListener('storage', onStorage)
+    window.addEventListener(APPEARANCE_EVENT, sync)
+    return () => {
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener(APPEARANCE_EVENT, sync)
+    }
+  }, [])
+  const update = <K extends keyof AppearancePreferences>(key: K, value: AppearancePreferences[K]) => {
+    setPreferences(saveAppearancePreferences({ ...preferences, [key]: value }))
   }
   return (
-    <div className="stPrefExtras">
-      <div className="stPrefRow"><div><b>Ukuran teks</b><small>Memperbesar seluruh teks dan kontrol aplikasi di perangkat ini.</small></div>
-        <div className="govSegment" role="radiogroup" aria-label="Ukuran teks">{([['normal', 'Normal'], ['besar', 'Besar'], ['sangat-besar', 'Sangat besar']] as const).map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={size === v} className={size === v ? 'active' : ''} onClick={() => { setSize(v); apply('aureka-text-size', 'data-text-size', v, 'normal') }}>{l}</button>)}</div></div>
-      <div className="stPrefRow"><div><b>Animasi</b><small>Matikan bila perangkat terasa lambat atau Anda lebih suka tampilan tanpa gerakan.</small></div>
-        <div className="govSegment" role="radiogroup" aria-label="Animasi">{([['on', 'Aktif'], ['off', 'Nonaktif']] as const).map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={motion === v} className={motion === v ? 'active' : ''} onClick={() => { setMotion(v); apply('aureka-motion', 'data-motion', v, 'on') }}>{l}</button>)}</div></div>
-    </div>
+    <section className="stPrefExtras" aria-label="Preferensi tampilan lanjutan">
+      <div className="stAppearanceIntro">
+        <div><h5>Preferensi Sistem · Tampilan</h5><p>Semua perubahan langsung berlaku pada halaman AUREKA di perangkat ini. File, data klinis, dan hak akses tidak berubah.</p></div>
+        <button type="button" className="stAppearanceReset" onClick={() => setPreferences(resetAppearancePreferences())}>Kembalikan standar</button>
+      </div>
+      <div className="stAppearanceSettings">
+        {APPEARANCE_FIELDS.map(field => (
+          <div className="stPrefRow" key={field.key} data-aureka-setting={field.key}>
+            <div className="stAppearanceLabel"><b>{field.title}</b><small>{field.detail}</small></div>
+            <div className="stAppearanceOptions" role="group" aria-label={field.title}>
+              {field.options.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={preferences[field.key]===option.value ? 'active' : ''}
+                  aria-pressed={preferences[field.key]===option.value}
+                  onClick={() => update(field.key, option.value as AppearancePreferences[typeof field.key])}
+                >{option.label}</button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="stAppearanceNote" role="status">Pilihan disimpan otomatis di browser. Preferensi yang tidak tersedia atau rusak dikembalikan ke pengaturan aman.</p>
+    </section>
   )
 }
