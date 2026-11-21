@@ -8,7 +8,7 @@ const migration = read('supabase/migrations/20261122181000_zero_file_storage_pol
 
 test('new Secretariat records allow NULL file paths and explicitly mark content-only mode', () => {
   assert.match(schema, /ALTER COLUMN object_path DROP NOT NULL/)
-  assert.match(migration, /ALTER COLUMN bucket_id DROP NOT NULL/)
+  assert.match(schema, /ALTER COLUMN bucket_id DROP NOT NULL/)
   assert.match(schema, /source_mode IN \('legacy_storage','data_only'\)/)
   assert.match(schema, /source_mode <> 'data_only' OR \(object_path IS NULL AND bucket_id IS NULL\)/)
 })
