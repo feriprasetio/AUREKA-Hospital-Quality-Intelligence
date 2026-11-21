@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { hydrateInteractiveExcelHeaderMappings } from '@/lib/aureka/interactive-header-mapping'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import QualityWorkbookImportPanel from '@/components/QualityWorkbookImportPanel'
 
 type Room = { id: number; name: string }
 type Profile = {
@@ -88,7 +89,7 @@ export default function QualityExcelMappingWorkspace({
   const canManage = role === 'ADMIN' || role === 'PMKP'
   const [roomId, setRoomId] = useState<number | null>(initialRoomId)
   const [profileYear, setProfileYear] = useState(year)
-  const [activeTab, setActiveTab] = useState<'unit' | 'indicator'>('unit')
+  const [activeTab, setActiveTab] = useState<'unit' | 'indicator' | 'import'>('unit')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [mappings, setMappings] = useState<Mapping[]>([])
   const [loading, setLoading] = useState(false)
@@ -465,6 +466,7 @@ export default function QualityExcelMappingWorkspace({
     <div className="qemTabs" role="tablist" aria-label="Pengaturan pemetaan">
       <button type="button" role="tab" aria-selected={activeTab === 'unit'} onClick={() => setActiveTab('unit')}>Pengaturan per Unit</button>
       <button type="button" role="tab" aria-selected={activeTab === 'indicator'} onClick={() => setActiveTab('indicator')}>Pengaturan per Indikator</button>
+      <button type="button" role="tab" aria-selected={activeTab === 'import'} onClick={() => setActiveTab('import')}>Impor Workbook</button>
     </div>
 
     {error && <div className="qemMessage error" role="alert">{error}</div>}
@@ -519,6 +521,26 @@ export default function QualityExcelMappingWorkspace({
           <datalist id="qem-detected-header-list">{headerOptions.map((header,index) => <option key={index} value={header}/>)}</datalist>
         </div>
       </>}
+    </>}
+
+
+    {activeTab === 'import' && <>
+      {!roomId || !activeRoom ? (
+        <div className="qemPanel"><h4>Pilih unit terlebih dahulu</h4><p className="qemMuted">Impor workbook selalu terikat pada unit dan tahun profil agar konfigurasi antar-ruangan tidak bercampur.</p></div>
+      ) : (
+        <QualityWorkbookImportPanel
+          roomId={roomId}
+          roomName={activeRoom.name}
+          year={profileYear}
+          importerKey={selectedImporter?.key ?? 'unit-logbook'}
+          role={role}
+          activeProfiles={activeProfiles}
+          onImported={() => {
+            void load()
+            window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', { detail: { year: profileYear, scopeRoomId: roomId } }))
+          }}
+        />
+      )}
     </>}
 
     {activeTab === 'indicator' && <>
