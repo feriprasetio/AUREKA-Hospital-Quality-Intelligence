@@ -484,3 +484,68 @@
 @media(prefers-reduced-motion:reduce){
  .aurekaPublic *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+
+/* Publication workflow: internal management dashboard only. */
+.aurekaPublishDisclosure{margin:22px 0;border:1px solid var(--border-subtle,#cbd9e4);border-radius:14px;background:var(--surface-card,#fff);min-width:0;overflow:hidden}
+.aurekaPublishDisclosure>summary{padding:16px 20px;cursor:pointer;font-size:15px;font-weight:800;display:flex;align-items:center;gap:12px;flex-wrap:wrap;list-style:revert}
+.aurekaPublishDisclosure>summary span{color:var(--text-secondary,#51677d);font-size:12px;font-weight:500}
+.aurekaPublishDisclosure[open]>summary{border-bottom:1px solid var(--border-subtle,#cbd9e4)}
+.aurekaPublishDesk{padding:20px;font-family:var(--font-aureka),sans-serif;color:var(--text-primary,inherit);min-width:0}
+.aurekaPublishDesk *{box-sizing:border-box}
+.aurekaPublishIntro h2{font-size:22px;margin:0 0 6px;line-height:1.3}
+.aurekaPublishIntro p{font-size:13px;color:var(--text-secondary,#51677d);margin:0 0 16px;line-height:1.7}
+.aurekaPublishGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:18px;align-items:start}
+.aurekaPublishPanel{border:1px solid var(--border-subtle,#dbe6ee);border-radius:13px;padding:18px;min-width:0;background:var(--surface-card,transparent)}
+.aurekaPublishPanel h3{font-size:15px;margin:0 0 15px}
+.aurekaPublishFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-block:14px}
+.aurekaPublishFields label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;min-width:0}
+.aurekaPublishFields input,.aurekaPublishFields select,.aurekaPublishAggregate input{
+ background:var(--surface-input,var(--surface-card,#fff));color:inherit;border:1px solid var(--border-subtle,#cbd9e4);
+ border-radius:9px;min-width:0;min-height:44px;padding:10px 11px;font-size:16px;width:100%
+}
+.aurekaPublishFields select{font-size:14px}
+.aurekaPublishFields input:focus-visible,.aurekaPublishFields select:focus-visible,.aurekaPublishAggregate input:focus-visible{outline:2px solid var(--accent-solid,#16507a);outline-offset:1px}
+.aurekaPublishFull{grid-column:1/-1}
+.aurekaPublishMetricList{display:grid;gap:7px;max-height:480px;overflow-y:auto;overscroll-behavior:contain;padding:2px}
+.aurekaPublishMetric{border:1px solid var(--border-subtle,#cbd9e4);border-radius:10px;min-width:0}
+.aurekaPublishMetric summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:48px;padding:11px 13px}
+.aurekaPublishMetric summary b{font-size:12px}
+.aurekaPublishMetric summary span{font-size:11px;color:var(--text-secondary,#51677d)}
+.aurekaPublishMetric .aurekaPublishFields{padding:0 13px 13px;margin:0}
+.aurekaPublishMetric[open]{border-color:var(--accent-solid,#16507a)}
+.aurekaPublishAggregates fieldset{border:1px solid var(--border-subtle,#cbd9e4);border-radius:10px;padding:12px;margin:12px 0}
+.aurekaPublishAggregates legend{font-size:12px;font-weight:800;padding:0 6px}
+.aurekaPublishAggregate{display:grid;grid-template-columns:minmax(0,1fr) minmax(75px,.32fr) auto;gap:6px;margin-bottom:7px;align-items:center}
+.aurekaPublishAggregate input{font-size:14px}
+.aurekaPublishGhost,.aurekaPublishPrimary{border:1px solid var(--border-subtle,#cbd9e4);background:transparent;color:inherit;border-radius:9px;padding:9px 12px;min-height:44px;font-size:12px;font-weight:750;cursor:pointer}
+.aurekaPublishPrimary{background:#16507a;color:white;border-color:#16507a}
+.aurekaPublishPrimary:hover{background:#0f3c61}
+.aurekaPublishGhost:hover{background:var(--surface-soft,rgba(150,170,190,.14))}
+.aurekaPublishGhost:disabled,.aurekaPublishPrimary:disabled{opacity:.5;cursor:not-allowed}
+.aurekaPublishNote{color:var(--text-secondary,#51677d);font-size:12px;line-height:1.65}
+.aurekaPublishReviewTitle{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.aurekaPublishReviewTitle h3{margin:0}
+.aurekaPublishHistory{max-height:620px;overflow-y:auto;display:grid;gap:11px;margin-top:17px}
+.aurekaPublishHistory article{border:1px solid var(--border-subtle,#cbd9e4);border-radius:10px;padding:13px;min-width:0}
+.aurekaPublishHistoryHeader{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.aurekaPublishHistoryHeader strong{font-size:12px}
+.aurekaPublishHistory article p{color:var(--text-secondary,#51677d);font-size:11px;margin:8px 0}
+.aurekaPublishHistory details summary{font-size:12px;cursor:pointer;font-weight:750}
+.aurekaPublishHistory pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.5;max-height:270px;overflow:auto;background:var(--surface-soft,rgba(140,150,170,.09));border-radius:8px;padding:11px}
+.aurekaPublishHistoryActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.aurekaPublishState{padding:4px 7px;border:1px solid var(--border-subtle,#cbd9e4);border-radius:20px;color:var(--text-secondary,#51677d);font-size:10px;font-weight:800}
+.aurekaPublishState-published{color:#17684e;border-color:#88c7af}
+.aurekaPublishState-withdrawn{color:#b24a4a;border-color:#d79a9a}
+.aurekaPublishAlert{border:1px solid #8cc2b0;background:rgba(33,150,100,.07);padding:10px;border-radius:10px;font-size:12px}
+.aurekaPublishError{border-color:#d9a2a2;background:rgba(200,50,50,.07)}
+@media(max-width:1050px){.aurekaPublishGrid{grid-template-columns:1fr}}
+@media(max-width:600px){
+ .aurekaPublishDesk{padding:12px}
+ .aurekaPublishPanel{padding:12px}
+ .aurekaPublishFields{grid-template-columns:1fr}
+ .aurekaPublishFull{grid-column:auto}
+ .aurekaPublishAggregate{grid-template-columns:1fr 90px}
+ .aurekaPublishAggregate button{grid-column:1/-1}
+ .aurekaPublishDisclosure>summary{padding:13px}
+}
