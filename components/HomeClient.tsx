@@ -206,6 +206,7 @@ export default function HomeClient(){
  const [settingsSection,setSettingsSection]=useState<SettingsSection>('profile')
  const [secretariatSection,setSecretariatSection]=useState<SecretariatSection>('register')
  const [permissionFlags,setPermissionFlags]=useState({readDirectory:false,readPerformance:false,readPicPerformance:false,readQualityAggregate:false})
+ const canAccessStudentOrientation = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR'].includes(role||'') || (role==='PIC' && Number(room?.id)===30)
  useEffect(()=>{const h=()=>{setSettingsSection('security');setSettingsTab('security');setProfileFocus(Date.now());setActive('settings');setQualityOpen(false);setClinicalPathwayOpen(false);setGlobalSearch('');setNotificationHistoryOpen(false);setSupportOpen(false);mobileSidebar.close()};window.addEventListener('aureka-open-password',h);return()=>window.removeEventListener('aureka-open-password',h)},[])
  useEffect(()=>{if(active!=='settings')setSettingsTab(null)},[active])
  useEffect(()=>{
@@ -409,7 +410,6 @@ export default function HomeClient(){
  const validator=role==='VALIDATOR'
  const activeWorkspaceRoomId=admin?(allRoomsScope?null:resolveAdminWorkspaceRoomId(roomsList,[selectedWorkspaceRoomId,selectedQualityRoomId,room?.id])):(room?.id??null)
  const activeWorkspaceRoom=admin&&allRoomsScope?null:(roomsList.find(item=>Number(item.id)===Number(activeWorkspaceRoomId))??room)
- const canAccessStudentOrientation = ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR'].includes(role||'') || (role==='PIC' && Number(room?.id)===30)
  const visibleMods=useMemo(()=>AUREKA_PRIMARY_NAV
   .filter(({requiredRoles})=>requiredRoles.includes((role||'') as AurekaRole))
   .filter(({id})=>id!=='nara'&&id!=='insights')
