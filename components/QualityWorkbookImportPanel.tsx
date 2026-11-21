@@ -171,6 +171,7 @@ export default function QualityWorkbookImportPanel({
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [batchId, setBatchId] = useState('')
+  const [replaceConfirmed, setReplaceConfirmed] = useState(false)
 
   const currentProfiles = useMemo(() => preview?.profiles ?? activeProfiles, [preview?.profiles, activeProfiles])
   const dataHeaders = sheets.find(sheet => sheet.name === dataSheet)?.headers ?? []
@@ -179,7 +180,7 @@ export default function QualityWorkbookImportPanel({
   const roleCanImportProfiles = role === 'ADMIN'
 
   const inspect = async (file: File) => {
-    setError(''); setNotice(''); setPreview(null); setBatchId('')
+    setError(''); setNotice(''); setPreview(null); setBatchId(''); setReplaceConfirmed(false)
     if (!/\.xlsx$/i.test(file.name) || file.size <= 0 || file.size > 25 * 1024 * 1024) {
       setError('Pilih workbook .xlsx yang valid dengan ukuran maksimum 25 MB.')
       return
@@ -221,6 +222,11 @@ export default function QualityWorkbookImportPanel({
       setProfileSheet(pSheet?.name ?? '')
       setOptionsSheet(oSheet?.name ?? '')
       setDataSheet(dSheet?.name ?? '')
+      // Empty master: prefer a non-destructive profile-only bootstrap first.
+      // The user can later import logbook rows separately after reviewing the new profiles.
+      if (roleCanImportProfiles && pSheet && activeProfiles.length === 0) {
+        setImportMode('profiles_only')
+      }
       setProfileHeaderRow(pSheet?.headerRow ?? 1)
       setOptionsHeaderRow(oSheet?.headerRow ?? 1)
       setDataHeaderRow(dSheet?.headerRow ?? 1)
@@ -531,6 +537,10 @@ export default function QualityWorkbookImportPanel({
 
   const runImport = async () => {
     if (!preview || preview.issues.length) return
+    if (importMode !== 'data_only' && activeProfiles.length > 0 && !replaceConfirmed) {
+      setError('Impor set profil penuh akan memensiunkan versi master yang aktif. Centang persetujuan eksplisit sebelum melanjutkan; gunakan impor penambahan profil yang belum ada untuk mempertahankan master.')
+      return
+    }
     if (importMode !== 'data_only' && !roleCanImportProfiles) { setError('Hanya Superadmin yang dapat mengimpor profil indikator.'); return }
     if (importMode !== 'profiles_only' && !preview.rows.length) { setError('Belum ada record valid untuk diimpor.'); return }
     if (!fileHash) { setError('Hash workbook belum tersedia; unggah ulang berkas.'); return }
@@ -642,7 +652,7 @@ export default function QualityWorkbookImportPanel({
 
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(175px,1fr))', gap: 9 }}>
       <label style={fieldStyle}>Mode impor
-        <select style={selectStyle} value={importMode} disabled={busy || !roleCanImportProfiles} onChange={event => { setImportMode(event.target.value as any); setPreview(null) }}>
+        <select style={selectStyle} value={importMode} disabled={busy || !roleCanImportProfiles} onChange={event => { setImportMode(event.target.value as any); setReplaceConfirmed(false); setPreview(null) }}>
           {roleCanImportProfiles && <option value="profiles_and_data">Profil + Data logbook</option>}
           {roleCanImportProfiles && <option value="profiles_only">Profil indikator saja</option>}
           <option value="data_only">Data logbook saja</option>
@@ -719,9 +729,18 @@ export default function QualityWorkbookImportPanel({
       </details>
     </>}
 
+    {roleCanImportProfiles && activeProfiles.length > 0 && importMode !== 'data_only' &&
+      <label style={{ ...fieldStyle, padding: 12, background: '#fff4ec', border: '1px solid #e9b39a', borderRadius: 8 }}>
+        <span>Perhatian: impor profil penuh akan menonaktifkan versi master indikator yang sedang aktif pada unit/tahun ini, termasuk profil yang tidak tercantum dalam workbook.</span>
+        <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input type="checkbox" checked={replaceConfirmed} onChange={event => setReplaceConfirmed(event.target.checked)}
+            disabled={busy} style={{ width: 18, height: 18 }}/>
+          Saya menyetujui penggantian set profil aktif setelah memeriksa daftar indikator lengkap.
+        </span>
+      </label>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       <button type="button" disabled={!sheets.length || busy} onClick={() => void buildPreview()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#e9f2f7', color: '#26536e', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>Buat pratinjau & validasi lokal</button>
-      <button type="button" disabled={!preview || !!preview.issues.length || busy} onClick={() => void runImport()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#176d4d', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{busy ? 'Memproses batch…' : 'Validasi server & commit atomik'}</button>
+      <button type="button" disabled={!preview || !!preview.issues.length || busy || (importMode !== 'data_only' && activeProfiles.length > 0 && !replaceConfirmed)} onClick={() => void runImport()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#176d4d', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{busy ? 'Memproses batch…' : 'Validasi server & commit atomik'}</button>
       <button type="button" disabled={!batchId || busy} onClick={() => void cancelBatch()} style={{ border: '1px solid #e1d4ce', borderRadius: 8, padding: '9px 13px', background: '#fff', color: '#8d5142', fontWeight: 750, fontSize: 12, cursor: 'pointer' }}>Batalkan batch</button>
     </div>
 
