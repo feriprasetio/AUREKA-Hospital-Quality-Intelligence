@@ -57,7 +57,7 @@ begin
     v_serial := pg_catalog.nextval('aureka_governance.recommendation_code_seq'::pg_catalog.regclass);
     v_code := 'REK-' ||
       coalesce(nullif(p->>'program_year',''),extract(year from now())::text) || '-' ||
-      pg_catalog.lpad(v_serial::text,pg_catalog.greatest(3,pg_catalog.length(v_serial::text)),'0');
+      pg_catalog.lpad(v_serial::text,greatest(3,pg_catalog.length(v_serial::text)),'0');
     insert into aureka_governance.recommendations
       (code,source,issued_by_level,title,description,priority,program_year,given_by_name,given_at)
     values
