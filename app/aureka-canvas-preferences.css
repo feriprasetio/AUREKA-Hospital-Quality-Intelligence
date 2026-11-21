@@ -74,20 +74,20 @@ html[data-skin="arktik"][data-aureka-header="standard"] {
 }
 
 /* Only the authenticated workspace, not login, public verification or modal portals. */
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .adaptiveWorkspaceShell,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .adaptiveWorkspaceContent {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter,
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .adaptiveWorkspaceShell,
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .adaptiveWorkspaceContent {
   background: transparent !important;
   background-image: none !important;
   min-width: 0;
   max-width: 100%;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .adaptiveWorkspaceContent {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .adaptiveWorkspaceContent {
   width: 100%;
   max-width: var(--aureka-canvas-reading-width) !important;
   margin-inline: auto !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .liquidGlass, .glassPanel, .glassCard, .glass, .magicPanel, .magicKpi,
   .ovPanel, .ovKpi, .ovContextBar, .ovMatrixWrap, .ovHero,
   .rmPanel, .rmKpi, .rmPlanCard, .rmSectionHead, .rmMatrixWrap,
@@ -122,7 +122,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   min-width: 0;
 }
 /* KPI strips use space and typographic hierarchy, not adjacent white rectangles. */
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .secSummary, .ppKpis, .legalMetrics, .ihtMetrics, .rfmeaGrid,
   .ovKpis, .ovKpiRow, .homeKpis, .dashboardKpis
 ) {
@@ -130,7 +130,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   margin-block: calc(var(--aureka-canvas-section-gap) / 2) var(--aureka-canvas-section-gap) !important;
   min-width: 0;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .secSummary > div, .ppKpi, .legalMetrics > div, .ihtMetrics > div, .rfmeaKpi,
   .ovKpi, .rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .aqKpi
 ) {
@@ -141,7 +141,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   background: transparent !important;
   box-shadow: none !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .secTablePanel, .ppPanel, .legalPanel, .spoHeader, .stPanel, .settingsActivePanel, .workspaceActivePanel
 ) {
   padding-block: var(--aureka-canvas-block-pad) !important;
@@ -149,13 +149,13 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   margin-block: var(--aureka-canvas-section-gap) !important;
   overflow: visible !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .secTablePanel, .secLanding, .secWorkspace, .ppPanel, .settingsWorkspace, .legalWorkspace, .spoWorkspace
 ) {
   min-width: 0;
   max-width: 100%;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .secTableToolbar, .secToolbar, .ppHead, .legalPanelHeading, .spoRegisterToolbar,
   .stAppearanceIntro
 ) {
@@ -163,14 +163,14 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   flex-wrap: wrap !important;
   min-width: 0;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .secTableToolbar {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .secTableToolbar {
   padding: var(--aureka-canvas-block-pad) 0 !important;
   border-color: var(--aureka-canvas-divider) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .secTablePanel > :is(h2, h3, p, .secEyebrow, .secToolbar) {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter .secTablePanel > :is(h2, h3, p, .secEyebrow, .secToolbar) {
   margin-inline: 0 !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .secTable, .ppTable, .aqTable, .rmTable, .psTable, .cpTable, .sdTable, .stTable, .qraTable,
   .workspaceTableFrame table, .workspaceTableViewport table
 ) {
@@ -178,26 +178,26 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .m
   background-image: none !important;
   box-shadow: none !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table > thead > tr > th {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table > thead > tr > th {
   background: transparent !important;
   background-image: none !important;
   color: var(--aureka-canvas-muted) !important;
   border-block-end: 1px solid var(--aureka-canvas-divider-strong) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(table td, table th) {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(table td, table th) {
   padding-block: var(--aureka-canvas-table-y) !important;
   border-block-end-color: var(--aureka-canvas-divider) !important;
   background-image: none !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table tbody tr {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table tbody tr {
   background: transparent !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table tbody tr:hover {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table tbody tr:hover {
   background: color-mix(in srgb, var(--aureka-color-primary) 5%, transparent) !important;
 }
 
 /* Scalable typography: consistent on primary reading surfaces without flattening KPI numbers. */
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
   .moduleEnter p, .moduleEnter li, .moduleEnter label,
   .moduleEnter input, .moduleEnter select, .moduleEnter textarea,
   .moduleEnter button, .moduleEnter table td
@@ -205,7 +205,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] :i
   font-size: var(--aureka-canvas-body-size) !important;
   line-height: 1.5;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
   .moduleEnter small, .moduleEnter table th, .moduleEnter .secSummary span,
   .moduleEnter .ppKpi span, .moduleEnter .secEyebrow, .moduleEnter .ppSub
 ) {
@@ -213,35 +213,35 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] :i
   color: var(--aureka-canvas-muted);
   line-height: 1.45;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(h1,h2,h3,h4) {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(h1,h2,h3,h4) {
   overflow-wrap: anywhere;
   line-height: 1.3;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(.secSummary strong,.ppKpi strong,.legalMetrics strong) {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(.secSummary strong,.ppKpi strong,.legalMetrics strong) {
   color: var(--aureka-color-foreground) !important;
   font-variant-numeric: tabular-nums;
   font-size: calc(24px * var(--aureka-canvas-heading-scale)) !important;
   line-height: 1.2;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
   .moduleEnter button, .moduleEnter select, .moduleEnter input:not([type="checkbox"]):not([type="radio"]), .moduleEnter textarea
 ) {
   min-height: 44px;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   input:not([type="checkbox"]):not([type="radio"]), select, textarea
 ) {
   background-color: color-mix(in srgb, var(--aureka-color-surface) 24%, transparent) !important;
   color: var(--aureka-color-foreground) !important;
   border-color: var(--aureka-canvas-divider-strong) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(input, select, textarea, button):focus-visible {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(input, select, textarea, button):focus-visible {
   outline: 2px solid var(--aureka-color-primary) !important;
   outline-offset: 2px;
 }
 
 /* Canonical header: avoids fragmented density pills and white nested capsules. */
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
   position: sticky !important;
   top: 0 !important;
   min-height: var(--aureka-canvas-header-min) !important;
@@ -260,12 +260,12 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   align-items: center !important;
   box-sizing: border-box !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar::before,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar::after {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar::before,
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar::after {
   content: none !important;
   display: none !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(
   .workspaceSidebarMenuButton, .workspaceHeaderIcon, .workspaceHeaderProfile, .workspaceContext,
   .workspaceUnitSelect, .workspaceGlobalSearch
 ) {
@@ -274,7 +274,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   background-image: none !important;
   box-shadow: none !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(
   .workspaceSidebarMenuButton, .workspaceHeaderIcon, .workspaceHeaderProfile
 ) {
   border: 0 !important;
@@ -282,11 +282,11 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   border-radius: 9px !important;
   color: var(--aureka-color-foreground-secondary) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(.workspaceGlobalSearch,.workspaceContext,.workspaceUnitSelect) {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(.workspaceGlobalSearch,.workspaceContext,.workspaceUnitSelect) {
   min-width: 0 !important;
   max-width: none !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceUnitSelect select {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceUnitSelect select {
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
@@ -300,14 +300,14 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   overflow: hidden;
   text-overflow: ellipsis;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch input {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch input {
   min-width: 0 !important;
   width: 100%;
   background-color: transparent !important;
   border-color: transparent !important;
   font-size: var(--aureka-canvas-body-size) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfile {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfile {
   justify-content: flex-start !important;
   flex: 0 1 auto !important;
   max-width: none !important;
@@ -315,17 +315,17 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   min-width: 0 !important;
   padding: 4px 6px !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfileText {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfileText {
   min-width: 0;
   max-width: 100% !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfileText b {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfileText b {
   font-size: var(--aureka-canvas-body-size) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfileText small {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfileText small {
   font-size: var(--aureka-canvas-small-size) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderIcon {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderIcon {
   width: 44px !important;
   height: 44px !important;
   min-width: 44px !important;
@@ -333,24 +333,24 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
   flex: 0 0 44px !important;
   place-items: center !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(button,select,input):focus-visible {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(button,select,input):focus-visible {
   outline: 2px solid var(--aureka-color-primary) !important;
   outline-offset: 2px !important;
 }
 @media (min-width: 1181px) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
     grid-template-columns: 44px minmax(160px, 240px) minmax(130px, 1fr) repeat(5, 44px) minmax(120px, 190px) !important;
     grid-template-areas: "menu context search nara inbox theme fullscreen bell profile" !important;
     column-gap: 8px !important;
     row-gap: 0 !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle { display: none !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch { display: flex !important; width: 100% !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { grid-area: fullscreen !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle { display: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch { display: flex !important; width: 100% !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { grid-area: fullscreen !important; }
 }
 @media (min-width: 721px) and (max-width: 1180px), (pointer: coarse) and (min-width: 1181px) and (max-width: 1600px) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
     grid-template-columns: 44px minmax(0,1fr) repeat(4,44px) minmax(116px,190px) !important;
     grid-template-areas:
@@ -358,12 +358,12 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
       "search search search search search search search" !important;
     gap: 6px 8px !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { display: none !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch { display: flex !important; width: 100% !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle,
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { display: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch { display: flex !important; width: 100% !important; }
 }
 @media (max-width: 720px) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
     grid-template-columns: 44px minmax(0,1fr) repeat(3,44px) !important;
     grid-template-areas:
@@ -372,69 +372,69 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
       "search search search search search" !important;
     gap: 5px 6px !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { display: none !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle { display: grid !important; grid-area: find !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch:not([data-open="true"]) { display: none !important; }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch[data-open="true"] {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceFullscreenButton { display: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle { display: grid !important; grid-area: find !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch:not([data-open="true"]) { display: none !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch[data-open="true"] {
     display: flex !important;
     grid-area: search !important;
     width: 100% !important;
     margin: 0 !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfile {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceHeaderProfile {
     min-width: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     grid-area: profile !important;
     margin: 0 !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceContext {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceContext {
     width: 100% !important;
     min-width: 0 !important;
     grid-area: context !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(.secSummary,.legalMetrics) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(.secSummary,.legalMetrics) {
     grid-template-columns: repeat(auto-fit, minmax(112px,1fr)) !important;
   }
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceSidebarMenuButton { grid-area: menu !important; }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceContext { grid-area: context !important; }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceGlobalSearch { grid-area: search !important; }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceNaraButton { grid-area: nara !important; }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceInboxButton { grid-area: inbox !important; }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceThemeButton { grid-area: theme !important; }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile { grid-area: profile !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceSidebarMenuButton { grid-area: menu !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceContext { grid-area: context !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceGlobalSearch { grid-area: search !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceNaraButton { grid-area: nara !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceInboxButton { grid-area: inbox !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceThemeButton { grid-area: theme !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > [data-workspace-popover-trigger="notifications"] { grid-area: bell !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceHeaderProfile { grid-area: profile !important; }
 
 /* Appearance controls: align with cardless pages. */
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stPrefExtras {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stPrefExtras {
   display: grid;
   gap: 14px;
   width: 100%;
   min-width: 0;
   padding-block: 18px !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceIntro {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceIntro {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceIntro h5 {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceIntro h5 {
   font-size: calc(17px * var(--aureka-canvas-heading-scale));
   margin: 0 0 5px;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceIntro p {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceIntro p {
   margin: 0;
   max-width: 700px;
   color: var(--aureka-canvas-muted);
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceSettings {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceSettings {
   display: grid;
   gap: 0;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stPrefRow {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stPrefRow {
   display: grid !important;
   grid-template-columns: minmax(170px, 1fr) minmax(230px, 1.1fr) !important;
   align-items: center !important;
@@ -446,30 +446,30 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
   background: transparent !important;
   min-width: 0;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceLabel {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceLabel {
   min-width: 0;
   display: grid;
   gap: 4px;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceLabel b {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceLabel b {
   font-size: var(--aureka-canvas-body-size) !important;
   font-weight: 750;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceLabel small,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceNote {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceLabel small,
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceNote {
   font-size: var(--aureka-canvas-small-size) !important;
   line-height: 1.5;
   color: var(--aureka-canvas-muted) !important;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   min-width: 0;
   justify-content: flex-end;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions button,
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceReset {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions button,
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceReset {
   min-height: 44px;
   padding: 9px 12px !important;
   border: 1px solid var(--aureka-canvas-divider-strong) !important;
@@ -480,22 +480,22 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .s
   font-weight: 650 !important;
   cursor: pointer;
 }
-html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions button.active {
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions button.active {
   color: var(--aureka-color-on-primary) !important;
   background: var(--aureka-color-primary) !important;
   border-color: var(--aureka-color-primary) !important;
 }
 @media (max-width: 860px) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stPrefRow {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stPrefRow {
     grid-template-columns: minmax(0,1fr) !important;
     gap: 10px !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions { justify-content: flex-start; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .stAppearanceOptions { justify-content: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter *,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter *::before,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter *::after {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter *,
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter *::before,
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter *::after {
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
   }
