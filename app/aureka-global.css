@@ -126,7 +126,7 @@
 .secNotice{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:10px;border:1px solid var(--border-subtle,rgba(125,140,160,.24));font-size:11px;line-height:1.5}
 .secNotice-success{background:rgba(28,145,90,.08);border-color:rgba(28,145,90,.22)}.secNotice-error{background:rgba(190,65,65,.08);border-color:rgba(190,65,65,.24)}.secNotice-info{background:var(--surface-soft,rgba(110,135,165,.07))}
 .secNotice button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:18px;line-height:1}
-.secModalBackdrop{position:fixed;z-index:10040;inset:0;display:grid;place-items:center;padding:18px;background:rgba(8,16,29,.62);backdrop-filter:blur(5px)}
+.secModalBackdrop{position:fixed;z-index:var(--aureka-z-dialog,2147483500);inset:0;display:grid;place-items:center;padding:18px;background:rgba(8,16,29,.62);backdrop-filter:blur(5px)}
 .secModal{width:min(1120px,100%);max-height:min(92vh,980px);overflow:auto;border:1px solid var(--border-subtle,rgba(140,155,175,.25));border-radius:18px;background:var(--surface-elevated,#fff);color:var(--text-primary,#172033);box-shadow:0 24px 80px rgba(0,0,0,.28)}
 .secCreateModal{width:min(680px,100%)}
 .secModalHeader{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:17px 20px;border-bottom:1px solid var(--border-subtle,rgba(125,140,160,.2));background:var(--surface-elevated,#fff)}
