@@ -30,7 +30,8 @@ test('Reactive FMEA is linked one-to-one to the source incident and writes throu
   assert.match(workspace,/source_incident_id/)
   assert.match(migration,/fmea_analyses_source_incident_unique/)
   assert.match(migration,/fmea_reactive_manager_guard/)
-  assert.match(writeGuard,/can_manage_workflow\(\)/)
+  assert.match(migration,/aureka_patient_safety\.can_manage_workflow\(\)/)
+  assert.match(writeGuard,/password_rotation_complete\(\)/)
   assert.match(writeGuard,/Insiden ini sudah memiliki analisis FMEA Reaktif/)
   assert.match(writeGuard,/revoke all on function public\.aureka_reactive_fmea_save\(jsonb\) from public,anon/)
 })
@@ -65,7 +66,7 @@ test('Staff directory offers permission-scoped cross-module profile without attr
   assert.match(migration,/identity_mode='named'/)
   assert.match(migration,/staff_team_assignments/)
   assert.match(migration,/oppe_fppe_evaluations/)
-  assert.match(migration,/patient_safety_incidents/)
+  assert.match(migration,/patient_safety_incident/)
 })
 
 test('Annual program includes an editable month-based Gantt timeline over governed activity records',()=>{
