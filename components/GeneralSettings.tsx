@@ -474,7 +474,7 @@ export default function GeneralSettings({
 
   const changePassword = async () => {
     setPwMsg(null)
-    if (pw.next.length < 6) return setPwMsg({ ok: false, text: 'Password baru minimal 6 karakter.' })
+    if (pw.next.length < 12 || pw.next.length > 128) return setPwMsg({ ok: false, text: 'Password baru harus terdiri dari 12–128 karakter.' })
     if (pw.next !== pw.confirm) return setPwMsg({ ok: false, text: 'Konfirmasi password baru tidak sama.' })
     if (pw.next === pw.current) return setPwMsg({ ok: false, text: 'Password baru harus berbeda dari password saat ini.' })
     const { data: authUser } = await sb.auth.getUser()
@@ -772,7 +772,7 @@ export default function GeneralSettings({
               <form className="pwForm" onSubmit={(e) => e.preventDefault()}>
                 <input type="text" name="username" autoComplete="username" value={me?.email || profile?.email || ''} readOnly tabIndex={-1} aria-hidden="true" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', border: 0, opacity: 0, pointerEvents: 'none' }} />
                 <label className="field"><span>Password saat ini</span><input type={pwShow ? 'text' : 'password'} autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
-                <label className="field"><span>Password baru (min. 6 karakter)</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
+                <label className="field"><span>Password baru (12–128 karakter)</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
                 <label className="field"><span>Ulangi password baru</span><input type={pwShow ? 'text' : 'password'} autoComplete="new-password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
               </form>
               {pw.next && (() => { const lv = pwStrength(pw.next); const label = ['', 'Lemah', 'Cukup', 'Baik', 'Kuat'][lv]; return (
