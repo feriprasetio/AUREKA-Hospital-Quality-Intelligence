@@ -22,7 +22,7 @@ test('student names are read from Tim Koordinasi Pendidikan quality logbooks', (
   assert.match(workspace, /Nama Mahasiswa/)
   assert.match(workspace, /source_quality_record_id/)
   assert.match(workspace, /onConflict: 'source_quality_record_id'/)
-  assert.doesNotMatch(workspace, /\\.from\\('staff_directory'\\)/)
+  assert.ok(!workspace.includes(".from('staff_directory')"))
 })
 
 test('orientation certificates use a guarded database number and browser PDF print flow', () => {
@@ -34,8 +34,8 @@ test('orientation certificates use a guarded database number and browser PDF pri
   assert.match(migration, /issue_student_orientation_certificate/)
   assert.match(migration, /REVOKE ALL ON FUNCTION/i)
   assert.match(migration, /GRANT EXECUTE ON FUNCTION .* TO authenticated/i)
-  assert.match(migration, /current_role_code\\(\\)/i)
-  assert.match(migration, /has_quality_room_access\\(30\\)/i)
+  assert.ok(migration.includes('current_role_code()'))
+  assert.ok(migration.includes('has_quality_room_access(30)'))
 })
 
 test('orientation metadata remains linked to non-patient source records', () => {
