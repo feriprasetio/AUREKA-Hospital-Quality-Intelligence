@@ -149,3 +149,59 @@ test('an unchanged workbook profile does not create a fresh version during a lat
   assert.deepEqual(next.profiles, [])
   assert.equal(next.rows.length, 3)
 })
+
+
+test('profile-only workbook fills empty master without Logbook or patient records', async () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Profil Indikator')
+  sheet.addRow(['Kode indikator', 'Nama indikator', 'Arah indikator', 'Kode 1', 'Kode 2', 'Kode 3', 'Target'])
+  sheet.addRow(['6.50', 'Kepatuhan audit simulasi', 'Positif', 'Sesuai', 'Pengecualian', 'Tidak sesuai', '≥ 85%'])
+  const parsed = inspectEpisodeWorkbook(workbook)
+  assert.equal(parsed.hasLogbook, false)
+  assert.equal(parsed.profileSheet, 'Profil Indikator')
+  const input = setup(workbook)
+  const preview = await prepareEpisodeImport({ ...input, profilesOnly: true })
+  assert.deepEqual(preview.issues, [])
+  assert.equal(preview.rows.length, 0)
+  assert.equal(preview.profiles.length, 1)
+  assert.equal(preview.profiles[0].code, '6.50')
+  assert.deepEqual(preview.profiles[0].options_json.map(option => option.label), ['Sesuai', 'Pengecualian', 'Tidak sesuai'])
+})
+
+test('profile-only upload rejects guessed response labels instead of creating fictional clinical definitions', async () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Profil')
+  sheet.addRow(['Kode indikator', 'Nama indikator', 'Arah indikator'])
+  sheet.addRow(['6.51', 'Indikator tanpa klasifikasi sumber', 'Positif'])
+  const preview = await prepareEpisodeImport({ ...setup(workbook), profilesOnly: true })
+  assert.equal(preview.rows.length, 0)
+  assert.ok(preview.issues.some(issue => /minimal dua pilihan jawaban/.test(issue.message)))
+})
+
+test('profile-only preview refuses silent overwrite when the source has no changes', async () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Profil')
+  sheet.addRow(['Kode indikator', 'Nama indikator', 'Arah indikator', 'Kode 1', 'Kode 2'])
+  sheet.addRow(['6.52', 'Profil stabil', 'Positif', 'Patuh', 'Tidak patuh'])
+  const first = await prepareEpisodeImport({ ...setup(workbook), profilesOnly: true })
+  assert.deepEqual(first.issues, [])
+  const existing = first.profiles.map((profile, index) => ({
+    ...profile, id: 'saved-' + index, status: 'published',
+  }))
+  const preview = await prepareEpisodeImport({ ...setup(workbook, existing), profilesOnly: true })
+  assert.equal(preview.rows.length, 0)
+  assert.equal(preview.profiles.length, 0)
+  assert.ok(preview.issues.some(issue => /Tidak ada perubahan/.test(issue.message)))
+})
+
+test('active episode workbook dialog prioritizes empty master, uses profile-only RPC and skips staging', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const dialog = await readFile(new URL('../components/PatientEpisodeWorkbookDialog.tsx', import.meta.url), 'utf8')
+  assert.match(dialog, /const autoFillMissingMaster = useProfiles && profiles\.length === 0/)
+  assert.match(dialog, /await prepareEpisodeImport\(\{[\s\S]*?profilesOnly: true/)
+  assert.match(dialog, /await commitBatch\(next, prepared, true\)/)
+  assert.match(dialog, /p_import_mode: onlyProfiles \? 'profiles_only'/)
+  assert.match(dialog, /p_expected_rows: onlyProfiles \? 0/)
+  assert.match(dialog, /if \(onlyProfiles\) break/)
+  assert.doesNotMatch(dialog, /upload\(|storage\.from\(/)
+})
