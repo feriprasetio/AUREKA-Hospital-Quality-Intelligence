@@ -52,3 +52,9 @@ The updated `aureka-document-ingest` requires a reviewed `controlled_document_ve
 - Do not remove historical Storage objects or revoke historical read permission until legal retention and backup review is complete. Current operational database counts do not establish legal disposability.
 - Gemini embeddings still receive text when NARA knowledge ingestion is invoked. This is separate from raw-file storage and requires ongoing processor/privacy control.
 - If a document consisted only of a scanned image, the browser-local reader can return metadata only. User validation or approved local OCR is required; there is no server-side binary fallback.
+
+## Legacy Storage quarantine after zero-file deployment
+
+After all live frontend modules pass no-Storage regression tests and both retired SPO/Secretariat parsers are deployed as HTTP 410, apply `20261122184500_zero_file_storage_legacy_quarantine.sql` separately. It adds RESTRICTIVE SELECT and DELETE policies for `anon` and `authenticated` roles in addition to existing INSERT/UPDATE blockers. No object is deleted or migrated by this policy. Supabase `service_role` / privileged administrators may still perform authorized custody, legal retention checks and external archival export. Do not expose the service role key to browsers.
+
+Verify the four RESTRICTIVE policies in `pg_policies`, confirm the number and bytes of historical `storage.objects` remain unchanged, and test with an authenticated application session that upload and download both fail. This is an intentional cutoff of legacy Storage clients; do not revert it without explicitly approving the legacy workflow. The single legacy workbook identified during the November 2026 audit requires a separate legal/backup decision before physical deletion.
