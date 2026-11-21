@@ -564,6 +564,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [roomId,setRoomId]=useState<number|null>(()=>defaultAuditRoomId(rooms,initialRoomId,isAdmin))
  const [roomOverview,setRoomOverview]=useState<{roomId:number;records:number|null}[]>([])
  const [roomOverviewBusy,setRoomOverviewBusy]=useState(false)
+ // Parents may pass a new rooms array identity every render; only semantic
+ // room changes should trigger an aggregate refetch.
+ const roomKey=rooms.map(r=>r.id+':'+r.name).join('|')
  const [excelMappingOpen,setExcelMappingOpen]=useState(false)
  useEffect(()=>{
   const incoming=normalizeRoomIdValue(initialRoomId)
@@ -592,7 +595,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    }
   })()
   return()=>{cancelled=true}
- },[isAdmin,initialRoomId,roomId,rooms,year])
+ },[isAdmin,initialRoomId,roomId,roomKey,year])
  const canImportWorkbook=isAdmin||canViewAllRooms
  const canImportOutpatientWorkbook=canImportWorkbook||(!isValidator&&Number(initialRoomId)===11)
  useEffect(()=>{
@@ -682,8 +685,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [unitPickerOpen,setUnitPickerOpen]=useState(false)
  const [unitPickerRoomId,setUnitPickerRoomId]=useState('')
 
- // Kunci stabil: induk sering mengirim array rooms baru (hasil filter) di setiap render; tanpa ini logbook dimuat ulang terus-menerus.
- const roomKey=rooms.map(r=>r.id+':'+r.name).join('|')
+ // Shared semantic room key also prevents duplicate overview RPC requests.
  // eslint-disable-next-line react-hooks/exhaustive-deps
  const roomMap=useMemo(()=>new Map(rooms.map(r=>[Number(r.id),r.name])),[roomKey])
  const activeLayout=useMemo(()=>getLayout(roomId),[roomId])
