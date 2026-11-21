@@ -8,6 +8,8 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Profile = {
   id?: string
+  source_id?: string | null
+  source_code?: string
   code: string
   title: string
   room_id: number
@@ -98,7 +100,7 @@ const grainValue = (value: unknown): string => {
   const raw = normalize(value).replace(/ /g, '_')
   const aliases: Record<string, string> = {
     pasien: 'patient_episode', per_pasien: 'patient_episode', per_episode_pasien: 'patient_episode',
-    patient: 'patient_episode', patient_episode: 'patient_episode', episode: 'patient_episode',
+    patient: 'patient_episode', patient_episode: 'patient_episode', episode: 'patient_episode', 'per pasien episode': 'patient_episode', 'pasien episode': 'patient_episode',
     dokter_hari: 'provider_day', per_dokter_per_hari: 'provider_day', provider_day: 'provider_day',
     harian: 'daily_metric', per_hari: 'daily_metric', daily: 'daily_metric', daily_metric: 'daily_metric',
     kejadian: 'event', per_kejadian: 'event', event: 'event',
@@ -205,7 +207,9 @@ export default function QualityWorkbookImportPanel({
       workbookRef.current = workbook
       fileRef.current = file
       setFileName(file.name)
-      setFileHash(await hash(Array.from(new Uint8Array(await file.arrayBuffer())).map(x => x.toString(16).padStart(2, '0')).join('')))
+      const bytes = await file.arrayBuffer()
+      const digest = await crypto.subtle.digest('SHA-256', bytes)
+      setFileHash(Array.from(new Uint8Array(digest)).map(x => x.toString(16).padStart(2, '0')).join(''))
       setSheets(detected)
       const pSheet = detected.find(s => /profil.*indikator|daftar.*indikator|master.*indikator/i.test(s.name))
         ?? detected.find(s => findHeader(s.headers, ['kode indikator', 'indicator code', 'code']) && findHeader(s.headers, ['nama indikator', 'indicator name', 'title']))
@@ -320,11 +324,27 @@ export default function QualityWorkbookImportPanel({
           if (!Array.isArray(inlineOptions)) throw new Error('Opsi JSON harus berupa daftar.')
           const options = inlineOptions.length ? inlineOptions : (optionGroups.get(code) ?? [])
           if (options.some(option => option.code != null && ![1, 2, 3].includes(Number(option.code)))) throw new Error('Kode opsi hanya boleh 1, 2, atau 3.')
-          const measurementType = get(row.values, 'measurement_type') || clean(schema.measurement_type) || ''
-          const direction = get(row.values, 'indicator_direction') || clean(schema.indicator_direction) || ''
+          const rawMeasurementType = get(row.values, 'measurement_type') || clean(schema.measurement_type) || ''
+          const normalizedMeasurement = normalize(rawMeasurementType)
+          const measurementAliases: Record<string, string> = {
+            rasio: 'ratio', proporsi: 'ratio', persentase: 'ratio', percentage: 'ratio',
+            kepatuhan: 'compliance', kepatuhan_1_2_3: 'compliance',
+            'waktu kunjungan': 'visit_window', 'jam visite': 'visit_window',
+            'door to decision': 'door_to_decision', 'door-to-decision': 'door_to_decision',
+            menit: 'minutes', durasi: 'minutes', 'waktu respons': 'minutes', 'response time': 'minutes',
+            numerik: 'numeric', angka: 'numeric', kejadian: 'occurrence',
+          }
+          const measurementType = measurementAliases[normalizedMeasurement] ?? rawMeasurementType
+          const rawDirection = get(row.values, 'indicator_direction') || clean(schema.indicator_direction) || ''
+          const directionText = normalize(rawDirection)
+          const direction = /positive|positif|meningkat|lebih tinggi lebih baik/.test(directionText)
+            ? 'positive'
+            : /negative|negatif|menurun|lebih rendah lebih baik/.test(directionText) ? 'negative' : rawDirection
           if (measurementType) schema = { ...schema, measurement_type: measurementType }
           if (direction) schema = { ...schema, indicator_direction: direction }
-          const captureMode = get(row.values, 'response_capture_mode')
+          const rawCaptureMode = get(row.values, 'response_capture_mode')
+          const captureText = normalize(rawCaptureMode)
+          const captureMode = /categor|dropdown|pilihan|coded/.test(captureText) ? 'categorical' : rawCaptureMode
           if (captureMode) schema = { ...schema, response_capture_mode: captureMode }
           if (!schema.response_capture_mode && grain === 'patient_episode' &&
               ['positive', 'negative'].includes(normalize(direction)) &&
@@ -339,7 +359,7 @@ export default function QualityWorkbookImportPanel({
             category: get(row.values, 'category') || null,
             unit_of_measure: get(row.values, 'unit_of_measure') || null,
             target_text: get(row.values, 'target_text') || null,
-            target_operator: get(row.values, 'target_operator') || '=',
+            target_operator: get(row.values, 'target_operator') || (clean(get(row.values, 'target_text')).match(/^\s*(<=|>=|≤|≥|<|>)/)?.[1] ?? '='),
             target_value: targetValue ? numberValue(targetValue) : null,
             numerator_definition: get(row.values, 'numerator_definition') || null,
             denominator_definition: get(row.values, 'denominator_definition') || null,
@@ -361,9 +381,10 @@ export default function QualityWorkbookImportPanel({
       for (const source of sourceDataRows) {
         const byGrain = new Map<string, any[]>()
         for (const profile of profiles) {
-          const valueHeader = indicatorColumns[profile.code]
-          const numeratorHeader = numeratorColumns[profile.code]
-          const denominatorHeader = denominatorColumns[profile.code]
+          const schemaMapping = profile.schema_json?.excel_mapping ?? {}
+          const valueHeader = indicatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.indicator_header, profile.schema_json?.header_label, profile.code, profile.title].filter(Boolean))
+          const numeratorHeader = numeratorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.numerator_header].filter(Boolean))
+          const denominatorHeader = denominatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.denominator_header].filter(Boolean))
           const rawCell = valueHeader ? source.values[valueHeader] : null
           const numeratorCell = numeratorHeader ? source.values[numeratorHeader] : null
           const denominatorCell = denominatorHeader ? source.values[denominatorHeader] : null
@@ -423,9 +444,11 @@ export default function QualityWorkbookImportPanel({
               response.raw_value = { answer: String(option.label), code: response.response_code }
               response.review_status = option.review_required ? 'pending' : 'not_required'
             }
-            const group = byGrain.get(profile.measurement_grain) ?? []
+            const grain = grainValue(profile.measurement_grain)
+            if (!['patient_episode', 'provider_day', 'daily_metric', 'event', 'activity', 'aggregate'].includes(grain)) throw new Error('Grain pengukuran profil tidak valid atau belum ditetapkan.')
+            const group = byGrain.get(grain) ?? []
             group.push(response)
-            byGrain.set(profile.measurement_grain, group)
+            byGrain.set(grain, group)
           } catch (cause) {
             issues.push({ sheet: dataSheet, row: source.rowNumber, field: profile.code, message: cause instanceof Error ? cause.message : 'Respons tidak valid.' })
           }
@@ -558,7 +581,7 @@ export default function QualityWorkbookImportPanel({
         </select>
       </label>
       <label style={fieldStyle}>Workbook .xlsx
-        <input ref={undefined} type="file" accept=".xlsx" disabled={busy} onChange={event => { const file = event.target.files?.[0]; if (file) void inspect(file); event.currentTarget.value = '' }} style={{ ...selectStyle, padding: '6px 8px' }}/>
+        <input type="file" accept=".xlsx" disabled={busy} onChange={event => { const file = event.target.files?.[0]; if (file) void inspect(file); event.currentTarget.value = '' }} style={{ ...selectStyle, padding: '6px 8px' }}/>
       </label>
     </div>
     {fileName && <div style={{ fontSize: 11, color: '#5d7481' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
