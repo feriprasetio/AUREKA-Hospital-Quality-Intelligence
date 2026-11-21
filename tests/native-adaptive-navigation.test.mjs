@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('phone, tablet and desktop use a single authorized destination model with distinct navigation shells', () => {
+test('phone uses authorized native dock; desktop and tablet keep a permanently visible original sidebar', () => {
   const home = read('components/HomeClient.tsx')
   const controller = read('components/layout/useAccessibleSidebar.ts')
   const css = read('app/aureka-navigation-system.css')
@@ -15,10 +15,13 @@ test('phone, tablet and desktop use a single authorized destination model with d
   assert.match(home, /createPortal\(\s*<nav className="workspaceNativeNavigation"/)
   assert.match(home, /aria-label="Lihat semua modul AUREKA"/)
   assert.match(home, /aria-current=\{activeNavModuleId===item\.id\?'page':undefined\}/)
-  assert.match(controller, /matchMedia\(TOUCH_DRAWER_MEDIA_QUERY\)/)
-  assert.match(controller, /!window\.matchMedia\(TOUCH_DRAWER_MEDIA_QUERY\)\.matches/)
+  assert.match(controller, /matchMedia\(PHONE_DRAWER_MEDIA_QUERY\)/)
+  assert.match(controller, /!window\.matchMedia\(PHONE_DRAWER_MEDIA_QUERY\)\.matches/)
   assert.match(css, /@media \(min-width: 721px\) and \(max-width: 1180px\)/)
-  assert.match(css, /body > \.workspaceNativeNavigation \{[\s\S]*?display: flex;/)
+  assert.match(css, /@media \(min-width: 721px\) \{[\s\S]*?position: sticky !important;[\s\S]*?visibility: visible !important/)
+  assert.match(css, /body > \.workspaceNativeNavigation\s*\{\s*display: none !important/)
+  assert.match(home, /mobileSidebar\.isMobile&&typeof document!=='undefined'&&createPortal/)
+  assert.doesNotMatch(home, /sidebarIsCollapsed|setSidebarCollapsed/)
   assert.match(css, /@media \(max-width: 720px\)/)
   assert.match(css, /body > \.workspaceNativeNavigation \{[\s\S]*?display: grid;/)
   assert.match(css, /@media \(min-width: 1181px\)/)
@@ -69,7 +72,7 @@ test('Arktik remains the only preferred skin and existing CSS cascade stays in c
   const global = read('app/aureka-global.css')
   const design = read('DESIGN.md')
   assert.match(global, /@import '\.\/aureka-navigation-system\.css';/)
-  assert.match(design, /tablet.*rail/)
+  assert.match(design, /tablet.*sidebar/)
   assert.match(design, /smartphone.*dock/)
   assert.doesNotMatch(global, /@import '\.\/native-overrides\.css'/)
 })
