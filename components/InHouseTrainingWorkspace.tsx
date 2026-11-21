@@ -6,6 +6,7 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import CertificateTemplateEditor from '@/components/CertificateTemplateEditor'
 import { loadCertificateLayout, pdfPoint, type CertificateLayout, type CertificateElementId } from '@/lib/aureka/certificate-template'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { qrPdfCommands, certificateVerificationUrl } from '@/lib/aureka/qr-code'
 
 type Room={id:number;name:string}
 type EventRow={id:string;event_code:string;title:string;topic:string;organizer:string;room_id:number|null;start_at:string;end_at:string|null;venue:string;instructor_json:string[];learning_objectives:string[];status:string}
@@ -13,6 +14,7 @@ type Staff={id:string;employee_code:string;display_name:string;profession_group:
 type Participant={id:string;event_id:string;participant_type:string;staff_id:string|null;full_name:string;participant_code:string;profession_or_program:string;room_id:number|null;status:string}
 type Certificate={id:string;event_id:string;participant_id:string;certificate_number:string;verification_code:string;issue_date:string;object_path:string|null;revoked_at:string|null;render_snapshot?:{kind:string;layout:CertificateLayout;data:{event:EventRow;participant:Participant}}|null}
 const education=()=>aurekaSupabase.schema('aureka_system')
+const BASE_PATH=process.env.NEXT_PUBLIC_BASE_PATH||''
 const managers=['ADMIN','PMKP','MANAGEMENT','KABID']
 const dateLabel=(v:string)=>new Date(v).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})
 const clean=(v:string)=>v.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7e]/g,' ')
@@ -59,7 +61,9 @@ function makePdf(event:EventRow,p:Participant,num:string,code:string,layout:Cert
   ...signature('signature_left','Direktur',{x:24,y:86}),
   ...signature('signature_right','Pejabat yang berwenang',{x:76,y:86}),
   text('verification','Nomor: '+num+'  |  Kode verifikasi: '+code,8,'0.18 0.29 0.40',{x:91,y:91}),
-  text('footer','AUREKA DOCUMENT INTELLIGENCE',8,'0.08 0.22 0.36',{x:50,y:96})
+  text('footer','AUREKA DOCUMENT INTELLIGENCE',8,'0.08 0.22 0.36',{x:50,y:96}),
+  ...qrPdfCommands(certificateVerificationUrl(code,BASE_PATH),716,364,104),
+  'BT /F1 7 Tf 0.08 0.22 0.36 rg 721 353 Td (SCAN QR VERIFIKASI) Tj ET'
  ]
  const stream=rows.join('\n')
  const objects=[

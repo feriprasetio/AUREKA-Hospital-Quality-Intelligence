@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import CertificateTemplateEditor from '@/components/CertificateTemplateEditor'
 import { loadCertificateLayout, pdfPoint, type CertificateLayout, type CertificateElementId } from '@/lib/aureka/certificate-template'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { qrPdfCommands, certificateVerificationUrl } from '@/lib/aureka/qr-code'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 const sys = () => aurekaSupabase.schema('aureka_system')
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
 const quality = () => aurekaSupabase.schema('aureka_quality')
 const PAGE_SIZE = 500
 const MATERIALS = [
@@ -209,6 +211,8 @@ function createCertificatePdf(row: OrientationRow, number: string, verificationC
     text('verification', 'Nomor: ' + number + '  |  Kode: ' + verificationCode, 8, '0.25 0.32 0.4', { x: 91, y: 91 }),
     text('footer', 'AUREKA DOCUMENT INTELLIGENCE', 8, '0.08 0.22 0.36', { x: 50, y: 96 }),
   )
+  commands.push(...qrPdfCommands(certificateVerificationUrl(verificationCode,BASE_PATH),716,364,104))
+  commands.push('BT /F1 7 Tf 0.08 0.22 0.36 rg 721 353 Td (SCAN QR VERIFIKASI) Tj ET')
   const stream = commands.join('\n')
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
