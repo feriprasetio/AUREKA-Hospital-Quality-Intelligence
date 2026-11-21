@@ -134,7 +134,7 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
         {artifacts.map(artifact=><article className="legalArtifact" key={artifact.artifact_id}>
           <div className="legalArtifactHead"><div><span>{artifact.artifact_code}</span><h3>{artifact.title}</h3><p>{artifact.artifact_type} · {fmt(artifact.created_at)}</p><small>SHA-256: {artifact.sha256}</small></div></div>
           {artifact.signatures.length>0?<div className="legalSignatureRows">{artifact.signatures.map(sig=><div className="legalSignatureRow" key={sig.verification_code}>
-            <div><strong>{sig.signer}</strong><span>{sig.role} · {fmt(sig.signed_at)}</span><small>{sig.verification_code}</small></div>
+            <div className="legalSignerIdentity">{(()=>{const visual=assets.find(a=>a.asset_id===sig.signature_asset_id&&a.status==='active');return visual?<img src={'data:'+visual.image_mime_type+';base64,'+visual.image_data_base64} alt={'Tanda tangan '+sig.signer}/>:null})()}<div><strong>{sig.signer}</strong><span>{sig.role} · {fmt(sig.signed_at)}</span><small>{sig.verification_code}</small></div></div>
             <div className="legalQrBox"><img src={qrUrl(sig.verification_code)} alt={'QR verifikasi '+sig.verification_code}/><a href={verificationUrl(sig.verification_code)} target="_blank" rel="noreferrer">Verifikasi</a></div>
           </div>)}</div>:<p className="legalMuted">Belum ada rekam persetujuan dan kode verifikasi aktif.</p>}
         </article>)}
