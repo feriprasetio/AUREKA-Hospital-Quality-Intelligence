@@ -58,3 +58,11 @@ test('certificate PDF is generated and saved to private export storage with SHA-
   assert.ok(migration.includes("bucket_id = 'aureka-exports'"))
   assert.ok(migration.includes("p_file_sha256"))
 })
+
+
+test('follow-up migration removes globally scoped orientation checks from shared education participants', () => {
+  const migration = read('supabase/migrations/20261121130000_student_orientation_constraint_scope.sql')
+  assert.ok(migration.includes('drop constraint if exists education_participants_orientation_role_check'))
+  assert.ok(migration.includes('drop constraint if exists education_participants_orientation_materials_check'))
+  assert.ok(migration.includes('drop constraint if exists education_participants_orientation_notes_check'))
+})
