@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
-const q = () => aurekaSupabase.schema('aureka_quality')
+const sys = () => aurekaSupabase.schema('aureka_system')
+const quality = () => aurekaSupabase.schema('aureka_quality')
 const PAGE_SIZE = 500
 const MATERIALS = [
   'Sasaran Keselamatan Pasien',
@@ -16,38 +17,62 @@ const MATERIALS = [
   'Hak dan Kewajiban Pasien',
 ] as const
 
-type QualitySource = {
+type SourceRecord = {
   id: string
   profile_year: number
   record_date: string | null
   core_data: Record<string, unknown> | null
   status: string
 }
-type SavedOrientation = {
+type EducationEvent = {
   id: string
-  source_quality_record_id: string
-  profile_year: number
-  role_type: 'Peserta' | 'Narasumber' | 'Sumpah Rekam Medik'
+  title: string
+  event_code: string
+  event_type: string
+  start_at: string
+  end_at: string | null
+  status: string
+}
+type EducationParticipant = {
+  id: string
+  event_id: string
+  participant_type: string
+  source_quality_record_id: string | null
+  full_name: string
+  institution: string
+  profession_or_program: string
+  participant_role: 'Peserta' | 'Narasumber' | 'Sumpah Rekam Medik'
   activity_name: string
   period_label: string
   signed_date: string | null
   materials: string[]
-  notes: string
-  certificate_number: string | null
-  certificate_issued_at: string | null
+  orientation_notes: string
+  status: string
+}
+type EducationCertificate = {
+  id: string
+  event_id: string
+  participant_id: string
+  certificate_number: string
+  verification_code: string
+  issue_date: string
+  object_path: string | null
+  file_sha256: string | null
+  revoked_at: string | null
 }
 type OrientationRow = {
-  source: QualitySource
+  source: SourceRecord
   name: string
   profession: string
   campus: string
   rotation: string
   ci: string
   defaultPeriod: string
-  saved: SavedOrientation | null
+  saved: EducationParticipant | null
+  certificate: EducationCertificate | null
 }
 type Draft = {
-  roleType: 'Peserta' | 'Narasumber' | 'Sumpah Rekam Medik'
+  roleType: EducationParticipant['participant_role']
   activityName: string
   periodLabel: string
   signedDate: string
@@ -70,7 +95,7 @@ const styles = [
   '.soKpi{padding:13px 15px;border:1px solid var(--border,rgba(100,125,150,.22));border-radius:13px;background:var(--surface,rgba(255,255,255,.58));min-width:0}',
   '.soKpi span{display:block;color:var(--muted,#58718a);font-size:11px;font-weight:750}',
   '.soKpi strong{display:block;margin-top:5px;font-size:25px;line-height:1.1;font-weight:850;font-variant-numeric:tabular-nums}',
-  '.soSource{display:flex;align-items:flex-start;gap:9px;padding:12px 14px;border-radius:11px;background:rgba(22,75,122,.07);border:1px solid rgba(22,75,122,.16);font-size:12px;line-height:1.55;color:var(--text,#0b1f33)}',
+  '.soSource{padding:12px 14px;border-radius:11px;background:rgba(22,75,122,.07);border:1px solid rgba(22,75,122,.16);font-size:12px;line-height:1.55;color:var(--text,#0b1f33)}',
   '.soSource b{display:block;margin-bottom:2px}',
   '.soToolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}',
   '.soToolbar input,.soToolbar select,.soEditor input,.soEditor select,.soEditor textarea{min-height:40px;border:1px solid var(--border,rgba(100,125,150,.3));border-radius:9px;background:var(--surface,#fff);color:var(--text,#0b1f33);padding:8px 10px;font:inherit;font-size:13px;min-width:0}',
@@ -106,7 +131,7 @@ const styles = [
   '[data-mode="gelap"] .studentOrientation .soToolbar input,[data-mode="gelap"] .studentOrientation .soToolbar select,[data-mode="gelap"] .studentOrientation .soEditor input,[data-mode="gelap"] .studentOrientation .soEditor select,[data-mode="gelap"] .studentOrientation .soEditor textarea{background:#111c2d;color:#eef2fa;border-color:rgba(180,200,225,.2)}',
 ].join('\n')
 
-function stringValue(value: unknown): string {
+function str(value: unknown): string {
   return value == null ? '' : String(value).trim()
 }
 function formatDate(value: string | null | undefined): string {
@@ -118,46 +143,71 @@ function formatDate(value: string | null | undefined): string {
     : new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(parsed)
 }
 function sourcePeriod(form: Record<string, unknown>, recordDate: string | null): string {
-  const start = stringValue(form['Tanggal Mulai Praktek'] ?? form['Tanggal Mulai Praktik'])
-  const end = stringValue(form['Tanggal Selesai Praktek'] ?? form['Tanggal Selesai Praktik'])
+  const start = str(form['Tanggal Mulai Praktek'] ?? form['Tanggal Mulai Praktik'])
+  const end = str(form['Tanggal Selesai Praktek'] ?? form['Tanggal Selesai Praktik'])
   if (start && end) return formatDate(start) + ' s.d. ' + formatDate(end)
   if (start || end) return formatDate(start || end)
   return formatDate(recordDate)
 }
-function escapeHtml(value: string): string {
-  const entities: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
-  return value.replace(/[&<>"']/g, (char) => entities[char] || char)
+function safeAscii(value: unknown): string {
+  return String(value ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7e]/g, ' ')
 }
-function buildCertificateHtml(row: OrientationRow, certificateNumber: string): string {
-  const saved = row.saved
-  const materials = (saved?.materials || []).filter(Boolean)
-  const list = materials.length
-    ? '<ol>' + materials.map((material) => '<li>' + escapeHtml(material) + '</li>').join('') + '</ol>'
-    : '<p>-</p>'
-  return [
-    '<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Sertifikat Orientasi Mahasiswa</title>',
-    '<style>',
-    '@page{size:A4 landscape;margin:13mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#132b42;margin:0;background:#fff}',
-    '.cert{min-height:170mm;border:5px double #164b7a;padding:19mm 22mm;position:relative;text-align:center}',
-    '.brand{font-size:12px;letter-spacing:2px;font-weight:700;text-transform:uppercase;color:#164b7a}',
-    'h1{font-size:31px;letter-spacing:4px;margin:11px 0 3px;color:#153d61} .rule{width:90px;height:3px;background:#b28a3a;margin:13px auto 18px}',
-    '.intro{font-size:14px;margin:0 0 7px}.name{font-size:27px;font-weight:700;margin:8px 0 13px;color:#153d61}',
-    '.body{font-size:14px;line-height:1.65;max-width:760px;margin:0 auto}.details{font-size:12px;line-height:1.5;margin:8px auto;max-width:760px}',
-    '.topics{display:inline-block;text-align:left;font-size:11px;line-height:1.55;margin:5px auto 8px}.number{position:absolute;top:9mm;right:12mm;font-size:10px;color:#526779}',
-    '.signature{width:220px;margin:12px 0 0 auto;text-align:center;font-size:11px}.signline{height:34px;border-bottom:1px solid #263b50;margin-bottom:5px}',
-    '@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}',
-    '</style></head><body><main class="cert">',
-    '<div class="number">' + escapeHtml(certificateNumber) + '</div>',
-    '<div class="brand">UPT RSUD Sultan Syarif Mohamad Alkadrie Kota Pontianak</div>',
-    '<h1>SERTIFIKAT</h1><div class="rule"></div>',
-    '<p class="intro">Diberikan kepada</p><div class="name">' + escapeHtml(row.name) + '</div>',
-    '<div class="body">Sebagai <b>' + escapeHtml(saved?.role_type || 'Peserta') + '</b>, telah mengikuti kegiatan <b>' + escapeHtml(saved?.activity_name || 'Orientasi Mahasiswa') + '</b> pada periode ' + escapeHtml(saved?.period_label || row.defaultPeriod) + ' dengan materi sebagai berikut:</div>',
-    '<div class="topics">' + list + '</div>',
-    '<div class="details">Program/Profesi: ' + escapeHtml(row.profession || '-') + ' &nbsp; | &nbsp; Institusi Pendidikan: ' + escapeHtml(row.campus || '-') + '</div>',
-    '<div class="details">Tanggal tanda tangan: ' + escapeHtml(formatDate(saved?.signed_date)) + '</div>',
-    '<div class="signature"><div class="signline"></div><b>Pejabat yang berwenang</b><br>UPT RSUD Sultan Syarif Mohamad Alkadrie</div>',
-    '</main><script>window.addEventListener("load",function(){window.focus();setTimeout(function(){window.print()},500)})</script></body></html>',
-  ].join('')
+function pdfEscape(value: unknown): string {
+  return safeAscii(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
+}
+function createCertificatePdf(row: OrientationRow, number: string, verificationCode: string): Blob {
+  const saved = row.saved!
+  const commands: string[] = [
+    '0.08 0.22 0.36 RG 3 w 24 24 794 547 re S',
+    '0.08 0.22 0.36 RG 1 w 34 34 774 527 re S',
+    'BT /F1 11 Tf 0 0 0 rg 70 510 Td (' + pdfEscape('UPT RSUD Sultan Syarif Mohamad Alkadrie Kota Pontianak') + ') Tj ET',
+    'BT /F1 28 Tf 0.08 0.22 0.36 rg 295 452 Td (SERTIFIKAT) Tj ET',
+    'BT /F1 13 Tf 0.08 0.22 0.36 rg 245 423 Td (ORIENTASI MAHASISWA) Tj ET',
+    'BT /F1 12 Tf 0 0 0 rg 365 385 Td (Diberikan kepada) Tj ET',
+    'BT /F1 25 Tf 0.08 0.22 0.36 rg 130 345 Td (' + pdfEscape(row.name) + ') Tj ET',
+    'BT /F1 12 Tf 0 0 0 rg 70 306 Td (' + pdfEscape('Sebagai: ' + saved.participant_role + '    Kegiatan: ' + saved.activity_name) + ') Tj ET',
+    'BT /F1 12 Tf 0 0 0 rg 70 283 Td (' + pdfEscape('Periode/Tanggal: ' + saved.period_label) + ') Tj ET',
+    'BT /F1 11 Tf 0 0 0 rg 70 253 Td (Materi yang diikuti:) Tj ET',
+  ]
+  let y = 232
+  saved.materials.slice(0, 7).forEach((material, index) => {
+    commands.push('BT /F1 10 Tf 0 0 0 rg 90 ' + y + ' Td (' + pdfEscape((index + 1) + '. ' + material) + ') Tj ET')
+    y -= 17
+  })
+  commands.push(
+    'BT /F1 10 Tf 0 0 0 rg 70 92 Td (' + pdfEscape('Program/Profesi: ' + row.profession + '    Institusi: ' + row.campus) + ') Tj ET',
+    'BT /F1 9 Tf 0.25 0.32 0.4 rg 70 70 Td (' + pdfEscape('Nomor: ' + number + '    Kode verifikasi: ' + verificationCode) + ') Tj ET',
+    'BT /F1 10 Tf 0 0 0 rg 575 105 Td (' + pdfEscape('Pontianak, ' + formatDate(saved.signed_date)) + ') Tj ET',
+    '0 0 0 RG 0.7 w 575 82 m 755 82 l S',
+    'BT /F1 10 Tf 0 0 0 rg 595 64 Td (Pejabat yang berwenang) Tj ET',
+    'BT /F1 9 Tf 0.35 0.4 0.48 rg 595 48 Td (UPT RSUD Sultan Syarif Mohamad Alkadrie) Tj ET',
+  )
+  const stream = commands.join('\n')
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    '<< /Length ' + stream.length + ' >>\nstream\n' + stream + '\nendstream',
+  ]
+  let pdf = '%PDF-1.4\n'
+  const offsets: number[] = [0]
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length)
+    pdf += (index + 1) + ' 0 obj\n' + object + '\nendobj\n'
+  })
+  const xrefOffset = pdf.length
+  pdf += 'xref\n0 ' + (objects.length + 1) + '\n0000000000 65535 f \n'
+  for (let index = 1; index < offsets.length; index++) pdf += String(offsets[index]).padStart(10, '0') + ' 00000 n \n'
+  pdf += 'trailer\n<< /Size ' + (objects.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefOffset + '\n%%EOF'
+  return new Blob([pdf], { type: 'application/pdf' })
+}
+async function sha256Hex(blob: Blob): Promise<string> {
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', await blob.arrayBuffer())
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+function safeFileName(value: string): string {
+  return safeAscii(value).replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'sertifikat'
 }
 
 export default function StudentOrientationWorkspace({
@@ -170,6 +220,7 @@ export default function StudentOrientationWorkspace({
   canManage: boolean
 }) {
   const [selectedYear, setSelectedYear] = useState(2026)
+  const [event, setEvent] = useState<EducationEvent | null>(null)
   const [rows, setRows] = useState<OrientationRow[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -187,9 +238,45 @@ export default function StudentOrientationWorkspace({
     setError('')
     setMessage('')
     try {
-      const sourceRows: QualitySource[] = []
+      const yearStart = selectedYear + '-01-01T00:00:00+07:00'
+      const nextYearStart = (selectedYear + 1) + '-01-01T00:00:00+07:00'
+      const { data: eventRows, error: eventError } = await sys().from('education_events')
+        .select('id,title,event_code,event_type,start_at,end_at,status')
+        .eq('event_type', 'orientasi_mahasiswa')
+        .eq('room_id', 30)
+        .gte('start_at', yearStart)
+        .lt('start_at', nextYearStart)
+        .neq('status', 'cancelled')
+        .order('start_at', { ascending: true })
+        .limit(1)
+      if (eventError) throw eventError
+      let currentEvent = (eventRows?.[0] || null) as EducationEvent | null
+
+      if (!currentEvent && canManage) {
+        const { data: created, error: createError } = await sys().from('education_events')
+          .insert({
+            event_type: 'orientasi_mahasiswa',
+            title: 'Orientasi Mahasiswa ' + selectedYear,
+            topic: 'Orientasi mahasiswa praktik',
+            organizer: 'Tim Koordinasi Pendidikan',
+            room_id: 30,
+            start_at: yearStart,
+            end_at: selectedYear + '-12-31T23:59:59+07:00',
+            venue: 'UPT RSUD Sultan Syarif Mohamad Alkadrie Kota Pontianak',
+            learning_objectives: [...MATERIALS],
+            certificate_template: { title: 'SERTIFIKAT ORIENTASI MAHASISWA', page: 'A4-landscape' },
+            status: 'published',
+          })
+          .select('id,title,event_code,event_type,start_at,end_at,status')
+          .single()
+        if (createError) throw createError
+        currentEvent = created as EducationEvent
+      }
+      setEvent(currentEvent)
+
+      const sourceRows: SourceRecord[] = []
       for (let offset = 0; offset < 10000; offset += PAGE_SIZE) {
-        const { data, error: sourceError } = await q().from('quality_records')
+        const { data, error: sourceError } = await quality().from('quality_records')
           .select('id,profile_year,record_date,core_data,status')
           .eq('room_id', 30)
           .eq('profile_year', selectedYear)
@@ -199,88 +286,133 @@ export default function StudentOrientationWorkspace({
           .order('record_date', { ascending: false })
           .range(offset, offset + PAGE_SIZE - 1)
         if (sourceError) throw sourceError
-        const page = (data || []) as QualitySource[]
+        const page = (data || []) as SourceRecord[]
         sourceRows.push(...page)
         if (page.length < PAGE_SIZE) break
       }
 
-      let savedRows: SavedOrientation[] = []
-      let savedError = ''
-      for (let offset = 0; offset < 10000; offset += PAGE_SIZE) {
-        const { data, error: orientationError } = await q().from('student_orientation_records')
-          .select('id,source_quality_record_id,profile_year,role_type,activity_name,period_label,signed_date,materials,notes,certificate_number,certificate_issued_at')
-          .eq('profile_year', selectedYear)
-          .order('created_at', { ascending: true })
-          .range(offset, offset + PAGE_SIZE - 1)
-        if (orientationError) {
-          savedError = orientationError.message || 'Tabel orientasi belum dapat dibaca.'
-          break
-        }
-        const page = (data || []) as SavedOrientation[]
-        savedRows.push(...page)
-        if (page.length < PAGE_SIZE) break
-      }
-      const savedBySource = new Map(savedRows.map((item) => [item.source_quality_record_id, item]))
-      const mapped = sourceRows.flatMap((source) => {
+      const mappedSources = sourceRows.flatMap((source) => {
         const core = (source.core_data || {}) as Record<string, unknown>
         const form = (core.form_fields || core.form_data || {}) as Record<string, unknown>
-        const name = stringValue(form['Nama Mahasiswa'] ?? core.student_name)
+        const name = str(form['Nama Mahasiswa'])
         if (!name) return []
         return [{
           source,
           name,
-          profession: stringValue(form['Profesi/Prodi'] ?? form['Profesi'] ?? form['Prodi']),
-          campus: stringValue(form['Kampus']),
-          rotation: stringValue(form['Stase Terakhir'] ?? form['Stase']),
-          ci: stringValue(form['CI/Penanggung Jawab'] ?? form['CI / Penanggung Jawab']),
+          profession: str(form['Profesi/Prodi'] ?? form['Profesi'] ?? form['Prodi']),
+          campus: str(form['Kampus']),
+          rotation: str(form['Stase Terakhir'] ?? form['Stase']),
+          ci: str(form['CI/Penanggung Jawab'] ?? form['CI / Penanggung Jawab']),
           defaultPeriod: sourcePeriod(form, source.record_date),
-          saved: savedBySource.get(source.id) || null,
         }]
       })
-      mapped.sort((a, b) => a.name.localeCompare(b.name, 'id'))
-      setRows(mapped)
-      if (savedError) {
-        setError('Daftar mahasiswa berhasil dibaca dari logbook Tim Koordinasi Pendidikan, tetapi metadata orientasi belum dapat dimuat. Pastikan migration student orientation sudah diterapkan. Detail: ' + savedError)
+
+      let participantRows: EducationParticipant[] = []
+      let certificates: EducationCertificate[] = []
+      if (currentEvent) {
+        if (canManage && mappedSources.length) {
+          for (let offset = 0; offset < mappedSources.length; offset += 100) {
+            const batch = mappedSources.slice(offset, offset + 100).map((row) => ({
+              event_id: currentEvent!.id,
+              participant_type: 'student',
+              source_quality_record_id: row.source.id,
+              participant_code: row.source.id,
+              full_name: row.name,
+              institution: row.campus,
+              profession_or_program: row.profession,
+              room_id: 30,
+              participant_role: 'Peserta',
+              activity_name: currentEvent!.title,
+              period_label: row.defaultPeriod,
+              status: 'registered',
+            }))
+            const { error: syncError } = await sys().from('education_participants')
+              .upsert(batch, { onConflict: 'event_id,source_quality_record_id', ignoreDuplicates: true })
+            if (syncError) throw syncError
+          }
+        }
+        for (let offset = 0; offset < 10000; offset += PAGE_SIZE) {
+          const { data, error: participantError } = await sys().from('education_participants')
+            .select('id,event_id,participant_type,source_quality_record_id,full_name,institution,profession_or_program,participant_role,activity_name,period_label,signed_date,materials,orientation_notes,status')
+            .eq('event_id', currentEvent.id)
+            .eq('participant_type', 'student')
+            .order('full_name', { ascending: true })
+            .range(offset, offset + PAGE_SIZE - 1)
+          if (participantError) throw participantError
+          const page = (data || []) as EducationParticipant[]
+          participantRows.push(...page)
+          if (page.length < PAGE_SIZE) break
+        }
+        for (let offset = 0; offset < 10000; offset += PAGE_SIZE) {
+          const { data, error: certificateError } = await sys().from('education_certificates')
+            .select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,file_sha256,revoked_at')
+            .eq('event_id', currentEvent.id)
+            .is('revoked_at', null)
+            .range(offset, offset + PAGE_SIZE - 1)
+          if (certificateError) throw certificateError
+          const page = (data || []) as EducationCertificate[]
+          certificates.push(...page)
+          if (page.length < PAGE_SIZE) break
+        }
+      }
+
+      const participantBySource = new Map(participantRows.filter((row) => row.source_quality_record_id).map((row) => [String(row.source_quality_record_id), row]))
+      const certificateByParticipant = new Map(certificates.map((row) => [row.participant_id, row]))
+      setRows(mappedSources.map((row) => {
+        const saved = participantBySource.get(row.source.id) || null
+        return {
+          ...row,
+          saved,
+          certificate: saved ? certificateByParticipant.get(saved.id) || null : null,
+        }
+      }))
+      if (!currentEvent) {
+        setMessage(canManage
+          ? 'Kegiatan Orientasi Mahasiswa belum dapat disiapkan. Periksa izin pengelolaan pendidikan.'
+          : 'Kegiatan Orientasi Mahasiswa belum diaktifkan oleh pengelola pendidikan. Daftar sumber dapat dibaca setelah kegiatan dipublikasikan.')
+      } else if (mappedSources.length === 0) {
+        setMessage('Belum ada baris mahasiswa pada logbook indikator mutu Tim Koordinasi Pendidikan untuk tahun ini. Daftar akan muncul otomatis setelah PIC mengisi laporan indikator mutu.')
       }
     } catch (cause) {
-      setError(toUserFacingError(cause, { fallback: 'Daftar mahasiswa Tim Koordinasi Pendidikan belum dapat dimuat. Periksa akses ke unit dan koneksi AUREKA.' }))
+      setError(toUserFacingError(cause, { fallback: 'Data orientasi belum dapat dimuat. Periksa akses pendidikan dan logbook Tim Koordinasi Pendidikan.' }))
       setRows([])
     } finally {
       setLoading(false)
     }
-  }, [selectedYear])
+  }, [selectedYear, canManage])
 
   useEffect(() => { void load() }, [load])
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('id')
     return rows.filter((row) => {
-      const rowRole = row.saved?.role_type || 'Peserta'
+      const rowRole = row.saved?.participant_role || 'Peserta'
       if (roleFilter !== 'all' && rowRole !== roleFilter) return false
       if (!term) return true
       return [
         row.name, row.profession, row.campus, row.rotation, row.ci,
-        row.saved?.activity_name || 'Orientasi Mahasiswa',
+        row.saved?.activity_name || event?.title || 'Orientasi Mahasiswa',
       ].some((value) => String(value || '').toLocaleLowerCase('id').includes(term))
     })
-  }, [rows, search, roleFilter])
+  }, [rows, search, roleFilter, event?.title])
 
   const participantCount = useMemo(() => new Set(rows.map((row) => row.name.trim().toLocaleLowerCase('id'))).size, [rows])
-  const savedCount = rows.filter((row) => row.saved).length
-  const certificateCount = rows.filter((row) => !!row.saved?.certificate_number).length
+  const savedCount = rows.filter((row) => !!row.saved).length
+  const signedCount = rows.filter((row) => !!row.saved?.signed_date).length
+  const certificateCount = rows.filter((row) => !!row.certificate?.certificate_number).length
   const selectedRow = selectedSourceId ? rows.find((row) => row.source.id === selectedSourceId) || null : null
 
   const beginEdit = (row: OrientationRow) => {
-    if (!canManage) return
+    if (!canManage || !event || row.certificate) return
     const saved = row.saved
     setSelectedSourceId(row.source.id)
     setDraft({
-      roleType: saved?.role_type || 'Peserta',
-      activityName: saved?.activity_name || 'Orientasi Mahasiswa',
+      roleType: saved?.participant_role || 'Peserta',
+      activityName: saved?.activity_name || event.title || 'Orientasi Mahasiswa',
       periodLabel: saved?.period_label || row.defaultPeriod,
       signedDate: saved?.signed_date || '',
-      materials: saved?.materials?.length ? [...saved.materials, '', '', '', '', '', '', ''].slice(0, 7) : [MATERIALS[0], MATERIALS[1], MATERIALS[2], MATERIALS[3], '', '', ''],
-      notes: saved?.notes || '',
+      materials: saved ? [...(saved.materials || []), '', '', '', '', '', '', ''].slice(0, 7) : [...MATERIALS],
+      notes: saved?.orientation_notes || '',
     })
     setError('')
     setMessage('')
@@ -294,7 +426,7 @@ export default function StudentOrientationWorkspace({
   }
 
   const save = async () => {
-    if (!canManage || !selectedRow || !draft || saving) return
+    if (!canManage || !event || !selectedRow || !draft || saving) return
     if (!draft.activityName.trim() || !draft.periodLabel.trim()) {
       setError('Kegiatan dan Periode/Tanggal wajib diisi.')
       return
@@ -308,26 +440,32 @@ export default function StudentOrientationWorkspace({
     setMessage('')
     try {
       const payload = {
+        event_id: event.id,
+        participant_type: 'student',
         source_quality_record_id: selectedRow.source.id,
-        profile_year: selectedYear,
-        role_type: draft.roleType,
+        participant_code: selectedRow.source.id,
+        full_name: selectedRow.name,
+        institution: selectedRow.campus,
+        profession_or_program: selectedRow.profession,
+        room_id: 30,
+        participant_role: draft.roleType,
         activity_name: draft.activityName.trim(),
         period_label: draft.periodLabel.trim(),
         signed_date: draft.signedDate || null,
         materials: draft.materials.map((item) => item.trim()).filter(Boolean).slice(0, 7),
-        notes: draft.notes.trim(),
-        updated_by: userId,
+        orientation_notes: draft.notes.trim(),
+        status: 'registered',
       }
-      const { data, error: saveError } = await q().from('student_orientation_records')
-        .upsert(payload, { onConflict: 'source_quality_record_id' })
-        .select('id,source_quality_record_id,profile_year,role_type,activity_name,period_label,signed_date,materials,notes,certificate_number,certificate_issued_at')
+      const { data, error: saveError } = await sys().from('education_participants')
+        .upsert(payload, { onConflict: 'event_id,source_quality_record_id' })
+        .select('id,event_id,participant_type,source_quality_record_id,full_name,institution,profession_or_program,participant_role,activity_name,period_label,signed_date,materials,orientation_notes,status')
         .single()
       if (saveError) throw saveError
-      const saved = data as SavedOrientation
-      setRows((current) => current.map((row) => row.source.id === selectedRow.source.id ? { ...row, saved } : row))
+      const saved = data as EducationParticipant
+      setRows((current) => current.map((row) => row.source.id === selectedRow.source.id ? { ...row, saved, certificate: null } : row))
       setSelectedSourceId(null)
       setDraft(null)
-      setMessage('Data orientasi ' + selectedRow.name + ' berhasil disimpan.')
+      setMessage('Data orientasi ' + selectedRow.name + ' berhasil disimpan pada register pendidikan AUREKA.')
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Data orientasi belum dapat disimpan.' }))
     } finally {
@@ -336,12 +474,12 @@ export default function StudentOrientationWorkspace({
   }
 
   const issueCertificate = async (row: OrientationRow) => {
-    if (!canManage || !row.saved || !row.saved.signed_date || !row.saved.materials?.length || issuing) {
+    if (!canManage || !event || !row.saved || !row.saved.signed_date || !row.saved.materials?.length || issuing) {
       setError('Simpan data orientasi, tanggal tanda tangan, dan sekurang-kurangnya satu materi sebelum menerbitkan sertifikat.')
       return
     }
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) {
+    const preview = window.open('about:blank', '_blank')
+    if (!preview) {
       setError('Jendela sertifikat diblokir browser. Izinkan pop-up untuk AUREKA, lalu ulangi penerbitan.')
       return
     }
@@ -349,24 +487,59 @@ export default function StudentOrientationWorkspace({
     setError('')
     setMessage('')
     try {
-      const { data, error: issueError } = await q().rpc('issue_student_orientation_certificate', { p_record_id: row.saved.id })
-      if (issueError) throw issueError
-      const result = (Array.isArray(data) ? data[0] : data) as { certificate_number?: string; certificate_issued_at?: string } | null
-      const number = stringValue(result?.certificate_number || row.saved.certificate_number)
-      if (!number) throw new Error('Nomor sertifikat tidak dikembalikan oleh server.')
-      const updatedSaved = {
-        ...row.saved,
-        certificate_number: number,
-        certificate_issued_at: result?.certificate_issued_at || row.saved.certificate_issued_at,
+      const { data, error: reserveError } = await sys().rpc('reserve_student_orientation_certificate', {
+        p_event_id: event.id,
+        p_participant_id: row.saved.id,
+      })
+      if (reserveError) throw reserveError
+      const reserved = (Array.isArray(data) ? data[0] : data) as {
+        id?: string
+        certificate_number?: string
+        verification_code?: string
+        issue_date?: string
+        object_path?: string | null
+      } | null
+      const certificateId = str(reserved?.id)
+      const certificateNumber = str(reserved?.certificate_number)
+      const verificationCode = str(reserved?.verification_code)
+      if (!certificateId || !certificateNumber) throw new Error('Nomor sertifikat tidak dikembalikan oleh server.')
+
+      let objectPath = str(reserved?.object_path)
+      if (!objectPath) {
+        const pdf = createCertificatePdf(row, certificateNumber, verificationCode)
+        const digest = await sha256Hex(pdf)
+        objectPath = userId + '/education/orientasi-mahasiswa/' + selectedYear + '/' + safeFileName(certificateNumber) + '.pdf'
+        const { error: uploadError } = await aurekaSupabase.storage.from('aureka-exports')
+          .upload(objectPath, pdf, { contentType: 'application/pdf', upsert: true })
+        if (uploadError) throw uploadError
+        const { error: completeError } = await sys().rpc('complete_student_orientation_certificate', {
+          p_certificate_id: certificateId,
+          p_object_path: objectPath,
+          p_file_sha256: digest,
+        })
+        if (completeError) throw completeError
       }
-      setRows((current) => current.map((item) => item.source.id === row.source.id ? { ...item, saved: updatedSaved } : item))
-      printWindow.document.open()
-      printWindow.document.write(buildCertificateHtml({ ...row, saved: updatedSaved }, number))
-      printWindow.document.close()
-      printWindow.focus()
-      setMessage('Nomor sertifikat ' + number + ' diterbitkan. Pada dialog cetak, pilih "Simpan sebagai PDF".')
+
+      const { data: signed, error: signedError } = await aurekaSupabase.storage.from('aureka-exports')
+        .createSignedUrl(objectPath, 600)
+      if (signedError || !signed?.signedUrl) throw signedError || new Error('PDF tersimpan, tetapi tautan unduh belum dapat dibuat.')
+      preview.location.href = signed.signedUrl
+
+      const certificate: EducationCertificate = {
+        id: certificateId,
+        event_id: event.id,
+        participant_id: row.saved.id,
+        certificate_number: certificateNumber,
+        verification_code: verificationCode,
+        issue_date: str(reserved?.issue_date) || row.saved.signed_date,
+        object_path: objectPath,
+        file_sha256: null,
+        revoked_at: null,
+      }
+      setRows((current) => current.map((item) => item.source.id === row.source.id ? { ...item, certificate } : item))
+      setMessage('Sertifikat ' + certificateNumber + ' berhasil diterbitkan dan disimpan sebagai PDF pada penyimpanan privat AUREKA.')
     } catch (cause) {
-      printWindow.close()
+      preview.close()
       setError(toUserFacingError(cause, { fallback: 'Sertifikat belum dapat diterbitkan.' }))
     } finally {
       setIssuing(false)
@@ -379,9 +552,9 @@ export default function StudentOrientationWorkspace({
       <section className="soPanel">
         <div className="soHead">
           <div>
-            <div className="soEyebrow">Pendidikan dan Pelatihan</div>
+            <div className="soEyebrow">Pendidikan dan Pelatihan · Domain Pendidikan AUREKA</div>
             <h2 className="soTitle">Orientasi Mahasiswa</h2>
-            <p className="soDesc">Register orientasi dan dokumentasi materi mahasiswa praktik yang sumber identitasnya ditarik otomatis dari Laporan Indikator Mutu Tim Koordinasi Pendidikan.</p>
+            <p className="soDesc">Daftar identitas mahasiswa dibaca langsung dari Laporan Indikator Mutu Tim Koordinasi Pendidikan. Register peserta dan sertifikat menggunakan tabel pendidikan AUREKA yang sudah tersedia.</p>
           </div>
           <div className="soActions">
             <select aria-label="Tahun data orientasi" value={selectedYear} onChange={(event) => { setSelectedYear(Number(event.target.value)); setSelectedSourceId(null); setDraft(null) }}>
@@ -396,15 +569,13 @@ export default function StudentOrientationWorkspace({
       <section className="soKpis" aria-label="Ringkasan orientasi mahasiswa">
         <div className="soKpi"><span>Rekam mahasiswa dari logbook</span><strong>{loading ? '…' : rows.length.toLocaleString('id-ID')}</strong></div>
         <div className="soKpi"><span>Mahasiswa unik</span><strong>{loading ? '…' : participantCount.toLocaleString('id-ID')}</strong></div>
-        <div className="soKpi"><span>Data orientasi tersimpan</span><strong>{savedCount.toLocaleString('id-ID')}</strong></div>
-        <div className="soKpi"><span>Sertifikat diterbitkan</span><strong>{certificateCount.toLocaleString('id-ID')}</strong></div>
+        <div className="soKpi"><span>Register tersimpan</span><strong>{savedCount.toLocaleString('id-ID')}</strong></div>
+        <div className="soKpi"><span>Sertifikat PDF diterbitkan</span><strong>{certificateCount.toLocaleString('id-ID')}</strong></div>
       </section>
 
       <div className="soSource">
-        <div>
-          <b>Sumber data utama: Tim Koordinasi Pendidikan · Unit 30</b>
-          Nama, profesi/prodi, kampus, stase, CI, dan periode praktik dibaca langsung dari logbook indikator mutu. AUREKA tidak membuat ulang direktori mahasiswa dan tidak memetakan catatan ini sebagai rekam medis pasien.
-        </div>
+        <b>Sumber data: Tim Koordinasi Pendidikan · Unit 30</b>
+        Nama, profesi/prodi, kampus, stase, CI, dan periode praktik mengikuti rekam sumber indikator mutu. Data peserta disinkronkan ke tabel education_participants dengan tautan source_quality_record_id; file sertifikat disimpan di bucket privat aureka-exports.
       </div>
 
       {error && <div className="soMessage soError" role="alert">{error}</div>}
@@ -416,9 +587,9 @@ export default function StudentOrientationWorkspace({
             <div>
               <div className="soEyebrow">Register</div>
               <h3 className="soTitle">Daftar Orientasi Mahasiswa {selectedYear}</h3>
-              <p className="soDesc">Format register mengikuti kolom pada Database.xlsx. Baris peserta muncul otomatis ketika PIC Tim Koordinasi Pendidikan mengisi logbook indikator mutu.</p>
+              <p className="soDesc">Format mengikuti Database.xlsx. Satu rekam sumber Tim Koordinasi Pendidikan ditautkan ke satu peserta pada kegiatan orientasi tahun berjalan.</p>
             </div>
-            {!canManage && <span className="soStatus">Akses lihat saja · {role || 'Pengguna'}</span>}
+            <span className="soStatus">{event ? event.title + ' · ' + event.status : 'Kegiatan belum diaktifkan'} · {role || 'Pengguna'}</span>
           </div>
           <div className="soToolbar">
             <input className="soSearch" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama, kampus, profesi, stase, atau kegiatan…" aria-label="Cari mahasiswa orientasi" />
@@ -431,7 +602,7 @@ export default function StudentOrientationWorkspace({
             <span className="soStatus">{filteredRows.length.toLocaleString('id-ID')} baris</span>
           </div>
           {loading ? <div className="soEmpty">Memuat daftar mahasiswa dari logbook Tim Koordinasi Pendidikan…</div> :
-            filteredRows.length === 0 ? <div className="soEmpty">Belum ada mahasiswa pada logbook Tim Koordinasi Pendidikan untuk tahun {selectedYear}, atau hasil pencarian tidak ditemukan.</div> :
+            filteredRows.length === 0 ? <div className="soEmpty">Belum ada data mahasiswa pada laporan indikator mutu Tim Koordinasi Pendidikan tahun {selectedYear}. Daftar ini akan terisi otomatis setelah PIC mengirim laporan indikator mutu.</div> :
             <div className="soTableWrap">
               <table className="soTable">
                 <thead><tr>
@@ -440,21 +611,21 @@ export default function StudentOrientationWorkspace({
                 </tr></thead>
                 <tbody>
                   {filteredRows.map((row, index) => {
-                    const materials = row.saved ? row.saved.materials : [MATERIALS[0], MATERIALS[1], MATERIALS[2], MATERIALS[3]]
+                    const materials = row.saved?.materials || []
                     return <tr key={row.source.id}>
                       <td>{index + 1}</td>
                       <td className="soName">{row.name}<span className="soMeta">{[row.profession, row.campus, row.rotation, row.ci ? 'CI: ' + row.ci : ''].filter(Boolean).join(' · ')}</span></td>
-                      <td>{row.saved?.role_type || 'Peserta'}</td>
-                      <td>{row.saved?.activity_name || 'Orientasi Mahasiswa'}</td>
+                      <td>{row.saved?.participant_role || 'Peserta'}</td>
+                      <td>{row.saved?.activity_name || event?.title || 'Orientasi Mahasiswa'}</td>
                       <td>{row.saved?.period_label || row.defaultPeriod}</td>
                       <td>{formatDate(row.saved?.signed_date)}</td>
                       {Array.from({ length: 7 }, (_, i) => <td className="soMaterial" key={i}>{materials[i] || '-'}</td>)}
                       <td>
                         <div className="soActions">
-                          <button type="button" className="soBtn" disabled={!canManage} onClick={() => beginEdit(row)}>{row.saved ? 'Ubah' : 'Lengkapi'}</button>
-                          <button type="button" className="soBtn primary" disabled={!canManage || !row.saved?.signed_date || !row.saved?.materials?.length || issuing} onClick={() => void issueCertificate(row)}>{row.saved?.certificate_number ? 'Cetak PDF' : 'Terbitkan PDF'}</button>
+                          <button type="button" className="soBtn" disabled={!canManage || !event || !!row.certificate} onClick={() => beginEdit(row)}>{row.saved ? 'Ubah' : 'Lengkapi'}</button>
+                          <button type="button" className="soBtn primary" disabled={!canManage || !event || !row.saved?.signed_date || !row.saved?.materials?.length || issuing} onClick={() => void issueCertificate(row)}>{row.certificate?.object_path ? 'Buka PDF' : 'Terbitkan PDF'}</button>
                         </div>
-                        {row.saved?.certificate_number && <span className="soMeta">{row.saved.certificate_number}</span>}
+                        {row.certificate?.certificate_number && <span className="soMeta">{row.certificate.certificate_number}</span>}
                       </td>
                     </tr>
                   })}
@@ -484,7 +655,7 @@ export default function StudentOrientationWorkspace({
               <div className="soField"><label>Catatan internal (opsional)</label><textarea value={draft.notes} onChange={(event) => setDraft((current) => current ? { ...current, notes: event.target.value } : current)} maxLength={1000} /></div>
             </div>
           )}
-          <p className="soMeta">Tanggal TTD, materi, dan nomor sertifikat disimpan sebagai metadata orientasi. Data nama dan identitas akademik tetap mengikuti laporan sumber Tim Koordinasi Pendidikan.</p>
+          <p className="soMeta">Tidak ada tabel mahasiswa baru. Referensi peserta, event, kehadiran, penilaian, dan sertifikat menggunakan domain pendidikan AUREKA yang sudah ada.</p>
         </section>
       )}
     </section>
