@@ -446,7 +446,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
  * the dock and tablet drawer geometry (no extra stylesheet override). */
 .workspaceNativeNavigation { display: none; }
 
-@media (min-width: 721px) and (max-width: 1180px) {
+@media (min-width: 721px) and (max-width: 1180px), (pointer: coarse) and (min-width: 1181px) and (max-width: 1600px) {
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme],
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed {
     display: block !important;

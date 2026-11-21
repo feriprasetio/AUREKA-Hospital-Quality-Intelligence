@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { TOUCH_DRAWER_MEDIA_QUERY } from '@/lib/ui/device-navigation'
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -30,7 +31,7 @@ export function useAccessibleSidebar() {
   const close = useCallback(() => setIsOpen(false), [])
 
   useEffect(() => {
-    const width = window.matchMedia('(max-width: 1180px)')
+    const width = window.matchMedia(TOUCH_DRAWER_MEDIA_QUERY)
     const update = () => setIsMobile(width.matches)
     update()
     width.addEventListener('change', update)
@@ -93,7 +94,7 @@ export function useAccessibleSidebar() {
     }
 
     const handleResize = () => {
-      if (window.innerWidth > 1180) close()
+      if (!window.matchMedia(TOUCH_DRAWER_MEDIA_QUERY).matches) close()
     }
 
     document.addEventListener('keydown', handleKeyDown)

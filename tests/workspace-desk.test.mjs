@@ -213,8 +213,8 @@ test('FPPE save and submit controls compile and call the existing validated brid
 })
 
 test('drawer breakpoint agrees with its controller and is dismissible from inside', () => {
-  assert.match(read('components/layout/useAccessibleSidebar.ts'), /window\.innerWidth > 1180/)
-  assert.match(home, /window\.matchMedia\('\(max-width: 1180px\)'\)/)
+  assert.match(read('components/layout/useAccessibleSidebar.ts'), /matchMedia\(TOUCH_DRAWER_MEDIA_QUERY\)\.matches/)
+  assert.match(home, /window\.matchMedia\(TOUCH_DRAWER_MEDIA_QUERY\)/)
   assert.match(home, /className="workspaceDrawerClose"[^>]*onClick=\{mobileSidebar\.close\}/)
   assert.match(home, /workspaceGlobalSearchInput/)
   assert.doesNotMatch(home, /data-sidebar-autofocus|sidebarSearch|Cari menu/)
@@ -234,10 +234,11 @@ test('every workbook importer traps focus and delegates Escape to its original b
   assert.match(read('components/layout/useAccessibleDialog.ts'), /if \(scrollLocks === 0\) document\.body\.style\.overflow = bodyOverflow/)
 })
 
-test('page header accepts the active workspace density control without hiding it', () => {
-  assert.match(home, /className="workspacePresentationSlot" ref=\{setWorkspacePresentationTarget\}/)
-  assert.match(home, /controlTarget=\{workspacePresentationTarget\}/)
-  assert.doesNotMatch(css, /workspaceDensityToggle|button\[title\*="nyaman" i\]/)
+test('the header no longer mounts an independent Nyaman/Ringkas control', () => {
+  assert.doesNotMatch(home, /workspacePresentationSlot|workspacePresentationTarget|controlTarget=/)
+  const adaptive = read('components/workspace/AdaptiveWorkspaceShell.tsx')
+  assert.doesNotMatch(adaptive, /workspaceDensityToggle|toggleDensity|createPortal/)
+  assert.match(adaptive, /readAppearancePreferences\(\)\.density/)
 })
 
 test('logbook filters and workbook actions use separate grid rows with non-shrinking controls', () => {

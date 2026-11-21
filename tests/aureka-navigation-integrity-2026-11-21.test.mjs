@@ -28,9 +28,10 @@ test('mobile drawer has one coherent hidden/open transform state and a correctly
 })
 
 test('phone header reserves independent slots for the drawer, profile and search trigger', () => {
-  const layout = read('app/aureka-layout-integrity.css')
+  const layout = read('app/aureka-canvas-preferences.css')
   const aurora = read('app/aurora.css')
-  assert.match(layout, /"menu context context context theme bell"\s+"profile profile density nara inbox find"\s+"search search search search search search"/)
+  assert.match(layout, /"menu context context theme bell"\s+"profile profile nara inbox find"\s+"search search search search search"/)
+  assert.doesNotMatch(read('components/HomeClient.tsx'), /workspacePresentationSlot|workspacePresentationTarget/)
   const repair = read('app/aureka-navigation-repair.css')
   assert.doesNotMatch(repair, /\.workspaceThemeButton[^{]*\{\s*display: none/)
   assert.doesNotMatch(aurora, /grid-template-areas: "ctx find theme bell ai"/)

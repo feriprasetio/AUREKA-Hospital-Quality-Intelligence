@@ -58,6 +58,7 @@ test('workspace identifiers are stable and distinct by module and page', () => {
 
 test('presentation density and persisted preference are normalized safely', () => {
   assert.equal(normalizeWorkspaceDensity('compact'), 'compact')
+  assert.equal(normalizeWorkspaceDensity('spacious'), 'spacious')
   assert.equal(normalizeWorkspaceDensity('wide'), 'comfortable')
   assert.deepEqual(parseWorkspacePreference(null), { version: 1, density: 'comfortable' })
   assert.deepEqual(parseWorkspacePreference('{"version":1,"density":"compact"}'), { version: 1, density: 'compact' })
@@ -69,10 +70,10 @@ test('adaptive shell is presentation-only and wraps existing module error handli
   const shell = read('components/workspace/AdaptiveWorkspaceShell.tsx')
   const home = read('components/HomeClient.tsx')
   const css = read('app/workspace-desk.css')
-  assert.match(shell, /window\.localStorage\.getItem/)
-  assert.match(shell, /window\.localStorage\.setItem/)
-  assert.match(shell, /workspacePreferenceStorageKey\(definition\.workspaceId, userId\)/)
-  assert.match(shell, /aria-pressed=\{density === 'compact'\}/)
+  assert.match(shell, /readAppearancePreferences\(\)\.density/)
+  assert.match(shell, /APPEARANCE_EVENT/)
+  assert.match(shell, /data-adaptive-density=\{density\}/)
+  assert.doesNotMatch(shell, /workspaceDensityToggle|aria-pressed=\{density === 'compact'\}|createPortal/)
   assert.doesNotMatch(shell, /adaptiveWorkspaceHeader|adaptiveWorkspaceIntro|workspacePurpose/)
   assert.doesNotMatch(shell, /supabase|service_role|NEXT_PUBLIC_.*KEY/i)
   assert.match(home, /<AdaptiveWorkspaceShell/)
