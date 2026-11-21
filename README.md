@@ -12,7 +12,7 @@
 | Backend | Supabase PostgreSQL, Auth, Row-Level Security, RPC, Storage, Edge Functions |
 | AI | NARA melalui Edge Function `aureka-tanya` dengan routing skill deterministik dan konteks agregat terotorisasi |
 | Delivery | GitHub Actions: unit/data/typecheck, build, security checks, GitHub Pages, deploy Edge Functions |
-| UI | Tema **Arktik**, mode terang/gelap, Plus Jakarta Sans; desktop sidebar, tablet navigation rail dan drawer, smartphone bottom dock dan drawer; rute dan otorisasi bersama |
+| UI | Tema **Arktik Canvas v2**, konten internal cardless, mode terang/gelap, sembilan preferensi tampilan lokal (XS/S/M/L, density, kontras, header, lebar baca, tabel, motion); desktop sidebar, tablet navigation rail dan drawer (termasuk wide-touch), smartphone bottom dock; registry akses/rute bersama |
 
 Di produksi, `next.config.mjs` menggunakan `output: 'export'`. Karena **tidak ada Next.js server route tepercaya**, otorisasi dan transaksi sensitif wajib divalidasi oleh Supabase RLS/RPC/Edge Function, tidak hanya oleh tampilan.
 
@@ -45,7 +45,7 @@ npm run build
 ## Kontrak perubahan
 
 - **Wajib branch dan pull request**; jangan push langsung ke `main`. CI harus lulus sebelum merge.
-- Ikuti `AGENTS.md` dan `DESIGN.md`. Tema Arktik dan preferensi terang/gelap harus tetap bekerja. Jangan menambah stylesheet penimpa baru untuk menutupi konflik selector.
+- Ikuti `AGENTS.md` dan `DESIGN.md`. Tema Arktik dan preferensi terang/gelap harus tetap bekerja. `app/aureka-canvas-preferences.css` adalah kebijakan terminal tunggal untuk permukaan dan header; hindari penambahan stylesheet override lain atau perubahan tanpa tes. Form/dialog dan aksesibilitas tetap terpisah dari kebijakan cardless.
 - Kode migrasi ditempatkan di `supabase/migrations/` dan ditinjau sebagai perubahan data sensitif. **Jangan replay seluruh folder ke database produksi**. Lihat `docs/PRODUCTION_MIGRATION_LEDGER_RECONCILIATION_2026-11-21.md` untuk riwayat drift versi.
 - Setiap perubahan RLS/RPC wajib menguji minimal peran `anon`, staf unit, Validator/PIC, PMKP, manajemen, Super Admin; pastikan tidak ada pembacaan data lintas unit yang tidak sah.
 - Audit nilai numerator/denominator, grain, target, versi profil, dan sumber data sebelum mengubah hasil indikator klinis.
