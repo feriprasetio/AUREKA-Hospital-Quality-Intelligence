@@ -12,7 +12,7 @@
 | Backend | Supabase PostgreSQL, Auth, Row-Level Security, RPC, Storage, Edge Functions |
 | AI | NARA melalui Edge Function `aureka-tanya` dengan routing skill deterministik dan konteks agregat terotorisasi |
 | Delivery | GitHub Actions: unit/data/typecheck, build, security checks, GitHub Pages, deploy Edge Functions |
-| UI | Tema **Arktik**, mode terang/gelap, Plus Jakarta Sans; komponen responsif dan aksesibel |
+| UI | Tema **Arktik**, mode terang/gelap, Plus Jakarta Sans; desktop sidebar, tablet navigation rail dan drawer, smartphone bottom dock dan drawer; rute dan otorisasi bersama |
 
 Di produksi, `next.config.mjs` menggunakan `output: 'export'`. Karena **tidak ada Next.js server route tepercaya**, otorisasi dan transaksi sensitif wajib divalidasi oleh Supabase RLS/RPC/Edge Function, tidak hanya oleh tampilan.
 
