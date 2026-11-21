@@ -59,10 +59,11 @@ async function readDocx(bytes: ArrayBuffer) {
 }
 async function readPdf(bytes: ArrayBuffer): Promise<{ text: string; pages: number }> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
-  const loading = pdfjs.getDocument({ data: new Uint8Array(bytes), isEvalSupported: false, useSystemFonts: true })
-  const document = await loading.promise
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url).toString()
+  // PDF.js 6 removed isEvalSupported. Only extract page text; do not execute PDF scripts.
+  const loading = pdfjs.getDocument({ data: new Uint8Array(bytes), useSystemFonts: true })
   try {
+    const document = await loading.promise
     if (document.numPages > MAX_PAGES) throw new Error('PDF terlalu panjang untuk diproses pada browser.')
     const lines: string[] = []
     let length = 0
@@ -90,7 +91,7 @@ async function readPdf(bytes: ArrayBuffer): Promise<{ text: string; pages: numbe
       if (length > MAX_TEXT) break
     }
     return { text: normalizeText(lines.join('\n')), pages: document.numPages }
-  } finally { await document.destroy() }
+  } finally { await loading.destroy() }
 }
 async function readXlsx(bytes: ArrayBuffer) {
   const module = await import('exceljs-hardened')
