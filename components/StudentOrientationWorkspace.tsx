@@ -61,6 +61,7 @@ type EducationCertificate = {
   object_path: string | null
   file_sha256: string | null
   revoked_at: string | null
+  render_snapshot?: {kind:string;layout:CertificateLayout;data:{name:string;profession:string;campus:string;saved:EducationParticipant}} | null
 }
 type OrientationRow = {
   source: SourceRecord
@@ -373,7 +374,7 @@ export default function StudentOrientationWorkspace({
         }
         for (let offset = 0; offset < 10000; offset += PAGE_SIZE) {
           const { data, error: certificateError } = await sys().from('education_certificates')
-            .select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,file_sha256,revoked_at')
+            .select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,file_sha256,revoked_at,render_snapshot')
             .eq('event_id', currentEvent.id)
             .is('revoked_at', null)
             .range(offset, offset + PAGE_SIZE - 1)
@@ -534,7 +535,16 @@ export default function StudentOrientationWorkspace({
 
       // Certificate identity remains in PostgreSQL; PDF is generated locally
       // and never uploaded or archived as a binary object.
-      const pdf = createCertificatePdf(row, certificateNumber, verificationCode, layout)
+      const proposedSnapshot = {
+        kind: 'student_orientation', event_id: event.id, participant_id: row.saved.id,
+        layout, data: {name:row.name,profession:row.profession,campus:row.campus,saved:row.saved},
+      }
+      const {data:frozen,error:freezeError} = await sys().rpc('freeze_browser_certificate_snapshot',{
+        p_certificate_id: certificateId,p_snapshot:proposedSnapshot
+      })
+      if(freezeError)throw freezeError
+      const snapshot = (frozen?.snapshot || proposedSnapshot) as typeof proposedSnapshot
+      const pdf = createCertificatePdf({...row,...snapshot.data}, certificateNumber, verificationCode, snapshot.layout)
       const url = URL.createObjectURL(pdf)
       preview.location.href = url
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
@@ -549,6 +559,7 @@ export default function StudentOrientationWorkspace({
         object_path: null,
         file_sha256: null,
         revoked_at: null,
+        render_snapshot: snapshot,
       }
       setRows((current) => current.map((item) => item.source.id === row.source.id ? { ...item, certificate } : item))
       setMessage('Sertifikat ' + certificateNumber + ' diterbitkan sebagai data terstruktur; PDF hanya dibuat sementara di browser.')
