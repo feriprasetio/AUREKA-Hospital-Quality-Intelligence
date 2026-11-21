@@ -9,7 +9,7 @@ type Room={id:number;name:string}
 type EventRow={id:string;event_code:string;title:string;topic:string;organizer:string;room_id:number|null;start_at:string;end_at:string|null;venue:string;instructor_json:string[];learning_objectives:string[];status:string}
 type Staff={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;source_unit:string}
 type Participant={id:string;event_id:string;participant_type:string;staff_id:string|null;full_name:string;participant_code:string;profession_or_program:string;room_id:number|null;status:string}
-type Certificate={id:string;event_id:string;participant_id:string;certificate_number:string;verification_code:string;issue_date:string;object_path:string|null;revoked_at:string|null}
+type Certificate={id:string;event_id:string;participant_id:string;certificate_number:string;verification_code:string;issue_date:string;object_path:string|null;revoked_at:string|null;render_snapshot?:{kind:string;layout:CertificateLayout;data:{event:EventRow;participant:Participant}}|null}
 const education=()=>aurekaSupabase.schema('aureka_system')
 const managers=['ADMIN','PMKP','MANAGEMENT','KABID']
 const dateLabel=(v:string)=>new Date(v).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Pontianak'})
@@ -121,7 +121,7 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
   setActive(event);setView('detail');setWorking(true);setError('');setNotice('')
   const [p,c]=await Promise.all([
    education().from('education_participants').select('id,event_id,participant_type,staff_id,full_name,participant_code,profession_or_program,room_id,status').eq('event_id',event.id).neq('status','cancelled').order('full_name'),
-   education().from('education_certificates').select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,revoked_at').eq('event_id',event.id).is('revoked_at',null)
+   education().from('education_certificates').select('id,event_id,participant_id,certificate_number,verification_code,issue_date,object_path,revoked_at,render_snapshot').eq('event_id',event.id).is('revoked_at',null)
   ])
   if(p.error)setError('Daftar peserta tidak dapat dimuat: '+p.error.message);else setParticipants((p.data||[]) as Participant[])
   if(c.error)setError('Register sertifikat tidak dapat dimuat: '+c.error.message);else setCertificates((c.data||[]) as Certificate[])
@@ -184,7 +184,14 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
    const reservation=(Array.isArray(data)?data[0]:data) as any
    const number=String(reservation?.certificate_number||''),code=String(reservation?.verification_code||'')
    if(!number)throw new Error('Nomor sertifikat tidak dikembalikan server.')
-   const pdf=makePdf(active,p,number,code,layout)
+   const proposedSnapshot={kind:'in_house_training',event_id:active.id,participant_id:p.id,
+    layout,data:{event:active,participant:p}}
+   const {data:frozen,error:freezeError}=await education().rpc('freeze_browser_certificate_snapshot',{
+    p_certificate_id:String(reservation.id),p_snapshot:proposedSnapshot
+   })
+   if(freezeError)throw freezeError
+   const snapshot=(frozen?.snapshot||proposedSnapshot) as typeof proposedSnapshot
+   const pdf=makePdf(snapshot.data.event,snapshot.data.participant,number,code,snapshot.layout)
    const url=URL.createObjectURL(pdf)
    preview.location.href=url
    window.setTimeout(()=>URL.revokeObjectURL(url),60_000)
@@ -201,7 +208,8 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
   if(!preview){setError('Izinkan jendela browser untuk membuka PDF.');return}
   try{
    const layout=await loadCertificateLayout('in_house_training')
-   const pdf=makePdf(active,participant,c.certificate_number,c.verification_code,layout)
+   const frozen=c.render_snapshot
+   const pdf=makePdf(frozen?.data?.event||active,frozen?.data?.participant||participant,c.certificate_number,c.verification_code,frozen?.layout||layout)
    const url=URL.createObjectURL(pdf)
    preview.location.href=url
    window.setTimeout(()=>URL.revokeObjectURL(url),60_000)
