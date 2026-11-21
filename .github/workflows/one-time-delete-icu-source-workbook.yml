@@ -56,8 +56,8 @@ jobs:
           # Never use --recursive. All other Storage objects and the two
           # PostgreSQL signature image assets remain outside this action.
           if supabase storage rm --help | grep -q -- '--remote'; then
-            supabase storage rm "$object" --remote "$PROJECT_REF"
-            supabase storage ls 'ss:///aureka-quality-source-workbooks/14/2026' --remote "$PROJECT_REF" > /tmp/aureka-storage-after.txt
+            supabase storage rm "$object" --remote "$PROJECT_REF" --experimental
+            supabase storage ls 'ss:///aureka-quality-source-workbooks/14/2026' --remote "$PROJECT_REF" --experimental > /tmp/aureka-storage-after.txt
           else
             # Supabase CLI v2 compatibility, only if the installed CLI lacks --remote.
             supabase link --project-ref "$PROJECT_REF"
