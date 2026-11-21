@@ -37,10 +37,12 @@ jobs:
         run: |
           set -euo pipefail
           test "$PROJECT_REF" = "ktukmjscopggkzrkgnzp"
-          case "$SUPABASE_ACCESS_TOKEN" in
-            sbp_*) ;;
-            *) echo '::error::Supabase Personal Access Token is not configured'; exit 1 ;;
-          esac
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo '::error::Supabase Personal Access Token is missing.'
+            exit 1
+          fi
+          # Token format is validated by Supabase CLI, including scoped and
+          # future PAT forms; do not print or expose the credential.
           supabase --version
 
       - name: Delete ONLY the approved obsolete workbook through the Storage API
