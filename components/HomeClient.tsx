@@ -503,7 +503,7 @@ export default function HomeClient(){
      ...(!admin?[{id:'mydata',label:'Data Saya untuk PMKP'}]:[]),
      ...(admin?[{id:'system',label:'Konfigurasi Sistem'}]:[]),
      ...(['ADMIN','DIREKTUR','PMKP'].includes(role||'')?[{id:'audit',label:'Audit Log'}]:[]),
-     {id:'legal',label:'Legal dan Asset',hint:'Register aset tanda tangan pejabat, otorisasi pemilik, dokumen terbit, dan verifikasi QR.'},
+     ...(['ADMIN','DIREKTUR','PMKP','MANAGEMENT','KABID','DEWAN_PENGAWAS'].includes(role||'')?[{id:'legal',label:'Legal dan Asset',hint:'Register aset tanda tangan pejabat, otorisasi pemilik, dokumen terbit, dan verifikasi QR.'}]:[]),,
     ]},
    ],
    quality:role==='DEWAN_PENGAWAS' ? [] : [
