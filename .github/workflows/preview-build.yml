@@ -75,7 +75,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://preview-disabled.invalid
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_preview_disabled
         run: npm run build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: aureka-static-export
           path: ./out

@@ -120,7 +120,7 @@ jobs:
           cp /tmp/audit.json dependency-validation-output/npm-audit.json
           cp /tmp/minimatch-tree.json dependency-validation-output/minimatch-tree.json
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: aureka-security-lock-review
           path: dependency-validation-output/
