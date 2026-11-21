@@ -15,6 +15,33 @@ begin
   if not exists (
     select 1 from pg_constraint
     where conrelid = 'aureka_system.education_participants'::regclass
+      and conname = 'education_participants_orientation_role_check'
+  ) then
+    alter table aureka_system.education_participants
+      add constraint education_participants_orientation_role_check
+      check (participant_role in ('Peserta', 'Narasumber', 'Sumpah Rekam Medik'));
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'aureka_system.education_participants'::regclass
+      and conname = 'education_participants_orientation_materials_check'
+  ) then
+    alter table aureka_system.education_participants
+      add constraint education_participants_orientation_materials_check
+      check (cardinality(materials) <= 7);
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'aureka_system.education_participants'::regclass
+      and conname = 'education_participants_orientation_notes_check'
+  ) then
+    alter table aureka_system.education_participants
+      add constraint education_participants_orientation_notes_check
+      check (length(orientation_notes) <= 1000);
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'aureka_system.education_participants'::regclass
       and conname = 'education_participants_event_source_quality_record_key'
   ) then
     alter table aureka_system.education_participants
