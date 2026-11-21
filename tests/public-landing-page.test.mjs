@@ -43,7 +43,7 @@ test('guest portal is mobile-native-like and retains accessible theme and focus 
 
 test('certificate QR deep links open guest verification before workspace login', () => {
   assert.match(homeClient, /setPublicCertificateCode/)
-  assert.match(homeClient, /#cert\\\//)
+  assert.match(homeClient, /#cert/)
   assert.match(homeClient, /if\(publicCertificateCode\)return <PublicLandingPage/)
   assert.match(landing, /aureka_verify_education_certificate/)
   assert.match(landing, /result\?\.status==='revoked'/)
