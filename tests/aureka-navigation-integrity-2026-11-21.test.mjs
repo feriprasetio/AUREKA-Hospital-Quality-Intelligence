@@ -54,3 +54,29 @@ test('category sidebar controls retain accessible names and the active quality d
   assert.match(home, /if\(child==='quality-overview'\)return active==='quality'&&!spmOpen&&!spoOpen/)
   assert.match(home, /aria-current=\{itemSelected\?'page':undefined\}/)
 })
+
+
+test('sidebar follows the active module when navigation changes outside the sidebar', () => {
+  const home = read('components/HomeClient.tsx')
+  assert.match(home, /useEffect\(\(\)=>\{if\(activeDomainId\)setExpandedDomain\(activeDomainId\)\},\[activeDomainId\]\)/)
+})
+
+test('selecting a destination closes the mobile drawer and canonical category triggers remain interactive', () => {
+  const home = read('components/HomeClient.tsx')
+  const start = home.indexOf('const selectDomainDestination=')
+  const end = home.indexOf('const sidebarChildGroups=', start)
+  const selector = home.slice(start, end)
+  assert.match(selector, /mobileSidebar\.close\(\)/)
+  const canonical = read('app/aureka-navigation-system.css')
+  assert.match(canonical, /\.sidebarDomainTrigger\s*\{[\s\S]*pointer-events: auto !important/)
+  assert.match(canonical, /\.sidebarDomainTrigger > button\s*\{[\s\S]*pointer-events: auto !important/)
+})
+
+test('desktop, tablet, and mobile shell keep the content column shrink-safe', () => {
+  const css = read('app/aureka-navigation-system.css')
+  assert.match(css, /grid-template-columns: 264px minmax\(0, 1fr\) !important/)
+  assert.match(css, /@media \(min-width: 721px\) and \(max-width: 1180px\)/)
+  assert.match(css, /@media \(min-width: 721px\) and \(max-width: 860px\)/)
+  assert.match(css, /@media \(max-width: 720px\)/)
+  assert.match(css, /\.workspaceContent[\s\S]*?min-width: 0 !important/)
+})
