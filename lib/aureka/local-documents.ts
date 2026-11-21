@@ -69,10 +69,23 @@ async function readPdf(bytes: ArrayBuffer): Promise<{ text: string; pages: numbe
     for (let i = 1; i <= document.numPages; i++) {
       const page = await document.getPage(i)
       const content = await page.getTextContent()
-      const line = content.items
-        .filter((item): item is typeof item & { str: string } => 'str' in item)
-        .map(item => item.str).join(' ').trim()
-      if (line) { lines.push(line); length += line.length }
+      // Preserve real page row boundaries so SPO headings are not merged
+      // with body text. Never execute scripts or follow embedded PDF links.
+      const grouped = new Map<number, Array<{ x: number; text: string }>>()
+      for (const item of content.items) {
+        if (!('str' in item) || typeof item.str !== 'string' || !item.str.trim()) continue
+        const transform = item.transform
+        const y = Math.round((Number(transform?.[5]) || 0) / 2) * 2
+        const x = Number(transform?.[4]) || 0
+        const row = grouped.get(y) || []
+        row.push({ x, text: item.str })
+        grouped.set(y, row)
+      }
+      const pageLines = [...grouped.entries()].sort((a, b) => b[0] - a[0])
+        .map(([, row]) => row.sort((a, b) => a.x - b.x).map(i => i.text).join(' ').trim())
+        .filter(Boolean)
+      lines.push(...pageLines)
+      length += pageLines.join('').length
       page.cleanup()
       if (length > MAX_TEXT) break
     }
