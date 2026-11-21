@@ -137,7 +137,18 @@ function findOption(profile: IndicatorProfileForResults, response: Record<string
   const code = finiteNumber(response.code)
   if (code == null) return null
   const matching = options.filter((option) => finiteNumber(option.code) === code)
-  return matching.length === 1 ? matching[0] : null
+  if (matching.length === 1) return matching[0]
+  if (!answer && response.code_only === true && matching.length > 1) {
+    const first = matching[0]
+    const directional = indicatorDirection(profile) != null
+    if (matching.every(option =>
+      (option.eligible === false || option.denominator_excluded === true) ===
+        (first.eligible === false || first.denominator_excluded === true) &&
+      Boolean(option.review_required) === Boolean(first.review_required) &&
+      (directional || (option.numerator === first.numerator && option.denominator === first.denominator)),
+    )) return first
+  }
+  return null
 }
 
 function indicatorDirection(profile: IndicatorProfileForResults): 'positive' | 'negative' | null {
@@ -334,7 +345,7 @@ export function calculateIndicatorResult(
   year: number,
 ): IndicatorResult {
   const kind = resolveMeasurementKind(profile)
-  const continuous = kind === 'door' || kind === 'minutes' || kind === 'numeric'
+  const continuous = !usesCategoricalResponseCapture(profile) && (kind === 'door' || kind === 'minutes' || kind === 'numeric')
   const accumulators = Array.from({ length: 12 }, (_, index) => ({
     month: index + 1,
     numerator: 0,

@@ -51,3 +51,78 @@ html[data-mode="gelap"] .akModalClose { background: rgba(255, 255, 255, .08); }
   .akModal { animation: akmIn .32s cubic-bezier(.22, 1, .36, 1) both; }
   @media (max-width: 640px) { .akModal { animation: akmUp .38s cubic-bezier(.22, 1, .36, 1) both; } }
 }
+
+.episodeWorkbook, .episodeWorkbook fieldset { display: grid; gap: 14px; min-width: 0; }
+.episodeWorkbook fieldset { border: 0; margin: 0; padding: 0; }
+.episodeWorkbook label { display: grid; gap: 5px; min-width: 0; font-size: 13px; font-weight: 650; }
+.episodeWorkbook :is(input:not([type="checkbox"]), select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 7px 9px;
+  border: 1px solid var(--aureka-color-border-strong);
+  border-radius: 9px;
+  background: var(--aureka-color-surface);
+  color: var(--aureka-color-foreground);
+  font: inherit;
+}
+.episodeWorkbook :is(input, select, summary):focus-visible,
+.episodeWorkbookActions button:focus-visible {
+  outline: 2px solid var(--aureka-color-information);
+  outline-offset: 2px;
+}
+.episodeWorkbook button, .episodeWorkbookActions button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--aureka-color-border-strong);
+  border-radius: 9px;
+  background: var(--aureka-color-surface);
+  color: var(--aureka-color-foreground);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.episodeWorkbookActions .episodeWorkbookPrimary {
+  background: var(--aureka-color-primary);
+  color: var(--aureka-color-on-primary);
+  border-color: transparent;
+}
+.episodeWorkbook button:disabled, .episodeWorkbookActions button:disabled { opacity: .5; cursor: default; }
+.episodeWorkbookFile, .episodeWorkbookHeaderRow, .episodeWorkbookActions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.episodeWorkbookActions { justify-content: end; }
+.episodeWorkbookFile > label { flex: 1 1 210px; }
+.episodeWorkbookHeaderRow label { max-width: 180px; }
+.episodeWorkbook .episodeWorkbookCheck { display: flex; align-items: center; gap: 9px; min-height: 44px; }
+.episodeWorkbook details { padding: 10px; border: 1px solid var(--aureka-color-border-strong); border-radius: 10px; }
+.episodeWorkbook summary { min-height: 30px; font-weight: 700; cursor: pointer; }
+.episodeWorkbookFields, .episodeWorkbookMapping {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 178px), 1fr));
+  gap: 9px;
+  align-items: end;
+  margin-top: 8px;
+}
+.episodeWorkbookMapping {
+  padding: 11px;
+  border: 1px solid var(--aureka-color-border-strong);
+  border-radius: 10px;
+  background: var(--aureka-color-surface-muted);
+}
+.episodeWorkbookMappings h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 14px; margin: 0 0 8px; }
+.episodeWorkbookMappings h4 span, .episodeWorkbookMeta, .episodeWorkbookIndicator span { color: var(--aureka-color-foreground-secondary); font-size: 12px; }
+.episodeWorkbookMeta, .episodeWorkbookIndicator { overflow-wrap: anywhere; }
+.episodeWorkbookIndicator { display: grid; gap: 4px; min-width: 0; align-self: center; }
+.episodeWorkbookMeta, .episodeWorkbookError, .episodeWorkbookSuccess { margin: 0; line-height: 1.45; }
+.episodeWorkbookError, .episodeWorkbookSuccess { padding: 10px; border-radius: 10px; font-size: 13px; }
+.episodeWorkbookError { color: var(--aureka-color-danger); background: var(--aureka-color-danger-soft); }
+.episodeWorkbookError ul { margin: 6px 0 0; padding-inline-start: 20px; max-height: 200px; overflow: auto; }
+.episodeWorkbookSuccess { color: var(--aureka-color-success); background: var(--aureka-color-success-soft); }
+@media (max-width: 720px) {
+  .episodeWorkbook :is(input:not([type="checkbox"]), select) { font-size: 16px; }
+}
