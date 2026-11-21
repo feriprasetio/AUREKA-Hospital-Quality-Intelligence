@@ -11,7 +11,7 @@ test('Sekretariat is owned by PMKP, visible in the PMKP category, and active', (
   assert.ok(registry.includes("owner:'Komite Peningkatan Mutu dan Keselamatan Pasien'"))
   assert.ok(registry.includes("routeHash:'#sekretariat'"))
   assert.ok(registry.includes('requiredRoles:GOVERNANCE_ROLES'))
-  assert.ok(registry.includes("{ id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'active'"))
+  assert.ok(registry.includes("{ id:'secretariat', label:'Sekretariat', moduleId:'secretariat', childId:'register', status:'available'"))
   assert.ok(home.includes("disabled={item.status==='planned'}"))
   assert.ok(home.includes("if(item.status==='planned')return"))
   assert.ok(home.includes("'sekretariat':'secretariat'"))
