@@ -945,10 +945,8 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     </div>
   }
 
-  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Menyiapkan master Clinical Pathway…</h3></div></div></div>
-
-  // Editor format CP tampil sebagai popup di atas layar asal (pustaka/diagnosis).
-  const view = screen === 'builder' ? builderReturnScreen : screen
+  // The dialog controller must run unconditionally, including the loading render.
+  // Keeping React hooks after this early return would corrupt hook order.
   const closeBuilder = () => { setBuilder(null); setBuilderIsNew(false); setMessage(''); setScreen(builderReturnScreen) }
   const builderDialogRef = useAccessibleDialog<HTMLDivElement>({
     open:screen==='builder'&&Boolean(builder)&&isAdmin,
@@ -956,6 +954,11 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     closeOnEscape:!saving,
     lockScroll:true,
   })
+
+  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Menyiapkan master Clinical Pathway…</h3></div></div></div>
+
+  // Editor format CP tampil sebagai popup di atas layar asal (pustaka/diagnosis).
+  const view = screen === 'builder' ? builderReturnScreen : screen
   return <div className="cpRoot">
     <style>{CSS}</style>
     <WorkspaceModuleHeader
