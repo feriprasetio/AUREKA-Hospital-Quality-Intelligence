@@ -24,17 +24,18 @@ function sourceFiles(dir) {
 test('every active browser/server codepath avoids Supabase Storage client calls', () => {
   const paths = ['app', 'components', 'lib', 'supabase/functions'].flatMap(sourceFiles)
   assert.ok(paths.length > 100, 'all application source directories must be scanned')
+  const violations = []
   for (const path of paths) {
     const contents = read(path)
-    assert.doesNotMatch(contents, /\.storage\s*\.\s*from\s*\(/,
-      path + ' must not read or write original binary objects')
-    assert.doesNotMatch(contents, /storage\/v1\/object(?:\/|$)/,
-      path + ' must not bypass the Storage client through direct object API')
+    if (/\.storage\s*\.\s*from\s*\(/.test(contents)) violations.push(path + ': Storage SDK access')
+    if (/storage\/v1\/object(?:\/|$)/.test(contents)) violations.push(path + ': direct Storage API')
     if (path.startsWith('components/') || path.startsWith('app/') || path.startsWith('lib/')) {
-      assert.doesNotMatch(contents, /\.functions\s*\.\s*invoke\s*\(\s*['"]aureka-(?:spo-analyze|secretariat-parse)['"]/,
-        path + ' must not call retired binary parsing functions')
+      if (/\.functions\s*\.\s*invoke\s*\(\s*['"]aureka-(?:spo-analyze|secretariat-parse)['"]/.test(contents)) {
+        violations.push(path + ': retired server binary parser call')
+      }
     }
   }
+  assert.deepEqual(violations, [], 'Zero-File policy violations across the application')
 })
 
 test('legacy binary parser endpoints return 410 without inspecting request bodies', async () => {
