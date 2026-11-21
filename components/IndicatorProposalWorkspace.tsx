@@ -124,7 +124,7 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       .ipActivation input{min-width:0;border:1px solid #dce6df;border-radius:9px;padding:9px;font-size:12px}
       .ipError{border:1px solid #efcfca;background:#fff5f3;color:#903c32;border-radius:10px;padding:10px;font-size:12px}
       .ipSuccess{border:1px solid #d6e9dc;background:#f4faf5;color:#276341;border-radius:10px;padding:10px;font-size:12px}
-      .ipOverlay{position:fixed;inset:0;z-index:1200;background:rgba(15,29,22,.48);backdrop-filter:blur(4px);display:grid;place-items:center;padding:18px;overflow:auto}
+      .ipOverlay{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);background:rgba(15,29,22,.48);backdrop-filter:blur(4px);display:grid;place-items:center;padding:18px;overflow:auto}
       .ipModal{width:min(900px,100%);max-height:min(92vh,900px);overflow:auto;box-shadow:0 24px 80px rgba(10,30,20,.25)}
       @media(max-width:640px){.ipPanel{padding:13px}.ipFormGrid{grid-template-columns:1fr}.ipField.full{grid-column:auto}.ipActivation{grid-template-columns:1fr}}
     `}</style>
