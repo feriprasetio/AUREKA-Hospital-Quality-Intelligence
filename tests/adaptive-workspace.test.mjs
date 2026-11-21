@@ -58,6 +58,7 @@ test('workspace identifiers are stable and distinct by module and page', () => {
 
 test('presentation density and persisted preference are normalized safely', () => {
   assert.equal(normalizeWorkspaceDensity('compact'), 'compact')
+  assert.equal(normalizeWorkspaceDensity('spacious'), 'spacious')
   assert.equal(normalizeWorkspaceDensity('wide'), 'comfortable')
   assert.deepEqual(parseWorkspacePreference(null), { version: 1, density: 'comfortable' })
   assert.deepEqual(parseWorkspacePreference('{"version":1,"density":"compact"}'), { version: 1, density: 'compact' })
