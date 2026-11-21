@@ -20,6 +20,14 @@ test('AUREKA navigation has independent primary and secondary active states', ()
   assert.ok(home.includes('secondaryActiveId={activeNavSecondaryId}'))
 })
 
+test('workspace error boundary resets when switching between contextual tabs and staff education workspaces', () => {
+  const home = read('components/HomeClient.tsx')
+  assert.match(home, /key=\{active\+'-'\+currentContainer\+'-'/)
+  assert.match(home, /active==='staff'&&staffTab==='training'\?<InHouseTrainingWorkspace/)
+  assert.match(home, /active==='staff'&&staffTab==='student-orientation'\?<StudentOrientationWorkspace/)
+  assert.match(home, /moduleLabel=\{active==='staff'\?currentContainer:/)
+})
+
 test('all navigation groups preserve the selected destination and use responsive overflow', () => {
   const nav = read('components/navigation/UnifiedModuleNavigation.tsx')
   assert.match(nav, /function overflowFor\(/)
