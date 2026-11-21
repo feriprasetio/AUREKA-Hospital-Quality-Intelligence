@@ -75,7 +75,7 @@ body:has(.akModalRoot) .tanyaFab { visibility: hidden; pointer-events: none; }
  * already open. Several legacy workspaces still mount non-portal dialogs. */
 body:has(:is(.akModalRoot, .rmModalBackdrop, .psModalBackdrop, .oppeModalBackdrop,
   .sdEditBackdrop, .overviewOverlay, .aqEditorDialog, .secModalBackdrop,
-  .spmOverlay, .cpBuilderOverlay, .aqDeleteConfirmBack))
+  .spmOverlay, .cpBuilderOverlay, .aqBack, .aqDeleteConfirmBack))
   > :is(.tanyaFab, .tanyaPanel:not(.tanyaPanelEmbedded)) {
   visibility: hidden;
   pointer-events: none;
