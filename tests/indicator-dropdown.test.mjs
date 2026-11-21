@@ -120,3 +120,14 @@ test('does not infer category entry without a published indicator direction', ()
   }
   assert.equal(shouldUseIndicatorDropdown(profile), false)
 })
+
+
+test('keeps explicitly numeric patient-episode measurements on numeric controls', () => {
+  const profile = {
+    title: 'Waktu tanggap',
+    measurement_grain: 'patient_episode',
+    schema_json: { measurement_type: 'minutes', indicator_direction: 'positive' },
+    options_json: choices,
+  }
+  assert.equal(shouldUseIndicatorDropdown(profile), false)
+})
