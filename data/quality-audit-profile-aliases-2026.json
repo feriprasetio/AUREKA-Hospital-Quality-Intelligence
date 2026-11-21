@@ -1,0 +1,238 @@
+{
+  "1": {
+    "respon komplain": "1.1",
+    "mengerti informasi": "1.2"
+  },
+  "2": {
+    "tindak lanjut": "2.1"
+  },
+  "3": {
+    "pelayanan ambulance": "3.1"
+  },
+  "4": {
+    "laporan operasi 24h": "4.2",
+    "batal operasi elektif": "4.3",
+    "lokasi prosedur tepat": "4.4"
+  },
+  "5": {
+    "dead stock": "5.1",
+    "angka ketidakpatuhan penggunaan label high alert": "5.3"
+  },
+  "7": {
+    "assessment": "7.1",
+    "instruksi dpjp": "7.2"
+  },
+  "8": {
+    "akses vaskular": "8.1",
+    "adekuasi dialisis": "8.2",
+    "hipotensi": "8.3",
+    "kekosongan bhp linen": "8.4"
+  },
+  "9": {
+    "unordered specimen": "9.2",
+    "delay sampling": "9.3",
+    "lapor tes kritis": "9.4",
+    "darah terbuang": "9.1",
+    "histopatologi": "9.5"
+  },
+  "10": {
+    "keterlambatan rontgen": "10.3",
+    "pengulangan rontgen": "10.4",
+    "kerusakan film": "10.2",
+    "kekosongan bhp": "10.1"
+  },
+  "12": {
+    "efektivitas": "12.1",
+    "drop out tanpa izin dokter": "12.2",
+    "kejadian jatuh": "12.3",
+    "salah tindakan": "12.4",
+    "kepatuhan durasi pelayanan": "12.5",
+    "ketersediaan media terapi": "12.6"
+  },
+  "13": {
+    "klaim": "13.1",
+    "klpcm": "13.2"
+  },
+  "14": {
+    "visite spesialis": "14.4",
+    "validitas asesmen": "14.8",
+    "identifikasi pasien": "14.3",
+    "apd": "14.5",
+    "pencegahan jatuh": "14.6",
+    "komunikasi perawatan": "14.7",
+    "transfer igd": "14.2",
+    "los icu panjang": "14.9",
+    "kekosongan bhp linen": "14.1"
+  },
+  "15": {
+    "kehadiran": "15.1"
+  },
+  "18": {
+    "visite spesialis": "18.4",
+    "validitas asesmen keperawatan": "18.5",
+    "transfer igd": "18.3",
+    "unplanned extubation": "18.1",
+    "los nicu panjang": "18.6",
+    "kekosongan linen": "18.2"
+  },
+  "19": {
+    "visite spesialis": "19.8",
+    "validitas asesmen kebidanan": "19.9",
+    "transfer igd": "19.7",
+    "kekosongan linen": "19.6",
+    "antibiotik profilaksis": "19.1",
+    "imd": "19.2",
+    "anestesi regional": "19.3",
+    "hemostasis": "19.4",
+    "indikasi sc pogi": "19.5",
+    "los post sc 3": "19.10"
+  },
+  "20": {
+    "visite spesialis": "20.8",
+    "validitas asesmen keperawatan": "20.11",
+    "transfer igd": "20.7",
+    "stabilitas bayi transfer": "20.9",
+    "kekosongan linen": "20.6",
+    "asfiksia tidak ada": "20.1",
+    "ventilator bayi": "20.2",
+    "apgar score": "20.3",
+    "usaha nafas bayi": "20.4",
+    "vtp 1 menit": "20.5",
+    "hie tidak ada": "20.10"
+  },
+  "21": {
+    "pelaksanaan edukasi": "21.1"
+  },
+  "22": {
+    "visite spesialis": "22.7",
+    "validitas asesmen keperawatan": "22.8",
+    "transfer igd": "22.6",
+    "infus vena perifer": "22.3",
+    "ketenangan pasien": "22.2",
+    "kekosongan obat": "22.5",
+    "kekosongan linen": "22.4",
+    "assessment stunting wasting2": "22.1"
+  },
+  "23": {
+    "visite spesialis": "23.5",
+    "validitas asesmen keperawatan": "23.7",
+    "transfer igd": "23.4",
+    "batal operasi": "23.1",
+    "nyeri terkontrol": "23.6",
+    "kekosongan obat": "23.3",
+    "kekosongan linen": "23.2"
+  },
+  "24": {
+    "visite spesialis": "24.8",
+    "validitas asesmen keperawatan": "24.10",
+    "transfer igd": "24.7",
+    "oksigen transfer igd": "24.9",
+    "kekosongan obat": "24.6",
+    "kekosongan linen": "24.5",
+    "terapi oat": "24.1",
+    "sputum tcm": "24.2",
+    "sitb pencatatan": "24.3",
+    "gejala tb hilang": "24.4"
+  },
+  "25": {
+    "visite spesialis": "25.12",
+    "clinical pathway": "25.13",
+    "validitas asesmen keperawatan": "25.18",
+    "transfer igd": "25.11",
+    "kekosongan linen hari pertama": "25.9",
+    "kekosongan obat selama dirawat": "25.10",
+    "fungsi ginjal egfr": "25.5",
+    "usg perawatan": "25.6",
+    "hemodialisis 48 jam": "25.7",
+    "klinis pgta": "25.14",
+    "lab pgta": "25.15",
+    "anemia": "25.17",
+    "komponen darah": "25.1",
+    "obat vasoaktif": "25.2",
+    "koagulasi lengkap": "25.3",
+    "egd terapi": "25.4",
+    "hb pulang 10": "25.8",
+    "perdarahan henti": "25.16"
+  },
+  "26": {
+    "visite spesialis": "26.7",
+    "validitas asesmen keperawatan": "26.16",
+    "transfer igd": "26.6",
+    "kekosongan linen": "26.4",
+    "kekosongan obat": "26.5",
+    "stemi ekg di igd": "26.1",
+    "stemi killip stratifikasi2": "26.2",
+    "stemi door to balloon 90 menit": "26.3",
+    "stemi revaskularisasi": "26.15",
+    "stemi los 5 hari": "26.8",
+    "stemi survival rs": "26.14",
+    "snh rtpa 4 5h": "26.10",
+    "snh ct scan 30": "26.11",
+    "snh antiplatelet antikoagulan": "26.12",
+    "snh pulang hidup": "26.13",
+    "snh los 7": "26.9"
+  },
+  "27": {
+    "visite spesialis": "27.9",
+    "validitas asesmen": "27.12",
+    "transfer igd": "27.8",
+    "pengkajian igd": "27.10",
+    "kekosongan bhp linen": "27.6",
+    "kekosongan obat": "27.7",
+    "perawatan kaki": "27.2",
+    "kontrol metabolik": "27.3",
+    "abi": "27.4",
+    "pedis": "27.5",
+    "tanpa amputasi": "27.11",
+    "hifema": "27.1"
+  },
+  "28": {
+    "status penyelesaian": "28.1"
+  },
+  "29": {
+    "waktu laporan": "29.1",
+    "identifikasi": "29.2"
+  },
+  "30": {
+    "administrasi": "30.1",
+    "atribut": "30.2",
+    "absensi": "30.3",
+    "sikap perilaku": "30.4",
+    "laporan": "30.5"
+  },
+  "31": {
+    "kontrol dokter": "31.1"
+  },
+  "32": {
+    "komplikasi": "32.1"
+  },
+  "33": {
+    "petugas": "33.1",
+    "ruptur perineum": "33.2",
+    "komunikasi pra kedatangan": "33.3",
+    "stabilisasi pra merujuk": "33.4"
+  },
+  "34": {
+    "kepatuhan regimen kemo": "34.1",
+    "mastektomi 5 minggu": "34.2",
+    "pemeriksaan ihc lengkap": "34.3",
+    "kelengkapan staging ctnm": "34.4",
+    "kepatuhan follow up": "34.5",
+    "kejadian limfedema": "34.6"
+  },
+  "35": {
+    "kepatuhan terapi": "35.1",
+    "ketepatan penggunaan antibiotik": "35.2"
+  },
+  "37": {
+    "visite spesialis": "37.6",
+    "validitas asesmen kebidanan": "37.8",
+    "kepatuhan instruksi bidan": "37.7",
+    "transfer igd": "37.4",
+    "kekosongan bhp linen": "37.2",
+    "kekosongan obat": "37.3",
+    "unplanned return ibu2": "37.1",
+    "partograf lengkap": "37.5",
+    "tanggap sc emergency": "37.9"
+  }
+}
