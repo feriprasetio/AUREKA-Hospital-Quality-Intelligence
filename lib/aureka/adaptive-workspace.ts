@@ -10,7 +10,7 @@ export type AdaptiveLayoutId =
   | 'chat-artifact'
   | 'canvas-editor'
 
-export type AdaptiveWorkspaceDensity = 'comfortable' | 'compact'
+export type AdaptiveWorkspaceDensity = 'comfortable' | 'compact' | 'spacious'
 
 export type AdaptiveLayoutDefinition = {
   id: AdaptiveLayoutId
@@ -133,7 +133,7 @@ export function resolveAdaptiveWorkspace(moduleId: string, containerLabel: strin
 }
 
 export function normalizeWorkspaceDensity(value: unknown): AdaptiveWorkspaceDensity {
-  return value === 'compact' ? 'compact' : 'comfortable'
+  return value === 'compact' ? 'compact' : value === 'spacious' ? 'spacious' : 'comfortable'
 }
 
 export function workspacePreferenceStorageKey(workspaceId: string, userId?: string): string {
