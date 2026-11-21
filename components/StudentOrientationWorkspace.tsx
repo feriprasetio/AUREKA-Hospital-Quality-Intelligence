@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import CertificateTemplateEditor from '@/components/CertificateTemplateEditor'
+import { loadCertificateLayout, pdfPoint, type CertificateLayout, type CertificateElementId } from '@/lib/aureka/certificate-template'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -155,40 +157,67 @@ function safeAscii(value: unknown): string {
 function pdfEscape(value: unknown): string {
   return safeAscii(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
 }
-function createCertificatePdf(row: OrientationRow, number: string, verificationCode: string): Blob {
+function createCertificatePdf(row: OrientationRow, number: string, verificationCode: string, layout: CertificateLayout): Blob {
   const saved = row.saved!
+  const point = (id: CertificateElementId, fallback: { x: number; y: number }) => pdfPoint(layout, id, fallback)
+  const text = (id: CertificateElementId, value: string, size: number, color: string, fallback: { x: number; y: number }, font = 'F1', align: 'left' | 'center' = 'center', offsetY = 0) => {
+    const pos = point(id, fallback)
+    const width = safeAscii(value).length * size * 0.25
+    const x = align === 'center' ? pos.x - width : pos.x
+    return 'BT /' + font + ' ' + size + ' Tf ' + color + ' rg ' + x.toFixed(1) + ' ' + (pos.y + offsetY) + ' Td (' + pdfEscape(value) + ') Tj ET'
+  }
+  const logo = (id: 'logo_pemkot' | 'logo_rsud', label: string, fallback: { x: number; y: number }) => {
+    const pos = point(id, fallback)
+    return [
+      '0.08 0.22 0.36 RG 1.4 w ' + (pos.x - 22) + ' ' + (pos.y - 18) + ' 44 36 re S',
+      text(id, label, 7, '0.08 0.22 0.36', fallback),
+    ]
+  }
+  const signature = (id: 'signature_left' | 'signature_right', label: string, fallback: { x: number; y: number }) => {
+    const pos = point(id, fallback)
+    return [
+      '0.18 0.29 0.40 RG 0.7 w ' + (pos.x - 76) + ' ' + (pos.y + 18) + ' m ' + (pos.x + 76) + ' ' + (pos.y + 18) + ' l S',
+      text(id, label, 10, '0 0 0', fallback),
+    ]
+  }
   const commands: string[] = [
-    '0.08 0.22 0.36 RG 3 w 24 24 794 547 re S',
-    '0.08 0.22 0.36 RG 1 w 34 34 774 527 re S',
-    'BT /F1 11 Tf 0 0 0 rg 70 510 Td (' + pdfEscape('UPT RSUD Sultan Syarif Mohamad Alkadrie Kota Pontianak') + ') Tj ET',
-    'BT /F1 28 Tf 0.08 0.22 0.36 rg 295 452 Td (SERTIFIKAT) Tj ET',
-    'BT /F1 13 Tf 0.08 0.22 0.36 rg 245 423 Td (ORIENTASI MAHASISWA) Tj ET',
-    'BT /F1 12 Tf 0 0 0 rg 365 385 Td (Diberikan kepada) Tj ET',
-    'BT /F1 25 Tf 0.08 0.22 0.36 rg 130 345 Td (' + pdfEscape(row.name) + ') Tj ET',
-    'BT /F1 12 Tf 0 0 0 rg 70 306 Td (' + pdfEscape('Sebagai: ' + saved.participant_role + '    Kegiatan: ' + saved.activity_name) + ') Tj ET',
-    'BT /F1 12 Tf 0 0 0 rg 70 283 Td (' + pdfEscape('Periode/Tanggal: ' + saved.period_label) + ') Tj ET',
-    'BT /F1 11 Tf 0 0 0 rg 70 253 Td (Materi yang diikuti:) Tj ET',
+    '0.08 0.22 0.36 RG 2.2 w 24 24 794 547 re S',
+    '0.39 0.68 0.82 RG 0.8 w 34 34 774 527 re S',
+    ...logo('logo_pemkot', 'PEMKOT', { x: 10, y: 13 }),
+    ...logo('logo_rsud', 'RSUD', { x: 90, y: 13 }),
+    text('institution', 'DINAS KESEHATAN KOTA PONTIANAK', 12, '0.08 0.22 0.36', { x: 50, y: 12 }, 'F1', 'center', 8),
+    text('institution', 'UPT RSUD SULTAN SYARIF MOHAMAD ALKADRIE KOTA PONTIANAK', 10, '0.08 0.22 0.36', { x: 50, y: 12 }, 'F1', 'center', -9),
+    text('title', 'SERTIFIKAT', 30, '0.08 0.22 0.36', { x: 50, y: 25 }, 'F2'),
+    text('subtitle', 'ORIENTASI MAHASISWA', 13, '0.08 0.22 0.36', { x: 50, y: 31 }),
+    text('recipient_label', 'Diberikan kepada', 12, '0 0 0', { x: 50, y: 38 }),
+    text('recipient_name', row.name, 25, '0.08 0.22 0.36', { x: 50, y: 45 }),
+    text('role', 'Sebagai: ' + saved.participant_role, 12, '0 0 0', { x: 50, y: 52 }),
+    text('activity', saved.activity_name, 12, '0 0 0', { x: 50, y: 59 }),
+    text('details', 'Periode/Tanggal: ' + saved.period_label, 11, '0 0 0', { x: 50, y: 64 }),
+    text('materials', 'Materi yang diikuti:', 11, '0 0 0', { x: 22, y: 69 }, 'F1', 'left'),
   ]
-  let y = 232
+  const materialsPoint = point('materials', { x: 22, y: 69 })
+  let y = materialsPoint.y - 18
   saved.materials.slice(0, 7).forEach((material, index) => {
-    commands.push('BT /F1 10 Tf 0 0 0 rg 90 ' + y + ' Td (' + pdfEscape((index + 1) + '. ' + material) + ') Tj ET')
+    commands.push('BT /F1 10 Tf 0 0 0 rg ' + Math.round(materialsPoint.x + 18) + ' ' + y + ' Td (' + pdfEscape((index + 1) + '. ' + material) + ') Tj ET')
     y -= 17
   })
   commands.push(
-    'BT /F1 10 Tf 0 0 0 rg 70 92 Td (' + pdfEscape('Program/Profesi: ' + row.profession + '    Institusi: ' + row.campus) + ') Tj ET',
-    'BT /F1 9 Tf 0.25 0.32 0.4 rg 70 70 Td (' + pdfEscape('Nomor: ' + number + '    Kode verifikasi: ' + verificationCode) + ') Tj ET',
-    'BT /F1 10 Tf 0 0 0 rg 575 105 Td (' + pdfEscape('Pontianak, ' + formatDate(saved.signed_date)) + ') Tj ET',
-    '0 0 0 RG 0.7 w 575 82 m 755 82 l S',
-    'BT /F1 10 Tf 0 0 0 rg 595 64 Td (Pejabat yang berwenang) Tj ET',
-    'BT /F1 9 Tf 0.35 0.4 0.48 rg 595 48 Td (UPT RSUD Sultan Syarif Mohamad Alkadrie) Tj ET',
+    text('program_info', 'Program/Profesi: ' + row.profession + '  |  Institusi: ' + row.campus, 9, '0.25 0.32 0.4', { x: 50, y: 84 }, 'F1', 'center', 0),
+    text('issue_date', 'Pontianak, ' + formatDate(saved.signed_date), 10, '0 0 0', { x: 77, y: 79 }),
+    ...signature('signature_left', 'Direktur', { x: 24, y: 86 }),
+    ...signature('signature_right', 'Pejabat yang berwenang', { x: 76, y: 86 }),
+    text('verification', 'Nomor: ' + number + '  |  Kode: ' + verificationCode, 8, '0.25 0.32 0.4', { x: 91, y: 91 }),
+    text('footer', 'AUREKA DOCUMENT INTELLIGENCE', 8, '0.08 0.22 0.36', { x: 50, y: 96 }),
   )
   const stream = commands.join('\n')
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R /F2 6 0 R >> >> /Contents 5 0 R >>',
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
     '<< /Length ' + stream.length + ' >>\nstream\n' + stream + '\nendstream',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Times-Bold >>',
   ]
   let pdf = '%PDF-1.4\n'
   const offsets: number[] = [0]
@@ -230,6 +259,7 @@ export default function StudentOrientationWorkspace({
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [showList, setShowList] = useState(false)
+  const [showTemplateEditor, setShowTemplateEditor] = useState(false)
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
 
@@ -486,6 +516,7 @@ export default function StudentOrientationWorkspace({
     setError('')
     setMessage('')
     try {
+      const layout = await loadCertificateLayout('student_orientation')
       const { data, error: reserveError } = await sys().rpc('reserve_student_orientation_certificate', {
         p_event_id: event.id,
         p_participant_id: row.saved.id,
@@ -505,7 +536,7 @@ export default function StudentOrientationWorkspace({
 
       let objectPath = str(reserved?.object_path)
       if (!objectPath) {
-        const pdf = createCertificatePdf(row, certificateNumber, verificationCode)
+        const pdf = createCertificatePdf(row, certificateNumber, verificationCode, layout)
         const digest = await sha256Hex(pdf)
         objectPath = userId + '/education/orientasi-mahasiswa/' + selectedYear + '/' + safeFileName(certificateNumber) + '.pdf'
         const { error: uploadError } = await aurekaSupabase.storage.from('aureka-exports')
@@ -562,6 +593,7 @@ export default function StudentOrientationWorkspace({
             <select aria-label="Tahun data orientasi" value={selectedYear} onChange={(event) => { setSelectedYear(Number(event.target.value)); setSelectedSourceId(null); setDraft(null) }}>
               {[2025, 2026, 2027, 2028, 2029].map((year) => <option key={year} value={year}>{year}</option>)}
             </select>
+            {canManage && <button className="soBtn" type="button" onClick={() => setShowTemplateEditor(true)}>Atur template sertifikat</button>}
             <button className="soBtn" type="button" onClick={() => void load()} disabled={loading}>Muat ulang</button>
             <button className="soBtn primary" type="button" onClick={() => setShowList((value) => !value)}>{showList ? 'Tutup Daftar' : 'Lihat Orientasi Mahasiswa'}</button>
           </div>
@@ -582,6 +614,8 @@ export default function StudentOrientationWorkspace({
 
       {error && <div className="soMessage soError" role="alert">{error}</div>}
       {message && <div className="soMessage" role="status">{message}</div>}
+
+      {showTemplateEditor && <CertificateTemplateEditor templateKey="student_orientation" role={role} onClose={() => setShowTemplateEditor(false)} />}
 
       {showList && (
         <section className="soPanel">

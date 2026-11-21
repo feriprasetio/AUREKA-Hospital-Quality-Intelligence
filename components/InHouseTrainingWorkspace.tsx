@@ -1,6 +1,8 @@
 'use client'
 import { useCallback,useEffect,useMemo,useState } from 'react'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import CertificateTemplateEditor from '@/components/CertificateTemplateEditor'
+import { loadCertificateLayout, pdfPoint, type CertificateLayout, type CertificateElementId } from '@/lib/aureka/certificate-template'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
 type Room={id:number;name:string}
@@ -15,29 +17,56 @@ const clean=(v:string)=>v.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').repla
 const esc=(v:string)=>clean(v).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)')
 const filename=(v:string)=>clean(v).replace(/[^A-Za-z0-9._-]+/g,'-')
 async function digest(blob:Blob){const hash=await crypto.subtle.digest('SHA-256',await blob.arrayBuffer());return Array.from(new Uint8Array(hash)).map(v=>v.toString(16).padStart(2,'0')).join('')}
-function makePdf(event:EventRow,p:Participant,num:string,code:string){
+function makePdf(event:EventRow,p:Participant,num:string,code:string,layout:CertificateLayout){
+ const point=(id:CertificateElementId,fallback:{x:number;y:number})=>pdfPoint(layout,id,fallback)
+ const text=(id:CertificateElementId,value:string,size:number,color:string,fallback:{x:number;y:number},font='F1',align:'left'|'center'='center',offsetY=0)=>{
+  const safe=esc(value),pos=point(id,fallback),width=clean(value).length*size*0.25
+  const x=align==='center'?pos.x-width:pos.x
+  return 'BT /'+font+' '+size+' Tf '+color+' rg '+x.toFixed(1)+' '+(pos.y+offsetY)+' Td ('+safe+') Tj ET'
+ }
+ const logo=(id:'logo_pemkot'|'logo_rsud',label:string,fallback:{x:number;y:number})=>{
+  const pos=point(id,fallback)
+  return [
+   '0.08 0.22 0.36 RG 1.4 w '+(pos.x-22)+' '+(pos.y-18)+' 44 36 re S',
+   text(id,label,7,'0.08 0.22 0.36',fallback)
+  ]
+ }
+ const signature=(id:'signature_left'|'signature_right',label:string,fallback:{x:number;y:number})=>{
+  const pos=point(id,fallback)
+  return [
+   '0.18 0.29 0.40 RG 0.7 w '+(pos.x-76)+' '+(pos.y+18)+' m '+(pos.x+76)+' '+(pos.y+18)+' l S',
+   text(id,label,10,'0 0 0',fallback)
+  ]
+ }
  const rows=[
-  '0.08 0.22 0.36 RG 3 w 24 24 794 547 re S',
-  'BT /F1 14 Tf 0 0 0 rg 70 500 Td ('+esc('UPT RSUD Sultan Syarif Mohamad Alkadrie Kota Pontianak')+') Tj ET',
-  'BT /F1 28 Tf 0.08 0.22 0.36 rg 305 435 Td (SERTIFIKAT) Tj ET',
-  'BT /F1 13 Tf 0.08 0.22 0.36 rg 315 405 Td (IN HOUSE TRAINING) Tj ET',
-  'BT /F1 12 Tf 0 0 0 rg 360 365 Td (Diberikan kepada) Tj ET',
-  'BT /F1 24 Tf 0.08 0.22 0.36 rg 120 325 Td ('+esc(p.full_name)+') Tj ET',
-  'BT /F1 12 Tf 0 0 0 rg 70 285 Td ('+esc('Atas partisipasi dalam kegiatan '+event.title)+') Tj ET',
-  'BT /F1 11 Tf 0 0 0 rg 70 260 Td ('+esc('Topik: '+(event.topic||'-'))+') Tj ET',
-  'BT /F1 11 Tf 0 0 0 rg 70 235 Td ('+esc('Penyelenggara: '+event.organizer+' | '+(event.venue||'-'))+') Tj ET',
-  'BT /F1 10 Tf 0 0 0 rg 70 80 Td ('+esc('Nomor: '+num+' | Kode verifikasi: '+code)+') Tj ET',
-  'BT /F1 10 Tf 0 0 0 rg 570 110 Td (Pontianak) Tj ET',
-  '0 0 0 RG 0.7 w 560 88 m 760 88 l S',
-  'BT /F1 10 Tf 0 0 0 rg 570 68 Td (Pejabat yang berwenang) Tj ET'
+  '0.08 0.22 0.36 RG 2.2 w 24 24 794 547 re S',
+  '0.39 0.68 0.82 RG 0.8 w 34 34 774 527 re S',
+  ...logo('logo_pemkot','PEMKOT',{x:10,y:13}),
+  ...logo('logo_rsud','RSUD',{x:90,y:13}),
+  text('institution','DINAS KESEHATAN KOTA PONTIANAK',12,'0.08 0.22 0.36',{x:50,y:12},'F1','center',8),
+  text('institution','UPT RSUD SULTAN SYARIF MOHAMAD ALKADRIE KOTA PONTIANAK',10,'0.08 0.22 0.36',{x:50,y:12},'F1','center',-9),
+  text('title','SERTIFIKAT',30,'0.08 0.22 0.36',{x:50,y:25},'F2'),
+  text('subtitle','IN HOUSE TRAINING',13,'0.08 0.22 0.36',{x:50,y:31}),
+  text('recipient_label','Diberikan kepada',12,'0 0 0',{x:50,y:38}),
+  text('recipient_name',p.full_name,24,'0.08 0.22 0.36',{x:50,y:45}),
+  text('role','Sebagai Peserta',12,'0 0 0',{x:50,y:52}),
+  text('activity','Atas partisipasi dalam kegiatan '+event.title,12,'0 0 0',{x:50,y:59}),
+  text('details','Topik: '+(event.topic||'-')+'  |  Penyelenggara: '+event.organizer,10,'0 0 0',{x:50,y:65}),
+  text('details',event.venue||'UPT RSUD Sultan Syarif Mohamad Alkadrie Kota Pontianak',9,'0 0 0',{x:50,y:65},'F1','center',-14),
+  text('issue_date','Pontianak, '+dateLabel(new Date().toISOString()).split(' pukul ')[0],10,'0 0 0',{x:77,y:79}),
+  ...signature('signature_left','Direktur',{x:24,y:86}),
+  ...signature('signature_right','Pejabat yang berwenang',{x:76,y:86}),
+  text('verification','Nomor: '+num+'  |  Kode verifikasi: '+code,8,'0.18 0.29 0.40',{x:91,y:91}),
+  text('footer','AUREKA DOCUMENT INTELLIGENCE',8,'0.08 0.22 0.36',{x:50,y:96})
  ]
  const stream=rows.join('\n')
  const objects=[
   '<< /Type /Catalog /Pages 2 0 R >>',
   '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-  '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+  '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R /F2 6 0 R >> >> /Contents 5 0 R >>',
   '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-  '<< /Length '+stream.length+' >>\nstream\n'+stream+'\nendstream'
+  '<< /Length '+stream.length+' >>\nstream\n'+stream+'\nendstream',
+  '<< /Type /Font /Subtype /Type1 /BaseFont /Times-Bold >>'
  ]
  let pdf='%PDF-1.4\n';const offsets=[0]
  objects.forEach((o,i)=>{offsets.push(pdf.length);pdf+=(i+1)+' 0 obj\n'+o+'\nendobj\n'})
@@ -74,6 +103,7 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
  const [selectedStaff,setSelectedStaff]=useState('')
  const [search,setSearch]=useState('')
  const [busyId,setBusyId]=useState('')
+ const [showTemplateEditor,setShowTemplateEditor]=useState(false)
 
  const load=useCallback(async()=>{
   setLoading(true);setError('')
@@ -147,6 +177,7 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
   const preview=window.open('about:blank','_blank');if(!preview){setError('Izinkan pop-up browser untuk menerbitkan PDF.');return}
   setBusyId(p.id);setError('')
   try{
+   const layout=await loadCertificateLayout('in_house_training')
    const {data,error:e}=await education().rpc('reserve_in_house_training_certificate',{p_event_id:active.id,p_participant_id:p.id})
    if(e)throw e
    const reservation=(Array.isArray(data)?data[0]:data) as any
@@ -154,7 +185,7 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
    if(!certId||!number)throw new Error('Nomor sertifikat tidak dikembalikan server.')
    let path=String(reservation?.object_path||'')
    if(!path){
-    const pdf=makePdf(active,p,number,code),hash=await digest(pdf)
+    const pdf=makePdf(active,p,number,code,layout),hash=await digest(pdf)
     path=userId+'/education/in-house-training/'+filename(number)+'.pdf'
     const {error:uploadError}=await aurekaSupabase.storage.from('aureka-exports').upload(path,pdf,{contentType:'application/pdf',upsert:false})
     if(uploadError){
@@ -183,6 +214,8 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
 
  return <section className="ihtWorkspace">
   <WorkspaceModuleHeader eyebrow="Pendidikan dan Pelatihan" title="In House Training" description="Register pelatihan, peserta tenaga kerja, presensi, dan penerbitan sertifikat PDF."/>
+  {canManage&&<div className="ihtActions"><button type="button" onClick={()=>setShowTemplateEditor(true)}>Atur template sertifikat</button></div>}
+  {showTemplateEditor&&<CertificateTemplateEditor templateKey="in_house_training" role={role} onClose={()=>setShowTemplateEditor(false)}/>} 
   {error&&<div className="ihtNotice error" role="alert">{error}</div>}{notice&&<div className="ihtNotice" role="status">{notice}</div>}
   {view==='overview'&&<>
    <div className="ihtMetrics"><div><span>Total Kegiatan</span><b>{events.length}</b></div><div><span>Kegiatan Selesai</span><b>{countDone}</b></div><div><span>Kegiatan Terjadwal</span><b>{countUpcoming}</b></div></div>
