@@ -6,6 +6,7 @@
  */
 html[data-skin="arktik"] {
   --aureka-canvas-surface: transparent;
+  --aureka-header-surface: rgba(234, 243, 250, .96);
   --aureka-canvas-divider: rgba(38, 75, 106, .18);
   --aureka-canvas-divider-strong: rgba(38, 75, 106, .27);
   --aureka-canvas-muted: #496178;
@@ -20,6 +21,7 @@ html[data-skin="arktik"] {
   --aureka-canvas-header-min: 52px;
 }
 html[data-skin="arktik"][data-mode="gelap"] {
+  --aureka-header-surface: rgba(12, 20, 32, .97);
   --aureka-canvas-divider: rgba(175, 207, 230, .22);
   --aureka-canvas-divider-strong: rgba(175, 207, 230, .36);
   --aureka-canvas-muted: #bed1e2;
@@ -252,11 +254,13 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   border: 0 !important;
   border-bottom: 1px solid var(--aureka-canvas-divider) !important;
   border-radius: 0 !important;
-  background: transparent !important;
+  /* Sticky header stays readable while clinical worksheets scroll beneath it. */
+  background: var(--aureka-header-surface) !important;
   background-image: none !important;
   box-shadow: none !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
+  overflow: visible !important;
   align-items: center !important;
   box-sizing: border-box !important;
 }
@@ -285,6 +289,23 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar :is(.workspaceGlobalSearch,.workspaceContext,.workspaceUnitSelect) {
   min-width: 0 !important;
   max-width: none !important;
+}
+/* A flat search field replaces the nested white capsule and leaves room for
+ * its results popover. Applied only to the search shell, not the results. */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch {
+  position: relative !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 44px !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--aureka-canvas-divider-strong) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
 }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceUnitSelect select {
   width: 100% !important;
