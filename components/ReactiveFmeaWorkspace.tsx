@@ -80,7 +80,7 @@ export default function ReactiveFmeaWorkspace({role,rooms=[],initialRoomId=null,
    status:'Open',analysis_type:'reactive',source_incident_id:selected.id,
    incident_code_snapshot:selected.incident_code,created_by:auth.user.id,updated_by:auth.user.id
   }
-  const {error:saveError}=await risk().from('fmea_analyses').insert(payload)
+  const {error:saveError}=await aurekaSupabase.rpc('aureka_reactive_fmea_save',{p:payload})
   setBusy(false)
   if(saveError){setError('FMEA Reaktif gagal disimpan: '+toUserFacingError(saveError,{fallback:'Periksa data insiden dan kewenangan.'}));return}
   setShowForm(false);setNotice('Analisis FMEA Reaktif tersimpan dan tertaut ke insiden '+selected.incident_code+'.')
@@ -89,9 +89,9 @@ export default function ReactiveFmeaWorkspace({role,rooms=[],initialRoomId=null,
  const updateStatus=async(row:FmeaRow,status:string)=>{
   if(!canManage||busy)return
   setBusy(true);setError('');setNotice('')
-  const {error:e}=await risk().from('fmea_analyses').update({status}).eq('id',row.id).eq('analysis_type','reactive')
+  const {error:e}=await aurekaSupabase.rpc('aureka_reactive_fmea_update_status',{p_fmea_id:row.id,p_status:status})
   setBusy(false)
-  if(e){setError('Status FMEA tidak dapat diperbarui: '+e.message);return}
+  if(e){setError('Status FMEA tidak dapat diperbarui: '+toUserFacingError(e,{fallback:'Periksa kewenangan status FMEA Reaktif.'}));return}
   setNotice('Status '+row.fmea_code+' berhasil diperbarui.');await load()
  }
  if(!canManage)return <section className="rfmea"><WorkspaceModuleHeader title="FMEA Reaktif" description="Akses terbatas bagi pengelola keselamatan pasien."/><div className="rfmeaNotice error">Role akun ini belum memiliki kewenangan.</div></section>
