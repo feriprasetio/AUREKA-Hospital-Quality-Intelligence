@@ -28,7 +28,7 @@ test('mobile tabs are horizontally scrollable, keyboard-visible, dark-mode aware
   assert.doesNotMatch(shell, /data-skin="solid"/)
 })
 
-test('phone contextual tabs remain scoped to 720px while tablet drawer spans 1180px', () => {
+test('phone contextual tabs and drawer use the same 720px threshold; tablets keep sidebar', () => {
   assert.match(navigation, /matchMedia\('\(max-width: 720px\)'\)/)
-  assert.match(read('components/layout/useAccessibleSidebar.ts'), /matchMedia\(TOUCH_DRAWER_MEDIA_QUERY\)/)
+  assert.match(read('components/layout/useAccessibleSidebar.ts'), /matchMedia\(PHONE_DRAWER_MEDIA_QUERY\)/)
 })
