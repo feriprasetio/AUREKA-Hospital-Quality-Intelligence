@@ -203,7 +203,7 @@ function createCertificatePdf(row: OrientationRow, number: string, verificationC
     y -= 17
   })
   commands.push(
-    text('details', 'Program/Profesi: ' + row.profession + '  |  Institusi: ' + row.campus, 9, '0.25 0.32 0.4', { x: 50, y: 84 }, 'F1', 'center', 0),
+    text('program_info', 'Program/Profesi: ' + row.profession + '  |  Institusi: ' + row.campus, 9, '0.25 0.32 0.4', { x: 50, y: 84 }, 'F1', 'center', 0),
     text('issue_date', 'Pontianak, ' + formatDate(saved.signed_date), 10, '0 0 0', { x: 77, y: 79 }),
     ...signature('signature_left', 'Direktur', { x: 24, y: 86 }),
     ...signature('signature_right', 'Pejabat yang berwenang', { x: 76, y: 86 }),
