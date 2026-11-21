@@ -42,6 +42,7 @@ export type EpisodeWorkbook = {
   workbook: Workbook
   logbook: EpisodeSheet
   profileSheet: string | null
+  hasLogbook: boolean
   entries: WorkbookProfile[]
 }
 
@@ -393,12 +394,14 @@ function profileEntries(sheet: Worksheet, logbook: EpisodeSheet, groups: Map<str
 export function inspectEpisodeWorkbook(workbook: Workbook, roomDateField?: string): EpisodeWorkbook {
   const sheet = workbook.worksheets.find(item => normalize(item.name) === 'logbook')
     ?? workbook.worksheets.find(item => /^logbook\b/.test(normalize(item.name)))
-  if (!sheet) throw new Error('Sheet Logbook tidak ditemukan.')
-  const logbook = detectLogbook(sheet, roomDateField)
-  if (!logbook.columns.length) throw new Error('Header sheet Logbook tidak ditemukan.')
   const profile = workbook.worksheets.find(item => ['profil', 'profil indikator', 'profil indikator mutu', 'master indikator'].includes(normalize(item.name)))
+  if (!sheet && !profile) throw new Error('Sheet Logbook atau Profil Indikator tidak ditemukan.')
+  // A profile-only workbook must work even without any patient-episode sheet.
+  // The empty logbook placeholder is never parsed into patient data in profilesOnly mode.
+  const logbook = sheet ? detectLogbook(sheet, roomDateField) : { sheet: profile!, header: 0, columns: [] }
+  if (sheet && !logbook.columns.length) throw new Error('Header sheet Logbook tidak ditemukan.')
   return {
-    workbook, logbook, profileSheet: profile?.name ?? null,
+    workbook, logbook, hasLogbook: Boolean(sheet), profileSheet: profile?.name ?? null,
     entries: profile ? profileEntries(profile, logbook, readOptionsSheet(workbook)) : [],
   }
 }
@@ -557,28 +560,46 @@ function profileContent(profile: EpisodeProfile) {
 }
 
 export async function prepareEpisodeImport({
-  parsed, fields, mappings, activeProfiles, includeProfiles, roomId, roomName, year, layoutFields,
+  parsed, fields, mappings, activeProfiles, includeProfiles, roomId, roomName, year, layoutFields, profilesOnly = false,
 }: {
   parsed: EpisodeWorkbook; fields: EpisodeFields; mappings: ProfileMapping[]; activeProfiles: EpisodeProfile[];
   includeProfiles: boolean; roomId: number; roomName: string; year: number; layoutFields: string[];
+  profilesOnly?: boolean;
 }) {
   const issues: WorkbookIssue[] = []
   const rows: EpisodeStageRow[] = []
   const selected = mappings.filter(mapping => mapping.column)
-  if (!fields.date || !(fields.mrn || fields.episode)) issues.push({ location: 'Logbook', message: 'Pilih kolom tanggal dan No. RM atau ID episode.' })
-  if (!selected.length) issues.push({ location: 'Logbook', message: 'Petakan paling sedikit satu indikator.' })
+  if (profilesOnly) {
+    if (!includeProfiles || !mappings.length) issues.push({ location: 'Profil', message: 'Pilih setidaknya satu profil valid dari workbook.' })
+  } else {
+    if (!parsed.hasLogbook) issues.push({ location: 'Logbook', message: 'Sheet Logbook diperlukan untuk mengimpor episode pasien.' })
+    if (!fields.date || !(fields.mrn || fields.episode)) issues.push({ location: 'Logbook', message: 'Pilih kolom tanggal dan No. RM atau ID episode.' })
+    if (!selected.length) issues.push({ location: 'Logbook', message: 'Petakan paling sedikit satu indikator.' })
+  }
   const targets = new Set<string>()
   const sourceColumns = new Set(Object.values(fields).filter(Boolean))
   const configured = mappings.map(mapping => ({ mapping, profile: readyProfile(parsed, mapping, roomId, roomName, includeProfiles) }))
   for (const { mapping, profile } of configured) {
-    if (!mapping.column && !includeProfiles) continue
+    if (!mapping.column && !includeProfiles && !profilesOnly) continue
     if (!profile.code || !profile.title) issues.push({ location: mapping.title || 'Profil', message: 'Kode dan judul indikator wajib tersedia.' })
     if (targets.has(normalizeCode(profile.code))) issues.push({ location: profile.code, message: 'Kode indikator muncul lebih dari satu kali.' })
     targets.add(normalizeCode(profile.code))
-    if (mapping.column && sourceColumns.has(mapping.column)) issues.push({ location: profile.code || profile.title, message: 'Kolom sumber sudah dipakai. Pilih kolom yang sesuai.' })
-    if (mapping.column) sourceColumns.add(mapping.column)
+    if (!profilesOnly && mapping.column && sourceColumns.has(mapping.column)) issues.push({ location: profile.code || profile.title, message: 'Kolom sumber sudah dipakai. Pilih kolom yang sesuai.' })
+    if (!profilesOnly && mapping.column) sourceColumns.add(mapping.column)
     if (includeProfiles && !mapping.direction && (!mapping.master || !profile.options_json?.every(option => typeof option.numerator === 'boolean'))) {
       issues.push({ location: profile.code || profile.title, message: 'Tentukan arah untuk menghitung capaian dari kode respons.' })
+    }
+    if (profilesOnly) {
+      // Never publish a newly inferred indicator using placeholder Kode 1/2/3 options.
+      // Real categorical labels and their codes must come from the source workbook or existing master.
+      const sourceOptions = mapping.entry?.options ?? []
+      const existingOptions = mapping.master?.options_json ?? []
+      const described = sourceOptions.length ? sourceOptions : existingOptions
+      const codes = new Set(described.filter(option => [1, 2, 3].includes(Number(option.code)) && clean(option.label))
+        .map(option => Number(option.code)))
+      if (codes.size < 2 || described.some(option => /^Kode [1-3]$/.test(clean(option.label)))) {
+        issues.push({ location: profile.code || profile.title, message: 'Profil belum mempunyai minimal dua pilihan jawaban berkode 1/2/3 dari sumber. Lengkapi sheet Profil/Opsi; jangan gunakan label rekaan.' })
+      }
     }
     if (includeProfiles && activeProfiles.some(active => normalizeCode(active.code) === normalizeCode(profile.code) && (!mapping.master?.id || active.id !== mapping.master.id))) {
       issues.push({ location: profile.code, message: 'Kode ini sudah dipakai profil lain di unit.' })
@@ -595,6 +616,10 @@ export async function prepareEpisodeImport({
   const profiles = profileChanged ? [...configured.map(item => item.profile), ...retained] : []
   if (profiles.length > 500) issues.push({ location: 'Profil', message: 'Jumlah profil yang dapat disimpan adalah maksimal 500.' })
   if (profileChanged && activeProfiles.some(profile => profile.status === 'draft')) issues.push({ location: 'Profil', message: 'Selesaikan profil draf di Pengaturan sebelum menerapkan profil workbook.' })
+  if (profilesOnly) {
+    if (!profileChanged) issues.push({ location: 'Profil', message: 'Semua profil dari workbook sudah sesuai master. Tidak ada perubahan untuk disimpan.' })
+    return { issues, rows, profiles, codes: [0, 0, 0] }
+  }
   if (issues.length) return { issues, rows, profiles, codes: [0, 0, 0] }
   const { sheet, header, columns } = parsed.logbook
   const layoutColumns = layoutFields.flatMap(field => {
