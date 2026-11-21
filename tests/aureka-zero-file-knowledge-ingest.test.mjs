@@ -8,8 +8,8 @@ test('NARA knowledge ingestion indexes reviewed structured text, never raw sourc
   assert.match(source, /String\(version\.extracted_text \|\| ""\)\.trim\(\)/)
   assert.match(source, /makeChunks\(extractedText\)/)
   assert.match(source, /MAX_EXTRACTED_CHARS/)
-  for (const pattern of [/\.storage\.from\(/, /file\.arrayBuffer\(/, /inline_data/, /\bbase64\(/, /\bextractPdf\(/, /\bextractDocx\(/]) {
-    assert.doesNotMatch(source, pattern, 'raw binary ingestion must remain disabled')
+  for (const forbidden of ['.storage.from(', 'file.arrayBuffer(', 'inline_data', 'base64(', 'extractPdf(', 'extractDocx(']) {
+    assert.ok(!source.includes(forbidden), 'raw binary ingestion must remain disabled: ' + forbidden)
   }
 })
 
