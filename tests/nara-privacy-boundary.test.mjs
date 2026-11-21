@@ -29,7 +29,7 @@ test('the gateway queries only selected domains and partitions snapshot cache by
   assert.match(gateway, /needs\("patient_safety"\) \? fetchAll<Incident>/);
   assert.match(gateway, /needs\("quality"\) \? qualityCounts/);
   assert.match(gateway, /needs\("governance"\)[\s\S]*?aureka_gov_infographics_summary_secure/);
-  assert.match(gateway, /snapshotCacheKey = who\.user\.id \+ "::" \+ snapshotDomains\.join\(","\)/);
+  assert.match(gateway, /snapshotCacheKey = authorizationScope \+ "::" \+ snapshotDomains\.join\(","\)/);
   assert.match(gateway, /loaded-on-demand-by-skill/);
 });
 
@@ -161,3 +161,11 @@ test('legacy assistant is absent from Beranda and NARA is the only embedded AI w
   assert.match(nara, /TanyaAureka key=\{activeId\}[^>]*embedded/)
   assert.doesNotMatch(nara, /Gateway memilih provider|No\. RM hanya digunakan internal/)
 })
+
+test('NARA rechecks active role, unit and password-rotation state before cached aggregate reuse', () => {
+  assert.match(gateway, /select\("is_active,deactivated_at,must_change_password,role_id,primary_room_id,updated_at"\)/);
+  assert.match(gateway, /profileError \|\| !profile\?\.is_active \|\| profile\.deactivated_at/);
+  assert.match(gateway, /if \(profile\.must_change_password\)/);
+  assert.match(gateway, /const authorizationScope = \[who\.user\.id, profile\.role_id \|\| "none", profile\.primary_room_id \?\? "none", profile\.updated_at \|\| "unknown"\]/);
+  assert.ok(gateway.indexOf('if (profile.must_change_password)') < gateway.indexOf('const snapshotCacheKey = authorizationScope'));
+});
