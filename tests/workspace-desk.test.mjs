@@ -213,8 +213,9 @@ test('FPPE save and submit controls compile and call the existing validated brid
 })
 
 test('drawer breakpoint agrees with its controller and is dismissible from inside', () => {
-  assert.match(read('components/layout/useAccessibleSidebar.ts'), /matchMedia\(TOUCH_DRAWER_MEDIA_QUERY\)\.matches/)
-  assert.match(home, /window\.matchMedia\(TOUCH_DRAWER_MEDIA_QUERY\)/)
+  assert.match(read('components/layout/useAccessibleSidebar.ts'), /matchMedia\(PHONE_DRAWER_MEDIA_QUERY\)\.matches/)
+  assert.match(home, /mobileSidebar\.isMobile&&<button type="button" ref=\{mobileSidebar\.triggerRef\}/)
+  assert.doesNotMatch(home, /setSidebarCollapsed|sidebarIsCollapsed/ )
   assert.match(home, /className="workspaceDrawerClose"[^>]*onClick=\{mobileSidebar\.close\}/)
   assert.match(home, /workspaceGlobalSearchInput/)
   assert.doesNotMatch(home, /data-sidebar-autofocus|sidebarSearch|Cari menu/)

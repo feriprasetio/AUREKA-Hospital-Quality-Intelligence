@@ -441,145 +441,66 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
 }
 
 
-/* Native-device navigation: a bottom tab dock on phones, a compact side rail
- * on tablets. Desktop keeps the full-width sidebar. This is the sole owner of
- * the dock and tablet drawer geometry (no extra stylesheet override). */
+/* Device navigation contract: phone only uses a modal drawer and bottom dock.
+ * At every viewport >=721px the ORIGINAL full sidebar remains pinned and
+ * visible regardless of pointer type (touch laptops, tablets, desktop-site).
+ * Do not put native tablet drawers or rails back into this section.
+ */
 .workspaceNativeNavigation { display: none; }
-
-@media (min-width: 721px) and (max-width: 1180px), (pointer: coarse) and (min-width: 1181px) and (max-width: 1600px) {
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme],
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed {
-    display: block !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    width: 100% !important;
+@media (min-width: 721px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+    display: grid !important;
     min-width: 0 !important;
-    max-width: 100% !important;
-    min-height: 100dvh !important;
-    padding: 0 12px 16px 94px !important;
-    box-sizing: border-box !important;
   }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar {
-    position: fixed !important;
-    inset: 0 auto 0 0 !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: 1301 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    /* Fixed upper bound: prevent Aurora desktop layout from stretching the tablet drawer. */
-    width: min(360px, calc(100vw - 48px)) !important;
-    min-width: 0 !important;
-    max-width: min(360px, calc(100vw - 48px)) !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    max-height: 100dvh !important;
-    margin: 0 !important;
-    padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) !important;
-    border-radius: 0 20px 20px 0 !important;
-    overflow: hidden !important;
-    overscroll-behavior: contain !important;
-    box-sizing: border-box !important;
-    /* Drawer is a real navigation surface, not a fullscreen frosted backdrop. */
-    background: rgba(239, 247, 253, .98) !important;
-    background-image: none !important;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-    box-shadow: 18px 0 44px rgba(12, 32, 52, .2) !important;
-    transform: translate3d(-105%, 0, 0) !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    transition: transform .22s cubic-bezier(.2,.75,.25,1), visibility 0s linear .22s !important;
-  }
-
-  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar,
-  html[data-skin="arktik"][data-mode="gelap"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar {
-    background: rgba(20, 32, 47, .985) !important;
-    background-image: none !important;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-    border-color: rgba(173, 199, 223, .28) !important;
-  }
-
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar.mobileOpen,
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar.mobileOpen {
-    transform: translate3d(0, 0, 0) !important;
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+    position: sticky !important;
+    top: 12px !important;
+    left: auto !important;
+    transform: none !important;
     visibility: visible !important;
     pointer-events: auto !important;
-    transition: transform .22s cubic-bezier(.2,.75,.25,1), visibility 0s !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: calc(100dvh - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    overflow: hidden !important;
   }
-
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .workspaceDrawerClose,
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton,
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceScrim {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 1300 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(8,20,34,.48) !important;
-    border: 0 !important;
-  }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceScrim[data-open="false"] {
     display: none !important;
     visibility: hidden !important;
     pointer-events: none !important;
   }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceScrim[data-open="true"] {
-    display: block !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-  }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar .workspaceDrawerClose {
-    display: grid !important;
-    place-items: center !important;
-    flex: 0 0 44px !important;
-    width: 44px !important;
-    height: 44px !important;
-  }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar :is(.sideBrand > div, .sidebarDomainTrigger > button > span, .sidebarFooter .logoutLabel) {
-    display: revert !important;
-  }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainTrigger > button {
-    display: grid !important;
-    grid-template-columns: 20px minmax(0,1fr) 16px !important;
-    justify-items: stretch !important;
-    min-height: 44px !important;
-    padding: 7px 9px !important;
-  }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme].sidebarIsCollapsed > aside.sidebar .sidebarDomainItems:not([hidden]) {
-    display: grid !important;
-  }
-  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceSidebarMenuButton {
-    display: grid !important;
-    place-items: center !important;
+  html[data-skin="arktik"] body > .workspaceNativeNavigation {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
   html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > .workspaceContent {
+    min-width: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    min-width: 0 !important;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
   }
-  html[data-skin="arktik"] body > .workspaceNativeNavigation {
-    position: fixed;
-    z-index: 90;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    gap: 5px;
-    top: 10px;
-    bottom: 10px;
-    left: 8px;
-    width: 78px;
-    min-width: 0;
-    padding: max(12px, env(safe-area-inset-top, 0px)) 6px max(12px, env(safe-area-inset-bottom, 0px));
-    border: 1px solid var(--aureka-color-border-strong);
-    border-radius: 20px;
-    background: var(--aureka-color-surface-raised);
-    box-shadow: 0 8px 32px rgba(8,20,36,.12);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    box-sizing: border-box;
+}
+@media (min-width: 721px) and (max-width: 1180px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+    grid-template-columns: 238px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 12px !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+    width: 238px !important;
+    max-width: 238px !important;
+  }
+}
+@media (min-width: 721px) and (max-width: 860px) {
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+  }
+  html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] > aside.sidebar {
+    width: 210px !important;
+    max-width: 210px !important;
   }
 }
 
@@ -616,7 +537,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     pointer-events: none;
   }
 }
-@media (max-width: 1180px), (pointer: coarse) and (min-width: 1181px) and (max-width: 1600px) {
+@media (max-width: 720px) {
   html[data-skin="arktik"] body > .workspaceNativeNavigation .workspaceNativeNavItem {
     position: relative;
     display: flex;
