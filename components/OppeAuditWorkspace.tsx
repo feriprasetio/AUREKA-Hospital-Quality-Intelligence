@@ -4,6 +4,7 @@ import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { createPortal } from 'react-dom'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
@@ -1381,7 +1382,7 @@ export default function OppeAuditWorkspace({
               <div className="oppeRuleActions"><button type="button" className="oppeBtn" onClick={() => startRuleEdit(profile, null)}>＋ Tambah pemetaan</button></div>
             </article>
           })}{!filteredProfiles.length && <div className="oppeEmpty">Tidak ada profil pada filter ini.</div>}</div>
-          {ruleProfile && ruleDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) { setRuleProfile(null); setRuleDraft(null) } }}><section ref={ruleDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-rule-dialog-title" tabIndex={-1}>
+          {ruleProfile && ruleDraft && typeof document !== 'undefined' && createPortal(<div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) { setRuleProfile(null); setRuleDraft(null) } }}><section ref={ruleDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-rule-dialog-title" tabIndex={-1}>
             <header className="oppeModalHeader"><div><div className="oppeEyebrow">ATURAN ATRIBUSI &amp; SKOR</div><h4 id="oppe-rule-dialog-title">{ruleProfile.code} · {ruleProfile.title}</h4><p>{ruleDraft.ruleId ? 'Edit pemetaan profesi yang ada' : 'Tambah pemetaan profesi baru'} · {ruleProfile.unit_name} · target master: {ruleProfile.target_text || 'Belum ditentukan'}</p></div><button type="button" className="oppeClose" data-dialog-autofocus aria-label="Tutup pengaturan indikator OPPE" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>×</button></header>
             <div className="oppeModalBody">
               <label className="oppeCheck"><input type="checkbox" checked={ruleDraft.eligible} onChange={(e) => setRuleDraft((current) => current ? { ...current, eligible: e.target.checked } : current)} /><span><strong>Aktifkan untuk kalkulasi OPPE individual</strong><small>Centang hanya setelah memastikan bahwa indikator memang mengukur kinerja individu dan field tanggung jawab benar.</small></span></label>
@@ -1396,8 +1397,8 @@ export default function OppeAuditWorkspace({
               <div className="oppeNotice oppeNoticeInfo">Satu indikator dapat memiliki beberapa pemetaan profesi; untuk satu staf, aturan profesi yang persis akan mengalahkan aturan kelompok umum agar indikator tidak terhitung ganda. Skor otomatis hanya akan memakai catatan dengan status Validated, pada unit/tahun/triwulan terpilih dan nama yang cocok persis dengan field penanggung jawab. Data draf, data lokal, dan catatan tanpa atribusi tidak masuk skor.</div>
             </div>
             <footer className="oppeModalFooter"><button type="button" className="oppeBtn" onClick={() => { setRuleProfile(null); setRuleDraft(null) }}>Batal</button><LiquidGlassButton disabled={busy} onClick={() => void saveRule()}>{busy ? 'Menyimpan…' : 'Simpan pemetaan'}</LiquidGlassButton></footer>
-          </section></div>}
-          {gapDraft && <div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setGapDraft(null) }}><section ref={gapDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-gap-dialog-title" tabIndex={-1}>
+          </section></div>,document.body)}
+          {gapDraft && typeof document !== 'undefined' && createPortal(<div className="oppeModalBackdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setGapDraft(null) }}><section ref={gapDialogRef} className="oppeModal" role="dialog" aria-modal="true" aria-labelledby="oppe-gap-dialog-title" tabIndex={-1}>
             <header className="oppeModalHeader"><div><div className="oppeEyebrow">Master indikator · Draf kesenjangan</div><h4 id="oppe-gap-dialog-title">Usulkan indikator profesional baru</h4><p>Draf tidak masuk kalkulasi sampai ditelaah, diterbitkan dan dipetakan.</p></div><button type="button" className="oppeClose" data-dialog-autofocus aria-label="Tutup draf indikator OPPE" onClick={() => setGapDraft(null)}>×</button></header>
             <div className="oppeModalBody"><div className="oppeFormGrid">
               <label className="oppeField"><span>Unit pemilik</span><select value={gapDraft.roomId} disabled={lockRoomScope} onChange={(e) => { const value = Number(e.target.value); setGapDraft((current) => current ? { ...current, roomId: value, measurementGrain: suggestedMeasurementGrain(profiles, value), responsibilityField: staffFieldOptions(value)[0] || '' } : current) }}>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
@@ -1414,7 +1415,7 @@ export default function OppeAuditWorkspace({
               <label className="oppeField oppeWide"><span>Catatan kebutuhan / sumber</span><textarea value={gapDraft.notes} onChange={(e) => setGapDraft((current) => current ? { ...current, notes: e.target.value } : current)} placeholder="Dasar klinis, SOP/pedoman, ruang lingkup profesi dan alasan gap." /></label>
             </div><div className="oppeNotice oppeNoticeInfo">Draf disimpan dengan status nonaktif. Publikasi harus ditinjau di Metadata. Pastikan field penanggung jawab memang ada di layout logbook unit agar setiap catatan dapat diatribusikan.</div></div>
             <footer className="oppeModalFooter"><button type="button" className="oppeBtn" onClick={() => setGapDraft(null)}>Batal</button><LiquidGlassButton disabled={busy} onClick={() => void createGapProfile()}>{busy ? 'Menyimpan…' : 'Simpan draf ke master'}</LiquidGlassButton></footer>
-          </section></div>}
+          </section></div>,document.body)}
         </section>
       )}
 
@@ -1566,7 +1567,7 @@ const CSS = `
 .oppeRuleTitle{display:grid;gap:5px;min-width:0}.oppeRuleTitle strong{font-size:12.5px;line-height:1.55;overflow-wrap:anywhere}.oppeRuleTitle>span{font-size:12px;color:var(--muted);line-height:1.5}
 .oppeRuleDescription{color:#536a5c!important}.oppeRuleMappings{display:grid;gap:7px;margin-top:7px}.oppeRuleMapping{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid rgba(25,60,45,.1);border-radius:11px;padding:9px;background:rgba(255,255,255,.36)}.oppeRuleMapping>div:first-child{display:grid;gap:4px;min-width:0}.oppeRuleMapping b{font-size:12.5px}.oppeRuleMapping span{font-size:12px;line-height:1.45;color:var(--muted)}.oppeRuleMappingActions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .oppeRuleActions{display:flex;align-items:flex-end;gap:7px;flex-direction:column;flex-shrink:0}
-.oppeModalBackdrop{position:fixed;inset:0;z-index:120;background:rgba(11,22,17,.32);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:16px}
+.oppeModalBackdrop{position:fixed;inset:0;z-index:var(--aureka-z-dialog,2147483500);background:rgba(11,22,17,.32);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:16px}
 .oppeModal{width:min(820px,96vw);max-height:92vh;display:flex;flex-direction:column;background:rgba(249,252,250,.99);border:1px solid rgba(255,255,255,.78);box-shadow:0 25px 80px rgba(0,0,0,.23);border-radius:22px;overflow:hidden}
 .oppeModalHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding:18px 20px;border-bottom:1px solid rgba(25,60,45,.1)}
 .oppeModalHeader h4{margin:5px 0;font-size:17px}.oppeModalHeader p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5}
