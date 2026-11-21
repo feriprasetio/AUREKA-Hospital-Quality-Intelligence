@@ -445,13 +445,18 @@ export default function HomeClient(){
   if(item.moduleId==='home')return active==='home'
   if(item.moduleId==='nara')return active==='nara'
   if(item.moduleId==='patients')return child==='overview'?patientsRegistryTab==='overview':child==='directory'?patientsRegistryTab==='directory':child==='analysis'?patientsRegistryTab==='analysis':false
-  if(item.moduleId==='clinical')return child==='audit-pathway'?clinicalPathwayOpen:(child==='audit-clinical'||child==='audit-death')?qualityOpen&&clinicalAuditType===(child==='audit-death'?'death':'clinical'):false
-  if(item.moduleId==='quality'){
+  if(item.moduleId==='clinical'){
+   if(child==='realcost')return active==='clinical'&&realcostAuditOpen
+   if(child==='audit-pathway')return active==='clinical'&&(clinicalPathwayOpen||qualityResultsView==='pathway')
+   if(child==='audit-clinical'||child==='audit-death')return active==='clinical'&&!realcostAuditOpen&&!clinicalPathwayOpen&&(qualityOpen||qualityResultsView==='clinical-death')&&clinicalAuditType===(child==='audit-death'?'death':'clinical')
+   return false
+  }if(item.moduleId==='quality'){
    if(child==='profile-indicators')return qualityProfileOpen
    if(child==='spm')return spmOpen
    if(child==='sop')return spoOpen
    if(child==='quality-monitoring')return qualityMonitorOpen
-   if(child==='quality-overview')return !spmOpen&&!spoOpen&&!qualityOpen&&!qualityProfileOpen&&!qualityMonitorOpen&&!qualityReconciliationOpen&&!qualityResultsView
+   // Keep the Indikator Mutu domain selected across its operational workspaces.
+   if(child==='quality-overview')return active==='quality'&&!spmOpen&&!spoOpen
    return false
   }
   if(item.moduleId==='safety')return child==='overview'?safetyTab==='overview':safetyTab===child
@@ -710,15 +715,24 @@ export default function HomeClient(){
  const activeNestedNavGroup=activeNavGroups.find(group=>group.children?.some(child=>child.id===activeNavSelectedId))
  const activeRailTitle=activeNavModuleId==='quality'&&spmOpen?'Standar Pelayanan Minimal (SPM)':activeNavModuleId==='staff'&&staffTab==='student-orientation'?'Orientasi Mahasiswa':activeNavModuleId==='staff'&&staffTab==='training'?'In House Training':activeNavModuleLabel
  const displayedRailTitle=activeNavModuleId==='quality'&&spoOpen?'Standar Prosedur Operasional':activeRailTitle
- // Grup modul tetap menjadi navigasi utama; sub-tab berada pada rail horizontal yang sama.
- const activeRailItems=activeNavGroups.map(group=>({id:group.id,label:group.label}))
- const activeNavPrimaryId=activeNestedNavGroup?.id||(activeNavModuleId==='safety'&&safetyTab==='overview'?activeNavGroups[0]?.id:activeNavSelectedId)
- const activeNavSecondaryId=activeNestedNavGroup?activeNavSelectedId:(activeNavModuleId==='safety'&&safetyTab==='overview'?'incidents':'')
- const activeRailSubItems=activeNavModuleId==='patients'
-  ? [{id:'overview',label:'Visual Intelligence',hint:'Ikhtisar Direktori Pasien dan keterhubungan data'},{id:'directory',label:'Daftar Pasien',hint:'Daftar pasien unik yang terindeks dari logbook'},{id:'analysis',label:'Pola Perawatan',hint:'ICD-10, length of stay, readmisi dan pola pelayanan'}]
-  : (activeNestedNavGroup?.children||[]).map(item=>({...item,hint:item.hint||NAV_HINTS[item.label]}))
- const activeRailItemsHinted=activeRailItems.map(item=>({...item,hint:NAV_HINTS[item.label]}))
- const activePageHint=NAV_HINTS[(activeRailSubItems.find(item=>item.id===activeNavSecondaryId)||activeNavGroups.find(group=>group.id===activeNavPrimaryId))?.label||'']
+ // Patient Registry and Clinical Performance use explicit workspace tabs as
+ // primary navigation items. Other workspaces use the shared grouped registry.
+ const patientRailItems=[
+  {id:'overview',label:'Visual Intelligence',hint:'Ikhtisar direktori pasien dan keterhubungan data'},
+  {id:'directory',label:'Daftar Pasien',hint:'Daftar pasien unik yang terindeks dari logbook'},
+  {id:'analysis',label:'Pola Perawatan',hint:'ICD-10, length of stay, readmisi dan pola pelayanan'},
+ ]
+ const clinicalRailItems=[
+  {id:'realcost',label:'Audit Realcost',hint:'Audit biaya pelayanan dan kesesuaian realisasi'},
+  {id:'audit-pathway',label:'Audit Clinical Pathway',hint:'Audit kepatuhan clinical pathway per episode'},
+  {id:'audit-clinical',label:'Audit Klinis dan Kematian',hint:'Telaah klinis dan kematian berbasis episode'},
+ ]
+ const activeRailItems=activeNavModuleId==='patients'?patientRailItems:activeNavModuleId==='clinical'?clinicalRailItems:activeNavGroups.map(group=>({id:group.id,label:group.label}))
+ const activeNavPrimaryId=activeNavModuleId==='patients'?patientsRegistryTab:activeNavModuleId==='clinical'?(realcostAuditOpen?'realcost':clinicalPathwayOpen||qualityResultsView==='pathway'?'audit-pathway':'audit-clinical'):activeNestedNavGroup?.id||(activeNavModuleId==='safety'&&safetyTab==='overview'?activeNavGroups[0]?.id:activeNavSelectedId)
+ const activeNavSecondaryId=activeNavModuleId==='patients'||activeNavModuleId==='clinical'?'':activeNestedNavGroup?activeNavSelectedId:(activeNavModuleId==='safety'&&safetyTab==='overview'?'incidents':'')
+ const activeRailSubItems=(activeNavModuleId==='patients'||activeNavModuleId==='clinical')?[]:(activeNestedNavGroup?.children||[]).map(item=>({...item,hint:item.hint||NAV_HINTS[item.label]}))
+ const activeRailItemsHinted=activeRailItems.map(item=>({...item,hint:item.hint||NAV_HINTS[item.label]}))
+ const activePageHint=NAV_HINTS[(activeRailSubItems.find(item=>item.id===activeNavSecondaryId)||activeRailItems.find(item=>item.id===activeNavPrimaryId)||activeNavGroups.find(group=>group.id===activeNavPrimaryId))?.label||'']
  const dispatchWorkspaceSearch=(query:string)=>{
   setGlobalSearch(query)
  }
@@ -1145,7 +1159,7 @@ export default function HomeClient(){
     const isExpanded=effectiveExpandedDomain===domain.id
     return <section className={'sidebarDomain '+(domain.id==='command_center'?'isCommandCenter ':'')+(selected?'isCurrent ':'')+(isExpanded?'isExpanded':'')} key={domain.id}>
      <div className="sidebarDomainTrigger" role="heading" aria-level={2}>
-      <button type="button" aria-expanded={isExpanded} aria-controls={'sidebar-items-'+domain.id} onClick={()=>setExpandedDomain(current=>(current===null?activeDomainId===domain.id:current===domain.id)?'':domain.id)}>
+      <button type="button" aria-label={domain.label} title={domain.label} aria-expanded={isExpanded} aria-controls={'sidebar-items-'+domain.id} onClick={()=>setExpandedDomain(current=>(current===null?activeDomainId===domain.id:current===domain.id)?'':domain.id)}>
        <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[domain.icon]||BOTTOM_NAV_GLYPH.analytics}</svg>
        <span>{domain.label}</span><span className="sidebarDomainChevron" aria-hidden="true">⌄</span>
       </button>
@@ -1270,7 +1284,7 @@ export default function HomeClient(){
    </>}
    {supportTab==='broadcast'&&admin&&<div className="workspaceBroadcastPanel"><div className="workspaceBroadcastIntro"><strong>Pengumuman ke seluruh ruangan</strong><span>Pesan akan dikirim ke {roomsList.length} ruangan aktif melalui kanal komunikasi unit.</span></div><textarea value={broadcastDraft} onChange={event=>setBroadcastDraft(event.target.value)} rows={7} maxLength={4000} placeholder="Tulis pengumuman resmi untuk seluruh ruangan…" aria-label="Isi pengumuman massal"/><div className="workspaceBroadcastFooter"><span>{broadcastDraft.length}/4000 karakter</span><button type="button" disabled={broadcastSending||!broadcastDraft.trim()||!roomsList.length} onClick={()=>void sendMassAnnouncement()}>{broadcastSending?'Mengirim…':'Kirim ke seluruh ruangan'}</button></div></div>}
   </section>,document.body)}
-  {activeNavGroups.length>0&&<UnifiedModuleNavigation
+  {(activeNavGroups.length>0||activeNavModuleId==='patients'||activeNavModuleId==='clinical')&&<UnifiedModuleNavigation
    mobileWorkspaceTabs={MOBILE_WORKSPACE_TABS}
    ariaLabel={'Navigasi '+activeNavModuleLabel}
    title={displayedRailTitle}
