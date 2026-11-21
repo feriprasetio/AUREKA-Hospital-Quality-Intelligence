@@ -33,3 +33,14 @@ test('profil tanpa jenis pengukuran menandai perlu dilengkapi, bukan angka salah
   assert.equal(d.needsProfileSetup, 1)
   assert.ok(d.reasons.some((r) => /profil indikator belum lengkap/.test(r)))
 })
+
+
+test('diagnosis reports pending reconciliation response as needs review', () => {
+  const pending = row({
+    core_data: { indicator_values: { '7.1': { numerator: 1, denominator: 2, review_status: 'pending' } } },
+  })
+  const d = diagnoseIndicator(profile, [pending], 2026)
+  assert.equal(d.counted, 0)
+  assert.equal(d.needsReview, 1)
+  assert.ok(d.reasons.some((reason) => /menunggu tinjauan pemetaan/.test(reason)))
+})
