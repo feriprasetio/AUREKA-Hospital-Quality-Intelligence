@@ -49,3 +49,15 @@ test('SPO uses deterministic PDF and DOCX extraction without external AI APIs',(
  assert.doesNotMatch(edge,/GEMINI_API_KEY|generativelanguage\.googleapis\.com/);
  assert.match(workspace,/AUREKA Local Document Parser v1/);
 });
+
+test('SPO typography and mobile touch controls honor design accessibility baseline', async () => {
+  const css = await readFile(new URL('../app/aureka-global.css',import.meta.url), 'utf8');
+  for (const selector of ['.spoEyebrow{font-size:11px', '.spoRecordTop,.spoRecordBottom{width:100%;font-size:11px', '.spoStatus{display:inline-flex']) {
+    assert.ok(css.includes(selector), selector);
+  }
+  assert.match(css, /\.spoStatus\{[^}]*font-size:11px/);
+  assert.match(css, /\.spoStep\{[^}]*grid-template-columns:28px minmax\(0,1fr\) 44px/);
+  assert.match(css, /\.spoStep button\{[^}]*height:44px;width:44px/);
+  assert.match(css, /@media\(max-width:760px\)\{\.spoStats[^\n]*\.spoRegisterToolbar input,\.spoSection input,\.spoSection textarea,\.spoStep textarea\{font-size:16px\}/);
+  assert.match(css, /\.spoButton,\.spoFilters button,\.spoLinkButton\{min-height:44px\}/);
+});
