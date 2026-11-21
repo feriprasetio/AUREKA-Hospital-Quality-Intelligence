@@ -398,8 +398,7 @@ export default function StudentOrientationWorkspace({
 
   const participantCount = useMemo(() => new Set(rows.map((row) => row.name.trim().toLocaleLowerCase('id'))).size, [rows])
   const savedCount = rows.filter((row) => !!row.saved).length
-  const signedCount = rows.filter((row) => !!row.saved?.signed_date).length
-  const certificateCount = rows.filter((row) => !!row.certificate?.certificate_number).length
+    const certificateCount = rows.filter((row) => !!row.certificate?.certificate_number).length
   const selectedRow = selectedSourceId ? rows.find((row) => row.source.id === selectedSourceId) || null : null
 
   const beginEdit = (row: OrientationRow) => {
@@ -510,8 +509,11 @@ export default function StudentOrientationWorkspace({
         const digest = await sha256Hex(pdf)
         objectPath = userId + '/education/orientasi-mahasiswa/' + selectedYear + '/' + safeFileName(certificateNumber) + '.pdf'
         const { error: uploadError } = await aurekaSupabase.storage.from('aureka-exports')
-          .upload(objectPath, pdf, { contentType: 'application/pdf', upsert: true })
-        if (uploadError) throw uploadError
+          .upload(objectPath, pdf, { contentType: 'application/pdf', upsert: false })
+        if (uploadError) {
+          const { data: existingPdf, error: downloadError } = await aurekaSupabase.storage.from('aureka-exports').download(objectPath)
+          if (downloadError || !existingPdf || await sha256Hex(existingPdf) !== digest) throw uploadError
+        }
         const { error: completeError } = await sys().rpc('complete_student_orientation_certificate', {
           p_certificate_id: certificateId,
           p_object_path: objectPath,
