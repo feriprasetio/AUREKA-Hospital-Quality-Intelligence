@@ -199,3 +199,5 @@
 .legalVerifyMeta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:22px 0}.legalVerifyMeta>div{min-width:0}.legalVerifyMeta .legalVerifyHash{grid-column:1/-1}.legalVerifyHash dd{font-family:ui-monospace,monospace;font-size:10px;overflow-wrap:anywhere}
 .legalVerifyFoot{padding-top:14px;border-top:1px solid var(--border-subtle,rgba(125,140,160,.2));font-size:10px;line-height:1.6;color:var(--text-secondary,#687386)}
 @media(max-width:760px){.legalHero{padding:15px;flex-direction:column}.legalHero h1{font-size:21px}.legalAssetGrid{grid-template-columns:1fr}.legalMetrics{gap:7px}.legalMetrics>div{padding:10px}.legalMetrics strong{font-size:19px}.legalPanel{padding:12px}.legalVerifyCard{padding:20px}.legalVerifyMeta{grid-template-columns:1fr}}
+
+.legalSignerIdentity{display:flex;align-items:center;gap:9px;min-width:0}.legalSignerIdentity>div{min-width:0}.legalSignerIdentity img{width:76px;height:38px;object-fit:contain;flex:0 0 76px;padding:2px 4px;border-radius:6px;background:#fff}
