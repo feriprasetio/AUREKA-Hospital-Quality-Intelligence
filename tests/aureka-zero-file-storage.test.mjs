@@ -3,13 +3,14 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
-const migration = read('supabase/migrations/20261122180000_zero_file_storage_policies.sql')
+const schema = read('supabase/migrations/20261122180000_zero_file_archive_schema.sql')
+const migration = read('supabase/migrations/20261122181000_zero_file_storage_policies.sql')
 
 test('new Secretariat records allow NULL file paths and explicitly mark content-only mode', () => {
-  assert.match(migration, /ALTER COLUMN object_path DROP NOT NULL/)
+  assert.match(schema, /ALTER COLUMN object_path DROP NOT NULL/)
   assert.match(migration, /ALTER COLUMN bucket_id DROP NOT NULL/)
-  assert.match(migration, /source_mode IN \('legacy_storage','data_only'\)/)
-  assert.match(migration, /source_mode <> 'data_only' OR \(object_path IS NULL AND bucket_id IS NULL\)/)
+  assert.match(schema, /source_mode IN \('legacy_storage','data_only'\)/)
+  assert.match(schema, /source_mode <> 'data_only' OR \(object_path IS NULL AND bucket_id IS NULL\)/)
 })
 test('user-accessible storage buckets cannot accept uploads or overwrites', () => {
   for (const kind of ['INSERT','UPDATE']) {
