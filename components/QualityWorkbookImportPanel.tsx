@@ -599,6 +599,12 @@ export default function QualityWorkbookImportPanel({
         ' profil diproses. ' + mappingSaved.toLocaleString('id-ID') + ' aturan kolom disimpan untuk impor berikutnya. Batch: ' + createdBatch)
       setBatchId('')
       setPreview(null)
+      // Release all original workbook references after a successful structured import.
+      workbookRef.current = null
+      fileRef.current = null
+      setSheets([])
+      setFileName('')
+      setFileHash('')
       onImported()
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Impor belum selesai. Batch staging dipertahankan untuk pemeriksaan; tidak ada commit parsial.' }))
