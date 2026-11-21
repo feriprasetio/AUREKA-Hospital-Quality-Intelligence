@@ -41,6 +41,7 @@ type Props = {
   groupBy?: 'unit' | 'category'
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
+type IndicatorResponseReview = { record_id: string; indicator_id: string; review_status: string | null }
 type PathwayDataset = ClinicalPathwayRow[]
 type ClinicalDataset = ClinicalDeathAuditResultRow[]
 
@@ -298,6 +299,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         })
         const [profileResult, recordResult] = await Promise.all([profileQuery, recordQuery])
         if (profileResult.error) throw profileResult.error
+        const activeProfiles = (profileResult.data ?? []) as IndicatorProfileForResults[]
         if (recordResult.rows.length > 0) {
           recordResult.rows = recordResult.rows.map((row: any) => ({
             ...row,
@@ -311,11 +313,54 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             },
           }))
         }
+
+        // Reconciliation decisions live in quality_record_responses, not inside
+        // quality_records.core_data. Hydrate the per-indicator review status before
+        // calculation so a ready logbook cannot bypass an outstanding mapping review.
+        let reviewResult: { rows: IndicatorResponseReview[]; capped: boolean } = { rows: [], capped: false }
+        const profileIds = activeProfiles.map((profile) => String(profile.id ?? '')).filter(Boolean)
+        if (profileIds.length > 0 && recordResult.rows.length > 0) {
+          reviewResult = await readPaged<IndicatorResponseReview>((from, to) => q().from('quality_record_responses')
+            .select('record_id,indicator_id,review_status')
+            .in('indicator_id', profileIds)
+            .order('record_id')
+            .order('indicator_id')
+            .range(from, to), 50000)
+          if (reviewResult.capped) {
+            throw new Error('Pemuatan status rekonsiliasi melampaui 50.000 respons. Hasil indikator dihentikan agar respons yang belum ditelaah tidak terhitung tanpa status.')
+          }
+        }
+        const profileById = new Map(activeProfiles.map((profile) => [String(profile.id ?? ''), profile]))
+        const rowById = new Map(recordResult.rows.map((row: any) => [String(row.id), row]))
+        const reviewByRecordProfile = new Map<string, string>()
+        for (const item of reviewResult.rows) {
+          const key = String(item.record_id) + '|' + String(item.indicator_id)
+          const status = String(item.review_status ?? 'pending').trim().toLowerCase() || 'pending'
+          const existing = reviewByRecordProfile.get(key)
+          // A pending/unknown duplicate must never be downgraded by an approved row.
+          if (!existing || (existing !== 'pending' && status === 'pending')) reviewByRecordProfile.set(key, status)
+        }
+        for (const [key, reviewStatus] of reviewByRecordProfile) {
+          const separator = key.indexOf('|')
+          const recordId = key.slice(0, separator)
+          const indicatorId = key.slice(separator + 1)
+          const row: any = rowById.get(recordId)
+          const profile = profileById.get(indicatorId)
+          if (!row || !profile) continue
+          const values = { ...(row.core_data?.indicator_values ?? {}) }
+          const codeKey = String(profile.code ?? '')
+          const idKey = String(profile.id ?? '')
+          const valueKey = Object.prototype.hasOwnProperty.call(values, codeKey) ? codeKey
+            : Object.prototype.hasOwnProperty.call(values, idKey) ? idKey : ''
+          if (!valueKey || !values[valueKey] || typeof values[valueKey] !== 'object') continue
+          values[valueKey] = { ...values[valueKey], review_status: reviewStatus }
+          row.core_data = { ...(row.core_data ?? {}), indicator_values: values }
+        }
         if (cancelled) return
-        const indicatorDataset = { profiles: (profileResult.data ?? []) as IndicatorProfileForResults[], rows: recordResult.rows }
+        const indicatorDataset = { profiles: activeProfiles, rows: recordResult.rows }
         RESULTS_CACHE.set(cacheKey, { at: Date.now(), indicator: indicatorDataset })
         setIndicatorData(indicatorDataset)
-        setCapped(recordResult.capped)
+        setCapped(recordResult.capped || reviewResult.capped)
       } else if (mode === 'pathway') {
         const start = String(year) + '-01-01'
         const end = String(year + 1) + '-01-01'
