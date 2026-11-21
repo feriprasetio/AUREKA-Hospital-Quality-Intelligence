@@ -45,7 +45,7 @@ test('document governance hardening requires sequential role-matched approvals a
   has(sql, 'bukan tanda tangan elektronik tersertifikasi PSrE')
 })
 
-test('SPO ingestion worker authenticates users, creates 768-dimensional Gemini embeddings and persists chunks', async () => {
+test('NARA ingestion worker authenticates users, indexes structured text, and creates 768-dimensional Gemini embeddings', async () => {
   const worker = await read('supabase/functions/aureka-document-ingest/index.ts')
   const config = await read('supabase/config.toml')
   has(config, '[functions.aureka-document-ingest]')
@@ -58,7 +58,11 @@ test('SPO ingestion worker authenticates users, creates 768-dimensional Gemini e
   has(worker, 'batchEmbedContents')
   has(worker, 'knowledge_chunks')
   has(worker, 'analysis_status: "completed"')
-  has(worker, 'MAX_FILE_BYTES')
+  has(worker, 'MAX_EXTRACTED_CHARS')
+  has(worker, 'version.extracted_text')
+  for (const forbidden of ['.storage.from(', 'inline_data', 'file.arrayBuffer(']) {
+    assert.ok(!worker.includes(forbidden), 'binary file access forbidden: ' + forbidden)
+  }
   has(worker, 'claim_document_ingestion_job')
 })
 
