@@ -11,7 +11,7 @@ export type IndicatorProfile = {
   numerator_definition?: string | null
   denominator_definition?: string | null
   schema_json?: Record<string, unknown> | null
-  options_json?: Array<{ label?: unknown; code?: unknown }> | null
+  options_json?: Array<{ label?: unknown; code?: unknown; review_required?: boolean }> | null
 }
 
 function normalize(value: unknown): string {
