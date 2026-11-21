@@ -1,5 +1,5 @@
 -- Patient-linked quality and safety history for the patient directory drawer.
--- The routine returns only the caller's accessible room-scoped rows. Incident details
+-- Returns actual indicator answers for accessible patient episodes. Incident details
 -- are withheld unless the caller is an authorized safety-workflow manager.
 
 create or replace function public.aureka_patient_linked_history(p_no_rm text)
@@ -47,28 +47,63 @@ begin
   select coalesce(
     jsonb_agg(
       jsonb_build_object(
-        'id', qr.id,
-        'record_date', qr.record_date,
-        'profile_year', qr.profile_year,
-        'unit', mr.name,
-        'status', qr.status,
-        'review_required', qr.review_required,
-        'validated_at', qr.validated_at,
-        'validation_note', qr.validation_note
+        'id', episode.id,
+        'record_date', episode.record_date,
+        'profile_year', episode.profile_year,
+        'unit', episode.unit_name,
+        'status', episode.status,
+        'review_required', episode.review_required,
+        'validated_at', episode.validated_at,
+        'validation_note', episode.validation_note,
+        'indicators', episode.indicators
       )
-      order by qr.record_date desc, qr.created_at desc
+      order by episode.record_date desc, episode.created_at desc
     ),
     '[]'::jsonb
   )
   into v_episodes
-  from aureka_quality.quality_records qr
-  left join public.master_rooms mr on mr.id = qr.room_id
-  where qr.patient_index_id = v_patient_id
-    and qr.measurement_grain = 'patient_episode'
-    and qr.archived_at is null
-    and qr.status <> 'archived'
-    and aureka_system.has_quality_room_access(qr.room_id)
-  limit 100;
+  from (
+    select
+      qr.id,
+      qr.record_date,
+      qr.profile_year,
+      qr.created_at,
+      mr.name as unit_name,
+      qr.status,
+      qr.review_required,
+      qr.validated_at,
+      qr.validation_note,
+      coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'code', iv.entry_key,
+            'title', ip.title,
+            'category', ip.category,
+            'answer', iv.entry_value ->> 'answer',
+            'review_required',
+              case when iv.entry_value ->> 'review_required' in ('true', 'false')
+                then (iv.entry_value ->> 'review_required')::boolean
+                else false
+              end
+          )
+          order by ip.category, ip.title
+        )
+        from jsonb_each(coalesce(qr.core_data -> 'indicator_values', '{}'::jsonb)) as iv(entry_key, entry_value)
+        join aureka_quality.indicator_profiles ip
+          on ip.code = iv.entry_key
+         and ip.profile_year = qr.profile_year
+         and ip.room_id = qr.room_id
+      ), '[]'::jsonb) as indicators
+    from aureka_quality.quality_records qr
+    left join public.master_rooms mr on mr.id = qr.room_id
+    where qr.patient_index_id = v_patient_id
+      and qr.measurement_grain = 'patient_episode'
+      and qr.archived_at is null
+      and qr.status <> 'archived'
+      and aureka_system.has_quality_room_access(qr.room_id)
+    order by qr.record_date desc, qr.created_at desc
+    limit 100
+  ) episode;
 
   v_can_view_incidents := aureka_patient_safety.can_manage_workflow();
 
@@ -106,6 +141,6 @@ revoke all on function public.aureka_patient_linked_history(text) from public, a
 grant execute on function public.aureka_patient_linked_history(text) to authenticated;
 
 comment on function public.aureka_patient_linked_history(text)
-is 'Returns room-scoped patient-episode links and role-protected patient safety incident summaries for the AUREKA patient directory drawer.';
+is 'Returns room-scoped patient-episode indicator results and role-protected patient safety incident summaries for the AUREKA patient directory.';
 
 notify pgrst, 'reload schema';
