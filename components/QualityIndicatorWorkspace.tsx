@@ -1,6 +1,7 @@
 'use client'
 import { supportsEpisodeWorkbook } from '@/lib/aureka/patient-episode-workbook'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import AurekaModal from '@/components/ui/AurekaModal'
 
 import {Fragment,useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import dynamic from 'next/dynamic'
@@ -36,6 +37,7 @@ const ClinicalDeathAuditWorkspace=dynamic(()=>import('@/components/ClinicalDeath
 const QualityExcelMappingWorkspace=dynamic(()=>import('@/components/QualityExcelMappingWorkspace'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Pemetaan Workbook Excel" compact/>})
 
 const PatientEpisodeWorkbookDialog=dynamic(()=>import('@/components/PatientEpisodeWorkbookDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat impor workbook" compact/>})
+const QualityWorkbookImportPanel=dynamic(()=>import('@/components/QualityWorkbookImportPanel'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat impor profil indikator" compact/>})
 const ComplaintExcelImportDialog=dynamic(()=>import('@/components/ComplaintExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Pengaduan" compact/>})
 const ItExcelImportDialog=dynamic(()=>import('@/components/ItExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Informatika dan Teknologi" compact/>})
 const RekamMedisExcelImportDialog=dynamic(()=>import('@/components/RekamMedisExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Rekam Medis" compact/>})
@@ -623,6 +625,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const editorSnapshot=useRef<{id:string,json:string}|null>(null)
  useEffect(()=>{if(!patientOpen||typeof document==='undefined')return;const prev=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=prev}},[patientOpen])
  const [episodeWorkbookOpen,setEpisodeWorkbookOpen]=useState(false)
+ const [masterWorkbookOpen,setMasterWorkbookOpen]=useState(false)
  const [loadedImportDialogs,setLoadedImportDialogs]=useState<Set<ImportDialogKey>>(()=>new Set())
  const [complaintImportOpen,setComplaintImportOpen]=useState(false)
  const [itImportOpen,setItImportOpen]=useState(false)
@@ -1325,6 +1328,12 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
     <button type="button" className="aqBtn" disabled={busy} onClick={()=>setExcelMappingOpen(value=>!value)}>{excelMappingOpen?'Tutup Pengaturan Pemetaan':'Pengaturan Pemetaan Excel'}</button>
    </div>}
    {excelMappingOpen&&roomId!=null&&<QualityExcelMappingWorkspace rooms={rooms} initialRoomId={roomId} year={year} role={isAdmin?'ADMIN':'PMKP'} onClose={()=>setExcelMappingOpen(false)}/>}
+   {isAdmin&&!isValidator&&roomId!=null&&container==='Audit Indikator Mutu'&&
+    <div className="aqFilterActions" style={{display:'flex',justifyContent:'flex-end',gap:8,marginBottom:8}}>
+      <button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setMasterWorkbookOpen(true)}>
+        ↥ Impor Master / Profil Indikator .xlsx
+      </button>
+    </div>}}
 
     {isValidator&&<section className="glass" style={{padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><div><strong style={{fontSize:14}}>Pemeriksaan laporan bulanan</strong>{monthlyReview?.reviewed&&<div className="aqMetaText" style={{marginTop:5}}>{monthlyReview.is_current?'Terakhir diperiksa':'Ada perubahan laporan setelah pemeriksaan'} · {monthlyReview.reviewed_at?fmtDateTime(monthlyReview.reviewed_at):'-'} · {monthlyReview.quality_record_count??0} logbook, {monthlyReview.clinical_pathway_count??0} CP, {monthlyReview.clinical_death_count??0} telaah klinis/kematian</div>}</div><div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}><select aria-label="Bulan pemeriksaan" value={reviewMonth} onChange={(e:any)=>setReviewMonth(Number(e.target.value))} style={{minHeight:40,border:'1px solid var(--line)',borderRadius:10,padding:'8px 10px',background:'#fff'}}>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select><button type="button" className="aqBtn primary" disabled={monthlyReviewBusy||busy||roomId==null} onClick={()=>void confirmMonthlyReview()}>{monthlyReviewBusy?'Menyimpan…':monthlyReview?.is_current?'Sudah Diperiksa · Perbarui':'Sudah Diperiksa'}</button></div></section>}
    {container==='Audit Klinis dan Kematian'?<ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator} lockRoomScope={lockRoomScope}/>:<>
@@ -1346,6 +1355,16 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    {patientOpen&&selected&&typeof document!=='undefined'&&createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack aqEditorBack" role="presentation"><div ref={editorDialogRef} className="aqEditorDialog" role="dialog" aria-modal="true" aria-label={`Formulir logbook ${recordTitle(selected)}`} tabIndex={-1}>{renderPatientEditor()}</div>
     {confirmCloseEditor&&<div className="aqBack aqDeleteConfirmBack" role="presentation"><section ref={closeConfirmDialogRef} className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqCloseConfirmTitle" tabIndex={-1}><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span></div><h4 id="aqCloseConfirmTitle">Tutup tanpa menyimpan?</h4><p>Isian pada formulir ini belum disimpan. Jika ditutup sekarang, perubahan akan hilang.</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" data-dialog-autofocus onClick={()=>setConfirmCloseEditor(false)}>Lanjut mengisi</button><button type="button" className="aqBtn danger" onClick={()=>{setConfirmCloseEditor(false);setPatientOpen(false)}}>Tutup tanpa simpan</button></div></section></div>}
    </div></div>,document.body)}
+   {masterWorkbookOpen&&isAdmin&&roomId!=null&&<AurekaModal
+     open title="Impor master dan profil indikator dari Excel" subtitle={(roomMap.get(roomId)??'Unit '+roomId)+' · '+year}
+     size="xl" onClose={()=>setMasterWorkbookOpen(false)}>
+     <QualityWorkbookImportPanel key={roomId+':'+year} roomId={roomId}
+       roomName={roomMap.get(roomId)??'Unit '+roomId} year={year}
+       importerKey="aureka-indicator-master"
+       role="ADMIN"
+       activeProfiles={profiles.filter(profile=>Number(profile.room_id)===roomId) as any}
+       onImported={()=>{setMasterWorkbookOpen(false);QIW_MEMORY_CACHE.clear();void load().then(()=>setMessage('Master/profil indikator berhasil dimuat ulang setelah impor workbook.'))}}/>
+   </AurekaModal>}
    {episodeWorkbookOpen&&episodeWorkbookEligible&&canImportWorkbook&&roomId!=null&&<PatientEpisodeWorkbookDialog
      key={roomId+':'+year}
      roomId={roomId} roomName={roomMap.get(roomId)??'Unit '+roomId} year={year} admin={isAdmin}
