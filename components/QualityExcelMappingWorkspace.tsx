@@ -645,7 +645,7 @@ export default function QualityExcelMappingWorkspace({
           {detectedColumns.length > 0 && <div className="qemMuted">
             Sumber siap dipetakan: <strong>{provisionalRows.length > 0 && !activeProfiles.length ? provisionalRows.length + ' calon indikator' : activeProfiles.length + ' indikator aktif'}</strong>.
             Daftar lengkap seluruh judul kolom tersedia di bawah tabel pemetaan.
-          </div>
+          </div>}
           {detectedColumns.length > 0 && <label className="qemMuted">
             <input type="checkbox" checked={headerConfirmed} disabled={fileBusy} onChange={event => setHeaderConfirmed(event.target.checked)}/> Baris ini hanya berisi judul kolom.
           </label>}
@@ -742,7 +742,7 @@ export default function QualityExcelMappingWorkspace({
           <ol style={{maxHeight:180,overflow:'auto',marginTop:8}}>
             {detectedColumns.map(column => <li key={column.index}>{describeExcelSourceColumn(column)}</li>)}
           </ol>
-        </details>
+        </details>}
       </>}
     </>}
 
