@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import { createExpiringRequestCache } from '@/lib/aureka/expiring-request-cache'
 import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import { NATIONAL_INDICATORS } from '@/lib/aureka/national-indicators'
 
@@ -39,6 +40,14 @@ const dateText = (value?: string) => {
 }
 const safeAggregates = (rows?: Aggregate[]) => Array.isArray(rows) ? rows.filter(row => row && typeof row==='object').slice(0,60) : []
 const publishedItems = (feed:PortalFeed|null) => Array.isArray(feed?.inm?.payload?.indicators) ? feed.inm.payload.indicators : []
+
+// Data in this RPC is an approved public snapshot, never user-specific.
+// Avoid duplicate requests when visitors switch between the portal and login.
+const publicFeedRequest = createExpiringRequestCache(async (): Promise<PortalFeed|null> => {
+  const { data, error } = await aurekaSupabase.rpc('aureka_public_intelligence')
+  if (error) throw error
+  return (data || null) as PortalFeed|null
+}, 60_000)
 
 function EmptyData({message}:{message:string}) {
   return <div className="aurekaPublicEmpty" role="status"><strong>Belum ada data terpublikasi</strong><p>{message}</p></div>
@@ -126,12 +135,17 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
   useEffect(()=>{
     let active=true
     if(verificationCode)return
-    aurekaSupabase.rpc('aureka_public_intelligence').then(({data,error})=>{
+    publicFeedRequest.load().then(data=>{
       if(!active)return
-      if(error){setLoadError(true);setFeed(null)}
-      else{setFeed((data||null) as PortalFeed|null);setLoadError(false)}
+      setFeed(data)
+      setLoadError(false)
       setLoading(false)
-    },()=>{if(active){setLoadError(true);setLoading(false)}})
+    },()=>{
+      if(!active)return
+      setLoadError(true)
+      setFeed(null)
+      setLoading(false)
+    })
     return ()=>{active=false}
   },[verificationCode])
   const indicators=useMemo(()=>publishedItems(feed),[feed])
