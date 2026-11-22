@@ -377,7 +377,7 @@ export default function StaffDirectoryWorkspace() {
         />
         <section className="sdBlueprintVisuals" aria-label="Komposisi direktori tenaga kerja">
           <div className="sdBlueprintCard">
-            <div className="sdBlueprintHead"><div><h3>Status verifikasi direktori</h3><p>Seluruh record yang berhasil dimuat pada direktori ini.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
+            <div className="sdBlueprintHead"><div><h3>Status verifikasi</h3><p>Ringkasan tenaga kerja yang tercatat.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
             <div className="sdBlueprintStats">
               <div><span>Siap dipetakan</span><strong>{availableCount.toLocaleString('id-ID')}</strong></div>
               <div><span>Perlu verifikasi</span><strong>{reviewCount.toLocaleString('id-ID')}</strong></div>
@@ -385,7 +385,7 @@ export default function StaffDirectoryWorkspace() {
             </div>
           </div>
           <div className="sdBlueprintCard">
-            <div className="sdBlueprintHead"><div><h3>Kelompok profesi terbanyak</h3><p>Maksimal enam kelompok berdasarkan jumlah record.</p></div><b>{groups.length} kelompok</b></div>
+            <div className="sdBlueprintHead"><div><h3>Kelompok profesi terbanyak</h3><p>Enam kelompok profesi dengan jumlah terbanyak.</p></div><b>{groups.length} kelompok</b></div>
             {loading ? <p className="sdDesc">Memuat komposisi…</p> : professionDistribution.length ? <div className="sdBlueprintBars">{professionDistribution.map((item) => <div className="sdBlueprintBar" key={item.label}><span>{item.label}</span><div><i style={{width:(item.count/professionMax*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="sdDesc">Belum ada data profesi.</p>}
           </div>
         </section>
@@ -421,7 +421,7 @@ export default function StaffDirectoryWorkspace() {
                     <td><span className={`sdPill ${staff.directory_status}`}>{statusLabel[staff.directory_status]}</span></td>
                     <td><div className="sdActionsCell">
                       <button type="button" className="sdEditBtn" disabled={busy} onClick={() => setProfileStaff(staff)}>Profil lintas modul</button>
-                      <button type="button" className="sdEditBtn" disabled={busy} onClick={() => beginEdit(staff)}>Edit metadata</button>
+                      <button type="button" className="sdEditBtn" disabled={busy} onClick={() => beginEdit(staff)}>Ubah data</button>
                       {staff.directory_status !== 'available' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'available')}>Verifikasi / aktifkan</button>}
                       {staff.directory_status === 'available' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'needs_review')}>Tahan</button>}
                       {staff.directory_status !== 'inactive' && <button type="button" className="sdMini" disabled={busy} onClick={() => void changeStatus(staff,'inactive')}>Nonaktifkan</button>}
@@ -442,8 +442,8 @@ export default function StaffDirectoryWorkspace() {
           <section ref={editDialogRef} className="sdEditDialog" role="dialog" aria-modal="true" aria-labelledby="sd-edit-title" tabIndex={-1}>
             <div className="sdEditHeader">
               <div>
-                <div className="sdEyebrow">Metadata · Perubahan Terkendali</div>
-                <h4 id="sd-edit-title" className="sdModalTitle">Edit tenaga kerja</h4>
+                
+                <h4 id="sd-edit-title" className="sdModalTitle">Ubah data tenaga kerja</h4>
                 <p className="sdDesc">Perubahan nama, profesi, gelar, jabatan, dan unit sumber berlaku sebagai master identitas lintas modul. ID internal serta kode AUREKA tidak dapat diedit agar riwayat OPPE dan audit tetap konsisten.</p>
               </div>
               <div className="sdCodeLock">{editingStaff.employee_code}<br/><span style={{fontSize: 12,fontWeight:700}}>Kode identitas permanen</span></div>
@@ -457,7 +457,7 @@ export default function StaffDirectoryWorkspace() {
               <label className="sdEditField"><span>Jabatan / peran</span><input value={draft.position_title} onChange={(e) => setDraft((current) => current ? {...current,position_title:e.target.value} : current)} /></label>
               <label className="sdEditField full"><span>Unit kerja / asal penugasan</span><input value={draft.source_unit} onChange={(e) => setDraft((current) => current ? {...current,source_unit:e.target.value} : current)} /></label>
               <label className="sdEditField"><span>Kelayakan penugasan</span><select value={draft.directory_status} onChange={(e) => setDraft((current) => current ? {...current,directory_status:e.target.value as StaffDraft['directory_status']} : current)}><option value="available">Siap dipetakan</option><option value="needs_review">Perlu verifikasi</option><option value="inactive">Nonaktif</option></select></label>
-              <label className="sdEditField full"><span>Catatan verifikasi / pembedaan identitas</span><textarea value={draft.review_note} onChange={(e) => setDraft((current) => current ? {...current,review_note:e.target.value} : current)} placeholder="Catatan singkat untuk petugas metadata. Jangan masukkan NIP/NIK atau ciri fisik." /></label>
+              <label className="sdEditField full"><span>Catatan verifikasi / pembedaan identitas</span><textarea value={draft.review_note} onChange={(e) => setDraft((current) => current ? {...current,review_note:e.target.value} : current)} placeholder="Catatan singkat untuk petugas berwenang. Jangan masukkan NIP/NIK atau ciri fisik." /></label>
             </div>
             {error && <div className="sdError" role="alert">{error}</div>}
             <div className="sdEditFooter">

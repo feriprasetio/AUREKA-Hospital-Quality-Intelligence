@@ -381,20 +381,20 @@ export default function QualityReconciliationWorkspace({
 
     {queue && <>
       <div className="qrcStats">
-        <div className="qrcStat"><small>Respons pending</small><strong>{count(totalPending)}</strong><span>{count(summary.response_group_count)} pola sumber</span></div>
+        <div className="qrcStat"><small>Respons menunggu peninjauan</small><strong>{count(totalPending)}</strong><span>{count(summary.response_group_count)} pola sumber</span></div>
         <div className="qrcStat"><small>Dapat dipetakan otomatis</small><strong>{count(totalAuto)}</strong><span>{count(summary.auto_fixable_group_count)} pola dengan label/kode unik</span></div>
-        <div className="qrcStat"><small>Perlu keputusan manual</small><strong>{count(totalManual)}</strong><span>Konflik, ambiguitas, atau master belum lengkap</span></div>
+        <div className="qrcStat"><small>Perlu keputusan manual</small><strong>{count(totalManual)}</strong><span>Konflik, ketidakjelasan, atau profil indikator belum lengkap</span></div>
         <div className="qrcStat"><small>Warning sumber</small><strong>{count(totalWarnings)}</strong><span>{count(summary.warning_group_count)} pola warning</span></div>
       </div>
 
       <section className="qrcPanel">
         <div className="qrcPanelHead">
-          <div><h3>Rekonsiliasi respons indikator</h3><p>Setiap baris adalah satu pola sumber untuk satu indikator, bukan satu pasien. Klik aksi untuk menerapkan ke seluruh record pada pola yang sama.</p></div>
+          <div><h3>Rekonsiliasi respons indikator</h3><p>Setiap baris mewakili respons yang sama pada satu indikator, bukan satu pasien. Tindakan berlaku pada seluruh catatan dengan pola serupa.</p></div>
           <span className="qrcBadge pending">{count(totalPending)} perlu ditinjau</span>
         </div>
         {sortedResponseGroups.length === 0 ? <div className="qrcEmpty">Tidak ada respons indikator berstatus pending pada cakupan ini.</div> :
           <div className="qrcTableWrap"><table className="qrcTable">
-            <thead><tr><th>Unit / indikator</th><th>Respons sumber Excel</th><th>Status pemetaan</th><th>Jumlah record</th><th>Tindakan</th></tr></thead>
+            <thead><tr><th>Unit / indikator</th><th>Respons sumber Excel</th><th>Status pemetaan</th><th>Jumlah catatan</th><th>Tindakan</th></tr></thead>
             <tbody>
               {sortedResponseGroups.map(item => {
                 const key = groupKey(item)
@@ -406,7 +406,7 @@ export default function QualityReconciliationWorkspace({
                   <td><div className="qrcSource">{item.source_label}</div><span className="qrcMuted">Kode sumber: {item.source_code ?? 'tidak tersedia'}</span></td>
                   <td><span className={'qrcBadge ' + (item.auto_fixable ? 'good' : 'manual')}>{item.mapping_status}</span>
                     {item.auto_fixable && <span className="qrcMuted">Cocok unik: {item.suggested_target_label} · kode {item.suggested_target_code}</span>}
-                    {!item.auto_fixable && <span className="qrcMuted">Butuh konfirmasi; tidak akan ditebak oleh sistem.</span>}
+                    {!item.auto_fixable && <span className="qrcMuted">Perlu konfirmasi sebelum respons dapat dipetakan.</span>}
                   </td>
                   <td><strong>{count(item.affected_count)}</strong><span className="qrcMuted">respons pending</span></td>
                   <td>
@@ -440,11 +440,11 @@ export default function QualityReconciliationWorkspace({
       <section className="qrcPanel">
         <div className="qrcPanelHead">
           <div><h3>Warning pada sumber workbook</h3><p>Warning yang bersifat informasional dapat diterima setelah verifikasi. Warning yang memerlukan data asli tetap ditandai untuk koreksi dan tidak dihapus.</p></div>
-          <span className="qrcBadge pending">{count(totalWarnings)} record terdampak</span>
+          <span className="qrcBadge pending">{count(totalWarnings)} catatan terdampak</span>
         </div>
         {sortedWarningGroups.length === 0 ? <div className="qrcEmpty">Tidak ada warning sumber yang belum diselesaikan.</div> :
           <div className="qrcTableWrap"><table className="qrcTable">
-            <thead><tr><th>Unit</th><th>Warning sumber</th><th>Jumlah record</th><th>Status telaah</th><th>Tindakan</th></tr></thead>
+            <thead><tr><th>Unit</th><th>Warning sumber</th><th>Jumlah catatan</th><th>Status telaah</th><th>Tindakan</th></tr></thead>
             <tbody>{sortedWarningGroups.map(item => {
               const key = warningKey(item)
               const draft = warningDrafts[key]?.reason ?? ''

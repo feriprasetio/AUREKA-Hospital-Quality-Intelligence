@@ -812,7 +812,7 @@ export default function RiskManagementWorkspace({
   const renderSourceUnitOption = (unitName: string) => {
     const unitRisks = risks.filter(risk => sourceUnitLabel(risk) === unitName)
     const veryHighCount = unitRisks.filter(risk => risk.risk_level === 'Sangat Tinggi').length
-    return <option key={unitName} value={unitName}>{unitName} · {unitRisks.length} record · {veryHighCount} Sangat Tinggi</option>
+    return <option key={unitName} value={unitName}>{unitName} · {unitRisks.length} risiko · {veryHighCount} Sangat Tinggi</option>
   }
 
   const renderMatrix = (large = false) => (
@@ -1089,7 +1089,7 @@ export default function RiskManagementWorkspace({
           </div>
         </LiquidGlass>
         {activePlan && planDetailOpen && <RmModal label="Detail rencana" error={error}><LiquidGlass className="rmPanel rmDetailModal">
-          <div className="rmSectionHead"><div><span className="rmEyebrow">{activePlan.plan_code} · ALUR PERSETUJUAN</span><h4>{activePlan.title}</h4><p>{activePlan.objective || 'Sasaran mitigasi belum dicantumkan.'}</p></div><div className="rmActions"><span className={'rmWorkflowPill ' + activePlan.status}>{PLAN_STATUS[activePlan.status] || activePlan.status}</span><button type="button" className="rmButton subtle" onClick={() => setPlanDetailOpen(false)}>Tutup</button></div></div>
+          <div className="rmSectionHead"><div><span className="rmEyebrow">{activePlan.plan_code} · Persetujuan</span><h4>{activePlan.title}</h4><p>{activePlan.objective || 'Sasaran mitigasi belum dicantumkan.'}</p></div><div className="rmActions"><span className={'rmWorkflowPill ' + activePlan.status}>{PLAN_STATUS[activePlan.status] || activePlan.status}</span><button type="button" className="rmButton subtle" onClick={() => setPlanDetailOpen(false)}>Tutup</button></div></div>
           <div className="rmApprovalRail">
             {[['pending_kabid', 'Kepala Bidang'], ['pending_director', 'Direktur'], ['pending_board', 'Dewan Pengawas']].map(([stage, label], i) => {
               const sequence = ['pending_kabid', 'pending_director', 'pending_board', 'approved', 'in_progress', 'evaluated', 'closed']
@@ -1117,7 +1117,7 @@ export default function RiskManagementWorkspace({
               {saving && <span className="rmMuted">Menyimpan perubahan…</span>}
             </div>
           </div>
-          <div className="rmHistory"><b>Riwayat keputusan</b>{activeEvents.length ? activeEvents.map(e => <div className="rmHistoryRow" key={e.id}><i></i><div><b>{PLAN_STATUS[e.to_status] || e.to_status}</b><p>{e.note || 'Tidak ada catatan'} · {e.actor_name || 'Pengguna'} · {fmtDate(e.created_at)}</p></div></div>) : <p className="rmMuted">Belum ada keputusan workflow.</p>}</div>
+          <div className="rmHistory"><b>Riwayat keputusan</b>{activeEvents.length ? activeEvents.map(e => <div className="rmHistoryRow" key={e.id}><i></i><div><b>{PLAN_STATUS[e.to_status] || e.to_status}</b><p>{e.note || 'Tidak ada catatan'} · {e.actor_name || 'Pengguna'} · {fmtDate(e.created_at)}</p></div></div>) : <p className="rmMuted">Belum ada riwayat keputusan.</p>}</div>
         </LiquidGlass></RmModal>}
       </>}
 
@@ -1181,17 +1181,17 @@ export default function RiskManagementWorkspace({
           <div className="rmProfileLevels">{levels.map(lv => { const n = rows.filter(r => r.risk_level === lv).length; return <div key={lv} className="rmProfileLevel"><span>{renderRiskBadge(lv)}</span><div className="rmProfileBar"><i style={{ width: rows.length ? (n / rows.length * 100) + '%' : '0%' }} /></div><b>{n}</b></div> })}</div>
           <div className="rmProfileVisualGrid">
             <section className="rmProfileVisual">
-              <div className="rmSectionHead compactHead"><div><span className="rmEyebrow">Taksonomi risiko</span><h4>Distribusi kategori</h4><p>Jumlah record pada kategori yang tercatat di Risk Register.</p></div></div>
+              <div className="rmSectionHead compactHead"><div><span className="rmEyebrow">Taksonomi risiko</span><h4>Distribusi kategori</h4><p>Jumlah risiko pada setiap kategori dalam Register Risiko.</p></div></div>
               {byCategory.length ? byCategory.slice(0,13).map(([category,entry])=><div className="rmCategoryBar" key={category}><div><span>{category}</span><b>{entry.n.toLocaleString('id-ID')} · {rows.length?(entry.n/rows.length*100).toFixed(1).replace('.',','):'0,0'}%</b></div><i><em style={{width:(rows.length?entry.n/rows.length*100:0)+'%'}}/></i></div>) : <div className="rmEmptySmall">Belum ada data kategori pada filter ini.</div>}
               <p className="rmTiny">Dihitung dari {rows.length.toLocaleString('id-ID')} risiko dalam cakupan filter. Kategori ditampilkan sesuai nilai master yang tersimpan.</p>
             </section>
             <section className="rmProfileVisual">
-              <div className="rmSectionHead compactHead"><div><span className="rmEyebrow">Efek pengendalian</span><h4>Perbandingan skor inheren dan residual</h4><p>Rerata hanya dihitung pada record yang memiliki skor residual.</p></div></div>
+              <div className="rmSectionHead compactHead"><div><span className="rmEyebrow">Efek pengendalian</span><h4>Perbandingan skor inheren dan residual</h4><p>Rata-rata dihitung dari risiko yang sudah memiliki skor residual.</p></div></div>
               <div className="rmResidualCompare">
                 <div><span>Rerata skor inheren · seluruh risiko</span><b>{rows.length?(rows.reduce((sum,x)=>sum+x.risk_score,0)/rows.length).toFixed(1).replace('.',','):'-'}</b></div>
                 <div><span>Rerata skor residual · telah dinilai</span><b>{moved.length?(moved.reduce((sum,x)=>sum+(x.residual_score||0),0)/moved.length).toFixed(1).replace('.',','):'-'}</b></div>
               </div>
-              <div className="rmResidualMeta"><span>Skor residual dinilai: <b>{moved.length}</b> dari {rows.length}</span><span>Skor menurun: <b>{down}</b> record</span></div>
+              <div className="rmResidualMeta"><span>Skor residual dinilai: <b>{moved.length}</b> dari {rows.length}</span><span>Skor menurun: <b>{down}</b> risiko</span></div>
               <p className="rmTiny">Perbandingan ini bersifat deskriptif; bukan bukti kausal efektivitas kontrol. Interpretasi perlu mempertimbangkan perubahan paparan dan validitas penilaian residual.</p>
             </section>
           </div>
