@@ -475,12 +475,12 @@ export default function SecretariatWorkspace({
               <div className="secDocumentActions"><button type="button" className="secTextButton" onClick={()=>void downloadDocument(doc)}>Unduh DOCX Arsip</button><button type="button" className="secTextButton" onClick={()=>printDocument(doc)}>Cetak / PDF</button><span>Diimpor {dateLabel(doc.uploaded_at)}</span></div>
             </article>)}</div>}
           </section>
-          <footer className="secModalFooter"><span>{totalDocs} berkas terhubung ke Meeting ID ini</span><button type="button" className="secPrimaryButton" onClick={closeDocuments}>Selesai</button></footer>
+          <footer className="secModalFooter"><span>{totalDocs} berkas pada kegiatan ini</span><button type="button" className="secPrimaryButton" onClick={closeDocuments}>Selesai</button></footer>
         </section>
       </div>,document.body)}
       </> : <div className="secLanding">
         <div className="secSummary"><div><span>Total Kegiatan / Register</span><strong>{rows.length}</strong></div><div><span>Undangan Tercatat</span><strong>{rows.filter((row)=>/undangan/i.test(row.meeting_type)).length}</strong></div><div><span>Kategori UMANG</span><strong>5</strong></div></div>
-        <section className="secTablePanel"><p>Ringkasan register kegiatan dan dokumentasi UMANG dalam satu Meeting ID. Pilih register untuk menelusuri nomor surat dan seluruh dokumen kegiatan.</p><div className="secToolbar"><div><strong>Administrasi Kegiatan Rumah Sakit</strong><p>Undangan, Materi, Absensi Digital, Notulensi, dan Gambar disimpan sebagai dokumen terstruktur.</p></div><button type="button" className="secPrimaryButton" onClick={()=>setShowRegister(true)}>Lihat Register Kegiatan</button></div>
+        <section className="secTablePanel"><p>Ringkasan kegiatan dan dokumen terkait. Pilih kegiatan untuk melihat nomor surat dan berkas pendukung.</p><div className="secToolbar"><div><strong>Administrasi Kegiatan Rumah Sakit</strong><p>Undangan, Materi, Absensi Digital, Notulensi, dan Gambar disimpan sebagai dokumen terstruktur.</p></div><button type="button" className="secPrimaryButton" onClick={()=>setShowRegister(true)}>Lihat Register Kegiatan</button></div>
           {section === 'invitations' && <div className="secNotice secNotice-info" role="status">Bagian ini saat ini menampilkan register dokumen undangan. Pengiriman undangan langsung ke PIC unit belum diaktifkan; tidak ada undangan yang dikirim otomatis.</div>}
         </section>
       </div>}

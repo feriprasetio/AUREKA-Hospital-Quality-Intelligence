@@ -18,7 +18,7 @@ test('Sekretariat is owned by PMKP, visible in the PMKP category, and active', (
   assert.deepEqual(readWorkspaceHash("#sekretariat"), { module:"secretariat", section:"register" })
   const workspace = read('components/governance/SecretariatWorkspace.tsx')
   assert.ok(workspace.includes('Register Dokumen'))
-  assert.ok(workspace.includes('Meeting ID'))
+  assert.ok(workspace.includes('Kode rapat'))
 })
 
 test('Sekretariat follows Administrasi Kegiatan with Register Kegiatan and Kirim Undangan subtabs', () => {
@@ -54,7 +54,7 @@ test('Secretariat workspace uses the existing backend register and contains no s
   assert.ok(workspace.includes('readLocalDocument(item.file)'))
   assert.ok(workspace.includes("source_mode:'data_only'"))
   assert.doesNotMatch(workspace, /\.storage\.from\(/)
-  assert.ok(workspace.includes('Meeting ID'))
+  assert.ok(workspace.includes('Kode rapat'))
   assert.doesNotMatch(workspace, /className="secPrivacyNote"|fetch\(.*https?:/)
   assert.ok(!workspace.includes('Pencatatan Sekretariat belum diaktifkan'))
   assert.ok(!workspace.includes('Tidak ada data contoh atau catatan rapat fiktif'))
