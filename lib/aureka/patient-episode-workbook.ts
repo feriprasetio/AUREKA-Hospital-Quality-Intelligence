@@ -132,7 +132,7 @@ const PROFILE_ALIASES = {
   targetOperator: ['Operator target', 'Target operator'],
   targetValue: ['Nilai target', 'Target value'],
   numerator: ['Pembilang', 'Definisi pembilang', 'Numerator', 'Definisi numerator'],
-  denominator: ['Penyebut', 'Definisi penyebut', 'Denominator', 'Definisi denominator'],
+  denominator: ['Penyebut', 'Definisi penyebut', 'Denominator', 'Denumerator', 'Definisi denominator'],
   options: ['Opsi JSON', 'Options JSON', 'Pilihan jawaban', 'Opsi jawaban', 'Kode pilihan', 'Klasifikasi jawaban'],
   schema: ['Schema JSON', 'Konfigurasi teknis'],
   option1: ['Kode 1', 'Code 1', 'Opsi 1', 'Label kode 1'],
@@ -358,7 +358,37 @@ function readProfile(get: (key: keyof typeof PROFILE_ALIASES) => Cell | undefine
   }
 }
 
+function readNumberedPmkpProfiles(sheet: Worksheet, logbook: EpisodeSheet, groups: Map<string, EpisodeOption[]>) {
+  for (let index = 1; index <= Math.min(sheet.rowCount, 10); index++) {
+    const row = sheet.getRow(index)
+    if (normalize(cellValue(row.getCell(1))) !== 'no' || normalize(cellValue(row.getCell(2))) !== 'unit' ||
+        normalize(cellValue(row.getCell(3))) !== 'judul indikator') continue
+    const indexes: Partial<Record<keyof typeof PROFILE_ALIASES, number>> = {
+      title: 3, numerator: 4, denominator: 5, kindLabel: 6, target: 7,
+    }
+    const optionColumns = headerColumns(sheet, index).filter(column => /^dropdown\s+\d+$/i.test(column.name))
+    const entries: WorkbookProfile[] = []
+    sheet.eachRow((data, position) => {
+      if (position <= index || !/^\d+$/.test(cellDisplay(data.getCell(1))) || !cellDisplay(data.getCell(3))) return
+      const entry = readProfile(key => indexes[key] ? data.getCell(indexes[key]!) : undefined, position, logbook, groups)
+      if (!entry) return
+      const original = cellValue(data.getCell(7))
+      if (typeof original === 'number' && /%/.test(data.getCell(7).numFmt ?? '')) {
+        entry.metadata.target_value = original * 100
+        entry.metadata.target_text = String(original * 100) + '%'
+      }
+      // The first column is just a worksheet sequence, not an AUREKA code.
+      entry.options = normalizeOptions(optionColumns.map(column => cellDisplay(data.getCell(column.index))).filter(Boolean))
+      entries.push(entry)
+    })
+    return entries
+  }
+  return null
+}
+
 function profileEntries(sheet: Worksheet, logbook: EpisodeSheet, groups: Map<string, EpisodeOption[]>): WorkbookProfile[] {
+  const pmkp = readNumberedPmkpProfiles(sheet, logbook, groups)
+  if (pmkp) return pmkp
   const entries: WorkbookProfile[] = []
   const aliases = Object.entries(PROFILE_ALIASES) as [keyof typeof PROFILE_ALIASES, readonly string[]][]
   let bestHeader = 0

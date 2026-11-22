@@ -3,6 +3,7 @@ import test from 'node:test'
 import ExcelJS from 'exceljs-hardened'
 import { readWorkbookSourceColumns, getWorkbookRuleColumn } from '../lib/aureka/quality-workbook-columns.ts'
 import { lastPharmacyDailyColumn } from '../lib/aureka/pharmacy-excel-import.ts'
+import { inspectEpisodeWorkbook } from '../lib/aureka/patient-episode-workbook.ts'
 import { prepareAnnualQualityCatalog } from '../lib/aureka/annual-quality-workbook.ts'
 import { parseOutpatientMatrixSheet } from '../lib/aureka/outpatient-excel-import.ts'
 
@@ -52,4 +53,20 @@ test('pharmacy excludes the duplicate headers in the monthly summary block', () 
   sheet.getCell('C10').value = 'Jumlah Copy Resep'
   sheet.getCell('G10').value = 'Jumlah Copy Resep'
   assert.equal(lastPharmacyDailyColumn(sheet), 5)
+})
+
+
+test('reads the PMKP numbered profile table beside the duplicate instrument header', () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Profil')
+  sheet.getRow(2).values = ['No.','Unit','Judul Indikator','Numerator','Denumerator','Jenis Indikator','Standar',null,'Dropdown 1']
+  sheet.getCell('U2').value = 'Judul Indikator'
+  sheet.getRow(3).values = [1,null,'Kelengkapan Uji','Terisi','Total','(INM)',0.8,null,'Lengkap (Code 1)']
+  sheet.getCell('G3').numFmt = '0%'
+  const profile = inspectEpisodeWorkbook(workbook).entries[0]
+  assert.equal(profile.code,'')
+  assert.equal(profile.title,'Kelengkapan Uji')
+  assert.equal(profile.metadata.denominator_definition,'Total')
+  assert.equal(profile.metadata.target_value,80)
+  assert.deepEqual(profile.options.map(option=>option.code),[1])
 })

@@ -123,8 +123,12 @@ export default function PatientEpisodeWorkbookDialog({
       if (parsed.profileSheet && !parsed.entries.length) {
         setError('Sheet Profil belum terbaca. Periksa kolom nama, kode, dan sumber indikator.')
       } else if (parsed.entries.length > 0) {
-        const plan = prepareMissingEpisodeProfiles(parsed, profiles, reference, roomId, roomName, year)
-        if (plan.issues.length) {
+        const withCodes = { ...parsed, entries: parsed.entries.filter(entry => entry.code) }
+        const sourceProfiles = parsed.entries.length - withCodes.entries.length
+        const plan = prepareMissingEpisodeProfiles(withCodes, profiles, reference, roomId, roomName, year)
+        if (sourceProfiles > 0 && !withCodes.entries.length) {
+          setAutofillNotice(sourceProfiles.toLocaleString('id-ID') + ' profil sumber terbaca. Nomor urut di workbook dipakai untuk penelusuran. Data dihubungkan ke kode master AUREKA yang aktif.')
+        } else if (plan.issues.length) {
           setError('Master belum diubah: ' + plan.issues.slice(0, 5).map(issue =>
             issue.location + ': ' + issue.message).join(' | '))
         } else if (plan.profiles.length && admin) {
