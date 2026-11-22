@@ -12,7 +12,7 @@ const grants = read('supabase/migrations/20261122002000_aureka_public_portal_str
 
 test('public portal provides a single intentional sign-in entry while registration remains in auth flow', () => {
   assert.equal(landing.match(/onClick=\{onLogin\}/g)?.length, 1)
-  assert.match(landing, /Masuk Workspace/)
+  assert.match(landing, /Masuk ke AUREKA/)
   assert.doesNotMatch(landing, /onSignup|Daftar akun unit/)
   assert.match(homeClient, /<PublicLandingPage[\s\S]*onLogin=/)
   assert.match(homeClient, /if\(view==='login'\|\|view==='signup'\)/)
