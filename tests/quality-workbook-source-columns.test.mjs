@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import ExcelJS from 'exceljs-hardened'
 import { readWorkbookSourceColumns, getWorkbookRuleColumn } from '../lib/aureka/quality-workbook-columns.ts'
+import { lastPharmacyDailyColumn } from '../lib/aureka/pharmacy-excel-import.ts'
 import { prepareAnnualQualityCatalog } from '../lib/aureka/annual-quality-workbook.ts'
 import { parseOutpatientMatrixSheet } from '../lib/aureka/outpatient-excel-import.ts'
 
@@ -40,4 +41,15 @@ test('provider-day matrix walks only consecutive date formulas and imports measu
   const result = parseOutpatientMatrixSheet(sheet,2026,[{clinic:'Klinik Uji',doctors:['Dokter Uji']}],new Set())
   assert.deepEqual(result.errors,[])
   assert.deepEqual(result.rows.map(row=>[row.date,row.waitingMinutes]),[['2026-01-01',10],['2026-01-02',0],['2026-01-03',20]])
+})
+
+
+test('pharmacy excludes the duplicate headers in the monthly summary block', () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Copy Resep Rajal')
+  sheet.mergeCells('F9:J9')
+  sheet.getCell('F9').value = 'Monthly Report'
+  sheet.getCell('C10').value = 'Jumlah Copy Resep'
+  sheet.getCell('G10').value = 'Jumlah Copy Resep'
+  assert.equal(lastPharmacyDailyColumn(sheet), 5)
 })

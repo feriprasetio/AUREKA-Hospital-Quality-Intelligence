@@ -1,3 +1,16 @@
+import type { Worksheet } from 'exceljs-hardened'
+
+export function lastPharmacyDailyColumn(sheet: Worksheet) {
+  const titleRow = sheet.getRow(9)
+  // The monthly summary repeats the daily numerator/denominator labels.
+  for (let column = 3; column <= 14; column++) {
+    const cell = titleRow.getCell(column)
+    if (cell.isMerged && cell.master.address !== cell.address) continue
+    if (/^(monthly report|laporan bulanan|rekap bulanan)$/i.test(cell.text.trim())) return column - 1
+  }
+  return 14
+}
+
 export const PHARMACY_INDICATOR_CODES = ['5.2', '5.3', '5.4', '5.5'] as const
 export type PharmacyIndicatorCode = typeof PHARMACY_INDICATOR_CODES[number]
 export type PharmacyImportStream = 'Rawat Jalan' | 'Rawat Inap'

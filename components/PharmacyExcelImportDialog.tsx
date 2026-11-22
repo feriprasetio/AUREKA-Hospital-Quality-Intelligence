@@ -4,7 +4,7 @@ import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { buildPharmacyImportRecords, PHARMACY_INDICATOR_CODES, type PharmacyImportRecord, type PharmacySourceObservation } from '@/lib/aureka/pharmacy-excel-import'
+import { buildPharmacyImportRecords, lastPharmacyDailyColumn, PHARMACY_INDICATOR_CODES, type PharmacyImportRecord, type PharmacySourceObservation } from '@/lib/aureka/pharmacy-excel-import'
 import { DEFAULT_IMPORT_BATCH_SIZE, MIN_IMPORT_BATCH_SIZE, isStatementTimeout, nextBatchSizeAfterTimeout } from '@/lib/aureka/import-batching'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -283,10 +283,11 @@ export default function PharmacyExcelImportDialog({
 
         const headerRow = worksheet.getRow(10)
         const headerColumns = new Map<string, number[]>()
-        // Source measurements are expected in the template's B:N region;
-        // later formula columns may repeat labels and are intentionally ignored.
-        for (let column = 2; column <= 14; column++) {
-          const label = cellText(headerRow.getCell(column))
+        const lastColumn = lastPharmacyDailyColumn(worksheet)
+        for (let column = 2; column <= lastColumn; column++) {
+          const cell = headerRow.getCell(column)
+          if (cell.isMerged && cell.master.address !== cell.address) continue
+          const label = cellText(cell)
           if (!label) continue
           const key = normalizeExactHeader(label)
           const matches = headerColumns.get(key) ?? []
