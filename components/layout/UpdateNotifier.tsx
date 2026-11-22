@@ -22,9 +22,15 @@ export default function UpdateNotifier() {
   useEffect(() => {
     let local = ''
     let busy = false
+    let lastCheckedAt = 0
+    const minCheckIntervalMs = 5 * 60 * 1000
     const check = async () => {
-      if (busy || document.visibilityState !== 'visible') return
+      const now = Date.now()
+      // Focus and visibility events often fire together; avoid downloading
+      // the full static home HTML on every tab switch.
+      if (busy || document.visibilityState !== 'visible' || now - lastCheckedAt < minCheckIntervalMs) return
       busy = true
+      lastCheckedAt = now
       try {
         local = local || currentSignature()
         const remote = await remoteSignature()
