@@ -78,8 +78,8 @@ export function resolveMeasurementKind(profile: IndicatorProfile): MeasurementKi
     const declared = normalize(value)
     if (!declared) continue
     if (['ratio', 'proportion', 'percentage', 'rate', 'numerator_denominator', 'numerator/denominator'].includes(declared)) return 'ratio'
-    if (['visit_window', 'clock_window', 'time_window', 'visit_time'].includes(declared)) return 'visit'
-    if (['door_to_decision', 'duration_between_times', 'time_interval', 'duration_between_events'].includes(declared)) return 'door'
+    if (['visit', 'visit_window', 'clock_window', 'time_window', 'visit_time'].includes(declared)) return 'visit'
+    if (['door', 'door_to_decision', 'duration_between_times', 'time_interval', 'duration_between_events'].includes(declared)) return 'door'
     if (['duration', 'duration_minutes', 'minutes', 'response_time_minutes'].includes(declared)) return 'minutes'
     if (['numeric', 'number', 'numeric_target', 'continuous_numeric'].includes(declared)) return 'numeric'
     if (['occurrence', 'event_occurrence', 'binary_event', 'event_count'].includes(declared)) return 'occurrence'
@@ -132,6 +132,43 @@ export function readTarget(profile: IndicatorProfile): { value: number | null; o
   const rawOperator = String(profile.target_operator ?? schema.target_operator ?? '').trim()
   const operator = rawOperator === '≤' ? '<=' : rawOperator === '≥' ? '>=' : rawOperator || operatorFromText(text)
   return { value, operator }
+}
+
+/**
+ * A percentage-of-observations target (e.g. 100% dialysis adequacy) is NOT
+ * a threshold for a raw continuous observation (e.g. Kt/V 1.3 or 42 minutes).
+ * A separately approved observation threshold is mandatory before counting
+ * individual measurements as meeting that percentage target.
+ */
+export function usesContinuousAttainmentTarget(profile: IndicatorProfile): boolean {
+  const kind = resolveMeasurementKind(profile)
+  if (!['door', 'minutes', 'numeric'].includes(kind)) return false
+  const schema = profile.schema_json ?? {}
+  const aggregation = normalize(schema.result_aggregation ?? schema.aggregation_mode)
+  return aggregation === 'attainment_percentage' ||
+    /%/.test(readText(profile.target_text) || readText(schema.target_text))
+}
+
+export function compareContinuousObservation(
+  profile: IndicatorProfile, actual: number | null | undefined, defaultOperator = '<=',
+): boolean | null {
+  if (!usesContinuousAttainmentTarget(profile)) {
+    return compareToTarget(profile, actual, defaultOperator)
+  }
+  const schema = profile.schema_json ?? {}
+  const rawThreshold = schema.observation_target_value
+  if (rawThreshold == null || String(rawThreshold).trim() === '') return null
+  const value = Number(String(rawThreshold).trim().replace(',', '.'))
+  if (!Number.isFinite(value)) return null
+  const operator = String(schema.observation_target_operator ?? '').trim()
+  if (!operator) return null
+  if (!['=', '<', '<=', '>', '>=', '≤', '≥'].includes(operator)) return null
+  return compareToTarget({
+    ...profile, target_value: value,
+    target_operator: operator,
+    target_text: '',
+    schema_json: {},
+  }, actual, defaultOperator)
 }
 
 export function compareToTarget(profile: IndicatorProfile, actual: number | null | undefined, defaultOperator = '='): boolean | null {

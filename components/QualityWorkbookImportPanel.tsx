@@ -2,6 +2,8 @@
 
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
+import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
+import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
@@ -35,7 +37,7 @@ type SavedMapping = WorkbookSourceRule & { target_type: string; target_key: stri
 const headerText = (columnKey: string) => columnKey.replace(/^[A-Z]+: /, '')
 type ImportIssue = { sheet: string; row: number; field: string; message: string }
 type StagedRow = { source_key: string; source_sheet: string; source_row: number; row_payload: Record<string, any> }
-type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; draftRows: number }
+type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; skippedTemplateRows: number; draftRows: number }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -184,6 +186,7 @@ export default function QualityWorkbookImportPanel({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [sourceNotes, setSourceNotes] = useState<string[]>([])
   const [batchId, setBatchId] = useState('')
   const [replaceConfirmed, setReplaceConfirmed] = useState(false)
 
@@ -213,13 +216,19 @@ export default function QualityWorkbookImportPanel({
 
   const inspect = async (file: File) => {
     setError(''); setNotice(''); setPreview(null); setBatchId(''); setReplaceConfirmed(false)
-    setSheets([]); setFileName(''); setFileHash('')
+    setSheets([]); setFileName(''); setFileHash(''); setSourceNotes([])
     workbookRef.current = null
     fileRef.current = null
     if (!/\.xlsx$/i.test(file.name) || file.size <= 0 || file.size > 25 * 1024 * 1024) {
       setError('Pilih workbook .xlsx yang valid dengan ukuran maksimum 25 MB.')
       return
     }
+    const routing = inspectQualityWorkbookRouting(file.name, roomId, year)
+    if (routing.blockers.length) {
+      setError(routing.blockers.join(' '))
+      return
+    }
+    setSourceNotes(routing.notes)
     try {
       const module = await import('exceljs-hardened')
       const ExcelJS: any = (module as any).default ?? module
@@ -252,6 +261,16 @@ export default function QualityWorkbookImportPanel({
         ?? detected.find(s => findHeader(s.headers, ['kode opsi', 'option code']) && findHeader(s.headers, ['kode indikator', 'indicator code']))
       let dSheet = detected.find(s => /^logbook$/i.test(s.name)) ?? detected.find(s => /logbook|rekap|data/i.test(s.name) && s.name !== pSheet?.name && s.name !== oSheet?.name)
         ?? detected.find(s => s.name !== pSheet?.name && s.name !== oSheet?.name)
+      // A known PMKP template (notably IGD) may use a non-default header row.
+      const verifiedRow = routing.hint?.headerRow
+      if (dSheet && /^logbook$/i.test(dSheet.name) && verifiedRow) {
+        const namedSheet = workbook.getWorksheet(dSheet.name)
+        const knownColumns = namedSheet ? readWorkbookSourceColumns(namedSheet.getRow(verifiedRow)) : []
+        if (knownColumns.length >= 3) dSheet = {
+          ...dSheet, headerRow: verifiedRow, columns: knownColumns,
+          headers: knownColumns.map(column => column.key),
+        }
+      }
       const { data: savedMap } = await q().rpc('quality_excel_header_mapping_list', {
         p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
       })
@@ -487,10 +506,22 @@ export default function QualityWorkbookImportPanel({
 
     const rows: StagedRow[] = []
     const seenSourceKeys = new Set<string>()
+    let skippedTemplateRows = 0
     if (importMode !== 'profiles_only') {
       if (!dataColumns.date) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Tanggal', message: 'Kolom tanggal wajib dipetakan agar catatan tidak hilang dari filter tahun laporan.' })
       if (importMode === 'data_only' && !activeProfiles.length) issues.push({ sheet: '-', row: 0, field: 'Profil aktif', message: 'Tidak ada profil indikator aktif untuk unit dan tahun terpilih.' })
       for (const source of sourceDataRows) {
+        const identityAndDateColumns = Object.values(dataColumns).filter(Boolean)
+        const responseColumns = [
+          ...Object.values(indicatorColumns), ...Object.values(numeratorColumns),
+          ...Object.values(denominatorColumns),
+        ].filter(Boolean)
+        if (!isMaterialWorkbookSourceRow(source.values, identityAndDateColumns, responseColumns)) {
+          // Numbered blank PMKP template rows and cached formula errors are not cases.
+          // Real rows with a person/date/selected observation still reach validation.
+          skippedTemplateRows++
+          continue
+        }
         const byGrain = new Map<string, any[]>()
         for (const profile of profiles) {
           const schemaMapping = profile.schema_json?.excel_mapping ?? {}
@@ -506,7 +537,7 @@ export default function QualityWorkbookImportPanel({
             // Formula cache errors must never turn into zero, a valid answer,
             // or a patient observation during a clinical import.
             const excelError = [rawCell, numeratorCell, denominatorCell].find(value =>
-              typeof value === 'string' && /^#(?:REF!|VALUE!|NUM!|NAME\?|DIV\/0!|N\/A|NULL!)/i.test(value),
+              isExcelSourceError(value),
             )
             if (excelError) throw new Error('Sumber Excel berisi error ' + excelError + '. Perbaiki sumber/pemetaan sebelum impor.')
             const kind = resolveMeasurementKind(profile)
@@ -620,8 +651,9 @@ export default function QualityWorkbookImportPanel({
             responses, attributions: [],
           }
           const identity = dataColumns.subject_key ? clean(source.values[dataColumns.subject_key]) : ''
-          if (dataMode === 'upsert' && !identity) {
-            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'ID subjek', message: 'Mode Upsert memerlukan ID subjek/episode yang stabil; nomor baris Excel tidak aman sebagai identitas.' })
+          if (!identity && (dataMode === 'upsert' || grain === 'patient_episode' || (roomId === 29 && grain === 'event'))) {
+            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas sumber',
+              message: 'Data episode pasien, insiden, dan Upsert memerlukan ID yang stabil (No. RM/ID episode/ID insiden). Nomor baris dan hash berkas tidak dapat menjadi bukti episode unik lintas versi workbook.' })
             continue
           }
           const sourceKey = await hash(JSON.stringify([roomId, year, importerKey, dataSheet, grain,
@@ -638,7 +670,7 @@ export default function QualityWorkbookImportPanel({
     }
     if (rows.length > 10000) issues.push({ sheet: dataSheet, row: 0, field: 'Batas impor', message: 'Jumlah record hasil pemetaan melebihi batas 10.000 per batch.' })
     if (importMode !== 'profiles_only' && !rows.length) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Respons', message: 'Tidak ada respons indikator valid yang dapat disimpan.' })
-    setPreview({ profiles, rows, issues, workbookRows: sourceDataRows.length, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
+    setPreview({ profiles, rows, issues, workbookRows: sourceDataRows.length, skippedTemplateRows, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
     if (issues.length) setError('Pratinjau menemukan ' + issues.length.toLocaleString('id-ID') + ' masalah. Perbaiki pemetaan atau nilai sumber sebelum commit.')
     else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber. ' + rows.filter(row => row.row_payload.record_payload.status === 'draft').length.toLocaleString('id-ID') + ' record parsial akan tetap draf.')
   }
@@ -756,6 +788,9 @@ export default function QualityWorkbookImportPanel({
       </label>
     </div>
     {fileName && <div style={{ fontSize: 11, color: '#5d7481' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
+    {sourceNotes.length > 0 && <div role="status" style={{fontSize:12,lineHeight:1.55,color:'#6c6045',padding:10,border:'1px solid #e9dfc5',borderRadius:9,background:'#fffcf3'}}>
+      {sourceNotes.map((item,index)=><p key={index} style={{margin:index?'5px 0 0':0}}>{item}</p>)}
+    </div>}
 
     {sheets.length > 0 && <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 9 }}>
@@ -840,7 +875,7 @@ export default function QualityWorkbookImportPanel({
     </div>
 
     {preview && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
-      {[['Profil',preview.profiles.length],['Baris sumber',preview.workbookRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 11, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
+      {[['Profil',preview.profiles.length],['Baris sumber (termasuk templat)',preview.workbookRows],['Baris templat diabaikan',preview.skippedTemplateRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 11, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
     </div>}
     {preview?.issues?.length ? <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #f0d7d2', borderRadius: 9, background: '#fff9f8', padding: 10 }}>
       <strong style={{ display: 'block', marginBottom: 7, fontSize: 12, color: '#92483d' }}>Masalah yang harus diperbaiki</strong>

@@ -800,3 +800,74 @@ test('inferred categorical episode profiles retain legacy numeric N/D records', 
   assert.equal(result.annualDenominator, 10)
   assert.equal(result.annualRate, 80)
 })
+
+
+test('Kt/V 100% attainment does not compare a raw dialysis measurement to the percentage target', () => {
+  const profile = {
+    room_id:8, code:'8.2', title:'Adekuasi Dialisis (Kt/V)', unit_of_measure:'%',
+    measurement_grain:'activity', target_text:'100%', target_operator:'=', target_value:100,
+    schema_json:{measurement_type:'numeric'},
+  }
+  const observation=(date,value)=>({
+    room_id:8,record_date:date,status:'validated',
+    core_data:{indicator_values:{'8.2':{value}}},
+  })
+  const rows=[
+    observation('2026-04-01',1.4),observation('2026-04-02',1.1),
+    observation('2026-04-03',1.3),
+  ]
+  const unconfigured=calculateIndicatorResult(profile,rows,2026)
+  assert.equal(unconfigured.annualMean,1.27)
+  assert.equal(unconfigured.annualRate,null)
+  assert.equal(unconfigured.annualTargetAttainment,null)
+  assert.equal(unconfigured.targetMet,null)
+  const configured=calculateIndicatorResult({
+    ...profile,
+    schema_json:{...profile.schema_json,observation_target_value:1.2,observation_target_operator:'>='},
+  },rows,2026)
+  assert.equal(configured.annualMean,1.27)
+  assert.equal(configured.annualRate,66.67)
+  assert.equal(configured.annualTargetAttainment,66.67)
+  assert.equal(configured.targetMet,false)
+})
+
+test('percentage-based duration targets require an explicit observation threshold and retain true multi-day intervals',()=>{
+  const profile={
+    room_id:29,code:'29.1',title:'Ketepatan Waktu Pelaporan Insiden',
+    measurement_grain:'event',target_text:'≥ 90%',target_operator:'>=',target_value:90,
+    schema_json:{measurement_type:'door'},
+  }
+  const row=(start,end)=>({
+    room_id:29,record_date:'2026-06-02',status:'validated',
+    core_data:{indicator_values:{'29.1':{start,end}}},
+  })
+  const rows=[
+    row('2026-06-01T23:55:00+07:00','2026-06-02T00:15:00+07:00'),
+    row('2026-06-01T23:55:00+07:00','2026-06-03T00:15:00+07:00'),
+  ]
+  const before=calculateIndicatorResult(profile,rows,2026)
+  assert.equal(before.annualMean,740)
+  assert.equal(before.annualRate,null)
+  assert.equal(before.targetMet,null)
+  const after=calculateIndicatorResult({
+    ...profile,
+    schema_json:{...profile.schema_json,observation_target_value:60,observation_target_operator:'<='},
+  },rows,2026)
+  assert.equal(after.annualMean,740)
+  assert.equal(after.annualRate,50)
+  assert.equal(after.targetMet,false)
+})
+
+test('clock-only response minutes correctly roll over at midnight for a direct-minute target',()=>{
+  const profile={
+    room_id:3,code:'3.1',title:'Lama respons ambulans',
+    measurement_grain:'event',target_text:'≤ 30 menit',target_operator:'<=',target_value:30,
+    schema_json:{measurement_type:'door'},
+  }
+  const result=calculateIndicatorResult(profile,[{
+    room_id:3,record_date:'2026-06-01',status:'validated',
+    core_data:{indicator_values:{'3.1':{start:'23:55',end:'00:15'}}},
+  }],2026)
+  assert.equal(result.annualMean,20)
+  assert.equal(result.targetMet,true)
+})

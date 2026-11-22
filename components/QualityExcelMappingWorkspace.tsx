@@ -810,6 +810,29 @@ export default function QualityExcelMappingWorkspace({
                 <option value="negative">Negatif · makin rendah makin baik</option>
               </select>
             </label>
+            <label>Ambang per pengamatan (contoh menit atau Kt/V)
+              <input type="number" step="any"
+                value={profileSchema.observation_target_value ?? ''}
+                onChange={event => updateProfileSchema({
+                  observation_target_value: event.target.value === '' ? null : Number(event.target.value),
+                })} placeholder="Belum ditetapkan oleh PMKP"/>
+            </label>
+            <label>Operator ambang per pengamatan
+              <select value={String(profileSchema.observation_target_operator ?? '')}
+                onChange={event => updateProfileSchema({ observation_target_operator: event.target.value })}>
+                <option value="">Belum ditetapkan</option>
+                <option value=">=">≥ Lebih besar atau sama dengan</option>
+                <option value="<=">≤ Lebih kecil atau sama dengan</option>
+                <option value="=">= Sama dengan</option>
+                <option value=">">&gt; Lebih besar dari</option>
+                <option value="<">&lt; Lebih kecil dari</option>
+              </select>
+            </label>
+            <p className="qemMuted" style={{gridColumn:'1 / -1'}}>
+              Indikator waktu dan nilai numerik dengan target agregat dalam persen membutuhkan ambang per pengamatan
+              yang disetujui PMKP sebelum persentase pemenuhan dapat dihitung. Misalnya Kt/V adalah nilai ukur,
+              bukan langsung 100%. Jika ambang belum ditetapkan, capaian tetap tidak dapat dinilai—bukan 0%.
+            </p>
             <div style={{ gridColumn: '1 / -1', display: 'grid', gap: 7 }}>
               <strong style={{ fontSize: 12 }}>Kode dan opsi jawaban logbook</strong>
               <QualityOptionEditor text={profileDraft.options_text}
