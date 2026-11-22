@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
@@ -8,6 +9,8 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 import AurekaModal from '@/components/ui/AurekaModal'
 import IndicatorCoveragePanel from '@/components/quality/IndicatorCoveragePanel'
+import OptionsEditor from '@/components/quality/QualityOptionEditor'
+const QualityExcelMappingWorkspace = dynamic(() => import('@/components/QualityExcelMappingWorkspace'), { ssr: false })
 import { buildIndicatorProfileBackup, buildIndicatorProfileXlsx, parseIndicatorProfileXlsx, type IndicatorProfileBackup } from '@/lib/aureka/indicator-profile-transfer'
 
 const sb = aurekaSupabase
@@ -15,29 +18,6 @@ const q = () => sb.schema('aureka_quality')
 const grains = ['patient_episode', 'provider_day', 'daily_metric', 'event', 'activity', 'aggregate']
 const GRAIN_LABEL: Record<string, string> = { patient_episode: 'Per pasien (episode)', provider_day: 'Per petugas per hari', daily_metric: 'Angka harian', event: 'Per kejadian', activity: 'Per kegiatan / observasi', aggregate: 'Rekap agregat' }
 
-type OptionRow = { label: string; code: string | null; numerator: boolean | null; denominator: boolean; review_required: boolean; [key: string]: unknown }
-/** Editor opsi jawaban yang ramah: menggantikan isian JSON mentah. Kunci tambahan di tiap opsi tetap dipertahankan. */
-function OptionsEditor({ text, onChange }: { text: string; onChange: (next: string) => void }) {
-  let rows: OptionRow[] | null = null
-  try { const parsed = JSON.parse(text || '[]'); if (Array.isArray(parsed)) rows = parsed.map((o) => ({ label: '', code: null, numerator: null, denominator: true, review_required: false, ...(o && typeof o === 'object' ? o : { label: String(o) }) })) } catch { rows = null }
-  if (!rows) return <div className="qsOptWarn">Daftar opsi tersimpan dalam format yang tidak dikenali. Buka "Pengaturan lanjutan" di bawah untuk memperbaikinya.</div>
-  const write = (next: OptionRow[]) => onChange(JSON.stringify(next, null, 2))
-  const set = (i: number, patch: Partial<OptionRow>) => write(rows!.map((r, idx) => idx === i ? { ...r, ...patch } : r))
-  return <div className="qsOpts">
-    {rows.length === 0 && <p className="qsOptEmpty">Belum ada opsi jawaban. Tambahkan pilihan yang akan dipilih petugas saat mengisi logbook.</p>}
-    {rows.map((r, i) => <div className="qsOptRow" key={i}>
-      <span className="qsOptNo" aria-hidden="true">{i + 1}</span>
-      <input className="qsOptLabel" value={r.label} placeholder="Teks pilihan, mis. Sesuai standar" aria-label={'Teks opsi ' + (i + 1)} onChange={(e) => set(i, { label: e.target.value })} />
-      <select aria-label={'Masuk pembilang (numerator) opsi ' + (i + 1)} value={r.numerator === true ? 'yes' : r.numerator === false ? 'no' : 'none'} onChange={(e) => set(i, { numerator: e.target.value === 'yes' ? true : e.target.value === 'no' ? false : null })}>
-        <option value="yes">Dihitung sesuai (pembilang)</option><option value="no">Tidak sesuai</option><option value="none">Perlu ditinjau</option>
-      </select>
-      <label className="qsOptCheck"><input type="checkbox" checked={r.denominator !== false} onChange={(e) => set(i, { denominator: e.target.checked })} />Masuk penyebut</label>
-      <label className="qsOptCheck"><input type="checkbox" checked={!!r.review_required} onChange={(e) => set(i, { review_required: e.target.checked })} />Wajib alasan</label>
-      <button type="button" className="qsOptDel" aria-label={'Hapus opsi ' + (i + 1)} onClick={() => write(rows!.filter((_, idx) => idx !== i))}>×</button>
-    </div>)}
-    <button type="button" className="qsOptAdd" onClick={() => write([...rows!, { label: '', code: null, numerator: true, denominator: true, review_required: false }])}>+ Tambah opsi jawaban</button>
-  </div>
-}
 const YEARS = Array.from({ length: 12 }, (_, i) => 2024 + i)
 
 type Room = { id: number; name: string }
@@ -430,15 +410,9 @@ function UnitLiveProfileEditor({
               <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
                 {textarea('Definisi numerator / pembilang', model.numerator_definition, value => updateDraft(index, { numerator_definition: value }))}
                 {textarea('Definisi denominator / penyebut', model.denominator_definition, value => updateDraft(index, { denominator_definition: value }))}
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#315d45' }}>Pemetaan sumber Excel → indikator {model.code}</div>
-                <div style={gridStyle}>
-                  {input('Nama worksheet sumber', model._excel_worksheet, value => updateDraft(index, { _excel_worksheet: value }), { placeholder: 'Mis. Logbook' })}
-                  {input('Header kolom yang berisi indikator ini', model._excel_indicator_header, value => updateDraft(index, { _excel_indicator_header: value }), { placeholder: 'Mis. Kecepatan Penyelesaian IT' })}
-                  {input('Header tanggal pengukuran', model._excel_date_header, value => updateDraft(index, { _excel_date_header: value }), { placeholder: 'Mis. Tanggal' })}
-                  {input('Header numerator', model._excel_numerator_header, value => updateDraft(index, { _excel_numerator_header: value }), { placeholder: 'Mis. Jumlah tepat waktu' })}
-                  {input('Header denominator', model._excel_denominator_header, value => updateDraft(index, { _excel_denominator_header: value }), { placeholder: 'Mis. Jumlah laporan' })}
-                  {input('Header jawaban / opsi', model._excel_answer_header, value => updateDraft(index, { _excel_answer_header: value }), { placeholder: 'Mis. Status penyelesaian' })}
-                  {input('Header catatan / alasan', model._excel_notes_header, value => updateDraft(index, { _excel_notes_header: value }), { placeholder: 'Mis. Keterangan' })}
+                <div style={{ padding: 10, border: '1px solid var(--line)', borderRadius: 9, fontSize: 12, color: 'var(--muted)', lineHeight: 1.55 }}>
+                  Pemetaan kolom sumber dilakukan melalui tombol <strong>Pilih Kolom dari Excel</strong> di Profil Indikator.
+                  Unggah workbook, pilih sheet Logbook, lalu klik dropdown huruf kolom. Aturan header lama tetap dipertahankan ketika menyimpan perubahan definisi.
                 </div>
                 <div style={{ display: 'grid', gap: 6 }}>
                   <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 700 }}>Opsi jawaban / instrumen</span>
@@ -482,6 +456,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [unitBatchOpen, setUnitBatchOpen] = useState(false)
+  const [excelMappingOpen, setExcelMappingOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Model | null>(null)
   // Mutasi kamus profil hanya untuk Super Admin; role lain tetap dapat membaca profil dan memakai alur usulan yang memiliki otorisasi tersendiri.
   const canManageCatalog = role === 'ADMIN'
@@ -517,7 +492,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   useEffect(() => { void load() }, [load])
 
   useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(false) }, [initialTab])
-  useEffect(() => { if (tab !== 'profiles') { setProfileWorkspaceOpen(false) } }, [tab])
+  useEffect(() => { if (tab !== 'profiles') { setProfileWorkspaceOpen(false); setExcelMappingOpen(false) } }, [tab])
 
   const programs = useMemo(() => {
     const values = new Set<string>()
@@ -954,12 +929,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi numerator</span><textarea value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
         <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi denominator</span><textarea value={model.denominator_definition || ''} onChange={(e) => setModel({ ...model, denominator_definition: e.target.value })} /></label>
         <div className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Opsi jawaban di logbook</span><OptionsEditor text={model._options_text ?? '[]'} onChange={(next) => setModel({ ...model, _options_text: next })} /></div>
-        <details className="qsAdvanced" style={{ gridColumn: '1/-1' }}>
-          <summary>Pengaturan lanjutan (khusus admin teknis)</summary>
-          <p>Pengaturan ini hanya perlu diubah jika struktur instrumen atau pilihan respons diperbarui.</p>
-          <label className="field" style={fieldStyle}><span>Struktur instrumen</span><textarea style={{ minHeight: 95, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._schema_text ?? '{}'} onChange={(e) => setModel({ ...model, _schema_text: e.target.value })} /></label>
-          <label className="field" style={fieldStyle}><span>Daftar opsi (format data)</span><textarea style={{ minHeight: 120, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._options_text ?? '[]'} onChange={(e) => setModel({ ...model, _options_text: e.target.value })} /></label>
-        </details>
+        <div className="field" style={{ gridColumn: '1/-1', padding: 10, border: '1px solid var(--line)', borderRadius: 10, fontSize: 12, color: 'var(--muted)' }}>
+          Pengaturan instrumen dibuat dari pilihan GUI di atas. Metadata lanjutan yang telah tersimpan tetap dipertahankan otomatis pada versi baru. Pemetaan Excel dilakukan melalui tombol <strong>Pilih Kolom dari Excel</strong>.
+        </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(null); setNewOne(null) }}>Batal</button>
@@ -1035,7 +1007,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
           </div>
         )}
 
-        {tab === 'profiles' && !profileWorkspaceOpen && (
+        {tab === 'profiles' && excelMappingOpen && <QualityExcelMappingWorkspace rooms={rooms} initialRoomId={room ? Number(room) : initialRoomId} year={year} role={role} onClose={()=>setExcelMappingOpen(false)}/>}
+        {tab === 'profiles' && !excelMappingOpen && !profileWorkspaceOpen && (
           <section className="qsProfileIntelligence" aria-label="Ringkasan Profil Indikator" style={{marginTop:12,display:'grid',gap:14}}>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:10}}>
               <div className="qsProfileIntelligenceMetric"><span>Indikator aktif</span><strong>{activeProfileCount.toLocaleString('id-ID')}</strong></div>
@@ -1047,11 +1020,12 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               <div><strong>Status penyusunan profil</strong><p style={{margin:'5px 0 0',fontSize:12,lineHeight:1.55,color:'var(--muted)'}}>Ringkasan status kamus indikator untuk tahun dan cakupan unit yang dipilih. Angka dihitung dari profil yang berhasil dimuat; target yang belum disahkan tidak dianggap sebagai target resmi.</p></div>
               <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                 <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceOpen(true)}}>Lihat Profil Indikator</button>
+                {(role === 'ADMIN' || role === 'PMKP') && <button type="button" className="textButton" onClick={()=>setExcelMappingOpen(true)}>Pilih Kolom dari Excel</button>
               </div>
             </div>
           </section>
         )}
-        {tab === 'profiles' && profileWorkspaceOpen && (
+        {tab === 'profiles' && !excelMappingOpen && profileWorkspaceOpen && (
           <div style={{ marginTop: 12 }}>
             <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
               <button type="button" className="textButton" onClick={()=>setProfileWorkspaceOpen(false)}>Kembali ke ringkasan</button>
@@ -1079,7 +1053,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active'); setProfileGrouping('all') }}>Reset filter</button>
-              {canManageCatalog && <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX</LiquidGlassButton>}
+              {(role === 'ADMIN' || role === 'PMKP') && <LiquidGlassButton onClick={()=>setExcelMappingOpen(true)} disabled={saving || loading}>Pilih Kolom dari Excel</LiquidGlassButton>}
+              {canManageCatalog && <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX Profil</LiquidGlassButton>
               <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
               {canManageCatalog && room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
               {canManageCatalog && <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>}
