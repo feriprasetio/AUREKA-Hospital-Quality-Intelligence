@@ -776,7 +776,7 @@ export default function QualityWorkbookImportPanel({
     {fileName && <div style={{ fontSize: 11, color: '#5d7481' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
     {sourceNotes.length > 0 && <div role="status" style={{fontSize:12,lineHeight:1.55,color:'#6c6045',padding:10,border:'1px solid #e9dfc5',borderRadius:9,background:'#fffcf3'}}>
       {sourceNotes.map((item,index)=><p key={index} style={{margin:index?'5px 0 0':0}}>{item}</p>)}
-    </div>}}
+    </div>}
 
     {sheets.length > 0 && <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 9 }}>
